@@ -12,7 +12,7 @@ system.
 
 The DDC-2.x branch is maintained in SVN under:
 
- svn+ssh://odo.dwds.de/home/svn/dev/ddc/trunk
+ https://ddc-concordance.svn.sourceforge.net/svnroot/ddc-concordance
 
 =head1 DEPENDENCIES
 
@@ -32,8 +32,7 @@ this package B<BEFORE> attempting to build ddc-morph.
 
 The ddc-morph sources are maintained in SVN under:
 
- svn+ssh://odo.dwds.de/home/svn/dev/ddc-morph/trunk
-
+ https://ddc-concordance.svn.sourceforge.net/svnroot/ddc-morph
 
 =item libpcre, libpcrecpp
 

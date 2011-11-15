@@ -8,7 +8,7 @@ DESCRIPTION
 
     The DDC-2.x branch is maintained in SVN under:
 
-     svn+ssh://odo.dwds.de/home/svn/dev/ddc/trunk
+     https://ddc-concordance.svn.sourceforge.net/svnroot/ddc-concordance
 
 DEPENDENCIES
     ddc-morph >= v2.0.0
@@ -23,7 +23,7 @@ DEPENDENCIES
 
         The ddc-morph sources are maintained in SVN under:
 
-         svn+ssh://odo.dwds.de/home/svn/dev/ddc-morph/trunk
+         https://ddc-concordance.svn.sourceforge.net/svnroot/ddc-morph
 
     libpcre, libpcrecpp
         Perl-compatibile regular expression C library and C++ wrappers.
