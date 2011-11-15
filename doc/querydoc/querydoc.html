@@ -1,0 +1,2569 @@
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<title>DDC Query Language Documentation</title>
+<link rel="stylesheet" href="querydoc.css" type="text/css">
+</head>
+<body><div class="outer">
+<div class="title"><h1><a name="top">DDC Query Language Documentation</a></h1></div>
+<div class="headers">
+<h2>Contents</h2>
+<ul class="contents-list">
+<li><a href="#overview">Overview</a></li>
+<li>
+<a href="#grammar">Grammar Rules</a><ul>
+<li><a href="#toplevel">Top-Level Rule(s)</a></li>
+<li><a href="#query">Query Rules</a></li>
+<li><a href="#filters">Query Filter Rules</a></li>
+<li><a href="#list">List-like Constituents</a></li>
+<li><a href="#list">Preterminals and Aliases</a></li>
+</ul>
+</li>
+<li>
+<a href="#terminals">Terminal Symbols</a><ul>
+<li><a href="#term_common">Common Definitions</a></li>
+<li><a href="#term_PUNCT">Punctutation Operators and Special Characters</a></li>
+<li><a href="#term_KEYWORD">Query Keywords</a></li>
+<li><a href="#term_INTEGER">INTEGER</a></li>
+<li><a href="#term_DATE">DATE</a></li>
+<li><a href="#term_REGEX">REGEX</a></li>
+<li>
+<a href="#term_SYMBOL">SYMBOL</a><ul><li><a href="#escapes">Escapes</a></li></ul>
+</li>
+<li><a href="#term_trunc">Truncated Symbols</a></li>
+<li><a href="#term_EXPANDER">Term Expander Pipelines</a></li>
+<li><a href="#term_other">Other Terminals</a></li>
+</ul>
+</li>
+<li>
+<a href="#misc">Miscellany</a><ul><li><a href="#misc_compile">Compilation Errors</a></li></ul>
+</li>
+<li>
+<a href="#dta">DTA Corpus Structure</a><ul>
+<li><a href="#dta_fields">DTA Index Fields</a></li>
+<li><a href="#dta_expand">DTA Term Expanders</a></li>
+</ul>
+</li>
+<li>
+<a href="#ex">Examples</a><ul>
+<li><a href="#ex_basic">Basic Examples</a></li>
+<li><a href="#ex_multi">Term Expansion Examples</a></li>
+<li><a href="#ex_multi">Multi-Token Examples</a></li>
+<li><a href="#ex_filter">Query Filter Examples</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="contents"><body>
+
+    <!-- ============================================================= -->
+    <!-- Overview -->
+    <div class="section">
+<h2><a name="overview">Overview</a></h2>
+<p>
+	This documentation describes the query language accepted by
+	DDC version 1.80.dx-1.  Current sources for DDC should be available
+	in SVN under
+	<a href="http://odo.dwds.de/code/viewvc.cgi/ddc/trunk/?root=dev">svn+ssh://odo.dwds.de/home/svn/dev/ddc/trunk</a>.
+      </p>
+<p>
+	The DDC query parsing, compilation, and evaluation code was
+	re-written for version 1.80.dx-1.  The new query parser should be
+	largely compatible with older DDC versions; incompatibilities are
+	due to new query sub-types (e.g. <a href="#value_set">value sets</a>)
+	and/or bugfixes (symbol and regex escapes, quoted symbols, etc.).
+	Documentation for the legacy DDC query language can be found with
+	the source or on the web at
+	<a href="http://odo.dwds.de/~moocow/software/ddc/DDCReadme.pdf">http://odo.dwds.de/~moocow/software/ddc/DDCReadme.pdf</a>.
+      </p>
+<p>
+	The grammar <a href="#grammar">below</a> is given in a subset of standard
+	<a href="http://en.wikipedia.org/wiki/Backus%E2%80%93Naur_Form">BNF notation</a>
+	using only the choice ("|") and termination (";") operators.
+	Where available, nonterminal symbols on the right-hand side of grammar rules
+	appear as
+	<span class="ruleNonterminal"><a name="ex_nonterm"><a href="#ex_nonterm">italicized lower-case hyperlinks</a></a></span>.
+	Literal terminal symbols are typeset in <span class="ruleTerminal">green monospace</span>,
+	and special terminal symbols appear as
+	<span class="ruleXTerminal"><a name="ex_xterm"><a href="#ex_xterm">ITALICIZED UPPER-CASE HYPERLINKS</a></a></span>.
+	Comments may appear after each rule in C notation
+	<span class="ruleComment">/* like this */</span>.
+      </p>
+</div>
+    <!--/overview-->
+
+    <!-- ============================================================= -->
+    <!-- Grammar -->
+    <div class="section">
+<h2><a name="grammar">Grammar Rules</a></h2>
+<!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ --><!-- Grammar: Top-Level --><div class="subsection">
+<h3><a name="toplevel">Top-Level Rule(s)</a></h3>
+<table class="rulesTable">
+<tr>
+<td><b><a name="rule_query">query</a></b></td>
+<td>::=</td>
+<td></td>
+<td class="ruleCommentTop">/* Top-level rule (query root) */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS1">
+<span class="ruleNonterminal"><a href="#rule_q_clause">q_clause</a></span> <span class="ruleNonterminal"><a href="#rule_q_filters">q_filters</a></span> </td>
+<td class="ruleComment">/* Filters may be empty */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td><b>;</b></td>
+</tr>
+<tr></tr>
+</table>
+</div>
+<!--/rules:toplevel--><!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ --><!-- Grammar: Query Rules --><div class="subsection">
+<h3><a name="query">Query Rules</a></h3>
+<table class="rulesTable">
+<tr>
+<td><b><a name="rule_q_clause">q_clause</a></b></td>
+<td>::=</td>
+<td></td>
+<td class="ruleCommentTop">/* Main query clause (logical operations) */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS1">
+<span class="ruleNonterminal"><a href="#rule_qc_basic">qc_basic</a></span> </td>
+<td class="ruleComment">/* Single-condition clause */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_q_clause">q_clause</a></span> <span class="ruleTerminal">&amp;&amp;</span> <span class="ruleNonterminal"><a href="#rule_q_clause">q_clause</a></span> </td>
+<td class="ruleComment">/* Logical conjunction ('and') */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_q_clause">q_clause</a></span> <span class="ruleTerminal">||</span> <span class="ruleNonterminal"><a href="#rule_q_clause">q_clause</a></span> </td>
+<td class="ruleComment">/* Logical disjunction ('or') */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleTerminal">!</span> <span class="ruleNonterminal"><a href="#rule_q_clause">q_clause</a></span> </td>
+<td class="ruleComment">/* Logical negation ('not'): not be interpretable for all clauses */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleTerminal">(</span> <span class="ruleNonterminal"><a href="#rule_q_clause">q_clause</a></span> <span class="ruleTerminal">)</span> </td>
+<td class="ruleComment">/* Explicit grouping */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td><b>;</b></td>
+</tr>
+<tr></tr>
+<tr>
+<td><b><a name="rule_qc_basic">qc_basic</a></b></td>
+<td>::=</td>
+<td></td>
+<td class="ruleCommentTop">/* Basic query clause (single logical condition) */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS1">
+<span class="ruleNonterminal"><a href="#rule_qc_tokens">qc_tokens</a></span> </td>
+<td class="ruleComment">/* Sequence or single-token condition */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_qc_near">qc_near</a></span> </td>
+<td class="ruleComment">/* Unordered proximity constraint */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td><b>;</b></td>
+</tr>
+<tr></tr>
+<tr>
+<td><b><a name="rule_qc_near">qc_near</a></b></td>
+<td>::=</td>
+<td></td>
+<td class="ruleCommentTop">/* Unordered proximity constraint */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS1">
+<span class="ruleTerminal">NEAR</span> <span class="ruleTerminal">(</span> <span class="ruleNonterminal"><a href="#rule_qc_tokens">qc_tokens</a></span> <span class="ruleTerminal">,</span> <span class="ruleNonterminal"><a href="#rule_qc_tokens">qc_tokens</a></span> <span class="ruleTerminal">,</span> <span class="ruleNonterminal"><a href="#rule_integer">integer</a></span> <span class="ruleTerminal">)</span> </td>
+<td class="ruleComment">/* ... over 2 argument conditions */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleTerminal">NEAR</span> <span class="ruleTerminal">(</span> <span class="ruleNonterminal"><a href="#rule_qc_tokens">qc_tokens</a></span> <span class="ruleTerminal">,</span> <span class="ruleNonterminal"><a href="#rule_qc_tokens">qc_tokens</a></span> <span class="ruleTerminal">,</span> <span class="ruleNonterminal"><a href="#rule_qc_tokens">qc_tokens</a></span> <span class="ruleTerminal">,</span> <span class="ruleNonterminal"><a href="#rule_integer">integer</a></span> <span class="ruleTerminal">)</span> </td>
+<td class="ruleComment">/* ... over 3 argument conditions */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleTerminal">(</span> <span class="ruleNonterminal"><a href="#rule_qc_near">qc_near</a></span> <span class="ruleTerminal">)</span> </td>
+<td class="ruleComment">/* Explicit grouping (vacuous) */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td><b>;</b></td>
+</tr>
+<tr></tr>
+<tr>
+<td><b><a name="rule_qc_tokens">qc_tokens</a></b></td>
+<td>::=</td>
+<td></td>
+<td class="ruleCommentTop">/* Sequence or single-token condition */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS1">
+<span class="ruleNonterminal"><a href="#rule_qc_word">qc_word</a></span> </td>
+<td class="ruleComment">/* Single-token condition */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_qc_sequence">qc_sequence</a></span> </td>
+<td class="ruleComment">/* Ordered sequence of single-token conditions */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td><b>;</b></td>
+</tr>
+<tr></tr>
+<tr>
+<td><b><a name="rule_qc_sequence">qc_sequence</a></b></td>
+<td>::=</td>
+<td></td>
+<td class="ruleCommentTop">/* Ordered sequence of single-token conditions */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS1">
+<span class="ruleTerminal">"</span> <span class="ruleNonterminal"><a href="#rule_l_seq">l_seq</a></span> <span class="ruleTerminal">"</span> </td>
+<td class="ruleComment">/* Sequences are enclosed in double-quotes */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleTerminal">(</span> <span class="ruleNonterminal"><a href="#rule_qc_sequence">qc_sequence</a></span> <span class="ruleTerminal">)</span> </td>
+<td class="ruleComment">/* Explicit grouping (vacuous) */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td><b>;</b></td>
+</tr>
+<tr></tr>
+<tr>
+<td><b><a name="rule_qc_word">qc_word</a></b></td>
+<td>::=</td>
+<td></td>
+<td class="ruleCommentTop">/* Single-token condition */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS1">
+<span class="ruleNonterminal"><a href="#rule_qw_bareword">qw_bareword</a></span> </td>
+<td class="ruleComment">/* Bareword query (expanded) */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_qw_exact">qw_exact</a></span> </td>
+<td class="ruleComment">/* Exact match (not expanded) */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_qw_regex">qw_regex</a></span> </td>
+<td class="ruleComment">/* Regular expression */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_qw_set_infl">qw_set_infl</a></span> </td>
+<td class="ruleComment">/* Disjunction over a set of targets (expanded) */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_qw_set_exact">qw_set_exact</a></span> </td>
+<td class="ruleComment">/* Disjunction over a set of literals (not expanded) */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_qw_prefix">qw_prefix</a></span> </td>
+<td class="ruleComment">/* Right-truncated string (prefix condition) */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_qw_prefix_set">qw_prefix_set</a></span> </td>
+<td class="ruleComment">/* Disjunction over right-truncated strings (prefix-set condition) */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_qw_suffix">qw_suffix</a></span> </td>
+<td class="ruleComment">/* Left-truncated string (suffix condition) */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_qw_suffix_set">qw_suffix_set</a></span> </td>
+<td class="ruleComment">/* Disjunction over left-truncated strings (suffix-set condition) */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_qw_infix">qw_infix</a></span> </td>
+<td class="ruleComment">/* Substring (infix) condition */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_qw_infix_set">qw_infix_set</a></span> </td>
+<td class="ruleComment">/* Disjunction over substrings (infix-set condition) */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_qw_thesaurus">qw_thesaurus</a></span> </td>
+<td class="ruleComment">/* Thesaurus condition ('Thes' index) */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_qw_morph">qw_morph</a></span> </td>
+<td class="ruleComment">/* Morphological property condition ('MorphPattern' index) */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_qw_lemma">qw_lemma</a></span> </td>
+<td class="ruleComment">/* Lemma property condition ('Lemma' index) */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_qw_chunk">qw_chunk</a></span> </td>
+<td class="ruleComment">/* Syntactic property condition ('Chunk' index) */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_qw_listfile">qw_listfile</a></span> </td>
+<td class="ruleComment">/* Disjunction over values (lines) read from a server-side file (command-line only) */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_qw_with">qw_with</a></span> </td>
+<td class="ruleComment">/* Conjunction of multiple conditions on a single token */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleTerminal">(</span> <span class="ruleNonterminal"><a href="#rule_qc_word">qc_word</a></span> <span class="ruleTerminal">)</span> </td>
+<td class="ruleComment">/* Explicit grouping (e.g. for WITH, expanders, etc.) */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td><b>;</b></td>
+</tr>
+<tr></tr>
+<tr>
+<td><b><a name="rule_qw_bareword">qw_bareword</a></b></td>
+<td>::=</td>
+<td></td>
+<td class="ruleCommentTop">/* String match condition with implicit term expansion */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS1">
+<span class="ruleNonterminal"><a href="#rule_s_word">s_word</a></span> <span class="ruleNonterminal"><a href="#rule_l_txchain">l_txchain</a></span> </td>
+<td class="ruleComment">/* ... on 'Token' index, with optional expansion pipeline */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_s_index">s_index</a></span> <span class="ruleTerminal">=</span> <span class="ruleNonterminal"><a href="#rule_s_word">s_word</a></span> <span class="ruleNonterminal"><a href="#rule_l_txchain">l_txchain</a></span> </td>
+<td class="ruleComment">/* ... on user-specified index, with optional expansion pipeline */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td><b>;</b></td>
+</tr>
+<tr></tr>
+<tr>
+<td><b><a name="rule_qw_exact">qw_exact</a></b></td>
+<td>::=</td>
+<td></td>
+<td class="ruleCommentTop">/* Literal string match condition */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS1">
+<span class="ruleTerminal">@</span> <span class="ruleNonterminal"><a href="#rule_s_word">s_word</a></span> </td>
+<td class="ruleComment">/* ... on 'Token' index */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_s_index">s_index</a></span> <span class="ruleTerminal">=</span> <span class="ruleTerminal">@</span> <span class="ruleNonterminal"><a href="#rule_s_word">s_word</a></span> </td>
+<td class="ruleComment">/* ... or on user-specified index */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td><b>;</b></td>
+</tr>
+<tr></tr>
+<tr>
+<td><b><a name="rule_qw_regex">qw_regex</a></b></td>
+<td>::=</td>
+<td></td>
+<td class="ruleCommentTop">/* Regular expression match using perl syntax */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS1">
+<span class="ruleNonterminal"><a href="#rule_regex">regex</a></span> </td>
+<td class="ruleComment">/* ... on 'Token' index */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_s_index">s_index</a></span> <span class="ruleTerminal">=</span> <span class="ruleNonterminal"><a href="#rule_regex">regex</a></span> </td>
+<td class="ruleComment">/* ... on user-specified index */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td><b>;</b></td>
+</tr>
+<tr></tr>
+<tr>
+<td><b><a name="rule_qw_set_infl">qw_set_infl</a></b></td>
+<td>::=</td>
+<td></td>
+<td class="ruleCommentTop">/* Disjunction over a set of (expanded) target values */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS1">
+<span class="ruleTerminal">{</span> <span class="ruleNonterminal"><a href="#rule_l_set">l_set</a></span> <span class="ruleTerminal">}</span> <span class="ruleNonterminal"><a href="#rule_l_txchain">l_txchain</a></span> </td>
+<td class="ruleComment">/* ... in 'Token' index, with optional expansion pipeline */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_s_index">s_index</a></span> <span class="ruleTerminal">=</span> <span class="ruleTerminal">{</span> <span class="ruleNonterminal"><a href="#rule_l_set">l_set</a></span> <span class="ruleTerminal">}</span> <span class="ruleNonterminal"><a href="#rule_l_txchain">l_txchain</a></span> </td>
+<td class="ruleComment">/* ... in user-specified index, with optional expansion pipeline */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td><b>;</b></td>
+</tr>
+<tr></tr>
+<tr>
+<td><b><a name="rule_qw_set_exact">qw_set_exact</a></b></td>
+<td>::=</td>
+<td></td>
+<td class="ruleCommentTop">/* Disjunction over a set of literal values */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS1">
+<span class="ruleTerminal">@{</span> <span class="ruleNonterminal"><a href="#rule_l_set">l_set</a></span> <span class="ruleTerminal">}</span> </td>
+<td class="ruleComment">/* ... in the 'Token' index */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_s_index">s_index</a></span> <span class="ruleTerminal">=</span> <span class="ruleTerminal">@{</span> <span class="ruleNonterminal"><a href="#rule_l_set">l_set</a></span> <span class="ruleTerminal">}</span> </td>
+<td class="ruleComment">/* ... in a user-specified index */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td><b>;</b></td>
+</tr>
+<tr></tr>
+<tr>
+<td><b><a name="rule_qw_prefix">qw_prefix</a></b></td>
+<td>::=</td>
+<td></td>
+<td class="ruleCommentTop">/* Right-truncated string (prefix condition) */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS1">
+<span class="ruleNonterminal"><a href="#rule_s_prefix">s_prefix</a></span> </td>
+<td class="ruleComment">/* ... on 'Token' index */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_s_index">s_index</a></span> <span class="ruleTerminal">=</span> <span class="ruleNonterminal"><a href="#rule_s_prefix">s_prefix</a></span> </td>
+<td class="ruleComment">/* ... on user-specified index */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td><b>;</b></td>
+</tr>
+<tr></tr>
+<tr>
+<td><b><a name="rule_qw_prefix_set">qw_prefix_set</a></b></td>
+<td>::=</td>
+<td></td>
+<td class="ruleCommentTop">/* Disjunction over right-truncated strings (prefix-set condition) */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS1">
+<span class="ruleTerminal">{</span> <span class="ruleNonterminal"><a href="#rule_l_set">l_set</a></span> <span class="ruleTerminal">}*</span> </td>
+<td class="ruleComment">/* ... on 'Token' index */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_s_index">s_index</a></span> <span class="ruleTerminal">=</span> <span class="ruleTerminal">{</span> <span class="ruleNonterminal"><a href="#rule_l_set">l_set</a></span> <span class="ruleTerminal">}*</span> </td>
+<td class="ruleComment">/* ... on user-specified index */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td><b>;</b></td>
+</tr>
+<tr></tr>
+<tr>
+<td><b><a name="rule_qw_suffix">qw_suffix</a></b></td>
+<td>::=</td>
+<td></td>
+<td class="ruleCommentTop">/* Left-truncated string (suffix condition) */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS1">
+<span class="ruleNonterminal"><a href="#rule_s_suffix">s_suffix</a></span> </td>
+<td class="ruleComment">/* ... on 'Token' index */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_s_index">s_index</a></span> <span class="ruleTerminal">=</span> <span class="ruleNonterminal"><a href="#rule_s_suffix">s_suffix</a></span> </td>
+<td class="ruleComment">/* ... on user-specified index */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td><b>;</b></td>
+</tr>
+<tr></tr>
+<tr>
+<td><b><a name="rule_qw_suffix_set">qw_suffix_set</a></b></td>
+<td>::=</td>
+<td></td>
+<td class="ruleCommentTop">/* Disjunction over left-truncated strings (suffix-set condition) */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS1">
+<span class="ruleTerminal">*{</span> <span class="ruleNonterminal"><a href="#rule_l_set">l_set</a></span> <span class="ruleTerminal">}</span> </td>
+<td class="ruleComment">/* ... on 'Token' index */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_s_index">s_index</a></span> <span class="ruleTerminal">=</span> <span class="ruleTerminal">*{</span> <span class="ruleNonterminal"><a href="#rule_l_set">l_set</a></span> <span class="ruleTerminal">}</span> </td>
+<td class="ruleComment">/* ... on user-specified index */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td><b>;</b></td>
+</tr>
+<tr></tr>
+<tr>
+<td><b><a name="rule_qw_infix">qw_infix</a></b></td>
+<td>::=</td>
+<td></td>
+<td class="ruleCommentTop">/* Substring (infix) condition */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS1">
+<span class="ruleNonterminal"><a href="#rule_s_infix">s_infix</a></span> </td>
+<td class="ruleComment">/* ... on 'Token' index */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_s_index">s_index</a></span> <span class="ruleTerminal">=</span> <span class="ruleNonterminal"><a href="#rule_s_infix">s_infix</a></span> </td>
+<td class="ruleComment">/* ... on user-specified index */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td><b>;</b></td>
+</tr>
+<tr></tr>
+<tr>
+<td><b><a name="rule_qw_infix_set">qw_infix_set</a></b></td>
+<td>::=</td>
+<td></td>
+<td class="ruleCommentTop">/* Disjunction over substrings (infix set) */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS1">
+<span class="ruleTerminal">*{</span> <span class="ruleNonterminal"><a href="#rule_l_set">l_set</a></span> <span class="ruleTerminal">}*</span> </td>
+<td class="ruleComment">/* ... on 'Token' index */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_s_index">s_index</a></span> <span class="ruleTerminal">=</span> <span class="ruleTerminal">*{</span> <span class="ruleNonterminal"><a href="#rule_l_set">l_set</a></span> <span class="ruleTerminal">}*</span> </td>
+<td class="ruleComment">/* ... on user-specified index */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td><b>;</b></td>
+</tr>
+<tr></tr>
+<tr>
+<td><b><a name="rule_qw_thesaurus">qw_thesaurus</a></b></td>
+<td>::=</td>
+<td></td>
+<td class="ruleCommentTop">/* Thesaurus condition (SYNTAX CHANGED!) */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS1">
+<span class="ruleTerminal">:{</span> <span class="ruleNonterminal"><a href="#rule_s_semclass">s_semclass</a></span> <span class="ruleTerminal">}</span> </td>
+<td class="ruleComment">/* ... on 'Thes' index */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_s_index">s_index</a></span> <span class="ruleTerminal">=</span> <span class="ruleTerminal">:{</span> <span class="ruleNonterminal"><a href="#rule_s_semclass">s_semclass</a></span> <span class="ruleTerminal">}</span> </td>
+<td class="ruleComment">/* ... on user-specified index */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td><b>;</b></td>
+</tr>
+<tr></tr>
+<tr>
+<td><b><a name="rule_qw_morph">qw_morph</a></b></td>
+<td>::=</td>
+<td></td>
+<td class="ruleCommentTop">/* Morphological property condition */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS1">
+<span class="ruleTerminal">[</span> <span class="ruleNonterminal"><a href="#rule_l_morph">l_morph</a></span> <span class="ruleTerminal">]</span> </td>
+<td class="ruleComment">/* ... on 'MorphPattern' index */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_s_index">s_index</a></span> <span class="ruleTerminal">=</span> <span class="ruleTerminal">[</span> <span class="ruleNonterminal"><a href="#rule_l_morph">l_morph</a></span> <span class="ruleTerminal">]</span> </td>
+<td class="ruleComment">/* ... on user-specified index */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td><b>;</b></td>
+</tr>
+<tr></tr>
+<tr>
+<td><b><a name="rule_qw_lemma">qw_lemma</a></b></td>
+<td>::=</td>
+<td></td>
+<td class="ruleCommentTop">/* Lemma property condition (not for D* corpora) */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS1">
+<span class="ruleTerminal">%</span> <span class="ruleNonterminal"><a href="#rule_s_lemma">s_lemma</a></span> </td>
+<td class="ruleComment">/* ... on 'Lemma' index */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_s_index">s_index</a></span> <span class="ruleTerminal">=</span> <span class="ruleTerminal">%</span> <span class="ruleNonterminal"><a href="#rule_s_lemma">s_lemma</a></span> </td>
+<td class="ruleComment">/* ... on user-specified index */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td><b>;</b></td>
+</tr>
+<tr></tr>
+<tr>
+<td><b><a name="rule_qw_chunk">qw_chunk</a></b></td>
+<td>::=</td>
+<td></td>
+<td class="ruleCommentTop">/* Syntactic property condition */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS1">
+<span class="ruleTerminal">^</span> <span class="ruleNonterminal"><a href="#rule_s_chunk">s_chunk</a></span> </td>
+<td class="ruleComment">/* ... on 'Chunk' index */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_s_index">s_index</a></span> <span class="ruleTerminal">=</span> <span class="ruleTerminal">^</span> <span class="ruleNonterminal"><a href="#rule_s_chunk">s_chunk</a></span> </td>
+<td class="ruleComment">/* ... on user-specified index */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td><b>;</b></td>
+</tr>
+<tr></tr>
+<tr>
+<td><b><a name="rule_qw_listfile">qw_listfile</a></b></td>
+<td>::=</td>
+<td></td>
+<td class="ruleCommentTop">/* Disjunction over values read from a server-side file (command-line only) */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS1">
+<span class="ruleTerminal">&lt;</span> <span class="ruleNonterminal"><a href="#rule_s_filename">s_filename</a></span> </td>
+<td class="ruleComment">/* ... on 'Token' index */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_s_index">s_index</a></span> <span class="ruleTerminal">=</span> <span class="ruleTerminal">&lt;</span> <span class="ruleNonterminal"><a href="#rule_s_filename">s_filename</a></span> </td>
+<td class="ruleComment">/* ... on user-specified index */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td><b>;</b></td>
+</tr>
+<tr></tr>
+<tr>
+<td><b><a name="rule_qw_with">qw_with</a></b></td>
+<td>::=</td>
+<td></td>
+<td class="ruleCommentTop">/* Conjunction of multiple conditions over a single token */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS1">
+<span class="ruleNonterminal"><a href="#rule_qc_word">qc_word</a></span> <span class="ruleTerminal">WITH</span> <span class="ruleNonterminal"><a href="#rule_qc_word">qc_word</a></span> </td>
+<td class="ruleComment">/* ... note that negated conditions are not admissable here */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td><b>;</b></td>
+</tr>
+<tr></tr>
+</table>
+</div>
+<!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ --><!-- Grammar: Query Filter Rules --><div class="subsection">
+<h3><a name="filters">Query Filter Rules</a></h3>
+<table class="rulesTable">
+<tr>
+<td><b><a name="rule_q_filters">q_filters</a></b></td>
+<td>::=</td>
+<td></td>
+<td class="ruleCommentTop">/* List of global query options */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS1"></td>
+<td class="ruleComment">/* empty */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_q_filters">q_filters</a></span> <span class="ruleNonterminal"><a href="#rule_q_flag">q_flag</a></span> </td>
+<td class="ruleComment">/* ... query flag */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_q_filters">q_filters</a></span> <span class="ruleNonterminal"><a href="#rule_q_filter">q_filter</a></span> </td>
+<td class="ruleComment">/* ... query filter */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td><b>;</b></td>
+</tr>
+<tr></tr>
+<tr>
+<td><b><a name="rule_q_flag">q_flag</a></b></td>
+<td>::=</td>
+<td></td>
+<td class="ruleCommentTop">/* Global query flags */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS1">
+<span class="ruleTerminal">:</span> <span class="ruleNonterminal"><a href="#rule_qf_subcorpora">qf_subcorpora</a></span> </td>
+<td class="ruleComment">/* subcorporus selection */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleTerminal">#CNTXT</span> <span class="ruleNonterminal"><a href="#rule_integer">integer</a></span> </td>
+<td class="ruleComment">/* hit context window (number of sentences) */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleTerminal">#WITHIN</span> <span class="ruleNonterminal"><a href="#rule_symbol">symbol</a></span> </td>
+<td class="ruleComment">/* hit container type (e.g. 'file') */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleTerminal">#FILENAMES</span> </td>
+<td class="ruleComment">/* request filenames in output metadata */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleTerminal">!</span> <span class="ruleTerminal">#FILENAMES</span> </td>
+<td class="ruleComment">/* ... or disable filenames in output metadata */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleTerminal">#DEBUG_RANK</span> </td>
+<td class="ruleComment">/* request verbose rank debugging in output metadata */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleTerminal">!</span> <span class="ruleTerminal">#DEBUG_RANK</span> </td>
+<td class="ruleComment">/* ... or disable verbose rank debugging */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td><b>;</b></td>
+</tr>
+<tr></tr>
+<tr>
+<td><b><a name="rule_q_filter">q_filter</a></b></td>
+<td>::=</td>
+<td></td>
+<td class="ruleCommentTop">/* Global query selection and/or sort filter */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS1">
+<span class="ruleNonterminal"><a href="#rule_qf_has_field">qf_has_field</a></span> </td>
+<td class="ruleComment">/* restrict hits based on document metadata */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_qf_rank_sort">qf_rank_sort</a></span> </td>
+<td class="ruleComment">/* ... sort hits by TF-IDF rank */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_qf_bigram_sort">qf_bigram_sort</a></span> </td>
+<td class="ruleComment">/* ... sort hits lexicographically by context */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_qf_size_sort">qf_size_sort</a></span> </td>
+<td class="ruleComment">/* ... sort/filter hits by (sentence) length */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_qf_date_sort">qf_date_sort</a></span> </td>
+<td class="ruleComment">/* ... sort/filter hits by document date */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_qf_bibl_sort">qf_bibl_sort</a></span> </td>
+<td class="ruleComment">/* ... sort/filter hits by document metadata */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_qf_random_sort">qf_random_sort</a></span> </td>
+<td class="ruleComment">/* ... sort hits pseudo-randomly */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td><b>;</b></td>
+</tr>
+<tr></tr>
+<tr>
+<td><b><a name="rule_qf_has_field">qf_has_field</a></b></td>
+<td>::=</td>
+<td></td>
+<td class="ruleCommentTop">/* Metadata restriction (alias: '#HAS') */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS1">
+<span class="ruleTerminal">#HAS_FIELD</span> <span class="ruleTerminal">[</span> <span class="ruleNonterminal"><a href="#rule_s_field">s_field</a></span> <span class="ruleTerminal">,</span> <span class="ruleNonterminal"><a href="#rule_symbol">symbol</a></span> <span class="ruleTerminal">]</span> </td>
+<td class="ruleComment">/* ... literal match */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleTerminal">#HAS_FIELD</span> <span class="ruleTerminal">[</span> <span class="ruleNonterminal"><a href="#rule_s_field">s_field</a></span> <span class="ruleTerminal">,</span> <span class="ruleNonterminal"><a href="#rule_regex">regex</a></span> <span class="ruleTerminal">]</span> </td>
+<td class="ruleComment">/* ... regular expression match */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td><b>;</b></td>
+</tr>
+<tr></tr>
+<tr>
+<td><b><a name="rule_qf_rank_sort">qf_rank_sort</a></b></td>
+<td>::=</td>
+<td></td>
+<td class="ruleCommentTop">/* Sort hits by TF-IDF rank */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS1">
+<span class="ruleTerminal">#GREATER_BY_RANK</span> </td>
+<td class="ruleComment">/* ... in descending order */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleTerminal">#LESS_BY_RANK</span> </td>
+<td class="ruleComment">/* ... in ascending order */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td><b>;</b></td>
+</tr>
+<tr></tr>
+<tr>
+<td><b><a name="rule_qf_bigram_sort">qf_bigram_sort</a></b></td>
+<td>::=</td>
+<td></td>
+<td class="ruleCommentTop">/* Sort or filter hits lexicographically by context (requires special index) */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS1">
+<span class="ruleTerminal">#LESS_BY_LEFT</span> </td>
+<td class="ruleComment">/* ... in ascending order by preceding context */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleTerminal">#LESS_BY_RIGHT</span> </td>
+<td class="ruleComment">/* ... in ascending order by following context */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td><b>;</b></td>
+</tr>
+<tr></tr>
+<tr>
+<td><b><a name="rule_qf_size_sort">qf_size_sort</a></b></td>
+<td>::=</td>
+<td></td>
+<td class="ruleCommentTop">/* Sort or filter hits by (sentence) length */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS1">
+<span class="ruleTerminal">#LESS_BY_SIZE</span> <span class="ruleNonterminal"><a href="#rule_qfb_int">qfb_int</a></span> </td>
+<td class="ruleComment">/* ... in ascending order, with optional bounds */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleTerminal">#GREATER_BY_SIZE</span> <span class="ruleNonterminal"><a href="#rule_qfb_int">qfb_int</a></span> </td>
+<td class="ruleComment">/* ... in descending order, with optional bounds */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleTerminal">#IS_SIZE</span> <span class="ruleTerminal">[</span> <span class="ruleNonterminal"><a href="#rule_int_str">int_str</a></span> <span class="ruleTerminal">]</span> </td>
+<td class="ruleComment">/* ... restricted to specified size */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td><b>;</b></td>
+</tr>
+<tr></tr>
+<tr>
+<td><b><a name="rule_qf_date_sort">qf_date_sort</a></b></td>
+<td>::=</td>
+<td></td>
+<td class="ruleCommentTop">/* Sort or filter hits by document date */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS1">
+<span class="ruleTerminal">#LESS_BY_DATE</span> <span class="ruleNonterminal"><a href="#rule_qfb_date">qfb_date</a></span> </td>
+<td class="ruleComment">/* ... in ascending order, with optional bounds */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleTerminal">#GREATER_BY_DATE</span> <span class="ruleNonterminal"><a href="#rule_qfb_date">qfb_date</a></span> </td>
+<td class="ruleComment">/* ... in descending order, with optional bounds */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleTerminal">#IS_DATE</span> <span class="ruleTerminal">[</span> <span class="ruleNonterminal"><a href="#rule_date">date</a></span> <span class="ruleTerminal">]</span> </td>
+<td class="ruleComment">/* ... restricted to specified date */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td><b>;</b></td>
+</tr>
+<tr></tr>
+<tr>
+<td><b><a name="rule_qf_bibl_sort">qf_bibl_sort</a></b></td>
+<td>::=</td>
+<td></td>
+<td class="ruleCommentTop">/* Sort or filter hits by document metadata */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS1">
+<span class="ruleTerminal">#LESS_BY</span> <span class="ruleTerminal">[</span> <span class="ruleNonterminal"><a href="#rule_s_field">s_field</a></span> <span class="ruleNonterminal"><a href="#rule_qfb_bibl">qfb_bibl</a></span> <span class="ruleTerminal">]</span> </td>
+<td class="ruleComment">/* ... in ascending order, with optional bounds */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleTerminal">#GREATER_BY</span> <span class="ruleTerminal">[</span> <span class="ruleNonterminal"><a href="#rule_s_field">s_field</a></span> <span class="ruleNonterminal"><a href="#rule_qfb_bibl">qfb_bibl</a></span> <span class="ruleTerminal">]</span> </td>
+<td class="ruleComment">/* ... in descending order, with optional bounds */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td><b>;</b></td>
+</tr>
+<tr></tr>
+<tr>
+<td><b><a name="rule_qf_random_sort">qf_random_sort</a></b></td>
+<td>::=</td>
+<td></td>
+<td class="ruleCommentTop">/* Sort hits pseudo-randomly */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS1">
+<span class="ruleTerminal">#RANDOM</span> </td>
+<td class="ruleComment">/* ... with an implicit seed of 0 (zero) */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleTerminal">#RANDOM</span> <span class="ruleTerminal">[</span> <span class="ruleTerminal">]</span> </td>
+<td class="ruleComment">/* ... with an implicit seed of 0 (zero) */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleTerminal">#RANDOM</span> <span class="ruleTerminal">[</span> <span class="ruleNonterminal"><a href="#rule_int_str">int_str</a></span> <span class="ruleTerminal">]</span> </td>
+<td class="ruleComment">/* ... with a user-specified random seed */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td><b>;</b></td>
+</tr>
+<tr></tr>
+<tr>
+<td><b><a name="rule_qfb_int">qfb_int</a></b></td>
+<td>::=</td>
+<td></td>
+<td class="ruleCommentTop">/* Optional integer bounds for query filters */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS1"></td>
+<td class="ruleComment">/* ... empty (full range) */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleTerminal">[</span> <span class="ruleTerminal">]</span> </td>
+<td class="ruleComment">/* ... empty brackets (full range) */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleTerminal">[</span> <span class="ruleNonterminal"><a href="#rule_int_str">int_str</a></span> <span class="ruleTerminal">]</span> </td>
+<td class="ruleComment">/* ... lower bound only */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleTerminal">[</span> <span class="ruleNonterminal"><a href="#rule_int_str">int_str</a></span> <span class="ruleTerminal">,</span> <span class="ruleTerminal">]</span> </td>
+<td class="ruleComment">/* ... lower bound only */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleTerminal">[</span> <span class="ruleNonterminal"><a href="#rule_int_str">int_str</a></span> <span class="ruleTerminal">,</span> <span class="ruleNonterminal"><a href="#rule_int_str">int_str</a></span> <span class="ruleTerminal">]</span> </td>
+<td class="ruleComment">/* ... lower bound, upper bound */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleTerminal">[</span> <span class="ruleTerminal">,</span> <span class="ruleNonterminal"><a href="#rule_int_str">int_str</a></span> <span class="ruleTerminal">]</span> </td>
+<td class="ruleComment">/* ... upper bound only */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td><b>;</b></td>
+</tr>
+<tr></tr>
+<tr>
+<td><b><a name="rule_qfb_date">qfb_date</a></b></td>
+<td>::=</td>
+<td></td>
+<td class="ruleCommentTop">/* Optional date bounds for query filters */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS1"></td>
+<td class="ruleComment">/* ... empty (full range) */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleTerminal">[</span> <span class="ruleTerminal">]</span> </td>
+<td class="ruleComment">/* ... empty brackets (full range) */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleTerminal">[</span> <span class="ruleNonterminal"><a href="#rule_date">date</a></span> <span class="ruleTerminal">]</span> </td>
+<td class="ruleComment">/* ... lower bound only */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleTerminal">[</span> <span class="ruleNonterminal"><a href="#rule_date">date</a></span> <span class="ruleTerminal">,</span> <span class="ruleTerminal">]</span> </td>
+<td class="ruleComment">/* ... lower bound only */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleTerminal">[</span> <span class="ruleNonterminal"><a href="#rule_date">date</a></span> <span class="ruleTerminal">,</span> <span class="ruleNonterminal"><a href="#rule_date">date</a></span> <span class="ruleTerminal">]</span> </td>
+<td class="ruleComment">/* ... lower bound, upper bound */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleTerminal">[</span> <span class="ruleTerminal">,</span> <span class="ruleNonterminal"><a href="#rule_date">date</a></span> <span class="ruleTerminal">]</span> </td>
+<td class="ruleComment">/* ... upper bound only */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td><b>;</b></td>
+</tr>
+<tr></tr>
+<tr>
+<td><b><a name="rule_qfb_bibl">qfb_bibl</a></b></td>
+<td>::=</td>
+<td></td>
+<td class="ruleCommentTop">/* Optional string metadata bounds for query filters */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS1"></td>
+<td class="ruleComment">/* ... empty (full range) */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleTerminal">,</span> </td>
+<td class="ruleComment">/* ... empty (full range) */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleTerminal">,</span> <span class="ruleTerminal">,</span> </td>
+<td class="ruleComment">/* ... empty (full range) */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleTerminal">,</span> <span class="ruleNonterminal"><a href="#rule_symbol">symbol</a></span> </td>
+<td class="ruleComment">/* ... lower bound only */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleTerminal">,</span> <span class="ruleNonterminal"><a href="#rule_symbol">symbol</a></span> <span class="ruleTerminal">,</span> </td>
+<td class="ruleComment">/* ... lower bound only */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleTerminal">,</span> <span class="ruleTerminal">,</span> <span class="ruleNonterminal"><a href="#rule_symbol">symbol</a></span> </td>
+<td class="ruleComment">/* ... upper bound only */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleTerminal">,</span> <span class="ruleNonterminal"><a href="#rule_symbol">symbol</a></span> <span class="ruleTerminal">,</span> <span class="ruleNonterminal"><a href="#rule_symbol">symbol</a></span> </td>
+<td class="ruleComment">/* ... lower bound, upper bound */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td><b>;</b></td>
+</tr>
+<tr></tr>
+</table>
+</div>
+<!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ --><!-- Grammar: List-like consituents --><div class="subsection">
+<h3><a name="list">List-like Constituents</a></h3>
+<table class="rulesTable">
+<tr>
+<td><b><a name="rule_l_set">l_set</a></b></td>
+<td>::=</td>
+<td></td>
+<td class="ruleCommentTop">/* Set of string values */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS1"></td>
+<td class="ruleComment">/* empty set */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_l_set">l_set</a></span> <span class="ruleNonterminal"><a href="#rule_s_word">s_word</a></span> </td>
+<td class="ruleComment">/* ... set elements are separated by whitespace */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_l_set">l_set</a></span> <span class="ruleTerminal">,</span> </td>
+<td class="ruleComment">/* ... or by commas */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td><b>;</b></td>
+</tr>
+<tr></tr>
+<tr>
+<td><b><a name="rule_l_morph">l_morph</a></b></td>
+<td>::=</td>
+<td></td>
+<td class="ruleCommentTop">/* List of morphological properties (should match index) */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS1"></td>
+<td class="ruleComment">/* empty list */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_l_morph">l_morph</a></span> <span class="ruleNonterminal"><a href="#rule_s_morphitem">s_morphitem</a></span> </td>
+<td class="ruleComment">/* ... list elements are separated by whitespace */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_l_morph">l_morph</a></span> <span class="ruleTerminal">,</span> </td>
+<td class="ruleComment">/* ... or commas */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_l_morph">l_morph</a></span> <span class="ruleTerminal">;</span> </td>
+<td class="ruleComment">/* ... or semicolons (for compatibility) */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td><b>;</b></td>
+</tr>
+<tr></tr>
+<tr>
+<td><b><a name="rule_l_seq">l_seq</a></b></td>
+<td>::=</td>
+<td></td>
+<td class="ruleCommentTop">/* Ordered sequence of single-word conditions with optional proximity constraints */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS1">
+<span class="ruleNonterminal"><a href="#rule_qc_word">qc_word</a></span> </td>
+<td class="ruleComment">/* Singleton sequence */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_l_seq">l_seq</a></span> <span class="ruleNonterminal"><a href="#rule_qc_word">qc_word</a></span> </td>
+<td class="ruleComment">/* ... Sequence elements are separated by whitespace */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_l_seq">l_seq</a></span> <span class="ruleTerminal">#</span> <span class="ruleNonterminal"><a href="#rule_integer">integer</a></span> <span class="ruleNonterminal"><a href="#rule_qc_word">qc_word</a></span> </td>
+<td class="ruleComment">/* ... with an optional proximity hint (default='#0': immediate successor) */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td><b>;</b></td>
+</tr>
+<tr></tr>
+<tr>
+<td><b><a name="rule_l_txchain">l_txchain</a></b></td>
+<td>::=</td>
+<td></td>
+<td class="ruleCommentTop">/* Term expansion pipeline */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS1"></td>
+<td class="ruleComment">/* Empty pipeline or '|-' uses index-dependent default aka '|INDEX' */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_l_txchain">l_txchain</a></span> <span class="ruleNonterminal"><a href="#rule_s_expander">s_expander</a></span> </td>
+<td class="ruleComment">/* ... pipeline concatenation '|Expander1 |Expander2 |...' */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td><b>;</b></td>
+</tr>
+<tr></tr>
+<tr>
+<td><b><a name="rule_qf_subcorpora">qf_subcorpora</a></b></td>
+<td>::=</td>
+<td></td>
+<td class="ruleCommentTop">/* Set of target subcorpora */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS1"></td>
+<td class="ruleComment">/* ... empty subcorpus set */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_s_subcorpus">s_subcorpus</a></span> </td>
+<td class="ruleComment">/* ... singleton subcorpus (symbol) */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_qf_subcorpora">qf_subcorpora</a></span> <span class="ruleTerminal">,</span> <span class="ruleNonterminal"><a href="#rule_s_subcorpus">s_subcorpus</a></span> </td>
+<td class="ruleComment">/* ... multiple subcorpora are separated by commas */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td><b>;</b></td>
+</tr>
+<tr></tr>
+</table>
+</div>
+<!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ --><!-- Grammar: Preterminals and Aliases --><div class="subsection">
+<h3><a name="list">Preterminals and Aliases</a></h3>
+<table class="rulesTable">
+<tr>
+<td><b><a name="rule_s_index">s_index</a></b></td>
+<td>::=</td>
+<td></td>
+<td class="ruleCommentTop">/* Index name (must be defined in .opt file) */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS1">
+<span class="ruleTerminal">$</span> </td>
+<td class="ruleComment">/* Bare dollar uses query-type default (usually 'Token') */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleTerminal">$</span> <span class="ruleNonterminal"><a href="#rule_symbol">symbol</a></span> </td>
+<td class="ruleComment">/* Explicit index name */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td><b>;</b></td>
+</tr>
+<tr></tr>
+<tr>
+<td><b><a name="rule_s_word">s_word</a></b></td>
+<td>::=</td>
+<td></td>
+<td class="ruleCommentTop">/* A single word or string value */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS1">
+<span class="ruleNonterminal"><a href="#rule_symbol">symbol</a></span> </td>
+<td class="ruleComment">/* ... can be any symbol */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td><b>;</b></td>
+</tr>
+<tr></tr>
+<tr>
+<td><b><a name="rule_s_semclass">s_semclass</a></b></td>
+<td>::=</td>
+<td></td>
+<td class="ruleCommentTop">/* Semantic class used by :{...} queries */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS1">
+<span class="ruleNonterminal"><a href="#rule_symbol">symbol</a></span> </td>
+<td class="ruleComment">/* ... can be any symbol */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td><b>;</b></td>
+</tr>
+<tr></tr>
+<tr>
+<td><b><a name="rule_s_lemma">s_lemma</a></b></td>
+<td>::=</td>
+<td></td>
+<td class="ruleCommentTop">/* Lemma used by %L queries */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS1">
+<span class="ruleNonterminal"><a href="#rule_symbol">symbol</a></span> </td>
+<td class="ruleComment">/* ... can be any symbol */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td><b>;</b></td>
+</tr>
+<tr></tr>
+<tr>
+<td><b><a name="rule_s_chunk">s_chunk</a></b></td>
+<td>::=</td>
+<td></td>
+<td class="ruleCommentTop">/* Chunk name used by ^C queries */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS1">
+<span class="ruleNonterminal"><a href="#rule_symbol">symbol</a></span> </td>
+<td class="ruleComment">/* ... can be any symbol */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td><b>;</b></td>
+</tr>
+<tr></tr>
+<tr>
+<td><b><a name="rule_s_filename">s_filename</a></b></td>
+<td>::=</td>
+<td></td>
+<td class="ruleCommentTop">/* Filename used by &lt;F queries */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS1">
+<span class="ruleNonterminal"><a href="#rule_symbol">symbol</a></span> </td>
+<td class="ruleComment">/* ... can be any symbol (server-side filename) */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td><b>;</b></td>
+</tr>
+<tr></tr>
+<tr>
+<td><b><a name="rule_s_morphitem">s_morphitem</a></b></td>
+<td>::=</td>
+<td></td>
+<td class="ruleCommentTop">/* Morphological property used by [...] queries */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS1">
+<span class="ruleNonterminal"><a href="#rule_symbol">symbol</a></span> </td>
+<td class="ruleComment">/* ... can be any symbol */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td><b>;</b></td>
+</tr>
+<tr></tr>
+<tr>
+<td><b><a name="rule_symbol">symbol</a></b></td>
+<td>::=</td>
+<td></td>
+<td class="ruleCommentTop">/* User-specified symbol or string */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS1">
+<span class="ruleXTerminal"><a href="#term_SYMBOL">SYMBOL</a></span> </td>
+<td class="ruleComment">/* Bareword or single-quoted string with C-style escapes */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleXTerminal"><a href="#term_INTEGER">INTEGER</a></span> </td>
+<td class="ruleComment">/* ... every decimal number is also a valid symbol */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleXTerminal"><a href="#term_DATE">DATE</a></span> </td>
+<td class="ruleComment">/* ... every date-string is also a valid symbol */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td><b>;</b></td>
+</tr>
+<tr></tr>
+<tr>
+<td><b><a name="rule_s_prefix">s_prefix</a></b></td>
+<td>::=</td>
+<td></td>
+<td class="ruleCommentTop">/* Prefix condition string */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS1">
+<span class="ruleXTerminal"><a href="#term_PREFIX">PREFIX</a></span> </td>
+<td class="ruleComment">/* ... ends with a literal '*' */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td><b>;</b></td>
+</tr>
+<tr></tr>
+<tr>
+<td><b><a name="rule_s_suffix">s_suffix</a></b></td>
+<td>::=</td>
+<td></td>
+<td class="ruleCommentTop">/* Suffix condition string */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS1">
+<span class="ruleXTerminal"><a href="#term_SUFFIX">SUFFIX</a></span> </td>
+<td class="ruleComment">/* ... begins with a literal '*' */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td><b>;</b></td>
+</tr>
+<tr></tr>
+<tr>
+<td><b><a name="rule_s_infix">s_infix</a></b></td>
+<td>::=</td>
+<td></td>
+<td class="ruleCommentTop">/* Infix condition string */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS1">
+<span class="ruleXTerminal"><a href="#term_INFIX">INFIX</a></span> </td>
+<td class="ruleComment">/* ... begins and ends with literal '*' */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td><b>;</b></td>
+</tr>
+<tr></tr>
+<tr>
+<td><b><a name="rule_s_expander">s_expander</a></b></td>
+<td>::=</td>
+<td></td>
+<td class="ruleCommentTop">/* Term expander label */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS1">
+<span class="ruleXTerminal"><a href="#term_EXPANDER">EXPANDER</a></span> </td>
+<td class="ruleComment">/* ... begins with a literal '|', and may be '|-' for an index-dependent default */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td><b>;</b></td>
+</tr>
+<tr></tr>
+<tr>
+<td><b><a name="rule_s_subcorpus">s_subcorpus</a></b></td>
+<td>::=</td>
+<td></td>
+<td class="ruleCommentTop">/* Named subcorpus used by :... filter */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS1">
+<span class="ruleNonterminal"><a href="#rule_symbol">symbol</a></span> </td>
+<td class="ruleComment">/* ... can be any symbol */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td><b>;</b></td>
+</tr>
+<tr></tr>
+<tr>
+<td><b><a name="rule_s_field">s_field</a></b></td>
+<td>::=</td>
+<td></td>
+<td class="ruleCommentTop">/* Document metadata field name */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS1">
+<span class="ruleNonterminal"><a href="#rule_symbol">symbol</a></span> </td>
+<td class="ruleComment">/* ... is just a symbol */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td><b>;</b></td>
+</tr>
+<tr></tr>
+<tr>
+<td><b><a name="rule_s_fieldval">s_fieldval</a></b></td>
+<td>::=</td>
+<td></td>
+<td class="ruleCommentTop">/* Document metadata field value */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS1">
+<span class="ruleNonterminal"><a href="#rule_symbol">symbol</a></span> </td>
+<td class="ruleComment">/* ... is just a symbol */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td><b>;</b></td>
+</tr>
+<tr></tr>
+<tr>
+<td><b><a name="rule_regex">regex</a></b></td>
+<td>::=</td>
+<td></td>
+<td class="ruleCommentTop">/* Regular expressions */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS1">
+<span class="ruleXTerminal"><a href="#term_REGEX">REGEX</a></span> </td>
+<td class="ruleComment">/* ... are slash-delimited in perl syntax */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleXTerminal"><a href="#term_REGEX">REGEX</a></span> <span class="ruleXTerminal"><a href="#term_REGOPT">REGOPT</a></span> </td>
+<td class="ruleComment">/* ... with optional modifiers (gimsx) */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td><b>;</b></td>
+</tr>
+<tr></tr>
+<tr>
+<td><b><a name="rule_integer">integer</a></b></td>
+<td>::=</td>
+<td></td>
+<td class="ruleCommentTop">/* Non-negative decimal integer */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS1">
+<span class="ruleNonterminal"><a href="#rule_int_str">int_str</a></span> </td>
+<td class="ruleComment">/* ... parsed as an integer */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td><b>;</b></td>
+</tr>
+<tr></tr>
+<tr>
+<td><b><a name="rule_int_str">int_str</a></b></td>
+<td>::=</td>
+<td></td>
+<td class="ruleCommentTop">/* Non-negative decimal integer */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS1">
+<span class="ruleXTerminal"><a href="#term_INTEGER">INTEGER</a></span> </td>
+<td class="ruleComment">/* ... parsed as a string */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td><b>;</b></td>
+</tr>
+<tr></tr>
+<tr>
+<td><b><a name="rule_date">date</a></b></td>
+<td>::=</td>
+<td></td>
+<td class="ruleCommentTop">/* date string */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS1">
+<span class="ruleXTerminal"><a href="#term_DATE">DATE</a></span> </td>
+<td class="ruleComment">/* ... e.g. YYYY(-MM(-DD)?)? */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleXTerminal"><a href="#term_INTEGER">INTEGER</a></span> </td>
+<td class="ruleComment">/* ... every valid integer is also a valid date (year part only) */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td><b>;</b></td>
+</tr>
+<tr></tr>
+</table>
+</div>
+</div>
+    <!--/grammar-->
+
+    <!-- ============================================================= -->
+    <!-- Terminals -->
+    <div class="section">
+<h2><a name="terminals">Terminal Symbols</a></h2>
+<!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ --><!-- Terminals: Common --><div class="subsection">
+<h3><a name="term_common">Common Definitions</a></h3>
+<p>
+	  The underlying <tt>flex</tt> scanner makes use of several regular expression
+	  'macros' using the notation <tt>{<i>MACRO</i>}</tt>.
+	  The following macros are defined for the underlying scanner:
+	</p>
+<pre>
+ws		[ \t\n\r\f\v]
+punct	        [\^\!\~\$\@\%\/\=\?\_\:\;\+\#\.\\\*\,\'\"\&amp;\|\(\)\[\]\{\}\&lt;\&gt;]
+
+symbol_cfirst	[^ \t\r\n\f\v\0\^\&amp;\|\!\(\)\[\]\{\}\&lt;\&gt;\'\"\,\;\:\#\=\*\%\\\~\$\@\/\?\_\+\.]
+symbol_crest	[^ \t\r\n\f\v\0\^\&amp;\|\!\(\)\[\]\{\}\&lt;\&gt;\'\"\,\;\:\#\=\*\%\\]
+symbol_cescape  (\\.)
+symbol_text     ({symbol_cescape}|{symbol_cfirst})(({symbol_cescape}|{symbol_crest})*)
+
+int_boundary	[ \t\n\r\f\v\0\^\&amp;\|\!\(\)\[\]\{\}\&lt;\&gt;\'\"\,\;\:\#\=\*\%\~\\\$\@\/\?\_\+\.]
+
+index_name      {symbol_text}
+
+sq_text         ([^\']|{symbol_cescape})*
+
+regex_text      ((\\.)|[^\/\\])*
+regex_modifier	[gimsx]
+</pre>
+</div>
+<!--/terminals:common--><!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ --><div class="subsection">
+<h3><a name="term_PUNCT">Punctutation Operators and Special Characters</a></h3>
+<pre>
+"&amp;&amp;"				/* clause-level conjunction operator */
+"||"				/* clause-level disjunction operator */
+[\!\.\,\:\;\$\@\%\^\#\=]	/* single-character punctuation operators */
+[\[\]\{\}\(\)\&lt;\&gt;]		/* parentheses */
+[\"]				/* double quotes (for sequence queries) */
+":{"				/* thesaurus-query opener */
+"@{"				/* literal-set opener */
+"*{"				/* prefix- or infix-set opener */
+"}*"				/* suffix-set or infix-set closer */
+</pre>
+<p>
+	  The scanner supports the various punctuation operators used in
+	  the query <a href="#grammar">grammar</a>.
+
+	  Punctuation operators should be <a href="#escapes">escaped</a> if they occur anywhere in a literal
+	  <a href="#term_SYMBOL">symbol</a>, e.g. by enclosing the symbol in single quotes.
+	</p>
+</div>
+<!--/terminals:punctuation--><!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ --><div class="subsection">
+<h3><a name="term_KEYWORD">Query Keywords</a></h3>
+<pre>
+(?i:near)
+(?i:with)
+(?i:\#cntxt)
+(?i:\#within)
+(?i:\#has(_field)?)
+(?i:\#file_names|\#filenames)
+(?i:\#debug_rank)
+(?i:\#greater_by_rank)
+(?i:\#less_by_rank)
+(?i:\#greater_by_date)
+(?i:\#less_by_date)
+(?i:\#is_date)
+(?i:\#greater_by_size)
+(?i:\#less_by_size)
+(?i:\#is_size)
+(?i:\#(less_by_)?left)
+(?i:\#(less_by_)?right)
+(?i:\#less_by)
+(?i:\#greater_by)
+(?i:\#random)
+</pre>
+<p>
+	  The scanner supports the various reserved words used in
+	  the query <a href="#grammar">grammar</a>.  Query keywords are matched
+	  case-insensitively; e.g.
+	  "<tt>NEAR</tt>",
+	  "<tt>near</tt>",
+	  "<tt>Near</tt>",
+	  and "<tt>nEaR</tt>"
+	  are all valid instantiations of the query keyword
+	  <span class="ruleTerminal">NEAR</span>.
+
+	  Query keywords must be <a href="#escapes">escaped</a> if they occur anywhere
+	  in a literal <a href="#term_SYMBOL">symbol</a>, e.g. by enclosing the symbol in single quotes.
+	</p>
+</div>
+<!--/terminals:keywords--><!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ --><div class="subsection">
+<h3><a name="term_INTEGER">INTEGER</a></h3>
+<pre>
+\'[0-9]+\'			/* single-quoted non-negative decimal integer */
+[0-9]+/{int_boundary}		/* bareword non-negative decimal integer */
+</pre>
+<p>
+	  The scanner supports non-negative integers in decimal notation, optionally
+	  enclosed by single quotes.  It may be necessary to introduce whitespace
+	  or quotes in order to separate an integer token from surrounding symbols.
+	</p>
+</div>
+<!--/terminals:integer--><!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ --><div class="subsection">
+<h3><a name="term_DATE">DATE</a></h3>
+<pre>
+\'[0-9\-]+\'			/* single-quoted date-like string */
+[0-9\-]+/{int_boundary}		/* bareword date-like string */
+</pre>
+</div>
+<p>
+	  The scanner supports date-like tokens in a superset of the ISO 8601 format
+	  (<i>YYYY-MM-DD</i>), optionally enclosed by single quotes.
+	</p>
+<!--/terminals:date--><!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ --><a name="term_REGOPT"></a><div class="subsection">
+<h3><a name="term_REGEX">REGEX</a></h3>
+<pre>
+\/{regex_text}\/{regex_modifier}*	/* slash-quoted regex, with option modifiers */
+</pre>
+<p>
+	  The scanner supports regular expressions enclosed by forward slashes, with
+	  an optional suffix modifer string.
+	  DDC uses <a href="http://www.pcre.org">PCRE</a> as its underlying
+	  regular expression engine, which should support the full
+	  <a href="http://perldoc.perl.org/perlre.html">Perl regular expression syntax</a>.
+	  In particular, C-style escapes ("\t", "\n", "\0", etc.) and
+	  Unicode character escapes ("\x{17f}", "\x{364}") may occur
+	  within regular expressions.  Literal slashes as part of a regular expression
+	  must be escaped with a backslash ("\/").
+
+	  The regular expression modifier "<tt>/g</tt>" (mnemonic: 'match <b>G</b>lobally')
+	  has a special meaning for DDC: if this modifier is set, only those index
+	  items are retrieved which match the regular expression in the entirety;
+	  otherwise all index items for which any substring matches the regular expression
+	  will be retrieved.  Internally this behavior is implemented by implicitly
+	  inserting beginning- and end-of-string anchors into the regular expression,
+	  thus <tt>/REGEX/g</tt> is a equivalent to <tt>/^(?:REGEX)$/</tt>.
+	</p>
+</div>
+<!--/terminals:regex--><!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ --><div class="subsection">
+<h3><a name="term_SYMBOL">SYMBOL</a></h3>
+<pre>
+\'{sq_text}\'                   /* single-quoted symbol */
+{symbol_text}			/* bareword symbol */
+</pre>
+<p>
+	  Symbols (strings) are the basic building blocks of the DDC query language.
+	  The scanner supports "bareword" symbols (e.g. <tt>my_symbol</tt>)
+	  consisting of only alphanumeric and non-ASCII characters, underscores,
+	  and <a href="#escapes">backslash-escapes</a>, as well as single-quoted strings
+	  (e.g. <tt>'symbol with whitespace'</tt>), in which only embedded quotes must be
+	  <a href="#escapes">escaped</a>.
+	</p>
+<!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ --><div class="subsection">
+<h3><a name="escapes">Escapes</a></h3>
+<p>
+	    The following special character escape sequences are supported in both bareword
+	    and single-quoted symbols:
+	  </p>
+<table class="escTable">
+	    <tr>
+<th>Escape</th>
+<th style="text-align:left;">Description</th>
+</tr>
+	    <tr>
+<td class="monospace">\a</td>
+<td>C-style escape (\x07): alert (bell)</td>
+</tr>
+	    <tr>
+<td class="monospace">\b</td>
+<td>C-style escape (\x08): backspace</td>
+</tr>
+	    <tr>
+<td class="monospace">\t</td>
+<td>C-style escape (\x09): horizontal tab</td>
+</tr>
+	    <tr>
+<td class="monospace">\n</td>
+<td>C-style escape (\x0a): newline</td>
+</tr>
+	    <tr>
+<td class="monospace">\v</td>
+<td>C-style escape (\x0b): vertical tab</td>
+</tr>
+	    <tr>
+<td class="monospace">\f</td>
+<td>C-style escape (\x0c): form feed</td>
+</tr>
+	    <tr>
+<td class="monospace">\r</td>
+<td>C-style escape (\x0d): carriage return</td>
+</tr>
+	    <tr>
+<td class="monospace">\<i>OOO</i>
+</td>
+<td>C-style octal escape (byte); e.g. <tt>\101</tt>
+</td>
+</tr>
+	    <tr>
+<td class="monospace">\x<i>XX</i>
+</td>
+<td>C-style Hexidecimal escape (byte); e.g. <tt>\x42</tt>
+</td>
+</tr>
+	    <tr>
+<td class="monospace">\u<i>XXXX</i>
+</td>
+<td>JSON-style Unicode escape (UTF-8); e.g. <tt>\u0043</tt>
+</td>
+</tr>
+	    <tr>
+<td class="monospace">\<i>c</i>
+</td>
+<td>Escaped character 'c'; e.g. <tt>\\</tt>
+</td>
+</tr>
+	  </table>
+</div>
+<!--/terminals:symbol:escapes-->
+</div>
+<!--/terminals:symbol--><!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ --><a name="term_PREFIX"></a><a name="term_SUFFIX"></a><a name="term_INFIX"></a><div class="subsection">
+<h3><a name="term_trunc">Truncated Symbols</a></h3>
+<pre>
+"*"\'{sq_text}\'"*"	/* dual-truncated quoted string (infix symbol) */
+\'{sq_text}\'"*"	/* right-truncated quoted string (prefix symbol) */
+"*"\'{sq_text}\'	/* left-truncated quoted string (suffix symbol) */
+
+"*"{symbol_text}"*"	/* dual-truncated bare string (infix symbol) */
+{symbol_text}"*"	/* right-truncated bare string (prefix symbol) */
+"*"{symbol_text}	/* left-truncated bare string (suffix symbol) */
+</pre>
+<p>
+	  Truncated symbols (for
+	  <a href="#rule_qw_prefix">prefix-</a>,
+	  <a href="#rule_qw_suffix">suffix-</a>,
+	  and
+	  <a href="#rule_qw_infix">infix-</a>queries)
+	  are supported directly by the scanner, in order to distinguish
+	  these from literal <a href="#term_SYMBOL">symbols</a> containing an asterisk character ("<tt>*</tt>").
+	  
+	  Literal asterisks must be <a href="#escapes">escaped</a> if they occur anywhere
+	  in a literal <a href="#term_SYMBOL">symbol</a>, e.g. by enclosing the symbol in single quotes.
+	  Note that despite this restriction, the asterisk does <b>NOT</b> function as a general
+	  "wildcard character" for DDC queries.  If you need to match multiple substrings of a single index
+	  item, use a <a href="#term_REGEX">regular expression</a> instead,
+	  e.g. "<tt>/^foo.*bar.*baz$/</tt>" for a wildcard condition "<tt>foo*bar*baz</tt>".
+	</p>
+</div>
+<!--/terminals:truncated--><!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ --><div class="subsection">
+<h3><a name="term_EXPANDER">Term Expander Pipelines</a></h3>
+<pre>
+"|"{ws}*"-"			/* alias for default term expander pipeline (index-dependent) */
+"|"{ws}*\'{sq_text}\'		/* quoted term expander label */
+"|"{ws}*{symbol_text}		/* bare term expander label */
+</pre>
+<p>
+	The scanner supports special rules for user specification of term expansion pipelines
+	used by the <a href="#rule_qw_bareword">qw_bareword</a> and <a href="#rule_qw_set_infl">qw_set_infl</a>
+	query types.  Each link in a term expansion pipeline is prefixed by the special symbol
+	"|" (vertical bar or 'pipe' symbol), followed by optional whitespace and the label of
+	a named expander to apply as a <a href="#term_SYMBOL">symbol</a>.  In order for the
+	query to be evaluated, each expander label in a term expansion pipeline must be defined
+	for the corpus to be queried.  The expanders "id", "null", "case", and "infl"
+	should always be defined.  The default expanders may be overridden and/or additional
+	expanders defined in a corpus .opt file.
+
+	The special label "-" (hyphen) may be used as an alias for the default expander
+	for the index to be queried, whose label is identical to the long index name as
+	declared in the corpus .opt file.  By default, only
+	the "Token" index has a pre-defined expansion pipeline, defined as 'infl' (built-in
+	language-dependent lemmatization and re-inflection) by default.
+	If the <tt>CaseInsensitive</tt> flag is set in the corpus .opt file,
+	the default Token pipeline is 'infl|case' (inflection followed by built-in letter-case twiddling).
+	The default expansion pipeline for any other other index is empty, i.e. equivalent to
+	the identity expander "id" a.k.a. "null".
+
+	Literal pipe symbols ("<tt>|</tt>") must be <a href="#escapes">escaped</a> if they occur anywhere
+	in a literal <a href="#term_SYMBOL">symbol</a>, e.g. by enclosing the symbol in single quotes.
+      </p>
+</div>
+<!--/terminals:expander--><!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ --><div class="subsection">
+<h3><a name="term_other">Other Terminals</a></h3>
+<pre>
+{ws}+    			/* whitespace: skip */
+\0				/* null byte: skip */
+.				/* any other character (byte) is its own token */ }
+</pre>
+<p>
+	  Whitespace and NUL bytes are ignored.
+	  Any other input byte is returned as a symbol of length 1.
+	</p>
+</div>
+<!--/terminals:symbol-->
+</div>
+    <!--/terminals-->
+
+    <!-- ============================================================= -->
+    <!-- Miscellany -->
+    <div class="section">
+<h2><a name="misc">Miscellany</a></h2>
+<!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ --><div class="subsection">
+<h3><a name="misc_compile">Compilation Errors</a></h3>
+<p>
+	  Not all queries which are grammatical according to the
+	  <a href="#grammar">query grammar</a> given above are in fact
+	  admissible DDC queries.  In particular, pure negative conditions
+	  such as
+	  <code>!foo</code>,
+	  <code>!foo &amp;&amp; !bar</code>,
+	  or
+	  <code>!(foo || bar)</code>
+	  will parse successfully but fail to compile.  In such cases,
+	  DDC should return an error code of <tt>errParseError</tt>
+	  and print an informative diagnostic message to stderr
+	  and/or the current log file.
+	</p>
+</div>
+<!--/misc_compile-->
+</div>
+    <!--/miscellany-->
+
+    <!-- ============================================================= -->
+    <!-- Examples -->
+    <div class="section">
+<h2><a name="dta">DTA Corpus Structure</a></h2>
+<p>
+	This section gives a brief overview of the index structure used for the
+	current DDC index of the Deutsches Textarchiv corpus.
+      </p>
+<div class="subsection">
+<h3><a name="dta_fields">DTA Index Fields</a></h3>
+<p>
+	  The <a href="http://odo.dwds.de/code/viewvc.cgi/ddc-rml/dta/trunk/build/ddc_index/common.opt?root=dev&amp;view=markup">DTA corpus .opt file</a>
+	  defines the following index fields:
+	</p>
+<dl>
+	  <!--=======================================-->
+	  <dt>Token w</dt>
+	  <dd>
+	    <a href="http://odo.dwds.de/~moocow/software/unicruft/">unicruft</a> Latin-1 approximation of
+	    original token text (actually encoded in the Latin-1 subset of UTF-8).
+	    This is the default field searched e.g. by bareword <a href="#term_SYMBOL">SYMBOL</a> queries.
+
+	    As of August, 2011, words containing non-latin-extended characters are <b>not</b>
+	    transliterated by default, and should appear (and be searchable) by their original UTF-8 forms
+	    without resorting to the "Utf8" index field (with regard to which see below).
+	  </dd>
+	  <!--=======================================-->
+	  <dt>Utf8 u</dt>
+	  <dd>
+	    Original UTF-8 text of the source token.  Formerly indexed as <i>Token2 w2</i>.
+	  </dd>
+	  <!--=======================================-->
+	  <dt>CanonicalToken v</dt>
+	  <dd>
+	    <a href="http://odo.dwds.de/~moocow/software/dta-cab/">DTA::CAB</a>-normalized wordform for the source token.
+	  </dd>
+	  <!--=======================================-->
+	  <dt>Pos p</dt>
+	  <dd>
+	    Part-of-speech assigned to the source token
+	    by <a href="http://www.ling.uni-potsdam.de/~moocow/projects/moot/">moot</a>
+	    via <a href="http://odo.dwds.de/~moocow/software/dta-cab/">DTA::CAB</a>.
+	    Uses the <a href="http://www.ims.uni-stuttgart.de/projekte/corplex/TagSets/stts-table.html">STTS tag-set</a>.
+	  </dd>
+	  <!--=======================================-->
+	  <dt>Lemma l</dt>
+	  <dd>
+	    Lemma assigned to the source token by <a href="http://odo.dwds.de/~moocow/software/dta-cab/">DTA::CAB</a>.
+	    Uses the <a href="http://tagh.de/">TAGH morphology</a>
+	    via <a href="http://odo.dwds.de/~moocow/software/dta-cab/">DTA::CAB</a>
+	    if available.
+	  </dd>
+	  <!--=======================================-->
+	  <dt>Coord coord</dt>
+	  <dd>
+	    Bounding box(es) for the source token.
+	    Not really meaningful for querying, but useful for image highlighting.
+	  </dd>
+	  <!--=======================================-->
+	  <dt>Page page</dt>
+	  <dd>
+	    Page (scan) number.
+	    Formerly used the long index name "age", which appears to have been nothing more than
+	    a self-perpetuating typographical error.
+	  </dd>
+	  <!--=======================================-->
+	  <dt>Rend r</dt>
+	  <dd>
+	    Typographical ("rendition") attributes for the source token as as '|'-sparated set
+	    e.g. "-" (nothing of note), "|aq|" (antiqua), "|b|" (bold?), "|g|" (upper-case?),
+	    "|b|g|" (bold? + upper-case?), ...
+	  </dd>
+	  <!--=======================================-->
+	  <dt>Context con</dt>
+	  <dd>
+	    Text-structurual features of the source token as a lexicographically sorted
+	    '|'-separated list of unique structural properties,
+	    or "-" if the token has no special text-structural properties at all.
+	    Supported properties inherited from XML ancestor elements are:
+	    <tt>text, front, body, back, head, left, foot, end, argument, hi, cit, fw, lg, stage, speaker, formula,</tt> and <tt>table</tt>.
+	    Additionally, the properties
+	    <tt>note_foot, note_left, note_right</tt> and <tt>note_other</tt>
+	    are used for tokens with an XML <tt>note</tt> ancestor.
+	  </dd>
+	  <!--=======================================-->
+	  <dt>XPath xpath</dt>
+	  <dd>
+	    XPath to the deepest element node containing (the first character of) the current token,
+	    or "-" if no such XPath was available during indexing.
+	    Note that any prefix "/TEI/text" or "/TEI" is implicitly trimmed from the indexed XPath strings,
+	    since all ddc-indexed tokens must occur as descendants of a /TEI/text element.
+	  </dd>
+	  <!--=======================================-->
+	  <dt>Line lb</dt>
+	  <dd>
+	    Line number of the current token, relative to the
+	    current page as indexed by the <b>page</b> field.
+	    Defined as the number of opening (and possibly closing) "<tt>lb</tt>"
+	    preceding the first character of the current token
+	    on the current page; e.g. 0 (zero) if no "<tt>lb</tt>" elements precede
+	    the first character of the current token on the current page.
+	    Precedence and page-association are computed in terms of TEI document order;
+	    e.g. if chapter headings contain <tt>lb</tt> elements, these will count
+	    towards the line number assigned.
+	  </dd>
+	</dl>
+</div>
+<div class="subsection">
+<h3><a name="dta_expand">DTA Term Expanders</a></h3>
+<p>
+	  The <a href="http://odo.dwds.de/code/viewvc.cgi/ddc-rml/dta/trunk/build/ddc_index/common.opt?root=dev&amp;view=markup">DTA corpus .opt file</a>
+	  defines the following term expanders:
+	</p>
+<dl>
+	  <dt>
+<a name="dta_expand_id"></a>id</dt>
+	  <dd>Identity expander (no-op)
+	  </dd>
+	  <dt>
+<a name="dta_expand_null"></a>null</dt>
+	  <dd>Identity expander (no-op)
+	  </dd>
+	  <dt>
+<a name="dta_expand_case"></a>case</dt>
+	  <dd>
+	    Case-twiddling expander using current locale settings of the running server process,
+	    which should have an LC_CTYPE character set of "UTF-8" or equivalent for correct results.
+	    Not used by default.
+	  </dd>
+	  <dt>
+<a name="dta_expand_tolower"></a>tolower</dt>
+	  <dt>
+<a name="dta_expand_lc"></a>lc</dt>
+	  <dd>
+	    Case-twiddling expander which forces input to all lower-case.
+	    Same caveats as for the <a href="#dta_expand_case">case</a> expander.
+	    Not used by default.
+	  </dd>
+	  <dt>
+<a name="dta_expand_tolower"></a>toupper</dt>
+	  <dt>
+<a name="dta_expand_uc"></a>uc</dt>
+	  <dd>
+	    Case-twiddling expander which forces input to all upper-case.
+	    Same caveats as for the <a href="#dta_expand_case">case</a> expander.
+	    Not used by default.
+	  </dd>
+	  <dt>
+<a name="dta_expand_morphy"></a>morphy</dt>
+	  <dd>Built-in DDC lemmatization and re-inflection (morphy-based)
+	  </dd>
+	  <dt>
+<a name="dta_expand_infl"></a>infl</dt>
+	  <dt>
+<a name="dta_expand_tagh"></a>tagh</dt>
+	  <dd>TAGH-based lemmatization and re-inflection via dedicated
+	  <a href="http://odo.dwds.de/~moocow/software/dta-cab/">DTA::CAB</a> HTTP server
+	  at <a href="http://194.95.188.28:9098">http://194.95.188.28:9098</a> <!-- kaskade:9098 -->.
+	  </dd>
+	  <dt>
+<a name="dta_expand_cab"></a>cab</dt>
+	  <dd>
+	    Expansion by an external <a href="http://odo.dwds.de/~moocow/software/dta-cab/">DTA::CAB</a> HTTP server at
+	    <a href="http://194.95.188.36:9099">http://194.95.188.36:9099</a>
+	    using the "expand" analyzer method (phonetic and rewrite equivalents).
+	  </dd>
+	  <dt>
+<a name="dta_expand_pho"></a>pho</dt>
+	  <dd>
+	    Expansion by the external DTA::CAB HTTP server at
+	    using only the "eqpho" analyzer method (phonetic equivalents only).
+	  </dd>
+	  <dt>
+<a name="dta_expand_rw"></a>rw</dt>
+	  <dd>
+	    Expansion by the external DTA::CAB HTTP server at
+	    using only the "eqrw" analyzer method (rewrite equivalents only).
+	    Should be more precise than the
+	    <a href="#dta_expand_cab">cab</a>
+	    or <a href="#dta_expand_pho">pho</a>
+	    expanders, but with poorer recall.
+	  </dd>
+	  <dt>
+<a name="dta_expand_eqlemma"></a>eqlemma</dt>
+	  <dd>TAGH-based best-lemma match using pre-compiled index via
+	  via dedicated <a href="http://odo.dwds.de/~moocow/software/dta-cab/">DTA::CAB</a> HTTP server
+	  at <a href="http://194.95.188.36:9099">http://194.95.188.36:9099</a>.
+	  </dd>
+	  <dt>
+<a name="dta_expand_Token"></a>Token</dt>
+	  <dd>
+	    Default expansion pipeline for queries of the (transliterated) 'Token' index,
+	    defined as 
+	    <!--<tt><a href="#dta_expand_infl">infl</a>|<a href="#dta_expand_cab">cab</a></tt>.-->
+	    <tt><a href="#dta_expand_eqlemma">eqlemma</a></tt>.
+	  </dd>
+	  <dt>
+<a name="dta_expand_Utf8"></a>Utf8</dt>
+	  <dd>
+	    Default expansion pipeline for queries of the (raw UTF-8) 'Utf8' index,
+	    defined as 
+	    <!--<tt><a href="#dta_expand_infl">infl</a>|<a href="#dta_expand_cab">cab</a></tt>.-->
+	    <tt><a href="#dta_expand_eqlemma">eqlemma</a></tt>.
+
+	    Note that due to limitations and configuration issues with respect to both the underlying CAB server
+	    and the built-in DDC morphological expansion module,
+	    target strings containing extinct characters
+	    ("ſ", "aͤ", etc.) will <b>not</b> be found by this expander.
+	  </dd>
+	  <dt>
+<a name="dta_expand_CanonicalToken"></a>CanonicalToken</dt>
+	  <dd>
+	    Default expansion pipeline for queries of the CAB-normalized 'CanonicalToken' index,
+	    defined as 
+	    <tt><a href="#dta_expand_infl">infl</a></tt>.
+	  </dd>
+	  <dt>
+<a name="dta_expand_Pos"></a>Pos</dt>
+	  <dd>
+	    Default expansion pipeline for queries of the 'Pos' (part-of-speech tag) index,
+	    defined as 
+	    <tt><a href="#dta_expand_infl">toupper</a></tt>.
+	  </dd>
+	  <dt>
+<a name="dta_expand_Lemma"></a>Lemma</dt>
+	  <dd>
+	    Default expansion pipeline for queries of the 'Lemma',
+	    defined as 
+	    <tt><a href="#dta_expand_case">case</a></tt>.
+	  </dd>
+	</dl>
+</div>
+</div>
+
+    <!-- ============================================================= -->
+    <!-- Examples -->
+    <div class="section">
+<h2><a name="ex">Examples</a></h2>
+<p>
+	The examples in this section assume the DTA DDC corpus index structure
+	described <a href="#dta">above</a>.
+	The links in this section make use of the DTA OpenSearch wrapper
+	demo server at
+	<a href="http://kaskade.dwds.de/dtaos">http://kaskade.dwds.de/dtaos</a>.
+      </p>
+<!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ --><!-- Examples: Basic --><div class="subsection">
+<h3><a name="ex_basic">Basic Examples</a></h3>
+<dl>
+	  <dt><a href="http://kaskade.dwds.de/dtaos/dta.perl?q=sein">sein</a></dt>
+	  <dd>All expanded variants of "sein" ("sein", "ist", "war", ..., "seyn", "seyd", ..., "seine", "ihre", ...)</dd>
+
+	  <dt><a href="http://kaskade.dwds.de/dtaos/dta.perl?q=@sein">@sein</a></dt>
+	  <dd>Only the literal (latin-1 approximation) string "sein"</dd>
+
+	  <dt><a href="http://kaskade.dwds.de/dtaos/dta.perl?q=%24u%3D@%C5%BFein">$u=@ſein</a></dt>
+	  <dd>Only the literal (original UTF-8) string "ſein"</dd>
+
+	  <dt><a href="http://kaskade.dwds.de/dtaos/dta.perl?q=Wach*">Wach*</a></dt>
+	  <dd>Any string with (latin-1 approximation) prefix "Wach"</dd>
+
+	  <dt><a href="http://kaskade.dwds.de/dtaos/dta.perl?q=*stube">*stube</a></dt>
+	  <dd>Any string with (latin-1 approximation) suffix "stube"</dd>
+
+	  <dt><a href="http://kaskade.dwds.de/dtaos/dta.perl?q=*achs*">*achs*</a></dt>
+	  <dd>Any string with (latin-1 approximation) substring "achs"</dd>
+
+	  <dt><a href="http://kaskade.dwds.de/dtaos/dta.perl?q=%24u%3D%2F%C5%BFtube%24%2F">$u=/ſtube$/</a></dt>
+	  <dd>Any string with (original UTF-8) suffix "ſtube" (via regex)</dd>
+
+	  <dt><a href="http://kaskade.dwds.de/dtaos/dta.perl?q=%24u%3D%2F%C5%BFtube%24%2Fi">$u=/ſtube$/i</a></dt>
+	  <dd>Any string with (original UTF-8) suffix "ſtube" (via regex, case-insensitve)</dd>
+	</dl>
+</div>
+<!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ --><!-- Examples: Multi-Token Examples --><div class="subsection">
+<h3><a name="ex_multi">Term Expansion Examples</a></h3>
+<dl>
+	  <dt><a href="http://kaskade.dwds.de/dtaos/dta.perl?q=T%C3%BCr">Tür</a></dt>
+	  <dd>All sentences containing any variant of the word 'Tür'</dd>
+	  <dt><a href="http://kaskade.dwds.de/dtaos/dta.perl?q=%24Token%3DT%C3%BCr">$Token=Tür</a></dt>
+	  <dd>... same condition, with explicit index</dd>
+	  <dt><a href="http://kaskade.dwds.de/dtaos/dta.perl?q=%24Token%3DT%C3%BCr+%7CToken">$Token=Tür |Token</a></dt>
+	  <dd>... same condition, with explicit index and expansion pipeline</dd>
+	  <dt><a href="http://kaskade.dwds.de/dtaos/dta.perl?q=T%C3%BCr+%7CToken">Tür |Token</a></dt>
+	  <dd>... same condition, with explicit expansion pipeline only</dd>
+	  <dt><a href="http://kaskade.dwds.de/dtaos/dta.perl?q=T%C3%BCr+%7C-">Tür |-</a></dt>
+	  <dd>... same condition, with "-" expansion pipeline alias</dd>
+	  <dt><a href="http://kaskade.dwds.de/dtaos/dta.perl?q=T%C3%BCr+%7Cinfl%7Ccab">Tür |infl|cab</a></dt>
+	  <dd>... same condition, with alternative user expansion pipeline</dd>
+
+	  <dt><a href="http://kaskade.dwds.de/dtaos/dta.perl?q=T%C3%BCr+%7Cinfl">Tür |infl</a></dt>
+	  <dd>All (modern) inflectional variants of the word "Tür" (no CAB expansion)</dd>
+
+	  <dt><a href="http://kaskade.dwds.de/dtaos/dta.perl?q=T%C3%BCr+%7Ccab">Tür |cab</a></dt>
+	  <dd>All graphematic variants of the form "Tür" (no lemmatization or re-inflection)</dd>
+
+	  <dt><a href="http://kaskade.dwds.de/dtaos/dta.perl?q=T%C3%BCr+%7Ccase">Tür |case</a></dt>
+	  <dd>All letter-case variants of the form "Tür"</dd>
+
+	  <dt><a href="http://kaskade.dwds.de/dtaos/dta.perl?q=T%C3%BCr+%7Cinfl%7Ccase">Tür |infl|case</a></dt>
+	  <dd>All letter-case variants of any modern inflectional variant of the word "Tür"</dd>
+
+	  <dt><a href="http://kaskade.dwds.de/dtaos/dta.perl?q=T%C3%BCr+%7Cpho">Tür |pho</a></dt>
+	  <dd>All phonetic variants of the form "Tür"</dd>
+
+	  <dt><a href="http://kaskade.dwds.de/dtaos/dta.perl?q=T%C3%BCr+%7Crw">Tür |rw</a></dt>
+	  <dd>All rewrite variants of the form "Tür"</dd>
+
+	  <dt><a href="http://kaskade.dwds.de/dtaos/dta.perl?q=T%C3%BCr+%7Cinfl%7Crw">Tür |infl|rw</a></dt>
+	  <dd>All rewrite variants of any modern inflectional variant of the word "Tür"</dd>
+	</dl>
+</div>
+<!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ --><!-- Examples: Multi-Token Examples --><div class="subsection">
+<h3><a name="ex_multi">Multi-Token Examples</a></h3>
+<dl>
+	  <dt><a href="http://kaskade.dwds.de/dtaos/dta.perl?q=Verein+%26%26+Club">Verein &amp;&amp; Club</a></dt>
+	  <dd>All sentences containing both 'Verein' and 'Club' (variants)</dd>
+
+	  <dt><a href="http://kaskade.dwds.de/dtaos/dta.perl?q=Verein+%7C%7C+Club">Verein || Club</a></dt>
+	  <dd>All sentences containing either 'Verein' or 'Club' (variants)</dd>
+	  <dt><a href="http://kaskade.dwds.de/dtaos/dta.perl?q=%7BVerein,Club%7D">{Verein,Club}</a></dt>
+	  <dd>... the same condition, in set notation</dd>
+
+	  <dt><a href="http://kaskade.dwds.de/dtaos/dta.perl?q=@Verein+%7C%7C+@Club">@Verein || @Club</a></dt>
+	  <dd>All sentences containing either 'Verein' or 'Club' (literals)</dd>
+	  <dt><a href="http://kaskade.dwds.de/dtaos/dta.perl?q=@%7BVerein,Club%7D">@{Verein,Club}</a></dt>
+	  <dd>... the same condition, in set notation</dd>
+
+	  <dt><a href="http://kaskade.dwds.de/dtaos/dta.perl?q=*%7Bverein,club%7D">*{verein,club}</a></dt>
+	  <dd>All strings ending in either "verein" or "club"</dd>
+	  <dt><a href="http://kaskade.dwds.de/dtaos/dta.perl?q=%2F(%3F:%5CQverein%5CE%7C%5CQclub%5CE)%24%2F">/(?:\Qverein\E|\Qclub\E)$/</a></dt>
+	  <dd>... the same condition, in regex notation</dd>
+	  <dt><a href="http://kaskade.dwds.de/dtaos/dta.perl?q=%2F(%3F:%5CQverein%5CE%7C%5CQclub%5CE)%24%2Fi">/(?:\Qverein\E|\Qclub\E)$/i</a></dt>
+	  <dd>... case-insensitive (includes e.g. "Verein" and "Club")</dd>
+
+	  <dt><a href="http://kaskade.dwds.de/dtaos/dta.perl?q=%22ein+Verein%22">"ein Verein"</a></dt>
+	  <dd>All variants of the substring "ein Verein"</dd>
+
+	  <dt><a href="http://kaskade.dwds.de/dtaos/dta.perl?q=%22@ein+@Verein%22">"@ein @Verein"</a></dt>
+	  <dd>The exact substring "ein Verein"</dd>
+
+	  <dt><a href="http://kaskade.dwds.de/dtaos/dta.perl?q=%22ein+%231+Verein%22">"ein #1 Verein"</a></dt>
+	  <dd>All variants of the subsequence "ein Verein" with at most 1 intervening word</dd>
+
+	  <dt><a href="http://kaskade.dwds.de/dtaos/dta.perl?q=%22ein+%231+%7BVerein,Club%7D%22">"ein #1 {Verein,Club}"</a></dt>
+	  <dd>All variants of one of the substrings "ein Verein" or "ein Club" with at most 1 intervening word</dd>
+	</dl>
+</div>
+<!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ --><!-- Examples: Filter Examples --><div class="subsection">
+<h3><a name="ex_filter">Query Filter Examples</a></h3>
+<dl>
+	  <dt><a href="http://kaskade.dwds.de/dtaos/dta.perl?q=Max">Max</a></dt>
+	  <dd>All sentences containing a variant of "Max", unsorted</dd>
+
+	  <dt><a href="http://kaskade.dwds.de/dtaos/dta.perl?q=Max%20%23has_field%5Bauthor,%2FBusch%2F%5D">Max #has_field[author,/Busch/]</a></dt>
+	  <dd>... only those documents by an author matching the regex <tt>/Busch/</tt>
+</dd>
+	  <dt><a href="http://kaskade.dwds.de/dtaos/dta.perl?q=Max%20%23has%5Bauthor,%2Fbusch%2Fi%5D">Max #has[author,/busch/i]</a></dt>
+	  <dd>... same condition, using new <tt>#has</tt> alias for <tt>#has_field</tt> and case-insensitive regex</dd>
+
+	  <dt><a href="http://kaskade.dwds.de/dtaos/dta.perl?q=Max%20%23less_by%5Bauthor%5D">Max #less_by[author]</a></dt>
+	  <dd>... sorted in ascending order by author string</dd>
+
+	  <dt><a href="http://kaskade.dwds.de/dtaos/dta.perl?q=Max%20%23greater_by_rank">Max #greater_by_rank</a></dt>
+	  <dd>... sorted in descending order by putative relevance</dd>
+
+	  <dt><a href="http://kaskade.dwds.de/dtaos/dta.perl?q=Max%20%23less_by_size">Max #less_by_size</a></dt>
+	  <dd>... sorted in ascending order by hit (sentence) length</dd>
+
+	  <dt><a href="http://kaskade.dwds.de/dtaos/dta.perl?q=Max%20%23less_by_size%5B3,5%5D">Max #less_by_size[3,5]</a></dt>
+	  <dd>... sorted in ascending order by hit length, where hit length is between 3 and 4 tokens.</dd>
+
+	  <dt><a href="http://kaskade.dwds.de/dtaos/dta.perl?q=Max%20%23less_by_date">Max #less_by_date</a></dt>
+	  <dd>... sorted in ascending order by hit date</dd>
+
+	  <dt><a href="http://kaskade.dwds.de/dtaos/dta.perl?q=Max%20%23is_date%5B1865%5D">Max #is_date[1865]</a></dt>
+	  <dd>... only those hits from 1865</dd>
+	</dl>
+</div>
+</div>
+    <!--/examples-->
+
+  </body></div>
+<div class="footers">
+<div class="footer_sig">
+<address><a href="mailto:jurish@bbaw.de">jurish@bbaw.de</a></address>Last modified: Wed, 12 Oct 2011 12:17:33 +0200</div>
+<div class="footer_linkbar"><p class="nopad"><a class="navLink" href="/">Root</a><a class="navLink" href="./">Back</a><span class="navLinkDisabled">Help</span></p></div>
+<p class="dummy"></p>
+</div>
+</div></body>
+</html>

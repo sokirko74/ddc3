@@ -1,0 +1,109 @@
+    README for package ddc
+
+    Last updated for ddc v2.0.0
+
+DESCRIPTION
+    The ddc package contains core C++ utilities for the DWDS/Dialing
+    Concordance document indexing system.
+
+    The DDC-2.x branch is maintained in SVN under:
+
+     svn+ssh://odo.dwds.de/home/svn/dev/ddc/trunk
+
+DEPENDENCIES
+    ddc-morph >= v2.0.0
+        Morphology data.
+
+        In order to use most of the runtime utilities, you will also need a
+        set of morphology data files available in the ddc-morph package,
+        which should be available wherever you downloaded these sources.
+
+        You should build (and optionally install) this package BEFORE
+        attempting to build ddc-morph.
+
+        The ddc-morph sources are maintained in SVN under:
+
+         svn+ssh://odo.dwds.de/home/svn/dev/ddc-morph/trunk
+
+    libpcre, libpcrecpp
+        Perl-compatibile regular expression C library and C++ wrappers.
+
+        URL: http://www.pcre.org/
+
+        Tested version(s): 8.02
+
+    libcurl (optional)
+        If available, libcurl can be used for accessing external HTTP-based
+        term expanders from within a running DDC process. DDC should still
+        compile and run even if libcurl is unavailable, but e.g. external
+        HTTP-based term expanders will be unuseable.
+
+        URL: http://curl.haxx.se/
+
+        Tested version(s): 7.21.0
+
+INSTALLATION
+    Issue the following commands to the shell:
+
+     cd ddc-X.Y.dx-Z       ##-- (or wherever you extracted the ddc distribution)
+     sh ./configure
+     make
+     make install
+
+    To build the ddc morph package, then do:
+
+     cd ..
+     cd ddc-morph-X.Y-dx-Z ##-- (or wherever the ddc-morph distribution lives)
+     sh ./configure
+     make
+     make install
+
+    Finally, set the (legacy) environment variable RML to the directory into
+    which ddc was installed (by default /usr/local/ddc):
+
+     export RML=/usr/local/ddc
+
+    ... and you ought to be ready to roll. Take a look at the configuration
+    files in $RML/etc/ and the example corpora in Test/ to get started.
+
+BUILD OPTIONS
+    The 'configure' script supports the following options, among others:
+
+    --prefix=PREFIX
+        Installation prefix (default=/usr/local). This package installs
+        itself to:
+
+         PREFIX/ddc          ##-- root directory (a.k.a. $RML)
+         PREFIX/ddc/bin      ##-- executable programs & scripts
+         PREFIX/ddc/etc      ##-- runtime configuration files
+         PREFIX/ddc/include  ##-- C++ headers
+         PREFIX/lib          ##-- runtime libtool libraries
+
+        Additionally, the package requires a directory PREFIX/ddc/dict
+        containing morphology data, which should be installed by the
+        ddc-morph package (see "DEPENDENCIES").
+
+    --enable-debug
+        Enable debugging flags. Only works for GNU C++ compiler.
+
+    --enable-warnings
+        Enable lots of compiler warnings. Only works for GNU C++ compiler.
+
+    --disable-shared
+        Disable compilation of shared libraries.
+
+    --without-libcurl
+        Force DDC to build without CURL support.
+
+    See the output of `./configure --help` for details on additional
+    supported options.
+
+KNOWN BUGS
+    Many.
+
+AUTHOR
+    Alexey Sokirko wrote DDC.
+
+    Bryan Jurish <jurish@bbaw.de> made various improvements and maintains
+    the DDC-2.x branch.
+

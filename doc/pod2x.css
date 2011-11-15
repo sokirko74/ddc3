@@ -1,0 +1,54 @@
+BODY,H1,H2,H3,H4,H5,H6,P,CENTER,TD,TH,UL,DL,DIV {
+	font-family: Geneva, Arial, Helvetica, sans-serif;
+}
+HR,BODY {
+  margin-left: 1em;
+  margin-right: 1em;
+}
+h1,h2,h3,h4,h5,h6 {
+	margin-bottom: 0px;
+	padding-bottom: 0px;
+	text-align: left;
+	color: #000099;
+}
+h1 { margin-left: 8px; margin-right: 8px; }
+h2 { margin-left: 16px; margin-right: 16px; }
+h3 { margin-left: 24px; margin-right: 24px; }
+h4 { margin-left: 32px; margin-right: 32px; }
+h5 { margin-left: 48px; margin-right: 48px; }
+h6 { margin-left: 64px; margin-right: 64px; }
+P,CENTER,CL,DIV,TD,TH,DL,DT,DIV,pre,code,samp { margin-left: 72px; margin-right: 72px; }
+
+pre,code,samp {
+        font-family: monospace;
+	border: 1px solid gray;
+        background-color: #cee8ff;
+	margin-top: 4px;
+	margin-bottom: 4px;
+	padding-left: 0px;
+	padding-right: 0px;
+	padding-top: 4px;
+	padding-bottom: 4px;
+}
+code {
+  margin: 0px;
+  padding: 0px;
+  margin-left: 0.1em;
+  margin-right: 0.1em;
+  border: 0px;
+ /*background-color: #ffffff;
+  font-weight: bold;*/
+}
+
+/*---------------------------------------------------------
+ * Link Colors
+ */
+:link    { color: #000099; }
+:active  { color: #000000; }
+:visited {
+  color: #cc3300;   /*dark orange*/
+}
+a[href]:hover   {
+  background-color: #ffbb75; /*light orange*/
+  color: #000099;
+}

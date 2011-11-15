@@ -1,0 +1,20 @@
+##-----------------------------------------------------------------------
+## Additional variable: library versioning
+##  + for -version-info $(CUR):$(REV):$(AGE) :
+##  + base lib is created as libMYLIB.so.$(CUR).$(AGE).$(REV)
+##-----------------------------------------------------------------------
+
+##--- The most recent interface number that this library implements.
+LIBCUR = $(DDC_VERSION_MAJOR)
+
+##--- The difference between the newest and oldest interfaces that this
+##     library implements.  In other words, the library implements all the
+##     interface numbers in the range from number `CURRENT - AGE' to
+##     `CURRENT'.
+LIBAGE = 0
+
+##--- The implementation number of the CURRENT interface.
+LIBREV = $(DDC_VERSION_MINOR)
+
+AM_LDFLAGS = -version-info $(LIBCUR):$(LIBREV):$(LIBAGE)
+LIBADD     = $(LIBS)

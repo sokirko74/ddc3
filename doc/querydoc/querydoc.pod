@@ -1,0 +1,1284 @@
+=head1 DDC Query Language Documentation
+
+=head2 Overview
+
+This documentation describes the query language accepted by
+DDC version 1.80.dx-1.  Current sources for DDC should be available
+in SVN under
+svn+ssh://odo.dwds.de/home/svn/dev/ddc/trunk.
+
+
+The DDC query parsing, compilation, and evaluation code was
+re-written for version 1.80.dx-1.  The new query parser should be
+largely compatible with older DDC versions; incompatibilities are
+due to new query sub-types (e.g. value sets)
+and/or bugfixes (symbol and regex escapes, quoted symbols, etc.).
+Documentation for the legacy DDC query language can be found with
+the source or on the web at
+http://odo.dwds.de/~moocow/software/ddc/DDCReadme.pdf.
+
+
+The grammar below is given in a subset of standard
+BNF notation
+using only the choice ("|") and termination (";") operators.
+Where available, nonterminal symbols on the right-hand side of grammar rules
+appear as
+italicized lower-case hyperlinks.
+Literal terminal symbols are typeset in green monospace,
+and special terminal symbols appear as
+ITALICIZED UPPER-CASE HYPERLINKS.
+Comments may appear after each rule in C notation
+/* like this */.
+
+
+
+
+=head2 Grammar Rules
+
+=head3 Top-Level Rule(s)
+
+
+
+ query ::=                     /*-- Top-level rule (query root) --*/
+           q_clause q_filters  /* Filters may be empty */
+         ;
+ 
+
+
+
+=head3 Query Rules
+
+
+
+ q_clause      ::=                                                       /*-- Main query clause (logical operations) --*/
+                   qc_basic                                              /* Single-condition clause */
+                 | q_clause && q_clause                                  /* Logical conjunction ('and') */
+                 | q_clause || q_clause                                  /* Logical disjunction ('or') */
+                 | ! q_clause                                            /* Logical negation ('not'): not be interpretable for all clauses */
+                 | ( q_clause )                                          /* Explicit grouping */
+                 ;
+ 
+ qc_basic      ::=                                                       /*-- Basic query clause (single logical condition) --*/
+                   qc_tokens                                             /* Sequence or single-token condition */
+                 | qc_near                                               /* Unordered proximity constraint */
+                 ;
+ 
+ qc_near       ::=                                                       /*-- Unordered proximity constraint --*/
+                   NEAR ( qc_tokens , qc_tokens , integer )              /* ... over 2 argument conditions */
+                 | NEAR ( qc_tokens , qc_tokens , qc_tokens , integer )  /* ... over 3 argument conditions */
+                 | ( qc_near )                                           /* Explicit grouping (vacuous) */
+                 ;
+ 
+ qc_tokens     ::=                                                       /*-- Sequence or single-token condition --*/
+                   qc_word                                               /* Single-token condition */
+                 | qc_sequence                                           /* Ordered sequence of single-token conditions */
+                 ;
+ 
+ qc_sequence   ::=                                                       /*-- Ordered sequence of single-token conditions --*/
+                   " l_seq "                                             /* Sequences are enclosed in double-quotes */
+                 | ( qc_sequence )                                       /* Explicit grouping (vacuous) */
+                 ;
+ 
+ qc_word       ::=                                                       /*-- Single-token condition --*/
+                   qw_bareword                                           /* Bareword query (expanded) */
+                 | qw_exact                                              /* Exact match (not expanded) */
+                 | qw_regex                                              /* Regular expression */
+                 | qw_set_infl                                           /* Disjunction over a set of targets (expanded) */
+                 | qw_set_exact                                          /* Disjunction over a set of literals (not expanded) */
+                 | qw_prefix                                             /* Right-truncated string (prefix condition) */
+                 | qw_prefix_set                                         /* Disjunction over right-truncated strings (prefix-set condition) */
+                 | qw_suffix                                             /* Left-truncated string (suffix condition) */
+                 | qw_suffix_set                                         /* Disjunction over left-truncated strings (suffix-set condition) */
+                 | qw_infix                                              /* Substring (infix) condition */
+                 | qw_infix_set                                          /* Disjunction over substrings (infix-set condition) */
+                 | qw_thesaurus                                          /* Thesaurus condition ('Thes' index) */
+                 | qw_morph                                              /* Morphological property condition ('MorphPattern' index) */
+                 | qw_lemma                                              /* Lemma property condition ('Lemma' index) */
+                 | qw_chunk                                              /* Syntactic property condition ('Chunk' index) */
+                 | qw_listfile                                           /* Disjunction over values (lines) read from a server-side file (command-line only) */
+                 | qw_with                                               /* Conjunction of multiple conditions on a single token */
+                 | ( qc_word )                                           /* Explicit grouping (e.g. for WITH, expanders, etc.) */
+                 ;
+ 
+ qw_bareword   ::=                                                       /*-- String match condition with implicit term expansion --*/
+                   s_word l_txchain                                      /* ... on 'Token' index, with optional expansion pipeline */
+                 | s_index = s_word l_txchain                            /* ... on user-specified index, with optional expansion pipeline */
+                 ;
+ 
+ qw_exact      ::=                                                       /*-- Literal string match condition --*/
+                   @ s_word                                              /* ... on 'Token' index */
+                 | s_index = @ s_word                                    /* ... or on user-specified index */
+                 ;
+ 
+ qw_regex      ::=                                                       /*-- Regular expression match using perl syntax --*/
+                   regex                                                 /* ... on 'Token' index */
+                 | s_index = regex                                       /* ... on user-specified index */
+                 ;
+ 
+ qw_set_infl   ::=                                                       /*-- Disjunction over a set of (expanded) target values --*/
+                   { l_set } l_txchain                                   /* ... in 'Token' index, with optional expansion pipeline */
+                 | s_index = { l_set } l_txchain                         /* ... in user-specified index, with optional expansion pipeline */
+                 ;
+ 
+ qw_set_exact  ::=                                                       /*-- Disjunction over a set of literal values --*/
+                   @{ l_set }                                            /* ... in the 'Token' index */
+                 | s_index = @{ l_set }                                  /* ... in a user-specified index */
+                 ;
+ 
+ qw_prefix     ::=                                                       /*-- Right-truncated string (prefix condition) --*/
+                   s_prefix                                              /* ... on 'Token' index */
+                 | s_index = s_prefix                                    /* ... on user-specified index */
+                 ;
+ 
+ qw_prefix_set ::=                                                       /*-- Disjunction over right-truncated strings (prefix-set condition) --*/
+                   { l_set }*                                            /* ... on 'Token' index */
+                 | s_index = { l_set }*                                  /* ... on user-specified index */
+                 ;
+ 
+ qw_suffix     ::=                                                       /*-- Left-truncated string (suffix condition) --*/
+                   s_suffix                                              /* ... on 'Token' index */
+                 | s_index = s_suffix                                    /* ... on user-specified index */
+                 ;
+ 
+ qw_suffix_set ::=                                                       /*-- Disjunction over left-truncated strings (suffix-set condition) --*/
+                   *{ l_set }                                            /* ... on 'Token' index */
+                 | s_index = *{ l_set }                                  /* ... on user-specified index */
+                 ;
+ 
+ qw_infix      ::=                                                       /*-- Substring (infix) condition --*/
+                   s_infix                                               /* ... on 'Token' index */
+                 | s_index = s_infix                                     /* ... on user-specified index */
+                 ;
+ 
+ qw_infix_set  ::=                                                       /*-- Disjunction over substrings (infix set) --*/
+                   *{ l_set }*                                           /* ... on 'Token' index */
+                 | s_index = *{ l_set }*                                 /* ... on user-specified index */
+                 ;
+ 
+ qw_thesaurus  ::=                                                       /*-- Thesaurus condition (SYNTAX CHANGED!) --*/
+                   :{ s_semclass }                                       /* ... on 'Thes' index */
+                 | s_index = :{ s_semclass }                             /* ... on user-specified index */
+                 ;
+ 
+ qw_morph      ::=                                                       /*-- Morphological property condition --*/
+                   [ l_morph ]                                           /* ... on 'MorphPattern' index */
+                 | s_index = [ l_morph ]                                 /* ... on user-specified index */
+                 ;
+ 
+ qw_lemma      ::=                                                       /*-- Lemma property condition (not for D* corpora) --*/
+                   % s_lemma                                             /* ... on 'Lemma' index */
+                 | s_index = % s_lemma                                   /* ... on user-specified index */
+                 ;
+ 
+ qw_chunk      ::=                                                       /*-- Syntactic property condition --*/
+                   ^ s_chunk                                             /* ... on 'Chunk' index */
+                 | s_index = ^ s_chunk                                   /* ... on user-specified index */
+                 ;
+ 
+ qw_listfile   ::=                                                       /*-- Disjunction over values read from a server-side file (command-line only) --*/
+                   < s_filename                                          /* ... on 'Token' index */
+                 | s_index = < s_filename                                /* ... on user-specified index */
+                 ;
+ 
+ qw_with       ::=                                                       /*-- Conjunction of multiple conditions over a single token --*/
+                   qc_word WITH qc_word                                  /* ... note that negated conditions are not admissable here */
+                 ;
+ 
+
+
+
+=head3 Query Filter Rules
+
+
+
+ q_filters      ::=                                   /*-- List of global query options --*/
+                                                      /* empty */
+                  | q_filters q_flag                  /* ... query flag */
+                  | q_filters q_filter                /* ... query filter */
+                  ;
+ 
+ q_flag         ::=                                   /*-- Global query flags --*/
+                    : qf_subcorpora                   /* subcorporus selection */
+                  | #CNTXT integer                    /* hit context window (number of sentences) */
+                  | #WITHIN symbol                    /* hit container type (e.g. 'file') */
+                  | #FILENAMES                        /* request filenames in output metadata */
+                  | ! #FILENAMES                      /* ... or disable filenames in output metadata */
+                  | #DEBUG_RANK                       /* request verbose rank debugging in output metadata */
+                  | ! #DEBUG_RANK                     /* ... or disable verbose rank debugging */
+                  ;
+ 
+ q_filter       ::=                                   /*-- Global query selection and/or sort filter --*/
+                    qf_has_field                      /* restrict hits based on document metadata */
+                  | qf_rank_sort                      /* ... sort hits by TF-IDF rank */
+                  | qf_bigram_sort                    /* ... sort hits lexicographically by context */
+                  | qf_size_sort                      /* ... sort/filter hits by (sentence) length */
+                  | qf_date_sort                      /* ... sort/filter hits by document date */
+                  | qf_bibl_sort                      /* ... sort/filter hits by document metadata */
+                  | qf_random_sort                    /* ... sort hits pseudo-randomly */
+                  ;
+ 
+ qf_has_field   ::=                                   /*-- Metadata restriction (alias: '#HAS') --*/
+                    #HAS_FIELD [ s_field , symbol ]   /* ... literal match */
+                  | #HAS_FIELD [ s_field , regex ]    /* ... regular expression match */
+                  ;
+ 
+ qf_rank_sort   ::=                                   /*-- Sort hits by TF-IDF rank --*/
+                    #GREATER_BY_RANK                  /* ... in descending order */
+                  | #LESS_BY_RANK                     /* ... in ascending order */
+                  ;
+ 
+ qf_bigram_sort ::=                                   /*-- Sort or filter hits lexicographically by context (requires special index) --*/
+                    #LESS_BY_LEFT                     /* ... in ascending order by preceding context */
+                  | #LESS_BY_RIGHT                    /* ... in ascending order by following context */
+                  ;
+ 
+ qf_size_sort   ::=                                   /*-- Sort or filter hits by (sentence) length --*/
+                    #LESS_BY_SIZE qfb_int             /* ... in ascending order, with optional bounds */
+                  | #GREATER_BY_SIZE qfb_int          /* ... in descending order, with optional bounds */
+                  | #IS_SIZE [ int_str ]              /* ... restricted to specified size */
+                  ;
+ 
+ qf_date_sort   ::=                                   /*-- Sort or filter hits by document date --*/
+                    #LESS_BY_DATE qfb_date            /* ... in ascending order, with optional bounds */
+                  | #GREATER_BY_DATE qfb_date         /* ... in descending order, with optional bounds */
+                  | #IS_DATE [ date ]                 /* ... restricted to specified date */
+                  ;
+ 
+ qf_bibl_sort   ::=                                   /*-- Sort or filter hits by document metadata --*/
+                    #LESS_BY [ s_field qfb_bibl ]     /* ... in ascending order, with optional bounds */
+                  | #GREATER_BY [ s_field qfb_bibl ]  /* ... in descending order, with optional bounds */
+                  ;
+ 
+ qf_random_sort ::=                                   /*-- Sort hits pseudo-randomly --*/
+                    #RANDOM                           /* ... with an implicit seed of 0 (zero) */
+                  | #RANDOM [ ]                       /* ... with an implicit seed of 0 (zero) */
+                  | #RANDOM [ int_str ]               /* ... with a user-specified random seed */
+                  ;
+ 
+ qfb_int        ::=                                   /*-- Optional integer bounds for query filters --*/
+                                                      /* ... empty (full range) */
+                  | [ ]                               /* ... empty brackets (full range) */
+                  | [ int_str ]                       /* ... lower bound only */
+                  | [ int_str , ]                     /* ... lower bound only */
+                  | [ int_str , int_str ]             /* ... lower bound, upper bound */
+                  | [ , int_str ]                     /* ... upper bound only */
+                  ;
+ 
+ qfb_date       ::=                                   /*-- Optional date bounds for query filters --*/
+                                                      /* ... empty (full range) */
+                  | [ ]                               /* ... empty brackets (full range) */
+                  | [ date ]                          /* ... lower bound only */
+                  | [ date , ]                        /* ... lower bound only */
+                  | [ date , date ]                   /* ... lower bound, upper bound */
+                  | [ , date ]                        /* ... upper bound only */
+                  ;
+ 
+ qfb_bibl       ::=                                   /*-- Optional string metadata bounds for query filters --*/
+                                                      /* ... empty (full range) */
+                  | ,                                 /* ... empty (full range) */
+                  | , ,                               /* ... empty (full range) */
+                  | , symbol                          /* ... lower bound only */
+                  | , symbol ,                        /* ... lower bound only */
+                  | , , symbol                        /* ... upper bound only */
+                  | , symbol , symbol                 /* ... lower bound, upper bound */
+                  ;
+ 
+
+
+
+=head3 List-like Constituents
+
+
+
+ l_set         ::=                              /*-- Set of string values --*/
+                                                /* empty set */
+                 | l_set s_word                 /* ... set elements are separated by whitespace */
+                 | l_set ,                      /* ... or by commas */
+                 ;
+ 
+ l_morph       ::=                              /*-- List of morphological properties (should match index) --*/
+                                                /* empty list */
+                 | l_morph s_morphitem          /* ... list elements are separated by whitespace */
+                 | l_morph ,                    /* ... or commas */
+                 | l_morph ;                    /* ... or semicolons (for compatibility) */
+                 ;
+ 
+ l_seq         ::=                              /*-- Ordered sequence of single-word conditions with optional proximity constraints --*/
+                   qc_word                      /* Singleton sequence */
+                 | l_seq qc_word                /* ... Sequence elements are separated by whitespace */
+                 | l_seq # integer qc_word      /* ... with an optional proximity hint (default='#0': immediate successor) */
+                 ;
+ 
+ l_txchain     ::=                              /*-- Term expansion pipeline --*/
+                                                /* Empty pipeline or '|-' uses index-dependent default aka '|INDEX' */
+                 | l_txchain s_expander         /* ... pipeline concatenation '|Expander1 |Expander2 |...' */
+                 ;
+ 
+ qf_subcorpora ::=                              /*-- Set of target subcorpora --*/
+                                                /* ... empty subcorpus set */
+                 | s_subcorpus                  /* ... singleton subcorpus (symbol) */
+                 | qf_subcorpora , s_subcorpus  /* ... multiple subcorpora are separated by commas */
+                 ;
+ 
+
+
+
+=head3 Preterminals and Aliases
+
+
+
+ s_index     ::=               /*-- Index name (must be defined in .opt file) --*/
+                 $             /* Bare dollar uses query-type default (usually 'Token') */
+               | $ symbol      /* Explicit index name */
+               ;
+ 
+ s_word      ::=               /*-- A single word or string value --*/
+                 symbol        /* ... can be any symbol */
+               ;
+ 
+ s_semclass  ::=               /*-- Semantic class used by :{...} queries --*/
+                 symbol        /* ... can be any symbol */
+               ;
+ 
+ s_lemma     ::=               /*-- Lemma used by %L queries --*/
+                 symbol        /* ... can be any symbol */
+               ;
+ 
+ s_chunk     ::=               /*-- Chunk name used by ^C queries --*/
+                 symbol        /* ... can be any symbol */
+               ;
+ 
+ s_filename  ::=               /*-- Filename used by <F queries --*/
+                 symbol        /* ... can be any symbol (server-side filename) */
+               ;
+ 
+ s_morphitem ::=               /*-- Morphological property used by [...] queries --*/
+                 symbol        /* ... can be any symbol */
+               ;
+ 
+ symbol      ::=               /*-- User-specified symbol or string --*/
+                 SYMBOL        /* Bareword or single-quoted string with C-style escapes */
+               | INTEGER       /* ... every decimal number is also a valid symbol */
+               | DATE          /* ... every date-string is also a valid symbol */
+               ;
+ 
+ s_prefix    ::=               /*-- Prefix condition string --*/
+                 PREFIX        /* ... ends with a literal '*' */
+               ;
+ 
+ s_suffix    ::=               /*-- Suffix condition string --*/
+                 SUFFIX        /* ... begins with a literal '*' */
+               ;
+ 
+ s_infix     ::=               /*-- Infix condition string --*/
+                 INFIX         /* ... begins and ends with literal '*' */
+               ;
+ 
+ s_expander  ::=               /*-- Term expander label --*/
+                 EXPANDER      /* ... begins with a literal '|', and may be '|-' for an index-dependent default */
+               ;
+ 
+ s_subcorpus ::=               /*-- Named subcorpus used by :... filter --*/
+                 symbol        /* ... can be any symbol */
+               ;
+ 
+ s_field     ::=               /*-- Document metadata field name --*/
+                 symbol        /* ... is just a symbol */
+               ;
+ 
+ s_fieldval  ::=               /*-- Document metadata field value --*/
+                 symbol        /* ... is just a symbol */
+               ;
+ 
+ regex       ::=               /*-- Regular expressions --*/
+                 REGEX         /* ... are slash-delimited in perl syntax */
+               | REGEX REGOPT  /* ... with optional modifiers (gimsx) */
+               ;
+ 
+ integer     ::=               /*-- Non-negative decimal integer --*/
+                 int_str       /* ... parsed as an integer */
+               ;
+ 
+ int_str     ::=               /*-- Non-negative decimal integer --*/
+                 INTEGER       /* ... parsed as a string */
+               ;
+ 
+ date        ::=               /*-- date string --*/
+                 DATE          /* ... e.g. YYYY(-MM(-DD)?)? */
+               | INTEGER       /* ... every valid integer is also a valid date (year part only) */
+               ;
+ 
+
+
+
+
+
+=head2 Terminal Symbols
+
+=head3 Common Definitions
+
+The underlying flex scanner makes use of several regular expression
+'macros' using the notation {MACRO}.
+The following macros are defined for the underlying scanner:
+
+
+ ws		[ \t\n\r\f\v]
+ punct	        [\^\!\~\$\@\%\/\=\?\_\:\;\+\#\.\\\*\,\'\"\&\|\(\)\[\]\{\}\<\>]
+ 
+ symbol_cfirst	[^ \t\r\n\f\v\0\^\&\|\!\(\)\[\]\{\}\<\>\'\"\,\;\:\#\=\*\%\\\~\$\@\/\?\_\+\.]
+ symbol_crest	[^ \t\r\n\f\v\0\^\&\|\!\(\)\[\]\{\}\<\>\'\"\,\;\:\#\=\*\%\\]
+ symbol_cescape  (\\.)
+ symbol_text     ({symbol_cescape}|{symbol_cfirst})(({symbol_cescape}|{symbol_crest})*)
+ 
+ int_boundary	[ \t\n\r\f\v\0\^\&\|\!\(\)\[\]\{\}\<\>\'\"\,\;\:\#\=\*\%\~\\\$\@\/\?\_\+\.]
+ 
+ index_name      {symbol_text}
+ 
+ sq_text         ([^\']|{symbol_cescape})*
+ 
+ regex_text      ((\\.)|[^\/\\])*
+ regex_modifier	[gimsx]
+
+
+
+=head3 Punctutation Operators and Special Characters
+
+ "&&"				/* clause-level conjunction operator */
+ "||"				/* clause-level disjunction operator */
+ [\!\.\,\:\;\$\@\%\^\#\=]	/* single-character punctuation operators */
+ [\[\]\{\}\(\)\<\>]		/* parentheses */
+ [\"]				/* double quotes (for sequence queries) */
+ ":{"				/* thesaurus-query opener */
+ "@{"				/* literal-set opener */
+ "*{"				/* prefix- or infix-set opener */
+ "}*"				/* suffix-set or infix-set closer */
+
+The scanner supports the various punctuation operators used in
+the query grammar.
+Punctuation operators should be escaped if they occur anywhere in a literal
+symbol, e.g. by enclosing the symbol in single quotes.
+
+
+
+
+=head3 Query Keywords
+
+ (?i:near)
+ (?i:with)
+ (?i:\#cntxt)
+ (?i:\#within)
+ (?i:\#has(_field)?)
+ (?i:\#file_names|\#filenames)
+ (?i:\#debug_rank)
+ (?i:\#greater_by_rank)
+ (?i:\#less_by_rank)
+ (?i:\#greater_by_date)
+ (?i:\#less_by_date)
+ (?i:\#is_date)
+ (?i:\#greater_by_size)
+ (?i:\#less_by_size)
+ (?i:\#is_size)
+ (?i:\#(less_by_)?left)
+ (?i:\#(less_by_)?right)
+ (?i:\#less_by)
+ (?i:\#greater_by)
+ (?i:\#random)
+
+The scanner supports the various reserved words used in
+the query grammar.  Query keywords are matched
+case-insensitively; e.g.
+"NEAR",
+"near",
+"Near",
+and "nEaR"
+are all valid instantiations of the query keyword
+NEAR.
+Query keywords must be escaped if they occur anywhere
+in a literal symbol, e.g. by enclosing the symbol in single quotes.
+
+
+
+
+=head3 INTEGER
+
+ \'[0-9]+\'			/* single-quoted non-negative decimal integer */
+ [0-9]+/{int_boundary}		/* bareword non-negative decimal integer */
+
+The scanner supports non-negative integers in decimal notation, optionally
+enclosed by single quotes.  It may be necessary to introduce whitespace
+or quotes in order to separate an integer token from surrounding symbols.
+
+
+
+
+=head3 DATE
+
+ \'[0-9\-]+\'			/* single-quoted date-like string */
+ [0-9\-]+/{int_boundary}		/* bareword date-like string */
+
+
+
+The scanner supports date-like tokens in a superset of the ISO 8601 format
+(YYYY-MM-DD), optionally enclosed by single quotes.
+
+
+=head3 REGEX
+
+ \/{regex_text}\/{regex_modifier}*	/* slash-quoted regex, with option modifiers */
+
+The scanner supports regular expressions enclosed by forward slashes, with
+an optional suffix modifer string.
+DDC uses PCRE as its underlying
+regular expression engine, which should support the full
+Perl regular expression syntax.
+In particular, C-style escapes ("\t", "\n", "\0", etc.) and
+Unicode character escapes ("\x{17f}", "\x{364}") may occur
+within regular expressions.  Literal slashes as part of a regular expression
+must be escaped with a backslash ("\/").
+The regular expression modifier "/g" (mnemonic: 'match Globally')
+has a special meaning for DDC: if this modifier is set, only those index
+items are retrieved which match the regular expression in the entirety;
+otherwise all index items for which any substring matches the regular expression
+will be retrieved.  Internally this behavior is implemented by implicitly
+inserting beginning- and end-of-string anchors into the regular expression,
+thus /REGEX/g is a equivalent to /^(?:REGEX)$/.
+
+
+
+
+=head3 SYMBOL
+
+ \'{sq_text}\'                   /* single-quoted symbol */
+ {symbol_text}			/* bareword symbol */
+
+Symbols (strings) are the basic building blocks of the DDC query language.
+The scanner supports "bareword" symbols (e.g. my_symbol)
+consisting of only alphanumeric and non-ASCII characters, underscores,
+and backslash-escapes, as well as single-quoted strings
+(e.g. 'symbol with whitespace'), in which only embedded quotes must be
+escaped.
+
+
+=head4 Escapes
+
+The following special character escape sequences are supported in both bareword
+and single-quoted symbols:
+
+
+
+
+ Escape Description                                   
+ \a     C-style escape (\x07): alert (bell)           
+ \b     C-style escape (\x08): backspace              
+ \t     C-style escape (\x09): horizontal tab         
+ \n     C-style escape (\x0a): newline                
+ \v     C-style escape (\x0b): vertical tab           
+ \f     C-style escape (\x0c): form feed              
+ \r     C-style escape (\x0d): carriage return        
+ \OOO   C-style octal escape (byte); e.g. \101        
+ \xXX   C-style Hexidecimal escape (byte); e.g. \x42  
+ \uXXXX JSON-style Unicode escape (UTF-8); e.g. \u0043
+ \c     Escaped character 'c'; e.g. \\                
+
+
+
+
+
+=head3 Truncated Symbols
+
+ "*"\'{sq_text}\'"*"	/* dual-truncated quoted string (infix symbol) */
+ \'{sq_text}\'"*"	/* right-truncated quoted string (prefix symbol) */
+ "*"\'{sq_text}\'	/* left-truncated quoted string (suffix symbol) */
+ 
+ "*"{symbol_text}"*"	/* dual-truncated bare string (infix symbol) */
+ {symbol_text}"*"	/* right-truncated bare string (prefix symbol) */
+ "*"{symbol_text}	/* left-truncated bare string (suffix symbol) */
+
+Truncated symbols (for
+prefix-,
+suffix-,
+and
+infix-queries)
+are supported directly by the scanner, in order to distinguish
+these from literal symbols containing an asterisk character ("*").
+Literal asterisks must be escaped if they occur anywhere
+in a literal symbol, e.g. by enclosing the symbol in single quotes.
+Note that despite this restriction, the asterisk does NOT function as a general
+"wildcard character" for DDC queries.  If you need to match multiple substrings of a single index
+item, use a regular expression instead,
+e.g. "/^foo.*bar.*baz$/" for a wildcard condition "foo*bar*baz".
+
+
+
+
+=head3 Term Expander Pipelines
+
+ "|"{ws}*"-"			/* alias for default term expander pipeline (index-dependent) */
+ "|"{ws}*\'{sq_text}\'		/* quoted term expander label */
+ "|"{ws}*{symbol_text}		/* bare term expander label */
+
+The scanner supports special rules for user specification of term expansion pipelines
+used by the qw_bareword and qw_set_infl
+query types.  Each link in a term expansion pipeline is prefixed by the special symbol
+"|" (vertical bar or 'pipe' symbol), followed by optional whitespace and the label of
+a named expander to apply as a symbol.  In order for the
+query to be evaluated, each expander label in a term expansion pipeline must be defined
+for the corpus to be queried.  The expanders "id", "null", "case", and "infl"
+should always be defined.  The default expanders may be overridden and/or additional
+expanders defined in a corpus .opt file.
+The special label "-" (hyphen) may be used as an alias for the default expander
+for the index to be queried, whose label is identical to the long index name as
+declared in the corpus .opt file.  By default, only
+the "Token" index has a pre-defined expansion pipeline, defined as 'infl' (built-in
+language-dependent lemmatization and re-inflection) by default.
+If the CaseInsensitive flag is set in the corpus .opt file,
+the default Token pipeline is 'infl|case' (inflection followed by built-in letter-case twiddling).
+The default expansion pipeline for any other other index is empty, i.e. equivalent to
+the identity expander "id" a.k.a. "null".
+Literal pipe symbols ("|") must be escaped if they occur anywhere
+in a literal symbol, e.g. by enclosing the symbol in single quotes.
+
+
+
+
+=head3 Other Terminals
+
+ {ws}+    			/* whitespace: skip */
+ \0				/* null byte: skip */
+ .				/* any other character (byte) is its own token */ }
+
+Whitespace and NUL bytes are ignored.
+Any other input byte is returned as a symbol of length 1.
+
+
+
+
+
+
+=head2 Miscellany
+
+=head3 Compilation Errors
+
+Not all queries which are grammatical according to the
+query grammar given above are in fact
+admissible DDC queries.  In particular, pure negative conditions
+such as
+!foo,
+!foo && !bar,
+or
+!(foo || bar)
+will parse successfully but fail to compile.  In such cases,
+DDC should return an error code of errParseError
+and print an informative diagnostic message to stderr
+and/or the current log file.
+
+
+
+
+
+
+=head2 DTA Corpus Structure
+
+This section gives a brief overview of the index structure used for the
+current DDC index of the Deutsches Textarchiv corpus.
+
+
+=head3 DTA Index Fields
+
+The DTA corpus .opt file
+defines the following index fields:
+
+
+
+
+=over 4
+
+=item B<Token w>
+
+B<unicruft> (L<http://odo.dwds.de/~moocow/software/unicruft/>)Latin-1 approximation of
+original token text (actually encoded in the Latin-1 subset of UTF-8).
+This is the default field searched e.g. by bareword L<SYMBOL|/term_SYMBOL>queries.
+As of August, 2011, words containing non-latin-extended characters are B<not>transliterated by default, and should appear (and be searchable) by their original UTF-8 forms
+without resorting to the "Utf8" index field (with regard to which see below).
+
+
+
+
+=item B<Utf8 u>
+
+Original UTF-8 text of the source token.  Formerly indexed as I<Token2 w2>.
+
+
+
+
+=item B<CanonicalToken v>
+
+B<DTA::CAB> (L<http://odo.dwds.de/~moocow/software/dta-cab/>)-normalized wordform for the source token.
+
+
+
+
+=item B<Pos p>
+
+Part-of-speech assigned to the source token
+by B<moot> (L<http://www.ling.uni-potsdam.de/~moocow/projects/moot/>)via B<DTA::CAB> (L<http://odo.dwds.de/~moocow/software/dta-cab/>).
+Uses the B<STTS tag-set> (L<http://www.ims.uni-stuttgart.de/projekte/corplex/TagSets/stts-table.html>).
+
+
+
+
+=item B<Lemma l>
+
+Lemma assigned to the source token by B<DTA::CAB> (L<http://odo.dwds.de/~moocow/software/dta-cab/>).
+Uses the B<TAGH morphology> (L<http://tagh.de/>)via B<DTA::CAB> (L<http://odo.dwds.de/~moocow/software/dta-cab/>)if available.
+
+
+
+
+=item B<Coord coord>
+
+Bounding box(es) for the source token.
+Not really meaningful for querying, but useful for image highlighting.
+
+
+
+
+=item B<Page page>
+
+Page (scan) number.
+Formerly used the long index name "age", which appears to have been nothing more than
+a self-perpetuating typographical error.
+
+
+
+
+=item B<Rend r>
+
+Typographical ("rendition") attributes for the source token as as '|'-sparated set
+e.g. "-" (nothing of note), "|aq|" (antiqua), "|b|" (bold?), "|g|" (upper-case?),
+"|b|g|" (bold? + upper-case?), ...
+
+
+
+
+=item B<Context con>
+
+Text-structurual features of the source token as a lexicographically sorted
+'|'-separated list of unique structural properties,
+or "-" if the token has no special text-structural properties at all.
+Supported properties inherited from XML ancestor elements are:
+C<text, front, body, back, head, left, foot, end, argument, hi, cit, fw, lg, stage, speaker, formula,>and C<table>.
+Additionally, the properties
+C<note_foot, note_left, note_right>and C<note_other>are used for tokens with an XML C<note>ancestor.
+
+
+
+
+=item B<XPath xpath>
+
+XPath to the deepest element node containing (the first character of) the current token,
+or "-" if no such XPath was available during indexing.
+Note that any prefix "/TEI/text" or "/TEI" is implicitly trimmed from the indexed XPath strings,
+since all ddc-indexed tokens must occur as descendants of a /TEI/text element.
+
+
+
+
+=item B<Line lb>
+
+Line number of the current token, relative to the
+current page as indexed by the B<page>field.
+Defined as the number of opening (and possibly closing) "C<lb>"
+preceding the first character of the current token
+on the current page; e.g. 0 (zero) if no "C<lb>" elements precede
+the first character of the current token on the current page.
+Precedence and page-association are computed in terms of TEI document order;
+e.g. if chapter headings contain C<lb>elements, these will count
+towards the line number assigned.
+
+
+
+
+=back
+
+
+
+=head3 DTA Term Expanders
+
+The DTA corpus .opt file
+defines the following term expanders:
+
+
+
+
+=over 4
+
+=item B<id>
+
+Identity expander (no-op)
+
+
+
+
+=item B<null>
+
+Identity expander (no-op)
+
+
+
+
+=item B<case>
+
+Case-twiddling expander using current locale settings of the running server process,
+which should have an LC_CTYPE character set of "UTF-8" or equivalent for correct results.
+Not used by default.
+
+
+
+
+=item B<tolower>
+
+
+
+=item B<lc>
+
+Case-twiddling expander which forces input to all lower-case.
+Same caveats as for the L<case|/dta_expand_case>expander.
+Not used by default.
+
+
+
+
+=item B<toupper>
+
+
+
+=item B<uc>
+
+Case-twiddling expander which forces input to all upper-case.
+Same caveats as for the L<case|/dta_expand_case>expander.
+Not used by default.
+
+
+
+
+=item B<morphy>
+
+Built-in DDC lemmatization and re-inflection (morphy-based)
+
+
+
+
+=item B<infl>
+
+
+
+=item B<tagh>
+
+TAGH-based lemmatization and re-inflection via dedicated
+B<DTA::CAB> (L<http://odo.dwds.de/~moocow/software/dta-cab/>)HTTP server
+at B<http://194.95.188.28:9098> (L<http://194.95.188.28:9098>).
+
+
+
+
+=item B<cab>
+
+Expansion by an external B<DTA::CAB> (L<http://odo.dwds.de/~moocow/software/dta-cab/>)HTTP server at
+B<http://194.95.188.36:9099> (L<http://194.95.188.36:9099>)using the "expand" analyzer method (phonetic and rewrite equivalents).
+
+
+
+
+=item B<pho>
+
+Expansion by the external DTA::CAB HTTP server at
+using only the "eqpho" analyzer method (phonetic equivalents only).
+
+
+
+
+=item B<rw>
+
+Expansion by the external DTA::CAB HTTP server at
+using only the "eqrw" analyzer method (rewrite equivalents only).
+Should be more precise than the
+L<cab|/dta_expand_cab>or L<pho|/dta_expand_pho>expanders, but with poorer recall.
+
+
+
+
+=item B<eqlemma>
+
+TAGH-based best-lemma match using pre-compiled index via
+via dedicated B<DTA::CAB> (L<http://odo.dwds.de/~moocow/software/dta-cab/>)HTTP server
+at B<http://194.95.188.36:9099> (L<http://194.95.188.36:9099>).
+
+
+
+
+=item B<Token>
+
+Default expansion pipeline for queries of the (transliterated) 'Token' index,
+defined as 
+C<eqlemma>.
+
+
+
+
+=item B<Utf8>
+
+Default expansion pipeline for queries of the (raw UTF-8) 'Utf8' index,
+defined as 
+C<eqlemma>.
+Note that due to limitations and configuration issues with respect to both the underlying CAB server
+and the built-in DDC morphological expansion module,
+target strings containing extinct characters
+("E<0x17f>", "aE<0x364>", etc.) will B<not>be found by this expander.
+
+
+
+
+=item B<CanonicalToken>
+
+Default expansion pipeline for queries of the CAB-normalized 'CanonicalToken' index,
+defined as 
+C<infl>.
+
+
+
+
+=item B<Pos>
+
+Default expansion pipeline for queries of the 'Pos' (part-of-speech tag) index,
+defined as 
+C<toupper>.
+
+
+
+
+=item B<Lemma>
+
+Default expansion pipeline for queries of the 'Lemma',
+defined as 
+C<case>.
+
+
+
+
+=back
+
+
+
+
+
+=head2 Examples
+
+The examples in this section assume the DTA DDC corpus index structure
+described above.
+The links in this section make use of the DTA OpenSearch wrapper
+demo server at
+http://kaskade.dwds.de/dtaos.
+
+
+=head3 Basic Examples
+
+
+
+=over 4
+
+=item B<sein>
+
+All expanded variants of "sein" ("sein", "ist", "war", ..., "seyn", "seyd", ..., "seine", "ihre", ...)
+
+
+
+=item B<@sein>
+
+Only the literal (latin-1 approximation) string "sein"
+
+
+
+=item B<$u=@E<0x17f>ein>
+
+Only the literal (original UTF-8) string "E<0x17f>ein"
+
+
+
+=item B<Wach*>
+
+Any string with (latin-1 approximation) prefix "Wach"
+
+
+
+=item B<*stube>
+
+Any string with (latin-1 approximation) suffix "stube"
+
+
+
+=item B<*achs*>
+
+Any string with (latin-1 approximation) substring "achs"
+
+
+
+=item B<$u=/E<0x17f>tube$/>
+
+Any string with (original UTF-8) suffix "E<0x17f>tube" (via regex)
+
+
+
+=item B<$u=/E<0x17f>tube$/i>
+
+Any string with (original UTF-8) suffix "E<0x17f>tube" (via regex, case-insensitve)
+
+
+
+=back
+
+
+
+=head3 Term Expansion Examples
+
+
+
+=over 4
+
+=item B<TE<0xfc>r>
+
+All sentences containing any variant of the word 'TE<0xfc>r'
+
+
+
+=item B<$Token=TE<0xfc>r>
+
+... same condition, with explicit index
+
+
+
+=item B<$Token=TE<0xfc>r |Token>
+
+... same condition, with explicit index and expansion pipeline
+
+
+
+=item B<TE<0xfc>r |Token>
+
+... same condition, with explicit expansion pipeline only
+
+
+
+=item B<TE<0xfc>r |->
+
+... same condition, with "-" expansion pipeline alias
+
+
+
+=item B<TE<0xfc>r |infl|cab>
+
+... same condition, with alternative user expansion pipeline
+
+
+
+=item B<TE<0xfc>r |infl>
+
+All (modern) inflectional variants of the word "TE<0xfc>r" (no CAB expansion)
+
+
+
+=item B<TE<0xfc>r |cab>
+
+All graphematic variants of the form "TE<0xfc>r" (no lemmatization or re-inflection)
+
+
+
+=item B<TE<0xfc>r |case>
+
+All letter-case variants of the form "TE<0xfc>r"
+
+
+
+=item B<TE<0xfc>r |infl|case>
+
+All letter-case variants of any modern inflectional variant of the word "TE<0xfc>r"
+
+
+
+=item B<TE<0xfc>r |pho>
+
+All phonetic variants of the form "TE<0xfc>r"
+
+
+
+=item B<TE<0xfc>r |rw>
+
+All rewrite variants of the form "TE<0xfc>r"
+
+
+
+=item B<TE<0xfc>r |infl|rw>
+
+All rewrite variants of any modern inflectional variant of the word "TE<0xfc>r"
+
+
+
+=back
+
+
+
+=head3 Multi-Token Examples
+
+
+
+=over 4
+
+=item B<Verein && Club>
+
+All sentences containing both 'Verein' and 'Club' (variants)
+
+
+
+=item B<Verein || Club>
+
+All sentences containing either 'Verein' or 'Club' (variants)
+
+
+
+=item B<{Verein,Club}>
+
+... the same condition, in set notation
+
+
+
+=item B<@Verein || @Club>
+
+All sentences containing either 'Verein' or 'Club' (literals)
+
+
+
+=item B<@{Verein,Club}>
+
+... the same condition, in set notation
+
+
+
+=item B<*{verein,club}>
+
+All strings ending in either "verein" or "club"
+
+
+
+=item B</(?:\Qverein\E|\Qclub\E)$/>
+
+... the same condition, in regex notation
+
+
+
+=item B</(?:\Qverein\E|\Qclub\E)$/i>
+
+... case-insensitive (includes e.g. "Verein" and "Club")
+
+
+
+=item B<"ein Verein">
+
+All variants of the substring "ein Verein"
+
+
+
+=item B<"@ein @Verein">
+
+The exact substring "ein Verein"
+
+
+
+=item B<"ein #1 Verein">
+
+All variants of the subsequence "ein Verein" with at most 1 intervening word
+
+
+
+=item B<"ein #1 {Verein,Club}">
+
+All variants of one of the substrings "ein Verein" or "ein Club" with at most 1 intervening word
+
+
+
+=back
+
+
+
+=head3 Query Filter Examples
+
+
+
+=over 4
+
+=item B<Max>
+
+All sentences containing a variant of "Max", unsorted
+
+
+
+=item B<Max #has_field[author,/Busch/]>
+
+... only those documents by an author matching the regex C</Busch/>
+
+
+
+=item B<Max #has[author,/busch/i]>
+
+... same condition, using new C<#has>alias for C<#has_field>and case-insensitive regex
+
+
+
+=item B<Max #less_by[author]>
+
+... sorted in ascending order by author string
+
+
+
+=item B<Max #greater_by_rank>
+
+... sorted in descending order by putative relevance
+
+
+
+=item B<Max #less_by_size>
+
+... sorted in ascending order by hit (sentence) length
+
+
+
+=item B<Max #less_by_size[3,5]>
+
+... sorted in ascending order by hit length, where hit length is between 3 and 4 tokens.
+
+
+
+=item B<Max #less_by_date>
+
+... sorted in ascending order by hit date
+
+
+
+=item B<Max #is_date[1865]>
+
+... only those hits from 1865
+
+
+
+=back
+
+
+
+
+
+
+
+=head1 AUTHOR
+
+Bryan Jurish E<lt>jurish@bbaw.deE<gt>
+
+=cut

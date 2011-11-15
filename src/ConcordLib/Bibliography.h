@@ -1,0 +1,250 @@
+//  Copyright 2011 by Bryan Jurish
+//
+//  This file is part of DDC.
+// 
+//  DDC is free software: you can redistribute it and/or modify
+//  it under the terms of the GNU Lesser General Public License as published by
+//  the Free Software Foundation, either version 3 of the License, or
+//  (at your option) any later version.
+// 
+//  DDC is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//  GNU Lesser General Public License for more details.
+// 
+//  You should have received a copy of the GNU Lesser General Public License
+//  along with DDC.  If not, see <http://www.gnu.org/licenses/>.
+//
+#ifndef __Bibliography_H_
+#define __Bibliography_H_
+
+#include "../common/util_classes.h"
+#include "../common/MorphXmlToken.h"
+#include <list>
+#include "ConcCommon.h"
+#include "../PCRE/pcre_rml.h"
+
+
+const int UnknownTextAreaNo = -1;
+/*! CBibliography  contains bibliographical information about one \ref corpus_file_def "corpus file", this information
+ is read from xml, xpathes are defined in options file.
+*/
+struct CBibliography 
+{
+	//! original bibliography
+	string m_OrigBibl;
+	//! scanned bibliography
+	string m_ScanBibl;
+	//! issue date
+	string m_DateStr;
+	//! starting page 
+	DWORD    m_StartPageInfo;
+	//! free bibbliographical attributes
+	vector<string> m_BiblAttribs;
+	
+
+			CBibliography();
+	//! set all members empty
+	void	CleanBibliography();
+	//! read structure's members  from a string
+	void	ReadFromString(const string& S);
+	//! write structure's members  to a string
+	string	WriteToString() const;
+	//! convert m_DateStr to an integer 
+	bool	ConvertDateToInt(int& Result) const;
+};
+
+
+
+
+/*!
+	CConcXml is used for building bibliographical indices and working with xml.  
+*/
+const string FreeBiblAttribOptionFieldName = "Bibl";
+const string TextAreaOptionFieldName = "textarea";
+class CConcXml
+{
+
+	class CFreeBiblIndex 
+	{
+		string	GetIndexFileName (string Path) const;
+
+		public:
+		//! the name of the index (from options file)
+		string					m_Name;
+		//! the XPath to this information (from  options file)
+		string					m_Xpath;
+		//! integer references to m_Values for each corpus file
+		vector<DWORD>			m_ValuesForEachFile;
+
+		//! should DDC show this field for each header	
+		bool					m_bShowInHeader;
+
+	public:
+		CFreeBiblIndex();
+		virtual ~CFreeBiblIndex();
+		string			GetDescriptionStr () const;
+		int				GetIntegerValue(DWORD FileNo ) const;
+
+		virtual void	clear();
+		virtual string	GetStringValue(DWORD FileNo ) const;
+		virtual bool	ReadFromDisk (string Path, DWORD FileBreaksSize);
+		virtual void	CreateUnion (string Path, const CFreeBiblIndex* pIndex1, const CFreeBiblIndex* pIndex2);
+		virtual bool	GetValueForDDCFilter (const RML_RE::Options &RegexOpts, string Value, CDDCFilterWithBounds& Filter, bool isRegex=false) const;
+		virtual bool	RegisterBiblStringItemId(const string& Value);
+		virtual bool	DeleteBiblFiles (string Path) const;
+		virtual bool	ConvertAndSaveToDiskAfterIndexing (string Path);
+		virtual string	GetTypeStr() const;
+				
+	};
+    
+	class CFreeBiblStringIndex : public CFreeBiblIndex
+	{
+		struct CStringItem  
+		{
+			string	m_BiblString;
+			DWORD	m_BiblId;
+			bool operator < (const CStringItem& X) const 
+			{
+				return m_BiblString < X.m_BiblString;
+			};
+			bool operator == (const CStringItem& X) const 
+			{
+				return m_BiblString == X.m_BiblString;
+			};
+			
+		};
+		//! a list  that is used during building  this  bibl-index
+		list<CStringItem >		m_BuildStringItems;
+		//! a set of all possible string values for this index
+		vector<string>			m_Values;
+
+		void	CreateUnionOfBiblStrings (const vector<string>&  _X1, const vector<string>&  _X2, vector<DWORD>& Transfer1, vector<DWORD>& Transfer2);
+		string	GetStringFileName (string Path) const;
+		bool	ReadBiblStringItems (vector<string>&  Set, string FileName) const;
+		bool	WriteBiblStringItems (const vector<string>&  Set, string FileName) const;
+
+
+	public:
+	
+		CFreeBiblStringIndex();
+		virtual ~CFreeBiblStringIndex();
+		void	clear();
+		string	GetTypeStr() const;
+		string	GetStringValue(DWORD FileNo ) const;
+		bool	ReadFromDisk (string Path, DWORD FileBreaksSize);
+		void	CreateUnion (string Path, const CFreeBiblIndex* pIndex1, const CFreeBiblIndex* pIndex2);
+		bool	GetValueForDDCFilter (const RML_RE::Options &RegexOpts, string Value, CDDCFilterWithBounds& Filter, bool isRegex=false) const;
+		bool	RegisterBiblStringItemId(const string& Value);
+		bool	DeleteBiblFiles (string Path) const;
+		bool	ConvertAndSaveToDiskAfterIndexing(string Path);
+	};
+
+	class CTextArea 
+	{
+		public:
+		//! the name of the index (from options file)
+		string					m_TextAreaName;
+		//! the XPath to this information (from  options file)
+		string					m_Xpath;
+	};
+
+
+
+	typedef map<string, CFreeBiblIndex*> FreeBiblStringMap;
+	FreeBiblStringMap	m_FreeBiblIndices;
+
+
+	vector<file_off_t>		m_EndOffsetsInBiblFile;
+	vector<int>				m_Dates;
+	// File of Bibliographical references
+	FILE*   				m_BiblBodyFile;
+	string					m_Path;
+	size_t					m_BiblBodyFileSize;
+	string					m_OrigXPath;
+	string					m_ScanXPath;
+	string					m_DateXPath;
+	string					m_StartPageXPath;
+	vector<CTextArea>		m_TextAreas;
+
+	
+	void	DeleteFiles();
+	string	GetBiblIndexFileName() const;
+	string	GetBiblFileName() const;
+	string	GetBiblDateIndexFileName() const;
+	int		GetTextAreaByName(const string& Name) const;
+	
+
+	
+
+
+	
+		
+public:
+	CConcXml();
+	~CConcXml();
+
+	//! clears m_FreeBiblIndices
+	void FreeBiblIndices();
+
+	//! initialize building bibliography for corpus ProjectFileName
+	bool Start(string ProjectFileName);
+	//! add  one record Bibliography
+	bool AddIndexItem(const CBibliography& Bibliography);
+	//! save all indices and stop indexing bibliography
+	bool FinalSaveBibliography();
+	//! stop indexing bibliography an removes index files
+	void ExitWithoutSave();
+	//! initializes free bibliographical attribute descriptions
+	bool RegisterFreeBiblAttributes(string fields, string& ErrorStr);
+	//! initializes free text areas descriptions
+	bool RegisterTextAreas(string fields, string& ErrorStr);
+	//! return free bibliographical attribute description
+	string GetFreeBibiAttributesDescr() const;
+	//! return full text area  description
+	string GetTextAreasDescr() const;
+	void SetPath(string ProjectFileName);
+	bool LoadBibl(string Path, size_t FileBreaksSize);
+	//! returns the bibliographical record
+	CBibliography GetFullBibliographyOfHit(size_t FileNo) const;
+	//! Check bibliographical references
+	bool			CheckBibl(size_t FileBreaksNumber) const;
+	bool			UniteBibliography(const CConcXml& B1, const CConcXml& B2);
+	//! initializes CDDCFilterWithBounds::m_LevelStart and  CDDCFilterWithBounds::m_LevelEnd for filtering by bibliographical information 
+	bool			GetValueFromBiblSet (const RML_RE::Options &RegexOpts,string Value, CDDCFilterWithBounds& Filter, bool isRegex=false) const;
+	//! load xml file into TiXmlDocument& doc and load bibliographical fileds to CBibliography& Bibl
+	bool			LoadXmlAndReadBibliography(TiXmlDocument& doc, const char* pFileBuffer, CBibliography& Bibl, string& strError);
+	//! load xml file under  MorphXML_Index into vector<CXmlToken>& GraTable
+	bool			ReadMorphXmlFileIntoGraTable(string FileName,  const char* pFileBuffer, vector<CXmlToken>& GraTable, string& strError, CBibliography& Bibl);
+	//! return values of all visible free bibliographical attributes for the given FileNo delimited by "Delim"  
+	string			GetVisibleFreeHeaderBiblAttributes(size_t  FileNo,  string Delim) const;
+	//! return names and  values of all free bibliographical attributes for the given FileNo delimited by "Delim"  
+	string			GetFreeHeaderBiblAttributesWithNames(size_t  FileNo,  char Delim) const;
+	//! return names and  values of all free bibliographical attributes for the given FileNo as JSON (without enclosing {})
+	string			GetFreeHeaderBiblAttributesJson(size_t  FileNo, bool assume_utf8=true) const;
+	//! set all free bibliographical attributes to ""
+	void			SetFreeBiblAttribsEmpty(CBibliography& Bibl);
+	//! return all text area elements for this document ("doc")
+	bool			GetTextAreaElements(const TiXmlDocument& doc, vector<TiXmlElement*>& Result, string& strError) const;
+	//! return all text area names
+	size_t			GetTextAreasCount() const;
+
+	//! return text area index, which is specified in the input query (if nothing is specified, it returns UnknownTextAreaNo)
+	//! \deprecated use WithinTextArea
+	//int ProcessTextAreaNoInQueryStr(string& Query) const;
+
+	//! returns index of the last valid text area named in \c Within.
+	//! \li if no valid text area is found, returns UnknownTextAreaNo
+	int WithinTextArea(const vector<string>& Within) const;
+
+	void	InitLessByDate(vector<CHit>&	Hits) const;
+	void	InitGreaterByDate(vector<CHit>&	Hits) const;
+	void	InitLessByBiblIntegerField(string FreeBiblAttribName, vector<CHit>&	Hits) const;
+	void	InitGreaterByBiblIntegerField(string FreeBiblAttribName, vector<CHit>&	Hits) const;
+	void	InitNoSort(vector<CHit>&	Hits) const;
+	bool	IsRegisteredBiblField(string FreeBiblAttribName) const;
+
+};
+
+
+#endif

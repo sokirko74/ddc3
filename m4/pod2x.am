@@ -1,0 +1,58 @@
+#-----------------------------------------------------------------------
+# Additional Variables & Rules: PODS
+#-----------------------------------------------------------------------
+#PODS = foo.pod bar.pod ....
+
+SUFFIXES = .pod .txt .html .man .1 .5 
+
+PODS ?= $(man1_PODS) $(man5_PODS) $(noinst_PODS)
+
+POD_CLEANFILES =
+
+##------------------------------------------------------
+## pods: pod2text
+
+POD_TXT ?= $(PODS:.pod=.txt)
+pod2text: $(POD_TXT)
+pod2txt: $(POD_TXT)
+
+if HAVE_POD2TEXT
+POD_CLEANFILES += $(POD_TXT)
+.pod.txt:
+	pod2text $< $@
+endif
+
+##------------------------------------------------------
+## pods: pod2html
+
+POD_HTML ?= $(PODS:.pod=.html)
+pod2html: $(PODS:.pod=.html)
+
+if HAVE_POD2HTML
+POD_CLEANFILES += $(POD_HTML)
+.pod.html:
+	pod2html $(POD2HTMLFLAGS) --infile=$< --outfile=$@
+endif
+
+##------------------------------------------------------
+## pods: pod2man
+
+POD_MAN ?= $(noinst_PODS:.pod=.man) $(man1_PODS:.pod=.1) $(man5_PODS:.pod=.5)
+pod2man: $(POD_MAN)
+
+if HAVE_POD2MAN
+ POD_CLEANFILES += $(POD_MAN)
+.pod.man:
+	pod2man $(POD2MANFLAGS) $< $@
+.pod.1:
+	pod2man $(POD2MANFLAGS) --section=1 $< $@
+.pod.5:
+	pod2man $(POD2MANFLAGS) --section=5 $< $@
+endif
+
+##------------------------------------------------------
+## pods: clean
+
+podclean:
+	test -z "$(POD_CLEANFILES)" || rm -f $(POD_CLEANFILES)
+

@@ -1,0 +1,6 @@
+include ../common/common_mak
+LibName = libConcordDmn$(ct)
+objects = Morphan.o$(ct) Corpora.o$(ct) ../common/string_socket.o$(ct)
+include ../common/common_lib_mak
+
+

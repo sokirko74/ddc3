@@ -1,0 +1,2044 @@
+//-*- Mode: C++; c-basic-offset: 8; -*-
+//  Copyright 2011 by Bryan Jurish
+//
+//  This file is part of DDC.
+// 
+//  DDC is free software: you can redistribute it and/or modify
+//  it under the terms of the GNU Lesser General Public License as published by
+//  the Free Software Foundation, either version 3 of the License, or
+//  (at your option) any later version.
+// 
+//  DDC is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//  GNU Lesser General Public License for more details.
+// 
+//  You should have received a copy of the GNU Lesser General Public License
+//  along with DDC.  If not, see <http://www.gnu.org/licenses/>.
+//
+#include "StdConc.h"
+#include "../common/util_classes.h"
+#include "../common/DwdsThesaurus.h"
+#include "ConcCommon.h"
+#include "ConcIndexator.h"
+#include "sys/stat.h"
+#include "time.h"
+#include "limits.h"
+#include "ConcordAlgorithm.h"
+#include "../tinyxml/tinyxml.h"
+#include "../RmlTar/RmlTar.h"
+#include "../GraphanLib/HTMLConv.h"
+#include "../common/ddcString.h"
+
+
+
+#ifdef DETECT_MEMORY_LEAK
+	#ifdef _DEBUG
+	#define new DEBUG_NEW
+	#undef THIS_FILE
+	static char THIS_FILE[] = __FILE__;
+	#endif
+#endif
+
+
+
+
+//===========================================
+//================== Common functions =======
+//===========================================
+
+
+bool bEnglishMorph = false;
+bool bRussianMorph = false;
+bool bGermanMorph = false;
+CLemmatizerEnglish* engLemmatizer = 0;
+CLemmatizerRussian* rusLemmatizer = 0;
+CLemmatizerGerman* gerLemmatizer = 0;
+
+CEngGramTab* engGramTab = 0;
+CRusGramTab*  rusGramTab = 0;
+CGerGramTab*  gerGramTab = 0;
+
+
+template <class  T, class Y>
+void InitMorphologySystem(T*& Lemmatizer, Y*& Gramtab)
+{
+	Lemmatizer = new T;
+	if (!Lemmatizer)
+		return;
+	string l = GetStringByLanguage(Lemmatizer->GetLanguage());
+	fprintf (stderr, "   dictionary\n");
+	string strError;
+	if (!Lemmatizer->LoadDictionariesRegistry(strError))
+	{
+		ErrorMessage(Format("Cannot load %s  morphological dictionary: %s\n", l.c_str(), strError.c_str()));
+		delete Lemmatizer;
+		Lemmatizer = 0;
+
+	};
+
+	fprintf (stderr, "   gramtab\n");
+	Gramtab = new Y;
+	if (!Gramtab) return;
+	if (!Gramtab->LoadFromRegistry())
+	{
+   		ErrorMessage(Format("Cannot load %s  gramtab\n", l.c_str()) );
+		delete Gramtab;
+		Gramtab = 0;
+
+	};
+
+};
+
+
+const CLemmatizer* GetLemmatizerByLanguage (MorphLanguageEnum Langua)
+{
+	if  (Langua == morphEnglish)
+	{
+		if (!bEnglishMorph) 
+		{
+			InitMorphologySystem(engLemmatizer, engGramTab);
+			bEnglishMorph = true;
+		};
+		return engLemmatizer;
+
+	}
+	else
+		if  (Langua == morphRussian)
+		{
+			if (!bRussianMorph) 
+			{
+				InitMorphologySystem(rusLemmatizer, rusGramTab);
+				bRussianMorph = true;
+			};
+			return rusLemmatizer;
+		}
+		else
+			if  (Langua == morphGerman)
+			{
+				if (!bGermanMorph) 
+				{
+					InitMorphologySystem(gerLemmatizer, gerGramTab);
+					bGermanMorph = true;
+				};
+				return gerLemmatizer;
+			}
+			else
+			   return 0;
+};
+
+
+const CAgramtab* GetGramtabByLanguage (MorphLanguageEnum Langua)
+{
+		if  (Langua == morphEnglish)
+		{
+			if (!bEnglishMorph) 
+			{
+				InitMorphologySystem(engLemmatizer, engGramTab);
+				bEnglishMorph = true;
+			};
+			return engGramTab;
+		}
+		else
+			if  (Langua == morphRussian)
+			{
+				if (!bRussianMorph) 
+				{
+					InitMorphologySystem(rusLemmatizer, rusGramTab);
+					bRussianMorph = true;
+				};
+				return rusGramTab;
+			}
+			else
+			 if  (Langua == morphGerman)
+				{
+					if (!bGermanMorph) 
+					{
+						InitMorphologySystem(gerLemmatizer, gerGramTab);
+						bGermanMorph = true;
+					};
+					return gerGramTab;
+				}
+			 else
+			    return 0;
+};
+
+
+
+bool InitConcordDicts()
+{
+	try
+	{	
+		bRussianMorph = true;
+		fprintf (stderr, "loading Russian morphology\n");
+		InitMorphologySystem(rusLemmatizer, rusGramTab);
+
+		bEnglishMorph = true;
+		fprintf (stderr, "loading English morphology\n");
+		InitMorphologySystem(engLemmatizer, engGramTab);
+
+		bGermanMorph = true;
+		fprintf (stderr, "loading German morphology\n");
+		InitMorphologySystem(gerLemmatizer, gerGramTab);
+
+		return true;
+	}
+	catch (CExpc c)
+	{
+		fprintf (stderr, "Exception %s \n",c.m_strCause.c_str());
+		return false;
+	}
+	catch (...)
+	{
+		return false;
+	}
+
+}
+
+void FreeConcordDicts()
+{
+	if (rusLemmatizer) delete rusLemmatizer;
+	if (engLemmatizer) delete engLemmatizer;
+	if (gerLemmatizer) delete gerLemmatizer;
+	if (rusGramTab) delete rusGramTab;
+	if (engGramTab) delete engGramTab;
+	if (gerGramTab) delete gerGramTab;
+	
+	
+};
+
+
+bool concord_daemon_log_stderr = false;
+
+void concord_daemon_log(const string&  t)
+{
+	FILE * fp = 0;
+	try {
+		
+		string log_path  = GetRegistryString( "Software\\Dialing\\Logs\\Main" );
+		struct tm today = RmlGetCurrentTime();
+
+		char tmpbuf[255];
+
+		/*-- moo (Tue, 10 May 2011 11:00:05 +0200)
+		 * + the old ddc log-file format (e.g. "10May2011.log") is really annoying;
+		 * + changing it to ISO 8601 format (e.g. "2011-05-10.log")
+		 * + also changing annoying upper-case "Logs/" to lower-case "log" here,
+		 *   to be more conventional (and easier on the old carpal tunnels)
+		 */
+		//strftime( tmpbuf, 255,"%d%B%Y", &today );
+		strftime(tmpbuf, 255, "%F", &today);
+
+		string FileName = log_path + Format("/log/concord/%s.log", tmpbuf);
+
+		strftime( tmpbuf, 255,"%H:%M:%S", &today );
+		fp = fopen (FileName.c_str(), "a");
+		if (!fp) return;
+		fprintf (fp, "%s > %s\n", tmpbuf, t.c_str());
+		fclose(fp);
+
+		if (concord_daemon_log_stderr) {
+			fprintf(stderr, "%s > %s\n", tmpbuf, t.c_str());
+			fflush(stderr);
+		}
+	}
+
+	catch (...) {
+		if (fp) fclose(fp);
+	};
+}
+
+// Here is the definition of a token
+inline bool IsWord (const CGraphmatFile*	piGraphmat, long GraLine)	 
+{
+	return		piGraphmat->HasDescr(GraLine, OLLE)
+		||	piGraphmat->HasDescr(GraLine, ORLE);
+};
+
+inline bool IsDigit (const CGraphmatFile*	piGraphmat, long GraLine)	 
+{
+	return		piGraphmat->HasDescr(GraLine, ODigits)
+		||	piGraphmat->HasDescr(GraLine, ONumChar);
+};
+
+inline bool IsSentenceEnd (const CGraphmatFile*	piGraphmat, long GraLine)	 
+{
+	return	piGraphmat->HasDescr(GraLine,OSentEnd) ;
+}
+
+
+
+
+vector<string> GetGramInfosFromWord(const char* GraLine, MorphLanguageEnum Langua, bool bCapital)
+{
+
+	const CLemmatizer* Lemmatizer = GetLemmatizerByLanguage(Langua);
+	if (!Lemmatizer) return vector<string>();
+
+	const CAgramtab* A = GetGramtabByLanguage(Langua);
+
+	char SrcCodesBuffer[2000];
+	
+	Lemmatizer->GetAllAncodesQuick((BYTE*)GraLine, bCapital,  (BYTE*)SrcCodesBuffer, true);
+
+	size_t len = strlen(SrcCodesBuffer);
+	vector<string> Result;
+	QWORD CommonGrammems = 0;
+	bool bReadCommonGrammems = false;
+	for (size_t i=0; i < len; i+=2)
+	{
+		if (!bReadCommonGrammems)
+		{
+			if (SrcCodesBuffer[i] == '?')
+				CommonGrammems = 0;
+			else
+				A->GetGrammems(SrcCodesBuffer+i, CommonGrammems);
+			bReadCommonGrammems = true;
+			continue;
+		};
+		if (SrcCodesBuffer[i] == ';')
+		{
+			i--;
+			bReadCommonGrammems = false;
+			continue;
+		};
+
+		int ResultSavedSize = Result.size();
+		{
+			BYTE pos = A->GetPartOfSpeech(SrcCodesBuffer+i);
+			// all nouns in German are uppercase
+			if (Langua == morphGerman)
+				if (!bCapital)
+					if ( (pos == gSUB) || (pos == gEIG) )
+						continue;
+
+			if (pos != UnknownPartOfSpeech)
+				Result.push_back(A->GetPartOfSpeechStr(pos));
+		};
+		
+		QWORD Grammems;
+		A->GetGrammems(SrcCodesBuffer+i, Grammems);
+
+		size_t GrammemsCount = A->GetGrammemsCount();
+		for (int k = 0; k <GrammemsCount; k++)
+			if (_QM(k) & (Grammems|CommonGrammems))
+				Result.push_back(A->GetGrammemStr(k));
+
+		sort(Result.begin()+ResultSavedSize, Result.end());
+
+		Result.push_back(MorphAnnotationsDelim);
+	}
+
+	
+	return Result;
+};
+//==============================================================
+//=======================  CHighlightTags ======================
+//==============================================================
+
+
+CSourceFileHolder::CSourceFileHolder() 
+{
+	m_bModifiedListOfFiles = false;
+}
+
+bool CSourceFileHolder::SaveSourceFileList(string FileName)
+{
+	FILE* fp = fopen(FileName.c_str(), "wb");
+	if (!fp) return false;
+	for (long i=0;i < m_SourceFiles.size(); i++)
+		fprintf(fp, "%s\n",m_SourceFiles[i].c_str());
+	fclose(fp);
+
+	m_bModifiedListOfFiles  = false;
+	return true;
+}
+
+bool CSourceFileHolder::ReadSourceFileList(string FileName)
+{
+	FILE* fp = fopen(FileName.c_str(), "rb");
+	if (!fp) 
+    {
+        fprintf (stderr, "could not open %s\n", FileName.c_str());
+        return false;
+    }
+	char s[1024];
+	m_SourceFiles.clear();
+	while (fgets(s,1024,fp))
+	{
+		string q = s;
+		Trim(q);
+		if (q.empty()) continue;
+		//-- moo: interpret relative document filenames in .con file wrt the directory containing .con file itself
+		string qr = RelativeFileName(FileName,q);
+		m_SourceFiles.push_back(qr);
+	};
+	fclose(fp);
+	return true;
+}
+
+
+
+void CSourceFileHolder::AddSourceFile(const char* FileName)
+{
+	m_SourceFiles.push_back(FileName);
+	m_bModifiedListOfFiles = true;
+}
+
+void CSourceFileHolder::AddSourceFilesFrom(const CSourceFileHolder& X)
+{
+	m_SourceFiles.insert(m_SourceFiles.end(), X.m_SourceFiles.begin(),X.m_SourceFiles.end());
+	m_bModifiedListOfFiles = true;
+}
+
+bool CSourceFileHolder::IsModified	( ) const
+{
+	return m_bModifiedListOfFiles;
+};
+
+void CSourceFileHolder::DeleteSourceFile(long ItemNo) 
+{
+	m_SourceFiles.erase(m_SourceFiles.begin()+ItemNo);
+	m_bModifiedListOfFiles = true;
+};
+
+void CSourceFileHolder::DeleteAllSourceFiles() 
+{
+	m_SourceFiles.clear();
+	m_bModifiedListOfFiles = true;
+};
+
+size_t CSourceFileHolder::GetSourceFilesCount()  const 
+{
+	return m_SourceFiles.size();
+};
+
+string  CSourceFileHolder::GetSourceFile(size_t FileNo)  const
+{
+	return m_SourceFiles[FileNo];
+};
+
+// found a file of the corpus which does not  exist, if not return -1
+int CSourceFileHolder::FoundNotExistedFile	( ) const
+{
+	for (int i =0; i<m_SourceFiles.size();i++)
+		if (access (m_SourceFiles[i].c_str(), 04) != 0)
+			return i;
+
+	return -1;
+};
+
+
+
+//==============================================================
+//=======================  CHighlightTags ======================
+//==============================================================
+CHighlightTags::CHighlightTags()
+{
+	m_bWasReadFromString = false;
+};
+
+bool		CHighlightTags::ReadFromString(const string& s)
+{
+	string q = s; 
+	StringTokenizer tok(Trim(q).c_str(), ";");
+	vector<string> tokens;
+	while (tok())
+	{
+		string l = tok.val();
+		Trim(l);
+		tokens.push_back(l);
+	};
+	if (tokens.size() != 4) 
+		return false;
+	m_FirstOpener = unescapeCString(tokens[0]);
+	m_FirstCloser = unescapeCString(tokens[1]);
+	m_RestOpener = unescapeCString(tokens[2]);
+	m_RestCloser = unescapeCString(tokens[3]);
+	m_bWasReadFromString = true; 
+	return true;
+}
+
+string CHighlightTags::ToString() const
+{
+	return Format("%s;%s;%s;%s", 
+		      escapeCString(m_FirstOpener).c_str(),
+		      escapeCString(m_FirstCloser).c_str(),
+		      escapeCString(m_RestOpener).c_str(),
+		      escapeCString(m_RestCloser).c_str());
+};
+
+//==============================================================
+//=======================  CConcIndexator ======================
+//==============================================================
+
+
+CConcIndexator::CConcIndexator()  
+{
+    InitDefaultOptions();
+
+};
+
+
+CConcIndexator::~CConcIndexator()
+{
+};
+
+
+string CConcIndexator::GetIndexItemSetByVectorString (const vector<string>& TokenProperties, bool bRegexp )
+{
+	string Result;
+	if (bRegexp) 
+		Result = ".*";
+
+	size_t cnt = TokenProperties.size();
+	for (size_t i=0;i <cnt; i++)
+		{
+			Result += '@';
+			Result += TokenProperties[i];
+			Result += '@';
+			if (bRegexp) 
+				Result += MorphAnnotationsDelimRegExp;
+		};
+
+	return Result;
+};
+
+
+void CConcIndexator::AssertHasPath() const
+{
+	assert(m_Path != "#empty_path");
+	if (m_Path == "#empty_path")
+	{
+		ErrorMessage("Uninitialized path");
+		throw CExpc(errNonePath, "Exception: Uninitialized path for index files");
+	};
+};
+
+//!  graphematical definition of a token
+bool	CConcIndexator::IsDWDSToken (const CGraphmatFile*	piGraphmat, long GraLine)	 const 
+{
+	return		IsSentenceEnd(piGraphmat, GraLine) 
+			||	IsWord(piGraphmat, GraLine)
+			||	IsDigit(piGraphmat, GraLine)
+			||	(
+							m_bIndexPunctuation
+						&&	piGraphmat->HasDescr(GraLine, OPun) 
+				)
+			;
+}
+
+
+
+
+
+
+bool	CConcIndexator::WasIndexed() const
+{
+	if (m_Path.empty()) return false;
+	return access(GetSearchPeriodsFileName().c_str(), 04) == 0;
+};
+
+void CConcIndexator::InitGraphanProperties (CGraphmatFile* piGraphmat) const
+{
+	piGraphmat->m_Language = m_Language;
+	piGraphmat->m_bUseParagraphTagToDivide = m_bUseParagraphTagToDivide;
+	piGraphmat->m_bEmptyLineIsSentenceDelim = m_bEmptyLineIsSentenceDelim;
+	piGraphmat->m_bUseIndention = m_bUseIndention;
+	piGraphmat->m_bConvertRussianJo2Je = true;
+	piGraphmat->m_bFilterUnprintableSymbols = false;
+};
+
+
+
+
+string CConcIndexator::GetFileNameForCorpusFileNames() const 
+{
+	return MakeFName(m_Path, "_con");
+};
+string CConcIndexator::GetFileNameForMaskedFiles() const 
+{
+	return MakeFName(m_Path, "_masked");
+};
+
+vector<string> CConcIndexator::GetTokenFields(const COutputToken &tok)
+{
+    vector<string> fields(m_IndicesToShow.size());
+    size_t fi, i0, i1, dsize=m_InterpDelimiter.size();
+    const string &istr = tok.m_InterpStr;
+
+    fields[0] = tok.m_TokenStr;
+    for (fi=1, i0=dsize; fi < fields.size() && i0 < tok.m_InterpStr.size(); fi++, i0=i1+dsize) {
+	i1=istr.find(m_InterpDelimiter, i0); 
+	fields[fi].assign(istr, i0, i1-i0);
+	if (i1>=istr.size()) break;
+    }
+
+    return fields;
+};
+
+
+
+bool CConcIndexator::SaveCorpusFileList() const
+{
+	FILE* fp = fopen(GetFileNameForCorpusFileNames().c_str(), "wb");
+	if (!fp) return false;
+	std::string vmin_str=DDCVersionMinW.str();
+	fprintf(fp, "%s / min-compat %s\n", DDCVersionStr.c_str(), vmin_str.c_str()); // should be with /n
+	size_t cnt = m_CorpusFiles.size();
+	for (long i=0;i< cnt; i++)
+		fprintf(fp, "%s\n",m_CorpusFiles[i].c_str());
+	fclose(fp);
+	return true;
+}
+
+
+
+
+
+
+bool CConcIndexator::LoadCorpusFiles()
+{
+	m_CorpusFiles.clear();
+	// reading corpus files from *.con file
+	FILE* fp = fopen(GetFileNameForCorpusFileNames().c_str(), "rb");
+	if (!fp) return false;
+	char s[1024];
+	if (!fgets(s,1024, fp))
+		return false;
+#if 0
+	//-- old stupid version identity check
+	if (s != DDCFileVersionStr)
+	{
+		ErrorMessage (Format("The index was created by a different version of DDC: %s", m_Path.c_str()));
+		fclose (fp);
+		return false;
+	};
+#else
+	//-- new slightly smarter version check
+	try {
+		ddc_format_version_check(s, m_Path.c_str());
+	}
+	catch (CExpc &e) {
+		ErrorMessage (Format("Exception[%d]: %s", e.code(), e.what()));
+		fclose(fp);
+		return false;
+	}
+#endif
+
+	m_CommonFilePrefix = "$init";
+	while (fgets(s,1024,fp))
+	{
+			string q = s;
+			Trim(q);
+			if (q.empty()) continue;
+			if (m_CommonFilePrefix == "$init")
+				m_CommonFilePrefix = q;
+			else
+			{
+				int i = 0;
+				for (; i<min(q.length(), m_CommonFilePrefix.length()); i++)
+					if (q[i] != m_CommonFilePrefix[i])
+						break;
+				m_CommonFilePrefix.erase(i);
+			};
+
+
+			m_CorpusFiles.push_back(q);
+	};
+	fclose(fp);
+	return true;
+};
+
+bool CConcIndexator::LoadMaskedFiles()
+{
+	m_MaskedFiles.clear();
+	// reading corpus files from *.con file
+	FILE* fp = fopen(GetFileNameForMaskedFiles().c_str(), "rb");
+	if (!fp) return true;
+    char s[1024];
+	while (fgets(s,1024,fp))
+	{
+        string file = s;
+        Trim(file);
+        if (file.empty()) continue;
+        vector<std::string>::const_iterator it = find(m_CorpusFiles.begin(), m_CorpusFiles.end(), file);
+        if (it == m_CorpusFiles.end()) {
+            concord_daemon_log ( Format ("%s in %s is not a corpus file name", file.c_str(), GetFileNameForMaskedFiles().c_str()) );
+            return false;
+        }
+		m_MaskedFiles.insert ( it - m_CorpusFiles.begin());
+	};
+	fclose(fp);
+	return true;
+};
+
+
+bool CConcIndexator::LoadSourceFilesAndOptions(string FileName)
+{
+	m_LocalPathPrefix = "";
+	m_InternetPathPrefix = "";
+
+	m_Path = FileName;
+
+	m_bUserMaxTokenCountInOnePeriod = false;
+
+	// reading options  from *.opt file
+	string PathFile = MakeFName(FileName, "opt");
+	string AllOptions;
+	if (LoadFileToString(PathFile, AllOptions))
+	{
+		if (!LoadOptionsFromString(AllOptions)) 
+			return false;
+	}
+    else
+    {
+        concord_daemon_log ( Format ("Warning! Cannot find file %s", PathFile.c_str()) );
+    }
+
+	SetPath(FileName);
+
+	// reading source files
+	if (!ReadSourceFileList(FileName))
+		return false;
+
+	return true;
+};
+
+
+
+bool	CConcIndexator::DestroyIndex()
+{	
+	AssertHasPath();
+
+	if (!RemoveHitBordersFileAndClear(m_Path))
+		return false;
+
+	if (!DestroyIndices())
+		return false;
+
+	if (FileExists(GetSearchPeriodsFileName().c_str()))
+		if (remove(GetSearchPeriodsFileName().c_str()))
+			return false;
+
+	if (FileExists(GetFileNameForCorpusFileNames().c_str()))
+		if (remove(GetFileNameForCorpusFileNames().c_str()))
+			return false;
+	m_CorpusFiles.clear();
+
+	if (FileExists(GetFileNameForMaskedFiles().c_str()))
+		if (remove(GetFileNameForMaskedFiles().c_str()))
+			return false;
+    m_MaskedFiles.clear();
+
+	return true;
+
+};
+
+
+
+
+
+
+
+DWORD CConcIndexator::GetMaxTokenCountInOnePeriod() const
+{
+	if (m_bUserMaxTokenCountInOnePeriod)
+		return m_UserMaxTokenCountInOnePeriod;
+	else
+		return 5000000;
+};
+
+bool	GetTextFromXMLRecursive(TiXmlNode* parent, string& Result)
+{
+	if (parent->Type() == TiXmlNode::TEXT)
+	{
+		if ( Result.empty() )
+			Result += Format("\n<pb %u>\n",UnknownPageNumber);
+
+		Result += parent->Value();
+	}
+	else
+		if (parent->Type() == TiXmlNode::ELEMENT)
+		{
+			string type = parent->Value();
+			Trim(type);
+
+			if (type == "pb")
+			{
+				const char* pb_str = ((TiXmlElement*)parent)->Attribute("n");
+				if (!pb_str) 
+				{
+					ErrorMessage ("Cannot parse page break element");
+					return false;
+				};
+				Result += Format("\n<pb %s>\n",pb_str);
+			}
+			else
+			{
+				for (TiXmlNode* child = parent->FirstChild();  child;  child = child->NextSibling())
+				{
+					if (!GetTextFromXMLRecursive(child, Result)) 
+						return false;
+				};
+			};
+			if (type == "p")
+				Result += "\n</p>\n";
+		}
+		else
+		if (parent->Type() == TiXmlNode::COMMENT)
+		{
+			// skipping comments
+		}
+		else
+		{
+			ErrorMessage (Format("Unknown xml-node:%s. Some parts of file cannot be parsed!", parent->Value()));
+			return false;
+		};
+
+	return true;
+};
+
+// read the input xml that is in CWB-format (corpus work bench format)
+bool	GetCWBFormattedStringRecursive(const TiXmlNode* parent, string& Result)
+{
+	if (parent->Type() == TiXmlNode::TEXT)
+	{
+		Result += parent->Value()+string("\n");
+	}
+	else
+		if (parent->Type() == TiXmlNode::ELEMENT)
+		{
+			string type = parent->Value();
+			Trim(type);
+			bool bNotLineBreak = (type != PredefinedTableLineTag);
+			if (type == "pb")
+			{
+				const char*	page_number = parent->ToElement()->Attribute("n");
+				if (page_number)
+				{
+					Result += Format("<pb %s>\n", page_number);
+					return true;
+				}
+				else
+				{
+					ErrorMessage("bad page break");						
+					return false;
+				};
+			}
+			else
+				if (bNotLineBreak)
+					Result += Format("\n<%s>\n", type.c_str());
+
+
+
+
+			for (TiXmlNode* child = parent->FirstChild();  child;  child = child->NextSibling())
+			{
+				string R;
+				if (!GetCWBFormattedStringRecursive(child, Result)) 
+					return false;
+			};
+
+			if (bNotLineBreak)
+				Result += Format("\n</%s>\n", type.c_str());
+			
+		}
+		else
+		{
+			ErrorMessage (Format("Unknown xml-node:%s. Some parts of file cannot be parsed!", parent->Value()));
+			return false;
+		};
+
+	return true;
+};
+
+
+bool	CConcIndexator::LoadXmlFile(string FileName, const char* pFileBuffer, CGraphmatFile* piGraphmat, CBibliography& Bibl, string& strError)
+{
+	if (m_Bibl.GetTextAreasCount() == 0)
+	{
+		strError = Format("Error! Cannot index xml files, since no text areas defined in the options file!");
+		return false;
+	}
+
+	TiXmlDocument doc( FileName.c_str() );
+	
+	if (!m_Bibl.LoadXmlAndReadBibliography(doc, pFileBuffer, Bibl, strError)) 
+		return false;
+
+	vector<TiXmlElement*> TextAreas;
+	if (!m_Bibl.GetTextAreaElements(doc, TextAreas, strError))
+		return false;
+
+	string AllTexts;
+	for (size_t TextAreaNo = 0; TextAreaNo< TextAreas.size(); TextAreaNo++)
+	{
+		TiXmlElement* body = TextAreas[TextAreaNo];
+
+		string SourceText;
+
+		if (Bibl.m_StartPageInfo != UnknownPageNumber)
+			SourceText = Format("\n<pb %u>\n",Bibl.m_StartPageInfo);
+	
+		if (!GetTextFromXMLRecursive(body, SourceText)) 
+		{
+			ErrorMessage (Format("Cannot get text from file %s", FileName.c_str()));
+			return false;
+		};
+
+		AllTexts += SourceText;
+		AllTexts += "</textarea>\n\n";
+	}
+
+	bool bResult = piGraphmat->LoadStringToGraphan(AllTexts);
+	if (!bResult)
+		ErrorMessage (Format("piGraphmat->LoadStringToGraphan failed for file %s, Error:%s", FileName.c_str(), piGraphmat->GetLastError().c_str() ));
+
+	return bResult;
+};
+
+bool IsXmlFile(const string& FileName)
+{
+	return				(FileName.length() > 4)
+				&&	(		(FileName.substr(FileName.length()-4) == ".xml")
+						||	(FileName.substr(FileName.length()-4) == ".XML")
+					);
+};
+
+bool IsTarFile(const string& FileName)
+{
+	return				(FileName.length() > 4)
+				&&	(		(FileName.substr(FileName.length()-4) == ".tar")
+						||	(FileName.substr(FileName.length()-4) == ".TAR")
+					);
+};
+
+
+
+
+
+void CConcIndexator::CalculateSearchPeriods	(DWORD MaxTokenCountInOnePeriod )
+{
+	if (GetFileBreaks().empty()) return;
+
+	// Calculating Search Periods
+	
+	m_SearchPeriods.clear();
+
+	CTokenNo StartTokenNo = 0;
+	for (size_t i=0; i < m_CorpusFiles.size(); i++)
+	{
+		CTokenNo  FileStart = GetFileStartTokenNo(i);
+		if (FileStart - StartTokenNo > MaxTokenCountInOnePeriod)
+		{
+			m_SearchPeriods.push_back(FileStart);
+			StartTokenNo = FileStart;
+		};
+	};
+
+	m_SearchPeriods.push_back(GetCorpusEndTokenNo());
+};
+
+
+bool	CConcIndexator::IndexOneTableTextArea(const string& Text, const CPageNumber& StartPageFromHeader, size_t& page_breaks_count, CTokenNo& NewCorpusEndTokenNo,	string& strError)
+{
+	StringTokenizer tok(Text.c_str(), "\r\n");
+	deque<pair<string,CTokenNo> >	start_chunk_tags_str_and_pos;
+	StartTextAreaBorders();
+	try {
+		while (tok())
+		{
+			string q = tok.val();
+			Trim(q);
+			if (q.empty()) 
+			{
+				strError = "Empty lines in CWB format!";
+				return false;
+			}
+			size_t len = q.length();
+			if	(		(len < 100)
+					&&	(len > 2)
+					&&	(q[0] == '<') 
+					&&	(q[len-1] == '>') 
+				)
+			{
+				if (q[1] != '/')
+				{
+					string tag_name = q.substr(1,len-2); // ge the tag name, for example "vp" from "</vp>"
+					if (tag_name.length() > 3 && (tag_name.substr(0,3) == "pb ")) // page break
+					{
+						int page_number = atoi(tag_name.c_str() + 3);
+						if (page_number != 0)
+						{
+							// add the first page break from the header, if it is not specified in the body
+							if (page_breaks_count == 0)
+								if ( (NewCorpusEndTokenNo - StartPageFromHeader.m_StartTokenNo) > 0)
+									AddPageBreak(StartPageFromHeader);
+
+							CPageNumber Page;
+							Page.m_PageNumber = page_number;
+							Page.m_StartTokenNo = NewCorpusEndTokenNo;
+							AddPageBreak(Page);
+							page_breaks_count++;
+						}
+						else
+						{
+							strError = Format("bad page break (%s)",  q.c_str());						
+							return false;
+						};
+					}
+					else
+						if ( !IsRegisteredBreak(tag_name) ) 
+						{
+							if (m_bIndexChunks)
+								start_chunk_tags_str_and_pos.push_back(make_pair(tag_name, NewCorpusEndTokenNo));
+						};
+
+
+				}
+				else // an end tag
+				{
+
+					string tag_name = q.substr(2,len-3); // ge the tag name, for example "vp" from "</vp>"
+                    int BrCollec = GetBreakCollectionIndexByName(tag_name);
+					if (BrCollec != -1)
+                    {
+                        AddBreakByIndex(BrCollec, NewCorpusEndTokenNo);
+                        ProcessBigramBorders(BrCollec, NewCorpusEndTokenNo);
+                    }
+                    else  // if it is not a registered break
+                    {
+                        
+						if (m_bIndexChunks)
+						{
+							if (		start_chunk_tags_str_and_pos.empty() 
+									||	(start_chunk_tags_str_and_pos.back().first != tag_name)
+								)
+							{
+								strError  = Format("Error! An end tag without a start tag is found (%s<>%s)",
+													start_chunk_tags_str_and_pos.back().first.c_str(), tag_name.c_str() ); 
+								return false;
+							};
+							if (NewCorpusEndTokenNo > 0)
+							{
+								string tag = Format("%s,%i",start_chunk_tags_str_and_pos.back().first.c_str(), 
+															NewCorpusEndTokenNo-start_chunk_tags_str_and_pos.back().second);
+								start_chunk_tags_str_and_pos.pop_back();
+								assert (m_pChunkIndex);
+								m_pChunkIndex->InsertToInputLoadIndex(tag.c_str(),tag.length(), vector<CTokenNo>(1, NewCorpusEndTokenNo-1) );
+							}
+							else
+							{
+								// An empty element at the beginning of the corpus is ignored; 
+							}
+						};
+                    }
+				};
+
+			}
+			else
+			{
+				if ( !IndexOneToken(q.c_str(), NewCorpusEndTokenNo))
+				{
+					strError = Format("Cannot index line: %s ", q.c_str());
+					return false;
+				};
+				
+				NewCorpusEndTokenNo++;
+			}
+		};
+		if (!EndTextAreaBorders(NewCorpusEndTokenNo))
+		{
+			strError = Format("Cannot add end text area breaks");
+			return false;
+		};
+	}
+	catch (CExpc c)
+	{
+		strError = Format("Exception %s while processing \"%s\"\n", c.m_strCause.c_str(), tok.val());
+		return false;
+	}
+	catch (...)
+	{
+		strError = Format("Exception while processing \"%s\"\n", tok.val());
+		return false;
+	};
+	return true;
+}
+
+// Return value: return true, if the input XML is valid and it fits the index structure
+bool	CConcIndexator::IndexTable(string FileName, const char* pFileBuffer, 	CTokenNo& NewCorpusEndTokenNo,	string& strError)
+{
+
+	
+	CBibliography Bibliography;
+		
+	TiXmlDocument doc( FileName.c_str() );
+	if (!m_Bibl.LoadXmlAndReadBibliography(doc, pFileBuffer, Bibliography, strError)) return false;
+
+	vector<TiXmlElement*> TextAreas;
+	if (!m_Bibl.GetTextAreaElements(doc, TextAreas, strError))
+	{	
+		return false;
+	}
+
+	CPageNumber StartPageFromHeader;
+	StartPageFromHeader.m_PageNumber = Bibliography.m_StartPageInfo;
+	StartPageFromHeader.m_StartTokenNo = NewCorpusEndTokenNo;
+	size_t page_breaks_count = 0;
+	
+	//iterate through all text areas 
+	for (size_t TextAreaNo = 0; TextAreaNo< TextAreas.size(); TextAreaNo++)
+	{
+		TiXmlElement* textarea = TextAreas[TextAreaNo];
+		string Text;
+		// get text from xml
+		if (!GetCWBFormattedStringRecursive(textarea,  Text))
+			return false;
+
+		// index one text area
+		if (!IndexOneTableTextArea(Text, StartPageFromHeader, page_breaks_count, NewCorpusEndTokenNo, strError))
+			return false;
+	}
+	
+	if (NewCorpusEndTokenNo != StartPageFromHeader.m_StartTokenNo)
+	{
+		// if at least one token is found, then add a bibliographical record
+		m_Bibl.AddIndexItem(Bibliography);
+	};
+	
+	return true;
+};
+
+bool	CConcIndexator::LoadFileIntoGraphan(string FileName,  const char* pFileBuffer,	CGraphmatFile* piGraphmat, CBibliography& Bibl, string& strError)
+{
+	Bibl.CleanBibliography();
+	try
+	{
+		if	(IsXmlFile(FileName))
+		{
+			if (!LoadXmlFile(FileName, pFileBuffer, piGraphmat, Bibl, strError)) 
+			{
+				strError += "\nCConcIndexator::LoadXmlFile has crushed!";
+				return false;
+			}
+		}
+		else
+		{
+			if (!piGraphmat->LoadStringToGraphan(pFileBuffer)) 
+			{
+				if (!piGraphmat->GetLastError().empty())
+					strError = piGraphmat->GetLastError();
+				else
+					strError = "CGraphmat::LoadStringToGraphan has crushed! ";
+				return false;
+			}
+			m_Bibl.SetFreeBiblAttribsEmpty(Bibl);
+		};
+		
+
+	}
+	catch (CExpc c)
+	{
+		strError = Format("Exception %s in CConcIndexator::LoadFileIntoGraphan\n", c.m_strCause.c_str());
+		return false;
+	}
+	catch(...)
+	{
+		strError = "CConcIndexator::LoadFileIntoGraphan has crushed! (general exception)";
+		ErrorMessage ("An exception occurred in CConcIndexator::LoadFileIntoGraphan while processing " + FileName);
+		return false;
+	}
+
+	return true;
+}
+
+
+
+bool	CConcIndexator::IndexTextOrHtmlFile	(
+	CGraphmatFile* piGraphmat, 
+	string FileName, 
+	const char* pFileBuffer,
+	const CDwdsThesaurus* pDwdsThesaurus,
+	CTokenNo& NewCorpusEndTokenNo,
+	string& strError)
+{
+	CBibliography Bibl;
+	if (!LoadFileIntoGraphan(FileName, pFileBuffer, piGraphmat, Bibl, strError))
+	{
+		if (strError.empty())
+			strError = "CConcIndexator::LoadFileIntoGraphan has crushed!";
+		return false;
+	}
+
+	long GraLinesCount = piGraphmat->GetTokensCount();
+	if (GraLinesCount <= 1)  
+	{
+		// the file is empty
+		return true;
+	};
+
+
+	CTokenNo StartTokenNo = NewCorpusEndTokenNo; 
+	CTokenNo CurrSentenceBreak = NewCorpusEndTokenNo;
+
+	size_t FileTokensCount = 0;
+	int SentNo = 0;
+	char OneIndexLine[5000];
+	bool bTheFirstPageBreakIsFound = false;
+	
+	int TextAreaNo = 0;
+	int TextAreasCount = m_Bibl.GetTextAreasCount();
+	size_t TextAreaStarter = DWORD_MAX;
+    int SentenceBreakCollection = GetBreakCollectionIndexByName("s");
+    if ((SentenceBreakCollection == -1) && !m_bQueryOnlyFiles)
+    {
+		strError = "could not find sentence collection";
+		return false;
+    }
+
+	for (long GraLineNo = 1; GraLineNo<GraLinesCount; GraLineNo++)
+	{
+		bool bSentenceEnd = false;
+		bool bToken = IsDWDSToken(piGraphmat, GraLineNo);
+		if	( bToken )
+		{
+ 			BYTE TokenLen = piGraphmat->GetUnits()[GraLineNo].GetTokenLength();
+			if (TokenLen == 0)
+			{
+				strError = Format("Fatal error: An empty word is found!\nGraph.Word No %i from %i \n", GraLineNo, GraLinesCount);
+				return false;
+			};
+
+			const char* Token  = piGraphmat->GetUnits()[GraLineNo].GetToken();
+			if ((BYTE)Token[0] == globalFieldDelimeter)
+			{
+				strError = Format("Error! An input word(LineNo=%i) cannot contain symbol \"%c\"(%i) \n", GraLineNo, (int)globalFieldDelimeter, (unsigned int)globalFieldDelimeter);
+				return false;
+			};
+
+            strncpy(OneIndexLine, Token, TokenLen);
+			OneIndexLine[TokenLen] = globalFieldDelimeter;
+			OneIndexLine[TokenLen+1] = 0;
+
+			
+			if (        m_bUseDwdsThesaurus 
+                &&  (       piGraphmat->HasDescr(GraLineNo, OUp)
+					    ||  piGraphmat->HasDescr(GraLineNo, OUpLw)
+                    )
+               )
+			{
+                const char* UpperToken  = piGraphmat->GetUppercaseToken(GraLineNo);
+				OneIndexLine[TokenLen+1] = globalFieldDelimeter;
+				strcpy(OneIndexLine + TokenLen +  2, pDwdsThesaurus->GetAllThesInterpetations(UpperToken).c_str());
+			};
+
+			IndexOneToken(OneIndexLine, NewCorpusEndTokenNo);
+
+                
+            // if m_bQueryOnlyFiles then no sentence break collection
+			if(	!m_bQueryOnlyFiles && IsSentenceEnd(piGraphmat, GraLineNo) )
+			{
+
+				// "1" is for this token
+				CurrSentenceBreak = NewCorpusEndTokenNo+1;
+				
+                AddBreakByIndex(SentenceBreakCollection, CurrSentenceBreak);
+
+                 // index right bigrams for sentence end
+                ProcessBigramBorders(SentenceBreakCollection, CurrSentenceBreak );
+
+
+				SentNo++;
+
+				bSentenceEnd = true;
+
+			};
+
+		} // IsDWDSToken == true
+
+		if (piGraphmat->GetUnits()[GraLineNo].IsTextAreaEnd() || TextAreaStarter == NewCorpusEndTokenNo)
+		{
+			AddBreakByName(PredefinedTextAreaBreakName, NewCorpusEndTokenNo);
+			TextAreaNo++;
+		}
+
+
+		if	(		(bToken && (FileTokensCount == 0) && !bTheFirstPageBreakIsFound) 
+				||	piGraphmat->GetUnits()[GraLineNo].IsPageBreak()
+			)
+		{
+			bTheFirstPageBreakIsFound = true;
+			CPageNumber Page;
+			Page.m_PageNumber = piGraphmat->GetPageNumber(GraLineNo);
+			//If we have read end of sentence and after it we have read a page break, and
+			//there is no  tokens between this end of sentence and  this page break, then we should
+			//shift this page break backward to the end of sentence. Otherwise the first sentence of the  next
+			//page will be considered as a sentence from the previous  page.
+			//For example we have
+			//    <pb 13> Sentence1 <end-of-sentence> <pb 14> Sentence2.
+			//Sentence2 starts when Sentence1 terminates, then a page break occurs inside(!) of Sentence2,
+			//and it means that Sentence2 starts at page 13 and terminates at page 14. That is not true and 
+			//we fix this problem.
+			
+
+			if	(		bSentenceEnd
+					||	(SentNo == 0)
+				)
+				Page.m_StartTokenNo = NewCorpusEndTokenNo; // normal case
+			else
+				Page.m_StartTokenNo = CurrSentenceBreak; //  shifting page break to the last end of sentence
+				
+			AddPageBreak(Page);
+		};
+
+		if (bToken)
+		{
+			NewCorpusEndTokenNo++;
+
+			FileTokensCount++;
+		};
+	};
+
+	// write the last sentence if it contains at least one token
+    if (!m_bQueryOnlyFiles )
+	if (CurrSentenceBreak < NewCorpusEndTokenNo)
+	{	
+        fprintf (stderr,"The last end of sentence is not found, graphematics should be refactored :)\n");
+		CurrSentenceBreak = NewCorpusEndTokenNo;
+		AddBreakByIndex(SentenceBreakCollection, NewCorpusEndTokenNo);
+		SentNo++;
+
+	};
+
+	if (NewCorpusEndTokenNo != StartTokenNo)
+	{
+		// if at least one token is found, then add a bibliographical record
+		m_Bibl.AddIndexItem(Bibl);
+	};
+
+	if ( TextAreaNo != TextAreasCount )
+	{
+		strError = Format("Some text areas are not present in this document\n");
+		return false;
+	}
+	piGraphmat->FreeTable();
+	return true;
+};
+
+string CConcIndexator::GetShortFilename(size_t posFile) const 
+{
+	return m_CorpusFiles[posFile].substr(m_CommonFilePrefix.length());
+};
+
+
+
+
+string CConcIndexator::GetHtmlReference(size_t posFile) const 
+{
+	string InterfaceFileName, HtmlRefFileName;
+	if (m_CorpusFiles[posFile].substr(0, m_LocalPathPrefix.length()) == m_LocalPathPrefix)
+	{
+		InterfaceFileName = m_CorpusFiles[posFile].substr(m_LocalPathPrefix.length());
+		HtmlRefFileName = "http://"+m_InternetPathPrefix + InterfaceFileName;
+	}
+	else
+	{
+		HtmlRefFileName = InterfaceFileName = m_CorpusFiles[posFile];
+	};
+
+	return Format("<a href=\"%s\">%s</a>", HtmlRefFileName.c_str(),InterfaceFileName.c_str());
+};
+
+
+
+bool CConcIndexator::CreateMorphIndex()
+{
+	if (!m_bIndexMorphPatterns)
+		return true;
+
+	fprintf(stderr,"CreateMorphIndex...\n");
+	CStringIndexSet* pMorphIndexSet = GetIndexByName("MorphPattern");
+	if (!pMorphIndexSet )
+	{
+		ErrorMessage ("Cannot find MorphPattern index");
+		return false;
+	};
+	CStringIndexSet* pTokensIndexSet = GetIndexByName("Token");
+	if (!pTokensIndexSet )
+	{
+		ErrorMessage ("Cannot find Token index");
+		return false;
+	};
+	
+	if (!pTokensIndexSet->LoadIndexSet()) // if the index was just created, then Token index is not loaded
+	{
+		ErrorMessage ("Cannot load Token index");
+		return false;
+	};
+
+	if (!pMorphIndexSet->DestroyIndexSet())
+	{
+		ErrorMessage ("Cannot destroy morph. index set (some files cannot be deleted)");
+		return false;
+	};
+	pMorphIndexSet->CreateTempFiles(m_Path);
+	size_t CountOfTokens = pTokensIndexSet->m_Index.size();
+	size_t OccursCount =0;
+	const DWORD MaxTokenCountInOnePeriod = GetMaxTokenCountInOnePeriod();
+
+	for (int i = 0; i< CountOfTokens; i++)
+	{
+		if ( (i % 1000) == 0)
+				fprintf(stderr, "%i/%i (%i/%i)             \r", i, CountOfTokens, OccursCount, 3*MaxTokenCountInOnePeriod);
+
+		const char* sToken = pTokensIndexSet->GetIndexItemStr(pTokensIndexSet->m_Index[i]);
+		if (CheckLanguage(sToken, m_Language)) 
+		{
+			vector<string> TokenProperties =  GetGramInfosFromWord(sToken, m_Language, is_upper_alpha((BYTE)sToken[0], m_Language));
+			
+			if (!TokenProperties.empty()) 
+			{
+					string GramInfoStr = GetIndexItemSetByVectorString(TokenProperties,false);
+				
+					vector<CTokenNo> occurrences;
+					pTokensIndexSet->ReadAllOccurrences(i, occurrences);
+					pMorphIndexSet->InsertToInputLoadIndex (GramInfoStr.c_str(), GramInfoStr.length(), occurrences);	
+					OccursCount += occurrences.size();
+			}
+		}
+
+
+		if	(		( OccursCount > 3*MaxTokenCountInOnePeriod)
+				||	(i+1== CountOfTokens)
+			)
+		{
+	
+			pMorphIndexSet->SortInputAndMemoryIndices();
+			
+			if (!pMorphIndexSet->AddInputLoadIndexToMemoryLoadIndex())
+			{
+					fprintf (stderr, "AddInputLoadIndexToMemoryLoadIndex returned false in CConcIndexator::CreateMorphIndex\n");
+					return false;
+			};
+
+			if (!pMorphIndexSet->SaveMemoryLoadIndex())
+			{
+					fprintf (stderr, "cannot save memory indices to disk; probably no space left on device\n");
+					return false;
+			};
+
+			if (!pMorphIndexSet->AddMemoryLoadIndexToMainLoadIndex()) 
+			{
+				fprintf (stderr, "AddMemoryLoadIndexToMainLoadIndex returned false in CConcIndexator::CreateMorphIndex\n");
+				return false;
+			}
+			OccursCount = 0;
+		};
+	};
+	fprintf(stderr, "%i/%i                         \n", CountOfTokens, CountOfTokens);
+
+	fprintf(stderr, "final writing morph index\n");
+	if ( !pMorphIndexSet->WriteToFile(true) ) return false;
+
+	fprintf(stderr,"done\n");
+	return true;
+};
+
+
+bool	CConcIndexator::StartIndexing()
+{
+	if (!CStringIndexator::StartIndexing(m_Path)) return false;
+	if (!CHitBorders::StartIndexing(m_Path)) return false;
+	if (!m_Bibl.Start(m_Path))
+	{
+		fprintf (stderr, "Cannot start bibl indexator");
+		return false;
+	};
+	return true;
+};
+
+bool	CConcIndexator::TerminateIndexing()
+{
+	if (!CStringIndexator::TerminateIndexing()) return false;
+	if (!BordersEndIndexing(m_Path)) return false;
+	m_Bibl.ExitWithoutSave();
+	return true;
+
+};
+
+bool	CConcIndexator::NormalEndIndexing()
+{
+	if (!m_Bibl.FinalSaveBibliography())
+	{
+		fprintf(stderr, "Cannot terminate bibl indexator");
+		return false;
+	};
+	return true;
+
+};
+
+bool	CConcIndexator::IndexOneFile(CGraphmatFile* piGraphmat, string FileName, const char* pFileBuffer, const CDwdsThesaurus* pDwdsThesaurus,  CTokenNo& CorpusEndTokenNo,string& strError)
+{
+	switch (m_IndexType) {
+		case MorphXML_Index:	return IndexMorphXml(FileName, pFileBuffer, CorpusEndTokenNo, strError);
+		case DWDS_Index:		return IndexTextOrHtmlFile(piGraphmat, FileName, pFileBuffer, pDwdsThesaurus, CorpusEndTokenNo, strError);
+		case Free_Index:		return IndexTable(FileName, pFileBuffer, CorpusEndTokenNo, strError);
+		default:  		assert(false);
+						return false;
+	}
+};
+
+
+
+//===============================================
+//================== CConcIndexatorInvoker =======
+//===============================================
+CConcIndexatorInvoker::CConcIndexatorInvoker()
+{
+	m_bStoppedByUser = false;
+	m_bStdout = false;
+	m_bCorporaProcessing = false;
+	m_CurrentSourceFileNo = 0;
+	m_SourceFilesNumber = 0;
+	// profiling takes 3 percent of working time, if we trust 
+	// DevPartner or gprof, that's why by default it should be switched off.
+	m_Profiler.m_bTimeSpanHolderEnabled = false;
+	m_bOnlyReindexMorphology = false;
+	m_bSkipInitialFileChecking = false;
+};
+
+void CConcIndexatorInvoker :: SetCurrMessage( string  Message)  const 
+{
+	m_CurrMessage = Message;
+	if (m_bStdout)
+	{
+		fprintf (stderr, "%s\n", m_CurrMessage.c_str());
+	};
+};
+
+string CConcIndexatorInvoker::GetTimeStatisticsFileName(string Path) const 
+{
+	return MakeFName(Path, "_time_statistics");
+};
+
+string CConcIndexatorInvoker::GetErrorLogFileName(string Path) const 
+{
+	return MakeFName(Path, "_error_log");
+};
+
+
+
+bool ReadSourceFile	(const string& SourceFileName, string& CorpusFileName, TAR* pTar, vector<char>& Buffer, bool& bError)
+{
+	bError = false;
+	if (!pTar)
+	{
+		Buffer.clear();
+		CorpusFileName = SourceFileName;
+		ReadVector(SourceFileName,Buffer);
+	}
+	else
+	{
+		if (!tar_get_next_file(pTar, CorpusFileName, Buffer, bError))
+			return false;
+
+		CorpusFileName = SourceFileName+":"+CorpusFileName;
+	};
+	size_t len = Buffer.size();
+	for (size_t i=0; i<len; i++)
+		if (Buffer[i] == 0)
+			Buffer[i] = ' ';
+
+	int new_len = Buffer.size();
+	for (int  i=new_len-1; i>=0 && isspace((BYTE)Buffer[i]); i--)
+		Buffer.erase(Buffer.begin() +i);
+
+	if (IsHtmlFile(SourceFileName) && !Buffer.empty() )
+	{
+		HTML html;
+		string Plain = html.GetTextFromHTMLBuffer(&(Buffer[0]), Buffer.size());
+		Buffer.clear();
+		Buffer.insert(Buffer.end(), Plain.begin(), Plain.end());
+	};
+
+	Buffer.push_back(0);
+	return true;
+};
+
+
+void CConcIndexatorInvoker::WriteTimeStatistics	(const CConcIndexator& Indexator, DWORD CorpusEndTokenNo, DWORD MaxTokenCountInOnePeriod) const 
+{
+	try
+	{
+		double AllClocksCount = m_Profiler.EndTimer("Indexing");
+
+		FILE * fp  = fopen (GetTimeStatisticsFileName(Indexator.m_Path).c_str(), "w");
+		if (!fp)
+		{
+			fprintf (stderr,"Cannot write time statistics to file!\n");
+		}
+		else
+		{
+			fprintf (fp, "%s", m_Profiler.GetStrRepresentation(AllClocksCount).c_str());	
+			int AllSeconds = (int)(AllClocksCount/CLOCKS_PER_SEC);
+			int u = (AllSeconds > 0) ? (int)((CorpusEndTokenNo)/AllSeconds) : 0;
+			fprintf (fp, "Speed (Tokens per second) = %i\n",u);
+			fprintf (fp, "MaxTokenCountInOnePeriod = %i (tokens in one subcorpus)\n",MaxTokenCountInOnePeriod);
+			fprintf (fp, "Count of subcorpora = %i\n",Indexator.GetSearchPeriodsCount());
+			fprintf (fp, "Count of running tokens  = %i\n",CorpusEndTokenNo);
+			
+			fclose(fp);
+		};
+	}
+	catch(...)
+	{
+		SetCurrMessage("An exception occurred while saving time_statistsics files");
+	}
+};
+
+bool CConcIndexatorInvoker::FinalizeIndex	(CConcIndexator& Indexator, DWORD CorpusEndTokenNo, DWORD MaxTokenCountInOnePeriod) const 
+{
+	if (!Indexator.SaveCorpusFileList())
+	{
+		printf ("Cannot save corpus file list %s\n", Indexator.GetFileNameForCorpusFileNames().c_str());
+		return false;
+	};		
+
+	if (CorpusEndTokenNo >= CIndexItem::GetMaximalNumberOfRunningTokens())
+	{
+		SetCurrMessage( Format ("Error! Number of running tokens cannot be more than ", CIndexItem::GetMaximalNumberOfRunningTokens()) );
+		return false;
+	};
+
+	m_Profiler.StartTimer("Final Save to Disc",1);
+
+	if (!Indexator.BordersEndIndexing(Indexator.m_Path)) return false;
+	if (!Indexator.LoadHitBorders(Indexator.m_Path)) return false;
+	assert (Indexator.GetCorpusEndTokenNo() == CorpusEndTokenNo);
+	Indexator.CalculateSearchPeriods(MaxTokenCountInOnePeriod);
+
+	SetCurrMessage(  Format("Tokens Count = %i\n", CorpusEndTokenNo)  );
+
+	if (!Indexator.AddInputLoadIndexToMemoryLoadIndex()) return false;
+	if (!Indexator.SaveMemoryLoadIndex())  
+	{
+		SetCurrMessage(  "Cannot save memory indices to disk; probably no space left on device!");
+		return false;
+	}
+	if (!Indexator.AddMemoryLoadIndexToMainLoadIndex())  return false;;
+	if (!Indexator.FinalSaveAllIndices(true)) return false;;
+	SetCurrMessage("finished final saving");
+	if (!Indexator.NormalEndIndexing()) return false;;
+	SetCurrMessage("finished deleting temp. files");
+	m_Profiler.EndTimer("Final Save to Disc");
+
+	m_Profiler.StartTimer("CreateMorphIndex",1);
+	if (!Indexator.CreateMorphIndex()) 
+	{
+		SetCurrMessage("Error! Cannot create morph index!");
+		return false;;
+	}
+	m_Profiler.EndTimer("CreateMorphIndex");
+
+	SetCurrMessage("");
+	return  true;
+};
+
+bool CConcIndexatorInvoker::BuildOnlyMorphIndex	(string ProjectFile) const 
+{
+	CConcIndexator Indexator;
+	if(!Indexator.LoadProject(ProjectFile))
+	{
+		SetCurrMessage(Format("cannot load index of project %s\n", ProjectFile.c_str()));
+		return false;
+	};
+	if (!Indexator.CreateMorphIndex())
+	{
+		SetCurrMessage ("cannot index morphology index !\n");
+		return false;
+	}
+	else
+	{
+		SetCurrMessage ("reindexing was successful!\n");
+		return true;
+	};
+};
+
+void  newhandler( )
+{
+   fprintf (stderr,"Cannot allocate memory (newhandler is called); terminate the process...\n");
+   throw bad_alloc( );
+   return;
+}
+
+bool CConcIndexatorInvoker::BuildIndex	(string ProjectFile)
+{
+	set_new_handler (newhandler);
+    
+    {  // set temp directory 
+        char filename[2*_MAX_PATH];
+        strcpy(filename,Format("TMP=%s", GetPathByFile(ProjectFile).c_str()).c_str());
+        putenv(filename);
+        fprintf (stderr, "temp directory: %s\n", getenv("TMP"));
+    }
+
+	if (m_bOnlyReindexMorphology)
+		return BuildOnlyMorphIndex(ProjectFile);
+
+	const size_t MaxInputIndexSize = 400000;
+	CConcIndexator Indexator;
+
+	if (!Indexator.LoadSourceFilesAndOptions(ProjectFile)) 
+	{
+		SetCurrMessage(Format("cannot load options or source files of project %s\n", ProjectFile.c_str()));
+		return false;
+	};
+
+	m_SourceFilesNumber = Indexator.GetSourceFilesCount();
+
+	if ( m_SourceFilesNumber == 0 ) 
+	{
+		SetCurrMessage("No files in the project!");
+		return false;
+	};
+
+	SetCurrMessage(Format("Files %i\n", m_SourceFilesNumber) );
+	if (!m_bSkipInitialFileChecking)
+	{
+		int FileNo = Indexator.FoundNotExistedFile();
+		if (FileNo != -1)
+		{
+			ErrorMessage(Format("File %s was not found or it is empty, cannot load the project\n", Indexator.GetSourceFile(FileNo).c_str()) );
+			return false;
+		};
+	};
+
+	
+	if (!Indexator.DestroyIndex())
+	{
+		fprintf (stderr,"Error! Cannot destroy index, this corpus is possibly already used!\n");
+		ErrorMessage("Error! Cannot destroy index, this corpus is possibly already used");
+		return false;
+	};
+	if (!Indexator.StartIndexing() )
+	{
+		fprintf (stderr,"Cannot create temp files in the catalog of the corpus!");
+		return false;
+	};
+	
+
+	// a reference to DWDS thesaurus if applicable
+	const CDwdsThesaurus* pDwdsThesaurus = 0;
+	if ( Indexator.UseDwdsThesaurus() )
+		pDwdsThesaurus = LoadDwdsThesaurus();
+
+	
+
+	const DWORD MaxTokenCountInOnePeriod = Indexator.GetMaxTokenCountInOnePeriod();
+	SetCurrMessage( Format ("MaxTokenCountInOnePeriod = %i", MaxTokenCountInOnePeriod));
+
+	m_Profiler.ClearTimers();
+	m_Profiler.StartTimer("Indexing", 0);
+
+	CGraphmatFile*	piGraphmat = 0;
+	bool bResult = false;
+
+	CTokenNo CorpusEndTokenNo = 0;
+
+	TiXmlBase::SetCondenseWhiteSpace(false);
+	time_t speed_start_time;
+	time (&speed_start_time);
+	try
+	{
+		piGraphmat = new CGraphmatFile;
+		if (!piGraphmat)
+		{
+			SetCurrMessage("Cannot load graphan");
+			goto error_label;
+		};
+		//  first we should init properties, for example, language,
+		//  because  loading dictionaries of graphan depends upon the language
+		Indexator.InitGraphanProperties(piGraphmat);
+		if (!piGraphmat->LoadDicts())
+		{
+			SetCurrMessage(Format("Graphan::LoadDicts failed! Error: %s",piGraphmat->GetLastError().c_str()));
+			goto error_label;
+		}
+		assert(piGraphmat != NULL);
+		
+		size_t InputLoadIndexSize = 0;
+		size_t MemoryLoadIndexSize = 0;
+		vector<char> FileBuffer;
+		vector<string> m_ErrorCorpusFiles;
+		for (m_CurrentSourceFileNo = 0; m_CurrentSourceFileNo < m_SourceFilesNumber ; m_CurrentSourceFileNo++)
+		{
+			if (m_bStoppedByUser)
+			{
+				bResult =  true;
+				goto error_label;
+			};
+			
+			m_CurrentSourceFileName = Indexator.GetSourceFile(m_CurrentSourceFileNo);
+			fprintf(stderr, "Indexing file `%s'\n", m_CurrentSourceFileName.c_str()); 
+			TAR *pTar = 0;
+			if (IsTarFile(m_CurrentSourceFileName))
+			{
+				tar_open(&pTar, m_CurrentSourceFileName.c_str());
+				if (!pTar)
+				{
+					bResult =  false;
+					SetCurrMessage( Format("Error! Cannot open %s", m_CurrentSourceFileName.c_str()));
+					goto error_label;
+				};
+			};
+
+			do // reading files in one tar-archive
+			{
+				DWORD SaveCorpusEndTokenNo = CorpusEndTokenNo;
+				if ( InputLoadIndexSize > MaxInputIndexSize)
+				{
+					time_t speed_curr_time;
+					time (&speed_curr_time);
+					size_t dur = speed_curr_time-speed_start_time;
+					size_t  speed  = SaveCorpusEndTokenNo/dur;
+					SetCurrMessage( Format ("File  %s", m_CurrentSourceFileName.c_str()));
+					SetCurrMessage( Format ("(%i from  %i)", m_CurrentSourceFileNo+1, m_SourceFilesNumber));
+					SetCurrMessage( Format ("Processed tokens = %i;Speed(tokens per sec)=%u", SaveCorpusEndTokenNo, speed));
+					m_Profiler.StartTimer("AddInputLoadIndexToMemoryLoadIndex",1);
+					if (!Indexator.AddInputLoadIndexToMemoryLoadIndex()) 
+					{
+			
+						SetCurrMessage( Format("Fatal error! Cannot AddInputLoadIndexToMemoryLoadIndex for %s", m_CurrentSourceFileName.c_str()));
+						bResult =  false;
+						goto error_label;
+					};
+					m_Profiler.EndTimer("AddInputLoadIndexToMemoryLoadIndex");
+
+					MemoryLoadIndexSize += InputLoadIndexSize;
+					InputLoadIndexSize = 0;
+				};
+
+				string strError;
+				m_Profiler.StartTimer("Indexator.IndexOneFile", 1);
+				string CorpusFileName;
+				bool bError;
+				if (!ReadSourceFile(m_CurrentSourceFileName, CorpusFileName, pTar, FileBuffer, bError))
+				{
+					assert (pTar);
+					tar_close(pTar);
+					pTar = 0;
+					break;
+				};
+
+				if (bError)
+				{
+					SetCurrMessage( Format("Error! Cannot read %s", m_CurrentSourceFileName.c_str()));
+					bResult =  false;
+					goto error_label;
+				};
+
+				if ( FileBuffer.empty() )
+				{
+					string err = Format("skipping empty %s", CorpusFileName.c_str());
+					SetCurrMessage( err );
+					m_ErrorCorpusFiles.push_back(err);	
+					continue;
+				};
+
+				if (!Indexator.IndexOneFile(piGraphmat, CorpusFileName, &(FileBuffer[0]), pDwdsThesaurus, CorpusEndTokenNo, strError))
+				{
+					string err = Format ("Error! %s; Indexator.IndexOneFile returned false (file %s)",
+						strError.c_str(), 
+						CorpusFileName.c_str());
+					SetCurrMessage( err );
+					if (!Indexator.m_bResumeOnIndexErrors)
+					{
+						bResult =  false;
+						goto error_label;
+					}
+					else
+					{
+						m_ErrorCorpusFiles.push_back(err);	
+						SetCurrMessage( Format("skipping %s", CorpusFileName.c_str()));
+						continue;
+					}
+				};
+
+				m_Profiler.EndTimer("Indexator.IndexOneFile");
+				if (CorpusEndTokenNo == SaveCorpusEndTokenNo)
+				{
+					string err = Format("skipping empty %s", CorpusFileName.c_str());
+					SetCurrMessage( err );
+					m_ErrorCorpusFiles.push_back(err);	
+					continue;
+				};
+
+				if (CorpusEndTokenNo >= CIndexItem::GetMaximalNumberOfRunningTokens())
+				{
+					bResult =  false;
+					SetCurrMessage( Format ("Error! Number of running tokens cannot be more than ", CIndexItem::GetMaximalNumberOfRunningTokens()) );
+					goto error_label;
+				};
+
+
+				InputLoadIndexSize += CorpusEndTokenNo-SaveCorpusEndTokenNo;
+
+				if (m_bStoppedByUser)
+				{
+					bResult =  true;
+					goto error_label;
+				};
+				
+
+				// Setting File address
+				Indexator.AddBreakByName(PredefinedFileBreakName, CorpusEndTokenNo);	
+				Indexator.m_CorpusFiles.push_back(CorpusFileName);
+
+				if (MemoryLoadIndexSize + InputLoadIndexSize > MaxTokenCountInOnePeriod)
+				{
+					SetCurrMessage( "Saving index to disk" );
+					m_Profiler.StartTimer("AddInputLoadIndexToMemoryLoadIndex",1);
+					if (!Indexator.AddInputLoadIndexToMemoryLoadIndex()) 
+					{
+						SetCurrMessage( Format("Fatal Error! Cannot AddInputLoadIndexToMemoryLoadIndex"));
+						goto error_label;
+					};
+					m_Profiler.EndTimer("AddInputLoadIndexToMemoryLoadIndex");
+
+					m_Profiler.StartTimer("Intermediate Save to Disc",1);
+
+					if (!Indexator.SaveMemoryLoadIndex()) 
+					{
+						SetCurrMessage("Cannot save indices to disk; probably no space left on device!\n");
+						goto error_label;
+					};
+					if (!Indexator.AddMemoryLoadIndexToMainLoadIndex()) 
+					{
+						SetCurrMessage("Fatal Error! Indexator.AddMemoryLoadIndexToMainLoadIndex returned false\n");
+						goto error_label;
+					};
+					m_Profiler.EndTimer("Intermediate Save to Disc");
+					
+					MemoryLoadIndexSize = 0;
+					InputLoadIndexSize = 0;
+
+
+				};
+
+			}	while  (pTar);
+		
+		}; //for each(m_SourceFilesNumber)
+
+		if (CorpusEndTokenNo == 0)
+		{
+			SetCurrMessage("Cannot index empty corpus!");
+			goto error_label;
+		}
+
+		if (!FinalizeIndex(Indexator, CorpusEndTokenNo, MaxTokenCountInOnePeriod))
+		{
+			SetCurrMessage("Cannot save index to disk, probably no space left!");
+			goto error_label;
+		};
+
+		remove (GetErrorLogFileName(Indexator.m_Path).c_str());
+		if (Indexator.m_bResumeOnIndexErrors && !m_ErrorCorpusFiles.empty())
+		{
+			FILE* fp = fopen (GetErrorLogFileName(Indexator.m_Path).c_str(), "w");
+			if (fp)
+			{
+				for (size_t i=0; i < m_ErrorCorpusFiles.size(); i++)
+					fprintf (fp, "%s\n", m_ErrorCorpusFiles[i].c_str());
+				fclose(fp);
+			}
+			SetCurrMessage(Format("%i error(s) were written into %s", m_ErrorCorpusFiles.size(), GetErrorLogFileName(Indexator.m_Path).c_str()) );
+		};
+	}
+	catch(CExpc e)
+	{
+		SetCurrMessage(e.m_strCause);
+		goto error_label;
+	}
+	catch(...)
+	{
+		SetCurrMessage("An exception occurred");
+		goto error_label;
+	}
+
+	WriteTimeStatistics(Indexator, CorpusEndTokenNo, MaxTokenCountInOnePeriod);
+
+	m_bCorporaProcessing = false;	
+	if (piGraphmat) delete piGraphmat;
+
+	if (pDwdsThesaurus)
+		FreeDwdsThesaurus(pDwdsThesaurus);
+	return true;
+
+
+error_label:
+	if (piGraphmat) delete piGraphmat;
+	if (!Indexator.TerminateIndexing())
+	{
+		SetCurrMessage("Cannot normally terminate indexing!");
+	};
+	m_bCorporaProcessing = false;
+	Indexator.DestroyIndex();
+	if (pDwdsThesaurus)
+		FreeDwdsThesaurus(pDwdsThesaurus);
+	return bResult;
+	
+};
+
+
+//==============================================================================
+// moved from ad-hoc ConcordQuery.cpp
+
+bool CConcIndexator::LoadProject(string FileName)
+{
+	if ( !LoadSourceFilesAndOptions(FileName) ) return false;
+	if ( !LoadCorpusFiles() ) return false;
+	if ( !LoadMaskedFiles() ) return false;
+	
+	AssertHasPath();
+	LoadHitBorders(m_Path);
+	ReadIndicesFromTheDisk();
+
+	if (GetFileBreaks().size() !=  m_CorpusFiles.size()) {
+		ErrorMessage (Format("The number of files in %s is not equal to the number of files in the index",FileName.c_str()));
+		return false;
+	}
+	
+	if (!m_Bibl.LoadBibl(FileName, GetFileBreaks().size())) {
+		return false;
+	}
+
+	return true;
+}
+
+
+void SortOccurrences (vector<CTokenNo>& occurrences, size_t SortChunkCount)	
+{
+	int size = occurrences.size();
+	if (	(size < 30)
+		||	(SortChunkCount > 1000)
+		||	(size/SortChunkCount <  3)
+	   ) // if occurrences are very defragmented then use simple sort
+		sort(occurrences.begin(), occurrences.end());
+	else
+	{
+		// else use sort based on list unions
+		DwordVector Borders;
+		Borders.reserve( size );
+		assert (size > 0);
+		for (size_t i = 0; i< size-1; i++)
+			if (occurrences[i] > occurrences[i+1])
+				Borders.push_back(i+1);
+
+		Borders.push_back(size);
+
+		SortWithLists(occurrences, Borders);
+	};
+	
+};

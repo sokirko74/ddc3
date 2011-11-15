@@ -1,0 +1,765 @@
+########################################################################
+## Header
+=pod
+
+=head1 DDC *.opt FILE SYNTAX
+
+This manpage describes the syntax of *.opt index
+option files ("opt-files") used by the DDC corpus indexing system.
+
+=cut
+
+########################################################################
+## Synopsis
+=pod
+
+=head1 SYNOPSIS
+
+ ##-------------------------------------------------------------
+ ## Option Processor Directives
+ 
+ #comment
+ include "OPTFILE"
+
+ ##-------------------------------------------------------------
+ ## Required Declarations
+ 
+ LANG
+ IndexType TYPE
+
+ ##-------------------------------------------------------------
+ ## Boolean Flags and Switches
+ 
+ Utf8
+ CaseInsensitive
+ DisableDefaultQueryLexicalExpansion
+ ShowNumberOfRelevantDocuments
+ QueryOnlyFiles
+ NoContextOperator
+ AllowUnsafeQueries
+ OutputBibliographyOfHits
+ 
+ IndexChunks
+ IndexMorphPatterns
+ IndexPunctuation
+ UseDwdsThesaurus
+ UseParagraphTagToDivide
+ EmptyLineIsNotSentenceDelim
+ DontUseIndention
+ 
+ GutenbergInterface
+ DwdsCorpusInterface
+
+ ##-------------------------------------------------------------
+ ## Single-valued Options
+ 
+ Indices INDEXLIST
+ IndicesToShow INTLIST
+ HitBorders BREAKLIST
+ 
+ HtmlHighlighting L;R;LL;RR
+ TextHighlighting L;R;LL;RR
+ TableHighlighting L;R;LL;RR
+ TokenDelimiter STRING
+ InterpDelimiter STRING
+ 
+ RightKwicContextSize VAL
+ LeftKwicContextSize N
+ NumberOfKwicLinesInSnippets N
+ MaxRegExpExpansionSize N
+ UserMaxTokenCountInOnePeriod N
+ 
+ LocalPathPrefix VAL
+ InternetPathPrefix VAL
+ 
+ TfIdfRank FLOAT
+ PositionRank FLOAT
+ NearRank FLOAT
+
+ ##-------------------------------------------------------------
+ ## Multi-valued Options
+ 
+ Bibl ...
+ textarea ...
+ Expand ...
+ Bigrams ...
+
+=cut
+
+########################################################################
+## Description
+=pod
+
+=head1 DESCRIPTION
+
+This section contains descriptions of the various options and flags
+which may occur in a DDC opt-file, insofar as the author is able
+to provide them.  These are for the most part legacy options which
+may or may not be fully functional.  I have not tested (most of)
+these options for functionality.  The reader is strongly advised
+to perform his or her own tests before using any of the options
+described below (but particularly the undocumented ones)
+in a production environment.
+
+=head2 Sources
+
+DDC opt-files are parsed and processed by the method
+CConcIndexator::LoadOptionsFromString()
+after intialization of
+default option values by the method
+CConcIndexator::InitDefaultOptions(),
+both of which methods are defined in
+F<src/ConcordLib/ConcordOptions.cpp>.
+Refer to the source code for further enlightenment.
+
+=cut
+
+##==============================================================
+## Option Processor Directives
+=pod
+
+=head2 Option Processor Directives
+
+=head3 #comment
+
+Comments are lines starting with a literal hash-mark (C<#>).
+Such lines are ignored by the option processor
+B<except> for the backwards-compatible L<#include|/include> directive.
+
+=head3 include
+
+ include "OPTFILE"
+ #include "OPTFILE"
+
+The C<include> directive inserts the contents of an external opt-file at the
+current position.  If OPTFILE is a relative pathname, it is interpreted relative
+to the directory containing the top-level .opt file for the current corpus.
+
+Note that for historical reasons, the C preprocessor syntax C<#include "OPTFILE">
+is also supported, is B<NOT> a comment, and B<WILL> be evaluated.  This behavior
+may change in the future.
+
+=cut
+
+##==============================================================
+## Required Declarations
+=pod
+
+=head2 Required Declarations
+
+Each DDC option file requires two obligatory declarations L<lang> and L<indextype>, which
+should occur as the first two options in an opt-file (although they
+may be defined by an external file loaded with the L<include> directive).
+
+=head3 IndexType
+
+ IndexType TYPE
+
+Sets the type of the underlying corpus index.
+I<TYPE> can be C<DWDS_Index>,  C<MorphXML_Index>, or C<Free_Index>.
+
+Future versions of DDC may support only the C<Free_Index> type.
+
+=head3 LANG
+
+Sets language to use for runtime lexical expansion and possibly index-time analysis.
+Known languages are C<German>, C<Russian>, C<English>, and (possibly) C<Generic>.
+
+=cut
+
+##==============================================================
+## Boolean Flags and Switches
+=pod
+
+=head2 Boolean Flags and Switches
+
+The following options represent boolean flags and switches, which
+are set if and only if the corresponding flag appears in the corpus opt-file.
+To disable an option, omit it from the opt-file or comment it out.
+There is currently no way to override a previously set boolean switch.
+
+=head3 Utf8
+
+If present, DDC expects all corpus data and external queries to be encoded in UTF-8.
+This uses both iconv and C99 locales internally, so you should ensure that your
+LC_CTYPE variable has a UTF-8 encoding (e.g. I<export LC_CTYPE="en_US.UTF-8"> in the parent shell.)
+if you choose to use this option.
+
+=head3 DisableDefaultQueryLexicalExpansion
+
+If present, DDC will not include the C<infl> term expander to the default expansion
+pipeline for the C<Token> index.
+
+Note that a term expansion explicitly defined with an L<Expand|/expand> clause for
+the C<Token> index will override the effects of this option.
+
+=head3 CaseInsensitive
+
+If present, DDC will not add the C<case> term expander to the default expansion
+pipeline for the C<Token> index.
+
+Note that a term expansion explicitly defined with an L<Expand|/expand> clause for
+the C<Token> index will override the effects of this option.
+
+=head3 ShowNumberOfRelevantDocuments
+
+(from DDCReadme):
+If on, DDC calculates the number of relevant documents, otherwise the member that holds this number is set to 0.
+
+=head3 QueryOnlyFiles
+
+(from DDCReadme):
+If on, DDC doesn’t create a sentence break collection.
+Only meaningful for C<DWDS_Index> or C<MorphXML_Index> L<Index Types|/indextype>.
+
+=head3 NoContextOperator
+
+(from DDCReadme):
+Prohibits context operator (#CNTXT) in the query language.
+
+=head3 AllowUnsafeQueries
+
+If set, any attempt to compile a potentially unsafe query will cause a runtime
+exception to be thrown.  Currently, only file-list queries (C<E<lt> FILENAME>)
+are considered "unsafe" for such purposes.
+
+=head3 OutputBibliographyOfHits
+
+(from DDCReadme):
+If it is on, then DDC outputs bibliographical information for hits instead of filenames.
+
+=head3 IndexChunks
+
+(from DDCReadme):
+Enables indexing and querying using 'chunks', otherwise chunks are ignored.
+Only meaningful for the C<Free_Index> L<Index Type|/indextype>.
+
+NOTE: seems to control implicit creation of a C<Chunk> index.
+
+=head3 IndexMorphPatterns
+
+(from DDCReadme):
+If on, DDC creates a C<MorphPattern> index.
+Only meaningful for the C<DWDS_Index> L<Index Type|/indextype>.
+
+=head3 IndexPunctuation
+
+(from DDCReadme):
+Index punctuation marks only if set.
+Only meaningful for the C<DWDS_Index> L<Index Type|/indextype>.
+
+=head3 UseDwdsThesaurus
+
+(from DDCReadme):
+Enable creation and use of the C<Thes> thesaurus index.
+Only meaningful for the C<DWDS_Index> L<Index Type|/indextype>.
+
+=head3 UseParagraphTagToDivide
+
+(from DDCReadme):
+If on, the tokenizer seeks C<E<lt>/pE<gt>> in the input 
+texts in order to  divide the text into paragraphs.
+Only meaningful for the C<DWDS_Index> L<Index Type|/indextype>.
+
+=head3 EmptyLineIsNotSentenceDelim
+
+(from DDCReadme):
+If on, an empty line in the input texts is not interpreted as an end of sentence.
+Only meaningful for the C<DWDS_Index> L<Index Type|/indextype>.
+
+=head3 DontUseIndention
+
+(from DDCReadme):
+If on, DDC  doesn’t use indention (sic; assumedly "indentation" is meant) to find paragraph breaks.
+Only meaningful for the C<DWDS_Index> L<Index Type|/indextype>.
+
+=head3 GutenbergInterface
+
+Undocumented
+
+=head3 DwdsCorpusInterface
+
+(from DDCReadme):
+Enables DWDS-like formatting for output hits.
+
+=cut
+
+##==============================================================
+## Single-valued Options
+=pod
+
+=head2 Single-valued Options
+
+The following options take a single argument, which may be a list of values.
+Each of these options should occur at most once in an opt-file.
+Assumedly, in the case of multiple occurrences of the same option, the most recent
+declaration "wins".
+
+=head3 Indices
+
+ Indices INDEXLIST
+
+(largely drawn from DDCReadme):
+Declares index fields used by the underlying corpus index.
+C<INDEXLIST> is a list  of index declarations delimited by semicolons C<;>.
+Each index declaration is a string of the form
+
+ [LONGNAME SHORTNAME ARCHIVE STORAGE]
+
+where:
+
+=over 4
+
+=item LONGNAME
+
+is a long name for the index, conventionally in CamelCase;
+
+=item SHORTNAME
+
+is a short name for the index, conventionally in all lower-case and frequently only a single character;
+
+=item ARCHIVE
+
+is one of the strings C<archive> or C<normal>.
+If it is C<archive>, the current index is archived, otherwise it is not; and
+
+=item STORAGE
+
+is one of the strings C<storage> or C<storage_omit>.
+If it is C<storage>, then the index is supplied with a storage during indexing, otherwise storage is not built.
+By default the first index is build with a storage (if it is not manually prohibited), other indices are built without storages.
+
+=back
+
+The L<indices> option is only supported for the C<Free_Index> L<Index Type|/indextype>.
+
+
+=head3 IndicesToShow
+
+ IndicesToShow INTLIST
+
+(largely from DDCReadme):
+Declares a list of those indices which should be returned in hit responses to user queries.
+C<INTLIST> is a space-separated list of integers, where each integer I<i> is the position of some index declaration in the
+L<Indices|/indices> declaration, counting from 1;
+i.e. for each I<i>, 0 E<lt> I<i> E<lt> N_INDICES, where N_INDICES is the number  index declarations.
+For each output word, this list determines the order of the indices whose values are used to represent this word in an output hit.
+By default, L<IndicesToShow|/indicestoShow> is C<1>, i.e. words are represented only by the value of the first index
+(normally the text of the token itself). If some index is mentioned  inIndicesToShow, then it must have an index storage built during indexing.
+
+Only supported for the C<Free_Index> L<Index Type|/indextype>.
+
+=head3 HitBorders
+
+ HitBorders BREAKLIST
+
+(largely from DDCReadme):
+C<BREAKLIST> is a string of break collection declarations delimited by semicolons C<;>.
+Each break collection declaration is a string of the form
+C<[LONGNAME SHORTNAME]> or C<[LONGNAME SHORTNAME default]>, where
+
+=over 4
+
+=item LONGNAME
+
+is a long name for the break collection, conventionally in CamelCase;
+
+=item SHORTNAME
+
+is a short name for the break collection, conventionally in all lower-case and frequently only a single character; and
+
+=item C<default>
+
+is the literal string C<default>, which if present indicates that the
+current break collection is to be used for queries which do not specify any
+break collection specification (e.g. using the C<WITHIN> query operator).
+
+=back
+
+The L<HitBorders|/hitborders> option is only supported for the C<Free_Index> L<Index Type|/indextype>.
+
+
+=head3 HtmlHighlighting
+
+ HtmlHighlighting TAGS
+
+Set highlighting strings to use for identifying matched tokens in hits returned in HTML format.
+C<TAGS> is a string of the form C<L;R;LL;RR>, where
+the first matched token I<w> in any hit is marked by C<L>I<w>C<R>,
+and subsequent matched tokens in the same hit are marked as C<LL>I<w>C<RR>.
+Tag strings support C-style escapes as well as JSON-style unicode (UTF-8) escapes.
+
+Default is:
+
+ HtmlHighlighting <STRONG><FONT COLOR=red>;</FONT></STRONG>;<STRONG><FONT COLOR=red>;</FONT></STRONG>
+
+
+=head3 TextHighlighting
+
+ TextHighlighting TAGS
+
+Set highlighting strings to use for identifying matched tokens in hits returned in text format.
+C<TAGS> is string as described under L<HtmlHighlighting|/htmlhighlighting>.
+
+Default is:
+
+ TextHighlighting &&;&&;_&;&_
+
+=head3 TableHighlighting
+
+ TableHighlighting TAGS
+
+Set highlighting strings to use for identifying matched tokens in hits returned in table format.
+C<TAGS> is string as described under L<HtmlHighlighting|/htmlhighlighting>.
+
+Default is:
+
+ TableHighlighting &&;&&;_&;&_
+
+=head3 TokenDelimiter
+
+ TokenDelimiter DELIM
+
+Set delimiter string to be inserted before the data for each token in HTML, Text, and Table output formats.
+Prior to DDC version 1.80-dx1, this option was not present and token boundaries could not be reliably
+determined from the built-in output formats.
+The string DELIM may not contain any literal whitespace, but C-style escapes and
+JSON-style unicode escapes are supported
+
+For historical reasons, DELIM defaults to an empty string.
+
+
+=head3 InterpDelimiter
+
+ InterpDelimiter DELIM
+
+Set delimiter string to be inserted between individual index fields for each token in HTML, Text, and Table output formats.
+The string DELIM may not contain any literal whitespace, but C-style escapes and
+JSON-style unicode escapes are supported
+Defaults to C<#>.
+
+For historical reasons, the (misspelled) option C<InterpDelimeter> is an alias for C<InterpDelimiter>.
+
+=head3 LeftKwicContextSize
+
+ LeftKwicContextSize N
+
+(from DDCReadme):
+Set the length of the right context to use for each
+KWIC line when generating file summaries (snippets).
+The default value is 4.
+
+=head3 RightKwicContextSize
+
+ RightKwicContextSize N
+
+(from DDCReadme):
+Set the length of the right context to use for each
+KWIC line when generating file summaries (snippets).
+The default value is 4.
+
+=head3 NumberOfKwicLinesInSnippets
+
+ NumberOfKwicLinesInSnippets N
+
+(from DDCReadme):
+Set the number of kwic lines in snippets. The default value is 10.
+
+=head3 MaxRegExpExpansionSize
+
+ MaxRegExpExpansionSize N
+
+(from DDCReadme):
+Set the maximum number of indexed items
+which can be included in an expansion set of one regular expression.
+Default value is 1000000.
+
+=head3 UserMaxTokenCountInOnePeriod
+
+ UserMaxTokenCountInOnePeriod N
+
+(from DDCReadme):
+Set the size of internal subcorpora.
+The greater the value of this parameter is, the faster
+querying procedures work, and the more memory the program needs.
+
+=head3 LocalPathPrefix
+
+ LocalPathPrefix STRING
+
+(from DDCReadme):
+The common prefix of each corpus filename that should be replaced by
+the value of L<InternetPathPrefix|/internetpathprefix> when DDC outputs file names.
+
+=head3 InternetPathPrefix
+
+ InternetPathPrefix STRING
+
+Replaces the value of L<LocalPathPrefix|/localpathprefix> in corpus filenames
+if and when they occur in DDC output.
+
+=head3 TfIdfRank
+
+ TfIdfRank FLOAT
+
+(from DDCReadme):
+Float parameter (0 E<lt>=FLOAT E<lt> 1) for TFIDF weighting.
+
+=head3 PositionRank
+
+ PositionRank FLOAT
+
+(from DDCReadme):
+Float parameter (0 E<lt>=FLOAT E<lt> 1) for position weighting.
+
+=head3 NearRank
+
+ NearRank FLOAT
+
+Float parameter (0 E<lt>=FLOAT E<lt> 1) for NEAR weighting.
+
+=cut
+
+##==============================================================
+## Multi-valued Options
+=pod
+
+=head2 Multi-valued Options
+
+The following options may occur multiple times in a single opt-file.
+
+=head3 textarea
+
+ textarea NAME XPATH
+
+(from DDCReadme):
+Each C<textarea> declaration describes a single text area, where
+NAME is name of the text area field, and
+XPATH is an X-Path.
+
+=head3 Bibl
+
+ Bibl TYPE VISIBILITY NAME XPATH
+
+(from DDCReadme):
+Each C<Bibl> declaration describes a single bibliographical field (such as date of publication, author, and so on).
+The bibliographical field can be predefined ("orig", "scan", "date", "page", "pagerank") or free (user-defined).
+Predefined bibliographical fields have special processing in DDC, for example, field "scan" is used to build a hit
+header. Free bibliographical fields can contain either integer or string data: for both datatypes, one can use
+the general filter operator or general order operators (C<#HAS> and C<#LESS_BY> respectively).
+The arguments to free C<Bibl> are:
+
+=over 4
+
+=item TYPE
+
+either C<string> or C<integer>;
+
+=item VISIBILITY
+
+either C<1> or C<0>: if it is "1",  then DDC displays the value of the field for each hit header;
+
+=item NAME
+
+a symbolic name for this bibliographic field (by convention all lower-case); and
+
+=item XPATH
+
+an X-Path specification of the location of the field data in corpus source documents.
+
+=back
+
+=head3 Bigrams
+
+ Bigrams ...
+
+(undocumented)
+
+=head3 Expand
+
+ Expand LABEL CLASS PARAM...
+
+Declares a named term expander which can be used to expand index queries
+using either the explicit pipeline notation (C<|LABEL|...>), or implicit
+expansion heuristics on a per-index basis.  Conceptually,
+each expander in a pipeline operates on the set of terms returned by the
+previous expander in the pipeline, and the set returned by the final expander
+in the pipeline represents that set of index values which qualify as "matches" to the term queried.
+
+I<LABEL> is a label string
+used to identify the expander in user-specified pipelines.
+If I<LABEL> is also the I<LONGNAME> of an index field declared in L<Indices|/indices>,
+then the corresponding expander is used implicitly if no explicit pipeline is
+specified or if the default pipeline C<|-> is used.
+
+I<CLASS> is a string representing the expansion function to use, and
+I<PARAM...> are additional parameters to the expansion function.
+Currently supported expander classes are:
+
+=over 4
+
+=item Id
+
+ Expand LABEL Id
+ Expand LABEL Null
+
+Identity expander (no-op).  Parameters: none.
+
+=item Case
+
+  Expand LABEL Case LANG
+
+Letter-case expander (upper- vs. lower-case).
+Parameters: C<LANG>, a language string as accepted by the
+L<LANG|/lang> declaration.  In particular, the
+"language" C<Generic> can be used to specify that
+the C99 locale settings should be used to provide
+upper/lower-case mappings on wide character strings:
+in this case, you must ensure that the I<LC_CTYPE>
+enviornment variable for the DDC process is set
+appropriately for the corpus and runtime query data.
+
+Note that not all letter-case variants are created
+by this expander ("McTaggart problem").
+
+=item ToLower
+
+  Expand LABEL ToLower LANG
+
+Forces all terms to lower-case.
+Parameters: C<LANG>, a language string as accepted by the
+L<LANG|/lang> declaration, or C<Generic> to use the C99 locale settings.
+
+=item ToUpper
+
+  Expand LABEL ToUpper LANG
+
+Forces all terms to upper-case.
+Parameters: C<LANG>, a language string as accepted by the
+L<LANG|/lang> declaration, or C<Generic> to use the C99 locale settings.
+
+=item Infl
+
+ Expand LABEL Infl LANG
+ Expand LABEL Morph LANG
+
+Inflectional variant expander using built-in morphology
+tables.  Parameters: C<LANG>, a language string as
+accepted by the L<LANG|/lang> declaration.
+
+=item Cab
+
+ Expand LABEL Cab URL TIMEOUT DEBUG
+
+Orthographic variant expander which queries an external DTA::CAB HTTP server.
+Parameters:
+
+=over 4
+
+=item URL
+
+URL of the DTA::CAB HTTP server to be queried with GET request.
+The underlying implementation appends a URL-encoded parameter C<qd=DATA>
+to this URL before requesting data from the server, where I<DATA> is
+a newline-separated list of types to be expanded.
+The data format returned by the server is assumed to be a list
+of expanded types separated by TABs, newlines, and/or carriage returns.
+Empty types in the output are ignored.
+
+=item TIMEOUT
+
+Timeout in seconds for the expansion query.
+If the timeout is exceeded, a warning is printed and the
+CAB expander behaves like an L<Id|/id> expander, returning
+the same set it was passed.
+
+=item DEBUG
+
+Boolean flag for debugging.  If set to a true value, all data
+passed to and from the external DTA::CAB server will be echoed
+to stderr.  Not for production use.
+
+=back
+
+=item Chain
+
+ Expand LABEL Chain PIPELINE...
+
+Assigns a label to a chain of previously defined expanders.
+Takes a C<PIPELINE> of expander labels as its argument:
+expander labels in C<PIPELINE> may separated by whitespace
+and/or the C<|> symbol (multiple consecutive delimiters are ignored).
+Note that an empty expander chain is equivalent to an L<Id|/id> expander.
+
+=back
+
+DDC ensures that the following expander labels are defined,
+instantiating them with default parameters only if no other
+expander with the same label is explicitly defined in the opt-file:
+
+=over 4
+
+=item id
+
+Defined as C<Expand id Id>
+
+=item null
+
+Defined as C<Expand null Id>
+
+=item case
+
+Defined as C<Expand case LANG> unless the L<Utf8|/utf8> flag was set,
+in which case the default I<case> expander is defined as C<Expand case Generic>.
+
+=item infl
+
+Defined as C<Expand infl LANG>.
+
+=item Token
+
+Default expansion chain for the I<Token> index.
+Usually defined as C<Expand Token Chain infl case>,
+but note that the C<case> component will be omitted from
+the default chain unless the legacy L<CaseInsensitive|/caseinsensitive> flag is set,
+and the C<infl> component will be omitted if
+the legacy L<DisableDefaultQueryLexicalExpansion|/disabledefaultquerylexicalexpansion>
+option is set.
+
+=back
+
+=cut
+
+
+########################################################################
+## Footer
+=pod
+
+=head1 ACKNOWLEDGEMENTS
+
+Alexey Sokirko wrote the original DDC and the DDCReadme.pdf
+on which much of the information in this manpage is based.
+
+=head1 AUTHOR
+
+Bryan Jurish E<lt>jurish@bbaw.deE<gt>
+
+=head1 SEE ALSO
+
+ddc_console(1),
+ddc_daemon(1),
+ddc_expand(1),
+ddc_file_lem(1),
+ddc_graphmat_thick(1),
+ddc_index(1),
+ddc_morph_gen(1),
+ddc_search(1),
+ddc_simple(1),
+ddc_stats(1),
+ddc_struct_dict_loader(1),
+ddc_test_lem(1),
+ddc_xml(1)
+
+=cut
+
+

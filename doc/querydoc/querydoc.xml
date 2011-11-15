@@ -1,0 +1,1674 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doc>
+  <head>
+    <title>DDC Query Language Documentation</title>
+    <author email="jurish@bbaw.de">Bryan Jurish</author>
+  </head>
+  <body>
+
+    <!-- ============================================================= -->
+    <!-- Overview -->
+    <section name="overview" title="Overview">
+      <p>
+	This documentation describes the query language accepted by
+	DDC version 1.80.dx-1.  Current sources for DDC should be available
+	in SVN under
+	<a href="http://odo.dwds.de/code/viewvc.cgi/ddc/trunk/?root=dev">svn+ssh://odo.dwds.de/home/svn/dev/ddc/trunk</a>.
+      </p>
+      <p>
+	The DDC query parsing, compilation, and evaluation code was
+	re-written for version 1.80.dx-1.  The new query parser should be
+	largely compatible with older DDC versions; incompatibilities are
+	due to new query sub-types (e.g. <a href="#value_set">value sets</a>)
+	and/or bugfixes (symbol and regex escapes, quoted symbols, etc.).
+	Documentation for the legacy DDC query language can be found with
+	the source or on the web at
+	<a href="http://odo.dwds.de/~moocow/software/ddc/DDCReadme.pdf">http://odo.dwds.de/~moocow/software/ddc/DDCReadme.pdf</a>.
+      </p>
+      <p>
+	The grammar <a href="#grammar">below</a> is given in a subset of standard
+	<a href="http://en.wikipedia.org/wiki/Backus%E2%80%93Naur_Form">BNF notation</a>
+	using only the choice ("|") and termination (";") operators.
+	Where available, nonterminal symbols on the right-hand side of grammar rules
+	appear as
+	<span class="ruleNonterminal"><a name="ex_nonterm"><a href="#ex_nonterm">italicized lower-case hyperlinks</a></a></span>.
+	Literal terminal symbols are typeset in <span class="ruleTerminal">green monospace</span>,
+	and special terminal symbols appear as
+	<span class="ruleXTerminal"><a name="ex_xterm"><a href="#ex_xterm">ITALICIZED UPPER-CASE HYPERLINKS</a></a></span>.
+	Comments may appear after each rule in C notation
+	<span class="ruleComment">/* like this */</span>.
+      </p>
+    </section>
+    <!--/overview-->
+
+    <!-- ============================================================= -->
+    <!-- Grammar -->
+    <section name="grammar" title="Grammar Rules">
+
+      <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+      <!-- Grammar: Top-Level -->
+      <subsection name="toplevel" title="Top-Level Rule(s)">
+	<rules>
+	  <!--~~~~~~~~ RULES: $accept -->
+	  <!--
+	  <rule lhs="$accept">
+	    <rhs cmt="">
+	      <n>query</n>
+	      <xt>&lt;&lt;EOF&gt;&gt;</xt>
+	    </rhs>
+	  </rule>
+	  -->
+
+	  <!--~~~~~~~~ RULES: query -->
+	  <rule lhs="query" cmt="Top-level rule (query root)">
+	    <rhs cmt="Filters may be empty">
+	      <n>q_clause</n>
+	      <n>q_filters</n>
+	    </rhs>
+	  </rule>
+
+	</rules>
+      </subsection>
+      <!--/rules:toplevel-->
+
+      <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+      <!-- Grammar: Query Rules -->
+      <subsection name="query" title="Query Rules">
+	<rules>
+
+	  <!--~~~~~~~~ RULES: q_clause -->
+	  <rule lhs="q_clause" cmt="Main query clause (logical operations)">
+	    <rhs cmt="Single-condition clause">
+	      <n>qc_basic</n>
+	    </rhs>
+	    <rhs cmt="Logical conjunction ('and')">
+	      <n>q_clause</n>
+	      <t>&amp;&amp;</t>
+	      <n>q_clause</n>
+	    </rhs>
+	    <rhs cmt="Logical disjunction ('or')">
+	      <n>q_clause</n>
+	      <t>||</t>
+	      <n>q_clause</n>
+	    </rhs>
+	    <rhs cmt="Logical negation ('not'): not be interpretable for all clauses">
+	      <t>!</t>
+	      <n>q_clause</n>
+	    </rhs>
+	    <rhs cmt="Explicit grouping">
+	      <t>(</t>
+	      <n>q_clause</n>
+	      <t>)</t>
+	    </rhs>
+	  </rule>
+
+	  <!--~~~~~~~~ RULES: qc_basic -->
+	  <rule lhs="qc_basic" cmt="Basic query clause (single logical condition)">
+	    <rhs cmt="Sequence or single-token condition">
+	      <n>qc_tokens</n>
+	    </rhs>
+	    <rhs cmt="Unordered proximity constraint">
+	      <n>qc_near</n>
+	    </rhs>
+	  </rule>
+
+	  <!--~~~~~~~~ RULES: qc_near -->
+	  <rule lhs="qc_near" cmt="Unordered proximity constraint">
+	    <rhs cmt="... over 2 argument conditions">
+	      <t>NEAR</t>
+	      <t>(</t>
+	      <n>qc_tokens</n>
+	      <t>,</t>
+	      <n>qc_tokens</n>
+	      <t>,</t>
+	      <n>integer</n>
+	      <t>)</t>
+	    </rhs>
+	    <rhs cmt="... over 3 argument conditions">
+	      <t>NEAR</t>
+	      <t>(</t>
+	      <n>qc_tokens</n>
+	      <t>,</t>
+	      <n>qc_tokens</n>
+	      <t>,</t>
+	      <n>qc_tokens</n>
+	      <t>,</t>
+	      <n>integer</n>
+	      <t>)</t>
+	    </rhs>
+	    <rhs cmt="Explicit grouping (vacuous)">
+	      <t>(</t>
+	      <n>qc_near</n>
+	      <t>)</t>
+	    </rhs>
+	  </rule>
+
+	  <!--~~~~~~~~ RULES: qc_tokens -->
+	  <rule lhs="qc_tokens" cmt="Sequence or single-token condition">
+	    <rhs cmt="Single-token condition">
+	      <n>qc_word</n>
+	    </rhs>
+	    <rhs cmt="Ordered sequence of single-token conditions">
+	      <n>qc_sequence</n>
+	    </rhs>
+	  </rule>
+
+	  <!--~~~~~~~~ RULES: qc_sequence -->
+	  <rule lhs="qc_sequence" cmt="Ordered sequence of single-token conditions">
+	    <rhs cmt="Sequences are enclosed in double-quotes">
+	      <t>"</t>
+	      <n>l_seq</n>
+	      <t>"</t>
+	    </rhs>
+	    <rhs cmt="Explicit grouping (vacuous)">
+	      <t>(</t>
+	      <n>qc_sequence</n>
+	      <t>)</t>
+	    </rhs>
+	  </rule>
+
+	  <!--~~~~~~~~ RULES: qc_word -->
+	  <rule lhs="qc_word" cmt="Single-token condition">
+	    <rhs cmt="Bareword query (expanded)">
+	      <n>qw_bareword</n>
+	    </rhs>
+	    <rhs cmt="Exact match (not expanded)">
+	      <n>qw_exact</n>
+	    </rhs>
+	    <rhs cmt="Regular expression">
+	      <n>qw_regex</n>
+	    </rhs>
+	    <rhs cmt="Disjunction over a set of targets (expanded)">
+	      <n>qw_set_infl</n>
+	    </rhs>
+	    <rhs cmt="Disjunction over a set of literals (not expanded)">
+	      <n>qw_set_exact</n>
+	    </rhs>
+	    <rhs cmt="Right-truncated string (prefix condition)">
+	      <n>qw_prefix</n>
+	    </rhs>
+	    <rhs cmt="Disjunction over right-truncated strings (prefix-set condition)">
+	      <n>qw_prefix_set</n>
+	    </rhs>
+	    <rhs cmt="Left-truncated string (suffix condition)">
+	      <n>qw_suffix</n>
+	    </rhs>
+	    <rhs cmt="Disjunction over left-truncated strings (suffix-set condition)">
+	      <n>qw_suffix_set</n>
+	    </rhs>
+	    <rhs cmt="Substring (infix) condition">
+	      <n>qw_infix</n>
+	    </rhs>
+	    <rhs cmt="Disjunction over substrings (infix-set condition)">
+	      <n>qw_infix_set</n>
+	    </rhs>
+	    <rhs cmt="Thesaurus condition ('Thes' index)">
+	      <n>qw_thesaurus</n>
+	    </rhs>
+	    <rhs cmt="Morphological property condition ('MorphPattern' index)">
+	      <n>qw_morph</n>
+	    </rhs>
+	    <rhs cmt="Lemma property condition ('Lemma' index)">
+	      <n>qw_lemma</n>
+	    </rhs>
+	    <rhs cmt="Syntactic property condition ('Chunk' index)">
+	      <n>qw_chunk</n>
+	    </rhs>
+	    <rhs cmt="Disjunction over values (lines) read from a server-side file (command-line only)">
+	      <n>qw_listfile</n>
+	    </rhs>
+	    <rhs cmt="Conjunction of multiple conditions on a single token">
+	      <n>qw_with</n>
+	    </rhs>
+	    <rhs cmt="Explicit grouping (e.g. for WITH, expanders, etc.)">
+	      <t>(</t>
+	      <n>qc_word</n>
+	      <t>)</t>
+	    </rhs>
+	  </rule>
+
+	  <!--~~~~~~~~ RULES: qw_bareword -->
+	  <rule lhs="qw_bareword" cmt="String match condition with implicit term expansion">
+	    <rhs cmt="... on 'Token' index, with optional expansion pipeline">
+	      <n>s_word</n>
+	      <n>l_txchain</n>
+	    </rhs>
+	    <rhs cmt="... on user-specified index, with optional expansion pipeline">
+	      <n>s_index</n>
+	      <t>=</t>
+	      <n>s_word</n>
+	      <n>l_txchain</n>
+	    </rhs>
+	  </rule>
+
+	  <!--~~~~~~~~ RULES: qw_exact -->
+	  <rule lhs="qw_exact" cmt="Literal string match condition">
+	    <rhs cmt="... on 'Token' index">
+	      <t>@</t>
+	      <n>s_word</n>
+	    </rhs>
+	    <rhs cmt="... or on user-specified index">
+	      <n>s_index</n>
+	      <t>=</t>
+	      <t>@</t>
+	      <n>s_word</n>
+	    </rhs>
+	  </rule>
+
+	  <!--~~~~~~~~ RULES: qw_regex -->
+	  <rule lhs="qw_regex" cmt="Regular expression match using perl syntax">
+	    <rhs cmt="... on 'Token' index">
+	      <n>regex</n>
+	    </rhs>
+	    <rhs cmt="... on user-specified index">
+	      <n>s_index</n>
+	      <t>=</t>
+	      <n>regex</n>
+	    </rhs>
+	  </rule>
+
+	  <!--~~~~~~~~ RULES: qw_set_infl -->
+	  <rule lhs="qw_set_infl" cmt="Disjunction over a set of (expanded) target values">
+	    <rhs cmt="... in 'Token' index, with optional expansion pipeline">
+	      <t>{</t>
+	      <n>l_set</n>
+	      <t>}</t>
+	      <n>l_txchain</n>
+	    </rhs>
+	    <rhs cmt="... in user-specified index, with optional expansion pipeline">
+	      <n>s_index</n>
+	      <t>=</t>
+	      <t>{</t>
+	      <n>l_set</n>
+	      <t>}</t>
+	      <n>l_txchain</n>
+	    </rhs>
+	  </rule>
+
+	  <!--~~~~~~~~ RULES: qw_set_exact -->
+	  <rule lhs="qw_set_exact" cmt="Disjunction over a set of literal values">
+	    <rhs cmt="... in the 'Token' index">
+	      <t>@{</t>
+	      <n>l_set</n>
+	      <t>}</t>
+	    </rhs>
+	    <rhs cmt="... in a user-specified index">
+	      <n>s_index</n>
+	      <t>=</t>
+	      <t>@{</t>
+	      <n>l_set</n>
+	      <t>}</t>
+	    </rhs>
+	  </rule>
+
+	  <!--~~~~~~~~ RULES: qw_prefix -->
+	  <rule lhs="qw_prefix" cmt="Right-truncated string (prefix condition)">
+	    <rhs cmt="... on 'Token' index">
+	      <n>s_prefix</n>
+	    </rhs>
+	    <rhs cmt="... on user-specified index">
+	      <n>s_index</n>
+	      <t>=</t>
+	      <n>s_prefix</n>
+	    </rhs>
+	  </rule>
+
+	  <!--~~~~~~~~ RULES: qw_prefix_set -->
+	  <rule lhs="qw_prefix_set" cmt="Disjunction over right-truncated strings (prefix-set condition)">
+	    <rhs cmt="... on 'Token' index">
+	      <t>{</t>
+	      <n>l_set</n>
+	      <t>}*</t>
+	    </rhs>
+	    <rhs cmt="... on user-specified index">
+	      <n>s_index</n>
+	      <t>=</t>
+	      <t>{</t>
+	      <n>l_set</n>
+	      <t>}*</t>
+	    </rhs>
+	  </rule>
+
+	  <!--~~~~~~~~ RULES: qw_suffix -->
+	  <rule lhs="qw_suffix" cmt="Left-truncated string (suffix condition)">
+	    <rhs cmt="... on 'Token' index">
+	      <n>s_suffix</n>
+	    </rhs>
+	    <rhs cmt="... on user-specified index">
+	      <n>s_index</n>
+	      <t>=</t>
+	      <n>s_suffix</n>
+	    </rhs>
+	  </rule>
+
+	  <!--~~~~~~~~ RULES: qw_suffix_set -->
+	  <rule lhs="qw_suffix_set" cmt="Disjunction over left-truncated strings (suffix-set condition)">
+	    <rhs cmt="... on 'Token' index">
+	      <t>*{</t>
+	      <n>l_set</n>
+	      <t>}</t>
+	    </rhs>
+	    <rhs cmt="... on user-specified index">
+	      <n>s_index</n>
+	      <t>=</t>
+	      <t>*{</t>
+	      <n>l_set</n>
+	      <t>}</t>
+	    </rhs>
+	  </rule>
+
+	  <!--~~~~~~~~ RULES: qw_infix -->
+	  <rule lhs="qw_infix" cmt="Substring (infix) condition">
+	    <rhs cmt="... on 'Token' index">
+	      <n>s_infix</n>
+	    </rhs>
+	    <rhs cmt="... on user-specified index">
+	      <n>s_index</n>
+	      <t>=</t>
+	      <n>s_infix</n>
+	    </rhs>
+	  </rule>
+
+	  <!--~~~~~~~~ RULES: qw_infix_set -->
+	  <rule lhs="qw_infix_set" cmt="Disjunction over substrings (infix set)">
+	    <rhs cmt="... on 'Token' index">
+	      <t>*{</t>
+	      <n>l_set</n>
+	      <t>}*</t>
+	    </rhs>
+	    <rhs cmt="... on user-specified index">
+	      <n>s_index</n>
+	      <t>=</t>
+	      <t>*{</t>
+	      <n>l_set</n>
+	      <t>}*</t>
+	    </rhs>
+	  </rule>
+
+	  <!--~~~~~~~~ RULES: qw_thesaurus -->
+	  <rule lhs="qw_thesaurus" cmt="Thesaurus condition (SYNTAX CHANGED!)">
+	    <rhs cmt="... on 'Thes' index">
+	      <t>:{</t>
+	      <n>s_semclass</n>
+	      <t>}</t>
+	    </rhs>
+	    <rhs cmt="... on user-specified index">
+	      <n>s_index</n>
+	      <t>=</t>
+	      <t>:{</t>
+	      <n>s_semclass</n>
+	      <t>}</t>
+	    </rhs>
+	  </rule>
+
+	  <!--~~~~~~~~ RULES: qw_morph -->
+	  <rule lhs="qw_morph" cmt="Morphological property condition">
+	    <rhs cmt="... on 'MorphPattern' index">
+	      <t>[</t>
+	      <n>l_morph</n>
+	      <t>]</t>
+	    </rhs>
+	    <rhs cmt="... on user-specified index">
+	      <n>s_index</n>
+	      <t>=</t>
+	      <t>[</t>
+	      <n>l_morph</n>
+	      <t>]</t>
+	    </rhs>
+	  </rule>
+
+	  <!--~~~~~~~~ RULES: qw_lemma -->
+	  <rule lhs="qw_lemma" cmt="Lemma property condition (not for D* corpora)">
+	    <rhs cmt="... on 'Lemma' index">
+	      <t>%</t>
+	      <n>s_lemma</n>
+	    </rhs>
+	    <rhs cmt="... on user-specified index">
+	      <n>s_index</n>
+	      <t>=</t>
+	      <t>%</t>
+	      <n>s_lemma</n>
+	    </rhs>
+	  </rule>
+
+	  <!--~~~~~~~~ RULES: qw_chunk -->
+	  <rule lhs="qw_chunk" cmt="Syntactic property condition">
+	    <rhs cmt="... on 'Chunk' index">
+	      <t>^</t>
+	      <n>s_chunk</n>
+	    </rhs>
+	    <rhs cmt="... on user-specified index">
+	      <n>s_index</n>
+	      <t>=</t>
+	      <t>^</t>
+	      <n>s_chunk</n>
+	    </rhs>
+	  </rule>
+
+	  <!--~~~~~~~~ RULES: qw_listfile -->
+	  <rule lhs="qw_listfile" cmt="Disjunction over values read from a server-side file (command-line only)">
+	    <rhs cmt="... on 'Token' index">
+	      <t>&lt;</t>
+	      <n>s_filename</n>
+	    </rhs>
+	    <rhs cmt="... on user-specified index">
+	      <n>s_index</n>
+	      <t>=</t>
+	      <t>&lt;</t>
+	      <n>s_filename</n>
+	    </rhs>
+	  </rule>
+
+	  <!--~~~~~~~~ RULES: qw_with -->
+	  <rule lhs="qw_with" cmt="Conjunction of multiple conditions over a single token">
+	    <rhs cmt="... note that negated conditions are not admissable here">
+	      <n>qc_word</n>
+	      <t>WITH</t>
+	      <n>qc_word</n>
+	    </rhs>
+	  </rule>
+
+	</rules>
+      </subsection>
+
+      <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+      <!-- Grammar: Query Filter Rules -->
+      <subsection name="filters" title="Query Filter Rules">
+	<rules>
+
+	  <!--~~~~~~~~ RULES: q_filters -->
+	  <rule lhs="q_filters" cmt="List of global query options">
+	    <rhs cmt="empty"/>
+	    <rhs cmt="... query flag">
+	      <n>q_filters</n>
+	      <n>q_flag</n>
+	    </rhs>
+	    <rhs cmt="... query filter">
+	      <n>q_filters</n>
+	      <n>q_filter</n>
+	    </rhs>
+	  </rule>
+
+	  <!--~~~~~~~~ RULES: q_flag -->
+	  <rule lhs="q_flag" cmt="Global query flags">
+	    <rhs cmt="subcorporus selection">
+	      <t>:</t>
+	      <n>qf_subcorpora</n>
+	    </rhs>
+	    <rhs cmt="hit context window (number of sentences)">
+	      <t>#CNTXT</t>
+	      <n>integer</n>
+	    </rhs>
+	    <rhs cmt="hit container type (e.g. 'file')">
+	      <t>#WITHIN</t>
+	      <n>symbol</n>
+	    </rhs>
+	    <rhs cmt="request filenames in output metadata">
+	      <t>#FILENAMES</t>
+	    </rhs>
+	    <rhs cmt="... or disable filenames in output metadata">
+	      <t>!</t>
+	      <t>#FILENAMES</t>
+	    </rhs>
+	    <rhs cmt="request verbose rank debugging in output metadata">
+	      <t>#DEBUG_RANK</t>
+	    </rhs>
+	    <rhs cmt="... or disable verbose rank debugging">
+	      <t>!</t>
+	      <t>#DEBUG_RANK</t>
+	    </rhs>
+	  </rule>
+
+	  <!--~~~~~~~~ RULES: q_filter -->
+	  <rule lhs="q_filter" cmt="Global query selection and/or sort filter">
+	    <rhs cmt="restrict hits based on document metadata">
+	      <n>qf_has_field</n>
+	    </rhs>
+	    <rhs cmt="... sort hits by TF-IDF rank">
+	      <n>qf_rank_sort</n>
+	    </rhs>
+	    <rhs cmt="... sort hits lexicographically by context">
+	      <n>qf_bigram_sort</n>
+	    </rhs>
+	    <rhs cmt="... sort/filter hits by (sentence) length">
+	      <n>qf_size_sort</n>
+	    </rhs>
+	    <rhs cmt="... sort/filter hits by document date">
+	      <n>qf_date_sort</n>
+	    </rhs>
+	    <rhs cmt="... sort/filter hits by document metadata">
+	      <n>qf_bibl_sort</n>
+	    </rhs>
+	    <rhs cmt="... sort hits pseudo-randomly">
+	      <n>qf_random_sort</n>
+	    </rhs>
+	  </rule>
+
+	  <!--~~~~~~~~ RULES: qf_has_field -->
+	  <rule lhs="qf_has_field" cmt="Metadata restriction (alias: '#HAS')">
+	    <rhs cmt="... literal match">
+	      <t>#HAS_FIELD</t>
+	      <t>[</t>
+	      <n>s_field</n>
+	      <t>,</t>
+	      <n>symbol</n>
+	      <t>]</t>
+	    </rhs>
+	    <rhs cmt="... regular expression match">
+	      <t>#HAS_FIELD</t>
+	      <t>[</t>
+	      <n>s_field</n>
+	      <t>,</t>
+	      <n>regex</n>
+	      <t>]</t>
+	    </rhs>
+	  </rule>
+
+	  <!--~~~~~~~~ RULES: qf_rank_sort -->
+	  <rule lhs="qf_rank_sort" cmt="Sort hits by TF-IDF rank">
+	    <rhs cmt="... in descending order">
+	      <t>#GREATER_BY_RANK</t>
+	    </rhs>
+	    <rhs cmt="... in ascending order">
+	      <t>#LESS_BY_RANK</t>
+	    </rhs>
+	  </rule>
+
+	  <!--~~~~~~~~ RULES: qf_bigram_sort -->
+	  <rule lhs="qf_bigram_sort" cmt="Sort or filter hits lexicographically by context (requires special index)">
+	    <rhs cmt="... in ascending order by preceding context">
+	      <t>#LESS_BY_LEFT</t>
+	    </rhs>
+	    <rhs cmt="... in ascending order by following context">
+	      <t>#LESS_BY_RIGHT</t>
+	    </rhs>
+	  </rule>
+
+	  <!--~~~~~~~~ RULES: qf_size_sort -->
+	  <rule lhs="qf_size_sort" cmt="Sort or filter hits by (sentence) length">
+	    <rhs cmt="... in ascending order, with optional bounds">
+	      <t>#LESS_BY_SIZE</t>
+	      <n>qfb_int</n>
+	    </rhs>
+	    <rhs cmt="... in descending order, with optional bounds">
+	      <t>#GREATER_BY_SIZE</t>
+	      <n>qfb_int</n>
+	    </rhs>
+	    <rhs cmt="... restricted to specified size">
+	      <t>#IS_SIZE</t>
+	      <t>[</t>
+	      <n>int_str</n>
+	      <t>]</t>
+	    </rhs>
+	  </rule>
+
+	  <!--~~~~~~~~ RULES: qf_date_sort -->
+	  <rule lhs="qf_date_sort" cmt="Sort or filter hits by document date">
+	    <rhs cmt="... in ascending order, with optional bounds">
+	      <t>#LESS_BY_DATE</t>
+	      <n>qfb_date</n>
+	    </rhs>
+	    <rhs cmt="... in descending order, with optional bounds">
+	      <t>#GREATER_BY_DATE</t>
+	      <n>qfb_date</n>
+	    </rhs>
+	    <rhs cmt="... restricted to specified date">
+	      <t>#IS_DATE</t>
+	      <t>[</t>
+	      <n>date</n>
+	      <t>]</t>
+	    </rhs>
+	  </rule>
+
+	  <!--~~~~~~~~ RULES: qf_bibl_sort -->
+	  <rule lhs="qf_bibl_sort" cmt="Sort or filter hits by document metadata">
+	    <rhs cmt="... in ascending order, with optional bounds">
+	      <t>#LESS_BY</t>
+	      <t>[</t>
+	      <n>s_field</n>
+	      <n>qfb_bibl</n>
+	      <t>]</t>
+	    </rhs>
+	    <rhs cmt="... in descending order, with optional bounds">
+	      <t>#GREATER_BY</t>
+	      <t>[</t>
+	      <n>s_field</n>
+	      <n>qfb_bibl</n>
+	      <t>]</t>
+	    </rhs>
+	  </rule>
+
+	  <!--~~~~~~~~ RULES: qf_random_sort -->
+	  <rule lhs="qf_random_sort" cmt="Sort hits pseudo-randomly">
+	    <rhs cmt="... with an implicit seed of 0 (zero)">
+	      <t>#RANDOM</t>
+	    </rhs>
+	    <rhs cmt="... with an implicit seed of 0 (zero)">
+	      <t>#RANDOM</t>
+	      <t>[</t>
+	      <t>]</t>
+	    </rhs>
+	    <rhs cmt="... with a user-specified random seed">
+	      <t>#RANDOM</t>
+	      <t>[</t>
+	      <n>int_str</n>
+	      <t>]</t>
+	    </rhs>
+	  </rule>
+
+
+	  <!--~~~~~~~~ RULES: qfb_int -->
+	  <rule lhs="qfb_int" cmt="Optional integer bounds for query filters">
+	    <rhs cmt="... empty (full range)"/>
+	    <rhs cmt="... empty brackets (full range)">
+	      <t>[</t>
+	      <t>]</t>
+	    </rhs>
+	    <rhs cmt="... lower bound only">
+	      <t>[</t>
+	      <n>int_str</n>
+	      <t>]</t>
+	    </rhs>
+	    <rhs cmt="... lower bound only">
+	      <t>[</t>
+	      <n>int_str</n>
+	      <t>,</t>
+	      <t>]</t>
+	    </rhs>
+	    <rhs cmt="... lower bound, upper bound">
+	      <t>[</t>
+	      <n>int_str</n>
+	      <t>,</t>
+	      <n>int_str</n>
+	      <t>]</t>
+	    </rhs>
+	    <rhs cmt="... upper bound only">
+	      <t>[</t>
+	      <t>,</t>
+	      <n>int_str</n>
+	      <t>]</t>
+	    </rhs>
+	  </rule>
+
+	  <!--~~~~~~~~ RULES: qfb_date -->
+	  <rule lhs="qfb_date" cmt="Optional date bounds for query filters" >
+	    <rhs cmt="... empty (full range)"/>
+	    <rhs cmt="... empty brackets (full range)">
+	      <t>[</t>
+	      <t>]</t>
+	    </rhs>
+	    <rhs cmt="... lower bound only">
+	      <t>[</t>
+	      <n>date</n>
+	      <t>]</t>
+	    </rhs>
+	    <rhs cmt="... lower bound only">
+	      <t>[</t>
+	      <n>date</n>
+	      <t>,</t>
+	      <t>]</t>
+	    </rhs>
+	    <rhs cmt="... lower bound, upper bound">
+	      <t>[</t>
+	      <n>date</n>
+	      <t>,</t>
+	      <n>date</n>
+	      <t>]</t>
+	    </rhs>
+	    <rhs cmt="... upper bound only">
+	      <t>[</t>
+	      <t>,</t>
+	      <n>date</n>
+	      <t>]</t>
+	    </rhs>
+	  </rule>
+
+	  <!--~~~~~~~~ RULES: qfb_bibl -->
+	  <rule lhs="qfb_bibl" cmt="Optional string metadata bounds for query filters">
+	    <rhs cmt="... empty (full range)"/>
+	    <rhs cmt="... empty (full range)">
+	      <t>,</t>
+	    </rhs>
+	    <rhs cmt="... empty (full range)">
+	      <t>,</t>
+	      <t>,</t>
+	    </rhs>
+	    <rhs cmt="... lower bound only">
+	      <t>,</t>
+	      <n>symbol</n>
+	    </rhs>
+	    <rhs cmt="... lower bound only">
+	      <t>,</t>
+	      <n>symbol</n>
+	      <t>,</t>
+	    </rhs>
+	    <rhs cmt="... upper bound only">
+	      <t>,</t>
+	      <t>,</t>
+	      <n>symbol</n>
+	    </rhs>
+	    <rhs cmt="... lower bound, upper bound">
+	      <t>,</t>
+	      <n>symbol</n>
+	      <t>,</t>
+	      <n>symbol</n>
+	    </rhs>
+	  </rule>
+
+	</rules>
+      </subsection>
+
+
+      <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+      <!-- Grammar: List-like consituents -->
+      <subsection name="list" title="List-like Constituents">
+	<rules>
+
+	  <!--~~~~~~~~ RULES: l_set -->
+	  <rule lhs="l_set" cmt="Set of string values">
+	    <rhs cmt="empty set"/>
+	    <rhs cmt="... set elements are separated by whitespace">
+	      <n>l_set</n>
+	      <n>s_word</n>
+	    </rhs>
+	    <rhs cmt="... or by commas">
+	      <n>l_set</n>
+	      <t>,</t>
+	    </rhs>
+	  </rule>
+
+	  <!--~~~~~~~~ RULES: l_morph -->
+	  <rule lhs="l_morph" cmt="List of morphological properties (should match index)">
+	    <rhs cmt="empty list"/>
+	    <rhs cmt="... list elements are separated by whitespace">
+	      <n>l_morph</n>
+	      <n>s_morphitem</n>
+	    </rhs>
+	    <rhs cmt="... or commas">
+	      <n>l_morph</n>
+	      <t>,</t>
+	    </rhs>
+	    <rhs cmt="... or semicolons (for compatibility)">
+	      <n>l_morph</n>
+	      <t>;</t>
+	    </rhs>
+	  </rule>
+
+	  <!--~~~~~~~~ RULES: l_seq -->
+	  <rule lhs="l_seq" cmt="Ordered sequence of single-word conditions with optional proximity constraints">
+	    <rhs cmt="Singleton sequence">
+	      <n>qc_word</n>
+	    </rhs>
+	    <rhs cmt="... Sequence elements are separated by whitespace">
+	      <n>l_seq</n>
+	      <n>qc_word</n>
+	    </rhs>
+	    <rhs cmt="... with an optional proximity hint (default='#0': immediate successor)">
+	      <n>l_seq</n>
+	      <t>#</t>
+	      <n>integer</n>
+	      <n>qc_word</n>
+	    </rhs>
+	  </rule>
+
+	  <!--~~~~~~~~ RULES: l_txchain -->
+	  <rule lhs="l_txchain" cmt="Term expansion pipeline">
+	    <rhs cmt="Empty pipeline or '|-' uses index-dependent default aka '|INDEX'"/>
+	    <rhs cmt="... pipeline concatenation '|Expander1 |Expander2 |...'">
+	      <n>l_txchain</n>
+	      <n>s_expander</n>
+	    </rhs>
+	  </rule>
+
+	  <!--~~~~~~~~ RULES: qf_subcorpora -->
+	  <rule lhs="qf_subcorpora" cmt="Set of target subcorpora">
+	    <rhs cmt="... empty subcorpus set"/>
+	    <rhs cmt="... singleton subcorpus (symbol)">
+	      <n>s_subcorpus</n>
+	    </rhs>
+	    <rhs cmt="... multiple subcorpora are separated by commas">
+	      <n>qf_subcorpora</n>
+	      <t>,</t>
+	      <n>s_subcorpus</n>
+	    </rhs>
+	  </rule>
+
+	</rules>
+      </subsection>
+
+
+      <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+      <!-- Grammar: Preterminals and Aliases -->
+      <subsection name="list" title="Preterminals and Aliases">
+	<rules>
+
+	  <!--~~~~~~~~ RULES: s_index -->
+	  <rule lhs="s_index" cmt="Index name (must be defined in .opt file)">
+	    <rhs cmt="Bare dollar uses query-type default (usually 'Token')">
+	      <t>$</t>
+	    </rhs>
+	    <rhs cmt="Explicit index name">
+	      <t>$</t>
+	      <n>symbol</n>
+	    </rhs>
+	  </rule>
+
+	  <!--~~~~~~~~ RULES: s_word -->
+	  <rule lhs="s_word" cmt="A single word or string value">
+	    <rhs cmt="... can be any symbol">
+	      <n>symbol</n>
+	    </rhs>
+	  </rule>
+
+	  <!--~~~~~~~~ RULES: s_semclass -->
+	  <rule lhs="s_semclass" cmt="Semantic class used by :{...} queries">
+	    <rhs cmt="... can be any symbol">
+	      <n>symbol</n>
+	    </rhs>
+	  </rule>
+
+	  <!--~~~~~~~~ RULES: s_lemma -->
+	  <rule lhs="s_lemma" cmt="Lemma used by %L queries">
+	    <rhs cmt="... can be any symbol">
+	      <n>symbol</n>
+	    </rhs>
+	  </rule>
+
+	  <!--~~~~~~~~ RULES: s_chunk -->
+	  <rule lhs="s_chunk" cmt="Chunk name used by ^C queries">
+	    <rhs cmt="... can be any symbol">
+	      <n>symbol</n>
+	    </rhs>
+	  </rule>
+
+	  <!--~~~~~~~~ RULES: s_filename -->
+	  <rule lhs="s_filename" cmt="Filename used by &lt;F queries">
+	    <rhs cmt="... can be any symbol (server-side filename)">
+	      <n>symbol</n>
+	    </rhs>
+	  </rule>
+
+	  <!--~~~~~~~~ RULES: s_morphitem -->
+	  <rule lhs="s_morphitem" cmt="Morphological property used by [...] queries">
+	    <rhs cmt="... can be any symbol">
+	      <n>symbol</n>
+	    </rhs>
+	  </rule>
+
+	  <!--~~~~~~~~ RULES: symbol -->
+	  <rule lhs="symbol" cmt="User-specified symbol or string">
+	    <rhs cmt="Bareword or single-quoted string with C-style escapes">
+	      <xt>SYMBOL</xt>
+	    </rhs>
+	    <rhs cmt="... every decimal number is also a valid symbol">
+	      <xt>INTEGER</xt>
+	    </rhs>
+	    <rhs cmt="... every date-string is also a valid symbol">
+	      <xt>DATE</xt>
+	    </rhs>
+	  </rule>
+
+	  <!--~~~~~~~~ RULES: s_prefix -->
+	  <rule lhs="s_prefix" cmt="Prefix condition string">
+	    <rhs cmt="... ends with a literal '*'">
+	      <xt>PREFIX</xt>
+	    </rhs>
+	  </rule>
+
+	  <!--~~~~~~~~ RULES: s_suffix -->
+	  <rule lhs="s_suffix" cmt="Suffix condition string">
+	    <rhs cmt="... begins with a literal '*'">
+	      <xt>SUFFIX</xt>
+	    </rhs>
+	  </rule>
+
+	  <!--~~~~~~~~ RULES: s_infix -->
+	  <rule lhs="s_infix" cmt="Infix condition string">
+	    <rhs cmt="... begins and ends with literal '*'">
+	      <xt>INFIX</xt>
+	    </rhs>
+	  </rule>
+
+	  <!--~~~~~~~~ RULES: s_expander -->
+	  <rule lhs="s_expander" cmt="Term expander label">
+	    <rhs cmt="... begins with a literal '|', and may be '|-' for an index-dependent default">
+	      <xt>EXPANDER</xt>
+	    </rhs>
+	  </rule>
+
+	  <!--~~~~~~~~ RULES: s_subcorpus -->
+	  <rule lhs="s_subcorpus" cmt="Named subcorpus used by :... filter">
+	    <rhs cmt="... can be any symbol">
+	      <n>symbol</n>
+	    </rhs>
+	  </rule>
+
+	  <!--~~~~~~~~ RULES: s_field -->
+	  <rule lhs="s_field" cmt="Document metadata field name">
+	    <rhs cmt="... is just a symbol">
+	      <n>symbol</n>
+	    </rhs>
+	  </rule>
+
+	  <!--~~~~~~~~ RULES: s_field -->
+	  <rule lhs="s_fieldval" cmt="Document metadata field value">
+	    <rhs cmt="... is just a symbol">
+	      <n>symbol</n>
+	    </rhs>
+	  </rule>
+
+
+	  <!--~~~~~~~~ RULES: regex -->
+	  <rule lhs="regex" cmt="Regular expressions">
+	    <rhs cmt="... are slash-delimited in perl syntax">
+	      <xt>REGEX</xt>
+	    </rhs>
+	    <rhs cmt="... with optional modifiers (gimsx)">
+	      <xt>REGEX</xt>
+	      <xt>REGOPT</xt>
+	    </rhs>
+	  </rule>
+
+	  <!--~~~~~~~~ RULES: integer -->
+	  <rule lhs="integer" cmt="Non-negative decimal integer">
+	    <rhs cmt="... parsed as an integer">
+	      <n>int_str</n>
+	    </rhs>
+	  </rule>
+
+	  <!--~~~~~~~~ RULES: int_str -->
+	  <rule lhs="int_str" cmt="Non-negative decimal integer">
+	    <rhs cmt="... parsed as a string">
+	      <xt>INTEGER</xt>
+	    </rhs>
+	  </rule>
+
+	  <!--~~~~~~~~ RULES: date -->
+	  <rule lhs="date" cmt="date string">
+	    <rhs cmt="... e.g. YYYY(-MM(-DD)?)?">
+	      <xt>DATE</xt>
+	    </rhs>
+	    <rhs cmt="... every valid integer is also a valid date (year part only)">
+	      <xt>INTEGER</xt>
+	    </rhs>
+	  </rule>
+
+	</rules>
+      </subsection>
+
+    </section>
+    <!--/grammar-->
+
+    <!-- ============================================================= -->
+    <!-- Terminals -->
+    <section name="terminals" title="Terminal Symbols">
+
+      <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+      <!-- Terminals: Common -->
+      <subsection name="term_common" title="Common Definitions">
+	<p>
+	  The underlying <tt>flex</tt> scanner makes use of several regular expression
+	  'macros' using the notation <tt>{<i>MACRO</i>}</tt>.
+	  The following macros are defined for the underlying scanner:
+	</p>
+<pre>
+ws		[ \t\n\r\f\v]
+punct	        [\^\!\~\$\@\%\/\=\?\_\:\;\+\#\.\\\*\,\'\"\&amp;\|\(\)\[\]\{\}\&lt;\&gt;]
+
+symbol_cfirst	[^ \t\r\n\f\v\0\^\&amp;\|\!\(\)\[\]\{\}\&lt;\&gt;\'\"\,\;\:\#\=\*\%\\\~\$\@\/\?\_\+\.]
+symbol_crest	[^ \t\r\n\f\v\0\^\&amp;\|\!\(\)\[\]\{\}\&lt;\&gt;\'\"\,\;\:\#\=\*\%\\]
+symbol_cescape  (\\.)
+symbol_text     ({symbol_cescape}|{symbol_cfirst})(({symbol_cescape}|{symbol_crest})*)
+
+int_boundary	[ \t\n\r\f\v\0\^\&amp;\|\!\(\)\[\]\{\}\&lt;\&gt;\'\"\,\;\:\#\=\*\%\~\\\$\@\/\?\_\+\.]
+
+index_name      {symbol_text}
+
+sq_text         ([^\']|{symbol_cescape})*
+
+regex_text      ((\\.)|[^\/\\])*
+regex_modifier	[gimsx]
+</pre>
+      </subsection>
+      <!--/terminals:common-->
+
+      <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+      <subsection name="term_PUNCT" title="Punctutation Operators and Special Characters">
+<pre>
+"&amp;&amp;"				/* clause-level conjunction operator */
+"||"				/* clause-level disjunction operator */
+[\!\.\,\:\;\$\@\%\^\#\=]	/* single-character punctuation operators */
+[\[\]\{\}\(\)\&lt;\&gt;]		/* parentheses */
+[\"]				/* double quotes (for sequence queries) */
+":{"				/* thesaurus-query opener */
+"@{"				/* literal-set opener */
+"*{"				/* prefix- or infix-set opener */
+"}*"				/* suffix-set or infix-set closer */
+</pre>
+	<p>
+	  The scanner supports the various punctuation operators used in
+	  the query <a href="#grammar">grammar</a>.
+
+	  Punctuation operators should be <a href="#escapes">escaped</a> if they occur anywhere in a literal
+	  <a href="#term_SYMBOL">symbol</a>, e.g. by enclosing the symbol in single quotes.
+	</p>
+      </subsection>
+      <!--/terminals:punctuation-->
+
+      <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+      <subsection name="term_KEYWORD" title="Query Keywords">
+<pre>
+(?i:near)
+(?i:with)
+(?i:\#cntxt)
+(?i:\#within)
+(?i:\#has(_field)?)
+(?i:\#file_names|\#filenames)
+(?i:\#debug_rank)
+(?i:\#greater_by_rank)
+(?i:\#less_by_rank)
+(?i:\#greater_by_date)
+(?i:\#less_by_date)
+(?i:\#is_date)
+(?i:\#greater_by_size)
+(?i:\#less_by_size)
+(?i:\#is_size)
+(?i:\#(less_by_)?left)
+(?i:\#(less_by_)?right)
+(?i:\#less_by)
+(?i:\#greater_by)
+(?i:\#random)
+</pre>
+	<p>
+	  The scanner supports the various reserved words used in
+	  the query <a href="#grammar">grammar</a>.  Query keywords are matched
+	  case-insensitively; e.g.
+	  "<tt>NEAR</tt>",
+	  "<tt>near</tt>",
+	  "<tt>Near</tt>",
+	  and "<tt>nEaR</tt>"
+	  are all valid instantiations of the query keyword
+	  <span class="ruleTerminal">NEAR</span>.
+
+	  Query keywords must be <a href="#escapes">escaped</a> if they occur anywhere
+	  in a literal <a href="#term_SYMBOL">symbol</a>, e.g. by enclosing the symbol in single quotes.
+	</p>
+      </subsection>
+      <!--/terminals:keywords-->
+
+      <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+      <subsection name="term_INTEGER" title="INTEGER">
+<pre>
+\'[0-9]+\'			/* single-quoted non-negative decimal integer */
+[0-9]+/{int_boundary}		/* bareword non-negative decimal integer */
+</pre>
+	<p>
+	  The scanner supports non-negative integers in decimal notation, optionally
+	  enclosed by single quotes.  It may be necessary to introduce whitespace
+	  or quotes in order to separate an integer token from surrounding symbols.
+	</p>
+      </subsection>
+      <!--/terminals:integer-->
+
+      <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+      <subsection name="term_DATE" title="DATE">
+<pre>
+\'[0-9\-]+\'			/* single-quoted date-like string */
+[0-9\-]+/{int_boundary}		/* bareword date-like string */
+</pre>
+      </subsection>
+	<p>
+	  The scanner supports date-like tokens in a superset of the ISO 8601 format
+	  (<i>YYYY-MM-DD</i>), optionally enclosed by single quotes.
+	</p>
+      <!--/terminals:date-->
+
+      <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+      <a name="term_REGOPT"/>
+      <subsection name="term_REGEX" title="REGEX">
+<pre>
+\/{regex_text}\/{regex_modifier}*	/* slash-quoted regex, with option modifiers */
+</pre>
+	<p>
+	  The scanner supports regular expressions enclosed by forward slashes, with
+	  an optional suffix modifer string.
+	  DDC uses <a href="http://www.pcre.org">PCRE</a> as its underlying
+	  regular expression engine, which should support the full
+	  <a href="http://perldoc.perl.org/perlre.html">Perl regular expression syntax</a>.
+	  In particular, C-style escapes ("\t", "\n", "\0", etc.) and
+	  Unicode character escapes ("\x{17f}", "\x{364}") may occur
+	  within regular expressions.  Literal slashes as part of a regular expression
+	  must be escaped with a backslash ("\/").
+
+	  The regular expression modifier "<tt>/g</tt>" (mnemonic: 'match <b>G</b>lobally')
+	  has a special meaning for DDC: if this modifier is set, only those index
+	  items are retrieved which match the regular expression in the entirety;
+	  otherwise all index items for which any substring matches the regular expression
+	  will be retrieved.  Internally this behavior is implemented by implicitly
+	  inserting beginning- and end-of-string anchors into the regular expression,
+	  thus <tt>/REGEX/g</tt> is a equivalent to <tt>/^(?:REGEX)$/</tt>.
+	</p>
+      </subsection>
+      <!--/terminals:regex-->
+
+      <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+      <subsection name="term_SYMBOL" title="SYMBOL">
+<pre>
+\'{sq_text}\'                   /* single-quoted symbol */
+{symbol_text}			/* bareword symbol */
+</pre>
+	<p>
+	  Symbols (strings) are the basic building blocks of the DDC query language.
+	  The scanner supports "bareword" symbols (e.g. <tt>my_symbol</tt>)
+	  consisting of only alphanumeric and non-ASCII characters, underscores,
+	  and <a href="#escapes">backslash-escapes</a>, as well as single-quoted strings
+	  (e.g. <tt>'symbol with whitespace'</tt>), in which only embedded quotes must be
+	  <a href="#escapes">escaped</a>.
+	</p>
+
+	<!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+	<subsection name="escapes" title="Escapes">
+	  <p>
+	    The following special character escape sequences are supported in both bareword
+	    and single-quoted symbols:
+	  </p>
+	  <table class="escTable">
+	    <tr><th>Escape</th><th style="text-align:left;">Description</th></tr>
+	    <tr><td class="monospace">\a</td><td>C-style escape (\x07): alert (bell)</td></tr>
+	    <tr><td class="monospace">\b</td><td>C-style escape (\x08): backspace</td></tr>
+	    <tr><td class="monospace">\t</td><td>C-style escape (\x09): horizontal tab</td></tr>
+	    <tr><td class="monospace">\n</td><td>C-style escape (\x0a): newline</td></tr>
+	    <tr><td class="monospace">\v</td><td>C-style escape (\x0b): vertical tab</td></tr>
+	    <tr><td class="monospace">\f</td><td>C-style escape (\x0c): form feed</td></tr>
+	    <tr><td class="monospace">\r</td><td>C-style escape (\x0d): carriage return</td></tr>
+	    <tr><td class="monospace">\<i>OOO</i></td><td>C-style octal escape (byte); e.g. <tt>\101</tt></td></tr>
+	    <tr><td class="monospace">\x<i>XX</i></td><td>C-style Hexidecimal escape (byte); e.g. <tt>\x42</tt></td></tr>
+	    <tr><td class="monospace">\u<i>XXXX</i></td><td>JSON-style Unicode escape (UTF-8); e.g. <tt>\u0043</tt></td></tr>
+	    <tr><td class="monospace">\<i>c</i></td><td>Escaped character 'c'; e.g. <tt>\\</tt></td></tr>
+	  </table>
+	</subsection>
+	<!--/terminals:symbol:escapes-->
+
+      </subsection>
+      <!--/terminals:symbol-->
+
+      <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+      <a name="term_PREFIX"/>
+      <a name="term_SUFFIX"/>
+      <a name="term_INFIX"/>
+      <subsection name="term_trunc" title="Truncated Symbols">
+<pre>
+"*"\'{sq_text}\'"*"	/* dual-truncated quoted string (infix symbol) */
+\'{sq_text}\'"*"	/* right-truncated quoted string (prefix symbol) */
+"*"\'{sq_text}\'	/* left-truncated quoted string (suffix symbol) */
+
+"*"{symbol_text}"*"	/* dual-truncated bare string (infix symbol) */
+{symbol_text}"*"	/* right-truncated bare string (prefix symbol) */
+"*"{symbol_text}	/* left-truncated bare string (suffix symbol) */
+</pre>
+	<p>
+	  Truncated symbols (for
+	  <a href="#rule_qw_prefix">prefix-</a>,
+	  <a href="#rule_qw_suffix">suffix-</a>,
+	  and
+	  <a href="#rule_qw_infix">infix-</a>queries)
+	  are supported directly by the scanner, in order to distinguish
+	  these from literal <a href="#term_SYMBOL">symbols</a> containing an asterisk character ("<tt>*</tt>").
+	  
+	  Literal asterisks must be <a href="#escapes">escaped</a> if they occur anywhere
+	  in a literal <a href="#term_SYMBOL">symbol</a>, e.g. by enclosing the symbol in single quotes.
+	  Note that despite this restriction, the asterisk does <b>NOT</b> function as a general
+	  "wildcard character" for DDC queries.  If you need to match multiple substrings of a single index
+	  item, use a <a href="#term_REGEX">regular expression</a> instead,
+	  e.g. "<tt>/^foo.*bar.*baz$/</tt>" for a wildcard condition "<tt>foo*bar*baz</tt>".
+	</p>
+      </subsection>
+      <!--/terminals:truncated-->
+
+      <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+      <subsection name="term_EXPANDER" title="Term Expander Pipelines">
+<pre>
+"|"{ws}*"-"			/* alias for default term expander pipeline (index-dependent) */
+"|"{ws}*\'{sq_text}\'		/* quoted term expander label */
+"|"{ws}*{symbol_text}		/* bare term expander label */
+</pre>
+      <p>
+	The scanner supports special rules for user specification of term expansion pipelines
+	used by the <a href="#rule_qw_bareword">qw_bareword</a> and <a href="#rule_qw_set_infl">qw_set_infl</a>
+	query types.  Each link in a term expansion pipeline is prefixed by the special symbol
+	"|" (vertical bar or 'pipe' symbol), followed by optional whitespace and the label of
+	a named expander to apply as a <a href="#term_SYMBOL">symbol</a>.  In order for the
+	query to be evaluated, each expander label in a term expansion pipeline must be defined
+	for the corpus to be queried.  The expanders "id", "null", "case", and "infl"
+	should always be defined.  The default expanders may be overridden and/or additional
+	expanders defined in a corpus .opt file.
+
+	The special label "-" (hyphen) may be used as an alias for the default expander
+	for the index to be queried, whose label is identical to the long index name as
+	declared in the corpus .opt file.  By default, only
+	the "Token" index has a pre-defined expansion pipeline, defined as 'infl' (built-in
+	language-dependent lemmatization and re-inflection) by default.
+	If the <tt>CaseInsensitive</tt> flag is set in the corpus .opt file,
+	the default Token pipeline is 'infl|case' (inflection followed by built-in letter-case twiddling).
+	The default expansion pipeline for any other other index is empty, i.e. equivalent to
+	the identity expander "id" a.k.a. "null".
+
+	Literal pipe symbols ("<tt>|</tt>") must be <a href="#escapes">escaped</a> if they occur anywhere
+	in a literal <a href="#term_SYMBOL">symbol</a>, e.g. by enclosing the symbol in single quotes.
+      </p>
+    </subsection>
+    <!--/terminals:expander-->
+
+    <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+    <subsection name="term_other" title="Other Terminals">
+<pre>
+{ws}+    			/* whitespace: skip */
+\0				/* null byte: skip */
+.				/* any other character (byte) is its own token */ }
+</pre>
+        <p>
+	  Whitespace and NUL bytes are ignored.
+	  Any other input byte is returned as a symbol of length 1.
+	</p>
+      </subsection>
+      <!--/terminals:symbol-->
+
+    </section>
+    <!--/terminals-->
+
+    <!-- ============================================================= -->
+    <!-- Miscellany -->
+    <section name="misc" title="Miscellany">
+
+      <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+      <subsection name="misc_compile" title="Compilation Errors">
+	<p>
+	  Not all queries which are grammatical according to the
+	  <a href="#grammar">query grammar</a> given above are in fact
+	  admissible DDC queries.  In particular, pure negative conditions
+	  such as
+	  <code>!foo</code>,
+	  <code>!foo &amp;&amp; !bar</code>,
+	  or
+	  <code>!(foo || bar)</code>
+	  will parse successfully but fail to compile.  In such cases,
+	  DDC should return an error code of <tt>errParseError</tt>
+	  and print an informative diagnostic message to stderr
+	  and/or the current log file.
+	</p>
+      </subsection>
+      <!--/misc_compile-->
+
+    </section>
+    <!--/miscellany-->
+
+    <!-- ============================================================= -->
+    <!-- Examples -->
+    <section name="dta" title="DTA Corpus Structure">
+      <p>
+	This section gives a brief overview of the index structure used for the
+	current DDC index of the Deutsches Textarchiv corpus.
+      </p>
+      <subsection name="dta_fields" title="DTA Index Fields">
+	<p>
+	  The <a href="http://odo.dwds.de/code/viewvc.cgi/ddc-rml/dta/trunk/build/ddc_index/common.opt?root=dev&amp;view=markup">DTA corpus .opt file</a>
+	  defines the following index fields:
+	</p>
+	<dl>
+	  <!--=======================================-->
+	  <dt>Token w</dt>
+	  <dd>
+	    <a href="http://odo.dwds.de/~moocow/software/unicruft/">unicruft</a> Latin-1 approximation of
+	    original token text (actually encoded in the Latin-1 subset of UTF-8).
+	    This is the default field searched e.g. by bareword <a href="#term_SYMBOL">SYMBOL</a> queries.
+
+	    As of August, 2011, words containing non-latin-extended characters are <b>not</b>
+	    transliterated by default, and should appear (and be searchable) by their original UTF-8 forms
+	    without resorting to the "Utf8" index field (with regard to which see below).
+	  </dd>
+	  <!--=======================================-->
+	  <dt>Utf8 u</dt>
+	  <dd>
+	    Original UTF-8 text of the source token.  Formerly indexed as <i>Token2 w2</i>.
+	  </dd>
+	  <!--=======================================-->
+	  <dt>CanonicalToken v</dt>
+	  <dd>
+	    <a href="http://odo.dwds.de/~moocow/software/dta-cab/">DTA::CAB</a>-normalized wordform for the source token.
+	  </dd>
+	  <!--=======================================-->
+	  <dt>Pos p</dt>
+	  <dd>
+	    Part-of-speech assigned to the source token
+	    by <a href="http://www.ling.uni-potsdam.de/~moocow/projects/moot/">moot</a>
+	    via <a href="http://odo.dwds.de/~moocow/software/dta-cab/">DTA::CAB</a>.
+	    Uses the <a href="http://www.ims.uni-stuttgart.de/projekte/corplex/TagSets/stts-table.html">STTS tag-set</a>.
+	  </dd>
+	  <!--=======================================-->
+	  <dt>Lemma l</dt>
+	  <dd>
+	    Lemma assigned to the source token by <a href="http://odo.dwds.de/~moocow/software/dta-cab/">DTA::CAB</a>.
+	    Uses the <a href="http://tagh.de/">TAGH morphology</a>
+	    via <a href="http://odo.dwds.de/~moocow/software/dta-cab/">DTA::CAB</a>
+	    if available.
+	  </dd>
+	  <!--=======================================-->
+	  <dt>Coord coord</dt>
+	  <dd>
+	    Bounding box(es) for the source token.
+	    Not really meaningful for querying, but useful for image highlighting.
+	  </dd>
+	  <!--=======================================-->
+	  <dt>Page page</dt>
+	  <dd>
+	    Page (scan) number.
+	    Formerly used the long index name "age", which appears to have been nothing more than
+	    a self-perpetuating typographical error.
+	  </dd>
+	  <!--=======================================-->
+	  <dt>Rend r</dt>
+	  <dd>
+	    Typographical ("rendition") attributes for the source token as as '|'-sparated set
+	    e.g. "-" (nothing of note), "|aq|" (antiqua), "|b|" (bold?), "|g|" (upper-case?),
+	    "|b|g|" (bold? + upper-case?), ...
+	  </dd>
+	  <!--=======================================-->
+	  <dt>Context con</dt>
+	  <dd>
+	    Text-structurual features of the source token as a lexicographically sorted
+	    '|'-separated list of unique structural properties,
+	    or "-" if the token has no special text-structural properties at all.
+	    Supported properties inherited from XML ancestor elements are:
+	    <tt>text, front, body, back, head, left, foot, end, argument, hi, cit, fw, lg, stage, speaker, formula,</tt> and <tt>table</tt>.
+	    Additionally, the properties
+	    <tt>note_foot, note_left, note_right</tt> and <tt>note_other</tt>
+	    are used for tokens with an XML <tt>note</tt> ancestor.
+	  </dd>
+	  <!--=======================================-->
+	  <dt>XPath xpath</dt>
+	  <dd>
+	    XPath to the deepest element node containing (the first character of) the current token,
+	    or "-" if no such XPath was available during indexing.
+	    Note that any prefix "/TEI/text" or "/TEI" is implicitly trimmed from the indexed XPath strings,
+	    since all ddc-indexed tokens must occur as descendants of a /TEI/text element.
+	  </dd>
+	  <!--=======================================-->
+	  <dt>Line lb</dt>
+	  <dd>
+	    Line number of the current token, relative to the
+	    current page as indexed by the <b>page</b> field.
+	    Defined as the number of opening (and possibly closing) "<tt>lb</tt>"
+	    preceding the first character of the current token
+	    on the current page; e.g. 0 (zero) if no "<tt>lb</tt>" elements precede
+	    the first character of the current token on the current page.
+	    Precedence and page-association are computed in terms of TEI document order;
+	    e.g. if chapter headings contain <tt>lb</tt> elements, these will count
+	    towards the line number assigned.
+	  </dd>
+	</dl>
+      </subsection>
+
+      <subsection name="dta_expand" title="DTA Term Expanders">
+	<p>
+	  The <a href="http://odo.dwds.de/code/viewvc.cgi/ddc-rml/dta/trunk/build/ddc_index/common.opt?root=dev&amp;view=markup">DTA corpus .opt file</a>
+	  defines the following term expanders:
+	</p>
+	<dl>
+	  <dt><a name="dta_expand_id"/>id</dt>
+	  <dd>Identity expander (no-op)
+	  </dd>
+	  <dt><a name="dta_expand_null"/>null</dt>
+	  <dd>Identity expander (no-op)
+	  </dd>
+	  <dt><a name="dta_expand_case"/>case</dt>
+	  <dd>
+	    Case-twiddling expander using current locale settings of the running server process,
+	    which should have an LC_CTYPE character set of "UTF-8" or equivalent for correct results.
+	    Not used by default.
+	  </dd>
+	  <dt><a name="dta_expand_tolower"/>tolower</dt>
+	  <dt><a name="dta_expand_lc"/>lc</dt>
+	  <dd>
+	    Case-twiddling expander which forces input to all lower-case.
+	    Same caveats as for the <a href="#dta_expand_case">case</a> expander.
+	    Not used by default.
+	  </dd>
+	  <dt><a name="dta_expand_tolower"/>toupper</dt>
+	  <dt><a name="dta_expand_uc"/>uc</dt>
+	  <dd>
+	    Case-twiddling expander which forces input to all upper-case.
+	    Same caveats as for the <a href="#dta_expand_case">case</a> expander.
+	    Not used by default.
+	  </dd>
+	  <dt><a name="dta_expand_morphy"/>morphy</dt>
+	  <dd>Built-in DDC lemmatization and re-inflection (morphy-based)
+	  </dd>
+	  <dt><a name="dta_expand_infl"/>infl</dt>
+	  <dt><a name="dta_expand_tagh"/>tagh</dt>
+	  <dd>TAGH-based lemmatization and re-inflection via dedicated
+	  <a href="http://odo.dwds.de/~moocow/software/dta-cab/">DTA::CAB</a> HTTP server
+	  at <a href="http://194.95.188.28:9098">http://194.95.188.28:9098</a> <!-- kaskade:9098 -->.
+	  </dd>
+	  <dt><a name="dta_expand_cab"/>cab</dt>
+	  <dd>
+	    Expansion by an external <a href="http://odo.dwds.de/~moocow/software/dta-cab/">DTA::CAB</a> HTTP server at
+	    <a href="http://194.95.188.36:9099">http://194.95.188.36:9099</a>
+	    using the "expand" analyzer method (phonetic and rewrite equivalents).
+	  </dd>
+	  <dt><a name="dta_expand_pho"/>pho</dt>
+	  <dd>
+	    Expansion by the external DTA::CAB HTTP server at
+	    using only the "eqpho" analyzer method (phonetic equivalents only).
+	  </dd>
+	  <dt><a name="dta_expand_rw"/>rw</dt>
+	  <dd>
+	    Expansion by the external DTA::CAB HTTP server at
+	    using only the "eqrw" analyzer method (rewrite equivalents only).
+	    Should be more precise than the
+	    <a href="#dta_expand_cab">cab</a>
+	    or <a href="#dta_expand_pho">pho</a>
+	    expanders, but with poorer recall.
+	  </dd>
+	  <dt><a name="dta_expand_eqlemma"/>eqlemma</dt>
+	  <dd>TAGH-based best-lemma match using pre-compiled index via
+	  via dedicated <a href="http://odo.dwds.de/~moocow/software/dta-cab/">DTA::CAB</a> HTTP server
+	  at <a href="http://194.95.188.36:9099">http://194.95.188.36:9099</a>.
+	  </dd>
+	  <dt><a name="dta_expand_Token"/>Token</dt>
+	  <dd>
+	    Default expansion pipeline for queries of the (transliterated) 'Token' index,
+	    defined as 
+	    <!--<tt><a href="#dta_expand_infl">infl</a>|<a href="#dta_expand_cab">cab</a></tt>.-->
+	    <tt><a href="#dta_expand_eqlemma">eqlemma</a></tt>.
+	  </dd>
+	  <dt><a name="dta_expand_Utf8"/>Utf8</dt>
+	  <dd>
+	    Default expansion pipeline for queries of the (raw UTF-8) 'Utf8' index,
+	    defined as 
+	    <!--<tt><a href="#dta_expand_infl">infl</a>|<a href="#dta_expand_cab">cab</a></tt>.-->
+	    <tt><a href="#dta_expand_eqlemma">eqlemma</a></tt>.
+
+	    Note that due to limitations and configuration issues with respect to both the underlying CAB server
+	    and the built-in DDC morphological expansion module,
+	    target strings containing extinct characters
+	    ("ſ", "aͤ", etc.) will <b>not</b> be found by this expander.
+	  </dd>
+	  <dt><a name="dta_expand_CanonicalToken"/>CanonicalToken</dt>
+	  <dd>
+	    Default expansion pipeline for queries of the CAB-normalized 'CanonicalToken' index,
+	    defined as 
+	    <tt><a href="#dta_expand_infl">infl</a></tt>.
+	  </dd>
+	  <dt><a name="dta_expand_Pos"/>Pos</dt>
+	  <dd>
+	    Default expansion pipeline for queries of the 'Pos' (part-of-speech tag) index,
+	    defined as 
+	    <tt><a href="#dta_expand_infl">toupper</a></tt>.
+	  </dd>
+	  <dt><a name="dta_expand_Lemma"/>Lemma</dt>
+	  <dd>
+	    Default expansion pipeline for queries of the 'Lemma',
+	    defined as 
+	    <tt><a href="#dta_expand_case">case</a></tt>.
+	  </dd>
+	</dl>
+      </subsection>
+
+    </section>
+
+    <!-- ============================================================= -->
+    <!-- Examples -->
+    <section name="ex" title="Examples">
+      <p>
+	The examples in this section assume the DTA DDC corpus index structure
+	described <a href="#dta">above</a>.
+	The links in this section make use of the DTA OpenSearch wrapper
+	demo server at
+	<a href="http://kaskade.dwds.de/dtaos">http://kaskade.dwds.de/dtaos</a>.
+      </p>
+
+      <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+      <!-- Examples: Basic -->
+      <subsection name="ex_basic" title="Basic Examples">
+	<dl>
+	  <dt><a href="http://kaskade.dwds.de/dtaos/dta.perl?q=sein">sein</a></dt>
+	  <dd>All expanded variants of "sein" ("sein", "ist", "war", ..., "seyn", "seyd", ..., "seine", "ihre", ...)</dd>
+
+	  <dt><a href="http://kaskade.dwds.de/dtaos/dta.perl?q=@sein">@sein</a></dt>
+	  <dd>Only the literal (latin-1 approximation) string "sein"</dd>
+
+	  <dt><a href="http://kaskade.dwds.de/dtaos/dta.perl?q=$u%3D@ſein">$u=@ſein</a></dt>
+	  <dd>Only the literal (original UTF-8) string "ſein"</dd>
+
+	  <dt><a href="http://kaskade.dwds.de/dtaos/dta.perl?q=Wach*">Wach*</a></dt>
+	  <dd>Any string with (latin-1 approximation) prefix "Wach"</dd>
+
+	  <dt><a href="http://kaskade.dwds.de/dtaos/dta.perl?q=*stube">*stube</a></dt>
+	  <dd>Any string with (latin-1 approximation) suffix "stube"</dd>
+
+	  <dt><a href="http://kaskade.dwds.de/dtaos/dta.perl?q=*achs*">*achs*</a></dt>
+	  <dd>Any string with (latin-1 approximation) substring "achs"</dd>
+
+	  <dt><a href="http://kaskade.dwds.de/dtaos/dta.perl?q=$u%3D%2Fſtube$%2F">$u=/ſtube$/</a></dt>
+	  <dd>Any string with (original UTF-8) suffix "ſtube" (via regex)</dd>
+
+	  <dt><a href="http://kaskade.dwds.de/dtaos/dta.perl?q=$u%3D%2Fſtube$%2Fi">$u=/ſtube$/i</a></dt>
+	  <dd>Any string with (original UTF-8) suffix "ſtube" (via regex, case-insensitve)</dd>
+	</dl>
+      </subsection>
+
+      <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+      <!-- Examples: Multi-Token Examples -->
+      <subsection name="ex_multi" title="Term Expansion Examples">
+	<dl>
+	  <dt><a href="http://kaskade.dwds.de/dtaos/dta.perl?q=Tür">Tür</a></dt>
+	  <dd>All sentences containing any variant of the word 'Tür'</dd>
+	  <dt><a href="http://kaskade.dwds.de/dtaos/dta.perl?q=$Token%3DTür">$Token=Tür</a></dt>
+	  <dd>... same condition, with explicit index</dd>
+	  <dt><a href="http://kaskade.dwds.de/dtaos/dta.perl?q=$Token%3DTür+|Token">$Token=Tür |Token</a></dt>
+	  <dd>... same condition, with explicit index and expansion pipeline</dd>
+	  <dt><a href="http://kaskade.dwds.de/dtaos/dta.perl?q=Tür+|Token">Tür |Token</a></dt>
+	  <dd>... same condition, with explicit expansion pipeline only</dd>
+	  <dt><a href="http://kaskade.dwds.de/dtaos/dta.perl?q=Tür+|-">Tür |-</a></dt>
+	  <dd>... same condition, with "-" expansion pipeline alias</dd>
+	  <dt><a href="http://kaskade.dwds.de/dtaos/dta.perl?q=Tür+|infl|cab">Tür |infl|cab</a></dt>
+	  <dd>... same condition, with alternative user expansion pipeline</dd>
+
+	  <dt><a href="http://kaskade.dwds.de/dtaos/dta.perl?q=Tür+|infl">Tür |infl</a></dt>
+	  <dd>All (modern) inflectional variants of the word "Tür" (no CAB expansion)</dd>
+
+	  <dt><a href="http://kaskade.dwds.de/dtaos/dta.perl?q=Tür+|cab">Tür |cab</a></dt>
+	  <dd>All graphematic variants of the form "Tür" (no lemmatization or re-inflection)</dd>
+
+	  <dt><a href="http://kaskade.dwds.de/dtaos/dta.perl?q=Tür+|case">Tür |case</a></dt>
+	  <dd>All letter-case variants of the form "Tür"</dd>
+
+	  <dt><a href="http://kaskade.dwds.de/dtaos/dta.perl?q=Tür+|infl|case">Tür |infl|case</a></dt>
+	  <dd>All letter-case variants of any modern inflectional variant of the word "Tür"</dd>
+
+	  <dt><a href="http://kaskade.dwds.de/dtaos/dta.perl?q=Tür+|pho">Tür |pho</a></dt>
+	  <dd>All phonetic variants of the form "Tür"</dd>
+
+	  <dt><a href="http://kaskade.dwds.de/dtaos/dta.perl?q=Tür+|rw">Tür |rw</a></dt>
+	  <dd>All rewrite variants of the form "Tür"</dd>
+
+	  <dt><a href="http://kaskade.dwds.de/dtaos/dta.perl?q=Tür+|infl|rw">Tür |infl|rw</a></dt>
+	  <dd>All rewrite variants of any modern inflectional variant of the word "Tür"</dd>
+	</dl>
+      </subsection>
+
+      <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+      <!-- Examples: Multi-Token Examples -->
+      <subsection name="ex_multi" title="Multi-Token Examples">
+	<dl>
+	  <dt><a href="http://kaskade.dwds.de/dtaos/dta.perl?q=Verein+%26%26+Club">Verein &amp;&amp; Club</a></dt>
+	  <dd>All sentences containing both 'Verein' and 'Club' (variants)</dd>
+
+	  <dt><a href="http://kaskade.dwds.de/dtaos/dta.perl?q=Verein+||+Club">Verein || Club</a></dt>
+	  <dd>All sentences containing either 'Verein' or 'Club' (variants)</dd>
+	  <dt><a href="http://kaskade.dwds.de/dtaos/dta.perl?q={Verein,Club}">{Verein,Club}</a></dt>
+	  <dd>... the same condition, in set notation</dd>
+
+	  <dt><a href="http://kaskade.dwds.de/dtaos/dta.perl?q=@Verein+||+@Club">@Verein || @Club</a></dt>
+	  <dd>All sentences containing either 'Verein' or 'Club' (literals)</dd>
+	  <dt><a href="http://kaskade.dwds.de/dtaos/dta.perl?q=@{Verein,Club}">@{Verein,Club}</a></dt>
+	  <dd>... the same condition, in set notation</dd>
+
+	  <dt><a href="http://kaskade.dwds.de/dtaos/dta.perl?q=*{verein,club}">*{verein,club}</a></dt>
+	  <dd>All strings ending in either "verein" or "club"</dd>
+	  <dt><a href="http://kaskade.dwds.de/dtaos/dta.perl?q=%2F(%3F:\Qverein\E|\Qclub\E)$%2F">/(?:\Qverein\E|\Qclub\E)$/</a></dt>
+	  <dd>... the same condition, in regex notation</dd>
+	  <dt><a href="http://kaskade.dwds.de/dtaos/dta.perl?q=%2F(%3F:\Qverein\E|\Qclub\E)$%2Fi">/(?:\Qverein\E|\Qclub\E)$/i</a></dt>
+	  <dd>... case-insensitive (includes e.g. "Verein" and "Club")</dd>
+
+	  <dt><a href="http://kaskade.dwds.de/dtaos/dta.perl?q=&quot;ein+Verein&quot;">"ein Verein"</a></dt>
+	  <dd>All variants of the substring "ein Verein"</dd>
+
+	  <dt><a href="http://kaskade.dwds.de/dtaos/dta.perl?q=&quot;@ein+@Verein&quot;">"@ein @Verein"</a></dt>
+	  <dd>The exact substring "ein Verein"</dd>
+
+	  <dt><a href="http://kaskade.dwds.de/dtaos/dta.perl?q=&quot;ein+%231+Verein&quot;">"ein #1 Verein"</a></dt>
+	  <dd>All variants of the subsequence "ein Verein" with at most 1 intervening word</dd>
+
+	  <dt><a href="http://kaskade.dwds.de/dtaos/dta.perl?q=&quot;ein+%231+{Verein,Club}&quot;">"ein #1 {Verein,Club}"</a></dt>
+	  <dd>All variants of one of the substrings "ein Verein" or "ein Club" with at most 1 intervening word</dd>
+	</dl>
+      </subsection>
+
+      <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+      <!-- Examples: Filter Examples -->
+      <subsection name="ex_filter" title="Query Filter Examples">
+	<dl>
+	  <dt><a href="http://kaskade.dwds.de/dtaos/dta.perl?q=Max">Max</a></dt>
+	  <dd>All sentences containing a variant of "Max", unsorted</dd>
+
+	  <dt><a href="http://kaskade.dwds.de/dtaos/dta.perl?q=Max %23has_field[author,%2FBusch%2F]">Max #has_field[author,/Busch/]</a></dt>
+	  <dd>... only those documents by an author matching the regex <tt>/Busch/</tt></dd>
+	  <dt><a href="http://kaskade.dwds.de/dtaos/dta.perl?q=Max %23has[author,%2Fbusch%2Fi]">Max #has[author,/busch/i]</a></dt>
+	  <dd>... same condition, using new <tt>#has</tt> alias for <tt>#has_field</tt> and case-insensitive regex</dd>
+
+	  <dt><a href="http://kaskade.dwds.de/dtaos/dta.perl?q=Max %23less_by[author]">Max #less_by[author]</a></dt>
+	  <dd>... sorted in ascending order by author string</dd>
+
+	  <dt><a href="http://kaskade.dwds.de/dtaos/dta.perl?q=Max %23greater_by_rank">Max #greater_by_rank</a></dt>
+	  <dd>... sorted in descending order by putative relevance</dd>
+
+	  <dt><a href="http://kaskade.dwds.de/dtaos/dta.perl?q=Max %23less_by_size">Max #less_by_size</a></dt>
+	  <dd>... sorted in ascending order by hit (sentence) length</dd>
+
+	  <dt><a href="http://kaskade.dwds.de/dtaos/dta.perl?q=Max %23less_by_size[3,5]">Max #less_by_size[3,5]</a></dt>
+	  <dd>... sorted in ascending order by hit length, where hit length is between 3 and 4 tokens.</dd>
+
+	  <dt><a href="http://kaskade.dwds.de/dtaos/dta.perl?q=Max %23less_by_date">Max #less_by_date</a></dt>
+	  <dd>... sorted in ascending order by hit date</dd>
+
+	  <dt><a href="http://kaskade.dwds.de/dtaos/dta.perl?q=Max %23is_date[1865]">Max #is_date[1865]</a></dt>
+	  <dd>... only those hits from 1865</dd>
+	</dl>
+      </subsection>
+
+    </section>
+    <!--/examples-->
+
+  </body>
+</doc>

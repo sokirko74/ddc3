@@ -1,0 +1,149 @@
+##-*- Mode: Change-Log; coding: utf-8; -*-
+
+v2.0.0 Mon, 14 Nov 2011 15:10:07 +0100
+	+ message length arguments over sockets now always passed in lsb order (mostly compatible)
+	+ better version compatibility checking for stored indices
+	+ updated license files COPYING, COPYING.LESSER to LGPL-3.0
+
+v1.80.dx-1
+	2011-10-11 15:13  moocow
+	+ added new #random, #random[SEED] query-sort operators
+	  - basically works; cache gets in the way of "true" randomization though (workaround: regex hack in wrapper cgi)
+	+ added AllowUnsafeQueries option to CConcIndexator: if false (default), file-list queries are disabled
+
+	2011-07-08 21:03  moocow
+	+ added ddc_opt.pod : opt-file documentation (largely ganked from old README)
+	+ added ddc_query.pod: query syntax
+
+	2011-07-06 13:45  moocow
+	+ term expansion chains working with lexer revision (pipeline suffix notation)
+	+ added expand_terms request to ddc daemon
+	+ moved command-line utilities from camel-case to underscore-separated, e.g. ddcIndex -> ddc_index
+	+ got prefix, suffix, infix query types working right for arbitrary indices
+
+	2011-06-30 14:37  moocow
+	+ added abstract term expander API in ConcordLib/TermExpander.*
+	+ ported old built-in expanders to new API
+	+ added external expander protocol CAB (tt/http)
+	+ improved server->client error reporting
+
+	Wed, 08 Jun 2011 15:30:55 +0200 moocow
+	+ fixed segfaults in rank- and bigram-sort operators
+	+ re-defined DWORD,WORD to uint32_t rsp uint16_t for better 32/64-bit compatibility
+	+ lexer+parser pair fully re-written
+
+	Thu, 19 May 2011 15:30:09 +0200 moocow
+	+ yet another lexer reset fix in ConcordLib/QueryParser.cpp
+	+ added single-quoted symbols to query lexer (e.g. 'sapere' @'aude')
+
+	Wed, 18 May 2011 15:46:00 +0200 moocow
+	* more lexer+parser hacks
+	  + only escape \uXXXX sequences in regexes, since other backslash escapes
+	    are probably needed by the regex engine
+	  + removed common/json.(h|cpp); moved functions to common/ddcString.(h|cpp)
+	* c++-ified utf8 code to common/utf8xx.(h|cpp)
+	  + haven't adapted the whole api yet
+	* major futzing about in PCRE (regex library) interface in PCRE/pcre_rml.(h|cpp)
+	  + index-based regex queries should now respect the CConcIndexator::m_Utf8 flag,
+	    if the regexes are passed the struct returned by CConcIndexator::GetRegexOptions()
+	    - basically a generalization of the old CConcIndexator::GetRegExpTables() strategy
+	  + still some goofs with POSIX character classes (e.g. [:alpha:]) and non-ASCII
+	    characters (e.g. 'ä' matches [^[:alpha:]])
+	    - this might have to do with bad passing of UTF8 option from the pcrecpp RE_Options
+	      struct to the bitmask used by the underlying C pcre code called e.g. from
+	      RML_RE::Compile()
+	  + legacy table-based (bytewise) RML_RE constructor
+	      RML_RE(const string& pat, const vector<BYTE>& RegExpTables)
+	    re-implemented, since it's called elsewhere, e.g. by MorphWizardLib/wizard.cpp
+	  + still more regex-related sanitizing todo, e.g. for #has_field[] queries
+
+	Tue, 17 May 2011 17:02:32 +0200 moocow
+	* re-worked query lexer+parser pair used by ConcordLib/QueryParser.h
+	    simple_query.[ly] --> yyQLexer.l, yyQParser.y
+	* eliminated useless and confusing sed calls in scanner+parser generation
+	* removed stale MyFlexLexer.h from distribution
+	* bug fixes in C-style escapes
+	  + added json-style "\uXXXX" utf-8 escapes
+	  + added common/utf8.[ch]
+	  + moved generic string-handling (currently only C escape|unescape) to
+	    common/ddcString.(cpp|h)
+	* started re-working query lexer+parser pair src/ConcordLib/yyQ(Lexer|Parser).[ly]
+	  + moved ugly multi-rule symbol detection to a single pattern for {symbol_text}
+	  + allow backslash, C, and json-style escapes with CDecodeString()
+	    - requires more cleanup in QueryNode.cpp since some of the operator syntax
+	      was checked and removed there (ugly and inflexible)
+	* occasional cleanup required in QueryParser.cpp; in particular in yyqlex() method
+	  + mostly checks for lexer return value to set YYSTYPE appropriately
+	  + this is probably pointless; we should either set YYSTYPE in the lexer
+	    or just use _prs->yytext() etc from the parser
+	* still need to check various query types:
+	  (multi-word strings, &&, ||, near, with, (), #has_whatever, thesaurus, chunk, ...)
+
+	Mon, 16 May 2011 16:07:30 +0200 moocow
+	* added iconv wrapper class common/ddcIconv.h
+	* added character set converion hack for German in LemmatizerLib/Lemmatizers.h
+	  + does semi-transparent recoding from user queries in UTF-8 to underlying latin-1
+	    morphology data
+	  + tried recoding morphology to UTF-8, but this breaks alphabet size (hacked) as
+	    well as various ugly hard-coded character set hacks in common/utilit.(h|cpp),
+	    in particular the byte-wise property bitmasks in the table ASCII[256] from
+	    utilit.cpp ... morphology recoding stuff lives in the ddc-morph 'utf8' branch
+	    anyways, but probably should not be used
+	* TODO: remove __ALL__ language-dependent code from the DDC core
+	  + if really necessary move it to dlopen()able module(s) for better language modularity
+	    and potential replacement of the actual morphology used.
+
+
+	Fri, 13 May 2011 12:22:43 +0200 moocow
+	* added corpus filename field ('file') to table output
+	* added '-' as alias for stdout for ddcSimple, ddcConsole
+	* re-worked filename auto-detection code in utilit.cpp
+	* added comments with '#' to .opt file parsing in ConcordOptions.cpp
+	* .opt file parsing now accepts C-style escapes \x09, \t, ... for delimiters
+	* added ConcIndexator field m_TokenDelimiter : token-initial delimiter
+	  + fixes broken token boundary parsing for table, text formats
+	  + parsed from .opt file as 'TokenDelimiter' (default=empty: none)
+	* added Utf8 (m_Utf8) flag to .opt file, (class ConcIndexator)
+	  + boolean: whether to assume corpus data is utf8-encoded
+	  + currently only effects json output mode
+
+	Wed, 11 May 2011 21:18:36 +0200 moocow
+	* forked sources from sourceforge CVS
+	  + moved CVS sub-project directories to src/ (formerly Source/):
+	    CVSROOT=ddc-concordance.cvs.sourceforge.net:/cvsroot/ddc-concordance/SUBDIR -> Source/SUBDIR
+	* converted build system from legacy Makefiles to autoconf+automake
+	* factored out everything under old Dicts/ directory into package ddc-morph
+	* install all built libraries to PREFIX/lib
+	* install all headers from src/ to $RML/include/
+	  + $RML/include mirrors src/ substructure so as not to break internal #includes
+	* renamed runtime directories to lower-case following usual UNIX conventions:
+	  $RML/Bin -> $RML/bin
+	  $RML/Docs -> $RML/doc
+	  $RML/Logs -> $RML/log
+	  $RML/Dicts -> $RML/dict
+	  Source/ -> src
+	* moved runtime configuration files from $RML/bin/ to $RML/etc/
+	  $RML/etc/rml.ini
+	  $RML/etc/ddc_local_corpora.cfg
+	  $RML/etc/ddc_server.cfg
+	  $RML/etc/ddc_xml_server.cfg
+	* added shared prefix 'ddc' to all runtime executables in $RML/bin:
+	  ConcordIndex -> ddcIndex
+	  ConcordConsole -> ddcConsole
+	  ConcordDaemon -> ddcDaemon
+	  ConcordSimple -> ddcSimple
+	  Search -> ddcSearch
+	  FileLem -> ddcFileLem
+	  MorphGen -> ddcMorphGen
+	  StructDictLoader -> ddcStructDictLoader
+	* changed default daily log-file name for ddcDaemon to use strftime "%F"
+	  format (ISO 8601):
+	  $RML/log/concord/YYYY-MM-DD.log
+	* changed integer type sent over network sockets for message lengths from size_t
+	  to uint32_t (a la C99 stdint.h) in src/common/string_socket.*
+	  + this should fix protocol ambiguities between 32- and 64-bit systems
+	  + still doesn't solve big-/little-endian ambiguity
+	    - TODO: add byte-order detection & twiddling code to handle this
+	* added README.pod (-> README.txt, README.html)
+
+##-- for older changes, see doc/DDC_ChangeLog.txt
