@@ -32,7 +32,8 @@ enum NetworkErrorsEnum {
 	neCouldNotOpenSocket = 6,
 	neCouldNotSendData = 7,
 	neCouldNotReceiveData = 8,
-	neInternalError = 9
+	neInternalError = 9,
+	neRequestTooLarge = 10
 };
 
 
@@ -57,6 +58,7 @@ protected:
 	bool					m_bDoubleMessage;
 	string					m_LocalPath;
 	ProtocolDensityEnum			m_pdProtocolDensity;
+	uint32_t				m_maxReceiveBytes; ///< maximum receivable packet length (default=0: no limit)
 
 	void AnswerByRequest (SOCKET rConnectedSocket, const struct sockaddr_in* client_addr, int TimeOut, bool& bCloseSocket );
 
@@ -95,7 +97,7 @@ extern uint32_t lsb_to_size(uint32_t sz_lsb);
 
 extern bool SendString (int client_fd, const char* Str, uint32_t StrLen, string& ErrorStr);
 extern bool SendString (int client_fd, const std::string &str, string& ErrorStr);
-extern NetworkErrorsEnum ReceiveString (int  client_fd, string& Result, int TimeOut);
+extern NetworkErrorsEnum ReceiveString (int  client_fd, string& Result, int TimeOut, uint32_t maxPacketLength=0);
 extern bool SetSocketReceiveBuffer(int socket_fd, int BufferSize);
 extern bool SetSocketSendBuffer(int socket_fd, int BufferSize);
 extern bool SocketInitialize(bool bReadFromLocalFile);

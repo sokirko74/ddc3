@@ -1821,36 +1821,32 @@ void ConvertJO2Je(char* src)
 
 string Format( const char* format, ... )
 {
-	va_list arglst;
-	const size_t  SmallBufferSize = 15000;
-    char SmallBuffer[SmallBufferSize+1];
+    va_list arglst;
+    const size_t  SmallBufferSize = DDC_STATIC_BUFLEN;
+    char SmallBuffer[SmallBufferSize];
 
     va_start( arglst, format );
-	int	OutputLength = vsnprintf( SmallBuffer, SmallBufferSize, format, arglst);
-	va_end( arglst );
+    int	OutputLength = vsnprintf( SmallBuffer, SmallBufferSize, format, arglst);
+    va_end( arglst );
 
-	if (		(OutputLength == -1)
-			||	(OutputLength < SmallBufferSize)
-		)
-		return SmallBuffer;
+    if ((OutputLength == -1) || (OutputLength < SmallBufferSize))
+	return string(SmallBuffer,OutputLength);
+    /*
+    if (OutputLength > 10000000)  {
+	assert (false);
+	OutputLength = 10000000;
+    }
+    */
 
-	if (OutputLength > 10000000) 
-	{
-		assert (false);
-		OutputLength = 10000000;
-	};
-
-
-	char * pBuffer = new char[OutputLength+2];
-	if (!pBuffer)
-		return SmallBuffer;
-	va_start( arglst, format );
-	vsnprintf( pBuffer, OutputLength+1, format, arglst);
-	va_end( arglst );
-	string Res = pBuffer;
-	delete pBuffer;
-	return Res;
-
+    char * pBuffer = new char[OutputLength];
+    if (!pBuffer)
+	return string(SmallBuffer,SmallBufferSize);
+    va_start( arglst, format );
+    vsnprintf( pBuffer, OutputLength, format, arglst);
+    va_end( arglst );
+    string Res(pBuffer,OutputLength);
+    delete pBuffer;
+    return Res;
 };
 
 
@@ -2307,7 +2303,7 @@ void CExpc::Set(const char* format, ... ) throw()
 }
 void CExpc::vSet(const char *format, va_list& arglst) throw()
 {
-    const size_t SmallBufferSize = 512;
+    const size_t SmallBufferSize = DDC_STATIC_BUFLEN;
     char SmallBuffer[SmallBufferSize+1];
     vsnprintf( SmallBuffer, SmallBufferSize, format, arglst );
     m_strCause = SmallBuffer;

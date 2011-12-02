@@ -242,7 +242,7 @@ string CDDCCorpusListenHost::ProcessSocketString(const string& InputSocket, SOCK
 		// getting hits
 		DWORD  EndHitNo = 0;
 		int	TimeOut;
-		char sQuery[3000];
+		char sQuery[DDC_STATIC_BUFLEN];
 		const char* strInputSocket = InputSocket.c_str();
 	
 		int CountItems = sscanf (strInputSocket, "get_first_hits %[^\x01]\x01 %i %i", sQuery, &TimeOut,&m_pHolder->m_ResultLimit);
@@ -312,8 +312,9 @@ CDDCServerListenHost::CDDCServerListenHost (bool bDoubleMessage, ProtocolDensity
 CHost(bDoubleMessage, pdProtocolDensity)
 {
 	m_LogFunction = concord_daemon_log;
-    m_ReloadCorpusNo = -1;
-    m_pReloadedCorpusHolder = 0;
+	m_ReloadCorpusNo = -1;
+	m_pReloadedCorpusHolder = 0;
+	m_maxReceiveBytes = DDC_STATIC_BUFLEN;
 };
 
 
@@ -397,28 +398,34 @@ void CDDCServerListenHost::ReplaceHolderIfNeeded()
 //  there are two possibilities:
 //  1. "run_query" returns results for DDC
 //  2. "get_paradigm" returns a paradigm from morphology 
-string CDDCServerListenHost::ProcessSocketString(const string& InputSocket, SOCKET rConnectedSocket) 
+string CDDCServerListenHost::ProcessSocketString(const string& InputSocket, SOCKET rConnectedSocket)
 {
 	ReplaceHolderIfNeeded();
-
 	m_ErrorStr.clear();
-	concord_daemon_log(Format("%s recv \"%s\"", m_CorpusName.c_str(), InputSocket.c_str()));
-
-	//-- moo: first, get command part of input string
-	int eocpos = InputSocket.find_first_of(" \t\r\n\x00\x01\x02");
-	if (eocpos==InputSocket.npos) eocpos=InputSocket.size();
-	string cmd(InputSocket,0,eocpos);
-	//fprintf(stderr, "ServerListenHost: cmd=(%s)\n", cmd.c_str()); //-- DEBUG
 	string Result;
-	Result.reserve(10000);
 
 	try {
+		concord_daemon_log(Format("%s recv \"%s\"", m_CorpusName.c_str(), InputSocket.c_str()));
+
+		//-- moo: check for buffer overflow
+		if (InputSocket.size() > DDC_STATIC_BUFLEN) {
+				Result = Format ("\x01 %i %i %i %i %i", errParseError, 0, 0, 0, 0) + "\ninput buffer size exceeded\n";
+				throw CExpc(errParseError, Format("CDDCServerListenHost::ProcessSocketString(): input buffer size exceeded"));
+		}
+
+		//-- moo: first, get command part of input string
+		int eocpos = InputSocket.find_first_of(" \t\r\n\x00\x01\x02");
+		if (eocpos==InputSocket.npos) eocpos=InputSocket.size();
+		string cmd(InputSocket,0,eocpos);
+		//fprintf(stderr, "ServerListenHost: cmd=(%s)\n", cmd.c_str()); //-- DEBUG
+		Result.reserve(DDC_STATIC_BUFLEN);
+
 		if (cmd == "run_query") {
 			DWORD StartHitNo, ResultLimit;
 			int TimeOut;
-			char sQuery[3000];
-			char sCorpusName[1000];
-			char sResultType[100];
+			char sQuery[DDC_STATIC_BUFLEN];
+			char sCorpusName[DDC_STATIC_BUFLEN];
+			char sResultType[DDC_STATIC_BUFLEN];
 			int CountItems = sscanf (InputSocket.c_str(), 
 						 "run_query %[^\x01]\x01%[^\x01]\x01%[^\x01]\x01%i %i %i", 
 						 sCorpusName, sQuery, sResultType, &StartHitNo, &ResultLimit, &TimeOut);
@@ -430,14 +437,12 @@ string CDDCServerListenHost::ProcessSocketString(const string& InputSocket, SOCK
 			int InternalError;
 			int iNetworkError;
 			DWORD EndHitNo, HitsCount, RelevantDocsCount;
-			string ResultType = sResultType;
-			string strQuery = sQuery;
+			string ResultType(sResultType);
+			string strQuery(sQuery);
 			Trim(ResultType);
 			Trim(strQuery);
-			if ( strQuery.empty() ) {
-				Result = Format ("\x01 %i %i %i %i %i", errParseError, 0, 0, 0, 0) + "\ncannot parse empty string in socket input\n";
+			if ( strQuery.empty() )
 				throw CExpc(errParseError, "CDDCServerListenHost::ProcessSocketString(): cannot parse empty string in socket input");
-			}
 
 			string ResultString;
 			string HitDistrib;

@@ -235,14 +235,14 @@ void RunCommand(string line)
 	{
 		bShowTime = !bShowTime;
 		printf ("ShowTime = %s\n", bShowTime? "true":  "false");
+		return;
 	};
 	if (line  == "echoquery") 
 	{
 		bEchoQuery = !bEchoQuery;
 		printf ("EchoQuery = %s\n", bEchoQuery? "true":  "false");
+		return;
 	};
-	
-	
 	if (line  == "help")
 	{
 		PrintHelp();
@@ -322,16 +322,17 @@ int main(int argc, char* argv[])
 	if (argc == 2)
 		RunCommand(string("load ") +argv[1]);
 
+	size_t bufsize=1024;
+	char *linebuf=(char*)malloc(bufsize);
 	for (;;)
 	{
 		printf (">");
-		char Form[1000];	
-		fgets(Form, 1000, stdin);
-		if (feof(stdin)) break;
-		string q = Form;
+		ssize_t nread = getline(&linebuf,&bufsize,stdin);
+		if (nread==-1 || (nread==0 && feof(stdin))) break;
+		string q(linebuf, nread);
 
 		if (bEchoQuery)
-			printf ("%s", Form);
+			fwrite(linebuf, nread, 1, stdout);
 
 		if (Holder.m_pIndexator)
 			if (Holder.m_pIndexator->m_Language == morphRussian)

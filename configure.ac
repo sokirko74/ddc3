@@ -3,7 +3,7 @@ AC_PREREQ(2.5)
 
 dnl Some handy macros
 define([THE_PACKAGE_NAME],    [ddc])
-define([THE_PACKAGE_VERSION], [2.0.0])
+define([THE_PACKAGE_VERSION], [2.0.1])
 define([THE_PACKAGE_MAINTAINER],  [jurish@bbaw.de])
 
 AC_INIT(THE_PACKAGE_NAME, THE_PACKAGE_VERSION, THE_PACKAGE_MAINTAINER)
@@ -218,6 +218,20 @@ LIBCURL_CHECK_CONFIG(yes,
 	 AC_MSG_WARN([libcurl not found: CURL support disabled!])
 	])
 ## /libs: curl
+##^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+
+##----------------------------------------------------------------------
+## defs: static buffer length(s)?
+AC_ARG_WITH([static-buflen],
+	AC_HELP_STRING([--with-static-buflen=SIZE],
+		[maximum size in bytes of static internal string buffers (default=16384)]),
+	[ddc_static_buflen="$withval"],
+	[ddc_static_buflen="16384"])
+AC_MSG_CHECKING([for maximum static buffer size])
+AC_MSG_RESULT([$ddc_static_buflen])
+AC_DEFINE_UNQUOTED(DDC_STATIC_BUFLEN, $ddc_static_buflen, [maximum size in bytes of static ddc-internal string buffers])
+## defs: static buffer length(s)
 ##^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 ##vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv

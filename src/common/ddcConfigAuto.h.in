@@ -3,6 +3,9 @@
 /* Define this to enable debugging code */
 #undef DDC_DEBUG_ENABLED
 
+/* maximum size in bytes of static ddc-internal string buffers */
+#undef DDC_STATIC_BUFLEN
+
 /* Major ddc version */
 #undef DDC_VERSION_MAJOR
 

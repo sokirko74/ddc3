@@ -245,7 +245,12 @@ int CQueryCompiler::yyqlex(void* valp)
 	const char* __s = yytext();
 	int len = yyleng();
 
-	assert (yyleng() < 10000-1);  //-- sanity check
+	//-- sanity check
+	if (yyleng() >= DDC_STATIC_BUFLEN) {
+		//assert (yyleng() < DDC_STATIC_BUFLEN);
+		throw CExpc(errParseError, "CQueryCompiler::yyqlex(): query string exceeds maximum static buffer length (%d)", DDC_STATIC_BUFLEN);
+	}
+	
 	string s(yytext(), yyleng()); //-- temporary
 
 	switch (iRetVal) {

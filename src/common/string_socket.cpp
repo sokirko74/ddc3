@@ -150,7 +150,7 @@ bool SendString (int client_fd, const char* Str, uint32_t  PacketLength, string&
 			return false;
 		}
 
-		const int buffer_len = 1000;
+		const int buffer_len = 1024;
 		if (PacketLength <= buffer_len)
 		{
 			if (!send_buffer(client_fd, Str, (int)PacketLength, ErrorStr))
@@ -223,7 +223,7 @@ inline NetworkErrorsEnum receive_buffer(int client_fd, char* Buffer,int Length, 
 
 
 
-NetworkErrorsEnum ReceiveString (int  client_fd, string& Result, int TimeOut)
+NetworkErrorsEnum ReceiveString (int  client_fd, string& Result, int TimeOut, uint32_t maxPacketLength)
 {
 
 	try {
@@ -236,14 +236,16 @@ NetworkErrorsEnum ReceiveString (int  client_fd, string& Result, int TimeOut)
 			return Res;
 		}
 
-		
-		const int buffer_len = 1000;
-		char buffer[buffer_len+1];
 
-		Result = "";
+		PacketLength  = lsb_to_size(PacketLength_lsb);
+		if (maxPacketLength>0 && PacketLength > maxPacketLength)
+			return neRequestTooLarge; //-- whoa!
+		Result.clear();
+		Result.reserve(PacketLength);
 
+		const int buffer_len = 1024;
+		char buffer[buffer_len];
 		uint32_t  AllRead = 0;
-		PacketLength      = lsb_to_size(PacketLength_lsb);
 
 		while (AllRead < PacketLength)
 		{
@@ -257,8 +259,7 @@ NetworkErrorsEnum ReceiveString (int  client_fd, string& Result, int TimeOut)
 					return Res;
 
 			AllRead += have_read;
-			buffer[have_read] = 0;
-			Result += buffer;
+			Result.append(buffer,have_read);
 		};
 		return neSuccess;
 	}
@@ -271,7 +272,7 @@ NetworkErrorsEnum ReceiveString (int  client_fd, string& Result, int TimeOut)
 bool SetSocketReceiveBuffer(int socket_fd, int BufferSize)
 {
 
-	if (setsockopt( socket_fd, SOL_SOCKET, SO_RCVBUF, (const char*)&BufferSize, sizeof(int) ))
+	if (setsockopt( socket_fd, SOL_SOCKET, SO_RCVBUF, (void*)&BufferSize, sizeof(size_t) ))
 	{
 		return false;
 	};
@@ -280,7 +281,7 @@ bool SetSocketReceiveBuffer(int socket_fd, int BufferSize)
 
 bool SetSocketSendBuffer(int socket_fd, int BufferSize)
 {
-	if (setsockopt( socket_fd, SOL_SOCKET, SO_SNDBUF, (const char*)&BufferSize, sizeof(int) ))
+	if (setsockopt( socket_fd, SOL_SOCKET, SO_SNDBUF, (void*)&BufferSize, sizeof(size_t) ))
 	{
 		return false;
 	};
@@ -420,6 +421,7 @@ string GetNetworkErrorString(const NetworkErrorsEnum& t)
 		case neCouldNotSendData: return "Could not send data to a socket";
 		case neCouldNotReceiveData: return "Could not receive data to a socket";
 		case neInternalError: return "Internal error";
+		case neRequestTooLarge: return "Request too large";
 		default: break;
 	};
 	return "Unknown error code";
@@ -433,6 +435,7 @@ CHost::CHost(bool bDoubleMessage, ProtocolDensityEnum pdProtocolDensity)
 	m_bDoubleMessage = bDoubleMessage;
 	m_ListenSocket = -1;
 	m_Port = -1;
+	m_maxReceiveBytes = 0;
 };
 
 
@@ -486,9 +489,9 @@ bool LoadHosts (string Path, vector<CHost>& Hosts)
 		fprintf (stderr, "Could not open file %s\n", Path.c_str());
 		return false;
 	};
-	char buffer[1000];
+	char buffer[1024];
 	int LineNo = 0;
-	while (fgets(buffer, 1000, fp))
+	while (fgets(buffer, 1024, fp))
 	{
 		LineNo++;
 		string Q = buffer;
@@ -522,12 +525,13 @@ void CHost::AnswerByRequest (SOCKET rConnectedSocket, const struct sockaddr_in* 
 	}
 
 	
-	NetworkErrorsEnum Res = ReceiveString(rConnectedSocket, S, TimeOut);
-							
+	NetworkErrorsEnum Res = ReceiveString(rConnectedSocket, S, TimeOut, m_maxReceiveBytes);
+						
 	if (Res != neSuccess)
 	{
-			m_LogFunction(Format("Error: Cannot receive string for corpus \"%s\" (error: %s)", m_CorpusName.c_str(), GetNetworkErrorString(Res).c_str()));
-			return;
+		//ClientError(0, Format("Error [%d]: %s", Res, GetNetworkErrorString(Res).c_str()), rConnectedSocket); //-- doesn't work well...
+		m_LogFunction(Format("Error: Cannot receive string for corpus \"%s\" (error: %s)", m_CorpusName.c_str(), GetNetworkErrorString(Res).c_str()));
+		return;
 	};
 
 
@@ -562,7 +566,7 @@ void CHost::AnswerByRequest (SOCKET rConnectedSocket, const struct sockaddr_in* 
 	if (m_pdProtocolDensity  == pdHeavyDensity)
 	{
 		const char* src_addr = inet_ntoa(client_addr->sin_addr);
-		m_LogFunction(Format("%s send back the result to %s (%i bytes)", m_CorpusName.c_str(), src_addr, Result.size() ));
+		m_LogFunction(Format("%s sent back the result to %s (%i bytes)", m_CorpusName.c_str(), src_addr, Result.size() ));
 	}
 
 }
