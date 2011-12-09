@@ -225,12 +225,12 @@ LIBCURL_CHECK_CONFIG(yes,
 ## defs: static buffer length(s)?
 AC_ARG_WITH([static-buflen],
 	AC_HELP_STRING([--with-static-buflen=SIZE],
-		[maximum size in bytes of static internal string buffers (default=16384)]),
+		[size in bytes of static internal string buffers (default=4096)]),
 	[ddc_static_buflen="$withval"],
-	[ddc_static_buflen="16384"])
-AC_MSG_CHECKING([for maximum static buffer size])
+	[ddc_static_buflen="4096"])
+AC_MSG_CHECKING([for static buffer size])
 AC_MSG_RESULT([$ddc_static_buflen])
-AC_DEFINE_UNQUOTED(DDC_STATIC_BUFLEN, $ddc_static_buflen, [maximum size in bytes of static ddc-internal string buffers])
+AC_DEFINE_UNQUOTED(DDC_STATIC_BUFLEN, $ddc_static_buflen, [size in bytes of static ddc-internal string buffers])
 ## defs: static buffer length(s)
 ##^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
