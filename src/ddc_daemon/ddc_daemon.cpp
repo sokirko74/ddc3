@@ -133,7 +133,7 @@ int do_stop(void)
 // start
 int do_start(bool clientMode=false)
 {
-	string startmsg = Format("Starting ddc_daemon in %s %s mode",
+	string startmsg = Format("Starting ddc_daemon v" PACKAGE_VERSION " in %s %s mode",
 				 (doFork ? "forked" : "unforked"),
 				 (clientMode ? "client" : "server"));
 
