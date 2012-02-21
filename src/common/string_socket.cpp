@@ -369,6 +369,7 @@ SOCKET create_socket (const char* HostName, int Port, bool bBind, string& strErr
 	if (l_socket == -1) 
 	{
 		strError = Format("%s for %s:%i\n", cause.c_str(), HostName, Port);
+		throw CExpc(errRuntime, strError);
 		/*NOTREACHED*/
 	}
 	freeaddrinfo(res0); 

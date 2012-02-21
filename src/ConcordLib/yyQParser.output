@@ -46,13 +46,13 @@ Grammar
    29             | GREATER_BY_SIZE qfb_int
    30             | IS_SIZE '[' int_str ']'
 
-   31 qf_random_sort: RANDOM
-   32               | RANDOM '[' ']'
-   33               | RANDOM '[' int_str ']'
+   31 qf_date_sort: LESS_BY_DATE qfb_date
+   32             | GREATER_BY_DATE qfb_date
+   33             | IS_DATE '[' date ']'
 
-   34 qf_date_sort: LESS_BY_DATE qfb_date
-   35             | GREATER_BY_DATE qfb_date
-   36             | IS_DATE '[' date ']'
+   34 qf_random_sort: RANDOM
+   35               | RANDOM '[' ']'
+   36               | RANDOM '[' int_str ']'
 
    37 qf_bibl_sort: LESS_BY '[' symbol qfb_bibl ']'
    38             | GREATER_BY '[' symbol qfb_bibl ']'
@@ -239,9 +239,9 @@ $end (0) 0
 '<' (60) 120 121
 '=' (61) 91 93 95 97 99 101 103 105 107 109 111 113 115 117 119 121
 '@' (64) 92 93
-'[' (91) 22 23 30 32 33 36 37 38 40 41 42 43 44 46 47 48 49 50 114
+'[' (91) 22 23 30 33 35 36 37 38 40 41 42 43 44 46 47 48 49 50 114
     115
-']' (93) 22 23 30 32 33 36 37 38 40 41 42 43 44 46 47 48 49 50 114
+']' (93) 22 23 30 33 35 36 37 38 40 41 42 43 44 46 47 48 49 50 114
     115
 '^' (94) 118 119
 '{' (123) 98 99 108 109 113
@@ -269,15 +269,15 @@ LESS_BY_RANK (276) 25
 GREATER_BY_SIZE (277) 29
 LESS_BY_SIZE (278) 28
 IS_SIZE (279) 30
-GREATER_BY_DATE (280) 35
-LESS_BY_DATE (281) 34
-IS_DATE (282) 36
+GREATER_BY_DATE (280) 32
+LESS_BY_DATE (281) 31
+IS_DATE (282) 33
 GREATER_BY (283) 38
 LESS_BY (284) 37
 LESS_BY_LEFT (285) 26
 LESS_BY_RIGHT (286) 27
 DEBUG_RANK (287) 10 11
-RANDOM (288) 31 32 33
+RANDOM (288) 34 35 36
 OP_OR (289) 60
 OP_AND (290) 59
 NEAR (291) 65 66
@@ -306,16 +306,16 @@ qf_bigram_sort (64)
     on left: 26 27, on right: 17
 qf_size_sort (65)
     on left: 28 29 30, on right: 18
-qf_random_sort (66)
-    on left: 31 32 33, on right: 21
-qf_date_sort (67)
-    on left: 34 35 36, on right: 19
+qf_date_sort (66)
+    on left: 31 32 33, on right: 19
+qf_random_sort (67)
+    on left: 34 35 36, on right: 21
 qf_bibl_sort (68)
     on left: 37 38, on right: 20
 qfb_int (69)
     on left: 39 40 41 42 43 44, on right: 28 29
 qfb_date (70)
-    on left: 45 46 47 48 49 50, on right: 34 35
+    on left: 45 46 47 48 49 50, on right: 31 32
 qfb_bibl (71)
     on left: 51 52 53 54 55 56 57, on right: 37 38
 q_clause (72)
@@ -405,11 +405,11 @@ s_expander (111)
 regex (112)
     on left: 151 152, on right: 23 94 95
 int_str (113)
-    on left: 153, on right: 30 33 41 42 43 44 154
+    on left: 153, on right: 30 36 41 42 43 44 154
 integer (114)
     on left: 154, on right: 6 65 66 132
 date (115)
-    on left: 155 156, on right: 36 47 48 49 50
+    on left: 155 156, on right: 33 47 48 49 50
 
 
 state 0
@@ -1585,8 +1585,8 @@ state 80
     qf_rank_sort    go to state 132
     qf_bigram_sort  go to state 133
     qf_size_sort    go to state 134
-    qf_random_sort  go to state 135
-    qf_date_sort    go to state 136
+    qf_date_sort    go to state 135
+    qf_random_sort  go to state 136
     qf_bibl_sort    go to state 137
 
 
@@ -2013,7 +2013,7 @@ state 117
 
 state 118
 
-   35 qf_date_sort: GREATER_BY_DATE . qfb_date
+   32 qf_date_sort: GREATER_BY_DATE . qfb_date
 
     '['  shift, and go to state 168
 
@@ -2024,7 +2024,7 @@ state 118
 
 state 119
 
-   34 qf_date_sort: LESS_BY_DATE . qfb_date
+   31 qf_date_sort: LESS_BY_DATE . qfb_date
 
     '['  shift, and go to state 168
 
@@ -2035,7 +2035,7 @@ state 119
 
 state 120
 
-   36 qf_date_sort: IS_DATE . '[' date ']'
+   33 qf_date_sort: IS_DATE . '[' date ']'
 
     '['  shift, and go to state 171
 
@@ -2077,13 +2077,13 @@ state 125
 
 state 126
 
-   31 qf_random_sort: RANDOM .
-   32               | RANDOM . '[' ']'
-   33               | RANDOM . '[' int_str ']'
+   34 qf_random_sort: RANDOM .
+   35               | RANDOM . '[' ']'
+   36               | RANDOM . '[' int_str ']'
 
     '['  shift, and go to state 174
 
-    $default  reduce using rule 31 (qf_random_sort)
+    $default  reduce using rule 34 (qf_random_sort)
 
 
 state 127
@@ -2154,16 +2154,16 @@ state 134
 
 state 135
 
-   21 q_filter: qf_random_sort .
+   19 q_filter: qf_date_sort .
 
-    $default  reduce using rule 21 (q_filter)
+    $default  reduce using rule 19 (q_filter)
 
 
 state 136
 
-   19 q_filter: qf_date_sort .
+   21 q_filter: qf_random_sort .
 
-    $default  reduce using rule 19 (q_filter)
+    $default  reduce using rule 21 (q_filter)
 
 
 state 137
@@ -2544,21 +2544,21 @@ state 168
 
 state 169
 
-   35 qf_date_sort: GREATER_BY_DATE qfb_date .
+   32 qf_date_sort: GREATER_BY_DATE qfb_date .
 
-    $default  reduce using rule 35 (qf_date_sort)
+    $default  reduce using rule 32 (qf_date_sort)
 
 
 state 170
 
-   34 qf_date_sort: LESS_BY_DATE qfb_date .
+   31 qf_date_sort: LESS_BY_DATE qfb_date .
 
-    $default  reduce using rule 34 (qf_date_sort)
+    $default  reduce using rule 31 (qf_date_sort)
 
 
 state 171
 
-   36 qf_date_sort: IS_DATE '[' . date ']'
+   33 qf_date_sort: IS_DATE '[' . date ']'
 
     INTEGER  shift, and go to state 197
     DATE     shift, and go to state 198
@@ -2590,8 +2590,8 @@ state 173
 
 state 174
 
-   32 qf_random_sort: RANDOM '[' . ']'
-   33               | RANDOM '[' . int_str ']'
+   35 qf_random_sort: RANDOM '[' . ']'
+   36               | RANDOM '[' . int_str ']'
 
     INTEGER  shift, and go to state 157
     ']'      shift, and go to state 205
@@ -2861,7 +2861,7 @@ state 201
 
 state 202
 
-   36 qf_date_sort: IS_DATE '[' date . ']'
+   33 qf_date_sort: IS_DATE '[' date . ']'
 
     ']'  shift, and go to state 224
 
@@ -2890,14 +2890,14 @@ state 204
 
 state 205
 
-   32 qf_random_sort: RANDOM '[' ']' .
+   35 qf_random_sort: RANDOM '[' ']' .
 
-    $default  reduce using rule 32 (qf_random_sort)
+    $default  reduce using rule 35 (qf_random_sort)
 
 
 state 206
 
-   33 qf_random_sort: RANDOM '[' int_str . ']'
+   36 qf_random_sort: RANDOM '[' int_str . ']'
 
     ']'  shift, and go to state 228
 
@@ -3095,9 +3095,9 @@ state 223
 
 state 224
 
-   36 qf_date_sort: IS_DATE '[' date ']' .
+   33 qf_date_sort: IS_DATE '[' date ']' .
 
-    $default  reduce using rule 36 (qf_date_sort)
+    $default  reduce using rule 33 (qf_date_sort)
 
 
 state 225
@@ -3135,9 +3135,9 @@ state 227
 
 state 228
 
-   33 qf_random_sort: RANDOM '[' int_str ']' .
+   36 qf_random_sort: RANDOM '[' int_str ']' .
 
-    $default  reduce using rule 33 (qf_random_sort)
+    $default  reduce using rule 36 (qf_random_sort)
 
 
 state 229

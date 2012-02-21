@@ -283,16 +283,16 @@ qf_size_sort:
 	|	IS_SIZE '[' int_str ']'		{ $$ = new CQFSizeSort(LessBySize, *$3, *$3); }
 	;
 
-qf_random_sort:
-		RANDOM					{ $$ = new CQFRandomSort(); }
-	|	RANDOM '[' ']'				{ $$ = new CQFRandomSort(); }
-	|	RANDOM '[' int_str ']'			{ $$ = new CQFRandomSort(*$3); }
-	;
-
 qf_date_sort:
 		LESS_BY_DATE qfb_date		{ $$ = _newFilter(CQFDateSort, LessByDate); }
 	|	GREATER_BY_DATE qfb_date	{ $$ = _newFilter(CQFDateSort, GreaterByDate); }
 	|	IS_DATE '[' date ']'		{ $$ = new CQFDateSort(LessByDate, *$3, *$3); }
+	;
+
+qf_random_sort:
+		RANDOM					{ $$ = new CQFRandomSort(); }
+	|	RANDOM '[' ']'				{ $$ = new CQFRandomSort(); }
+	|	RANDOM '[' int_str ']'			{ $$ = new CQFRandomSort(*$3); }
 	;
 
 qf_bibl_sort:

@@ -480,7 +480,7 @@ static const yytype_uint16 yyprhs[] =
        0,     0,     3,     6,     7,    10,    13,    16,    19,    22,
       24,    27,    29,    32,    33,    35,    39,    41,    43,    45,
       47,    49,    51,    53,    60,    67,    69,    71,    73,    75,
-      78,    81,    86,    88,    92,    97,   100,   103,   108,   114,
+      78,    81,    86,    89,    92,    97,    99,   103,   108,   114,
      120,   121,   124,   128,   133,   139,   144,   145,   148,   152,
      157,   163,   168,   169,   171,   174,   177,   181,   185,   190,
      192,   196,   200,   203,   207,   209,   211,   220,   231,   235,
@@ -502,13 +502,13 @@ static const yytype_int8 yyrhs[] =
       58,    61,    -1,    47,    60,    -1,    16,   114,    -1,    17,
      107,    -1,    19,    -1,    36,    19,    -1,    32,    -1,    36,
       32,    -1,    -1,   106,    -1,    60,    38,   106,    -1,    62,
-      -1,    63,    -1,    64,    -1,    65,    -1,    67,    -1,    68,
-      -1,    66,    -1,    18,    48,   107,    38,   107,    49,    -1,
+      -1,    63,    -1,    64,    -1,    65,    -1,    66,    -1,    68,
+      -1,    67,    -1,    18,    48,   107,    38,   107,    49,    -1,
       18,    48,   107,    38,   112,    49,    -1,    20,    -1,    21,
       -1,    30,    -1,    31,    -1,    23,    69,    -1,    22,    69,
-      -1,    24,    48,   113,    49,    -1,    33,    -1,    33,    48,
-      49,    -1,    33,    48,   113,    49,    -1,    26,    70,    -1,
-      25,    70,    -1,    27,    48,   115,    49,    -1,    29,    48,
+      -1,    24,    48,   113,    49,    -1,    26,    70,    -1,    25,
+      70,    -1,    27,    48,   115,    49,    -1,    33,    -1,    33,
+      48,    49,    -1,    33,    48,   113,    49,    -1,    29,    48,
      107,    71,    49,    -1,    28,    48,   107,    71,    49,    -1,
       -1,    48,    49,    -1,    48,   113,    49,    -1,    48,   113,
       38,    49,    -1,    48,   113,    38,   113,    49,    -1,    48,
@@ -588,7 +588,7 @@ static const char *const yytname[] =
   "'$'", "'@'", "'^'", "'%'", "'#'", "':'", "'['", "']'", "'('", "')'",
   "'\"'", "'}'", "'{'", "';'", "$accept", "query", "q_filters", "q_flag",
   "qf_subcorpora", "q_filter", "qf_has_field", "qf_rank_sort",
-  "qf_bigram_sort", "qf_size_sort", "qf_random_sort", "qf_date_sort",
+  "qf_bigram_sort", "qf_size_sort", "qf_date_sort", "qf_random_sort",
   "qf_bibl_sort", "qfb_int", "qfb_date", "qfb_bibl", "q_clause",
   "qc_basic", "qc_near", "qc_tokens", "qc_sequence", "qc_word",
   "qw_bareword", "qw_exact", "qw_regex", "qw_set_exact", "qw_set_infl",
@@ -642,7 +642,7 @@ static const yytype_uint8 yyr2[] =
        0,     2,     2,     0,     2,     2,     2,     2,     2,     1,
        2,     1,     2,     0,     1,     3,     1,     1,     1,     1,
        1,     1,     1,     6,     6,     1,     1,     1,     1,     2,
-       2,     4,     1,     3,     4,     2,     2,     4,     5,     5,
+       2,     4,     2,     2,     4,     1,     3,     4,     5,     5,
        0,     2,     3,     4,     5,     4,     0,     2,     3,     4,
        5,     4,     0,     1,     2,     2,     3,     3,     4,     1,
        3,     3,     2,     3,     1,     1,     8,    10,     3,     1,
@@ -674,17 +674,17 @@ static const yytype_uint8 yydefact[] =
        0,     0,   129,   115,   130,   128,   143,    63,    68,    72,
       90,     0,     0,    71,   132,   109,   134,    61,    60,     0,
        0,     0,     9,    25,    26,    40,    40,     0,    46,    46,
-       0,     0,     0,    27,    28,    11,    32,     0,    13,     4,
-       5,    16,    17,    18,    19,    22,    20,    21,   123,   124,
+       0,     0,     0,    27,    28,    11,    35,     0,    13,     4,
+       5,    16,    17,    18,    19,    20,    22,    21,   123,   124,
      124,     0,     0,     0,     0,     0,   127,   124,   134,   102,
      104,   106,    96,   151,   135,     0,     0,   154,   155,     0,
-      99,     7,     8,     0,     0,    30,    29,     0,     0,    36,
-      35,     0,     0,     0,     0,    10,    12,     6,    14,   144,
+      99,     7,     8,     0,     0,    30,    29,     0,     0,    33,
+      32,     0,     0,     0,     0,    10,    12,     6,    14,   144,
        0,     0,   122,    94,   120,   118,     0,     0,     0,    92,
        0,   133,     0,     0,    41,     0,     0,   157,   156,     0,
-      47,     0,     0,    52,    52,    33,     0,     0,    98,   108,
+      47,     0,     0,    52,    52,    36,     0,     0,    98,   108,
      112,     0,   116,   110,   134,     0,     0,     0,     0,    42,
-      31,     0,     0,    48,    37,    53,     0,     0,    34,    15,
+      31,     0,     0,    48,    34,    53,     0,     0,    37,    15,
      114,   100,   146,     0,     0,     0,     0,    45,    43,     0,
       51,    49,     0,    54,    55,    39,    38,     0,    66,    23,
       24,    44,    50,    57,    56,     0,    58,    67
@@ -1893,42 +1893,42 @@ yyreduce:
 
 /* Line 1455 of yacc.c  */
 #line 287 "yyQParser.y"
-    { (yyval.m_pfilt) = new CQFRandomSort(); ;}
+    { (yyval.m_pfilt) = _newFilter(CQFDateSort, LessByDate); ;}
     break;
 
   case 33:
 
 /* Line 1455 of yacc.c  */
 #line 288 "yyQParser.y"
-    { (yyval.m_pfilt) = new CQFRandomSort(); ;}
+    { (yyval.m_pfilt) = _newFilter(CQFDateSort, GreaterByDate); ;}
     break;
 
   case 34:
 
 /* Line 1455 of yacc.c  */
 #line 289 "yyQParser.y"
-    { (yyval.m_pfilt) = new CQFRandomSort(*(yyvsp[(3) - (4)].m_str)); ;}
+    { (yyval.m_pfilt) = new CQFDateSort(LessByDate, *(yyvsp[(3) - (4)].m_str), *(yyvsp[(3) - (4)].m_str)); ;}
     break;
 
   case 35:
 
 /* Line 1455 of yacc.c  */
 #line 293 "yyQParser.y"
-    { (yyval.m_pfilt) = _newFilter(CQFDateSort, LessByDate); ;}
+    { (yyval.m_pfilt) = new CQFRandomSort(); ;}
     break;
 
   case 36:
 
 /* Line 1455 of yacc.c  */
 #line 294 "yyQParser.y"
-    { (yyval.m_pfilt) = _newFilter(CQFDateSort, GreaterByDate); ;}
+    { (yyval.m_pfilt) = new CQFRandomSort(); ;}
     break;
 
   case 37:
 
 /* Line 1455 of yacc.c  */
 #line 295 "yyQParser.y"
-    { (yyval.m_pfilt) = new CQFDateSort(LessByDate, *(yyvsp[(3) - (4)].m_str), *(yyvsp[(3) - (4)].m_str)); ;}
+    { (yyval.m_pfilt) = new CQFRandomSort(*(yyvsp[(3) - (4)].m_str)); ;}
     break;
 
   case 38:
