@@ -252,6 +252,7 @@ int CQueryCompiler::yyqlex(void* valp)
 	}
 	
 	string s(yytext(), yyleng()); //-- temporary
+	size_t gpos; //-- temporary
 
 	switch (iRetVal) {
 	case REGEX:
@@ -266,12 +267,16 @@ int CQueryCompiler::yyqlex(void* valp)
 		((YYSTYPE *)valp)->m_str = newString(s);
 		break;
 	case REGOPT:
-		m_Regex.insert(0, string("(?") + s + ")");  //-- insert pcre modifiers
-		if (s.find('g') != s.npos) {
-			//-- hack: interpret 'g' modifer as "match whole string only"
+		//-- hack: interpret 'g' modifer as "match whole string only"
+		if ((gpos=s.find('g')) != s.npos) {
 			m_Regex.insert(0,"^(?:");
 			m_Regex.append(")$");
+			do {
+				s.erase(gpos,1);
+				gpos = s.find('g',gpos);
+			} while (gpos != s.npos);
 		}
+		if (!s.empty()) m_Regex.insert(0, string("(?") + s + ")");  //-- insert pcre modifiers
 		((YYSTYPE *)valp)->m_str = newString(m_Regex);
 		break;
 	default:
