@@ -265,8 +265,10 @@ public:
 //! single-token query: regex
 class CQTokRegex : public CQToken {
 public:
-  CQTokRegex(const string &indexName=string(""), const string &regex=string(""))
-    : CQToken(indexName,regex)
+  bool m_bRegexNegated;
+public:
+  CQTokRegex(const string &indexName=string(""), const string &regex=string(""), bool negated=false)
+    : CQToken(indexName,regex), m_bRegexNegated(negated)
   {};
 
   virtual bool Create(CQueryTokenNode *pNode);

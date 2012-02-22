@@ -299,11 +299,11 @@ string CQTokExact::ValueString() {
 // CQTokRegex
 
 bool CQTokRegex::Create(CQueryTokenNode *pNode) {
-  return pNode->CreateRegexPattern(m_Compiler->m_pHolder, this->IndexName("Token"), m_Value);
+  return pNode->CreateRegexPattern(m_Compiler->m_pHolder, this->IndexName("Token"), m_Value, m_bRegexNegated);
 }
 
 string CQTokRegex::ValueString() {
-  return reString(m_Value);
+  return (m_bRegexNegated ? string("!") : string("")) + reString(m_Value);
 }
 
 //======================================================================

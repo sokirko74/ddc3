@@ -41,39 +41,40 @@
    enum yytokentype {
      SYMBOL = 258,
      REGEX = 259,
-     REGOPT = 260,
-     INTEGER = 261,
-     DATE = 262,
-     PREFIX = 263,
-     SUFFIX = 264,
-     INFIX = 265,
-     AT_LBRACE = 266,
-     COLON_LBRACE = 267,
-     STAR_LBRACE = 268,
-     RBRACE_STAR = 269,
-     EXPANDER = 270,
-     CNTXT = 271,
-     WITHIN = 272,
-     HAS_FIELD = 273,
-     FILENAMES_ONLY = 274,
-     GREATER_BY_RANK = 275,
-     LESS_BY_RANK = 276,
-     GREATER_BY_SIZE = 277,
-     LESS_BY_SIZE = 278,
-     IS_SIZE = 279,
-     GREATER_BY_DATE = 280,
-     LESS_BY_DATE = 281,
-     IS_DATE = 282,
-     GREATER_BY = 283,
-     LESS_BY = 284,
-     LESS_BY_LEFT = 285,
-     LESS_BY_RIGHT = 286,
-     DEBUG_RANK = 287,
-     RANDOM = 288,
-     OP_OR = 289,
-     OP_AND = 290,
-     NEAR = 291,
-     WITH = 292
+     NEG_REGEX = 260,
+     REGOPT = 261,
+     INTEGER = 262,
+     DATE = 263,
+     PREFIX = 264,
+     SUFFIX = 265,
+     INFIX = 266,
+     AT_LBRACE = 267,
+     COLON_LBRACE = 268,
+     STAR_LBRACE = 269,
+     RBRACE_STAR = 270,
+     EXPANDER = 271,
+     CNTXT = 272,
+     WITHIN = 273,
+     HAS_FIELD = 274,
+     FILENAMES_ONLY = 275,
+     GREATER_BY_RANK = 276,
+     LESS_BY_RANK = 277,
+     GREATER_BY_SIZE = 278,
+     LESS_BY_SIZE = 279,
+     IS_SIZE = 280,
+     GREATER_BY_DATE = 281,
+     LESS_BY_DATE = 282,
+     IS_DATE = 283,
+     GREATER_BY = 284,
+     LESS_BY = 285,
+     LESS_BY_LEFT = 286,
+     LESS_BY_RIGHT = 287,
+     DEBUG_RANK = 288,
+     RANDOM = 289,
+     OP_OR = 290,
+     OP_AND = 291,
+     NEAR = 292,
+     WITH = 293
    };
 #endif
 
@@ -94,7 +95,7 @@ typedef union YYSTYPE
 
 
 /* Line 1676 of yacc.c  */
-#line 98 "yyQParser.h"
+#line 99 "yyQParser.h"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */

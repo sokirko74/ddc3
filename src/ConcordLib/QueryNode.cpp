@@ -573,13 +573,13 @@ CQueryTokenNode::~CQueryTokenNode()
 };
 
 
-bool CQueryTokenNode::BuildRegExp(string RegExpStr, vector<DWORD>& IndexItems)
+bool CQueryTokenNode::BuildRegExp(string RegExpStr, vector<DWORD>& IndexItems, bool negated)
 {
 	RML_RE re(RegExpStr, m_pHolder->m_pIndexator->GetRegexOptions());
 	
 	const CStringIndexSet*  IndexSet =  m_pHolder->m_pIndexator->GetIndexByName(m_IndexName);
 	if (!IndexSet) return false;
-	IndexSet->QueryTokenListUsingRegExp(re, IndexItems);
+	IndexSet->QueryTokenListUsingRegExp(re, IndexItems, negated);
 	return true;
 };
 
@@ -675,7 +675,7 @@ bool CQueryTokenNode::CreateStringPattern(const CConcHolder* pHolder, const stri
 }
 
 //--------------------------------------------------------------
-bool CQueryTokenNode::CreateRegexPattern(const CConcHolder* pHolder, const string& IndexName, const string& Regex)
+bool CQueryTokenNode::CreateRegexPattern(const CConcHolder* pHolder, const string& IndexName, const string& Regex, bool negated)
 {
 	m_Source = string("$") + IndexName + "=/" + Regex + "/";
 	CStringIndexSet* pIndexSet = GetIndex(pHolder,IndexName);
@@ -683,7 +683,7 @@ bool CQueryTokenNode::CreateRegexPattern(const CConcHolder* pHolder, const strin
 		throw CExpc(errParseError,"Empty regular expression not allowed in query for index `%s'", IndexName.c_str());
 
 	m_IndexItems.clear();
-	return BuildRegExp(Regex, m_IndexItems);
+	return BuildRegExp(Regex, m_IndexItems, negated);
 };
 
 //--------------------------------------------------------------

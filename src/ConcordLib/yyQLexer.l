@@ -130,6 +130,13 @@ regex_modifier	[gimsx]
 (?i:\#greater_by)		{ return GREATER_BY; }
 (?i:\#random)			{ return RANDOM; }
 
+ /* regexes */
+\!\/{regex_text}\//{regex_modifier}	{ yytext+=2; yyleng-=3; BEGIN(Q_REGOPT); return NEG_REGEX; /* negated regex, +modifiers */ }
+\!\/{regex_text}\/			{ yytext+=2; yyleng-=3;                  return NEG_REGEX; /* negated regex, -modifiers */ }
+\/{regex_text}\//{regex_modifier}	{ yytext++; yyleng-=2; BEGIN(Q_REGOPT);  return REGEX; /* slash-quoted regex with modifiers */ }
+\/{regex_text}\/			{ yytext++; yyleng-=2;                   return REGEX; /* slash-quoted regex with no modifiers */ }
+<Q_REGOPT>{regex_modifier}+		{ BEGIN(INITIAL); return REGOPT; }
+
  /* punctuation */
 [\!\.\,\:\;\$\@\%\^\#\=]	{ return ((int)yytext[0]); /* single-character punctuation operators */ }
 [\[\]\{\}\(\)\<\>]		{ return ((int)yytext[0]); /* parentheses */ }
@@ -146,11 +153,6 @@ regex_modifier	[gimsx]
 
 \'[0-9\-]+\'			{ yytext++; yyleng-=2; return DATE; }
 [0-9\-]+/{int_boundary}		{ return DATE; }
-
- /* regexes */
-\/{regex_text}\//{regex_modifier}	{ yytext++; yyleng-=2; BEGIN(Q_REGOPT); return REGEX; /* slash-quoted regex with modifiers */ }
-\/{regex_text}\/			{ yytext++; yyleng-=2;                 return REGEX; /* slash-quoted regex with no modifiers */ }
-<Q_REGOPT>{regex_modifier}+		{ BEGIN(INITIAL); return REGOPT; }
 
  /* truncated symbols */
 "*"\'{sq_text}\'"*"		{ yytext+=2; yyleng-=4; return INFIX;  /* dual-truncated quoted string (infix symbol) */ }

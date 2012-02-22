@@ -92,14 +92,15 @@ void CStringIndexSet::QueryTokenListWithRightTruncation (const string& WordForm,
 	};
 };
 
-void CStringIndexSet::QueryTokenListUsingRegExp (RML_RE &RegExp, vector<DWORD>& MatchWords)	const
+void CStringIndexSet::QueryTokenListUsingRegExp (RML_RE &RegExp, vector<DWORD>& MatchWords, bool negated)	const
 {
 	size_t Count = m_Index.size();
 	for( size_t i=0; i<Count; i++ )
 	{
 		const char* str =  GetIndexItemStr(m_Index[i]);
+		bool  ismatch = RegExp.PartialMatch(str);
 
-		if(  RegExp.PartialMatch(str)  ) 
+		if ( negated ? (!ismatch) : ismatch )
 		{
 			if (MatchWords.size() > m_pParent->m_MaxRegExpExpansionSize)
 				break;

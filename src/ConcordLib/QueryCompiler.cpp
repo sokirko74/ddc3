@@ -256,6 +256,7 @@ int CQueryCompiler::yyqlex(void* valp)
 
 	switch (iRetVal) {
 	case REGEX:
+	case NEG_REGEX:
 		m_Regex = s;
 	case SYMBOL:
 	case INFIX:

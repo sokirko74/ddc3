@@ -130,7 +130,7 @@ public:
 	//! search for all strings, which start from  "WordForm", and add them to "MatchWords"
 	void	QueryTokenListWithRightTruncation (const string& WordForm, vector<DWORD>& MatchWords)	const;
 	//! search for all index items, which satisfy regular expession "RegExp", and add them to "MatchWords"
-	void	QueryTokenListUsingRegExp (RML_RE &RegExp, vector<DWORD>& MatchWords)	const;
+	void	QueryTokenListUsingRegExp (RML_RE &RegExp, vector<DWORD>& MatchWords, bool negated=false)	const;
 	//! print the string representation of the whole \ref storage_def "storage" to stdout
 	bool	DumpStorage() const;
 	//! print bigrams

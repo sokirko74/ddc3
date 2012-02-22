@@ -215,7 +215,7 @@ public:
 	bool CreateStringPattern(const CConcHolder* pHolder, const string& IndexName, const string& Value);
 
 	//! create pattern for matching literal index values (`$INDEX=/REGEX/' queries)
-	bool CreateRegexPattern(const CConcHolder* pHolder, const string& IndexName, const string& Regex);
+	bool CreateRegexPattern(const CConcHolder* pHolder, const string& IndexName, const string& Regex, bool negated=false);
 
 	//! create pattern for matching literal index values (`$INDEX=@{VAL1,...}' queries)
 	bool CreateSetPattern(const CConcHolder* pHolder, const string& IndexName, const set<string>& Values);
@@ -255,7 +255,7 @@ public:
 	bool CreateChunkPattern(const CConcHolder* pHolder, const string& IndexName, const string& ChunkTypeStr);
 
 	//! generic regex query utility
-	bool BuildRegExp(string RegExpStr, vector<DWORD>& IndexItems);
+	bool BuildRegExp(string RegExpStr, vector<DWORD>& IndexItems, bool negated=false);
 
 	void	EvaluateWithoutHits();
 	void	Evaluate();
