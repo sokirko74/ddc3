@@ -22,11 +22,11 @@
 <li>
 <a href="#terminals">Terminal Symbols</a><ul>
 <li><a href="#term_common">Common Definitions</a></li>
-<li><a href="#term_PUNCT">Punctutation Operators and Special Characters</a></li>
 <li><a href="#term_KEYWORD">Query Keywords</a></li>
+<li><a href="#term_REGEX">REGEX</a></li>
+<li><a href="#term_PUNCT">Punctutation Operators and Special Characters</a></li>
 <li><a href="#term_INTEGER">INTEGER</a></li>
 <li><a href="#term_DATE">DATE</a></li>
-<li><a href="#term_REGEX">REGEX</a></li>
 <li>
 <a href="#term_SYMBOL">SYMBOL</a><ul><li><a href="#escapes">Escapes</a></li></ul>
 </li>
@@ -461,6 +461,18 @@
 <td></td>
 <td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_s_index">s_index</a></span> <span class="ruleTerminal">=</span> <span class="ruleNonterminal"><a href="#rule_regex">regex</a></span> </td>
 <td class="ruleComment">/* ... on user-specified index */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_neg_regex">neg_regex</a></span> </td>
+<td class="ruleComment">/* ... on 'Token' index, negated */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_s_index">s_index</a></span> <span class="ruleTerminal">=</span> <span class="ruleNonterminal"><a href="#rule_neg_regex">neg_regex</a></span> </td>
+<td class="ruleComment">/* ... on user-specified index, negated */</td>
 </tr>
 <tr>
 <td></td>
@@ -1790,6 +1802,31 @@
 </tr>
 <tr></tr>
 <tr>
+<td><b><a name="rule_neg_regex">neg_regex</a></b></td>
+<td>::=</td>
+<td></td>
+<td class="ruleCommentTop">/* Negated regular expressions */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS1">
+<span class="ruleXTerminal"><a href="#term_NEG_REGEX">NEG_REGEX</a></span> </td>
+<td class="ruleComment">/* ... are slash-delimited in perl syntax, with leading '!' */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleXTerminal"><a href="#term_NEG_REGEX">NEG_REGEX</a></span> <span class="ruleXTerminal"><a href="#term_REGOPT">REGOPT</a></span> </td>
+<td class="ruleComment">/* ... and with optional modifiers (gimsx) */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td><b>;</b></td>
+</tr>
+<tr></tr>
+<tr>
 <td><b><a name="rule_integer">integer</a></b></td>
 <td>::=</td>
 <td></td>
@@ -1888,27 +1925,6 @@ regex_modifier	[gimsx]
 </pre>
 </div>
 <!--/terminals:common--><!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ --><div class="subsection">
-<h3><a name="term_PUNCT">Punctutation Operators and Special Characters</a></h3>
-<pre>
-"&amp;&amp;"				/* clause-level conjunction operator */
-"||"				/* clause-level disjunction operator */
-[\!\.\,\:\;\$\@\%\^\#\=]	/* single-character punctuation operators */
-[\[\]\{\}\(\)\&lt;\&gt;]		/* parentheses */
-[\"]				/* double quotes (for sequence queries) */
-":{"				/* thesaurus-query opener */
-"@{"				/* literal-set opener */
-"*{"				/* prefix- or infix-set opener */
-"}*"				/* suffix-set or infix-set closer */
-</pre>
-<p>
-	  The scanner supports the various punctuation operators used in
-	  the query <a href="#grammar">grammar</a>.
-
-	  Punctuation operators should be <a href="#escapes">escaped</a> if they occur anywhere in a literal
-	  <a href="#term_SYMBOL">symbol</a>, e.g. by enclosing the symbol in single quotes.
-	</p>
-</div>
-<!--/terminals:punctuation--><!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ --><div class="subsection">
 <h3><a name="term_KEYWORD">Query Keywords</a></h3>
 <pre>
 (?i:near)
@@ -1947,37 +1963,18 @@ regex_modifier	[gimsx]
 	  in a literal <a href="#term_SYMBOL">symbol</a>, e.g. by enclosing the symbol in single quotes.
 	</p>
 </div>
-<!--/terminals:keywords--><!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ --><div class="subsection">
-<h3><a name="term_INTEGER">INTEGER</a></h3>
-<pre>
-\'[0-9]+\'			/* single-quoted non-negative decimal integer */
-[0-9]+/{int_boundary}		/* bareword non-negative decimal integer */
-</pre>
-<p>
-	  The scanner supports non-negative integers in decimal notation, optionally
-	  enclosed by single quotes.  It may be necessary to introduce whitespace
-	  or quotes in order to separate an integer token from surrounding symbols.
-	</p>
-</div>
-<!--/terminals:integer--><!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ --><div class="subsection">
-<h3><a name="term_DATE">DATE</a></h3>
-<pre>
-\'[0-9\-]+\'			/* single-quoted date-like string */
-[0-9\-]+/{int_boundary}		/* bareword date-like string */
-</pre>
-</div>
-<p>
-	  The scanner supports date-like tokens in a superset of the ISO 8601 format
-	  (<i>YYYY-MM-DD</i>), optionally enclosed by single quotes.
-	</p>
-<!--/terminals:date--><!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ --><a name="term_REGOPT"></a><div class="subsection">
+<!--/terminals:keywords--><!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ --><a name="term_REGOPT"></a><a name="term_NEG_REGEX"></a><div class="subsection">
 <h3><a name="term_REGEX">REGEX</a></h3>
 <pre>
-\/{regex_text}\/{regex_modifier}*	/* slash-quoted regex, with option modifiers */
+   \/{regex_text}\/{regex_modifier}*	/* slash-quoted regex, with option modifiers */
+"!"\/{regex_text}\/{regex_modifier}*	/* negated regex (complement) */
 </pre>
 <p>
 	  The scanner supports regular expressions enclosed by forward slashes, with
-	  an optional suffix modifer string.
+	  an optional suffix modifer string.  If the expression is immediately
+	  preceded by an exclamation point ("!"), it is treated as a negated condition,
+	  and evaluates to the complement of the set of all index items matching
+	  the (non-negated) regular expression.
 	  DDC uses <a href="http://www.pcre.org">PCRE</a> as its underlying
 	  regular expression engine, which should support the full
 	  <a href="http://perldoc.perl.org/perlre.html">Perl regular expression syntax</a>.
@@ -1996,6 +1993,50 @@ regex_modifier	[gimsx]
 	</p>
 </div>
 <!--/terminals:regex--><!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ --><div class="subsection">
+<h3><a name="term_PUNCT">Punctutation Operators and Special Characters</a></h3>
+<pre>
+"&amp;&amp;"				/* clause-level conjunction operator */
+"||"				/* clause-level disjunction operator */
+[\!\.\,\:\;\$\@\%\^\#\=]	/* single-character punctuation operators */
+[\[\]\{\}\(\)\&lt;\&gt;]		/* parentheses */
+[\"]				/* double quotes (for sequence queries) */
+":{"				/* thesaurus-query opener */
+"@{"				/* literal-set opener */
+"*{"				/* prefix- or infix-set opener */
+"}*"				/* suffix-set or infix-set closer */
+</pre>
+<p>
+	  The scanner supports the various punctuation operators used in
+	  the query <a href="#grammar">grammar</a>.
+
+	  Punctuation operators should be <a href="#escapes">escaped</a> if they occur anywhere in a literal
+	  <a href="#term_SYMBOL">symbol</a>, e.g. by enclosing the symbol in single quotes.
+	</p>
+</div>
+<!--/terminals:punctuation--><!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ --><div class="subsection">
+<h3><a name="term_INTEGER">INTEGER</a></h3>
+<pre>
+\'[0-9]+\'			/* single-quoted non-negative decimal integer */
+  [0-9]+/{int_boundary}		/* bareword non-negative decimal integer */
+</pre>
+<p>
+	  The scanner supports non-negative integers in decimal notation, optionally
+	  enclosed by single quotes.  It may be necessary to introduce whitespace
+	  or quotes in order to separate an integer token from surrounding symbols.
+	</p>
+</div>
+<!--/terminals:integer--><!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ --><div class="subsection">
+<h3><a name="term_DATE">DATE</a></h3>
+<pre>
+\'[0-9\-]+\'			/* single-quoted date-like string */
+  [0-9\-]+/{int_boundary}		/* bareword date-like string */
+</pre>
+</div>
+<p>
+	  The scanner supports date-like tokens in a superset of the ISO 8601 format
+	  (<i>YYYY-MM-DD</i>), optionally enclosed by single quotes.
+	</p>
+<!--/terminals:date--><!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ --><div class="subsection">
 <h3><a name="term_SYMBOL">SYMBOL</a></h3>
 <pre>
 \'{sq_text}\'                   /* single-quoted symbol */
@@ -2080,11 +2121,11 @@ regex_modifier	[gimsx]
 <h3><a name="term_trunc">Truncated Symbols</a></h3>
 <pre>
 "*"\'{sq_text}\'"*"	/* dual-truncated quoted string (infix symbol) */
-\'{sq_text}\'"*"	/* right-truncated quoted string (prefix symbol) */
+   \'{sq_text}\'"*"	/* right-truncated quoted string (prefix symbol) */
 "*"\'{sq_text}\'	/* left-truncated quoted string (suffix symbol) */
 
 "*"{symbol_text}"*"	/* dual-truncated bare string (infix symbol) */
-{symbol_text}"*"	/* right-truncated bare string (prefix symbol) */
+   {symbol_text}"*"	/* right-truncated bare string (prefix symbol) */
 "*"{symbol_text}	/* left-truncated bare string (suffix symbol) */
 </pre>
 <p>
@@ -2561,7 +2602,7 @@ regex_modifier	[gimsx]
   </body></div>
 <div class="footers">
 <div class="footer_sig">
-<address><a href="mailto:jurish@bbaw.de">jurish@bbaw.de</a></address>Last modified: Wed, 12 Oct 2011 12:17:33 +0200</div>
+<address><a href="mailto:jurish@bbaw.de">jurish@bbaw.de</a></address>Last modified: Thu, 23 Feb 2012 13:35:53 +0100</div>
 <div class="footer_linkbar"><p class="nopad"><a class="navLink" href="/">Root</a><a class="navLink" href="./">Back</a><span class="navLinkDisabled">Help</span></p></div>
 <p class="dummy"></p>
 </div>

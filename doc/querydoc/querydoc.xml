@@ -265,6 +265,14 @@
 	      <t>=</t>
 	      <n>regex</n>
 	    </rhs>
+	    <rhs cmt="... on 'Token' index, negated">
+	      <n>neg_regex</n>
+	    </rhs>
+	    <rhs cmt="... on user-specified index, negated">
+	      <n>s_index</n>
+	      <t>=</t>
+	      <n>neg_regex</n>
+	    </rhs>
 	  </rule>
 
 	  <!--~~~~~~~~ RULES: qw_set_infl -->
@@ -969,6 +977,17 @@
 	    </rhs>
 	  </rule>
 
+	  <!--~~~~~~~~ RULES: neg_regex -->
+	  <rule lhs="neg_regex" cmt="Negated regular expressions">
+	    <rhs cmt="... are slash-delimited in perl syntax, with leading '!'">
+	      <xt>NEG_REGEX</xt>
+	    </rhs>
+	    <rhs cmt="... and with optional modifiers (gimsx)">
+	      <xt>NEG_REGEX</xt>
+	      <xt>REGOPT</xt>
+	    </rhs>
+	  </rule>
+
 	  <!--~~~~~~~~ RULES: integer -->
 	  <rule lhs="integer" cmt="Non-negative decimal integer">
 	    <rhs cmt="... parsed as an integer">
@@ -1033,29 +1052,6 @@ regex_modifier	[gimsx]
       <!--/terminals:common-->
 
       <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
-      <subsection name="term_PUNCT" title="Punctutation Operators and Special Characters">
-<pre>
-"&amp;&amp;"				/* clause-level conjunction operator */
-"||"				/* clause-level disjunction operator */
-[\!\.\,\:\;\$\@\%\^\#\=]	/* single-character punctuation operators */
-[\[\]\{\}\(\)\&lt;\&gt;]		/* parentheses */
-[\"]				/* double quotes (for sequence queries) */
-":{"				/* thesaurus-query opener */
-"@{"				/* literal-set opener */
-"*{"				/* prefix- or infix-set opener */
-"}*"				/* suffix-set or infix-set closer */
-</pre>
-	<p>
-	  The scanner supports the various punctuation operators used in
-	  the query <a href="#grammar">grammar</a>.
-
-	  Punctuation operators should be <a href="#escapes">escaped</a> if they occur anywhere in a literal
-	  <a href="#term_SYMBOL">symbol</a>, e.g. by enclosing the symbol in single quotes.
-	</p>
-      </subsection>
-      <!--/terminals:punctuation-->
-
-      <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
       <subsection name="term_KEYWORD" title="Query Keywords">
 <pre>
 (?i:near)
@@ -1097,41 +1093,19 @@ regex_modifier	[gimsx]
       <!--/terminals:keywords-->
 
       <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
-      <subsection name="term_INTEGER" title="INTEGER">
-<pre>
-\'[0-9]+\'			/* single-quoted non-negative decimal integer */
-[0-9]+/{int_boundary}		/* bareword non-negative decimal integer */
-</pre>
-	<p>
-	  The scanner supports non-negative integers in decimal notation, optionally
-	  enclosed by single quotes.  It may be necessary to introduce whitespace
-	  or quotes in order to separate an integer token from surrounding symbols.
-	</p>
-      </subsection>
-      <!--/terminals:integer-->
-
-      <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
-      <subsection name="term_DATE" title="DATE">
-<pre>
-\'[0-9\-]+\'			/* single-quoted date-like string */
-[0-9\-]+/{int_boundary}		/* bareword date-like string */
-</pre>
-      </subsection>
-	<p>
-	  The scanner supports date-like tokens in a superset of the ISO 8601 format
-	  (<i>YYYY-MM-DD</i>), optionally enclosed by single quotes.
-	</p>
-      <!--/terminals:date-->
-
-      <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
       <a name="term_REGOPT"/>
+      <a name="term_NEG_REGEX"/>
       <subsection name="term_REGEX" title="REGEX">
 <pre>
-\/{regex_text}\/{regex_modifier}*	/* slash-quoted regex, with option modifiers */
+   \/{regex_text}\/{regex_modifier}*	/* slash-quoted regex, with option modifiers */
+"!"\/{regex_text}\/{regex_modifier}*	/* negated regex (complement) */
 </pre>
 	<p>
 	  The scanner supports regular expressions enclosed by forward slashes, with
-	  an optional suffix modifer string.
+	  an optional suffix modifer string.  If the expression is immediately
+	  preceded by an exclamation point ("!"), it is treated as a negated condition,
+	  and evaluates to the complement of the set of all index items matching
+	  the (non-negated) regular expression.
 	  DDC uses <a href="http://www.pcre.org">PCRE</a> as its underlying
 	  regular expression engine, which should support the full
 	  <a href="http://perldoc.perl.org/perlre.html">Perl regular expression syntax</a>.
@@ -1150,6 +1124,56 @@ regex_modifier	[gimsx]
 	</p>
       </subsection>
       <!--/terminals:regex-->
+
+      <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+      <subsection name="term_PUNCT" title="Punctutation Operators and Special Characters">
+<pre>
+"&amp;&amp;"				/* clause-level conjunction operator */
+"||"				/* clause-level disjunction operator */
+[\!\.\,\:\;\$\@\%\^\#\=]	/* single-character punctuation operators */
+[\[\]\{\}\(\)\&lt;\&gt;]		/* parentheses */
+[\"]				/* double quotes (for sequence queries) */
+":{"				/* thesaurus-query opener */
+"@{"				/* literal-set opener */
+"*{"				/* prefix- or infix-set opener */
+"}*"				/* suffix-set or infix-set closer */
+</pre>
+	<p>
+	  The scanner supports the various punctuation operators used in
+	  the query <a href="#grammar">grammar</a>.
+
+	  Punctuation operators should be <a href="#escapes">escaped</a> if they occur anywhere in a literal
+	  <a href="#term_SYMBOL">symbol</a>, e.g. by enclosing the symbol in single quotes.
+	</p>
+      </subsection>
+      <!--/terminals:punctuation-->
+
+      <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+      <subsection name="term_INTEGER" title="INTEGER">
+<pre>
+\'[0-9]+\'			/* single-quoted non-negative decimal integer */
+  [0-9]+/{int_boundary}		/* bareword non-negative decimal integer */
+</pre>
+	<p>
+	  The scanner supports non-negative integers in decimal notation, optionally
+	  enclosed by single quotes.  It may be necessary to introduce whitespace
+	  or quotes in order to separate an integer token from surrounding symbols.
+	</p>
+      </subsection>
+      <!--/terminals:integer-->
+
+      <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+      <subsection name="term_DATE" title="DATE">
+<pre>
+\'[0-9\-]+\'			/* single-quoted date-like string */
+  [0-9\-]+/{int_boundary}		/* bareword date-like string */
+</pre>
+      </subsection>
+	<p>
+	  The scanner supports date-like tokens in a superset of the ISO 8601 format
+	  (<i>YYYY-MM-DD</i>), optionally enclosed by single quotes.
+	</p>
+      <!--/terminals:date-->
 
       <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
       <subsection name="term_SYMBOL" title="SYMBOL">
@@ -1199,11 +1223,11 @@ regex_modifier	[gimsx]
       <subsection name="term_trunc" title="Truncated Symbols">
 <pre>
 "*"\'{sq_text}\'"*"	/* dual-truncated quoted string (infix symbol) */
-\'{sq_text}\'"*"	/* right-truncated quoted string (prefix symbol) */
+   \'{sq_text}\'"*"	/* right-truncated quoted string (prefix symbol) */
 "*"\'{sq_text}\'	/* left-truncated quoted string (suffix symbol) */
 
 "*"{symbol_text}"*"	/* dual-truncated bare string (infix symbol) */
-{symbol_text}"*"	/* right-truncated bare string (prefix symbol) */
+   {symbol_text}"*"	/* right-truncated bare string (prefix symbol) */
 "*"{symbol_text}	/* left-truncated bare string (suffix symbol) */
 </pre>
 	<p>
