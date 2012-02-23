@@ -486,7 +486,7 @@ in a literal symbol, e.g. by enclosing the symbol in single quotes.
 
 
 
-=head3 REGEX
+=head3 Regular Expressions
 
     \/{regex_text}\/{regex_modifier}*	/* slash-quoted regex, with option modifiers */
  "!"\/{regex_text}\/{regex_modifier}*	/* negated regex (complement) */
@@ -534,10 +534,10 @@ symbol, e.g. by enclosing the symbol in single quotes.
 
 
 
-=head3 INTEGER
+=head3 Integers
 
- \'[0-9]+\'			/* single-quoted non-negative decimal integer */
-   [0-9]+/{int_boundary}		/* bareword non-negative decimal integer */
+ \'[0-9]+\'                      /* single-quoted non-negative decimal integer */
+   [0-9]+/{int_boundary}         /* bareword non-negative decimal integer */
 
 The scanner supports non-negative integers in decimal notation, optionally
 enclosed by single quotes.  It may be necessary to introduce whitespace
@@ -546,10 +546,10 @@ or quotes in order to separate an integer token from surrounding symbols.
 
 
 
-=head3 DATE
+=head3 Dates
 
  \'[0-9\-]+\'			/* single-quoted date-like string */
-   [0-9\-]+/{int_boundary}		/* bareword date-like string */
+   [0-9\-]+/{int_boundary}	/* bareword date-like string */
 
 
 
@@ -557,7 +557,7 @@ The scanner supports date-like tokens in a superset of the ISO 8601 format
 (YYYY-MM-DD), optionally enclosed by single quotes.
 
 
-=head3 SYMBOL
+=head3 Symbols and Barewords
 
  \'{sq_text}\'                   /* single-quoted symbol */
  {symbol_text}			/* bareword symbol */

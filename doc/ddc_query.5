@@ -536,8 +536,8 @@ are all valid instantiations of the query keyword
 Query keywords must be escaped if they occur anywhere
 in a literal symbol, e.g. by enclosing the symbol in single quotes.
 .PP
-\fI\s-1REGEX\s0\fR
-.IX Subsection "REGEX"
+\fIRegular Expressions\fR
+.IX Subsection "Regular Expressions"
 .PP
 .Vb 2
 \&    \e/{regex_text}\e/{regex_modifier}*   /* slash\-quoted regex, with option modifiers */
@@ -584,31 +584,31 @@ the query grammar.
 Punctuation operators should be escaped if they occur anywhere in a literal
 symbol, e.g. by enclosing the symbol in single quotes.
 .PP
-\fI\s-1INTEGER\s0\fR
-.IX Subsection "INTEGER"
+\fIIntegers\fR
+.IX Subsection "Integers"
 .PP
 .Vb 2
-\& \e\*(Aq[0\-9]+\e\*(Aq                     /* single\-quoted non\-negative decimal integer */
-\&   [0\-9]+/{int_boundary}                /* bareword non\-negative decimal integer */
+\& \e\*(Aq[0\-9]+\e\*(Aq                      /* single\-quoted non\-negative decimal integer */
+\&   [0\-9]+/{int_boundary}         /* bareword non\-negative decimal integer */
 .Ve
 .PP
 The scanner supports non-negative integers in decimal notation, optionally
 enclosed by single quotes.  It may be necessary to introduce whitespace
 or quotes in order to separate an integer token from surrounding symbols.
 .PP
-\fI\s-1DATE\s0\fR
-.IX Subsection "DATE"
+\fIDates\fR
+.IX Subsection "Dates"
 .PP
 .Vb 2
 \& \e\*(Aq[0\-9\e\-]+\e\*(Aq                   /* single\-quoted date\-like string */
-\&   [0\-9\e\-]+/{int_boundary}              /* bareword date\-like string */
+\&   [0\-9\e\-]+/{int_boundary}      /* bareword date\-like string */
 .Ve
 .PP
 The scanner supports date-like tokens in a superset of the \s-1ISO\s0 8601 format
 (YYYY-MM-DD), optionally enclosed by single quotes.
 .PP
-\fI\s-1SYMBOL\s0\fR
-.IX Subsection "SYMBOL"
+\fISymbols and Barewords\fR
+.IX Subsection "Symbols and Barewords"
 .PP
 .Vb 2
 \& \e\*(Aq{sq_text}\e\*(Aq                   /* single\-quoted symbol */

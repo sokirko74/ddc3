@@ -23,12 +23,12 @@
 <a href="#terminals">Terminal Symbols</a><ul>
 <li><a href="#term_common">Common Definitions</a></li>
 <li><a href="#term_KEYWORD">Query Keywords</a></li>
-<li><a href="#term_REGEX">REGEX</a></li>
+<li><a href="#term_REGEX">Regular Expressions</a></li>
 <li><a href="#term_PUNCT">Punctutation Operators and Special Characters</a></li>
-<li><a href="#term_INTEGER">INTEGER</a></li>
-<li><a href="#term_DATE">DATE</a></li>
+<li><a href="#term_INTEGER">Integers</a></li>
+<li><a href="#term_DATE">Dates</a></li>
 <li>
-<a href="#term_SYMBOL">SYMBOL</a><ul><li><a href="#escapes">Escapes</a></li></ul>
+<a href="#term_SYMBOL">Symbols and Barewords</a><ul><li><a href="#escapes">Escapes</a></li></ul>
 </li>
 <li><a href="#term_trunc">Truncated Symbols</a></li>
 <li><a href="#term_EXPANDER">Term Expander Pipelines</a></li>
@@ -1964,7 +1964,7 @@ regex_modifier	[gimsx]
 	</p>
 </div>
 <!--/terminals:keywords--><!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ --><a name="term_REGOPT"></a><a name="term_NEG_REGEX"></a><div class="subsection">
-<h3><a name="term_REGEX">REGEX</a></h3>
+<h3><a name="term_REGEX">Regular Expressions</a></h3>
 <pre>
    \/{regex_text}\/{regex_modifier}*	/* slash-quoted regex, with option modifiers */
 "!"\/{regex_text}\/{regex_modifier}*	/* negated regex (complement) */
@@ -2014,10 +2014,10 @@ regex_modifier	[gimsx]
 	</p>
 </div>
 <!--/terminals:punctuation--><!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ --><div class="subsection">
-<h3><a name="term_INTEGER">INTEGER</a></h3>
+<h3><a name="term_INTEGER">Integers</a></h3>
 <pre>
-\'[0-9]+\'			/* single-quoted non-negative decimal integer */
-  [0-9]+/{int_boundary}		/* bareword non-negative decimal integer */
+\'[0-9]+\'                      /* single-quoted non-negative decimal integer */
+  [0-9]+/{int_boundary}         /* bareword non-negative decimal integer */
 </pre>
 <p>
 	  The scanner supports non-negative integers in decimal notation, optionally
@@ -2026,10 +2026,10 @@ regex_modifier	[gimsx]
 	</p>
 </div>
 <!--/terminals:integer--><!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ --><div class="subsection">
-<h3><a name="term_DATE">DATE</a></h3>
+<h3><a name="term_DATE">Dates</a></h3>
 <pre>
 \'[0-9\-]+\'			/* single-quoted date-like string */
-  [0-9\-]+/{int_boundary}		/* bareword date-like string */
+  [0-9\-]+/{int_boundary}	/* bareword date-like string */
 </pre>
 </div>
 <p>
@@ -2037,7 +2037,7 @@ regex_modifier	[gimsx]
 	  (<i>YYYY-MM-DD</i>), optionally enclosed by single quotes.
 	</p>
 <!--/terminals:date--><!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ --><div class="subsection">
-<h3><a name="term_SYMBOL">SYMBOL</a></h3>
+<h3><a name="term_SYMBOL">Symbols and Barewords</a></h3>
 <pre>
 \'{sq_text}\'                   /* single-quoted symbol */
 {symbol_text}			/* bareword symbol */
@@ -2602,7 +2602,7 @@ regex_modifier	[gimsx]
   </body></div>
 <div class="footers">
 <div class="footer_sig">
-<address><a href="mailto:jurish@bbaw.de">jurish@bbaw.de</a></address>Last modified: Thu, 23 Feb 2012 13:35:53 +0100</div>
+<address><a href="mailto:jurish@bbaw.de">jurish@bbaw.de</a></address>Last modified: Thu, 23 Feb 2012 13:42:40 +0100</div>
 <div class="footer_linkbar"><p class="nopad"><a class="navLink" href="/">Root</a><a class="navLink" href="./">Back</a><span class="navLinkDisabled">Help</span></p></div>
 <p class="dummy"></p>
 </div>

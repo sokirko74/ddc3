@@ -1095,7 +1095,7 @@ regex_modifier	[gimsx]
       <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
       <a name="term_REGOPT"/>
       <a name="term_NEG_REGEX"/>
-      <subsection name="term_REGEX" title="REGEX">
+      <subsection name="term_REGEX" title="Regular Expressions">
 <pre>
    \/{regex_text}\/{regex_modifier}*	/* slash-quoted regex, with option modifiers */
 "!"\/{regex_text}\/{regex_modifier}*	/* negated regex (complement) */
@@ -1149,10 +1149,10 @@ regex_modifier	[gimsx]
       <!--/terminals:punctuation-->
 
       <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
-      <subsection name="term_INTEGER" title="INTEGER">
+      <subsection name="term_INTEGER" title="Integers">
 <pre>
-\'[0-9]+\'			/* single-quoted non-negative decimal integer */
-  [0-9]+/{int_boundary}		/* bareword non-negative decimal integer */
+\'[0-9]+\'                      /* single-quoted non-negative decimal integer */
+  [0-9]+/{int_boundary}         /* bareword non-negative decimal integer */
 </pre>
 	<p>
 	  The scanner supports non-negative integers in decimal notation, optionally
@@ -1163,10 +1163,10 @@ regex_modifier	[gimsx]
       <!--/terminals:integer-->
 
       <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
-      <subsection name="term_DATE" title="DATE">
+      <subsection name="term_DATE" title="Dates">
 <pre>
 \'[0-9\-]+\'			/* single-quoted date-like string */
-  [0-9\-]+/{int_boundary}		/* bareword date-like string */
+  [0-9\-]+/{int_boundary}	/* bareword date-like string */
 </pre>
       </subsection>
 	<p>
@@ -1176,7 +1176,7 @@ regex_modifier	[gimsx]
       <!--/terminals:date-->
 
       <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
-      <subsection name="term_SYMBOL" title="SYMBOL">
+      <subsection name="term_SYMBOL" title="Symbols and Barewords">
 <pre>
 \'{sq_text}\'                   /* single-quoted symbol */
 {symbol_text}			/* bareword symbol */
