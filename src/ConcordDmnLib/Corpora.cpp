@@ -987,31 +987,23 @@ void LoadLocalCorpora (ProtocolDensityEnum ProtocolDensity, string ConfigFile)
 
 	concord_daemon_log ( Format("  Found %i Hosts ", Hosts.size()) );
 	LocalCorpora.clear();
-	
-	for (int i = 0; i<Hosts.size(); i++)
-	{
 
-		CDDCCorpusListenHost H(true, ProtocolDensity);
-		H.CopyAddressParametersFrom(Hosts[i]);
-        if (!H.LoadHolder())
-            return;
-		LocalCorpora.push_back(H);
-	};
-
-	
-	try {
-
-		for (int i = 0; i<LocalCorpora.size(); i++)
-		{
+	try {	
+		for (int i = 0; i<Hosts.size(); i++) {
+			CDDCCorpusListenHost H(true, ProtocolDensity);
+			H.CopyAddressParametersFrom(Hosts[i]);
+			if (!H.LoadHolder())
+				throw CExpc(errOther, "LoadHolder() failed for host %d", i);
+			LocalCorpora.push_back(H);
+		}
+		for (int i = 0; i<LocalCorpora.size(); i++) {
 			CDDCCorpusListenHost& H = LocalCorpora[i];
-			LocalCorpora[i].CreateListener();
-		};
+			H.CreateListener();
+		}
 	}
-	catch (...)
-	{
-		concord_daemon_log ( "Error! An exception occured while creating listeners! ");
-		return;
-	};
+	catch (CExpc     &e) { concord_daemon_log( Format("LoadLocalCorpora(): Exception[%d]: %s", e.code(), e.what()) ); throw; }
+	catch (exception &e) { concord_daemon_log( Format("LoadLocalCorpora(): Exception: %s", e.what()) ); throw; }
+	catch (...)          { concord_daemon_log( "LoadLocalCorpora(): Exception: unhandled exception" ); throw; }
 };
 
 void LoadDDCServer (ProtocolDensityEnum ProtocolDensity, string ServerConfigFile)

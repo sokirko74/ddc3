@@ -27,7 +27,8 @@
 
 //----------------------------------------------------------------------
 // Globals
-string LockFileName;
+string LockFileName; //-- lock file: stores pid of running server, indicates whether server *should* be running
+string WaitFileName; //-- wait file: created by main process, removed by server when it is ready: absence indicates that the server is really running
 ProtocolDensityEnum ProtocolDensity;
 string CorporaFile;
 string ServerCorporaFile;
@@ -56,11 +57,30 @@ void PrintUsage()
 };
 
 
-
-void RemoveLockFile()
+void RemoveFile(const string& filename)
 {
-	if (!LockFileName.empty() && access(LockFileName.c_str(), W_OK)==0)
-		remove(LockFileName.c_str());
+	if (!filename.empty() && access(filename.c_str(), W_OK)==0)
+		remove(filename.c_str());
+}
+
+void RemoveLockFiles()
+{
+	RemoveFile(LockFileName);
+	RemoveFile(WaitFileName);
+}
+
+void RemoveLockFile() { RemoveFile(LockFileName); }
+void RemoveWaitFile() { RemoveFile(WaitFileName); }
+
+
+void CreateWaitFile()
+{
+	if (!WaitFileName.empty()) {
+		FILE *fp = fopen(WaitFileName.c_str(), "w");
+		if (fp==NULL)
+			throw( CExpc("could not open wait file `%s': %s", WaitFileName.c_str(), strerror(errno)) );
+		fclose(fp);
+	}
 }
 
 
@@ -83,6 +103,7 @@ void  termination_handler(int signum)
 };
 
 int puke(const std::string& msg) {
+	fprintf(stdout, msg.c_str());
 	syslog(LOG_ALERT, msg.c_str());
 	concord_daemon_log(msg.c_str());
 	UnloadData();
@@ -133,10 +154,10 @@ int do_stop(void)
 // start
 int do_start(bool clientMode=false)
 {
+      try {
 	string startmsg = Format("Starting ddc_daemon v" PACKAGE_VERSION " in %s %s mode",
 				 (doFork ? "forked" : "unforked"),
 				 (clientMode ? "client" : "server"));
-
 	concord_daemon_log_stderr=log_stderr;
 	concord_daemon_log(startmsg);
 	if (!log_stderr) fprintf(stderr, "%s\n", startmsg.c_str());
@@ -152,16 +173,26 @@ int do_start(bool clientMode=false)
 
 	if (!clientMode) {		
 		// running as a daemon
-		int	fd;
-		int	i;
+		int fd, i;
 		struct rlimit flim;
+
 		if (getppid()!=1) {
 			signal(SIGTTOU,SIG_IGN);
 			signal(SIGTTIN,SIG_IGN);
 			signal(SIGTSTP,SIG_IGN);
 			if (doFork) {
+				CreateWaitFile();
 				int fpid = fork();
+				int max_wait = 10;
 				if (fpid != 0) {
+					for (i=0; i<10 && FileExists(WaitFileName.c_str()); ++i){
+						//fprintf(stderr, "wait-file `%s' still exists after %d seconds... sleeping\n", WaitFileName.c_str(), i);
+						sleep(1);
+					}
+					if (FileExists(WaitFileName.c_str())) {
+						fprintf(stderr, "%s: wait-file `%s' still exists after %d seconds: aborting\n", prog, WaitFileName.c_str(), max_wait);
+						abort();
+					}
 					fprintf(stderr, "spawned server process on pid=%d\n", fpid);
 					exit(0);
 				} else {
@@ -172,72 +203,76 @@ int do_start(bool clientMode=false)
 			}
 		}
 
+		//-- close all open filehandles (forking mode only)
 		if (doFork) {
 		  getrlimit(RLIMIT_NOFILE, &flim);
 		  for(fd=0;fd<flim.rlim_max;fd++)
 		    close(fd);
 		}
-		//chdir("/"); //-- wtf?!
 		openlog("ddc_daemon Server",	LOG_PID| LOG_CONS, LOG_DAEMON );
 	}
 
-	try {
-		syslog(LOG_ALERT, "Open	lock file `%s'\n", LockFileName.c_str());
-		FILE* fp = fopen (LockFileName.c_str(),	"w");
-		if (!fp)
+
+	syslog(LOG_ALERT, "Open	lock file `%s'\n", LockFileName.c_str());
+	FILE* fp = fopen (LockFileName.c_str(),	"w");
+	if (!fp)
 		{
 			syslog(LOG_ALERT, "Cannot open lock-file `%s': %s\n",	LockFileName.c_str(), strerror(errno));
 			return 1;
 		};
-		fprintf(fp, "%i", getpid());
-		fclose (fp);
-		concord_daemon_log (Format("Wrote PID=%i to lock-file `%s'", getpid(), LockFileName.c_str()));
+	fprintf(fp, "%i", getpid());
+	fclose (fp);
+	concord_daemon_log (Format("Wrote PID=%i to lock-file `%s'", getpid(), LockFileName.c_str()));
 
-		concord_daemon_log ("SocketInitialize");
-		SocketInitialize(false);
+	concord_daemon_log ("SocketInitialize");
+	SocketInitialize(false);
 
-		concord_daemon_log ("InitLemmatizers");
-		if (!InitConcordDicts())
+	concord_daemon_log ("InitLemmatizers");
+	if (!InitConcordDicts())
 		{
-			syslog(LOG_ALERT, "Cannot load Morhology\n");
-			concord_daemon_log ("Cannot load Morhology");
+			syslog(LOG_ALERT, "Cannot load Morphology\n");
+			concord_daemon_log ("Cannot load Morphology");
 			SocketDeinitialize();
 			return 1;
 		
 		}
 
-		concord_daemon_log (string("LoadCorpora (CWD=") + CurrentDirectory() + ")");
-		LoadLocalCorpora(ProtocolDensity, CorporaFile);
+	concord_daemon_log (string("LoadCorpora (CWD=") + CurrentDirectory() + ")");
+	LoadLocalCorpora(ProtocolDensity, CorporaFile);
 
-		concord_daemon_log ("LoadServer");
-		LoadDDCServer(ProtocolDensity, ServerCorporaFile);
+	concord_daemon_log ("LoadServer");
+	LoadDDCServer(ProtocolDensity, ServerCorporaFile);
 
-		if (signal (SIGTERM, termination_handler) == SIG_IGN)
-			signal (SIGTERM, SIG_IGN);
-		if (signal (SIGINT, termination_handler) == SIG_IGN)
-			signal (SIGINT, SIG_IGN);
+	if (signal (SIGTERM, termination_handler) == SIG_IGN)
+		signal (SIGTERM, SIG_IGN);
+	if (signal (SIGINT, termination_handler) == SIG_IGN)
+		signal (SIGINT, SIG_IGN);
 
-		if (Action == "start_cli")
-			fprintf	(stderr, "\nWaiting for accept...\n");
-
-		while (1)
-		{
-			sleep(40);
-		}
-	}
-	catch (CExpc& e) {
-		return puke(Format("Exception[%d]: %s", e.code(), e.what()));
-	}
-	catch (exception &e) {
-		return puke(Format("Exception: %s", e.what()));
-	}
-	catch (...) {
-		return puke("Exception: (unhandled exception)");
+	if (clientMode)
+		fprintf	(stderr, "\nWaiting for accept...\n");
+	else {
+		//-- remove the wait-file to let the caller know we've started up ok
+		sleep(1);
+		RemoveWaitFile();
 	}
 
-	RemoveLockFile();
-	SocketDeinitialize();	
-	return 0;
+	while (1) {
+		sleep(40);
+	}
+      }
+      catch (CExpc& e) {
+	      return puke(Format("Exception[%d]: %s", e.code(), e.what()));
+      }
+      catch (exception &e) {
+	      return puke(Format("Exception: %s", e.what()));
+      }
+      catch (...) {
+	      return puke("Exception: (unhandled exception)");
+      }
+
+      RemoveLockFile();
+      SocketDeinitialize();	
+      return 0;
 }
 
 
@@ -350,9 +385,8 @@ int	main(int argc, char	**argv)
 		exit(1);
 	};
 
-	LockFileName = MakeFName(CorporaFile,"ddc_lck");;
-	
-
+	LockFileName = MakeFName(CorporaFile,"ddc_lck");
+	WaitFileName = MakeFName(CorporaFile,"ddc_wait");
 
 	
 	if (		(Action	!= "start")

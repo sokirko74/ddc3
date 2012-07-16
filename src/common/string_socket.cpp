@@ -312,10 +312,10 @@ SOCKET create_socket (const char* HostName, int Port, bool bBind, string& strErr
 		hints.ai_flags = AI_PASSIVE;
 	hints.ai_family = PF_UNSPEC;
 	hints.ai_socktype = SOCK_STREAM;
-	error = getaddrinfo(HostName, Format("%i",Port).c_str(), &hints, &res0); 
+	error = getaddrinfo(HostName, Format("%i",Port).c_str(), &hints, &res0);
 	if (error) {
 		strError = Format("Socket Error! %s", gai_strerror(error)); /*NOTREACHED*/
-		return -1;
+		throw CExpc(errRuntime, strError);
 	}
 	l_socket = -1;
 	string cause  = "no addresses";
@@ -634,7 +634,7 @@ void   CHost::RunThread()
 		m_ListenSocket = -1;
 	}
 
-	m_LogFunction ("waiting for accept");
+	m_LogFunction ( Format("CHost on %s:%d waiting for accept", m_HostName.c_str(), m_Port) );
 	size_t NumberOfSocketAccepts = 0;
 	for (;;)
 	{
@@ -725,6 +725,7 @@ void   CHost::RunThread()
 #endif
 {
 	CHost* pHost = (CHost* )pParam;
+    try {
 
 	#ifdef WIN32
 		CoInitialize(NULL);
@@ -737,6 +738,15 @@ void   CHost::RunThread()
 	}
 	else
 		pHost->m_LogFunction("Service could invoke AfxSocketInit()");
+    }
+    catch (exception &e) {
+	    pHost->m_LogFunction( Format("ListenerThread[%s:%d]: Exception: %s", pHost->HostName().c_str(), pHost->Port(), e.what()) );
+	    throw;
+    }
+    catch (...) {
+	    pHost->m_LogFunction( Format("ListenerThread[%s:%d]: Exception: (unhandled exception)", pHost->HostName().c_str(), pHost->Port()) );
+	    throw;
+    }
 	
 
 	#ifdef WIN32 

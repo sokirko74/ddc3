@@ -85,6 +85,9 @@ public:
 	int			CreateAndConnectSocket(string& strError) const;
 	string			GetAddressStr() const;
 	const string&		GetLocalPathOfIndex() const;
+
+	inline const string&	HostName() const { return m_HostName; };
+	inline const int	Port() const { return m_Port; };
 };
 
 extern string GetNetworkErrorString(const NetworkErrorsEnum& t);
