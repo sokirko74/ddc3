@@ -183,16 +183,7 @@ int do_start(bool clientMode=false)
 			if (doFork) {
 				CreateWaitFile();
 				int fpid = fork();
-				int max_wait = 10;
 				if (fpid != 0) {
-					for (i=0; i<10 && FileExists(WaitFileName.c_str()); ++i){
-						//fprintf(stderr, "wait-file `%s' still exists after %d seconds... sleeping\n", WaitFileName.c_str(), i);
-						sleep(1);
-					}
-					if (FileExists(WaitFileName.c_str())) {
-						fprintf(stderr, "%s: wait-file `%s' still exists after %d seconds: aborting\n", prog, WaitFileName.c_str(), max_wait);
-						abort();
-					}
 					fprintf(stderr, "spawned server process on pid=%d\n", fpid);
 					exit(0);
 				} else {
