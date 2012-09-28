@@ -314,6 +314,7 @@ void CConcHolder::ShowBibliographyForTextOrHtml(const CHit& Hit, DWORD PageNumbe
 			m_QueryResultStr += Format(" %s ### ",DebugInfo);
 		}
 
+#if 0 /*-- incompatible with v1.x --*/
 		//-- index list / text
 		for (vector<size_t>::const_iterator fi = m_pIndexator->m_IndicesToShow.begin(); fi != m_pIndexator->m_IndicesToShow.end(); fi++) {
 			const CStringIndexSet& I = *m_pIndexator->m_Indices[*fi];
@@ -321,6 +322,7 @@ void CConcHolder::ShowBibliographyForTextOrHtml(const CHit& Hit, DWORD PageNumbe
 			m_QueryResultStr += I.m_ShortName;
 		}
 		m_QueryResultStr += " ### ";
+#endif
 	}
 	
 };
