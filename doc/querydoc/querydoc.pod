@@ -3,13 +3,13 @@
 =head2 Overview
 
 This documentation describes the query language accepted by
-DDC version 1.80.dx-1.  Current sources for DDC should be available
-in SVN under
-svn+ssh://odo.dwds.de/home/svn/dev/ddc/trunk.
+DDC version 2.0.2.  Current sources for DDC should be available
+from
+http://sourceforge.net/projects/ddc-concordance.
 
 
 The DDC query parsing, compilation, and evaluation code was
-re-written for version 1.80.dx-1.  The new query parser should be
+re-written for version 2.0.  The new query parser should be
 largely compatible with older DDC versions; incompatibilities are
 due to new query sub-types (e.g. value sets)
 and/or bugfixes (symbol and regex escapes, quoted symbols, etc.).
