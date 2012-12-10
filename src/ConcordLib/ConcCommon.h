@@ -158,7 +158,7 @@ struct CDDCFilterWithBounds
 
 	//!  true, if DDC  should use CDDCFilterWithBounds::m_SatisfiedValues, false, if DDC should use CDDCFilterWithBounds::m_LevelStart and CDDCFilterWithBounds::m_LevelEnd slots
 	bool			m_bRegExp;
-  	bool			m_bNegated;  ///< ... for negated regexes
+  	bool			m_bNegated;  ///< ... for negated filters (WIP)
 
 	//!  the lower bound of the filter (by default INT_MIN), valid only m_bRegExp==false
 	int				m_LevelStart;

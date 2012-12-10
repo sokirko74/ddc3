@@ -412,15 +412,15 @@ void CConcXml::CFreeBiblStringIndex::CreateUnion (string Path, const CFreeBiblIn
 bool CConcXml::CFreeBiblStringIndex::GetValueForDDCFilter (const RML_RE::Options &RegexOpts, string Value, CDDCFilterWithBounds& Filter, bool isRegex) const
 {
 	if (Value.empty()) return true;
-	if (!isRegex && Value[0] == '*')
-		return GetValueForDDCFilter(RegexOpts, string(".")+escapeRegex(Value), Filter, true);
 
-	if (isRegex) {
-		Filter.m_bRegExp = true;
-        	RML_RE re(Value, RegexOpts);
+	if (Filter.m_bNegated) {
+		//-- negated filter (black-list): treat as regex
+		string reValue(isRegex ? Value : (string("^\\Q") + Value + "\\E$"));
+		RML_RE re(reValue, RegexOpts);
 		size_t Count = m_Values.size();
+		Filter.m_bRegExp = true;
 		for( size_t i=0; i<Count; i++ ) {
-			if(  re.PartialMatch(m_Values[i])  ) 
+			if( !re.PartialMatch(m_Values[i]) )
 				Filter.m_SatisfiedValues.insert(i);
 		}
 		if (Filter.m_SatisfiedValues.empty()) {
@@ -432,33 +432,44 @@ bool CConcXml::CFreeBiblStringIndex::GetValueForDDCFilter (const RML_RE::Options
 			set<int>::const_iterator it = Filter.m_SatisfiedValues.end();
 			it--;
 			Filter.m_LevelEnd = (*it)+1;
-		};
-		return true;
-	}
-	else if (Value[Value.length() -1 ] == '*') {
-		Value.erase(Value.end() - 1);
-		vector<string>::const_iterator it =  lower_bound(m_Values.begin(), m_Values.end(), Value);
-		Filter.m_LevelStart = it-m_Values.begin();
-		while (	(it != m_Values.end()) && (it->substr(0, Value.length()) == Value))
-			it++;
-		Filter.m_LevelEnd = it-m_Values.begin();
+		}
 	}
 	else {
-		vector<string>::const_iterator it =  lower_bound(m_Values.begin(), m_Values.end(), Value);
-		if (		(it == m_Values.end())
-				||	(*it  != Value)
-			)
-		{
-			Filter.m_LevelStart = 0;
-			Filter.m_LevelEnd = 0;
+		//-- assertive filter (white-list)
+		if (isRegex) {
+			//-- assertive filter: regex
+			Filter.m_bRegExp = true;
+			RML_RE re(Value, RegexOpts);
+			size_t Count = m_Values.size();
+			for( size_t i=0; i<Count; i++ ) {
+				if(  re.PartialMatch(m_Values[i])  ) 
+					Filter.m_SatisfiedValues.insert(i);
+			}
+			if (Filter.m_SatisfiedValues.empty()) {
+				Filter.m_LevelStart = 0;
+				Filter.m_LevelEnd = 0;
+			}
+			else {
+				Filter.m_LevelStart = *Filter.m_SatisfiedValues.begin();
+				set<int>::const_iterator it = Filter.m_SatisfiedValues.end();
+				it--;
+				Filter.m_LevelEnd = (*it)+1;
+			}
 		}
-		else
-		{
-			Filter.m_LevelStart = it-m_Values.begin();
-			it++;
-			Filter.m_LevelEnd = it-m_Values.begin();
-		};
-	};
+		else {
+			//-- assertive filter: literal
+			vector<string>::const_iterator it =  lower_bound(m_Values.begin(), m_Values.end(), Value);
+			if ( (it == m_Values.end()) || (*it  != Value) ) {
+				Filter.m_LevelStart = 0;
+				Filter.m_LevelEnd = 0;
+			}
+			else {
+				Filter.m_LevelStart = it-m_Values.begin();
+				it++;
+				Filter.m_LevelEnd = it-m_Values.begin();
+			}
+		}
+	}
 	return true;
 };
 

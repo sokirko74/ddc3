@@ -267,6 +267,12 @@ q_filter:
 qf_has_field:
 		HAS_FIELD '[' symbol ',' symbol ']'	{ $$ = new CQFHasFieldValue(*$3,*$5); }
 	|	HAS_FIELD '[' symbol ',' regex ']'	{ $$ = new CQFHasFieldRegex(*$3,*$5); }
+	|	HAS_FIELD '[' symbol ',' neg_regex ']'	{ $$ = new CQFHasFieldRegex(*$3,*$5,true); }
+	|	HAS_FIELD '[' symbol ',' s_prefix ']'	{ $$ = new CQFHasFieldPrefix(*$3,*$5); }
+	|	HAS_FIELD '[' symbol ',' s_suffix ']'	{ $$ = new CQFHasFieldSuffix(*$3,*$5); }
+	|	HAS_FIELD '[' symbol ',' s_infix ']'	{ $$ = new CQFHasFieldInfix(*$3,*$5); }
+	|	HAS_FIELD '[' symbol ',' '{' l_set '}' ']'	{ $$ = new CQFHasFieldSet(*$3,_qc->m_WordSet); }
+	|	'!' qf_has_field 				{ $$ = $2; ((CQFHasFieldValue*)$$)->Negate(); }
 	;
 
 qf_rank_sort:

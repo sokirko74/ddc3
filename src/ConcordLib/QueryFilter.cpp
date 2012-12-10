@@ -26,14 +26,14 @@
 
 static const char *HitSortNames[11] = {
   "no_sort",
-  "less_by_date",
-  "greater_by_date",
-  "less_by_size",
-  "greater_by_size",
-  "less_by",
-  "greater_by",
-  "less_by_rank",
-  "greater_by_rank",
+  "asc_by_date",
+  "desc_by_date",
+  "asc_by_size",
+  "desc_by_size",
+  "asc",
+  "desc",
+  "asc_by_rank",
+  "desc_by_rank",
   "left",
   "right",
 };
@@ -253,6 +253,11 @@ bool CQFBigramSort::Compile(CQueryCompiler *compiler)
 //======================================================================
 // CQFHasFieldValue
 
+void CQFHasFieldValue::Negate(void)
+{
+  m_Negated = !m_Negated;
+}
+
 bool CQFHasFieldValue::Compile(CQueryCompiler *compiler)
 {
   if (m_arg0.empty())
@@ -261,6 +266,7 @@ bool CQFHasFieldValue::Compile(CQueryCompiler *compiler)
   if (m_arg1.empty())
     throw CExpc(errParseError,"Empty value field not allowed in filter operator `%s'", toString().c_str());
 
+  m_Filter.m_bNegated = m_Negated;
   CConcIndexator *ix = compiler->m_pHolder->m_pIndexator;
   if (!ix->m_Bibl.GetValueFromBiblSet(ix->GetRegexOptions(), m_arg1, m_Filter, m_Filter.m_bRegExp))
     throw CExpc(errParseError,"Can't compile filter restriction `%s'", toString().c_str());
@@ -268,12 +274,16 @@ bool CQFHasFieldValue::Compile(CQueryCompiler *compiler)
   return CQFSort::Compile(compiler);
 }
 
+std::string CQFHasFieldValue::negString()
+{
+  return std::string(m_Negated ? "!" : "");
+}
+
 string CQFHasFieldValue::toString()
 {
   return 
-    //string("#HAS_FIELD")
-    string("#HAS")
-    + "["
+    negString()
+    + "#HAS["
     + sqString(m_Filter.m_FreeBiblAttribName)
     + ","
     + sqString(m_arg1)
@@ -286,11 +296,92 @@ string CQFHasFieldValue::toString()
 string CQFHasFieldRegex::toString()
 {
   return
-    //string("#HAS_FIELD")
-    string("#HAS")
-    + "["
+    negString()
+    + "#HAS["
     + sqString(m_Filter.m_FreeBiblAttribName)
     + ","
     + reString(m_arg1)
     + "]";
 }
+
+//======================================================================
+// CQFHasFieldPrefix
+
+string CQFHasFieldPrefix::toString()
+{
+  return
+    negString()
+    + "#HAS["
+    + sqString(m_Filter.m_FreeBiblAttribName)
+    + ","
+    + sqString(m_prefix) + "*"
+    + "]";
+}
+
+//======================================================================
+// CQFHasFieldSuffix
+
+string CQFHasFieldSuffix::toString()
+{
+  return
+    negString()
+    + "#HAS["
+    + sqString(m_Filter.m_FreeBiblAttribName)
+    + ","
+    + "*" + sqString(m_suffix)
+    + "]";
+}
+
+//======================================================================
+// CQFHasFieldInfix
+
+string CQFHasFieldInfix::toString()
+{
+  return
+    negString()
+    + "#HAS["
+    + sqString(m_Filter.m_FreeBiblAttribName)
+    + ","
+    + "*" + sqString(m_infix) + "*"
+    + "]";
+}
+
+//======================================================================
+// CQFHasFieldSet
+
+bool CQFHasFieldSet::Compile(CQueryCompiler *compiler)
+{
+  //if (m_Values.empty()) throw CExpc(errParseError,"Empty value set not allowed in filter operator `%s'", toString().c_str());
+
+  m_arg1 = "^(?:";
+  for (set<string>::const_iterator vi = m_Values.begin(); vi != m_Values.end(); vi++) {
+    if (vi != m_Values.begin()) m_arg1 += "|";
+    m_arg1 += "\\Q" + *vi + "\\E";
+  }
+  m_arg1 += ")$";
+
+  return CQFHasFieldValue::Compile(compiler);
+}
+
+string CQFHasFieldSet::SetValueString(const set<string> &values)
+{
+  string s("");
+  for (set<string>::const_iterator vi=values.begin(); vi != values.end(); vi++) {
+    if (!s.empty()) s.push_back(',');
+    s += sqString(*vi);
+  }
+  return s;
+}
+
+string CQFHasFieldSet::toString()
+{
+  return
+    negString()
+    + "#HAS["
+    + sqString(m_Filter.m_FreeBiblAttribName)
+    + ","
+    + "{" + SetValueString() + "}"
+    + "]";
+}
+
+

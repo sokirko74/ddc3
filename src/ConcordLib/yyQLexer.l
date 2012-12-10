@@ -114,21 +114,21 @@ regex_modifier	[gimsx]
 (?i:\#cntxt)			{ return CNTXT; }
 (?i:\#within)			{ return WITHIN; }
 (?i:\#has(_field)?)		{ return HAS_FIELD; }
-(?i:\#file_names|\#filenames)	{ return FILENAMES_ONLY; }
+(?i:\#file(_?)names)		{ return FILENAMES_ONLY; }
 (?i:\#debug_rank)		{ return DEBUG_RANK; }
-(?i:\#greater_by_rank)		{ return GREATER_BY_RANK; }
-(?i:\#less_by_rank)		{ return LESS_BY_RANK; }
-(?i:\#greater_by_date)		{ return GREATER_BY_DATE; }
-(?i:\#less_by_date)		{ return LESS_BY_DATE; }
-(?i:\#is_date)			{ return IS_DATE; }
-(?i:\#greater_by_size)		{ return GREATER_BY_SIZE; }
-(?i:\#less_by_size)		{ return LESS_BY_SIZE; }
-(?i:\#is_size)			{ return IS_SIZE; }
-(?i:\#(less_by_)?left)		{ return LESS_BY_LEFT; }
-(?i:\#(less_by_)?right)		{ return LESS_BY_RIGHT; }
-(?i:\#less_by)			{ return LESS_BY; }
-(?i:\#greater_by)		{ return GREATER_BY; }
-(?i:\#random)			{ return RANDOM; }
+(?i:\#(greater|de?sc)(_by)?_rank)	{ return GREATER_BY_RANK; }
+(?i:\#(less|asc)(_by)?_rank)		{ return LESS_BY_RANK; }
+(?i:\#(greater|de?sc)(_by)?_date)	{ return GREATER_BY_DATE; }
+(?i:\#(less|asc)(_by)?_date)		{ return LESS_BY_DATE; }
+(?i:\#(is_)?date)			{ return IS_DATE; }
+(?i:\#(greater|de?sc)(_by)?_size)	{ return GREATER_BY_SIZE; }
+(?i:\#(less|asc)(_by)?_size)		{ return LESS_BY_SIZE; }
+(?i:\#(is_)?size)			{ return IS_SIZE; }
+(?i:\#((less|asc)(_by)?)?left)		{ return LESS_BY_LEFT; }
+(?i:\#((less|asc)(_by)?)?right)		{ return LESS_BY_RIGHT; }
+(?i:\#(less|asc)(_by)?)			{ return LESS_BY; }
+(?i:\#(greater|de?sc)(_by)?)		{ return GREATER_BY; }
+(?i:\#random)				{ return RANDOM; }
 
  /* regexes */
 \!\/{regex_text}\//{regex_modifier}	{ yytext+=2; yyleng-=3; BEGIN(Q_REGOPT); return NEG_REGEX; /* negated regex, +modifiers */ }

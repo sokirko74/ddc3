@@ -11,7 +11,7 @@
     <section name="overview" title="Overview">
       <p>
 	This documentation describes the query language accepted by
-	DDC version 2.0.2.  Current sources for DDC should be available
+	DDC version 2.0.4.  Current sources for DDC should be available
 	from
 	<!--<a href="http://odo.dwds.de/code/viewvc.cgi/ddc/trunk/?root=dev">svn+ssh://odo.dwds.de/home/svn/dev/ddc/trunk</a>.-->
 	<a href="http://sourceforge.net/projects/ddc-concordance">http://sourceforge.net/projects/ddc-concordance</a>.
@@ -571,6 +571,52 @@
 	      <n>regex</n>
 	      <t>]</t>
 	    </rhs>
+	    <rhs cmt="... negated regular expression match">
+	      <t>#HAS_FIELD</t>
+	      <t>[</t>
+	      <n>symbol</n>
+	      <t>,</t>
+	      <n>neg_regex</n>
+	      <t>]</t>
+	    </rhs>
+	    <rhs cmt="... prefix match">
+	      <t>#HAS_FIELD</t>
+	      <t>[</t>
+	      <n>symbol</n>
+	      <t>,</t>
+	      <n>s_prefix</n>
+	      <t>]</t>
+	    </rhs>
+	    <rhs cmt="... suffix match">
+	      <t>#HAS_FIELD</t>
+	      <t>[</t>
+	      <n>symbol</n>
+	      <t>,</t>
+	      <n>s_suffix</n>
+	      <t>]</t>
+	    </rhs>
+	    <rhs cmt="... infix match">
+	      <t>#HAS_FIELD</t>
+	      <t>[</t>
+	      <n>symbol</n>
+	      <t>,</t>
+	      <n>s_infix</n>
+	      <t>]</t>
+	    </rhs>
+	    <rhs cmt="... disjunction over a set of target values">
+	      <t>#HAS_FIELD</t>
+	      <t>[</t>
+	      <n>symbol</n>
+	      <t>,</t>
+	      <t>{</t>
+	      <n>l_set</n>
+	      <t>}</t>
+	      <t>]</t>
+	    </rhs>
+	    <rhs cmt="... negated filter expression">
+	      <t>!</t>
+	      <n>qf_has_field</n>
+	    </rhs>
 	  </rule>
 
 	  <!--~~~~~~~~ RULES: qf_rank_sort -->
@@ -1060,20 +1106,20 @@ regex_modifier	[gimsx]
 (?i:\#cntxt)
 (?i:\#within)
 (?i:\#has(_field)?)
-(?i:\#file_names|\#filenames)
+(?i:\#file(_?)names)
 (?i:\#debug_rank)
-(?i:\#greater_by_rank)
-(?i:\#less_by_rank)
-(?i:\#greater_by_date)
-(?i:\#less_by_date)
-(?i:\#is_date)
-(?i:\#greater_by_size)
-(?i:\#less_by_size)
-(?i:\#is_size)
-(?i:\#(less_by_)?left)
-(?i:\#(less_by_)?right)
-(?i:\#less_by)
-(?i:\#greater_by)
+(?i:\#(greater|de?sc)(_by)?_rank)
+(?i:\#(less|asc)(_by)?_rank)	
+(?i:\#(greater|de?sc)(_by)?_date)
+(?i:\#(less|asc)(_by)?_date)	
+(?i:\#(is_)?date)		
+(?i:\#(greater|de?sc)(_by)?_size)
+(?i:\#(less|asc)(_by)?_size)	
+(?i:\#(is_)?size)		
+(?i:\#((less|asc)(_by)?)?left)	
+(?i:\#((less|asc)(_by)?)?right)	
+(?i:\#(less|asc)(_by)?)		
+(?i:\#(greater|de?sc)(_by)?)	
 (?i:\#random)
 </pre>
 	<p>

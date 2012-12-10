@@ -197,12 +197,21 @@ public:
 
 class CQFHasFieldValue : public CQFSort {
 public:
-  CQFHasFieldValue(const std::string &field, const std::string &val=string(""), bool isRegex=false)
-    : CQFSort(NoSort, field, val, string(""), isRegex)
+  //! is this a negated filter? --WIP--
+  bool m_Negated;
+
+public:
+  CQFHasFieldValue(const std::string &field, const std::string &val=string(""), bool isRegex=false, bool isNegated=false)
+    : CQFSort(NoSort, field, val, string(""), isRegex), m_Negated(isNegated)
   {};
+
+  //! negate the filter
+  virtual void Negate(void);
 
   //! compile the filter.  requires reference to underlying CConcIndexator
   virtual bool Compile(CQueryCompiler *compiler);
+
+  virtual std::string negString(void);
 
   virtual string toString(void);
 };
@@ -212,9 +221,89 @@ public:
 
 class CQFHasFieldRegex : public CQFHasFieldValue {
 public:
-  CQFHasFieldRegex(const std::string &field, const std::string &val=string(""))
-    : CQFHasFieldValue(field, val, true)
+  CQFHasFieldRegex(const std::string &field, const std::string &val=string(""), bool isNegated=false)
+    : CQFHasFieldValue(field, val, true, isNegated)
   {};
+
+  virtual string toString(void);
+};
+
+//======================================================================
+// CQFHasFieldPrefix
+
+class CQFHasFieldPrefix : public CQFHasFieldRegex {
+public:
+  //! original (un-regexified) prefix string
+  std::string m_prefix;
+
+public:
+  CQFHasFieldPrefix(const std::string &field, const std::string &val=string(""), bool isNegated=false)
+    : CQFHasFieldRegex(field, val, isNegated), m_prefix(val)
+  {
+    m_arg1 = std::string("^") + escapeRegex(val);
+  };
+
+  virtual string toString(void);
+};
+
+//======================================================================
+// CQFHasFieldSuffix
+
+class CQFHasFieldSuffix : public CQFHasFieldRegex {
+public:
+  //! original (un-regexified) suffix string
+  std::string m_suffix;
+
+public:
+  CQFHasFieldSuffix(const std::string &field, const std::string &val=string(""), bool isNegated=false)
+    : CQFHasFieldRegex(field, val, isNegated), m_suffix(val)
+  {
+    m_arg1 = escapeRegex(val) + "$";
+  };
+
+  virtual string toString(void);
+};
+
+//======================================================================
+// CQFHasFieldInfix
+
+class CQFHasFieldInfix : public CQFHasFieldRegex {
+public:
+  //! original (un-regexified) infix string
+  std::string m_infix;
+
+public:
+  CQFHasFieldInfix(const std::string &field, const std::string &val=string(""), bool isNegated=false)
+    : CQFHasFieldRegex(field, val, isNegated), m_infix(val)
+  {
+    m_arg1 = escapeRegex(val);
+  };
+
+  virtual string toString(void);
+};
+
+//======================================================================
+// CQFHasFieldSet
+
+class CQFHasFieldSet : public CQFHasFieldRegex {
+public:
+  //! original (un-regexified) infix string
+  std::set<std::string> m_Values;
+
+public:
+  CQFHasFieldSet(const std::string &field, const set<string>& vals=set<string>(), bool isNegated=false)
+    : CQFHasFieldRegex(field, string(""), isNegated), m_Values(vals)
+  {};
+
+  //! compile the filter.  requires reference to underlying CConcIndexator
+  virtual bool Compile(CQueryCompiler *compiler);
+
+  //! utility for use by subclasses: comma-separated list of strings in \a values
+  string SetValueString(const set<string> &values);
+
+  //! wrapper for SetValueString(m_Values)
+  inline string SetValueString(void)
+  { return SetValueString(m_Values); };
 
   virtual string toString(void);
 };

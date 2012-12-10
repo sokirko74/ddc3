@@ -1,5 +1,22 @@
 ##-*- Mode: Change-Log; coding: utf-8; -*-
 
+v2.0.4 Mon, 10 Dec 2012 15:32:28 +0100 moocow
+	+ fixed annoying queries-must-end-with-whitespace bug in ddc_simple.cpp
+	+ re-worked "#HAS_FIELD" parsing, compilation, and evaluation routines
+	+ added support for negated #has filters "!#has[...]"
+	+ added support for negated regexes in #has expressions ("#has[x,!/r/]" acts like "!#has[x,/r/]")
+	+ added safe escapes for "*" wildcards in #has expressions
+	+ added explicit set-wise disjunction for #has expressions: #has[x,{a,b,c,...}]
+	+ TODO: external expansion API a la "|"-notation for #has filters
+
+v2.0.3 Fri, 28 Sep 2012 09:09:41 +0200 moocow
+	+ backwards-compatibility fix: remove index-list from text and html bibl output
+
+v2.0.2 Mon, 16 Jul 2012 13:43:13 +0200 moocow
+	+ better handling of startup errors
+	+ ddc_daemon now uses an additional sentinel file (aka 'wait-file') to determine when and if the (forked) server process has started up
+	+ ugly hack with hard-coded time limit; alternative would be socketpair() or the like
+
 v2.0.1 Fri, 02 Dec 2011 14:56:18 +0100
 	+ fixed various static buffer overflows
 	+ "real" static buffers can now use global define DDC_STATIC_BUFLEN from ddcConfig.h

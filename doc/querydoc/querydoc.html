@@ -62,7 +62,7 @@
 <h2><a name="overview">Overview</a></h2>
 <p>
 	This documentation describes the query language accepted by
-	DDC version 2.0.2.  Current sources for DDC should be available
+	DDC version 2.0.4.  Current sources for DDC should be available
 	from
 	<!--<a href="http://odo.dwds.de/code/viewvc.cgi/ddc/trunk/?root=dev">svn+ssh://odo.dwds.de/home/svn/dev/ddc/trunk</a>.-->
 	<a href="http://sourceforge.net/projects/ddc-concordance">http://sourceforge.net/projects/ddc-concordance</a>.
@@ -988,6 +988,42 @@
 <td></td>
 <td class="ruleRHS">| <span class="ruleTerminal">#HAS_FIELD</span> <span class="ruleTerminal">[</span> <span class="ruleNonterminal"><a href="#rule_s_field">s_field</a></span> <span class="ruleTerminal">,</span> <span class="ruleNonterminal"><a href="#rule_regex">regex</a></span> <span class="ruleTerminal">]</span> </td>
 <td class="ruleComment">/* ... regular expression match */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleTerminal">#HAS_FIELD</span> <span class="ruleTerminal">[</span> <span class="ruleNonterminal"><a href="#rule_symbol">symbol</a></span> <span class="ruleTerminal">,</span> <span class="ruleNonterminal"><a href="#rule_neg_regex">neg_regex</a></span> <span class="ruleTerminal">]</span> </td>
+<td class="ruleComment">/* ... negated regular expression match */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleTerminal">#HAS_FIELD</span> <span class="ruleTerminal">[</span> <span class="ruleNonterminal"><a href="#rule_symbol">symbol</a></span> <span class="ruleTerminal">,</span> <span class="ruleNonterminal"><a href="#rule_s_prefix">s_prefix</a></span> <span class="ruleTerminal">]</span> </td>
+<td class="ruleComment">/* ... prefix match */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleTerminal">#HAS_FIELD</span> <span class="ruleTerminal">[</span> <span class="ruleNonterminal"><a href="#rule_symbol">symbol</a></span> <span class="ruleTerminal">,</span> <span class="ruleNonterminal"><a href="#rule_s_suffix">s_suffix</a></span> <span class="ruleTerminal">]</span> </td>
+<td class="ruleComment">/* ... suffix match */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleTerminal">#HAS_FIELD</span> <span class="ruleTerminal">[</span> <span class="ruleNonterminal"><a href="#rule_symbol">symbol</a></span> <span class="ruleTerminal">,</span> <span class="ruleNonterminal"><a href="#rule_s_infix">s_infix</a></span> <span class="ruleTerminal">]</span> </td>
+<td class="ruleComment">/* ... infix match */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleTerminal">#HAS_FIELD</span> <span class="ruleTerminal">[</span> <span class="ruleNonterminal"><a href="#rule_symbol">symbol</a></span> <span class="ruleTerminal">,</span> <span class="ruleTerminal">{</span> <span class="ruleNonterminal"><a href="#rule_l_set">l_set</a></span> <span class="ruleTerminal">}</span> <span class="ruleTerminal">]</span> </td>
+<td class="ruleComment">/* ... disjunction over a set of target values */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleTerminal">!</span> <span class="ruleNonterminal"><a href="#rule_qf_has_field">qf_has_field</a></span> </td>
+<td class="ruleComment">/* ... negated filter expression */</td>
 </tr>
 <tr>
 <td></td>
@@ -1933,20 +1969,20 @@ regex_modifier	[gimsx]
 (?i:\#cntxt)
 (?i:\#within)
 (?i:\#has(_field)?)
-(?i:\#file_names|\#filenames)
+(?i:\#file(_?)names)
 (?i:\#debug_rank)
-(?i:\#greater_by_rank)
-(?i:\#less_by_rank)
-(?i:\#greater_by_date)
-(?i:\#less_by_date)
-(?i:\#is_date)
-(?i:\#greater_by_size)
-(?i:\#less_by_size)
-(?i:\#is_size)
-(?i:\#(less_by_)?left)
-(?i:\#(less_by_)?right)
-(?i:\#less_by)
-(?i:\#greater_by)
+(?i:\#(greater|de?sc)(_by)?_rank)
+(?i:\#(less|asc)(_by)?_rank)	
+(?i:\#(greater|de?sc)(_by)?_date)
+(?i:\#(less|asc)(_by)?_date)	
+(?i:\#(is_)?date)		
+(?i:\#(greater|de?sc)(_by)?_size)
+(?i:\#(less|asc)(_by)?_size)	
+(?i:\#(is_)?size)		
+(?i:\#((less|asc)(_by)?)?left)	
+(?i:\#((less|asc)(_by)?)?right)	
+(?i:\#(less|asc)(_by)?)		
+(?i:\#(greater|de?sc)(_by)?)	
 (?i:\#random)
 </pre>
 <p>
@@ -2603,7 +2639,7 @@ regex_modifier	[gimsx]
   </body></div>
 <div class="footers">
 <div class="footer_sig">
-<address><a href="mailto:jurish@bbaw.de">jurish@bbaw.de</a></address>Last modified: Fri, 28 Sep 2012 08:44:04 +0200</div>
+<address><a href="mailto:jurish@bbaw.de">jurish@bbaw.de</a></address>Last modified: Mon, 10 Dec 2012 15:28:52 +0100</div>
 <div class="footer_linkbar"><p class="nopad"><a class="navLink" href="/">Root</a><a class="navLink" href="./">Back</a><span class="navLinkDisabled">Help</span></p></div>
 <p class="dummy"></p>
 </div>

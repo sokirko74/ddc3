@@ -219,7 +219,7 @@ int main(int argc, char* argv[])
 			
 			vector<string>	queries;
 			if (_Query != "query.txt")
-				queries.push_back(_Query);
+				queries.push_back(_Query + " "); //-- query parser needs trailing whitespace!
 			else
 			{
 		 		FILE *fp = fopen(_Query.c_str(), "r");
