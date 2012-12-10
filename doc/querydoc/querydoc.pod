@@ -193,102 +193,102 @@ Comments may appear after each rule in C notation
 
 
 
- q_filters      ::=                                    /*-- List of global query options --*/
-                                                       /* empty */
-                  | q_filters q_flag                   /* ... query flag */
-                  | q_filters q_filter                 /* ... query filter */
+ q_filters      ::=                                     /*-- List of global query options --*/
+                                                        /* empty */
+                  | q_filters q_flag                    /* ... query flag */
+                  | q_filters q_filter                  /* ... query filter */
                   ;
  
- q_flag         ::=                                    /*-- Global query flags --*/
-                    : qf_subcorpora                    /* subcorporus selection */
-                  | #CNTXT integer                     /* hit context window (number of sentences) */
-                  | #WITHIN symbol                     /* hit container type (e.g. 'file') */
-                  | #FILENAMES                         /* request filenames in output metadata */
-                  | ! #FILENAMES                       /* ... or disable filenames in output metadata */
-                  | #DEBUG_RANK                        /* request verbose rank debugging in output metadata */
-                  | ! #DEBUG_RANK                      /* ... or disable verbose rank debugging */
+ q_flag         ::=                                     /*-- Global query flags --*/
+                    : qf_subcorpora                     /* subcorporus selection */
+                  | #CNTXT integer                      /* hit context window (number of sentences) */
+                  | #WITHIN symbol                      /* hit container type (e.g. 'file') */
+                  | #FILENAMES                          /* request filenames in output metadata */
+                  | ! #FILENAMES                        /* ... or disable filenames in output metadata */
+                  | #DEBUG_RANK                         /* request verbose rank debugging in output metadata */
+                  | ! #DEBUG_RANK                       /* ... or disable verbose rank debugging */
                   ;
  
- q_filter       ::=                                    /*-- Global query selection and/or sort filter --*/
-                    qf_has_field                       /* restrict hits based on document metadata */
-                  | qf_rank_sort                       /* ... sort hits by TF-IDF rank */
-                  | qf_bigram_sort                     /* ... sort hits lexicographically by context */
-                  | qf_size_sort                       /* ... sort/filter hits by (sentence) length */
-                  | qf_date_sort                       /* ... sort/filter hits by document date */
-                  | qf_bibl_sort                       /* ... sort/filter hits by document metadata */
-                  | qf_random_sort                     /* ... sort hits pseudo-randomly */
+ q_filter       ::=                                     /*-- Global query selection and/or sort filter --*/
+                    qf_has_field                        /* restrict hits based on document metadata */
+                  | qf_rank_sort                        /* ... sort hits by TF-IDF rank */
+                  | qf_bigram_sort                      /* ... sort hits lexicographically by context */
+                  | qf_size_sort                        /* ... sort/filter hits by (sentence) length */
+                  | qf_date_sort                        /* ... sort/filter hits by document date */
+                  | qf_bibl_sort                        /* ... sort/filter hits by document metadata */
+                  | qf_random_sort                      /* ... sort hits pseudo-randomly */
                   ;
  
- qf_has_field   ::=                                    /*-- Metadata restriction (alias: '#HAS') --*/
-                    #HAS_FIELD [ s_field , symbol ]    /* ... literal match */
-                  | #HAS_FIELD [ s_field , regex ]     /* ... regular expression match */
-                  | #HAS_FIELD [ symbol , neg_regex ]  /* ... negated regular expression match */
-                  | #HAS_FIELD [ symbol , s_prefix ]   /* ... prefix match */
-                  | #HAS_FIELD [ symbol , s_suffix ]   /* ... suffix match */
-                  | #HAS_FIELD [ symbol , s_infix ]    /* ... infix match */
-                  | #HAS_FIELD [ symbol , { l_set } ]  /* ... disjunction over a set of target values */
-                  | ! qf_has_field                     /* ... negated filter expression */
+ qf_has_field   ::=                                     /*-- Metadata restriction (alias: '#HAS') --*/
+                    #HAS_FIELD [ s_field , symbol ]     /* ... literal match */
+                  | #HAS_FIELD [ s_field , regex ]      /* ... regular expression match */
+                  | #HAS_FIELD [ s_field , neg_regex ]  /* ... negated regular expression match */
+                  | #HAS_FIELD [ s_field , s_prefix ]   /* ... prefix match */
+                  | #HAS_FIELD [ s_field , s_suffix ]   /* ... suffix match */
+                  | #HAS_FIELD [ s_field , s_infix ]    /* ... infix match */
+                  | #HAS_FIELD [ s_field , { l_set } ]  /* ... disjunction over a set of target values */
+                  | ! qf_has_field                      /* ... negated filter expression */
                   ;
  
- qf_rank_sort   ::=                                    /*-- Sort hits by TF-IDF rank --*/
-                    #GREATER_BY_RANK                   /* ... in descending order */
-                  | #LESS_BY_RANK                      /* ... in ascending order */
+ qf_rank_sort   ::=                                     /*-- Sort hits by TF-IDF rank --*/
+                    #GREATER_BY_RANK                    /* ... in descending order */
+                  | #LESS_BY_RANK                       /* ... in ascending order */
                   ;
  
- qf_bigram_sort ::=                                    /*-- Sort or filter hits lexicographically by context (requires special index) --*/
-                    #LESS_BY_LEFT                      /* ... in ascending order by preceding context */
-                  | #LESS_BY_RIGHT                     /* ... in ascending order by following context */
+ qf_bigram_sort ::=                                     /*-- Sort or filter hits lexicographically by context (requires special index) --*/
+                    #LESS_BY_LEFT                       /* ... in ascending order by preceding context */
+                  | #LESS_BY_RIGHT                      /* ... in ascending order by following context */
                   ;
  
- qf_size_sort   ::=                                    /*-- Sort or filter hits by (sentence) length --*/
-                    #LESS_BY_SIZE qfb_int              /* ... in ascending order, with optional bounds */
-                  | #GREATER_BY_SIZE qfb_int           /* ... in descending order, with optional bounds */
-                  | #IS_SIZE [ int_str ]               /* ... restricted to specified size */
+ qf_size_sort   ::=                                     /*-- Sort or filter hits by (sentence) length --*/
+                    #LESS_BY_SIZE qfb_int               /* ... in ascending order, with optional bounds */
+                  | #GREATER_BY_SIZE qfb_int            /* ... in descending order, with optional bounds */
+                  | #IS_SIZE [ int_str ]                /* ... restricted to specified size */
                   ;
  
- qf_date_sort   ::=                                    /*-- Sort or filter hits by document date --*/
-                    #LESS_BY_DATE qfb_date             /* ... in ascending order, with optional bounds */
-                  | #GREATER_BY_DATE qfb_date          /* ... in descending order, with optional bounds */
-                  | #IS_DATE [ date ]                  /* ... restricted to specified date */
+ qf_date_sort   ::=                                     /*-- Sort or filter hits by document date --*/
+                    #LESS_BY_DATE qfb_date              /* ... in ascending order, with optional bounds */
+                  | #GREATER_BY_DATE qfb_date           /* ... in descending order, with optional bounds */
+                  | #IS_DATE [ date ]                   /* ... restricted to specified date */
                   ;
  
- qf_bibl_sort   ::=                                    /*-- Sort or filter hits by document metadata --*/
-                    #LESS_BY [ s_field qfb_bibl ]      /* ... in ascending order, with optional bounds */
-                  | #GREATER_BY [ s_field qfb_bibl ]   /* ... in descending order, with optional bounds */
+ qf_bibl_sort   ::=                                     /*-- Sort or filter hits by document metadata --*/
+                    #LESS_BY [ s_field qfb_bibl ]       /* ... in ascending order, with optional bounds */
+                  | #GREATER_BY [ s_field qfb_bibl ]    /* ... in descending order, with optional bounds */
                   ;
  
- qf_random_sort ::=                                    /*-- Sort hits pseudo-randomly --*/
-                    #RANDOM                            /* ... with an implicit seed of 0 (zero) */
-                  | #RANDOM [ ]                        /* ... with an implicit seed of 0 (zero) */
-                  | #RANDOM [ int_str ]                /* ... with a user-specified random seed */
+ qf_random_sort ::=                                     /*-- Sort hits pseudo-randomly --*/
+                    #RANDOM                             /* ... with an implicit seed of 0 (zero) */
+                  | #RANDOM [ ]                         /* ... with an implicit seed of 0 (zero) */
+                  | #RANDOM [ int_str ]                 /* ... with a user-specified random seed */
                   ;
  
- qfb_int        ::=                                    /*-- Optional integer bounds for query filters --*/
-                                                       /* ... empty (full range) */
-                  | [ ]                                /* ... empty brackets (full range) */
-                  | [ int_str ]                        /* ... lower bound only */
-                  | [ int_str , ]                      /* ... lower bound only */
-                  | [ int_str , int_str ]              /* ... lower bound, upper bound */
-                  | [ , int_str ]                      /* ... upper bound only */
+ qfb_int        ::=                                     /*-- Optional integer bounds for query filters --*/
+                                                        /* ... empty (full range) */
+                  | [ ]                                 /* ... empty brackets (full range) */
+                  | [ int_str ]                         /* ... lower bound only */
+                  | [ int_str , ]                       /* ... lower bound only */
+                  | [ int_str , int_str ]               /* ... lower bound, upper bound */
+                  | [ , int_str ]                       /* ... upper bound only */
                   ;
  
- qfb_date       ::=                                    /*-- Optional date bounds for query filters --*/
-                                                       /* ... empty (full range) */
-                  | [ ]                                /* ... empty brackets (full range) */
-                  | [ date ]                           /* ... lower bound only */
-                  | [ date , ]                         /* ... lower bound only */
-                  | [ date , date ]                    /* ... lower bound, upper bound */
-                  | [ , date ]                         /* ... upper bound only */
+ qfb_date       ::=                                     /*-- Optional date bounds for query filters --*/
+                                                        /* ... empty (full range) */
+                  | [ ]                                 /* ... empty brackets (full range) */
+                  | [ date ]                            /* ... lower bound only */
+                  | [ date , ]                          /* ... lower bound only */
+                  | [ date , date ]                     /* ... lower bound, upper bound */
+                  | [ , date ]                          /* ... upper bound only */
                   ;
  
- qfb_bibl       ::=                                    /*-- Optional string metadata bounds for query filters --*/
-                                                       /* ... empty (full range) */
-                  | ,                                  /* ... empty (full range) */
-                  | , ,                                /* ... empty (full range) */
-                  | , symbol                           /* ... lower bound only */
-                  | , symbol ,                         /* ... lower bound only */
-                  | , , symbol                         /* ... upper bound only */
-                  | , symbol , symbol                  /* ... lower bound, upper bound */
+ qfb_bibl       ::=                                     /*-- Optional string metadata bounds for query filters --*/
+                                                        /* ... empty (full range) */
+                  | ,                                   /* ... empty (full range) */
+                  | , ,                                 /* ... empty (full range) */
+                  | , symbol                            /* ... lower bound only */
+                  | , symbol ,                          /* ... lower bound only */
+                  | , , symbol                          /* ... upper bound only */
+                  | , symbol , symbol                   /* ... lower bound, upper bound */
                   ;
  
 

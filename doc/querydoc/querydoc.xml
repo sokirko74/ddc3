@@ -574,7 +574,7 @@
 	    <rhs cmt="... negated regular expression match">
 	      <t>#HAS_FIELD</t>
 	      <t>[</t>
-	      <n>symbol</n>
+	      <n>s_field</n>
 	      <t>,</t>
 	      <n>neg_regex</n>
 	      <t>]</t>
@@ -582,7 +582,7 @@
 	    <rhs cmt="... prefix match">
 	      <t>#HAS_FIELD</t>
 	      <t>[</t>
-	      <n>symbol</n>
+	      <n>s_field</n>
 	      <t>,</t>
 	      <n>s_prefix</n>
 	      <t>]</t>
@@ -590,7 +590,7 @@
 	    <rhs cmt="... suffix match">
 	      <t>#HAS_FIELD</t>
 	      <t>[</t>
-	      <n>symbol</n>
+	      <n>s_field</n>
 	      <t>,</t>
 	      <n>s_suffix</n>
 	      <t>]</t>
@@ -598,7 +598,7 @@
 	    <rhs cmt="... infix match">
 	      <t>#HAS_FIELD</t>
 	      <t>[</t>
-	      <n>symbol</n>
+	      <n>s_field</n>
 	      <t>,</t>
 	      <n>s_infix</n>
 	      <t>]</t>
@@ -606,7 +606,7 @@
 	    <rhs cmt="... disjunction over a set of target values">
 	      <t>#HAS_FIELD</t>
 	      <t>[</t>
-	      <n>symbol</n>
+	      <n>s_field</n>
 	      <t>,</t>
 	      <t>{</t>
 	      <n>l_set</n>
