@@ -554,9 +554,9 @@
 	  </rule>
 
 	  <!--~~~~~~~~ RULES: qf_has_field -->
-	  <rule lhs="qf_has_field" cmt="Metadata restriction (alias: '#HAS')">
+	  <rule lhs="qf_has_field" cmt="Metadata restriction (alias: #HAS_FIELD)">
 	    <rhs cmt="... literal match">
-	      <t>#HAS_FIELD</t>
+	      <t>#HAS</t>
 	      <t>[</t>
 	      <n>s_field</n>
 	      <t>,</t>
@@ -564,7 +564,7 @@
 	      <t>]</t>
 	    </rhs>
 	    <rhs cmt="... regular expression match">
-	      <t>#HAS_FIELD</t>
+	      <t>#HAS</t>
 	      <t>[</t>
 	      <n>s_field</n>
 	      <t>,</t>
@@ -572,7 +572,7 @@
 	      <t>]</t>
 	    </rhs>
 	    <rhs cmt="... negated regular expression match">
-	      <t>#HAS_FIELD</t>
+	      <t>#HAS</t>
 	      <t>[</t>
 	      <n>s_field</n>
 	      <t>,</t>
@@ -580,7 +580,7 @@
 	      <t>]</t>
 	    </rhs>
 	    <rhs cmt="... prefix match">
-	      <t>#HAS_FIELD</t>
+	      <t>#HAS</t>
 	      <t>[</t>
 	      <n>s_field</n>
 	      <t>,</t>
@@ -588,7 +588,7 @@
 	      <t>]</t>
 	    </rhs>
 	    <rhs cmt="... suffix match">
-	      <t>#HAS_FIELD</t>
+	      <t>#HAS</t>
 	      <t>[</t>
 	      <n>s_field</n>
 	      <t>,</t>
@@ -596,7 +596,7 @@
 	      <t>]</t>
 	    </rhs>
 	    <rhs cmt="... infix match">
-	      <t>#HAS_FIELD</t>
+	      <t>#HAS</t>
 	      <t>[</t>
 	      <n>s_field</n>
 	      <t>,</t>
@@ -604,7 +604,7 @@
 	      <t>]</t>
 	    </rhs>
 	    <rhs cmt="... disjunction over a set of target values">
-	      <t>#HAS_FIELD</t>
+	      <t>#HAS</t>
 	      <t>[</t>
 	      <n>s_field</n>
 	      <t>,</t>
@@ -1215,11 +1215,11 @@ regex_modifier	[gimsx]
 \'[0-9\-]+\'			/* single-quoted date-like string */
   [0-9\-]+/{int_boundary}	/* bareword date-like string */
 </pre>
-      </subsection>
 	<p>
 	  The scanner supports date-like tokens in a superset of the ISO 8601 format
 	  (<i>YYYY-MM-DD</i>), optionally enclosed by single quotes.
 	</p>
+      </subsection>
       <!--/terminals:date-->
 
       <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->

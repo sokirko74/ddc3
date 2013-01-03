@@ -1,4 +1,4 @@
-//  Copyright 2011 by Bryan Jurish
+//-*- Mode: C++; c-basic-offset: 8; -*-
 //
 //  This file is part of DDC.
 // 
@@ -156,25 +156,32 @@ struct CDDCFilterWithBounds
 	//!  the name of free bibliographical field 
 	string			m_FreeBiblAttribName;
 
-	//!  true, if DDC  should use CDDCFilterWithBounds::m_SatisfiedValues, false, if DDC should use CDDCFilterWithBounds::m_LevelStart and CDDCFilterWithBounds::m_LevelEnd slots
-	bool			m_bRegExp;
+	//! \li true if DDC should use CDDCFilterWithBounds::m_SatisfiedValues
+	//! \li false if DDC should use range defined by CDDCFilterWithBounds::m_LevelStart and CDDCFilterWithBounds::m_LevelEnd slots
+	//! (formerly m_bRegExp)
+	bool			m_bSet;
   	bool			m_bNegated;  ///< ... for negated filters (WIP)
 
-	//!  the lower bound of the filter (by default INT_MIN), valid only m_bRegExp==false
-	int				m_LevelStart;
-	//!  the upper bound of the filter (by default INT_MAX), valid only m_bRegExp==false
-	int				m_LevelEnd;
-	//!  the possible values for this bibliographical field,  valid only m_bRegExp==true
+	//!  the lower bound of the filter (by default INT_MIN), valid only if m_bSet==false
+	int			m_LevelStart;
+	//!  the upper bound of the filter (by default INT_MAX), valid only if m_bSet==false
+	int			m_LevelEnd;
+	//!  the possible values for this bibliographical field,  valid only if m_bSet==true
 	set<int>		m_SatisfiedValues;  
+
+	inline void clear()
+	{
+		m_SatisfiedValues.clear();
+	};
 
 	CDDCFilterWithBounds() 
 	{
-		m_bRegExp = false;
+		m_bSet       = false;
+		m_bNegated   = false;
 		m_FilterType = HitSortsCount;
 		m_LevelStart = INT_MIN;
-		m_LevelEnd = INT_MAX; 
-	}
-
+		m_LevelEnd   = INT_MAX; 
+	};
 };
 
 /*! CHit is a structure that holds one found hit and its properties. The calculation of its slots 

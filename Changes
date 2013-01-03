@@ -1,5 +1,10 @@
 ##-*- Mode: Change-Log; coding: utf-8; -*-
 
+v2.0.5 Thu, 03 Jan 2013 15:53:33 +0100 moocow
+	+ re-factored bibliographic filtering in Bibliography.(h|cpp), QueryFilter.(h|cpp)
+	+ added new CConcXml member slot m_RegexOpts : initialized from CConcIndexator at option-load time (ConcordOptions.cpp)
+	+ added new FreeBiblIndex member m_pRegexOpts : pointer to m_RegexOpts for parent CConcXml object (utf8 by default)
+
 v2.0.4 Mon, 10 Dec 2012 15:32:28 +0100 moocow
 	+ fixed annoying queries-must-end-with-whitespace bug in ddc_simple.cpp
 	+ re-worked "#HAS_FIELD" parsing, compilation, and evaluation routines

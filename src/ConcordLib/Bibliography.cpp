@@ -20,6 +20,7 @@
 #include "../tinyxml/xpath_static.h"
 #include "../common/bserialize.h"
 #include "../common/ddcString.h"
+#include <typeinfo>	//-- for typeid()
 
 const char IntegerTypeStr[] = "integer";
 const char StringTypeStr[] = "string";
@@ -249,12 +250,26 @@ void CConcXml::CFreeBiblIndex::CreateUnion (string Path, const CFreeBiblIndex* p
 	WriteVector(GetIndexFileName(Path), m_ValuesForEachFile);
 };
 
-bool CConcXml::CFreeBiblIndex::GetValueForDDCFilter (const RML_RE::Options &RegexOpts, string Value, CDDCFilterWithBounds& Filter, bool isRegex) const
+bool CConcXml::CFreeBiblIndex::GetFilterValue (CDDCFilterWithBounds& Filter, const string &Value) const
 {
+	Filter.m_bSet = false;
 	Filter.m_LevelStart = atoi(Value.c_str());
 	Filter.m_LevelEnd = Filter.m_LevelStart+1;
 	return true;
 };
+
+bool CConcXml::CFreeBiblIndex::GetFilterValues (CDDCFilterWithBounds& Filter, const string &Regex) const
+{
+	throw CExpc(errLogic,"%s::GetFilterValues(): field `%s' doesn't support regular expressions", typeid(*this).name(), m_Name.c_str());
+	return false;
+};
+
+bool CConcXml::CFreeBiblIndex::GetFilterValues (CDDCFilterWithBounds& Filter, const set<string> &Values) const
+{
+	throw CExpc(errLogic,"%s::GetFilterValues(): field `%s' doesn't support set values", typeid(*this).name(), m_Name.c_str());
+	return false;
+};
+
 
 bool CConcXml::CFreeBiblIndex::RegisterBiblStringItemId(const string& ValueStr)
 {
@@ -409,69 +424,96 @@ void CConcXml::CFreeBiblStringIndex::CreateUnion (string Path, const CFreeBiblIn
 
 
 
-bool CConcXml::CFreeBiblStringIndex::GetValueForDDCFilter (const RML_RE::Options &RegexOpts, string Value, CDDCFilterWithBounds& Filter, bool isRegex) const
+bool CConcXml::CFreeBiblStringIndex::GetFilterValue (CDDCFilterWithBounds& Filter, const string &Value) const
 {
-	if (Value.empty()) return true;
+	Filter.m_bSet = false;
+	if (Value.empty()) return true; //-- compatibility
 
 	if (Filter.m_bNegated) {
-		//-- negated filter (black-list): treat as regex
-		string reValue(isRegex ? Value : (string("^\\Q") + Value + "\\E$"));
-		RML_RE re(reValue, RegexOpts);
-		size_t Count = m_Values.size();
-		Filter.m_bRegExp = true;
-		for( size_t i=0; i<Count; i++ ) {
-			if( !re.PartialMatch(m_Values[i]) )
-				Filter.m_SatisfiedValues.insert(i);
-		}
-		if (Filter.m_SatisfiedValues.empty()) {
-			Filter.m_LevelStart = 0;
-			Filter.m_LevelEnd = 0;
-		}
-		else {
-			Filter.m_LevelStart = *Filter.m_SatisfiedValues.begin();
-			set<int>::const_iterator it = Filter.m_SatisfiedValues.end();
-			it--;
-			Filter.m_LevelEnd = (*it)+1;
+		//-- negative filter condition (literal): generate regex
+		return GetFilterValues(Filter, string("^") + escapeRegex(Value) + "$");
+	}
+
+	//-- positive filter condition (literal)
+	vector<string>::const_iterator it = lower_bound(m_Values.begin(), m_Values.end(), Value);
+	if ( (it == m_Values.end()) || (*it  != Value) ) {
+		Filter.m_LevelStart = 0;
+		Filter.m_LevelEnd = 0;
+	}
+	else {
+		Filter.m_LevelStart = it-m_Values.begin();
+		Filter.m_LevelEnd   = Filter.m_LevelStart + 1;
+	}
+	
+	return true;
+};
+
+bool CConcXml::CFreeBiblStringIndex::GetFilterValues (CDDCFilterWithBounds& Filter, const string &Regex) const
+{
+	RML_RE re(Regex, *m_pRegexOpts);
+	size_t Count = m_Values.size();
+
+	//-- regex condition: positive or negative
+	Filter.m_bSet = true;
+	for (size_t i=0; i<Count; i++) {
+		bool isMatch = re.PartialMatch(m_Values[i]);
+		if (Filter.m_bNegated ? (!isMatch) : isMatch)
+			Filter.m_SatisfiedValues.insert(i);
+	}
+
+	//-- sanitize filter ranges (compatibility)
+	if (Filter.m_SatisfiedValues.empty()) {
+		Filter.m_LevelStart = 0;
+		Filter.m_LevelEnd = 0;
+	}
+	else {
+		Filter.m_LevelStart = *Filter.m_SatisfiedValues.begin();
+		Filter.m_LevelEnd   = *Filter.m_SatisfiedValues.rbegin() + 1;
+	}
+
+	return true;
+};
+
+bool CConcXml::CFreeBiblStringIndex::GetFilterValues (CDDCFilterWithBounds& Filter, const set<string> &Values) const
+{
+	Filter.m_bSet = true;
+
+	if (!Filter.m_bNegated) {
+		//-- set-valued condition: positive: iterate over argument values (assume |Values| << |m_Values|)
+		vector<string>::const_iterator i0 = m_Values.begin();
+
+		for (set<string>::const_iterator vali=Values.begin(); vali != Values.end(); ++vali) {
+			vector<string>::const_iterator it = lower_bound(i0, m_Values.end(), *vali);
+			bool isMatch = (it != m_Values.end()) && (*it == *vali);
+			if ( (it != m_Values.end()) && (*it == *vali) ) {
+				Filter.m_SatisfiedValues.insert(it - m_Values.begin());
+				i0 = it;
+			}
 		}
 	}
 	else {
-		//-- assertive filter (white-list)
-		if (isRegex) {
-			//-- assertive filter: regex
-			Filter.m_bRegExp = true;
-			RML_RE re(Value, RegexOpts);
-			size_t Count = m_Values.size();
-			for( size_t i=0; i<Count; i++ ) {
-				if(  re.PartialMatch(m_Values[i])  ) 
-					Filter.m_SatisfiedValues.insert(i);
-			}
-			if (Filter.m_SatisfiedValues.empty()) {
-				Filter.m_LevelStart = 0;
-				Filter.m_LevelEnd = 0;
-			}
-			else {
-				Filter.m_LevelStart = *Filter.m_SatisfiedValues.begin();
-				set<int>::const_iterator it = Filter.m_SatisfiedValues.end();
-				it--;
-				Filter.m_LevelEnd = (*it)+1;
-			}
-		}
-		else {
-			//-- assertive filter: literal
-			vector<string>::const_iterator it =  lower_bound(m_Values.begin(), m_Values.end(), Value);
-			if ( (it == m_Values.end()) || (*it  != Value) ) {
-				Filter.m_LevelStart = 0;
-				Filter.m_LevelEnd = 0;
-			}
-			else {
-				Filter.m_LevelStart = it-m_Values.begin();
-				it++;
-				Filter.m_LevelEnd = it-m_Values.begin();
-			}
+		//-- set-valued condition: negative: iterate over indexed values
+		size_t Count = m_Values.size();
+		for (size_t i=0; i < Count; i++) {
+			set<string>::const_iterator vali = Values.find(m_Values[i]);
+			if (vali == Values.end())
+				Filter.m_SatisfiedValues.insert(i);
 		}
 	}
+
+	//-- sanitize filter ranges (compatibility)
+	if (Filter.m_SatisfiedValues.empty()) {
+		Filter.m_LevelStart = 0;
+		Filter.m_LevelEnd   = 0;
+	}
+	else {
+		Filter.m_LevelStart = *Filter.m_SatisfiedValues.begin();
+		Filter.m_LevelEnd   = *Filter.m_SatisfiedValues.rbegin() + 1;
+	}
+
 	return true;
 };
+
 
 bool CConcXml::CFreeBiblStringIndex::RegisterBiblStringItemId(const string& ValueStr)
 {
@@ -567,6 +609,7 @@ bool CConcXml::CFreeBiblStringIndex::ConvertAndSaveToDiskAfterIndexing (string m
 CConcXml::CConcXml()
 {
 	m_BiblBodyFile = 0;
+	m_RegexOpts = RML_RE::Options(pcrecpp::UTF8(), NULL); //-- default
 };
 
 CConcXml::~CConcXml()
@@ -837,6 +880,7 @@ bool CConcXml::RegisterFreeBiblAttributes(string fields, string& ErrorStr)
 			pIndex->m_Name = Name;
 			pIndex->m_Xpath = Xpath;
 			pIndex->m_bShowInHeader = bShowInHeader;
+			pIndex->m_pRegexOpts = &m_RegexOpts;
 			m_FreeBiblIndices[Name] = pIndex;
 		};
 	};
@@ -1185,6 +1229,13 @@ void CConcXml::InitLessByBiblIntegerField(string FreeBiblAttribName, vector<CHit
 
 };
 
+void CConcXml::SetRegexOptions(const RML_RE::Options &opts)
+{
+	m_RegexOpts = opts;
+	for (FreeBiblStringMap::iterator mi=m_FreeBiblIndices.begin(); mi!=m_FreeBiblIndices.end(); mi++) {
+		mi->second->m_pRegexOpts = &m_RegexOpts;
+	}
+};
 
 bool CConcXml::IsRegisteredBiblField(string FreeBiblAttribName) const
 {
@@ -1220,21 +1271,32 @@ void CConcXml::InitGreaterByBiblIntegerField(string FreeBiblAttribName, vector<C
 };
 
 
-
-bool CConcXml::GetValueFromBiblSet (const RML_RE::Options &RegexOpts, string Value, CDDCFilterWithBounds& Filter, bool isRegex) const
+//-- initialize CDDCFilterWithBounds for a literal target value
+bool CConcXml::GetFilterValue(CDDCFilterWithBounds& Filter, const string& Value) const
 {
-	Filter.m_SatisfiedValues.clear();
-	Filter.m_bRegExp = isRegex;
-	
+	Filter.clear();
 	FreeBiblStringMap::const_iterator it = m_FreeBiblIndices.find(Filter.m_FreeBiblAttribName);
-
-	if (it == m_FreeBiblIndices.end()) //  the attribute is not found
-		return false;
-
-	return it->second->GetValueForDDCFilter(RegexOpts, Value, Filter, isRegex);;
+	if (it == m_FreeBiblIndices.end()) return false; // attribute not found
+	return it->second->GetFilterValue(Filter, Value);
 };
 
+//-- initialize CDDCFilterWithBounds for a target regex
+bool CConcXml::GetFilterValues(CDDCFilterWithBounds& Filter, const string &Regex) const
+{
+	Filter.clear();
+	FreeBiblStringMap::const_iterator it = m_FreeBiblIndices.find(Filter.m_FreeBiblAttribName);
+	if (it == m_FreeBiblIndices.end()) return false; // attribute not found
+	return it->second->GetFilterValues(Filter, Regex);;
+};
 
+//-- initialize CDDCFilterWithBounds for a set of target values
+bool CConcXml::GetFilterValues(CDDCFilterWithBounds& Filter, const set<string>& Values) const
+{
+	Filter.clear();
+	FreeBiblStringMap::const_iterator it = m_FreeBiblIndices.find(Filter.m_FreeBiblAttribName);
+	if (it == m_FreeBiblIndices.end()) return false; // attribute not found
+	return it->second->GetFilterValues(Filter, Values);;
+};
 
 
 bool CConcXml::LoadXmlAndReadBibliography(TiXmlDocument& doc, const char* pFileBuffer, CBibliography& Bibl, string& strError)

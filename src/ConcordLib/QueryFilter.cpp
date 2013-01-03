@@ -1,5 +1,5 @@
 //-*- Mode: C++; c-basic-offset: 2; -*-
-//  Copyright 2011 by Bryan Jurish
+//  Copyright 2011-2013 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -55,8 +55,7 @@ bool CQFilter::Compile(CQueryCompiler *compiler)
 CQFSort::CQFSort(HitSortEnum   ftype,
 		 const string &arg0,
 		 const string &arg1,
-		 const string &arg2,
-		 bool          isRegex
+		 const string &arg2
 		 )
   : m_arg0(arg0),
     m_arg1(arg1),
@@ -64,7 +63,7 @@ CQFSort::CQFSort(HitSortEnum   ftype,
 {
     m_Filter.m_FilterType = ftype;
     m_Filter.m_FreeBiblAttribName = arg0;
-    m_Filter.m_bRegExp = isRegex;
+    m_Filter.m_bSet = false;
     m_Filter.m_LevelStart = INT_MIN; //-- instantiate later!
     m_Filter.m_LevelEnd   = INT_MAX; //-- instantiate later!
 }
@@ -72,8 +71,7 @@ CQFSort::CQFSort(HitSortEnum   ftype,
 CQFSort::CQFSort(HitSortEnum   ftype,
 		 const string &arg0,
 		 int           arg1i,
-		 int           arg2i,
-		 bool          isRegex
+		 int           arg2i
 		 )
   : m_arg0(arg0)
 {
@@ -82,7 +80,7 @@ CQFSort::CQFSort(HitSortEnum   ftype,
 
   m_Filter.m_FilterType = ftype;
   m_Filter.m_FreeBiblAttribName = arg0;
-  m_Filter.m_bRegExp    = isRegex;
+  m_Filter.m_bSet       = false;
   m_Filter.m_LevelStart = arg1i;
   m_Filter.m_LevelEnd   = arg2i;
 }
@@ -193,7 +191,7 @@ bool CQFBiblSort::Compile(CQueryCompiler *compiler)
     throw CExpc(errParseError,"Empty bibliographic field not allowed in sort operator `%s'", toString().c_str());
 
   if (!m_arg1.empty()) {
-    if (!ix->m_Bibl.GetValueFromBiblSet(ix->GetRegexOptions(), m_arg1, m_Filter))
+    if (!ix->m_Bibl.GetFilterValue(m_Filter, m_arg1))
       throw CExpc(errParseError,"Can't determine lower bound for sort operator `%s'", toString().c_str());
 
     if (bGreaterOperator)
@@ -204,7 +202,7 @@ bool CQFBiblSort::Compile(CQueryCompiler *compiler)
     CDDCFilterWithBounds TempFilter;
     TempFilter.m_FreeBiblAttribName = m_arg0;
 
-    if (!ix->m_Bibl.GetValueFromBiblSet(ix->GetRegexOptions(), m_arg2, TempFilter))
+    if (!ix->m_Bibl.GetFilterValue(TempFilter, m_arg2))
       throw CExpc(errParseError,"Can't determine upper bound for sort operator `%s'", toString().c_str());
 
     if (bGreaterOperator)
@@ -251,14 +249,14 @@ bool CQFBigramSort::Compile(CQueryCompiler *compiler)
 // CQFRightSort
 
 //======================================================================
-// CQFHasFieldValue
+// CQFHasField
 
-void CQFHasFieldValue::Negate(void)
+void CQFHasField::Negate(void)
 {
   m_Negated = !m_Negated;
 }
 
-bool CQFHasFieldValue::Compile(CQueryCompiler *compiler)
+bool CQFHasField::Compile(CQueryCompiler *compiler)
 {
   if (m_arg0.empty())
     throw CExpc(errParseError,"Empty bibliographic field not allowed in filter operator `%s'", toString().c_str());
@@ -266,84 +264,83 @@ bool CQFHasFieldValue::Compile(CQueryCompiler *compiler)
   if (m_arg1.empty())
     throw CExpc(errParseError,"Empty value field not allowed in filter operator `%s'", toString().c_str());
 
-  m_Filter.m_bNegated = m_Negated;
-  CConcIndexator *ix = compiler->m_pHolder->m_pIndexator;
-  if (!ix->m_Bibl.GetValueFromBiblSet(ix->GetRegexOptions(), m_arg1, m_Filter, m_Filter.m_bRegExp))
-    throw CExpc(errParseError,"Can't compile filter restriction `%s'", toString().c_str());
-
-  return CQFSort::Compile(compiler);
+  return true;
 }
 
-std::string CQFHasFieldValue::negString()
-{
-  return std::string(m_Negated ? "!" : "");
-}
-
-string CQFHasFieldValue::toString()
+string CQFHasField::toString()
 {
   return 
-    negString()
+    std::string(m_Negated ? "!" : "")
     + "#HAS["
-    + sqString(m_Filter.m_FreeBiblAttribName)
+    + sqString(m_arg0)
     + ","
-    + sqString(m_arg1)
+    + valueString()
     + "]";
+}
+
+string CQFHasField::valueString()
+{
+  return sqString(m_arg1);
+}
+
+//======================================================================
+// CQFHasFieldValue
+
+bool CQFHasFieldValue::Compile(CQueryCompiler *compiler)
+{
+  CQFHasField::Compile(compiler);
+
+  m_Filter.m_bNegated = m_Negated;
+  CConcIndexator *ix = compiler->m_pHolder->m_pIndexator;
+
+  if (!ix->m_Bibl.GetFilterValue(m_Filter, m_arg1))
+    throw CExpc(errParseError,"Can't compile literal filter condition `%s'", toString().c_str());
+
+  return CQFSort::Compile(compiler);
 }
 
 //======================================================================
 // CQFHasFieldRegex
 
-string CQFHasFieldRegex::toString()
+bool CQFHasFieldRegex::Compile(CQueryCompiler *compiler)
 {
-  return
-    negString()
-    + "#HAS["
-    + sqString(m_Filter.m_FreeBiblAttribName)
-    + ","
-    + reString(m_arg1)
-    + "]";
+  CQFHasField::Compile(compiler);
+
+  m_Filter.m_bNegated = m_Negated;
+  CConcIndexator *ix = compiler->m_pHolder->m_pIndexator;
+  if (!ix->m_Bibl.GetFilterValues(m_Filter, m_Regex))
+    throw CExpc(errParseError,"Can't compile regex filter condition `%s'", toString().c_str());
+
+  return CQFSort::Compile(compiler);
+}
+
+string CQFHasFieldRegex::valueString()
+{
+  return reString(m_arg1);
 }
 
 //======================================================================
 // CQFHasFieldPrefix
 
-string CQFHasFieldPrefix::toString()
+string CQFHasFieldPrefix::valueString()
 {
-  return
-    negString()
-    + "#HAS["
-    + sqString(m_Filter.m_FreeBiblAttribName)
-    + ","
-    + sqString(m_prefix) + "*"
-    + "]";
+  return sqString(m_arg1) + "*";
 }
 
 //======================================================================
 // CQFHasFieldSuffix
 
-string CQFHasFieldSuffix::toString()
+string CQFHasFieldSuffix::valueString()
 {
-  return
-    negString()
-    + "#HAS["
-    + sqString(m_Filter.m_FreeBiblAttribName)
-    + ","
-    + "*" + sqString(m_suffix)
-    + "]";
+  return std::string("*") + sqString(m_arg1);
 }
 
 //======================================================================
 // CQFHasFieldInfix
 
-string CQFHasFieldInfix::toString()
+string CQFHasFieldInfix::valueString()
 {
-  return
-    negString()
-    + "#HAS["
-    + sqString(m_Filter.m_FreeBiblAttribName)
-    + ","
-    + "*" + sqString(m_infix) + "*"
-    + "]";
+  return std::string("*") + sqString(m_arg1) + "*";
 }
 
 //======================================================================
@@ -351,16 +348,14 @@ string CQFHasFieldInfix::toString()
 
 bool CQFHasFieldSet::Compile(CQueryCompiler *compiler)
 {
-  //if (m_Values.empty()) throw CExpc(errParseError,"Empty value set not allowed in filter operator `%s'", toString().c_str());
+  CQFHasField::Compile(compiler);
 
-  m_arg1 = "^(?:";
-  for (set<string>::const_iterator vi = m_Values.begin(); vi != m_Values.end(); vi++) {
-    if (vi != m_Values.begin()) m_arg1 += "|";
-    m_arg1 += "\\Q" + *vi + "\\E";
-  }
-  m_arg1 += ")$";
+  m_Filter.m_bNegated = m_Negated;
+  CConcIndexator *ix = compiler->m_pHolder->m_pIndexator;
+  if (!ix->m_Bibl.GetFilterValues(m_Filter, m_Values))
+    throw CExpc(errParseError,"Can't compile set-valued filter restriction `%s'", toString().c_str());
 
-  return CQFHasFieldValue::Compile(compiler);
+  return CQFSort::Compile(compiler);
 }
 
 string CQFHasFieldSet::SetValueString(const set<string> &values)
@@ -373,15 +368,9 @@ string CQFHasFieldSet::SetValueString(const set<string> &values)
   return s;
 }
 
-string CQFHasFieldSet::toString()
+string CQFHasFieldSet::valueString()
 {
-  return
-    negString()
-    + "#HAS["
-    + sqString(m_Filter.m_FreeBiblAttribName)
-    + ","
-    + "{" + SetValueString() + "}"
-    + "]";
+  return std::string("{") + SetValueString() + "}";
 }
 
 

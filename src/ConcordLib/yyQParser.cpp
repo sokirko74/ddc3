@@ -1878,7 +1878,7 @@ yyreduce:
 
 /* Line 1455 of yacc.c  */
 #line 270 "yyQParser.y"
-    { (yyval.m_pfilt) = new CQFHasFieldRegex(*(yyvsp[(3) - (6)].m_str),*(yyvsp[(5) - (6)].m_str),true); ;}
+    { (yyval.m_pfilt) = new CQFHasFieldRegex(*(yyvsp[(3) - (6)].m_str),*(yyvsp[(5) - (6)].m_str)); ((CQFHasFieldRegex*)(yyval.m_pfilt))->Negate(); ;}
     break;
 
   case 26:

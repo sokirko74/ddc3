@@ -80,6 +80,9 @@ class CConcXml
 		//! should DDC show this field for each header	
 		bool					m_bShowInHeader;
 
+		//! regex options
+		RML_RE::Options *m_pRegexOpts;
+
 	public:
 		CFreeBiblIndex();
 		virtual ~CFreeBiblIndex();
@@ -90,12 +93,21 @@ class CConcXml
 		virtual string	GetStringValue(DWORD FileNo ) const;
 		virtual bool	ReadFromDisk (string Path, DWORD FileBreaksSize);
 		virtual void	CreateUnion (string Path, const CFreeBiblIndex* pIndex1, const CFreeBiblIndex* pIndex2);
-		virtual bool	GetValueForDDCFilter (const RML_RE::Options &RegexOpts, string Value, CDDCFilterWithBounds& Filter, bool isRegex=false) const;
 		virtual bool	RegisterBiblStringItemId(const string& Value);
 		virtual bool	DeleteBiblFiles (string Path) const;
 		virtual bool	ConvertAndSaveToDiskAfterIndexing (string Path);
 		virtual string	GetTypeStr() const;
-				
+
+		//! initialize CDDCFilterWithBounds for a literal target or regex value (default treats Value as integer string and sets range)
+		//! \li formerly GetValueForDDCFilter() with isRegex==false (default)
+		virtual bool	GetFilterValue   (CDDCFilterWithBounds& Filter, const string& Value) const;
+
+		//! initialize CDDCFilterWithBounds for a target regex (default throws errLogic)
+		//! \li formerly GetValueForDDCFilter() with isRegex==true
+		virtual bool	GetFilterValues  (CDDCFilterWithBounds& Filter, const string &Regex) const;
+
+		//! initialize CDDCFilterWithBounds for a set of target values (default throws errLogic)
+		virtual bool	GetFilterValues  (CDDCFilterWithBounds& Filter, const set<string>& Values) const;
 	};
     
 	class CFreeBiblStringIndex : public CFreeBiblIndex
@@ -134,10 +146,20 @@ class CConcXml
 		string	GetStringValue(DWORD FileNo ) const;
 		bool	ReadFromDisk (string Path, DWORD FileBreaksSize);
 		void	CreateUnion (string Path, const CFreeBiblIndex* pIndex1, const CFreeBiblIndex* pIndex2);
-		bool	GetValueForDDCFilter (const RML_RE::Options &RegexOpts, string Value, CDDCFilterWithBounds& Filter, bool isRegex=false) const;
 		bool	RegisterBiblStringItemId(const string& Value);
 		bool	DeleteBiblFiles (string Path) const;
 		bool	ConvertAndSaveToDiskAfterIndexing(string Path);
+
+		//! initialize CDDCFilterWithBounds for a literal target value (default treats Value as integer string and sets range)
+		//! \li formerly GetValueForDDCFilter() with isRegex==false (default)
+		virtual bool	GetFilterValue  (CDDCFilterWithBounds& Filter, const string& Value) const;
+
+		//! initialize CDDCFilterWithBounds for a target regex (default throws errLogic)
+		//! \li formerly GetValueForDDCFilter() with isRegex==true
+		virtual bool	GetFilterValues (CDDCFilterWithBounds& Filter, const string &Regex) const;
+
+		//! initialize CDDCFilterWithBounds for a set of target values (default throws errLogic)
+		virtual bool	GetFilterValues (CDDCFilterWithBounds& Filter, const set<string>& Values) const;
 	};
 
 	class CTextArea 
@@ -174,7 +196,8 @@ class CConcXml
 	string	GetBiblDateIndexFileName() const;
 	int		GetTextAreaByName(const string& Name) const;
 	
-
+	//! common regex options
+	RML_RE::Options m_RegexOpts;
 	
 
 
@@ -210,8 +233,22 @@ public:
 	//! Check bibliographical references
 	bool			CheckBibl(size_t FileBreaksNumber) const;
 	bool			UniteBibliography(const CConcXml& B1, const CConcXml& B2);
-	//! initializes CDDCFilterWithBounds::m_LevelStart and  CDDCFilterWithBounds::m_LevelEnd for filtering by bibliographical information 
-	bool			GetValueFromBiblSet (const RML_RE::Options &RegexOpts,string Value, CDDCFilterWithBounds& Filter, bool isRegex=false) const;
+
+	//! initialize a CDDCFilterWithBounds object for filtering by bibliographical information, for a literal target value.
+	//! \li calls CConcXml::CFreeBiblIndex::GetFilterValue()
+	//! \li formerly GetValueFromBiblSet() with isRegex==false (default)
+	bool GetFilterValue(CDDCFilterWithBounds& Filter, const string &Value) const;
+
+	//! initialize a CDDCFilterWithBounds object for filtering by bibliographical information, for a target regex.
+	//! calls CConcXml::CFreeBiblIndex::GetFilterValues()
+	//! \li formerly GetValueFromBiblSet() with isRegex==true
+	bool GetFilterValues(CDDCFilterWithBounds& Filter, const string &Regex) const;
+
+	//! initialize a CDDCFilterWithBounds object for filtering by bibliographical information, for a set of target values.
+	//! \li calls CConcXml::CFreeBiblIndex::GetFilterValues()
+	bool GetFilterValues(CDDCFilterWithBounds& Filter, const set<string> &Values) const;
+
+
 	//! load xml file into TiXmlDocument& doc and load bibliographical fileds to CBibliography& Bibl
 	bool			LoadXmlAndReadBibliography(TiXmlDocument& doc, const char* pFileBuffer, CBibliography& Bibl, string& strError);
 	//! load xml file under  MorphXML_Index into vector<CXmlToken>& GraTable
@@ -244,6 +281,8 @@ public:
 	void	InitNoSort(vector<CHit>&	Hits) const;
 	bool	IsRegisteredBiblField(string FreeBiblAttribName) const;
 
+	//! set regex options for all registered fields
+	void SetRegexOptions(const RML_RE::Options &opts);
 };
 
 

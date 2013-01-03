@@ -693,12 +693,13 @@ bool CConcIndexator::LoadOptionsFromString(string Options)
 
         I->m_MaxBigramWindowSize = MaxBigramWindowSize;
         I->m_BigramBorder = BreakCollectionNo;
-    };
+    }
 
+	//-- propagate regex-related options to m_Bibl
+	m_Bibl.SetRegexOptions(GetRegexOptions());
 
 
 	return true;
-
 };
 
 

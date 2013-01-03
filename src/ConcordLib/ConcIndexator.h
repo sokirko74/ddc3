@@ -249,6 +249,7 @@ public:
 	//! return default pcre regex options
 	const pcrecpp::RE_Options GetRegexOptions() const { if (m_Utf8) return pcrecpp::UTF8(); return pcrecpp::RE_Options(); }
 	*/
+	//! return default pcre regex options
 	RML_RE::Options GetRegexOptions() const
 	{
 		if (m_Utf8)

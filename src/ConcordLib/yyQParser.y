@@ -267,7 +267,7 @@ q_filter:
 qf_has_field:
 		HAS_FIELD '[' symbol ',' symbol ']'	{ $$ = new CQFHasFieldValue(*$3,*$5); }
 	|	HAS_FIELD '[' symbol ',' regex ']'	{ $$ = new CQFHasFieldRegex(*$3,*$5); }
-	|	HAS_FIELD '[' symbol ',' neg_regex ']'	{ $$ = new CQFHasFieldRegex(*$3,*$5,true); }
+	|	HAS_FIELD '[' symbol ',' neg_regex ']'	{ $$ = new CQFHasFieldRegex(*$3,*$5); ((CQFHasFieldRegex*)$$)->Negate(); }
 	|	HAS_FIELD '[' symbol ',' s_prefix ']'	{ $$ = new CQFHasFieldPrefix(*$3,*$5); }
 	|	HAS_FIELD '[' symbol ',' s_suffix ']'	{ $$ = new CQFHasFieldSuffix(*$3,*$5); }
 	|	HAS_FIELD '[' symbol ',' s_infix ']'	{ $$ = new CQFHasFieldInfix(*$3,*$5); }

@@ -1338,7 +1338,7 @@ DDCErrorEnum CConcHolder::GetAllHits(const string &Query, size_t Limit)
 			
 				PeriodHitsIndex.erase(PeriodHitsIndex.begin(), PeriodHitsIndex.begin()+hits_start);
 				size_t debug_size =  PeriodHitsIndex.size();
-				if (F.m_bRegExp)
+				if (F.m_bSet)
 					{
 						// we have to intersect F.m_SatisfiedValues with m_pQueryCompiler->m_pQuery->m_Node->m_Hits using m_CHit::m_OrderId
 						vector<size_t>::const_iterator hits_start = PeriodHitsIndex.begin();
