@@ -11,7 +11,7 @@
     <section name="overview" title="Overview">
       <p>
 	This documentation describes the query language accepted by
-	DDC version 2.0.4.  Current sources for DDC should be available
+	DDC version 2.0.5.  Current sources for DDC should be available
 	from
 	<!--<a href="http://odo.dwds.de/code/viewvc.cgi/ddc/trunk/?root=dev">svn+ssh://odo.dwds.de/home/svn/dev/ddc/trunk</a>.-->
 	<a href="http://sourceforge.net/projects/ddc-concordance">http://sourceforge.net/projects/ddc-concordance</a>.
@@ -558,7 +558,7 @@
 	    <rhs cmt="... literal match">
 	      <t>#HAS</t>
 	      <t>[</t>
-	      <n>s_field</n>
+	      <n>s_xfield</n>
 	      <t>,</t>
 	      <n>symbol</n>
 	      <t>]</t>
@@ -566,7 +566,7 @@
 	    <rhs cmt="... regular expression match">
 	      <t>#HAS</t>
 	      <t>[</t>
-	      <n>s_field</n>
+	      <n>s_xfield</n>
 	      <t>,</t>
 	      <n>regex</n>
 	      <t>]</t>
@@ -574,7 +574,7 @@
 	    <rhs cmt="... negated regular expression match">
 	      <t>#HAS</t>
 	      <t>[</t>
-	      <n>s_field</n>
+	      <n>s_xfield</n>
 	      <t>,</t>
 	      <n>neg_regex</n>
 	      <t>]</t>
@@ -582,7 +582,7 @@
 	    <rhs cmt="... prefix match">
 	      <t>#HAS</t>
 	      <t>[</t>
-	      <n>s_field</n>
+	      <n>s_xfield</n>
 	      <t>,</t>
 	      <n>s_prefix</n>
 	      <t>]</t>
@@ -590,7 +590,7 @@
 	    <rhs cmt="... suffix match">
 	      <t>#HAS</t>
 	      <t>[</t>
-	      <n>s_field</n>
+	      <n>s_xfield</n>
 	      <t>,</t>
 	      <n>s_suffix</n>
 	      <t>]</t>
@@ -598,7 +598,7 @@
 	    <rhs cmt="... infix match">
 	      <t>#HAS</t>
 	      <t>[</t>
-	      <n>s_field</n>
+	      <n>s_xfield</n>
 	      <t>,</t>
 	      <n>s_infix</n>
 	      <t>]</t>
@@ -606,7 +606,7 @@
 	    <rhs cmt="... disjunction over a set of target values">
 	      <t>#HAS</t>
 	      <t>[</t>
-	      <n>s_field</n>
+	      <n>s_xfield</n>
 	      <t>,</t>
 	      <t>{</t>
 	      <n>l_set</n>
@@ -1005,13 +1005,19 @@
 	    </rhs>
 	  </rule>
 
-	  <!--~~~~~~~~ RULES: s_field -->
+	  <!--~~~~~~~~ RULES: s_fieldval -->
 	  <rule lhs="s_fieldval" cmt="Document metadata field value">
 	    <rhs cmt="... is just a symbol">
 	      <n>symbol</n>
 	    </rhs>
 	  </rule>
 
+	  <!--~~~~~~~~ RULES: s_xfield -->
+	  <rule lhs="s_xfield" cmt="Document metadata field name or pseudo-field">
+	    <rhs cmt="... is just a symbol">
+	      <n>symbol</n>
+	    </rhs>
+	  </rule>
 
 	  <!--~~~~~~~~ RULES: regex -->
 	  <rule lhs="regex" cmt="Regular expressions">

@@ -1,3 +1,5 @@
+// //-*- Mode: C++; c-basic-offset: 8; -*-
+//
 //  Copyright 2011 by Bryan Jurish
 //
 //  This file is part of DDC.
@@ -18,6 +20,7 @@
 #ifndef __Bibliography_H_
 #define __Bibliography_H_
 
+#include "../ConcordLib/BiblExpander.h"
 #include "../common/util_classes.h"
 #include "../common/MorphXmlToken.h"
 #include <list>
@@ -176,6 +179,8 @@ class CConcXml
 	typedef map<string, CFreeBiblIndex*> FreeBiblStringMap;
 	FreeBiblStringMap	m_FreeBiblIndices;
 
+	typedef map<string, CBiblExpander*> BiblExpanderMap;
+	BiblExpanderMap		m_BiblExpanders;
 
 	vector<file_off_t>		m_EndOffsetsInBiblFile;
 	vector<int>				m_Dates;
@@ -194,7 +199,7 @@ class CConcXml
 	string	GetBiblIndexFileName() const;
 	string	GetBiblFileName() const;
 	string	GetBiblDateIndexFileName() const;
-	int		GetTextAreaByName(const string& Name) const;
+	int	GetTextAreaByName(const string& Name) const;
 	
 	//! common regex options
 	RML_RE::Options m_RegexOpts;
@@ -209,6 +214,10 @@ public:
 
 	//! clears m_FreeBiblIndices
 	void FreeBiblIndices();
+
+	//! clears m_BiblExpanders
+	void FreeBiblExpanders
+();
 
 	//! initialize building bibliography for corpus ProjectFileName
 	bool Start(string ProjectFileName);
@@ -283,6 +292,9 @@ public:
 
 	//! set regex options for all registered fields
 	void SetRegexOptions(const RML_RE::Options &opts);
+
+	//! add a new bibliographic expander to m_BiblExpanders, or replace an existing one; returns new expander
+	CBiblExpander* AddBiblExpander(const string& spec);
 };
 
 

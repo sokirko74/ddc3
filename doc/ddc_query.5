@@ -62,7 +62,7 @@
 .\" ========================================================================
 .\"
 .IX Title "DDC_QUERY 5"
-.TH DDC_QUERY 5 "2013-01-03" "2.0.4" "DDC Corpus Indexing System"
+.TH DDC_QUERY 5 "2013-01-04" "2.0.5" "DDC Corpus Indexing System"
 .\" For nroff, turn off justification.  Always turn off hyphenation; it makes
 .\" way too many mistakes in technical documents.
 .if n .ad l
@@ -72,7 +72,7 @@
 .SS "Overview"
 .IX Subsection "Overview"
 This documentation describes the query language accepted by
-\&\s-1DDC\s0 version 2.0.4.  Current sources for \s-1DDC\s0 should be available
+\&\s-1DDC\s0 version 2.0.5.  Current sources for \s-1DDC\s0 should be available
 from
 http://sourceforge.net/projects/ddc\-concordance.
 .PP
@@ -279,13 +279,13 @@ Comments may appear after each rule in C notation
 \&                  ;
 \& 
 \& qf_has_field   ::=                                   /*\-\- Metadata restriction (alias: #HAS_FIELD) \-\-*/
-\&                    #HAS [ s_field , symbol ]         /* ... literal match */
-\&                  | #HAS [ s_field , regex ]          /* ... regular expression match */
-\&                  | #HAS [ s_field , neg_regex ]      /* ... negated regular expression match */
-\&                  | #HAS [ s_field , s_prefix ]       /* ... prefix match */
-\&                  | #HAS [ s_field , s_suffix ]       /* ... suffix match */
-\&                  | #HAS [ s_field , s_infix ]        /* ... infix match */
-\&                  | #HAS [ s_field , { l_set } ]      /* ... disjunction over a set of target values */
+\&                    #HAS [ s_xfield , symbol ]        /* ... literal match */
+\&                  | #HAS [ s_xfield , regex ]         /* ... regular expression match */
+\&                  | #HAS [ s_xfield , neg_regex ]     /* ... negated regular expression match */
+\&                  | #HAS [ s_xfield , s_prefix ]      /* ... prefix match */
+\&                  | #HAS [ s_xfield , s_suffix ]      /* ... suffix match */
+\&                  | #HAS [ s_xfield , s_infix ]       /* ... infix match */
+\&                  | #HAS [ s_xfield , { l_set } ]     /* ... disjunction over a set of target values */
 \&                  | ! qf_has_field                    /* ... negated filter expression */
 \&                  ;
 \& 
@@ -450,6 +450,10 @@ Comments may appear after each rule in C notation
 \&               ;
 \& 
 \& s_fieldval  ::=                   /*\-\- Document metadata field value \-\-*/
+\&                 symbol            /* ... is just a symbol */
+\&               ;
+\& 
+\& s_xfield    ::=                   /*\-\- Document metadata field name or pseudo\-field \-\-*/
 \&                 symbol            /* ... is just a symbol */
 \&               ;
 \& 

@@ -167,6 +167,7 @@ public:
   {};
   virtual ~TxToLower(void) {};
 
+  //! wraps RmlMakeLower()
   virtual void expand(const set<string>& src, set<string>& dst);
 };
 
@@ -180,7 +181,7 @@ public:
   {};
   virtual ~TxToUpper(void) {};
 
-  //! wraps
+  //! wraps RmlMakeUpper()
   virtual void expand(const set<string>& src, set<string>& dst);
 };
 
@@ -203,6 +204,7 @@ public:
 //! \brief TxCurl: abstract term expander using libcurl
 class TxCurl : public CTermExpander {
 public:
+  //! CCurl object to use for expansion query
   CCurl m_CCurl;
 
 public:
@@ -238,28 +240,47 @@ public:
 //! \detail I/O format is DTA::CAB::Format::ExpandList (newline- and TAB-separated lists)
 class TxCab : public TxCurl {
 public:
-  //! base URL;  a 'qd=' parameter will be appended for each expansion query
+  //! base URL; newline-separated query argument(s) will be appended for each expansion query
   string m_UrlBase;
 
   //! debug?
   int m_Debug;
 
+  //! \li if true ("map-mode"), argument term(s) must occur in the query response to be included in the output set
+  //! \li otherwise ("union-mode", default), literal argument term(s) will always be included in output set
+  int m_MapMode;
+
 public:
   //------------------------------------------------------------
-  TxCab(const string &label=string("Cab"), const string& param=string(""))
-    : TxCurl("Cab",label,param), m_Debug(0)
+  TxCab(const string &label=string("Cab"), const string& param=string(""), int Debug=0, int MapMode=0)
+    : TxCurl("Cab",label,param), m_Debug(Debug), m_MapMode(MapMode)
   {};
   virtual ~TxCab(void) {};
 
   //! Setup m_Curl object based on object parameters
   //! Default parses space-separated m_Param to set m_UrlBase and m_CCurl->timeout()
-  //! \li 1st param: base URL (without 'q' or 'qd' parameters)
+  //! \li 1st param: base URL (with trailing query parameter name e.g. "qd=")
   //! \li 2nd param: timeout (seconds)
   //! \li 3rd param: debug (int~bool)
+  //! \li 4th param: map-mode (int~bool)
   virtual void compile(void);
 
   virtual void expand(const set<string>& src, set<string>& dst);
 };
+
+//======================================================================
+//! \brief TxCabMap: HTTP-based term expander using DTA::CAB HTTP protocol in "map-mode"
+class TxCabMap : public TxCab {
+public:
+  //------------------------------------------------------------
+  TxCabMap(const string &label=string("CabMap"), const string& param=string(""), int Debug=0, int MapMode=1)
+    : TxCab(label,param,Debug,MapMode)
+  {
+    m_Class = "CabMap";
+  };
+  virtual ~TxCabMap(void) {};
+};
+
 
 //======================================================================
 //! TxDispatcher: name-based expansion dispatcher
@@ -307,9 +328,6 @@ public:
   //! \returns newly created expander
   CTermExpander *addExpander(const string &spec);
 
-  //! parse a term expander specification as a space-separated (" \t\n\r") list "LABEL [CLASS=LABEL [PARAM='']]"
-  void parseExpanderSpec(const string &spec, string &txclass, string &txlabel, string &txparam);
-
   //! compile all defined expanders
   void compile(void);
 
@@ -337,7 +355,7 @@ public:
   //! extended lookup for an expansion chain; throws CExpc on unknown label
   TxChain getChain(const vector<string> &labels);
 
-  //! extended lookup for an expansion chain; splits \a spec on " \t\r\n%"
+  //! extended lookup for an expansion chain; splits \a spec on " \t\r\n|"
   TxChain getChain(const string& spec);
   //@}
 };
@@ -346,7 +364,10 @@ public:
 //======================================================================
 // Utilities
 
-//! create a new TermExpander
+//! parse a term expander specification as a space-separated (" \t\n\r") list "LABEL [CLASS=LABEL [PARAM='']]"
+void parseTermExpanderSpec(const string &spec, string &txclass, string &txlabel, string &txparam);
+
+//! create a new TermExpander from a parsed specification
 CTermExpander *newTermExpander(const string& class_="Id", const string& label=string(""), const string& param=string(""));
 
 #endif /* DDC_TERM_EXPANDER_H */

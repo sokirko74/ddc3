@@ -82,6 +82,7 @@ option files ("opt-files") used by the DDC corpus indexing system.
  Bibl ...
  textarea ...
  Expand ...
+ ExpandBibl ...
  Bigrams ...
 
 =cut
@@ -147,7 +148,7 @@ may change in the future.
 
 =head2 Required Declarations
 
-Each DDC option file requires two obligatory declarations L<lang> and L<indextype>, which
+Each DDC option file requires two obligatory declarations L<Lang|/lang> and L<IndexType|/indextype>, which
 should occur as the first two options in an opt-file (although they
 may be defined by an external file loaded with the L<include> directive).
 
@@ -649,7 +650,7 @@ accepted by the L<LANG|/lang> declaration.
 
 =item Cab
 
- Expand LABEL Cab URL TIMEOUT DEBUG
+ Expand LABEL Cab URL TIMEOUT DEBUG MAPMODE
 
 Orthographic variant expander which queries an external DTA::CAB HTTP server.
 Parameters:
@@ -679,7 +680,20 @@ Boolean flag for debugging.  If set to a true value, all data
 passed to and from the external DTA::CAB server will be echoed
 to stderr.  Not for production use.
 
+=item MAPMODE
+
+Boolean flag.  If false or unspecified ("union-mode"), all input terms are
+implicitly included to the output set, regardless of whether or not they are
+also present in the server's response.  If I<MAPMODE> specified and true, only those
+terms explicitly included in the server's response are included in the output set.
+
 =back
+
+=item CabMap
+
+ Expand LABEL CabMap URL TIMEOUT DEBUG MAPMODE
+
+Wrapper for the L<Cab|/cab> class with a default I<MAPMODE>=1.
 
 =item Chain
 
@@ -727,6 +741,28 @@ the legacy L<DisableDefaultQueryLexicalExpansion|/disabledefaultquerylexicalexpa
 option is set.
 
 =back
+
+
+=head3 ExpandBibl
+
+ ExpandBibl LABEL TARGET CLASS PARAM...
+
+Declares a named bibliographic expander which can be used in place of a
+physically indexed bibliographic fields (as declared with the L<Bibl|/bibl> option)
+in #HAS_FIELD queries.
+
+I<LABEL> is a label string
+used to identify the expander in user-specified pipelines.
+I<TARGET> is the unique I<NAME> associated with a physically indexed bibliographic field used for the underlying query.
+If I<LABEL> is also the I<NAME> of a physically indexed bibliographic field declared with L<Bibl|/bibl>,
+then the pseudo-field declared with C<ExpandBibl> has precedence when evaluating user queries.
+
+I<CLASS> is a string representing the expansion function to use, and
+I<PARAM...> are additional parameters to the expansion function.
+Currently (ddc v2.0.5), all I<CLASS>es supported by the L<Expand|/expand> option are also supported
+by C<ExpandBibl>, except for the C<Chain|/chain> class.
+
+No bibliographic expanders are defined by default.
 
 =cut
 

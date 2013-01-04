@@ -1,9 +1,15 @@
 ##-*- Mode: Change-Log; coding: utf-8; -*-
 
-v2.0.5 Thu, 03 Jan 2013 15:53:33 +0100 moocow
+v2.0.5 Fri, 04 Jan 2013 15:58:35 +0100
 	+ re-factored bibliographic filtering in Bibliography.(h|cpp), QueryFilter.(h|cpp)
 	+ added new CConcXml member slot m_RegexOpts : initialized from CConcIndexator at option-load time (ConcordOptions.cpp)
 	+ added new FreeBiblIndex member m_pRegexOpts : pointer to m_RegexOpts for parent CConcXml object (utf8 by default)
+	+ class TxCab: added "m_MapMode" argument
+	+ added class TxCabMap (default m_MapMode=1)
+	+ removed implicit append of "&qd=" for TxCab and descendants: now only included if argument URL doesn't end in '=',
+	  to allow more flexible URL specifications
+	+ added CBiblExpander.(h|cpp): external bibliographic pseudo-fields
+	  - implementation currently just wraps CTermExpander classes (except for Chain)
 
 v2.0.4 Mon, 10 Dec 2012 15:32:28 +0100 moocow
 	+ fixed annoying queries-must-end-with-whitespace bug in ddc_simple.cpp

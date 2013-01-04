@@ -1,3 +1,5 @@
+// -*- Mode: C++ -*-
+//
 //  Copyright 2011 by Bryan Jurish
 //
 //  This file is part of DDC.

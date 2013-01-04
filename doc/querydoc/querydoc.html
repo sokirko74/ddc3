@@ -62,7 +62,7 @@
 <h2><a name="overview">Overview</a></h2>
 <p>
 	This documentation describes the query language accepted by
-	DDC version 2.0.4.  Current sources for DDC should be available
+	DDC version 2.0.5.  Current sources for DDC should be available
 	from
 	<!--<a href="http://odo.dwds.de/code/viewvc.cgi/ddc/trunk/?root=dev">svn+ssh://odo.dwds.de/home/svn/dev/ddc/trunk</a>.-->
 	<a href="http://sourceforge.net/projects/ddc-concordance">http://sourceforge.net/projects/ddc-concordance</a>.
@@ -980,43 +980,43 @@
 <td></td>
 <td></td>
 <td class="ruleRHS1">
-<span class="ruleTerminal">#HAS</span> <span class="ruleTerminal">[</span> <span class="ruleNonterminal"><a href="#rule_s_field">s_field</a></span> <span class="ruleTerminal">,</span> <span class="ruleNonterminal"><a href="#rule_symbol">symbol</a></span> <span class="ruleTerminal">]</span> </td>
+<span class="ruleTerminal">#HAS</span> <span class="ruleTerminal">[</span> <span class="ruleNonterminal"><a href="#rule_s_xfield">s_xfield</a></span> <span class="ruleTerminal">,</span> <span class="ruleNonterminal"><a href="#rule_symbol">symbol</a></span> <span class="ruleTerminal">]</span> </td>
 <td class="ruleComment">/* ... literal match */</td>
 </tr>
 <tr>
 <td></td>
 <td></td>
-<td class="ruleRHS">| <span class="ruleTerminal">#HAS</span> <span class="ruleTerminal">[</span> <span class="ruleNonterminal"><a href="#rule_s_field">s_field</a></span> <span class="ruleTerminal">,</span> <span class="ruleNonterminal"><a href="#rule_regex">regex</a></span> <span class="ruleTerminal">]</span> </td>
+<td class="ruleRHS">| <span class="ruleTerminal">#HAS</span> <span class="ruleTerminal">[</span> <span class="ruleNonterminal"><a href="#rule_s_xfield">s_xfield</a></span> <span class="ruleTerminal">,</span> <span class="ruleNonterminal"><a href="#rule_regex">regex</a></span> <span class="ruleTerminal">]</span> </td>
 <td class="ruleComment">/* ... regular expression match */</td>
 </tr>
 <tr>
 <td></td>
 <td></td>
-<td class="ruleRHS">| <span class="ruleTerminal">#HAS</span> <span class="ruleTerminal">[</span> <span class="ruleNonterminal"><a href="#rule_s_field">s_field</a></span> <span class="ruleTerminal">,</span> <span class="ruleNonterminal"><a href="#rule_neg_regex">neg_regex</a></span> <span class="ruleTerminal">]</span> </td>
+<td class="ruleRHS">| <span class="ruleTerminal">#HAS</span> <span class="ruleTerminal">[</span> <span class="ruleNonterminal"><a href="#rule_s_xfield">s_xfield</a></span> <span class="ruleTerminal">,</span> <span class="ruleNonterminal"><a href="#rule_neg_regex">neg_regex</a></span> <span class="ruleTerminal">]</span> </td>
 <td class="ruleComment">/* ... negated regular expression match */</td>
 </tr>
 <tr>
 <td></td>
 <td></td>
-<td class="ruleRHS">| <span class="ruleTerminal">#HAS</span> <span class="ruleTerminal">[</span> <span class="ruleNonterminal"><a href="#rule_s_field">s_field</a></span> <span class="ruleTerminal">,</span> <span class="ruleNonterminal"><a href="#rule_s_prefix">s_prefix</a></span> <span class="ruleTerminal">]</span> </td>
+<td class="ruleRHS">| <span class="ruleTerminal">#HAS</span> <span class="ruleTerminal">[</span> <span class="ruleNonterminal"><a href="#rule_s_xfield">s_xfield</a></span> <span class="ruleTerminal">,</span> <span class="ruleNonterminal"><a href="#rule_s_prefix">s_prefix</a></span> <span class="ruleTerminal">]</span> </td>
 <td class="ruleComment">/* ... prefix match */</td>
 </tr>
 <tr>
 <td></td>
 <td></td>
-<td class="ruleRHS">| <span class="ruleTerminal">#HAS</span> <span class="ruleTerminal">[</span> <span class="ruleNonterminal"><a href="#rule_s_field">s_field</a></span> <span class="ruleTerminal">,</span> <span class="ruleNonterminal"><a href="#rule_s_suffix">s_suffix</a></span> <span class="ruleTerminal">]</span> </td>
+<td class="ruleRHS">| <span class="ruleTerminal">#HAS</span> <span class="ruleTerminal">[</span> <span class="ruleNonterminal"><a href="#rule_s_xfield">s_xfield</a></span> <span class="ruleTerminal">,</span> <span class="ruleNonterminal"><a href="#rule_s_suffix">s_suffix</a></span> <span class="ruleTerminal">]</span> </td>
 <td class="ruleComment">/* ... suffix match */</td>
 </tr>
 <tr>
 <td></td>
 <td></td>
-<td class="ruleRHS">| <span class="ruleTerminal">#HAS</span> <span class="ruleTerminal">[</span> <span class="ruleNonterminal"><a href="#rule_s_field">s_field</a></span> <span class="ruleTerminal">,</span> <span class="ruleNonterminal"><a href="#rule_s_infix">s_infix</a></span> <span class="ruleTerminal">]</span> </td>
+<td class="ruleRHS">| <span class="ruleTerminal">#HAS</span> <span class="ruleTerminal">[</span> <span class="ruleNonterminal"><a href="#rule_s_xfield">s_xfield</a></span> <span class="ruleTerminal">,</span> <span class="ruleNonterminal"><a href="#rule_s_infix">s_infix</a></span> <span class="ruleTerminal">]</span> </td>
 <td class="ruleComment">/* ... infix match */</td>
 </tr>
 <tr>
 <td></td>
 <td></td>
-<td class="ruleRHS">| <span class="ruleTerminal">#HAS</span> <span class="ruleTerminal">[</span> <span class="ruleNonterminal"><a href="#rule_s_field">s_field</a></span> <span class="ruleTerminal">,</span> <span class="ruleTerminal">{</span> <span class="ruleNonterminal"><a href="#rule_l_set">l_set</a></span> <span class="ruleTerminal">}</span> <span class="ruleTerminal">]</span> </td>
+<td class="ruleRHS">| <span class="ruleTerminal">#HAS</span> <span class="ruleTerminal">[</span> <span class="ruleNonterminal"><a href="#rule_s_xfield">s_xfield</a></span> <span class="ruleTerminal">,</span> <span class="ruleTerminal">{</span> <span class="ruleNonterminal"><a href="#rule_l_set">l_set</a></span> <span class="ruleTerminal">}</span> <span class="ruleTerminal">]</span> </td>
 <td class="ruleComment">/* ... disjunction over a set of target values */</td>
 </tr>
 <tr>
@@ -1799,6 +1799,25 @@
 <td>::=</td>
 <td></td>
 <td class="ruleCommentTop">/* Document metadata field value */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS1">
+<span class="ruleNonterminal"><a href="#rule_symbol">symbol</a></span> </td>
+<td class="ruleComment">/* ... is just a symbol */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td><b>;</b></td>
+</tr>
+<tr></tr>
+<tr>
+<td><b><a name="rule_s_xfield">s_xfield</a></b></td>
+<td>::=</td>
+<td></td>
+<td class="ruleCommentTop">/* Document metadata field name or pseudo-field */</td>
 </tr>
 <tr>
 <td></td>
@@ -2639,7 +2658,7 @@ regex_modifier	[gimsx]
   </body></div>
 <div class="footers">
 <div class="footer_sig">
-<address><a href="mailto:jurish@bbaw.de">jurish@bbaw.de</a></address>Last modified: Thu, 03 Jan 2013 10:27:57 +0100</div>
+<address><a href="mailto:jurish@bbaw.de">jurish@bbaw.de</a></address>Last modified: Fri, 04 Jan 2013 15:52:21 +0100</div>
 <div class="footer_linkbar"><p class="nopad"><a class="navLink" href="/">Root</a><a class="navLink" href="./">Back</a><span class="navLinkDisabled">Help</span></p></div>
 <p class="dummy"></p>
 </div>

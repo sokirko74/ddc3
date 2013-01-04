@@ -21,7 +21,6 @@
 #include "../ConcordLib/TermExpander.h"
 
 
-
 struct CHighlightTags 
 {
 	//! true, if members were initialized from string (via CHighlightTags::ReadFromString)

@@ -62,7 +62,7 @@
 .\" ========================================================================
 .\"
 .IX Title "DDC_OPT 5"
-.TH DDC_OPT 5 "2012-09-28" "2.0.2" "DDC Corpus Indexing System"
+.TH DDC_OPT 5 "2013-01-04" "2.0.5" "DDC Corpus Indexing System"
 .\" For nroff, turn off justification.  Always turn off hyphenation; it makes
 .\" way too many mistakes in technical documents.
 .if n .ad l
@@ -141,6 +141,7 @@ option files (\*(L"opt-files\*(R") used by the \s-1DDC\s0 corpus indexing system
 \& Bibl ...
 \& textarea ...
 \& Expand ...
+\& ExpandBibl ...
 \& Bigrams ...
 .Ve
 .SH "DESCRIPTION"
@@ -189,7 +190,7 @@ is also supported, is \fB\s-1NOT\s0\fR a comment, and \fB\s-1WILL\s0\fR be evalu
 may change in the future.
 .SS "Required Declarations"
 .IX Subsection "Required Declarations"
-Each \s-1DDC\s0 option file requires two obligatory declarations lang and indextype, which
+Each \s-1DDC\s0 option file requires two obligatory declarations Lang and IndexType, which
 should occur as the first two options in an opt-file (although they
 may be defined by an external file loaded with the include directive).
 .PP
@@ -742,7 +743,7 @@ accepted by the \s-1LANG\s0 declaration.
 .IP "Cab" 4
 .IX Item "Cab"
 .Vb 1
-\& Expand LABEL Cab URL TIMEOUT DEBUG
+\& Expand LABEL Cab URL TIMEOUT DEBUG MAPMODE
 .Ve
 .Sp
 Orthographic variant expander which queries an external \s-1DTA::CAB\s0 \s-1HTTP\s0 server.
@@ -768,9 +769,22 @@ the same set it was passed.
 Boolean flag for debugging.  If set to a true value, all data
 passed to and from the external \s-1DTA::CAB\s0 server will be echoed
 to stderr.  Not for production use.
+.IP "\s-1MAPMODE\s0" 4
+.IX Item "MAPMODE"
+Boolean flag.  If false or unspecified (\*(L"union-mode\*(R"), all input terms are
+implicitly included to the output set, regardless of whether or not they are
+also present in the server's response.  If \fI\s-1MAPMODE\s0\fR specified and true, only those
+terms explicitly included in the server's response are included in the output set.
 .RE
 .RS 4
 .RE
+.IP "CabMap" 4
+.IX Item "CabMap"
+.Vb 1
+\& Expand LABEL CabMap URL TIMEOUT DEBUG MAPMODE
+.Ve
+.Sp
+Wrapper for the Cab class with a default \fI\s-1MAPMODE\s0\fR=1.
 .IP "Chain" 4
 .IX Item "Chain"
 .Vb 1
@@ -808,6 +822,30 @@ the default chain unless the legacy CaseInsensitive flag is set,
 and the \f(CW\*(C`infl\*(C'\fR component will be omitted if
 the legacy DisableDefaultQueryLexicalExpansion
 option is set.
+.PP
+\fIExpandBibl\fR
+.IX Subsection "ExpandBibl"
+.PP
+.Vb 1
+\& ExpandBibl LABEL TARGET CLASS PARAM...
+.Ve
+.PP
+Declares a named bibliographic expander which can be used in place of a
+physically indexed bibliographic fields (as declared with the Bibl option)
+in #HAS_FIELD queries.
+.PP
+\&\fI\s-1LABEL\s0\fR is a label string
+used to identify the expander in user-specified pipelines.
+\&\fI\s-1TARGET\s0\fR is the unique \fI\s-1NAME\s0\fR associated with a physically indexed bibliographic field used for the underlying query.
+If \fI\s-1LABEL\s0\fR is also the \fI\s-1NAME\s0\fR of a physically indexed bibliographic field declared with Bibl,
+then the pseudo-field declared with \f(CW\*(C`ExpandBibl\*(C'\fR has precedence when evaluating user queries.
+.PP
+\&\fI\s-1CLASS\s0\fR is a string representing the expansion function to use, and
+\&\fI\s-1PARAM\s0...\fR are additional parameters to the expansion function.
+Currently (ddc v2.0.5), all \fI\s-1CLASS\s0\fRes supported by the Expand option are also supported
+by \f(CW\*(C`ExpandBibl\*(C'\fR, except for the \f(CW\*(C`Chain|/chain\*(C'\fR class.
+.PP
+No bibliographic expanders are defined by default.
 .SH "ACKNOWLEDGEMENTS"
 .IX Header "ACKNOWLEDGEMENTS"
 Alexey Sokirko wrote the original \s-1DDC\s0 and the DDCReadme.pdf

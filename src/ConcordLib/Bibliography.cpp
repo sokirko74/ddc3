@@ -619,6 +619,7 @@ CConcXml::~CConcXml()
 		fclose(m_BiblBodyFile);
 	}
 	FreeBiblIndices();
+	FreeBiblExpanders();
 };
 
 void CConcXml::FreeBiblIndices()
@@ -628,6 +629,15 @@ void CConcXml::FreeBiblIndices()
 		delete it->second;
 	};
 	m_FreeBiblIndices.clear();
+};
+
+void CConcXml::FreeBiblExpanders()
+{
+	for (BiblExpanderMap::iterator it = m_BiblExpanders.begin(); it != m_BiblExpanders.end(); it++)
+	{
+		if (it->second) delete it->second;
+	};
+	m_BiblExpanders.clear();
 };
 
 
@@ -1237,6 +1247,52 @@ void CConcXml::SetRegexOptions(const RML_RE::Options &opts)
 	}
 };
 
+CBiblExpander* CConcXml::AddBiblExpander(const string &spec)
+{
+	const char *delims = " \t\r\n";
+	StringTokenizer stok(spec.c_str(), delims);
+	string s_label(""), s_target(""), s_cls(""), s_param("");
+	CBiblExpander *bx = NULL;;
+
+	if (stok.has_next()) s_label  = stok.next_token();
+	if (stok.has_next()) s_target = stok.next_token();
+	if (stok.has_next()) s_cls    = stok.next_token();
+	if (stok.has_next()) s_param  = stok.get_rest();
+
+	//-- parse spec
+	string cls(s_cls);
+	Trim(cls);
+	EngMakeLower(cls);
+	if (cls.empty()) {
+		throw CExpc(errLogic, "unknown BiblExpander class `%s'", s_cls.c_str());
+	}
+	else {
+		//-- default: BxTermWrapper
+		bx = new BxTermWrapper(s_label, s_target, s_cls + " " + s_param);
+
+		//-- check for chains (not yet implemented)
+		CTermExpander *tx = ((BxTermWrapper*)bx)->m_BxTx;
+		if (tx && tx->m_Class == "Chain")
+			throw CExpc(errLogic, "chained bibliographic expanders not yet supported for `%s'", s_label.c_str());
+	}
+
+	//-- sanity check(s)
+	if (bx==NULL)
+		throw CExpc(errRuntime, "could not create BiblExpander of class `%s'", s_cls.c_str());
+
+	//-- check for existing expander
+	BiblExpanderMap::iterator bi = m_BiblExpanders.find(s_label);
+	if (bi != m_BiblExpanders.end()) {
+		if (bi->second != NULL) delete bi->second;
+		m_BiblExpanders.erase(bi);
+	}
+
+	//-- insert new expander
+	m_BiblExpanders[s_label] = bx;
+
+	return bx;
+};
+
 bool CConcXml::IsRegisteredBiblField(string FreeBiblAttribName) const
 {
 	const CFreeBiblIndex* pFreeAttrib = 0;	
@@ -1275,6 +1331,18 @@ void CConcXml::InitGreaterByBiblIntegerField(string FreeBiblAttribName, vector<C
 bool CConcXml::GetFilterValue(CDDCFilterWithBounds& Filter, const string& Value) const
 {
 	Filter.clear();
+
+	//-- bibliographic expander clobbers any indexed field with the same name
+	BiblExpanderMap::const_iterator xit = m_BiblExpanders.find(Filter.m_FreeBiblAttribName);
+	if (xit != m_BiblExpanders.end()) {
+		set<string> xvalues;
+		xit->second->expand(Value, xvalues);
+
+		Filter.m_FreeBiblAttribName = xit->second->m_BxTarget;
+		return GetFilterValues(Filter, xvalues);
+	}
+	
+	//-- usual case: physically indexed bibliographic field
 	FreeBiblStringMap::const_iterator it = m_FreeBiblIndices.find(Filter.m_FreeBiblAttribName);
 	if (it == m_FreeBiblIndices.end()) return false; // attribute not found
 	return it->second->GetFilterValue(Filter, Value);
@@ -1293,6 +1361,18 @@ bool CConcXml::GetFilterValues(CDDCFilterWithBounds& Filter, const string &Regex
 bool CConcXml::GetFilterValues(CDDCFilterWithBounds& Filter, const set<string>& Values) const
 {
 	Filter.clear();
+
+	//-- bibliographic expander clobbers any indexed field with the same name
+	BiblExpanderMap::const_iterator xit = m_BiblExpanders.find(Filter.m_FreeBiblAttribName);
+	if (xit != m_BiblExpanders.end()) {
+		set<string> xvalues;
+		xit->second->expand(Values, xvalues);
+
+		Filter.m_FreeBiblAttribName = xit->second->m_BxTarget;
+		return GetFilterValues(Filter, xvalues);
+	}
+
+	//-- usual case: physically indexed bibliographic field
 	FreeBiblStringMap::const_iterator it = m_FreeBiblIndices.find(Filter.m_FreeBiblAttribName);
 	if (it == m_FreeBiblIndices.end()) return false; // attribute not found
 	return it->second->GetFilterValues(Filter, Values);;

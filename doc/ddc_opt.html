@@ -89,6 +89,7 @@
 			<li><a href="#bibl">Bibl</a></li>
 			<li><a href="#bigrams">Bigrams</a></li>
 			<li><a href="#expand">Expand</a></li>
+			<li><a href="#expandbibl">ExpandBibl</a></li>
 		</ul>
 
 	</ul>
@@ -179,6 +180,7 @@ option files (&quot;opt-files&quot;) used by the DDC corpus indexing system.</p>
  Bibl ...
  textarea ...
  Expand ...
+ ExpandBibl ...
  Bigrams ...</pre>
 <p>
 </p>
@@ -227,7 +229,7 @@ may change in the future.</p>
 <p>
 </p>
 <h2><a name="required_declarations">Required Declarations</a></h2>
-<p>Each DDC option file requires two obligatory declarations <a href="#lang">the lang manpage</a> and <a href="#indextype">the indextype manpage</a>, which
+<p>Each DDC option file requires two obligatory declarations <a href="#lang">Lang</a> and <a href="#indextype">IndexType</a>, which
 should occur as the first two options in an opt-file (although they
 may be defined by an external file loaded with the <a href="#include">the include manpage</a> directive).</p>
 <p>
@@ -701,7 +703,7 @@ accepted by the <a href="#lang">LANG</a> declaration.</p>
 
 <dd>
 <pre>
- Expand LABEL Cab URL TIMEOUT DEBUG</pre>
+ Expand LABEL Cab URL TIMEOUT DEBUG MAPMODE</pre>
 <p>Orthographic variant expander which queries an external DTA::CAB HTTP server.
 Parameters:</p>
 <dl>
@@ -731,7 +733,22 @@ the same set it was passed.</p>
 passed to and from the external DTA::CAB server will be echoed
 to stderr.  Not for production use.</p>
 </dd>
+<dt><strong><a name="mapmode" class="item">MAPMODE</a></strong></dt>
+
+<dd>
+<p>Boolean flag.  If false or unspecified (&quot;union-mode&quot;), all input terms are
+implicitly included to the output set, regardless of whether or not they are
+also present in the server's response.  If <em>MAPMODE</em> specified and true, only those
+terms explicitly included in the server's response are included in the output set.</p>
+</dd>
 </dl>
+</dd>
+<dt><strong><a name="cabmap" class="item">CabMap</a></strong></dt>
+
+<dd>
+<pre>
+ Expand LABEL CabMap URL TIMEOUT DEBUG MAPMODE</pre>
+<p>Wrapper for the <a href="#cab">Cab</a> class with a default <em>MAPMODE</em>=1.</p>
 </dd>
 <dt><strong><a name="chain" class="item">Chain</a></strong></dt>
 
@@ -782,6 +799,24 @@ the legacy <a href="#disabledefaultquerylexicalexpansion">DisableDefaultQueryLex
 option is set.</p>
 </dd>
 </dl>
+<p>
+</p>
+<h3><a name="expandbibl">ExpandBibl</a></h3>
+<pre>
+ ExpandBibl LABEL TARGET CLASS PARAM...</pre>
+<p>Declares a named bibliographic expander which can be used in place of a
+physically indexed bibliographic fields (as declared with the <a href="#bibl">Bibl</a> option)
+in #HAS_FIELD queries.</p>
+<p><em>LABEL</em> is a label string
+used to identify the expander in user-specified pipelines.
+<em>TARGET</em> is the unique <em>NAME</em> associated with a physically indexed bibliographic field used for the underlying query.
+If <em>LABEL</em> is also the <em>NAME</em> of a physically indexed bibliographic field declared with <a href="#bibl">Bibl</a>,
+then the pseudo-field declared with <code>ExpandBibl</code> has precedence when evaluating user queries.</p>
+<p><em>CLASS</em> is a string representing the expansion function to use, and
+<em>PARAM...</em> are additional parameters to the expansion function.
+Currently (ddc v2.0.5), all <em>CLASS</em>es supported by the <a href="#expand">Expand</a> option are also supported
+by <code>ExpandBibl</code>, except for the <code>Chain|/chain</code> class.</p>
+<p>No bibliographic expanders are defined by default.</p>
 <p>
 </p>
 <hr />

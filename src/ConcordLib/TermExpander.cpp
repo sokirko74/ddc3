@@ -286,6 +286,8 @@ void TxCab::compile(void)
   m_UrlBase.clear();
   if (params.size() > 0) {
     m_UrlBase = params[0];
+    if (*m_UrlBase.rbegin() != '=')
+      m_UrlBase += "&qd="; //-- compatibility hack for versions < 2.0.5
   }
   if (params.size() > 1) {
     int secs = strtol(params[1].c_str(), NULL, 0);
@@ -293,6 +295,9 @@ void TxCab::compile(void)
   }
   if (params.size() > 2) {
     m_Debug = strtol(params[2].c_str(), NULL, 0);
+  }
+  if (params.size() > 3) {
+    m_MapMode = strtol(params[3].c_str(), NULL, 0);
   }
 
   //-- curl flags
@@ -303,12 +308,14 @@ void TxCab::compile(void)
 //--------------------------------------------------------------
 void TxCab::expand(const set<string>& src, set<string>& dst)
 {
-  //-- default: always include identity expansion
-  dst = src;
+  if (!m_MapMode)
+    dst = src;		//-- union-mode (default): always include identity expansions
+  else
+    dst.clear();	//-- map-mode: output terms must occur explicitly in the query response
+
 
   //-- construct query url
   string url(m_UrlBase);
-  url += "&qd=";
   for (set<string>::const_iterator si=src.begin(); si != src.end(); si++) {
     url += escapeUrlString(*si) + "%0A";
   }
@@ -386,7 +393,7 @@ void TxDispatcher::ensureDefaultExpanders(MorphLanguageEnum mlang, MorphLanguage
 CTermExpander *TxDispatcher::addExpander(const string &spec)
 {
   string txclass, txlabel, txparam;
-  parseExpanderSpec(spec, txclass, txlabel, txparam);
+  parseTermExpanderSpec(spec, txclass, txlabel, txparam);
 
   CTermExpander *tx = newTermExpander(txclass,txlabel,txparam);
   //-- compile chains
@@ -417,26 +424,6 @@ string TxDispatcher::configString(const string &prefix) const
     if (out[out.size()-1] != '\n') out.push_back('\n');
   }
   return out;
-}
-
-//--------------------------------------------------------------
-void TxDispatcher::parseExpanderSpec(const string &spec, string &txclass, string &txlabel, string &txparam)
-{
-  txclass.clear();
-  txlabel.clear();
-  txparam.clear();
-
-  const char *delims = " \t\r\n";
-  StringTokenizer stok(spec.c_str(), delims);
-
-  if (!stok.has_next()) return;
-  txlabel = stok.next_token();
-
-  if (!stok.has_next()) { txclass=txlabel; return; }
-  txclass = stok.next_token();
-
-  txparam = stok.get_rest();
-  return;
 }
 
 //--------------------------------------------------------------
@@ -500,6 +487,26 @@ TxChain TxDispatcher::getChain(const string& spec)
 // Utilities
 
 //--------------------------------------------------------------
+void parseTermExpanderSpec(const string &spec, string &txclass, string &txlabel, string &txparam)
+{
+  txclass.clear();
+  txlabel.clear();
+  txparam.clear();
+
+  const char *delims = " \t\r\n";
+  StringTokenizer stok(spec.c_str(), delims);
+
+  if (!stok.has_next()) return;
+  txlabel = stok.next_token();
+
+  if (!stok.has_next()) { txclass=txlabel; return; }
+  txclass = stok.next_token();
+
+  txparam = stok.get_rest();
+  return;
+}
+
+//--------------------------------------------------------------
 CTermExpander *newTermExpander(const string& class_, const string& label, const string& param)
 {
   string cls(class_);
@@ -513,6 +520,7 @@ CTermExpander *newTermExpander(const string& class_, const string& label, const 
   else if (cls=="tolower" || cls=="lc")         { return new TxToLower(label,param); }
   else if (cls=="toupper" || cls=="uc")         { return new TxToUpper(label,param); }
   else if (cls=="cab")				{ return new TxCab(label,param); }
+  else if (cls=="cabmap")			{ return new TxCabMap(label,param); }
 
   throw CExpc(errLogic, "unknown TermExpander class `%s'", class_.c_str());
   return NULL;

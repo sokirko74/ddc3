@@ -25,6 +25,7 @@ lib_LTLIBRARIES = libDDCConcord.la
 libDDCConcord_la_SOURCES = \
  CCurl.cpp CCurl.h \
  TermExpander.cpp TermExpander.h \
+ BiblExpander.cpp BiblExpander.h \
  \
  FlexLexer.h yyQLexer.cpp yyQLexer.h \
  yyQParser.cpp yyQParser.h \
@@ -61,6 +62,7 @@ libDDCConcord_la_SOURCES = \
 noinst_HEADERS = \
  CCurl.h \
  TermExpander.h \
+ BiblExpander.h \
  Bibliography.h \
  ConcBigrams.h \
  ConcCommon.h \

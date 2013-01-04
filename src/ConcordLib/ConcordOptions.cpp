@@ -153,13 +153,11 @@ bool CConcIndexator::LoadOptionsFromString(string Options)
 			Options = AddOptions+"\n"+lines.get_rest();
 			lines.reinitialize(Options.c_str(), "\n\r");
 		}
-		else
-		if (q.empty() || q[0]=='#') {
-		  //-- blank line or comment: ignore
-		  continue;
+		else if (q.empty() || q[0]=='#') {
+			//-- blank line or comment: ignore
+			continue;
 		}
-		else
-		if (q == "LocalPathPrefix")
+		else if (q == "LocalPathPrefix")
 		{
 			q = fields.next_token();
 			if (q.empty() )
@@ -169,8 +167,7 @@ bool CConcIndexator::LoadOptionsFromString(string Options)
 			};
 			m_LocalPathPrefix = q;
 		}
-		else
-			if (q == "InternetPathPrefix")
+		else if (q == "InternetPathPrefix")
 			{
 				q = fields.next_token();
 				if (q.empty() )
@@ -181,20 +178,17 @@ bool CConcIndexator::LoadOptionsFromString(string Options)
 
 				m_InternetPathPrefix = q;
 			}
-		else
-			if (GetLanguageByString(q, langua))
+		else if (GetLanguageByString(q, langua))
 			{
 				fprintf (stderr,"%s\n", GetStringByLanguage (langua).c_str());
 				m_Language = langua;
 			}
-		else
-			if (q == "CaseInsensitive")
+		else if (q == "CaseInsensitive")
 			{
 				m_bCaseSensitive = false;
 				fprintf (stderr,"CaseInsensitive\n");
 			}
-		else
-			if (q == "HtmlHighlighting")
+		else if (q == "HtmlHighlighting")
 			{
 				if (!m_HtmlHighlighting.ReadFromString(fields.get_rest()))
 				{
@@ -203,8 +197,7 @@ bool CConcIndexator::LoadOptionsFromString(string Options)
 				};
 				fprintf (stderr,"HtmlHighlighting = \"%s\"\n", m_HtmlHighlighting.ToString().c_str());
 			}
-		else
-			if (q == "TextHighlighting")
+		else if (q == "TextHighlighting")
 			{
 				if (!m_TextHighlighting.ReadFromString(fields.get_rest()))
 				{
@@ -213,8 +206,7 @@ bool CConcIndexator::LoadOptionsFromString(string Options)
 				};
 				fprintf (stderr,"TextHighlighting = \"%s\"\n", m_TextHighlighting.ToString().c_str());
 			}
-		else
-			if (q == "TableHighlighting")
+		else if (q == "TableHighlighting")
 			{
 				if (!m_TableHighlighting.ReadFromString(fields.get_rest()))
 				{
@@ -223,57 +215,47 @@ bool CConcIndexator::LoadOptionsFromString(string Options)
 				};
 				fprintf (stderr,"TableHighlighting = \"%s\"\n", m_TableHighlighting.ToString().c_str());
 			}
-		else
-			if (q == "ShowNumberOfRelevantDocuments")
+		else if (q == "ShowNumberOfRelevantDocuments")
 			{
 				m_bShowNumberOfRelevantDocuments = true;
 				fprintf (stderr,"ShowNumberOfRelevantDocuments\n");
 			}
-		else
-			if (q == FreeBiblAttribOptionFieldName)
+		else if (q == FreeBiblAttribOptionFieldName)
 			{
 				FreeBiblDescr += string(s) + "\n";
 			}
-		else
-			if (q_lower == TextAreaOptionFieldName)
+		else if (q_lower == TextAreaOptionFieldName)
 			{
 				TextAreasDescr += string(s) + "\n";
 			}
-		else
-			if (q == "UseParagraphTagToDivide")
+		else if (q == "UseParagraphTagToDivide")
 			{
 				m_bUseParagraphTagToDivide = true;
 			}
-		else
-		if (q == "QueryOnlyFiles")
-		{
+		else if (q == "QueryOnlyFiles")
+			{
 				m_bQueryOnlyFiles = true;
 				fprintf (stderr,"QueryOnlyFiles\n");
-		}
-		else
-			if (q == "NoContextOperator" )
+			}
+		else if (q == "NoContextOperator" )
 			{
 				m_bNoContextOperator = true;
 			}
 			
-		else
-			if (q == "EmptyLineIsNotSentenceDelim")
+		else if (q == "EmptyLineIsNotSentenceDelim")
 			{
 				m_bEmptyLineIsSentenceDelim = false;
 			}
-		else
-			if (q == "DontUseIndention")
+		else if (q == "DontUseIndention")
 			{
 				m_bUseIndention = false;
 			}
-		else
-			if (q == "UseDwdsThesaurus")
+		else if (q == "UseDwdsThesaurus")
 			{
 				m_bUseDwdsThesaurus = true;
 				fprintf (stderr,"UseDwdsThesaurus\n");
 			}
-		else
-			if (q == "MaxRegExpExpansionSize")
+		else if (q == "MaxRegExpExpansionSize")
 			{
 				q = fields.next_token();
 				if (!q.empty()) 
@@ -282,8 +264,7 @@ bool CConcIndexator::LoadOptionsFromString(string Options)
 					fprintf (stderr,"MaxRegExpExpansionSize = %i\n", m_MaxRegExpExpansionSize);
 				}
 			}
-		else
-			if (q == "RightKwicContextSize")
+		else if (q == "RightKwicContextSize")
 			{
 				q = fields.next_token();
 				if (!q.empty()) 
@@ -294,8 +275,7 @@ bool CConcIndexator::LoadOptionsFromString(string Options)
 				else
 					return false;
 			}
-		else
-			if (q == "LeftKwicContextSize")
+		else if (q == "LeftKwicContextSize")
 			{
 				q = fields.next_token();
 				if (!q.empty()) 
@@ -306,8 +286,7 @@ bool CConcIndexator::LoadOptionsFromString(string Options)
 				else
 					return false;
 			}
-		else
-			if (q == "NumberOfKwicLinesInSnippets")
+		else if (q == "NumberOfKwicLinesInSnippets")
 			{
 				q = fields.next_token();
 				if (!q.empty()) 
@@ -318,8 +297,7 @@ bool CConcIndexator::LoadOptionsFromString(string Options)
 				else
 					return false;
 			}
-		else
-			if (q == "TfIdfRank")
+		else if (q == "TfIdfRank")
 			{
 				q = fields.next_token();
 				if (!q.empty()) 
@@ -330,8 +308,7 @@ bool CConcIndexator::LoadOptionsFromString(string Options)
 				else
 					return false;
 			}
-		else
-			if (q == "PositionRank")
+		else if (q == "PositionRank")
 			{
 				q = fields.next_token();
 				if (!q.empty()) 
@@ -342,8 +319,7 @@ bool CConcIndexator::LoadOptionsFromString(string Options)
 				else
 					return false;
 			}
-		else
-			if (q == "InterpDelimiter" || q == "InterpDelimeter")
+		else if (q == "InterpDelimiter" || q == "InterpDelimeter")
 			{
 				q = fields.next_token();
 				if (q.empty())  
@@ -354,8 +330,7 @@ bool CConcIndexator::LoadOptionsFromString(string Options)
 				m_InterpDelimiter = unescapeCString(q);
 				fprintf (stderr,"InterpDelimiter = \"%s\"\n", m_InterpDelimiter.c_str());
 			}
-		else
-			if (q == "TokenDelimiter" || q == "TokenDelimeter")
+		else if (q == "TokenDelimiter" || q == "TokenDelimeter")
 			{
 				q = fields.next_token();
 				if (q.empty())  
@@ -366,21 +341,18 @@ bool CConcIndexator::LoadOptionsFromString(string Options)
 				m_TokenDelimiter = unescapeCString(q);
 				fprintf (stderr,"TokenDelimiter = \"%s\"\n", m_TokenDelimiter.c_str());
 			}
-		else
-			if (q == "Utf8")
+		else if (q == "Utf8")
 			{
 				m_Utf8 = true;
 				setlocale(LC_CTYPE,"en_US.UTF-8"); //-- hack
 				fprintf (stderr,"Utf8 mode enabled\n");
 			}
-		else
-			if (q == "AllowUnsafeQueries")
+		else if (q == "AllowUnsafeQueries")
 			{
 				m_AllowUnsafeQueries = true;
 				fprintf (stderr,"AllowUnsafeQueries\n");
 			}
-		else
-			if (q == "IndicesToShow")
+		else if (q == "IndicesToShow")
 			{
 				q = fields.next_token();
 				if (q.empty())  return false;
@@ -410,8 +382,7 @@ bool CConcIndexator::LoadOptionsFromString(string Options)
 				}
 				fprintf (stderr,"IndicesToShow is initialized with %i values\n", m_IndicesToShow.size());
 			}
-		else
-			if (q == "NearRank")
+		else if (q == "NearRank")
 			{
 				q = fields.next_token();
 				if (!q.empty()) 
@@ -423,8 +394,7 @@ bool CConcIndexator::LoadOptionsFromString(string Options)
 					return false;
 			}
 			
-		else
-			if (q == "IndexType")
+		else if (q == "IndexType")
 			{
 				q = fields.next_token();
 				if (!ReadIndexTypeFromStr(q)) 
@@ -434,78 +404,65 @@ bool CConcIndexator::LoadOptionsFromString(string Options)
 				}
 				fprintf (stderr,"IndexType %s\n", GetIndexTypeStr());
 			}
-		else
-			if (q == "GutenbergInterface")
+		else if (q == "GutenbergInterface")
 			{
 				m_bGutenbergInterface = true;
 				fprintf (stderr,"GutenbergInterface\n");
 			}
-		else
-			if (q == "DwdsCorpusInterface")
+		else if (q == "DwdsCorpusInterface")
 			{
 				m_bDwdsCorpusInterface = true;
 				fprintf (stderr,"DwdsCorpusInterface\n");
 			}
-		else
-			if (q == "Bigrams")
+		else if (q == "Bigrams")
 			{
                 		BigramDescr.push_back( fields.get_rest() );
 			}
-		else
-		if (q == "Indices")
-		{
-			IndicesStr = fields.get_rest();
-		}
-		else
-		if (q == "HitBorders")
-		{
-			HitTypesStr = fields.get_rest();
-		}
-		else
-		if (q == "IndexPunctuation")
-		{
+		else if (q == "Indices")
+			{
+				IndicesStr = fields.get_rest();
+			}
+		else if (q == "HitBorders")
+			{
+				HitTypesStr = fields.get_rest();
+			}
+		else if (q == "IndexPunctuation")
+			{
 				m_bIndexPunctuation = true;
 				fprintf (stderr,"IndexPunctuation\n");
-		}
-		else
-		if (q == "ResumeOnIndexErrors")
-		{
+			}
+		else if (q == "ResumeOnIndexErrors")
+			{
 				m_bResumeOnIndexErrors = true;
 				fprintf (stderr,"ResumeOnIndexErrors\n");
-		}
-		else
-		if (q == "IndexMorphPatterns")
-		{
+			}
+		else if (q == "IndexMorphPatterns")
+			{
 				m_bIndexMorphPatterns = true;
 				fprintf (stderr,"IndexMorphPatterns\n");
-		}
-		else
-		if (q == "DisableDefaultQueryLexicalExpansion")
-		{
+			}
+		else if (q == "DisableDefaultQueryLexicalExpansion")
+			{
 				m_bDisableDefaultQueryLexicalExpansion = true;
 				fprintf (stderr,"DisableDefaultQueryLexicalExpansion\n");
-		}
-		else
-		if (q == "ArchiveIndex")
-		{
+			}
+		else if (q == "ArchiveIndex")
+			{
 				m_bArchiveIndex = true;
 				fprintf (stderr,"ArchiveIndex\n");
-		}
-		else
-		if (q == "OutputBibliographyOfHits")
-		{
+			}
+		else if (q == "OutputBibliographyOfHits")
+			{
 				m_bOutputBibliographyOfHits = true;
 				fprintf (stderr,"OutputBibliographyOfHits\n");
-		}
-		else
-		if (q == "IndexChunks")
-		{
+			}
+		else if (q == "IndexChunks")
+			{
 				m_bIndexChunks = true;
 				fprintf (stderr,"IndexChunks\n");
-		}
-		else
-		if (q == "UserMaxTokenCountInOnePeriod")
-		{
+			}
+		else if (q == "UserMaxTokenCountInOnePeriod")
+			{
 				q = fields.next_token();
 				if (!q.empty()) 
 				{
@@ -516,22 +473,33 @@ bool CConcIndexator::LoadOptionsFromString(string Options)
 					fprintf (stderr,"UserMaxTokenCountInOnePeriod = %i\n", m_UserMaxTokenCountInOnePeriod);
 					if (m_UserMaxTokenCountInOnePeriod == 0)
 					{
-						fprintf (stderr,"It cannot be less than 65000!\n");
+						fprintf (stderr,"ERROR: UserMaxTokenCountInOnePeriod: must be >= 65000, but got `%s'!\n", q.c_str());
 						return false;
 					};
 				};
 				
-		}
-		else if (q == "Expand") {
+			}
+ 		else if (q == "Expand") {
 			//-- term expander
 			string tx_spec(fields.get_rest());
 			CTermExpander *tx = m_Txd.addExpander(tx_spec);
 			if (tx==NULL) {
-				fprintf(stderr, "ERROR: could not create expander for spec `%s'\n", tx_spec.c_str());
+				fprintf(stderr, "ERROR: could not create term-expander for spec `%s'\n", tx_spec.c_str());
 				return false;
 			}
 			tx->compile();
 			fprintf(stderr, "Expand %s\n", tx->configString().c_str());
+		}
+		else if (q == "ExpandBibl") {
+			//-- bibliographic expander
+			string bx_spec(fields.get_rest());
+			CBiblExpander *bx = m_Bibl.AddBiblExpander(bx_spec);
+			if (bx==NULL) {
+				fprintf(stderr, "ERROR: could not create bibliographic expander for spec `%s'\n", bx_spec.c_str());
+				return false;
+			}
+			bx->compile();
+			fprintf(stderr, "ExpandBibl %s\n", bx->configString().c_str());
 		}
 		else
 		{
