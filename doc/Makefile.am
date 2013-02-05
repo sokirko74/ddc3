@@ -53,4 +53,4 @@ CLEANFILES = $(POD_CLEANFILES)
 ##--- maintainerclean: built by maintainer / by hand
 MAINTAINERCLEANFILES = *~ Makefile Makefile.in
 
-EXTRA_DIST = $(pkgdoc_DATA) $(man5_MANS)
+EXTRA_DIST = $(pkgdoc_DATA) $(man5_PODS) $(man5_MANS)
