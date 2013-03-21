@@ -920,11 +920,12 @@ CQuerySequenceNode::~CQuerySequenceNode()
 
 };
 
-bool CQuerySequenceNode::AddDistance(const string& s)
+bool CQuerySequenceNode::AddDistance(const string& s, char op)
 {
 	if (s=="0") 
 	{
 		m_Distances.push_back(0);
+		m_DistanceOps.push_back(op);
 		return true;
 	}
 	int distance = atoi(s.c_str());
@@ -933,6 +934,7 @@ bool CQuerySequenceNode::AddDistance(const string& s)
 	if (distance > MaxDistanceForNear)
 		return false;
 	m_Distances.push_back(distance);
+	m_DistanceOps.push_back(op);
 	return true;
 };
 
@@ -969,18 +971,19 @@ bool	CQuerySequenceNode::Create(const CConcHolder* pHolder, const vector<const C
 	return true;	
 };
 
-bool	CQuerySequenceNode::Create(const CConcHolder* pHolder, const vector<CQueryTokenNode*>& Items, const vector<BYTE>& Distances)
+bool	CQuerySequenceNode::Create(const CConcHolder* pHolder, const vector<CQueryTokenNode*>& Items, const vector<BYTE>& Distances, const vector<BYTE>& DistanceOps)
 {
-	if (Items.size() != Distances.size() + 1) {
-		// internal parse error
-		return false;
-	}
+  if (Items.size() != Distances.size() + 1 || Distances.size() != DistanceOps.size()) {
+    // internal parse error
+    return false;
+  }
 
-	m_Distances = Distances;
-	m_Items     = Items;
+  m_DistanceOps = DistanceOps;
+  m_Distances = Distances;
+  m_Items     = Items;
 
-	SetHolder(pHolder);
-	return true;	
+  SetHolder(pHolder);
+  return true;	
 };
 
 void CQuerySequenceNode::EvaluateWithoutHits()
@@ -1008,8 +1011,10 @@ void CQuerySequenceNode::EvaluateWithoutHits()
 
 	// Path is currently observed path from an item of the first  list to an item of the last list
 	// for each i > 0, 
-	// if Path[i] != -1,  
-	// then m_Items[i]->m_Occurrences[[Path[i]] - m_Items[i-1]->m_Occurrences[Path[i-1]] <= m_Distances[i-1]
+	//  if Path[i] != -1, then
+	//   : (m_Items[i]->m_Occurrences[Path[i]] - m_Items[i-1]->m_Occurrences[Path[i-1]]) <= m_Distances[i-1] if m_DistanceOps[i-1]=='<' (default)
+	//   : (m_Items[i]->m_Occurrences[Path[i]] - m_Items[i-1]->m_Occurrences[Path[i-1]]) >= m_Distances[i-1] if m_DistanceOps[i-1]=='>'
+	//   : (m_Items[i]->m_Occurrences[Path[i]] - m_Items[i-1]->m_Occurrences[Path[i-1]]) == m_Distances[i-1] if m_DistanceOps[i-1]=='='
 
 	int* Path = new int[ItemsCount];	
 	for (size_t i=0; i<ItemsCount; i++) Path[i] = -1;
@@ -1045,48 +1050,55 @@ void CQuerySequenceNode::EvaluateWithoutHits()
 			else
 				Path[i]++; // get the next position in this column and try if it suits
 
-			BYTE Distance = m_Distances[i-1] + 1; // get the possible distance
+			BYTE Distance   = m_Distances[i-1] + 1; // get the possible distance
+			BYTE DistanceOp = m_DistanceOps[i-1];   // get distance constraint operator
 			bool bPositionIsFound = false;
 
 			// searching for the position, which is inside the distance, starting from Path[i]
 			for (; Path[i] < OccurCount; Path[i]++)
 			{
-				if (Path[i]>0) // ignoring equal occurrences
-					if (m_Items[i]->m_Occurrences[Path[i]-1] ==  m_Items[i]->m_Occurrences[Path[i]])
-						continue;
+			  if (Path[i]>0) // ignoring equal occurrences
+			    if (m_Items[i]->m_Occurrences[Path[i]-1] ==  m_Items[i]->m_Occurrences[Path[i]])
+			      continue;
 
-				
-				if (m_Items[i]->m_Occurrences[Path[i]] >  T + Distance)
-					break; // this is the end position, because we are outside the distance
-				else
-					// a suitable position is found
-					if (i+1 == ItemsCount) // if it is the end  of pattern then save this occurrence
-					{
-						// adding current path from Path[0] to Path[ItemsCount-1] to occurrences
-						for (int j=0; j < ItemsCount; j++)
-							AddOccurrences(*m_Items[j], Path[j], Path[j]+1);
-
-					}
-					else
-					{
-						// Path[i] is a current node we should search for a child of Path[i]
-						// it means we should go to the  next level (i+1)
-						bPositionIsFound = true;
-						break;
-					};
+			  //-- check for distance-constraint violations
+			  DWORD CurDistance = m_Items[i]->m_Occurrences[Path[i]] - T;
+			  if (CurDistance < Distance && (DistanceOp=='=' || DistanceOp=='>'))
+			    //-- minimum distance not yet reached
+			    continue; 
+			  else if (CurDistance > Distance && (DistanceOp=='=' || DistanceOp=='<'))
+			    //-- max distance exceeded
+			    break;
+			  else if (CurDistance > MaxDistanceForNear)
+			    //-- global max distance exceeded
+			    break;
+			  else
+			    //-- a suitable position has been found
+			    if (i+1 == ItemsCount) // if it is the end  of pattern then save this occurrence
+			    {
+			      // adding current path from Path[0] to Path[ItemsCount-1] to occurrences
+			      for (int j=0; j < ItemsCount; j++)
+				AddOccurrences(*m_Items[j], Path[j], Path[j]+1);
+			    }
+			    else
+			    {
+			      // Path[i] is a current node we should search for a child of Path[i]
+			      // it means we should go to the  next level (i+1)
+			      bPositionIsFound = true;
+			      break;
+			    };
 			};
 
 			if (bPositionIsFound)
-				i++; // going to depth 
+			  i++; // going to depth 
 			else
 			{
-				// leaving this level, clearing Path[i] 
-				Path[i] = -1;
-				i--;
+			  // leaving this level, clearing Path[i] 
+			  Path[i] = -1;
+			  i--;
 			};
-
 		};
-		// after this cycle Path[1]...Path[ItemsCount-1] must be -1
+		// after this iteration Path[1]...Path[ItemsCount-1] must be -1
 		// we are waiting  for the next value of Path[0]
 		// S[1] ... S[ItemCount-1] were updated 
 		// S[i] is a lower bound of a possible children of S[i-1], 
@@ -1097,9 +1109,6 @@ void CQuerySequenceNode::EvaluateWithoutHits()
 	// The length of chunk is equal to the length of the  pattern,
 	// Each chunk is a found occurrence of the pattern.
 	m_ChunkLengths.resize(GetOccurrencesSize()/m_Items.size(), m_Items.size());
-
-
-	
 };
 
 void CQuerySequenceNode::Evaluate()
@@ -1179,7 +1188,7 @@ bool CQueryNearNode::Create(const CConcHolder* pHolder, const string& distance_s
 bool CQueryNearNode::Create(const CConcHolder* pHolder, BYTE distance, CQueryNode* child1, CQueryNode* child2, CQueryNode* child3)
 {
 	if (distance > MaxDistanceForNear)
-		throw CExpc(errParseError, "distance #%d too large (max=%d) in near query", distance);
+	  throw CExpc(errParseError, "distance #%d too large (max=%d) in near query", distance, MaxDistanceForNear);
 	m_Distance = distance;
 
 	if (!child1 || !child1->m_bAtomic)

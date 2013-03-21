@@ -53,28 +53,31 @@
      STAR_LBRACE = 269,
      RBRACE_STAR = 270,
      EXPANDER = 271,
-     CNTXT = 272,
-     WITHIN = 273,
-     HAS_FIELD = 274,
-     FILENAMES_ONLY = 275,
-     GREATER_BY_RANK = 276,
-     LESS_BY_RANK = 277,
-     GREATER_BY_SIZE = 278,
-     LESS_BY_SIZE = 279,
-     IS_SIZE = 280,
-     GREATER_BY_DATE = 281,
-     LESS_BY_DATE = 282,
-     IS_DATE = 283,
-     GREATER_BY = 284,
-     LESS_BY = 285,
-     LESS_BY_LEFT = 286,
-     LESS_BY_RIGHT = 287,
-     DEBUG_RANK = 288,
-     RANDOM = 289,
-     OP_OR = 290,
-     OP_AND = 291,
-     NEAR = 292,
-     WITH = 293
+     HASH_LESS = 272,
+     HASH_GREATER = 273,
+     HASH_EQUAL = 274,
+     CNTXT = 275,
+     WITHIN = 276,
+     HAS_FIELD = 277,
+     FILENAMES_ONLY = 278,
+     GREATER_BY_RANK = 279,
+     LESS_BY_RANK = 280,
+     GREATER_BY_SIZE = 281,
+     LESS_BY_SIZE = 282,
+     IS_SIZE = 283,
+     GREATER_BY_DATE = 284,
+     LESS_BY_DATE = 285,
+     IS_DATE = 286,
+     GREATER_BY = 287,
+     LESS_BY = 288,
+     LESS_BY_LEFT = 289,
+     LESS_BY_RIGHT = 290,
+     DEBUG_RANK = 291,
+     RANDOM = 292,
+     OP_OR = 293,
+     OP_AND = 294,
+     NEAR = 295,
+     WITH = 296
    };
 #endif
 
@@ -95,7 +98,7 @@ typedef union YYSTYPE
 
 
 /* Line 1676 of yacc.c  */
-#line 99 "yyQParser.h"
+#line 102 "yyQParser.h"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */

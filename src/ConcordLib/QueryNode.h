@@ -275,12 +275,13 @@ public:
 class CQuerySequenceNode : public CQueryNode
 {
 public:
+	vector<BYTE>			m_DistanceOps;	
 	vector<BYTE>			m_Distances;	
 	vector<CQueryTokenNode*>	m_Items;
 
 	//! add a distance to m_Distances, return false if the value is too large
 	//! \deprecated
-	bool AddDistance(const string& s);
+	bool AddDistance(const string& s, char op='<');
 	
 public:
 	
@@ -292,7 +293,7 @@ public:
 	bool	Create(const CConcHolder* pHolder, const vector<const CQueryNode*>& SequenceObj, const vector<string>& DistanceStrings);
 
 	//! moo: create the node after initial parsing (compile-time)
-	bool	Create(const CConcHolder* pHolder, const vector<CQueryTokenNode*>& Items, const vector<BYTE>& Distances);
+	bool	Create(const CConcHolder* pHolder, const vector<CQueryTokenNode*>& Items, const vector<BYTE>& Distances, const vector<BYTE>& DistanceOps);
 
 	void	EvaluateWithoutHits();
 	void	Evaluate();

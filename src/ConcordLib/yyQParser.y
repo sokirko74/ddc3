@@ -104,7 +104,7 @@ int yylex (void*,  void*);
 %type	<m_pnode>	qc_tokens
 %type	<m_pnode>	qc_near
 %type	<m_pnode>	qc_word
-%type	<m_pnode>	qc_sequence
+%type	<m_pnode>	qc_phrase
 
 //------------------------------------------------------
 // Types: Queries: Single-token queries
@@ -134,7 +134,7 @@ int yylex (void*,  void*);
 //------------------------------------------------------
 // Types: Lists (dummy types)
 %type	<m_pnode>	l_morph
-%type	<m_pnode>	l_seq
+%type	<m_pnode>	l_phrase
 %type	<m_pnode>	l_set
 %type	<m_pnode>	l_txchain
 
@@ -181,6 +181,9 @@ int yylex (void*,  void*);
 %token	<m_str>	STAR_LBRACE
 %token	<m_str> RBRACE_STAR
 %token	<m_str> EXPANDER
+%token	<m_str>	HASH_LESS
+%token	<m_str>	HASH_GREATER
+%token	<m_str>	HASH_EQUAL
 
 %token	<m_str>	CNTXT
 %token	<m_str>	WITHIN
@@ -385,12 +388,12 @@ qc_near:
   */
 qc_tokens: 	
 		qc_word		{ $$ = $1; }
-	|	qc_sequence 	{ $$ = $1; }
+	|	qc_phrase 	{ $$ = $1; }
 	;
 
-qc_sequence:
-		'"' l_seq '"'		{ $$ = $2; }
-	|	'(' qc_sequence ')'	{ $$ = $2; }
+qc_phrase:
+		'"' l_phrase '"'	{ $$ = $2; }
+	|	'(' qc_phrase ')'	{ $$ = $2; }
 	;
 
  /*-------------------------------------------------------------
@@ -528,10 +531,13 @@ l_morph:
 	|	l_morph ';'		{ $$ = $1; } /* backwards-compatible */
 	;
 
-l_seq :
+l_phrase :
 		qc_word				{ $$ = _qc->PushQuery(new CQSeq((CQToken*)$1)); }
-	| 	l_seq qc_word			{ ((CQSeq*)$1)->Append((CQToken*)$2); $$ = $1; }
-	|	l_seq '#' integer qc_word	{ ((CQSeq*)$1)->Append((CQToken*)$4,$3); $$ = $1; }
+	| 	l_phrase qc_word		{ ((CQSeq*)$1)->Append((CQToken*)$2); $$ = $1; }
+	|	l_phrase '#'           integer qc_word { ((CQSeq*)$1)->Append((CQToken*)$4,$3); $$ = $1; }
+	|	l_phrase HASH_LESS     integer qc_word { ((CQSeq*)$1)->Append((CQToken*)$4,$3,'<'); $$ = $1; }
+	|	l_phrase HASH_GREATER  integer qc_word { ((CQSeq*)$1)->Append((CQToken*)$4,$3,'>'); $$ = $1; }
+	|	l_phrase HASH_EQUAL    integer qc_word { ((CQSeq*)$1)->Append((CQToken*)$4,$3,'='); $$ = $1; }
 	;
 
 l_txchain:

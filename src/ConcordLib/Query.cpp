@@ -652,6 +652,8 @@ void CQSeq::Clear(bool deep) {
     *ii = NULL;
   }
   m_Items.clear();
+  m_Dists.clear();
+  m_DistOps.clear();
 }
 
 CQSeq::~CQSeq()
@@ -659,11 +661,13 @@ CQSeq::~CQSeq()
   Clear(true);
 }
 
-void CQSeq::Append(CQToken *nextItem, BYTE nextDist)
+void CQSeq::Append(CQToken *nextItem, BYTE nextDist, BYTE nextDistOp)
 {
   m_Items.push_back(nextItem);
-  if (m_Items.size()>1)
+  if (m_Items.size()>1) {
     m_Dists.push_back(nextDist);
+    m_DistOps.push_back(nextDistOp);
+  }
 }
 
 bool CQSeq::Compile(CQueryCompiler *compiler)
@@ -682,7 +686,7 @@ bool CQSeq::Compile(CQueryCompiler *compiler)
       throw CExpc(errParseError,"could not compile sequence item query `%s'", m_Items[i]->toString().c_str());
 
     if (i<m_Dists.size() && m_Dists[i] > MaxDistanceForNear)
-      throw CExpc(errParseError,"distance #%d too large (max=%d) in sequence query `%s'", (int)m_Dists[i], MaxDistanceForNear, toString().c_str());
+      throw CExpc(errParseError,"distance #%c%d too large (max=%d) in sequence query `%s'", m_DistOps[i], (int)m_Dists[i], MaxDistanceForNear, toString().c_str());
 
     ItemNodes.push_back((CQueryTokenNode*)m_Items[i]->m_Node);
   }
@@ -691,7 +695,7 @@ bool CQSeq::Compile(CQueryCompiler *compiler)
     //-- instantiate m_Node: multi-token sequence
     CQuerySequenceNode* pObj = new CQuerySequenceNode;
     m_Node = pObj;
-    if (!pObj->Create(compiler->m_pHolder, ItemNodes, m_Dists))
+    if (!pObj->Create(compiler->m_pHolder, ItemNodes, m_Dists, m_DistOps))
       throw CExpc(errParseError,"could not compile sequence query `%s'", toString().c_str());
   } else {
     //-- singleton or null sequence
@@ -708,8 +712,8 @@ string CQSeq::toString() {
     os += m_Items[i]->toString();
     if (i < m_Dists.size()) {
       os.push_back(' ');
-      if (m_Dists[i] != 0)
-	os += Format("#%d ", (int)m_Dists[i]);
+      if (m_Dists[i] != 0 || m_DistOps[i] != '<')
+	os += Format("#%c%d ", m_DistOps[i], (int)m_Dists[i]);
     }
   }
   os += "\"";

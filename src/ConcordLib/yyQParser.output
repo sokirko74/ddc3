@@ -99,10 +99,10 @@ Grammar
    73        | '(' qc_near ')'
 
    74 qc_tokens: qc_word
-   75          | qc_sequence
+   75          | qc_phrase
 
-   76 qc_sequence: '"' l_seq '"'
-   77            | '(' qc_sequence ')'
+   76 qc_phrase: '"' l_phrase '"'
+   77          | '(' qc_phrase ')'
 
    78 qc_word: qw_bareword
    79        | qw_exact
@@ -188,54 +188,57 @@ Grammar
   139        | l_morph ','
   140        | l_morph ';'
 
-  141 l_seq: qc_word
-  142      | l_seq qc_word
-  143      | l_seq '#' integer qc_word
+  141 l_phrase: qc_word
+  142         | l_phrase qc_word
+  143         | l_phrase '#' integer qc_word
+  144         | l_phrase HASH_LESS integer qc_word
+  145         | l_phrase HASH_GREATER integer qc_word
+  146         | l_phrase HASH_EQUAL integer qc_word
 
-  144 l_txchain: /* empty */
-  145          | l_txchain s_expander
+  147 l_txchain: /* empty */
+  148          | l_txchain s_expander
 
-  146 s_index: '$'
-  147        | '$' symbol
+  149 s_index: '$'
+  150        | '$' symbol
 
-  148 s_word: symbol
+  151 s_word: symbol
 
-  149 s_semclass: symbol
+  152 s_semclass: symbol
 
-  150 s_lemma: symbol
+  153 s_lemma: symbol
 
-  151 s_chunk: symbol
+  154 s_chunk: symbol
 
-  152 s_filename: symbol
+  155 s_filename: symbol
 
-  153 s_morphitem: symbol
+  156 s_morphitem: symbol
 
-  154 s_subcorpus: symbol
+  157 s_subcorpus: symbol
 
-  155 symbol: SYMBOL
-  156       | INTEGER
-  157       | DATE
+  158 symbol: SYMBOL
+  159       | INTEGER
+  160       | DATE
 
-  158 s_prefix: PREFIX
+  161 s_prefix: PREFIX
 
-  159 s_suffix: SUFFIX
+  162 s_suffix: SUFFIX
 
-  160 s_infix: INFIX
+  163 s_infix: INFIX
 
-  161 s_expander: EXPANDER
+  164 s_expander: EXPANDER
 
-  162 regex: REGEX
-  163      | REGEX REGOPT
+  165 regex: REGEX
+  166      | REGEX REGOPT
 
-  164 neg_regex: NEG_REGEX
-  165          | NEG_REGEX REGOPT
+  167 neg_regex: NEG_REGEX
+  168          | NEG_REGEX REGOPT
 
-  166 int_str: INTEGER
+  169 int_str: INTEGER
 
-  167 integer: int_str
+  170 integer: int_str
 
-  168 date: DATE
-  169     | INTEGER
+  171 date: DATE
+  172     | INTEGER
 
 
 Terminals, with rules where they appear
@@ -244,7 +247,7 @@ $end (0) 0
 '!' (33) 9 11 29 67
 '"' (34) 76
 '#' (35) 143
-'$' (36) 146 147
+'$' (36) 149 150
 '%' (37) 127 128
 '(' (40) 68 71 72 73 77 96
 ')' (41) 68 71 72 73 77 96
@@ -265,174 +268,178 @@ $end (0) 0
 '{' (123) 28 109 110 119 120 124
 '}' (125) 28 107 108 109 110 121 122 123 124
 error (256)
-SYMBOL (258) 155
-REGEX (259) 162 163
-NEG_REGEX (260) 164 165
-REGOPT (261) 163 165
-INTEGER (262) 156 166 169
-DATE (263) 157 168
-PREFIX (264) 158
-SUFFIX (265) 159
-INFIX (266) 160
+SYMBOL (258) 158
+REGEX (259) 165 166
+NEG_REGEX (260) 167 168
+REGOPT (261) 166 168
+INTEGER (262) 159 169 172
+DATE (263) 160 171
+PREFIX (264) 161
+SUFFIX (265) 162
+INFIX (266) 163
 AT_LBRACE (267) 107 108
 COLON_LBRACE (268) 123
 STAR_LBRACE (269) 117 118 121 122
 RBRACE_STAR (270) 117 118 119 120
-EXPANDER (271) 161
-CNTXT (272) 6
-WITHIN (273) 7
-HAS_FIELD (274) 22 23 24 25 26 27 28
-FILENAMES_ONLY (275) 8 9
-GREATER_BY_RANK (276) 30
-LESS_BY_RANK (277) 31
-GREATER_BY_SIZE (278) 35
-LESS_BY_SIZE (279) 34
-IS_SIZE (280) 36
-GREATER_BY_DATE (281) 38
-LESS_BY_DATE (282) 37
-IS_DATE (283) 39
-GREATER_BY (284) 44
-LESS_BY (285) 43
-LESS_BY_LEFT (286) 32
-LESS_BY_RIGHT (287) 33
-DEBUG_RANK (288) 10 11
-RANDOM (289) 40 41 42
-OP_OR (290) 66
-OP_AND (291) 65
-NEAR (292) 71 72
-WITH (293) 133
+EXPANDER (271) 164
+HASH_LESS (272) 144
+HASH_GREATER (273) 145
+HASH_EQUAL (274) 146
+CNTXT (275) 6
+WITHIN (276) 7
+HAS_FIELD (277) 22 23 24 25 26 27 28
+FILENAMES_ONLY (278) 8 9
+GREATER_BY_RANK (279) 30
+LESS_BY_RANK (280) 31
+GREATER_BY_SIZE (281) 35
+LESS_BY_SIZE (282) 34
+IS_SIZE (283) 36
+GREATER_BY_DATE (284) 38
+LESS_BY_DATE (285) 37
+IS_DATE (286) 39
+GREATER_BY (287) 44
+LESS_BY (288) 43
+LESS_BY_LEFT (289) 32
+LESS_BY_RIGHT (290) 33
+DEBUG_RANK (291) 10 11
+RANDOM (292) 40 41 42
+OP_OR (293) 66
+OP_AND (294) 65
+NEAR (295) 71 72
+WITH (296) 133
 
 
 Nonterminals, with rules where they appear
 
-$accept (58)
+$accept (61)
     on left: 0
-query (59)
+query (62)
     on left: 1, on right: 0
-q_filters (60)
+q_filters (63)
     on left: 2 3 4, on right: 1 3 4
-q_flag (61)
+q_flag (64)
     on left: 5 6 7 8 9 10 11, on right: 3
-qf_subcorpora (62)
+qf_subcorpora (65)
     on left: 12 13 14, on right: 5 14
-q_filter (63)
+q_filter (66)
     on left: 15 16 17 18 19 20 21, on right: 4
-qf_has_field (64)
+qf_has_field (67)
     on left: 22 23 24 25 26 27 28 29, on right: 15 29
-qf_rank_sort (65)
+qf_rank_sort (68)
     on left: 30 31, on right: 16
-qf_bigram_sort (66)
+qf_bigram_sort (69)
     on left: 32 33, on right: 17
-qf_size_sort (67)
+qf_size_sort (70)
     on left: 34 35 36, on right: 18
-qf_date_sort (68)
+qf_date_sort (71)
     on left: 37 38 39, on right: 19
-qf_random_sort (69)
+qf_random_sort (72)
     on left: 40 41 42, on right: 21
-qf_bibl_sort (70)
+qf_bibl_sort (73)
     on left: 43 44, on right: 20
-qfb_int (71)
+qfb_int (74)
     on left: 45 46 47 48 49 50, on right: 34 35
-qfb_date (72)
+qfb_date (75)
     on left: 51 52 53 54 55 56, on right: 37 38
-qfb_bibl (73)
+qfb_bibl (76)
     on left: 57 58 59 60 61 62 63, on right: 43 44
-q_clause (74)
+q_clause (77)
     on left: 64 65 66 67 68, on right: 1 65 66 67 68
-qc_basic (75)
+qc_basic (78)
     on left: 69 70, on right: 64
-qc_near (76)
+qc_near (79)
     on left: 71 72 73, on right: 70 73
-qc_tokens (77)
+qc_tokens (80)
     on left: 74 75, on right: 69 71 72
-qc_sequence (78)
+qc_phrase (81)
     on left: 76 77, on right: 75 77
-qc_word (79)
+qc_word (82)
     on left: 78 79 80 81 82 83 84 85 86 87 88 89 90 91 92 93 94 95
-    96, on right: 74 96 133 141 142 143
-qw_bareword (80)
+    96, on right: 74 96 133 141 142 143 144 145 146
+qw_bareword (83)
     on left: 97 98, on right: 78
-qw_exact (81)
+qw_exact (84)
     on left: 99 100, on right: 79
-qw_regex (82)
+qw_regex (85)
     on left: 101 102 103 104, on right: 80
-qw_any (83)
+qw_any (86)
     on left: 105 106, on right: 81
-qw_set_exact (84)
+qw_set_exact (87)
     on left: 107 108, on right: 83
-qw_set_infl (85)
+qw_set_infl (88)
     on left: 109 110, on right: 82
-qw_prefix (86)
+qw_prefix (89)
     on left: 111 112, on right: 86
-qw_suffix (87)
+qw_suffix (90)
     on left: 113 114, on right: 88
-qw_infix (88)
+qw_infix (91)
     on left: 115 116, on right: 84
-qw_infix_set (89)
+qw_infix_set (92)
     on left: 117 118, on right: 85
-qw_prefix_set (90)
+qw_prefix_set (93)
     on left: 119 120, on right: 87
-qw_suffix_set (91)
+qw_suffix_set (94)
     on left: 121 122, on right: 89
-qw_thesaurus (92)
+qw_thesaurus (95)
     on left: 123 124, on right: 90
-qw_morph (93)
+qw_morph (96)
     on left: 125 126, on right: 91
-qw_lemma (94)
+qw_lemma (97)
     on left: 127 128, on right: 92
-qw_chunk (95)
+qw_chunk (98)
     on left: 129 130, on right: 93
-qw_listfile (96)
+qw_listfile (99)
     on left: 131 132, on right: 94
-qw_with (97)
+qw_with (100)
     on left: 133, on right: 95
-l_set (98)
+l_set (101)
     on left: 134 135 136, on right: 28 107 108 109 110 117 118 119
     120 121 122 135 136
-l_morph (99)
+l_morph (102)
     on left: 137 138 139 140, on right: 125 126 138 139 140
-l_seq (100)
-    on left: 141 142 143, on right: 76 142 143
-l_txchain (101)
-    on left: 144 145, on right: 97 98 109 110 145
-s_index (102)
-    on left: 146 147, on right: 98 100 102 104 106 108 110 112 114
+l_phrase (103)
+    on left: 141 142 143 144 145 146, on right: 76 142 143 144 145
+    146
+l_txchain (104)
+    on left: 147 148, on right: 97 98 109 110 148
+s_index (105)
+    on left: 149 150, on right: 98 100 102 104 106 108 110 112 114
     116 118 120 122 124 126 128 130 132
-s_word (103)
-    on left: 148, on right: 97 98 99 100 135
-s_semclass (104)
-    on left: 149, on right: 123 124
-s_lemma (105)
-    on left: 150, on right: 127 128
-s_chunk (106)
-    on left: 151, on right: 129 130
-s_filename (107)
-    on left: 152, on right: 131 132
-s_morphitem (108)
-    on left: 153, on right: 138
-s_subcorpus (109)
-    on left: 154, on right: 13 14
-symbol (110)
-    on left: 155 156 157, on right: 7 22 23 24 25 26 27 28 43 44 60
-    61 62 63 147 148 149 150 151 152 153 154
-s_prefix (111)
-    on left: 158, on right: 25 111 112
-s_suffix (112)
-    on left: 159, on right: 26 113 114
-s_infix (113)
-    on left: 160, on right: 27 115 116
-s_expander (114)
-    on left: 161, on right: 145
-regex (115)
-    on left: 162 163, on right: 23 101 102
-neg_regex (116)
-    on left: 164 165, on right: 24 103 104
-int_str (117)
-    on left: 166, on right: 36 42 47 48 49 50 167
-integer (118)
-    on left: 167, on right: 6 71 72 143
-date (119)
-    on left: 168 169, on right: 39 53 54 55 56
+s_word (106)
+    on left: 151, on right: 97 98 99 100 135
+s_semclass (107)
+    on left: 152, on right: 123 124
+s_lemma (108)
+    on left: 153, on right: 127 128
+s_chunk (109)
+    on left: 154, on right: 129 130
+s_filename (110)
+    on left: 155, on right: 131 132
+s_morphitem (111)
+    on left: 156, on right: 138
+s_subcorpus (112)
+    on left: 157, on right: 13 14
+symbol (113)
+    on left: 158 159 160, on right: 7 22 23 24 25 26 27 28 43 44 60
+    61 62 63 150 151 152 153 154 155 156 157
+s_prefix (114)
+    on left: 161, on right: 25 111 112
+s_suffix (115)
+    on left: 162, on right: 26 113 114
+s_infix (116)
+    on left: 163, on right: 27 115 116
+s_expander (117)
+    on left: 164, on right: 148
+regex (118)
+    on left: 165 166, on right: 23 101 102
+neg_regex (119)
+    on left: 167 168, on right: 24 103 104
+int_str (120)
+    on left: 169, on right: 36 42 47 48 49 50 170
+integer (121)
+    on left: 170, on right: 6 71 72 143 144 145 146
+date (122)
+    on left: 171 172, on right: 39 53 54 55 56
 
 
 state 0
@@ -468,7 +475,7 @@ state 0
     qc_basic       go to state 26
     qc_near        go to state 27
     qc_tokens      go to state 28
-    qc_sequence    go to state 29
+    qc_phrase      go to state 29
     qc_word        go to state 30
     qw_bareword    go to state 31
     qw_exact       go to state 32
@@ -500,64 +507,64 @@ state 0
 
 state 1
 
-  155 symbol: SYMBOL .
+  158 symbol: SYMBOL .
 
-    $default  reduce using rule 155 (symbol)
+    $default  reduce using rule 158 (symbol)
 
 
 state 2
 
-  162 regex: REGEX .
-  163      | REGEX . REGOPT
+  165 regex: REGEX .
+  166      | REGEX . REGOPT
 
     REGOPT  shift, and go to state 57
 
-    $default  reduce using rule 162 (regex)
+    $default  reduce using rule 165 (regex)
 
 
 state 3
 
-  164 neg_regex: NEG_REGEX .
-  165          | NEG_REGEX . REGOPT
+  167 neg_regex: NEG_REGEX .
+  168          | NEG_REGEX . REGOPT
 
     REGOPT  shift, and go to state 58
 
-    $default  reduce using rule 164 (neg_regex)
+    $default  reduce using rule 167 (neg_regex)
 
 
 state 4
 
-  156 symbol: INTEGER .
+  159 symbol: INTEGER .
 
-    $default  reduce using rule 156 (symbol)
+    $default  reduce using rule 159 (symbol)
 
 
 state 5
 
-  157 symbol: DATE .
+  160 symbol: DATE .
 
-    $default  reduce using rule 157 (symbol)
+    $default  reduce using rule 160 (symbol)
 
 
 state 6
 
-  158 s_prefix: PREFIX .
+  161 s_prefix: PREFIX .
 
-    $default  reduce using rule 158 (s_prefix)
+    $default  reduce using rule 161 (s_prefix)
 
 
 state 7
 
-  159 s_suffix: SUFFIX .
+  162 s_suffix: SUFFIX .
 
-    $default  reduce using rule 159 (s_suffix)
+    $default  reduce using rule 162 (s_suffix)
 
 
 state 8
 
-  160 s_infix: INFIX .
+  163 s_infix: INFIX .
 
-    $default  reduce using rule 160 (s_infix)
+    $default  reduce using rule 163 (s_infix)
 
 
 state 9
@@ -623,7 +630,7 @@ state 12
     qc_basic       go to state 26
     qc_near        go to state 27
     qc_tokens      go to state 28
-    qc_sequence    go to state 29
+    qc_phrase      go to state 29
     qc_word        go to state 30
     qw_bareword    go to state 31
     qw_exact       go to state 32
@@ -675,14 +682,14 @@ state 14
 
 state 15
 
-  146 s_index: '$' .
-  147        | '$' . symbol
+  149 s_index: '$' .
+  150        | '$' . symbol
 
     SYMBOL   shift, and go to state 1
     INTEGER  shift, and go to state 4
     DATE     shift, and go to state 5
 
-    $default  reduce using rule 146 (s_index)
+    $default  reduce using rule 149 (s_index)
 
     symbol  go to state 67
 
@@ -746,7 +753,7 @@ state 21
 
    68 q_clause: '(' . q_clause ')'
    73 qc_near: '(' . qc_near ')'
-   77 qc_sequence: '(' . qc_sequence ')'
+   77 qc_phrase: '(' . qc_phrase ')'
    96 qc_word: '(' . qc_word ')'
 
     SYMBOL        shift, and go to state 1
@@ -777,7 +784,7 @@ state 21
     qc_basic       go to state 26
     qc_near        go to state 76
     qc_tokens      go to state 28
-    qc_sequence    go to state 77
+    qc_phrase      go to state 77
     qc_word        go to state 78
     qw_bareword    go to state 31
     qw_exact       go to state 32
@@ -809,7 +816,7 @@ state 21
 
 state 22
 
-   76 qc_sequence: '"' . l_seq '"'
+   76 qc_phrase: '"' . l_phrase '"'
 
     SYMBOL        shift, and go to state 1
     REGEX         shift, and go to state 2
@@ -851,7 +858,7 @@ state 22
     qw_chunk       go to state 46
     qw_listfile    go to state 47
     qw_with        go to state 48
-    l_seq          go to state 81
+    l_phrase       go to state 81
     s_index        go to state 49
     s_word         go to state 50
     symbol         go to state 51
@@ -913,7 +920,7 @@ state 28
 
 state 29
 
-   75 qc_tokens: qc_sequence .
+   75 qc_tokens: qc_phrase .
 
     $default  reduce using rule 75 (qc_tokens)
 
@@ -1082,16 +1089,16 @@ state 50
 
    97 qw_bareword: s_word . l_txchain
 
-    $default  reduce using rule 144 (l_txchain)
+    $default  reduce using rule 147 (l_txchain)
 
     l_txchain  go to state 88
 
 
 state 51
 
-  148 s_word: symbol .
+  151 s_word: symbol .
 
-    $default  reduce using rule 148 (s_word)
+    $default  reduce using rule 151 (s_word)
 
 
 state 52
@@ -1131,16 +1138,16 @@ state 56
 
 state 57
 
-  163 regex: REGEX REGOPT .
+  166 regex: REGEX REGOPT .
 
-    $default  reduce using rule 163 (regex)
+    $default  reduce using rule 166 (regex)
 
 
 state 58
 
-  165 neg_regex: NEG_REGEX REGOPT .
+  168 neg_regex: NEG_REGEX REGOPT .
 
-    $default  reduce using rule 165 (neg_regex)
+    $default  reduce using rule 168 (neg_regex)
 
 
 state 59
@@ -1168,9 +1175,9 @@ state 60
 
 state 61
 
-  149 s_semclass: symbol .
+  152 s_semclass: symbol .
 
-    $default  reduce using rule 149 (s_semclass)
+    $default  reduce using rule 152 (s_semclass)
 
 
 state 62
@@ -1228,7 +1235,7 @@ state 64
     '*'           shift, and go to state 23
 
     qc_tokens      go to state 96
-    qc_sequence    go to state 29
+    qc_phrase      go to state 29
     qc_word        go to state 30
     qw_bareword    go to state 31
     qw_exact       go to state 32
@@ -1267,16 +1274,16 @@ state 65
 
 state 66
 
-  152 s_filename: symbol .
+  155 s_filename: symbol .
 
-    $default  reduce using rule 152 (s_filename)
+    $default  reduce using rule 155 (s_filename)
 
 
 state 67
 
-  147 s_index: '$' symbol .
+  150 s_index: '$' symbol .
 
-    $default  reduce using rule 147 (s_index)
+    $default  reduce using rule 150 (s_index)
 
 
 state 68
@@ -1295,9 +1302,9 @@ state 69
 
 state 70
 
-  151 s_chunk: symbol .
+  154 s_chunk: symbol .
 
-    $default  reduce using rule 151 (s_chunk)
+    $default  reduce using rule 154 (s_chunk)
 
 
 state 71
@@ -1309,9 +1316,9 @@ state 71
 
 state 72
 
-  150 s_lemma: symbol .
+  153 s_lemma: symbol .
 
-    $default  reduce using rule 150 (s_lemma)
+    $default  reduce using rule 153 (s_lemma)
 
 
 state 73
@@ -1374,8 +1381,8 @@ state 76
 
 state 77
 
-   75 qc_tokens: qc_sequence .
-   77 qc_sequence: '(' qc_sequence . ')'
+   75 qc_tokens: qc_phrase .
+   77 qc_phrase: '(' qc_phrase . ')'
 
     ')'  shift, and go to state 106
 
@@ -1453,18 +1460,21 @@ state 79
 state 80
 
   133 qw_with: qc_word . WITH qc_word
-  141 l_seq: qc_word .
+  141 l_phrase: qc_word .
 
     WITH  shift, and go to state 86
 
-    $default  reduce using rule 141 (l_seq)
+    $default  reduce using rule 141 (l_phrase)
 
 
 state 81
 
-   76 qc_sequence: '"' l_seq . '"'
-  142 l_seq: l_seq . qc_word
-  143      | l_seq . '#' integer qc_word
+   76 qc_phrase: '"' l_phrase . '"'
+  142 l_phrase: l_phrase . qc_word
+  143         | l_phrase . '#' integer qc_word
+  144         | l_phrase . HASH_LESS integer qc_word
+  145         | l_phrase . HASH_GREATER integer qc_word
+  146         | l_phrase . HASH_EQUAL integer qc_word
 
     SYMBOL        shift, and go to state 1
     REGEX         shift, and go to state 2
@@ -1477,19 +1487,22 @@ state 81
     AT_LBRACE     shift, and go to state 9
     COLON_LBRACE  shift, and go to state 10
     STAR_LBRACE   shift, and go to state 11
+    HASH_LESS     shift, and go to state 109
+    HASH_GREATER  shift, and go to state 110
+    HASH_EQUAL    shift, and go to state 111
     '<'           shift, and go to state 14
     '$'           shift, and go to state 15
     '@'           shift, and go to state 16
     '^'           shift, and go to state 17
     '%'           shift, and go to state 18
-    '#'           shift, and go to state 109
+    '#'           shift, and go to state 112
     '['           shift, and go to state 19
     '{'           shift, and go to state 20
     '('           shift, and go to state 79
-    '"'           shift, and go to state 110
+    '"'           shift, and go to state 113
     '*'           shift, and go to state 23
 
-    qc_word        go to state 111
+    qc_word        go to state 114
     qw_bareword    go to state 31
     qw_exact       go to state 32
     qw_regex       go to state 33
@@ -1553,11 +1566,11 @@ state 83
     '"'           shift, and go to state 22
     '*'           shift, and go to state 23
 
-    q_clause       go to state 112
+    q_clause       go to state 115
     qc_basic       go to state 26
     qc_near        go to state 27
     qc_tokens      go to state 28
-    qc_sequence    go to state 29
+    qc_phrase      go to state 29
     qc_word        go to state 30
     qw_bareword    go to state 31
     qw_exact       go to state 32
@@ -1615,11 +1628,11 @@ state 84
     '"'           shift, and go to state 22
     '*'           shift, and go to state 23
 
-    q_clause       go to state 113
+    q_clause       go to state 116
     qc_basic       go to state 26
     qc_near        go to state 27
     qc_tokens      go to state 28
-    qc_sequence    go to state 29
+    qc_phrase      go to state 29
     qc_word        go to state 30
     qw_bareword    go to state 31
     qw_exact       go to state 32
@@ -1655,38 +1668,38 @@ state 85
     3 q_filters: q_filters . q_flag
     4          | q_filters . q_filter
 
-    CNTXT            shift, and go to state 114
-    WITHIN           shift, and go to state 115
-    HAS_FIELD        shift, and go to state 116
-    FILENAMES_ONLY   shift, and go to state 117
-    GREATER_BY_RANK  shift, and go to state 118
-    LESS_BY_RANK     shift, and go to state 119
-    GREATER_BY_SIZE  shift, and go to state 120
-    LESS_BY_SIZE     shift, and go to state 121
-    IS_SIZE          shift, and go to state 122
-    GREATER_BY_DATE  shift, and go to state 123
-    LESS_BY_DATE     shift, and go to state 124
-    IS_DATE          shift, and go to state 125
-    GREATER_BY       shift, and go to state 126
-    LESS_BY          shift, and go to state 127
-    LESS_BY_LEFT     shift, and go to state 128
-    LESS_BY_RIGHT    shift, and go to state 129
-    DEBUG_RANK       shift, and go to state 130
-    RANDOM           shift, and go to state 131
-    '!'              shift, and go to state 132
-    ':'              shift, and go to state 133
+    CNTXT            shift, and go to state 117
+    WITHIN           shift, and go to state 118
+    HAS_FIELD        shift, and go to state 119
+    FILENAMES_ONLY   shift, and go to state 120
+    GREATER_BY_RANK  shift, and go to state 121
+    LESS_BY_RANK     shift, and go to state 122
+    GREATER_BY_SIZE  shift, and go to state 123
+    LESS_BY_SIZE     shift, and go to state 124
+    IS_SIZE          shift, and go to state 125
+    GREATER_BY_DATE  shift, and go to state 126
+    LESS_BY_DATE     shift, and go to state 127
+    IS_DATE          shift, and go to state 128
+    GREATER_BY       shift, and go to state 129
+    LESS_BY          shift, and go to state 130
+    LESS_BY_LEFT     shift, and go to state 131
+    LESS_BY_RIGHT    shift, and go to state 132
+    DEBUG_RANK       shift, and go to state 133
+    RANDOM           shift, and go to state 134
+    '!'              shift, and go to state 135
+    ':'              shift, and go to state 136
 
     $default  reduce using rule 1 (query)
 
-    q_flag          go to state 134
-    q_filter        go to state 135
-    qf_has_field    go to state 136
-    qf_rank_sort    go to state 137
-    qf_bigram_sort  go to state 138
-    qf_size_sort    go to state 139
-    qf_date_sort    go to state 140
-    qf_random_sort  go to state 141
-    qf_bibl_sort    go to state 142
+    q_flag          go to state 137
+    q_filter        go to state 138
+    qf_has_field    go to state 139
+    qf_rank_sort    go to state 140
+    qf_bigram_sort  go to state 141
+    qf_size_sort    go to state 142
+    qf_date_sort    go to state 143
+    qf_random_sort  go to state 144
+    qf_bibl_sort    go to state 145
 
 
 state 86
@@ -1714,7 +1727,7 @@ state 86
     '('           shift, and go to state 79
     '*'           shift, and go to state 23
 
-    qc_word        go to state 143
+    qc_word        go to state 146
     qw_bareword    go to state 31
     qw_exact       go to state 32
     qw_regex       go to state 33
@@ -1772,36 +1785,36 @@ state 87
     PREFIX       shift, and go to state 6
     SUFFIX       shift, and go to state 7
     INFIX        shift, and go to state 8
-    AT_LBRACE    shift, and go to state 144
-    STAR_LBRACE  shift, and go to state 145
-    '<'          shift, and go to state 146
-    '@'          shift, and go to state 147
-    '^'          shift, and go to state 148
-    '%'          shift, and go to state 149
-    ':'          shift, and go to state 150
-    '['          shift, and go to state 151
-    '{'          shift, and go to state 152
-    '*'          shift, and go to state 153
+    AT_LBRACE    shift, and go to state 147
+    STAR_LBRACE  shift, and go to state 148
+    '<'          shift, and go to state 149
+    '@'          shift, and go to state 150
+    '^'          shift, and go to state 151
+    '%'          shift, and go to state 152
+    ':'          shift, and go to state 153
+    '['          shift, and go to state 154
+    '{'          shift, and go to state 155
+    '*'          shift, and go to state 156
 
-    s_word     go to state 154
+    s_word     go to state 157
     symbol     go to state 51
-    s_prefix   go to state 155
-    s_suffix   go to state 156
-    s_infix    go to state 157
-    regex      go to state 158
-    neg_regex  go to state 159
+    s_prefix   go to state 158
+    s_suffix   go to state 159
+    s_infix    go to state 160
+    regex      go to state 161
+    neg_regex  go to state 162
 
 
 state 88
 
    97 qw_bareword: s_word l_txchain .
-  145 l_txchain: l_txchain . s_expander
+  148 l_txchain: l_txchain . s_expander
 
-    EXPANDER  shift, and go to state 160
+    EXPANDER  shift, and go to state 163
 
     $default  reduce using rule 97 (qw_bareword)
 
-    s_expander  go to state 161
+    s_expander  go to state 164
 
 
 state 89
@@ -1848,7 +1861,7 @@ state 94
 
 state 95
 
-   77 qc_sequence: '(' . qc_sequence ')'
+   77 qc_phrase: '(' . qc_phrase ')'
    96 qc_word: '(' . qc_word ')'
 
     SYMBOL        shift, and go to state 1
@@ -1873,7 +1886,7 @@ state 95
     '"'           shift, and go to state 22
     '*'           shift, and go to state 23
 
-    qc_sequence    go to state 162
+    qc_phrase      go to state 165
     qc_word        go to state 108
     qw_bareword    go to state 31
     qw_exact       go to state 32
@@ -1908,7 +1921,7 @@ state 96
    71 qc_near: NEAR '(' qc_tokens . ',' qc_tokens ',' integer ')'
    72        | NEAR '(' qc_tokens . ',' qc_tokens ',' qc_tokens ',' integer ')'
 
-    ','  shift, and go to state 163
+    ','  shift, and go to state 166
 
 
 state 97
@@ -1941,9 +1954,9 @@ state 100
 
 state 101
 
-  153 s_morphitem: symbol .
+  156 s_morphitem: symbol .
 
-    $default  reduce using rule 153 (s_morphitem)
+    $default  reduce using rule 156 (s_morphitem)
 
 
 state 102
@@ -1957,9 +1970,9 @@ state 103
 
   109 qw_set_infl: '{' l_set '}' . l_txchain
 
-    $default  reduce using rule 144 (l_txchain)
+    $default  reduce using rule 147 (l_txchain)
 
-    l_txchain  go to state 164
+    l_txchain  go to state 167
 
 
 state 104
@@ -1978,9 +1991,9 @@ state 105
 
 state 106
 
-   77 qc_sequence: '(' qc_sequence ')' .
+   77 qc_phrase: '(' qc_phrase ')' .
 
-    $default  reduce using rule 77 (qc_sequence)
+    $default  reduce using rule 77 (qc_phrase)
 
 
 state 107
@@ -2001,32 +2014,62 @@ state 108
 
 state 109
 
-  143 l_seq: l_seq '#' . integer qc_word
+  144 l_phrase: l_phrase HASH_LESS . integer qc_word
 
-    INTEGER  shift, and go to state 165
+    INTEGER  shift, and go to state 168
 
-    int_str  go to state 166
-    integer  go to state 167
+    int_str  go to state 169
+    integer  go to state 170
 
 
 state 110
 
-   76 qc_sequence: '"' l_seq '"' .
+  145 l_phrase: l_phrase HASH_GREATER . integer qc_word
 
-    $default  reduce using rule 76 (qc_sequence)
+    INTEGER  shift, and go to state 168
+
+    int_str  go to state 169
+    integer  go to state 171
 
 
 state 111
 
-  133 qw_with: qc_word . WITH qc_word
-  142 l_seq: l_seq qc_word .
+  146 l_phrase: l_phrase HASH_EQUAL . integer qc_word
 
-    WITH  shift, and go to state 86
+    INTEGER  shift, and go to state 168
 
-    $default  reduce using rule 142 (l_seq)
+    int_str  go to state 169
+    integer  go to state 172
 
 
 state 112
+
+  143 l_phrase: l_phrase '#' . integer qc_word
+
+    INTEGER  shift, and go to state 168
+
+    int_str  go to state 169
+    integer  go to state 173
+
+
+state 113
+
+   76 qc_phrase: '"' l_phrase '"' .
+
+    $default  reduce using rule 76 (qc_phrase)
+
+
+state 114
+
+  133 qw_with: qc_word . WITH qc_word
+  142 l_phrase: l_phrase qc_word .
+
+    WITH  shift, and go to state 86
+
+    $default  reduce using rule 142 (l_phrase)
+
+
+state 115
 
    65 q_clause: q_clause . OP_AND q_clause
    66         | q_clause . OP_OR q_clause
@@ -2035,7 +2078,7 @@ state 112
     $default  reduce using rule 66 (q_clause)
 
 
-state 113
+state 116
 
    65 q_clause: q_clause . OP_AND q_clause
    65         | q_clause OP_AND q_clause .
@@ -2044,17 +2087,17 @@ state 113
     $default  reduce using rule 65 (q_clause)
 
 
-state 114
+state 117
 
     6 q_flag: CNTXT . integer
 
-    INTEGER  shift, and go to state 165
+    INTEGER  shift, and go to state 168
 
-    int_str  go to state 166
-    integer  go to state 168
+    int_str  go to state 169
+    integer  go to state 174
 
 
-state 115
+state 118
 
     7 q_flag: WITHIN . symbol
 
@@ -2062,10 +2105,10 @@ state 115
     INTEGER  shift, and go to state 4
     DATE     shift, and go to state 5
 
-    symbol  go to state 169
+    symbol  go to state 175
 
 
-state 116
+state 119
 
    22 qf_has_field: HAS_FIELD . '[' symbol ',' symbol ']'
    23             | HAS_FIELD . '[' symbol ',' regex ']'
@@ -2075,149 +2118,149 @@ state 116
    27             | HAS_FIELD . '[' symbol ',' s_infix ']'
    28             | HAS_FIELD . '[' symbol ',' '{' l_set '}' ']'
 
-    '['  shift, and go to state 170
+    '['  shift, and go to state 176
 
 
-state 117
+state 120
 
     8 q_flag: FILENAMES_ONLY .
 
     $default  reduce using rule 8 (q_flag)
 
 
-state 118
+state 121
 
    30 qf_rank_sort: GREATER_BY_RANK .
 
     $default  reduce using rule 30 (qf_rank_sort)
 
 
-state 119
+state 122
 
    31 qf_rank_sort: LESS_BY_RANK .
 
     $default  reduce using rule 31 (qf_rank_sort)
 
 
-state 120
+state 123
 
    35 qf_size_sort: GREATER_BY_SIZE . qfb_int
 
-    '['  shift, and go to state 171
+    '['  shift, and go to state 177
 
     $default  reduce using rule 45 (qfb_int)
 
-    qfb_int  go to state 172
-
-
-state 121
-
-   34 qf_size_sort: LESS_BY_SIZE . qfb_int
-
-    '['  shift, and go to state 171
-
-    $default  reduce using rule 45 (qfb_int)
-
-    qfb_int  go to state 173
-
-
-state 122
-
-   36 qf_size_sort: IS_SIZE . '[' int_str ']'
-
-    '['  shift, and go to state 174
-
-
-state 123
-
-   38 qf_date_sort: GREATER_BY_DATE . qfb_date
-
-    '['  shift, and go to state 175
-
-    $default  reduce using rule 51 (qfb_date)
-
-    qfb_date  go to state 176
+    qfb_int  go to state 178
 
 
 state 124
 
-   37 qf_date_sort: LESS_BY_DATE . qfb_date
+   34 qf_size_sort: LESS_BY_SIZE . qfb_int
 
-    '['  shift, and go to state 175
+    '['  shift, and go to state 177
 
-    $default  reduce using rule 51 (qfb_date)
+    $default  reduce using rule 45 (qfb_int)
 
-    qfb_date  go to state 177
+    qfb_int  go to state 179
 
 
 state 125
 
-   39 qf_date_sort: IS_DATE . '[' date ']'
-
-    '['  shift, and go to state 178
-
-
-state 126
-
-   44 qf_bibl_sort: GREATER_BY . '[' symbol qfb_bibl ']'
-
-    '['  shift, and go to state 179
-
-
-state 127
-
-   43 qf_bibl_sort: LESS_BY . '[' symbol qfb_bibl ']'
+   36 qf_size_sort: IS_SIZE . '[' int_str ']'
 
     '['  shift, and go to state 180
 
 
+state 126
+
+   38 qf_date_sort: GREATER_BY_DATE . qfb_date
+
+    '['  shift, and go to state 181
+
+    $default  reduce using rule 51 (qfb_date)
+
+    qfb_date  go to state 182
+
+
+state 127
+
+   37 qf_date_sort: LESS_BY_DATE . qfb_date
+
+    '['  shift, and go to state 181
+
+    $default  reduce using rule 51 (qfb_date)
+
+    qfb_date  go to state 183
+
+
 state 128
+
+   39 qf_date_sort: IS_DATE . '[' date ']'
+
+    '['  shift, and go to state 184
+
+
+state 129
+
+   44 qf_bibl_sort: GREATER_BY . '[' symbol qfb_bibl ']'
+
+    '['  shift, and go to state 185
+
+
+state 130
+
+   43 qf_bibl_sort: LESS_BY . '[' symbol qfb_bibl ']'
+
+    '['  shift, and go to state 186
+
+
+state 131
 
    32 qf_bigram_sort: LESS_BY_LEFT .
 
     $default  reduce using rule 32 (qf_bigram_sort)
 
 
-state 129
+state 132
 
    33 qf_bigram_sort: LESS_BY_RIGHT .
 
     $default  reduce using rule 33 (qf_bigram_sort)
 
 
-state 130
+state 133
 
    10 q_flag: DEBUG_RANK .
 
     $default  reduce using rule 10 (q_flag)
 
 
-state 131
+state 134
 
    40 qf_random_sort: RANDOM .
    41               | RANDOM . '[' ']'
    42               | RANDOM . '[' int_str ']'
 
-    '['  shift, and go to state 181
+    '['  shift, and go to state 187
 
     $default  reduce using rule 40 (qf_random_sort)
 
 
-state 132
+state 135
 
     9 q_flag: '!' . FILENAMES_ONLY
    11       | '!' . DEBUG_RANK
    29 qf_has_field: '!' . qf_has_field
 
-    HAS_FIELD       shift, and go to state 116
-    FILENAMES_ONLY  shift, and go to state 182
-    DEBUG_RANK      shift, and go to state 183
-    '!'             shift, and go to state 184
+    HAS_FIELD       shift, and go to state 119
+    FILENAMES_ONLY  shift, and go to state 188
+    DEBUG_RANK      shift, and go to state 189
+    '!'             shift, and go to state 190
 
-    qf_has_field  go to state 185
+    qf_has_field  go to state 191
 
 
-state 133
+state 136
 
     5 q_flag: ':' . qf_subcorpora
 
@@ -2227,75 +2270,75 @@ state 133
 
     $default  reduce using rule 12 (qf_subcorpora)
 
-    qf_subcorpora  go to state 186
-    s_subcorpus    go to state 187
-    symbol         go to state 188
+    qf_subcorpora  go to state 192
+    s_subcorpus    go to state 193
+    symbol         go to state 194
 
 
-state 134
+state 137
 
     3 q_filters: q_filters q_flag .
 
     $default  reduce using rule 3 (q_filters)
 
 
-state 135
+state 138
 
     4 q_filters: q_filters q_filter .
 
     $default  reduce using rule 4 (q_filters)
 
 
-state 136
+state 139
 
    15 q_filter: qf_has_field .
 
     $default  reduce using rule 15 (q_filter)
 
 
-state 137
+state 140
 
    16 q_filter: qf_rank_sort .
 
     $default  reduce using rule 16 (q_filter)
 
 
-state 138
+state 141
 
    17 q_filter: qf_bigram_sort .
 
     $default  reduce using rule 17 (q_filter)
 
 
-state 139
+state 142
 
    18 q_filter: qf_size_sort .
 
     $default  reduce using rule 18 (q_filter)
 
 
-state 140
+state 143
 
    19 q_filter: qf_date_sort .
 
     $default  reduce using rule 19 (q_filter)
 
 
-state 141
+state 144
 
    21 q_filter: qf_random_sort .
 
     $default  reduce using rule 21 (q_filter)
 
 
-state 142
+state 145
 
    20 q_filter: qf_bibl_sort .
 
     $default  reduce using rule 20 (q_filter)
 
 
-state 143
+state 146
 
   133 qw_with: qc_word . WITH qc_word
   133        | qc_word WITH qc_word .
@@ -2303,26 +2346,26 @@ state 143
     $default  reduce using rule 133 (qw_with)
 
 
-state 144
+state 147
 
   108 qw_set_exact: s_index '=' AT_LBRACE . l_set '}'
 
     $default  reduce using rule 134 (l_set)
 
-    l_set  go to state 189
+    l_set  go to state 195
 
 
-state 145
+state 148
 
   118 qw_infix_set: s_index '=' STAR_LBRACE . l_set RBRACE_STAR
   122 qw_suffix_set: s_index '=' STAR_LBRACE . l_set '}'
 
     $default  reduce using rule 134 (l_set)
 
-    l_set  go to state 190
+    l_set  go to state 196
 
 
-state 146
+state 149
 
   132 qw_listfile: s_index '=' '<' . s_filename
 
@@ -2330,11 +2373,11 @@ state 146
     INTEGER  shift, and go to state 4
     DATE     shift, and go to state 5
 
-    s_filename  go to state 191
+    s_filename  go to state 197
     symbol      go to state 66
 
 
-state 147
+state 150
 
   100 qw_exact: s_index '=' '@' . s_word
 
@@ -2342,11 +2385,11 @@ state 147
     INTEGER  shift, and go to state 4
     DATE     shift, and go to state 5
 
-    s_word  go to state 192
+    s_word  go to state 198
     symbol  go to state 51
 
 
-state 148
+state 151
 
   130 qw_chunk: s_index '=' '^' . s_chunk
 
@@ -2354,11 +2397,11 @@ state 148
     INTEGER  shift, and go to state 4
     DATE     shift, and go to state 5
 
-    s_chunk  go to state 193
+    s_chunk  go to state 199
     symbol   go to state 70
 
 
-state 149
+state 152
 
   128 qw_lemma: s_index '=' '%' . s_lemma
 
@@ -2366,109 +2409,109 @@ state 149
     INTEGER  shift, and go to state 4
     DATE     shift, and go to state 5
 
-    s_lemma  go to state 194
+    s_lemma  go to state 200
     symbol   go to state 72
 
 
-state 150
+state 153
 
   124 qw_thesaurus: s_index '=' ':' . '{' s_semclass '}'
 
-    '{'  shift, and go to state 195
+    '{'  shift, and go to state 201
 
 
-state 151
+state 154
 
   126 qw_morph: s_index '=' '[' . l_morph ']'
 
     $default  reduce using rule 137 (l_morph)
 
-    l_morph  go to state 196
+    l_morph  go to state 202
 
 
-state 152
+state 155
 
   110 qw_set_infl: s_index '=' '{' . l_set '}' l_txchain
   120 qw_prefix_set: s_index '=' '{' . l_set RBRACE_STAR
 
     $default  reduce using rule 134 (l_set)
 
-    l_set  go to state 197
+    l_set  go to state 203
 
 
-state 153
+state 156
 
   106 qw_any: s_index '=' '*' .
 
     $default  reduce using rule 106 (qw_any)
 
 
-state 154
+state 157
 
    98 qw_bareword: s_index '=' s_word . l_txchain
 
-    $default  reduce using rule 144 (l_txchain)
+    $default  reduce using rule 147 (l_txchain)
 
-    l_txchain  go to state 198
+    l_txchain  go to state 204
 
 
-state 155
+state 158
 
   112 qw_prefix: s_index '=' s_prefix .
 
     $default  reduce using rule 112 (qw_prefix)
 
 
-state 156
+state 159
 
   114 qw_suffix: s_index '=' s_suffix .
 
     $default  reduce using rule 114 (qw_suffix)
 
 
-state 157
+state 160
 
   116 qw_infix: s_index '=' s_infix .
 
     $default  reduce using rule 116 (qw_infix)
 
 
-state 158
+state 161
 
   102 qw_regex: s_index '=' regex .
 
     $default  reduce using rule 102 (qw_regex)
 
 
-state 159
+state 162
 
   104 qw_regex: s_index '=' neg_regex .
 
     $default  reduce using rule 104 (qw_regex)
 
 
-state 160
+state 163
 
-  161 s_expander: EXPANDER .
+  164 s_expander: EXPANDER .
 
-    $default  reduce using rule 161 (s_expander)
-
-
-state 161
-
-  145 l_txchain: l_txchain s_expander .
-
-    $default  reduce using rule 145 (l_txchain)
+    $default  reduce using rule 164 (s_expander)
 
 
-state 162
+state 164
 
-   77 qc_sequence: '(' qc_sequence . ')'
+  148 l_txchain: l_txchain s_expander .
+
+    $default  reduce using rule 148 (l_txchain)
+
+
+state 165
+
+   77 qc_phrase: '(' qc_phrase . ')'
 
     ')'  shift, and go to state 106
 
 
-state 163
+state 166
 
    71 qc_near: NEAR '(' qc_tokens ',' . qc_tokens ',' integer ')'
    72        | NEAR '(' qc_tokens ',' . qc_tokens ',' qc_tokens ',' integer ')'
@@ -2495,8 +2538,8 @@ state 163
     '"'           shift, and go to state 22
     '*'           shift, and go to state 23
 
-    qc_tokens      go to state 199
-    qc_sequence    go to state 29
+    qc_tokens      go to state 205
+    qc_phrase      go to state 29
     qc_word        go to state 30
     qw_bareword    go to state 31
     qw_exact       go to state 32
@@ -2526,35 +2569,35 @@ state 163
     neg_regex      go to state 56
 
 
-state 164
+state 167
 
   109 qw_set_infl: '{' l_set '}' l_txchain .
-  145 l_txchain: l_txchain . s_expander
+  148 l_txchain: l_txchain . s_expander
 
-    EXPANDER  shift, and go to state 160
+    EXPANDER  shift, and go to state 163
 
     $default  reduce using rule 109 (qw_set_infl)
 
-    s_expander  go to state 161
+    s_expander  go to state 164
 
 
-state 165
+state 168
 
-  166 int_str: INTEGER .
+  169 int_str: INTEGER .
 
-    $default  reduce using rule 166 (int_str)
-
-
-state 166
-
-  167 integer: int_str .
-
-    $default  reduce using rule 167 (integer)
+    $default  reduce using rule 169 (int_str)
 
 
-state 167
+state 169
 
-  143 l_seq: l_seq '#' integer . qc_word
+  170 integer: int_str .
+
+    $default  reduce using rule 170 (integer)
+
+
+state 170
+
+  144 l_phrase: l_phrase HASH_LESS integer . qc_word
 
     SYMBOL        shift, and go to state 1
     REGEX         shift, and go to state 2
@@ -2577,7 +2620,7 @@ state 167
     '('           shift, and go to state 79
     '*'           shift, and go to state 23
 
-    qc_word        go to state 200
+    qc_word        go to state 206
     qw_bareword    go to state 31
     qw_exact       go to state 32
     qw_regex       go to state 33
@@ -2606,21 +2649,183 @@ state 167
     neg_regex      go to state 56
 
 
-state 168
+state 171
+
+  145 l_phrase: l_phrase HASH_GREATER integer . qc_word
+
+    SYMBOL        shift, and go to state 1
+    REGEX         shift, and go to state 2
+    NEG_REGEX     shift, and go to state 3
+    INTEGER       shift, and go to state 4
+    DATE          shift, and go to state 5
+    PREFIX        shift, and go to state 6
+    SUFFIX        shift, and go to state 7
+    INFIX         shift, and go to state 8
+    AT_LBRACE     shift, and go to state 9
+    COLON_LBRACE  shift, and go to state 10
+    STAR_LBRACE   shift, and go to state 11
+    '<'           shift, and go to state 14
+    '$'           shift, and go to state 15
+    '@'           shift, and go to state 16
+    '^'           shift, and go to state 17
+    '%'           shift, and go to state 18
+    '['           shift, and go to state 19
+    '{'           shift, and go to state 20
+    '('           shift, and go to state 79
+    '*'           shift, and go to state 23
+
+    qc_word        go to state 207
+    qw_bareword    go to state 31
+    qw_exact       go to state 32
+    qw_regex       go to state 33
+    qw_any         go to state 34
+    qw_set_exact   go to state 35
+    qw_set_infl    go to state 36
+    qw_prefix      go to state 37
+    qw_suffix      go to state 38
+    qw_infix       go to state 39
+    qw_infix_set   go to state 40
+    qw_prefix_set  go to state 41
+    qw_suffix_set  go to state 42
+    qw_thesaurus   go to state 43
+    qw_morph       go to state 44
+    qw_lemma       go to state 45
+    qw_chunk       go to state 46
+    qw_listfile    go to state 47
+    qw_with        go to state 48
+    s_index        go to state 49
+    s_word         go to state 50
+    symbol         go to state 51
+    s_prefix       go to state 52
+    s_suffix       go to state 53
+    s_infix        go to state 54
+    regex          go to state 55
+    neg_regex      go to state 56
+
+
+state 172
+
+  146 l_phrase: l_phrase HASH_EQUAL integer . qc_word
+
+    SYMBOL        shift, and go to state 1
+    REGEX         shift, and go to state 2
+    NEG_REGEX     shift, and go to state 3
+    INTEGER       shift, and go to state 4
+    DATE          shift, and go to state 5
+    PREFIX        shift, and go to state 6
+    SUFFIX        shift, and go to state 7
+    INFIX         shift, and go to state 8
+    AT_LBRACE     shift, and go to state 9
+    COLON_LBRACE  shift, and go to state 10
+    STAR_LBRACE   shift, and go to state 11
+    '<'           shift, and go to state 14
+    '$'           shift, and go to state 15
+    '@'           shift, and go to state 16
+    '^'           shift, and go to state 17
+    '%'           shift, and go to state 18
+    '['           shift, and go to state 19
+    '{'           shift, and go to state 20
+    '('           shift, and go to state 79
+    '*'           shift, and go to state 23
+
+    qc_word        go to state 208
+    qw_bareword    go to state 31
+    qw_exact       go to state 32
+    qw_regex       go to state 33
+    qw_any         go to state 34
+    qw_set_exact   go to state 35
+    qw_set_infl    go to state 36
+    qw_prefix      go to state 37
+    qw_suffix      go to state 38
+    qw_infix       go to state 39
+    qw_infix_set   go to state 40
+    qw_prefix_set  go to state 41
+    qw_suffix_set  go to state 42
+    qw_thesaurus   go to state 43
+    qw_morph       go to state 44
+    qw_lemma       go to state 45
+    qw_chunk       go to state 46
+    qw_listfile    go to state 47
+    qw_with        go to state 48
+    s_index        go to state 49
+    s_word         go to state 50
+    symbol         go to state 51
+    s_prefix       go to state 52
+    s_suffix       go to state 53
+    s_infix        go to state 54
+    regex          go to state 55
+    neg_regex      go to state 56
+
+
+state 173
+
+  143 l_phrase: l_phrase '#' integer . qc_word
+
+    SYMBOL        shift, and go to state 1
+    REGEX         shift, and go to state 2
+    NEG_REGEX     shift, and go to state 3
+    INTEGER       shift, and go to state 4
+    DATE          shift, and go to state 5
+    PREFIX        shift, and go to state 6
+    SUFFIX        shift, and go to state 7
+    INFIX         shift, and go to state 8
+    AT_LBRACE     shift, and go to state 9
+    COLON_LBRACE  shift, and go to state 10
+    STAR_LBRACE   shift, and go to state 11
+    '<'           shift, and go to state 14
+    '$'           shift, and go to state 15
+    '@'           shift, and go to state 16
+    '^'           shift, and go to state 17
+    '%'           shift, and go to state 18
+    '['           shift, and go to state 19
+    '{'           shift, and go to state 20
+    '('           shift, and go to state 79
+    '*'           shift, and go to state 23
+
+    qc_word        go to state 209
+    qw_bareword    go to state 31
+    qw_exact       go to state 32
+    qw_regex       go to state 33
+    qw_any         go to state 34
+    qw_set_exact   go to state 35
+    qw_set_infl    go to state 36
+    qw_prefix      go to state 37
+    qw_suffix      go to state 38
+    qw_infix       go to state 39
+    qw_infix_set   go to state 40
+    qw_prefix_set  go to state 41
+    qw_suffix_set  go to state 42
+    qw_thesaurus   go to state 43
+    qw_morph       go to state 44
+    qw_lemma       go to state 45
+    qw_chunk       go to state 46
+    qw_listfile    go to state 47
+    qw_with        go to state 48
+    s_index        go to state 49
+    s_word         go to state 50
+    symbol         go to state 51
+    s_prefix       go to state 52
+    s_suffix       go to state 53
+    s_infix        go to state 54
+    regex          go to state 55
+    neg_regex      go to state 56
+
+
+state 174
 
     6 q_flag: CNTXT integer .
 
     $default  reduce using rule 6 (q_flag)
 
 
-state 169
+state 175
 
     7 q_flag: WITHIN symbol .
 
     $default  reduce using rule 7 (q_flag)
 
 
-state 170
+state 176
 
    22 qf_has_field: HAS_FIELD '[' . symbol ',' symbol ']'
    23             | HAS_FIELD '[' . symbol ',' regex ']'
@@ -2634,10 +2839,10 @@ state 170
     INTEGER  shift, and go to state 4
     DATE     shift, and go to state 5
 
-    symbol  go to state 201
+    symbol  go to state 210
 
 
-state 171
+state 177
 
    46 qfb_int: '[' . ']'
    47        | '[' . int_str ']'
@@ -2645,37 +2850,37 @@ state 171
    49        | '[' . int_str ',' int_str ']'
    50        | '[' . ',' int_str ']'
 
-    INTEGER  shift, and go to state 165
-    ','      shift, and go to state 202
-    ']'      shift, and go to state 203
+    INTEGER  shift, and go to state 168
+    ','      shift, and go to state 211
+    ']'      shift, and go to state 212
 
-    int_str  go to state 204
+    int_str  go to state 213
 
 
-state 172
+state 178
 
    35 qf_size_sort: GREATER_BY_SIZE qfb_int .
 
     $default  reduce using rule 35 (qf_size_sort)
 
 
-state 173
+state 179
 
    34 qf_size_sort: LESS_BY_SIZE qfb_int .
 
     $default  reduce using rule 34 (qf_size_sort)
 
 
-state 174
+state 180
 
    36 qf_size_sort: IS_SIZE '[' . int_str ']'
 
-    INTEGER  shift, and go to state 165
+    INTEGER  shift, and go to state 168
 
-    int_str  go to state 205
+    int_str  go to state 214
 
 
-state 175
+state 181
 
    52 qfb_date: '[' . ']'
    53         | '[' . date ']'
@@ -2683,39 +2888,39 @@ state 175
    55         | '[' . date ',' date ']'
    56         | '[' . ',' date ']'
 
-    INTEGER  shift, and go to state 206
-    DATE     shift, and go to state 207
-    ','      shift, and go to state 208
-    ']'      shift, and go to state 209
+    INTEGER  shift, and go to state 215
+    DATE     shift, and go to state 216
+    ','      shift, and go to state 217
+    ']'      shift, and go to state 218
 
-    date  go to state 210
+    date  go to state 219
 
 
-state 176
+state 182
 
    38 qf_date_sort: GREATER_BY_DATE qfb_date .
 
     $default  reduce using rule 38 (qf_date_sort)
 
 
-state 177
+state 183
 
    37 qf_date_sort: LESS_BY_DATE qfb_date .
 
     $default  reduce using rule 37 (qf_date_sort)
 
 
-state 178
+state 184
 
    39 qf_date_sort: IS_DATE '[' . date ']'
 
-    INTEGER  shift, and go to state 206
-    DATE     shift, and go to state 207
+    INTEGER  shift, and go to state 215
+    DATE     shift, and go to state 216
 
-    date  go to state 211
+    date  go to state 220
 
 
-state 179
+state 185
 
    44 qf_bibl_sort: GREATER_BY '[' . symbol qfb_bibl ']'
 
@@ -2723,10 +2928,10 @@ state 179
     INTEGER  shift, and go to state 4
     DATE     shift, and go to state 5
 
-    symbol  go to state 212
+    symbol  go to state 221
 
 
-state 180
+state 186
 
    43 qf_bibl_sort: LESS_BY '[' . symbol qfb_bibl ']'
 
@@ -2734,76 +2939,76 @@ state 180
     INTEGER  shift, and go to state 4
     DATE     shift, and go to state 5
 
-    symbol  go to state 213
+    symbol  go to state 222
 
 
-state 181
+state 187
 
    41 qf_random_sort: RANDOM '[' . ']'
    42               | RANDOM '[' . int_str ']'
 
-    INTEGER  shift, and go to state 165
-    ']'      shift, and go to state 214
+    INTEGER  shift, and go to state 168
+    ']'      shift, and go to state 223
 
-    int_str  go to state 215
+    int_str  go to state 224
 
 
-state 182
+state 188
 
     9 q_flag: '!' FILENAMES_ONLY .
 
     $default  reduce using rule 9 (q_flag)
 
 
-state 183
+state 189
 
    11 q_flag: '!' DEBUG_RANK .
 
     $default  reduce using rule 11 (q_flag)
 
 
-state 184
+state 190
 
    29 qf_has_field: '!' . qf_has_field
 
-    HAS_FIELD  shift, and go to state 116
-    '!'        shift, and go to state 184
+    HAS_FIELD  shift, and go to state 119
+    '!'        shift, and go to state 190
 
-    qf_has_field  go to state 185
+    qf_has_field  go to state 191
 
 
-state 185
+state 191
 
    29 qf_has_field: '!' qf_has_field .
 
     $default  reduce using rule 29 (qf_has_field)
 
 
-state 186
+state 192
 
     5 q_flag: ':' qf_subcorpora .
    14 qf_subcorpora: qf_subcorpora . ',' s_subcorpus
 
-    ','  shift, and go to state 216
+    ','  shift, and go to state 225
 
     $default  reduce using rule 5 (q_flag)
 
 
-state 187
+state 193
 
    13 qf_subcorpora: s_subcorpus .
 
     $default  reduce using rule 13 (qf_subcorpora)
 
 
-state 188
+state 194
 
-  154 s_subcorpus: symbol .
+  157 s_subcorpus: symbol .
 
-    $default  reduce using rule 154 (s_subcorpus)
+    $default  reduce using rule 157 (s_subcorpus)
 
 
-state 189
+state 195
 
   108 qw_set_exact: s_index '=' AT_LBRACE l_set . '}'
   135 l_set: l_set . s_word
@@ -2813,13 +3018,13 @@ state 189
     INTEGER  shift, and go to state 4
     DATE     shift, and go to state 5
     ','      shift, and go to state 89
-    '}'      shift, and go to state 217
+    '}'      shift, and go to state 226
 
     s_word  go to state 91
     symbol  go to state 51
 
 
-state 190
+state 196
 
   118 qw_infix_set: s_index '=' STAR_LBRACE l_set . RBRACE_STAR
   122 qw_suffix_set: s_index '=' STAR_LBRACE l_set . '}'
@@ -2829,43 +3034,43 @@ state 190
     SYMBOL       shift, and go to state 1
     INTEGER      shift, and go to state 4
     DATE         shift, and go to state 5
-    RBRACE_STAR  shift, and go to state 218
+    RBRACE_STAR  shift, and go to state 227
     ','          shift, and go to state 89
-    '}'          shift, and go to state 219
+    '}'          shift, and go to state 228
 
     s_word  go to state 91
     symbol  go to state 51
 
 
-state 191
+state 197
 
   132 qw_listfile: s_index '=' '<' s_filename .
 
     $default  reduce using rule 132 (qw_listfile)
 
 
-state 192
+state 198
 
   100 qw_exact: s_index '=' '@' s_word .
 
     $default  reduce using rule 100 (qw_exact)
 
 
-state 193
+state 199
 
   130 qw_chunk: s_index '=' '^' s_chunk .
 
     $default  reduce using rule 130 (qw_chunk)
 
 
-state 194
+state 200
 
   128 qw_lemma: s_index '=' '%' s_lemma .
 
     $default  reduce using rule 128 (qw_lemma)
 
 
-state 195
+state 201
 
   124 qw_thesaurus: s_index '=' ':' '{' . s_semclass '}'
 
@@ -2873,11 +3078,11 @@ state 195
     INTEGER  shift, and go to state 4
     DATE     shift, and go to state 5
 
-    s_semclass  go to state 220
+    s_semclass  go to state 229
     symbol      go to state 61
 
 
-state 196
+state 202
 
   126 qw_morph: s_index '=' '[' l_morph . ']'
   138 l_morph: l_morph . s_morphitem
@@ -2888,14 +3093,14 @@ state 196
     INTEGER  shift, and go to state 4
     DATE     shift, and go to state 5
     ','      shift, and go to state 97
-    ']'      shift, and go to state 221
+    ']'      shift, and go to state 230
     ';'      shift, and go to state 99
 
     s_morphitem  go to state 100
     symbol       go to state 101
 
 
-state 197
+state 203
 
   110 qw_set_infl: s_index '=' '{' l_set . '}' l_txchain
   120 qw_prefix_set: s_index '=' '{' l_set . RBRACE_STAR
@@ -2905,45 +3110,75 @@ state 197
     SYMBOL       shift, and go to state 1
     INTEGER      shift, and go to state 4
     DATE         shift, and go to state 5
-    RBRACE_STAR  shift, and go to state 222
+    RBRACE_STAR  shift, and go to state 231
     ','          shift, and go to state 89
-    '}'          shift, and go to state 223
+    '}'          shift, and go to state 232
 
     s_word  go to state 91
     symbol  go to state 51
 
 
-state 198
+state 204
 
    98 qw_bareword: s_index '=' s_word l_txchain .
-  145 l_txchain: l_txchain . s_expander
+  148 l_txchain: l_txchain . s_expander
 
-    EXPANDER  shift, and go to state 160
+    EXPANDER  shift, and go to state 163
 
     $default  reduce using rule 98 (qw_bareword)
 
-    s_expander  go to state 161
+    s_expander  go to state 164
 
 
-state 199
+state 205
 
    71 qc_near: NEAR '(' qc_tokens ',' qc_tokens . ',' integer ')'
    72        | NEAR '(' qc_tokens ',' qc_tokens . ',' qc_tokens ',' integer ')'
 
-    ','  shift, and go to state 224
+    ','  shift, and go to state 233
 
 
-state 200
+state 206
 
   133 qw_with: qc_word . WITH qc_word
-  143 l_seq: l_seq '#' integer qc_word .
+  144 l_phrase: l_phrase HASH_LESS integer qc_word .
 
     WITH  shift, and go to state 86
 
-    $default  reduce using rule 143 (l_seq)
+    $default  reduce using rule 144 (l_phrase)
 
 
-state 201
+state 207
+
+  133 qw_with: qc_word . WITH qc_word
+  145 l_phrase: l_phrase HASH_GREATER integer qc_word .
+
+    WITH  shift, and go to state 86
+
+    $default  reduce using rule 145 (l_phrase)
+
+
+state 208
+
+  133 qw_with: qc_word . WITH qc_word
+  146 l_phrase: l_phrase HASH_EQUAL integer qc_word .
+
+    WITH  shift, and go to state 86
+
+    $default  reduce using rule 146 (l_phrase)
+
+
+state 209
+
+  133 qw_with: qc_word . WITH qc_word
+  143 l_phrase: l_phrase '#' integer qc_word .
+
+    WITH  shift, and go to state 86
+
+    $default  reduce using rule 143 (l_phrase)
+
+
+state 210
 
    22 qf_has_field: HAS_FIELD '[' symbol . ',' symbol ']'
    23             | HAS_FIELD '[' symbol . ',' regex ']'
@@ -2953,127 +3188,127 @@ state 201
    27             | HAS_FIELD '[' symbol . ',' s_infix ']'
    28             | HAS_FIELD '[' symbol . ',' '{' l_set '}' ']'
 
-    ','  shift, and go to state 225
+    ','  shift, and go to state 234
 
 
-state 202
+state 211
 
    50 qfb_int: '[' ',' . int_str ']'
 
-    INTEGER  shift, and go to state 165
+    INTEGER  shift, and go to state 168
 
-    int_str  go to state 226
+    int_str  go to state 235
 
 
-state 203
+state 212
 
    46 qfb_int: '[' ']' .
 
     $default  reduce using rule 46 (qfb_int)
 
 
-state 204
+state 213
 
    47 qfb_int: '[' int_str . ']'
    48        | '[' int_str . ',' ']'
    49        | '[' int_str . ',' int_str ']'
 
-    ','  shift, and go to state 227
-    ']'  shift, and go to state 228
+    ','  shift, and go to state 236
+    ']'  shift, and go to state 237
 
 
-state 205
+state 214
 
    36 qf_size_sort: IS_SIZE '[' int_str . ']'
 
-    ']'  shift, and go to state 229
+    ']'  shift, and go to state 238
 
 
-state 206
+state 215
 
-  169 date: INTEGER .
+  172 date: INTEGER .
 
-    $default  reduce using rule 169 (date)
-
-
-state 207
-
-  168 date: DATE .
-
-    $default  reduce using rule 168 (date)
+    $default  reduce using rule 172 (date)
 
 
-state 208
+state 216
+
+  171 date: DATE .
+
+    $default  reduce using rule 171 (date)
+
+
+state 217
 
    56 qfb_date: '[' ',' . date ']'
 
-    INTEGER  shift, and go to state 206
-    DATE     shift, and go to state 207
+    INTEGER  shift, and go to state 215
+    DATE     shift, and go to state 216
 
-    date  go to state 230
+    date  go to state 239
 
 
-state 209
+state 218
 
    52 qfb_date: '[' ']' .
 
     $default  reduce using rule 52 (qfb_date)
 
 
-state 210
+state 219
 
    53 qfb_date: '[' date . ']'
    54         | '[' date . ',' ']'
    55         | '[' date . ',' date ']'
 
-    ','  shift, and go to state 231
-    ']'  shift, and go to state 232
+    ','  shift, and go to state 240
+    ']'  shift, and go to state 241
 
 
-state 211
+state 220
 
    39 qf_date_sort: IS_DATE '[' date . ']'
 
-    ']'  shift, and go to state 233
+    ']'  shift, and go to state 242
 
 
-state 212
+state 221
 
    44 qf_bibl_sort: GREATER_BY '[' symbol . qfb_bibl ']'
 
-    ','  shift, and go to state 234
+    ','  shift, and go to state 243
 
     $default  reduce using rule 57 (qfb_bibl)
 
-    qfb_bibl  go to state 235
+    qfb_bibl  go to state 244
 
 
-state 213
+state 222
 
    43 qf_bibl_sort: LESS_BY '[' symbol . qfb_bibl ']'
 
-    ','  shift, and go to state 234
+    ','  shift, and go to state 243
 
     $default  reduce using rule 57 (qfb_bibl)
 
-    qfb_bibl  go to state 236
+    qfb_bibl  go to state 245
 
 
-state 214
+state 223
 
    41 qf_random_sort: RANDOM '[' ']' .
 
     $default  reduce using rule 41 (qf_random_sort)
 
 
-state 215
+state 224
 
    42 qf_random_sort: RANDOM '[' int_str . ']'
 
-    ']'  shift, and go to state 237
+    ']'  shift, and go to state 246
 
 
-state 216
+state 225
 
    14 qf_subcorpora: qf_subcorpora ',' . s_subcorpus
 
@@ -3081,62 +3316,62 @@ state 216
     INTEGER  shift, and go to state 4
     DATE     shift, and go to state 5
 
-    s_subcorpus  go to state 238
-    symbol       go to state 188
+    s_subcorpus  go to state 247
+    symbol       go to state 194
 
 
-state 217
+state 226
 
   108 qw_set_exact: s_index '=' AT_LBRACE l_set '}' .
 
     $default  reduce using rule 108 (qw_set_exact)
 
 
-state 218
+state 227
 
   118 qw_infix_set: s_index '=' STAR_LBRACE l_set RBRACE_STAR .
 
     $default  reduce using rule 118 (qw_infix_set)
 
 
-state 219
+state 228
 
   122 qw_suffix_set: s_index '=' STAR_LBRACE l_set '}' .
 
     $default  reduce using rule 122 (qw_suffix_set)
 
 
-state 220
+state 229
 
   124 qw_thesaurus: s_index '=' ':' '{' s_semclass . '}'
 
-    '}'  shift, and go to state 239
+    '}'  shift, and go to state 248
 
 
-state 221
+state 230
 
   126 qw_morph: s_index '=' '[' l_morph ']' .
 
     $default  reduce using rule 126 (qw_morph)
 
 
-state 222
+state 231
 
   120 qw_prefix_set: s_index '=' '{' l_set RBRACE_STAR .
 
     $default  reduce using rule 120 (qw_prefix_set)
 
 
-state 223
+state 232
 
   110 qw_set_infl: s_index '=' '{' l_set '}' . l_txchain
 
-    $default  reduce using rule 144 (l_txchain)
+    $default  reduce using rule 147 (l_txchain)
 
-    l_txchain  go to state 240
+    l_txchain  go to state 249
 
 
-state 224
+state 233
 
    71 qc_near: NEAR '(' qc_tokens ',' qc_tokens ',' . integer ')'
    72        | NEAR '(' qc_tokens ',' qc_tokens ',' . qc_tokens ',' integer ')'
@@ -3144,7 +3379,7 @@ state 224
     SYMBOL        shift, and go to state 1
     REGEX         shift, and go to state 2
     NEG_REGEX     shift, and go to state 3
-    INTEGER       shift, and go to state 241
+    INTEGER       shift, and go to state 250
     DATE          shift, and go to state 5
     PREFIX        shift, and go to state 6
     SUFFIX        shift, and go to state 7
@@ -3163,8 +3398,8 @@ state 224
     '"'           shift, and go to state 22
     '*'           shift, and go to state 23
 
-    qc_tokens      go to state 242
-    qc_sequence    go to state 29
+    qc_tokens      go to state 251
+    qc_phrase      go to state 29
     qc_word        go to state 30
     qw_bareword    go to state 31
     qw_exact       go to state 32
@@ -3192,11 +3427,11 @@ state 224
     s_infix        go to state 54
     regex          go to state 55
     neg_regex      go to state 56
-    int_str        go to state 166
-    integer        go to state 243
+    int_str        go to state 169
+    integer        go to state 252
 
 
-state 225
+state 234
 
    22 qf_has_field: HAS_FIELD '[' symbol ',' . symbol ']'
    23             | HAS_FIELD '[' symbol ',' . regex ']'
@@ -3214,82 +3449,82 @@ state 225
     PREFIX     shift, and go to state 6
     SUFFIX     shift, and go to state 7
     INFIX      shift, and go to state 8
-    '{'        shift, and go to state 244
+    '{'        shift, and go to state 253
 
-    symbol     go to state 245
-    s_prefix   go to state 246
-    s_suffix   go to state 247
-    s_infix    go to state 248
-    regex      go to state 249
-    neg_regex  go to state 250
+    symbol     go to state 254
+    s_prefix   go to state 255
+    s_suffix   go to state 256
+    s_infix    go to state 257
+    regex      go to state 258
+    neg_regex  go to state 259
 
 
-state 226
+state 235
 
    50 qfb_int: '[' ',' int_str . ']'
 
-    ']'  shift, and go to state 251
+    ']'  shift, and go to state 260
 
 
-state 227
+state 236
 
    48 qfb_int: '[' int_str ',' . ']'
    49        | '[' int_str ',' . int_str ']'
 
-    INTEGER  shift, and go to state 165
-    ']'      shift, and go to state 252
+    INTEGER  shift, and go to state 168
+    ']'      shift, and go to state 261
 
-    int_str  go to state 253
+    int_str  go to state 262
 
 
-state 228
+state 237
 
    47 qfb_int: '[' int_str ']' .
 
     $default  reduce using rule 47 (qfb_int)
 
 
-state 229
+state 238
 
    36 qf_size_sort: IS_SIZE '[' int_str ']' .
 
     $default  reduce using rule 36 (qf_size_sort)
 
 
-state 230
+state 239
 
    56 qfb_date: '[' ',' date . ']'
 
-    ']'  shift, and go to state 254
+    ']'  shift, and go to state 263
 
 
-state 231
+state 240
 
    54 qfb_date: '[' date ',' . ']'
    55         | '[' date ',' . date ']'
 
-    INTEGER  shift, and go to state 206
-    DATE     shift, and go to state 207
-    ']'      shift, and go to state 255
+    INTEGER  shift, and go to state 215
+    DATE     shift, and go to state 216
+    ']'      shift, and go to state 264
 
-    date  go to state 256
+    date  go to state 265
 
 
-state 232
+state 241
 
    53 qfb_date: '[' date ']' .
 
     $default  reduce using rule 53 (qfb_date)
 
 
-state 233
+state 242
 
    39 qf_date_sort: IS_DATE '[' date ']' .
 
     $default  reduce using rule 39 (qf_date_sort)
 
 
-state 234
+state 243
 
    58 qfb_bibl: ',' .
    59         | ',' . ','
@@ -3301,177 +3536,177 @@ state 234
     SYMBOL   shift, and go to state 1
     INTEGER  shift, and go to state 4
     DATE     shift, and go to state 5
-    ','      shift, and go to state 257
+    ','      shift, and go to state 266
 
     $default  reduce using rule 58 (qfb_bibl)
 
-    symbol  go to state 258
+    symbol  go to state 267
 
 
-state 235
+state 244
 
    44 qf_bibl_sort: GREATER_BY '[' symbol qfb_bibl . ']'
 
-    ']'  shift, and go to state 259
+    ']'  shift, and go to state 268
 
 
-state 236
+state 245
 
    43 qf_bibl_sort: LESS_BY '[' symbol qfb_bibl . ']'
 
-    ']'  shift, and go to state 260
+    ']'  shift, and go to state 269
 
 
-state 237
+state 246
 
    42 qf_random_sort: RANDOM '[' int_str ']' .
 
     $default  reduce using rule 42 (qf_random_sort)
 
 
-state 238
+state 247
 
    14 qf_subcorpora: qf_subcorpora ',' s_subcorpus .
 
     $default  reduce using rule 14 (qf_subcorpora)
 
 
-state 239
+state 248
 
   124 qw_thesaurus: s_index '=' ':' '{' s_semclass '}' .
 
     $default  reduce using rule 124 (qw_thesaurus)
 
 
-state 240
+state 249
 
   110 qw_set_infl: s_index '=' '{' l_set '}' l_txchain .
-  145 l_txchain: l_txchain . s_expander
+  148 l_txchain: l_txchain . s_expander
 
-    EXPANDER  shift, and go to state 160
+    EXPANDER  shift, and go to state 163
 
     $default  reduce using rule 110 (qw_set_infl)
 
-    s_expander  go to state 161
+    s_expander  go to state 164
 
 
-state 241
+state 250
 
-  156 symbol: INTEGER .
-  166 int_str: INTEGER .
+  159 symbol: INTEGER .
+  169 int_str: INTEGER .
 
-    ')'       reduce using rule 166 (int_str)
-    $default  reduce using rule 156 (symbol)
+    ')'       reduce using rule 169 (int_str)
+    $default  reduce using rule 159 (symbol)
 
 
-state 242
+state 251
 
    72 qc_near: NEAR '(' qc_tokens ',' qc_tokens ',' qc_tokens . ',' integer ')'
 
-    ','  shift, and go to state 261
+    ','  shift, and go to state 270
 
 
-state 243
+state 252
 
    71 qc_near: NEAR '(' qc_tokens ',' qc_tokens ',' integer . ')'
 
-    ')'  shift, and go to state 262
+    ')'  shift, and go to state 271
 
 
-state 244
+state 253
 
    28 qf_has_field: HAS_FIELD '[' symbol ',' '{' . l_set '}' ']'
 
     $default  reduce using rule 134 (l_set)
 
-    l_set  go to state 263
+    l_set  go to state 272
 
 
-state 245
+state 254
 
    22 qf_has_field: HAS_FIELD '[' symbol ',' symbol . ']'
 
-    ']'  shift, and go to state 264
+    ']'  shift, and go to state 273
 
 
-state 246
+state 255
 
    25 qf_has_field: HAS_FIELD '[' symbol ',' s_prefix . ']'
 
-    ']'  shift, and go to state 265
+    ']'  shift, and go to state 274
 
 
-state 247
+state 256
 
    26 qf_has_field: HAS_FIELD '[' symbol ',' s_suffix . ']'
 
-    ']'  shift, and go to state 266
+    ']'  shift, and go to state 275
 
 
-state 248
+state 257
 
    27 qf_has_field: HAS_FIELD '[' symbol ',' s_infix . ']'
 
-    ']'  shift, and go to state 267
+    ']'  shift, and go to state 276
 
 
-state 249
+state 258
 
    23 qf_has_field: HAS_FIELD '[' symbol ',' regex . ']'
 
-    ']'  shift, and go to state 268
+    ']'  shift, and go to state 277
 
 
-state 250
+state 259
 
    24 qf_has_field: HAS_FIELD '[' symbol ',' neg_regex . ']'
 
-    ']'  shift, and go to state 269
+    ']'  shift, and go to state 278
 
 
-state 251
+state 260
 
    50 qfb_int: '[' ',' int_str ']' .
 
     $default  reduce using rule 50 (qfb_int)
 
 
-state 252
+state 261
 
    48 qfb_int: '[' int_str ',' ']' .
 
     $default  reduce using rule 48 (qfb_int)
 
 
-state 253
+state 262
 
    49 qfb_int: '[' int_str ',' int_str . ']'
 
-    ']'  shift, and go to state 270
+    ']'  shift, and go to state 279
 
 
-state 254
+state 263
 
    56 qfb_date: '[' ',' date ']' .
 
     $default  reduce using rule 56 (qfb_date)
 
 
-state 255
+state 264
 
    54 qfb_date: '[' date ',' ']' .
 
     $default  reduce using rule 54 (qfb_date)
 
 
-state 256
+state 265
 
    55 qfb_date: '[' date ',' date . ']'
 
-    ']'  shift, and go to state 271
+    ']'  shift, and go to state 280
 
 
-state 257
+state 266
 
    59 qfb_bibl: ',' ',' .
    62         | ',' ',' . symbol
@@ -3482,52 +3717,52 @@ state 257
 
     $default  reduce using rule 59 (qfb_bibl)
 
-    symbol  go to state 272
+    symbol  go to state 281
 
 
-state 258
+state 267
 
    60 qfb_bibl: ',' symbol .
    61         | ',' symbol . ','
    63         | ',' symbol . ',' symbol
 
-    ','  shift, and go to state 273
+    ','  shift, and go to state 282
 
     $default  reduce using rule 60 (qfb_bibl)
 
 
-state 259
+state 268
 
    44 qf_bibl_sort: GREATER_BY '[' symbol qfb_bibl ']' .
 
     $default  reduce using rule 44 (qf_bibl_sort)
 
 
-state 260
+state 269
 
    43 qf_bibl_sort: LESS_BY '[' symbol qfb_bibl ']' .
 
     $default  reduce using rule 43 (qf_bibl_sort)
 
 
-state 261
+state 270
 
    72 qc_near: NEAR '(' qc_tokens ',' qc_tokens ',' qc_tokens ',' . integer ')'
 
-    INTEGER  shift, and go to state 165
+    INTEGER  shift, and go to state 168
 
-    int_str  go to state 166
-    integer  go to state 274
+    int_str  go to state 169
+    integer  go to state 283
 
 
-state 262
+state 271
 
    71 qc_near: NEAR '(' qc_tokens ',' qc_tokens ',' integer ')' .
 
     $default  reduce using rule 71 (qc_near)
 
 
-state 263
+state 272
 
    28 qf_has_field: HAS_FIELD '[' symbol ',' '{' l_set . '}' ']'
   135 l_set: l_set . s_word
@@ -3537,76 +3772,76 @@ state 263
     INTEGER  shift, and go to state 4
     DATE     shift, and go to state 5
     ','      shift, and go to state 89
-    '}'      shift, and go to state 275
+    '}'      shift, and go to state 284
 
     s_word  go to state 91
     symbol  go to state 51
 
 
-state 264
+state 273
 
    22 qf_has_field: HAS_FIELD '[' symbol ',' symbol ']' .
 
     $default  reduce using rule 22 (qf_has_field)
 
 
-state 265
+state 274
 
    25 qf_has_field: HAS_FIELD '[' symbol ',' s_prefix ']' .
 
     $default  reduce using rule 25 (qf_has_field)
 
 
-state 266
+state 275
 
    26 qf_has_field: HAS_FIELD '[' symbol ',' s_suffix ']' .
 
     $default  reduce using rule 26 (qf_has_field)
 
 
-state 267
+state 276
 
    27 qf_has_field: HAS_FIELD '[' symbol ',' s_infix ']' .
 
     $default  reduce using rule 27 (qf_has_field)
 
 
-state 268
+state 277
 
    23 qf_has_field: HAS_FIELD '[' symbol ',' regex ']' .
 
     $default  reduce using rule 23 (qf_has_field)
 
 
-state 269
+state 278
 
    24 qf_has_field: HAS_FIELD '[' symbol ',' neg_regex ']' .
 
     $default  reduce using rule 24 (qf_has_field)
 
 
-state 270
+state 279
 
    49 qfb_int: '[' int_str ',' int_str ']' .
 
     $default  reduce using rule 49 (qfb_int)
 
 
-state 271
+state 280
 
    55 qfb_date: '[' date ',' date ']' .
 
     $default  reduce using rule 55 (qfb_date)
 
 
-state 272
+state 281
 
    62 qfb_bibl: ',' ',' symbol .
 
     $default  reduce using rule 62 (qfb_bibl)
 
 
-state 273
+state 282
 
    61 qfb_bibl: ',' symbol ',' .
    63         | ',' symbol ',' . symbol
@@ -3617,38 +3852,38 @@ state 273
 
     $default  reduce using rule 61 (qfb_bibl)
 
-    symbol  go to state 276
+    symbol  go to state 285
 
 
-state 274
+state 283
 
    72 qc_near: NEAR '(' qc_tokens ',' qc_tokens ',' qc_tokens ',' integer . ')'
 
-    ')'  shift, and go to state 277
+    ')'  shift, and go to state 286
 
 
-state 275
+state 284
 
    28 qf_has_field: HAS_FIELD '[' symbol ',' '{' l_set '}' . ']'
 
-    ']'  shift, and go to state 278
+    ']'  shift, and go to state 287
 
 
-state 276
+state 285
 
    63 qfb_bibl: ',' symbol ',' symbol .
 
     $default  reduce using rule 63 (qfb_bibl)
 
 
-state 277
+state 286
 
    72 qc_near: NEAR '(' qc_tokens ',' qc_tokens ',' qc_tokens ',' integer ')' .
 
     $default  reduce using rule 72 (qc_near)
 
 
-state 278
+state 287
 
    28 qf_has_field: HAS_FIELD '[' symbol ',' '{' l_set '}' ']' .
 

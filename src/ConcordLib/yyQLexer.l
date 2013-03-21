@@ -138,6 +138,9 @@ regex_modifier	[gimsx]
 <Q_REGOPT>{regex_modifier}+		{ BEGIN(INITIAL); return REGOPT; }
 
  /* punctuation */
+"#="				{ return HASH_EQUAL; /* hash+equal: exact distance */ }
+"#<"				{ return HASH_LESS; /* hash+less: max distance */ }
+"#>"				{ return HASH_GREATER; /* hash+greater: min distance */ }
 [\!\.\,\:\;\$\@\%\^\#\=]	{ return ((int)yytext[0]); /* single-character punctuation operators */ }
 [\[\]\{\}\(\)\<\>]		{ return ((int)yytext[0]); /* parentheses */ }
 [\"]				{ return ((int)yytext[0]); /* quotes */ }

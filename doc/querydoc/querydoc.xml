@@ -105,7 +105,7 @@
 
 	  <!--~~~~~~~~ RULES: qc_basic -->
 	  <rule lhs="qc_basic" cmt="Basic query clause (single logical condition)">
-	    <rhs cmt="Sequence or single-token condition">
+	    <rhs cmt="Phrase or single-token condition">
 	      <n>qc_tokens</n>
 	    </rhs>
 	    <rhs cmt="Unordered proximity constraint">
@@ -145,25 +145,25 @@
 	  </rule>
 
 	  <!--~~~~~~~~ RULES: qc_tokens -->
-	  <rule lhs="qc_tokens" cmt="Sequence or single-token condition">
+	  <rule lhs="qc_tokens" cmt="Phrase or single-token condition">
 	    <rhs cmt="Single-token condition">
 	      <n>qc_word</n>
 	    </rhs>
 	    <rhs cmt="Ordered sequence of single-token conditions">
-	      <n>qc_sequence</n>
+	      <n>qc_phrase</n>
 	    </rhs>
 	  </rule>
 
-	  <!--~~~~~~~~ RULES: qc_sequence -->
-	  <rule lhs="qc_sequence" cmt="Ordered sequence of single-token conditions">
-	    <rhs cmt="Sequences are enclosed in double-quotes">
+	  <!--~~~~~~~~ RULES: qc_phrase -->
+	  <rule lhs="qc_phrase" cmt="Ordered sequence of single-token conditions">
+	    <rhs cmt="Phrases are enclosed in double-quotes">
 	      <t>"</t>
-	      <n>l_seq</n>
+	      <n>l_phrase</n>
 	      <t>"</t>
 	    </rhs>
 	    <rhs cmt="Explicit grouping (vacuous)">
 	      <t>(</t>
-	      <n>qc_sequence</n>
+	      <n>qc_phrase</n>
 	      <t>)</t>
 	    </rhs>
 	  </rule>
@@ -864,17 +864,35 @@
 	    </rhs>
 	  </rule>
 
-	  <!--~~~~~~~~ RULES: l_seq -->
-	  <rule lhs="l_seq" cmt="Ordered sequence of single-word conditions with optional proximity constraints">
-	    <rhs cmt="Singleton sequence">
+	  <!--~~~~~~~~ RULES: l_phrase -->
+	  <rule lhs="l_phrase" cmt="Ordered sequence of single-word conditions with optional proximity constraints">
+	    <rhs cmt="Singleton phrase">
 	      <n>qc_word</n>
 	    </rhs>
-	    <rhs cmt="... Sequence elements are separated by whitespace">
-	      <n>l_seq</n>
+	    <rhs cmt="... phrase elements are separated by whitespace">
+	      <n>l_phrase</n>
 	      <n>qc_word</n>
 	    </rhs>
-	    <rhs cmt="... with an optional proximity hint (default='#0': immediate successor)">
-	      <n>l_seq</n>
+	    <rhs cmt="... allowing at most N intervening tokens (default='#&lt;0': immediate successor)">
+	      <n>l_phrase</n>
+	      <t>#&lt;</t>
+	      <n>integer</n>
+	      <n>qc_word</n>
+	    </rhs>
+	    <rhs cmt="... requiring at least N intervening tokens">
+	      <n>l_phrase</n>
+	      <t>#&gt;</t>
+	      <n>integer</n>
+	      <n>qc_word</n>
+	    </rhs>
+	    <rhs cmt="... allowing exactly N intervening tokens">
+	      <n>l_phrase</n>
+	      <t>#=</t>
+	      <n>integer</n>
+	      <n>qc_word</n>
+	    </rhs>
+	    <rhs cmt="... backwards-compatible #N is an alias for #&lt;N">
+	      <n>l_phrase</n>
 	      <t>#</t>
 	      <n>integer</n>
 	      <n>qc_word</n>
@@ -1200,7 +1218,7 @@ regex_modifier	[gimsx]
 "||"				/* clause-level disjunction operator */
 [\!\.\,\:\;\$\@\%\^\#\=]	/* single-character punctuation operators */
 [\[\]\{\}\(\)\&lt;\&gt;]		/* parentheses */
-[\"]				/* double quotes (for sequence queries) */
+[\"]				/* double quotes (for pharse queries) */
 ":{"				/* thesaurus-query opener */
 "@{"				/* literal-set opener */
 "*{"				/* prefix- or infix-set opener */

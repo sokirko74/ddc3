@@ -537,7 +537,10 @@ public:
 
 //! sequence query (e.g. "a #1 b #1 c")
 //!  This class holds a sequence of nodes of type CQToken (slot m_Items).
-//!  Between \c m_Items[i] and \c m_Items[i+1] must be no more than \c m_Dists[i] tokens.
+//!  Distance constraints: between \c m_Items[i] and \c m_Items[i+1] must be
+//!   + no more than \c m_Dists[i] tokens if \c m_DistOps[i] == '<' (default)
+//!   + no less than \c m_Dists[i] tokens if \c m_DistOps[i] == '>'
+//!   + exactly      \c m_Dists[i] tokens if \c m_DistOps[i] == '='
 class CQSeq : public CQAtomic {
 public:
   //! items to be queried (must be token nodes)
@@ -546,10 +549,13 @@ public:
   //! distances between items
   vector<BYTE>	m_Dists;
 
+  //! distance constraint relations
+  vector<BYTE>	m_DistOps;
+
 public:
   //! literal constructor (unused)
-  CQSeq(const vector<CQToken*> &items, const vector<BYTE> &dists)
-    : m_Items(items), m_Dists(dists)
+  CQSeq(const vector<CQToken*> &items, const vector<BYTE> &dists, const vector<BYTE> &distops)
+    : m_Items(items), m_Dists(dists), m_DistOps(distops)
   {};
 
   //! constructor for atomic (1-token) sequences
@@ -568,7 +574,7 @@ public:
 
   //! append another (item,distance) pair onto this sequence
   //! \c nextDist is ignored if this is the first item in the sequence
-  void Append(CQToken *nextItem, BYTE nextDist=0);
+  void Append(CQToken *nextItem, BYTE nextDist=0, BYTE nextDistOp='<');
 
   //! Compile() method implicitly compiles daughter nodes
   virtual bool Compile(CQueryCompiler *compiler);
