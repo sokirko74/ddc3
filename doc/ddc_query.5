@@ -62,7 +62,7 @@
 .\" ========================================================================
 .\"
 .IX Title "DDC_QUERY 5"
-.TH DDC_QUERY 5 "2013-01-04" "2.0.5" "DDC Corpus Indexing System"
+.TH DDC_QUERY 5 "2013-03-21" "2.0.6" "DDC Corpus Indexing System"
 .\" For nroff, turn off justification.  Always turn off hyphenation; it makes
 .\" way too many mistakes in technical documents.
 .if n .ad l
@@ -72,7 +72,7 @@
 .SS "Overview"
 .IX Subsection "Overview"
 This documentation describes the query language accepted by
-\&\s-1DDC\s0 version 2.0.5.  Current sources for \s-1DDC\s0 should be available
+\&\s-1DDC\s0 version 2.0.6.  Current sources for \s-1DDC\s0 should be available
 from
 http://sourceforge.net/projects/ddc\-concordance.
 .PP
@@ -144,6 +144,7 @@ Comments may appear after each rule in C notation
 \&                   qw_bareword                                           /* Bareword query (expanded) */
 \&                 | qw_exact                                              /* Exact match (not expanded) */
 \&                 | qw_regex                                              /* Regular expression */
+\&                 | qw_any                                                /* Universal match (arbitrary value) */
 \&                 | qw_set_infl                                           /* Disjunction over a set of targets (expanded) */
 \&                 | qw_set_exact                                          /* Disjunction over a set of literals (not expanded) */
 \&                 | qw_prefix                                             /* Right\-truncated string (prefix condition) */
@@ -176,6 +177,11 @@ Comments may appear after each rule in C notation
 \&                 | s_index = regex                                       /* ... on user\-specified index */
 \&                 | neg_regex                                             /* ... on \*(AqToken\*(Aq index, negated */
 \&                 | s_index = neg_regex                                   /* ... on user\-specified index, negated */
+\&                 ;
+\& 
+\& qw_any        ::=                                                       /*\-\- Universal match (aka wildcard token) \-\-*/
+\&                   *                                                     /* ... on \*(AqToken\*(Aq index */
+\&                 | s_index = *                                           /* ... on user\-specified index */
 \&                 ;
 \& 
 \& qw_set_infl   ::=                                                       /*\-\- Disjunction over a set of (expanded) target values \-\-*/
@@ -577,7 +583,7 @@ thus /REGEX/g is a equivalent to /^(?:REGEX)$/.
 \fIPunctutation Operators and Special Characters\fR
 .IX Subsection "Punctutation Operators and Special Characters"
 .PP
-.Vb 9
+.Vb 10
 \& "&&"                           /* clause\-level conjunction operator */
 \& "||"                           /* clause\-level disjunction operator */
 \& [\e!\e.\e,\e:\e;\e$\e@\e%\e^\e#\e=]       /* single\-character punctuation operators */
@@ -587,6 +593,7 @@ thus /REGEX/g is a equivalent to /^(?:REGEX)$/.
 \& "@{"                           /* literal\-set opener */
 \& "*{"                           /* prefix\- or infix\-set opener */
 \& "}*"                           /* suffix\-set or infix\-set closer */
+\& "*"                            /* universal match wildcard */
 .Ve
 .PP
 The scanner supports the various punctuation operators used in
