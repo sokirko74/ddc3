@@ -59,7 +59,7 @@ Comments may appear after each rule in C notation
                  ;
  
  qc_basic      ::=                                                       /*-- Basic query clause (single logical condition) --*/
-                   qc_tokens                                             /* Sequence or single-token condition */
+                   qc_tokens                                             /* Phrase or single-token condition */
                  | qc_near                                               /* Unordered proximity constraint */
                  ;
  
@@ -69,14 +69,14 @@ Comments may appear after each rule in C notation
                  | ( qc_near )                                           /* Explicit grouping (vacuous) */
                  ;
  
- qc_tokens     ::=                                                       /*-- Sequence or single-token condition --*/
+ qc_tokens     ::=                                                       /*-- Phrase or single-token condition --*/
                    qc_word                                               /* Single-token condition */
-                 | qc_sequence                                           /* Ordered sequence of single-token conditions */
+                 | qc_phrase                                             /* Ordered sequence of single-token conditions */
                  ;
  
- qc_sequence   ::=                                                       /*-- Ordered sequence of single-token conditions --*/
-                   " l_seq "                                             /* Sequences are enclosed in double-quotes */
-                 | ( qc_sequence )                                       /* Explicit grouping (vacuous) */
+ qc_phrase     ::=                                                       /*-- Ordered sequence of single-token conditions --*/
+                   " l_phrase "                                          /* Phrases are enclosed in double-quotes */
+                 | ( qc_phrase )                                         /* Explicit grouping (vacuous) */
                  ;
  
  qc_word       ::=                                                       /*-- Single-token condition --*/
@@ -317,10 +317,13 @@ Comments may appear after each rule in C notation
                  | l_morph ;                    /* ... or semicolons (for compatibility) */
                  ;
  
- l_seq         ::=                              /*-- Ordered sequence of single-word conditions with optional proximity constraints --*/
-                   qc_word                      /* Singleton sequence */
-                 | l_seq qc_word                /* ... Sequence elements are separated by whitespace */
-                 | l_seq # integer qc_word      /* ... with an optional proximity hint (default='#0': immediate successor) */
+ l_phrase      ::=                              /*-- Ordered sequence of single-word conditions with optional proximity constraints --*/
+                   qc_word                      /* Singleton phrase */
+                 | l_phrase qc_word             /* ... phrase elements are separated by whitespace */
+                 | l_phrase #< integer qc_word  /* ... allowing at most N intervening tokens (default='#<0': immediate successor) */
+                 | l_phrase #> integer qc_word  /* ... requiring at least N intervening tokens */
+                 | l_phrase #= integer qc_word  /* ... allowing exactly N intervening tokens */
+                 | l_phrase # integer qc_word   /* ... backwards-compatible #N is an alias for #<N */
                  ;
  
  l_txchain     ::=                              /*-- Term expansion pipeline --*/
@@ -536,7 +539,7 @@ thus /REGEX/g is a equivalent to /^(?:REGEX)$/.
  "||"				/* clause-level disjunction operator */
  [\!\.\,\:\;\$\@\%\^\#\=]	/* single-character punctuation operators */
  [\[\]\{\}\(\)\<\>]		/* parentheses */
- [\"]				/* double quotes (for sequence queries) */
+ [\"]				/* double quotes (for pharse queries) */
  ":{"				/* thesaurus-query opener */
  "@{"				/* literal-set opener */
  "*{"				/* prefix- or infix-set opener */

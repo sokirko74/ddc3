@@ -1,6 +1,6 @@
 <html>
 <head>
-<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <title>DDC Query Language Documentation</title>
 <link rel="stylesheet" href="querydoc.css" type="text/css">
 </head>
@@ -178,7 +178,7 @@
 <td></td>
 <td class="ruleRHS1">
 <span class="ruleNonterminal"><a href="#rule_qc_tokens">qc_tokens</a></span> </td>
-<td class="ruleComment">/* Sequence or single-token condition */</td>
+<td class="ruleComment">/* Phrase or single-token condition */</td>
 </tr>
 <tr>
 <td></td>
@@ -227,7 +227,7 @@
 <td><b><a name="rule_qc_tokens">qc_tokens</a></b></td>
 <td>::=</td>
 <td></td>
-<td class="ruleCommentTop">/* Sequence or single-token condition */</td>
+<td class="ruleCommentTop">/* Phrase or single-token condition */</td>
 </tr>
 <tr>
 <td></td>
@@ -239,7 +239,7 @@
 <tr>
 <td></td>
 <td></td>
-<td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_qc_sequence">qc_sequence</a></span> </td>
+<td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_qc_phrase">qc_phrase</a></span> </td>
 <td class="ruleComment">/* Ordered sequence of single-token conditions */</td>
 </tr>
 <tr>
@@ -249,7 +249,7 @@
 </tr>
 <tr></tr>
 <tr>
-<td><b><a name="rule_qc_sequence">qc_sequence</a></b></td>
+<td><b><a name="rule_qc_phrase">qc_phrase</a></b></td>
 <td>::=</td>
 <td></td>
 <td class="ruleCommentTop">/* Ordered sequence of single-token conditions */</td>
@@ -258,13 +258,13 @@
 <td></td>
 <td></td>
 <td class="ruleRHS1">
-<span class="ruleTerminal">"</span> <span class="ruleNonterminal"><a href="#rule_l_seq">l_seq</a></span> <span class="ruleTerminal">"</span> </td>
-<td class="ruleComment">/* Sequences are enclosed in double-quotes */</td>
+<span class="ruleTerminal">"</span> <span class="ruleNonterminal"><a href="#rule_l_phrase">l_phrase</a></span> <span class="ruleTerminal">"</span> </td>
+<td class="ruleComment">/* Phrases are enclosed in double-quotes */</td>
 </tr>
 <tr>
 <td></td>
 <td></td>
-<td class="ruleRHS">| <span class="ruleTerminal">(</span> <span class="ruleNonterminal"><a href="#rule_qc_sequence">qc_sequence</a></span> <span class="ruleTerminal">)</span> </td>
+<td class="ruleRHS">| <span class="ruleTerminal">(</span> <span class="ruleNonterminal"><a href="#rule_qc_phrase">qc_phrase</a></span> <span class="ruleTerminal">)</span> </td>
 <td class="ruleComment">/* Explicit grouping (vacuous) */</td>
 </tr>
 <tr>
@@ -1452,7 +1452,7 @@
 </tr>
 <tr></tr>
 <tr>
-<td><b><a name="rule_l_seq">l_seq</a></b></td>
+<td><b><a name="rule_l_phrase">l_phrase</a></b></td>
 <td>::=</td>
 <td></td>
 <td class="ruleCommentTop">/* Ordered sequence of single-word conditions with optional proximity constraints */</td>
@@ -1462,19 +1462,37 @@
 <td></td>
 <td class="ruleRHS1">
 <span class="ruleNonterminal"><a href="#rule_qc_word">qc_word</a></span> </td>
-<td class="ruleComment">/* Singleton sequence */</td>
+<td class="ruleComment">/* Singleton phrase */</td>
 </tr>
 <tr>
 <td></td>
 <td></td>
-<td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_l_seq">l_seq</a></span> <span class="ruleNonterminal"><a href="#rule_qc_word">qc_word</a></span> </td>
-<td class="ruleComment">/* ... Sequence elements are separated by whitespace */</td>
+<td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_l_phrase">l_phrase</a></span> <span class="ruleNonterminal"><a href="#rule_qc_word">qc_word</a></span> </td>
+<td class="ruleComment">/* ... phrase elements are separated by whitespace */</td>
 </tr>
 <tr>
 <td></td>
 <td></td>
-<td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_l_seq">l_seq</a></span> <span class="ruleTerminal">#</span> <span class="ruleNonterminal"><a href="#rule_integer">integer</a></span> <span class="ruleNonterminal"><a href="#rule_qc_word">qc_word</a></span> </td>
-<td class="ruleComment">/* ... with an optional proximity hint (default='#0': immediate successor) */</td>
+<td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_l_phrase">l_phrase</a></span> <span class="ruleTerminal">#&lt;</span> <span class="ruleNonterminal"><a href="#rule_integer">integer</a></span> <span class="ruleNonterminal"><a href="#rule_qc_word">qc_word</a></span> </td>
+<td class="ruleComment">/* ... allowing at most N intervening tokens (default='#&lt;0': immediate successor) */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_l_phrase">l_phrase</a></span> <span class="ruleTerminal">#&gt;</span> <span class="ruleNonterminal"><a href="#rule_integer">integer</a></span> <span class="ruleNonterminal"><a href="#rule_qc_word">qc_word</a></span> </td>
+<td class="ruleComment">/* ... requiring at least N intervening tokens */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_l_phrase">l_phrase</a></span> <span class="ruleTerminal">#=</span> <span class="ruleNonterminal"><a href="#rule_integer">integer</a></span> <span class="ruleNonterminal"><a href="#rule_qc_word">qc_word</a></span> </td>
+<td class="ruleComment">/* ... allowing exactly N intervening tokens */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_l_phrase">l_phrase</a></span> <span class="ruleTerminal">#</span> <span class="ruleNonterminal"><a href="#rule_integer">integer</a></span> <span class="ruleNonterminal"><a href="#rule_qc_word">qc_word</a></span> </td>
+<td class="ruleComment">/* ... backwards-compatible #N is an alias for #&lt;N */</td>
 </tr>
 <tr>
 <td></td>
@@ -2086,7 +2104,7 @@ regex_modifier	[gimsx]
 "||"				/* clause-level disjunction operator */
 [\!\.\,\:\;\$\@\%\^\#\=]	/* single-character punctuation operators */
 [\[\]\{\}\(\)\&lt;\&gt;]		/* parentheses */
-[\"]				/* double quotes (for sequence queries) */
+[\"]				/* double quotes (for pharse queries) */
 ":{"				/* thesaurus-query opener */
 "@{"				/* literal-set opener */
 "*{"				/* prefix- or infix-set opener */
@@ -2690,7 +2708,7 @@ regex_modifier	[gimsx]
   </body></div>
 <div class="footers">
 <div class="footer_sig">
-<address><a href="mailto:jurish@bbaw.de">jurish@bbaw.de</a></address>Last modified: Thu, 21 Mar 2013 14:02:21 +0100</div>
+<address><a href="mailto:jurish@bbaw.de">jurish@bbaw.de</a></address>Last modified: Thu, 21 Mar 2013 16:05:11 +0100</div>
 <div class="footer_linkbar"><p class="nopad"><a class="navLink" href="/">Root</a><a class="navLink" href="./">Back</a><span class="navLinkDisabled">Help</span></p></div>
 <p class="dummy"></p>
 </div>
