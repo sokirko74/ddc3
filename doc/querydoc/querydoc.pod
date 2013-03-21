@@ -3,7 +3,7 @@
 =head2 Overview
 
 This documentation describes the query language accepted by
-DDC version 2.0.5.  Current sources for DDC should be available
+DDC version 2.0.6.  Current sources for DDC should be available
 from
 http://sourceforge.net/projects/ddc-concordance.
 
@@ -83,6 +83,7 @@ Comments may appear after each rule in C notation
                    qw_bareword                                           /* Bareword query (expanded) */
                  | qw_exact                                              /* Exact match (not expanded) */
                  | qw_regex                                              /* Regular expression */
+                 | qw_any                                                /* Universal match (arbitrary value) */
                  | qw_set_infl                                           /* Disjunction over a set of targets (expanded) */
                  | qw_set_exact                                          /* Disjunction over a set of literals (not expanded) */
                  | qw_prefix                                             /* Right-truncated string (prefix condition) */
@@ -115,6 +116,11 @@ Comments may appear after each rule in C notation
                  | s_index = regex                                       /* ... on user-specified index */
                  | neg_regex                                             /* ... on 'Token' index, negated */
                  | s_index = neg_regex                                   /* ... on user-specified index, negated */
+                 ;
+ 
+ qw_any        ::=                                                       /*-- Universal match (aka wildcard token) --*/
+                   *                                                     /* ... on 'Token' index */
+                 | s_index = *                                           /* ... on user-specified index */
                  ;
  
  qw_set_infl   ::=                                                       /*-- Disjunction over a set of (expanded) target values --*/
@@ -535,6 +541,7 @@ thus /REGEX/g is a equivalent to /^(?:REGEX)$/.
  "@{"				/* literal-set opener */
  "*{"				/* prefix- or infix-set opener */
  "}*"				/* suffix-set or infix-set closer */
+ "*"				/* universal match wildcard */
 
 The scanner supports the various punctuation operators used in
 the query grammar.

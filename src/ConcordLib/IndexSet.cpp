@@ -108,8 +108,15 @@ void CStringIndexSet::QueryTokenListUsingRegExp (RML_RE &RegExp, vector<DWORD>& 
 			MatchWords.push_back( i );
 		};
 	};
+};
 
-
+void CStringIndexSet::QueryTokenListUniversal(vector<DWORD>& MatchWords) const
+{
+	DWORD Count = (DWORD)m_Index.size();
+	MatchWords.reserve(MatchWords.size()+Count);
+	for (DWORD i=0; i < Count; ++i) {
+		MatchWords.push_back(i);
+	}
 };
 
 

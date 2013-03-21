@@ -1,5 +1,5 @@
 //-*- Mode: bison; c-basic-offset: 8; -*-*/
-//  Copyright 2011 by Bryan Jurish
+//  Copyright 2011-2013 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -112,6 +112,7 @@ int yylex (void*,  void*);
 %type	<m_pnode>	qw_bareword
 %type	<m_pnode>	qw_exact
 %type	<m_pnode>	qw_regex
+%type	<m_pnode>	qw_any
 %type	<m_pnode>	qw_set_infl
 %type	<m_pnode>	qw_set_exact
 
@@ -399,6 +400,7 @@ qc_word:
 		qw_bareword		{ $$ = $1; }
 	|	qw_exact		{ $$ = $1; }
 	|	qw_regex		{ $$ = $1; }
+	|	qw_any			{ $$ = $1; }
 	|	qw_set_infl		{ $$ = $1; }
 	|	qw_set_exact		{ $$ = $1; }
 	|	qw_infix		{ $$ = $1; }
@@ -431,6 +433,11 @@ qw_regex:
 	|	s_index '=' regex		{ $$ = _qc->PushQuery(new CQTokRegex(*$1,*$3)); }
 	|	neg_regex			{ $$ = _qc->PushQuery(new CQTokRegex("",*$1,true)); }
 	|	s_index '=' neg_regex		{ $$ = _qc->PushQuery(new CQTokRegex(*$1,*$3,true)); }
+	;
+
+qw_any:
+		'*'				{ $$ = _qc->PushQuery(new CQTokAny("")); }
+	|	s_index '=' '*'			{ $$ = _qc->PushQuery(new CQTokAny(*$1)); }
 	;
 
 qw_set_exact:

@@ -262,6 +262,18 @@ public:
 };
 
 //------------------------------------------------------------
+//! single-token query: arbitrary token
+class CQTokAny : public CQToken {
+public:
+  CQTokAny(const string &indexName=string(""), const string &value=string(""))
+    : CQToken(indexName,value)
+  {};
+
+  virtual bool Create(CQueryTokenNode *pNode);
+  virtual string ValueString();
+};
+
+//------------------------------------------------------------
 //! single-token query: regex
 class CQTokRegex : public CQToken {
 public:

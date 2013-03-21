@@ -427,8 +427,8 @@ int yyFlexLexer::yylex()
 	(yy_c_buf_p) = yy_cp;
 
 /* %% [4.0] data tables for the DFA and the user's section 1 definitions go here */
-#define YY_NUM_RULES 55
-#define YY_END_OF_BUFFER 56
+#define YY_NUM_RULES 56
+#define YY_END_OF_BUFFER 57
 /* This struct is not used in this scanner,
    but its presence is necessary. */
 struct yy_trans_info
@@ -438,20 +438,20 @@ struct yy_trans_info
 	};
 static yyconst flex_int16_t yy_accept[225] =
     {   0,
-        0,    0,    0,    0,   50,   50,   56,   52,   53,   53,
-       28,   30,   28,   28,   54,   54,   29,   54,   54,   52,
-       54,   52,   28,   28,   52,   52,   54,   45,   29,   55,
-       27,   49,   46,   55,   47,   55,   52,   43,    0,   53,
+        0,    0,    0,    0,   51,   51,   57,   53,   54,   54,
+       28,   30,   28,   28,   55,   55,   29,   45,   55,   53,
+       55,   53,   28,   28,   53,   53,   55,   46,   29,   56,
+       27,   50,   47,   56,   48,   56,   53,   43,    0,   54,
         0,    0,    0,    0,    0,    0,    0,    0,    0,    0,
-        0,    0,    1,    0,   51,    0,    0,    0,   44,    0,
-        0,   33,   38,   38,   38,   52,   38,    0,   26,    0,
-       36,   36,   36,   52,   36,   31,   32,   52,   52,   52,
-        2,   34,   27,   49,    0,   46,    0,   48,    0,   49,
+        0,    0,    1,    0,   52,    0,    0,    0,   44,    0,
+        0,   33,   38,   38,   38,   53,   38,    0,   26,    0,
+       36,   36,   36,   53,   36,   31,   32,   53,   53,   53,
+        2,   34,   27,   50,    0,   47,    0,   49,    0,   50,
         0,   24,    0,    0,    0,    0,    0,    0,    0,    0,
 
         0,    0,    0,    0,    0,    0,    0,   40,   37,   35,
-        0,   51,    0,   44,   42,    0,    0,   41,    0,   25,
-       52,   52,    0,   48,    0,   23,   20,    0,    0,    0,
+        0,   52,    0,   44,   42,    0,    0,   41,    0,   25,
+       53,   53,    0,   49,    0,   23,   20,    0,    0,    0,
        21,    0,    0,    7,    0,    0,    0,    0,    0,    0,
         0,   40,   39,    0,   41,    0,    3,    4,    0,    0,
         0,    0,   14,    0,    0,    0,    0,    0,    0,   18,
@@ -803,20 +803,20 @@ static yyconst flex_int16_t yy_chk[1017] =
     } ;
 
 /* Table of booleans, true if rule could match eol. */
-static yyconst flex_int32_t yy_rule_can_match_eol[56] =
+static yyconst flex_int32_t yy_rule_can_match_eol[57] =
     {   0,
 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
     0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 
-    1, 1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0,     };
+    1, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0,     };
 
-static yyconst flex_int16_t yy_rule_linenum[55] =
+static yyconst flex_int16_t yy_rule_linenum[56] =
     {   0,
       108,  109,  110,  111,  114,  115,  116,  117,  118,  119,
       120,  121,  122,  123,  124,  125,  126,  127,  128,  129,
       130,  131,  134,  135,  136,  137,  138,  141,  142,  143,
       144,  145,  146,  147,  151,  152,  154,  155,  158,  159,
-      160,  162,  163,  164,  167,  168,  169,  170,  171,  173,
-      176,  177,  180,  181
+      160,  162,  163,  164,  167,  170,  171,  172,  173,  174,
+      176,  179,  180,  183,  184
     } ;
 
 /* The intent behind this definition is that it'll catch
@@ -829,7 +829,7 @@ static yyconst flex_int16_t yy_rule_linenum[55] =
 #line 1 "yyQLexer.l"
 /*-*- Mode: Flex; c-basic-offset: 8 -*-*/
 /*
-//  Copyright 2011 by Bryan Jurish
+//  Copyright 2011-2013 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -1166,12 +1166,12 @@ do_action:	/* This label is used only to access EOF actions. */
 			{
 			if ( yy_act == 0 )
 				std::cerr << "--scanner backing up\n";
-			else if ( yy_act < 55 )
+			else if ( yy_act < 56 )
 				std::cerr << "--accepting rule at line " << yy_rule_linenum[yy_act] <<
 				         "(\"" << yytext << "\")\n";
-			else if ( yy_act == 55 )
-				std::cerr << "--accepting default rule (\"" << yytext << "\")\n";
 			else if ( yy_act == 56 )
+				std::cerr << "--accepting default rule (\"" << yytext << "\")\n";
+			else if ( yy_act == 57 )
 				std::cerr << "--(end of buffer or a NUL)\n";
 			else
 				std::cerr << "--EOF (start condition " << YY_START << ")\n";
@@ -1433,73 +1433,79 @@ YY_RULE_SETUP
 #line 164 "yyQLexer.l"
 { yytext++; yyleng--; return SUFFIX; /* left-truncated bare string (suffix symbol) */ }
 	YY_BREAK
-/* term expander pipelines */
+/* single-term wildcard */
 case 45:
 YY_RULE_SETUP
 #line 167 "yyQLexer.l"
-{ BEGIN(Q_XPIPE); }
+{ return '*'; }
 	YY_BREAK
+/* term expander pipelines */
 case 46:
-/* rule 46 can match eol */
-YY_RULE_SETUP
-#line 168 "yyQLexer.l"
-{ ; /* whitespace: skip */ }
-	YY_BREAK
-case 47:
-YY_RULE_SETUP
-#line 169 "yyQLexer.l"
-{ yyleng=0;            BEGIN(INITIAL); return EXPANDER; /* default term expander (alias "-" for "") */ }
-	YY_BREAK
-case 48:
-/* rule 48 can match eol */
 YY_RULE_SETUP
 #line 170 "yyQLexer.l"
-{ yytext++; yyleng-=2; BEGIN(INITIAL); return EXPANDER; /* quoted term expander label */ }
+{ BEGIN(Q_XPIPE); }
 	YY_BREAK
-case 49:
+case 47:
+/* rule 47 can match eol */
 YY_RULE_SETUP
 #line 171 "yyQLexer.l"
-{                      BEGIN(INITIAL); return EXPANDER; /* bare term expander label */ }
+{ ; /* whitespace: skip */ }
 	YY_BREAK
-case YY_STATE_EOF(Q_XPIPE):
+case 48:
+YY_RULE_SETUP
 #line 172 "yyQLexer.l"
-{ yyleng=0;	       BEGIN(INITIAL); return EXPANDER; /* empty term expander label (default) */ }
+{ yyleng=0;            BEGIN(INITIAL); return EXPANDER; /* default term expander (alias "-" for "") */ }
+	YY_BREAK
+case 49:
+/* rule 49 can match eol */
+YY_RULE_SETUP
+#line 173 "yyQLexer.l"
+{ yytext++; yyleng-=2; BEGIN(INITIAL); return EXPANDER; /* quoted term expander label */ }
 	YY_BREAK
 case 50:
 YY_RULE_SETUP
-#line 173 "yyQLexer.l"
+#line 174 "yyQLexer.l"
+{                      BEGIN(INITIAL); return EXPANDER; /* bare term expander label */ }
+	YY_BREAK
+case YY_STATE_EOF(Q_XPIPE):
+#line 175 "yyQLexer.l"
+{ yyleng=0;	       BEGIN(INITIAL); return EXPANDER; /* empty term expander label (default) */ }
+	YY_BREAK
+case 51:
+YY_RULE_SETUP
+#line 176 "yyQLexer.l"
 { yyleng=0;	       BEGIN(INITIAL); return EXPANDER; /* empty term expander label (default) */ }
 	YY_BREAK
 /* symbols */
-case 51:
-/* rule 51 can match eol */
+case 52:
+/* rule 52 can match eol */
 YY_RULE_SETUP
-#line 176 "yyQLexer.l"
+#line 179 "yyQLexer.l"
 { yytext++; yyleng-=2; return SYMBOL; /* single-quoted symbol */ }
 	YY_BREAK
-case 52:
+case 53:
 YY_RULE_SETUP
-#line 177 "yyQLexer.l"
+#line 180 "yyQLexer.l"
 { return SYMBOL;                      /* bareword symbol */ }
 	YY_BREAK
 /* misc */
-case 53:
-/* rule 53 can match eol */
-YY_RULE_SETUP
-#line 180 "yyQLexer.l"
-{ ; /* whitespace: skip */ }
-	YY_BREAK
 case 54:
+/* rule 54 can match eol */
 YY_RULE_SETUP
-#line 181 "yyQLexer.l"
-{ return ((int)yytext[0]); /* any other character (byte) is its own token */ }
+#line 183 "yyQLexer.l"
+{ ; /* whitespace: skip */ }
 	YY_BREAK
 case 55:
 YY_RULE_SETUP
-#line 183 "yyQLexer.l"
+#line 184 "yyQLexer.l"
+{ return ((int)yytext[0]); /* any other character (byte) is its own token */ }
+	YY_BREAK
+case 56:
+YY_RULE_SETUP
+#line 186 "yyQLexer.l"
 ECHO;
 	YY_BREAK
-#line 1503 "yyQLexer.cpp"
+#line 1509 "yyQLexer.cpp"
 case YY_STATE_EOF(INITIAL):
 case YY_STATE_EOF(Q_REGOPT):
 	yyterminate();
@@ -2556,7 +2562,7 @@ void yyqfree (void * ptr )
 
 /* %ok-for-header */
 
-#line 183 "yyQLexer.l"
+#line 186 "yyQLexer.l"
 
 
 /*======================================================================

@@ -296,6 +296,19 @@ string CQTokExact::ValueString() {
 }
 
 //======================================================================
+// CQTokAny
+
+bool CQTokAny::Create(CQueryTokenNode *pNode)
+{
+  return pNode->CreateUniversalPattern(m_Compiler->m_pHolder, this->IndexName("Token"));
+}
+
+string CQTokAny::ValueString()
+{
+  return string("*");
+}
+
+//======================================================================
 // CQTokRegex
 
 bool CQTokRegex::Create(CQueryTokenNode *pNode) {

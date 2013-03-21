@@ -238,6 +238,8 @@ public:
 	//! create pattern for matching simple substring (infix) queries (`$INDEX=*INFIX*'): uses regex
 	bool CreateInfixPattern(const CConcHolder* pHolder, const string& IndexName, const string& Infix);
 
+	//! create universal-match set
+	bool CreateUniversalPattern(const CConcHolder *pHolder, const string& IndexName);
 
 	//! create lemma-match pattern (old)
 	bool CreateLemmaPattern(const CConcHolder* pHolder, const string& Value);

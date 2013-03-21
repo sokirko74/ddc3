@@ -11,7 +11,7 @@
     <section name="overview" title="Overview">
       <p>
 	This documentation describes the query language accepted by
-	DDC version 2.0.5.  Current sources for DDC should be available
+	DDC version 2.0.6.  Current sources for DDC should be available
 	from
 	<!--<a href="http://odo.dwds.de/code/viewvc.cgi/ddc/trunk/?root=dev">svn+ssh://odo.dwds.de/home/svn/dev/ddc/trunk</a>.-->
 	<a href="http://sourceforge.net/projects/ddc-concordance">http://sourceforge.net/projects/ddc-concordance</a>.
@@ -179,6 +179,9 @@
 	    <rhs cmt="Regular expression">
 	      <n>qw_regex</n>
 	    </rhs>
+	    <rhs cmt="Universal match (arbitrary value)">
+	      <n>qw_any</n>
+	    </rhs>
 	    <rhs cmt="Disjunction over a set of targets (expanded)">
 	      <n>qw_set_infl</n>
 	    </rhs>
@@ -273,6 +276,18 @@
 	      <n>s_index</n>
 	      <t>=</t>
 	      <n>neg_regex</n>
+	    </rhs>
+	  </rule>
+
+	  <!--~~~~~~~~ RULES: qw_any -->
+	  <rule lhs="qw_any" cmt="Universal match (aka wildcard token)">
+	    <rhs cmt="... on 'Token' index">
+	      <t>*</t>
+	    </rhs>
+	    <rhs cmt="... on user-specified index">
+	      <n>s_index</n>
+	      <t>=</t>
+	      <t>*</t>
 	    </rhs>
 	  </rule>
 
@@ -1190,6 +1205,7 @@ regex_modifier	[gimsx]
 "@{"				/* literal-set opener */
 "*{"				/* prefix- or infix-set opener */
 "}*"				/* suffix-set or infix-set closer */
+"*"				/* universal match wildcard */
 </pre>
 	<p>
 	  The scanner supports the various punctuation operators used in

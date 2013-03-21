@@ -1,6 +1,6 @@
 /*-*- Mode: Flex; c-basic-offset: 8 -*-*/
 /*
-//  Copyright 2011 by Bryan Jurish
+//  Copyright 2011-2013 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -162,6 +162,9 @@ regex_modifier	[gimsx]
 "*"{symbol_text}"*"		{ yytext++; yyleng-=2; return INFIX;  /* dual-truncated bare string (infix symbol) */ }
 {symbol_text}"*"		{           yyleng--; return PREFIX; /* right-truncated bare string (prefix symbol) */ }
 "*"{symbol_text}		{ yytext++; yyleng--; return SUFFIX; /* left-truncated bare string (suffix symbol) */ }
+
+ /* single-term wildcard */
+"*"				{ return '*'; }
 
  /* term expander pipelines */
 "|"				{ BEGIN(Q_XPIPE); }

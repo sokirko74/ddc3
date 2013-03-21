@@ -3,7 +3,7 @@ AC_PREREQ(2.5)
 
 dnl Some handy macros
 define([THE_PACKAGE_NAME],    [ddc])
-define([THE_PACKAGE_VERSION], [2.0.5])
+define([THE_PACKAGE_VERSION], [2.0.6])
 define([THE_PACKAGE_MAINTAINER],  [jurish@bbaw.de])
 
 AC_INIT(THE_PACKAGE_NAME, THE_PACKAGE_VERSION, THE_PACKAGE_MAINTAINER)

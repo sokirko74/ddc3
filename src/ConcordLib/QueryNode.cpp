@@ -770,6 +770,15 @@ bool CQueryTokenNode::CreateInfixPattern(const CConcHolder* pHolder, const strin
 	return CreateInfixSetPattern(pHolder, IndexName, tmp);
 }
 
+//--------------------------------------------------------------
+bool CQueryTokenNode::CreateUniversalPattern(const CConcHolder* pHolder, const string& IndexName)
+{
+  CStringIndexSet* pIndexSet = GetIndex(pHolder,IndexName);
+  m_IndexItems.clear();
+  pIndexSet->QueryTokenListUniversal(m_IndexItems);
+  return true;
+};
+
 
 //--------------------------------------------------------------
 bool CQueryTokenNode::CreateLemmaPattern(const CConcHolder* pHolder, const string& Value)
