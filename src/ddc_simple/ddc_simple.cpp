@@ -41,19 +41,19 @@ void PrintUsageAndExit()
 		 "Usage: %s <Concordance_Project> <query_in_CODEPAGE> <out_file> [OPTIONS]\n"
 		 "\n"
 		 "Options:\n"
-		 "  -Limit n\n"
-		 "  -ProfileRun n\n"
-		 "  -ResultFormat TXT|HTML|TABLE|JSON\n"
-		 "  -PrintProfile\n"
-		 "  -OnlyGetHitsCount\n"
-		 "  -From HitStart\n"
-		 "  -NoMorphology\n"
+		 "  -Start FROM                           # alias -From; default=0\n"
+		 "  -Limit LIMIT                          # default=10\n"
+		 "  -ResultFormat TXT|HTML|TABLE|JSON     # default=TXT\n"
+		 "  -ProfileRun NITERS                    # none by default\n"
+		 "  -PrintProfile                         # print profile results\n"
+		 "  -OnlyGetHitsCount                     # call GetHits() rather than SimpleQuery()\n"
+		 "  -NoMorphology                         # suppress call to InitConcordDicts()\n"
 		 "\n"
-		 "Where \"-Limit\" is maximum count of occurrences to find\n"
-		 "and \"-From\" is the occurence number from which to start\n"
+		 "Where \"-Limit\" gives the maximum count of occurrences to find\n"
+		 "and \"-Start\" indicates the occurence number from which to start\n"
 		 "\n"
-		 "Example(1): ddcSimple test.con \"thank && God\" out.txt -Limit 10\n",
-		 prog
+		 "Example(1): %s test.con \"thank && God\" out.txt -Limit 10\n",
+		 prog, prog
 		 );
 	exit(1);
 
@@ -80,8 +80,12 @@ int main(int argc, char* argv[])
 
 		for (size_t i=1; i<argc; i++)
 		{
-			string s  = argv[i];
-			if (s == "-Limit")
+			string s    = argv[i];
+			string s_lo = stolower(s);
+			if (s_lo == "-h" || s_lo == "--help") {
+				PrintUsageAndExit();
+			}
+			else if (s_lo == "-limit")
 			{
 				if (i+1 >= argc)
 					PrintUsageAndExit();
@@ -90,7 +94,7 @@ int main(int argc, char* argv[])
 				i++;
 			}
                         else
-			if (s == "-From")
+			if (s_lo == "-from" || s_lo == "-start")
 			{
 				if (i+1 >= argc)
 					PrintUsageAndExit();
@@ -99,7 +103,7 @@ int main(int argc, char* argv[])
 				i++;
 			}
                         else
-			if (s == "-ResultFormat")
+			if (s_lo == "-resultformat" || s_lo == "-format" || s_lo == "-format")
 			{
 				if (i+1 >= argc)
 					PrintUsageAndExit();
@@ -107,14 +111,18 @@ int main(int argc, char* argv[])
 				ResultFormat = argv[i+1];
 				i++;
 			}
+			else if (s_lo == "-text" || s_lo == "-txt") { ResultFormat = "txt"; }
+			else if (s_lo == "-html" || s_lo == "-html") { ResultFormat = "html"; }
+			else if (s_lo == "-table" || s_lo == "-tab") { ResultFormat = "table"; }
+			else if (s_lo == "-json" || s_lo == "-js") { ResultFormat = "json"; }
 			else
-			if (s == "-PrintProfile")
+			if (s_lo == "-printprofile")
 			{
 				bPrintProfile = true;
-				fprintf  (stderr, "print profililng afterwards\n");
+				fprintf  (stderr, "print profiling afterwards\n");
 			}
 			else
-			if (s == "-NoMorphology")
+			if (s_lo == "-nomorphology" || s_lo == "-nomorph")
 			{
 				bInitConcordDicts = false;
 				fprintf  (stderr, "no call to InitConcordDicts\n");
@@ -126,7 +134,7 @@ int main(int argc, char* argv[])
 				fprintf  (stderr, "OnlyGetHitsCount\n");
 			}
 			else
-			if (s == "-ProfileRun")
+			if (s_lo == "-profilerun" || s_lo == "-profile")
 			{
 				if (i+1 >= argc)
 					PrintUsageAndExit();

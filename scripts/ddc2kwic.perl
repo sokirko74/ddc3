@@ -1,18 +1,22 @@
 #!/usr/bin/perl -w
 
+use open ':std', ':encoding(utf8)';
+
 our $tokSep = "\x{1e}";
 our $fieldSep = "\x{1f}";
+our $fpos = @ARGV ? shift : 0;
 
 BEGIN {
   binmode(STDIN,':utf8');
   binmode(STDOUT,':utf8');
 }
-use open ':encoding(utf8)';
 
-our @hits = qw();
+our  @hits = qw();
 while (<>) {
   chomp;
-  ($f,@rest)=split(/\s*\#\#\#/,$_);
+  @rest=split(/\s*\#\#\#/,$_);
+  $f = splice(@rest,$fpos,1) // '';
+  print STDERR "f=$f\n";
   next if (!@rest);
   $f =~ s/\..*$//;
   $f =~ s/^.*\///;
