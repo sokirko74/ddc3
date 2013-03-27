@@ -20,6 +20,7 @@ foreach (@$hits) {
   chomp;
   $f = basename($_->{meta_}{file_});
   $f =~ s/\..*$//;
+  $f .= ":".($_->{meta_}{page_}//'0');
 
   my (@l,@c,@r);
   my $ary = \@l;

@@ -155,6 +155,9 @@ DWORD	CHitBorders::GetPageNumber(size_t No) const
 {
 	if (m_PageBreaks.empty()) 
 		return UnknownPageNumber;
+	else if (No >= m_PageBreaks.size())
+		//throw CExpc(errRuntime, "CHitBorders::GetPageNumber(): requested item #%u not present (we only have %u)", No, m_PageBreaks.size());
+		return UnknownPageNumber; //-- this should never really happen, but sometimes it does...
 	else
 		return m_PageBreaks[No].m_PageNumber;
 };

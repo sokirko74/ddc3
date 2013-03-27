@@ -1087,6 +1087,10 @@ bool	CConcIndexator::IndexTable(string FileName, const char* pFileBuffer, 	CToke
 	StartPageFromHeader.m_PageNumber = Bibliography.m_StartPageInfo;
 	StartPageFromHeader.m_StartTokenNo = NewCorpusEndTokenNo;
 	size_t page_breaks_count = 0;
+
+	//moo: add initial page break if requested
+	if (StartPageFromHeader.m_PageNumber > 0 && StartPageFromHeader.m_PageNumber != UnknownPageNumber)
+		AddPageBreak(StartPageFromHeader);
 	
 	//iterate through all text areas 
 	for (size_t TextAreaNo = 0; TextAreaNo< TextAreas.size(); TextAreaNo++)
