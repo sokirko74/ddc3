@@ -111,8 +111,8 @@ regex_modifier	[gimsx]
 (?i:with)			{ return WITH; }
 
  /* query operators */
-(?i:\#cntxt)			{ return CNTXT; }
-(?i:\#within)			{ return WITHIN; }
+(?i:\#(cntxt|n))		{ return CNTXT; }
+(?i:\#(with)?in)		{ return WITHIN; }
 (?i:\#has(_field)?)		{ return HAS_FIELD; }
 (?i:\#file(_?)names)		{ return FILENAMES_ONLY; }
 (?i:\#debug_rank)		{ return DEBUG_RANK; }
@@ -120,15 +120,15 @@ regex_modifier	[gimsx]
 (?i:\#(less|asc)(_by)?_rank)		{ return LESS_BY_RANK; }
 (?i:\#(greater|de?sc)(_by)?_date)	{ return GREATER_BY_DATE; }
 (?i:\#(less|asc)(_by)?_date)		{ return LESS_BY_DATE; }
-(?i:\#(is_)?date)			{ return IS_DATE; }
+(?i:\#(is_|has_)?date)			{ return IS_DATE; }
 (?i:\#(greater|de?sc)(_by)?_size)	{ return GREATER_BY_SIZE; }
 (?i:\#(less|asc)(_by)?_size)		{ return LESS_BY_SIZE; }
-(?i:\#(is_)?size)			{ return IS_SIZE; }
+(?i:\#(is_|has_)?size)			{ return IS_SIZE; }
 (?i:\#((less|asc)(_by)?)?left)		{ return LESS_BY_LEFT; }
 (?i:\#((less|asc)(_by)?)?right)		{ return LESS_BY_RIGHT; }
 (?i:\#(less|asc)(_by)?)			{ return LESS_BY; }
 (?i:\#(greater|de?sc)(_by)?)		{ return GREATER_BY; }
-(?i:\#random)				{ return RANDOM; }
+(?i:\#rand(om)?)			{ return RANDOM; }
 
  /* regexes */
 \!\/{regex_text}\//{regex_modifier}	{ yytext+=2; yyleng-=3; BEGIN(Q_REGOPT); return NEG_REGEX; /* negated regex, +modifiers */ }

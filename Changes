@@ -1,6 +1,21 @@
 ##-*- Mode: Change-Log; coding: utf-8; -*-
 
-v2.0.5 Fri, 04 Jan 2013 15:58:35 +0100
+v2.0.7 Wed, 27 Mar 2013 16:52:54 +0100 moocow
+	+ fixed segfault bug in CHitBorders::GetPageNumber() when requesting page-break number 4294967295
+	  i.e. 0xffffffff, i.e. ddc constant UnknownPageNumber
+	+ problem ocurred in a dwds kerncorpus test set; symptoms:
+	  - initial page as declared by ddc opt-file 'page' bibl field wasn't getting read properly
+	  - page counter was getting 'inherited' across various files
+	+ ddc_simple comfort changes
+	  - options are now case-insensitive
+	  - added handly aliases -h, --help, -json, -table, -text
+
+v2.0.6 2013-03-21 14:05:24 +0100 moocow
+	+ added generic wildcard operator '*'
+	  - uses stupid all-values expansion (like /.?/), but no need for regex-based evaluation, so slightly faster
+	+ added #=, #<, and #= phrase-query distance operators
+
+v2.0.5 Fri, 04 Jan 2013 15:58:35 +0100 moocow
 	+ re-factored bibliographic filtering in Bibliography.(h|cpp), QueryFilter.(h|cpp)
 	+ added new CConcXml member slot m_RegexOpts : initialized from CConcIndexator at option-load time (ConcordOptions.cpp)
 	+ added new FreeBiblIndex member m_pRegexOpts : pointer to m_RegexOpts for parent CConcXml object (utf8 by default)
