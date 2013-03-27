@@ -1,6 +1,6 @@
 <html>
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
 <title>DDC Query Language Documentation</title>
 <link rel="stylesheet" href="querydoc.css" type="text/css">
 </head>
@@ -62,7 +62,7 @@
 <h2><a name="overview">Overview</a></h2>
 <p>
 	This documentation describes the query language accepted by
-	DDC version 2.0.6.  Current sources for DDC should be available
+	DDC version 2.0.7.  Current sources for DDC should be available
 	from
 	<!--<a href="http://odo.dwds.de/code/viewvc.cgi/ddc/trunk/?root=dev">svn+ssh://odo.dwds.de/home/svn/dev/ddc/trunk</a>.-->
 	<a href="http://sourceforge.net/projects/ddc-concordance">http://sourceforge.net/projects/ddc-concordance</a>.
@@ -908,13 +908,13 @@
 <td></td>
 <td></td>
 <td class="ruleRHS">| <span class="ruleTerminal">#CNTXT</span> <span class="ruleNonterminal"><a href="#rule_integer">integer</a></span> </td>
-<td class="ruleComment">/* hit context window (number of sentences) */</td>
+<td class="ruleComment">/* hit context window (number of sentences; alias: #N) */</td>
 </tr>
 <tr>
 <td></td>
 <td></td>
 <td class="ruleRHS">| <span class="ruleTerminal">#WITHIN</span> <span class="ruleNonterminal"><a href="#rule_symbol">symbol</a></span> </td>
-<td class="ruleComment">/* hit container type (e.g. 'file') */</td>
+<td class="ruleComment">/* hit container type (e.g. 'file'; alias: #IN) */</td>
 </tr>
 <tr>
 <td></td>
@@ -1073,13 +1073,13 @@
 <td></td>
 <td class="ruleRHS1">
 <span class="ruleTerminal">#GREATER_BY_RANK</span> </td>
-<td class="ruleComment">/* ... in descending order */</td>
+<td class="ruleComment">/* ... in descending order (aliases: #DESC_RANK, #DESC_BY_RANK) */</td>
 </tr>
 <tr>
 <td></td>
 <td></td>
 <td class="ruleRHS">| <span class="ruleTerminal">#LESS_BY_RANK</span> </td>
-<td class="ruleComment">/* ... in ascending order */</td>
+<td class="ruleComment">/* ... in ascending order (aliases: #ASC_RANK, #ASC_BY_RANK) */</td>
 </tr>
 <tr>
 <td></td>
@@ -1098,13 +1098,13 @@
 <td></td>
 <td class="ruleRHS1">
 <span class="ruleTerminal">#LESS_BY_LEFT</span> </td>
-<td class="ruleComment">/* ... in ascending order by preceding context */</td>
+<td class="ruleComment">/* ... in ascending order by preceding context (aliases: #LEFT, #ASC_LEFT; #ASC_BY_LEFT) */</td>
 </tr>
 <tr>
 <td></td>
 <td></td>
 <td class="ruleRHS">| <span class="ruleTerminal">#LESS_BY_RIGHT</span> </td>
-<td class="ruleComment">/* ... in ascending order by following context */</td>
+<td class="ruleComment">/* ... in ascending order by following context (aliases: #RIGHT, #ASC_RIGHT, #ASC_BY_RIGHT */</td>
 </tr>
 <tr>
 <td></td>
@@ -1123,19 +1123,19 @@
 <td></td>
 <td class="ruleRHS1">
 <span class="ruleTerminal">#LESS_BY_SIZE</span> <span class="ruleNonterminal"><a href="#rule_qfb_int">qfb_int</a></span> </td>
-<td class="ruleComment">/* ... in ascending order, with optional bounds */</td>
+<td class="ruleComment">/* ... in ascending order, with optional bounds (aliases: #ASC_SIZE, #ASC_BY_SIZE) */</td>
 </tr>
 <tr>
 <td></td>
 <td></td>
 <td class="ruleRHS">| <span class="ruleTerminal">#GREATER_BY_SIZE</span> <span class="ruleNonterminal"><a href="#rule_qfb_int">qfb_int</a></span> </td>
-<td class="ruleComment">/* ... in descending order, with optional bounds */</td>
+<td class="ruleComment">/* ... in descending order, with optional bounds (aliases: #DESC_SIZE, #DESC_BY_SIZE) */</td>
 </tr>
 <tr>
 <td></td>
 <td></td>
-<td class="ruleRHS">| <span class="ruleTerminal">#IS_SIZE</span> <span class="ruleTerminal">[</span> <span class="ruleNonterminal"><a href="#rule_int_str">int_str</a></span> <span class="ruleTerminal">]</span> </td>
-<td class="ruleComment">/* ... restricted to specified size */</td>
+<td class="ruleRHS">| <span class="ruleTerminal">#SIZE</span> <span class="ruleTerminal">[</span> <span class="ruleNonterminal"><a href="#rule_int_str">int_str</a></span> <span class="ruleTerminal">]</span> </td>
+<td class="ruleComment">/* ... restricted to specified size (aliases: #IS_SIZE, #HAS_SIZE) */</td>
 </tr>
 <tr>
 <td></td>
@@ -1154,19 +1154,19 @@
 <td></td>
 <td class="ruleRHS1">
 <span class="ruleTerminal">#LESS_BY_DATE</span> <span class="ruleNonterminal"><a href="#rule_qfb_date">qfb_date</a></span> </td>
-<td class="ruleComment">/* ... in ascending order, with optional bounds */</td>
+<td class="ruleComment">/* ... in ascending order, with optional bounds (aliases: #ASC_DATE, #ASC_BY_DATE) */</td>
 </tr>
 <tr>
 <td></td>
 <td></td>
 <td class="ruleRHS">| <span class="ruleTerminal">#GREATER_BY_DATE</span> <span class="ruleNonterminal"><a href="#rule_qfb_date">qfb_date</a></span> </td>
-<td class="ruleComment">/* ... in descending order, with optional bounds */</td>
+<td class="ruleComment">/* ... in descending order, with optional bounds (aliases: #DESC_DATE, #DESC_BY_DATE) */</td>
 </tr>
 <tr>
 <td></td>
 <td></td>
-<td class="ruleRHS">| <span class="ruleTerminal">#IS_DATE</span> <span class="ruleTerminal">[</span> <span class="ruleNonterminal"><a href="#rule_date">date</a></span> <span class="ruleTerminal">]</span> </td>
-<td class="ruleComment">/* ... restricted to specified date */</td>
+<td class="ruleRHS">| <span class="ruleTerminal">#DATE</span> <span class="ruleTerminal">[</span> <span class="ruleNonterminal"><a href="#rule_date">date</a></span> <span class="ruleTerminal">]</span> </td>
+<td class="ruleComment">/* ... restricted to specified date (aliases: #IS_DATE, #HAS_DATE) */</td>
 </tr>
 <tr>
 <td></td>
@@ -1185,13 +1185,13 @@
 <td></td>
 <td class="ruleRHS1">
 <span class="ruleTerminal">#LESS_BY</span> <span class="ruleTerminal">[</span> <span class="ruleNonterminal"><a href="#rule_s_field">s_field</a></span> <span class="ruleNonterminal"><a href="#rule_qfb_bibl">qfb_bibl</a></span> <span class="ruleTerminal">]</span> </td>
-<td class="ruleComment">/* ... in ascending order, with optional bounds */</td>
+<td class="ruleComment">/* ... in ascending order, with optional bounds (aliases: #ASC, #ASC_BY) */</td>
 </tr>
 <tr>
 <td></td>
 <td></td>
 <td class="ruleRHS">| <span class="ruleTerminal">#GREATER_BY</span> <span class="ruleTerminal">[</span> <span class="ruleNonterminal"><a href="#rule_s_field">s_field</a></span> <span class="ruleNonterminal"><a href="#rule_qfb_bibl">qfb_bibl</a></span> <span class="ruleTerminal">]</span> </td>
-<td class="ruleComment">/* ... in descending order, with optional bounds */</td>
+<td class="ruleComment">/* ... in descending order, with optional bounds (aliases: #DESC, #DESC_BY) */</td>
 </tr>
 <tr>
 <td></td>
@@ -1203,7 +1203,7 @@
 <td><b><a name="rule_qf_random_sort">qf_random_sort</a></b></td>
 <td>::=</td>
 <td></td>
-<td class="ruleCommentTop">/* Sort hits pseudo-randomly */</td>
+<td class="ruleCommentTop">/* Sort hits pseudo-randomly (alias: #RAND) */</td>
 </tr>
 <tr>
 <td></td>
@@ -2034,8 +2034,8 @@ regex_modifier	[gimsx]
 <pre>
 (?i:near)
 (?i:with)
-(?i:\#cntxt)
-(?i:\#within)
+(?i:\#(cntxt|n))
+(?i:\#(with)?in)
 (?i:\#has(_field)?)
 (?i:\#file(_?)names)
 (?i:\#debug_rank)
@@ -2043,15 +2043,15 @@ regex_modifier	[gimsx]
 (?i:\#(less|asc)(_by)?_rank)	
 (?i:\#(greater|de?sc)(_by)?_date)
 (?i:\#(less|asc)(_by)?_date)	
-(?i:\#(is_)?date)		
+(?i:\#(is_|has_)?date)		
 (?i:\#(greater|de?sc)(_by)?_size)
 (?i:\#(less|asc)(_by)?_size)	
-(?i:\#(is_)?size)		
+(?i:\#(is_|has_)?size)		
 (?i:\#((less|asc)(_by)?)?left)	
 (?i:\#((less|asc)(_by)?)?right)	
 (?i:\#(less|asc)(_by)?)		
 (?i:\#(greater|de?sc)(_by)?)	
-(?i:\#random)
+(?i:\#rand(om)?)
 </pre>
 <p>
 	  The scanner supports the various reserved words used in
@@ -2698,7 +2698,7 @@ regex_modifier	[gimsx]
 	  <dt><a href="http://kaskade.dwds.de/dtaos/dta.perl?q=Max%20%23less_by_date">Max #less_by_date</a></dt>
 	  <dd>... sorted in ascending order by hit date</dd>
 
-	  <dt><a href="http://kaskade.dwds.de/dtaos/dta.perl?q=Max%20%23is_date%5B1865%5D">Max #is_date[1865]</a></dt>
+	  <dt><a href="http://kaskade.dwds.de/dtaos/dta.perl?q=Max%20%23date%5B1865%5D">Max #date[1865]</a></dt>
 	  <dd>... only those hits from 1865</dd>
 	</dl>
 </div>
@@ -2708,7 +2708,7 @@ regex_modifier	[gimsx]
   </body></div>
 <div class="footers">
 <div class="footer_sig">
-<address><a href="mailto:jurish@bbaw.de">jurish@bbaw.de</a></address>Last modified: Thu, 21 Mar 2013 16:05:11 +0100</div>
+<address><a href="mailto:jurish@bbaw.de">jurish@bbaw.de</a></address>Last modified: Wed, 27 Mar 2013 17:11:10 +0100</div>
 <div class="footer_linkbar"><p class="nopad"><a class="navLink" href="/">Root</a><a class="navLink" href="./">Back</a><span class="navLinkDisabled">Help</span></p></div>
 <p class="dummy"></p>
 </div>

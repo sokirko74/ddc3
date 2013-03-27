@@ -11,7 +11,7 @@
     <section name="overview" title="Overview">
       <p>
 	This documentation describes the query language accepted by
-	DDC version 2.0.6.  Current sources for DDC should be available
+	DDC version 2.0.7.  Current sources for DDC should be available
 	from
 	<!--<a href="http://odo.dwds.de/code/viewvc.cgi/ddc/trunk/?root=dev">svn+ssh://odo.dwds.de/home/svn/dev/ddc/trunk</a>.-->
 	<a href="http://sourceforge.net/projects/ddc-concordance">http://sourceforge.net/projects/ddc-concordance</a>.
@@ -519,11 +519,11 @@
 	      <t>:</t>
 	      <n>qf_subcorpora</n>
 	    </rhs>
-	    <rhs cmt="hit context window (number of sentences)">
+	    <rhs cmt="hit context window (number of sentences; alias: #N)">
 	      <t>#CNTXT</t>
 	      <n>integer</n>
 	    </rhs>
-	    <rhs cmt="hit container type (e.g. 'file')">
+	    <rhs cmt="hit container type (e.g. 'file'; alias: #IN)">
 	      <t>#WITHIN</t>
 	      <n>symbol</n>
 	    </rhs>
@@ -636,36 +636,36 @@
 
 	  <!--~~~~~~~~ RULES: qf_rank_sort -->
 	  <rule lhs="qf_rank_sort" cmt="Sort hits by TF-IDF rank">
-	    <rhs cmt="... in descending order">
+	    <rhs cmt="... in descending order (aliases: #DESC_RANK, #DESC_BY_RANK)">
 	      <t>#GREATER_BY_RANK</t>
 	    </rhs>
-	    <rhs cmt="... in ascending order">
+	    <rhs cmt="... in ascending order (aliases: #ASC_RANK, #ASC_BY_RANK)">
 	      <t>#LESS_BY_RANK</t>
 	    </rhs>
 	  </rule>
 
 	  <!--~~~~~~~~ RULES: qf_bigram_sort -->
 	  <rule lhs="qf_bigram_sort" cmt="Sort or filter hits lexicographically by context (requires special index)">
-	    <rhs cmt="... in ascending order by preceding context">
+	    <rhs cmt="... in ascending order by preceding context (aliases: #LEFT, #ASC_LEFT; #ASC_BY_LEFT)">
 	      <t>#LESS_BY_LEFT</t>
 	    </rhs>
-	    <rhs cmt="... in ascending order by following context">
+	    <rhs cmt="... in ascending order by following context (aliases: #RIGHT, #ASC_RIGHT, #ASC_BY_RIGHT">
 	      <t>#LESS_BY_RIGHT</t>
 	    </rhs>
 	  </rule>
 
 	  <!--~~~~~~~~ RULES: qf_size_sort -->
 	  <rule lhs="qf_size_sort" cmt="Sort or filter hits by (sentence) length">
-	    <rhs cmt="... in ascending order, with optional bounds">
+	    <rhs cmt="... in ascending order, with optional bounds (aliases: #ASC_SIZE, #ASC_BY_SIZE)">
 	      <t>#LESS_BY_SIZE</t>
 	      <n>qfb_int</n>
 	    </rhs>
-	    <rhs cmt="... in descending order, with optional bounds">
+	    <rhs cmt="... in descending order, with optional bounds (aliases: #DESC_SIZE, #DESC_BY_SIZE)">
 	      <t>#GREATER_BY_SIZE</t>
 	      <n>qfb_int</n>
 	    </rhs>
-	    <rhs cmt="... restricted to specified size">
-	      <t>#IS_SIZE</t>
+	    <rhs cmt="... restricted to specified size (aliases: #IS_SIZE, #HAS_SIZE)">
+	      <t>#SIZE</t>
 	      <t>[</t>
 	      <n>int_str</n>
 	      <t>]</t>
@@ -674,16 +674,16 @@
 
 	  <!--~~~~~~~~ RULES: qf_date_sort -->
 	  <rule lhs="qf_date_sort" cmt="Sort or filter hits by document date">
-	    <rhs cmt="... in ascending order, with optional bounds">
+	    <rhs cmt="... in ascending order, with optional bounds (aliases: #ASC_DATE, #ASC_BY_DATE)">
 	      <t>#LESS_BY_DATE</t>
 	      <n>qfb_date</n>
 	    </rhs>
-	    <rhs cmt="... in descending order, with optional bounds">
+	    <rhs cmt="... in descending order, with optional bounds (aliases: #DESC_DATE, #DESC_BY_DATE)">
 	      <t>#GREATER_BY_DATE</t>
 	      <n>qfb_date</n>
 	    </rhs>
-	    <rhs cmt="... restricted to specified date">
-	      <t>#IS_DATE</t>
+	    <rhs cmt="... restricted to specified date (aliases: #IS_DATE, #HAS_DATE)">
+	      <t>#DATE</t>
 	      <t>[</t>
 	      <n>date</n>
 	      <t>]</t>
@@ -692,14 +692,14 @@
 
 	  <!--~~~~~~~~ RULES: qf_bibl_sort -->
 	  <rule lhs="qf_bibl_sort" cmt="Sort or filter hits by document metadata">
-	    <rhs cmt="... in ascending order, with optional bounds">
+	    <rhs cmt="... in ascending order, with optional bounds (aliases: #ASC, #ASC_BY)">
 	      <t>#LESS_BY</t>
 	      <t>[</t>
 	      <n>s_field</n>
 	      <n>qfb_bibl</n>
 	      <t>]</t>
 	    </rhs>
-	    <rhs cmt="... in descending order, with optional bounds">
+	    <rhs cmt="... in descending order, with optional bounds (aliases: #DESC, #DESC_BY)">
 	      <t>#GREATER_BY</t>
 	      <t>[</t>
 	      <n>s_field</n>
@@ -709,7 +709,7 @@
 	  </rule>
 
 	  <!--~~~~~~~~ RULES: qf_random_sort -->
-	  <rule lhs="qf_random_sort" cmt="Sort hits pseudo-randomly">
+	  <rule lhs="qf_random_sort" cmt="Sort hits pseudo-randomly (alias: #RAND)">
 	    <rhs cmt="... with an implicit seed of 0 (zero)">
 	      <t>#RANDOM</t>
 	    </rhs>
@@ -1142,8 +1142,8 @@ regex_modifier	[gimsx]
 <pre>
 (?i:near)
 (?i:with)
-(?i:\#cntxt)
-(?i:\#within)
+(?i:\#(cntxt|n))
+(?i:\#(with)?in)
 (?i:\#has(_field)?)
 (?i:\#file(_?)names)
 (?i:\#debug_rank)
@@ -1151,15 +1151,15 @@ regex_modifier	[gimsx]
 (?i:\#(less|asc)(_by)?_rank)	
 (?i:\#(greater|de?sc)(_by)?_date)
 (?i:\#(less|asc)(_by)?_date)	
-(?i:\#(is_)?date)		
+(?i:\#(is_|has_)?date)		
 (?i:\#(greater|de?sc)(_by)?_size)
 (?i:\#(less|asc)(_by)?_size)	
-(?i:\#(is_)?size)		
+(?i:\#(is_|has_)?size)		
 (?i:\#((less|asc)(_by)?)?left)	
 (?i:\#((less|asc)(_by)?)?right)	
 (?i:\#(less|asc)(_by)?)		
 (?i:\#(greater|de?sc)(_by)?)	
-(?i:\#random)
+(?i:\#rand(om)?)
 </pre>
 	<p>
 	  The scanner supports the various reserved words used in
@@ -1773,7 +1773,7 @@ regex_modifier	[gimsx]
 	  <dt><a href="http://kaskade.dwds.de/dtaos/dta.perl?q=Max %23less_by_date">Max #less_by_date</a></dt>
 	  <dd>... sorted in ascending order by hit date</dd>
 
-	  <dt><a href="http://kaskade.dwds.de/dtaos/dta.perl?q=Max %23is_date[1865]">Max #is_date[1865]</a></dt>
+	  <dt><a href="http://kaskade.dwds.de/dtaos/dta.perl?q=Max %23date[1865]">Max #date[1865]</a></dt>
 	  <dd>... only those hits from 1865</dd>
 	</dl>
       </subsection>
