@@ -972,9 +972,11 @@ bool	CConcIndexator::IndexOneTableTextArea(const string& Text, const CPageNumber
 						if (page_number != 0)
 						{
 							// add the first page break from the header, if it is not specified in the body
-							if (page_breaks_count == 0)
+							if (page_breaks_count == 0) {
+								// moo (v2.0.7, Thu, 28 Mar 2013 09:52:05 +0100): this should never happen any more
 								if ( (NewCorpusEndTokenNo - StartPageFromHeader.m_StartTokenNo) > 0)
 									AddPageBreak(StartPageFromHeader);
+							}
 
 							CPageNumber Page;
 							Page.m_PageNumber = page_number;
