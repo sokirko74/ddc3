@@ -1,6 +1,6 @@
     README for package ddc
 
-    Last updated for ddc v2.0.0
+    Last updated for ddc v2.0.8
 
 DESCRIPTION
     The ddc package contains core C++ utilities for the DWDS/Dialing
@@ -8,7 +8,9 @@ DESCRIPTION
 
     The DDC-2.x branch is maintained in SVN under:
 
-     https://ddc-concordance.svn.sourceforge.net/svnroot/ddc-concordance
+     svn+ssh://svn.code.sf.net/p/ddc-concordance/code/ddc/
+     https://svn.code.sf.net/p/ddc-concordance/code/ddc/
+     svn://svn.code.sf.net/p/ddc-concordance/code/ddc/
 
 DEPENDENCIES
     ddc-morph >= v2.0.0
@@ -41,6 +43,24 @@ DEPENDENCIES
         URL: http://curl.haxx.se/
 
         Tested version(s): 7.21.0
+
+    GNU bison (optional)
+        Tested version 2.4.1. If you get errors compiling
+        src/ConcordLib/yyQParser.o, try re-extracting the source archive and
+        call
+
+         $ touch src/ConcordLib/yyQParser.cpp src/ConcordLib/yyQParser.h
+
+        before re-compiling.
+
+    GNU flex (optional)
+        Tested version 2.5.35. If you get errors compiling
+        src/ConcordLib/yyQLexer.o, try re-extracting the source archive and
+        call
+
+         $ touch src/ConcordLib/yyQLexer.cpp src/ConcordLib/yyQLexer.h
+
+        before re-compiling.
 
 INSTALLATION
     Issue the following commands to the shell:

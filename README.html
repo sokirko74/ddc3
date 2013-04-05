@@ -29,7 +29,7 @@
 <!-- INDEX END -->
 
 <p>README for package ddc</p>
-<p>Last updated for ddc v2.0.0</p>
+<p>Last updated for ddc v2.0.8</p>
 <p>
 </p>
 <hr />
@@ -39,7 +39,9 @@ for the DWDS/Dialing Concordance document indexing
 system.</p>
 <p>The DDC-2.x branch is maintained in SVN under:</p>
 <pre>
- https://ddc-concordance.svn.sourceforge.net/svnroot/ddc-concordance</pre>
+ svn+ssh://svn.code.sf.net/p/ddc-concordance/code/ddc/
+ https://svn.code.sf.net/p/ddc-concordance/code/ddc/
+ svn://svn.code.sf.net/p/ddc-concordance/code/ddc/</pre>
 <p>
 </p>
 <hr />
@@ -75,6 +77,24 @@ still compile and run even if libcurl is unavailable,
 but e.g. external HTTP-based term expanders will be unuseable.</p>
 <p>URL: <a href="http://curl.haxx.se/">http://curl.haxx.se/</a></p>
 <p>Tested version(s): 7.21.0</p>
+</dd>
+<dt><strong><a name="bison" class="item">GNU bison (optional)</a></strong></dt>
+
+<dd>
+<p>Tested version 2.4.1.  If you get errors compiling src/ConcordLib/yyQParser.o,
+try re-extracting the source archive and call</p>
+<pre>
+ $ touch src/ConcordLib/yyQParser.cpp src/ConcordLib/yyQParser.h</pre>
+<p>before re-compiling.</p>
+</dd>
+<dt><strong><a name="flex" class="item">GNU flex (optional)</a></strong></dt>
+
+<dd>
+<p>Tested version 2.5.35.  If you get errors compiling src/ConcordLib/yyQLexer.o,
+try re-extracting the source archive and call</p>
+<pre>
+ $ touch src/ConcordLib/yyQLexer.cpp src/ConcordLib/yyQLexer.h</pre>
+<p>before re-compiling.</p>
 </dd>
 </dl>
 <p>
