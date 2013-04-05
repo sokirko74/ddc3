@@ -62,7 +62,7 @@
 .\" ========================================================================
 .\"
 .IX Title "DDC_QUERY 5"
-.TH DDC_QUERY 5 "2013-03-27" "2.0.7" "DDC Corpus Indexing System"
+.TH DDC_QUERY 5 "2013-04-04" "2.0.7" "DDC Corpus Indexing System"
 .\" For nroff, turn off justification.  Always turn off hyphenation; it makes
 .\" way too many mistakes in technical documents.
 .if n .ad l
@@ -157,6 +157,7 @@ Comments may appear after each rule in C notation
 \&                 | qw_morph                                              /* Morphological property condition (\*(AqMorphPattern\*(Aq index) */
 \&                 | qw_lemma                                              /* Lemma property condition (\*(AqLemma\*(Aq index) */
 \&                 | qw_chunk                                              /* Syntactic property condition (\*(AqChunk\*(Aq index) */
+\&                 | qw_anchor                                             /* Position in segment (a.k.a. \*(Aqbreak collection\*(Aq) */
 \&                 | qw_listfile                                           /* Disjunction over values (lines) read from a server\-side file (command\-line only) */
 \&                 | qw_with                                               /* Conjunction of multiple conditions on a single token */
 \&                 | ( qc_word )                                           /* Explicit grouping (e.g. for WITH, expanders, etc.) */
@@ -242,6 +243,11 @@ Comments may appear after each rule in C notation
 \& qw_chunk      ::=                                                       /*\-\- Syntactic property condition \-\-*/
 \&                   ^ s_chunk                                             /* ... on \*(AqChunk\*(Aq index */
 \&                 | s_index = ^ s_chunk                                   /* ... on user\-specified index */
+\&                 ;
+\& 
+\& qw_anchor     ::=                                                       /*\-\- Position in segment (a.k.a. \*(Aqbreak collection\*(Aq) \-\-*/
+\&                   $. = int_str                                          /* ... in \*(Aqs\*(Aq collection (0:initial, \-1:final) */
+\&                 | $. s_break = int_str                                  /* ... in user\-specified break collection */
 \&                 ;
 \& 
 \& qw_listfile   ::=                                                       /*\-\- Disjunction over values read from a server\-side file (command\-line only) \-\-*/
@@ -420,6 +426,10 @@ Comments may appear after each rule in C notation
 \&                 symbol            /* ... can be any symbol */
 \&               ;
 \& 
+\& s_break     ::=                   /*\-\- Break collection name used by $. queries \-\-*/
+\&                 symbol            /* ... can be any symbol (but must be defined in .opt file) */
+\&               ;
+\& 
 \& s_filename  ::=                   /*\-\- Filename used by <F queries \-\-*/
 \&                 symbol            /* ... can be any symbol (server\-side filename) */
 \&               ;
@@ -589,6 +599,10 @@ thus /REGEX/g is a equivalent to /^(?:REGEX)$/.
 .Vb 10
 \& "&&"                           /* clause\-level conjunction operator */
 \& "||"                           /* clause\-level disjunction operator */
+\& "#="                           /* exact\-distance hint in phrase queries */
+\& "#<"                           /* max\-distance hint for phrase queries */
+\& "#>"                           /* min\-distance hint for phrase queries */
+\& "$."                           /* anchor pseudo\-index (position\-index in "break collection" segment) */
 \& [\e!\e.\e,\e:\e;\e$\e@\e%\e^\e#\e=]       /* single\-character punctuation operators */
 \& [\e[\e]\e{\e}\e(\e)\e<\e>]             /* parentheses */
 \& [\e"]                           /* double quotes (for pharse queries) */

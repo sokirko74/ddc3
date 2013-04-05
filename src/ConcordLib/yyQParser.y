@@ -129,6 +129,7 @@ int yylex (void*,  void*);
 %type	<m_pnode>	qw_chunk
 %type	<m_pnode>	qw_listfile
 %type	<m_pnode>	qw_with
+%type	<m_pnode>	qw_anchor
 
 
 //------------------------------------------------------
@@ -184,6 +185,7 @@ int yylex (void*,  void*);
 %token	<m_str>	HASH_LESS
 %token	<m_str>	HASH_GREATER
 %token	<m_str>	HASH_EQUAL
+%token	<m_str>	DOLLAR_DOT
 
 %token	<m_str>	CNTXT
 %token	<m_str>	WITHIN
@@ -416,6 +418,7 @@ qc_word:
 	|	qw_morph		{ $$ = $1; }
 	|	qw_lemma		{ $$ = $1; }
 	|	qw_chunk		{ $$ = $1; }
+	|	qw_anchor		{ $$ = $1; }
 	|	qw_listfile		{ $$ = $1; }
 	|	qw_with			{ $$ = $1; }
 	|	'(' qc_word ')'		{ $$ = $2; }
@@ -501,6 +504,11 @@ qw_lemma:
 qw_chunk:
 		'^' s_chunk			{ $$ = _qc->PushQuery(new CQTokChunk("",*$2)); }
 	| 	s_index '=' '^' s_chunk		{ $$ = _qc->PushQuery(new CQTokChunk(*$1,*$4)); }
+	;
+
+qw_anchor:
+		DOLLAR_DOT        '=' int_str	{ $$ = _qc->PushQuery(new CQTokAnchor( "", *$3)); }
+	|	DOLLAR_DOT symbol '=' int_str	{ $$ = _qc->PushQuery(new CQTokAnchor(*$2, *$4)); }
 	;
 
 qw_listfile:

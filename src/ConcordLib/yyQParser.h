@@ -56,28 +56,29 @@
      HASH_LESS = 272,
      HASH_GREATER = 273,
      HASH_EQUAL = 274,
-     CNTXT = 275,
-     WITHIN = 276,
-     HAS_FIELD = 277,
-     FILENAMES_ONLY = 278,
-     GREATER_BY_RANK = 279,
-     LESS_BY_RANK = 280,
-     GREATER_BY_SIZE = 281,
-     LESS_BY_SIZE = 282,
-     IS_SIZE = 283,
-     GREATER_BY_DATE = 284,
-     LESS_BY_DATE = 285,
-     IS_DATE = 286,
-     GREATER_BY = 287,
-     LESS_BY = 288,
-     LESS_BY_LEFT = 289,
-     LESS_BY_RIGHT = 290,
-     DEBUG_RANK = 291,
-     RANDOM = 292,
-     OP_OR = 293,
-     OP_AND = 294,
-     NEAR = 295,
-     WITH = 296
+     DOLLAR_DOT = 275,
+     CNTXT = 276,
+     WITHIN = 277,
+     HAS_FIELD = 278,
+     FILENAMES_ONLY = 279,
+     GREATER_BY_RANK = 280,
+     LESS_BY_RANK = 281,
+     GREATER_BY_SIZE = 282,
+     LESS_BY_SIZE = 283,
+     IS_SIZE = 284,
+     GREATER_BY_DATE = 285,
+     LESS_BY_DATE = 286,
+     IS_DATE = 287,
+     GREATER_BY = 288,
+     LESS_BY = 289,
+     LESS_BY_LEFT = 290,
+     LESS_BY_RIGHT = 291,
+     DEBUG_RANK = 292,
+     RANDOM = 293,
+     OP_OR = 294,
+     OP_AND = 295,
+     NEAR = 296,
+     WITH = 297
    };
 #endif
 
@@ -98,7 +99,7 @@ typedef union YYSTYPE
 
 
 /* Line 1676 of yacc.c  */
-#line 102 "yyQParser.h"
+#line 103 "yyQParser.h"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */

@@ -241,7 +241,7 @@ public:
   string IndexName(const string& DefaultIndexName=string(""));
 
   //! Stringification utility for use by subclasses; returns string "$INDEX=" or empty
-  virtual string IndexString(const string& DefaultIndexName=string(""));
+  virtual string IndexString(void);
 
   //! Stringification utility for use by subclasses; default returns sqString(m_Value)
   virtual string ValueString(void);
@@ -270,6 +270,25 @@ public:
   {};
 
   virtual bool Create(CQueryTokenNode *pNode);
+  virtual string ValueString();
+};
+
+
+//------------------------------------------------------------
+//! single-token query: positional anchor
+class CQTokAnchor : public CQToken {
+public:
+  int m_ValueInt;
+
+public:
+  CQTokAnchor(const string &indexName=string(""), const string &value=string(""))
+    : CQToken(indexName,value)
+  {
+    m_ValueInt = strtol(value.c_str(), NULL, 0);
+  };
+
+  virtual bool Create(CQueryTokenNode *pNode);
+  virtual string IndexString(void);
   virtual string ValueString();
 };
 

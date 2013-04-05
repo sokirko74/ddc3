@@ -268,14 +268,8 @@ string CQToken::IndexName(const string& DefaultIndexName)
   return pIndexSet->m_Name;
 }
 
-string CQToken::IndexString(const string& DefaultIndexName)
-{
-  return
-    (m_IndexName.empty()
-     ? (DefaultIndexName.empty()
-	? string("")
-	: (string("$") + DefaultIndexName + "="))
-     : (string("$") + m_IndexName + "="));
+string CQToken::IndexString(void) {
+  return (m_IndexName.empty() ? string("") : (string("$") + m_IndexName + "="));
 }
 
 string CQToken::ValueString(void) {
@@ -306,6 +300,22 @@ bool CQTokAny::Create(CQueryTokenNode *pNode)
 string CQTokAny::ValueString()
 {
   return string("*");
+}
+
+//======================================================================
+// CQTokAnchor
+
+bool CQTokAnchor::Create(CQueryTokenNode *pNode)
+{
+  return pNode->CreateAnchorPattern(m_Compiler->m_pHolder, this->IndexName("s"), m_ValueInt);
+}
+
+string CQTokAnchor::IndexString(void) {
+  return string("$.") + m_IndexName + "=";
+}
+
+string CQTokAnchor::ValueString() {
+  return Format("%d", m_ValueInt);
 }
 
 //======================================================================

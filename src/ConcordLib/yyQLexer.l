@@ -141,6 +141,7 @@ regex_modifier	[gimsx]
 "#="				{ return HASH_EQUAL; /* hash+equal: exact distance */ }
 "#<"				{ return HASH_LESS; /* hash+less: max distance */ }
 "#>"				{ return HASH_GREATER; /* hash+greater: min distance */ }
+"$."				{ return DOLLAR_DOT; /* dollar+dot: anchor operator (position-index in segment) */ }
 [\!\.\,\:\;\$\@\%\^\#\=]	{ return ((int)yytext[0]); /* single-character punctuation operators */ }
 [\[\]\{\}\(\)\<\>]		{ return ((int)yytext[0]); /* parentheses */ }
 [\"]				{ return ((int)yytext[0]); /* quotes */ }
@@ -151,8 +152,8 @@ regex_modifier	[gimsx]
 
 
  /* numeric tokens */
-\'[0-9]+\'			{ yytext++; yyleng-=2; return INTEGER; }
-[0-9]+/{int_boundary}		{ return INTEGER; }
+\'[\+\-]?[0-9]+\'		{ yytext++; yyleng-=2; return INTEGER; }
+[\+\-]?[0-9]+/{int_boundary}	{ return INTEGER; }
 
 \'[0-9\-]+\'			{ yytext++; yyleng-=2; return DATE; }
 [0-9\-]+/{int_boundary}		{ return DATE; }

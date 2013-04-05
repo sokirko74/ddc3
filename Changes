@@ -1,5 +1,8 @@
 ##-*- Mode: Change-Log; coding: utf-8; -*-
 
+v2.0.8 Thu, 04 Apr 2013 16:58:40 +0200 moocow
+	+ added anchor queries ($.=POSITION) using linear search over all breaks in given break collection (default='s')
+
 v2.0.7 Wed, 27 Mar 2013 16:52:54 +0100 moocow
 	+ fixed segfault bug in CHitBorders::GetPageNumber() when requesting page-break number 4294967295
 	  i.e. 0xffffffff, i.e. ddc constant UnknownPageNumber

@@ -379,6 +379,12 @@
 <tr>
 <td></td>
 <td></td>
+<td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_qw_anchor">qw_anchor</a></span> </td>
+<td class="ruleComment">/* Position in segment (a.k.a. 'break collection') */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
 <td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_qw_listfile">qw_listfile</a></span> </td>
 <td class="ruleComment">/* Disjunction over values (lines) read from a server-side file (command-line only) */</td>
 </tr>
@@ -805,6 +811,31 @@
 <td></td>
 <td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_s_index">s_index</a></span> <span class="ruleTerminal">=</span> <span class="ruleTerminal">^</span> <span class="ruleNonterminal"><a href="#rule_s_chunk">s_chunk</a></span> </td>
 <td class="ruleComment">/* ... on user-specified index */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td><b>;</b></td>
+</tr>
+<tr></tr>
+<tr>
+<td><b><a name="rule_qw_anchor">qw_anchor</a></b></td>
+<td>::=</td>
+<td></td>
+<td class="ruleCommentTop">/* Position in segment (a.k.a. 'break collection') */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS1">
+<span class="ruleTerminal">$.</span> <span class="ruleTerminal">=</span> <span class="ruleNonterminal"><a href="#rule_int_str">int_str</a></span> </td>
+<td class="ruleComment">/* ... in 's' collection (0:initial, -1:final) */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleTerminal">$.</span> <span class="ruleNonterminal"><a href="#rule_s_break">s_break</a></span> <span class="ruleTerminal">=</span> <span class="ruleNonterminal"><a href="#rule_int_str">int_str</a></span> </td>
+<td class="ruleComment">/* ... in user-specified break collection */</td>
 </tr>
 <tr>
 <td></td>
@@ -1661,6 +1692,25 @@
 </tr>
 <tr></tr>
 <tr>
+<td><b><a name="rule_s_break">s_break</a></b></td>
+<td>::=</td>
+<td></td>
+<td class="ruleCommentTop">/* Break collection name used by $. queries */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS1">
+<span class="ruleNonterminal"><a href="#rule_symbol">symbol</a></span> </td>
+<td class="ruleComment">/* ... can be any symbol (but must be defined in .opt file) */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td><b>;</b></td>
+</tr>
+<tr></tr>
+<tr>
 <td><b><a name="rule_s_filename">s_filename</a></b></td>
 <td>::=</td>
 <td></td>
@@ -2102,6 +2152,10 @@ regex_modifier	[gimsx]
 <pre>
 "&amp;&amp;"				/* clause-level conjunction operator */
 "||"				/* clause-level disjunction operator */
+"#="				/* exact-distance hint in phrase queries */
+"#&lt;"				/* max-distance hint for phrase queries */
+"#&gt;"				/* min-distance hint for phrase queries */
+"$."				/* anchor pseudo-index (position-index in "break collection" segment) */
 [\!\.\,\:\;\$\@\%\^\#\=]	/* single-character punctuation operators */
 [\[\]\{\}\(\)\&lt;\&gt;]		/* parentheses */
 [\"]				/* double quotes (for pharse queries) */
@@ -2708,7 +2762,7 @@ regex_modifier	[gimsx]
   </body></div>
 <div class="footers">
 <div class="footer_sig">
-<address><a href="mailto:jurish@bbaw.de">jurish@bbaw.de</a></address>Last modified: Wed, 27 Mar 2013 17:11:10 +0100</div>
+<address><a href="mailto:jurish@bbaw.de">jurish@bbaw.de</a></address>Last modified: Thu, 04 Apr 2013 16:57:17 +0200</div>
 <div class="footer_linkbar"><p class="nopad"><a class="navLink" href="/">Root</a><a class="navLink" href="./">Back</a><span class="navLinkDisabled">Help</span></p></div>
 <p class="dummy"></p>
 </div>

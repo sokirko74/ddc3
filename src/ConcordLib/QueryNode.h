@@ -192,11 +192,14 @@ public:
 	//!  find index items  in the index which is called m_IndexName
 	vector<DWORD> m_IndexItems;
 
-	//! the name  of index, on which this node is built (see  CQueryChunkNode and  CQueryTokenNode nodes)
+	//! the name of index or break collection on which this node is built (see  CQueryChunkNode and  CQueryTokenNode nodes)
 	string m_IndexName;
 
 	//! true, if it is a chunk (NP, VP and so on)
 	bool m_bChunk;
+
+	//! true iff this is an anchor query
+	bool m_bAnchor;
 
 public:
 	// a unique index of the node in query tree
@@ -255,6 +258,9 @@ public:
 
 	//! create pattern which is associated with "Chunk" index 
 	bool CreateChunkPattern(const CConcHolder* pHolder, const string& IndexName, const string& ChunkTypeStr);
+
+	//! create an anchor pattern
+	bool CreateAnchorPattern(const CConcHolder *pHolder, const string& BreakName, int anchor);
 
 	//! generic regex query utility
 	bool BuildRegExp(string RegExpStr, vector<DWORD>& IndexItems, bool negated=false);

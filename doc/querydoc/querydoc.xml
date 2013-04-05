@@ -218,6 +218,9 @@
 	    <rhs cmt="Syntactic property condition ('Chunk' index)">
 	      <n>qw_chunk</n>
 	    </rhs>
+	    <rhs cmt="Position in segment (a.k.a. 'break collection')">
+	      <n>qw_anchor</n>
+	    </rhs>
 	    <rhs cmt="Disjunction over values (lines) read from a server-side file (command-line only)">
 	      <n>qw_listfile</n>
 	    </rhs>
@@ -466,6 +469,21 @@
 	      <t>=</t>
 	      <t>^</t>
 	      <n>s_chunk</n>
+	    </rhs>
+	  </rule>
+
+	  <!--~~~~~~~~ RULES: qw_anchor -->
+	  <rule lhs="qw_anchor" cmt="Position in segment (a.k.a. 'break collection')">
+	    <rhs cmt="... in 's' collection (0:initial, -1:final)">
+	      <t>$.</t>
+	      <t>=</t>
+	      <n>int_str</n>
+	    </rhs>
+	    <rhs cmt="... in user-specified break collection">
+	      <t>$.</t>
+	      <n>s_break</n>
+	      <t>=</t>
+	      <n>int_str</n>
 	    </rhs>
 	  </rule>
 
@@ -969,6 +987,13 @@
 	    </rhs>
 	  </rule>
 
+	  <!--~~~~~~~~ RULES: s_break -->
+	  <rule lhs="s_break" cmt="Break collection name used by $. queries">
+	    <rhs cmt="... can be any symbol (but must be defined in .opt file)">
+	      <n>symbol</n>
+	    </rhs>
+	  </rule>
+
 	  <!--~~~~~~~~ RULES: s_filename -->
 	  <rule lhs="s_filename" cmt="Filename used by &lt;F queries">
 	    <rhs cmt="... can be any symbol (server-side filename)">
@@ -1216,6 +1241,10 @@ regex_modifier	[gimsx]
 <pre>
 "&amp;&amp;"				/* clause-level conjunction operator */
 "||"				/* clause-level disjunction operator */
+"#="				/* exact-distance hint in phrase queries */
+"#&lt;"				/* max-distance hint for phrase queries */
+"#&gt;"				/* min-distance hint for phrase queries */
+"$."				/* anchor pseudo-index (position-index in "break collection" segment) */
 [\!\.\,\:\;\$\@\%\^\#\=]	/* single-character punctuation operators */
 [\[\]\{\}\(\)\&lt;\&gt;]		/* parentheses */
 [\"]				/* double quotes (for pharse queries) */

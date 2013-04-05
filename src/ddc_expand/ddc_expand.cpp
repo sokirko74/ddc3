@@ -191,6 +191,9 @@ int main(int argc, char **argv)
 		fprintf(stderr, "%s: open failed for input file %s: %s", prog, infilename.c_str(), strerror(errno));
 		exit(-1);
 	    }
+	    if (infilename.empty()) {
+		fprintf(stderr, "%s: type #h [ENTER] for help\n", prog);
+	    }
 
 	    //---- guts
 	    while (!feof(infile)) {

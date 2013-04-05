@@ -335,6 +335,7 @@ bool CHitBorders::RegisterBreak(string ShortName, string LongName)
 		ErrorMessage ("Error! A duplicate hit type name is found: "+T.m_LongName);
 		return false;
 	};
+	m_LongName2BreakCollection.insert(make_pair(T.m_LongName,m_Breaks.size()));
 	m_Breaks.push_back(T);
 	m_LastTextAreaBreaks.push_back(DWORD_MAX);
 	return true;
@@ -345,6 +346,7 @@ bool CHitBorders::RegisterBorderIndices(const char* IndicesStr)
 	m_Breaks.clear();
 	m_LastTextAreaBreaks.clear();
 	m_ShortName2BreakCollection.clear();
+	m_LongName2BreakCollection.clear();
 	m_DefaultBreakName = "";
 	if (IndicesStr)
 	{
@@ -429,6 +431,7 @@ bool CHitBorders::UniteBorders(const CHitBorders& H1, const CHitBorders& H2, con
 	m_Breaks.clear();
 	m_LastTextAreaBreaks.clear();
 	m_ShortName2BreakCollection.clear();
+	m_LongName2BreakCollection.clear();
 	m_FileBreakCollectionNo = -1;
 
 	for (size_t i=0; i < H1.m_Breaks.size(); i++)
@@ -520,6 +523,7 @@ string	CHitBorders::GetBreakCollectionShortName(size_t i) const
 {
     return m_Breaks[i].m_ShortName;
 }
+
 int	CHitBorders::GetBreakCollectionIndexByName(string ShortName ) const
 {
    	map<string,int>::const_iterator it = m_ShortName2BreakCollection.find(ShortName);
@@ -527,4 +531,50 @@ int	CHitBorders::GetBreakCollectionIndexByName(string ShortName ) const
 		return -1;
 
     return it->second;
+}
+
+//----------------------------------------------------------------------
+const CHitBorders::CBreakCollection* CHitBorders::GetBreakCollectionByName(const string& Name) const
+{
+	//-- try short name first
+	map<string,int>::const_iterator it = m_ShortName2BreakCollection.find(Name);
+	if (it!=m_ShortName2BreakCollection.end())
+		return &m_Breaks[it->second];
+
+	it = m_LongName2BreakCollection.find(Name);
+	if (it!=m_LongName2BreakCollection.end())
+		return &m_Breaks[it->second];
+
+	return NULL;
+}
+
+//----------------------------------------------------------------------
+bool CHitBorders::GetOccurrencesByPosition(const string& BreakName, int anchor, vector<CTokenNo>& occurrences) const
+{
+	const CHBreakCollection *bcol = GetBreakCollectionByName(BreakName);
+	if (!bcol)
+		throw CExpc(errRuntime, "CHitBorders::GetOccurrencesByPosition(): unknown break collection `%s'", BreakName.c_str());
+
+
+	CTokenNo b0=0, i;
+	if (anchor >= 0) {
+		//-- non-negative anchor position: count from 0 @ start (left)
+		for (vector<CTokenNo>::const_iterator bi=bcol->m_BreakOffsets.begin(); bi != bcol->m_BreakOffsets.end(); bi++) {
+			//-- break segment from i=b0 .. i<*bi
+			i = b0 + anchor;
+			if (i < *bi) occurrences.push_back(i);
+			b0 = *bi;
+		}
+	}
+	else {
+		//-- negative anchor position: count from -1 @ end (right)
+		for (vector<CTokenNo>::const_iterator bi=bcol->m_BreakOffsets.begin(); bi != bcol->m_BreakOffsets.end(); bi++) {
+			//-- break segment from i=b0 .. i<*bi
+			i = *bi + anchor;
+			if (i >= b0) occurrences.push_back(*bi + anchor);
+			b0 = *bi;
+		}
+	}
+
+	return true;
 }

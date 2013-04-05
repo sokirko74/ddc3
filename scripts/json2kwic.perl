@@ -48,13 +48,13 @@ foreach (@hits) {
   substr($l,0,length($l)-$xlen+3,'...') if (length($l)>$xlen);
   substr($r,$xlen-3,length($r)-$xlen+3,'...') if (length($r)>$xlen);
   #$r = substr($r,0,$xlen) if (length($r)>$xlen);
-  @$_ = ($f,$l,$c,$r);
+  @$_ = ($f,$l,"_${c}_",$r);
 }
 
 ##-- format
 our ($llen,$rlen,$xlen);
 $llen=$rlen=$xlen;
-$fmt = " %${flen}s: %${llen}s  _%-${clen}s_  %s\n";
+$fmt = " %${flen}s: %${llen}s  %-${clen}s  %s\n";
 foreach (@hits) {
   printf($fmt, @$_);
 }

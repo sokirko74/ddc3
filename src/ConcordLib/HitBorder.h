@@ -52,7 +52,9 @@ struct CPageNumber  {
 */
 class CHitBorders 
 {
-	/*! CBreakCollectionDescr is a structure that holds properties of a collection of \ref break_def "breaks" of one type.
+ public:
+	/*!
+	  CBreakCollectionDescr is a structure that holds properties of a collection of \ref break_def "breaks" of one type.
 	*/
 	struct CBreakCollection
 	{
@@ -73,11 +75,17 @@ class CHitBorders
 		bool			ClearAll(string Path);
 		void			CloseFileForIndexing();
 	};
+ private:
 
 	//! all breaks
 	vector<CBreakCollection>	m_Breaks;
+
 	//! the map from CBreakCollection.m_ShortName to the index in m_Breaks
 	map<string,int>				m_ShortName2BreakCollection;
+
+	//! the map from CBreakCollection.m_LongName to the index in m_Breaks
+	map<string,int>				m_LongName2BreakCollection;
+
 	//! a quick reference to file \ref break_def "breaks" (which are also stored in m_Breaks)
 	int							m_FileBreakCollectionNo;
 	//! The name of the default break collection (written in the options file)
@@ -89,7 +97,6 @@ class CHitBorders
 	string	GetPageBreaksFileName(string Path) const;
 	//! returns the short name of a break collection by the long or the short name
 	string	GetShortNameByName(const string& BreakName) const;
-	
 
 	//!
 	vector<DWORD>				m_LastTextAreaBreaks;
@@ -107,6 +114,14 @@ protected:
     string	GetBreakCollectionShortName(size_t i) const;
     int	    GetBreakCollectionIndexByName(string ShortName ) const;
     bool	AddBreakByIndex(DWORD BreakCollectionNo, const CTokenNo& B);
+
+ public:
+    //! moo: get break collection by long or short name
+    const CBreakCollection* GetBreakCollectionByName(const string& Name) const;
+
+    //! moo: search named break collection for matching positions, used by anchor queries
+    bool GetOccurrencesByPosition(const string& BreakName, int anchor, vector<CTokenNo>& occurrences) const;
+
 public:
 	
 	CHitBorders();
@@ -148,6 +163,9 @@ public:
 	bool						EndTextAreaBorders(DWORD TextAreaEndTokenNo);
     
 };
+
+//! useful alias
+typedef struct CHitBorders::CBreakCollection CHBreakCollection;
 
 
 #endif

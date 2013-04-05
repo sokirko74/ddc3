@@ -565,6 +565,7 @@ CQueryTokenNode::CQueryTokenNode(int NodeIndex):CQueryNode(false, false)
 {
 	m_bAtomic = true;
 	m_bChunk = false;
+	m_bAnchor = false;
 	m_NodeIndex = NodeIndex;
 };
 
@@ -617,6 +618,7 @@ bool CQueryTokenNode::CreateThesPattern(const CConcHolder* pHolder, const string
 bool	CQueryTokenNode::CreateChunkPattern(const CConcHolder* pHolder, const string& IndexName, const string& ChunkTypeStr)
 {
 	m_bChunk = true;
+	m_bAnchor = false;
 	m_bAtomic = true;
 	SetHolder(pHolder);
 	m_Source = ChunkTypeStr;
@@ -624,6 +626,20 @@ bool	CQueryTokenNode::CreateChunkPattern(const CConcHolder* pHolder, const strin
 	m_IndexName = IndexName;
 	if (m_IndexName.empty()) m_IndexName = ChunkIndexName;
 	return BuildRegExp(m_Source+",", m_IndexItems);
+};
+
+//--------------------------------------------------------------
+bool	CQueryTokenNode::CreateAnchorPattern(const CConcHolder* pHolder, const string& BreakName, int anchor)
+{
+  m_bChunk  = false;
+  m_bAnchor = true;
+  m_bAtomic = true;
+  SetHolder(pHolder);
+  m_IndexName = BreakName.empty() ? "s" : BreakName;
+
+  //-- assign occurrences directly to m_IndexItems
+  m_IndexItems.clear();
+  return pHolder->m_pIndexator->GetOccurrencesByPosition(m_IndexName, anchor, m_IndexItems);
 };
 
 size_t CQueryTokenNode::GetNodeFrequenceByNodeIndex(size_t NodeIndex) const
@@ -815,19 +831,6 @@ bool CQueryTokenNode::CreateFileList(const CConcHolder* pHolder, const string &I
 		fclose(fp);
 	}
 	return CreateSetPattern(pHolder, IndexName, values);
-
-
-	/*
-	if (IndexName=="Token" && !pHolder->m_pIndexator->m_bCaseSensitive)
-			AddFormsWithDifferentRegisters(m_pHolder->m_pIndexator->m_Language,WordForms);
-
-	for (set<string>::const_iterator it = WordForms.begin(); it != WordForms.end(); it++)
-			IndexSet->QueryTokenList(*it, m_IndexItems);
-
-
-	
-	return true;
-	*/
 };
 
 
@@ -835,7 +838,7 @@ bool CQueryTokenNode::CreateFileList(const CConcHolder* pHolder, const string &I
 void CQueryTokenNode::EvaluateWithoutHits()
 {
 	ClearAndReserveOccurrences(5000);
-	if (!m_bChunk) {
+	if (!m_bChunk && !m_bAnchor) {
 		const CStringIndexSet* pIndex  = m_pHolder->m_pIndexator->GetIndexByName(m_IndexName);
 		BigramDirectionEnum bigr_direc =  m_pHolder->GetBigramsToOrder();
 
@@ -879,7 +882,12 @@ void CQueryTokenNode::EvaluateWithoutHits()
 		}
 		m_ChunkLengths.resize(GetOccurrencesSize(), 1);
 	}
+	else if (m_bAnchor) {
+	  // anchor query
+	  m_Occurrences.assign(m_IndexItems.begin(), m_IndexItems.end());
+	}
 	else {
+	  	// chunk query
 		m_pHolder->m_pIndexator->m_pChunkIndex->FindChunkOccurrences(
 									     m_IndexItems, 
 									     m_Occurrences, 
