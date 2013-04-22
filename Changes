@@ -1,5 +1,15 @@
 ##-*- Mode: Change-Log; coding: utf-8; -*-
 
+v2.0.9 Mon, 22 Apr 2013 16:09:23 +0200 moocow
+	+ fixed bug with extrema-specification in #greater_by_date[LO,HI]
+	+ problem is more general with descending sorts
+	  - assumedly #greater_by_size, #greater_by_rank, and #greater_by[FIELD] are also affected
+	  - descending sorts SHOULD just wrap ascending variants with a specialied comparison operator,
+	    BUT that wreaks havoc with extrema-based filtering in CConcHolder::GetAllHits()
+	  - underlying weakness seems to be confusion wrt what's being sorted (hits vs hit-indices vs ...),
+	    over-use of literal < operator on CHit.m_OrderId (e.g. in my_lower_bound()), and general wonkiness
+	    wrt sorting vs bounds-checking
+
 v2.0.8 Thu, 04 Apr 2013 16:58:40 +0200 moocow
 	+ added anchor queries ($.=POSITION) using linear search over all breaks in given break collection (default='s')
 

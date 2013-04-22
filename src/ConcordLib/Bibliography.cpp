@@ -157,9 +157,6 @@ string CBibliography::WriteToString() const
 	return Result;
 };
 
-#define _MAKEWORD(a, b)      ((WORD)(((BYTE)((a) & 0xff)) | ((WORD)((BYTE)((b) & 0xff))) << 8))
-#define _MAKELONG(a, b)      ((long)(((WORD)((a) & 0xffff)) | ((DWORD)((WORD)((b) & 0xffff))) << 16))
-
 bool CBibliography::ConvertDateToInt(int& Result) const 
 {
 	if (m_DateStr.empty()) 
@@ -168,6 +165,7 @@ bool CBibliography::ConvertDateToInt(int& Result) const
 	StringTokenizer tok(m_DateStr.c_str(),"-");
 	if (!tok()) return false;
 	year = atoi(tok.val());
+	if (year > 30000) return false;
 	if (tok())
 	{
 		month = atoi(tok.val());
@@ -180,10 +178,9 @@ bool CBibliography::ConvertDateToInt(int& Result) const
 	else
 	{
 		month = 1;
-		day = 1;
+		day   = 1;
 	};
-	Result = _MAKELONG (_MAKEWORD(day,month), year);
-	if (year > 30000) return false;
+	Result = date2int(year,month,day);
 	return true;
 };
 
@@ -1207,12 +1204,11 @@ void CConcXml::InitLessByDate(vector<CHit>&	Hits) const
 
 void CConcXml::InitGreaterByDate(vector<CHit>&	Hits) const
 {
-	size_t HitsCount = Hits.size();
-	for (size_t HitNo=0; HitNo< HitsCount; HitNo++)
-	{
-		CHit&  H = Hits[HitNo];
-		H.m_OrderId = m_Dates.empty() ? 0 : -m_Dates[H.m_FileNo];
-	}
+	//-- moo: descending-sort woes (Mon, 22 Apr 2013 13:40:46 +0200)
+	// + this SHOULD just wrap InitLessByDate and then change sort operator, unfortunately that breaks user-specified extrema-checks in CConcHolder::GetAllHits()
+	InitLessByDate(Hits);
+	for (vector<CHit>::iterator hi=Hits.begin(); hi!=Hits.end(); ++hi)
+		hi->m_OrderId = -hi->m_OrderId;
 }
 
 
@@ -1307,23 +1303,11 @@ bool CConcXml::IsRegisteredBiblField(string FreeBiblAttribName) const
 }
 void CConcXml::InitGreaterByBiblIntegerField(string FreeBiblAttribName, vector<CHit>&	Hits) const
 {
-	const CFreeBiblIndex* pFreeAttrib = 0;	
-
-	if (!FreeBiblAttribName.empty())
-	{
-		FreeBiblStringMap::const_iterator it = m_FreeBiblIndices.find(FreeBiblAttribName);
-		if (it != m_FreeBiblIndices.end()) 
-			pFreeAttrib = it->second;
-	};
-	if (pFreeAttrib == 0) return InitNoSort(Hits);
-
-	size_t HitsCount = Hits.size();
-	assert (pFreeAttrib);
-	for (size_t HitNo=0; HitNo < HitsCount; HitNo++)
-	{
-		CHit&  H = Hits[HitNo];
-		H.m_OrderId = -pFreeAttrib->GetIntegerValue(H.m_FileNo);
-	}
+	//-- moo: descending-sort woes (Mon, 22 Apr 2013 13:40:46 +0200)
+	// + this SHOULD just wrap InitLessByXYZ and then change sort operator, unfortunately that breaks user-specified extrema-checks in CConcHolder::GetAllHits()
+	InitLessByBiblIntegerField(FreeBiblAttribName, Hits);
+	for (vector<CHit>::iterator hi=Hits.begin(); hi!=Hits.end(); ++hi)
+		hi->m_OrderId = -hi->m_OrderId;
 };
 
 

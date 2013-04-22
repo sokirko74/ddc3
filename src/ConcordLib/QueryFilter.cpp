@@ -52,6 +52,7 @@ bool CQFilter::Compile(CQueryCompiler *compiler)
 //======================================================================
 // CQFSort
 
+//--------------------------------------------------------------
 CQFSort::CQFSort(HitSortEnum   ftype,
 		 const string &arg0,
 		 const string &arg1,
@@ -68,6 +69,7 @@ CQFSort::CQFSort(HitSortEnum   ftype,
     m_Filter.m_LevelEnd   = INT_MAX; //-- instantiate later!
 }
 
+//--------------------------------------------------------------
 CQFSort::CQFSort(HitSortEnum   ftype,
 		 const string &arg0,
 		 int           arg1i,
@@ -85,6 +87,13 @@ CQFSort::CQFSort(HitSortEnum   ftype,
   m_Filter.m_LevelEnd   = arg2i;
 }
 
+//--------------------------------------------------------------
+void CQFSort::SortBounds(void) {
+  if (m_Filter.m_LevelStart > m_Filter.m_LevelEnd)
+    std::swap(m_Filter.m_LevelStart, m_Filter.m_LevelEnd);
+}
+
+//--------------------------------------------------------------
 bool CQFSort::Compile(CQueryCompiler *compiler)
 {
   assert(compiler!=NULL);
@@ -92,7 +101,7 @@ bool CQFSort::Compile(CQueryCompiler *compiler)
   return true;
 }
 
-
+//--------------------------------------------------------------
 string CQFSort::toString(void)
 {
   string os("#");
@@ -125,21 +134,35 @@ string CQFSort::toString(void)
 //======================================================================
 // CQFDateSort
 
-int CQFDateSort::Str2Date(const std::string &datestr, int onEmpty)
+int CQFDateSort::Str2Date(const std::string &datestr, int onEmpty, bool negate)
 {
   int val = onEmpty;
   if (!datestr.empty()) {
     CBibliography B;
     B.m_DateStr = datestr;
     B.ConvertDateToInt(val);
+    if (negate) val = -val;
   }
   return val;
 }
 
 bool CQFDateSort::Compile(CQueryCompiler *compiler)
 {
-  m_Filter.m_LevelStart = Str2Date(m_arg1,INT_MIN);
-  m_Filter.m_LevelEnd   = Str2Date(m_arg2,INT_MAX-1) + 1;
+  m_Filter.m_LevelStart = INT_MIN+1;
+  m_Filter.m_LevelEnd   = INT_MAX-1;
+  switch (m_Filter.m_FilterType) {
+  case GreaterByDate:
+    if (!m_arg1.empty()) m_Filter.m_LevelEnd   = -Str2Date(m_arg1);
+    if (!m_arg2.empty()) m_Filter.m_LevelStart = -Str2Date(m_arg2);
+    break;
+  case LessByDate:
+  default:
+    if (!m_arg1.empty()) m_Filter.m_LevelStart = Str2Date(m_arg1);
+    if (!m_arg2.empty()) m_Filter.m_LevelEnd   = Str2Date(m_arg2);
+    break;
+  }
+  m_Filter.m_LevelEnd++;
+
   return CQFSort::Compile(compiler);
 }
 

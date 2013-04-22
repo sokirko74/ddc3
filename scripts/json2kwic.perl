@@ -15,22 +15,22 @@ our ($buf);
 our $hits = from_json($buf, {utf8=>!utf8::is_utf8($buf)})
   or die("$0: could not decode JSON buffer: $!");
 
-our @hits = qw();
-foreach (@$hits) {
-  chomp;
-  $f = basename($_->{meta_}{file_});
+our @hits  = qw();
+foreach my $hit (@$hits) {
+  my $f = basename($hit->{meta_}{file_});
   $f =~ s/\..*$//;
-  $f .= ":".($_->{meta_}{page_}//'0');
+  my $p = ($hit->{meta_}{page_}//0);
+  my $pagei = (grep {$hit->{meta_}{indices_}[$_] eq 'page'} (0..$#{$hit->{meta_}{indices_}}))[0];
 
   my (@l,@c,@r);
   my $ary = \@l;
-  foreach (map {@$_} @{$_->{ctx_}}) {
-    if ($ary eq \@l && ref($_) && $_->[0]) { $ary = \@c; }
+  foreach (map {@$_} @{$hit->{ctx_}}) {
+    if    ($ary eq \@l && ref($_) && $_->[0]) { $ary = \@c; $p = $_->[$pagei+1] if (!$p && $pagei) }
     elsif ($ary eq \@c) { $ary = \@r; }
     push(@$ary, ref($_) ? ($_->[0] ? "_$_->[1]_" : $_->[1]) : $_);
   }
 
-  push(@hits, [$f,map {join(' ',@$_)} (\@l,\@c,\@r)]);
+  push(@hits, ["$f:$p",map {join(' ',@$_)} (\@l,\@c,\@r)]);
 }
 
 ##-- get lengths

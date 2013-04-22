@@ -2175,6 +2175,26 @@ vector<string> stringSplit(const char *s, const char *delims)
 };
 
 
+//-- formerly in Bibliography.cpp
+//#define _MAKEWORD(a, b)      ((WORD)(((BYTE)((a) & 0xff)) | ((WORD)((BYTE)((b) & 0xff))) << 8))
+//#define _MAKELONG(a, b)      ((long)(((WORD)((a) & 0xffff)) | ((DWORD)((WORD)((b) & 0xffff))) << 16))
+
+unsigned int date2int(unsigned int y, unsigned int m, unsigned int d)
+{
+    return
+	(((y&0xffff)<<16) | ((m&0xff)<<8) | ((d&0xff)<<0)); //-- ddc <= v2.0.8 compat
+    //(((y&0xfffffe00)<<9) | ((m&0x0f)<<5) | ((d&0x1f)<<0));  //-- 32bit safe, decodable
+    //($y*10000 + $m*100 + $d); //-- decimal intuitive (tough to decode)
+}
+
+void int2date(unsigned int i, unsigned int *y, unsigned int *m, unsigned int *d)
+{
+    //-- ddc <= v2.0.8 compat
+    if (y) *y = (i>>16)&0xffff;
+    if (m) *m = (i>> 8)&0xff;
+    if (d) *d = (i>> 0)&0xff;
+}
+
 void QPEncodeString(string& s)
 {
 	string z;

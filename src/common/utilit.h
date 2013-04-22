@@ -289,6 +289,12 @@ vector<string> stringSplit(const char *s, const char *delims);
 //! moo: version utilities (see also ddcVersion.cpp)
 #include "ddcVersion.h"
 
+//! moo: date-to-int encoding
+extern unsigned int date2int(unsigned int y, unsigned int m=1, unsigned int d=1);
+
+//! moo: int-to-date decoding
+extern void int2date(unsigned int i, unsigned int *y, unsigned int *m=NULL, unsigned int *d=NULL);
+
 extern void QPEncodeString(string& s);
 extern void QPDecodeString(string& s);
 #ifndef WIN32

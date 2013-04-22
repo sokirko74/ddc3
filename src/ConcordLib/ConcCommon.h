@@ -174,6 +174,18 @@ struct CDDCFilterWithBounds
 		m_SatisfiedValues.clear();
 	};
 
+	inline bool isDescending() const {
+		switch (m_FilterType) {
+		case GreaterByDate:
+		case GreaterByRank:
+		case GreaterBySize:
+		case GreaterByFreeBiblField:
+			return true;
+		default:
+			return false;
+		};
+	};
+
 	CDDCFilterWithBounds() 
 	{
 		m_bSet       = false;

@@ -76,6 +76,9 @@ public:
 	  int           arg2i
 	  );
 
+  //! swap lower- and upper-bounds if they not in logical order
+  void SortBounds(void);
+
   //! compile the filter.  Default implementation just pushes m_Filter onto compiler->m_Filters
   virtual bool Compile(CQueryCompiler *compiler);
 
@@ -101,7 +104,7 @@ public:
     : CQFSort(ftype,string(""),lb,ub)
   {};
 
-  int Str2Date(const std::string &datestr, int onEmpty=0);
+  int Str2Date(const std::string &datestr, int onEmpty=0, bool negate=false);
 
   virtual bool Compile(CQueryCompiler *compiler);
 };

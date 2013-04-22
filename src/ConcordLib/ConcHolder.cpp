@@ -39,8 +39,15 @@ const time_t TheEndOfTheWorld = 0xffffffff;
 	#endif
 #endif
 
-//! less primitive for hits by CHit::m_OrderId (for std::sort)
-struct IsLessByHitOrderId 
+//-- moo: descending-sort woes (Mon, 22 Apr 2013 13:40:46 +0200)
+// + this SHOULD accept a 'descending' argument (i.e. reverse sort), but that breaks
+//   user-specified extrema-checks in CConcHolder::GetAllHits() (e.g. for #greater_by_date[1700,1799]
+// + problem seems to be confusion wrt what's being sorted (hits vs hit-indices vs ...),
+//   over-use of literal < operator on CHit.m_OrderId (e.g. in my_lower_bound(), this file),
+//   and general wonkiness wrt sorting vs bounds-checking
+
+//! comparison operator for hits on CHit::m_OrderId (for std::sort)
+struct IsLessByHitOrderId
 {
 	const vector<CHit>& m_Base;	
 	IsLessByHitOrderId(const vector<CHit>& Base) : m_Base (Base) {};
@@ -65,7 +72,7 @@ vector<size_t>::iterator my_lower_bound(vector<size_t>::iterator First, vector<s
 		size_t Count2 = Count / 2;
 		vector<size_t>::iterator Mid = First;
 		std::advance(Mid, Count2);
-		if (Base[*Mid].m_OrderId <  OrderId)
+		if (Base[*Mid].m_OrderId < OrderId)
 		{
 			First = ++Mid;
 			Count -= Count2 + 1;
@@ -1172,11 +1179,10 @@ void CConcHolder::InitLessByBigrams() const
 
 void CConcHolder::InitGreaterByRank() const
 {
+	//-- moo: descending-sort woes (Mon, 22 Apr 2013 13:40:46 +0200)
 	InitLessByRank();
-	vector<CHit>& Hits = m_pQueryCompiler->m_pQuery->m_Node->m_Hits;
-	size_t HitsCount = Hits.size();
-	for (size_t HitNo=0; HitNo< HitsCount; HitNo++)
-		Hits[HitNo].m_OrderId = -Hits[HitNo].m_OrderId;
+	for (vector<CHit>::iterator hi=m_pQueryCompiler->m_pQuery->m_Node->m_Hits.begin(); hi!=m_pQueryCompiler->m_pQuery->m_Node->m_Hits.end(); ++hi)
+		hi->m_OrderId = -hi->m_OrderId;
 }
 
 
@@ -1194,14 +1200,10 @@ void CConcHolder::InitLessBySize() const
 
 void CConcHolder::InitGreaterBySize() const
 {
-	const vector<CTokenNo>& Breaks = GetBreaks();
-	size_t HitsCount = m_pQueryCompiler->m_pQuery->m_Node->m_Hits.size();
-	for (size_t HitNo=0; HitNo< HitsCount; HitNo++)
-	{
-		CHit&  H = m_pQueryCompiler->m_pQuery->m_Node->m_Hits[HitNo];
-		DWORD BreakNo = H.m_BreakNo;
-		H.m_OrderId = (BreakNo==0) ? -Breaks[BreakNo] : Breaks[BreakNo-1] - Breaks[BreakNo];
-	}
+	//-- moo: descending-sort woes (Mon, 22 Apr 2013 13:40:46 +0200)
+	InitLessBySize();
+	for (vector<CHit>::iterator hi=m_pQueryCompiler->m_pQuery->m_Node->m_Hits.begin(); hi!=m_pQueryCompiler->m_pQuery->m_Node->m_Hits.end(); ++hi)
+		hi->m_OrderId = -hi->m_OrderId;
 }
 
 void CConcHolder::InitRandomSort() const
@@ -1221,6 +1223,7 @@ void CConcHolder::InitOrderIDForHits(const CDDCFilterWithBounds& Filter) const
 {
 	assert (Filter.m_FilterType != HitSortsCount);
 
+	//-- moo: descending sort woes (Mon, 22 Apr 2013 13:40:46 +0200): should be compressable (e.g. LessByDate,GreaterByDate use same code)
 	switch (Filter.m_FilterType)
 	{
 	case LessByDate:
@@ -1312,31 +1315,16 @@ DDCErrorEnum CConcHolder::GetAllHits(const string &Query, size_t Limit)
 				const CDDCFilterWithBounds& F = m_pQueryCompiler->m_Filters[FilterNo];
 				// init m_pQueryCompiler->m_pQuery->m_Node->m_Hits::m_OrderId 
 				InitOrderIDForHits(F);
-			
-				sort (PeriodHitsIndex.begin(), PeriodHitsIndex.end(), IsLessByHitOrderId(m_pQueryCompiler->m_pQuery->m_Node->m_Hits));
-			
-			
-				size_t  hits_start = my_lower_bound(PeriodHitsIndex.begin(), PeriodHitsIndex.end(), F.m_LevelStart, m_pQueryCompiler->m_pQuery->m_Node->m_Hits) - PeriodHitsIndex.begin();
-				size_t   hits_end  = my_lower_bound(PeriodHitsIndex.begin(), PeriodHitsIndex.end(), F.m_LevelEnd, m_pQueryCompiler->m_pQuery->m_Node->m_Hits) - PeriodHitsIndex.begin();
-			
-				//size_t hits_start = lower_bound(HitsIndex.begin(), HitsIndex.end(), F.m_LevelStart, IsLessByHitOrderIdLowerBound(m_pQueryCompiler->m_pQuery->m_Node->m_Hits)) - HitsIndex.begin();
-				//size_t hits_end  = lower_bound(HitsIndex.begin(), HitsIndex.end(), F.m_LevelEnd, IsLessByHitOrderIdLowerBound(m_pQueryCompiler->m_pQuery->m_Node->m_Hits))  - HitsIndex.begin();
-	
-				/*
-				  {
-				  vector<size_t>::iterator debug_hits_start = lower_bound(HitsIndex.begin(), HitsIndex.end(), F.m_LevelStart, IsLessByHitOrderIdLowerBound(m_pQueryCompiler->m_pQuery->m_Node->m_Hits));
-				  assert (debug_hits_start == hits_start);
-				  vector<size_t>::iterator debug_hits_end  = lower_bound(HitsIndex.begin(), HitsIndex.end(), F.m_LevelEnd, IsLessByHitOrderIdLowerBound(m_pQueryCompiler->m_pQuery->m_Node->m_Hits));
-				  assert (debug_hits_end == hits_end);
 
-				  }
-				*/
-				if (hits_end < hits_start)
-					hits_start = hits_end;
+				sort(PeriodHitsIndex.begin(), PeriodHitsIndex.end(), IsLessByHitOrderId(m_pQueryCompiler->m_pQuery->m_Node->m_Hits));
+
+				size_t hits_start = my_lower_bound(PeriodHitsIndex.begin(), PeriodHitsIndex.end(), F.m_LevelStart, m_pQueryCompiler->m_pQuery->m_Node->m_Hits) - PeriodHitsIndex.begin();
+				size_t hits_end  = my_lower_bound(PeriodHitsIndex.begin(), PeriodHitsIndex.end(), F.m_LevelEnd, m_pQueryCompiler->m_pQuery->m_Node->m_Hits) - PeriodHitsIndex.begin();
+
+				if (hits_end < hits_start) hits_start = hits_end;
 				PeriodHitsIndex.erase(PeriodHitsIndex.begin()+hits_end, PeriodHitsIndex.end());
-
-			
 				PeriodHitsIndex.erase(PeriodHitsIndex.begin(), PeriodHitsIndex.begin()+hits_start);
+
 				size_t debug_size =  PeriodHitsIndex.size();
 				if (F.m_bSet)
 					{
@@ -1791,7 +1779,7 @@ CConcHolder::FormatTypeEnum CConcHolder::GetResultFormatByString(const string& R
 	EngMakeUpper(q);
 	if (q == "HTML") return DDC_ResultHTML;
 	else if (q == "DOCIDS") return DDC_ResultDocIds;
-	else if (q == "JSON") return DDC_ResultJson; //-- moo Wed, 11 May 2011 15:18:33 +0200
+	else if (q == "JSON") return DDC_ResultJson;
 	else if (q == "TABLE") return DDC_ResultTable;
 	else return DDC_ResultText;
 };
@@ -1804,7 +1792,7 @@ void CConcHolder::SetResultFormat(string ResultTypeStr)
 string CConcHolder::GetResultFormatStr() const 
 {
 	switch (m_ResultFormat)  {
-		case DDC_ResultJson: return "json"; //-- moo Wed, 11 May 2011 15:19:56 +0200
+		case DDC_ResultJson: return "json";
 		case DDC_ResultHTML: return "html";
 		case DDC_ResultTable: return "table";
 		case DDC_ResultDocIds: return "docids";
