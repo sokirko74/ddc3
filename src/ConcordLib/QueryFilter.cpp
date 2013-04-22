@@ -24,7 +24,7 @@
 //======================================================================
 // globals
 
-static const char *HitSortNames[11] = {
+static const char *HitSortNames[13] = {
   "no_sort",
   "asc_by_date",
   "desc_by_date",
@@ -36,6 +36,8 @@ static const char *HitSortNames[11] = {
   "desc_by_rank",
   "left",
   "right",
+  "random",
+  "nsorts"
 };
 
 //======================================================================
@@ -201,6 +203,7 @@ bool CQFRandomSort::Compile(CQueryCompiler *compiler)
   compiler->m_pHolder->SetRandomSeed((unsigned int)seed);
   return CQFSort::Compile(compiler);
 }
+
 
 //======================================================================
 // CQFBiblSort
