@@ -1,6 +1,6 @@
 <html>
 <head>
-<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <title>DDC Query Language Documentation</title>
 <link rel="stylesheet" href="querydoc.css" type="text/css">
 </head>
@@ -62,7 +62,7 @@
 <h2><a name="overview">Overview</a></h2>
 <p>
 	This documentation describes the query language accepted by
-	DDC version 2.0.7.  Current sources for DDC should be available
+	DDC version 2.0.9.  Current sources for DDC should be available
 	from
 	<!--<a href="http://odo.dwds.de/code/viewvc.cgi/ddc/trunk/?root=dev">svn+ssh://odo.dwds.de/home/svn/dev/ddc/trunk</a>.-->
 	<a href="http://sourceforge.net/projects/ddc-concordance">http://sourceforge.net/projects/ddc-concordance</a>.
@@ -1129,7 +1129,7 @@
 <td></td>
 <td class="ruleRHS1">
 <span class="ruleTerminal">#LESS_BY_LEFT</span> </td>
-<td class="ruleComment">/* ... in ascending order by preceding context (aliases: #LEFT, #ASC_LEFT; #ASC_BY_LEFT) */</td>
+<td class="ruleComment">/* ... in ascending order by preceding context (aliases: #LEFT, #ASC_LEFT, #ASC_BY_LEFT) */</td>
 </tr>
 <tr>
 <td></td>
@@ -2097,9 +2097,9 @@ regex_modifier	[gimsx]
 (?i:\#(greater|de?sc)(_by)?_size)
 (?i:\#(less|asc)(_by)?_size)	
 (?i:\#(is_|has_)?size)		
-(?i:\#((less|asc)(_by)?)?left)	
-(?i:\#((less|asc)(_by)?)?right)	
-(?i:\#(less|asc)(_by)?)		
+(?i:\#((less_|asc_)(by_)?)?left)	
+(?i:\#((less_|asc_)(by_)?)?right)	
+(?i:\#(less|asc)(_by)?)		  
 (?i:\#(greater|de?sc)(_by)?)	
 (?i:\#rand(om)?)
 </pre>
@@ -2762,7 +2762,7 @@ regex_modifier	[gimsx]
   </body></div>
 <div class="footers">
 <div class="footer_sig">
-<address><a href="mailto:jurish@bbaw.de">jurish@bbaw.de</a></address>Last modified: Thu, 04 Apr 2013 16:57:17 +0200</div>
+<address><a href="mailto:jurish@bbaw.de">jurish@bbaw.de</a></address>Last modified: Tue, 23 Apr 2013 14:46:03 +0200</div>
 <div class="footer_linkbar"><p class="nopad"><a class="navLink" href="/">Root</a><a class="navLink" href="./">Back</a><span class="navLinkDisabled">Help</span></p></div>
 <p class="dummy"></p>
 </div>

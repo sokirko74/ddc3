@@ -3,7 +3,7 @@
 =head2 Overview
 
 This documentation describes the query language accepted by
-DDC version 2.0.7.  Current sources for DDC should be available
+DDC version 2.0.9.  Current sources for DDC should be available
 from
 http://sourceforge.net/projects/ddc-concordance.
 
@@ -248,7 +248,7 @@ Comments may appear after each rule in C notation
                   ;
  
  qf_bigram_sort ::=                                   /*-- Sort or filter hits lexicographically by context (requires special index) --*/
-                    #LESS_BY_LEFT                     /* ... in ascending order by preceding context (aliases: #LEFT, #ASC_LEFT; #ASC_BY_LEFT) */
+                    #LESS_BY_LEFT                     /* ... in ascending order by preceding context (aliases: #LEFT, #ASC_LEFT, #ASC_BY_LEFT) */
                   | #LESS_BY_RIGHT                    /* ... in ascending order by following context (aliases: #RIGHT, #ASC_RIGHT, #ASC_BY_RIGHT */
                   ;
  
@@ -494,9 +494,9 @@ The following macros are defined for the underlying scanner:
  (?i:\#(greater|de?sc)(_by)?_size)
  (?i:\#(less|asc)(_by)?_size)	
  (?i:\#(is_|has_)?size)		
- (?i:\#((less|asc)(_by)?)?left)	
- (?i:\#((less|asc)(_by)?)?right)	
- (?i:\#(less|asc)(_by)?)		
+ (?i:\#((less_|asc_)(by_)?)?left)	
+ (?i:\#((less_|asc_)(by_)?)?right)	
+ (?i:\#(less|asc)(_by)?)		  
  (?i:\#(greater|de?sc)(_by)?)	
  (?i:\#rand(om)?)
 

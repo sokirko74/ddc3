@@ -11,7 +11,7 @@
     <section name="overview" title="Overview">
       <p>
 	This documentation describes the query language accepted by
-	DDC version 2.0.7.  Current sources for DDC should be available
+	DDC version 2.0.9.  Current sources for DDC should be available
 	from
 	<!--<a href="http://odo.dwds.de/code/viewvc.cgi/ddc/trunk/?root=dev">svn+ssh://odo.dwds.de/home/svn/dev/ddc/trunk</a>.-->
 	<a href="http://sourceforge.net/projects/ddc-concordance">http://sourceforge.net/projects/ddc-concordance</a>.
@@ -664,7 +664,7 @@
 
 	  <!--~~~~~~~~ RULES: qf_bigram_sort -->
 	  <rule lhs="qf_bigram_sort" cmt="Sort or filter hits lexicographically by context (requires special index)">
-	    <rhs cmt="... in ascending order by preceding context (aliases: #LEFT, #ASC_LEFT; #ASC_BY_LEFT)">
+	    <rhs cmt="... in ascending order by preceding context (aliases: #LEFT, #ASC_LEFT, #ASC_BY_LEFT)">
 	      <t>#LESS_BY_LEFT</t>
 	    </rhs>
 	    <rhs cmt="... in ascending order by following context (aliases: #RIGHT, #ASC_RIGHT, #ASC_BY_RIGHT">
@@ -1180,9 +1180,9 @@ regex_modifier	[gimsx]
 (?i:\#(greater|de?sc)(_by)?_size)
 (?i:\#(less|asc)(_by)?_size)	
 (?i:\#(is_|has_)?size)		
-(?i:\#((less|asc)(_by)?)?left)	
-(?i:\#((less|asc)(_by)?)?right)	
-(?i:\#(less|asc)(_by)?)		
+(?i:\#((less_|asc_)(by_)?)?left)	
+(?i:\#((less_|asc_)(by_)?)?right)	
+(?i:\#(less|asc)(_by)?)		  
 (?i:\#(greater|de?sc)(_by)?)	
 (?i:\#rand(om)?)
 </pre>
