@@ -371,6 +371,7 @@ string CDDCServerListenHost::ReloadCorpusProcessSignal(const string& Query)
 	#else
 		pthread_t aThread;
 		pthread_create(&aThread, NULL, ReloadCorpus, (void*)this);
+		ddc_thread_init(subcorpus);
 	#endif
 
 

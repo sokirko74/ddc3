@@ -26,7 +26,8 @@ pkgbin_PROGRAMS = ddc_daemon
 ## sources
 
 ddc_daemon_SOURCES = \
- ddc_daemon.cpp
+ ddc_daemon.cpp \
+ ../common/utilit.cpp ../common/utilit.h
 
 ddc_daemon_LDADD = \
  ../ConcordDmnLib/libDDCConcordDmn.la \

@@ -522,7 +522,7 @@ void CHost::AnswerByRequest (SOCKET rConnectedSocket, const struct sockaddr_in* 
 
 	if (m_pdProtocolDensity  == pdHeavyDensity)
 	{
-		m_LogFunction(Format("%s receives a string (Timeout=%i)", m_CorpusName.c_str(), TimeOut ));
+		m_LogFunction(Format("%s received a string (Timeout=%i)", m_CorpusName.c_str(), TimeOut ));
 	}
 
 	
@@ -726,6 +726,7 @@ void   CHost::RunThread()
 {
 	CHost* pHost = (CHost* )pParam;
     try {
+	    ddc_thread_init(pHost->m_CorpusName.c_str());
 
 	#ifdef WIN32
 		CoInitialize(NULL);

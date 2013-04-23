@@ -2195,6 +2195,38 @@ void int2date(unsigned int i, unsigned int *y, unsigned int *m, unsigned int *d)
     if (d) *d = (i>> 0)&0xff;
 }
 
+#ifndef WIN32
+#include <pthread.h>
+static pthread_once_t ddc_thread_data_once = PTHREAD_ONCE_INIT;
+static pthread_key_t  ddc_loglabel_key;
+static void ddc_loglabel_destroy(void *label)
+{
+	if (label) free(label);
+}
+static void ddc_thread_data_alloc(void)
+{
+	pthread_key_create(&ddc_loglabel_key, ddc_loglabel_destroy);	
+}
+#endif
+
+void ddc_thread_init(const char *log_label)
+{
+#ifndef WIN32
+	pthread_once(&ddc_thread_data_once, ddc_thread_data_alloc);
+	pthread_setspecific(ddc_loglabel_key, strdup(log_label));
+#endif
+	return;
+}
+const char *ddc_log_label(void)
+{
+#ifndef WIN32
+	const char *s = (const char*)pthread_getspecific(ddc_loglabel_key);
+	return s==NULL ? "" : s;
+#else
+	return NULL;
+#endif
+}
+
 void QPEncodeString(string& s)
 {
 	string z;

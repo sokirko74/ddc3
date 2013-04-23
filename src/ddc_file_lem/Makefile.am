@@ -20,7 +20,8 @@ pkgbin_PROGRAMS = ddc_file_lem
 
 ddc_file_lem_SOURCES = \
  ddc_file_lem.cpp \
- ../common/MorhologyHolder.cpp
+ ../common/MorhologyHolder.cpp \
+ ../common/utilit.cpp ../common/utilit.h
 
 ddc_file_lem_LDADD = \
  ../LemmatizerLib/libDDCLemmatizer.la \

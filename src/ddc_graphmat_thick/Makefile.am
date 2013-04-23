@@ -26,7 +26,8 @@ pkgbin_PROGRAMS = ddc_graphmat_thick
 ## sources
 
 ddc_graphmat_thick_SOURCES = \
- ddc_graphmat_thick.cpp
+ ddc_graphmat_thick.cpp \
+ ../common/utilit.cpp ../common/utilit.h
 
 ddc_graphmat_thick_LDADD = \
  ../GraphanLib/libDDCGraphan.la \

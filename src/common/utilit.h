@@ -295,6 +295,12 @@ extern unsigned int date2int(unsigned int y, unsigned int m=1, unsigned int d=1)
 //! moo: int-to-date decoding
 extern void int2date(unsigned int i, unsigned int *y, unsigned int *m=NULL, unsigned int *d=NULL);
 
+//! register a thread-local log prefix (unix only)
+extern       void  ddc_thread_init(const char *log_label=NULL);
+//! get thread-local log prefix, or empty string if none registered
+extern const char *ddc_log_label(void);
+
+
 extern void QPEncodeString(string& s);
 extern void QPDecodeString(string& s);
 #ifndef WIN32

@@ -26,7 +26,8 @@ pkgbin_PROGRAMS = ddc_index
 ## sources
 
 ddc_index_SOURCES = \
- ddc_index.cpp
+ ddc_index.cpp \
+ ../common/utilit.cpp ../common/utilit.h
 
 ddc_index_LDADD = \
  ../ConcordLib/libDDCConcord.la \

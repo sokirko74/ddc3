@@ -26,7 +26,8 @@ pkgbin_PROGRAMS = ddc_struct_dict_loader
 ## sources
 
 ddc_struct_dict_loader_SOURCES = \
- ddc_struct_dict_loader.cpp
+ ddc_struct_dict_loader.cpp \
+ ../common/utilit.cpp ../common/utilit.h
 
 ddc_struct_dict_loader_LDADD = \
  ../StructDictLib/libDDCStructDict.la

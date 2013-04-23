@@ -228,6 +228,8 @@ int do_start(bool clientMode=false)
 		
 		}
 
+	ddc_thread_init("server");
+
 	concord_daemon_log (string("LoadCorpora (CWD=") + CurrentDirectory() + ")");
 	LoadLocalCorpora(ProtocolDensity, CorporaFile);
 

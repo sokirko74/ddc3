@@ -31,7 +31,6 @@
 #include "../common/ddcString.h"
 
 
-
 #ifdef DETECT_MEMORY_LEAK
 	#ifdef _DEBUG
 	#define new DEBUG_NEW
@@ -210,6 +209,7 @@ void FreeConcordDicts()
 
 bool concord_daemon_log_stderr = false;
 
+
 void concord_daemon_log(const string&  t)
 {
 	FILE * fp = 0;
@@ -234,11 +234,13 @@ void concord_daemon_log(const string&  t)
 		strftime( tmpbuf, 255,"%H:%M:%S", &today );
 		fp = fopen (FileName.c_str(), "a");
 		if (!fp) return;
-		fprintf (fp, "%s > %s\n", tmpbuf, t.c_str());
+
+		const char *loglabel = ddc_log_label();
+		fprintf (fp, "%s (%s) > %s\n", tmpbuf, loglabel, t.c_str());
 		fclose(fp);
 
 		if (concord_daemon_log_stderr) {
-			fprintf(stderr, "%s > %s\n", tmpbuf, t.c_str());
+			fprintf(stderr, "%s (%s) > %s\n", tmpbuf, loglabel, t.c_str());
 			fflush(stderr);
 		}
 	}

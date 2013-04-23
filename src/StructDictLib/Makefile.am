@@ -24,8 +24,9 @@ lib_LTLIBRARIES = libDDCStructDict.la
 libDDCStructDict_la_SOURCES = \
  ItemsContainer.cpp ItemsContainer.h \
  Ross.cpp Ross.h \
- TempArticle.cpp TempArticle.h \
- ../common/utilit.cpp ../common/utilit.h
+ TempArticle.cpp TempArticle.h
+
+# ../common/utilit.cpp ../common/utilit.h
 
 noinst_HEADERS = \
  Domen.h \
