@@ -572,9 +572,13 @@ an X-Path specification of the location of the field data in corpus source docum
 
 =head3 Bigrams
 
- Bigrams ...
+ Bigrams INDEXNAME MAXLEN BREAKNAME
 
-(undocumented)
+Request construction of an n-gram index at indexing time, suitable for sorting runtime hits
+lexicographically by neighbor I<INDXNAME> using the C<#left> and/or C<#right> query operators.
+Up to I<MAXLEN> neighbors are considered for the sort.  Breaks of type I<BREAKNAME> terminate
+the sort.
+Example usage: C<Bigrams Token 2 s>.
 
 =head3 Expand
 

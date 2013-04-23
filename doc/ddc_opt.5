@@ -62,7 +62,7 @@
 .\" ========================================================================
 .\"
 .IX Title "DDC_OPT 5"
-.TH DDC_OPT 5 "2013-01-04" "2.0.8" "DDC Corpus Indexing System"
+.TH DDC_OPT 5 "2013-04-23" "2.0.9" "DDC Corpus Indexing System"
 .\" For nroff, turn off justification.  Always turn off hyphenation; it makes
 .\" way too many mistakes in technical documents.
 .if n .ad l
@@ -658,10 +658,14 @@ an X\-Path specification of the location of the field data in corpus source docu
 .IX Subsection "Bigrams"
 .PP
 .Vb 1
-\& Bigrams ...
+\& Bigrams INDEXNAME MAXLEN BREAKNAME
 .Ve
 .PP
-(undocumented)
+Request construction of an n\-gram index at indexing time, suitable for sorting runtime hits
+lexicographically by neighbor \fI\s-1INDXNAME\s0\fR using the \f(CW\*(C`#left\*(C'\fR and/or \f(CW\*(C`#right\*(C'\fR query operators.
+Up to \fI\s-1MAXLEN\s0\fR neighbors are considered for the sort.  Breaks of type \fI\s-1BREAKNAME\s0\fR terminate
+the sort.
+Example usage: \f(CW\*(C`Bigrams Token 2 s\*(C'\fR.
 .PP
 \fIExpand\fR
 .IX Subsection "Expand"

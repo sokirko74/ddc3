@@ -624,8 +624,12 @@ The arguments to free <code>Bibl</code> are:</p>
 </p>
 <h3><a name="bigrams">Bigrams</a></h3>
 <pre>
- Bigrams ...</pre>
-<p>(undocumented)</p>
+ Bigrams INDEXNAME MAXLEN BREAKNAME</pre>
+<p>Request construction of an n-gram index at indexing time, suitable for sorting runtime hits
+lexicographically by neighbor <em>INDXNAME</em> using the <code>#left</code> and/or <code>#right</code> query operators.
+Up to <em>MAXLEN</em> neighbors are considered for the sort.  Breaks of type <em>BREAKNAME</em> terminate
+the sort.
+Example usage: <code>Bigrams Token 2 s</code>.</p>
 <p>
 </p>
 <h3><a name="expand">Expand</a></h3>
