@@ -14,6 +14,7 @@ our ($buf);
 { local $/=undef; $buf=<>; }
 our $hits = from_json($buf, {utf8=>!utf8::is_utf8($buf)})
   or die("$0: could not decode JSON buffer: $!");
+$hits = $hits->{hits_} if (UNIVERSAL::isa($hits,'HASH') && $hits->{hits_});
 
 our @hits  = qw();
 foreach my $hit (@$hits) {
