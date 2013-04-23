@@ -124,8 +124,8 @@ regex_modifier	[gimsx]
 (?i:\#(greater|de?sc)(_by)?_size)	{ return GREATER_BY_SIZE; }
 (?i:\#(less|asc)(_by)?_size)		{ return LESS_BY_SIZE; }
 (?i:\#(is_|has_)?size)			{ return IS_SIZE; }
-(?i:\#((less|asc)(_by)?)?left)		{ return LESS_BY_LEFT; }
-(?i:\#((less|asc)(_by)?)?right)		{ return LESS_BY_RIGHT; }
+(?i:\#((less|asc)(_by)?_)?left)		{ return LESS_BY_LEFT; }
+(?i:\#((less|asc)(_by)?_)?right)	{ return LESS_BY_RIGHT; }
 (?i:\#(less|asc)(_by)?)			{ return LESS_BY; }
 (?i:\#(greater|de?sc)(_by)?)		{ return GREATER_BY; }
 (?i:\#rand(om)?)			{ return RANDOM; }
