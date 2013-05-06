@@ -568,10 +568,11 @@ bool CHitBorders::GetOccurrencesByPosition(const string& BreakName, int anchor, 
 	}
 	else {
 		//-- negative anchor position: count from -1 @ end (right)
+		anchor *= -1;
 		for (vector<CTokenNo>::const_iterator bi=bcol->m_BreakOffsets.begin(); bi != bcol->m_BreakOffsets.end(); bi++) {
 			//-- break segment from i=b0 .. i<*bi
-			i = *bi + anchor;
-			if (i >= b0) occurrences.push_back(*bi + anchor);
+			i = *bi - anchor;
+			if (*bi >= anchor && i >= b0) occurrences.push_back(i);
 			b0 = *bi;
 		}
 	}
