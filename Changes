@@ -1,6 +1,9 @@
 ##-*- Mode: Change-Log; coding: utf-8; -*-
 
-v2.0.9 Mon, 06 May 2013 15:22:14 +0200
+v2.0.10 Mon, 06 May 2013 15:22:14 +0200 moocow
+	+ fixed segfaults with negative position queries ($.=-2)
+
+v2.0.9 Tue, 23 Apr 2013 14:36:52 +0200 moocow
 	+ fixed bug with extrema-specification in #greater_by_date[LO,HI]
 	+ problem is more general with descending sorts
 	  - assumedly #greater_by_size, #greater_by_rank, and #greater_by[FIELD] are also affected
@@ -13,7 +16,6 @@ v2.0.9 Mon, 06 May 2013 15:22:14 +0200
 	+ added corpus-identifier log prefixes for ddc_daemon (unix only)
 	+ corrected #less_by_(left|right) lexer bug (was lexing #less_by(left|right), without last underscore)
 	  - neighbor-based sorting with #left , #right still broken in large indices (e.g. DTA)
-	+ fixed segfaults with negative position queries ($.=-2)
 
 v2.0.8 Thu, 04 Apr 2013 16:58:40 +0200 moocow
 	+ added anchor queries ($.=POSITION) using linear search over all breaks in given break collection (default='s')
