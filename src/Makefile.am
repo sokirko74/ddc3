@@ -27,6 +27,7 @@ SUBDIRS = \
 	ConcordDmnLib \
 	\
 	ddc_index \
+	ddc_dump \
 	ddc_stats \
 	ddc_simple \
 	ddc_console \
@@ -39,6 +40,10 @@ SUBDIRS = \
 	ddc_file_lem \
 	ddc_expand \
 	ddc_graphmat_thick
+
+.PHONY: list-subdirs
+list-subdirs:
+	@echo $(SUBDIRS)
 
 ##-----------------------------------------------------------------------
 ## Variables: cleanup

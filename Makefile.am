@@ -32,6 +32,10 @@ SUFFIXES += .pc
 ##-- for gnulib
 ACLOCAL_AMFLAGS = -I m4
 
+.PHONY: list-subdirs
+list-subdirs:
+	@echo $(SUBDIRS)
+
 #-----------------------------------------------------------------------
 # Variables: cleanup
 #-----------------------------------------------------------------------
@@ -120,7 +124,6 @@ dist-hook:
 	done
 
 #dist-bz2: dist-bzip2 ;
-
 
 #-----------------------------------------------------------------------
 # Rules: cleanup

@@ -305,7 +305,11 @@ public:
 	//! loads  everything
 	bool	LoadProject(string FileName);
 
+	//! dump loaded metadata to a stream (JSON)
+	void DumpBibliography(FILE *f=stdout) const;
 
+	//! dump file metadata to a string (JSON)
+	string DumpFileBibliography(DWORD FileNo) const;
 
 	// ==========================
 	// ====== Indexing Stage

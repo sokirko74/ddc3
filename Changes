@@ -1,5 +1,9 @@
 ##-*- Mode: Change-Log; coding: utf-8; -*-
 
+v2.0.11 Fri, 31 May 2013 11:28:00 +0200 moocow
+	+ added ddc_dump : dump bibliographic metadata as JSON
+	  - TODO: integrate old ddc_stats functionality: dump full index contents
+
 v2.0.10 Mon, 06 May 2013 15:22:14 +0200 moocow
 	+ fixed segfaults with negative position queries ($.=-2)
 

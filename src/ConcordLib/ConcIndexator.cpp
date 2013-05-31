@@ -2050,3 +2050,44 @@ void SortOccurrences (vector<CTokenNo>& occurrences, size_t SortChunkCount)
 	};
 	
 };
+
+
+//==============================================================================
+// data dumping utils
+
+//----------------------------------------------------------------------
+void CConcIndexator::DumpBibliography(FILE *f) const
+{
+    size_t nfiles=m_CorpusFiles.size();
+    fputs("[\n",f);
+    for (size_t fn=0; fn < nfiles; ++fn) {
+	string fs = DumpFileBibliography(fn);
+	if (fn != 0) fputs(",\n",f);
+	fputs(fs.c_str(),f);
+    }
+    fputs("\n]\n",f);
+}
+
+//----------------------------------------------------------------------
+string CConcIndexator::DumpFileBibliography(DWORD FileNo) const
+{
+    CBibliography B = m_Bibl.GetFullBibliographyOfHit(FileNo);
+    string fb = (string("{")
+		 + "\"n_\":" + Format("%u",FileNo)
+		 +",\"file_\":" + jsonStr(m_CorpusFiles[FileNo],m_Utf8)
+		 +",\"masked_\":" + (m_MaskedFiles.find(FileNo) == m_MaskedFiles.end() ? "0" : "1")
+		 + ",\"scan_\":" + jsonStr(B.m_ScanBibl, m_Utf8)
+		 + ",\"orig_\":" + jsonStr(B.m_OrigBibl, m_Utf8)
+		 + ",\"date_\":" + jsonStr(B.m_DateStr, m_Utf8)
+		 + ",\"page_\":" + (B.m_StartPageInfo==UnknownPageNumber ? "null" : Format("%u",B.m_StartPageInfo))
+		 + "," + m_Bibl.GetFreeHeaderBiblAttributesJson(FileNo, m_Utf8)
+		 + "}");
+    return fb;
+}
+
+
+// Local Variables:
+// mode: c++
+// c-basic-offset: 4
+// End:
+

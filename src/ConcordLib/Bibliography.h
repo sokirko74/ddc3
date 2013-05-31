@@ -175,7 +175,6 @@ class CConcXml
 	};
 
 
-
 	typedef map<string, CFreeBiblIndex*> FreeBiblStringMap;
 	FreeBiblStringMap	m_FreeBiblIndices;
 
@@ -216,8 +215,7 @@ public:
 	void FreeBiblIndices();
 
 	//! clears m_BiblExpanders
-	void FreeBiblExpanders
-();
+	void FreeBiblExpanders();
 
 	//! initialize building bibliography for corpus ProjectFileName
 	bool Start(string ProjectFileName);
@@ -295,6 +293,7 @@ public:
 
 	//! add a new bibliographic expander to m_BiblExpanders, or replace an existing one; returns new expander
 	CBiblExpander* AddBiblExpander(const string& spec);
+
 };
 
 
