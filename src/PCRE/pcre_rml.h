@@ -47,7 +47,13 @@ class RML_RE {
     pcrecpp::RE_Options    options_;       // pcrecpp options
     const BYTE*            tableptr_;      // table pointer to use for compilation (external)
     Options(void) : tableptr_(NULL) {};
-    Options(const RE_Options &opts, const BYTE *tableptr=NULL) : options_(opts), tableptr_(tableptr) {};
+    Options(const RE_Options &opts, const BYTE *tableptr=NULL)
+      : options_(opts), tableptr_(tableptr)
+    {
+      //-- moo: implicitly set PCRE_UCP whenever PCRE_UTF8 is requested: allows e.g. [[:upper:]] to match non-ASCII characters
+      if (opts.utf8())
+	options_.set_all_options( options_.all_options() | PCRE_UCP );
+    };
   };
 
  protected:

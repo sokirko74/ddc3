@@ -1,5 +1,10 @@
 ##-*- Mode: Change-Log; coding: utf-8; -*-
 
+v2.0.12 Tue, 26 Nov 2013 11:08:38 +0100 moocow
+	+ src/PCRE/pcre_rml.h : set PCRE_UCP whenever PCRE_UTF8 is set
+	  - allows e.g. [[:upper:]] to match non-ASCII characters
+	  - fixes mantis bug #618
+
 v2.0.11 Fri, 31 May 2013 11:28:00 +0200 moocow
 	+ added ddc_dump : dump bibliographic metadata as JSON
 	  - TODO: integrate old ddc_stats functionality: dump full index contents
