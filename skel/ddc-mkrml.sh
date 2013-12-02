@@ -66,7 +66,7 @@ for f in $SKEL_FILES ; do
 done
 
 ##-- set skeleton variables
-runcmd perl -pe "s|^\s*RML=.*\$|RML=\"$outdir\"|;" "$skeldir/ddc-common.sh" > "$outdir/ddc-common.sh" \
+perl -pe "s{^\s*RML=.*\$}{RML=\"$outdir\"};" "$skeldir/ddc-common.sh" > "$outdir/ddc-common.sh" \
   || die "could not auto-edit in '$outdir/ddc-common.sh'"
 
 ##-- all done

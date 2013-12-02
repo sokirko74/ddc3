@@ -521,18 +521,18 @@ void CStringIndexSet::FindOccurrences (const vector<DWORD>& IndexItems, const si
 
 	for( size_t i=0; i<Count; i++ )
 	{
-        const size_t IndexItemNo = IndexItems[i];
-        const CIndexItem& I = m_Index[ IndexItemNo ];
-		const char * _debug_view = GetIndexItemStr(I);
+		const size_t IndexItemNo = IndexItems[i];
+		const CIndexItem& I = m_Index[ IndexItemNo ];
+		const char * _debug_view = GetIndexItemStr(I);	///<TODO: see if we can lose this -- moocow Fri, 29 Nov 2013 10:04:58 +0100
 		AddOccurs(IndexItemNo, 
-                I.HasOneOccurrence(), 
-                GetStartOccurNo(IndexItemNo), 
-                I.GetEndOccurOffset(), 
-                occurrences, 
-                PeriodNo, 
-                TempBuffer, 
-                pCacheByIndexSet, 
-                CacheIds[i]);
+			  I.HasOneOccurrence(), 
+			  GetStartOccurNo(IndexItemNo), 
+			  I.GetEndOccurOffset(), 
+			  occurrences, 
+			  PeriodNo, 
+			  TempBuffer, 
+			  pCacheByIndexSet, 
+			  CacheIds[i]);
 
 	}
 
