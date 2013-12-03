@@ -884,19 +884,20 @@ void CQueryTokenNode::EvaluateWithoutHits()
 	}
 	else if (m_bAnchor) {
 	  // anchor query
-	  m_Occurrences.assign(m_IndexItems.begin(), m_IndexItems.end());
+	  //m_Occurrences.assign(m_IndexItems.begin(), m_IndexItems.end());
+	  m_pHolder->m_pIndexator->RestrictOccurrencesToSearchPeriod(m_IndexItems,  m_Occurrences,  m_pHolder->m_CurrentSearchPeriodNo);
 	}
 	else {
-	  	// chunk query
-		m_pHolder->m_pIndexator->m_pChunkIndex->FindChunkOccurrences(
-									     m_IndexItems, 
-									     m_Occurrences, 
-									     m_ChunkLengths,
-									     m_pHolder->m_CurrentSearchPeriodNo, 			
-									     m_pHolder->m_Profiler, 
-									     &m_pHolder->m_ShortOccurCaches,
-									     m_CacheIds
-									     );
+	  // chunk query
+	  m_pHolder->m_pIndexator->m_pChunkIndex->FindChunkOccurrences(
+								       m_IndexItems, 
+								       m_Occurrences, 
+								       m_ChunkLengths,
+								       m_pHolder->m_CurrentSearchPeriodNo, 			
+								       m_pHolder->m_Profiler, 
+								       &m_pHolder->m_ShortOccurCaches,
+								       m_CacheIds
+								       );
 	}
 
 	if (m_bUseNodeIndices)

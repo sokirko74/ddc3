@@ -420,7 +420,7 @@ By default, <a href="#indicestoshow">IndicesToShow</a> is <code>1</code>, i.e. w
 <p>(largely from DDCReadme):
 <code>BREAKLIST</code> is a string of break collection declarations delimited by semicolons <code>;</code>.
 Each break collection declaration is a string of the form
-<code>[LONGNAME SHORTNAME]</code> or <code>[LONGNAME SHORTNAME default]</code>, where</p>
+<code>[LONGNAME:SHORTNAME]</code> or <code>[LONGNAME:SHORTNAME:default]</code>, where</p>
 <dl>
 <dt><strong><a name="longname2" class="item">LONGNAME</a></strong></dt>
 
@@ -437,7 +437,7 @@ Each break collection declaration is a string of the form
 <dd>
 <p>is the literal string <a href="#default"><code>default</code></a>, which if present indicates that the
 current break collection is to be used for queries which do not specify any
-break collection specification (e.g. using the <code>WITHIN</code> query operator).</p>
+break collection specification (e.g. using the <code>#WITHIN</code> query operator).</p>
 </dd>
 </dl>
 <p>The <a href="#hitborders">HitBorders</a> option is only supported for the <code>Free_Index</code> <a href="#indextype">Index Type</a>.</p>

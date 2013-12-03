@@ -353,3 +353,19 @@ size_t	CStringIndexator::GetSearchPeriodsCount() const
 {
 	return m_SearchPeriods.size();
 };
+
+void CStringIndexator::RestrictOccurrencesToSearchPeriod(const vector<DWORD> &AllOccurrences, vector<CTokenNo> &PeriodOccurrences, size_t searchPeriodNo) const
+{
+  if (m_SearchPeriods.size() <= 1) {
+    PeriodOccurrences.assign(AllOccurrences.begin(), AllOccurrences.end());
+  }
+  else {
+    const CTokenNo periodBegin = (searchPeriodNo == 0) ? 0 : GetSearchPeriod(searchPeriodNo-1);
+    const CTokenNo periodEnd   = GetSearchPeriod(searchPeriodNo);
+
+    vector<CTokenNo>::const_iterator lb = lower_bound(AllOccurrences.begin(), AllOccurrences.end(), periodBegin);
+    vector<CTokenNo>::const_iterator ub = lower_bound(lb,                     AllOccurrences.end(), periodEnd);
+
+    PeriodOccurrences.assign(lb,ub);
+  }
+}

@@ -565,7 +565,7 @@ void CStringIndexSet::FindChunkOccurrences (const vector<DWORD>& IndexItems, vec
 
 	for( size_t i=0; i<Count; i++ )	
 	{
-        size_t IndexItemNo  = IndexItems[i];
+		size_t IndexItemNo  = IndexItems[i];
 		int chunk_len;
 		{
 			const char * chunk_str = GetIndexItemStr(m_Index[ IndexItemNo ]);

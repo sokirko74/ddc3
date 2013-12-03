@@ -357,7 +357,7 @@ Only supported for the C<Free_Index> L<Index Type|/indextype>.
 (largely from DDCReadme):
 C<BREAKLIST> is a string of break collection declarations delimited by semicolons C<;>.
 Each break collection declaration is a string of the form
-C<[LONGNAME SHORTNAME]> or C<[LONGNAME SHORTNAME default]>, where
+C<[LONGNAME:SHORTNAME]> or C<[LONGNAME:SHORTNAME:default]>, where
 
 =over 4
 
@@ -373,7 +373,7 @@ is a short name for the break collection, conventionally in all lower-case and f
 
 is the literal string C<default>, which if present indicates that the
 current break collection is to be used for queries which do not specify any
-break collection specification (e.g. using the C<WITHIN> query operator).
+break collection specification (e.g. using the C<#WITHIN> query operator).
 
 =back
 

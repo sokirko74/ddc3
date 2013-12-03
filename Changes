@@ -1,5 +1,11 @@
 ##-*- Mode: Change-Log; coding: utf-8; -*-
 
+v2.0.13 Tue, 03 Dec 2013 16:27:57 +0100 moocow
+	+ fixed ddc-mkrml.sh bug creating bogus $NEW_RML_DIR/ddc-common.sh
+	+ fixed multiple instances of hits from large (sub)corpora on anchor ($.) queries
+	  - fixes mantis bug #619
+	  - problem was "search periods": each position was getting returned once per period
+
 v2.0.12 Tue, 26 Nov 2013 11:08:38 +0100 moocow
 	+ src/PCRE/pcre_rml.h : set PCRE_UCP whenever PCRE_UTF8 is set
 	  - allows e.g. [[:upper:]] to match non-ASCII characters
