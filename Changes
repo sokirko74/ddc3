@@ -1,6 +1,6 @@
 ##-*- Mode: Change-Log; coding: utf-8; -*-
 
-v2.0.14 Wed, 04 Dec 2013 12:20:32 +0100 moocow
+v2.0.14 Wed, 04 Dec 2013 13:02:35 +0100 moocow
 	+ fixed "$.BREAKNAME" pseudo-index lookup (BREAKNAME was getting translated as "normal" index)
 	+ improved response time for generic wildcard ('*') queries
 	  - now uses anchor stategy of storing occurrences (CTokenNo) directly in m_IndexItems
