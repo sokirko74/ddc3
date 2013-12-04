@@ -566,6 +566,7 @@ CQueryTokenNode::CQueryTokenNode(int NodeIndex):CQueryNode(false, false)
 	m_bAtomic = true;
 	m_bChunk = false;
 	m_bAnchor = false;
+	m_bAny    = false;
 	m_NodeIndex = NodeIndex;
 };
 
@@ -789,10 +790,16 @@ bool CQueryTokenNode::CreateInfixPattern(const CConcHolder* pHolder, const strin
 //--------------------------------------------------------------
 bool CQueryTokenNode::CreateUniversalPattern(const CConcHolder* pHolder, const string& IndexName)
 {
-  CStringIndexSet* pIndexSet = GetIndex(pHolder,IndexName);
+  m_bChunk  = false;
+  m_bAnchor = false;
+  m_bAny    = true;
+  m_bAtomic = true;
+  SetHolder(pHolder);
+  m_IndexName = IndexName;
+
+  //-- assign occurrences directly to m_IndexItems
   m_IndexItems.clear();
-  pIndexSet->QueryTokenListUniversal(m_IndexItems);
-  return true;
+  return pHolder->m_pIndexator->GetAllOccurrences(m_IndexItems);
 };
 
 
@@ -838,7 +845,7 @@ bool CQueryTokenNode::CreateFileList(const CConcHolder* pHolder, const string &I
 void CQueryTokenNode::EvaluateWithoutHits()
 {
 	ClearAndReserveOccurrences(5000);
-	if (!m_bChunk && !m_bAnchor) {
+	if (!m_bChunk && !m_bAnchor && !m_bAny) {
 		const CStringIndexSet* pIndex  = m_pHolder->m_pIndexator->GetIndexByName(m_IndexName);
 		BigramDirectionEnum bigr_direc =  m_pHolder->GetBigramsToOrder();
 
@@ -882,9 +889,8 @@ void CQueryTokenNode::EvaluateWithoutHits()
 		}
 		m_ChunkLengths.resize(GetOccurrencesSize(), 1);
 	}
-	else if (m_bAnchor) {
-	  // anchor query
-	  //m_Occurrences.assign(m_IndexItems.begin(), m_IndexItems.end());
+	else if (m_bAnchor || m_bAny) {
+	  // anchor or universal query
 	  m_pHolder->m_pIndexator->RestrictOccurrencesToSearchPeriod(m_IndexItems,  m_Occurrences,  m_pHolder->m_CurrentSearchPeriodNo);
 	}
 	else {

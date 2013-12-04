@@ -11,7 +11,7 @@
     <section name="overview" title="Overview">
       <p>
 	This documentation describes the query language accepted by
-	DDC version 2.0.9.  Current sources for DDC should be available
+	DDC version 2.0.14.  Current sources for DDC should be available
 	from
 	<!--<a href="http://odo.dwds.de/code/viewvc.cgi/ddc/trunk/?root=dev">svn+ssh://odo.dwds.de/home/svn/dev/ddc/trunk</a>.-->
 	<a href="http://sourceforge.net/projects/ddc-concordance">http://sourceforge.net/projects/ddc-concordance</a>.
@@ -287,7 +287,7 @@
 	    <rhs cmt="... on 'Token' index">
 	      <t>*</t>
 	    </rhs>
-	    <rhs cmt="... on user-specified index">
+	    <rhs cmt="... on user-specified index (vacuous; index name is ignored)">
 	      <n>s_index</n>
 	      <t>=</t>
 	      <t>*</t>

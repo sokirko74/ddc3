@@ -579,3 +579,20 @@ bool CHitBorders::GetOccurrencesByPosition(const string& BreakName, int anchor, 
 
 	return true;
 }
+
+//----------------------------------------------------------------------
+bool CHitBorders::GetAllOccurrences(vector<CTokenNo>& occurrences) const
+{
+	if (m_Breaks.empty())
+		throw CExpc(errRuntime, "CHitBorders::GetAllOccurrences(): no break collections defined");
+	if (m_Breaks[0].m_BreakOffsets.empty())
+		throw CExpc(errRuntime, "CHitBorders::GetAllOccurrences(): empty default break collection");
+
+	CTokenNo occ_max = *( m_Breaks[0].m_BreakOffsets.rbegin() );
+	occurrences.reserve(occ_max);
+	for (CTokenNo occ=0; occ < occ_max; ++occ) {
+		occurrences.push_back(occ);
+	}
+
+	return true;
+}

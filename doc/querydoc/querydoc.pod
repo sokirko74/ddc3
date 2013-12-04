@@ -3,7 +3,7 @@
 =head2 Overview
 
 This documentation describes the query language accepted by
-DDC version 2.0.9.  Current sources for DDC should be available
+DDC version 2.0.14.  Current sources for DDC should be available
 from
 http://sourceforge.net/projects/ddc-concordance.
 
@@ -121,7 +121,7 @@ Comments may appear after each rule in C notation
  
  qw_any        ::=                                                       /*-- Universal match (aka wildcard token) --*/
                    *                                                     /* ... on 'Token' index */
-                 | s_index = *                                           /* ... on user-specified index */
+                 | s_index = *                                           /* ... on user-specified index (vacuous; index name is ignored) */
                  ;
  
  qw_set_infl   ::=                                                       /*-- Disjunction over a set of (expanded) target values --*/

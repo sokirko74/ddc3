@@ -265,11 +265,11 @@ public:
 };
 
 //------------------------------------------------------------
-//! single-token query: arbitrary token
+//! single-token query: arbitrary token (indexName and value are ignored)
 class CQTokAny : public CQToken {
 public:
-  CQTokAny(const string &indexName=string(""), const string &value=string(""))
-    : CQToken(indexName,value)
+  CQTokAny(const string &indexName=string(""), const string &value=string("*"))
+    : CQToken("",value)
   {};
 
   virtual bool Create(CQueryTokenNode *pNode);

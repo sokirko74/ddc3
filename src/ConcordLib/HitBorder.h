@@ -122,6 +122,9 @@ protected:
     //! moo: search named break collection for matching positions, used by anchor queries
     bool GetOccurrencesByPosition(const string& BreakName, int anchor, vector<CTokenNo>& occurrences) const;
 
+    //! moo: get a vector of all occurrences (requires at least 1 break collection), used by universal wildcard (*) queries
+    bool GetAllOccurrences(vector<CTokenNo>& occurrences) const;
+
 public:
 	
 	CHitBorders();

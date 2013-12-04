@@ -201,6 +201,9 @@ public:
 	//! true iff this is an anchor query
 	bool m_bAnchor;
 
+	//! true iff this is a "universal wildcard" query
+	bool m_bAny;
+
 public:
 	// a unique index of the node in query tree
 	BYTE m_NodeIndex;
@@ -241,8 +244,8 @@ public:
 	//! create pattern for matching simple substring (infix) queries (`$INDEX=*INFIX*'): uses regex
 	bool CreateInfixPattern(const CConcHolder* pHolder, const string& IndexName, const string& Infix);
 
-	//! create universal-match set
-	bool CreateUniversalPattern(const CConcHolder *pHolder, const string& IndexName);
+	//! create universal-match set; \a IndexName is ignored
+	bool CreateUniversalPattern(const CConcHolder *pHolder, const string& IndexName="");
 
 	//! create lemma-match pattern (old)
 	bool CreateLemmaPattern(const CConcHolder* pHolder, const string& Value);
