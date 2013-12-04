@@ -111,8 +111,8 @@ bool CQueryCompiler::CompileFilters()
 	}
 
 	//-- sanity checks for compiler-global flags
-	if (m_ContextSentencesCount > 5)
-		throw CExpc(errParseError, "Requested context window of length=%d exceeds maximum context size", m_ContextSentencesCount);
+	if (m_ContextSentencesCount > m_MaxContextSentencesCount)
+		throw CExpc(errParseError, "Requested context window of length=%d exceeds maximum context size=%d", m_ContextSentencesCount, m_MaxContextSentencesCount);
 
 	//-- index-dependent flag-setting from old CQueryParser::ParseQuery()
 	m_HitTypeStr = m_pHolder->m_pIndexator->WithinBreakName(m_Within);

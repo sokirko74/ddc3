@@ -1,5 +1,8 @@
 ##-*- Mode: Change-Log; coding: utf-8; -*-
 
+v2.0.14 Wed, 04 Dec 2013 12:20:32 +0100 moocow
+	+ fixed "$.BREAKNAME" pseudo-index lookup (BREAKNAME was getting translated as "normal" index)
+
 v2.0.13 Tue, 03 Dec 2013 16:27:57 +0100 moocow
 	+ fixed ddc-mkrml.sh bug creating bogus $NEW_RML_DIR/ddc-common.sh
 	+ fixed multiple instances of hits from large (sub)corpora on anchor ($.) queries

@@ -268,6 +268,15 @@ string CQToken::IndexName(const string& DefaultIndexName)
   return pIndexSet->m_Name;
 }
 
+string CQToken::BreakName(const string& DefaultBreakName)
+{
+  assert(m_Compiler->m_pHolder->m_pIndexator);
+  string name = m_IndexName.empty() ? DefaultBreakName : m_IndexName;
+  const CHitBorders::CBreakCollection* pBreaks = m_Compiler->m_pHolder->m_pIndexator->GetBreakCollectionByName(name);
+  if (!pBreaks) return name; //-- default
+  return pBreaks->m_LongName;
+}
+
 string CQToken::IndexString(void) {
   return (m_IndexName.empty() ? string("") : (string("$") + m_IndexName + "="));
 }
@@ -307,7 +316,7 @@ string CQTokAny::ValueString()
 
 bool CQTokAnchor::Create(CQueryTokenNode *pNode)
 {
-  return pNode->CreateAnchorPattern(m_Compiler->m_pHolder, this->IndexName("s"), m_ValueInt);
+  return pNode->CreateAnchorPattern(m_Compiler->m_pHolder, this->BreakName("s"), m_ValueInt);
 }
 
 string CQTokAnchor::IndexString(void) {

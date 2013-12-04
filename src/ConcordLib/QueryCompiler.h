@@ -50,6 +50,10 @@ typedef vector<CQFilter*> CQFilterList;
 class CQueryCompiler : public yyqLexer
 {
 public:
+	//! maximum context size for #cntxt operator
+	static const size_t m_MaxContextSentencesCount = 5;
+
+public:
 	//! current node index to set CQueryTokenNode::m_NodeIndex
 	int m_CurrentNodeIndex;
 
@@ -89,7 +93,7 @@ public:
 	//! temporary for regexes (used for lexer handling of regex modifiers)
 	string m_Regex;
 
-	//! how many hits of the left and right context should be output
+	//! how many hits of the left and right context should be output (must be &lt;= m_MaxContextSentencesCount)
 	size_t m_ContextSentencesCount;
 
 	//! root of the abstract parse tree

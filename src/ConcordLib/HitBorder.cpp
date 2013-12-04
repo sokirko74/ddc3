@@ -87,7 +87,7 @@ const vector<CTokenNo>* CHitBorders::GetBreaksByName(const string& ShortName) co
 {
 	map<string,int>::const_iterator it = m_ShortName2BreakCollection.find(ShortName);
 	if (it == m_ShortName2BreakCollection.end())
-		return 0;
+		return NULL;
 	else
 		return &(m_Breaks[it->second].m_BreakOffsets);
 };

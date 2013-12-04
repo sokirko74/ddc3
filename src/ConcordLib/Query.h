@@ -240,6 +240,9 @@ public:
   //! Compilation utility: get long index name (requires non-NULL compiler), empty string is returned if not found
   string IndexName(const string& DefaultIndexName=string(""));
 
+  //! Compilation utility: get long break name (requires non-NULL compiler), empty string is returned if not found
+  string BreakName(const string& DefaultBreakName=string(""));
+
   //! Stringification utility for use by subclasses; returns string "$INDEX=" or empty
   virtual string IndexString(void);
 
