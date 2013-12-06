@@ -216,25 +216,12 @@ bool CQFBiblSort::Compile(CQueryCompiler *compiler)
   if (m_arg0.empty())
     throw CExpc(errParseError,"Empty bibliographic field not allowed in sort operator `%s'", toString().c_str());
 
-  if (!m_arg1.empty()) {
-    if (!ix->m_Bibl.GetFilterValue(m_Filter, m_arg1))
+  if (!ix->m_Bibl.GetFilterBounds(m_Filter, m_arg1, m_arg2))
       throw CExpc(errParseError,"Can't determine lower bound for sort operator `%s'", toString().c_str());
 
-    if (bGreaterOperator)
+  if (bGreaterOperator) {
       m_Filter.m_LevelStart = -m_Filter.m_LevelStart;
-  }
-
-  if (!m_arg2.empty()) {
-    CDDCFilterWithBounds TempFilter;
-    TempFilter.m_FreeBiblAttribName = m_arg0;
-
-    if (!ix->m_Bibl.GetFilterValue(TempFilter, m_arg2))
-      throw CExpc(errParseError,"Can't determine upper bound for sort operator `%s'", toString().c_str());
-
-    if (bGreaterOperator)
-      m_Filter.m_LevelEnd = -TempFilter.m_LevelStart+1;
-    else
-      m_Filter.m_LevelEnd = TempFilter.m_LevelEnd;
+      m_Filter.m_LevelEnd   = -m_Filter.m_LevelEnd+1;
   }
 
   m_Filter.m_SatisfiedValues.clear();

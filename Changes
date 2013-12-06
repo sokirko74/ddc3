@@ -1,5 +1,8 @@
 ##-*- Mode: Change-Log; coding: utf-8; -*-
 
+v2.0.15 Fri, 06 Dec 2013 14:09:59 +0100 moocow
+	+ band-aid fix for lower/upper-bound parameters to #asc[FIELD] / #desc[FIELD]
+
 v2.0.14 Wed, 04 Dec 2013 13:02:35 +0100 moocow
 	+ fixed "$.BREAKNAME" pseudo-index lookup (BREAKNAME was getting translated as "normal" index)
 	+ improved response time for generic wildcard ('*') queries

@@ -67,7 +67,6 @@ const string FreeBiblAttribOptionFieldName = "Bibl";
 const string TextAreaOptionFieldName = "textarea";
 class CConcXml
 {
-
 	class CFreeBiblIndex 
 	{
 		string	GetIndexFileName (string Path) const;
@@ -102,6 +101,15 @@ class CConcXml
 		virtual string	GetTypeStr() const;
 
 		//! initialize CDDCFilterWithBounds for a literal target or regex value (default treats Value as integer string and sets range)
+		//! \param Filter filter to populate
+		//! \param LoValue lower bound value to seek (inclusive)
+		//! \param HiValue upper bound value to seek (exclusive)
+		virtual bool	GetFilterBounds  (CDDCFilterWithBounds& Filter, const string& LoValue, const string &HiValue) const;
+
+		//! initialize CDDCFilterWithBounds for a literal target or regex value (default treats Value as integer string and sets range)
+		//! \param Filter filter to populate
+		//! \param Value value to seek
+		//! \param useBound 0 (default): literal match only, 1: lower bound, 2: upper bound (ignored here)
 		//! \li formerly GetValueForDDCFilter() with isRegex==false (default)
 		virtual bool	GetFilterValue   (CDDCFilterWithBounds& Filter, const string& Value) const;
 
@@ -153,7 +161,15 @@ class CConcXml
 		bool	DeleteBiblFiles (string Path) const;
 		bool	ConvertAndSaveToDiskAfterIndexing(string Path);
 
+		//! initialize CDDCFilterWithBounds for a literal target or regex value (default treats Value as integer string and sets range)
+		//! \param Filter filter to populate
+		//! \param LoValue lower bound value to seek (inclusive)
+		//! \param HiValue upper bound value to seek (exclusive)
+		virtual bool	GetFilterBounds  (CDDCFilterWithBounds& Filter, const string& LoValue, const string &HiValue) const;
+
 		//! initialize CDDCFilterWithBounds for a literal target value (default treats Value as integer string and sets range)
+		//! \param Filter filter to populate
+		//! \param Value value to seek
 		//! \li formerly GetValueForDDCFilter() with isRegex==false (default)
 		virtual bool	GetFilterValue  (CDDCFilterWithBounds& Filter, const string& Value) const;
 
@@ -241,7 +257,16 @@ public:
 	bool			CheckBibl(size_t FileBreaksNumber) const;
 	bool			UniteBibliography(const CConcXml& B1, const CConcXml& B2);
 
+	//! initialize a CDDCFilterWithBounds object for sorting by bibliographical information, given bound(s)
+	//! \param Filter filter to initialize
+	//! \param LoValue lower bound or emtpy for none (inclusive)
+	//! \param HiValue upper bound or emtpy for none (exclusive)
+	//! \li calls CConcXml::CFreeBiblIndex::GetFilterBounds()
+	bool GetFilterBounds(CDDCFilterWithBounds& Filter, const string &LoValue, const string &HiValue) const;
+
 	//! initialize a CDDCFilterWithBounds object for filtering by bibliographical information, for a literal target value.
+	//! \param Filter filter to initialize
+	//! \param Value literal value used to set Filter.m_LevelStart
 	//! \li calls CConcXml::CFreeBiblIndex::GetFilterValue()
 	//! \li formerly GetValueFromBiblSet() with isRegex==false (default)
 	bool GetFilterValue(CDDCFilterWithBounds& Filter, const string &Value) const;

@@ -247,6 +247,14 @@ void CConcXml::CFreeBiblIndex::CreateUnion (string Path, const CFreeBiblIndex* p
 	WriteVector(GetIndexFileName(Path), m_ValuesForEachFile);
 };
 
+bool CConcXml::CFreeBiblIndex::GetFilterBounds (CDDCFilterWithBounds& Filter, const string &LoValue, const string &HiValue) const
+{
+	Filter.m_bSet = false;
+	Filter.m_LevelStart = LoValue.empty() ? INT_MIN : atoi(LoValue.c_str());
+	Filter.m_LevelEnd   = HiValue.empty() ? INT_MAX : atoi(HiValue.c_str());
+	return true;
+};
+
 bool CConcXml::CFreeBiblIndex::GetFilterValue (CDDCFilterWithBounds& Filter, const string &Value) const
 {
 	Filter.m_bSet = false;
@@ -420,6 +428,28 @@ void CConcXml::CFreeBiblStringIndex::CreateUnion (string Path, const CFreeBiblIn
 };
 
 
+bool CConcXml::CFreeBiblStringIndex::GetFilterBounds (CDDCFilterWithBounds& Filter, const string &LoValue, const string &HiValue) const
+{
+	Filter.m_bSet = false;
+
+	//-- lower bound
+	Filter.m_LevelStart = INT_MIN;
+	if (!LoValue.empty()) {
+		vector<string>::const_iterator ilo = lower_bound(m_Values.begin(), m_Values.end(), LoValue);
+		if ( ilo != m_Values.end() )
+			Filter.m_LevelStart = ilo-m_Values.begin();
+	}
+
+	//-- upper bound
+	Filter.m_LevelEnd = INT_MAX;
+	if (!HiValue.empty()) {
+		vector<string>::const_iterator ihi = upper_bound(m_Values.begin(), m_Values.end(), HiValue);
+		if ( ihi != m_Values.end() )
+			Filter.m_LevelEnd = ihi-m_Values.begin();
+	}
+
+	return true;
+}
 
 bool CConcXml::CFreeBiblStringIndex::GetFilterValue (CDDCFilterWithBounds& Filter, const string &Value) const
 {
@@ -433,7 +463,7 @@ bool CConcXml::CFreeBiblStringIndex::GetFilterValue (CDDCFilterWithBounds& Filte
 
 	//-- positive filter condition (literal)
 	vector<string>::const_iterator it = lower_bound(m_Values.begin(), m_Values.end(), Value);
-	if ( (it == m_Values.end()) || (*it  != Value) ) {
+	if ( it == m_Values.end() || *it  != Value ) {
 		Filter.m_LevelStart = 0;
 		Filter.m_LevelEnd = 0;
 	}
@@ -1310,8 +1340,15 @@ void CConcXml::InitGreaterByBiblIntegerField(string FreeBiblAttribName, vector<C
 		hi->m_OrderId = -hi->m_OrderId;
 };
 
+bool CConcXml::GetFilterBounds(CDDCFilterWithBounds& Filter, const string& LoValue, const string& HiValue) const
+{
+	Filter.clear();
+	//-- filter bounds: require physically indexed bibliographic field
+	FreeBiblStringMap::const_iterator it = m_FreeBiblIndices.find(Filter.m_FreeBiblAttribName);
+	if (it == m_FreeBiblIndices.end()) return false; // attribute not found
+	return it->second->GetFilterBounds(Filter, LoValue, HiValue);
+}
 
-//-- initialize CDDCFilterWithBounds for a literal target value
 bool CConcXml::GetFilterValue(CDDCFilterWithBounds& Filter, const string& Value) const
 {
 	Filter.clear();

@@ -356,7 +356,7 @@ Only supported for the C<Free_Index> L<Index Type|/indextype>.
 
 (largely from DDCReadme):
 C<BREAKLIST> is a string of break collection declarations delimited by semicolons C<;>.
-Each break collection declaration is a string of the form
+Each break collection declaration is a colon-separated string of the form
 C<[LONGNAME:SHORTNAME]> or C<[LONGNAME:SHORTNAME:default]>, where
 
 =over 4

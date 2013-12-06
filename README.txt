@@ -1,6 +1,6 @@
     README for package ddc
 
-    Last updated for ddc v2.0.8
+    Last updated for ddc v2.0.15
 
 DESCRIPTION
     The ddc package contains core C++ utilities for the DWDS/Dialing

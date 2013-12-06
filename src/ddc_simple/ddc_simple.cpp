@@ -51,8 +51,10 @@ void PrintUsageAndExit()
 		 "\n"
 		 "Where \"-Limit\" gives the maximum count of occurrences to find\n"
 		 "and \"-Start\" indicates the occurence number from which to start\n"
+		 "QUERY argument can be specified as '<FILE' to read from the named file.\n"
 		 "\n"
 		 "Example(1): %s test.con \"thank && God\" out.txt -Limit 10\n",
+		 
 		 prog, prog
 		 );
 	exit(1);
@@ -108,7 +110,7 @@ int main(int argc, char* argv[])
 				if (i+1 >= argc)
 					PrintUsageAndExit();
 
-				ResultFormat = argv[i+1];
+				ResultFormat = stoupper(argv[i+1]);
 				i++;
 			}
 			else if (s_lo == "-text" || s_lo == "-txt") { ResultFormat = "txt"; }
@@ -226,10 +228,10 @@ int main(int argc, char* argv[])
 			R.m_QueryResultStr = "";
 			
 			vector<string>	queries;
-			if (_Query != "query.txt")
-				queries.push_back(_Query + " "); //-- query parser needs trailing whitespace!
-			else
-			{
+			if (!_Query.empty() && (_Query[0]=='<' || _Query=="query.txt")) {
+				//-- read from named file
+				if (_Query[0]=='<') _Query.erase(0,1);
+
 		 		FILE *fp = fopen(_Query.c_str(), "r");
 				if (!fp)
 				{
@@ -238,26 +240,25 @@ int main(int argc, char* argv[])
 				}
 				else
 				{
-					char s[1000];
-					while (fgets(s,1000,fp)) {
+					char s[1024];
+					while (fgets(s,1024,fp)) {
 						string q = s;
 						Trim(q);
 						if (!q.empty())
 							queries.push_back(q);
 					}
 					fclose (fp);
-				};
+				}
+			}
+			else
+			{
+				queries.push_back(_Query + " "); //-- query parser needs trailing whitespace!
 			};
-			
-			
+
 
 			DWORD  EndHitNo = StartFrom;		
 			DWORD  HitsCount = 0;
-			
-
-			clock_t     AllStartTime = clock();
-			
-			
+			clock_t AllStartTime = clock();
 
 			for (int ProfileCycleNo=0; ProfileCycleNo < CountOfCycles; ProfileCycleNo++) {
 				if (ProfileCycleNo==1) {
