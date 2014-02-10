@@ -544,9 +544,9 @@ bool CConcXml::CFreeBiblStringIndex::GetFilterValues (CDDCFilterWithBounds& Filt
 
 bool CConcXml::CFreeBiblStringIndex::RegisterBiblStringItemId(const string& ValueStr)
 {
-	if (m_BuildStringItems.size() == 0xffff)
+	if (m_BuildStringItems.size() >= DWORD_MAX)
 	{
-		fprintf(stderr, "Too many %s. Cannot be more than 65535\n", m_Name.c_str());
+		fprintf(stderr, "Too many values for bibl field `%s'. Cannot be more than %u\n", m_Name.c_str(), DWORD_MAX);
 		return false;
 	};
     if (ValueStr.length() > MaxBiblStringLen)
