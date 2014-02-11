@@ -1,5 +1,17 @@
 ##-*- Mode: Change-Log; coding: utf-8; -*-
 
+v2.0.17 Tue, 11 Feb 2014 12:58:18 +0100 moocow
+	+ agramtab, morphwizardlib, ddc_morph_gen: fixes for morphology compilation
+	  - symptom: Morph/*/npredict.bin has size 1130 for all languages
+	  - symptom: German 'Vaterland', 'Plastikflasche' are not expanded, but 'Land' and 'Flasche' are
+	  - problem: ddc_morph_gen wants e.g. RML/dict/Morph/ggramtab.tab but that doesn't exist yet at compile time
+	    (path RML/dict/morph/ggramtab.tab is pseudo-hard-coded in RML/etc/rml.ini)
+	  - workaround: added a key 'GRAMTAB' to *.mwz files read by ddc_morph_gen: if that file exists, it's preferred to the registry file
+	+ complete fix also requires new ddc-morph v2.0.1
+
+v2.0.16 Mon, 10 Feb 2014 12:22:08 +0100 moocow
+	+ fixed bogus 16-bit limit (65535) for bibl values in ConcordLib/Bibliography.cpp
+
 v2.0.15 Fri, 06 Dec 2013 14:09:59 +0100 moocow
 	+ band-aid fix for lower/upper-bound parameters to #asc[FIELD] / #desc[FIELD]
 
