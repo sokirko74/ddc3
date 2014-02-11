@@ -1,4 +1,6 @@
-//  Copyright 2011 by Bryan Jurish
+//-*- Mode: C++; c-basic-offset: 4; -*-
+//  Original by Alexey Sokikro
+//  Changes Copyright 2011-2014 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -387,13 +389,22 @@ void MorphoWizard::load_gramtab()
 		default: throw CExpc("Unknown language: " + GetStringByLanguage(m_Language));
 	};
 
-	
 
-	if (!pGramTab->LoadFromRegistry())
-	{
-			throw CExpc("Cannot load gramtab");
-	};
-
+	//-- load gramtab
+	try {
+	    string GramTabFile = m_ProjectFileKeys["GRAMTAB"];
+	    if (!GramTabFile.empty() && FileExists(GramTabFile.c_str())) {
+		fprintf(stderr, "MorphoWizard::load_gramtab(): loading project gramtab file `%s'\n", GramTabFile.c_str());
+		if (!pGramTab->LoadFromFile(GramTabFile.c_str()))
+		    throw CExpc("Cannot load gramtab from file `%s'", GramTabFile.c_str());
+	    } else if (!pGramTab->LoadFromRegistry()) {
+		//fprintf(stderr, "MorphoWizard::load_gramtab(): loading registry gramtab file `%s'\n", pGramTab->RegistryFilename().c_str());
+		throw CExpc("Cannot load gramtab from registry-file `%s'", pGramTab->RegistryFilename().c_str());
+	    }
+	}
+	catch (...) {
+	    throw;
+	}
 	m_pGramTab = pGramTab;
 
 	// read all poses from  m_pGramTab

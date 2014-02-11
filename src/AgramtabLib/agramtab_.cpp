@@ -1,3 +1,4 @@
+//-*- Mode: C++; c-basic-offset: 4; -*-
 #include "StdGramtab.h"
 #include "../common/util_classes.h"
 //
@@ -154,12 +155,14 @@ bool CAgramtab :: Read (const char * FileName)
 
 	/*-- moo:
 	 * + assert() catches here when generating binary morph files via generate_morph_bin.sh
-	 * + commented out in the hopes that subsequent (original) conditional will catch things gracefully
+	 * + commenting out in the hopes that subsequent (original) conditional will catch things gracefully
+	 *   --> DOES NOT WORK: if we do this, gramtab files are expected under $RML/Morph when *building*
+	 *       binary morphology, which results in near-empty npredict.bin files (size=1130 bytes),
+	 *       and consequently no expansions e.g. for German "Vaterland", "Plastikflasche", etc
 	 */
 	//assert (fp);
-
-	if( !fp)
-		return false;
+	if (!fp)
+	  throw CExpc("CAgramtab::Read(): open failed for gramtab file `%s'", FileName);
 
 
 	char buff[300];
@@ -382,26 +385,36 @@ QWORD CAgramtab::GetAllGrammems(const char *gram_code) const
 
 
 
+bool CAgramtab::LoadFromFile(const char *filename)
+{
+  bool rc;
+  try {
+      rc = Read(filename);
+  }
+  catch (CExpc &e) {
+      throw;
+  }
+  catch (...) {
+      return false;
+  }
+  return rc;
+}
 
+string CAgramtab::RegistryFilename ()
+{
+  return ::GetRegistryString(GetRegistryString());
+}
 
 bool CAgramtab::LoadFromRegistry ()
 {
-	try
-	{
-		Read(::GetRegistryString(GetRegistryString()).c_str());
-		return true;
-	}
-	catch (...)
-	{
-		return false;
-	};
+  return LoadFromFile( RegistryFilename().c_str() );
 };
 
 bool CAgramtab::LoadFromRegistryAndCheck ()
 {
 	try
 	{
-		return ReadAndCheck(::GetRegistryString(GetRegistryString()).c_str());
+	        return ReadAndCheck( RegistryFilename().c_str());
 	}
 	catch (...)
 	{

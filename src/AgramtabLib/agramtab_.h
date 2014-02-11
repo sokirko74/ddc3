@@ -95,10 +95,18 @@ class CAgramtab {
 	virtual bool GleicheCase(const char* gram_code_noun, const char* gram_code_adj) const = 0;
 	virtual bool GleicheCaseNumber(const char* gram_code1, const char* gram_code2) const  = 0;
 	virtual QWORD GleicheGenderNumberCase(const char* common_gram_code_noun, const char* gram_code_noun, const char* gram_code_adj) const  = 0;
-	
+
+	/** load from user-specified file */
+	bool	LoadFromFile(const char *filename);
+
+	/** get regisry-dependent default filename */
+	string  RegistryFilename ();
+
+	/** load from default registry file ::GetRegistryString(GetRegistryString()) */
 	bool	LoadFromRegistry ();
 	bool	LoadFromRegistryAndCheck ();
-	int		AreEqualPartOfSpeech (char *grm1, char* grm2) ;
+
+	int	AreEqualPartOfSpeech (char *grm1, char* grm2) ;
 	bool	ProcessPOSAndGrammemsIfCan (const char* tab_str, BYTE* PartOfSpeech,  QWORD* grammems) const;
 	char*	grammems_to_str (QWORD grammems, char* out_buf) const;
 	bool	FindGrammems (const char* gram_codes, QWORD grammems) const;

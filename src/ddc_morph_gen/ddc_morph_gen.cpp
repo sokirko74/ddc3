@@ -1,4 +1,6 @@
-//  Copyright 2011 by Bryan Jurish
+//-*- Mode: C++; c-basic-offset: 4; -*-
+//  Original code by Alexey Sokirko
+//  Changes copyright 2011-2014 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -29,8 +31,8 @@
 
 void PrintUsage()
 {
-		printf ("Dialing Morphological Generator (from text format (*.mrd) to binary(*.bin))\n");
-		printf ("Usage: MorphGen <mwz-file> OutputCatalog <PostfixLength> <MinFreq> [--allow-russian-jo]\n");
+		printf("DDC Morphological Generator (from text format (*.mrd) to binary(*.bin))\n");
+		printf ("Usage: ddc_morph_gen <mwz-file> OutputCatalog <PostfixLength> <MinFreq> [--allow-russian-jo]\n");
 		printf ("where <mwz-file> is a morphology project file\n");
 		printf ("<PostfixLength> is the length of the predicting postfix (can be 1,2,3,4,5). \n");
 		printf ("     By these postfixes will be unkonwn words predicted\n");
@@ -61,7 +63,10 @@ extern bool GenerateMorphDict(std::string filename, std::string out_path, int Po
 int main(int argc, char* argv[])
 {
 	bool bAllowRussianJo = false;
-	if(argc == 6) 
+	if (argc < 5 || (argc>0 && (strcmp(argv[0],"-h")==0 || strcmp(argv[0],"--help")==0))) {
+	  PrintUsage();
+	}
+	if(argc == 6) {
 		if (string(argv[5]) == "--allow-russian-jo")
 		{
 			bAllowRussianJo = true;
@@ -69,6 +74,7 @@ int main(int argc, char* argv[])
 		}
 		else
 			PrintUsage();
+	}
 
 	int PostfixLength = atoi(argv[3]);
 	if (	(PostfixLength == 0) ||  (PostfixLength > 5) )
@@ -179,15 +185,15 @@ int main(int argc, char* argv[])
 		}
 
 	}
-	catch(CExpc c)
+	catch (CExpc c)
 	{
-		printf("Can not Generate: %s\n", c.m_strCause.c_str());
-		return 1;
+	  fprintf(stderr,"cannot generate: %s\n", c.m_strCause.c_str());
+	  return 1;
 	}
-	catch(...)
+	catch (std::exception e)
 	{
-		printf("Can not Generate\n");
-		return 1;
+	  fprintf(stderr,"cannot generate: %s\n", e.what());
+	  return 1;
 	}
 	fprintf(stderr, "exit\n");
 
