@@ -165,15 +165,13 @@ bool CBibliography::ConvertDateToInt(int& Result) const
 	StringTokenizer tok(m_DateStr.c_str(),"-");
 	if (!tok()) return false;
 	year = atoi(tok.val());
-	if (year > 30000) return false;
+	if (year > 0xffff) return false; //-- moo: year-part is 16-bit
 	if (tok())
 	{
+		//-- Mon, 17 Feb 2014 13:26:37 +0100 moocow: allow MM > 12, YYYY-MM dates, and YYYY-MM-DD with DD > 31 
 		month = atoi(tok.val());
-		if (month >  12) return false;
 
-		if (!tok()) return false;
-		day = atoi(tok.val());
-		if (day >  31) return false;
+		if (tok()) day = atoi(tok.val());
 	}
 	else
 	{

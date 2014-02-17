@@ -1,5 +1,12 @@
 ##-*- Mode: Change-Log; coding: utf-8; -*-
 
+v2.0.18-pre1 Mon, 17 Feb 2014 13:49:36 +0100 moocow
+	+ updated date-string parsing code in CBibliography::ConvertDateToInt():
+	  - allow YYYY-MM(-DD)? with MM > 12
+	  - allow YYYY-MM with no DD
+	  - allow YYYY-MM-DD with DD > 31
+	  - allow YYYY up to 65535 (limit for encoding)
+
 v2.0.17 Tue, 11 Feb 2014 12:58:18 +0100 moocow
 	+ agramtab, morphwizardlib, ddc_morph_gen: fixes for morphology compilation
 	  - symptom: Morph/*/npredict.bin has size 1130 for all languages
