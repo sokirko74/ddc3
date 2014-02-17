@@ -1,4 +1,6 @@
-//  Copyright 2011 by Bryan Jurish
+//  Original by Alexey Sokirko.
+//
+//  Modifications sopyright 2011 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -27,6 +29,7 @@ void  PrintUsageAndExit()
 {
   printf ("%s\n", DDCVersionStr.c_str());
   printf ("Usage: %s <ProjectCon> [--only-reindex-morph] [--print-profiler-info] [--skip-initial-file-checking]\n", prog);
+  printf ("NOTE: may generate large temporary files in $TMP or /tmp\n");
   exit(1);
 
 };
