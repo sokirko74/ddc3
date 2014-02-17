@@ -1,0 +1,345 @@
+########################################################################
+## Header
+=pod
+
+=head1 DDC SERVER PROTOCOL
+
+This manual page describes the network protocol used by the DDC
+(sub)corpus and distributed servers.  In the syntax descriptions,
+the string "\x01" represents a literal ASCII byte with decimal value 1
+(the "SOH" [start of heading] character),
+and " " represents a literal space character (ASCII byte with decimal value 32).
+
+=cut
+
+########################################################################
+## Synopsis
+=pod
+
+=head1 SYNOPSIS
+
+ ##=====================================================================
+ ## Message Encoding
+
+ LENGTH DATA
+
+ ##=====================================================================
+ ## Distributed Server Messages
+
+ run_query " " CORPUS "\x01" QUERY "\x01" FORMAT "\x01" OFFSET " " LIMIT " " TIMEOUT
+
+ expand_terms "\x01" PIPELINE "\x01" TERMS "\x01" TIMEOUT
+ expand_terms "\x01" PIPELINE "\x01" TERMS "\x01" TIMEOUT "\x01" CORPUS
+
+ get_paradigm " " WORD "\x01" ILEMMATIZE " " ILANG
+
+ ddc_close_socket
+
+ ##=====================================================================
+ ## Subcorpus Server Messages
+
+ get_first_hits " " QUERY "\x01 " TIMEOUT " " LIMIT
+ get_hit_strings " " FORMAT "\x01" OFFSET " " LIMIT
+
+ expand_terms "\x01" PIPELINE "\x01" TERMS "\x01" TIMEOUT
+
+ ddc_close_socket
+
+=cut
+
+########################################################################
+## Description
+=pod
+
+=head1 DESCRIPTION
+
+This section contains descriptions of the various messages which may
+be sent to a DDC (sub)corpus- or distributed-server and their expected responses.
+
+=cut
+
+##==============================================================
+## Common Encoding
+=pod
+
+=head2 Message Encoding
+
+ LENGTH DATA
+
+All messages sent to or from a DDC server share a common general format C<LENGTH DATA>,
+where C<LENGTH> is a 32-bit little-endian unsigned integer,
+and C<DATA> is the underlying message data, which is exactly C<LENGTH> bytes long.
+
+=cut
+
+##==============================================================
+## Distributed Server Messages
+=pod
+
+=head2 Distributed Server Messages
+
+=cut
+
+##--------------------------------------------------------------
+=pod
+
+=head3 run_query
+
+ run_query " " CORPUS "\x01" QUERY "\x01" FORMAT "\x01" OFFSET " " LIMIT " " TIMEOUT
+
+Top-level user query request.
+
+=over 4
+
+=item CORPUS
+
+is a vacuous parameter, by convention the string "Distributed" is used.
+
+=item QUERY
+
+is the user query in DDC syntax (see L<ddc_query(5)> for details).
+
+=item FORMAT
+
+is a string representing the data format to be returned by DDC.
+Currently, DDC supports the following formats: "JSON", "TABLE", "TEXT", "HTML", or "DOCIDS".
+
+=item OFFSET
+
+is the index of the first hit to be retrieved, starting from 0 (zero).
+
+=item LIMIT
+
+is the maximum number of hits to be retrieved.
+
+=item TIMEOUT
+
+is the maximum number of seconds
+
+=back
+
+Server response depends on FORMAT.  In C<JSON> mode, the response data is a JSON object
+of the form:
+
+ {
+   "istatus_" : 0,		/*-- rsp. istatus_internal status code, 0:success --*/
+   "nstatus_" : 0,		/*-- network status code, 0:success --*/
+   "error_" : null,		/*-- error string, null:no error --*/
+   "nhits_" : 31,		/*-- total number of hits --*/
+   "dhits_" : "17+4+10=31",	/*-- distribution of hits over subcorpora --*/
+   "ndocs_" : 0,		/*-- (?) number of documents containing hits (?) --*/
+   "ddocs_" : "0+0+0=0",	/*-- (?) distribution of hit-documents over subcorpora (?) --*/
+   "end_" : 2,			/*-- index of last returned hit --*/
+   "hits_" : [			/*-- list of hits --*/
+     { 							/*-- each hit is an object --*/
+       "meta_" : {					/*-- hit.meta_: bibliographic metadata --*/
+            "file_" : "busch_max_1865.xml",		/*-- indexed filename --*/
+            "indices_" : ["w","p","l"],			/*-- indexed token fields for ctx_[1] --*/
+            "date_" : "1865",				/*-- indexed date (decoded) --*/
+            "orig_" : "",
+            "page_" : null,
+            "scan_" : "",
+            /*... other indexed metadata fields go here ...*/
+       },
+       "ctx_": [				     	/*-- hit.ctx_ provides result context --*/
+         [ "Ach",",","was","muß","man","oft",... ],	/*-- hit.ctx_[0] is left extra-sentential context (token strings only) --*/
+         [						/*-- hit.ctx_[1] is the hit sentence itself (structured tokens) --*/
+           [ 0, "Wie",      "PWAV",    "wie" ],		/*-- tok[0] is boolean, tok[1] is field meta_.indices_[0], etc --*/
+	   ...
+	   [ 1, "Max",      "NE",      "Max" ],		/*-- tok[0] is true iff token matched a term in the user query --*/
+	   [ 0, "und",      "KON",     "und" ],
+	   [ 1, "Moritz",   "NE",      "Moritz" ],
+	   ...
+         ],
+         [ ...,"heimlich","lustig","machen","." ]	/*-- hit.ctx_[2] is right extra-sentential context (token strings only) --*/
+       ],
+     },
+     /*... other hits go here ...*/
+   ]
+ }
+
+
+=cut
+
+##--------------------------------------------------------------
+=pod
+
+=head3 expand_terms
+
+ expand_terms " \x01" PIPELINE "\x01" TERMS "\x01" TIMEOUT
+ expand_terms " \x01" PIPELINE "\x01" TERMS "\x01" TIMEOUT "\x01" CORPUS
+
+Requests online term expansion of the terms C<TERMS>
+by the expansion pipeline C<PIPELINE>, which must be known to the server (see L<ddc_opt(5)>).  C<TIMEOUT> is a request timeout in seconds.
+If specified, C<CORPUS> is the the name of a subcorpus known to the server which should
+be queried to perform the expansion.  If unspecified, the first registered subcorpus is queried.
+Response is as for the subcorpus C<expand_terms> command.
+
+=cut
+
+##--------------------------------------------------------------
+=pod
+
+=head3 get_paradigm
+
+ get_paradigm " " WORD "\x01" ILEMMATIZE " " ILANG
+
+Request morphological analysis of the word C<WORD> using legacy built-in language-specific heuristics.
+C<ILEMMATIZE> is a boolean integer; if true, only lemmatization is performed.
+C<ILANG> is an integer indicating the built-in language rule-set to use; it should
+be a valid MorphLanguageEnum value as defined in ${DDC_SRC}/src/common/utilit.h ;
+currently recognized values are (0:unknown, 1:Russian, 2:English, 3:German, 4:Generic, 5:URL, 6:Digits).
+
+Response is an HTML fragment.
+
+=cut
+
+##--------------------------------------------------------------
+=pod
+
+=head3 ddc_close_socket
+
+ ddc_close_socket
+
+Dummy request used internally to avoid
+annoying complaints unless each subcorpus socket gets exactly 2 messages per user request.
+B<DANGEROUS> to use on a distributed server, can cause server lockup!
+
+=cut
+
+
+##==============================================================
+## Subcorpus Server Messages
+=pod
+
+=head2 Subcorpus Server Messages
+
+=cut
+
+##--------------------------------------------------------------
+=pod
+
+=head3 get_first_hits
+
+ get_first_hits " " QUERY "\x01" TIMEOUT " " LIMIT
+
+Requests subcorpus-local evaluation of the user query C<QUERY>.
+C<TIMEOUT> is an operation timeout in seconds, and C<LIMIT> is the maximum
+number of hits to evaluate.
+
+If an error occurs, the response is of the form:
+
+ STATUS 0 0 0 0 "\n" ERROR
+
+where C<STATUS> is a non-zero decimal integer error code, and ERROR is a text string describing the error.
+
+On success, responses have the form:
+
+ STATUS MAXHIT NHITS NDOCS SORTED HITIDS
+
+where C<STATUS> is a decimal integer status, 0 (zero) for success,
+C<MAXHIT> is the index of the last hit computed (?? see CConcHolder::GetHits(q, __EndHitNo__)),
+C<NHITS> is the number of hits found (?? see CConcHolder::m_AllHitsCount),
+C<NDOCS> is the number of relevant documents found (?? see CConcHolder::m_RelevantDocumentCount),
+C<SORTED> is a Boolean integer indicating whether or not the hits should be sorted,
+and C<HITIDS> is a TAB-separated list of C<NHITS> hit-identification triples (see CConcHolder::GetHitIds())., each element being
+of the form:
+
+ INDEX " " ORDERID " " ORDER_STRING
+
+where INDEX is the query-dependent hit index, ORDERID is a global sort key for the hit,
+and ORDER_STRING is either "<empty>" or a string sort-key for the hit (the latter just in case
+the query contained a context-dependend sort operation such as C<#left> or C<#right>).
+
+
+=cut
+
+##--------------------------------------------------------------
+=pod
+
+=head3 get_hit_strings
+
+ get_hit_strings " " FORMAT "\x01" OFFSET " " LIMIT
+
+Requests verbose hit strings for the current query
+(assumedly the query itself was specified in the previous C<get_first_hits> request).
+Hits are to be formatted in C<FORMAT>, which should be a format known to DDC.
+C<OFFSET> is th offset of the first hit to return, starting from zero,
+and C<LIMIT> is the maximum number of formatted hits to return.
+
+If an error occurred, the response will be of the form:
+
+ STATUS "\x01" "\n" ERROR
+
+where C<STATUS> is a non-zero decimal integer error code, and ERROR is a text string describing the error.
+
+On success, the response is of the form:
+
+ STATUS "\x01" HIT_STRINGS
+
+where C<HIT_STRINGS> are the formatted hit strings (1 hit per line?).
+
+=cut
+
+
+##--------------------------------------------------------------
+=pod
+
+=head3 expand_terms
+
+ expand_terms "\x01" PIPELINE "\x01" TERMS "\x01" TIMEOUT
+ expand_terms " \x01" PIPELINE "\x01" TERMS "\x01" TIMEOUT "\x01" ...
+
+Requests online term expansion of the terms C<TERMS>
+by the expansion pipeline C<PIPELINE>, which must be known to the subcorpus server (see L<ddc_opt(5)>).
+C<TIMEOUT> is a request timeout in seconds.
+
+Response data is of the form
+
+ STATUS NTERMS "\n" DATA
+
+where C<STATUS> is a decimal integer indicating the operation status (0 indicates success).
+C<NTERMS> is the number of expanded terms being returned in the C<DATA> portion,
+and C<DATA> is either an error message (just in case STATUS is non-zero) or a list of expanded terms
+separated by TABs, newlines, and/or carriage returns (ASCII 0x09, 0x0a, and 0x0d).
+
+=cut
+
+##--------------------------------------------------------------
+=pod
+
+=head3 ddc_close_socket
+
+ ddc_close_socket
+
+Dummy request used internally to avoid
+annoying complaints unless each subcorpus socket gets exactly 2 messages per user request.
+Should always return the response "ok".
+Causes the server to terminate the client connection.
+
+=cut
+
+
+########################################################################
+## Footer
+=pod
+
+=head1 ACKNOWLEDGEMENTS
+
+Alexey Sokirko wrote the original DDC.
+
+=head1 AUTHOR
+
+Bryan Jurish E<lt>jurish@bbaw.deE<gt>
+
+=head1 SEE ALSO
+
+ddc_opt(5),
+ddc_query(5),
+ddc_daemon(1),
+ddc_search(1),
+ddc_xml(1)
+
+=cut
+
+
