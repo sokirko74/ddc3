@@ -1,5 +1,6 @@
-//-*- Mode: C++; c-basic-offset:8;-*-
-//  Copyright 2011 by Bryan Jurish
+//-*- Mode: C++; c-basic-offset:8; -*-
+//  DDC originally by Alexey Sokirko
+//  Changes and modifications 2011-2014 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -55,8 +56,8 @@ public:
 	
 	CDDCCorpusListenHost (bool bDoubleMessage, ProtocolDensityEnum pdProtocolDensity);
 	virtual ~CDDCCorpusListenHost ();
-	string		ProcessSocketString(const string& S, SOCKET rConnectedSocket);
-	bool  LoadHolder();
+	string	ProcessSocketString(const string& S, SOCKET rConnectedSocket);
+	bool	LoadHolder();
 };
 
 struct CQueryStatistics 
@@ -70,8 +71,9 @@ struct CHitToSort
 	BYTE	m_HostNo;
 	DWORD	m_HitNo;
 	DWORD	m_OrderId;
-    string	m_OrderStrId;
-	bool operator < (const CHitToSort& X) const {
+	string	m_OrderStrId;
+
+	inline bool operator < (const CHitToSort& X) const {
 		if (m_OrderId != X.m_OrderId)
 			return m_OrderId < X.m_OrderId;
 		if (m_OrderStrId != X.m_OrderStrId)
@@ -86,16 +88,16 @@ class CDDCServerListenHost  : public CHost
 public:
 	struct CFirstHitsQueryResult 
 	{
-		DWORD				m_AllHitsCount;
-		DWORD				m_AllRelevantDocsCount; 
-		string				m_HitsDistributionStr;
-		string				m_RelevantDocsDistributionStr;
-		int				m_InternalError;
-		bool				m_bSort;
-		NetworkErrorsEnum		m_NetworkError;
-		string				m_ErrorStr;
-		vector<CHitToSort>  		m_Hits;
-		vector<SOCKET>			m_Sockets;
+		DWORD			m_AllHitsCount;
+		DWORD			m_AllRelevantDocsCount; 
+		string			m_HitsDistributionStr;
+		string			m_RelevantDocsDistributionStr;
+		int			m_InternalError;
+		bool			m_bSort;
+		NetworkErrorsEnum	m_NetworkError;
+		string			m_ErrorStr;
+		vector<CHitToSort>  	m_Hits;
+		vector<SOCKET>		m_Sockets;
 
 		bool HasErrors() const
 		{
@@ -124,13 +126,41 @@ public:
 	CDDCServerListenHost (bool bDoubleMessage, ProtocolDensityEnum pdProtocolDensity);
 	virtual ~CDDCServerListenHost ();
 
-	string				ProcessSocketString(const string& S, SOCKET rConnectedSocket);
-	void				GetFirstHitsFromCorpora(const DwordVector& PossibleHosts, const string Query,  const DWORD ResultLimit, const int TimeOut, CFirstHitsQueryResult& Result);
-	NetworkErrorsEnum	GetHitStringsFromOneCorpus(CHost& Host,  const string& ResultType, DWORD StartHitNo, DWORD ResultLimit, int TimeOut, SOCKET& CorpusSocket, int& InternalError, string& Result );
-  NetworkErrorsEnum	RunDistributed(string Query, const string& ResultType, DWORD StartHitNo, DWORD ResultLimit, int& iInternalError, DWORD& EndHitNo, DWORD& HitsCount,  int TimeOut, string& ResultString, DWORD& RelevantDocsCount, string& HitDistrib, string& DocDistrib);
-	bool				ReadPossibleHosts(const string& InputQuery, string& CleanQuery, DwordVector& PossibleHosts) /*const*/;
-    string              ReloadCorpusProcessSignal(const string& Query); 
-    void                ReplaceHolderIfNeeded();
+	/** callback string_socket.h CHost callback */
+	string	ProcessSocketString(const string& S, SOCKET rConnectedSocket);
+
+	void GetFirstHitsFromCorpora(const DwordVector& PossibleHosts,
+				     const string Query,
+				     const DWORD  ResultLimit,
+				     const int    TimeOut,
+				     CFirstHitsQueryResult& Result);
+
+	NetworkErrorsEnum GetHitStringsFromOneCorpus(CHost& Host,
+						     const string& ResultType,
+						     DWORD StartHitNo,
+						     DWORD ResultLimit,
+						     int   TimeOut,
+						     SOCKET& CorpusSocket,
+						     int&    InternalError,
+						     string& Result);
+
+	/** distributed query evaluation guts */
+	NetworkErrorsEnum RunDistributed(string Query,
+					 const string& ResultType,
+					 DWORD StartHitNo,
+					 DWORD ResultLimit,
+					 int&  iInternalError,
+					 DWORD&  EndHitNo,
+					 DWORD&  HitsCount,
+					 int     TimeOut,
+					 string& ResultString,
+					 DWORD&  RelevantDocsCount,
+					 string& HitDistrib,
+					 string& DocDistrib);
+
+	bool   ReadPossibleHosts(const string& InputQuery, string& CleanQuery, DwordVector& PossibleHosts) /*const*/;
+	string ReloadCorpusProcessSignal(const string& Query); 
+	void   ReplaceHolderIfNeeded();
 
 };
 
@@ -170,8 +200,7 @@ bool SaveTrigger(const string& S, DWORD LParam)
 };
 
 bool  CDDCCorpusListenHost::LoadHolder() {
-
-    assert (!m_pHolder);
+	assert (!m_pHolder);
 	m_pHolder = new CConcHolder;
 	m_LogFunction = concord_daemon_log;;
 
@@ -194,7 +223,7 @@ bool  CDDCCorpusListenHost::LoadHolder() {
 
 	concord_daemon_log ( "  ok " );
 
-    return true;
+	return true;
 }
 
 
@@ -329,7 +358,7 @@ CDDCServerListenHost::~CDDCServerListenHost ()
 	void*   ReloadCorpus( void* pParam )
 #endif
 {
- 	CDDCServerListenHost* pServer = (CDDCServerListenHost* )pParam;
+	CDDCServerListenHost* pServer = (CDDCServerListenHost* )pParam;
     const CDDCCorpusListenHost& OldH = LocalCorpora[pServer->m_ReloadCorpusNo];
     CDDCCorpusListenHost C(false, pdWeakDensity);
     C.CopyAddressParametersFrom(OldH);
@@ -893,7 +922,6 @@ NetworkErrorsEnum CDDCServerListenHost::RunDistributed(string Query, const strin
 			m_ErrorStr = FHResult.m_ErrorStr;
 			return FHResult.m_NetworkError==neSuccess ? neInternalError : FHResult.m_NetworkError;
 		}
-		/* -- ARGH: real hits aren't coming back any more! -- ???? */
 		else if (InternalError != errNone) {
 			FHResult.CloseSockets();
 			m_ErrorStr = S;

@@ -1,6 +1,8 @@
 ##-*- Mode: Change-Log; coding: utf-8; -*-
 
-v2.0.18-pre1 Mon, 17 Feb 2014 13:49:36 +0100 moocow
+v2.0.18-pre1 Tue, 18 Feb 2014 09:19:08 +0100 moocow
+	+ src/ConcordDmnLib/Corpora.cpp minor beautifications
+	+ updated copyright notices in source files
 	+ updated date-string parsing code in CBibliography::ConvertDateToInt():
 	  - allow YYYY-MM(-DD)? with MM > 12
 	  - allow YYYY-MM with no DD

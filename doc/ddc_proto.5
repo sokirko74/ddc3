@@ -62,7 +62,7 @@
 .\" ========================================================================
 .\"
 .IX Title "DDC_PROTO 5"
-.TH DDC_PROTO 5 "2014-02-17" "2.0.18-pre1" "DDC Corpus Indexing System"
+.TH DDC_PROTO 5 "2014-02-18" "2.0.18-pre1" "DDC Corpus Indexing System"
 .\" For nroff, turn off justification.  Always turn off hyphenation; it makes
 .\" way too many mistakes in technical documents.
 .if n .ad l
@@ -256,13 +256,11 @@ On success, responses have the form:
 .Ve
 .PP
 where \f(CW\*(C`STATUS\*(C'\fR is a decimal integer status, 0 (zero) for success,
-\&\f(CW\*(C`MAXHIT\*(C'\fR is the index of the last hit computed (??: EndHitNo),
-\&\f(CW\*(C`NHITS\*(C'\fR is the number of hits found (??: CConcHolder::m_AllHitsCount),
-\&\f(CW\*(C`NDOCS\*(C'\fR is the number of relevant documents found (??: CConcHolder::m_RelevantDocumentCount),
+\&\f(CW\*(C`MAXHIT\*(C'\fR is the index of the last hit computed (?? see CConcHolder::GetHits(q, _\|_EndHitNo_\|_)),
+\&\f(CW\*(C`NHITS\*(C'\fR is the number of hits found (?? see CConcHolder::m_AllHitsCount),
+\&\f(CW\*(C`NDOCS\*(C'\fR is the number of relevant documents found (?? see CConcHolder::m_RelevantDocumentCount),
 \&\f(CW\*(C`SORTED\*(C'\fR is a Boolean integer indicating whether or not the hits should be sorted,
-and \f(CW\*(C`HITIDS\*(C'\fR is a formatted list of hit identifiers (??: \fICConcHolder::GetHitIds()\fR).
-.PP
-\&\f(CW\*(C`HITIDS\*(C'\fR is a TAB-separated list of \f(CW\*(C`NHITS\*(C'\fR hit-identification triples, each element being
+and \f(CW\*(C`HITIDS\*(C'\fR is a TAB-separated list of \f(CW\*(C`NHITS\*(C'\fR hit-identification triples (see \fICConcHolder::GetHitIds()\fR)., each element being
 of the form:
 .PP
 .Vb 1
@@ -292,15 +290,33 @@ If an error occurred, the response will be of the form:
 \& STATUS "\ex01" "\en" ERROR
 .Ve
 .PP
-where \f(CW\*(C`STATUS\*(C'\fR is a non-zero decimal integer error code, and \s-1ERROR\s0 is a text string describing the error.
+where \f(CW\*(C`STATUS\*(C'\fR is a non-zero decimal integer error code (DDCErrorEnum InternalError),
+and \f(CW\*(C`ERROR\*(C'\fR is a text string describing the error.
 .PP
 On success, the response is of the form:
 .PP
 .Vb 1
-\& STATUS "\ex01" HIT_STRINGS
+\& C<STATUS> "\ex01" HIT_STRINGS "\ex01"
 .Ve
 .PP
-where \f(CW\*(C`HIT_STRINGS\*(C'\fR are the formatted hit strings (1 hit per line?).
+where \f(CW\*(C`STATUS\*(C'\fR is a decimal integer zero (\*(L"0\*(R")
+and \f(CW\*(C`HIT_STRINGS\*(C'\fR are the formatted hit strings, separated by \*(L"\ex01\*(R".
+By convention, each hit is terminated by \*(L"\en\*(R" and preceded by \*(L"\ex01\*(R".
+For \*(L"\s-1JSON\s0\*(R" format hit strings, the first character of the first hit is a \*(L"[\*(R" character,
+the final character of all non-final hits is a \*(L",\*(R" character, and the final character
+of the final hit is a \*(L"]\*(R" character, so hits can be parsed as raw \s-1JSON\s0 data by removing
+the initial \f(CW\*(C`STATUS\*(C'\fR code and all \*(L"\ex01\*(R" characters from \f(CW\*(C`HIT_STRINGS\*(C'\fR before parsing.
+.PP
+An example response in \s-1JSON\s0 format is:
+.PP
+.Vb 6
+\& 0\ex01[{"meta_":{"file_":"dannhauer_catechismus05_1654.xml",...},"ctx_":[[],[...],[]]},
+\& \ex01{"meta_":{"file_":"frentzel_schauplatz_1744.xml",...},"ctx_":[[],[...],[]]},
+\& ...
+\& \ex01{"meta_":{"file_":"busch_max_1865.xml",...},"ctx_":[[],[...],[]]},
+\& \ex01{"meta_":{"file_":"frege_sinn_1892.xml",...},"ctx_":[[],[...],[]]}]
+\& \ex01
+.Ve
 .PP
 \fIexpand_terms\fR
 .IX Subsection "expand_terms"

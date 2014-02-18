@@ -271,13 +271,29 @@ If an error occurred, the response will be of the form:
 
  STATUS "\x01" "\n" ERROR
 
-where C<STATUS> is a non-zero decimal integer error code, and ERROR is a text string describing the error.
+where C<STATUS> is a non-zero decimal integer error code (DDCErrorEnum InternalError),
+and C<ERROR> is a text string describing the error.
 
 On success, the response is of the form:
 
- STATUS "\x01" HIT_STRINGS
+ C<STATUS> "\x01" HIT_STRINGS "\x01"
 
-where C<HIT_STRINGS> are the formatted hit strings (1 hit per line?).
+where C<STATUS> is a decimal integer zero ("0")
+and C<HIT_STRINGS> are the formatted hit strings, separated by "\x01".
+By convention, each hit is terminated by "\n" and preceded by "\x01".
+For "JSON" format hit strings, the first character of the first hit is a "[" character,
+the final character of all non-final hits is a "," character, and the final character
+of the final hit is a "]" character, so hits can be parsed as raw JSON data by removing
+the initial C<STATUS> code and all "\x01" characters from C<HIT_STRINGS> before parsing.
+
+An example response in JSON format is:
+
+ 0\x01[{"meta_":{"file_":"dannhauer_catechismus05_1654.xml",...},"ctx_":[[],[...],[]]},
+ \x01{"meta_":{"file_":"frentzel_schauplatz_1744.xml",...},"ctx_":[[],[...],[]]},
+ ...
+ \x01{"meta_":{"file_":"busch_max_1865.xml",...},"ctx_":[[],[...],[]]},
+ \x01{"meta_":{"file_":"frege_sinn_1892.xml",...},"ctx_":[[],[...],[]]}]
+ \x01
 
 =cut
 

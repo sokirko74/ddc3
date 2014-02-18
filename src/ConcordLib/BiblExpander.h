@@ -1,5 +1,6 @@
 //-*- Mode: C++ -*-
-//  Copyright 2013 by Bryan Jurish
+//  DDC originally by Alexey Sokirko
+//  Changes and modifications 2013-2014 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 

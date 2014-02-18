@@ -235,12 +235,11 @@ number of hits to evaluate.</p>
 <pre>
  STATUS MAXHIT NHITS NDOCS SORTED HITIDS</pre>
 <p>where <code>STATUS</code> is a decimal integer status, 0 (zero) for success,
-<code>MAXHIT</code> is the index of the last hit computed (??: EndHitNo),
-<code>NHITS</code> is the number of hits found (??: CConcHolder::m_AllHitsCount),
-<code>NDOCS</code> is the number of relevant documents found (??: CConcHolder::m_RelevantDocumentCount),
+<code>MAXHIT</code> is the index of the last hit computed (?? see CConcHolder::GetHits(q, __EndHitNo__)),
+<code>NHITS</code> is the number of hits found (?? see CConcHolder::m_AllHitsCount),
+<code>NDOCS</code> is the number of relevant documents found (?? see CConcHolder::m_RelevantDocumentCount),
 <code>SORTED</code> is a Boolean integer indicating whether or not the hits should be sorted,
-and <code>HITIDS</code> is a formatted list of hit identifiers (??: CConcHolder::GetHitIds()).</p>
-<p><code>HITIDS</code> is a TAB-separated list of <code>NHITS</code> hit-identification triples, each element being
+and <code>HITIDS</code> is a TAB-separated list of <code>NHITS</code> hit-identification triples (see CConcHolder::GetHitIds())., each element being
 of the form:</p>
 <pre>
  INDEX &quot; &quot; ORDERID &quot; &quot; ORDER_STRING</pre>
@@ -260,11 +259,26 @@ and <a href="#limit"><code>LIMIT</code></a> is the maximum number of formatted h
 <p>If an error occurred, the response will be of the form:</p>
 <pre>
  STATUS &quot;\x01&quot; &quot;\n&quot; ERROR</pre>
-<p>where <code>STATUS</code> is a non-zero decimal integer error code, and ERROR is a text string describing the error.</p>
+<p>where <code>STATUS</code> is a non-zero decimal integer error code (DDCErrorEnum InternalError),
+and <code>ERROR</code> is a text string describing the error.</p>
 <p>On success, the response is of the form:</p>
 <pre>
- STATUS &quot;\x01&quot; HIT_STRINGS</pre>
-<p>where <code>HIT_STRINGS</code> are the formatted hit strings (1 hit per line?).</p>
+ C&lt;STATUS&gt; &quot;\x01&quot; HIT_STRINGS &quot;\x01&quot;</pre>
+<p>where <code>STATUS</code> is a decimal integer zero (&quot;0&quot;)
+and <code>HIT_STRINGS</code> are the formatted hit strings, separated by &quot;\x01&quot;.
+By convention, each hit is terminated by &quot;\n&quot; and preceded by &quot;\x01&quot;.
+For &quot;JSON&quot; format hit strings, the first character of the first hit is a &quot;[&quot; character,
+the final character of all non-final hits is a &quot;,&quot; character, and the final character
+of the final hit is a &quot;]&quot; character, so hits can be parsed as raw JSON data by removing
+the initial <code>STATUS</code> code and all &quot;\x01&quot; characters from <code>HIT_STRINGS</code> before parsing.</p>
+<p>An example response in JSON format is:</p>
+<pre>
+ 0\x01[{&quot;meta_&quot;:{&quot;file_&quot;:&quot;dannhauer_catechismus05_1654.xml&quot;,...},&quot;ctx_&quot;:[[],[...],[]]},
+ \x01{&quot;meta_&quot;:{&quot;file_&quot;:&quot;frentzel_schauplatz_1744.xml&quot;,...},&quot;ctx_&quot;:[[],[...],[]]},
+ ...
+ \x01{&quot;meta_&quot;:{&quot;file_&quot;:&quot;busch_max_1865.xml&quot;,...},&quot;ctx_&quot;:[[],[...],[]]},
+ \x01{&quot;meta_&quot;:{&quot;file_&quot;:&quot;frege_sinn_1892.xml&quot;,...},&quot;ctx_&quot;:[[],[...],[]]}]
+ \x01</pre>
 <p>
 </p>
 <h3><a name="expand_terms">expand_terms</a></h3>
