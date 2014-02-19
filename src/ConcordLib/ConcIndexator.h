@@ -233,6 +233,9 @@ public:
 	//! indices to show for Free_Index
 	vector<size_t>					m_IndicesToShow;
 
+	//! moo: timestamp of project *._con file
+	time_t m_Timestamp;
+
 	//! term expansion dispatcher; should define at least an entry for "default"
 	TxDispatcher m_Txd;
 
@@ -304,6 +307,9 @@ public:
 	
 	//! loads  everything
 	bool	LoadProject(string FileName);
+
+	//! update m_Timestamp to mtime of Filename if it is newer than the current m_Timestamp; \returns new m_Timestamp
+	time_t UpdateTimestamp(const char *filename);
 
 	//! dump loaded metadata to a stream (JSON)
 	void DumpBibliography(FILE *f=stdout) const;

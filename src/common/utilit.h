@@ -208,67 +208,67 @@ public:
 // working with files
 extern bool		FileExists (const char *FName);
 extern file_off_t	FileSize (const char *filename);
+extern time_t		FileMTime (const char *filename);
 extern bool		FSeek(FILE* fp, file_off_t pos, int origin);
 extern file_off_t	FTell(FILE* fp);
 
 
-
-extern void		ErrorMessage (const string& Titul, const string& Message);
-extern void		ErrorMessage (const string& Message);
+extern void	ErrorMessage (const string& Titul, const string& Message);
+extern void	ErrorMessage (const string& Message);
 extern string	MakeFName ( const string& InpitFileName,  const string& Ext);
-extern bool		MakePath (const char* RossPath, const char* FileName, char* FullPath);
+extern bool	MakePath (const char* RossPath, const char* FileName, char* FullPath);
 extern string	GetPathByFile (string FileName);
-extern bool		IsBinFile (const char* FileName);
-extern bool		IsEmptyLine ( const char *t);
+extern bool	IsBinFile (const char* FileName);
+extern bool	IsEmptyLine ( const char *t);
 
 //-- filename stuff
-extern bool		IsHtmlFile (const string& FileName);
-extern bool             IsTableFile (const string& FileName);
-extern bool             IsJsonFile (const string& FileName);
-extern string           FileExtension (const string& FileName);
+extern bool	IsHtmlFile (const string& FileName);
+extern bool	IsTableFile (const string& FileName);
+extern bool	IsJsonFile (const string& FileName);
+extern string	FileExtension (const string& FileName);
 
 //! Returns directory part of \a FileName, or "." if FileName is a bare filename
-extern string           FileDirectory (const string& FileName);
+extern string	FileDirectory (const string& FileName);
 
 //! Wrapper for getcwd(); returns current working directory of current process
-extern string		CurrentDirectory(void);
+extern string	CurrentDirectory(void);
 
 //! Returns true iff PathName is an absolute path (simple string heuristics)
-extern bool             IsAbsolutePath (const string& PathName);
+extern bool	IsAbsolutePath (const string& PathName);
 
 //! If PathName is absolute, it is returned; otherwise returns (RefDir + "/" + PathName)
-extern string		RelativePathName(const string &RefDir, const string &PathName);
+extern string	RelativePathName(const string &RefDir, const string &PathName);
 
 //! If PathName is absolute, it is returned; otherwise returns (FileDirectory(RefFile) + "/" + PathName)
-extern string		RelativeFileName(const string &RefFile, const string &PathName);
+extern string	RelativeFileName(const string &RefFile, const string &PathName);
 
-extern void		AddFile(const char* MainFile, const char* ToAdd);
+extern void	AddFile(const char* MainFile, const char* ToAdd);
 extern bool     RmlMoveFile(const char *oldpath, const char *newpath);
 extern bool     RmlCopyFile(const char *oldpath, const char *newpath);
 extern string	CreateTempFileName();
-extern bool		MakeDir(const string& txt);
+extern bool	MakeDir(const string& txt);
 extern bool     RemoveWithPrint (const string& FileName);
 
 // working with registry 
 extern string	GetRegistryString (string RegistryPath);
 extern string	GetRegistryStringFromLocalIniFile (string RegistryPath);
-extern bool		CanGetRegistryString (string RegistryPath);
-extern void		SetRegistryString (string RegistryPath, string Value);
-extern bool		IsRmlRegistered(string& Error);
-extern bool		CheckEvaluationTime();
+extern bool	CanGetRegistryString (string RegistryPath);
+extern void	SetRegistryString (string RegistryPath, string Value);
+extern bool	IsRmlRegistered(string& Error);
+extern bool	CheckEvaluationTime();
 extern struct tm  RmlGetCurrentTime ();
-extern bool		ReadTimeOutFromRegistry(bool bReadFromLocalFile, int& TimeOut);
+extern bool	ReadTimeOutFromRegistry(bool bReadFromLocalFile, int& TimeOut);
 extern string	GetIniFilePath();
 extern string	GetRmlVariable();
 extern string   BuildRMLPath (const char* s);
 
 // working with strings
 extern char*	rtrim (char* s);
-extern bool		IsSuperEqualChar (BYTE ch1, BYTE ch2, MorphLanguageEnum langua);
-extern bool		strscmp ( const char *s1, const char *s2, size_t l, MorphLanguageEnum langua);
-extern int		CompareWithoutRegister ( const char *s1, const char *s2, size_t l, MorphLanguageEnum langua);
-extern BYTE		force_rus_char (BYTE ch);
-extern bool		force_to_rus (char* dest, const char* sour, size_t len);
+extern bool	IsSuperEqualChar (BYTE ch1, BYTE ch2, MorphLanguageEnum langua);
+extern bool	strscmp ( const char *s1, const char *s2, size_t l, MorphLanguageEnum langua);
+extern int	CompareWithoutRegister ( const char *s1, const char *s2, size_t l, MorphLanguageEnum langua);
+extern BYTE	force_rus_char (BYTE ch);
+extern bool	force_to_rus (char* dest, const char* sour, size_t len);
 extern char*	IntToStr (int Value, char* Buffer);
 extern string&	IntToStr (int Value, string& oBuffer);
 extern string	Format( const char* format, ... );
@@ -282,6 +282,10 @@ extern void		KOI8ToWin (string& s);
 extern void		WinToKOI8 (string& s);
 
 extern DWORD	StringCrc32(const char* szString);
+
+//! moo: timestamp stuff
+extern string timestampLocal(time_t timeval);
+extern string timestampUTC(time_t timeval);
 
 //! moo: convenience wrapper for string-to-vector tokenization using StringTokenizer
 vector<string> stringSplit(const char *s, const char *delims);

@@ -32,6 +32,15 @@
 	#include <sys/stat.h>
 #endif
 
+//-- for stat() and mtime
+#ifdef HAVE_SYS_TYPES_H
+# include <sys/types.h>
+#endif
+
+#ifdef HAVE_SYS_STAT_H
+# include <sys/stat.h>
+#endif
+
 #ifdef DETECT_MEMORY_LEAK
 	#ifdef _DEBUG
 	#define new DEBUG_NEW
@@ -331,6 +340,18 @@ file_off_t FileSize (const char *filename)
 	file_off_t size = FTell (fp);
 	fclose (fp);
 	return size;
+}
+
+time_t FileMTime (const char *filename)
+{
+#if defined(HAVE_SYS_TYPES_H) && defined(HAVE_SYS_STAT_H)
+    struct stat statbuf;
+    if (stat(filename, &statbuf) == -1)
+	return 0;
+    return statbuf.st_mtime;
+#else
+    return 0;
+#endif
 }
 
 
@@ -2166,6 +2187,24 @@ void CMyTimeSpanHolder::ClearTimers()
 	m_TimeSpans.clear();
 	m_SequenceId = 0;
 };
+
+string timestampLocal(time_t timeval)
+{
+    char buf[32];
+    struct tm time_tm;
+    localtime_r(&timeval, &time_tm);
+    strftime(buf, 32, "%FT%T%z", &time_tm);		    //--- ISO 8601 timestamp, local
+    return string(buf);
+}
+string timestampUTC(time_t timeval)
+{
+    char buf[32];
+    struct tm time_tm;
+    gmtime_r(&timeval, &time_tm);
+    strftime(buf, 32, "%FT%TZ", &time_tm);		    //--- ISO 8601 timestamp, UTC
+    return string(buf);
+}
+
 
 vector<string> stringSplit(const char *s, const char *delims)
 {

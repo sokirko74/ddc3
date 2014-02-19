@@ -53,7 +53,13 @@ class CDDCCorpusListenHost  : public CHost
 {
 public:
 	CConcHolder*					m_pHolder;
-	
+
+	/** moo: timestamp of server initialization */
+	time_t m_tStarted;
+
+	/** moo: number of served requests */
+	size_t m_nRequests;
+
 	CDDCCorpusListenHost (bool bDoubleMessage, ProtocolDensityEnum pdProtocolDensity);
 	virtual ~CDDCCorpusListenHost ();
 	string	ProcessSocketString(const string& S, SOCKET rConnectedSocket);
@@ -123,6 +129,13 @@ public:
 	int                             m_ReloadCorpusNo;
 	CConcHolder*                    m_pReloadedCorpusHolder;
 
+	/** moo: timestamp of server initialization */
+	time_t m_tStarted;
+
+	/** moo: number of served requests */
+	size_t m_nRequests;
+
+
 	CDDCServerListenHost (bool bDoubleMessage, ProtocolDensityEnum pdProtocolDensity);
 	virtual ~CDDCServerListenHost ();
 
@@ -162,6 +175,8 @@ public:
 	string ReloadCorpusProcessSignal(const string& Query); 
 	void   ReplaceHolderIfNeeded();
 
+	/** pass request to each subcorpus host and fetch results into a JSON array */
+	string  GetSubcorpusJsonArray(const string &request, int timeout = 10);
 };
 
 
@@ -172,11 +187,12 @@ CDDCServerListenHost* pServer = 0;
 
 
 CDDCCorpusListenHost::CDDCCorpusListenHost (bool bDoubleMessage, ProtocolDensityEnum pdProtocolDensity) : 
-		CHost(bDoubleMessage, pdProtocolDensity)
+	CHost(bDoubleMessage, pdProtocolDensity)
 {
 	m_pHolder = 0;
 	m_LogFunction = concord_daemon_log;
-	
+	m_tStarted = time(NULL);
+	m_nRequests = 0;
 };
 
 
@@ -209,9 +225,9 @@ bool  CDDCCorpusListenHost::LoadHolder() {
 	if (!m_pHolder->m_pIndexator->LoadProject(GetLocalPathOfIndex())) 
 	{
 		concord_daemon_log ( Format("Error! Cannot load project %s! ", GetLocalPathOfIndex().c_str()) );
-        delete m_pHolder->m_pIndexator;
-        delete  m_pHolder;
-        m_pHolder = 0;
+		delete m_pHolder->m_pIndexator;
+		delete  m_pHolder;
+		m_pHolder = 0;
 		return false;
 	};
 	concord_daemon_log ( "  init graphan " );
@@ -322,11 +338,131 @@ string CDDCCorpusListenHost::ProcessSocketString(const string& InputSocket, SOCK
 			Result = Format("%i 0\n%s", -1, e.what());
 		}
 	}
+	else if (cmd == "version") {
+		//-- version : subcorpus server version
+		Result = PACKAGE_VERSION ;
+	}
+	else if (cmd == "status" || cmd == "vstatus") {
+		//-- status : subcorpus server status
+		double uptime = difftime(time(NULL), m_tStarted);
+
+		Result = (string("{\n\t")
+			  + "\"name\":" + jsonStr(m_CorpusName) + ",\n\t"
+			  + "\"version\":" + jsonStr(PACKAGE_VERSION) + ",\n\t"
+			  + "\"host\":" + jsonStr(m_HostName) + ",\n\t"
+			  + "\"port\":" + Format("%d", m_Port) + ",\n\t"
+			  + "\"started\":" + jsonStr(timestampUTC(m_tStarted)) + ",\n\t"
+			  + "\"uptime\":" + Format("%.0f", uptime) + ",\n\t"
+			  + "\"nrequests\":" + Format("%zi", m_nRequests) + ",\n\t"
+			  + "\"cachesize\":" + Format("%zi", m_pHolder->CacheSize()) + "\n\t"
+			  + "}");
+	}
+	else if (cmd == "info") {
+		//-- info : corpus info
+		CConcIndexator *ix = m_pHolder ? m_pHolder->m_pIndexator : NULL;
+		int i;
+
+		Result = (string("{\n\t")
+			  + "\"name\":" + jsonStr(m_CorpusName) + ",\n\t"
+			  + "\"version\":" + jsonStr(PACKAGE_VERSION) + ",\n\t"
+			  + "\"project\":" + jsonStr(ix ? ix->m_Path : string("")) + ",\n\t"
+			  + "\"indexed\":" + jsonStr(timestampUTC(ix ? ix->m_Timestamp : 0)) + ",\n\t"
+			  + "\"utf8\":"    + (ix->m_Utf8 ? '1' : '0') + ",\n\t"
+			  + "\"nfiles\":"  + Format("%zi", ix->GetSourceFilesCount()) + ",\n\t"
+			  + "\"ntokens\":" + Format("%zi", ix->GetCorpusEndTokenNo()) + ",\n\t"
+			  );
+
+		//-- info.bibl
+		Result += "\"bibl\":[";
+		const CConcXml::FreeBiblStringMap& bmap = ix->m_Bibl.GetFreeBiblStringMap();
+		i=0;
+		for (CConcXml::FreeBiblStringMap::const_iterator bmi=bmap.begin(); bmi != bmap.end(); ++i, ++bmi) {
+			const CConcXml::CFreeBiblIndex *fbi = bmi->second;
+			if (i != 0) Result += ',';
+			Result += (string("\n\t\t{")
+				   + "\"name\":" + jsonStr(fbi->m_Name) + ", "
+				   + "\"xpath\":" + jsonStr(fbi->m_Xpath) + ", "
+				   + "\"visible\":" + (fbi->m_bShowInHeader ? '1' : '0') + ", "
+				   + "\"size\":" + Format("%zi", fbi->size()) //-- bibl[i].size : number of breaks
+				   + "}"
+				   );
+		}
+		Result += "\n\t\t],\n\t";
+		//-- /info.bibl
+
+		//-- info.breaks
+		Result += "\"breaks\":[";
+		const vector<CHitBorders::CBreakCollection> &breaks = ix->GetBreaks();
+		for (i=0; i < breaks.size(); ++i) {
+			const CHitBorders::CBreakCollection &b = breaks[i];
+			if (i != 0) Result += ',';
+			Result += (string("\n\t\t{")
+				   + "\"shortname\":" + jsonStr(b.m_ShortName) + ", "
+				   + "\"longname\":" + jsonStr(b.m_LongName) + ", "
+				   + "\"visible\":" + '1' + ", "
+				   + "\"size\":" + Format("%zi", b.m_BreakOffsets.size()) //-- breaks[i].size : number of breaks
+				   + "}"
+				   );
+		}
+		Result += "\n\t\t],\n\t";
+		//-- /info.breaks
+
+		//-- info.indices
+		Result += "\"indices\":[";
+		for (i=0; i < ix->m_Indices.size(); ++i) {
+			const CStringIndexSet* sis = ix->m_Indices[i];
+			if (i != 0) Result += ',';
+			Result += (string("\n\t\t{")
+				   + "\"shortname\":" + jsonStr(sis->m_ShortName) + ", "
+				   + "\"longname\":" + jsonStr(sis->m_Name) + ", "
+				   + "\"size\":" + Format("%zi", sis->m_Index.size()) //-- indices[i].size : number of values (?)
+				   + "}"
+				   );
+		}
+		Result += "\n\t\t],\n\t";
+		//-- /info.indices
+
+		//-- info.xbibl ~ ExpandBibl
+		Result += "\"xbibl\":[";
+		const CConcXml::BiblExpanderMap& xbmap = ix->m_Bibl.GetBiblExpanderMap();
+		i=0;
+		for (CConcXml::BiblExpanderMap::const_iterator bmi=xbmap.begin(); bmi != xbmap.end(); ++i, ++bmi) {
+			const CBiblExpander *bx = bmi->second;
+			if (i != 0) Result += ',';
+			Result += (string("\n\t\t{")
+				   + "\"name\":" + jsonStr(bx->m_BxLabel) + ", "
+				   + "\"target\":" + jsonStr(bx->m_BxTarget) + ", "
+				   + "\"param\":" + jsonStr(bx->m_BxParam)
+				   + "}"
+				   );
+		}
+		Result += "\n\t\t],\n\t";
+		//-- /info.xbibl
+
+		//-- info.expanders ~ Expand
+		Result += "\"expanders\":[\n\t\t";
+		i=0;
+		for (TxDispatcher::TxMap::const_iterator txi=ix->m_Txd.m_tx.begin(); txi != ix->m_Txd.m_tx.end(); ++i, ++txi) {
+			const CTermExpander* tx = txi->second;
+			if (i != 0) Result += ",\n\t\t";
+			Result += (string("{")
+				   + "\"class\":" + jsonStr(tx->m_Class) + ", "
+				   + "\"name\":" + jsonStr(tx->m_Label) + ", "
+				   + "\"param\":" + jsonStr(tx->m_Param)
+				   + "}"
+				   );
+		}
+		Result += "\n\t\t]\n\t";
+		//--/info.expanders
+
+		Result += "}"; //-- /info
+	}
 	else {
-		Result = Format("%i 0\nunknown command `%s'", cmd.c_str());
-		concord_daemon_log(Format("CDDCCorpusListenHost: %s", Result.c_str()));
+		Result = Format("%i 0\nunknown command `%s'", errParseError, cmd.c_str());
+		concord_daemon_log( Format("CDDCCorpusListenHost Error: unknown command \"%s\"", cmd.c_str()) );
 	}
 
+	++m_nRequests;
 	return Result;
 };
 
@@ -344,6 +480,8 @@ CHost(bDoubleMessage, pdProtocolDensity)
 	m_ReloadCorpusNo = -1;
 	m_pReloadedCorpusHolder = 0;
 	m_maxReceiveBytes = DDC_STATIC_BUFLEN;
+	m_tStarted = time(NULL);
+	m_nRequests = 0;
 };
 
 
@@ -358,7 +496,7 @@ CDDCServerListenHost::~CDDCServerListenHost ()
 	void*   ReloadCorpus( void* pParam )
 #endif
 {
-	CDDCServerListenHost* pServer = (CDDCServerListenHost* )pParam;
+    CDDCServerListenHost* pServer = (CDDCServerListenHost* )pParam;
     const CDDCCorpusListenHost& OldH = LocalCorpora[pServer->m_ReloadCorpusNo];
     CDDCCorpusListenHost C(false, pdWeakDensity);
     C.CopyAddressParametersFrom(OldH);
@@ -584,6 +722,48 @@ string CDDCServerListenHost::ProcessSocketString(const string& InputSocket, SOCK
 				}
 			}
 		}
+		else if (cmd == "version") {
+			//-- version : distributed server version
+			Result = PACKAGE_VERSION;
+		}
+		else if (cmd == "status" || cmd == "vstatus") {
+			//-- status or vstatus : distributed server status
+			double uptime = difftime(time(NULL), m_tStarted);
+
+			Result = (string("{\n")
+				  + "\"name\":" + jsonStr(m_CorpusName) + ",\n"
+				  + "\"version\":" + jsonStr(PACKAGE_VERSION) + ",\n"
+				  + "\"host\":" + jsonStr(m_HostName) + ",\n"
+				  + "\"port\":" + Format("%d", m_Port) + ",\n"
+				  + "\"started\":" + jsonStr(timestampUTC(m_tStarted)) + ",\n"
+				  + "\"uptime\":" + Format("%.0f", uptime) + ",\n"
+				  + "\"nrequests\":" + Format("%zi", m_nRequests) + ",\n"
+				  + "\"corpora\":"
+				  );
+
+			if (cmd[0]=='v') {
+				//-- vstatus: get subcorpus status
+				Result += GetSubcorpusJsonArray("status");
+			} else {
+				//-- status: just get subcorpus names
+				for (size_t i=0; i < m_Hosts.size(); ++i) {
+					Result += (i==0 ? '[' : ',');
+					Result += jsonStr(m_Hosts[i].m_CorpusName);
+				}
+				Result += "]\n";
+			}
+
+			Result += "}\n";
+		}
+		else if (cmd == "info") {
+			//-- info : distributed (collected) corpus info
+			Result = (string("{\n")
+				  + "\"name\":" + jsonStr(m_CorpusName) + ",\n"
+				  + "\"version\":" + jsonStr(PACKAGE_VERSION) + ",\n"
+				  + "\"corpora\":" + GetSubcorpusJsonArray("info")
+				  + "}\n"
+				  );
+		}
 	}
 	catch (CExpc &e) {
 		concord_daemon_log(Format("CDDCServerListenHost::ProcessSocketString(): Exception[%d]: %s", e.code(), e.what()));
@@ -594,6 +774,7 @@ string CDDCServerListenHost::ProcessSocketString(const string& InputSocket, SOCK
 		if (Result.empty()) Result = Format("-1\x01\n%s", e.what());
 	}
 
+	++m_nRequests;
 	return Result;
 };
 
@@ -1110,4 +1291,46 @@ void UnloadLocalCorporaAndServer ()
 };
 
 
+
+string CDDCServerListenHost::GetSubcorpusJsonArray(const string& request, int timeout)
+{
+	string Result("[");
+	for (size_t i=0; i < m_Hosts.size(); ++i) {
+		CHost &Host = m_Hosts[i];
+		if (i != 0)
+			Result += ',';
+		Result += "\n\t";
+
+		string errorStr;
+		SOCKET sock = Host.CreateAndConnectSocket(errorStr);
+		if (!errorStr.empty() || sock == -1) {
+			Result += Format("{\"name\":%s,\"error\":\"could not open socket: %s\"},", Host.m_CorpusName.c_str(), jsonStr(errorStr, true, false).c_str());
+			continue;
+		}
+
+		if (!SendString(sock, request, errorStr) || !errorStr.empty()) {
+			CloseSocket(sock);
+			Result += Format("{\"name\":%s,\"error\":\"could not send to socket: %s\"},", Host.m_CorpusName.c_str(), jsonStr(errorStr, true, false).c_str());
+			continue;
+		}
+
+		//-- read response
+		string rsp;
+		if (ReceiveString(sock, rsp, timeout) != neSuccess) {
+			CloseSocket(sock);
+			Result += Format("{\"name\":%s,\"error\":\"failed to read response data from socket\"},", Host.m_CorpusName.c_str());
+			continue;
+		}
+		Result += rsp;
+
+		//-- ddc annoyingly complains unless each subcorpus socket gets doubled messages
+		rsp.clear();
+		SendString(sock, "ddc_close_socket", errorStr);
+		ReceiveString(sock, rsp, timeout);
+		CloseSocket(sock);
+	}
+
+	Result += "\n]";
+	return Result;
+}
 

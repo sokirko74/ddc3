@@ -68,6 +68,7 @@ const string FreeBiblAttribOptionFieldName = "Bibl";
 const string TextAreaOptionFieldName = "textarea";
 class CConcXml
 {
+public:
 	class CFreeBiblIndex 
 	{
 		string	GetIndexFileName (string Path) const;
@@ -89,8 +90,8 @@ class CConcXml
 	public:
 		CFreeBiblIndex();
 		virtual ~CFreeBiblIndex();
-		string			GetDescriptionStr () const;
-		int				GetIntegerValue(DWORD FileNo ) const;
+		string	GetDescriptionStr () const;
+		int	GetIntegerValue(DWORD FileNo ) const;
 
 		virtual void	clear();
 		virtual string	GetStringValue(DWORD FileNo ) const;
@@ -120,6 +121,10 @@ class CConcXml
 
 		//! initialize CDDCFilterWithBounds for a set of target values (default throws errLogic)
 		virtual bool	GetFilterValues  (CDDCFilterWithBounds& Filter, const set<string>& Values) const;
+
+		//! for server info
+		virtual size_t size(void) const
+		{ return 0; };
 	};
     
 	class CFreeBiblStringIndex : public CFreeBiblIndex
@@ -180,6 +185,10 @@ class CConcXml
 
 		//! initialize CDDCFilterWithBounds for a set of target values (default throws errLogic)
 		virtual bool	GetFilterValues (CDDCFilterWithBounds& Filter, const set<string>& Values) const;
+
+		//! for server info
+		virtual size_t size(void) const
+		{ return m_Values.size(); };
 	};
 
 	class CTextArea 
@@ -193,9 +202,10 @@ class CConcXml
 
 
 	typedef map<string, CFreeBiblIndex*> FreeBiblStringMap;
-	FreeBiblStringMap	m_FreeBiblIndices;
-
 	typedef map<string, CBiblExpander*> BiblExpanderMap;
+
+private:
+	FreeBiblStringMap	m_FreeBiblIndices;
 	BiblExpanderMap		m_BiblExpanders;
 
 	vector<file_off_t>		m_EndOffsetsInBiblFile;
@@ -319,6 +329,15 @@ public:
 
 	//! add a new bibliographic expander to m_BiblExpanders, or replace an existing one; returns new expander
 	CBiblExpander* AddBiblExpander(const string& spec);
+
+
+	//! moo: ugly dangerous hack
+	const  FreeBiblStringMap& GetFreeBiblStringMap() const
+	{ return m_FreeBiblIndices; };
+
+	//! moo: ugly dangerous hack
+	const  BiblExpanderMap& GetBiblExpanderMap() const
+	{ return m_BiblExpanders; };
 
 };
 

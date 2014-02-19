@@ -77,6 +77,7 @@ void CConcIndexator::InitDefaultOptions()
 	m_TokenDelimiter = "";
 	m_Utf8 = false;
 	m_AllowUnsafeQueries = false;
+	m_Timestamp = 0;
 	m_Txd.clear();
 }
 
@@ -805,7 +806,6 @@ string CConcIndexator::SaveOptionsToString()  const
 		Result += "HitBorders " + IndicesStr + "\n";
 	
 	Result += m_Bibl.GetFreeBibiAttributesDescr();
-
 
 	return Result;
 };

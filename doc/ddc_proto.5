@@ -78,7 +78,7 @@ and \*(L" \*(R" represents a literal space character (\s-1ASCII\s0 byte with dec
 .IX Header "SYNOPSIS"
 .Vb 2
 \& ##=====================================================================
-\& ## Message Encoding
+\& ## Generic Message Format
 \&
 \& LENGTH DATA
 \&
@@ -94,6 +94,10 @@ and \*(L" \*(R" represents a literal space character (\s-1ASCII\s0 byte with dec
 \&
 \& ddc_close_socket
 \&
+\& version
+\& status
+\& info
+\&
 \& ##=====================================================================
 \& ## Subcorpus Server Messages
 \&
@@ -103,18 +107,22 @@ and \*(L" \*(R" represents a literal space character (\s-1ASCII\s0 byte with dec
 \& expand_terms "\ex01" PIPELINE "\ex01" TERMS "\ex01" TIMEOUT
 \&
 \& ddc_close_socket
+\&
+\& version
+\& status
+\& info
 .Ve
 .SH "DESCRIPTION"
 .IX Header "DESCRIPTION"
 This section contains descriptions of the various messages which may
 be sent to a \s-1DDC\s0 (sub)corpus\- or distributed-server and their expected responses.
-.SS "Message Encoding"
-.IX Subsection "Message Encoding"
+.SS "Generic Message Format"
+.IX Subsection "Generic Message Format"
 .Vb 1
 \& LENGTH DATA
 .Ve
 .PP
-All messages sent to or from a \s-1DDC\s0 server share a common general format \f(CW\*(C`LENGTH DATA\*(C'\fR,
+All messages sent to or from a \s-1DDC\s0 server share the common generic format \f(CW\*(C`LENGTH DATA\*(C'\fR,
 where \f(CW\*(C`LENGTH\*(C'\fR is a 32\-bit little-endian unsigned integer,
 and \f(CW\*(C`DATA\*(C'\fR is the underlying message data, which is exactly \f(CW\*(C`LENGTH\*(C'\fR bytes long.
 .SS "Distributed Server Messages"
@@ -152,42 +160,44 @@ of the form:
 .PP
 .Vb 10
 \& {
-\&   "istatus_" : 0,              /*\-\- rsp. istatus_internal status code, 0:success \-\-*/
-\&   "nstatus_" : 0,              /*\-\- network status code, 0:success \-\-*/
-\&   "error_" : null,             /*\-\- error string, null:no error \-\-*/
-\&   "nhits_" : 31,               /*\-\- total number of hits \-\-*/
-\&   "dhits_" : "17+4+10=31",     /*\-\- distribution of hits over subcorpora \-\-*/
-\&   "ndocs_" : 0,                /*\-\- (?) number of documents containing hits (?) \-\-*/
-\&   "ddocs_" : "0+0+0=0",        /*\-\- (?) distribution of hit\-documents over subcorpora (?) \-\-*/
-\&   "end_" : 2,                  /*\-\- index of last returned hit \-\-*/
-\&   "hits_" : [                  /*\-\- list of hits \-\-*/
-\&     {                                                  /*\-\- each hit is an object \-\-*/
-\&       "meta_" : {                                      /*\-\- hit.meta_: bibliographic metadata \-\-*/
-\&            "file_" : "busch_max_1865.xml",             /*\-\- indexed filename \-\-*/
-\&            "indices_" : ["w","p","l"],                 /*\-\- indexed token fields for ctx_[1] \-\-*/
-\&            "date_" : "1865",                           /*\-\- indexed date (decoded) \-\-*/
+\&   "istatus_" : 0,              //\-\- rsp. istatus_internal status code, 0:success
+\&   "nstatus_" : 0,              //\-\- network status code, 0:success
+\&   "error_" : null,             //\-\- error string, null:no error
+\&   "nhits_" : 31,               //\-\- total number of hits
+\&   "dhits_" : "17+4+10=31",     //\-\- distribution of hits over subcorpora
+\&   "ndocs_" : 0,                //\-\- (?) number of documents containing hits (?)
+\&   "ddocs_" : "0+0+0=0",        //\-\- (?) distribution of hit\-documents over subcorpora (?)
+\&   "end_" : 2,                  //\-\- index of last returned hit
+\&   "hits_" : [                  //\-\- list of hits
+\&     {                                                  //\-\- each hit is an object
+\&       "meta_" : {                                      //\-\- hit.meta_: bibliographic metadata
+\&            "file_" : "busch_max_1865.xml",             //\-\- indexed filename
+\&            "indices_" : ["w","p","l"],                 //\-\- indexed token fields for ctx_[1]
+\&            "date_" : "1865",                           //\-\- indexed date (decoded)
 \&            "orig_" : "",
 \&            "page_" : null,
 \&            "scan_" : "",
-\&            /*... other indexed metadata fields go here ...*/
+\&            //... other indexed metadata fields go here ...
 \&       },
-\&       "ctx_": [                                        /*\-\- hit.ctx_ provides result context \-\-*/
-\&         [ "Ach",",","was","muÃ","man","oft",... ],    /*\-\- hit.ctx_[0] is left extra\-sentential context (token strings only) \-\-*/
-\&         [                                              /*\-\- hit.ctx_[1] is the hit sentence itself (structured tokens) \-\-*/
-\&           [ 0, "Wie",      "PWAV",    "wie" ],         /*\-\- tok[0] is boolean, tok[1] is field meta_.indices_[0], etc \-\-*/
+\&       "ctx_": [                                        //\-\- hit.ctx_ provides result context
+\&         [ "Ach",",","was","muÃ","man","oft",... ],    //\-\- hit.ctx_[0] is left extra\-sentential context (token strings only)
+\&         [                                              //\-\- hit.ctx_[1] is the hit sentence itself (structured tokens)
+\&           [ 0, "Wie",      "PWAV",    "wie" ],         //\-\- tok[0] is boolean, tok[1] is field meta_.indices_[0], etc
 \&           ...
-\&           [ 1, "Max",      "NE",      "Max" ],         /*\-\- tok[0] is true iff token matched a term in the user query \-\-*/
+\&           [ 1, "Max",      "NE",      "Max" ],         //\-\- tok[0] is true iff token matched a term in the user query
 \&           [ 0, "und",      "KON",     "und" ],
 \&           [ 1, "Moritz",   "NE",      "Moritz" ],
 \&           ...
 \&         ],
-\&         [ ...,"heimlich","lustig","machen","." ]       /*\-\- hit.ctx_[2] is right extra\-sentential context (token strings only) \-\-*/
+\&         [ ...,"heimlich","lustig","machen","." ]       //\-\- hit.ctx_[2] is right extra\-sentential context (token strings only)
 \&       ],
 \&     },
-\&     /*... other hits go here ...*/
+\&     //... other hits go here ...
 \&   ]
 \& }
 .Ve
+.PP
+Since v1.x, \s-1JSON\s0 format and error messages since v2.0.0.
 .PP
 \fIexpand_terms\fR
 .IX Subsection "expand_terms"
@@ -202,6 +212,8 @@ by the expansion pipeline \f(CW\*(C`PIPELINE\*(C'\fR, which must be known to the
 If specified, \f(CW\*(C`CORPUS\*(C'\fR is the the name of a subcorpus known to the server which should
 be queried to perform the expansion.  If unspecified, the first registered subcorpus is queried.
 Response is as for the subcorpus \f(CW\*(C`expand_terms\*(C'\fR command.
+.PP
+Since v2.0.0
 .PP
 \fIget_paradigm\fR
 .IX Subsection "get_paradigm"
@@ -218,6 +230,8 @@ currently recognized values are (0:unknown, 1:Russian, 2:English, 3:German, 4:Ge
 .PP
 Response is an \s-1HTML\s0 fragment.
 .PP
+Since v1.x
+.PP
 \fIddc_close_socket\fR
 .IX Subsection "ddc_close_socket"
 .PP
@@ -228,6 +242,8 @@ Response is an \s-1HTML\s0 fragment.
 Dummy request used internally to avoid
 annoying complaints unless each subcorpus socket gets exactly 2 messages per user request.
 \&\fB\s-1DANGEROUS\s0\fR to use on a distributed server, can cause server lockup!
+.PP
+Since v2.0.0
 .SS "Subcorpus Server Messages"
 .IX Subsection "Subcorpus Server Messages"
 \fIget_first_hits\fR
@@ -270,6 +286,8 @@ of the form:
 where \s-1INDEX\s0 is the query-dependent hit index, \s-1ORDERID\s0 is a global sort key for the hit,
 and \s-1ORDER_STRING\s0 is either \*(L"<empty>\*(R" or a string sort-key for the hit (the latter just in case
 the query contained a context-dependend sort operation such as \f(CW\*(C`#left\*(C'\fR or \f(CW\*(C`#right\*(C'\fR).
+.PP
+Since v1.x, error messages since v2.0.0.
 .PP
 \fIget_hit_strings\fR
 .IX Subsection "get_hit_strings"
@@ -318,6 +336,8 @@ An example response in \s-1JSON\s0 format is:
 \& \ex01
 .Ve
 .PP
+Since v1.x, \s-1JSON\s0 format and error messages since v2.0.0.
+.PP
 \fIexpand_terms\fR
 .IX Subsection "expand_terms"
 .PP
@@ -333,13 +353,15 @@ by the expansion pipeline \f(CW\*(C`PIPELINE\*(C'\fR, which must be known to the
 Response data is of the form
 .PP
 .Vb 1
-\& STATUS NTERMS "\en" DATA
+\& STATUS " " NTERMS "\en" DATA
 .Ve
 .PP
 where \f(CW\*(C`STATUS\*(C'\fR is a decimal integer indicating the operation status (0 indicates success).
 \&\f(CW\*(C`NTERMS\*(C'\fR is the number of expanded terms being returned in the \f(CW\*(C`DATA\*(C'\fR portion,
 and \f(CW\*(C`DATA\*(C'\fR is either an error message (just in case \s-1STATUS\s0 is non-zero) or a list of expanded terms
-separated by TABs, newlines, and/or carriage returns (\s-1ASCII\s0 0x09, 0x0a, and 0x0d).
+separated by TABs, newlines, and/or carriage returns (\s-1ASCII\s0 0x09, 0x0a, 0x0d).
+.PP
+Since v2.0.0.
 .PP
 \fIddc_close_socket\fR
 .IX Subsection "ddc_close_socket"
@@ -352,6 +374,59 @@ Dummy request used internally to avoid
 annoying complaints unless each subcorpus socket gets exactly 2 messages per user request.
 Should always return the response \*(L"ok\*(R".
 Causes the server to terminate the client connection.
+.PP
+Since v2.0.0.
+.PP
+\fIversion\fR
+.IX Subsection "version"
+.PP
+.Vb 1
+\& version
+.Ve
+.PP
+Returns the version number of the subcorpus server as a string, by convention of the form
+\&\f(CW\*(C`MAJOR.MINOR.MICRO\-PATCHLEVEL\*(C'\fR
+where \f(CW\*(C`MAJOR\*(C'\fR, \f(CW\*(C`MINOR\*(C'\fR, and \f(CW\*(C`MICRO\*(C'\fR are unsigned decimal integers,
+and \f(CW\*(C`\-PATCHLEVEL\*(C'\fR is an optional string suffix.
+This should be the same string reported by \fBddc_daemon\fR on startup.
+.PP
+Since v2.0.18
+.PP
+\fIstatus\fR
+.IX Subsection "status"
+.PP
+.Vb 1
+\& status
+.Ve
+.PP
+Returns status information on the subcorpus server as a \s-1JSON\s0 object of the form:
+.PP
+.Vb 8
+\& {
+\&  "version": "2.0.18\-pre1",             //\-\- server version
+\&  "indexed":"1970\-01\-01T00:00:00Z",     //\-\- ISO\-8601 timestamp of corpus *._con file mtime
+\&  "started":"2014\-02\-17T13:49:59Z",     //\-\- ISO\-8601 timestamp of last server start
+\&  "uptime":1392644999,                  //\-\- server instance uptime in seconds
+\&  "nrequests":21,                       //\-\- number of served requests
+\&  "cachesize":42,                       //\-\- size of query cache
+\& }
+.Ve
+.PP
+Since v2.0.18
+.PP
+\fIinfo\fR
+.IX Subsection "info"
+.PP
+Returns information about the associated corpus as a \s-1JSON\s0 object of the form:
+.PP
+.Vb 3
+\& {
+\&  ...
+\& }
+.Ve
+.PP
+Not yet implemented.
+Since v2.0.18
 .SH "ACKNOWLEDGEMENTS"
 .IX Header "ACKNOWLEDGEMENTS"
 Alexey Sokirko wrote the original \s-1DDC\s0.

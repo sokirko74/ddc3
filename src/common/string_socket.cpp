@@ -88,7 +88,6 @@ const ERROR_STRUCT errlist[] = {
 
 
 bool CloseSocket(int l_socket)
-
 {
 	bool bResult;
 	#ifdef WIN32

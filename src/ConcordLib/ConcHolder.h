@@ -218,6 +218,10 @@ public:
 	//! return the text area to be be searched
 	int				GetTextArea() const;
 
+	//! return cache size
+	size_t CacheSize(void) const
+	{ return m_QueryCache.size(); };
+
 	//! converts a string to a FormatTypeEnum
 	static FormatTypeEnum GetResultFormatByString(const string& ResultTypeStr );
 

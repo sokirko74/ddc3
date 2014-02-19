@@ -361,10 +361,11 @@ bool CSourceFileHolder::ReadSourceFileList(string FileName)
 {
 	FILE* fp = fopen(FileName.c_str(), "rb");
 	if (!fp) 
-    {
-        fprintf (stderr, "could not open %s\n", FileName.c_str());
-        return false;
-    }
+	{
+	    fprintf (stderr, "could not open %s\n", FileName.c_str());
+	    return false;
+    	}
+
 	char s[1024];
 	m_SourceFiles.clear();
 	while (fgets(s,1024,fp))
@@ -377,6 +378,7 @@ bool CSourceFileHolder::ReadSourceFileList(string FileName)
 		m_SourceFiles.push_back(qr);
 	};
 	fclose(fp);
+
 	return true;
 }
 
@@ -603,8 +605,9 @@ bool CConcIndexator::SaveCorpusFileList() const
 bool CConcIndexator::LoadCorpusFiles()
 {
 	m_CorpusFiles.clear();
+	string CorpusFilenamesFile = GetFileNameForCorpusFileNames();
 	// reading corpus files from *.con file
-	FILE* fp = fopen(GetFileNameForCorpusFileNames().c_str(), "rb");
+	FILE* fp = fopen(CorpusFilenamesFile.c_str(), "rb");
 	if (!fp) return false;
 	char s[1024];
 	if (!fgets(s,1024, fp))
@@ -650,6 +653,8 @@ bool CConcIndexator::LoadCorpusFiles()
 			m_CorpusFiles.push_back(q);
 	};
 	fclose(fp);
+
+	UpdateTimestamp(CorpusFilenamesFile.c_str());
 	return true;
 };
 
@@ -694,16 +699,18 @@ bool CConcIndexator::LoadSourceFilesAndOptions(string FileName)
 		if (!LoadOptionsFromString(AllOptions)) 
 			return false;
 	}
-    else
-    {
-        concord_daemon_log ( Format ("Warning! Cannot find file %s", PathFile.c_str()) );
-    }
+	else
+        {
+	    concord_daemon_log ( Format ("Warning! Cannot find file %s", PathFile.c_str()) );
+	}
 
 	SetPath(FileName);
 
 	// reading source files
 	if (!ReadSourceFileList(FileName))
 		return false;
+
+	UpdateTimestamp(FileName.c_str());
 
 	return true;
 };
@@ -2024,6 +2031,14 @@ bool CConcIndexator::LoadProject(string FileName)
 	}
 
 	return true;
+}
+
+time_t CConcIndexator::UpdateTimestamp(const char *filename)
+{
+    time_t mtime = FileMTime( filename );
+    if (mtime > m_Timestamp)
+	m_Timestamp = mtime;
+    return m_Timestamp;
 }
 
 

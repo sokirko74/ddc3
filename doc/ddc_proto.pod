@@ -19,7 +19,7 @@ and " " represents a literal space character (ASCII byte with decimal value 32).
 =head1 SYNOPSIS
 
  ##=====================================================================
- ## Message Encoding
+ ## Generic Message Format
 
  LENGTH DATA
 
@@ -32,8 +32,12 @@ and " " represents a literal space character (ASCII byte with decimal value 32).
  expand_terms "\x01" PIPELINE "\x01" TERMS "\x01" TIMEOUT "\x01" CORPUS
 
  get_paradigm " " WORD "\x01" ILEMMATIZE " " ILANG
-
  ddc_close_socket
+
+ version
+ status
+ vstatus
+ info
 
  ##=====================================================================
  ## Subcorpus Server Messages
@@ -44,6 +48,10 @@ and " " represents a literal space character (ASCII byte with decimal value 32).
  expand_terms "\x01" PIPELINE "\x01" TERMS "\x01" TIMEOUT
 
  ddc_close_socket
+
+ version
+ status
+ info
 
 =cut
 
@@ -59,14 +67,14 @@ be sent to a DDC (sub)corpus- or distributed-server and their expected responses
 =cut
 
 ##==============================================================
-## Common Encoding
+## Generic Message Format
 =pod
 
-=head2 Message Encoding
+=head2 Generic Message Format
 
  LENGTH DATA
 
-All messages sent to or from a DDC server share a common general format C<LENGTH DATA>,
+All messages sent to or from a DDC server share the common generic format C<LENGTH DATA>,
 where C<LENGTH> is a 32-bit little-endian unsigned integer,
 and C<DATA> is the underlying message data, which is exactly C<LENGTH> bytes long.
 
@@ -122,42 +130,43 @@ Server response depends on FORMAT.  In C<JSON> mode, the response data is a JSON
 of the form:
 
  {
-   "istatus_" : 0,		/*-- rsp. istatus_internal status code, 0:success --*/
-   "nstatus_" : 0,		/*-- network status code, 0:success --*/
-   "error_" : null,		/*-- error string, null:no error --*/
-   "nhits_" : 31,		/*-- total number of hits --*/
-   "dhits_" : "17+4+10=31",	/*-- distribution of hits over subcorpora --*/
-   "ndocs_" : 0,		/*-- (?) number of documents containing hits (?) --*/
-   "ddocs_" : "0+0+0=0",	/*-- (?) distribution of hit-documents over subcorpora (?) --*/
-   "end_" : 2,			/*-- index of last returned hit --*/
-   "hits_" : [			/*-- list of hits --*/
-     { 							/*-- each hit is an object --*/
-       "meta_" : {					/*-- hit.meta_: bibliographic metadata --*/
-            "file_" : "busch_max_1865.xml",		/*-- indexed filename --*/
-            "indices_" : ["w","p","l"],			/*-- indexed token fields for ctx_[1] --*/
-            "date_" : "1865",				/*-- indexed date (decoded) --*/
+   "istatus_" : 0,		//-- rsp. istatus_internal status code, 0:success
+   "nstatus_" : 0,		//-- network status code, 0:success
+   "error_" : null,		//-- error string, null:no error
+   "nhits_" : 31,		//-- total number of hits
+   "dhits_" : "17+4+10=31",	//-- distribution of hits over subcorpora
+   "ndocs_" : 0,		//-- (?) number of documents containing hits (?)
+   "ddocs_" : "0+0+0=0",	//-- (?) distribution of hit-documents over subcorpora (?)
+   "end_" : 2,			//-- index of last returned hit
+   "hits_" : [			//-- list of hits
+     { 							//-- each hit is an object
+       "meta_" : {					//-- hit.meta_: bibliographic metadata
+            "file_" : "busch_max_1865.xml",		//-- indexed filename
+            "indices_" : ["w","p","l"],			//-- indexed token fields for ctx_[1]
+            "date_" : "1865",				//-- indexed date (decoded)
             "orig_" : "",
             "page_" : null,
             "scan_" : "",
-            /*... other indexed metadata fields go here ...*/
+            //... other indexed metadata fields go here ...
        },
-       "ctx_": [				     	/*-- hit.ctx_ provides result context --*/
-         [ "Ach",",","was","muß","man","oft",... ],	/*-- hit.ctx_[0] is left extra-sentential context (token strings only) --*/
-         [						/*-- hit.ctx_[1] is the hit sentence itself (structured tokens) --*/
-           [ 0, "Wie",      "PWAV",    "wie" ],		/*-- tok[0] is boolean, tok[1] is field meta_.indices_[0], etc --*/
+       "ctx_": [				     	//-- hit.ctx_ provides result context
+         [ "Ach",",","was","muß","man","oft",... ],	//-- hit.ctx_[0] is left extra-sentential context (token strings only)
+         [						//-- hit.ctx_[1] is the hit sentence itself (structured tokens)
+           [ 0, "Wie",      "PWAV",    "wie" ],		//-- tok[0] is boolean, tok[1] is field meta_.indices_[0], etc
 	   ...
-	   [ 1, "Max",      "NE",      "Max" ],		/*-- tok[0] is true iff token matched a term in the user query --*/
+	   [ 1, "Max",      "NE",      "Max" ],		//-- tok[0] is true iff token matched a term in the user query
 	   [ 0, "und",      "KON",     "und" ],
 	   [ 1, "Moritz",   "NE",      "Moritz" ],
 	   ...
          ],
-         [ ...,"heimlich","lustig","machen","." ]	/*-- hit.ctx_[2] is right extra-sentential context (token strings only) --*/
+         [ ...,"heimlich","lustig","machen","." ]	//-- hit.ctx_[2] is right extra-sentential context (token strings only)
        ],
      },
-     /*... other hits go here ...*/
+     //... other hits go here ...
    ]
  }
 
+Since v1.x, JSON format and error messages since v2.0.0.
 
 =cut
 
@@ -174,6 +183,8 @@ by the expansion pipeline C<PIPELINE>, which must be known to the server (see L<
 If specified, C<CORPUS> is the the name of a subcorpus known to the server which should
 be queried to perform the expansion.  If unspecified, the first registered subcorpus is queried.
 Response is as for the subcorpus C<expand_terms> command.
+
+Since v2.0.0
 
 =cut
 
@@ -192,6 +203,8 @@ currently recognized values are (0:unknown, 1:Russian, 2:English, 3:German, 4:Ge
 
 Response is an HTML fragment.
 
+Since v1.x
+
 =cut
 
 ##--------------------------------------------------------------
@@ -204,6 +217,86 @@ Response is an HTML fragment.
 Dummy request used internally to avoid
 annoying complaints unless each subcorpus socket gets exactly 2 messages per user request.
 B<DANGEROUS> to use on a distributed server, can cause server lockup!
+
+Since v2.0.0
+
+=cut
+
+##--------------------------------------------------------------
+=pod
+
+=head3 version
+
+ version
+
+Returns the version number of the
+distributed server
+as a string, by convention of the form
+C<MAJOR.MINOR.MICRO-PATCHLEVEL>
+where C<MAJOR>, C<MINOR>, and C<MICRO> are unsigned decimal integers,
+and C<-PATCHLEVEL> is an optional string suffix.
+This should be the same string reported by B<ddc_daemon> on startup.
+
+Since v2.0.18
+
+=cut
+
+##--------------------------------------------------------------
+=pod
+
+=head3 status
+
+ status
+
+Returns status information on the distributed server as a JSON object of the form:
+
+ {
+  "name":"server",			//-- distributed server name
+  "version":"2.0.18-pre1",		//-- distributed server version
+  "host":"127.0.0.1",			//-- distributed server socket hostname or IP
+  "port":50011,                         //-- distributed server socket port
+  "started":"2014-02-17T13:49:59Z",	//-- ISO-8601 timestamp of last server start
+  "uptime":1392644999,			//-- server instance uptime in seconds
+  "nrequests":21,			//-- number of served requests
+  "corpora":["corpus1","corpus2",...]	//-- registered subcorpora (names only)
+ }
+
+Very fast turnaround, since all returned data is known to the distributed server itself,
+and no subcorpora need to be queried.
+
+Since v2.0.18
+
+=cut
+
+##--------------------------------------------------------------
+=pod
+
+=head3 vstatus
+
+ vstatus
+
+Like the C<status> command, but the elements of the returned "corpora" list
+are the JSON objects returned by the C<status> command to the associated subcorpus servers,
+rather than just subcorpus names.
+
+Since v2.0.18.
+
+=cut
+
+
+##--------------------------------------------------------------
+=pod
+
+=head3 info
+
+Returns information about associated subcorpora as a JSON object of the form:
+
+ {
+  ...
+ }
+
+Not yet implemented.
+Since v2.0.18
 
 =cut
 
@@ -251,6 +344,7 @@ where INDEX is the query-dependent hit index, ORDERID is a global sort key for t
 and ORDER_STRING is either "<empty>" or a string sort-key for the hit (the latter just in case
 the query contained a context-dependend sort operation such as C<#left> or C<#right>).
 
+Since v1.x, error messages since v2.0.0.
 
 =cut
 
@@ -295,6 +389,8 @@ An example response in JSON format is:
  \x01{"meta_":{"file_":"frege_sinn_1892.xml",...},"ctx_":[[],[...],[]]}]
  \x01
 
+Since v1.x, JSON format and error messages since v2.0.0.
+
 =cut
 
 
@@ -312,12 +408,14 @@ C<TIMEOUT> is a request timeout in seconds.
 
 Response data is of the form
 
- STATUS NTERMS "\n" DATA
+ STATUS " " NTERMS "\n" DATA
 
 where C<STATUS> is a decimal integer indicating the operation status (0 indicates success).
 C<NTERMS> is the number of expanded terms being returned in the C<DATA> portion,
 and C<DATA> is either an error message (just in case STATUS is non-zero) or a list of expanded terms
-separated by TABs, newlines, and/or carriage returns (ASCII 0x09, 0x0a, and 0x0d).
+separated by TABs, newlines, and/or carriage returns (ASCII 0x09, 0x0a, 0x0d).
+
+Since v2.0.0.
 
 =cut
 
@@ -332,6 +430,68 @@ Dummy request used internally to avoid
 annoying complaints unless each subcorpus socket gets exactly 2 messages per user request.
 Should always return the response "ok".
 Causes the server to terminate the client connection.
+
+Since v2.0.0.
+
+=cut
+
+##--------------------------------------------------------------
+=pod
+
+=head3 version
+
+ version
+
+Returns the version number of the subcorpus server as a string, by convention of the form
+C<MAJOR.MINOR.MICRO-PATCHLEVEL>
+where C<MAJOR>, C<MINOR>, and C<MICRO> are unsigned decimal integers,
+and C<-PATCHLEVEL> is an optional string suffix.
+This should be the same string reported by B<ddc_daemon> on startup.
+
+Since v2.0.18
+
+=cut
+
+##--------------------------------------------------------------
+=pod
+
+=head3 status
+
+ status
+
+Returns status information on the subcorpus server as a JSON object of the form:
+
+ {
+  "name":"corpus1",			//-- subcorpus name
+  "version":"2.0.18-pre1",		//-- subcorpus server version
+  "host":"127.0.0.1",			//-- subcorpus server socket hostname or IP
+  "port":50011,                         //-- subcorpus server socket port
+  "started":"2014-02-17T13:49:59Z",	//-- ISO-8601 timestamp of last server start
+  "uptime":1392644999,			//-- subcorpus server instance uptime in seconds
+  "nrequests":21,			//-- number of served requests
+  "cachesize":42,			//-- size of query cache
+ }
+
+Since v2.0.18
+
+=cut
+
+##--------------------------------------------------------------
+=pod
+
+=head3 info
+
+Returns information about the associated (sub)corpus as a JSON object of the form:
+
+ {
+  "name":"corpus1",			//-- subcorpus name
+  "version":"2.0.18-pre1",		//-- subcorpus server version
+  "project":"test/corpus1.con",		//-- subcorpus project *.con file
+  "indexed":"1970-01-01T00:00:00Z",	//-- ISO-8601 timestamp of project *._con file mtime
+ }
+
+Not yet implemented.
+Since v2.0.18
 
 =cut
 

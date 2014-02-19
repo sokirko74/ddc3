@@ -76,8 +76,8 @@ class CHitBorders
 		bool			ClearAll(string Path);
 		void			CloseFileForIndexing();
 	};
- private:
 
+ private:
 	//! all breaks
 	vector<CBreakCollection>	m_Breaks;
 
@@ -125,6 +125,10 @@ protected:
 
     //! moo: get a vector of all occurrences (requires at least 1 break collection), used by universal wildcard (*) queries
     bool GetAllOccurrences(vector<CTokenNo>& occurrences) const;
+
+    //! moo: get break collection map (dangerous)
+    const vector<CBreakCollection>& GetBreaks(void) const
+    { return m_Breaks; };
 
 public:
 	

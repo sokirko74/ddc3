@@ -22,7 +22,7 @@
 	<li><a href="#description">DESCRIPTION</a></li>
 	<ul>
 
-		<li><a href="#message_encoding">Message Encoding</a></li>
+		<li><a href="#generic_message_format">Generic Message Format</a></li>
 		<li><a href="#distributed_server_messages">Distributed Server Messages</a></li>
 		<ul>
 
@@ -39,6 +39,9 @@
 			<li><a href="#get_hit_strings">get_hit_strings</a></li>
 			<li><a href="#expand_terms">expand_terms</a></li>
 			<li><a href="#ddc_close_socket">ddc_close_socket</a></li>
+			<li><a href="#version">version</a></li>
+			<li><a href="#status">status</a></li>
+			<li><a href="#info">info</a></li>
 		</ul>
 
 	</ul>
@@ -66,7 +69,7 @@ and &quot; &quot; represents a literal space character (ASCII byte with decimal 
 <h1><a name="synopsis">SYNOPSIS</a></h1>
 <pre>
  ##=====================================================================
- ## Message Encoding</pre>
+ ## Generic Message Format</pre>
 <pre>
  LENGTH DATA</pre>
 <pre>
@@ -82,6 +85,10 @@ and &quot; &quot; represents a literal space character (ASCII byte with decimal 
 <pre>
  ddc_close_socket</pre>
 <pre>
+ version
+ status
+ info</pre>
+<pre>
  ##=====================================================================
  ## Subcorpus Server Messages</pre>
 <pre>
@@ -91,6 +98,10 @@ and &quot; &quot; represents a literal space character (ASCII byte with decimal 
  expand_terms &quot;\x01&quot; PIPELINE &quot;\x01&quot; TERMS &quot;\x01&quot; TIMEOUT</pre>
 <pre>
  ddc_close_socket</pre>
+<pre>
+ version
+ status
+ info</pre>
 <p>
 </p>
 <hr />
@@ -99,10 +110,10 @@ and &quot; &quot; represents a literal space character (ASCII byte with decimal 
 be sent to a DDC (sub)corpus- or distributed-server and their expected responses.</p>
 <p>
 </p>
-<h2><a name="message_encoding">Message Encoding</a></h2>
+<h2><a name="generic_message_format">Generic Message Format</a></h2>
 <pre>
  LENGTH DATA</pre>
-<p>All messages sent to or from a DDC server share a common general format <code>LENGTH DATA</code>,
+<p>All messages sent to or from a DDC server share the common generic format <code>LENGTH DATA</code>,
 where <code>LENGTH</code> is a 32-bit little-endian unsigned integer,
 and <code>DATA</code> is the underlying message data, which is exactly <code>LENGTH</code> bytes long.</p>
 <p>
@@ -151,41 +162,42 @@ Currently, DDC supports the following formats: &quot;JSON&quot;, &quot;TABLE&quo
 of the form:</p>
 <pre>
  {
-   &quot;istatus_&quot; : 0,              /*-- rsp. istatus_internal status code, 0:success --*/
-   &quot;nstatus_&quot; : 0,              /*-- network status code, 0:success --*/
-   &quot;error_&quot; : null,             /*-- error string, null:no error --*/
-   &quot;nhits_&quot; : 31,               /*-- total number of hits --*/
-   &quot;dhits_&quot; : &quot;17+4+10=31&quot;,     /*-- distribution of hits over subcorpora --*/
-   &quot;ndocs_&quot; : 0,                /*-- (?) number of documents containing hits (?) --*/
-   &quot;ddocs_&quot; : &quot;0+0+0=0&quot;,        /*-- (?) distribution of hit-documents over subcorpora (?) --*/
-   &quot;end_&quot; : 2,                  /*-- index of last returned hit --*/
-   &quot;hits_&quot; : [                  /*-- list of hits --*/
-     {                                                  /*-- each hit is an object --*/
-       &quot;meta_&quot; : {                                      /*-- hit.meta_: bibliographic metadata --*/
-            &quot;file_&quot; : &quot;busch_max_1865.xml&quot;,             /*-- indexed filename --*/
-            &quot;indices_&quot; : [&quot;w&quot;,&quot;p&quot;,&quot;l&quot;],                 /*-- indexed token fields for ctx_[1] --*/
-            &quot;date_&quot; : &quot;1865&quot;,                           /*-- indexed date (decoded) --*/
+   &quot;istatus_&quot; : 0,              //-- rsp. istatus_internal status code, 0:success
+   &quot;nstatus_&quot; : 0,              //-- network status code, 0:success
+   &quot;error_&quot; : null,             //-- error string, null:no error
+   &quot;nhits_&quot; : 31,               //-- total number of hits
+   &quot;dhits_&quot; : &quot;17+4+10=31&quot;,     //-- distribution of hits over subcorpora
+   &quot;ndocs_&quot; : 0,                //-- (?) number of documents containing hits (?)
+   &quot;ddocs_&quot; : &quot;0+0+0=0&quot;,        //-- (?) distribution of hit-documents over subcorpora (?)
+   &quot;end_&quot; : 2,                  //-- index of last returned hit
+   &quot;hits_&quot; : [                  //-- list of hits
+     {                                                  //-- each hit is an object
+       &quot;meta_&quot; : {                                      //-- hit.meta_: bibliographic metadata
+            &quot;file_&quot; : &quot;busch_max_1865.xml&quot;,             //-- indexed filename
+            &quot;indices_&quot; : [&quot;w&quot;,&quot;p&quot;,&quot;l&quot;],                 //-- indexed token fields for ctx_[1]
+            &quot;date_&quot; : &quot;1865&quot;,                           //-- indexed date (decoded)
             &quot;orig_&quot; : &quot;&quot;,
             &quot;page_&quot; : null,
             &quot;scan_&quot; : &quot;&quot;,
-            /*... other indexed metadata fields go here ...*/
+            //... other indexed metadata fields go here ...
        },
-       &quot;ctx_&quot;: [                                        /*-- hit.ctx_ provides result context --*/
-         [ &quot;Ach&quot;,&quot;,&quot;,&quot;was&quot;,&quot;muß&quot;,&quot;man&quot;,&quot;oft&quot;,... ],    /*-- hit.ctx_[0] is left extra-sentential context (token strings only) --*/
-         [                                              /*-- hit.ctx_[1] is the hit sentence itself (structured tokens) --*/
-           [ 0, &quot;Wie&quot;,      &quot;PWAV&quot;,    &quot;wie&quot; ],         /*-- tok[0] is boolean, tok[1] is field meta_.indices_[0], etc --*/
+       &quot;ctx_&quot;: [                                        //-- hit.ctx_ provides result context
+         [ &quot;Ach&quot;,&quot;,&quot;,&quot;was&quot;,&quot;muß&quot;,&quot;man&quot;,&quot;oft&quot;,... ],    //-- hit.ctx_[0] is left extra-sentential context (token strings only)
+         [                                              //-- hit.ctx_[1] is the hit sentence itself (structured tokens)
+           [ 0, &quot;Wie&quot;,      &quot;PWAV&quot;,    &quot;wie&quot; ],         //-- tok[0] is boolean, tok[1] is field meta_.indices_[0], etc
            ...
-           [ 1, &quot;Max&quot;,      &quot;NE&quot;,      &quot;Max&quot; ],         /*-- tok[0] is true iff token matched a term in the user query --*/
+           [ 1, &quot;Max&quot;,      &quot;NE&quot;,      &quot;Max&quot; ],         //-- tok[0] is true iff token matched a term in the user query
            [ 0, &quot;und&quot;,      &quot;KON&quot;,     &quot;und&quot; ],
            [ 1, &quot;Moritz&quot;,   &quot;NE&quot;,      &quot;Moritz&quot; ],
            ...
          ],
-         [ ...,&quot;heimlich&quot;,&quot;lustig&quot;,&quot;machen&quot;,&quot;.&quot; ]       /*-- hit.ctx_[2] is right extra-sentential context (token strings only) --*/
+         [ ...,&quot;heimlich&quot;,&quot;lustig&quot;,&quot;machen&quot;,&quot;.&quot; ]       //-- hit.ctx_[2] is right extra-sentential context (token strings only)
        ],
      },
-     /*... other hits go here ...*/
+     //... other hits go here ...
    ]
  }</pre>
+<p>Since v1.x, JSON format and error messages since v2.0.0.</p>
 <p>
 </p>
 <h3><a name="expand_terms">expand_terms</a></h3>
@@ -197,6 +209,7 @@ by the expansion pipeline <code>PIPELINE</code>, which must be known to the serv
 If specified, <a href="#corpus"><code>CORPUS</code></a> is the the name of a subcorpus known to the server which should
 be queried to perform the expansion.  If unspecified, the first registered subcorpus is queried.
 Response is as for the subcorpus <code>expand_terms</code> command.</p>
+<p>Since v2.0.0</p>
 <p>
 </p>
 <h3><a name="get_paradigm">get_paradigm</a></h3>
@@ -208,6 +221,7 @@ Response is as for the subcorpus <code>expand_terms</code> command.</p>
 be a valid MorphLanguageEnum value as defined in ${DDC_SRC}/src/common/utilit.h ;
 currently recognized values are (0:unknown, 1:Russian, 2:English, 3:German, 4:Generic, 5:URL, 6:Digits).</p>
 <p>Response is an HTML fragment.</p>
+<p>Since v1.x</p>
 <p>
 </p>
 <h3><a name="ddc_close_socket">ddc_close_socket</a></h3>
@@ -216,6 +230,7 @@ currently recognized values are (0:unknown, 1:Russian, 2:English, 3:German, 4:Ge
 <p>Dummy request used internally to avoid
 annoying complaints unless each subcorpus socket gets exactly 2 messages per user request.
 <strong>DANGEROUS</strong> to use on a distributed server, can cause server lockup!</p>
+<p>Since v2.0.0</p>
 <p>
 </p>
 <h2><a name="subcorpus_server_messages">Subcorpus Server Messages</a></h2>
@@ -246,6 +261,7 @@ of the form:</p>
 <p>where INDEX is the query-dependent hit index, ORDERID is a global sort key for the hit,
 and ORDER_STRING is either &quot;&lt;empty&gt;&quot; or a string sort-key for the hit (the latter just in case
 the query contained a context-dependend sort operation such as <code>#left</code> or <code>#right</code>).</p>
+<p>Since v1.x, error messages since v2.0.0.</p>
 <p>
 </p>
 <h3><a name="get_hit_strings">get_hit_strings</a></h3>
@@ -279,6 +295,7 @@ the initial <code>STATUS</code> code and all &quot;\x01&quot; characters from <c
  \x01{&quot;meta_&quot;:{&quot;file_&quot;:&quot;busch_max_1865.xml&quot;,...},&quot;ctx_&quot;:[[],[...],[]]},
  \x01{&quot;meta_&quot;:{&quot;file_&quot;:&quot;frege_sinn_1892.xml&quot;,...},&quot;ctx_&quot;:[[],[...],[]]}]
  \x01</pre>
+<p>Since v1.x, JSON format and error messages since v2.0.0.</p>
 <p>
 </p>
 <h3><a name="expand_terms">expand_terms</a></h3>
@@ -290,11 +307,12 @@ by the expansion pipeline <code>PIPELINE</code>, which must be known to the subc
 <a href="#timeout"><code>TIMEOUT</code></a> is a request timeout in seconds.</p>
 <p>Response data is of the form</p>
 <pre>
- STATUS NTERMS &quot;\n&quot; DATA</pre>
+ STATUS &quot; &quot; NTERMS &quot;\n&quot; DATA</pre>
 <p>where <code>STATUS</code> is a decimal integer indicating the operation status (0 indicates success).
 <code>NTERMS</code> is the number of expanded terms being returned in the <code>DATA</code> portion,
 and <code>DATA</code> is either an error message (just in case STATUS is non-zero) or a list of expanded terms
-separated by TABs, newlines, and/or carriage returns (ASCII 0x09, 0x0a, and 0x0d).</p>
+separated by TABs, newlines, and/or carriage returns (ASCII 0x09, 0x0a, 0x0d).</p>
+<p>Since v2.0.0.</p>
 <p>
 </p>
 <h3><a name="ddc_close_socket">ddc_close_socket</a></h3>
@@ -304,6 +322,44 @@ separated by TABs, newlines, and/or carriage returns (ASCII 0x09, 0x0a, and 0x0d
 annoying complaints unless each subcorpus socket gets exactly 2 messages per user request.
 Should always return the response &quot;ok&quot;.
 Causes the server to terminate the client connection.</p>
+<p>Since v2.0.0.</p>
+<p>
+</p>
+<h3><a name="version">version</a></h3>
+<pre>
+ version</pre>
+<p>Returns the version number of the subcorpus server as a string, by convention of the form
+<code>MAJOR.MINOR.MICRO-PATCHLEVEL</code>
+where <code>MAJOR</code>, <code>MINOR</code>, and <code>MICRO</code> are unsigned decimal integers,
+and <code>-PATCHLEVEL</code> is an optional string suffix.
+This should be the same string reported by <strong>ddc_daemon</strong> on startup.</p>
+<p>Since v2.0.18</p>
+<p>
+</p>
+<h3><a name="status">status</a></h3>
+<pre>
+ status</pre>
+<p>Returns status information on the subcorpus server as a JSON object of the form:</p>
+<pre>
+ {
+  &quot;version&quot;: &quot;2.0.18-pre1&quot;,             //-- server version
+  &quot;indexed&quot;:&quot;1970-01-01T00:00:00Z&quot;,     //-- ISO-8601 timestamp of corpus *._con file mtime
+  &quot;started&quot;:&quot;2014-02-17T13:49:59Z&quot;,     //-- ISO-8601 timestamp of last server start
+  &quot;uptime&quot;:1392644999,                  //-- server instance uptime in seconds
+  &quot;nrequests&quot;:21,                       //-- number of served requests
+  &quot;cachesize&quot;:42,                       //-- size of query cache
+ }</pre>
+<p>Since v2.0.18</p>
+<p>
+</p>
+<h3><a name="info">info</a></h3>
+<p>Returns information about the associated corpus as a JSON object of the form:</p>
+<pre>
+ {
+  ...
+ }</pre>
+<p>Not yet implemented.
+Since v2.0.18</p>
 <p>
 </p>
 <hr />
