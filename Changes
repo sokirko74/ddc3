@@ -1,6 +1,8 @@
 ##-*- Mode: Change-Log; coding: utf-8; -*-
 
-v2.0.18-pre1 Tue, 18 Feb 2014 09:19:08 +0100 moocow
+v2.0.18 Wed, 19 Feb 2014 12:27:34 +0100 moocow
+	+ added ddc_proto(5) manpage
+	+ implemented new server commands "version", "status", "vstatus", "info"
 	+ src/ConcordDmnLib/Corpora.cpp minor beautifications
 	+ updated copyright notices in source files
 	+ updated date-string parsing code in CBibliography::ConvertDateToInt():
