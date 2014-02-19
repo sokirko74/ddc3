@@ -64,6 +64,9 @@ public:
 	virtual ~CDDCCorpusListenHost ();
 	string	ProcessSocketString(const string& S, SOCKET rConnectedSocket);
 	bool	LoadHolder();
+
+	void ServerStatusJson(string &Result, bool verbose=false);
+	void ServerInfoJson(string &Result);
 };
 
 struct CQueryStatistics 
@@ -242,6 +245,169 @@ bool  CDDCCorpusListenHost::LoadHolder() {
 	return true;
 }
 
+void CDDCCorpusListenHost::ServerStatusJson(string &Result, bool verbose)
+{
+	double uptime = difftime(time(NULL), m_tStarted);
+	Result = (string("{\n\t")
+		    + "\"name\":" + jsonStr(m_CorpusName) + ",\n\t"
+		  + "\"version\":" + jsonStr(PACKAGE_VERSION) + ",\n\t"
+		  + "\"host\":" + jsonStr(m_HostName) + ",\n\t"
+		  + "\"port\":" + Format("%d", m_Port) + ",\n\t"
+		  + "\"started\":" + jsonStr(timestampUTC(m_tStarted)) + ",\n\t"
+		  + "\"uptime\":" + Format("%.0f", uptime) + ",\n\t"
+		  + "\"nrequests\":" + Format("%zd", m_nRequests) + ",\n\t"
+		  + "\"cachesize\":" + Format("%zd", m_pHolder->CacheSize()) + "\n\t"
+		  + "}"
+		  );
+}
+
+#undef DDC_VERBOSE_CORPUS_INFO
+void CDDCCorpusListenHost::ServerInfoJson(string &Result)
+{
+	//-- info : corpus info
+	CConcIndexator *ix = m_pHolder ? m_pHolder->m_pIndexator : NULL;
+	string ProjectName = ix ? basename(MakeFName(ix->m_Path, "").c_str()) : "";
+
+	if (!ProjectName.empty()) ProjectName.erase(ProjectName.size()-1);
+	Result = (string("{\n\t")
+		  + "\"name\":" + jsonStr(m_CorpusName) + ",\n\t"
+		  + "\"version\":" + jsonStr(PACKAGE_VERSION) + ",\n\t"
+		  + "\"project\":" + (ix ? jsonStr(ProjectName) : "null") //+ ",\n\t"
+		  );
+
+	if (ix) {
+		int i;
+
+		//-- index required
+		Result += (string(",\n\t")
+			   + "\"indexed\":" + jsonStr(timestampUTC(ix->m_Timestamp)) + ",\n\t"
+			   + "\"nfiles\":"  + Format("%zd", ix->GetSourceFilesCount()) + ",\n\t"
+			   + "\"ntokens\":" + Format("%zd", ix->GetCorpusEndTokenNo()) + ",\n\t"
+			   //
+			   //-- options
+			   + "\"lang\":" + jsonStr(GetStringByLanguage(ix->m_Language)) + ",\n\t"
+			   + "\"utf8\":" + (ix->m_Utf8 ? '1' : '0') + ",\n\t"
+			   + "\"caseSensitive\":" + (ix->m_bCaseSensitive ? '1' : '0') + ",\n\t"
+			   + "\"contextOperator\":" + (ix->HasContextOperator() ? '1' : '0') + ",\n\t"
+			   + "\"dwdsThesaurus\":" + (ix->UseDwdsThesaurus() ? '1' : '0') + ",\n\t"
+			   + "\"interpDelimiter\":" + jsonStr(ix->m_InterpDelimiter) + ",\n\t"
+			   + "\"tokenDelimiter\":" + jsonStr(ix->m_TokenDelimiter) + ",\n\t"
+			   + "\"allowUnsafeQueries\":" + (ix->m_AllowUnsafeQueries ? '1' : '0') + ",\n\t"
+			   + "\"indexPunctuation\":" + (ix->IndexPunctuation() ? '1' : '0') + ",\n\t"
+			   + "\"indexMorphPatterns\":" + (ix->m_bIndexMorphPatterns ? '1' : '0') + ",\n\t"
+			   + "\"indexChunks\":" + (ix->m_bIndexChunks ? '1' : '0') + ",\n\t"
+			   );
+
+		//-- info.bibl
+		Result += (string("\"bibl\":[")
+			   + "\n\t\t{\"name\":\"orig\",\"builtin\":1},"
+			   + "\n\t\t{\"name\":\"scan\",\"builtin\":1},"
+			   + "\n\t\t{\"name\":\"date\",\"builtin\":1},"
+			   + "\n\t\t{\"name\":\"page\",\"builtin\":1}"
+			   );
+		const CConcXml::FreeBiblStringMap& bmap = ix->m_Bibl.GetFreeBiblStringMap();
+		i=0;
+		for (CConcXml::FreeBiblStringMap::const_iterator bmi=bmap.begin(); bmi != bmap.end(); ++i, ++bmi) {
+			const CConcXml::CFreeBiblIndex *fbi = bmi->second;
+			Result += (string(",\n\t\t{")
+				   + "\"name\":" + jsonStr(fbi->m_Name) + ", "
+#if DDC_VERBOSE_CORPUS_INFO
+				   + "\"xpath\":" + jsonStr(fbi->m_Xpath) + ", "
+#endif
+				   + "\"visible\":" + (fbi->m_bShowInHeader ? '1' : '0') + ", "
+				   + "\"size\":" + Format("%zd", fbi->size()) //-- bibl[i].size : number of breaks
+				   + "}"
+				   );
+		}
+		Result += "\n\t\t],\n\t";
+		//-- /info.bibl
+
+		//-- info.breaks
+		Result += "\"breaks\":[";
+		const vector<CHitBorders::CBreakCollection> &breaks = ix->GetBreaks();
+		for (i=0; i < breaks.size(); ++i) {
+			const CHitBorders::CBreakCollection &b = breaks[i];
+			if (i != 0) Result += ',';
+			Result += (string("\n\t\t{")
+				   + "\"shortname\":" + jsonStr(b.m_ShortName) + ", "
+				   + "\"longname\":" + jsonStr(b.m_LongName) + ", "
+				   + "\"size\":" + Format("%zd", b.m_BreakOffsets.size()) //-- breaks[i].size : number of breaks
+				   + "}"
+				   );
+		}
+		Result += "\n\t\t],\n\t";
+		//-- /info.breaks
+
+		//-- info.indices
+		Result += "\"indices\":[";
+		for (i=0; i < ix->m_Indices.size(); ++i) {
+			const CStringIndexSet* sis = ix->m_Indices[i];
+			set<size_t> visibleIndices(ix->m_IndicesToShow.begin(), ix->m_IndicesToShow.end());
+			//
+			if (i != 0) Result += ',';
+			//-- info.indices : verbose
+			Result += (string("\n\t\t{")
+				   + "\"shortname\":" + jsonStr(sis->m_ShortName) + ", "
+				   + "\"longname\":" + jsonStr(sis->m_Name) + ", "
+				   + "\"visible\":" + (visibleIndices.find(i)!=visibleIndices.end() ? '1' : '0') + ", "
+				   + "\"bigrams\":" + Format("%d", sis->m_MaxBigramWindowSize) + ", "
+				   + "\"size\":" + Format("%zd", sis->m_Index.size()) //+ ", " //-- indices[i].size : number of values (?)
+				   //+ "\"bigramBorder\":" + Format("%d", sis->m_BigramBorder) + ", "
+				   //+ "\"left\":" + Format("%zd", sis->m_BigramsIndex.m_LeftBigrams.m_FirstWords.size()) + ", "
+				   //+ "\"right\":" + Format("%zd", sis->m_BigramsIndex.m_RightBigrams.m_FirstWords.size()) + ", "
+				   + "}"
+				   );
+		}
+		Result += "\n\t\t],\n\t";
+		//-- /info.indices
+
+		//-- info.xbibl ~ ExpandBibl
+		Result += "\"xbibl\":[";
+		const CConcXml::BiblExpanderMap& xbmap = ix->m_Bibl.GetBiblExpanderMap();
+		i=0;
+		for (CConcXml::BiblExpanderMap::const_iterator bmi=xbmap.begin(); bmi != xbmap.end(); ++i, ++bmi) {
+			const CBiblExpander *bx = bmi->second;
+			if (i != 0) Result += ',';
+#if DDC_VERBOSE_CORPUS_INFO
+			//-- info.xbibl: verbose
+			Result += (string("\n\t\t{")
+				   + "\"label\":" + jsonStr(bx->m_BxLabel) + ", "
+				   + "\"target\":" + jsonStr(bx->m_BxTarget) + ", "
+				   + "\"param\":" + jsonStr(bx->m_BxParam)
+				   + "}"
+				   );
+#else
+			//-- info.xbibl: terse
+			Result += jsonStr(bx->m_BxLabel);
+#endif
+		}
+		Result += "],\n\t";
+		//-- /info.xbibl
+
+		//-- info.expanders ~ Expand
+		Result += "\"expanders\":[";
+		i=0;
+		for (TxDispatcher::TxMap::const_iterator txi=ix->m_Txd.m_tx.begin(); txi != ix->m_Txd.m_tx.end(); ++i, ++txi) {
+			const CTermExpander* tx = txi->second;
+			if (i != 0) Result += ", ";
+#if DDC_VERBOSE_CORPUS_INFO
+			//-- info.expanders : verbose
+			Result += (string("\n\t\t{")
+				   + "\"class\":" + jsonStr(tx->m_Class) + ", "
+				   + "\"label\":" + jsonStr(tx->m_Label) + ", "
+				   + "\"param\":" + jsonStr(tx->m_Param)
+				   + "}"
+				   );
+#else
+			Result += jsonStr(tx->m_Label);
+#endif
+		}
+		Result += "]\n\t";
+		//--/info.expanders
+	}
+	Result += "}";
+	//-- /info
+}
 
 string CDDCCorpusListenHost::ProcessSocketString(const string& InputSocket, SOCKET rConnectedSocket) 
 {
@@ -342,120 +508,17 @@ string CDDCCorpusListenHost::ProcessSocketString(const string& InputSocket, SOCK
 		//-- version : subcorpus server version
 		Result = PACKAGE_VERSION ;
 	}
-	else if (cmd == "status" || cmd == "vstatus") {
+	else if (cmd == "status") {
 		//-- status : subcorpus server status
-		double uptime = difftime(time(NULL), m_tStarted);
-
-		Result = (string("{\n\t")
-			  + "\"name\":" + jsonStr(m_CorpusName) + ",\n\t"
-			  + "\"version\":" + jsonStr(PACKAGE_VERSION) + ",\n\t"
-			  + "\"host\":" + jsonStr(m_HostName) + ",\n\t"
-			  + "\"port\":" + Format("%d", m_Port) + ",\n\t"
-			  + "\"started\":" + jsonStr(timestampUTC(m_tStarted)) + ",\n\t"
-			  + "\"uptime\":" + Format("%.0f", uptime) + ",\n\t"
-			  + "\"nrequests\":" + Format("%zi", m_nRequests) + ",\n\t"
-			  + "\"cachesize\":" + Format("%zi", m_pHolder->CacheSize()) + "\n\t"
-			  + "}");
+		ServerStatusJson(Result, false);
 	}
-	else if (cmd == "info") {
+	else if (cmd == "vstatus") {
+		//-- status : subcorpus server status (verbose)
+		ServerStatusJson(Result, true);
+	}
+	else if (cmd == "info" || cmd == "vinfo") {
 		//-- info : corpus info
-		CConcIndexator *ix = m_pHolder ? m_pHolder->m_pIndexator : NULL;
-		int i;
-
-		Result = (string("{\n\t")
-			  + "\"name\":" + jsonStr(m_CorpusName) + ",\n\t"
-			  + "\"version\":" + jsonStr(PACKAGE_VERSION) + ",\n\t"
-			  + "\"project\":" + jsonStr(ix ? ix->m_Path : string("")) + ",\n\t"
-			  + "\"indexed\":" + jsonStr(timestampUTC(ix ? ix->m_Timestamp : 0)) + ",\n\t"
-			  + "\"utf8\":"    + (ix->m_Utf8 ? '1' : '0') + ",\n\t"
-			  + "\"nfiles\":"  + Format("%zi", ix->GetSourceFilesCount()) + ",\n\t"
-			  + "\"ntokens\":" + Format("%zi", ix->GetCorpusEndTokenNo()) + ",\n\t"
-			  );
-
-		//-- info.bibl
-		Result += "\"bibl\":[";
-		const CConcXml::FreeBiblStringMap& bmap = ix->m_Bibl.GetFreeBiblStringMap();
-		i=0;
-		for (CConcXml::FreeBiblStringMap::const_iterator bmi=bmap.begin(); bmi != bmap.end(); ++i, ++bmi) {
-			const CConcXml::CFreeBiblIndex *fbi = bmi->second;
-			if (i != 0) Result += ',';
-			Result += (string("\n\t\t{")
-				   + "\"name\":" + jsonStr(fbi->m_Name) + ", "
-				   + "\"xpath\":" + jsonStr(fbi->m_Xpath) + ", "
-				   + "\"visible\":" + (fbi->m_bShowInHeader ? '1' : '0') + ", "
-				   + "\"size\":" + Format("%zi", fbi->size()) //-- bibl[i].size : number of breaks
-				   + "}"
-				   );
-		}
-		Result += "\n\t\t],\n\t";
-		//-- /info.bibl
-
-		//-- info.breaks
-		Result += "\"breaks\":[";
-		const vector<CHitBorders::CBreakCollection> &breaks = ix->GetBreaks();
-		for (i=0; i < breaks.size(); ++i) {
-			const CHitBorders::CBreakCollection &b = breaks[i];
-			if (i != 0) Result += ',';
-			Result += (string("\n\t\t{")
-				   + "\"shortname\":" + jsonStr(b.m_ShortName) + ", "
-				   + "\"longname\":" + jsonStr(b.m_LongName) + ", "
-				   + "\"visible\":" + '1' + ", "
-				   + "\"size\":" + Format("%zi", b.m_BreakOffsets.size()) //-- breaks[i].size : number of breaks
-				   + "}"
-				   );
-		}
-		Result += "\n\t\t],\n\t";
-		//-- /info.breaks
-
-		//-- info.indices
-		Result += "\"indices\":[";
-		for (i=0; i < ix->m_Indices.size(); ++i) {
-			const CStringIndexSet* sis = ix->m_Indices[i];
-			if (i != 0) Result += ',';
-			Result += (string("\n\t\t{")
-				   + "\"shortname\":" + jsonStr(sis->m_ShortName) + ", "
-				   + "\"longname\":" + jsonStr(sis->m_Name) + ", "
-				   + "\"size\":" + Format("%zi", sis->m_Index.size()) //-- indices[i].size : number of values (?)
-				   + "}"
-				   );
-		}
-		Result += "\n\t\t],\n\t";
-		//-- /info.indices
-
-		//-- info.xbibl ~ ExpandBibl
-		Result += "\"xbibl\":[";
-		const CConcXml::BiblExpanderMap& xbmap = ix->m_Bibl.GetBiblExpanderMap();
-		i=0;
-		for (CConcXml::BiblExpanderMap::const_iterator bmi=xbmap.begin(); bmi != xbmap.end(); ++i, ++bmi) {
-			const CBiblExpander *bx = bmi->second;
-			if (i != 0) Result += ',';
-			Result += (string("\n\t\t{")
-				   + "\"name\":" + jsonStr(bx->m_BxLabel) + ", "
-				   + "\"target\":" + jsonStr(bx->m_BxTarget) + ", "
-				   + "\"param\":" + jsonStr(bx->m_BxParam)
-				   + "}"
-				   );
-		}
-		Result += "\n\t\t],\n\t";
-		//-- /info.xbibl
-
-		//-- info.expanders ~ Expand
-		Result += "\"expanders\":[\n\t\t";
-		i=0;
-		for (TxDispatcher::TxMap::const_iterator txi=ix->m_Txd.m_tx.begin(); txi != ix->m_Txd.m_tx.end(); ++i, ++txi) {
-			const CTermExpander* tx = txi->second;
-			if (i != 0) Result += ",\n\t\t";
-			Result += (string("{")
-				   + "\"class\":" + jsonStr(tx->m_Class) + ", "
-				   + "\"name\":" + jsonStr(tx->m_Label) + ", "
-				   + "\"param\":" + jsonStr(tx->m_Param)
-				   + "}"
-				   );
-		}
-		Result += "\n\t\t]\n\t";
-		//--/info.expanders
-
-		Result += "}"; //-- /info
+		ServerInfoJson(Result);
 	}
 	else {
 		Result = Format("%i 0\nunknown command `%s'", errParseError, cmd.c_str());
@@ -737,7 +800,7 @@ string CDDCServerListenHost::ProcessSocketString(const string& InputSocket, SOCK
 				  + "\"port\":" + Format("%d", m_Port) + ",\n"
 				  + "\"started\":" + jsonStr(timestampUTC(m_tStarted)) + ",\n"
 				  + "\"uptime\":" + Format("%.0f", uptime) + ",\n"
-				  + "\"nrequests\":" + Format("%zi", m_nRequests) + ",\n"
+				  + "\"nrequests\":" + Format("%zd", m_nRequests) + ",\n"
 				  + "\"corpora\":"
 				  );
 
@@ -1294,42 +1357,67 @@ void UnloadLocalCorporaAndServer ()
 
 string CDDCServerListenHost::GetSubcorpusJsonArray(const string& request, int timeout)
 {
-	string Result("[");
-	for (size_t i=0; i < m_Hosts.size(); ++i) {
-		CHost &Host = m_Hosts[i];
-		if (i != 0)
-			Result += ',';
-		Result += "\n\t";
+	vector<string> Results(m_Hosts.size());
+	vector<SOCKET> Sockets(m_Hosts.size(), -1);
+	size_t i;
+	string errorStr;
 
-		string errorStr;
+	//-- send requests
+	for (i=0; i < m_Hosts.size(); ++i) {
+		CHost &Host = m_Hosts[i];
+
+		//-- open socket
+		errorStr.clear();
 		SOCKET sock = Host.CreateAndConnectSocket(errorStr);
-		if (!errorStr.empty() || sock == -1) {
-			Result += Format("{\"name\":%s,\"error\":\"could not open socket: %s\"},", Host.m_CorpusName.c_str(), jsonStr(errorStr, true, false).c_str());
+		if (sock == -1 || !errorStr.empty()) {
+			Results[i] = Format("{\"name\":%s,\"error\":\"could not open socket: %s\"},", Host.m_CorpusName.c_str(), jsonStr(errorStr, true, false).c_str());
 			continue;
 		}
 
+		//-- send request
 		if (!SendString(sock, request, errorStr) || !errorStr.empty()) {
 			CloseSocket(sock);
-			Result += Format("{\"name\":%s,\"error\":\"could not send to socket: %s\"},", Host.m_CorpusName.c_str(), jsonStr(errorStr, true, false).c_str());
+			Results[i] = Format("{\"name\":%s,\"error\":\"could not send to socket: %s\"},", Host.m_CorpusName.c_str(), jsonStr(errorStr, true, false).c_str());
 			continue;
 		}
 
-		//-- read response
-		string rsp;
-		if (ReceiveString(sock, rsp, timeout) != neSuccess) {
-			CloseSocket(sock);
-			Result += Format("{\"name\":%s,\"error\":\"failed to read response data from socket\"},", Host.m_CorpusName.c_str());
-			continue;
-		}
-		Result += rsp;
-
-		//-- ddc annoyingly complains unless each subcorpus socket gets doubled messages
-		rsp.clear();
-		SendString(sock, "ddc_close_socket", errorStr);
-		ReceiveString(sock, rsp, timeout);
-		CloseSocket(sock);
+		//-- store socket
+		Sockets[i] = sock;
 	}
 
+	//-- read responses
+	for (i=0; i < m_Hosts.size(); ++i) {
+		if (Sockets[i] == -1 || !Results[i].empty())
+			continue;
+
+		//-- read response
+		if (ReceiveString(Sockets[i], Results[i], timeout) != neSuccess) {
+			CloseSocket(Sockets[i]);
+			Sockets[i] = -1;
+			Results[i] = Format("{\"name\":%s,\"error\":\"failed to read response data from socket\"},", m_Hosts[i].m_CorpusName.c_str());
+			continue;
+		}
+
+		//-- send doubled messages to avoid ddc complaints of the form 'Cannot receive string for corpus "corpus2" (error: Could not receive data to a socket)'
+		errorStr.clear();
+		SendString(Sockets[i], "ddc_close_socket", errorStr);
+	}
+
+	//-- get responses for "ddc_close_socket" messages
+	for (i=0; i < m_Hosts.size(); ++i) {
+		if (Sockets[i] == -1) continue;
+
+		errorStr.clear();
+		ReceiveString(Sockets[i], errorStr, timeout);
+		CloseSocket(Sockets[i]);
+	}
+
+	//-- build result
+	string Result("[");
+	for (i=0; i < m_Hosts.size(); ++i) {
+		if (i!=0) Result += ',';
+		Result += string("\n\t") + (Results[i].empty() ? "null" : Results[i]);
+	}
 	Result += "\n]";
 	return Result;
 }

@@ -62,7 +62,7 @@
 .\" ========================================================================
 .\"
 .IX Title "DDC_PROTO 5"
-.TH DDC_PROTO 5 "2014-02-18" "2.0.18-pre1" "DDC Corpus Indexing System"
+.TH DDC_PROTO 5 "2014-02-19" "2.0.18" "DDC Corpus Indexing System"
 .\" For nroff, turn off justification.  Always turn off hyphenation; it makes
 .\" way too many mistakes in technical documents.
 .if n .ad l
@@ -72,7 +72,7 @@
 This manual page describes the network protocol used by the \s-1DDC\s0
 (sub)corpus and distributed servers.  In the syntax descriptions,
 the string \*(L"\ex01\*(R" represents a literal \s-1ASCII\s0 byte with decimal value 1
-(the \*(L"\s-1SOH\s0\*(R" [start of heading] character),
+(a.k.a \*(L"\s-1SOH\s0\*(R" a.k.a \*(L"start of heading\*(R"),
 and \*(L" \*(R" represents a literal space character (\s-1ASCII\s0 byte with decimal value 32).
 .SH "SYNOPSIS"
 .IX Header "SYNOPSIS"
@@ -91,11 +91,11 @@ and \*(L" \*(R" represents a literal space character (\s-1ASCII\s0 byte with dec
 \& expand_terms "\ex01" PIPELINE "\ex01" TERMS "\ex01" TIMEOUT "\ex01" CORPUS
 \&
 \& get_paradigm " " WORD "\ex01" ILEMMATIZE " " ILANG
-\&
 \& ddc_close_socket
 \&
 \& version
 \& status
+\& vstatus
 \& info
 \&
 \& ##=====================================================================
@@ -244,6 +244,88 @@ annoying complaints unless each subcorpus socket gets exactly 2 messages per use
 \&\fB\s-1DANGEROUS\s0\fR to use on a distributed server, can cause server lockup!
 .PP
 Since v2.0.0
+.PP
+\fIversion\fR
+.IX Subsection "version"
+.PP
+.Vb 1
+\& version
+.Ve
+.PP
+Returns the version number of the
+distributed server
+as a string, by convention of the form
+\&\f(CW\*(C`MAJOR.MINOR.MICRO\-PATCHLEVEL\*(C'\fR
+where \f(CW\*(C`MAJOR\*(C'\fR, \f(CW\*(C`MINOR\*(C'\fR, and \f(CW\*(C`MICRO\*(C'\fR are unsigned decimal integers,
+and \f(CW\*(C`\-PATCHLEVEL\*(C'\fR is an optional string suffix.
+This should be the same string reported by \fBddc_daemon\fR on startup.
+.PP
+Since v2.0.18
+.PP
+\fIstatus\fR
+.IX Subsection "status"
+.PP
+.Vb 1
+\& status
+.Ve
+.PP
+Returns status information on the distributed server as a \s-1JSON\s0 object of the form:
+.PP
+.Vb 10
+\& {
+\&  "name":"server",                      //\-\- distributed server name
+\&  "version":"2.0.18\-pre1",              //\-\- distributed server version
+\&  "host":"127.0.0.1",                   //\-\- distributed server socket hostname or IP
+\&  "port":50011,                         //\-\- distributed server socket port
+\&  "started":"2014\-02\-17T13:49:59Z",     //\-\- ISO\-8601 timestamp of last server start
+\&  "uptime":1392644999,                  //\-\- server instance uptime in seconds
+\&  "nrequests":21,                       //\-\- number of served requests
+\&  "corpora":["corpus1","corpus2",...]   //\-\- registered subcorpora (names only)
+\& }
+.Ve
+.PP
+Very fast turnaround, since all returned data is known to the distributed server itself,
+and no subcorpora need to be queried.
+.PP
+Since v2.0.18
+.PP
+\fIvstatus\fR
+.IX Subsection "vstatus"
+.PP
+.Vb 1
+\& vstatus
+.Ve
+.PP
+Like the \f(CW\*(C`status\*(C'\fR command, but the elements of the returned \*(L"corpora\*(R" list
+are the \s-1JSON\s0 objects returned by the \f(CW\*(C`status\*(C'\fR command to the associated subcorpus servers,
+rather than just subcorpus names.
+.PP
+Since v2.0.18.
+.PP
+\fIinfo\fR
+.IX Subsection "info"
+.PP
+Returns information about associated subcorpora as a \s-1JSON\s0 object of the form:
+.PP
+.Vb 10
+\& {
+\&  "name":"server",
+\&  "version":"2.0.18\-pre1",
+\&  "corpora":[
+\&        {
+\&         "name":"corpus1",
+\&         //... information for subcorpus "corpus1" ...
+\&        },
+\&        //... information for other subcorpora ...
+\&        {
+\&         "name":"corpusN",
+\&         //... information for subcorpus "corpusN" ...
+\&        }
+\&  ]
+\& }
+.Ve
+.PP
+Since v2.0.18
 .SS "Subcorpus Server Messages"
 .IX Subsection "Subcorpus Server Messages"
 \fIget_first_hits\fR
@@ -268,7 +350,7 @@ where \f(CW\*(C`STATUS\*(C'\fR is a non-zero decimal integer error code, and \s-
 On success, responses have the form:
 .PP
 .Vb 1
-\& STATUS MAXHIT NHITS NDOCS SORTED HITIDS
+\& STATUS " " MAXHIT " " NHITS " " NDOCS " " SORTED " " HITIDS
 .Ve
 .PP
 where \f(CW\*(C`STATUS\*(C'\fR is a decimal integer status, 0 (zero) for success,
@@ -276,18 +358,19 @@ where \f(CW\*(C`STATUS\*(C'\fR is a decimal integer status, 0 (zero) for success
 \&\f(CW\*(C`NHITS\*(C'\fR is the number of hits found (?? see CConcHolder::m_AllHitsCount),
 \&\f(CW\*(C`NDOCS\*(C'\fR is the number of relevant documents found (?? see CConcHolder::m_RelevantDocumentCount),
 \&\f(CW\*(C`SORTED\*(C'\fR is a Boolean integer indicating whether or not the hits should be sorted,
-and \f(CW\*(C`HITIDS\*(C'\fR is a TAB-separated list of \f(CW\*(C`NHITS\*(C'\fR hit-identification triples (see \fICConcHolder::GetHitIds()\fR)., each element being
-of the form:
+and \f(CW\*(C`HITIDS\*(C'\fR is a TAB-separated list of \f(CW\*(C`NHITS\*(C'\fR hit-identification triples (see \fICConcHolder::GetHitIds()\fR),
+each element of which has the form:
 .PP
 .Vb 1
 \& INDEX " " ORDERID " " ORDER_STRING
 .Ve
 .PP
-where \s-1INDEX\s0 is the query-dependent hit index, \s-1ORDERID\s0 is a global sort key for the hit,
-and \s-1ORDER_STRING\s0 is either \*(L"<empty>\*(R" or a string sort-key for the hit (the latter just in case
-the query contained a context-dependend sort operation such as \f(CW\*(C`#left\*(C'\fR or \f(CW\*(C`#right\*(C'\fR).
+where \f(CW\*(C`INDEX\*(C'\fR is the query-dependent hit index,
+\&\f(CW\*(C`ORDERID\*(C'\fR is a global sort-key for the hit,
+and \f(CW\*(C`ORDER_STRING\*(C'\fR is either the literal string \*(L"<empty>\*(R" or a string sort-key for the hit.
+(the latter just in case the query contained a context-dependend sort operation such as \f(CW\*(C`#left\*(C'\fR or \f(CW\*(C`#right\*(C'\fR).
 .PP
-Since v1.x, error messages since v2.0.0.
+Since v1.x, error message strings since v2.0.0.
 .PP
 \fIget_hit_strings\fR
 .IX Subsection "get_hit_strings"
@@ -374,6 +457,7 @@ Dummy request used internally to avoid
 annoying complaints unless each subcorpus socket gets exactly 2 messages per user request.
 Should always return the response \*(L"ok\*(R".
 Causes the server to terminate the client connection.
+\&\fB\s-1DANGEROUS\s0\fR to use directly on a subcorpus server, can cause premature server termination!
 .PP
 Since v2.0.0.
 .PP
@@ -401,12 +485,14 @@ Since v2.0.18
 .PP
 Returns status information on the subcorpus server as a \s-1JSON\s0 object of the form:
 .PP
-.Vb 8
+.Vb 10
 \& {
-\&  "version": "2.0.18\-pre1",             //\-\- server version
-\&  "indexed":"1970\-01\-01T00:00:00Z",     //\-\- ISO\-8601 timestamp of corpus *._con file mtime
+\&  "name":"corpus1",                     //\-\- subcorpus name
+\&  "version":"2.0.18\-pre1",              //\-\- subcorpus server version
+\&  "host":"127.0.0.1",                   //\-\- subcorpus server socket hostname or IP
+\&  "port":50011,                         //\-\- subcorpus server socket port
 \&  "started":"2014\-02\-17T13:49:59Z",     //\-\- ISO\-8601 timestamp of last server start
-\&  "uptime":1392644999,                  //\-\- server instance uptime in seconds
+\&  "uptime":1392644999,                  //\-\- subcorpus server instance uptime in seconds
 \&  "nrequests":21,                       //\-\- number of served requests
 \&  "cachesize":42,                       //\-\- size of query cache
 \& }
@@ -417,15 +503,65 @@ Since v2.0.18
 \fIinfo\fR
 .IX Subsection "info"
 .PP
-Returns information about the associated corpus as a \s-1JSON\s0 object of the form:
+Returns information about the associated (sub)corpus as a \s-1JSON\s0 object of the form:
 .PP
-.Vb 3
+.Vb 10
 \& {
-\&  ...
-\& }
+\&  //\-\- basic information
+\&  "name":"corpus1",                     //\-\- subcorpus name
+\&  "version":"2.0.18\-pre1",              //\-\- subcorpus server version
+\&  "project":"corpus1",                  //\-\- project basename
+\&  "indexed":"2014\-02\-17T13:49:56Z",     //\-\- index timestamp (mtime of PROJECT._con)
+\&  "nfiles":4,                           //\-\- number of indexed files
+\&  "ntokens":56294,                      //\-\- number of indexed tokens
+\&  //
+\&  //\-\- global index options (see ddc_opt(5))
+\&  "lang":"German",
+\&  "utf8":1,
+\&  "caseSensitive":1,
+\&  "contextOperator":1,
+\&  "dwdsThesaurus":0,
+\&  "interpDelimiter":"\eu001f",
+\&  "tokenDelimiter":"\eu001e",
+\&  "allowUnsafeQueries":0,
+\&  "indexPunctuation":1,
+\&  "indexMorphPatterns":0,
+\&  "indexChunks":0,
+\&  //
+\&  //\-\- index structure: bibliographic metadata
+\&  "bibl":[
+\&        {"name":"orig","builtin":1},
+\&        {"name":"scan","builtin":1},
+\&        {"name":"date","builtin":1},
+\&        {"name":"page","builtin":1},
+\&        {"name":"author", "visible":1, "size":4},
+\&        //... other bibliographic fields ...
+\&        {"name":"title", "visible":1, "size":4}
+\&        ],
+\&  //
+\&  //\-\- index structure: break collections
+\&  "breaks":[
+\&        {"shortname":"s", "longname":"sentence", "size":2823},
+\&        //... other break collections ...
+\&        {"shortname":"textarea", "longname":"textarea", "size":4}
+\&        ],
+\&  //
+\&  //\-\- index structure: token\-level indices
+\&  "indices":[
+\&        {"shortname":"w", "longname":"Token", "visible":1, "bigrams":2, "size":9369},
+\&        {"shortname":"l", "longname":"Lemma", "visible":1, "bigrams":0, "size":5706},
+\&        //... other token\-level indices ...
+\&        {"shortname":"p", "longname":"Pos", "visible":1, "bigrams":0, "size":53},
+\&        ],
+\&  //
+\&  //\-\- query operators: bibliographic expanders ("ExpandBibl" options)
+\&  "xbibl":["xauthor",...]
+\&  //
+\&  //\-\- query operators: term expanders ("Expand" options)
+\&  "expanders":["Token",...]
+\&  }
 .Ve
 .PP
-Not yet implemented.
 Since v2.0.18
 .SH "ACKNOWLEDGEMENTS"
 .IX Header "ACKNOWLEDGEMENTS"

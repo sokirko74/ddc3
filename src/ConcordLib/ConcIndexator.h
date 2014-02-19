@@ -270,6 +270,10 @@ public:
 	bool UseDwdsThesaurus() const { return m_bUseDwdsThesaurus; };
 	//! return true, if DDC should output bibliographical information  for hits instead of \ref corpus_file_def "corpus file names"
 	bool OutputBibliographyOfHits() const { return m_bOutputBibliographyOfHits; };
+
+	//! wrapper for m_bIndexPunctuation
+	bool IndexPunctuation() const { return m_bIndexPunctuation; };
+
 	//! get an HTML formatted reference to a \ref corpus_file_def "corpus file" 
 	string GetHtmlReference(size_t posFile) const;
 	//! get a reference to a \ref corpus_file_def "corpus file" without the common left prefix 
@@ -341,7 +345,6 @@ public:
 	DWORD GetMaxTokenCountInOnePeriod() const;
 	//! return a string representation of a set of token properties (in the format which is used in the index)
 	string			GetIndexItemSetByVectorString (const vector<string>& TokenProperties, bool bRegexp );
-
 };
 
 

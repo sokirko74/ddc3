@@ -30,6 +30,10 @@
 			<li><a href="#expand_terms">expand_terms</a></li>
 			<li><a href="#get_paradigm">get_paradigm</a></li>
 			<li><a href="#ddc_close_socket">ddc_close_socket</a></li>
+			<li><a href="#version">version</a></li>
+			<li><a href="#status">status</a></li>
+			<li><a href="#vstatus">vstatus</a></li>
+			<li><a href="#info">info</a></li>
 		</ul>
 
 		<li><a href="#subcorpus_server_messages">Subcorpus Server Messages</a></li>
@@ -61,7 +65,7 @@
 <p>This manual page describes the network protocol used by the DDC
 (sub)corpus and distributed servers.  In the syntax descriptions,
 the string &quot;\x01&quot; represents a literal ASCII byte with decimal value 1
-(the &quot;SOH&quot; [start of heading] character),
+(a.k.a &quot;SOH&quot; a.k.a &quot;start of heading&quot;),
 and &quot; &quot; represents a literal space character (ASCII byte with decimal value 32).</p>
 <p>
 </p>
@@ -81,12 +85,12 @@ and &quot; &quot; represents a literal space character (ASCII byte with decimal 
  expand_terms &quot;\x01&quot; PIPELINE &quot;\x01&quot; TERMS &quot;\x01&quot; TIMEOUT
  expand_terms &quot;\x01&quot; PIPELINE &quot;\x01&quot; TERMS &quot;\x01&quot; TIMEOUT &quot;\x01&quot; CORPUS</pre>
 <pre>
- get_paradigm &quot; &quot; WORD &quot;\x01&quot; ILEMMATIZE &quot; &quot; ILANG</pre>
-<pre>
+ get_paradigm &quot; &quot; WORD &quot;\x01&quot; ILEMMATIZE &quot; &quot; ILANG
  ddc_close_socket</pre>
 <pre>
  version
  status
+ vstatus
  info</pre>
 <pre>
  ##=====================================================================
@@ -233,6 +237,69 @@ annoying complaints unless each subcorpus socket gets exactly 2 messages per use
 <p>Since v2.0.0</p>
 <p>
 </p>
+<h3><a name="version">version</a></h3>
+<pre>
+ version</pre>
+<p>Returns the version number of the
+distributed server
+as a string, by convention of the form
+<code>MAJOR.MINOR.MICRO-PATCHLEVEL</code>
+where <code>MAJOR</code>, <code>MINOR</code>, and <code>MICRO</code> are unsigned decimal integers,
+and <code>-PATCHLEVEL</code> is an optional string suffix.
+This should be the same string reported by <strong>ddc_daemon</strong> on startup.</p>
+<p>Since v2.0.18</p>
+<p>
+</p>
+<h3><a name="status">status</a></h3>
+<pre>
+ status</pre>
+<p>Returns status information on the distributed server as a JSON object of the form:</p>
+<pre>
+ {
+  &quot;name&quot;:&quot;server&quot;,                      //-- distributed server name
+  &quot;version&quot;:&quot;2.0.18-pre1&quot;,              //-- distributed server version
+  &quot;host&quot;:&quot;127.0.0.1&quot;,                   //-- distributed server socket hostname or IP
+  &quot;port&quot;:50011,                         //-- distributed server socket port
+  &quot;started&quot;:&quot;2014-02-17T13:49:59Z&quot;,     //-- ISO-8601 timestamp of last server start
+  &quot;uptime&quot;:1392644999,                  //-- server instance uptime in seconds
+  &quot;nrequests&quot;:21,                       //-- number of served requests
+  &quot;corpora&quot;:[&quot;corpus1&quot;,&quot;corpus2&quot;,...]   //-- registered subcorpora (names only)
+ }</pre>
+<p>Very fast turnaround, since all returned data is known to the distributed server itself,
+and no subcorpora need to be queried.</p>
+<p>Since v2.0.18</p>
+<p>
+</p>
+<h3><a name="vstatus">vstatus</a></h3>
+<pre>
+ vstatus</pre>
+<p>Like the <code>status</code> command, but the elements of the returned &quot;corpora&quot; list
+are the JSON objects returned by the <code>status</code> command to the associated subcorpus servers,
+rather than just subcorpus names.</p>
+<p>Since v2.0.18.</p>
+<p>
+</p>
+<h3><a name="info">info</a></h3>
+<p>Returns information about associated subcorpora as a JSON object of the form:</p>
+<pre>
+ {
+  &quot;name&quot;:&quot;server&quot;,
+  &quot;version&quot;:&quot;2.0.18-pre1&quot;,
+  &quot;corpora&quot;:[
+        {
+         &quot;name&quot;:&quot;corpus1&quot;,
+         //... information for subcorpus &quot;corpus1&quot; ...
+        },
+        //... information for other subcorpora ...
+        {
+         &quot;name&quot;:&quot;corpusN&quot;,
+         //... information for subcorpus &quot;corpusN&quot; ...
+        }
+  ]
+ }</pre>
+<p>Since v2.0.18</p>
+<p>
+</p>
 <h2><a name="subcorpus_server_messages">Subcorpus Server Messages</a></h2>
 <p>
 </p>
@@ -248,20 +315,21 @@ number of hits to evaluate.</p>
 <p>where <code>STATUS</code> is a non-zero decimal integer error code, and ERROR is a text string describing the error.</p>
 <p>On success, responses have the form:</p>
 <pre>
- STATUS MAXHIT NHITS NDOCS SORTED HITIDS</pre>
+ STATUS &quot; &quot; MAXHIT &quot; &quot; NHITS &quot; &quot; NDOCS &quot; &quot; SORTED &quot; &quot; HITIDS</pre>
 <p>where <code>STATUS</code> is a decimal integer status, 0 (zero) for success,
 <code>MAXHIT</code> is the index of the last hit computed (?? see CConcHolder::GetHits(q, __EndHitNo__)),
 <code>NHITS</code> is the number of hits found (?? see CConcHolder::m_AllHitsCount),
 <code>NDOCS</code> is the number of relevant documents found (?? see CConcHolder::m_RelevantDocumentCount),
 <code>SORTED</code> is a Boolean integer indicating whether or not the hits should be sorted,
-and <code>HITIDS</code> is a TAB-separated list of <code>NHITS</code> hit-identification triples (see CConcHolder::GetHitIds())., each element being
-of the form:</p>
+and <code>HITIDS</code> is a TAB-separated list of <code>NHITS</code> hit-identification triples (see CConcHolder::GetHitIds()),
+each element of which has the form:</p>
 <pre>
  INDEX &quot; &quot; ORDERID &quot; &quot; ORDER_STRING</pre>
-<p>where INDEX is the query-dependent hit index, ORDERID is a global sort key for the hit,
-and ORDER_STRING is either &quot;&lt;empty&gt;&quot; or a string sort-key for the hit (the latter just in case
-the query contained a context-dependend sort operation such as <code>#left</code> or <code>#right</code>).</p>
-<p>Since v1.x, error messages since v2.0.0.</p>
+<p>where <code>INDEX</code> is the query-dependent hit index,
+<code>ORDERID</code> is a global sort-key for the hit,
+and <code>ORDER_STRING</code> is either the literal string &quot;&lt;empty&gt;&quot; or a string sort-key for the hit.
+(the latter just in case the query contained a context-dependend sort operation such as <code>#left</code> or <code>#right</code>).</p>
+<p>Since v1.x, error message strings since v2.0.0.</p>
 <p>
 </p>
 <h3><a name="get_hit_strings">get_hit_strings</a></h3>
@@ -321,7 +389,8 @@ separated by TABs, newlines, and/or carriage returns (ASCII 0x09, 0x0a, 0x0d).</
 <p>Dummy request used internally to avoid
 annoying complaints unless each subcorpus socket gets exactly 2 messages per user request.
 Should always return the response &quot;ok&quot;.
-Causes the server to terminate the client connection.</p>
+Causes the server to terminate the client connection.
+<strong>DANGEROUS</strong> to use directly on a subcorpus server, can cause premature server termination!</p>
 <p>Since v2.0.0.</p>
 <p>
 </p>
@@ -342,10 +411,12 @@ This should be the same string reported by <strong>ddc_daemon</strong> on startu
 <p>Returns status information on the subcorpus server as a JSON object of the form:</p>
 <pre>
  {
-  &quot;version&quot;: &quot;2.0.18-pre1&quot;,             //-- server version
-  &quot;indexed&quot;:&quot;1970-01-01T00:00:00Z&quot;,     //-- ISO-8601 timestamp of corpus *._con file mtime
+  &quot;name&quot;:&quot;corpus1&quot;,                     //-- subcorpus name
+  &quot;version&quot;:&quot;2.0.18-pre1&quot;,              //-- subcorpus server version
+  &quot;host&quot;:&quot;127.0.0.1&quot;,                   //-- subcorpus server socket hostname or IP
+  &quot;port&quot;:50011,                         //-- subcorpus server socket port
   &quot;started&quot;:&quot;2014-02-17T13:49:59Z&quot;,     //-- ISO-8601 timestamp of last server start
-  &quot;uptime&quot;:1392644999,                  //-- server instance uptime in seconds
+  &quot;uptime&quot;:1392644999,                  //-- subcorpus server instance uptime in seconds
   &quot;nrequests&quot;:21,                       //-- number of served requests
   &quot;cachesize&quot;:42,                       //-- size of query cache
  }</pre>
@@ -353,13 +424,63 @@ This should be the same string reported by <strong>ddc_daemon</strong> on startu
 <p>
 </p>
 <h3><a name="info">info</a></h3>
-<p>Returns information about the associated corpus as a JSON object of the form:</p>
+<p>Returns information about the associated (sub)corpus as a JSON object of the form:</p>
 <pre>
  {
-  ...
- }</pre>
-<p>Not yet implemented.
-Since v2.0.18</p>
+  //-- basic information
+  &quot;name&quot;:&quot;corpus1&quot;,                     //-- subcorpus name
+  &quot;version&quot;:&quot;2.0.18-pre1&quot;,              //-- subcorpus server version
+  &quot;project&quot;:&quot;corpus1&quot;,                  //-- project basename
+  &quot;indexed&quot;:&quot;2014-02-17T13:49:56Z&quot;,     //-- index timestamp (mtime of PROJECT._con)
+  &quot;nfiles&quot;:4,                           //-- number of indexed files
+  &quot;ntokens&quot;:56294,                      //-- number of indexed tokens
+  //
+  //-- global index options (see ddc_opt(5))
+  &quot;lang&quot;:&quot;German&quot;,
+  &quot;utf8&quot;:1,
+  &quot;caseSensitive&quot;:1,
+  &quot;contextOperator&quot;:1,
+  &quot;dwdsThesaurus&quot;:0,
+  &quot;interpDelimiter&quot;:&quot;\u001f&quot;,
+  &quot;tokenDelimiter&quot;:&quot;\u001e&quot;,
+  &quot;allowUnsafeQueries&quot;:0,
+  &quot;indexPunctuation&quot;:1,
+  &quot;indexMorphPatterns&quot;:0,
+  &quot;indexChunks&quot;:0,
+  //
+  //-- index structure: bibliographic metadata
+  &quot;bibl&quot;:[
+        {&quot;name&quot;:&quot;orig&quot;,&quot;builtin&quot;:1},
+        {&quot;name&quot;:&quot;scan&quot;,&quot;builtin&quot;:1},
+        {&quot;name&quot;:&quot;date&quot;,&quot;builtin&quot;:1},
+        {&quot;name&quot;:&quot;page&quot;,&quot;builtin&quot;:1},
+        {&quot;name&quot;:&quot;author&quot;, &quot;visible&quot;:1, &quot;size&quot;:4},
+        //... other bibliographic fields ...
+        {&quot;name&quot;:&quot;title&quot;, &quot;visible&quot;:1, &quot;size&quot;:4}
+        ],
+  //
+  //-- index structure: break collections
+  &quot;breaks&quot;:[
+        {&quot;shortname&quot;:&quot;s&quot;, &quot;longname&quot;:&quot;sentence&quot;, &quot;size&quot;:2823},
+        //... other break collections ...
+        {&quot;shortname&quot;:&quot;textarea&quot;, &quot;longname&quot;:&quot;textarea&quot;, &quot;size&quot;:4}
+        ],
+  //
+  //-- index structure: token-level indices
+  &quot;indices&quot;:[
+        {&quot;shortname&quot;:&quot;w&quot;, &quot;longname&quot;:&quot;Token&quot;, &quot;visible&quot;:1, &quot;bigrams&quot;:2, &quot;size&quot;:9369},
+        {&quot;shortname&quot;:&quot;l&quot;, &quot;longname&quot;:&quot;Lemma&quot;, &quot;visible&quot;:1, &quot;bigrams&quot;:0, &quot;size&quot;:5706},
+        //... other token-level indices ...
+        {&quot;shortname&quot;:&quot;p&quot;, &quot;longname&quot;:&quot;Pos&quot;, &quot;visible&quot;:1, &quot;bigrams&quot;:0, &quot;size&quot;:53},
+        ],
+  //
+  //-- query operators: bibliographic expanders (&quot;ExpandBibl&quot; options)
+  &quot;xbibl&quot;:[&quot;xauthor&quot;,...]
+  //
+  //-- query operators: term expanders (&quot;Expand&quot; options)
+  &quot;expanders&quot;:[&quot;Token&quot;,...]
+  }</pre>
+<p>Since v2.0.18</p>
 <p>
 </p>
 <hr />

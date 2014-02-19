@@ -7,7 +7,7 @@
 This manual page describes the network protocol used by the DDC
 (sub)corpus and distributed servers.  In the syntax descriptions,
 the string "\x01" represents a literal ASCII byte with decimal value 1
-(the "SOH" [start of heading] character),
+(a.k.a "SOH" a.k.a "start of heading"),
 and " " represents a literal space character (ASCII byte with decimal value 32).
 
 =cut
@@ -292,10 +292,21 @@ Since v2.0.18.
 Returns information about associated subcorpora as a JSON object of the form:
 
  {
-  ...
+  "name":"server",
+  "version":"2.0.18-pre1",
+  "corpora":[
+ 	{
+ 	 "name":"corpus1",
+ 	 //... information for subcorpus "corpus1" ...
+	},
+        //... information for other subcorpora ...
+ 	{
+ 	 "name":"corpusN",
+ 	 //... information for subcorpus "corpusN" ...
+	}
+  ]
  }
 
-Not yet implemented.
 Since v2.0.18
 
 =cut
@@ -328,23 +339,24 @@ where C<STATUS> is a non-zero decimal integer error code, and ERROR is a text st
 
 On success, responses have the form:
 
- STATUS MAXHIT NHITS NDOCS SORTED HITIDS
+ STATUS " " MAXHIT " " NHITS " " NDOCS " " SORTED " " HITIDS
 
 where C<STATUS> is a decimal integer status, 0 (zero) for success,
 C<MAXHIT> is the index of the last hit computed (?? see CConcHolder::GetHits(q, __EndHitNo__)),
 C<NHITS> is the number of hits found (?? see CConcHolder::m_AllHitsCount),
 C<NDOCS> is the number of relevant documents found (?? see CConcHolder::m_RelevantDocumentCount),
 C<SORTED> is a Boolean integer indicating whether or not the hits should be sorted,
-and C<HITIDS> is a TAB-separated list of C<NHITS> hit-identification triples (see CConcHolder::GetHitIds())., each element being
-of the form:
+and C<HITIDS> is a TAB-separated list of C<NHITS> hit-identification triples (see CConcHolder::GetHitIds()),
+each element of which has the form:
 
  INDEX " " ORDERID " " ORDER_STRING
 
-where INDEX is the query-dependent hit index, ORDERID is a global sort key for the hit,
-and ORDER_STRING is either "<empty>" or a string sort-key for the hit (the latter just in case
-the query contained a context-dependend sort operation such as C<#left> or C<#right>).
+where C<INDEX> is the query-dependent hit index,
+C<ORDERID> is a global sort-key for the hit,
+and C<ORDER_STRING> is either the literal string "E<lt>emptyE<gt>" or a string sort-key for the hit.
+(the latter just in case the query contained a context-dependend sort operation such as C<#left> or C<#right>).
 
-Since v1.x, error messages since v2.0.0.
+Since v1.x, error message strings since v2.0.0.
 
 =cut
 
@@ -430,6 +442,7 @@ Dummy request used internally to avoid
 annoying complaints unless each subcorpus socket gets exactly 2 messages per user request.
 Should always return the response "ok".
 Causes the server to terminate the client connection.
+B<DANGEROUS> to use directly on a subcorpus server, can cause premature server termination!
 
 Since v2.0.0.
 
@@ -484,13 +497,60 @@ Since v2.0.18
 Returns information about the associated (sub)corpus as a JSON object of the form:
 
  {
+  //-- basic information
   "name":"corpus1",			//-- subcorpus name
   "version":"2.0.18-pre1",		//-- subcorpus server version
-  "project":"test/corpus1.con",		//-- subcorpus project *.con file
-  "indexed":"1970-01-01T00:00:00Z",	//-- ISO-8601 timestamp of project *._con file mtime
- }
+  "project":"corpus1",			//-- project basename
+  "indexed":"2014-02-17T13:49:56Z",	//-- index timestamp (mtime of PROJECT._con)
+  "nfiles":4,				//-- number of indexed files
+  "ntokens":56294,			//-- number of indexed tokens
+  //
+  //-- global index options (see ddc_opt(5))
+  "lang":"German",
+  "utf8":1,
+  "caseSensitive":1,
+  "contextOperator":1,
+  "dwdsThesaurus":0,
+  "interpDelimiter":"\u001f",
+  "tokenDelimiter":"\u001e",
+  "allowUnsafeQueries":0,
+  "indexPunctuation":1,
+  "indexMorphPatterns":0,
+  "indexChunks":0,
+  //
+  //-- index structure: bibliographic metadata
+  "bibl":[
+	{"name":"orig","builtin":1},
+	{"name":"scan","builtin":1},
+	{"name":"date","builtin":1},
+	{"name":"page","builtin":1},
+	{"name":"author", "visible":1, "size":4},
+	//... other bibliographic fields ...
+	{"name":"title", "visible":1, "size":4}
+  	],
+  //
+  //-- index structure: break collections
+  "breaks":[
+	{"shortname":"s", "longname":"sentence", "size":2823},
+	//... other break collections ...
+	{"shortname":"textarea", "longname":"textarea", "size":4}
+	],
+  //
+  //-- index structure: token-level indices
+  "indices":[
+	{"shortname":"w", "longname":"Token", "visible":1, "bigrams":2, "size":9369},
+	{"shortname":"l", "longname":"Lemma", "visible":1, "bigrams":0, "size":5706},
+	//... other token-level indices ...
+	{"shortname":"p", "longname":"Pos", "visible":1, "bigrams":0, "size":53},
+	],
+  //
+  //-- query operators: bibliographic expanders ("ExpandBibl" options)
+  "xbibl":["xauthor",...]
+  //
+  //-- query operators: term expanders ("Expand" options)
+  "expanders":["Token",...]
+  }
 
-Not yet implemented.
 Since v2.0.18
 
 =cut
