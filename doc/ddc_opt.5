@@ -62,7 +62,7 @@
 .\" ========================================================================
 .\"
 .IX Title "DDC_OPT 5"
-.TH DDC_OPT 5 "2013-12-06" "2.0.18-pre1" "DDC Corpus Indexing System"
+.TH DDC_OPT 5 "2014-03-07" "2.0.19" "DDC Corpus Indexing System"
 .\" For nroff, turn off justification.  Always turn off hyphenation; it makes
 .\" way too many mistakes in technical documents.
 .if n .ad l
@@ -666,6 +666,9 @@ lexicographically by neighbor \fI\s-1INDEXNAME\s0\fR using the \f(CW\*(C`#left\*
 Up to \fI\s-1MAXLEN\s0\fR neighbors are considered for the sort.  Breaks of type \fI\s-1BREAKNAME\s0\fR terminate
 the sort.
 Example usage: \f(CW\*(C`Bigrams Token 2 s\*(C'\fR.
+.PP
+\&\fB\s-1OBSOLETE\s0\fR as of ddc v2.0.19, which supports generic \f(CW\*(C`#left\*(C'\fR and/or \f(CW\*(C`#right\*(C'\fR query operators
+on arbitrary token attributes within the current query break collection.
 .PP
 \fIExpand\fR
 .IX Subsection "Expand"

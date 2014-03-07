@@ -20,20 +20,20 @@ and " " represents a literal space character (ASCII byte with decimal value 32).
 
  ##=====================================================================
  ## Generic Message Format
-
+ 
  LENGTH DATA
 
  ##=====================================================================
  ## Distributed Server Messages
-
+ 
  run_query " " CORPUS "\x01" QUERY "\x01" FORMAT "\x01" OFFSET " " LIMIT " " TIMEOUT
-
+ 
  expand_terms "\x01" PIPELINE "\x01" TERMS "\x01" TIMEOUT
  expand_terms "\x01" PIPELINE "\x01" TERMS "\x01" TIMEOUT "\x01" CORPUS
-
+ 
  get_paradigm " " WORD "\x01" ILEMMATIZE " " ILANG
  ddc_close_socket
-
+ 
  version
  status
  vstatus
@@ -41,14 +41,14 @@ and " " represents a literal space character (ASCII byte with decimal value 32).
 
  ##=====================================================================
  ## Subcorpus Server Messages
-
+ 
  get_first_hits " " QUERY "\x01 " TIMEOUT " " LIMIT
  get_hit_strings " " FORMAT "\x01" OFFSET " " LIMIT
-
+ 
  expand_terms "\x01" PIPELINE "\x01" TERMS "\x01" TIMEOUT
-
+ 
  ddc_close_socket
-
+ 
  version
  status
  info
@@ -339,22 +339,32 @@ where C<STATUS> is a non-zero decimal integer error code, and ERROR is a text st
 
 On success, responses have the form:
 
- STATUS " " MAXHIT " " NHITS " " NDOCS " " SORTED " " HITIDS
+ STATUS " " MAXHIT " " NHITS " " NDOCS " " SORT " " HITIDS
 
 where C<STATUS> is a decimal integer status, 0 (zero) for success,
 C<MAXHIT> is the index of the last hit computed (?? see CConcHolder::GetHits(q, __EndHitNo__)),
 C<NHITS> is the number of hits found (?? see CConcHolder::m_AllHitsCount),
 C<NDOCS> is the number of relevant documents found (?? see CConcHolder::m_RelevantDocumentCount),
-C<SORTED> is a Boolean integer indicating whether or not the hits should be sorted,
+C<SORT> is a indicates whether and/or how the hits are to be sorted
+(0: no sort, 1: ascending sort, -1: descending sort),
 and C<HITIDS> is a TAB-separated list of C<NHITS> hit-identification triples (see CConcHolder::GetHitIds()),
 each element of which has the form:
 
  INDEX " " ORDERID " " ORDER_STRING
 
 where C<INDEX> is the query-dependent hit index,
-C<ORDERID> is a global sort-key for the hit,
-and C<ORDER_STRING> is either the literal string "E<lt>emptyE<gt>" or a string sort-key for the hit.
-(the latter just in case the query contained a context-dependend sort operation such as C<#left> or C<#right>).
+C<ORDERID> is an integer, and C<ORDER_STRING> is a string.
+Prior to ddc version 2.0.19,
+C<ORDERID> was a global integer primary sort-key for the hit and C<ORDER_STRING>
+was only non-trivially populated
+if the query contained a context-dependend sort operation such as C<#left> or C<#right>,
+and was otherwise assigned the literal string "E<lt>emptyE<gt>".
+
+As of v2.0.19, C<ORDERID> is the literal string "-0", and
+C<ORDER_STRING> is the (possibly empty) actual sort key for the hit.
+If C<ORDER_STRING> is the literal string "<empty>", it is treated as an empty string for compatibility reasons.
+C<ORDER_STRING> may also be a string of the form "#XXXXXXXX" representing a 32-bit integer
+sort key in hexidecimal notation (msb order, high bit set for non-negative numbers only, no fill bits).
 
 Since v1.x, error message strings since v2.0.0.
 
@@ -382,7 +392,7 @@ and C<ERROR> is a text string describing the error.
 
 On success, the response is of the form:
 
- C<STATUS> "\x01" HIT_STRINGS "\x01"
+ STATUS "\x01" HIT_STRINGS "\x01"
 
 where C<STATUS> is a decimal integer zero ("0")
 and C<HIT_STRINGS> are the formatted hit strings, separated by "\x01".

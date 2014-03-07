@@ -1,5 +1,30 @@
 ##-*- Mode: Change-Log; coding: utf-8; -*-
 
+v2.0.19 Fri, 07 Mar 2014 13:04:47 +0100 moocow
+	+ overhauled hit-sorting and filtering both subcorpus-locally and in distrib<->subcorpus communications
+	  - sort-key field moved from integer to new compound struct CHitSortKey {int i; string s;}
+	    * primary sort by integer, secondary by string
+	  - subcorpus-local hit-sorting (esp in ConcHolder.cpp) uses integer sort keys (fast, mostly old code)
+	  - distributed server now sorts only by string key (although string key may be an encoded integer)
+	  - CConcHolder now has m_SortOrder, m_bSortByString fields
+	    * added fields to CQueryResult (cached query results)
+	    * otherwise get weird 0-hits on final query of "... #asc_date" "... #dsc_date" "... #asc_date"
+	      : b/c data is coming from cache with correct order-info, but not getting sorted properly by the CConcHolder
+		due to stale CConcHolder flags m_SortOrder, m_bSortByString
+	  - potential problems/improvements
+	    * distributed server could do a merge-sort on hits from subcorpora, but it just waits and does a quick-sort
+	    * sort-key strings are allocated and copied for each filter application in ConcHolder::GetAllHits(),
+	      but we might be able to just wait and copy strings of the *last* filter
+	    * sort-key strings are sent over the network to the server; this can cause a lot of traffic especially for
+	      large sort keys (e.g. title) in combination with large result sets
+		+ removed old 'Bigrams' index and extrusions
+	+ got replacement #left/#right sort operators working as aliases for new offset-based #(asc|desc)_by_context
+	  - added key-attribute field argument to #left/#right (analagous to #less_by[*])
+	  - added key-offset argument to #left/#right (analagous to #less_by[*])
+	  - added lower-/upper-bound arguments to #left/#right (analagous to #less_by[BIBL,*,*])
+	  - updated query docs
+	+ un-method-fied string_socket.h functions (since they're also used by ddc_search pseudo-cgi)
+
 v2.0.18 Wed, 19 Feb 2014 12:27:34 +0100 moocow
 	+ added ddc_proto(5) manpage
 	+ implemented new server commands "version", "status", "vstatus", "info"

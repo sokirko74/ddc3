@@ -1,4 +1,4 @@
-/*-*- Mode: C++; c-basic-offset: 8; -*-*/
+//*-*- Mode: C++; c-basic-offset: 8; -*-*/
 //  DDC originally by Alexey Sokirko
 //  Changes and modifications 2011-2014 by Bryan Jurish
 //
@@ -40,46 +40,44 @@ const time_t TheEndOfTheWorld = 0xffffffff;
 	#endif
 #endif
 
-//-- moo: descending-sort woes (Mon, 22 Apr 2013 13:40:46 +0200)
-// + this SHOULD accept a 'descending' argument (i.e. reverse sort), but that breaks
-//   user-specified extrema-checks in CConcHolder::GetAllHits() (e.g. for #greater_by_date[1700,1799]
-// + problem seems to be confusion wrt what's being sorted (hits vs hit-indices vs ...),
-//   over-use of literal < operator on CHit.m_OrderId (e.g. in my_lower_bound(), this file),
-//   and general wonkiness wrt sorting vs bounds-checking
-
-//! comparison operator for hits on CHit::m_OrderId (for std::sort)
-struct IsLessByHitOrderId
+//! comparison operator for hits on CHit::m_SortKey.i (for std::sort); replaces IsLessByHitOrderId .
+//! \li true string-based sorting occurs only at distributed server level
+struct IsLessByHitSortKey
 {
 	const vector<CHit>& m_Base;	
-	IsLessByHitOrderId(const vector<CHit>& Base) : m_Base (Base) {};
+
+	IsLessByHitSortKey(const vector<CHit>& Base)
+		: m_Base (Base)
+	{};
+
 	bool operator() (size_t i1,  size_t i2) const 
 	{
-		return m_Base[i1].m_OrderId < m_Base[i2].m_OrderId;
+		return m_Base[i1].m_SortKey.i < m_Base[i2].m_SortKey.i;
 	};
 };
-
 
 
 // cannot create cross-platform heterogenious predicate lower_bound:
 // http://groups.google.com/group/comp.std.c++/browse_thread/thread/151b0210b6266c2f?hl=en&lr=&safe=off&ic=1&seekm=MPG.143ab91a14f21268989743%40news.supernews.com
 // that's why we are to create i
-vector<size_t>::iterator my_lower_bound(vector<size_t>::iterator First, vector<size_t>::iterator Last, int  OrderId, const vector<CHit>& Base)
+template <class IndexIterator>
+IndexIterator my_lower_bound(IndexIterator First, IndexIterator Last, const CHitSortKey& Key, const vector<CHit>& Base)
 {	
 	size_t Count =  Last-First;
 	
-	for (; 0 < Count; )
+	while (Count > 0)
 	{	
 		// divide and conquer, find half that contains answer
-		size_t Count2 = Count / 2;
-		vector<size_t>::iterator Mid = First;
-		std::advance(Mid, Count2);
-		if (Base[*Mid].m_OrderId < OrderId)
+		IndexIterator Mid = First;
+		size_t Step = Count / 2;
+		std::advance(Mid, Step);
+		if (Base[*Mid].m_SortKey.i < Key.i) //-- use integer comparisons only here!
 		{
 			First = ++Mid;
-			Count -= Count2 + 1;
+			Count -= Step + 1;
 		}
 		else
-			Count = Count2;
+			Count = Step;
 	}
 	return First;
 }
@@ -188,6 +186,8 @@ CConcHolder::CConcHolder ()
 	m_pQueryCompiler = new CQueryCompiler(this);
 	m_pRandom    = new DDCRandom();
 	m_RandomSeed = 0;
+	m_bSortByString  = false;
+	m_SortOrder = 0;
 };
 
 CConcHolder::~CConcHolder()
@@ -472,7 +472,7 @@ string CConcHolder::BuildJsonContextString (const vector<COutputToken>& Tokens, 
 		//-- old-style punctuation-sensitive spacing
 		if (!ispunct((BYTE)Tokens[i].m_TokenStr[0]) || (Tokens[i].m_TokenStr == "-"))
 		    wtxt.insert(0, 1, ' ');
-#endif // defined(JSON_USE_OLD_SPACING)
+#endif // defined(JSON_USE_DDC_SPACING)
 	    }
 	    js += jsonStr(wtxt, utf8);
 	}
@@ -586,7 +586,7 @@ bool CConcHolder::ShowBibliographyForTable(DWORD PageNumber, const CHit& Hit, co
 
 	//-- rank stuff / table
 	if (HasRankOrderOperator()) {
-		m_QueryResultStr += string("rank") + globalTableItemsDelim + Format("%d", Hit.m_OrderId) + globalTableItemsDelim;
+		m_QueryResultStr += string("rank") + globalTableItemsDelim + Format("%d", Hit.m_SortKey.i) + globalTableItemsDelim;
 		if (m_pQueryCompiler->m_bDebugRank) {
 			const char* DebugInfo = (const char*)(void*)(&m_DebugInfo[0]) + Hit.m_DebugRankNo;
 			m_QueryResultStr += string("rank_debug") + globalTableItemsDelim + DebugInfo + globalTableItemsDelim;
@@ -632,7 +632,7 @@ bool CConcHolder::GenerateOneHitString(DWORD PageNumber, const CHit& Hit, const 
 	//-- rank stuff / html
 	if (m_ResultFormat==DDC_ResultHTML && HasRankOrderOperator()) {
 		if (!m_pQueryCompiler->m_bDebugRank) {
-			m_QueryResultStr += Format("<i>Rank = %i</i><br>",Hit.m_OrderId>0?Hit.m_OrderId:-Hit.m_OrderId);
+			m_QueryResultStr += Format("<i>Rank = %i</i><br>", Hit.m_SortKey.i > 0 ? Hit.m_SortKey.i : -Hit.m_SortKey.i);
 		} else {
 			const char* DebugInfo = (const char*)(void*)(&m_DebugInfo[0]) + Hit.m_DebugRankNo;
 			m_QueryResultStr += Format("<i>%s</i><br>",DebugInfo);
@@ -715,7 +715,7 @@ bool CConcHolder::GenerateOneHitStringJson(DWORD PageNumber, const CHit& Hit, co
     }
 
     if (HasRankOrderOperator()) {
-	    hitStr += Format(",\"rank_\":%d", Hit.m_OrderId);
+	    hitStr += Format(",\"rank_\":%d", Hit.m_SortKey.i);
 	    if (m_pQueryCompiler->m_bDebugRank) {
 		    const char* DebugInfo = (const char*)(void*)(&m_DebugInfo[0]) + Hit.m_DebugRankNo;
 		    hitStr += ",\"rank_debug_\":" + jsonStr(DebugInfo, utf8);
@@ -986,8 +986,8 @@ void CConcHolder::InitFileReferences(vector<CHit>&	Hits) const
 		const CTokenNo& Break = Breaks[H.m_BreakNo];
 		vector<CTokenNo>::const_iterator it = lower_bound (FileBreaks.begin(), FileBreaks.end(), Break);
 		assert (it <  FileBreaks.end());
-		H.m_FileNo = it - FileBreaks.begin();
-		H.m_OrderId = H.m_BreakNo;  // no sort 
+		H.m_FileNo  = it - FileBreaks.begin();
+		H.m_SortKey = H.m_BreakNo;  // no sort 
 	};
 };
 
@@ -1071,7 +1071,7 @@ void GetHitRankLen(vector<COccurrenceAndQueryNodeIndex >& OccurrenceAndQueryNode
 	
 }
 
-void CConcHolder::InitLessByRank() const
+void CConcHolder::InitSortByRank() const
 {
 	const vector<CTokenNo>& Breaks = GetBreaks();
 	vector<CHit>& Hits = m_pQueryCompiler->m_pQuery->m_Node->m_Hits;
@@ -1108,10 +1108,10 @@ void CConcHolder::InitLessByRank() const
 	double AverageHitLength = m_pIndexator->GetCorpusEndTokenNo()/Breaks.size();
 
 	if (m_pIndexator->m_Bibl.IsRegisteredBiblField("PageRank"))
-		m_pIndexator->m_Bibl.InitLessByBiblIntegerField("PageRank", m_pQueryCompiler->m_pQuery->m_Node->m_Hits);
+		m_pIndexator->m_Bibl.InitSortByBiblIntegerField("PageRank", m_pQueryCompiler->m_pQuery->m_Node->m_Hits);
 	else
 		for (size_t HitNo=0; HitNo< HitsCount; HitNo++)
-			Hits[HitNo].m_OrderId = 0;
+			Hits[HitNo].m_SortKey = 0;
 	
 	for (size_t HitNo=0; HitNo< HitsCount; HitNo++)
 	{
@@ -1136,58 +1136,22 @@ void CConcHolder::InitLessByRank() const
 		int pos_from_the_hit_beginning = HitRank.m_PassageStart - StartTokenNo + 1;
 		double position_rank = m_pIndexator->m_PositionRank	/(double)pos_from_the_hit_beginning;
 		double rank =	(tfidf + near_rank + position_rank) / 3;
-		int OrderId = H.m_OrderId+(int)(rank*(double)1000);
+		int SortKey = H.m_SortKey.i+(int)(rank*(double)1000);
 		if (bShowDebugRank)
 		{
 			H.m_DebugRankNo = m_DebugInfo.size();
 			string DebugInfo = Format("Rank=%i (tfidf=%05f near=%05f pos=%05f(%i) PR=%i)", 
-							OrderId, tfidf, near_rank, position_rank, 
-							pos_from_the_hit_beginning, H.m_OrderId);
+							SortKey, tfidf, near_rank, position_rank, 
+							pos_from_the_hit_beginning, H.m_SortKey.i);
 			for (size_t c=0; c < DebugInfo.size(); c++)
 				m_DebugInfo.push_back(DebugInfo[c]);
 			m_DebugInfo.push_back(0);
 		}
-		H.m_OrderId = OrderId; // H.m_OrderId contains already page rank
-		
-		
-	}
-
-}
-
-BigramDirectionEnum CConcHolder::GetBigramsToOrder() const
-{
-    return m_pQueryCompiler->m_BigramsUse;
-}
-
-void CConcHolder::InitLessByBigrams() const
-{
-	const vector<CTokenNo>& Breaks = GetBreaks();
-	vector<CHit>& Hits = m_pQueryCompiler->m_pQuery->m_Node->m_Hits;
-	size_t HitsCount = Hits.size();
-	
-	for (size_t HitNo=0; HitNo< HitsCount; HitNo++) {
-		CHit&  H = Hits[HitNo];
-		int start_occur = (HitNo == 0) ? 0 : Hits[HitNo-1].m_HighlightOccurrenceEnd;
-		if (start_occur < m_pQueryCompiler->m_pQuery->m_Node->m_OccurrenceTokenIdxs.size()) {
-			//-- usual case
-			H.m_OrderId = m_pQueryCompiler->m_pQuery->m_Node->m_OccurrenceTokenIdxs[start_occur];
-		} else {
-			//-- whoa nelly: something went wahooni shaped
-			H.m_OrderId = 0;
-		}
+		H.m_SortKey = SortKey; // H.m_SortKey contains already page rank
 	}
 }
 
-void CConcHolder::InitGreaterByRank() const
-{
-	//-- moo: descending-sort woes (Mon, 22 Apr 2013 13:40:46 +0200)
-	InitLessByRank();
-	for (vector<CHit>::iterator hi=m_pQueryCompiler->m_pQuery->m_Node->m_Hits.begin(); hi!=m_pQueryCompiler->m_pQuery->m_Node->m_Hits.end(); ++hi)
-		hi->m_OrderId = -hi->m_OrderId;
-}
-
-
-void CConcHolder::InitLessBySize() const
+void CConcHolder::InitSortBySize() const
 {
 	const vector<CTokenNo>& Breaks = GetBreaks();
 	size_t HitsCount = m_pQueryCompiler->m_pQuery->m_Node->m_Hits.size();
@@ -1195,81 +1159,106 @@ void CConcHolder::InitLessBySize() const
 	{
 		CHit&  H = m_pQueryCompiler->m_pQuery->m_Node->m_Hits[HitNo];
 		DWORD BreakNo = H.m_BreakNo;
-		H.m_OrderId = (BreakNo==0) ? Breaks[BreakNo] : Breaks[BreakNo] - Breaks[BreakNo-1];
+		H.m_SortKey = (BreakNo==0) ? Breaks[BreakNo] : Breaks[BreakNo] - Breaks[BreakNo-1];
 	}
 }
 
-void CConcHolder::InitGreaterBySize() const
-{
-	//-- moo: descending-sort woes (Mon, 22 Apr 2013 13:40:46 +0200)
-	InitLessBySize();
-	for (vector<CHit>::iterator hi=m_pQueryCompiler->m_pQuery->m_Node->m_Hits.begin(); hi!=m_pQueryCompiler->m_pQuery->m_Node->m_Hits.end(); ++hi)
-		hi->m_OrderId = -hi->m_OrderId;
-}
-
-void CConcHolder::InitRandomSort() const
+void CConcHolder::InitSortByRandom() const
 {
 	size_t HitsCount = m_pQueryCompiler->m_pQuery->m_Node->m_Hits.size();
 	for (size_t HitNo=0; HitNo< HitsCount; HitNo++)
 	{
 		CHit&  H = m_pQueryCompiler->m_pQuery->m_Node->m_Hits[HitNo];
 		//unsigned short ostate0=m_pRandom->m_state[0], ostate1=m_pRandom->m_state[1], ostate2=m_pRandom->m_state[2]; //-- DEBUG RANDOM
-		H.m_OrderId = m_pRandom->random_n();
-		//concord_daemon_log( Format("InitRandomSort: RandomSeed=%d, state=[%d,%d,%d]; HitNo=%u, OrderId=%d", m_RandomSeed, ostate0,ostate1,ostate2, HitNo, H.m_OrderId) ); //-- DEBUG RANDOM
+		H.m_SortKey = m_pRandom->random_n();
+		//concord_daemon_log( Format("InitSortByRandom: RandomSeed=%d, state=[%d,%d,%d]; HitNo=%u, SortKey.i=%d", m_RandomSeed, ostate0,ostate1,ostate2, HitNo, H.m_SortKey.i) ); //-- DEBUG RANDOM
+	}
+}
+
+void CConcHolder::InitSortByContext(const CDDCFilterWithBounds& F) const
+{
+	CStringIndexSet* pIdx = (F.m_AttrName.empty()
+				 ? m_pIndexator->GetTokenIndex()
+				 : m_pIndexator->GetIndexByNameOrShortName(F.m_AttrName));
+	CQueryNode   *qnod = m_pQueryCompiler->m_pQuery->m_Node;
+	vector<CHit>& Hits = qnod->m_Hits;
+	size_t HitsCount = qnod->m_Hits.size();
+	const vector<CTokenNo>& Breaks = GetBreaks();
+
+	if (!pIdx)
+		throw CExpc("CConcHolder::InitSortByContext(): Error: could not find index `%s' for context sort", F.m_AttrName.c_str());
+
+	for (size_t HitNo=0; HitNo< HitsCount; HitNo++) {
+		CHit& H = Hits[HitNo];
+		DWORD start_occur = (HitNo == 0) ? 0 : Hits[HitNo-1].m_HighlightOccurrenceEnd;
+		DWORD StartTokenNo = (H.m_BreakNo==0) ?  0 : Breaks[H.m_BreakNo-1];
+		DWORD EndTokenNo   = Breaks[H.m_BreakNo];
+
+		if (start_occur >= qnod->m_Occurrences.size())
+			throw CExpc("CConcHolder::InitSortByContext(): start_occur=%i exceeds m_Occurrences.size()=%zd for hit #%zd", start_occur, qnod->m_Occurrences.size(), HitNo);
+
+		//-- usual case: assign both int and string keys
+		CTokenNo tokId = qnod->m_Occurrences[start_occur];
+		CTokenNo keyId = tokId + F.m_ContextOffset;
+		if (keyId >= StartTokenNo && keyId < EndTokenNo && (H.m_SortKey.i=pIdx->GetTokenIndexId(keyId)) != DWORD_MAX) {
+			//-- usual case: within target break and with a valid item id
+			H.m_SortKey.s = pIdx->GetIndexItemStr( pIdx->m_Index[H.m_SortKey.i] );
+		} else {
+			//-- break-overflow (EOS etc) or invalid key item: treat as empty
+			H.m_SortKey = INT_MIN;
+		}
 	}
 }
 
 
-void CConcHolder::InitOrderIDForHits(const CDDCFilterWithBounds& Filter) const
+void CConcHolder::InitSortKeyForHits(const CDDCFilterWithBounds& Filter)
 {
 	assert (Filter.m_FilterType != HitSortsCount);
 
-	//-- moo: descending sort woes (Mon, 22 Apr 2013 13:40:46 +0200): should be compressable (e.g. LessByDate,GreaterByDate use same code)
+	//-- defaults
+	m_bSortByString = false;
+	m_SortOrder     = Filter.SortOrder();
+
+	//-- guts
 	switch (Filter.m_FilterType)
 	{
-	case LessByDate:
-		m_pIndexator->m_Bibl.InitLessByDate(m_pQueryCompiler->m_pQuery->m_Node->m_Hits);
-		break;
-
 	case GreaterByDate:
-		m_pIndexator->m_Bibl.InitGreaterByDate(m_pQueryCompiler->m_pQuery->m_Node->m_Hits); 
-		break;
-
-	case LessByRank:
-		InitLessByRank();
+	case LessByDate:
+		m_pIndexator->m_Bibl.InitSortByDate(m_pQueryCompiler->m_pQuery->m_Node->m_Hits);
 		break;
 
 	case GreaterByRank:
-		InitGreaterByRank(); 
+	case LessByRank:
+		InitSortByRank();
 		break;
 
-	case LessByRightContext:
-	case LessByLeftContext:
-		InitLessByBigrams(); 
-		break;
-
-	case LessBySize:
-		InitLessBySize();
+	case LessByContext:
+	case GreaterByContext:
+		InitSortByContext(Filter);
+		m_bSortByString = true;
 		break;
 
 	case GreaterBySize:
-		InitGreaterBySize();
+	case LessBySize:
+		InitSortBySize();
 		break;
 
-	case NoSort: // NoSort is used for filtering; 
-	case LessByFreeBiblField:	
-		m_pIndexator->m_Bibl.InitLessByBiblIntegerField(Filter.m_FreeBiblAttribName, m_pQueryCompiler->m_pQuery->m_Node->m_Hits);
-		break;
-
+	case NoSort: // NoSort is used for filtering, must be ascending
 	case GreaterByFreeBiblField:
-		m_pIndexator->m_Bibl.InitGreaterByBiblIntegerField(Filter.m_FreeBiblAttribName, m_pQueryCompiler->m_pQuery->m_Node->m_Hits);
+	case LessByFreeBiblField:	
+		m_pIndexator->m_Bibl.InitSortByBiblIntegerField(Filter.m_AttrName, m_pQueryCompiler->m_pQuery->m_Node->m_Hits);
+		m_bSortByString = (m_pIndexator->m_Bibl.GetBiblFieldTypeId(Filter.m_AttrName) == cfbiString);
 		break;
 
 	case RandomSort:
-		InitRandomSort();
+		InitSortByRandom();
 		break;
 	};
-};
+}
+
+
+//#define DEBUG_HIT_SORT 1
+#undef DEBUG_HIT_SORT
 
 
 DDCErrorEnum CConcHolder::GetAllHits(const string &Query, size_t Limit) 
@@ -1280,8 +1269,10 @@ DDCErrorEnum CConcHolder::GetAllHits(const string &Query, size_t Limit)
 	m_ShortOccurCaches.clear();
 
 	ClearQueryResults();
-	size_t CountOfPeriods = m_pIndexator->GetSearchPeriodsCount();		
+	CQueryNode   *qNode = m_pQueryCompiler->m_pQuery->m_Node;
+	vector<CHit> &qHits = qNode->m_Hits;
 
+	size_t CountOfPeriods = m_pIndexator->GetSearchPeriodsCount();		
 	time_t  last_time;
 
 	if (m_QueryEndTime != TheEndOfTheWorld)
@@ -1293,134 +1284,145 @@ DDCErrorEnum CConcHolder::GetAllHits(const string &Query, size_t Limit)
 	for (m_CurrentSearchPeriodNo = 0;  m_CurrentSearchPeriodNo < CountOfPeriods; m_CurrentSearchPeriodNo++)
 	{
 		m_pQueryCompiler->Evaluate();
-
-		InitFileReferences(m_pQueryCompiler->m_pQuery->m_Node->m_Hits);
+		InitFileReferences(qHits);
 
 		vector<size_t>		PeriodHitsIndex;
 		if (m_pIndexator->m_MaskedFiles.empty()) {
-			for (size_t i=0; i < m_pQueryCompiler->m_pQuery->m_Node->m_Hits.size(); i++)
+			for (size_t i=0; i < qHits.size(); i++)
 				PeriodHitsIndex.push_back(i);
 		}
 		else {
-			for (size_t i=0; i < m_pQueryCompiler->m_pQuery->m_Node->m_Hits.size(); i++)
-				if (m_pIndexator->m_MaskedFiles.find(m_pQueryCompiler->m_pQuery->m_Node->m_Hits[i].m_FileNo) == m_pIndexator->m_MaskedFiles.end())
+			for (size_t i=0; i < qHits.size(); i++)
+				if (m_pIndexator->m_MaskedFiles.find(qHits[i].m_FileNo) == m_pIndexator->m_MaskedFiles.end())
 					PeriodHitsIndex.push_back(i);
 		}
 
+		m_SortOrder = 0; //-- no sort
+		for (size_t FilterNo = 0; FilterNo < m_pQueryCompiler->m_Filters.size(); FilterNo++) {
+			const CDDCFilterWithBounds& F = m_pQueryCompiler->m_Filters[FilterNo];
 
-		if ( GetBigramsToOrder()  != bdDontUseBigrams)
-			InitLessByBigrams();
+			//-- init Hits::m_SortKey (always initialized in raw ascending order)
+			InitSortKeyForHits(F);
 
-		for (size_t FilterNo = 0; FilterNo < m_pQueryCompiler->m_Filters.size(); FilterNo++)
-			{
-				const CDDCFilterWithBounds& F = m_pQueryCompiler->m_Filters[FilterNo];
-				// init m_pQueryCompiler->m_pQuery->m_Node->m_Hits::m_OrderId 
-				InitOrderIDForHits(F);
-
-				sort(PeriodHitsIndex.begin(), PeriodHitsIndex.end(), IsLessByHitOrderId(m_pQueryCompiler->m_pQuery->m_Node->m_Hits));
-
-				size_t hits_start = my_lower_bound(PeriodHitsIndex.begin(), PeriodHitsIndex.end(), F.m_LevelStart, m_pQueryCompiler->m_pQuery->m_Node->m_Hits) - PeriodHitsIndex.begin();
-				size_t hits_end  = my_lower_bound(PeriodHitsIndex.begin(), PeriodHitsIndex.end(), F.m_LevelEnd, m_pQueryCompiler->m_pQuery->m_Node->m_Hits) - PeriodHitsIndex.begin();
-
-				if (hits_end < hits_start) hits_start = hits_end;
-				PeriodHitsIndex.erase(PeriodHitsIndex.begin()+hits_end, PeriodHitsIndex.end());
-				PeriodHitsIndex.erase(PeriodHitsIndex.begin(), PeriodHitsIndex.begin()+hits_start);
-
-				size_t debug_size =  PeriodHitsIndex.size();
-				if (F.m_bSet)
-					{
-						// we have to intersect F.m_SatisfiedValues with m_pQueryCompiler->m_pQuery->m_Node->m_Hits using m_CHit::m_OrderId
-						vector<size_t>::const_iterator hits_start = PeriodHitsIndex.begin();
-						vector<size_t>::const_iterator hits_end = PeriodHitsIndex.end();
-						set<int>::const_iterator val_start = F.m_SatisfiedValues.begin();
-						set<int>::const_iterator val_end = F.m_SatisfiedValues.end();
-						vector<size_t>		NewHitsIndex;
-						for (; hits_start != hits_end && val_start != val_end; )
-							{
-								int i1 = m_pQueryCompiler->m_pQuery->m_Node->m_Hits[*hits_start].m_OrderId;
-								int i2 = *val_start;
-
-								if (i1 < i2)
-									hits_start++;
-								else if (i2 < i1)
-									val_start++;
-								else
-									{
-										NewHitsIndex.push_back(*hits_start);
-										hits_start++;
-									}
-							};
-						NewHitsIndex.swap(PeriodHitsIndex);
-					}
+			size_t hits_start, hits_end;
+			if (m_SortOrder > 0) {
+				//-- ascending sort
+				sort(PeriodHitsIndex.begin(), PeriodHitsIndex.end(), IsLessByHitSortKey(qHits));
+				hits_start = my_lower_bound(PeriodHitsIndex.begin(), PeriodHitsIndex.end(), F.m_KeyLo, qHits) - PeriodHitsIndex.begin();
+				hits_end   = my_lower_bound(PeriodHitsIndex.begin(), PeriodHitsIndex.end(), F.m_KeyHi, qHits) - PeriodHitsIndex.begin();
+			}
+			else if (m_SortOrder < 0) {
+				//-- descending sort
+				sort(PeriodHitsIndex.rbegin(), PeriodHitsIndex.rend(), IsLessByHitSortKey(qHits));
+				hits_start = my_lower_bound(PeriodHitsIndex.rbegin(), PeriodHitsIndex.rend(), F.m_KeyHi, qHits) - PeriodHitsIndex.rbegin();
+				hits_end   = my_lower_bound(PeriodHitsIndex.rbegin(), PeriodHitsIndex.rend(), F.m_KeyLo, qHits) - PeriodHitsIndex.rbegin();
+				hits_start = PeriodHitsIndex.size()-hits_start;
+				hits_end   = PeriodHitsIndex.size()-hits_end;
+			}
+			else {
+				//-- no sort
+				hits_start = 0;
+				hits_end   = PeriodHitsIndex.size();
 			}
 
+#if DEBUG_HIT_SORT //-- DEBUG
+			fprintf(stderr, "DEBUG[pre-trim,period=%d,filter=%s(%s),sort=%c]: KeyLo={%d,%s}, KeyHi={%d,%s}, hits_start=%zd, hits_end=%zd\n",
+				m_CurrentSearchPeriodNo, HitSortEnumNames[F.m_FilterType], F.m_AttrName.c_str(), (m_bSortDescending ? '>' : '<'),
+				F.m_KeyLo.i, jsonStr(F.m_KeyLo.s).c_str(),
+				F.m_KeyHi.i, jsonStr(F.m_KeyHi.s).c_str(),
+				hits_start, hits_end);
+			for (size_t phi=0; phi < PeriodHitsIndex.size(); phi++) {
+				const CHit &h=qHits[ PeriodHitsIndex[phi] ];
+				fprintf(stderr, "DEBUG: periodHits[%zd] = qHits[%zd] = {m_BreakNo=%u, m_HighlightOccurrenceEnd=%u, m_SortKey={%d,%s}, m_FileNo=%u}\n",
+					phi, PeriodHitsIndex[phi], h.m_BreakNo, h.m_HighlightOccurrenceEnd, h.m_SortKey.i, jsonStr(h.m_SortKey.s).c_str(), h.m_FileNo);
+			}
+#endif //-- DEBUG
+
+			if (hits_end < hits_start) hits_start = hits_end;
+			PeriodHitsIndex.erase(PeriodHitsIndex.begin()+hits_end, PeriodHitsIndex.end());
+			PeriodHitsIndex.erase(PeriodHitsIndex.begin(), PeriodHitsIndex.begin()+hits_start);
+
+			size_t debug_size =  PeriodHitsIndex.size();
+			if (F.m_bSet) {
+				// we have to intersect F.m_SatisfiedValues with qHits using integer sort-key m_CHit::m_SortKey.i
+				vector<size_t>::const_iterator hits_start = PeriodHitsIndex.begin();
+				vector<size_t>::const_iterator hits_end = PeriodHitsIndex.end();
+				set<int>::const_iterator val_start = F.m_SatisfiedValues.begin();
+				set<int>::const_iterator val_end = F.m_SatisfiedValues.end();
+				vector<size_t> NewHitsIndex;
+
+				assert( F.SortOrder() >= 0 ); //-- parallel traversal intersection only works for ascending sort!
+				while (hits_start != hits_end && val_start != val_end) {
+					int i1 = qHits[*hits_start].m_SortKey.i;
+					int i2 = *val_start;
+							
+					if (i1 < i2)
+						hits_start++;
+					else if (i2 < i1)
+						val_start++;
+					else {
+						NewHitsIndex.push_back(*hits_start);
+						hits_start++;
+					}
+				}
+				NewHitsIndex.swap(PeriodHitsIndex);
+			}
+		}
 
 		m_AllHitsCount += PeriodHitsIndex.size();
 
-		{  //  inserting hits and highlight occurrences
-			size_t Count  = min(Limit, PeriodHitsIndex.size());
-			for (size_t i=0; i <Count; i++)
-				{
-					size_t HitNo = PeriodHitsIndex[i];
-					CHit H = m_pQueryCompiler->m_pQuery->m_Node->m_Hits[ HitNo ];
-
-					int start_index = (HitNo == 0) ? 0 : m_pQueryCompiler->m_pQuery->m_Node->m_Hits[HitNo-1].m_HighlightOccurrenceEnd;
-					m_HighlightOccurs.insert(m_HighlightOccurs.end(), m_pQueryCompiler->m_pQuery->m_Node->m_Occurrences.begin()+start_index, m_pQueryCompiler->m_pQuery->m_Node->m_Occurrences.begin()+H.m_HighlightOccurrenceEnd);
-
-					H.m_HighlightOccurrenceEnd = m_HighlightOccurs.size();
-					m_Hits.push_back(H);
+		{ //-- add period-local hits to m_Hits and highlight occurrences
+			size_t Count = min(Limit, PeriodHitsIndex.size());
+			for (size_t i=0; i < Count; i++) {
+				size_t  HitNo = PeriodHitsIndex[i];
+				const CHit &H = qHits[ HitNo ];
 				
-				};
-
-		};
+				int start_index = (HitNo == 0) ? 0 : qHits[HitNo-1].m_HighlightOccurrenceEnd;
+				m_HighlightOccurs.insert(m_HighlightOccurs.end(),
+							 qNode->m_Occurrences.begin()+start_index,
+							 qNode->m_Occurrences.begin()+H.m_HighlightOccurrenceEnd
+							 );
+				m_Hits.push_back(H);
+				m_Hits.back().m_HighlightOccurrenceEnd = m_HighlightOccurs.size();
+			}
+		}
 
 		// calculating m_RelevantDocumentCount if it is necessary
-		if (m_pIndexator->m_bShowNumberOfRelevantDocuments)
-			{
-				size_t Count = PeriodHitsIndex.size();
-				for (size_t i=0; i <Count; i++)
-					{
-						DWORD FileNo = m_pQueryCompiler->m_pQuery->m_Node->m_Hits[ PeriodHitsIndex[i] ].m_FileNo;
-						if (!bFilesUses[ FileNo ])
-							{
-								bFilesUses[ FileNo ] = true;
-								m_RelevantDocumentCount++;
-							};
-					};
-			};
+		if (m_pIndexator->m_bShowNumberOfRelevantDocuments) {
+			size_t Count = PeriodHitsIndex.size();
+			for (size_t i=0; i <Count; i++) {
+				DWORD FileNo = qHits[ PeriodHitsIndex[i] ].m_FileNo;
+				if (!bFilesUses[ FileNo ]) {
+					bFilesUses[ FileNo ] = true;
+					m_RelevantDocumentCount++;
+				}
+			}
+		}
 
 
-		if (!m_Hits.empty())
-			{
-				assert (m_Hits.back().m_HighlightOccurrenceEnd == m_HighlightOccurs.size());
-			};
+		if (!m_Hits.empty()) {
+			assert (m_Hits.back().m_HighlightOccurrenceEnd == m_HighlightOccurs.size());
+		}
 	
 		if (m_bStoppedByUser) break;
 
 		//  checking timeout, if it was specified
-		if (m_QueryEndTime != TheEndOfTheWorld)
-			if (m_CurrentSearchPeriodNo+1 < CountOfPeriods) // if it is not the last cycle
-				{
-					time_t curr_time;
-					time(&curr_time);
-					if ((curr_time-last_time+curr_time) > m_QueryEndTime) // if cannot process next cycle
-						{
-							return errTimeoutElapsed;
-						};
-					//printf ("one period time=%i, left time =%i\n", curr_time-last_time, m_QueryEndTime - curr_time);
-					last_time = curr_time;
-				};
-
-	}; //  cycle for corpus periods
-
-	
-	
-
+		if (m_QueryEndTime != TheEndOfTheWorld) {
+			if (m_CurrentSearchPeriodNo+1 < CountOfPeriods) { // if it is not the last cycle
+				time_t curr_time;
+				time(&curr_time);
+				if ((curr_time-last_time+curr_time) > m_QueryEndTime) { // if cannot process next cycle
+					return errTimeoutElapsed;
+				}
+				//printf ("one period time=%i, left time =%i\n", curr_time-last_time, m_QueryEndTime - curr_time);
+				last_time = curr_time;
+			}
+		}
+	} //  cycle for corpus periods
 
 	//  we cannot call here CleanParser, because we would use later some slots of  m_pQueryCompiler 
 	//  but  we should delete the parse tree itself in order to free meemory
 	m_pQueryCompiler->DeleteTree();
-	
 
 	return errNone;
 };
@@ -1430,29 +1432,26 @@ void	CQueryResult::ClearQueryResults()
 	ClearVector(m_Hits);
 	ClearVector(m_HighlightOccurs);
 	ClearVector(m_DebugInfo);
+	m_bSortByString = false;
+	m_SortOrder = 0;
 }
+
 string CConcHolder::GetHitIds()  const
 {
 	string Result;
-	if ( GetBigramsToOrder()  == bdDontUseBigrams)
-		{
-			for (size_t i=0; i < m_Hits.size(); i++)
-				Result += Format("\t%i %i <empty>", i, m_Hits[i].m_OrderId);
+
+	for (size_t i=0; i < m_Hits.size(); i++) {
+		const CHit &h = m_Hits[i];
+		Result += Format("\t%i -0 ", i); //-- HitId, OrderId (for ddc < v2.0.19)
+		if (m_bSortByString) {
+			//-- string-based sort
+			Result.append(h.m_SortKey.s, 0, DDC_SORTKEY_MAXLEN-1);
 		}
-	else
-		{
-			const CStringIndexSet* pTokenIdx = m_pIndexator->GetTokenIndex();
-			for (size_t i=0; i < m_Hits.size(); i++)
-				{
-					DWORD id = m_Hits[i].m_OrderId;
-					if (id!=DWORD_MAX && id >= pTokenIdx->m_Index.size()) {
-						//--moo: segfaults (overflow) in next call here with bizarre non-MAX m_OrderId; don't know exactly why
-						throw CExpc(errRuntime, "CConcHolder::GetHitIds(): m_Hits[i=%d].OrderId=%d exceeds index size=%u", i, id, pTokenIdx->m_Index.size());
-					}
-					const char * SecondWord = (id == DWORD_MAX) ?  "<empty>" : pTokenIdx->GetIndexItemStr(pTokenIdx->m_Index[id]);
-					Result += Format("\t%i %i %s", i, 0, SecondWord);
-				}
+		else {
+			//-- integer-based sort
+			Result += int2hex(m_Hits[i].m_SortKey.i);
 		}
+	}
 	return Result;
 };
 
@@ -1482,6 +1481,8 @@ bool CConcHolder::TryToGetFromCache(const string &Query,  DWORD& EndHitNo)
 	m_DebugInfo = CacheItem.m_DebugInfo;
 	m_AllHitsCount = CacheItem.m_AllHitsCount;
 	m_RelevantDocumentCount = CacheItem.m_RelevantDocumentCount;
+	m_SortOrder = CacheItem.m_SortOrder;
+	m_bSortByString = CacheItem.m_bSortByString;
 	return true;
 };
 
@@ -1512,6 +1513,8 @@ void  CConcHolder::SaveToCache(const string& Query, vector<size_t>::const_iterat
 	CQueryResult I;
 	I.m_AllHitsCount = m_AllHitsCount;
 	I.m_RelevantDocumentCount = m_RelevantDocumentCount;
+	I.m_SortOrder = m_SortOrder;
+	I.m_bSortByString = m_bSortByString;
 	size_t End  = min (MaxCachedHitsCount, (size_t)(end-start));
 	for (size_t i=0; i < End; i++)
 	{
@@ -1538,34 +1541,39 @@ DDCErrorEnum CConcHolder::GetHits(const string &Query,  DWORD& EndHitNo)
 	SetHitType();
 
 	try {
-		if (TryToGetFromCache(Query, EndHitNo))
-		{
-
-		}
-		else
+		if ( !TryToGetFromCache(Query, EndHitNo) )
 		{
 			// a new query occurs
 			DDCErrorEnum result = GetAllHits(Query, max(EndHitNo+m_ResultLimit,MaxCachedHitsCount) );
 			if (result != errNone) 
-					return result;
+				return result;
 
-			vector<size_t>		HitsIndex;
+			vector<size_t> HitsIndex;
 			HitsIndex.clear();
 			for (size_t i=0; i < m_Hits.size(); i++)
 				HitsIndex.push_back(i);
 
-#if 0 //-- DEBUG
+#if DEBUG_HIT_SORT //-- DEBUG
 			for (size_t hi=0; hi < m_Hits.size(); hi++) {
-				CHit &h=m_Hits[hi];
-				fprintf(stderr, "DEBUG: m_Hits[%u] = {m_BreakNo = %u, m_HighlightOccurrenceEnd = %u, m_OrderId = %d, m_FileNo = %u, m_DebugRankNo = %u}\n",
-					hi, h.m_BreakNo, h.m_HighlightOccurrenceEnd, h.m_OrderId, h.m_FileNo, h.m_DebugRankNo);
+				const CHit &h=m_Hits[hi];
+				fprintf(stderr, "DEBUG[pre-sort:%c]: m_Hits[%u] = {m_BreakNo=%u, m_HighlightOccurrenceEnd=%u, m_SortKey={%d,%s}, m_FileNo=%u, m_DebugRankNo=%u}\n",
+					(m_bSortDescending ? '>' : '<'),
+					hi, h.m_BreakNo, h.m_HighlightOccurrenceEnd, h.m_SortKey.i, jsonStr(h.m_SortKey.s).c_str(), h.m_FileNo, h.m_DebugRankNo);
 			}
 #endif //-- DEBUG
 
-			sort (HitsIndex.begin(), HitsIndex.end(), IsLessByHitOrderId(m_Hits));
+			if (m_SortOrder > 0) {
+				//-- ascending sort
+				sort (HitsIndex.begin(), HitsIndex.end(), IsLessByHitSortKey(m_Hits));
+			} else if (m_SortOrder < 0) {
+				//-- descending sort
+				sort (HitsIndex.rbegin(), HitsIndex.rend(), IsLessByHitSortKey(m_Hits));
+			} else {
+				//-- no sort
+				;
+			}
 
 			SaveToCache(Query, HitsIndex.begin(), HitsIndex.end() );
-
 			{
 				size_t  End = min (EndHitNo+m_ResultLimit, HitsIndex.size());
 				vector<CHit>		NewHits;
@@ -1661,7 +1669,7 @@ bool CConcHolder::SaveOccurrences(const vector<size_t>& ChunkLengths, int Contex
 
 	string Result;
 	size_t PosOffset = 0;
-	for(int HitNo =  0; HitNo<Hits.size(); HitNo++ )
+	for ( int HitNo =  0; HitNo<Hits.size(); HitNo++ )
 	{
 		size_t ItemsCount = ChunkLengths[HitNo];
 		const DWORD BreakNo = Hits[HitNo].m_BreakNo; 
@@ -1696,7 +1704,7 @@ bool CConcHolder::SaveOccurrences(const vector<size_t>& ChunkLengths, int Contex
 		vector<COutputToken> Tokens;
 		if (!m_pIndexator->GetTokenIndex()->GetTokensFromStorage(PositionStart, PositionEnd, Tokens)) 
 		{
-			concord_daemon_log(Format ("Error! Cannot read hit no %i \n",BreakNo));
+			concord_daemon_log(Format ("Error! Cannot read hit number %i \n",BreakNo));
 			return false;
 		};
 
@@ -1814,7 +1822,7 @@ void	CConcHolder::SetHitType()
 	assert(m_pQueryCompiler);
 	string BreakName = m_pQueryCompiler->m_HitTypeStr;
 	int TextAreaNo = m_pQueryCompiler->m_TextAreaNo;
-	
+
 	if (TextAreaNo != UnknownTextAreaNo)
 		m_pBreaks = m_pIndexator->GetBreaksByName(PredefinedTextAreaBreakName);
 	else
@@ -1829,9 +1837,9 @@ int	CConcHolder::GetTextArea() const
 }
 
 
-bool CConcHolder::HitsShouldBeSorted() const
+int CConcHolder::HitSortOrder() const
 {
-	return !m_pQueryCompiler->m_Filters.empty();
+	return m_SortOrder;
 };
 
 void CConcHolder::SetTimeOut(int TimeOut) 

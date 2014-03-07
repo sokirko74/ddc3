@@ -1,5 +1,5 @@
 //-*- Mode: C++; c-basic-offset: 2; -*-
-//  Copyright 2011-2013 by Bryan Jurish
+//  Copyright 2011-2014 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -24,7 +24,7 @@
 //======================================================================
 // globals
 
-static const char *HitSortNames[13] = {
+static const char *HitSortNames[15] = {
   "no_sort",
   "asc_by_date",
   "desc_by_date",
@@ -34,8 +34,8 @@ static const char *HitSortNames[13] = {
   "desc",
   "asc_by_rank",
   "desc_by_rank",
-  "left",
-  "right",
+  "asc_context",
+  "desc_context",
   "random",
   "nsorts"
 };
@@ -65,10 +65,10 @@ CQFSort::CQFSort(HitSortEnum   ftype,
     m_arg2(arg2)
 {
     m_Filter.m_FilterType = ftype;
-    m_Filter.m_FreeBiblAttribName = arg0;
+    m_Filter.m_AttrName = arg0;
     m_Filter.m_bSet = false;
-    m_Filter.m_LevelStart = INT_MIN; //-- instantiate later!
-    m_Filter.m_LevelEnd   = INT_MAX; //-- instantiate later!
+    m_Filter.m_KeyLo = CHitSortKey(INT_MIN); //-- instantiate later!
+    m_Filter.m_KeyHi = CHitSortKey(INT_MAX); //-- instantiate later!
 }
 
 //--------------------------------------------------------------
@@ -83,16 +83,16 @@ CQFSort::CQFSort(HitSortEnum   ftype,
   m_arg2 = Format("%d", arg2i); //-- debug
 
   m_Filter.m_FilterType = ftype;
-  m_Filter.m_FreeBiblAttribName = arg0;
+  m_Filter.m_AttrName = arg0;
   m_Filter.m_bSet       = false;
-  m_Filter.m_LevelStart = arg1i;
-  m_Filter.m_LevelEnd   = arg2i;
+  m_Filter.m_KeyLo      = arg1i;
+  m_Filter.m_KeyHi      = arg2i;
 }
 
 //--------------------------------------------------------------
 void CQFSort::SortBounds(void) {
-  if (m_Filter.m_LevelStart > m_Filter.m_LevelEnd)
-    std::swap(m_Filter.m_LevelStart, m_Filter.m_LevelEnd);
+  if (m_Filter.m_KeyLo > m_Filter.m_KeyHi)
+    std::swap(m_Filter.m_KeyLo, m_Filter.m_KeyHi);
 }
 
 //--------------------------------------------------------------
@@ -102,6 +102,14 @@ bool CQFSort::Compile(CQueryCompiler *compiler)
   compiler->m_Filters.push_back(m_Filter);
   return true;
 }
+
+//--------------------------------------------------------------
+string CQFSort::argString(const string &arg) const
+{
+  if (arg.empty()) return arg;
+  return string("'") + escapeChars(arg,"\\'") + "'";
+}
+
 
 //--------------------------------------------------------------
 string CQFSort::toString(void)
@@ -136,34 +144,24 @@ string CQFSort::toString(void)
 //======================================================================
 // CQFDateSort
 
-int CQFDateSort::Str2Date(const std::string &datestr, int onEmpty, bool negate)
+int CQFDateSort::Str2Date(const std::string &datestr, int onEmpty)
 {
   int val = onEmpty;
   if (!datestr.empty()) {
     CBibliography B;
     B.m_DateStr = datestr;
     B.ConvertDateToInt(val);
-    if (negate) val = -val;
   }
   return val;
 }
 
 bool CQFDateSort::Compile(CQueryCompiler *compiler)
 {
-  m_Filter.m_LevelStart = INT_MIN+1;
-  m_Filter.m_LevelEnd   = INT_MAX-1;
-  switch (m_Filter.m_FilterType) {
-  case GreaterByDate:
-    if (!m_arg1.empty()) m_Filter.m_LevelEnd   = -Str2Date(m_arg1);
-    if (!m_arg2.empty()) m_Filter.m_LevelStart = -Str2Date(m_arg2);
-    break;
-  case LessByDate:
-  default:
-    if (!m_arg1.empty()) m_Filter.m_LevelStart = Str2Date(m_arg1);
-    if (!m_arg2.empty()) m_Filter.m_LevelEnd   = Str2Date(m_arg2);
-    break;
-  }
-  m_Filter.m_LevelEnd++;
+  m_Filter.m_KeyLo = INT_MIN+1;
+  m_Filter.m_KeyHi = INT_MAX-1;
+
+  if (!m_arg1.empty()) m_Filter.m_KeyLo.i = Str2Date(m_arg1);
+  if (!m_arg2.empty()) m_Filter.m_KeyHi.i = Str2Date(m_arg2)+1;
 
   return CQFSort::Compile(compiler);
 }
@@ -181,8 +179,8 @@ CQFSizeSort::CQFSizeSort(HitSortEnum ftype, int lb, int ub)
 
 bool CQFSizeSort::Compile(CQueryCompiler *compiler)
 {
-  m_Filter.m_LevelStart = (m_arg1.empty() ? INT_MIN : atoi(m_arg1.c_str()));
-  m_Filter.m_LevelEnd   = (m_arg2.empty() ? INT_MAX : atoi(m_arg2.c_str()));
+  m_Filter.m_KeyLo = (m_arg1.empty() ? INT_MIN : atoi(m_arg1.c_str()));
+  m_Filter.m_KeyHi = (m_arg2.empty() ? INT_MAX : atoi(m_arg2.c_str()));
   return CQFSort::Compile(compiler);
 }
 
@@ -210,21 +208,15 @@ bool CQFRandomSort::Compile(CQueryCompiler *compiler)
 
 bool CQFBiblSort::Compile(CQueryCompiler *compiler)
 {
-  bool bGreaterOperator = (m_Filter.m_FilterType == GreaterByFreeBiblField);
   CConcIndexator *ix = compiler->m_pHolder->m_pIndexator;
+  assert(ix != NULL);
 
   if (m_arg0.empty())
     throw CExpc(errParseError,"Empty bibliographic field not allowed in sort operator `%s'", toString().c_str());
 
   if (!ix->m_Bibl.GetFilterBounds(m_Filter, m_arg1, m_arg2))
-      throw CExpc(errParseError,"Can't determine lower bound for sort operator `%s'", toString().c_str());
+      throw CExpc(errParseError,"Can't determine bound(s) for bibliographic sort operator `%s'", toString().c_str());
 
-  if (bGreaterOperator) {
-      m_Filter.m_LevelStart = -m_Filter.m_LevelStart;
-      m_Filter.m_LevelEnd   = -m_Filter.m_LevelEnd+1;
-  }
-
-  m_Filter.m_SatisfiedValues.clear();
   return CQFSort::Compile(compiler);
 }
 
@@ -236,24 +228,47 @@ string CQFBiblSort::toString(void)
   os += string("['") + escapeChars(m_arg0,"\\'") + "',";
 
   if (!m_arg1.empty() || !m_arg2.empty()) {
-    if (!m_arg1.empty())
-      os += string("'") + escapeChars(m_arg1,"\\'") + "'";
-    os.push_back(',');
-    if (!m_arg2.empty())
-      os += string("'") + escapeChars(m_arg2,"\\'") + "'";
+    os += argString(m_arg1) + "," + argString(m_arg2);
   }
   os.push_back(']');
   return os;
 };
 
 //======================================================================
-// CQFBigramSort
+// CQFContextSort
 
-bool CQFBigramSort::Compile(CQueryCompiler *compiler)
+bool CQFContextSort::Compile(CQueryCompiler *compiler)
 {
-  if (compiler) compiler->m_BigramsUse = m_Dir;
+  CConcIndexator *ix = compiler->m_pHolder->m_pIndexator;
+  assert(ix != NULL);
+
+  m_Filter.m_AttrName  = m_arg0.empty() ? ix->GetTokenIndex()->m_Name : m_arg0;
+  CStringIndexSet* ixx = ix->GetIndexByNameOrShortName(m_Filter.m_AttrName);
+  if (ixx == NULL)
+    throw CExpc(errParseError,"Can't find index `%s' for context-sort operator `%s'", m_Filter.m_AttrName.c_str(), toString().c_str());
+
+  if (!ixx->GetContextBounds(m_Filter, m_arg1, m_arg2))
+      throw CExpc(errParseError,"Can't determine bound(s) for context-sort operator `%s'", toString().c_str());
+
   return CQFSort::Compile(compiler);
 }
+
+string CQFContextSort::toString(void)
+{
+  string os("#");
+  os += HitSortNames[m_Filter.m_FilterType];
+  EngMakeUpper(os);
+  
+  if (!m_arg0.empty() || m_Filter.m_ContextOffset!=0 || !m_arg1.empty() || !m_arg2.empty()) {
+    os += string("[") + argString(m_arg0) + Format(" %d", m_Filter.m_ContextOffset);
+    if (!m_arg1.empty() || !m_arg2.empty()) {
+      os += string(",") + argString(m_arg1) + "," + argString(m_arg2);
+    }
+    os.push_back(']');
+  }
+  return os;
+};
+
 
 //======================================================================
 // CQFLeftSort
@@ -385,5 +400,3 @@ string CQFHasFieldSet::valueString()
 {
   return std::string("{") + SetValueString() + "}";
 }
-
-

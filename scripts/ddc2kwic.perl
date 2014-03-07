@@ -16,7 +16,7 @@ while (<>) {
   chomp;
   @rest=split(/\s*\#\#\#/,$_);
   $f = splice(@rest,$fpos,1) // '';
-  print STDERR "f=$f\n";
+  #print STDERR "f=$f\n";
   next if (!@rest);
   $f =~ s/\..*$//;
   $f =~ s/^.*\///;

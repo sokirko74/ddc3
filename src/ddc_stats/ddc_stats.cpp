@@ -88,7 +88,14 @@ bool DumpBigrams(const CConcHolder& R, string IndexName)
 		fprintf(stderr, "Cannot find index name: !\n", IndexName.c_str() );
 		return false;
 	};
+#if 0
+	//-- ddc < v2.0.19
 	return SI->DumpBigrams();
+#else
+	//-- ddc >= v2.0.19
+	fprintf(stderr, "Bigram indices disabled for ddc >= v2.0.19!");
+	return false;
+#endif
 };
 
 void PrintUsageAndExit()

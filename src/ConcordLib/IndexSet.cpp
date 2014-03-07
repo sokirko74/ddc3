@@ -25,8 +25,8 @@
 //================== CStringIndexSet ==========
 //===============================================
 
-CStringIndexSet::CStringIndexSet(const CStringIndexator* pParent) : CIndexSetForQueryingStage(pParent), 
-m_BigramsIndex(pParent)
+CStringIndexSet::CStringIndexSet(const CStringIndexator* pParent)
+  : CIndexSetForQueryingStage(pParent)
 {
 	assert (pParent != 0);
 	m_StorageFile = 0;
@@ -130,12 +130,6 @@ bool	CStringIndexSet::ReadFromTheDisk()
 		if (!OpenStorageFile())
 			return false;
 
-   	if (UseBigrams())
-    {
-        if (!m_BigramsIndex.LoadIndexSet())
-			return false;
-    }
-
 	return true;
 };
 
@@ -150,10 +144,6 @@ bool	CStringIndexSet::DestroyIndexSet()
 		if (remove(GetStorageFileName().c_str()))
 			return false;
 	};
-
-    if (UseBigrams())
-        if (!m_BigramsIndex.DestroyIndexSet())
-            return false;
 
 	return true; 
 };
@@ -342,8 +332,6 @@ void	CStringIndexSet::UnionIndexSet(const CStringIndexSet& First, const CStringI
 
 };
 
-
-
 bool CStringIndexSet::GetTokensFromStorage(const size_t start_offset,  const size_t end_offset, vector<COutputToken>& Tokens) const
 {
 	if (!m_bUseItemStorage) return false;
@@ -364,6 +352,48 @@ bool CStringIndexSet::GetTokensFromStorage(const size_t start_offset,  const siz
 	return true;
 };
 
+DWORD CStringIndexSet::GetTokenIndexId(CTokenNo TokenNo) const
+{
+	if (!m_bUseItemStorage) return DWORD_MAX;
+	file_off_t read_offset =  (QWORD)TokenNo*(QWORD)sizeof(DWORD);
+	
+	if (!FSeek(m_StorageFile, read_offset, SEEK_SET)) return DWORD_MAX;
+	DWORD u;
+	if (fread(&(u),sizeof(u), 1, m_StorageFile) != 1) return DWORD_MAX;
+	if (u >= m_Index.size()) return DWORD_MAX;
+	return u;
+};
+
+bool CStringIndexSet::GetContextBounds(CDDCFilterWithBounds &Filter, const string& LoValue, const string& HiValue) const
+{
+	Filter.clear();
+	Filter.m_bSet = false;
+
+	LessIndexString1<CIndexItem> Less(&m_StringBuffer);
+
+	//-- lower bound, based on CConcXml::CFreeBiblStringIndex::GetFilterBounds() from Bibliography.cpp
+	Filter.m_KeyLo.assign(INT_MIN,LoValue);
+	if (!LoValue.empty()) {
+		vector<CIndexItem>::const_iterator ilo = lower_bound(m_Index.begin(), m_Index.end(), LoValue.c_str(), Less);
+		if ( ilo != m_Index.end() )
+			Filter.m_KeyLo.i = ilo-m_Index.begin();
+		else
+			Filter.m_KeyLo.i = INT_MAX;
+	}
+
+	//-- upper bound
+	Filter.m_KeyHi.assign(INT_MAX,HiValue);
+	if (!HiValue.empty()) {
+		vector<CIndexItem>::const_iterator ihi = upper_bound(m_Index.begin(), m_Index.end(), HiValue.c_str(), Less);
+		if ( ihi != m_Index.end() )
+			Filter.m_KeyHi.i = ihi-m_Index.begin();
+		else
+			Filter.m_KeyHi.i = m_Index.size();
+	}
+
+	return true;
+}
+
 bool CStringIndexSet::DumpStorage() const
 {
 	if (!m_bUseItemStorage) 
@@ -380,65 +410,6 @@ bool CStringIndexSet::DumpStorage() const
 	};
 	return  true;
 };
-
-bool    CStringIndexSet::DumpBigramsOfOneDirection ( BigramDirectionEnum bigram_direc ) const
-{
-    const CIndexBigram& IndexBigrams = (bigram_direc == bdLeftBigram) ? m_BigramsIndex.m_LeftBigrams :  m_BigramsIndex.m_RightBigrams;
-    if (IndexBigrams.m_FirstWords.size() != m_Index.size()+1)
-        throw CExpc ("the number of the first words of bigrams should be the same as the number of the words in the main index plus one for <eos>");
-    if (!m_bUseItemStorage)
-        throw CExpc ("cannot dump bigrams without item storage");
-
-    for (size_t  fw=0; fw < m_Index.size(); fw++)
-    {
-        const char* first_word =  GetIndexItemStr(m_Index[fw]);
-        vector<CSecondWord>	    SecondWords;
-        const size_t Start = IndexBigrams.ReadSecondWords(fw,  SecondWords);
-        for( size_t sw=0; sw<SecondWords.size(); sw++ )
-	    {
-		    vector<CTokenNo> occurs;
-            const CSecondWord& I =  SecondWords[sw];
-            m_BigramsIndex.ReadAllOccurrences(sw+Start, I, occurs);
-            if (occurs.empty())
-                throw CExpc ("bigram occurrence list is empty (first word is \"%s\")", first_word);
-            const char* second_word =  (I.m_EndOfSentenceFlag) ? "<eos>" : GetIndexItemStr(m_Index[I.m_SecondWordId]);
-            printf ("%s %s %i ->", first_word, second_word, I.m_Distance);
-            for (size_t on=0; on <  occurs.size(); on++)
-            {
-                size_t o;
-                if (bigram_direc == bdLeftBigram) 
-                    o = occurs[on];
-                else
-                    o = occurs[on] - (I.m_Distance+1) + I.m_EndOfSentenceFlag;
-
-                printf (" %i", o);
-            }
-            printf ("\n");
-
-
-        }
-
-
-    }
-    return true;
-}
-
-bool CStringIndexSet::DumpBigrams() const
-{
-    try {
-        printf ("left bigrams:\n");
-        DumpBigramsOfOneDirection (bdLeftBigram);
-        printf ("right bigrams:\n");
-        DumpBigramsOfOneDirection (bdRightBigram);
-    }
-    catch (CExpc c)
-    {
-        fprintf (stderr, "CStringIndexSet::DumpBigrams: %s\n", c.m_strCause.c_str());
-        return false;
-    }
-    return true;
-}
-
 
 void CStringIndexSet::CloseStorageFile()
 {
@@ -524,7 +495,7 @@ void CStringIndexSet::FindOccurrences (const vector<DWORD>& IndexItems, const si
 	{
 		const size_t IndexItemNo = IndexItems[i];
 		const CIndexItem& I = m_Index[ IndexItemNo ];
-		const char * _debug_view = GetIndexItemStr(I);	///<TODO: see if we can lose this -- moocow Fri, 29 Nov 2013 10:04:58 +0100
+		//const char * _debug_view = GetIndexItemStr(I);
 		AddOccurs(IndexItemNo, 
 			  I.HasOneOccurrence(), 
 			  GetStartOccurNo(IndexItemNo), 

@@ -47,6 +47,13 @@
 	#endif
 #endif
 
+//#define DEBUG_HIT_SORT
+#ifdef DEBUG_HIT_SORT
+# define HSDEBUG(s) concord_daemon_log(s)
+#else
+# define HSDEBUG(s)
+#endif
+
 const char* AdditionalHitDelimeter = "\x01";
 
 class CDDCCorpusListenHost  : public CHost
@@ -79,16 +86,21 @@ struct CHitToSort
 {
 	BYTE	m_HostNo;
 	DWORD	m_HitNo;
-	DWORD	m_OrderId;
-	string	m_OrderStrId;
+	string	m_SortKeyStr;
+
+	CHitToSort(BYTE HostNo=0)
+	: m_HostNo(HostNo)
+	{};
 
 	inline bool operator < (const CHitToSort& X) const {
-		if (m_OrderId != X.m_OrderId)
-			return m_OrderId < X.m_OrderId;
-		if (m_OrderStrId != X.m_OrderStrId)
-			return m_OrderStrId < X.m_OrderStrId;
+		if (m_SortKeyStr != X.m_SortKeyStr)
+			return m_SortKeyStr < X.m_SortKeyStr;
 		return m_HitNo < X.m_HitNo;
 	};
+
+	/** string form of hit, for debugging messages */
+	inline string debugStr(void) const
+	{ return Format("{HostNo=%d,HitNo=%d,SortKey=%s}", m_HostNo, m_HitNo, jsonStr(m_SortKeyStr).c_str()); };
 };
 
 
@@ -102,7 +114,7 @@ public:
 		string			m_HitsDistributionStr;
 		string			m_RelevantDocsDistributionStr;
 		int			m_InternalError;
-		bool			m_bSort;
+		int			m_SortOrder;		//< hit sort order (-1:descending, 0:none, 1:ascending); formerly bool m_bSort
 		NetworkErrorsEnum	m_NetworkError;
 		string			m_ErrorStr;
 		vector<CHitToSort>  	m_Hits;
@@ -206,7 +218,7 @@ CDDCCorpusListenHost::~CDDCCorpusListenHost ()
 
 
 
-
+/*
 bool SaveTrigger(const string& S, DWORD LParam)
 {
 	string ErrorStr;
@@ -217,6 +229,7 @@ bool SaveTrigger(const string& S, DWORD LParam)
 	};
 	return true;
 };
+*/
 
 bool  CDDCCorpusListenHost::LoadHolder() {
 	assert (!m_pHolder);
@@ -350,7 +363,8 @@ void CDDCCorpusListenHost::ServerInfoJson(string &Result)
 				   + "\"shortname\":" + jsonStr(sis->m_ShortName) + ", "
 				   + "\"longname\":" + jsonStr(sis->m_Name) + ", "
 				   + "\"visible\":" + (visibleIndices.find(i)!=visibleIndices.end() ? '1' : '0') + ", "
-				   + "\"bigrams\":" + Format("%d", sis->m_MaxBigramWindowSize) + ", "
+				   //+ "\"bigrams\":" + Format("%d", sis->m_MaxBigramWindowSize) + ", "
+				   + "\"bigrams\":" + Format("%d", -1) + ", "
 				   + "\"size\":" + Format("%zd", sis->m_Index.size()) //+ ", " //-- indices[i].size : number of values (?)
 				   //+ "\"bigramBorder\":" + Format("%d", sis->m_BigramBorder) + ", "
 				   //+ "\"left\":" + Format("%zd", sis->m_BigramsIndex.m_LeftBigrams.m_FirstWords.size()) + ", "
@@ -423,7 +437,7 @@ string CDDCCorpusListenHost::ProcessSocketString(const string& InputSocket, SOCK
 		char sResultType[100];
 		//sResultType\x01StartHitNo ResultLimit
 
-		int CountItems = sscanf (InputSocket.c_str(), "get_hit_strings %[^\x01]\x01%i %i", sResultType,  &StartHitNo,&m_pHolder->m_ResultLimit);
+		int CountItems = sscanf (InputSocket.c_str(), "get_hit_strings %[^\x01]\x01%i %i", sResultType,  &StartHitNo, &m_pHolder->m_ResultLimit);
 		try {
 			if (CountItems != 3)
 				throw CExpc(errParseError, "CDDCCorpusListenHost(get_hit_strings): cannot parse socket input");
@@ -464,7 +478,7 @@ string CDDCCorpusListenHost::ProcessSocketString(const string& InputSocket, SOCK
 			int Error = m_pHolder->GetHits(sQuery, EndHitNo);
 			if (Error != errNone) throw CExpc(Error); //-- error
 
-			Result = Format ("%i %i %i %i %i", Error, EndHitNo, m_pHolder->m_AllHitsCount, m_pHolder->m_RelevantDocumentCount, (m_pHolder->HitsShouldBeSorted()?1:0));
+			Result = Format ("%i %i %i %i %i", Error, EndHitNo, m_pHolder->m_AllHitsCount, m_pHolder->m_RelevantDocumentCount, m_pHolder->HitSortOrder());
 			Result += m_pHolder->GetHitIds();
 		}
 		catch (CExpc& e) {
@@ -649,6 +663,7 @@ string CDDCServerListenHost::ProcessSocketString(const string& InputSocket, SOCK
 		if (eocpos==InputSocket.npos) eocpos=InputSocket.size();
 		string cmd(InputSocket,0,eocpos);
 		//fprintf(stderr, "ServerListenHost: cmd=(%s)\n", cmd.c_str()); //-- DEBUG
+
 		Result.reserve(DDC_STATIC_BUFLEN);
 
 		if (cmd == "run_query") {
@@ -897,12 +912,11 @@ NetworkErrorsEnum CDDCServerListenHost::GetHitStringsFromOneCorpus(CHost& Host, 
 								   DWORD StartHitNo, DWORD ResultLimit, int TimeOut, SOCKET& CorpusSocket, int& InternalError, string& Result )
 {
 	if (CorpusSocket == -1)
-	{
 		return neNetworkError;
-	};
 
 	//Query\x01StartHitNo ResultLimit bGetText
 	string S = Format ("get_hit_strings %s\x01%i %i",  ResultType.c_str(), StartHitNo,  ResultLimit);
+
 	string ErrorStr;
 	if (!SendString(CorpusSocket, S.c_str(), S.length(), ErrorStr)) 
 	{
@@ -922,7 +936,7 @@ NetworkErrorsEnum CDDCServerListenHost::GetHitStringsFromOneCorpus(CHost& Host, 
 
 	if (Res  != neSuccess)
 	{
-		concord_daemon_log ( " Cannot receive a resulting string from a client  " );
+		concord_daemon_log ( "cannot receive a result string from a client" );
 		return Res;
 	};
 
@@ -957,7 +971,7 @@ void CDDCServerListenHost::GetFirstHitsFromCorpora(const DwordVector& PossibleHo
 	Result.m_AllRelevantDocsCount = 0;
 	Result.m_NetworkError = neSuccess;
 	Result.m_InternalError = errNone;
-	Result.m_bSort = false;
+	Result.m_SortOrder = 0;
 	Result.m_ErrorStr = "";
 	
 	for (int i=0; i<PossibleHosts.size(); i++)	
@@ -1009,7 +1023,9 @@ void CDDCServerListenHost::GetFirstHitsFromCorpora(const DwordVector& PossibleHo
 		HitsDistribution[HostNo] = CorpusHitsCount;
 		Result.m_AllRelevantDocsCount += RelevantDocumentsCount;
 		RelevantDocsDistribution[HostNo] = RelevantDocumentsCount;
-		Result.m_bSort = (iSort!=0);
+		Result.m_SortOrder = iSort;
+
+		HSDEBUG( Format("DEBUG[status:%s]=\"%s\" --> iSort=%d", Host.m_CorpusName.c_str(), S.c_str(), iSort) );
 
 		if (Result.m_InternalError != errNone) {
 			//-- sub-corpus error: look for error message
@@ -1024,29 +1040,31 @@ void CDDCServerListenHost::GetFirstHitsFromCorpora(const DwordVector& PossibleHo
 		}
 
 
-		// reading order ids that  would be used to sort results
+		//-- read sort keys for merging sorted results (v2.0.19: always use string-sort for results)
 		int f = S.find("\t");
-		if (f != string::npos)
-		{
+		if (f != string::npos) {
 			StringTokenizer tok(S.c_str() + f +1,"\t");
-            char Buffer [CriticalTokenLength +1];
-			while (tok())
-			{
-				CHitToSort HS;
-                const char* rest = tok.val();
-				if(sscanf(rest, "%i %i %[^ ]", &HS.m_HitNo, &HS.m_OrderId, Buffer) != 3)
-				{
+			char SortKeyBuf[ DDC_SORTKEY_MAXLEN ];
+			while (tok()) {
+				CHitToSort HS(HostNo);
+				const char* rest = tok.val();
+				int OrderIdIgnored; //-- integer sort-key Hit.m_OrderId sent by ddc < v2.0.19; ignored here
+				int nscanned = sscanf(rest, "%i %i %[^\t]", &HS.m_HitNo, &OrderIdIgnored, SortKeyBuf);
+
+				if (nscanned < 2) {
 					Result.m_NetworkError = neProtocolError;
 					return;
-				};
-                if (strcmp(Buffer, "<empty>"))
-                    HS.m_OrderStrId = Buffer;
+				}
+				else if (nscanned > 2 && strcmp(SortKeyBuf, "<empty>") != 0) {
+					HS.m_SortKeyStr = SortKeyBuf;
+				}
 
-				HS.m_HostNo = HostNo;
+
 				Result.m_Hits.push_back(HS);
-			};
-		};
-	};
+				HSDEBUG( Format("DEBUG[<%s]: hit = %s", Host.m_CorpusName.c_str(), Result.m_Hits.back().debugStr().c_str()) ); //-- debug
+			}
+		}
+	}
 
 	// collecting hits distribution in the right order for all possible corpus threads
 	// the previous cycle was only for "possible" host (=user-defined corpus threads)
@@ -1127,8 +1145,20 @@ NetworkErrorsEnum CDDCServerListenHost::RunDistributed(string Query, const strin
 	};
 
 	// sorting and trimming
-	if (FHResult.m_bSort)
+	if (FHResult.m_SortOrder < 0) {
+		//-- sort: descending
+		sort (FHResult.m_Hits.rbegin(), FHResult.m_Hits.rend());
+	}
+	else if (FHResult.m_SortOrder > 0) {
+		//-- sort: ascending
 		sort (FHResult.m_Hits.begin(), FHResult.m_Hits.end());
+	}
+
+#ifdef DEBUG_HIT_SORT
+	for (vector<CHitToSort>::const_iterator hi=FHResult.m_Hits.begin(); hi != FHResult.m_Hits.end(); ++hi) {
+		concord_daemon_log( Format("DEBUG[post-sort:order=%d]: hit[%d] = %s", FHResult.m_SortOrder, hi-FHResult.m_Hits.begin(), hi->debugStr().c_str()) );
+	}
+#endif
 
 	if (StartHitNo+ResultLimit < FHResult.m_Hits.size())
 		FHResult.m_Hits.erase(FHResult.m_Hits.begin()+StartHitNo+ResultLimit, FHResult.m_Hits.end());
@@ -1138,6 +1168,11 @@ NetworkErrorsEnum CDDCServerListenHost::RunDistributed(string Query, const strin
 	else
 		FHResult.m_Hits.clear();
 
+#ifdef DEBUG_HIT_SORT
+	for (vector<CHitToSort>::const_iterator hi=FHResult.m_Hits.begin(); hi != FHResult.m_Hits.end(); ++hi) {
+		concord_daemon_log( Format("DEBUG[post-trim]: hit[%d] = %s", hi-FHResult.m_Hits.begin(), hi->debugStr().c_str()) );
+	}
+#endif
 
 	//  creating map from HostNo to  Hits, SortedHits[i] contains all reference to hits from host i
 	// in the right order

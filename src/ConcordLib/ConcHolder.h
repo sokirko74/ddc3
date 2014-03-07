@@ -43,12 +43,19 @@ struct CQueryResult
 	//! words that should be highlighted in hits; m_HighlightOccurs is the concatenation of CQueryNode::m_Occurrences for all \ref period_def "subcorpora"
 	vector<CTokenNo>	m_HighlightOccurs;
 	//! the number of all found hits (if m_AllHitsCount < MaxCachedHitsCount, then m_Hits.size() == m_AllHitsCount)
-	size_t				m_AllHitsCount;
+	size_t			m_AllHitsCount;
 	//! the number of documents, where at least one hit is found
-	size_t				m_RelevantDocumentCount;
+	size_t			m_RelevantDocumentCount;
+
+	//! whether to sort by string-value
+	bool 			m_bSortByString;
+
+	//! hit sort order (-1:descending, 0:no-sort, 1:ascending)
+	int			m_SortOrder;
+
 
 	mutable vector<BYTE>	m_DebugInfo;
-	void				ClearQueryResults();
+	void			ClearQueryResults();
 
 };
 
@@ -87,17 +94,20 @@ private:
 	DDCRandom *m_pRandom;
 
 	//! how much time a query can be processed, by default unlimited (-1) 
-	time_t							m_QueryEndTime;
+	time_t						m_QueryEndTime;
 
 	//! a pointer to the current hits collection
 	const vector<CTokenNo>*			m_pBreaks;
 
 	//! the format of query result 
-	FormatTypeEnum					m_ResultFormat;
+	FormatTypeEnum				m_ResultFormat;
 
-	
+	//! whether the current hit-sorting mode is primarily string-based
+	bool					m_bSortByString;
 
-	
+	//! the current hit-sorting order (-1:descending, 0:none, 1:ascending)
+	int					m_SortOrder;
+
 
 	//! add a reference to FileNo according to m_ResultFormat
 	void	AddFileReference(const long FileNo);
@@ -134,14 +144,14 @@ private:
 	bool	GetTokensFromStorageByBreak(size_t IndexNo, size_t BreakNo, vector<COutputToken>& Tokens) const;
 	//! initializes CHit::m_FileNo for each hit of Hits
 	void InitFileReferences(vector<CHit>&	Hits) const;
-	//! initializes CHit::m_OrderId for each in m_pQueryCompiler->m_pQueryTree->m_Hits
-	void	InitOrderIDForHits(const CDDCFilterWithBounds& Filter) const;
-	void	InitLessByRank() const;
-	void	InitGreaterByRank() const;
-	void	InitLessBySize() const;
-	void	InitGreaterBySize() const;
-	void    InitLessByBigrams() const;
-	void	InitRandomSort() const;
+
+	//! initializes CHit::m_SortKey for each in m_pQueryCompiler->m_pQueryTree->m_Hits.
+	//! Also sets m_bSortDescending=Filter.isDescending() and m_bSortByString appropriately
+	void	InitSortKeyForHits(const CDDCFilterWithBounds& Filter);
+	void	InitSortByRank() const;
+	void	InitSortBySize() const;
+	void	InitSortByRandom() const;
+	void    InitSortByContext(const CDDCFilterWithBounds& Filter) const;
 
 public:
 	//! initial random-state components for m_pRandom
@@ -164,6 +174,7 @@ public:
 
 	//! The index of the current \ref period_def "subcorpora", which is now  being processed
 	size_t							m_CurrentSearchPeriodNo;
+
 	//! a delimeter which should be used between hits in m_QueryResultStr in the distributed model
 	string							m_AdditionalHitDelimeter;
 
@@ -175,8 +186,10 @@ public:
 
 	//! return the current format of hit
 	FormatTypeEnum	GetResultFormat() const { return m_ResultFormat; };;
+
 	//! return string representation of m_ResultFormat
 	string				GetResultFormatStr() const;
+
 	//! set the current format of hit
 	void				SetResultFormat(string ResultTypeStr);
 
@@ -197,26 +210,26 @@ public:
 	*/
 	DDCErrorEnum	SimpleQuery(const string &Query, DWORD& EndHitNo, DWORD& HitsCount);
 
-	//! GetHits makes the same as SimpleQuery does, but without GenerateHitStrings.
+	//! GetHits does the same as SimpleQuery does, but without GenerateHitStrings()
 	DDCErrorEnum	GetHits(const string &Query,  DWORD& EndHitNo);
 
 	//! initializes m_QueryResultStr using current m_Hits and m_HighlightOccurs
 	DDCErrorEnum	GenerateHitStrings(const int StartHitNo);
 
-	//! stores order ids (CHit::m_OrderId) of current m_Hits to a string
-	string			GetHitIds()  const;
+	//! stores sortk-keys (CHit::m_SortKey) of current m_Hits to a string
+	string GetHitIds()  const;
 
-	//! return true, if the resulting hits should be ordered somehow
-	bool			HitsShouldBeSorted() const;
+	//! returns -1 for descending sort, 1 for ascending sort, 0 for no sort; replaces HitsShouldBeSorted()
+	int HitSortOrder() const;
 
 	//! sets timeout for query processing
-	void			SetTimeOut(int TimeOut);
+	void SetTimeOut(int TimeOut);
 
 	//! clears the query cache
-	void			ClearQueryCache();
+	void ClearQueryCache();
 
 	//! return the text area to be be searched
-	int				GetTextArea() const;
+	int GetTextArea() const;
 
 	//! return cache size
 	size_t CacheSize(void) const
@@ -226,16 +239,14 @@ public:
 	static FormatTypeEnum GetResultFormatByString(const string& ResultTypeStr );
 
 	//! adds header and footer to QueryResultStr according to format ResultTypeStr
-	static void			DecorateQueryResults(const string& ResultTypeStr, string& QueryResultString);
+	static void DecorateQueryResults(const string& ResultTypeStr, string& QueryResultString);
 
 	//! return true, if the input query contains #less_by_rank or #greater_by_rank
 	//! moo: sick, bad, ugly, and wrong!
-	bool				HasRankOrderOperator() const;
-	//! return the length of break prefix, where DDC should search (#within[sentence, 10])
-	int					GetBreakStarterLength() const;
+	bool HasRankOrderOperator() const;
 
-	//! true, if #left or #right operator 
-	BigramDirectionEnum     GetBigramsToOrder() const;
+	//! return the length of break prefix, where DDC should search (#within[sentence, 10])
+	int GetBreakStarterLength() const;
 
 	//! moo: build a json context string by parsing delimited token data
 	string BuildJsonContextString (const vector<COutputToken>& Tokens, bool doHighlight=true) const;

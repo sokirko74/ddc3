@@ -219,13 +219,13 @@ void CQueryCompiler::CleanParser()
 	m_WordSet.clear();
 	m_MorphItems.clear();
 	m_Expanders.clear();
+	m_FilterField.clear();
 	m_FilterLB.clear();
 	m_FilterUB.clear();
 	m_TextAreaNo = UnknownTextAreaNo;
 	m_bEnableBibliographyForThisQuery = true;
 	m_bDebugRank = false;
 	m_ContextSentencesCount = 0;
-	m_BigramsUse = bdDontUseBigrams;
 }
 
 void CQueryCompiler::DeleteTree()

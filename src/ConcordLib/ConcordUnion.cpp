@@ -75,9 +75,6 @@ bool	CConcIndexator::CreateAsUnion(const CConcIndexator&  _X1, const CConcIndexa
 
 	    for (size_t i=0; i < _X1.m_Indices.size(); i++)
 	    {
-            if ( _X1.m_Indices[i]->UseBigrams() )
-                throw CExpc ("cannot merge indices with bigrams, since the second word is always unknown!");
-
 		    printf ("unite index \"%s\"\n", _X1.m_Indices[i]->m_Name.c_str());
 		    //if (_X1.m_Indices[i]->m_Name != "Thes") continue;
 		    CStringIndexSet* I = new CStringIndexSet (this);

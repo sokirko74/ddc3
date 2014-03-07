@@ -1013,14 +1013,12 @@ bool	CConcIndexator::IndexOneTableTextArea(const string& Text, const CPageNumber
 				{
 
 					string tag_name = q.substr(2,len-3); // ge the tag name, for example "vp" from "</vp>"
-                    int BrCollec = GetBreakCollectionIndexByName(tag_name);
-					if (BrCollec != -1)
-                    {
-                        AddBreakByIndex(BrCollec, NewCorpusEndTokenNo);
-                        ProcessBigramBorders(BrCollec, NewCorpusEndTokenNo);
-                    }
-                    else  // if it is not a registered break
-                    {
+					int BrCollec = GetBreakCollectionIndexByName(tag_name);
+					if (BrCollec != -1) {
+						AddBreakByIndex(BrCollec, NewCorpusEndTokenNo);
+					}
+					else  {
+					    // if it is not a registered break
                         
 						if (m_bIndexChunks)
 						{
@@ -1031,7 +1029,7 @@ bool	CConcIndexator::IndexOneTableTextArea(const string& Text, const CPageNumber
 								strError  = Format("Error! An end tag without a start tag is found (%s<>%s)",
 													start_chunk_tags_str_and_pos.back().first.c_str(), tag_name.c_str() ); 
 								return false;
-							};
+							}
 							if (NewCorpusEndTokenNo > 0)
 							{
 								string tag = Format("%s,%i",start_chunk_tags_str_and_pos.back().first.c_str(), 
@@ -1044,9 +1042,9 @@ bool	CConcIndexator::IndexOneTableTextArea(const string& Text, const CPageNumber
 							{
 								// An empty element at the beginning of the corpus is ignored; 
 							}
-						};
-                    }
-				};
+						}
+					}
+				}
 
 			}
 			else
@@ -1172,13 +1170,13 @@ bool	CConcIndexator::LoadFileIntoGraphan(string FileName,  const char* pFileBuff
 
 
 
-bool	CConcIndexator::IndexTextOrHtmlFile	(
-	CGraphmatFile* piGraphmat, 
-	string FileName, 
-	const char* pFileBuffer,
-	const CDwdsThesaurus* pDwdsThesaurus,
-	CTokenNo& NewCorpusEndTokenNo,
-	string& strError)
+bool	CConcIndexator::IndexTextOrHtmlFile(
+					    CGraphmatFile* piGraphmat, 
+					    string FileName, 
+					    const char* pFileBuffer,
+					    const CDwdsThesaurus* pDwdsThesaurus,
+					    CTokenNo& NewCorpusEndTokenNo,
+					    string& strError)
 {
 	CBibliography Bibl;
 	if (!LoadFileIntoGraphan(FileName, pFileBuffer, piGraphmat, Bibl, strError))
@@ -1207,12 +1205,11 @@ bool	CConcIndexator::IndexTextOrHtmlFile	(
 	int TextAreaNo = 0;
 	int TextAreasCount = m_Bibl.GetTextAreasCount();
 	size_t TextAreaStarter = DWORD_MAX;
-    int SentenceBreakCollection = GetBreakCollectionIndexByName("s");
-    if ((SentenceBreakCollection == -1) && !m_bQueryOnlyFiles)
-    {
+	int SentenceBreakCollection = GetBreakCollectionIndexByName("s");
+	if ((SentenceBreakCollection == -1) && !m_bQueryOnlyFiles) {
 		strError = "could not find sentence collection";
 		return false;
-    }
+	}
 
 	for (long GraLineNo = 1; GraLineNo<GraLinesCount; GraLineNo++)
 	{
@@ -1234,44 +1231,34 @@ bool	CConcIndexator::IndexTextOrHtmlFile	(
 				return false;
 			};
 
-            strncpy(OneIndexLine, Token, TokenLen);
+			strncpy(OneIndexLine, Token, TokenLen);
 			OneIndexLine[TokenLen] = globalFieldDelimeter;
 			OneIndexLine[TokenLen+1] = 0;
 
 			
-			if (        m_bUseDwdsThesaurus 
-                &&  (       piGraphmat->HasDescr(GraLineNo, OUp)
-					    ||  piGraphmat->HasDescr(GraLineNo, OUpLw)
-                    )
-               )
-			{
-                const char* UpperToken  = piGraphmat->GetUppercaseToken(GraLineNo);
+			if (m_bUseDwdsThesaurus 
+			    &&  (piGraphmat->HasDescr(GraLineNo, OUp)
+				 ||  piGraphmat->HasDescr(GraLineNo, OUpLw))
+			    ) {
+				const char* UpperToken  = piGraphmat->GetUppercaseToken(GraLineNo);
 				OneIndexLine[TokenLen+1] = globalFieldDelimeter;
 				strcpy(OneIndexLine + TokenLen +  2, pDwdsThesaurus->GetAllThesInterpetations(UpperToken).c_str());
-			};
+			}
 
 			IndexOneToken(OneIndexLine, NewCorpusEndTokenNo);
 
                 
-            // if m_bQueryOnlyFiles then no sentence break collection
-			if(	!m_bQueryOnlyFiles && IsSentenceEnd(piGraphmat, GraLineNo) )
+			// if m_bQueryOnlyFiles then no sentence break collection
+			if ( !m_bQueryOnlyFiles && IsSentenceEnd(piGraphmat, GraLineNo) )
 			{
 
 				// "1" is for this token
 				CurrSentenceBreak = NewCorpusEndTokenNo+1;
-				
-                AddBreakByIndex(SentenceBreakCollection, CurrSentenceBreak);
-
-                 // index right bigrams for sentence end
-                ProcessBigramBorders(SentenceBreakCollection, CurrSentenceBreak );
-
+				AddBreakByIndex(SentenceBreakCollection, CurrSentenceBreak);
 
 				SentNo++;
-
 				bSentenceEnd = true;
-
 			};
-
 		} // IsDWDSToken == true
 
 		if (piGraphmat->GetUnits()[GraLineNo].IsTextAreaEnd() || TextAreaStarter == NewCorpusEndTokenNo)
@@ -1317,8 +1304,8 @@ bool	CConcIndexator::IndexTextOrHtmlFile	(
 		};
 	};
 
-	// write the last sentence if it contains at least one token
-    if (!m_bQueryOnlyFiles )
+       // write the last sentence if it contains at least one token
+       if (!m_bQueryOnlyFiles )
 	if (CurrSentenceBreak < NewCorpusEndTokenNo)
 	{	
         fprintf (stderr,"The last end of sentence is not found, graphematics should be refactored :)\n");
@@ -2104,6 +2091,6 @@ string CConcIndexator::DumpFileBibliography(DWORD FileNo) const
 
 // Local Variables:
 // mode: c++
-// c-basic-offset: 4
+// c-basic-offset: 8
 // End:
 

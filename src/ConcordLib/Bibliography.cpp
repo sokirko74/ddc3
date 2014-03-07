@@ -1,4 +1,4 @@
-/*-*- Mode: C++; c-basic-offset: 8; -*-*/
+//*-*- Mode: C++; c-basic-offset: 8; -*-*/
 //  DDC originally by Alexey Sokirko
 //  Changes and modifications 2011-2014 by Bryan Jurish
 //
@@ -249,16 +249,16 @@ void CConcXml::CFreeBiblIndex::CreateUnion (string Path, const CFreeBiblIndex* p
 bool CConcXml::CFreeBiblIndex::GetFilterBounds (CDDCFilterWithBounds& Filter, const string &LoValue, const string &HiValue) const
 {
 	Filter.m_bSet = false;
-	Filter.m_LevelStart = LoValue.empty() ? INT_MIN : atoi(LoValue.c_str());
-	Filter.m_LevelEnd   = HiValue.empty() ? INT_MAX : atoi(HiValue.c_str());
+	Filter.m_KeyLo = LoValue.empty() ? INT_MIN : atoi(LoValue.c_str());
+	Filter.m_KeyHi = HiValue.empty() ? INT_MAX : atoi(HiValue.c_str());
 	return true;
 };
 
 bool CConcXml::CFreeBiblIndex::GetFilterValue (CDDCFilterWithBounds& Filter, const string &Value) const
 {
 	Filter.m_bSet = false;
-	Filter.m_LevelStart = atoi(Value.c_str());
-	Filter.m_LevelEnd = Filter.m_LevelStart+1;
+	Filter.m_KeyLo = atoi(Value.c_str());
+	Filter.m_KeyHi = Filter.m_KeyLo.i+1;
 	return true;
 };
 
@@ -299,7 +299,10 @@ string CConcXml::CFreeBiblIndex::GetTypeStr() const
 	return IntegerTypeStr;
 };
 
-
+CFreeBiblIndexTypeId CConcXml::CFreeBiblIndex::GetTypeId() const
+{
+	return cfbiInteger;
+};
 
 
 //=============================================
@@ -378,6 +381,10 @@ string CConcXml::CFreeBiblStringIndex::GetTypeStr() const
 	return StringTypeStr;
 };
 
+CFreeBiblIndexTypeId CConcXml::CFreeBiblStringIndex::GetTypeId() const
+{
+	return cfbiString;
+};
 
 
 bool CConcXml::CFreeBiblStringIndex::ReadFromDisk (string Path, DWORD FileBreaksSize) 
@@ -432,19 +439,23 @@ bool CConcXml::CFreeBiblStringIndex::GetFilterBounds (CDDCFilterWithBounds& Filt
 	Filter.m_bSet = false;
 
 	//-- lower bound
-	Filter.m_LevelStart = INT_MIN;
+	Filter.m_KeyLo.assign(INT_MIN,LoValue);
 	if (!LoValue.empty()) {
 		vector<string>::const_iterator ilo = lower_bound(m_Values.begin(), m_Values.end(), LoValue);
 		if ( ilo != m_Values.end() )
-			Filter.m_LevelStart = ilo-m_Values.begin();
+			Filter.m_KeyLo.i = ilo-m_Values.begin();
+		else
+			Filter.m_KeyLo.i = INT_MAX;
 	}
 
 	//-- upper bound
-	Filter.m_LevelEnd = INT_MAX;
+	Filter.m_KeyHi.assign(INT_MAX,HiValue);
 	if (!HiValue.empty()) {
 		vector<string>::const_iterator ihi = upper_bound(m_Values.begin(), m_Values.end(), HiValue);
 		if ( ihi != m_Values.end() )
-			Filter.m_LevelEnd = ihi-m_Values.begin();
+			Filter.m_KeyHi.i = ihi-m_Values.begin();
+		else
+			Filter.m_KeyHi.i = m_Values.size();
 	}
 
 	return true;
@@ -463,12 +474,12 @@ bool CConcXml::CFreeBiblStringIndex::GetFilterValue (CDDCFilterWithBounds& Filte
 	//-- positive filter condition (literal)
 	vector<string>::const_iterator it = lower_bound(m_Values.begin(), m_Values.end(), Value);
 	if ( it == m_Values.end() || *it  != Value ) {
-		Filter.m_LevelStart = 0;
-		Filter.m_LevelEnd = 0;
+		Filter.m_KeyLo = 0;
+		Filter.m_KeyHi = 0;
 	}
 	else {
-		Filter.m_LevelStart = it-m_Values.begin();
-		Filter.m_LevelEnd   = Filter.m_LevelStart + 1;
+		Filter.m_KeyLo.assign(it-m_Values.begin(),    Value);
+		Filter.m_KeyHi.assign(Filter.m_KeyLo.i+1, Value);
 	}
 	
 	return true;
@@ -489,12 +500,16 @@ bool CConcXml::CFreeBiblStringIndex::GetFilterValues (CDDCFilterWithBounds& Filt
 
 	//-- sanitize filter ranges (compatibility)
 	if (Filter.m_SatisfiedValues.empty()) {
-		Filter.m_LevelStart = 0;
-		Filter.m_LevelEnd = 0;
+		Filter.m_KeyLo = 0;
+		Filter.m_KeyHi = 0;
 	}
 	else {
-		Filter.m_LevelStart = *Filter.m_SatisfiedValues.begin();
-		Filter.m_LevelEnd   = *Filter.m_SatisfiedValues.rbegin() + 1;
+		Filter.m_KeyLo.i = *Filter.m_SatisfiedValues.begin();
+		Filter.m_KeyLo.s = m_Values[Filter.m_KeyLo.i];
+
+		Filter.m_KeyHi.i = *Filter.m_SatisfiedValues.rbegin();
+		Filter.m_KeyHi.s = m_Values[Filter.m_KeyHi.i];
+		Filter.m_KeyHi.i++;
 	}
 
 	return true;
@@ -529,12 +544,16 @@ bool CConcXml::CFreeBiblStringIndex::GetFilterValues (CDDCFilterWithBounds& Filt
 
 	//-- sanitize filter ranges (compatibility)
 	if (Filter.m_SatisfiedValues.empty()) {
-		Filter.m_LevelStart = 0;
-		Filter.m_LevelEnd   = 0;
+		Filter.m_KeyLo = 0;
+		Filter.m_KeyHi = 0;
 	}
 	else {
-		Filter.m_LevelStart = *Filter.m_SatisfiedValues.begin();
-		Filter.m_LevelEnd   = *Filter.m_SatisfiedValues.rbegin() + 1;
+		Filter.m_KeyLo.i = *Filter.m_SatisfiedValues.begin();
+		Filter.m_KeyLo.s = m_Values[Filter.m_KeyLo.i];
+
+		Filter.m_KeyHi.i = *Filter.m_SatisfiedValues.rbegin();
+		Filter.m_KeyHi.s = m_Values[Filter.m_KeyHi.i];
+		Filter.m_KeyHi.i++;
 	}
 
 	return true;
@@ -547,12 +566,12 @@ bool CConcXml::CFreeBiblStringIndex::RegisterBiblStringItemId(const string& Valu
 	{
 		fprintf(stderr, "Too many values for bibl field `%s'. Cannot be more than %u\n", m_Name.c_str(), DWORD_MAX);
 		return false;
-	};
-    if (ValueStr.length() > MaxBiblStringLen)
-    {
+	}
+	if (ValueStr.length() > MaxBiblStringLen)
+	{
 		fprintf(stderr, "Bibl item in index %s is too long (%i chars). Cannot be more than %i chars\n", m_Name.c_str(), ValueStr.length(), MaxBiblStringLen);
 		return false;
-    }
+	}
 
 	CStringItem I;
 	I.m_BiblString = ValueStr;
@@ -1217,31 +1236,21 @@ void CConcXml::InitNoSort(vector<CHit>&	Hits) const
 	for (size_t HitNo=0; HitNo< HitsCount; HitNo++)
 	{
 		CHit&  H = Hits[HitNo];
-		H.m_OrderId = HitNo;
+		H.m_SortKey = HitNo;
 	}
 }
 
-void CConcXml::InitLessByDate(vector<CHit>&	Hits) const
+void CConcXml::InitSortByDate(vector<CHit>&	Hits) const
 {
 	size_t HitsCount = Hits.size();
 	for (size_t HitNo=0; HitNo< HitsCount; HitNo++)
 	{
 		CHit&  H = Hits[HitNo];
-		H.m_OrderId = m_Dates.empty() ? 0 : m_Dates[H.m_FileNo];
+		H.m_SortKey = m_Dates.empty() ? 0 : m_Dates[H.m_FileNo];
 	}
 }
 
-void CConcXml::InitGreaterByDate(vector<CHit>&	Hits) const
-{
-	//-- moo: descending-sort woes (Mon, 22 Apr 2013 13:40:46 +0200)
-	// + this SHOULD just wrap InitLessByDate and then change sort operator, unfortunately that breaks user-specified extrema-checks in CConcHolder::GetAllHits()
-	InitLessByDate(Hits);
-	for (vector<CHit>::iterator hi=Hits.begin(); hi!=Hits.end(); ++hi)
-		hi->m_OrderId = -hi->m_OrderId;
-}
-
-
-void CConcXml::InitLessByBiblIntegerField(string FreeBiblAttribName, vector<CHit>&	Hits) const
+void CConcXml::InitSortByBiblIntegerField(string FreeBiblAttribName, vector<CHit>&	Hits) const
 {
 	const CFreeBiblIndex* pFreeAttrib = 0;	
 
@@ -1254,15 +1263,12 @@ void CConcXml::InitLessByBiblIntegerField(string FreeBiblAttribName, vector<CHit
 	if (pFreeAttrib == 0) return InitNoSort(Hits);	
 	
 	size_t HitsCount = Hits.size();
-
-	assert (pFreeAttrib);
 	for (size_t HitNo=0; HitNo < HitsCount; HitNo++)
 	{
 		CHit&  H = Hits[HitNo];
-		H.m_OrderId = pFreeAttrib->GetIntegerValue(H.m_FileNo);
+		H.m_SortKey.assign(pFreeAttrib->GetIntegerValue(H.m_FileNo), pFreeAttrib->GetStringValue(H.m_FileNo)); //-- moo: maybe we can avoid string-copying here?
 	}
-
-};
+}
 
 void CConcXml::SetRegexOptions(const RML_RE::Options &opts)
 {
@@ -1270,7 +1276,7 @@ void CConcXml::SetRegexOptions(const RML_RE::Options &opts)
 	for (FreeBiblStringMap::iterator mi=m_FreeBiblIndices.begin(); mi!=m_FreeBiblIndices.end(); mi++) {
 		mi->second->m_pRegexOpts = &m_RegexOpts;
 	}
-};
+}
 
 CBiblExpander* CConcXml::AddBiblExpander(const string &spec)
 {
@@ -1318,32 +1324,34 @@ CBiblExpander* CConcXml::AddBiblExpander(const string &spec)
 	return bx;
 };
 
-bool CConcXml::IsRegisteredBiblField(string FreeBiblAttribName) const
+bool CConcXml::IsRegisteredBiblField(const string& FreeBiblAttribName) const
 {
 	const CFreeBiblIndex* pFreeAttrib = 0;	
 
-	if (!FreeBiblAttribName.empty())
-	{
+	if (!FreeBiblAttribName.empty()) {
 		FreeBiblStringMap::const_iterator it = m_FreeBiblIndices.find(FreeBiblAttribName);
 		if (it != m_FreeBiblIndices.end()) 
 			return true;
-	};
+	}
 	return false;
 }
-void CConcXml::InitGreaterByBiblIntegerField(string FreeBiblAttribName, vector<CHit>&	Hits) const
+
+CFreeBiblIndexTypeId CConcXml::GetBiblFieldTypeId(const string& FreeBiblAttribName) const
 {
-	//-- moo: descending-sort woes (Mon, 22 Apr 2013 13:40:46 +0200)
-	// + this SHOULD just wrap InitLessByXYZ and then change sort operator, unfortunately that breaks user-specified extrema-checks in CConcHolder::GetAllHits()
-	InitLessByBiblIntegerField(FreeBiblAttribName, Hits);
-	for (vector<CHit>::iterator hi=Hits.begin(); hi!=Hits.end(); ++hi)
-		hi->m_OrderId = -hi->m_OrderId;
-};
+	const CFreeBiblIndex* pFreeAttrib = 0;
+	if (!FreeBiblAttribName.empty()) {
+		FreeBiblStringMap::const_iterator bi = m_FreeBiblIndices.find(FreeBiblAttribName);
+		if (bi != m_FreeBiblIndices.end()) 
+			return bi->second->GetTypeId();
+	}
+	return cfbiUnknown;
+}
 
 bool CConcXml::GetFilterBounds(CDDCFilterWithBounds& Filter, const string& LoValue, const string& HiValue) const
 {
 	Filter.clear();
 	//-- filter bounds: require physically indexed bibliographic field
-	FreeBiblStringMap::const_iterator it = m_FreeBiblIndices.find(Filter.m_FreeBiblAttribName);
+	FreeBiblStringMap::const_iterator it = m_FreeBiblIndices.find(Filter.m_AttrName);
 	if (it == m_FreeBiblIndices.end()) return false; // attribute not found
 	return it->second->GetFilterBounds(Filter, LoValue, HiValue);
 }
@@ -1353,17 +1361,17 @@ bool CConcXml::GetFilterValue(CDDCFilterWithBounds& Filter, const string& Value)
 	Filter.clear();
 
 	//-- bibliographic expander clobbers any indexed field with the same name
-	BiblExpanderMap::const_iterator xit = m_BiblExpanders.find(Filter.m_FreeBiblAttribName);
+	BiblExpanderMap::const_iterator xit = m_BiblExpanders.find(Filter.m_AttrName);
 	if (xit != m_BiblExpanders.end()) {
 		set<string> xvalues;
 		xit->second->expand(Value, xvalues);
 
-		Filter.m_FreeBiblAttribName = xit->second->m_BxTarget;
+		Filter.m_AttrName = xit->second->m_BxTarget;
 		return GetFilterValues(Filter, xvalues);
 	}
 	
 	//-- usual case: physically indexed bibliographic field
-	FreeBiblStringMap::const_iterator it = m_FreeBiblIndices.find(Filter.m_FreeBiblAttribName);
+	FreeBiblStringMap::const_iterator it = m_FreeBiblIndices.find(Filter.m_AttrName);
 	if (it == m_FreeBiblIndices.end()) return false; // attribute not found
 	return it->second->GetFilterValue(Filter, Value);
 };
@@ -1372,7 +1380,7 @@ bool CConcXml::GetFilterValue(CDDCFilterWithBounds& Filter, const string& Value)
 bool CConcXml::GetFilterValues(CDDCFilterWithBounds& Filter, const string &Regex) const
 {
 	Filter.clear();
-	FreeBiblStringMap::const_iterator it = m_FreeBiblIndices.find(Filter.m_FreeBiblAttribName);
+	FreeBiblStringMap::const_iterator it = m_FreeBiblIndices.find(Filter.m_AttrName);
 	if (it == m_FreeBiblIndices.end()) return false; // attribute not found
 	return it->second->GetFilterValues(Filter, Regex);;
 };
@@ -1383,17 +1391,17 @@ bool CConcXml::GetFilterValues(CDDCFilterWithBounds& Filter, const set<string>& 
 	Filter.clear();
 
 	//-- bibliographic expander clobbers any indexed field with the same name
-	BiblExpanderMap::const_iterator xit = m_BiblExpanders.find(Filter.m_FreeBiblAttribName);
+	BiblExpanderMap::const_iterator xit = m_BiblExpanders.find(Filter.m_AttrName);
 	if (xit != m_BiblExpanders.end()) {
 		set<string> xvalues;
 		xit->second->expand(Values, xvalues);
 
-		Filter.m_FreeBiblAttribName = xit->second->m_BxTarget;
+		Filter.m_AttrName = xit->second->m_BxTarget;
 		return GetFilterValues(Filter, xvalues);
 	}
 
 	//-- usual case: physically indexed bibliographic field
-	FreeBiblStringMap::const_iterator it = m_FreeBiblIndices.find(Filter.m_FreeBiblAttribName);
+	FreeBiblStringMap::const_iterator it = m_FreeBiblIndices.find(Filter.m_AttrName);
 	if (it == m_FreeBiblIndices.end()) return false; // attribute not found
 	return it->second->GetFilterValues(Filter, Values);;
 };

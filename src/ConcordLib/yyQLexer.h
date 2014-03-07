@@ -118,6 +118,7 @@ typedef unsigned int flex_uint32_t;
 #include <iostream> 
 #include <errno.h>
 #include <cstdlib>
+#include <cstdio>
 #include <cstring>
 /* end standard C++ headers. */
 /* %endif */
@@ -388,9 +389,9 @@ static int yy_flex_strlen (yyconst char * );
 #undef YY_DECL
 #endif
 
-#line 190 "yyQLexer.l"
+#line 194 "yyQLexer.l"
 
 
-#line 395 "yyQLexer.h"
+#line 396 "yyQLexer.h"
 #undef yyqIN_HEADER
 #endif /* yyqHEADER_H */

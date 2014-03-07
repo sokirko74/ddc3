@@ -304,7 +304,7 @@ string CQTokExact::ValueString() {
 
 bool CQTokAny::Create(CQueryTokenNode *pNode)
 {
-  return pNode->CreateUniversalPattern(m_Compiler->m_pHolder); //-- no index name for CQTokAny
+  return pNode->CreateUniversalPattern(m_Compiler->m_pHolder, m_Value); //-- no index name for CQTokAny
 }
 
 string CQTokAny::ValueString()

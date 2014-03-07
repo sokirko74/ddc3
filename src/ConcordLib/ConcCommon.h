@@ -53,10 +53,6 @@ const char globalFieldDelimeter = '\t';
 const string PredefinedTableLineTag = "l";
 //! a globally defined index name for chunks
 const string ChunkIndexName = "chunk";
-//! a globally defined left bigrams index name 
-const string LeftBigramsIndexName = "left";
-//! a globally defined right bigrams index name 
-const string RightBigramsIndexName = "right";
 //! a globally defined break collection name for \ref corpus_file_def "corpus files"
 const string PredefinedFileBreakName = "file";
 //! a globally defined break collection name for \ref text areas
@@ -68,7 +64,9 @@ typedef	DWORD CTokenNo;
 //!  MaxShortOccurCacheSize is the upper bound  of  CShortOccurCache::m_Data.size() It is introduced to restrict memory usage.
 const size_t MaxShortOccurCacheSize = 1000000;
 
-
+//! maximum length of string sort-keys passed from subcorpus servers to distributed server, including terminating NUL
+//! (see CConcHolder::GetHitIds() and CDDCServerListenHost::GetFirstHitsFromCorpora())
+#define DDC_SORTKEY_MAXLEN 256
 
 /*!  CShortOccurCache  is a structure which holds all found occurrences indexed by an index item No,
  if the number of  occurrences for this index item is not greater than OccurBufferSize. This structure can take an advantage only if there are many \ref period_def "corpus periods",
@@ -131,16 +129,83 @@ enum HitSortEnum {
 	LessByRank = 7,
 	//! sort by document rank (decreasing) 
 	GreaterByRank = 8,
-	//! sort by document rank (decreasing) 
-	LessByLeftContext = 9,
-	//! sort by document rank (decreasing) 
-	LessByRightContext = 10,
+	//! sort by context (ascending) 
+	LessByContext = 9,
+	//! sort by context (descending) 
+	GreaterByContext = 10,
 	//! sort by random key
 	RandomSort = 11,
 	//! end-of-enum sentinel
 	HitSortsCount = 12
 };
 
+/*! symbolic names for HitSortEnum, for debugging */
+static const char *HitSortEnumNames[HitSortsCount] =
+	{
+	"NoSort",
+	"LessByDate",
+	"GreaterByDate",
+	"LessBySize",
+	"GreaterBySize",
+	"LessByFreeBiblField",
+	"GreaterByFreeBiblField",
+	"LessByRank",
+	"GreaterByRank",
+	"LessByContext",
+	"GreaterByContext",
+	"RandomSort"
+	};
+
+/*! type for hit sort-keys and/or result filtering;
+ *  new in v2.0.19
+ */
+struct CHitSortKey {
+	//! primary integer sort key; formerly CHit::m_OrderId, CDDCFilterWithBounds.m_LevelStart|m_LevelEnd
+	int	i;
+
+	//! secondary sort key, new for v2.0.19
+	string	s;
+
+	//! default constructor
+	CHitSortKey(int i_=0) : i(i_)
+	{};
+
+	//! constructor given integer and string
+	CHitSortKey(int i_, const string& s_) : i(i_), s(s_)
+	{};
+
+	//! clear key
+	inline void clear()
+	{ i=0; s.clear(); };
+
+	//! less-than comparison operator; as for std::pair<i,s>
+	inline bool operator< (const CHitSortKey &x) const
+	{ return (i < x.i) || (i==x.i && s < x.s); };
+
+	//! greater-than comparison operator
+	inline bool operator> (const CHitSortKey &x) const
+	{ return (i > x.i) || (i==x.i && s > x.s); };
+
+	//! assignment given integer
+	inline void assign(int i_)
+	{ i=i_; s.clear(); };
+
+	//! assignment given integer + string
+	inline void assign(int i_, const string &s_)
+	{ i=i_; s=s_; };
+
+	//! assignment to std::pair
+	inline void operator= (const std::pair<int,string>& p)
+	{ i=p.first; s=p.second; };
+
+	//! assignment to integer, alias for assign(i,"")
+	inline void operator= (int i_)
+	{ i=i_; s.clear(); };
+
+	//! assignment to string, alias for assign(0,s)
+	inline void operator= (const string &s_)
+	{ i=0; s=s_; };
+};
 
 /*! This structure describes a filter which can be applied to the result hit set. For example, for 
 filter operator "#less_by_size[5,10]" the slots would have the following values: \n
@@ -153,47 +218,58 @@ struct CDDCFilterWithBounds
 {
 	//!  the type of the filter
 	HitSortEnum		m_FilterType;
-	//!  the name of free bibliographical field 
-	string			m_FreeBiblAttribName;
+
+	//! the name of the free bibliographical field for bibliographic filters (#asc[FIELD], #desc[FIELD], #has[FIELD]),  or the name of a token field for context-sort filters (#left, #right, etc)
+	//! \note formerly m_AttrName
+	string			m_AttrName;
 
 	//! \li true if DDC should use CDDCFilterWithBounds::m_SatisfiedValues
 	//! \li false if DDC should use range defined by CDDCFilterWithBounds::m_LevelStart and CDDCFilterWithBounds::m_LevelEnd slots
 	//! (formerly m_bRegExp)
 	bool			m_bSet;
-  	bool			m_bNegated;  ///< ... for negated filters (WIP)
+  	bool			m_bNegated;  ///< ... for negated filters
 
-	//!  the lower bound of the filter (by default INT_MIN), valid only if m_bSet==false
-	int			m_LevelStart;
-	//!  the upper bound of the filter (by default INT_MAX), valid only if m_bSet==false
-	int			m_LevelEnd;
-	//!  the possible values for this bibliographical field,  valid only if m_bSet==true
-	set<int>		m_SatisfiedValues;  
+	//!  offset from matched token for context-sort operators
+	int m_ContextOffset;
+
+	//!  the lower bound of the filter (by default (INT_MIN,"")), valid only if m_bSet==false; formerly int m_LevelStart
+	CHitSortKey m_KeyLo;
+
+	//!  the upper bound of the filter (by default (INT_MAX,"")), valid only if m_bSet==false; formerly int m_LevelEnd
+	CHitSortKey m_KeyHi;
+
+	//!  the possible (integer) values for this bibliographical field,  valid only if m_bSet==true
+	set<int> m_SatisfiedValues;  
 
 	inline void clear()
 	{
 		m_SatisfiedValues.clear();
 	};
 
-	inline bool isDescending() const {
+	//! returns integer sort order (-1:descending, 0:none, 1:ascending)
+	inline int SortOrder() const {
 		switch (m_FilterType) {
 		case GreaterByDate:
 		case GreaterByRank:
 		case GreaterBySize:
 		case GreaterByFreeBiblField:
-			return true;
+		case GreaterByContext:
+			return -1;
+		case NoSort:
+			return 0;
 		default:
-			return false;
+			return 1;
 		};
 	};
 
-	CDDCFilterWithBounds() 
-	{
-		m_bSet       = false;
-		m_bNegated   = false;
-		m_FilterType = HitSortsCount;
-		m_LevelStart = INT_MIN;
-		m_LevelEnd   = INT_MAX; 
-	};
+	CDDCFilterWithBounds()
+		: m_bSet(false),
+		  m_bNegated(false),
+		  m_FilterType(NoSort),
+		  m_ContextOffset(0),
+		  m_KeyLo(INT_MIN),
+		  m_KeyHi(INT_MAX)
+	{};
 };
 
 /*! CHit is a structure that holds one found hit and its properties. The calculation of its slots 
@@ -205,19 +281,16 @@ struct CHit
 	DWORD	m_BreakNo;
 	//! the end offset of token occurrences to be highlighted in CQueryNode::m_Occurrences and later in CConcHolder::m_HighlightOccurs
 	DWORD	m_HighlightOccurrenceEnd;
-	//! a value which is used to sort and to filter hits, which is calculated by an instance of CDDCFilterWithBounds
-	int		m_OrderId;
 	//! the index of \ref corpus_file_def "coprus file", where this hit is found, it is equal to  m_BreakNo if user searches within files
 	DWORD	m_FileNo;
 	//! the string which displays how the rank was calculated
 	size_t	m_DebugRankNo;
 
-	CHit(DWORD BreakNo) : m_BreakNo(BreakNo), m_OrderId(0) {};
+	//! key for sorting and/or filtering, which is calculated either by an instance of CDDCFilterWithBounds or by CConcHolder.
+	//! formerly m_OrderId
+	CHitSortKey m_SortKey;
 
-	bool operator < (const CHit& X) const 
-	{
-		return  m_OrderId < X.m_OrderId;
-	};
+	CHit(DWORD BreakNo) : m_BreakNo(BreakNo), m_SortKey(0) {};
 };
 
 
@@ -252,11 +325,5 @@ extern void concord_daemon_log(const string&  t);
 
 //! bool: whether to output all log messages on stderr as well
 extern bool concord_daemon_log_stderr;
-
-enum BigramDirectionEnum{
-     bdDontUseBigrams,
-     bdLeftBigram,
-     bdRightBigram
-};
 
 #endif

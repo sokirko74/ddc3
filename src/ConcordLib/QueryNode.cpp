@@ -50,7 +50,6 @@ CQueryNode::~CQueryNode()
 {
 	ClearVector(m_Occurrences);
 	ClearVector(m_OccurrenceNodeIndices);
-	ClearVector(m_OccurrenceTokenIdxs);
 };
 
 size_t CQueryNode::GetNodeFrequenceByNodeIndex(size_t NodeIndex) const
@@ -92,11 +91,6 @@ void	CQueryNode::AddOccurrences(const CQueryNode& FromNode, int start, int end)
 
 	if (m_bUseNodeIndices)
 		m_OccurrenceNodeIndices.insert(m_OccurrenceNodeIndices.end(), FromNode.m_OccurrenceNodeIndices.begin() + start,  FromNode.m_OccurrenceNodeIndices.begin() + end);
-
-    if (m_bUseTokenIdxs)
-        m_OccurrenceTokenIdxs.insert(m_OccurrenceTokenIdxs.end(), FromNode.m_OccurrenceTokenIdxs.begin() + start,  FromNode.m_OccurrenceTokenIdxs.begin() + end);
-        
-		
 }
 
 void	CQueryNode::ClearAndReserveOccurrences(int size)
@@ -107,25 +101,18 @@ void	CQueryNode::ClearAndReserveOccurrences(int size)
 	m_OccurrenceNodeIndices.clear();
 	if (m_bUseNodeIndices)
 		m_OccurrenceNodeIndices.reserve(size);
-    
-	    
-	m_OccurrenceTokenIdxs.clear();
-	if (m_bUseTokenIdxs)
-		m_OccurrenceTokenIdxs.reserve(size);
 }
 
 void	CQueryNode::SwapOccurrences(CQueryNode& Node)
 {
 	Node.m_Occurrences.swap(m_Occurrences);
 	Node.m_OccurrenceNodeIndices.swap(m_OccurrenceNodeIndices);
-	Node.m_OccurrenceTokenIdxs.swap(m_OccurrenceTokenIdxs);
 }
 
 void CQueryNode::SetHolder(const CConcHolder*	pHolder)
 {
 	m_pHolder = pHolder;
 	m_bUseNodeIndices = m_pHolder->HasRankOrderOperator();
-	m_bUseTokenIdxs = (m_pHolder->GetBigramsToOrder()  != bdDontUseBigrams);
 }
 
 void CQueryNode::ConvertOccurrencesToHits (bool bUniqueHits)
@@ -142,7 +129,7 @@ void CQueryNode::ConvertOccurrencesToHits (bool bUniqueHits)
 	bool bLongSequence = GetOccurrencesSize()*5 > Breaks.size() ;
 	vector<CTokenNo>::const_iterator break_it = Breaks.begin();
 
-    CQueryNode NewNode (m_bUseNodeIndices, m_bUseTokenIdxs);
+	CQueryNode NewNode(m_bUseNodeIndices);
 	if (bTextAreaNo)
 		NewNode.ClearAndReserveOccurrences(GetOccurrencesSize());
 
@@ -209,7 +196,7 @@ void CQueryNode::ConvertOccurrencesToHitsForPatterns (bool bUniqueHits)
 
 	int cnt = GetOccurrencesSize();
 
-	CQueryNode NewNode(m_bUseNodeIndices, m_bUseTokenIdxs);
+	CQueryNode NewNode(m_bUseNodeIndices);
 	NewNode.ClearAndReserveOccurrences(cnt);
 	NewNode.m_ChunkLengths.reserve(m_ChunkLengths.size());
 	size_t InputStarter = 0;
@@ -562,7 +549,8 @@ void CQueryOrOperation::Evaluate()
 
 // ================ CQueryTokenNode ==================
 
-CQueryTokenNode::CQueryTokenNode(int NodeIndex):CQueryNode(false, false)
+CQueryTokenNode::CQueryTokenNode(int NodeIndex)
+ : CQueryNode(false)
 {
 	m_bAtomic = true;
 	m_bChunk = false;
@@ -789,14 +777,15 @@ bool CQueryTokenNode::CreateInfixPattern(const CConcHolder* pHolder, const strin
 }
 
 //--------------------------------------------------------------
-bool CQueryTokenNode::CreateUniversalPattern(const CConcHolder* pHolder, const string& IndexName)
+bool CQueryTokenNode::CreateUniversalPattern(const CConcHolder* pHolder, const string& SourceStr)
 {
   m_bChunk  = false;
   m_bAnchor = false;
   m_bAny    = true;
   m_bAtomic = true;
+  m_Source    = SourceStr;
+  m_IndexName.clear();
   SetHolder(pHolder);
-  m_IndexName = IndexName;
 
   //-- assign occurrences directly to m_IndexItems
   m_IndexItems.clear();
@@ -848,51 +837,20 @@ void CQueryTokenNode::EvaluateWithoutHits()
 	ClearAndReserveOccurrences(5000);
 	if (!m_bChunk && !m_bAnchor && !m_bAny) {
 		const CStringIndexSet* pIndex  = m_pHolder->m_pIndexator->GetIndexByName(m_IndexName);
-		BigramDirectionEnum bigr_direc =  m_pHolder->GetBigramsToOrder();
-
-		if ( bigr_direc != bdDontUseBigrams   &&  pIndex->UseBigrams()) {
-			assert (m_bUseTokenIdxs);
-			vector< pair<CTokenNo,DWORD> > OccurAndTokenIds;
-			pIndex->m_BigramsIndex.FindOccurrencesForBigrams(
-									 bigr_direc,
-									 m_IndexItems, 
-									 m_pHolder->m_CurrentSearchPeriodNo, 
-									 OccurAndTokenIds,
-									 &m_pHolder->m_ShortOccurCaches,
-									 m_CacheIds
-									 );
-
-			for (size_t i =0; i < OccurAndTokenIds.size(); i++) {
-				m_Occurrences.push_back(OccurAndTokenIds[i].first);
-				//const string& SecomdTokenStr  = pIndex->GetIndexItemStr( pIndex->m_Index[ OccurAndTokenIds[i].second] );
-				//m_OccurrenceTokenIdxs.push_back(HashValue( SecomdTokenStr ));
-				m_OccurrenceTokenIdxs.push_back( OccurAndTokenIds[i].second  );
-			}
-
-			/*
-			  vector<size_t> debug; 
-			  for (size_t i =0; i < pIndex->m_Index.size(); i++) {
-				  const string& SecomdTokenStr  = pIndex->GetIndexItemStr( pIndex->m_Index[ i ]  );
-				  int hv =  HashValue( SecomdTokenStr );
-				  debug.push_back(hv);
-			  }
-			*/
-		}
-		else {
-			pIndex->FindOccurrences(
-						m_IndexItems, 
-						m_pHolder->m_CurrentSearchPeriodNo, 
-						m_Occurrences,
-						m_pHolder->m_Profiler, 
-						&m_pHolder->m_ShortOccurCaches,
-						m_CacheIds
-						);
-		}
+		pIndex->FindOccurrences(
+					m_IndexItems, 
+					m_pHolder->m_CurrentSearchPeriodNo, 
+					m_Occurrences,
+					m_pHolder->m_Profiler, 
+					&m_pHolder->m_ShortOccurCaches,
+					m_CacheIds
+					);
 		m_ChunkLengths.resize(GetOccurrencesSize(), 1);
 	}
 	else if (m_bAnchor || m_bAny) {
 	  // anchor or universal query
 	  m_pHolder->m_pIndexator->RestrictOccurrencesToSearchPeriod(m_IndexItems,  m_Occurrences,  m_pHolder->m_CurrentSearchPeriodNo);
+	  //m_ChunkLengths.resize(GetOccurrencesSize(), 1); //?
 	}
 	else {
 	  // chunk query
@@ -924,7 +882,8 @@ void CQueryTokenNode::Evaluate()
 
 
 // ========= CQuerySequenceNode ======================
-CQuerySequenceNode::CQuerySequenceNode():CQueryNode(false, false)
+CQuerySequenceNode::CQuerySequenceNode()
+ : CQueryNode(false)
 {
 	m_bAtomic = true;
 };
@@ -1136,7 +1095,8 @@ void CQuerySequenceNode::Evaluate()
 //======================== CQueryNearNode =========================
 
 
-CQueryNearNode::CQueryNearNode():CQueryNode(false, false)
+CQueryNearNode::CQueryNearNode()
+ : CQueryNode(false)
 {
 	m_pChild1 = 0;
 	m_pChild2 = 0;
@@ -1372,59 +1332,21 @@ bool CQueryWithNode::Create(const CConcHolder*	pHolder, CQueryNode* child1, CQue
 };
 
 
-
-void CQueryWithNode::OccurIntersectionWithTokenIds()
-{	
-    bool bFirstIsNotEmpty = !m_pChild1->m_OccurrenceTokenIdxs.empty();
-    const vector<DWORD>& contexts =   bFirstIsNotEmpty ?  m_pChild1->m_OccurrenceTokenIdxs : m_pChild2->m_OccurrenceTokenIdxs;
-    assert ( !contexts.empty() );
-    size_t i1 = 0;
-    size_t i2 = 0;
-    size_t cnt1 = m_pChild1->GetOccurrencesSize();
-    size_t cnt2 = m_pChild2->GetOccurrencesSize();
-    
-    m_OccurrenceTokenIdxs.clear();
-    m_Occurrences.clear();
-
-	while(i1 < cnt1 && i2 < cnt2)
-    {
-        if (m_pChild1->m_Occurrences[i1] < m_pChild2->m_Occurrences[i2])
-			i1++;
-		else if (m_pChild2->m_Occurrences[i2] < m_pChild1->m_Occurrences[i1])
-			i2++;
-		else
-        {
-            m_Occurrences.push_back(m_pChild1->m_Occurrences[i1]);
-            m_OccurrenceTokenIdxs.push_back(contexts[bFirstIsNotEmpty ? i1 : i2]);
-			i1++;
-            i2++;
-        }
-    }
-	
-}
-
-
 void CQueryWithNode::EvaluateWithoutHits()
 {
 	((CQueryTokenNode*)m_pChild1)->EvaluateWithoutHits();
 	((CQueryTokenNode*)m_pChild2)->EvaluateWithoutHits();
 
-    if (!m_pChild1->m_OccurrenceTokenIdxs.empty() || !m_pChild2->m_OccurrenceTokenIdxs.empty())
-        OccurIntersectionWithTokenIds();
-    else
-    {
-	    m_Occurrences.resize( m_pChild1->GetOccurrencesSize() + m_pChild2->GetOccurrencesSize() );
+	m_Occurrences.resize( m_pChild1->GetOccurrencesSize() + m_pChild2->GetOccurrencesSize() );
 
-	    vector<CTokenNo>::iterator it = set_intersection (m_pChild1->m_Occurrences.begin(), m_pChild1->m_Occurrences.end(),
-				       m_pChild2->m_Occurrences.begin(), m_pChild2->m_Occurrences.end(),
-				       m_Occurrences.begin());
+	vector<CTokenNo>::iterator it = set_intersection(m_pChild1->m_Occurrences.begin(), m_pChild1->m_Occurrences.end(),
+							 m_pChild2->m_Occurrences.begin(), m_pChild2->m_Occurrences.end(),
+							 m_Occurrences.begin());
 
-	    m_Occurrences.resize(it - m_Occurrences.begin());
-    }
+	m_Occurrences.resize(it - m_Occurrences.begin());
 
 	if (m_bUseNodeIndices)
 		m_OccurrenceNodeIndices.resize(m_Occurrences.size(), ((CQueryTokenNode*)m_pChild1)->m_NodeIndex);
-
 
 	m_ChunkLengths.resize(GetOccurrencesSize(), 1);
 

@@ -2235,6 +2235,37 @@ void int2date(unsigned int i, unsigned int *y, unsigned int *m, unsigned int *d)
     if (d) *d = (i>> 0)&0xff;
 }
 
+//--------------------------------------------------------------
+string int2hex(int32_t i)
+{
+  char buf[10];
+  unsigned char sgn  = (i < 0 ? 0 : 1);
+  if (!sgn) i = -i;
+  snprintf(buf,10,"#%02x%02x%02x%02x",
+	   (sgn<<7)|((i>>24)&0x7f),
+	   (i>>16)&0xff,
+	   (i>> 8)&0xff,
+	   (i)&0xff
+	   );
+  return string(buf);
+}
+
+//--------------------------------------------------------------
+int32_t hex2int(const string& s)
+{
+    assert(s.size() > 8);
+    uint32_t bytes[4];
+    sscanf(s.c_str()+1, "%02x%02x%02x%02x", &bytes[0], &bytes[1], &bytes[2], &bytes[3]);
+    int32_t i = ((bytes[3]&0xff)
+		 | (bytes[2]&0xff)<<8
+		 | (bytes[1]&0xff)<<16
+		 | (bytes[0]&0x7f)<<24
+		 );
+    if (!(bytes[0] & 0x80)) i = -i;
+    return i;
+}
+
+
 #ifndef WIN32
 #include <pthread.h>
 static pthread_once_t ddc_thread_data_once = PTHREAD_ONCE_INIT;

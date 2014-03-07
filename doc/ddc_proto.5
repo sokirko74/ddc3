@@ -62,7 +62,7 @@
 .\" ========================================================================
 .\"
 .IX Title "DDC_PROTO 5"
-.TH DDC_PROTO 5 "2014-02-19" "2.0.18" "DDC Corpus Indexing System"
+.TH DDC_PROTO 5 "2014-03-07" "2.0.19" "DDC Corpus Indexing System"
 .\" For nroff, turn off justification.  Always turn off hyphenation; it makes
 .\" way too many mistakes in technical documents.
 .if n .ad l
@@ -79,20 +79,20 @@ and \*(L" \*(R" represents a literal space character (\s-1ASCII\s0 byte with dec
 .Vb 2
 \& ##=====================================================================
 \& ## Generic Message Format
-\&
+\& 
 \& LENGTH DATA
 \&
 \& ##=====================================================================
 \& ## Distributed Server Messages
-\&
+\& 
 \& run_query " " CORPUS "\ex01" QUERY "\ex01" FORMAT "\ex01" OFFSET " " LIMIT " " TIMEOUT
-\&
+\& 
 \& expand_terms "\ex01" PIPELINE "\ex01" TERMS "\ex01" TIMEOUT
 \& expand_terms "\ex01" PIPELINE "\ex01" TERMS "\ex01" TIMEOUT "\ex01" CORPUS
-\&
+\& 
 \& get_paradigm " " WORD "\ex01" ILEMMATIZE " " ILANG
 \& ddc_close_socket
-\&
+\& 
 \& version
 \& status
 \& vstatus
@@ -100,14 +100,14 @@ and \*(L" \*(R" represents a literal space character (\s-1ASCII\s0 byte with dec
 \&
 \& ##=====================================================================
 \& ## Subcorpus Server Messages
-\&
+\& 
 \& get_first_hits " " QUERY "\ex01 " TIMEOUT " " LIMIT
 \& get_hit_strings " " FORMAT "\ex01" OFFSET " " LIMIT
-\&
+\& 
 \& expand_terms "\ex01" PIPELINE "\ex01" TERMS "\ex01" TIMEOUT
-\&
+\& 
 \& ddc_close_socket
-\&
+\& 
 \& version
 \& status
 \& info
@@ -350,14 +350,15 @@ where \f(CW\*(C`STATUS\*(C'\fR is a non-zero decimal integer error code, and \s-
 On success, responses have the form:
 .PP
 .Vb 1
-\& STATUS " " MAXHIT " " NHITS " " NDOCS " " SORTED " " HITIDS
+\& STATUS " " MAXHIT " " NHITS " " NDOCS " " SORT " " HITIDS
 .Ve
 .PP
 where \f(CW\*(C`STATUS\*(C'\fR is a decimal integer status, 0 (zero) for success,
 \&\f(CW\*(C`MAXHIT\*(C'\fR is the index of the last hit computed (?? see CConcHolder::GetHits(q, _\|_EndHitNo_\|_)),
 \&\f(CW\*(C`NHITS\*(C'\fR is the number of hits found (?? see CConcHolder::m_AllHitsCount),
 \&\f(CW\*(C`NDOCS\*(C'\fR is the number of relevant documents found (?? see CConcHolder::m_RelevantDocumentCount),
-\&\f(CW\*(C`SORTED\*(C'\fR is a Boolean integer indicating whether or not the hits should be sorted,
+\&\f(CW\*(C`SORT\*(C'\fR is a indicates whether and/or how the hits are to be sorted
+(0: no sort, 1: ascending sort, \-1: descending sort),
 and \f(CW\*(C`HITIDS\*(C'\fR is a TAB-separated list of \f(CW\*(C`NHITS\*(C'\fR hit-identification triples (see \fICConcHolder::GetHitIds()\fR),
 each element of which has the form:
 .PP
@@ -366,9 +367,18 @@ each element of which has the form:
 .Ve
 .PP
 where \f(CW\*(C`INDEX\*(C'\fR is the query-dependent hit index,
-\&\f(CW\*(C`ORDERID\*(C'\fR is a global sort-key for the hit,
-and \f(CW\*(C`ORDER_STRING\*(C'\fR is either the literal string \*(L"<empty>\*(R" or a string sort-key for the hit.
-(the latter just in case the query contained a context-dependend sort operation such as \f(CW\*(C`#left\*(C'\fR or \f(CW\*(C`#right\*(C'\fR).
+\&\f(CW\*(C`ORDERID\*(C'\fR is an integer, and \f(CW\*(C`ORDER_STRING\*(C'\fR is a string.
+Prior to ddc version 2.0.19,
+\&\f(CW\*(C`ORDERID\*(C'\fR was a global integer primary sort-key for the hit and \f(CW\*(C`ORDER_STRING\*(C'\fR
+was only non-trivially populated
+if the query contained a context-dependend sort operation such as \f(CW\*(C`#left\*(C'\fR or \f(CW\*(C`#right\*(C'\fR,
+and was otherwise assigned the literal string \*(L"<empty>\*(R".
+.PP
+As of v2.0.19, \f(CW\*(C`ORDERID\*(C'\fR is the literal string \*(L"\-0\*(R", and
+\&\f(CW\*(C`ORDER_STRING\*(C'\fR is the (possibly empty) actual sort key for the hit.
+If \f(CW\*(C`ORDER_STRING\*(C'\fR is the literal string \*(L"<empty>\*(R", it is treated as an empty string for compatibility reasons.
+\&\f(CW\*(C`ORDER_STRING\*(C'\fR may also be a string of the form \*(L"#XXXXXXXX\*(R" representing a 32\-bit integer
+sort key in hexidecimal notation (msb order, high bit set for non-negative numbers only, no fill bits).
 .PP
 Since v1.x, error message strings since v2.0.0.
 .PP
@@ -397,7 +407,7 @@ and \f(CW\*(C`ERROR\*(C'\fR is a text string describing the error.
 On success, the response is of the form:
 .PP
 .Vb 1
-\& C<STATUS> "\ex01" HIT_STRINGS "\ex01"
+\& STATUS "\ex01" HIT_STRINGS "\ex01"
 .Ve
 .PP
 where \f(CW\*(C`STATUS\*(C'\fR is a decimal integer zero (\*(L"0\*(R")

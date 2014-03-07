@@ -25,15 +25,15 @@
 	#include <Ws2tcpip.h>
 	#include <process.h>
 #else
-		#include <pthread.h>
-		#include <arpa/inet.h>
-		#include <sys/types.h>
-		#include <sys/socket.h>
-		#include <netinet/in.h>
-		#include <netdb.h>
-		#include <stdio.h>
-		#define SOCKET int
-
+	#include <pthread.h>
+	#include <arpa/inet.h>
+	#include <sys/types.h>
+	#include <sys/socket.h>
+	#include <netinet/in.h>
+	#include <netdb.h>
+	#include <stdio.h>
+	#include <fcntl.h>
+	#define SOCKET int
 #endif
 
 
@@ -95,7 +95,7 @@ bool CloseSocket(int l_socket)
 	#else
 			bResult =  close(l_socket) == 0;
 	#endif
-	//fprintf (stderr, "CloseSocket %i resulted %s\n", l_socket, bResult? "true":"false");
+	//fprintf (stderr, "CloseSocket %i returned %s\n", l_socket, bResult? "true":"false");
 	return bResult;
 };
 
@@ -141,14 +141,15 @@ inline bool send_buffer(int client_fd, const char* Buffer,int Length, string& Er
 };
 
 
+//======================================================================
+// generic socket utilities
+
 bool SendString (int client_fd, const char* Str, uint32_t  PacketLength, string& ErrorStr)
 {
 	try {
 		uint32_t PacketLength_lsb = size_to_lsb(PacketLength);
 		if (!send_buffer(client_fd, (const char*)&PacketLength_lsb, sizeof(PacketLength_lsb), ErrorStr) )
-		{
 			return false;
-		}
 
 		const int buffer_len = 1024;
 		if (PacketLength <= buffer_len)
@@ -190,7 +191,7 @@ bool SendString (int client_fd, const std::string &str, string& ErrorStr)
 }
 
 
-inline NetworkErrorsEnum receive_buffer(int client_fd, char* Buffer,int Length, int& have_read, int TimeOut )
+NetworkErrorsEnum receive_buffer(int client_fd, char* Buffer,int Length, int& have_read, int TimeOut)
 {
 	fd_set fds;
 	struct timeval timeout;
@@ -201,29 +202,27 @@ inline NetworkErrorsEnum receive_buffer(int client_fd, char* Buffer,int Length, 
 	FD_ZERO(&fds);
 	FD_SET(client_fd,&fds);
 
-	if (!select(client_fd+1,&fds, 0,0, &timeout)) return neTimeout;
-	
-	if (!FD_ISSET(client_fd,&fds)) return neCouldNotReceiveData;
-	errno = 0;
+	if (!select(FD_SETSIZE, &fds,NULL,NULL, &timeout))
+		return neTimeout;
+		
+	if (!FD_ISSET(client_fd,&fds))
+		throw CExpc(errOther, "FD_ISSET() failed for client socket after select(): %s", client_fd, strerror(errno));
 
 	#ifdef WIN32
-		have_read = recv (client_fd, Buffer, Length, 0);
+	 have_read = recv (client_fd, Buffer, Length, 0);
 	#else
-		have_read = recv (client_fd, Buffer, Length, MSG_NOSIGNAL);
+	 have_read = recv (client_fd, Buffer, Length, MSG_NOSIGNAL);
 	#endif
-
-	if (have_read <= 0) 
-	{
-		
-		return neCouldNotReceiveData;
-	}
+	
+	 if (have_read <= 0)
+		throw CExpc(errOther, "receive_buffer() failed: expected %d byte(s) from recv(), but got only %d: %s", Length, have_read, strerror(errno));
 
 	return neSuccess;
 };
 
 
 
-NetworkErrorsEnum ReceiveString (int  client_fd, string& Result, int TimeOut, uint32_t maxPacketLength)
+NetworkErrorsEnum ReceiveString(int  client_fd, string& Result, int TimeOut, uint32_t maxPacketLength)
 {
 
 	try {
@@ -265,7 +264,8 @@ NetworkErrorsEnum ReceiveString (int  client_fd, string& Result, int TimeOut, ui
 	}
 	catch (...)
 	{
-		return neCouldNotReceiveData;
+		throw;
+		//return neCouldNotReceiveData;
 	};
 };
 
@@ -273,20 +273,18 @@ bool SetSocketReceiveBuffer(int socket_fd, int BufferSize)
 {
 
 	if (setsockopt( socket_fd, SOL_SOCKET, SO_RCVBUF, (void*)&BufferSize, sizeof(size_t) ))
-	{
 		return false;
-	};
+
 	return true;
-};
+}
 
 bool SetSocketSendBuffer(int socket_fd, int BufferSize)
 {
 	if (setsockopt( socket_fd, SOL_SOCKET, SO_SNDBUF, (void*)&BufferSize, sizeof(size_t) ))
-	{
 		return false;
-	};
+
 	return true;
-};
+}
 
 
 string GetBindErrorLinux (int ErrCode)
@@ -297,6 +295,10 @@ string GetBindErrorLinux (int ErrCode)
 	return Format("unknown socket error (bind returned %i): %s", ErrCode, strerror(errno));
 };
 
+bool fd_is_valid(int fd)
+{
+    return fcntl(fd, F_GETFD) != -1 || errno != EBADF;
+}
 
 SOCKET create_socket (const char* HostName, int Port, bool bBind, string& strError)
 {
@@ -366,7 +368,7 @@ SOCKET create_socket (const char* HostName, int Port, bool bBind, string& strErr
 		} 
 		break; /* okay we got one */ 
 	}
-	if (l_socket == -1) 
+	if (l_socket == -1)
 	{
 		strError = Format("%s for %s:%i\n", cause.c_str(), HostName, Port);
 		throw CExpc(errRuntime, strError);
@@ -378,8 +380,6 @@ SOCKET create_socket (const char* HostName, int Port, bool bBind, string& strErr
 };
 
 
-
-
 bool SocketInitialize(bool bReadFromLocalFile)
 {
 	#ifdef WIN32
@@ -388,14 +388,11 @@ bool SocketInitialize(bool bReadFromLocalFile)
 		int     err;
 		wVersionRequested = MAKEWORD(1,1);
 		err = WSAStartup(wVersionRequested,&wsaData);
-		if (err != 0)
-
-		{
+		if (err != 0) {
 			//MessageBox(NULL, "Service could invoke WSAStartup()", "Concordance Socket", MB_OK);
 			return false;
 		}
 	#endif
-	
 	
 	return true;
 };
@@ -428,6 +425,43 @@ string GetNetworkErrorString(const NetworkErrorsEnum& t)
 	return "Unknown error code";
 };
 
+bool LoadHosts (string Path, vector<CHost>& Hosts)
+{
+	if (!FileExists(Path.c_str()))
+	{
+		fprintf (stderr, "LoadHosts() ERROR: cannot access file %s\n", Path.c_str());
+		return false;
+	};
+	FILE * fp = fopen (Path.c_str(), "r");
+	if (!fp) 
+	{
+		fprintf (stderr, "LoadHosts() ERROR: cannot open file %s\n", Path.c_str());
+		return false;
+	};
+	char buffer[1024];
+	int LineNo = 0;
+	while (fgets(buffer, 1024, fp))
+	{
+		LineNo++;
+		string Q = buffer;
+		Trim(Q);
+		if (Q.empty()) continue;
+		if (Q[0] == '/') continue;
+		CHost T(false, pdMediumDensity);
+		if (!T.ReadFromString(Q)) 
+		{
+			fprintf (stderr, "LoadHosts ERROR: could not read line number %i\n", LineNo);
+			fclose(fp);
+			return false;
+		};
+		
+		Hosts.push_back(T);
+	};
+	
+	fclose(fp);
+
+	return true;
+};
 
 CHost::CHost(bool bDoubleMessage, ProtocolDensityEnum pdProtocolDensity)
 {
@@ -438,7 +472,6 @@ CHost::CHost(bool bDoubleMessage, ProtocolDensityEnum pdProtocolDensity)
 	m_Port = -1;
 	m_maxReceiveBytes = 0;
 };
-
 
 
 bool CHost::ReadFromString (string S)
@@ -477,44 +510,6 @@ int	CHost::CreateAndConnectSocket(string& strError) const
 };
 
 
-bool LoadHosts (string Path, vector<CHost>& Hosts)
-{
-	if (!FileExists(Path.c_str()))
-	{
-		fprintf (stderr, "No access to %s in LoadHosts\n", Path.c_str());
-		return false;
-	};
-	FILE * fp = fopen (Path.c_str(), "r");
-	if (!fp) 
-	{
-		fprintf (stderr, "Could not open file %s\n", Path.c_str());
-		return false;
-	};
-	char buffer[1024];
-	int LineNo = 0;
-	while (fgets(buffer, 1024, fp))
-	{
-		LineNo++;
-		string Q = buffer;
-		Trim(Q);
-		if (Q.empty()) continue;
-		if (Q[0] == '/') continue;
-		CHost T(false, pdMediumDensity);
-		if (!T.ReadFromString(Q)) 
-		{
-			fprintf (stderr, "Could not read line No %i\n", LineNo);
-			fclose(fp);
-			return false;
-		};
-		
-		Hosts.push_back(T);
-	};
-	
-	fclose(fp);
-
-	return true;
-};
-
 void CHost::AnswerByRequest (SOCKET rConnectedSocket, const struct sockaddr_in* client_addr, int TimeOut, bool& bCloseSocket )
 {
 	bCloseSocket = false;
@@ -524,8 +519,6 @@ void CHost::AnswerByRequest (SOCKET rConnectedSocket, const struct sockaddr_in* 
 	{
 		m_LogFunction(Format("%s received a string (Timeout=%i)", m_CorpusName.c_str(), TimeOut ));
 	}
-
-	
 	NetworkErrorsEnum Res = ReceiveString(rConnectedSocket, S, TimeOut, m_maxReceiveBytes);
 						
 	if (Res != neSuccess)
@@ -567,7 +560,7 @@ void CHost::AnswerByRequest (SOCKET rConnectedSocket, const struct sockaddr_in* 
 	if (m_pdProtocolDensity  == pdHeavyDensity)
 	{
 		const char* src_addr = inet_ntoa(client_addr->sin_addr);
-		m_LogFunction(Format("%s sent back the result to %s (%i bytes)", m_CorpusName.c_str(), src_addr, Result.size() ));
+		m_LogFunction(Format("%s sent back the result to %s (%zd bytes)", m_CorpusName.c_str(), src_addr, Result.size() ));
 	}
 
 }
@@ -620,7 +613,6 @@ void   CHost::RunThread()
 	{
 		string s = Format("%s [corpus name = %s] \n", strError.c_str(), m_CorpusName.c_str());
 		m_LogFunction (  s );
-		//fprintf (stderr, "%s\n", s.c_str());
 		return ;
 	};
 
@@ -646,13 +638,7 @@ void   CHost::RunThread()
 
 		
 		struct sockaddr_in client_addr;
-		/*#ifdef WIN32
-			int client_addr_len = sizeof(sockaddr_in);
-		#else
-			socklen_t client_addr_len = sizeof(sockaddr_in);
-		#endif*/
 		socklen_t client_addr_len = sizeof(sockaddr_in);
-	
 		SOCKET rConnectedSocket = accept(m_ListenSocket, (struct sockaddr *)&client_addr, &client_addr_len);
 
 		if (m_ListenSocket == -1)  // the thread  should be stopped
@@ -673,15 +659,16 @@ void   CHost::RunThread()
 		{
 			//  if we have passed "accept", then Timeout can be very short
 			bool bCloseSocket;
+
 			AnswerByRequest(rConnectedSocket, &client_addr, 10, bCloseSocket);
-			if (bCloseSocket) 
-			{
+			if (bCloseSocket)  {
 				CloseSocket(rConnectedSocket);
 				break;
-			};
+			}
 
-			if (m_bDoubleMessage)
-					AnswerByRequest(rConnectedSocket, &client_addr, 30, bCloseSocket);
+			if (m_bDoubleMessage) {
+				AnswerByRequest(rConnectedSocket, &client_addr, 30, bCloseSocket);
+			}
 
 			if (!CloseSocket(rConnectedSocket))
 				m_LogFunction ( Format("cannot close socket for %s", m_CorpusName.c_str())  );

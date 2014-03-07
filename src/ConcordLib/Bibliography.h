@@ -58,8 +58,13 @@ struct CBibliography
 	bool	ConvertDateToInt(int& Result) const;
 };
 
-
-
+/*! enum for CFreeBiblIndex subtypes */
+typedef enum {
+	cfbiUnknown,
+	cfbiInteger,
+	cfbiString,
+	cfbiOther
+} CFreeBiblIndexTypeId;
 
 /*!
 	CConcXml is used for building bibliographical indices and working with xml.  
@@ -75,14 +80,15 @@ public:
 
 		public:
 		//! the name of the index (from options file)
-		string					m_Name;
-		//! the XPath to this information (from  options file)
-		string					m_Xpath;
-		//! integer references to m_Values for each corpus file
-		vector<DWORD>			m_ValuesForEachFile;
+		string m_Name;
 
-		//! should DDC show this field for each header	
-		bool					m_bShowInHeader;
+		//! the XPath to this information (from  options file)
+		string m_Xpath;
+		//! integer references to m_Values for each corpus file
+		vector<DWORD> m_ValuesForEachFile;
+
+		//! should DDC show this field for each header?
+		bool m_bShowInHeader;
 
 		//! regex options
 		RML_RE::Options *m_pRegexOpts;
@@ -101,6 +107,9 @@ public:
 		virtual bool	DeleteBiblFiles (string Path) const;
 		virtual bool	ConvertAndSaveToDiskAfterIndexing (string Path);
 		virtual string	GetTypeStr() const;
+
+		//! return bibl-field subtype identifier
+		virtual CFreeBiblIndexTypeId GetTypeId() const;
 
 		//! initialize CDDCFilterWithBounds for a literal target or regex value (default treats Value as integer string and sets range)
 		//! \param Filter filter to populate
@@ -160,6 +169,7 @@ public:
 		virtual ~CFreeBiblStringIndex();
 		void	clear();
 		string	GetTypeStr() const;
+		virtual CFreeBiblIndexTypeId GetTypeId() const;
 		string	GetStringValue(DWORD FileNo ) const;
 		bool	ReadFromDisk (string Path, DWORD FileBreaksSize);
 		void	CreateUnion (string Path, const CFreeBiblIndex* pIndex1, const CFreeBiblIndex* pIndex2);
@@ -317,12 +327,14 @@ public:
 	//! \li if no valid text area is found, returns UnknownTextAreaNo
 	int WithinTextArea(const vector<string>& Within) const;
 
-	void	InitLessByDate(vector<CHit>&	Hits) const;
-	void	InitGreaterByDate(vector<CHit>&	Hits) const;
-	void	InitLessByBiblIntegerField(string FreeBiblAttribName, vector<CHit>&	Hits) const;
-	void	InitGreaterByBiblIntegerField(string FreeBiblAttribName, vector<CHit>&	Hits) const;
-	void	InitNoSort(vector<CHit>&	Hits) const;
-	bool	IsRegisteredBiblField(string FreeBiblAttribName) const;
+	void InitNoSort(vector<CHit>& Hits) const;
+	void InitSortByDate(vector<CHit>& Hits) const;
+	void InitSortByBiblIntegerField(string FreeBiblAttribName, vector<CHit>& Hits) const;
+	bool IsRegisteredBiblField(const string& FreeBiblAttribName) const;
+
+	//! get the registered type of a registered bibliographic field as a CFreeBiblIndexTypeId
+	//! \returns m_FreeBiblIndices.find(FreeBiblAttribName).GetTypeId() or \ref cfbiUnknown if not found
+	CFreeBiblIndexTypeId GetBiblFieldTypeId(const string& FreeBiblAttribName) const;
 
 	//! set regex options for all registered fields
 	void SetRegexOptions(const RML_RE::Options &opts);

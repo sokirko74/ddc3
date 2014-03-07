@@ -154,8 +154,6 @@ public:
 	void SetPath(string Path);
 	//! return all registered index declarations
 	string GetIndicesString() const;
-	//! return a pointer to the index by CStringIndexSet::m_Name or CStringIndexSet::m_ShortName
-	CStringIndexSet*  GetIndexByNameOrShortName(const string& Name);
 	//! return the number of \ref period_def "corpus periods"
 	size_t	GetSearchPeriodsCount() const;
 	//! get a \ref period_def "corpus period" by an index
@@ -177,12 +175,14 @@ public:
 	bool	SaveMemoryLoadIndex();
 	//! return a pointer to the index by CStringIndexSet::m_Name
 	CStringIndexSet*  GetIndexByName(const string& Name);
-    //! return the first index that normally contains tokens themselves
-    CStringIndexSet* GetTokenIndex();
-    //! return the first index that normally contains tokens themselves
-    const CStringIndexSet* GetTokenIndex() const;
-    //! add "Wi <eos>" bigrams for end of sentence
-    void    ProcessBigramBorders (const int BreakCollectionNo, CTokenNo occurrence);
+	//! return a pointer to the index by CStringIndexSet::m_Name or CStringIndexSet::m_ShortName
+	CStringIndexSet*  GetIndexByNameOrShortName(const string& Name);
+	//! return the first index that normally contains tokens themselves
+	CStringIndexSet* GetTokenIndex();
+	//! return the first index that normally contains tokens themselves
+	const CStringIndexSet* GetTokenIndex() const;
+
+	//! 
 };
 
 

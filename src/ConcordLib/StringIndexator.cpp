@@ -194,16 +194,6 @@ bool	CStringIndexator::FinalSaveAllIndices(bool bAfterLoading)
 };
 
 
-void CStringIndexator::ProcessBigramBorders(const int BreakCollectionNo, CTokenNo occurrence)
-{
-  	for (size_t i=0; i < m_Indices.size(); i++)
-        if (m_Indices[i]->m_BigramBorder == BreakCollectionNo)
-            m_Indices[i]->ProcessBigramBorder(occurrence - 1); // we have to decrement occurrence, since it points 
-                                                                // to the end of sentence, that is outside of sentence and
-                                                                // therefore could not be found by regular procedures in THAT sentence
-    
-}
-
 bool	CStringIndexator::IndexOneToken(const char* InputLine, const CTokenNo& TokenOffset)
 {
 	assert (!m_Indices.empty());

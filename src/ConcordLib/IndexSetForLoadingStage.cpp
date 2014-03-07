@@ -19,7 +19,6 @@
 #include "StdConc.h"
 #include "../ConcordLib/IndexSetForLoadingStage.h"
 #include "../ConcordLib/ConcIndexator.h"
-#include "TempBigrams.h"
 #include "../common/Graspace.h"
 
 
@@ -145,23 +144,14 @@ CIndexSetForLoadingStage::CIndexSetForLoadingStage ():
 m_LoadLess2(&m_StringBuffer), m_LoadLess1(&m_StringBuffer)
 {
 	m_bUseItemStorage= false;
-    m_MaxBigramWindowSize=0;
 	m_TempStorageFile = 0;
-    m_TempBigramsFile = 0;
-    m_BigramBorder = -1;
 };
-
-bool CIndexSetForLoadingStage::UseBigrams() const
-{
-    return m_MaxBigramWindowSize > 0;
-}
 
 
 
 
 bool CIndexSetForLoadingStage::CreateTempFiles(string Path)
 {
-    m_LeftContext.clear();
 	m_MainOccurTempFileName = MakeFName(Path, "tmp_main_"+GetName());
 
 	FILE* fp =  fopen (m_MainOccurTempFileName.c_str(), "wb");
@@ -172,8 +162,6 @@ bool CIndexSetForLoadingStage::CreateTempFiles(string Path)
 	fp =  fopen (m_CurrOccurTempFileName.c_str(), "wb");
 	if (!fp) return false;
 	fclose( fp );
-
-	
 	
 	if (m_bUseItemStorage)
 	{
@@ -181,16 +169,6 @@ bool CIndexSetForLoadingStage::CreateTempFiles(string Path)
 		m_TempStorageFile = fopen( m_TempStorageFileName.c_str(), "wb");
 		if (!m_TempStorageFile) return false;
 	};
-
-    if (UseBigrams())
-    {
-        m_TempBigramsFileName = MakeFName(Path, "tmp_bigrams_"+GetName());
-		m_TempBigramsFile = fopen( m_TempBigramsFileName.c_str(), "wb");
-		if (!m_TempBigramsFile) return false;
-
-        
-    }
-    
 
 	return true;
 };
@@ -209,13 +187,8 @@ bool CIndexSetForLoadingStage::DeleteTempFiles ()
 			fclose (m_TempStorageFile);
 		m_TempStorageFile = 0;
 
-        bResult |= RemoveWithPrint(m_TempStorageFileName);
+	        bResult |= RemoveWithPrint(m_TempStorageFileName);
 	};
-
-    CloseTempBigramsFile();
-    bResult |= RemoveWithPrint(m_TempBigramsFileName);
-    
-
 
 	// clear all load indices
 	for (int j = 0; j < 256; j++)
@@ -612,93 +585,4 @@ void CIndexSetForLoadingStage::InsertToInputLoadIndex(const char* Str, size_t St
 		if (fwrite(&IndexItemOffset,sizeof(DWORD),1, m_TempStorageFile) != 1) 
 			throw CExpc ("Cannot write to temporary storage file");
 	};
-
-    if (m_MaxBigramWindowSize > 0)
-    {
-         // index left bigrams 
-        deque<string>::const_iterator it = m_LeftContext.begin();
-        for (int Distance=0; it != m_LeftContext.end();  Distance++, it++)
-                IndexOneBigram(  Str, StrLen, it->c_str(), it->length(),  occurrences[0], Distance);
-
-        
-        if (m_LeftContext.size()+1 < m_MaxBigramWindowSize)
-            IndexOneBigram(  Str, StrLen, 0, 0, occurrences[0], m_LeftContext.size()); // index <eos> word
-        else
-            m_LeftContext.pop_back(); // keep context size not more than m_MaxBigramWindowSize - 1
-
-        string s (Str, 0, StrLen);
-        m_LeftContext.push_front(s);
-    }
-    
 };
-
-void CIndexSetForLoadingStage::ProcessBigramBorder(CTokenNo occurrence)
-{
-    deque<string>::const_iterator it = m_LeftContext.begin();
-    for (int Distance=0; it != m_LeftContext.end();  Distance++, it++)
-        IndexOneBigram(  0, 0, it->c_str(), it->length(),  occurrence, Distance);
-
-    m_LeftContext.clear();
-}
-
-
-
-
-
-bool	CIndexSetForLoadingStage::IndexOneBigram(const char* Word1,  BYTE Word1Len, const char* Word2, BYTE Word2Len,const CTokenNo& TokenOffset,  char WordDistance)
-{
-    CTempBigram B;
-    {
-        if (Word1 != 0)
-        {
-            vector<CItemIndexForLoading>::iterator it;
-            char w1[CriticalTokenLength+1];
-            strncpy  (w1, Word1, Word1Len);
-            w1[Word1Len] = 0;
-            if (!FindIndexItem(w1, it) )
-	        {
-		        fprintf (stderr, "Error! Word1 %s  should be already indexed!\n", Word1);
-		        return false;
-	        };
-            B.m_RightTokenId = it->GetIndexItemOffset();
-        }
-        else
-            B.m_RightTokenId = DWORD_MAX; // eos 
-
-    }
-
-    
-    {
-        if (Word2 != 0)
-        {
-            vector<CItemIndexForLoading>::iterator it;
-            char w2[CriticalTokenLength+1];
-            strncpy  (w2, Word2, Word2Len);
-            w2[Word2Len] = 0;
-            if (!FindIndexItem(w2, it) )
-	        {
-		        fprintf (stderr, "Error! Word2 %s  should be already indexed!\n", Word2);
-		        return false;
-	        };
-            B.m_LeftTokenId = it->GetIndexItemOffset();
-        }
-        else
-            B.m_LeftTokenId = DWORD_MAX; // eos 
-    }
-
-    B.m_RightTokenCorpusAddress = TokenOffset;
-    B.m_Distance = WordDistance;
-	return BinaryWriteItem(m_TempBigramsFile, B);
-};
-
-
-	
-void CIndexSetForLoadingStage::CloseTempBigramsFile()
-{
-    if (m_TempBigramsFile) fclose (m_TempBigramsFile);
-    m_TempBigramsFile = 0;
-
-
-}
-
-

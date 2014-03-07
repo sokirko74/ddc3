@@ -580,6 +580,9 @@ Up to I<MAXLEN> neighbors are considered for the sort.  Breaks of type I<BREAKNA
 the sort.
 Example usage: C<Bigrams Token 2 s>.
 
+B<OBSOLETE> as of ddc v2.0.19, which supports generic C<#left> and/or C<#right> query operators
+on arbitrary token attributes within the current query break collection.
+
 =head3 Expand
 
  Expand LABEL CLASS PARAM...

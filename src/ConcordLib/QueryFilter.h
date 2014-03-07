@@ -39,10 +39,6 @@ public:
   //! convert filter to a canonical string
   virtual string toString(void) { return string("#FILTER[?]"); };
   //@}
-
-  //!\name Misc Utils
-  //@{
-  //@}
 };
 
 //======================================================================
@@ -83,7 +79,12 @@ public:
   //! compile the filter.  Default implementation just pushes m_Filter onto compiler->m_Filters
   virtual bool Compile(CQueryCompiler *compiler);
 
+  //! stringification utility: quoted strign for arg, or empty string
+  string argString(const string &arg) const;
+
+  //! stringification
   virtual string toString(void);
+
 };
 
 //======================================================================
@@ -105,7 +106,7 @@ public:
     : CQFSort(ftype,string(""),lb,ub)
   {};
 
-  int Str2Date(const std::string &datestr, int onEmpty=0, bool negate=false);
+  int Str2Date(const std::string &datestr, int onEmpty=0);
 
   virtual bool Compile(CQueryCompiler *compiler);
 };
@@ -159,39 +160,26 @@ public:
 };
 
 //======================================================================
-// CQFBigramSort
+// CQFContextSort (formerly CQFBigramSort)
 
-class CQFBigramSort : public CQFSort {
+//! m_arg0: field name, m_arg1: lower_bound, m_arg2: upper_bound
+class CQFContextSort : public CQFSort {
 public:
-  BigramDirectionEnum m_Dir;
-
-public:
-  CQFBigramSort(HitSortEnum ftype=LessByLeftContext, BigramDirectionEnum dir=bdLeftBigram)
-    : CQFSort(ftype), m_Dir(dir)
-  {};
+  CQFContextSort(HitSortEnum ftype=LessByContext,
+		 const string &field=string(""),
+		 int offset=0,
+		 const string &lb=string(""),
+		 const string &ub=string(""))
+    : CQFSort(ftype,field,lb,ub)
+  {
+    m_Filter.m_ContextOffset = offset;
+  };
 
   //! compile the filter
   virtual bool Compile(CQueryCompiler *compiler);
-};
 
-//======================================================================
-// CQFLeftSort
-
-class CQFLeftSort : public CQFBigramSort { //-- UNTESTED
-public:
-  CQFLeftSort()
-    : CQFBigramSort(LessByLeftContext,bdLeftBigram)
-  {};
-};
-
-//======================================================================
-// CQFRightSort
-
-class CQFRightSort : public CQFBigramSort { //-- UNTESTED
-public:
-  CQFRightSort()
-    : CQFBigramSort(LessByRightContext,bdRightBigram)
-  {};
+  //! stringify
+  virtual string toString(void);
 };
 
 //======================================================================

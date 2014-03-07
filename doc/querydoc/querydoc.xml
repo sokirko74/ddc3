@@ -11,7 +11,7 @@
     <section name="overview" title="Overview">
       <p>
 	This documentation describes the query language accepted by
-	DDC version 2.0.14.  Current sources for DDC should be available
+	DDC version 2.0.19.  Current sources for DDC should be available
 	from
 	<!--<a href="http://odo.dwds.de/code/viewvc.cgi/ddc/trunk/?root=dev">svn+ssh://odo.dwds.de/home/svn/dev/ddc/trunk</a>.-->
 	<a href="http://sourceforge.net/projects/ddc-concordance">http://sourceforge.net/projects/ddc-concordance</a>.
@@ -570,7 +570,7 @@
 	      <n>qf_rank_sort</n>
 	    </rhs>
 	    <rhs cmt="... sort hits lexicographically by context">
-	      <n>qf_bigram_sort</n>
+	      <n>qf_context_sort</n>
 	    </rhs>
 	    <rhs cmt="... sort/filter hits by (sentence) length">
 	      <n>qf_size_sort</n>
@@ -662,13 +662,31 @@
 	    </rhs>
 	  </rule>
 
-	  <!--~~~~~~~~ RULES: qf_bigram_sort -->
-	  <rule lhs="qf_bigram_sort" cmt="Sort or filter hits lexicographically by context (requires special index)">
-	    <rhs cmt="... in ascending order by preceding context (aliases: #LEFT, #ASC_LEFT, #ASC_BY_LEFT)">
-	      <t>#LESS_BY_LEFT</t>
+	  <!--~~~~~~~~ RULES: qf_context_sort (v2.0.19) -->
+	  <rule lhs="qf_context_sort" cmt="Sort and/or filter hits lexicographically by context (required Bigrams index prior to ddc v2.0.19)">
+	    <rhs cmt="... in ascending order by user-specified key offset (aliases: #ASC_CONTEXT, #ASC_BY_CONTEXT)">
+	      <t>#LESS_BY_CONTEXT</t>
+	      <n>qfb_ctxsort</n>
 	    </rhs>
-	    <rhs cmt="... in ascending order by following context (aliases: #RIGHT, #ASC_RIGHT, #ASC_BY_RIGHT">
+	    <rhs cmt="... in descending order by user-specified key offset (aliases: #DESC_CONTEXT, #DESC_BY_CONTEXT)">
+	      <t>#GREATER_BY_CONTEXT</t>
+	      <n>qfb_ctxsort</n>
+	    </rhs>
+	    <rhs cmt="... in ascending order by preceding context, like #ASC_CONTEXT[-1] (aliases: #LEFT, #ASC_LEFT, #ASC_BY_LEFT)">
+	      <t>#LESS_BY_LEFT</t>
+	      <n>qfb_ctxsort</n>
+	    </rhs>
+	    <rhs cmt="... in descending order by preceding context, like #DSC_CONTEXT[-1] (aliases: #DESC_LEFT, #DESC_BY_LEFT)">
+	      <t>#GREATER_BY_LEFT</t>
+	      <n>qfb_ctxsort</n>
+	    </rhs>
+	    <rhs cmt="... in ascending order by following context, like #ASC_CONTEXT[1] (aliases: #RIGHT, #ASC_RIGHT, #ASC_BY_RIGHT)">
 	      <t>#LESS_BY_RIGHT</t>
+	      <n>qfb_ctxsort</n>
+	    </rhs>
+	    <rhs cmt="... in descending order by following context, like #DSC_CONTEXT[1] (aliases: #RIGHT, #DESC_RIGHT, #DESC_BY_RIGHT)">
+	      <t>#GREATER_BY_RIGHT</t>
+	      <n>qfb_ctxsort</n>
 	    </rhs>
 	  </rule>
 
@@ -840,6 +858,42 @@
 	      <n>symbol</n>
 	      <t>,</t>
 	      <n>symbol</n>
+	    </rhs>
+	  </rule>
+
+	  <!--~~~~~~~~ RULES: qfb_ctxsort -->
+	  <rule lhs="qfb_ctxsort" cmt="Optional sort-key attribute, offset, and/or bounds for context-sort operators">
+	    <rhs cmt="... empty (Token attribute, zero offset, full range)"/>
+	    <rhs cmt="... given key (full range)">
+	      <t>[</t>
+	      <n>qfb_ctxkey</n>
+	      <t>]</t>
+	    </rhs>
+	    <rhs cmt="... given range (Token attribute, zero offset)">
+	      <t>[</t>
+	      <n>qfb_bibl</n>
+	      <t>]</t>
+	    </rhs>
+	    <rhs cmt="... given key and range">
+	      <t>[</t>
+	      <n>qfb_ctxkey</n>
+	      <n>qfb_bibl</n>
+	      <t>]</t>
+	    </rhs>
+	  </rule>
+
+	  <!--~~~~~~~~ RULES: qfb_ctxkey -->
+	  <rule lhs="qfb_ctxkey" cmt="Optional sort-key attribute and/or offset for context-sort operators">
+	    <rhs cmt="... empty (Token attribute, zero offset)"/>
+	    <rhs cmt="... given attribute (zero offset)">
+	      <n>sym_str</n>
+	    </rhs>
+	    <rhs cmt="... given offset (Token attribute)">
+	      <n>integer</n>
+	    </rhs>
+	    <rhs cmt="... given attribute and offset">
+	      <n>symbol</n>
+	      <n>integer</n>
 	    </rhs>
 	  </rule>
 
@@ -1021,6 +1075,13 @@
 	    </rhs>
 	  </rule>
 
+	  <!--~~~~~~~~ RULES: sym_str -->
+	  <rule lhs="sym_str" cmt="User-specified string symbol">
+	    <rhs cmt="... cannot be an integer or date">
+	      <xt>SYMBOL</xt>
+	    </rhs>
+	  </rule>
+
 	  <!--~~~~~~~~ RULES: s_prefix -->
 	  <rule lhs="s_prefix" cmt="Prefix condition string">
 	    <rhs cmt="... ends with a literal '*'">
@@ -1180,8 +1241,12 @@ regex_modifier	[gimsx]
 (?i:\#(greater|de?sc)(_by)?_size)
 (?i:\#(less|asc)(_by)?_size)	
 (?i:\#(is_|has_)?size)		
-(?i:\#((less_|asc_)(by_)?)?left)	
-(?i:\#((less_|asc_)(by_)?)?right)	
+(?i:\#((less|asc)(_by)?_)?left)
+(?i:\#((greater|de?sc)(_by)?_)left)
+(?i:\#((less|asc)(_by)?_)?right)
+(?i:\#((greater|de?sc)(_by)?_)right)
+(?i:\#(less|asc)(_by)?_co?n?te?xt?)
+(?i:\#(greater|de?sc)(_by)?_co?n?te?xt?)
 (?i:\#(less|asc)(_by)?)		  
 (?i:\#(greater|de?sc)(_by)?)	
 (?i:\#rand(om)?)
@@ -1322,7 +1387,7 @@ regex_modifier	[gimsx]
 	    <tr><td class="monospace">\f</td><td>C-style escape (\x0c): form feed</td></tr>
 	    <tr><td class="monospace">\r</td><td>C-style escape (\x0d): carriage return</td></tr>
 	    <tr><td class="monospace">\<i>OOO</i></td><td>C-style octal escape (byte); e.g. <tt>\101</tt></td></tr>
-	    <tr><td class="monospace">\x<i>XX</i></td><td>C-style Hexidecimal escape (byte); e.g. <tt>\x42</tt></td></tr>
+	    <tr><td class="monospace">\x<i>XX</i></td><td>C-style hexidecimal escape (byte); e.g. <tt>\x42</tt></td></tr>
 	    <tr><td class="monospace">\u<i>XXXX</i></td><td>JSON-style Unicode escape (UTF-8); e.g. <tt>\u0043</tt></td></tr>
 	    <tr><td class="monospace">\<i>c</i></td><td>Escaped character 'c'; e.g. <tt>\\</tt></td></tr>
 	  </table>

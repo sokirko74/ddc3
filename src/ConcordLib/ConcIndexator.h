@@ -280,11 +280,12 @@ public:
 	string GetShortFilename(size_t posFile) const;
 	//! get file name for storing \ref corpus_file_def "corpus file" names
 	string	GetFileNameForCorpusFileNames() const;
-    //! get file name for masked files
-    string	GetFileNameForMaskedFiles() const;
+	
+	//! get file name for masked files
+	string	GetFileNameForMaskedFiles() const;
 
-    //! parse a delimited token into fields by splitting on m_InterpDelimiter
-    vector<string> GetTokenFields(const COutputToken &tok);
+	//! parse a delimited token into fields by splitting on m_InterpDelimiter
+	vector<string> GetTokenFields(const COutputToken &tok);
     
 	
 

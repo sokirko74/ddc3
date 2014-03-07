@@ -95,21 +95,8 @@ bool CStringIndexSet::WriteToFile(bool bAfterLoading)
 		if (!OpenStorageFile())
 			return false;
 	};
-    if (UseBigrams())
-    {
-        CloseTempBigramsFile();
 
-        if (!m_BigramsIndex.ConvertTempBigramsToPersistent(m_TempBigramsFileName, m_Index))
-			return false;
-
-        if (!m_BigramsIndex.LoadIndexSet())
-			return false;
-
-        
-    }
-
-    DeleteTempFiles();
-
+	DeleteTempFiles();
 
 	if (!WriteVector(GetOccHdrFileName().c_str(), m_Index)) return false;
 	if (!WriteVector(GetFileNameForInfos().c_str(), m_StringBuffer)) return false;

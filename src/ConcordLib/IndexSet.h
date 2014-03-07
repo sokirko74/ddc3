@@ -22,7 +22,6 @@
 
 #include "../ConcordLib/IndexSetForLoadingStage.h"
 #include "../ConcordLib/IndexSetForQueryingStage.h"
-#include "../ConcordLib/ConcBigrams.h"
 #include "../PCRE/pcre_rml.h"
 
 /*!  COutputToken  contains information about one token of an output hit and its properties.
@@ -70,16 +69,16 @@ class CStringIndexSet  :	public CIndexSetForLoadingStage, public CIndexSetForQue
 
     
 
-	//!		convert a temporal index set to the work index 
+	//!	convert a temporal index set to the work index 
 	bool	ConvertLoadIndexToWorkingIndex ();
-	//!		return file name for storage
+	//!	return file name for storage
 	string	GetStorageFileName() const;
-    //!		return file name for left bigrams
+	//!	return file name for left bigrams
 	string	GetLeftBigramsFileName() const;
-	//!		make concatenation of two storages
+	//!	make concatenation of two storages
 	bool	CreateUnionTokenStorage(const CStringIndexSet& I1, const CStringIndexSet& I2, const map<DWORD, DWORD>& First2Result, const map<DWORD, DWORD>& Second2Result);
-	//!		save one part of token storage to the common file (called from CreateUnionTokenStorage)
-    bool	SaveOnePartOfUnionTokenStorage(FILE * res_fp, const map<DWORD, DWORD>& Old2New) const;
+	//!	save one part of token storage to the common file (called from CreateUnionTokenStorage)
+	bool	SaveOnePartOfUnionTokenStorage(FILE * res_fp, const map<DWORD, DWORD>& Old2New) const;
 	//!     open \ref storage_def "storage" file
 	bool	OpenStorageFile();
 	//!     close \ref storage_def "storage" file
@@ -88,7 +87,6 @@ class CStringIndexSet  :	public CIndexSetForLoadingStage, public CIndexSetForQue
 	string	GetName() const;
 	//! converts temporary \ref storage_def "index storage" to persistent one (replacing a reference to  m_StringBuffer by a index item no)
 	bool	ConvertTempStorageToPersistent();
-    bool    DumpBigramsOfOneDirection ( BigramDirectionEnum bigram_direc ) const;
 
 public:
     
@@ -98,9 +96,7 @@ public:
 	//! a short name of the index set,  for example "m", "w", "t", "c"
 	string	m_ShortName;
 
-	CIndexSetForBigrams   m_BigramsIndex;
-
-    //! this function returns an string(which was indexed by DDC) by an instance of CIndexItem or CItemIndexForLoading
+	//! this function returns an string(which was indexed by DDC) by an instance of CIndexItem or CItemIndexForLoading
 	template<class T>
 	const char* GetIndexItemStr(const T& W) const 
 	{
@@ -122,6 +118,14 @@ public:
 	void	UnionIndexSet(const CStringIndexSet& I1, const CStringIndexSet& I2, const CTokenNo EndToken1, const CTokenNo EndToken2);
 	//! return sequence of tokens(strings) [start_offset,  end_offset] 
 	bool	GetTokensFromStorage(const size_t start_offset,  const size_t end_offset, vector<COutputToken>& Tokens) const;
+
+	//! gets index-local item-id of token number \a TokenNo
+	//! \li basically a pared-down single-token version of GetTokensFromStorage()
+	//! \li \returns integer \a ItemId such that <code>CIndexItem TokenItem = m_Index[ItemId]</code> is the indexed attribute for token number \a TokenNo,
+	//!     or \a DWORD_MAX if an error occurs (e.g. no such token)
+	DWORD   GetTokenIndexId(CTokenNo TokenNo) const;
+	//! populate bounds for context-sort operator
+	bool	GetContextBounds(CDDCFilterWithBounds &Filter, const string& LoValue, const string& HiValue) const;
 	//! find all occurrences of index items  in \ref period_def "subcorpora" PeriodNo, using cache pCaches
 	void	FindOccurrences (const vector<DWORD>& IndexItems, const size_t PeriodNo, vector<CTokenNo>& occurrences, CMyTimeSpanHolder& Profilerp, CShortOccurCacheMap* pCaches, vector<int>& CacheIds)	const;
 	//! find all occurrences of index items in \ref period_def "subcorpora" PeriodNo, using cache pCaches (if occurrences are written by chunks)
@@ -136,8 +140,6 @@ public:
 	void	QueryTokenListUniversal (vector<DWORD>& MatchWords)	const;
 	//! print the string representation of the whole \ref storage_def "storage" to stdout
 	bool	DumpStorage() const;
-	//! print bigrams
-	bool	DumpBigrams() const;
 };
 
 

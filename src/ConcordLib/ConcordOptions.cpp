@@ -622,48 +622,9 @@ bool CConcIndexator::LoadOptionsFromString(string Options)
 		}
 	}
 
-        for (size_t i=0; i<BigramDescr.size(); i++)
-    {
-        StringTokenizer fields(BigramDescr[i].c_str(), " \t\r\n");
-        if (!fields())
-        {
-            fprintf (stderr,"cannot parse field Bigrams %s\n", BigramDescr[i].c_str());
-            return false;
-        }
-        string IndexName = fields.val();
-        if (!fields())
-        {
-            fprintf (stderr,"cannot parse field Bigrams %s\n", BigramDescr[i].c_str());
-            return false;
-        }
-        CStringIndexSet* I = GetIndexByName(IndexName);
-        if (!I)
-        {
-            fprintf (stderr,"index \"%s\" not found, (Bigrams %s)\n", IndexName.c_str(),  BigramDescr[i].c_str());
-            return false;
-        }
-        int MaxBigramWindowSize  = atoi (fields.val());
-        if ( (MaxBigramWindowSize > 5) || (MaxBigramWindowSize <  2) )
-        {
-            fprintf (stderr,"MaxBigramWindowSize can be in 2,3,4 or 5\n");
-            return false;
-        }
-        if (!fields())
-        {
-            fprintf (stderr,"cannot parse field Bigrams %s\n", BigramDescr[i].c_str());
-            return false;
-        }
-        string BreakCollName = fields.val();
-        int BreakCollectionNo = GetBreakCollectionIndexByName(BreakCollName);
-        if (BreakCollectionNo == -1)
-        {
-            fprintf (stderr,"break  collection \"%s\" not found, (Bigrams %s)\n", BreakCollName.c_str(), BigramDescr[i].c_str());
-            return false;
-        }
-
-        I->m_MaxBigramWindowSize = MaxBigramWindowSize;
-        I->m_BigramBorder = BreakCollectionNo;
-    }
+        for (size_t i=0; i<BigramDescr.size(); i++) {
+		fprintf(stderr, "WARNING: Bigrams declaration ignored for ddc >= v2.0.19: `%s'\n", BigramDescr[i].c_str());
+	}
 
 	//-- propagate regex-related options to m_Bibl
 	m_Bibl.SetRegexOptions(GetRegexOptions());
@@ -787,8 +748,6 @@ string CConcIndexator::SaveOptionsToString()  const
 		Result += Format("DwdsCorpusInterface\n");
 
     for (size_t i=0; i < m_Indices.size(); i++)
-        if  ( m_Indices[i]->UseBigrams() )
-            Result += Format ("Bigrams %s %i %s\n", m_Indices[i]->m_Name.c_str(), m_Indices[i]->m_MaxBigramWindowSize, GetBreakCollectionShortName(m_Indices[i]->m_BigramBorder).c_str());
 
 	if (m_bGutenbergInterface)
 		Result += Format("GutenbergInterface\n");

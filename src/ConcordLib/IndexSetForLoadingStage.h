@@ -130,10 +130,6 @@ class CIndexSetForLoadingStage
 
 	//! input memory index set   (hashed by ASCII)
 	vector<CItemIndexForLoading  >			m_InputLoadIndexHash[256] ;
-   	//! a temporal file for left bigrams
-	FILE*		m_TempBigramsFile;
-    
-    deque<string>  m_LeftContext;
 
 	//! find a string in vector "V", returning iterator "it", using  m_LoadLess1
 	bool FindIndexItemInVector (const char* Item, vector<CItemIndexForLoading>::iterator& it, vector<CItemIndexForLoading>& V);
@@ -142,11 +138,9 @@ class CIndexSetForLoadingStage
 	bool FindIndexItem (const char* Item, vector<CItemIndexForLoading>::iterator& it);
 
 	bool	AddToMemoryLoadIndexAndClear(vector<CItemIndexForLoading>& Body, vector<CItemIndexForLoading>& FileIndexSet);
-    int     GetHashNo(const char* Str) const;
+	int     GetHashNo(const char* Str) const;
 
 protected:
-   	//! a temporary file to write left bigrams
-	string	    m_TempBigramsFileName;
 	//! a temporal file for \ref storage_def "index storage"
 	FILE*		m_TempStorageFile;
 	//! a temporary file, where the \ref storage_def "index storage" is stored
@@ -157,19 +151,10 @@ protected:
 	//! add a string to m_StringBuffer
 	size_t			AddItemStrToBuffer(const char* Str, size_t StrLen);
 
-    //! index one left bigrams
-    bool	IndexOneBigram(const char* Word1,  BYTE Word1Len, const char* Word2, BYTE Word2Len,const CTokenNo& TokenOffset, char SecondWordAddress);
-
 
 public:
 	//! if true, then the program creates and uses a \ref storage_def "storage" for this index
-	bool			m_bUseItemStorage;
-
-    //! m_MaxBigramWindowSize>0,  then DDC creates bigrams for the index
-    int			m_MaxBigramWindowSize;
-
-    //! the break collection that bigrams could not trespass
-    int         m_BigramBorder;
+	bool		m_bUseItemStorage;
 
 	//! a buffer for storing index strings 
 	vector<char>	m_StringBuffer;
@@ -194,12 +179,6 @@ public:
 	bool	AddMemoryLoadIndexToMainLoadIndex();
 	//! updates input or memory load index with one string
 	void	InsertToInputLoadIndex(const char* Str, size_t StrLen, const vector<CTokenNo>& occurrences);
-    //! closes all temporary bigrams file
-    void    CloseTempBigramsFile();
-    //! true, if DDC should create bigrams for this index
-    bool    UseBigrams() const;
-    //! add "Wi <eos>" bigrams for end of sentence
-    void    ProcessBigramBorder(CTokenNo occurrence);
 };
 
 

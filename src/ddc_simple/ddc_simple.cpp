@@ -47,7 +47,8 @@ void PrintUsageAndExit()
 		 "  -ResultFormat TXT|HTML|TABLE|JSON     # default=TXT\n"
 		 "  -ProfileRun NITERS                    # none by default\n"
 		 "  -PrintProfile                         # print profile results\n"
-		 "  -OnlyGetHitsCount                     # call GetHits() rather than SimpleQuery()\n"
+		 "  -HitCount                             # call GetHits() rather than SimpleQuery()\n"
+		 "  -HitIds                               # call GetHitIds() (simulate subcorpus server)\n"
 		 "  -NoMorphology                         # suppress call to InitConcordDicts()\n"
 		 "\n"
 		 "Where \"-Limit\" gives the maximum count of occurrences to find\n"
@@ -72,6 +73,7 @@ int main(int argc, char* argv[])
 		int ResultLimit  = -1;
 		bool bPrintProfile = false;
 		bool bOnlyGetHitsCount = false;
+		bool bOnlyGetHitIds = false;
 		bool bInitConcordDicts = true;
 		int CountOfCycles = 1;
 		string _Query;
@@ -131,7 +133,13 @@ int main(int argc, char* argv[])
 				fprintf  (stderr, "no call to InitConcordDicts\n");
 			}
 			else
-			if (s == "-OnlyGetHitsCount")
+			if (s_lo == "-onlygethitids" || s_lo == "-hitids" || s_lo == "-ids")
+                        {
+				bOnlyGetHitIds = true;
+				fprintf  (stderr, "OnlyGetHitIds\n");
+			}
+			else
+			if (s_lo == "-onlygethitscount" || s_lo == "hitcount" || s_lo == "-count")
 			{
 				bOnlyGetHitsCount = true;
 				fprintf  (stderr, "OnlyGetHitsCount\n");
@@ -283,7 +291,7 @@ int main(int argc, char* argv[])
 					    }
 					}
 					EndHitNo = StartFrom;
-					if (bOnlyGetHitsCount)
+					if (bOnlyGetHitsCount || bOnlyGetHitIds)
 					{
 						clock_t     StartTime = clock();
 						DDCErrorEnum Error =   R.GetHits(Query, EndHitNo);
@@ -291,16 +299,21 @@ int main(int argc, char* argv[])
 
 						long      TimeSpan = EndTime - StartTime;
 						
-						fprintf (stderr, "ticks %i\n", TimeSpan ); 
+						if (ProfileCycleNo==0) {
+							fprintf (stderr, "ticks %i\n", TimeSpan ); 
 						
-						if (Error != errNone)
-						{
-							fprintf (stderr, "Error! %s \n", GetDDCErrorString(Error));
-							return -1;
-						}
-						else
-						{
-						    fprintf (stderr, "Number of found docs : %i\n", R.m_AllHitsCount);
+							if (Error != errNone) {
+								fprintf (stderr, "Error! %s \n", GetDDCErrorString(Error));
+								return -1;
+							}
+							else {
+								fprintf (stderr, "Number of found docs : %i\n", R.m_AllHitsCount);
+							}
+
+							if (bOnlyGetHitIds) {
+								string Result = R.GetHitIds();
+								printf("HitIDs = %s\n", Result.c_str());
+							}
 						}
 					}
 					else

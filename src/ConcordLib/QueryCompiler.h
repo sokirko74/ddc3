@@ -85,6 +85,9 @@ public:
 	//! temporary for [m1,m2,...,mN] morph-pattern queries
 	vector<string> m_MorphItems;
 
+	//! temporary for filter field (#less_by_xyz, #greater_by_xyz)
+	string m_FilterField;
+
 	//! temporary for filter lower bound (#less_by_xyz, #greater_by_xyz)
 	string m_FilterLB;
 
@@ -116,9 +119,6 @@ public:
 
 	//! if true, DDC initializes CHit::m_DebugRank
 	bool m_bDebugRank;
-
-	//! if #left is specified, then m_BigramsUse is bdLeftBigram, if  #right, then m_BigramsUse is bdRightBigram, otherwize bdDontUseBigrams
-	BigramDirectionEnum m_BigramsUse;
 
 public:
 	//! default constructor

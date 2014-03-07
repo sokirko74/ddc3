@@ -73,36 +73,36 @@ and &quot; &quot; represents a literal space character (ASCII byte with decimal 
 <h1><a name="synopsis">SYNOPSIS</a></h1>
 <pre>
  ##=====================================================================
- ## Generic Message Format</pre>
-<pre>
+ ## Generic Message Format
+ 
  LENGTH DATA</pre>
 <pre>
  ##=====================================================================
- ## Distributed Server Messages</pre>
-<pre>
- run_query &quot; &quot; CORPUS &quot;\x01&quot; QUERY &quot;\x01&quot; FORMAT &quot;\x01&quot; OFFSET &quot; &quot; LIMIT &quot; &quot; TIMEOUT</pre>
-<pre>
+ ## Distributed Server Messages
+ 
+ run_query &quot; &quot; CORPUS &quot;\x01&quot; QUERY &quot;\x01&quot; FORMAT &quot;\x01&quot; OFFSET &quot; &quot; LIMIT &quot; &quot; TIMEOUT
+ 
  expand_terms &quot;\x01&quot; PIPELINE &quot;\x01&quot; TERMS &quot;\x01&quot; TIMEOUT
- expand_terms &quot;\x01&quot; PIPELINE &quot;\x01&quot; TERMS &quot;\x01&quot; TIMEOUT &quot;\x01&quot; CORPUS</pre>
-<pre>
+ expand_terms &quot;\x01&quot; PIPELINE &quot;\x01&quot; TERMS &quot;\x01&quot; TIMEOUT &quot;\x01&quot; CORPUS
+ 
  get_paradigm &quot; &quot; WORD &quot;\x01&quot; ILEMMATIZE &quot; &quot; ILANG
- ddc_close_socket</pre>
-<pre>
+ ddc_close_socket
+ 
  version
  status
  vstatus
  info</pre>
 <pre>
  ##=====================================================================
- ## Subcorpus Server Messages</pre>
-<pre>
+ ## Subcorpus Server Messages
+ 
  get_first_hits &quot; &quot; QUERY &quot;\x01 &quot; TIMEOUT &quot; &quot; LIMIT
- get_hit_strings &quot; &quot; FORMAT &quot;\x01&quot; OFFSET &quot; &quot; LIMIT</pre>
-<pre>
- expand_terms &quot;\x01&quot; PIPELINE &quot;\x01&quot; TERMS &quot;\x01&quot; TIMEOUT</pre>
-<pre>
- ddc_close_socket</pre>
-<pre>
+ get_hit_strings &quot; &quot; FORMAT &quot;\x01&quot; OFFSET &quot; &quot; LIMIT
+ 
+ expand_terms &quot;\x01&quot; PIPELINE &quot;\x01&quot; TERMS &quot;\x01&quot; TIMEOUT
+ 
+ ddc_close_socket
+ 
  version
  status
  info</pre>
@@ -315,20 +315,29 @@ number of hits to evaluate.</p>
 <p>where <code>STATUS</code> is a non-zero decimal integer error code, and ERROR is a text string describing the error.</p>
 <p>On success, responses have the form:</p>
 <pre>
- STATUS &quot; &quot; MAXHIT &quot; &quot; NHITS &quot; &quot; NDOCS &quot; &quot; SORTED &quot; &quot; HITIDS</pre>
+ STATUS &quot; &quot; MAXHIT &quot; &quot; NHITS &quot; &quot; NDOCS &quot; &quot; SORT &quot; &quot; HITIDS</pre>
 <p>where <code>STATUS</code> is a decimal integer status, 0 (zero) for success,
 <code>MAXHIT</code> is the index of the last hit computed (?? see CConcHolder::GetHits(q, __EndHitNo__)),
 <code>NHITS</code> is the number of hits found (?? see CConcHolder::m_AllHitsCount),
 <code>NDOCS</code> is the number of relevant documents found (?? see CConcHolder::m_RelevantDocumentCount),
-<code>SORTED</code> is a Boolean integer indicating whether or not the hits should be sorted,
+<code>SORT</code> is a indicates whether and/or how the hits are to be sorted
+(0: no sort, 1: ascending sort, -1: descending sort),
 and <code>HITIDS</code> is a TAB-separated list of <code>NHITS</code> hit-identification triples (see CConcHolder::GetHitIds()),
 each element of which has the form:</p>
 <pre>
  INDEX &quot; &quot; ORDERID &quot; &quot; ORDER_STRING</pre>
 <p>where <code>INDEX</code> is the query-dependent hit index,
-<code>ORDERID</code> is a global sort-key for the hit,
-and <code>ORDER_STRING</code> is either the literal string &quot;&lt;empty&gt;&quot; or a string sort-key for the hit.
-(the latter just in case the query contained a context-dependend sort operation such as <code>#left</code> or <code>#right</code>).</p>
+<code>ORDERID</code> is an integer, and <code>ORDER_STRING</code> is a string.
+Prior to ddc version 2.0.19,
+<code>ORDERID</code> was a global integer primary sort-key for the hit and <code>ORDER_STRING</code>
+was only non-trivially populated
+if the query contained a context-dependend sort operation such as <code>#left</code> or <code>#right</code>,
+and was otherwise assigned the literal string &quot;&lt;empty&gt;&quot;.</p>
+<p>As of v2.0.19, <code>ORDERID</code> is the literal string &quot;-0&quot;, and
+<code>ORDER_STRING</code> is the (possibly empty) actual sort key for the hit.
+If <code>ORDER_STRING</code> is the literal string &quot;&lt;empty&gt;&quot;, it is treated as an empty string for compatibility reasons.
+<code>ORDER_STRING</code> may also be a string of the form &quot;#XXXXXXXX&quot; representing a 32-bit integer
+sort key in hexidecimal notation (msb order, high bit set for non-negative numbers only, no fill bits).</p>
 <p>Since v1.x, error message strings since v2.0.0.</p>
 <p>
 </p>
@@ -347,7 +356,7 @@ and <a href="#limit"><code>LIMIT</code></a> is the maximum number of formatted h
 and <code>ERROR</code> is a text string describing the error.</p>
 <p>On success, the response is of the form:</p>
 <pre>
- C&lt;STATUS&gt; &quot;\x01&quot; HIT_STRINGS &quot;\x01&quot;</pre>
+ STATUS &quot;\x01&quot; HIT_STRINGS &quot;\x01&quot;</pre>
 <p>where <code>STATUS</code> is a decimal integer zero (&quot;0&quot;)
 and <code>HIT_STRINGS</code> are the formatted hit strings, separated by &quot;\x01&quot;.
 By convention, each hit is terminated by &quot;\n&quot; and preceded by &quot;\x01&quot;.

@@ -1,10 +1,8 @@
+/* A Bison parser, made by GNU Bison 2.5.  */
 
-/* A Bison parser, made by GNU Bison 2.4.1.  */
-
-/* Skeleton interface for Bison's Yacc-like parsers in C
+/* Bison interface for Yacc-like parsers in C
    
-      Copyright (C) 1984, 1989, 1990, 2000, 2001, 2002, 2003, 2004, 2005, 2006
-   Free Software Foundation, Inc.
+      Copyright (C) 1984, 1989-1990, 2000-2011 Free Software Foundation, Inc.
    
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -72,13 +70,17 @@
      GREATER_BY = 288,
      LESS_BY = 289,
      LESS_BY_LEFT = 290,
-     LESS_BY_RIGHT = 291,
-     DEBUG_RANK = 292,
-     RANDOM = 293,
-     OP_OR = 294,
-     OP_AND = 295,
-     NEAR = 296,
-     WITH = 297
+     GREATER_BY_LEFT = 291,
+     LESS_BY_RIGHT = 292,
+     GREATER_BY_RIGHT = 293,
+     LESS_BY_CONTEXT = 294,
+     GREATER_BY_CONTEXT = 295,
+     DEBUG_RANK = 296,
+     RANDOM = 297,
+     OP_OR = 298,
+     OP_AND = 299,
+     NEAR = 300,
+     WITH = 301
    };
 #endif
 
@@ -88,8 +90,8 @@
 typedef union YYSTYPE
 {
 
-/* Line 1676 of yacc.c  */
-#line 67 "yyQParser.y"
+/* Line 2068 of yacc.c  */
+#line 68 "yyQParser.y"
 
   std::string*	 	m_str;     /* For returning simple strings  */
   int                   m_int;     /* For returning integers */
@@ -98,8 +100,8 @@ typedef union YYSTYPE
 
 
 
-/* Line 1676 of yacc.c  */
-#line 103 "yyQParser.h"
+/* Line 2068 of yacc.c  */
+#line 105 "yyQParser.h"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */

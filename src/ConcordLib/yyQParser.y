@@ -1,5 +1,5 @@
 //-*- Mode: bison; c-basic-offset: 8; -*-*/
-//  Copyright 2011-2013 by Bryan Jurish
+//  Copyright 2011-2014 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -46,6 +46,7 @@
 #define _qc ((CQueryCompiler*)_qcompiler)
 #define _newFilter(class,ftype)		new class ((ftype), _qc->m_FilterLB, _qc->m_FilterUB)
 #define _newBFilter(ftype,field)	new CQFBiblSort ((ftype), field, _qc->m_FilterLB, _qc->m_FilterUB)
+#define _newCFilter(ftype,offset)	new CQFContextSort ((ftype), _qc->m_FilterField, (offset), _qc->m_FilterLB, _qc->m_FilterUB)
 
 #ifdef DETECT_MEMORY_LEAK
 	#ifdef _DEBUG
@@ -86,7 +87,7 @@ int yylex (void*,  void*);
 %type	<m_pfilt>	qf_subcorpora
 %type	<m_pfilt>	qf_has_field
 %type	<m_pfilt>	qf_rank_sort
-%type	<m_pfilt>	qf_bigram_sort
+%type	<m_pfilt>	qf_context_sort
 %type	<m_pfilt>	qf_size_sort
 %type	<m_pfilt>	qf_date_sort
 %type	<m_pfilt>	qf_bibl_sort
@@ -95,6 +96,8 @@ int yylex (void*,  void*);
 %type	<m_pfilt>	qfb_int
 %type	<m_pfilt>	qfb_date
 %type	<m_pfilt>	qfb_bibl
+%type	<m_int>		qfb_ctxsort
+%type	<m_int>		qfb_ctxkey
 
 //------------------------------------------------------
 // Types: Queries
@@ -159,6 +162,7 @@ int yylex (void*,  void*);
 // Types: Preterminals
 
 %type	<m_str>		symbol
+%type	<m_str>		sym_str
 %type	<m_str>		regex
 %type	<m_str>		neg_regex
 %type	<m_str>		int_str
@@ -202,7 +206,11 @@ int yylex (void*,  void*);
 %token	<m_str>	GREATER_BY
 %token	<m_str>	LESS_BY
 %token	<m_str>	LESS_BY_LEFT
+%token	<m_str>	GREATER_BY_LEFT
 %token	<m_str>	LESS_BY_RIGHT
+%token	<m_str>	GREATER_BY_RIGHT
+%token	<m_str>	LESS_BY_CONTEXT
+%token	<m_str>	GREATER_BY_CONTEXT
 %token	<m_str>	DEBUG_RANK
 %token	<m_str>	RANDOM
 
@@ -263,7 +271,7 @@ qf_subcorpora:
 q_filter:
 		qf_has_field	{ $$=$1; }
 	|	qf_rank_sort	{ $$=$1; }
-	|	qf_bigram_sort	{ $$=$1; }
+	|	qf_context_sort	{ $$=$1; }
 	|	qf_size_sort	{ $$=$1; }
 	|	qf_date_sort	{ $$=$1; }
 	|	qf_bibl_sort	{ $$=$1; }
@@ -286,9 +294,13 @@ qf_rank_sort:
 	|	LESS_BY_RANK    { $$ = new CQFRankSort(LessByRank); }
 	;
 
-qf_bigram_sort:
-		LESS_BY_LEFT  	{ $$ = new CQFLeftSort(); }
-	|	LESS_BY_RIGHT	{ $$ = new CQFRightSort(); }
+qf_context_sort:
+		LESS_BY_LEFT       qfb_ctxsort	{ $$ = _newCFilter(LessByContext,    ($2!=0 ? $2 : -1)); }
+	|	GREATER_BY_LEFT	   qfb_ctxsort	{ $$ = _newCFilter(GreaterByContext, ($2!=0 ? $2 : -1)); }
+	|	LESS_BY_RIGHT      qfb_ctxsort	{ $$ = _newCFilter(LessByContext,    ($2!=0 ? $2 :  1)); }
+	|	GREATER_BY_RIGHT   qfb_ctxsort	{ $$ = _newCFilter(GreaterByContext, ($2!=0 ? $2 :  1)); }
+	|	LESS_BY_CONTEXT    qfb_ctxsort	{ $$ = _newCFilter(LessByContext,    $2); }
+	|	GREATER_BY_CONTEXT qfb_ctxsort	{ $$ = _newCFilter(GreaterByContext, $2); }
 	;
 
 qf_size_sort:
@@ -344,6 +356,20 @@ qfb_bibl:
 	|	',' symbol ','		{ $$=NULL; _qc->SetFilterBounds(*$2); }
 	|	',' ',' symbol		{ $$=NULL; _qc->SetFilterBounds(string(""),*$3); }
 	|	',' symbol ',' symbol	{ $$=NULL; _qc->SetFilterBounds(*$2,*$4); }
+	;
+
+qfb_ctxsort:
+		/* empty */			{ $$=0;  _qc->m_FilterField=""; _qc->SetFilterBounds(); }
+	|	'[' qfb_ctxkey          ']'	{ $$=$2; }
+	|	'['            qfb_bibl ']'	{ $$=0;  }
+	|	'[' qfb_ctxkey qfb_bibl ']'	{ $$=$2; }
+	;
+
+qfb_ctxkey:
+		/* empty */		{ $$=0;  _qc->m_FilterField="";  _qc->SetFilterBounds(); }
+	|	sym_str			{ $$=0;  _qc->m_FilterField=*$1; _qc->SetFilterBounds(); }
+	|	        integer		{ $$=$1; _qc->m_FilterField="";  _qc->SetFilterBounds(); }
+	|	symbol  integer		{ $$=$2; _qc->m_FilterField=*$1; _qc->SetFilterBounds(); }
 	;
 
  /*-------------------------------------------------------------
@@ -578,18 +604,21 @@ symbol:		SYMBOL	{ *$1 = unescapeCString(*$1); $$ = $1; }
 	|	DATE    { $$ = $1; }
 	;
 
+sym_str:	SYMBOL	{ *$1 = unescapeCString(*$1); $$ = $1; }
+	;
+
 s_prefix:	PREFIX		{ *$1 = unescapeCString(*$1); $$ = $1; };
 s_suffix:	SUFFIX		{ *$1 = unescapeCString(*$1); $$ = $1; };
 s_infix:	INFIX		{ *$1 = unescapeCString(*$1); $$ = $1; };
 
 s_expander:	EXPANDER	{ *$1 = unescapeCString(*$1); $$ = $1; };
 
-regex:		REGEX		{ $$ = $1 }
-	|	REGEX REGOPT	{ $$ = $2 }
+regex:		REGEX		{ $$ = $1; }
+	|	REGEX REGOPT	{ $$ = $2; }
 	;
 
-neg_regex:	NEG_REGEX		{ $$ = $1 }
-	|	NEG_REGEX REGOPT	{ $$ = $2 }
+neg_regex:	NEG_REGEX		{ $$ = $1; }
+	|	NEG_REGEX REGOPT	{ $$ = $2; }
 	;
 
 int_str: 	INTEGER	{ $$ = $1; }

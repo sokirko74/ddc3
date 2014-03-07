@@ -1,6 +1,6 @@
 /*-*- Mode: Flex; c-basic-offset: 8 -*-*/
 /*
-//  Copyright 2011-2013 by Bryan Jurish
+//  Copyright 2011-2014 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -125,7 +125,11 @@ regex_modifier	[gimsx]
 (?i:\#(less|asc)(_by)?_size)		{ return LESS_BY_SIZE; }
 (?i:\#(is_|has_)?size)			{ return IS_SIZE; }
 (?i:\#((less|asc)(_by)?_)?left)		{ return LESS_BY_LEFT; }
+(?i:\#((greater|de?sc)(_by)?_)left)	{ return GREATER_BY_LEFT; }
 (?i:\#((less|asc)(_by)?_)?right)	{ return LESS_BY_RIGHT; }
+(?i:\#((greater|de?sc)(_by)?_)right)	{ return GREATER_BY_RIGHT; }
+(?i:\#(less|asc)(_by)?_co?n?te?xt?)	 { return LESS_BY_CONTEXT; }
+(?i:\#(greater|de?sc)(_by)?_co?n?te?xt?) { return GREATER_BY_CONTEXT; }
 (?i:\#(less|asc)(_by)?)			{ return LESS_BY; }
 (?i:\#(greater|de?sc)(_by)?)		{ return GREATER_BY; }
 (?i:\#rand(om)?)			{ return RANDOM; }

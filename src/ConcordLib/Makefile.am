@@ -36,7 +36,6 @@ libDDCConcord_la_SOURCES = \
  QueryCompiler.cpp QueryCompiler.h \
  \
  ConcordAlgorithm.cpp ConcordAlgorithm.h \
- ConcBigrams.cpp ConcBigrams.h \
  ConcHolder.cpp ConcHolder.h \
  Bibliography.cpp Bibliography.h \
  ConcordUnion.cpp \
@@ -64,7 +63,6 @@ noinst_HEADERS = \
  TermExpander.h \
  BiblExpander.h \
  Bibliography.h \
- ConcBigrams.h \
  ConcCommon.h \
  ConcHolder.h \
  ConcIndexator.h \
@@ -81,7 +79,6 @@ noinst_HEADERS = \
  SourceFileHolder.h \
  StdConc.h \
  StringIndexator.h \
- TempBigrams.h \
  yyQLexer.h yyQParser.h FlexLexer.h
 
 # unix_simple_qparse.h MyFlexLexer.h

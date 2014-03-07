@@ -275,6 +275,7 @@ int do_start(bool clientMode=false)
 int	main(int argc, char	**argv)
 {
 	ddcInitGlobal();
+	ddc_thread_init("main");
 	prog = argv[0];
 
 	if (argc == 2) 	

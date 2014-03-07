@@ -60,12 +60,6 @@ public:
 	//! query node indices for each occurrence (the origin for each occurrence)
 	vector<BYTE> m_OccurrenceNodeIndices;
 
-	//! should DDC use m_OccurrenceTokenIdxs (used for #left or #right query operators)
-	bool m_bUseTokenIdxs;
-
-	//! token idxs for each occurrence (used for #left or #right query operators)
-	vector<DWORD> m_OccurrenceTokenIdxs;
-
 	//! all hits of this node in the current \ref period_def "subcorpora"
 	vector<CHit> m_Hits;
 
@@ -80,11 +74,10 @@ public:
 
 
 	//! Constructor
-	CQueryNode(bool bUseNodeIndices=false, bool bUseTokenIdxs=false, const CConcHolder *holder=NULL)
+	CQueryNode(bool bUseNodeIndices=false, const CConcHolder *holder=NULL)
 		: m_bAtomic(false),
 		  m_bNegated(false),
 		  m_bUseNodeIndices(bUseNodeIndices),
-		  m_bUseTokenIdxs(bUseTokenIdxs),
 		  m_pHolder(holder)
 	{};
 
@@ -148,7 +141,7 @@ public:
 	{};
 
 	CQueryBinaryOperationNode(CQueryNode *dtr1, CQueryNode *dtr2)
-		: CQueryNode(false,false), m_pChild1(dtr1), m_pChild2(dtr2)
+		: CQueryNode(false), m_pChild1(dtr1), m_pChild2(dtr2)
 	{};
 
 	void Create(const CConcHolder*	pHolder, CQueryNode* child1, CQueryNode* child2, string Operation);
@@ -245,8 +238,8 @@ public:
 	//! create pattern for matching simple substring (infix) queries (`$INDEX=*INFIX*'): uses regex
 	bool CreateInfixPattern(const CConcHolder* pHolder, const string& IndexName, const string& Infix);
 
-	//! create universal-match set; \a IndexName is ignored
-	bool CreateUniversalPattern(const CConcHolder *pHolder, const string& IndexName="");
+	//! create universal-match set
+	bool CreateUniversalPattern(const CConcHolder *pHolder, const string& SourceStr="*");
 
 	//! create lemma-match pattern (old)
 	bool CreateLemmaPattern(const CConcHolder* pHolder, const string& Value);
@@ -357,7 +350,6 @@ public:
 */ 
 class CQueryWithNode : public CQueryBinaryOperationNode
 {
-	void OccurIntersectionWithTokenIds();
 public:
 	CQueryWithNode();
 

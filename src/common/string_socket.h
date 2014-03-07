@@ -91,23 +91,26 @@ public:
 	inline const int	Port() const { return m_Port; };
 };
 
-extern string GetNetworkErrorString(const NetworkErrorsEnum& t);
-
 /* moo / ddc-2.0.0: packet length arguments sent over sockets are ALWAYS 32-bit unsigned integers in little-endian order
  *  + big-endian ("network") order or fixed-width ASCII decimal would make more sense, but would break too much existing client code
  */
 extern uint32_t size_to_lsb(uint32_t sz);
 extern uint32_t lsb_to_size(uint32_t sz_lsb);
 
+extern bool fd_is_valid(int fd);
+extern SOCKET create_socket (const char* HostName, int Port, bool bBind, string& strError);
+extern bool SocketInitialize(bool bReadFromLocalFile);
+extern bool SocketDeinitialize();
+extern bool CloseSocket(int l_socket);
+extern string GetNetworkErrorString(const NetworkErrorsEnum& t);
+extern bool LoadHosts (string Path, vector<CHost>& Hosts);
+
+//-- generic socket utilities (pure-functions, used by ddc_daemon via CHost and ddc_search)
 extern bool SendString (int client_fd, const char* Str, uint32_t StrLen, string& ErrorStr);
 extern bool SendString (int client_fd, const std::string &str, string& ErrorStr);
+extern NetworkErrorsEnum receive_buffer(int client_fd, char* Buffer,int Length, int& have_read, int TimeOut);
 extern NetworkErrorsEnum ReceiveString (int  client_fd, string& Result, int TimeOut, uint32_t maxPacketLength=0);
 extern bool SetSocketReceiveBuffer(int socket_fd, int BufferSize);
 extern bool SetSocketSendBuffer(int socket_fd, int BufferSize);
-extern bool SocketInitialize(bool bReadFromLocalFile);
-extern bool SocketDeinitialize();
-extern bool	LoadHosts (string Path, vector<CHost>& Hosts);
-bool CloseSocket(int l_socket);
-
 	
 #endif
