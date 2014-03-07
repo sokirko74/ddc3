@@ -93,9 +93,7 @@ struct CHitToSort
 	{};
 
 	inline bool operator < (const CHitToSort& X) const {
-		if (m_SortKeyStr != X.m_SortKeyStr)
-			return m_SortKeyStr < X.m_SortKeyStr;
-		return m_HitNo < X.m_HitNo;
+		return m_SortKeyStr < X.m_SortKeyStr;
 	};
 
 	/** string form of hit, for debugging messages */
@@ -103,6 +101,23 @@ struct CHitToSort
 	{ return Format("{HostNo=%d,HitNo=%d,SortKey=%s}", m_HostNo, m_HitNo, jsonStr(m_SortKeyStr).c_str()); };
 };
 
+//! less-than comparison for ascending sort
+struct CHitToSortAscendingLess {
+	inline bool operator() (const CHitToSort& X, CHitToSort &Y) const {
+		if (X.m_SortKeyStr != Y.m_SortKeyStr)
+			return X.m_SortKeyStr < Y.m_SortKeyStr;
+		return X.m_HitNo < Y.m_HitNo;
+	};
+};
+
+//! less-than comparison for descending sort
+struct CHitToSortDescendingLess {
+	inline bool operator() (const CHitToSort& X, CHitToSort &Y) const {
+		if (X.m_SortKeyStr != Y.m_SortKeyStr)
+			return X.m_SortKeyStr > Y.m_SortKeyStr;
+		return X.m_HitNo < Y.m_HitNo;
+	};
+};
 
 class CDDCServerListenHost  : public CHost
 {
@@ -1144,14 +1159,14 @@ NetworkErrorsEnum CDDCServerListenHost::RunDistributed(string Query, const strin
 		};
 	};
 
-	// sorting and trimming
+	// sorting and trimming: we need stable_sort() in order to ensure HitNo order is retained
 	if (FHResult.m_SortOrder < 0) {
 		//-- sort: descending
-		sort (FHResult.m_Hits.rbegin(), FHResult.m_Hits.rend());
+		stable_sort (FHResult.m_Hits.rbegin(), FHResult.m_Hits.rend());
 	}
 	else if (FHResult.m_SortOrder > 0) {
 		//-- sort: ascending
-		sort (FHResult.m_Hits.begin(), FHResult.m_Hits.end());
+		stable_sort (FHResult.m_Hits.begin(), FHResult.m_Hits.end());
 	}
 
 #ifdef DEBUG_HIT_SORT
