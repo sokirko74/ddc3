@@ -101,24 +101,6 @@ struct CHitToSort
 	{ return Format("{HostNo=%d,HitNo=%d,SortKey=%s}", m_HostNo, m_HitNo, jsonStr(m_SortKeyStr).c_str()); };
 };
 
-//! less-than comparison for ascending sort
-struct CHitToSortAscendingLess {
-	inline bool operator() (const CHitToSort& X, CHitToSort &Y) const {
-		if (X.m_SortKeyStr != Y.m_SortKeyStr)
-			return X.m_SortKeyStr < Y.m_SortKeyStr;
-		return X.m_HitNo < Y.m_HitNo;
-	};
-};
-
-//! less-than comparison for descending sort
-struct CHitToSortDescendingLess {
-	inline bool operator() (const CHitToSort& X, CHitToSort &Y) const {
-		if (X.m_SortKeyStr != Y.m_SortKeyStr)
-			return X.m_SortKeyStr > Y.m_SortKeyStr;
-		return X.m_HitNo < Y.m_HitNo;
-	};
-};
-
 class CDDCServerListenHost  : public CHost
 {
 public:
@@ -129,7 +111,7 @@ public:
 		string			m_HitsDistributionStr;
 		string			m_RelevantDocsDistributionStr;
 		int			m_InternalError;
-		int			m_SortOrder;		//< hit sort order (-1:descending, 0:none, 1:ascending); formerly bool m_bSort
+		HitSortOrderEnum	m_SortOrder;		//< hit sort order (-1:descending, 0:none, 1:ascending); formerly bool m_bSort
 		NetworkErrorsEnum	m_NetworkError;
 		string			m_ErrorStr;
 		vector<CHitToSort>  	m_Hits;
@@ -986,7 +968,7 @@ void CDDCServerListenHost::GetFirstHitsFromCorpora(const DwordVector& PossibleHo
 	Result.m_AllRelevantDocsCount = 0;
 	Result.m_NetworkError = neSuccess;
 	Result.m_InternalError = errNone;
-	Result.m_SortOrder = 0;
+	Result.m_SortOrder = hsoNone;
 	Result.m_ErrorStr = "";
 	
 	for (int i=0; i<PossibleHosts.size(); i++)	
@@ -1038,7 +1020,7 @@ void CDDCServerListenHost::GetFirstHitsFromCorpora(const DwordVector& PossibleHo
 		HitsDistribution[HostNo] = CorpusHitsCount;
 		Result.m_AllRelevantDocsCount += RelevantDocumentsCount;
 		RelevantDocsDistribution[HostNo] = RelevantDocumentsCount;
-		Result.m_SortOrder = iSort;
+		Result.m_SortOrder = (HitSortOrderEnum)iSort;
 
 		HSDEBUG( Format("DEBUG[status:%s]=\"%s\" --> iSort=%d", Host.m_CorpusName.c_str(), S.c_str(), iSort) );
 
@@ -1189,8 +1171,7 @@ NetworkErrorsEnum CDDCServerListenHost::RunDistributed(string Query, const strin
 	}
 #endif
 
-	//  creating map from HostNo to  Hits, SortedHits[i] contains all reference to hits from host i
-	// in the right order
+	// creating map from HostNo to  Hits, SortedHits[i] contains all reference to hits from host i in the right order
 	vector<int> SortedHits[MaxSubhostsSize];
 	for (size_t i=0; i < FHResult.m_Hits.size(); i++)
 		SortedHits[FHResult.m_Hits[i].m_HostNo].push_back(i);

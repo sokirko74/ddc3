@@ -111,23 +111,23 @@ public:
 This enum defines the types of all possible orders which can be apllied to an output hit set. 
 */
 enum HitSortEnum {
-	//! no sort operators, only filtering
+	//! no sort operators, only filtering (used by #has_field[])
 	NoSort = 0,
-	//! sort by the issue date(increasing) 
+	//! sort by the issue date (ascending) 
 	LessByDate = 1,
-	//! sort by the issue date (decreasing) 
+	//! sort by the issue date (descending)
 	GreaterByDate = 2,
-	//! sort by the size of the hit in tokens (increasing) 
+	//! sort by the size of the hit in tokens (ascending) 
 	LessBySize = 3,
-	//! sort by the size of the hit in tokens (decreasing) 
+	//! sort by the size of the hit in tokens (descending) 
 	GreaterBySize = 4,
-	//! sort by a free bibliographical field(increasing) 
+	//! sort by a free bibliographical field (ascending) 
 	LessByFreeBiblField = 5,
-	//! sort by a free bibliographical field(decreasing) 
+	//! sort by a free bibliographical field (descending) 
 	GreaterByFreeBiblField = 6,
-	//! sort by document  (increasing) 
+	//! sort by document (ascending) 
 	LessByRank = 7,
-	//! sort by document rank (decreasing) 
+	//! sort by document rank (descending) 
 	GreaterByRank = 8,
 	//! sort by context (ascending) 
 	LessByContext = 9,
@@ -137,6 +137,13 @@ enum HitSortEnum {
 	RandomSort = 11,
 	//! end-of-enum sentinel
 	HitSortsCount = 12
+};
+
+/*! symbolic hit sort order constants */
+enum HitSortOrderEnum {
+	hsoDescending = -1,
+	hsoNone = 0,
+	hsoAscending = 1
 };
 
 /*! symbolic names for HitSortEnum, for debugging */
@@ -246,19 +253,19 @@ struct CDDCFilterWithBounds
 		m_SatisfiedValues.clear();
 	};
 
-	//! returns integer sort order (-1:descending, 0:none, 1:ascending)
-	inline int SortOrder() const {
+	//! returns integer sort order as a HitSortOrderEnum (-1:descending, 0:none, 1:ascending)
+	inline HitSortOrderEnum SortOrder() const {
 		switch (m_FilterType) {
 		case GreaterByDate:
 		case GreaterByRank:
 		case GreaterBySize:
 		case GreaterByFreeBiblField:
 		case GreaterByContext:
-			return -1;
+			return hsoDescending;
 		case NoSort:
-			return 0;
+			return hsoNone;
 		default:
-			return 1;
+			return hsoAscending;
 		};
 	};
 

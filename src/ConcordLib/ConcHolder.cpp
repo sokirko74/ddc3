@@ -187,7 +187,7 @@ CConcHolder::CConcHolder ()
 	m_pRandom    = new DDCRandom();
 	m_RandomSeed = 0;
 	m_bSortByString  = false;
-	m_SortOrder = 0;
+	m_SortOrder = hsoNone;
 };
 
 CConcHolder::~CConcHolder()
@@ -1297,7 +1297,7 @@ DDCErrorEnum CConcHolder::GetAllHits(const string &Query, size_t Limit)
 					PeriodHitsIndex.push_back(i);
 		}
 
-		m_SortOrder = 0; //-- no sort
+		m_SortOrder = hsoNone; //-- no sort
 		for (size_t FilterNo = 0; FilterNo < m_pQueryCompiler->m_Filters.size(); FilterNo++) {
 			const CDDCFilterWithBounds& F = m_pQueryCompiler->m_Filters[FilterNo];
 
@@ -1305,8 +1305,8 @@ DDCErrorEnum CConcHolder::GetAllHits(const string &Query, size_t Limit)
 			InitSortKeyForHits(F);
 
 			size_t hits_start, hits_end;
-			if (m_SortOrder > 0) {
-				//-- ascending sort
+			if (m_SortOrder >= 0) {
+				//-- ascending sort (also run for NoSort, since #has_field[] filters need bounds-checking)
 				sort(PeriodHitsIndex.begin(), PeriodHitsIndex.end(), IsLessByHitSortKey(qHits));
 				hits_start = my_lower_bound(PeriodHitsIndex.begin(), PeriodHitsIndex.end(), F.m_KeyLo, qHits) - PeriodHitsIndex.begin();
 				hits_end   = my_lower_bound(PeriodHitsIndex.begin(), PeriodHitsIndex.end(), F.m_KeyHi, qHits) - PeriodHitsIndex.begin();
@@ -1433,7 +1433,7 @@ void	CQueryResult::ClearQueryResults()
 	ClearVector(m_HighlightOccurs);
 	ClearVector(m_DebugInfo);
 	m_bSortByString = false;
-	m_SortOrder = 0;
+	m_SortOrder = hsoNone;
 }
 
 string CConcHolder::GetHitIds()  const
@@ -1837,7 +1837,7 @@ int	CConcHolder::GetTextArea() const
 }
 
 
-int CConcHolder::HitSortOrder() const
+HitSortOrderEnum CConcHolder::HitSortOrder() const
 {
 	return m_SortOrder;
 };

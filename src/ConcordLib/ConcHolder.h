@@ -51,7 +51,7 @@ struct CQueryResult
 	bool 			m_bSortByString;
 
 	//! hit sort order (-1:descending, 0:no-sort, 1:ascending)
-	int			m_SortOrder;
+	HitSortOrderEnum	m_SortOrder;
 
 
 	mutable vector<BYTE>	m_DebugInfo;
@@ -106,7 +106,7 @@ private:
 	bool					m_bSortByString;
 
 	//! the current hit-sorting order (-1:descending, 0:none, 1:ascending)
-	int					m_SortOrder;
+	HitSortOrderEnum			m_SortOrder;
 
 
 	//! add a reference to FileNo according to m_ResultFormat
@@ -219,8 +219,8 @@ public:
 	//! stores sortk-keys (CHit::m_SortKey) of current m_Hits to a string
 	string GetHitIds()  const;
 
-	//! returns -1 for descending sort, 1 for ascending sort, 0 for no sort; replaces HitsShouldBeSorted()
-	int HitSortOrder() const;
+	//! get logical hit sort order: (-1:descending, 1:ascending sort, 0:sort); replaces HitsShouldBeSorted()
+	HitSortOrderEnum HitSortOrder() const;
 
 	//! sets timeout for query processing
 	void SetTimeOut(int TimeOut);

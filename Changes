@@ -1,5 +1,13 @@
 ##-*- Mode: Change-Log; coding: utf-8; -*-
 
+v2.0.19-2 Wed, 12 Mar 2014 09:05:45 +0100 moocow
+	+ bugfix: apply filter bounds for m_SortOrder==0 in CConcHolder::GetAllHits()
+	+ fixes bogus results for (@am #has[corpus,/core/]) in dta
+
+v2.0.19-1 Fri, 07 Mar 2014 15:54:10 +0100 moocow
+	+ bugfix: use stable_sort() for merged hit-list sorting in CDDCServerListenHost::RunDistributed()
+	+ ensures that HitNo order is preserved (otherwise segfaults ensue)
+
 v2.0.19 Fri, 07 Mar 2014 13:04:47 +0100 moocow
 	+ overhauled hit-sorting and filtering both subcorpus-locally and in distrib<->subcorpus communications
 	  - sort-key field moved from integer to new compound struct CHitSortKey {int i; string s;}
