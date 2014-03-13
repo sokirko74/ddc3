@@ -1549,7 +1549,7 @@ DDCErrorEnum CConcHolder::GetHits(const string &Query,  DWORD& EndHitNo)
 				return result;
 
 			vector<size_t> HitsIndex;
-			HitsIndex.clear();
+			HitsIndex.reserve(m_Hits.size());
 			for (size_t i=0; i < m_Hits.size(); i++)
 				HitsIndex.push_back(i);
 

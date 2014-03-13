@@ -84,10 +84,14 @@ public:
 	//! Destructor
 	virtual ~CQueryNode();
 
-	//! ?
+	//! evaluate query node with respect to m_pHolder , populating m_Hits[] attributes m_BreakNo, m_HighlightOcurrencesEnd
 	virtual void Evaluate();	
 
-	//! ?
+	/** \brief initial-stage query evaluation
+	 * \detail EvaluateWithoutHits is the first stage of the evaluation of one query.
+	 * The main task it to build CQueryNode::m_Occurrences, which is written by chunks,
+	 * sorted by the first item of a chunk. 
+	 */
 	virtual void EvaluateWithoutHits();	
 
 	//! set m_bNegated

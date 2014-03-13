@@ -1,3 +1,5 @@
+//-*- Mode: C++; c-basic-offset: 8; -*-
+//
 //  DDC originally by Alexey Sokirko
 //  Changes and modifications 2011-2014 by Bryan Jurish
 //
@@ -16,7 +18,6 @@
 //  You should have received a copy of the GNU Lesser General Public License
 //  along with DDC.  If not, see <http://www.gnu.org/licenses/>.
 //
-//-*- MOde: C++; c-basic-offset: 8; -*-
 // QNode.cpp: implementation of the CQNode class.
 //
 //////////////////////////////////////////////////////////////////////
@@ -167,7 +168,6 @@ void CQueryNode::ConvertOccurrencesToHits (bool bUniqueHits)
 		   )
    		{
 			CHit H(BreakNo);
-			H.m_BreakNo = BreakNo;
 			H.m_HighlightOccurrenceEnd = i+1;
 			m_Hits.push_back(H);
 		}
@@ -254,7 +254,6 @@ void CQueryNode::ConvertOccurrencesToHitsForPatterns (bool bUniqueHits)
 		   )
    		{
 			CHit H(BreakNo);
-			H.m_BreakNo = BreakNo;
 			H.m_HighlightOccurrenceEnd = NewOccurrencesCount;
 			m_Hits.push_back(H);
 		}

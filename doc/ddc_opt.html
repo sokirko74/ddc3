@@ -407,7 +407,7 @@ By default the first index is build with a storage (if it is not manually prohib
 Declares a list of those indices which should be returned in hit responses to user queries.
 <code>INTLIST</code> is a space-separated list of integers, where each integer <em>i</em> is the position of some index declaration in the
 <a href="#indices">Indices</a> declaration, counting from 1;
-i.e. for each <em>i</em>, 0 &lt; <em>i</em> &lt; N_INDICES, where N_INDICES is the number  index declarations.
+i.e. for each <em>i</em>, 1 &lt;= <em>i</em> &lt;= N_INDICES, where N_INDICES is the number of index declarations by the <a href="#indices">Indices</a> option.
 For each output word, this list determines the order of the indices whose values are used to represent this word in an output hit.
 By default, <a href="#indicestoshow">IndicesToShow</a> is <code>1</code>, i.e. words are represented only by the value of the first index
 (normally the text of the token itself). If some index is mentioned  inIndicesToShow, then it must have an index storage built during indexing.</p>
