@@ -57,30 +57,32 @@
      DOLLAR_DOT = 275,
      CNTXT = 276,
      WITHIN = 277,
-     HAS_FIELD = 278,
-     FILENAMES_ONLY = 279,
-     GREATER_BY_RANK = 280,
-     LESS_BY_RANK = 281,
-     GREATER_BY_SIZE = 282,
-     LESS_BY_SIZE = 283,
-     IS_SIZE = 284,
-     GREATER_BY_DATE = 285,
-     LESS_BY_DATE = 286,
-     IS_DATE = 287,
-     GREATER_BY = 288,
-     LESS_BY = 289,
-     LESS_BY_LEFT = 290,
-     GREATER_BY_LEFT = 291,
-     LESS_BY_RIGHT = 292,
-     GREATER_BY_RIGHT = 293,
-     LESS_BY_CONTEXT = 294,
-     GREATER_BY_CONTEXT = 295,
-     DEBUG_RANK = 296,
-     RANDOM = 297,
-     OP_OR = 298,
-     OP_AND = 299,
-     NEAR = 300,
-     WITH = 301
+     SEPARATE_HITS = 278,
+     NOSEPARATE_HITS = 279,
+     HAS_FIELD = 280,
+     FILENAMES_ONLY = 281,
+     GREATER_BY_RANK = 282,
+     LESS_BY_RANK = 283,
+     GREATER_BY_SIZE = 284,
+     LESS_BY_SIZE = 285,
+     IS_SIZE = 286,
+     GREATER_BY_DATE = 287,
+     LESS_BY_DATE = 288,
+     IS_DATE = 289,
+     GREATER_BY = 290,
+     LESS_BY = 291,
+     LESS_BY_LEFT = 292,
+     GREATER_BY_LEFT = 293,
+     LESS_BY_RIGHT = 294,
+     GREATER_BY_RIGHT = 295,
+     LESS_BY_CONTEXT = 296,
+     GREATER_BY_CONTEXT = 297,
+     DEBUG_RANK = 298,
+     RANDOM = 299,
+     OP_OR = 300,
+     OP_AND = 301,
+     NEAR = 302,
+     WITH = 303
    };
 #endif
 
@@ -101,7 +103,7 @@ typedef union YYSTYPE
 
 
 /* Line 2068 of yacc.c  */
-#line 105 "yyQParser.h"
+#line 107 "yyQParser.h"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */

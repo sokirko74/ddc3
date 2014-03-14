@@ -69,7 +69,7 @@ void	CQueryNode::EvaluateWithoutHits()
 {
 };	
 
-void	CQueryNode::Evaluate() 
+void	CQueryNode::Evaluate(bool bSeparateHits)
 {
 	throw  CExpc (errParseError, "not implemented!");
 };	
@@ -116,7 +116,7 @@ void CQueryNode::SetHolder(const CConcHolder*	pHolder)
 	m_bUseNodeIndices = m_pHolder->HasRankOrderOperator();
 }
 
-void CQueryNode::ConvertOccurrencesToHits (bool bUniqueHits)
+void CQueryNode::ConvertOccurrencesToHits (bool bSeparateHits)
 {
 	const vector<CTokenNo>& Breaks = m_pHolder->GetBreaks();
 	int TextAreasCount = m_pHolder->m_pIndexator->m_Bibl.GetTextAreasCount();
@@ -164,7 +164,7 @@ void CQueryNode::ConvertOccurrencesToHits (bool bUniqueHits)
 
 		if (	m_Hits.empty() 
 			|| ( m_Hits.back().m_BreakNo != BreakNo)
-			|| !bUniqueHits
+			|| bSeparateHits
 		   )
    		{
 			CHit H(BreakNo);
@@ -184,7 +184,7 @@ void CQueryNode::ConvertOccurrencesToHits (bool bUniqueHits)
 
 
 
-void CQueryNode::ConvertOccurrencesToHitsForPatterns (bool bUniqueHits)	
+void CQueryNode::ConvertOccurrencesToHitsForPatterns (bool bSeparateHits)	
 {
 	const vector<CTokenNo>& Breaks = m_pHolder->GetBreaks();
 	m_Hits.clear();
@@ -250,7 +250,7 @@ void CQueryNode::ConvertOccurrencesToHitsForPatterns (bool bUniqueHits)
 
 		if (	m_Hits.empty() 
 			|| ( m_Hits.back().m_BreakNo != BreakNo)
-			|| !bUniqueHits
+			|| bSeparateHits
 		   )
    		{
 			CHit H(BreakNo);
@@ -482,10 +482,10 @@ void CQueryBinaryOperationNode::hits_and_positions_difference()
 }
 
 
-void CQueryAndOperation::Evaluate()
+void CQueryAndOperation::Evaluate(bool bSeparateHits)
 {
-	m_pChild1->Evaluate();
-	m_pChild2->Evaluate();
+	m_pChild1->Evaluate(bSeparateHits);
+	m_pChild2->Evaluate(bSeparateHits);
 
 	
 
@@ -517,10 +517,10 @@ CQueryOrOperation::CQueryOrOperation()
 {
 };
 
-void CQueryOrOperation::Evaluate()
+void CQueryOrOperation::Evaluate(bool bSeparateHits)
 {
-	m_pChild1->Evaluate();
-	m_pChild2->Evaluate();
+	m_pChild1->Evaluate(bSeparateHits);
+	m_pChild2->Evaluate(bSeparateHits);
 
 	
 	
@@ -870,13 +870,13 @@ void CQueryTokenNode::EvaluateWithoutHits()
 
 
 
-void CQueryTokenNode::Evaluate()
+void CQueryTokenNode::Evaluate(bool bSeparateHits)
 {
 	EvaluateWithoutHits();
 	if (m_bChunk)
-		ConvertOccurrencesToHitsForPatterns(true);
+		ConvertOccurrencesToHitsForPatterns(bSeparateHits);
 	else
-		ConvertOccurrencesToHits (true);
+		ConvertOccurrencesToHits(bSeparateHits);
 };
 
 
@@ -1085,10 +1085,10 @@ void CQuerySequenceNode::EvaluateWithoutHits()
 	m_ChunkLengths.resize(GetOccurrencesSize()/m_Items.size(), m_Items.size());
 };
 
-void CQuerySequenceNode::Evaluate()
+void CQuerySequenceNode::Evaluate(bool bSeparateHits)
 {
 	EvaluateWithoutHits();
-	ConvertOccurrencesToHitsForPatterns(true);
+	ConvertOccurrencesToHitsForPatterns(bSeparateHits);
 };
 
 //======================== CQueryNearNode =========================
@@ -1188,7 +1188,7 @@ bool CQueryNearNode::Create(const CConcHolder* pHolder, BYTE distance, CQueryNod
 }
 
 
-void CQueryNearNode::Evaluate()
+void CQueryNearNode::Evaluate(bool bSeparateHits)
 {
 	m_ChunkLengths.clear();
 	m_pChild1->EvaluateWithoutHits();
@@ -1314,8 +1314,7 @@ void CQueryNearNode::Evaluate()
 
 	};
 
-	ConvertOccurrencesToHitsForPatterns(true);
-
+	ConvertOccurrencesToHitsForPatterns(bSeparateHits);
 };
 
 
@@ -1351,10 +1350,10 @@ void CQueryWithNode::EvaluateWithoutHits()
 
 };
 
-void CQueryWithNode::Evaluate()
+void CQueryWithNode::Evaluate(bool bSeparateHits)
 {
 	EvaluateWithoutHits();
-	ConvertOccurrencesToHits (true);
+	ConvertOccurrencesToHits(bSeparateHits);
 };
 
 

@@ -429,7 +429,7 @@ public:
 };
 
 //------------------------------------------------------------
-//! single-token query: suffix-set (left-truncated) query *{PREFIX,...}
+//! single-token query: suffix-set (left-truncated) query *{SUFFIX,...}
 class CQTokSuffixSet : public CQTokSet {
 public:
   CQTokSuffixSet(const string &indexName=string(""), const set<string> &suffixes=set<string>())

@@ -65,7 +65,8 @@ CQuery::~CQuery(void)
 void CQuery::Evaluate()
 {
   assert(m_Node != NULL);
-  m_Node->Evaluate();
+  assert(m_Compiler != NULL);
+  m_Node->Evaluate(m_Compiler->m_bSeparateHits);
 }
 
 //--------------------------------------------------------------

@@ -100,6 +100,10 @@ public:
 	//! how many hits of the left and right context should be output (must be &lt;= m_MaxContextSentencesCount)
 	size_t m_ContextSentencesCount;
 
+	//! whether to return a separate hit for each occurrence, or collect into distinct instances of the selected container (sentence)
+	//! default=false; used by CQueryNode::Evaluate()
+	bool m_bSeparateHits;
+
 	//! root of the abstract parse tree
 	CQuery* m_pQuery;
 
@@ -108,7 +112,6 @@ public:
 
 	//!  a reference to the holder, for which this query is parsed
 	const CConcHolder* m_pHolder;
-
 
 	//! a special slot for YACC (which contains all string leaves of the parse tree)
 	list<string> m_Labels;

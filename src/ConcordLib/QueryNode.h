@@ -84,8 +84,9 @@ public:
 	//! Destructor
 	virtual ~CQueryNode();
 
-	//! evaluate query node with respect to m_pHolder , populating m_Hits[] attributes m_BreakNo, m_HighlightOcurrencesEnd
-	virtual void Evaluate();	
+	//! evaluate query node with respect to m_pHolder , populating m_Hits[] attributes m_BreakNo, m_HighlightOcurrencesEnd .
+	//! If bSeparateHits is false (default), hits in m_Hits[] will by aggregated by m_BreakNo (i.e. at most one instance of any m_BreakNo value in m_Hits[])
+	virtual void Evaluate(bool bSeparateHits=false);
 
 	/** \brief initial-stage query evaluation
 	 * \detail EvaluateWithoutHits is the first stage of the evaluation of one query.
@@ -110,10 +111,10 @@ public:
 	void SwapOccurrences(CQueryNode& Node);
 
 	//! convert occurrences to hits  using m_pHolder->GetBreaks()
-	void ConvertOccurrencesToHits (bool bUniqueHits);
+	void ConvertOccurrencesToHits (bool bSeparateHits);
 
 	//! convert occurrences to hits for pattern query construction (like "mother likes father")
-	void ConvertOccurrencesToHitsForPatterns (bool bUniqueHits);
+	void ConvertOccurrencesToHitsForPatterns (bool bSeparateHits);
 
 	//! set  m_pHolder
 	void SetHolder(const CConcHolder* pHolder);
@@ -170,7 +171,7 @@ class CQueryAndOperation	: public CQueryBinaryOperationNode
 {
 public:
 	CQueryAndOperation();
-	void Evaluate();
+	void Evaluate(bool bSeparateHits=false);
 };
 
 //----------------------------------------------------------------------
@@ -179,7 +180,7 @@ class CQueryOrOperation	: public CQueryBinaryOperationNode
 {
 public:
 	CQueryOrOperation();
-	void Evaluate();
+	void Evaluate(bool bSeparateHits=false);
 };
 
 //----------------------------------------------------------------------
@@ -267,7 +268,7 @@ public:
 	bool BuildRegExp(string RegExpStr, vector<DWORD>& IndexItems, bool negated=false);
 
 	void	EvaluateWithoutHits();
-	void	Evaluate();
+	void	Evaluate(bool bSeparateHits=false);
 	size_t	GetNodeFrequenceByNodeIndex(size_t NodeIndex) const;
 
 };
@@ -303,7 +304,7 @@ public:
 	bool	Create(const CConcHolder* pHolder, const vector<CQueryTokenNode*>& Items, const vector<BYTE>& Distances, const vector<BYTE>& DistanceOps);
 
 	void	EvaluateWithoutHits();
-	void	Evaluate();
+	void	Evaluate(bool bSeparateHits=false);
 	size_t	GetNodeFrequenceByNodeIndex(size_t NodeIndex) const;
 };
 
@@ -343,7 +344,7 @@ public:
 	//! create the node after yacc parsing (compile-time)
 	bool Create(const CConcHolder* pHolder, BYTE distance, CQueryNode* child1, CQueryNode* child2, CQueryNode* child3 = NULL);
 
-	void Evaluate();
+	void Evaluate(bool bSeparateHits=false);
 	size_t GetNodeFrequenceByNodeIndex(size_t NodeIndex) const;
 };
 
@@ -361,7 +362,7 @@ public:
 	bool Create(const CConcHolder*	pHolder, CQueryNode* child1, CQueryNode* child2);
 
 	void EvaluateWithoutHits();
-	void Evaluate();
+	void Evaluate(bool bSeparateHits=false);
 };
 
 //----------------------------------------------------------------------

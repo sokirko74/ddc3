@@ -1,5 +1,9 @@
 ##-*- Mode: Change-Log; coding: utf-8; -*-
 
+v2.0.20-pre1 Fri, 14 Mar 2014 10:36:51 +0100 moocow
+	+ added query flags #(no)join/#(no)separate : do/don't return at most 1 hit per container (sentence; default=do (compat))
+	+ code was already basically in place in QueryNode.cpp, just needed to be raised to user level
+
 v2.0.19-2 Wed, 12 Mar 2014 09:05:45 +0100 moocow
 	+ bugfix: apply filter bounds for m_SortOrder==0 in CConcHolder::GetAllHits()
 	+ fixes bogus results for (@am #has[corpus,/core/]) in dta

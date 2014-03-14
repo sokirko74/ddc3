@@ -113,6 +113,8 @@ regex_modifier	[gimsx]
  /* query operators */
 (?i:\#(cntxt|n))		{ return CNTXT; }
 (?i:\#(with)?in)		{ return WITHIN; }
+(?i:\#(sep(arate)?|nojoin)(_hits)?)	{ return SEPARATE_HITS; }
+(?i:\#(nosep(arate)?|join)(_hits)?)	{ return NOSEPARATE_HITS; }
 (?i:\#has(_field)?)		{ return HAS_FIELD; }
 (?i:\#file(_?)names)		{ return FILENAMES_ONLY; }
 (?i:\#debug_rank)		{ return DEBUG_RANK; }

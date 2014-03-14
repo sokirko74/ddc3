@@ -67,6 +67,7 @@ CQueryCompiler::CQueryCompiler(const CConcHolder* pHolder)
 {
 	m_pHolder = pHolder;
 	m_ContextSentencesCount = 0;
+	m_bSeparateHits = false;
 	m_bEnableBibliographyForThisQuery = true;
 	m_bDebugRank = false;
 	m_CurrentNodeIndex = 0;
@@ -226,6 +227,7 @@ void CQueryCompiler::CleanParser()
 	m_bEnableBibliographyForThisQuery = true;
 	m_bDebugRank = false;
 	m_ContextSentencesCount = 0;
+	m_bSeparateHits = false;
 }
 
 void CQueryCompiler::DeleteTree()
@@ -313,6 +315,9 @@ string CQueryCompiler::QueryToString(void)
 	}
 	if (m_ContextSentencesCount != 0) {
 		qs += Format(" #CNTXT %u", m_ContextSentencesCount);
+	}
+	if (m_bSeparateHits) {
+		qs += " #SEPARATE";
 	}
 	if (!m_bEnableBibliographyForThisQuery) {
 		qs += " #FILENAMES";

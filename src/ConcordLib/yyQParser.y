@@ -193,6 +193,8 @@ int yylex (void*,  void*);
 
 %token	<m_str>	CNTXT
 %token	<m_str>	WITHIN
+%token	<m_str>	SEPARATE_HITS
+%token	<m_str>	NOSEPARATE_HITS
 %token	<m_str>	HAS_FIELD
 %token	<m_str>	FILENAMES_ONLY
 %token	<m_str>	GREATER_BY_RANK
@@ -248,19 +250,22 @@ query:
   * q_filters (qf*): Filters and Global Query Flags
   */
 q_filters:
-		/* empty */			{ $$ = NULL; }
-	|	q_filters q_flag		{ $$ = NULL; }
-	|	q_filters q_filter		{ _qc->m_QFilters.push_back($2); }
+		/* empty */			{ $$=NULL; }
+	|	q_filters q_flag		{ $$=NULL; }
+	|	q_filters q_filter		{ $$=NULL; _qc->m_QFilters.push_back($2); }
 	;
 
 q_flag:	
-		':' qf_subcorpora 	{ $$ = NULL; }
-	|	CNTXT integer 		{ _qc->m_ContextSentencesCount = (size_t)$2; $$ = NULL; }
-	|	WITHIN symbol 		{ _qc->m_Within.push_back(*$2); $$ = NULL; }
-	|	FILENAMES_ONLY 		{ _qc->m_bEnableBibliographyForThisQuery = false; $$ = NULL; }
-	|	'!' FILENAMES_ONLY	{ _qc->m_bEnableBibliographyForThisQuery = true; $$ = NULL; }
-	|	DEBUG_RANK		{ _qc->m_bDebugRank = true; $$ = NULL; }
-	|	'!' DEBUG_RANK		{ _qc->m_bDebugRank = false; $$ = NULL; }
+		':' qf_subcorpora 	{ $$=NULL; }
+	|	CNTXT integer 		{ $$=NULL; _qc->m_ContextSentencesCount = (size_t)$2; }
+	|	WITHIN symbol 		{ $$=NULL; _qc->m_Within.push_back(*$2); }
+	|	SEPARATE_HITS		{ $$=NULL; _qc->m_bSeparateHits = 1; }
+	|	NOSEPARATE_HITS		{ $$=NULL; _qc->m_bSeparateHits = 0; }
+	|	FILENAMES_ONLY 		{ $$=NULL; _qc->m_bEnableBibliographyForThisQuery = false;  }
+	|	'!' FILENAMES_ONLY	{ $$=NULL; _qc->m_bEnableBibliographyForThisQuery = true;  }
+	|	DEBUG_RANK		{ $$=NULL; _qc->m_bDebugRank = true;  }
+	|	'!' DEBUG_RANK		{ $$=NULL; _qc->m_bDebugRank = false;  }
+	;
 
 qf_subcorpora:
 		/* empty */			{ $$=NULL; }
@@ -359,15 +364,13 @@ qfb_bibl:
 	;
 
 qfb_ctxsort:
-		/* empty */			{ $$=0;  _qc->m_FilterField=""; _qc->SetFilterBounds(); }
-	|	'[' qfb_ctxkey          ']'	{ $$=$2; }
-	|	'['            qfb_bibl ']'	{ $$=0;  }
+		'[' qfb_ctxkey          ']'	{ $$=$2; }
+	|	'['            qfb_bibl ']'	{ $$=0;  _qc->m_FilterField=""; }
 	|	'[' qfb_ctxkey qfb_bibl ']'	{ $$=$2; }
 	;
 
 qfb_ctxkey:
-		/* empty */		{ $$=0;  _qc->m_FilterField="";  _qc->SetFilterBounds(); }
-	|	sym_str			{ $$=0;  _qc->m_FilterField=*$1; _qc->SetFilterBounds(); }
+		sym_str			{ $$=0;  _qc->m_FilterField=*$1; _qc->SetFilterBounds(); }
 	|	        integer		{ $$=$1; _qc->m_FilterField="";  _qc->SetFilterBounds(); }
 	|	symbol  integer		{ $$=$2; _qc->m_FilterField=*$1; _qc->SetFilterBounds(); }
 	;

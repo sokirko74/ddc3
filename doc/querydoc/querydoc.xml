@@ -11,7 +11,7 @@
     <section name="overview" title="Overview">
       <p>
 	This documentation describes the query language accepted by
-	DDC version 2.0.19.  Current sources for DDC should be available
+	DDC version 2.0.20.  Current sources for DDC should be available
 	from
 	<!--<a href="http://odo.dwds.de/code/viewvc.cgi/ddc/trunk/?root=dev">svn+ssh://odo.dwds.de/home/svn/dev/ddc/trunk</a>.-->
 	<a href="http://sourceforge.net/projects/ddc-concordance">http://sourceforge.net/projects/ddc-concordance</a>.
@@ -545,6 +545,12 @@
 	      <t>#WITHIN</t>
 	      <n>symbol</n>
 	    </rhs>
+	    <rhs cmt="return each match as a separate hit (aliases: #SEPARATE, #SEP, #NOJOIN_HITS, #NOJOIN)">
+	      <t>#SEPARATE_HITS</t>
+	    </rhs>
+	    <rhs cmt="return at most one hit for each container selected by #WITHIN (default, aliases: #JOIN, #NOSEPARATE_HITS, #NOSEPARATE, #NOSEP)">
+	      <t>#JOIN_HITS</t>
+	    </rhs>
 	    <rhs cmt="request filenames in output metadata">
 	      <t>#FILENAMES</t>
 	    </rhs>
@@ -863,7 +869,6 @@
 
 	  <!--~~~~~~~~ RULES: qfb_ctxsort -->
 	  <rule lhs="qfb_ctxsort" cmt="Optional sort-key attribute, offset, and/or bounds for context-sort operators">
-	    <rhs cmt="... empty (Token attribute, zero offset, full range)"/>
 	    <rhs cmt="... given key (full range)">
 	      <t>[</t>
 	      <n>qfb_ctxkey</n>
@@ -884,7 +889,6 @@
 
 	  <!--~~~~~~~~ RULES: qfb_ctxkey -->
 	  <rule lhs="qfb_ctxkey" cmt="Optional sort-key attribute and/or offset for context-sort operators">
-	    <rhs cmt="... empty (Token attribute, zero offset)"/>
 	    <rhs cmt="... given attribute (zero offset)">
 	      <n>sym_str</n>
 	    </rhs>
@@ -1230,6 +1234,8 @@ regex_modifier	[gimsx]
 (?i:with)
 (?i:\#(cntxt|n))
 (?i:\#(with)?in)
+(?i:\#(sep(arate)?|nojoin)(_hits)?)
+(?i:\#(nosep(arate)?|join)(_hits)?)
 (?i:\#has(_field)?)
 (?i:\#file(_?)names)
 (?i:\#debug_rank)
