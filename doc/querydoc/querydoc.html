@@ -62,7 +62,7 @@
 <h2><a name="overview">Overview</a></h2>
 <p>
 	This documentation describes the query language accepted by
-	DDC version 2.0.19.  Current sources for DDC should be available
+	DDC version 2.0.20.  Current sources for DDC should be available
 	from
 	<!--<a href="http://odo.dwds.de/code/viewvc.cgi/ddc/trunk/?root=dev">svn+ssh://odo.dwds.de/home/svn/dev/ddc/trunk</a>.-->
 	<a href="http://sourceforge.net/projects/ddc-concordance">http://sourceforge.net/projects/ddc-concordance</a>.
@@ -950,6 +950,18 @@
 <tr>
 <td></td>
 <td></td>
+<td class="ruleRHS">| <span class="ruleTerminal">#SEPARATE_HITS</span> </td>
+<td class="ruleComment">/* return each match as a separate hit (aliases: #SEPARATE, #SEP, #NOJOIN_HITS, #NOJOIN) */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleTerminal">#JOIN_HITS</span> </td>
+<td class="ruleComment">/* return at most one hit for each container selected by #WITHIN (default, aliases: #JOIN, #NOSEPARATE_HITS, #NOSEPARATE, #NOSEP) */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
 <td class="ruleRHS">| <span class="ruleTerminal">#FILENAMES</span> </td>
 <td class="ruleComment">/* request filenames in output metadata */</td>
 </tr>
@@ -1444,13 +1456,8 @@
 <tr>
 <td></td>
 <td></td>
-<td class="ruleRHS1"></td>
-<td class="ruleComment">/* ... empty (Token attribute, zero offset, full range) */</td>
-</tr>
-<tr>
-<td></td>
-<td></td>
-<td class="ruleRHS">| <span class="ruleTerminal">[</span> <span class="ruleNonterminal"><a href="#rule_qfb_ctxkey">qfb_ctxkey</a></span> <span class="ruleTerminal">]</span> </td>
+<td class="ruleRHS1">
+<span class="ruleTerminal">[</span> <span class="ruleNonterminal"><a href="#rule_qfb_ctxkey">qfb_ctxkey</a></span> <span class="ruleTerminal">]</span> </td>
 <td class="ruleComment">/* ... given key (full range) */</td>
 </tr>
 <tr>
@@ -1480,13 +1487,8 @@
 <tr>
 <td></td>
 <td></td>
-<td class="ruleRHS1"></td>
-<td class="ruleComment">/* ... empty (Token attribute, zero offset) */</td>
-</tr>
-<tr>
-<td></td>
-<td></td>
-<td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_sym_str">sym_str</a></span> </td>
+<td class="ruleRHS1">
+<span class="ruleNonterminal"><a href="#rule_sym_str">sym_str</a></span> </td>
 <td class="ruleComment">/* ... given attribute (zero offset) */</td>
 </tr>
 <tr>
@@ -2201,6 +2203,8 @@ regex_modifier	[gimsx]
 (?i:with)
 (?i:\#(cntxt|n))
 (?i:\#(with)?in)
+(?i:\#(sep(arate)?|nojoin)(_hits)?)
+(?i:\#(nosep(arate)?|join)(_hits)?)
 (?i:\#has(_field)?)
 (?i:\#file(_?)names)
 (?i:\#debug_rank)
@@ -2881,7 +2885,7 @@ regex_modifier	[gimsx]
   </body></div>
 <div class="footers">
 <div class="footer_sig">
-<address><a href="mailto:jurish@bbaw.de">jurish@bbaw.de</a></address>Last modified: Fri, 07 Mar 2014 12:59:03 +0100</div>
+<address><a href="mailto:jurish@bbaw.de">jurish@bbaw.de</a></address>Last modified: Fri, 14 Mar 2014 13:08:51 +0100</div>
 <div class="footer_linkbar"><p class="nopad"><a class="navLink" href="/">Root</a><a class="navLink" href="./">Back</a><span class="navLinkDisabled">Help</span></p></div>
 <p class="dummy"></p>
 </div>

@@ -62,7 +62,7 @@
 .\" ========================================================================
 .\"
 .IX Title "DDC_QUERY 5"
-.TH DDC_QUERY 5 "2014-03-07" "2.0.19-1" "DDC Corpus Indexing System"
+.TH DDC_QUERY 5 "2014-03-14" "2.0.20-pre1" "DDC Corpus Indexing System"
 .\" For nroff, turn off justification.  Always turn off hyphenation; it makes
 .\" way too many mistakes in technical documents.
 .if n .ad l
@@ -72,7 +72,7 @@
 .SS "Overview"
 .IX Subsection "Overview"
 This documentation describes the query language accepted by
-\&\s-1DDC\s0 version 2.0.19.  Current sources for \s-1DDC\s0 should be available
+\&\s-1DDC\s0 version 2.0.20.  Current sources for \s-1DDC\s0 should be available
 from
 http://sourceforge.net/projects/ddc\-concordance.
 .PP
@@ -274,6 +274,8 @@ Comments may appear after each rule in C notation
 \&                     : qf_subcorpora                   /* subcorporus selection */
 \&                   | #CNTXT integer                    /* hit context window (number of sentences; alias: #N) */
 \&                   | #WITHIN symbol                    /* hit container type (e.g. \*(Aqfile\*(Aq; alias: #IN) */
+\&                   | #SEPARATE_HITS                    /* return each match as a separate hit (aliases: #SEPARATE, #SEP, #NOJOIN_HITS, #NOJOIN) */
+\&                   | #JOIN_HITS                        /* return at most one hit for each container selected by #WITHIN (default, aliases: #JOIN, #NOSEPARATE_HITS, #NOSEPARATE, #NOSEP) */
 \&                   | #FILENAMES                        /* request filenames in output metadata */
 \&                   | ! #FILENAMES                      /* ... or disable filenames in output metadata */
 \&                   | #DEBUG_RANK                       /* request verbose rank debugging in output metadata */
@@ -367,15 +369,13 @@ Comments may appear after each rule in C notation
 \&                   ;
 \& 
 \& qfb_ctxsort     ::=                                   /*\-\- Optional sort\-key attribute, offset, and/or bounds for context\-sort operators \-\-*/
-\&                                                       /* ... empty (Token attribute, zero offset, full range) */
-\&                   | [ qfb_ctxkey ]                    /* ... given key (full range) */
+\&                     [ qfb_ctxkey ]                    /* ... given key (full range) */
 \&                   | [ qfb_bibl ]                      /* ... given range (Token attribute, zero offset) */
 \&                   | [ qfb_ctxkey qfb_bibl ]           /* ... given key and range */
 \&                   ;
 \& 
 \& qfb_ctxkey      ::=                                   /*\-\- Optional sort\-key attribute and/or offset for context\-sort operators \-\-*/
-\&                                                       /* ... empty (Token attribute, zero offset) */
-\&                   | sym_str                           /* ... given attribute (zero offset) */
+\&                     sym_str                           /* ... given attribute (zero offset) */
 \&                   | integer                           /* ... given offset (Token attribute) */
 \&                   | symbol integer                    /* ... given attribute and offset */
 \&                   ;
@@ -557,6 +557,8 @@ The following macros are defined for the underlying scanner:
 \& (?i:with)
 \& (?i:\e#(cntxt|n))
 \& (?i:\e#(with)?in)
+\& (?i:\e#(sep(arate)?|nojoin)(_hits)?)
+\& (?i:\e#(nosep(arate)?|join)(_hits)?)
 \& (?i:\e#has(_field)?)
 \& (?i:\e#file(_?)names)
 \& (?i:\e#debug_rank)
