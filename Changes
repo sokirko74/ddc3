@@ -1,5 +1,16 @@
 ##-*- Mode: Change-Log; coding: utf-8; -*-
 
+v2.0.20-pre3 Mon, 17 Mar 2014 13:56:32 +0100 moocow
+	+ fixed mantis bug #650: subcorpus crash caused by perl-style \x{...} escapes in escapeJsonString()
+
+v2.0.20-pre2 Mon, 17 Mar 2014 13:08:43 +0100 moocow
+	+ updated querydoc for new operators
+	+ added implicit conjunction of concatenated qc_basic query clauses (no boolean ops)
+	  - (@foo @bar) works, (@foo @bar && !@baz) works, but (@foo @bar !@baz) is a parse error
+	  - problem is (q_clause . q_filters) and "negated" filters like !#HAS_FIELD
+	+ fixed reduce/reduce conflict in qfb_ctxsort / qfb_ctxjey : token attribtes should match sym_str
+	  - i.e. SYMBOL and not INTEGER or DATE
+
 v2.0.20-pre1 Fri, 14 Mar 2014 10:36:51 +0100 moocow
 	+ added query flags #(no)join/#(no)separate : do/don't return at most 1 hit per container (sentence; default=do (compat))
 	+ code was already basically in place in QueryNode.cpp, just needed to be raised to user level

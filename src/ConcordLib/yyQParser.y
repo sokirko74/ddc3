@@ -419,8 +419,6 @@ qc_concat:
 qc_basic:
 		qc_tokens	{ $$ = $1; }
 	|	qc_near		{ $$ = $1; }
-	/*|	qc_basic qc_tokens { $$ = _qc->PushQuery(new CQAnd($1,$2)); } ok!*/
-	/*|	qc_basic qc_near   { $$ = _qc->PushQuery(new CQAnd($1,$2)); } ok!*/
 	;
 
 
