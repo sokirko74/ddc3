@@ -1307,13 +1307,13 @@ DDCErrorEnum CConcHolder::GetAllHits(const string &Query, size_t Limit)
 			size_t hits_start, hits_end;
 			if (m_SortOrder >= 0) {
 				//-- ascending sort (also run for NoSort, since #has_field[] filters need bounds-checking)
-				sort(PeriodHitsIndex.begin(), PeriodHitsIndex.end(), IsLessByHitSortKey(qHits));
+				stable_sort(PeriodHitsIndex.begin(), PeriodHitsIndex.end(), IsLessByHitSortKey(qHits));
 				hits_start = my_lower_bound(PeriodHitsIndex.begin(), PeriodHitsIndex.end(), F.m_KeyLo, qHits) - PeriodHitsIndex.begin();
 				hits_end   = my_lower_bound(PeriodHitsIndex.begin(), PeriodHitsIndex.end(), F.m_KeyHi, qHits) - PeriodHitsIndex.begin();
 			}
 			else if (m_SortOrder < 0) {
 				//-- descending sort
-				sort(PeriodHitsIndex.rbegin(), PeriodHitsIndex.rend(), IsLessByHitSortKey(qHits));
+				stable_sort(PeriodHitsIndex.rbegin(), PeriodHitsIndex.rend(), IsLessByHitSortKey(qHits));
 				hits_start = my_lower_bound(PeriodHitsIndex.rbegin(), PeriodHitsIndex.rend(), F.m_KeyHi, qHits) - PeriodHitsIndex.rbegin();
 				hits_end   = my_lower_bound(PeriodHitsIndex.rbegin(), PeriodHitsIndex.rend(), F.m_KeyLo, qHits) - PeriodHitsIndex.rbegin();
 				hits_start = PeriodHitsIndex.size()-hits_start;
@@ -1564,10 +1564,10 @@ DDCErrorEnum CConcHolder::GetHits(const string &Query,  DWORD& EndHitNo)
 
 			if (m_SortOrder > 0) {
 				//-- ascending sort
-				sort (HitsIndex.begin(), HitsIndex.end(), IsLessByHitSortKey(m_Hits));
+				stable_sort (HitsIndex.begin(), HitsIndex.end(), IsLessByHitSortKey(m_Hits));
 			} else if (m_SortOrder < 0) {
 				//-- descending sort
-				sort (HitsIndex.rbegin(), HitsIndex.rend(), IsLessByHitSortKey(m_Hits));
+				stable_sort (HitsIndex.rbegin(), HitsIndex.rend(), IsLessByHitSortKey(m_Hits));
 			} else {
 				//-- no sort
 				;
