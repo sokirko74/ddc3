@@ -84,23 +84,34 @@ string unescapeCString(const string &s)
     case 'r': c = '\r'; break; //-- \x0d: carriage return
     case 'x': {
       //-- hex escape \xNN
-      assert(sj+1<slen);
-      int clen=-1;
-      const char *ss=s.c_str()+sj+1;
-      sscanf(ss, "%2x%n", &c, &clen);
-      assert(clen>=0);
-      sj += clen;
+      if (sj+1 < slen) {
+	int clen=-1;
+	const char *ss=s.c_str()+sj+1;
+	sscanf(ss, "%2x%n", &c, &clen);
+	if (clen >0) {
+	  sj += clen;
+	  break;
+	}
+      }
+      //-- not enough characters in string to parse escape
+      os.push_back('\\');
+      c  = 'x';
       break;
     }
     case 'u': {
       //-- json-style unicode escape \uNNNN : interpret as utf8
-      assert(sj+1<slen);
-      const char *ss=s.c_str()+sj+1;
-      int clen;
-      ucs4 ucval;
-      sscanf(ss, "%4x%n", &ucval, &clen);
-      u8_wc_toutf8(os, ucval);
-      sj += clen;
+      if (sj+1 < slen) {
+	const char *ss=s.c_str()+sj+1;
+	int clen;
+	ucs4 ucval;
+	sscanf(ss, "%4x%n", &ucval, &clen);
+	u8_wc_toutf8(os, ucval);
+	sj += clen;
+      } else {
+	//-- not enough characters in string to parse escape
+	os.push_back('\\');
+	os.push_back('u');
+      }
       continue;
     }
     default:
