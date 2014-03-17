@@ -1,7 +1,12 @@
 ##-*- Mode: Change-Log; coding: utf-8; -*-
 
-v2.0.20-pre3 Mon, 17 Mar 2014 13:56:32 +0100 moocow
+v2.0.20-pre3 Mon, 17 Mar 2014 15:45:55 +0100 moocow
 	+ fixed mantis bug #650: subcorpus crash caused by perl-style \x{...} escapes in escapeJsonString()
+	+ fix sort-key selection for #left/#right on multi-token hits
+	  - WAS: sort-key was always relative to 1st token in a multi-token hit (e.g. phrase)
+	  - NOW: sort-key anchor depends on context-offset distance
+	    ~ anchor is FIRST matching token of hit for #left  , #by_context[ N<=0 ]
+	    ~ anchor is FINAL matching token of hit for #right , #by_context[ N> 0 ]
 
 v2.0.20-pre2 Mon, 17 Mar 2014 13:08:43 +0100 moocow
 	+ updated querydoc for new operators
