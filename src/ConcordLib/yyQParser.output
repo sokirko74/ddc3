@@ -1,6 +1,6 @@
 Terminals unused in grammar
 
-   NOOP
+   CONCAT
 
 
 Grammar
@@ -104,16 +104,16 @@ Grammar
 
    78 q_clause: qc_basic
    79         | qc_boolean
-   80         | qc_noop
+   80         | qc_concat
 
    81 qc_boolean: q_clause OP_AND q_clause
    82           | q_clause OP_OR q_clause
    83           | '!' q_clause
    84           | '(' qc_boolean ')'
 
-   85 qc_noop: qc_basic qc_basic
-   86        | qc_noop qc_basic
-   87        | '(' qc_noop ')'
+   85 qc_concat: qc_basic qc_basic
+   86          | qc_concat qc_basic
+   87          | '(' qc_concat ')'
 
    88 qc_basic: qc_tokens
    89         | qc_near
@@ -340,7 +340,7 @@ LESS_BY_CONTEXT (296) 38
 GREATER_BY_CONTEXT (297) 39
 DEBUG_RANK (298) 12 13
 RANDOM (299) 46 47 48
-NOOP (300)
+CONCAT (300)
 OP_OR (301) 82
 OP_AND (302) 81
 NEAR (303) 90 91
@@ -391,7 +391,7 @@ q_clause (88)
     on left: 78 79 80, on right: 1 81 82 83
 qc_boolean (89)
     on left: 81 82 83 84, on right: 79 84
-qc_noop (90)
+qc_concat (90)
     on left: 85 86 87, on right: 80 86 87
 qc_basic (91)
     on left: 88 89, on right: 78 85 86
@@ -526,7 +526,7 @@ state 0
     query          go to state 25
     q_clause       go to state 26
     qc_boolean     go to state 27
-    qc_noop        go to state 28
+    qc_concat      go to state 28
     qc_basic       go to state 29
     qc_near        go to state 30
     qc_tokens      go to state 31
@@ -698,7 +698,7 @@ state 13
 
     q_clause       go to state 69
     qc_boolean     go to state 27
-    qc_noop        go to state 28
+    qc_concat      go to state 28
     qc_basic       go to state 29
     qc_near        go to state 30
     qc_tokens      go to state 31
@@ -825,7 +825,7 @@ state 21
 state 22
 
    84 qc_boolean: '(' . qc_boolean ')'
-   87 qc_noop: '(' . qc_noop ')'
+   87 qc_concat: '(' . qc_concat ')'
    92 qc_near: '(' . qc_near ')'
    96 qc_phrase: '(' . qc_phrase ')'
   116 qc_word: '(' . qc_word ')'
@@ -857,7 +857,7 @@ state 22
 
     q_clause       go to state 81
     qc_boolean     go to state 82
-    qc_noop        go to state 83
+    qc_concat      go to state 83
     qc_basic       go to state 29
     qc_near        go to state 84
     qc_tokens      go to state 31
@@ -986,8 +986,8 @@ state 27
 
 state 28
 
-   80 q_clause: qc_noop .
-   86 qc_noop: qc_noop . qc_basic
+   80 q_clause: qc_concat .
+   86 qc_concat: qc_concat . qc_basic
 
     SYMBOL        shift, and go to state 1
     REGEX         shift, and go to state 2
@@ -1052,7 +1052,7 @@ state 28
 state 29
 
    78 q_clause: qc_basic .
-   85 qc_noop: qc_basic . qc_basic
+   85 qc_concat: qc_basic . qc_basic
 
     SYMBOL        shift, and go to state 1
     REGEX         shift, and go to state 2
@@ -1613,9 +1613,9 @@ state 82
 
 state 83
 
-   80 q_clause: qc_noop .
-   86 qc_noop: qc_noop . qc_basic
-   87        | '(' qc_noop . ')'
+   80 q_clause: qc_concat .
+   86 qc_concat: qc_concat . qc_basic
+   87          | '(' qc_concat . ')'
 
     SYMBOL        shift, and go to state 1
     REGEX         shift, and go to state 2
@@ -1880,7 +1880,7 @@ state 91
 
     q_clause       go to state 130
     qc_boolean     go to state 27
-    qc_noop        go to state 28
+    qc_concat      go to state 28
     qc_basic       go to state 29
     qc_near        go to state 30
     qc_tokens      go to state 31
@@ -1946,7 +1946,7 @@ state 92
 
     q_clause       go to state 131
     qc_boolean     go to state 27
-    qc_noop        go to state 28
+    qc_concat      go to state 28
     qc_basic       go to state 29
     qc_near        go to state 30
     qc_tokens      go to state 31
@@ -2091,16 +2091,16 @@ state 94
 
 state 95
 
-   86 qc_noop: qc_noop qc_basic .
+   86 qc_concat: qc_concat qc_basic .
 
-    $default  reduce using rule 86 (qc_noop)
+    $default  reduce using rule 86 (qc_concat)
 
 
 state 96
 
-   85 qc_noop: qc_basic qc_basic .
+   85 qc_concat: qc_basic qc_basic .
 
-    $default  reduce using rule 85 (qc_noop)
+    $default  reduce using rule 85 (qc_concat)
 
 
 state 97
@@ -2412,9 +2412,9 @@ state 118
 
 state 119
 
-   87 qc_noop: '(' qc_noop ')' .
+   87 qc_concat: '(' qc_concat ')' .
 
-    $default  reduce using rule 87 (qc_noop)
+    $default  reduce using rule 87 (qc_concat)
 
 
 state 120

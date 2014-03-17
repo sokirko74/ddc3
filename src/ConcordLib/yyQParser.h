@@ -79,7 +79,7 @@
      GREATER_BY_CONTEXT = 297,
      DEBUG_RANK = 298,
      RANDOM = 299,
-     NOOP = 300,
+     CONCAT = 300,
      OP_OR = 301,
      OP_AND = 302,
      NEAR = 303,
