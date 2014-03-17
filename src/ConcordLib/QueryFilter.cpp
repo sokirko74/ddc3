@@ -262,14 +262,14 @@ string CQFContextSort::toString(void)
   string os("#");
   os += HitSortNames[m_Filter.m_FilterType];
   EngMakeUpper(os);
-  
-  if (!m_arg0.empty() || m_Filter.m_ContextOffset!=0 || !m_arg1.empty() || !m_arg2.empty()) {
-    os += string("[") + argString(m_arg0) + Format(" %d", m_Filter.m_ContextOffset);
-    if (!m_arg1.empty() || !m_arg2.empty()) {
-      os += string(",") + argString(m_arg1) + "," + argString(m_arg2);
-    }
-    os.push_back(']');
+
+  //if (!m_arg0.empty() || m_Filter.m_ContextOffset!=0 || !m_arg1.empty() || !m_arg2.empty()) {...}
+  os += string("[") + argString(m_arg0) + Format(" %d", m_Filter.m_ContextOffset);
+  if (!m_arg1.empty() || !m_arg2.empty()) {
+    os += string(",") + argString(m_arg1) + "," + argString(m_arg2);
   }
+  os.push_back(']');
+
   return os;
 };
 

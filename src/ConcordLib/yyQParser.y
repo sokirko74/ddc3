@@ -56,6 +56,8 @@
 	#endif
 #endif
 
+#define NOINT INT_MIN
+
 #define YYERROR_VERBOSE 1
 #define yyqerror(msg) _qc->yybarf(msg)
 
@@ -305,12 +307,12 @@ qf_rank_sort:
 	;
 
 qf_context_sort:
-		LESS_BY_LEFT       qfb_ctxsort	{ $$ = _newCFilter(LessByLeftContext,     ($2!=0 ? $2 : -1)); }
-	|	GREATER_BY_LEFT	   qfb_ctxsort	{ $$ = _newCFilter(GreaterByLeftContext,  ($2!=0 ? $2 : -1)); }
-	|	LESS_BY_RIGHT      qfb_ctxsort	{ $$ = _newCFilter(LessByRightContext,    ($2!=0 ? $2 :  1)); }
-	|	GREATER_BY_RIGHT   qfb_ctxsort	{ $$ = _newCFilter(GreaterByRightContext, ($2!=0 ? $2 :  1)); }
-	|	LESS_BY_CONTEXT    qfb_ctxsort	{ $$ = _newCFilter(LessByContext,          $2); }
-	|	GREATER_BY_CONTEXT qfb_ctxsort	{ $$ = _newCFilter(GreaterByContext,       $2); }
+		LESS_BY_LEFT       qfb_ctxsort	{ $$ = _newCFilter(LessByLeftContext,     ($2!=NOINT ? $2 : -1)); }
+	|	GREATER_BY_LEFT	   qfb_ctxsort	{ $$ = _newCFilter(GreaterByLeftContext,  ($2!=NOINT ? $2 : -1)); }
+	|	LESS_BY_RIGHT      qfb_ctxsort	{ $$ = _newCFilter(LessByRightContext,    ($2!=NOINT ? $2 :  1)); }
+	|	GREATER_BY_RIGHT   qfb_ctxsort	{ $$ = _newCFilter(GreaterByRightContext, ($2!=NOINT ? $2 :  1)); }
+	|	LESS_BY_CONTEXT    qfb_ctxsort	{ $$ = _newCFilter(LessByContext,         ($2!=NOINT ? $2 :  0)); }
+	|	GREATER_BY_CONTEXT qfb_ctxsort	{ $$ = _newCFilter(GreaterByContext,      ($2!=NOINT ? $2 :  0)); }
 	;
 
 qf_size_sort:
@@ -373,26 +375,26 @@ qfb_bibl_ne:
 	;
 
 qfb_ctxsort:
-		/* empty */			{ $$= 0; _qc->SetFilterBounds(); }
-	|	'[' 	                   ']'	{ $$= 0; _qc->SetFilterBounds(); }
+		/* empty */			{ $$=NOINT; _qc->SetFilterBounds(); }
+	|	'[' 	                   ']'	{ $$=NOINT; _qc->SetFilterBounds(); }
+	|	'['            qfb_bibl_ne ']'	{ $$=NOINT; _qc->m_FilterField=""; }
 	|	'[' qfb_ctxkey             ']'	{ $$=$2; _qc->SetFilterBounds(); }
-	|	'['            qfb_bibl_ne ']'	{ $$= 0; _qc->m_FilterField=""; }
 	|	'[' qfb_ctxkey qfb_bibl_ne ']'	{ $$=$2; }
 	;
 
 qfb_ctxkey:
-		sym_str			{ $$=0;  _qc->m_FilterField=*$1; _qc->SetFilterBounds(); }
-	|	        integer		{ $$=$1; _qc->m_FilterField="";  _qc->SetFilterBounds(); }
-	|	sym_str integer		{ $$=$2; _qc->m_FilterField=*$1; _qc->SetFilterBounds(); }
+		sym_str			{ $$=NOINT; _qc->m_FilterField=*$1; _qc->SetFilterBounds(); }
+	|	        integer		{ $$=$1;    _qc->m_FilterField="";  _qc->SetFilterBounds(); }
+	|	sym_str integer		{ $$=$2;    _qc->m_FilterField=*$1; _qc->SetFilterBounds(); }
 	;
 
  /*-------------------------------------------------------------
   * q_clause (qc*): query clauses (logical operations)
   */
 q_clause:
-		qc_basic			{ $$ = $1; }
-	|	qc_boolean			{ $$ = $1; }
-	|	qc_concat				{ $$ = $1; }
+		qc_basic		{ $$ = $1; }
+	|	qc_boolean		{ $$ = $1; }
+	|	qc_concat		{ $$ = $1; }
 	;
 
  /*-------------------------------------------------------------

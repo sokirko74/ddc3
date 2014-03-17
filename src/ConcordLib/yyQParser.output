@@ -95,8 +95,8 @@ Grammar
 
    71 qfb_ctxsort: /* empty */
    72            | '[' ']'
-   73            | '[' qfb_ctxkey ']'
-   74            | '[' qfb_bibl_ne ']'
+   73            | '[' qfb_bibl_ne ']'
+   74            | '[' qfb_ctxkey ']'
    75            | '[' qfb_ctxkey qfb_bibl_ne ']'
 
    76 qfb_ctxkey: sym_str
@@ -383,11 +383,11 @@ qfb_date (83)
 qfb_bibl (84)
     on left: 63 64, on right: 49 50
 qfb_bibl_ne (85)
-    on left: 65 66 67 68 69 70, on right: 64 74 75
+    on left: 65 66 67 68 69 70, on right: 64 73 75
 qfb_ctxsort (86)
     on left: 71 72 73 74 75, on right: 34 35 36 37 38 39
 qfb_ctxkey (87)
-    on left: 76 77 78, on right: 73 75
+    on left: 76 77 78, on right: 74 75
 q_clause (88)
     on left: 79 80 81, on right: 1 82 83 84
 qc_boolean (89)
@@ -3465,8 +3465,8 @@ state 208
 state 209
 
    72 qfb_ctxsort: '[' . ']'
-   73            | '[' . qfb_ctxkey ']'
-   74            | '[' . qfb_bibl_ne ']'
+   73            | '[' . qfb_bibl_ne ']'
+   74            | '[' . qfb_ctxkey ']'
    75            | '[' . qfb_ctxkey qfb_bibl_ne ']'
 
     SYMBOL   shift, and go to state 252
@@ -3912,14 +3912,14 @@ state 254
 
 state 255
 
-   74 qfb_ctxsort: '[' qfb_bibl_ne . ']'
+   73 qfb_ctxsort: '[' qfb_bibl_ne . ']'
 
     ']'  shift, and go to state 284
 
 
 state 256
 
-   73 qfb_ctxsort: '[' qfb_ctxkey . ']'
+   74 qfb_ctxsort: '[' qfb_ctxkey . ']'
    75            | '[' qfb_ctxkey . qfb_bibl_ne ']'
 
     ','  shift, and go to state 253
@@ -4228,16 +4228,16 @@ state 283
 
 state 284
 
-   74 qfb_ctxsort: '[' qfb_bibl_ne ']' .
+   73 qfb_ctxsort: '[' qfb_bibl_ne ']' .
 
-    $default  reduce using rule 74 (qfb_ctxsort)
+    $default  reduce using rule 73 (qfb_ctxsort)
 
 
 state 285
 
-   73 qfb_ctxsort: '[' qfb_ctxkey ']' .
+   74 qfb_ctxsort: '[' qfb_ctxkey ']' .
 
-    $default  reduce using rule 73 (qfb_ctxsort)
+    $default  reduce using rule 74 (qfb_ctxsort)
 
 
 state 286
