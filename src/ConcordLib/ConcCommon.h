@@ -129,14 +129,22 @@ enum HitSortEnum {
 	LessByRank = 7,
 	//! sort by document rank (descending) 
 	GreaterByRank = 8,
-	//! sort by context (ascending) 
+	//! sort by match context (ascending) 
 	LessByContext = 9,
-	//! sort by context (descending) 
+	//! sort by match context (descending) 
 	GreaterByContext = 10,
+	//! sort by left context (ascending) 
+	LessByLeftContext = 11,
+	//! sort by left context (descending) 
+	GreaterByLeftContext = 12,
+	//! sort by right context (ascending) 
+	LessByRightContext = 13,
+	//! sort by right context (descending) 
+	GreaterByRightContext = 14,
 	//! sort by random key
-	RandomSort = 11,
+	RandomSort = 15,
 	//! end-of-enum sentinel
-	HitSortsCount = 12
+	HitSortsCount = 16
 };
 
 /*! symbolic hit sort order constants */
@@ -160,6 +168,10 @@ static const char *HitSortEnumNames[HitSortsCount] =
 	"GreaterByRank",
 	"LessByContext",
 	"GreaterByContext",
+	"LesaByLeftContext",
+	"GreaterByLeftContext",
+	"LesaByRightContext",
+	"GreaterByRightContext",
 	"RandomSort"
 	};
 
@@ -261,6 +273,8 @@ struct CDDCFilterWithBounds
 		case GreaterBySize:
 		case GreaterByFreeBiblField:
 		case GreaterByContext:
+		case GreaterByLeftContext:
+		case GreaterByRightContext:
 			return hsoDescending;
 		case NoSort:
 			return hsoNone;

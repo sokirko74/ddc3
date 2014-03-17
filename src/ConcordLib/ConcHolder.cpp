@@ -1190,11 +1190,35 @@ void CConcHolder::InitSortByContext(const CDDCFilterWithBounds& F) const
 
 	for (size_t HitNo=0; HitNo< HitsCount; HitNo++) {
 		CHit& H = Hits[HitNo];
-		DWORD occur_i      = (F.m_ContextOffset <= 0 
-				      ? ((HitNo == 0) ? 0 : Hits[HitNo-1].m_HighlightOccurrenceEnd)	//-- #left : stick to first occurrence
-				      : Hits[HitNo].m_HighlightOccurrenceEnd-1);			//-- #right: stick to final occurrence
 		DWORD StartTokenNo = (H.m_BreakNo==0) ?  0 : Breaks[H.m_BreakNo-1];
 		DWORD EndTokenNo   = Breaks[H.m_BreakNo];
+
+		//-- get context anchor occurrence-index occur_i
+		DWORD occur_i;
+		switch (F.m_FilterType) {
+		case LessByLeftContext:
+		case GreaterByLeftContext:
+			//-- #left : stick to FIRST match-token in each hit
+			occur_i = (HitNo == 0) ? 0 : Hits[HitNo-1].m_HighlightOccurrenceEnd;
+			break;
+
+		case LessByRightContext:
+		case GreaterByRightContext:
+			//-- #right : stick to FINAL match-token in each hit
+			occur_i = H.m_HighlightOccurrenceEnd - 1;
+			break;
+
+		case LessByContext:
+		case GreaterByContext:
+		default:
+			{
+				//-- #context : stick to MIDDLE match-token of each hit
+				DWORD occur_li = occur_i = (HitNo == 0) ? 0 : Hits[HitNo-1].m_HighlightOccurrenceEnd;
+				DWORD occur_ri = H.m_HighlightOccurrenceEnd - 1;
+				occur_i = occur_li + (occur_ri-occur_li)/2;
+			}
+			break;
+		}
 
 		if (occur_i >= qnod->m_Occurrences.size())
 			throw CExpc("CConcHolder::InitSortByContext(): occur_i=%i exceeds m_Occurrences.size()=%zd for hit #%zd", occur_i, qnod->m_Occurrences.size(), HitNo);
@@ -1235,6 +1259,10 @@ void CConcHolder::InitSortKeyForHits(const CDDCFilterWithBounds& Filter)
 
 	case LessByContext:
 	case GreaterByContext:
+	case LessByLeftContext:
+	case GreaterByLeftContext:
+	case LessByRightContext:
+	case GreaterByRightContext:
 		InitSortByContext(Filter);
 		m_bSortByString = true;
 		break;

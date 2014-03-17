@@ -5,8 +5,9 @@ v2.0.20-pre3 Mon, 17 Mar 2014 15:45:55 +0100 moocow
 	+ fix sort-key selection for #left/#right on multi-token hits
 	  - WAS: sort-key was always relative to 1st token in a multi-token hit (e.g. phrase)
 	  - NOW: sort-key anchor depends on context-offset distance
-	    ~ anchor is FIRST matching token of hit for #left  , #by_context[ N<=0 ]
-	    ~ anchor is FINAL matching token of hit for #right , #by_context[ N> 0 ]
+	    ~ anchor is FIRST matching token of hit for #left
+	    ~ anchor is FINAL matching token of hit for #right
+	    ~ anchor is MIDDLE matching token of hit for #context
 
 v2.0.20-pre2 Mon, 17 Mar 2014 13:08:43 +0100 moocow
 	+ updated querydoc for new operators

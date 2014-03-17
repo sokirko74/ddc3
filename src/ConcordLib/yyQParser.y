@@ -305,12 +305,12 @@ qf_rank_sort:
 	;
 
 qf_context_sort:
-		LESS_BY_LEFT       qfb_ctxsort	{ $$ = _newCFilter(LessByContext,    ($2!=0 ? $2 : -1)); }
-	|	GREATER_BY_LEFT	   qfb_ctxsort	{ $$ = _newCFilter(GreaterByContext, ($2!=0 ? $2 : -1)); }
-	|	LESS_BY_RIGHT      qfb_ctxsort	{ $$ = _newCFilter(LessByContext,    ($2!=0 ? $2 :  1)); }
-	|	GREATER_BY_RIGHT   qfb_ctxsort	{ $$ = _newCFilter(GreaterByContext, ($2!=0 ? $2 :  1)); }
-	|	LESS_BY_CONTEXT    qfb_ctxsort	{ $$ = _newCFilter(LessByContext,    $2); }
-	|	GREATER_BY_CONTEXT qfb_ctxsort	{ $$ = _newCFilter(GreaterByContext, $2); }
+		LESS_BY_LEFT       qfb_ctxsort	{ $$ = _newCFilter(LessByLeftContext,     ($2!=0 ? $2 : -1)); }
+	|	GREATER_BY_LEFT	   qfb_ctxsort	{ $$ = _newCFilter(GreaterByLeftContext,  ($2!=0 ? $2 : -1)); }
+	|	LESS_BY_RIGHT      qfb_ctxsort	{ $$ = _newCFilter(LessByRightContext,    ($2!=0 ? $2 :  1)); }
+	|	GREATER_BY_RIGHT   qfb_ctxsort	{ $$ = _newCFilter(GreaterByRightContext, ($2!=0 ? $2 :  1)); }
+	|	LESS_BY_CONTEXT    qfb_ctxsort	{ $$ = _newCFilter(LessByContext,          $2); }
+	|	GREATER_BY_CONTEXT qfb_ctxsort	{ $$ = _newCFilter(GreaterByContext,       $2); }
 	;
 
 qf_size_sort:
@@ -374,6 +374,7 @@ qfb_bibl_ne:
 
 qfb_ctxsort:
 		/* empty */			{ $$= 0; _qc->SetFilterBounds(); }
+	|	'[' 	                   ']'	{ $$= 0; _qc->SetFilterBounds(); }
 	|	'[' qfb_ctxkey             ']'	{ $$=$2; _qc->SetFilterBounds(); }
 	|	'['            qfb_bibl_ne ']'	{ $$= 0; _qc->m_FilterField=""; }
 	|	'[' qfb_ctxkey qfb_bibl_ne ']'	{ $$=$2; }

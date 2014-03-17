@@ -24,7 +24,7 @@
 //======================================================================
 // globals
 
-static const char *HitSortNames[15] = {
+static const char *HitSortNames[17] = {
   "no_sort",
   "asc_by_date",
   "desc_by_date",
@@ -36,6 +36,10 @@ static const char *HitSortNames[15] = {
   "desc_by_rank",
   "asc_context",
   "desc_context",
+  "asc_left",
+  "desc_left",
+  "asc_right",
+  "desc_right",
   "random",
   "nsorts"
 };
@@ -269,12 +273,6 @@ string CQFContextSort::toString(void)
   return os;
 };
 
-
-//======================================================================
-// CQFLeftSort
-
-//======================================================================
-// CQFRightSort
 
 //======================================================================
 // CQFHasField
