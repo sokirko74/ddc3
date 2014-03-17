@@ -52,15 +52,19 @@ Comments may appear after each rule in C notation
 
  q_clause      ::=                                                       /*-- Main query clause (logical operations) --*/
                    qc_basic                                              /* Single-condition clause */
-                 | q_clause && q_clause                                  /* Logical conjunction ('and') */
-                 | q_clause || q_clause                                  /* Logical disjunction ('or') */
-                 | ! q_clause                                            /* Logical negation ('not'): not be interpretable for all clauses */
-                 | ( q_clause )                                          /* Explicit grouping */
+                 | qc_boolean                                            /* Complex boolean condition */
                  ;
  
  qc_basic      ::=                                                       /*-- Basic query clause (single logical condition) --*/
                    qc_tokens                                             /* Phrase or single-token condition */
                  | qc_near                                               /* Unordered proximity constraint */
+                 ;
+ 
+ qc_boolean    ::=                                                       /*-- Boolean combination of query conditions --*/
+                   q_clause && q_clause                                  /* Logical conjunction ('and') */
+                 | q_clause || q_clause                                  /* Logical disjunction ('or') */
+                 | ! q_clause                                            /* Logical negation ('not'): not be interpretable for all clauses */
+                 | ( qc_boolean )                                        /* Explicit grouping */
                  ;
  
  qc_near       ::=                                                       /*-- Unordered proximity constraint --*/
@@ -318,7 +322,7 @@ Comments may appear after each rule in C notation
  qfb_ctxkey      ::=                                   /*-- Optional sort-key attribute and/or offset for context-sort operators --*/
                      sym_str                           /* ... given attribute (zero offset) */
                    | integer                           /* ... given offset (Token attribute) */
-                   | symbol integer                    /* ... given attribute and offset */
+                   | sym_str integer                   /* ... given attribute and offset */
                    ;
  
 

@@ -82,6 +82,24 @@
 	    <rhs cmt="Single-condition clause">
 	      <n>qc_basic</n>
 	    </rhs>
+	    <rhs cmt="Complex boolean condition">
+	      <n>qc_boolean</n>
+	    </rhs>
+	  </rule>
+
+	  <!--~~~~~~~~ RULES: qc_basic -->
+	  <rule lhs="qc_basic" cmt="Basic query clause (single logical condition)">
+	    <rhs cmt="Phrase or single-token condition">
+	      <n>qc_tokens</n>
+	    </rhs>
+	    <rhs cmt="Unordered proximity constraint">
+	      <n>qc_near</n>
+	    </rhs>
+	  </rule>
+
+
+	  <!--~~~~~~~~ RULES: qc_boolean -->
+	  <rule lhs="qc_boolean" cmt="Boolean combination of query conditions">
 	    <rhs cmt="Logical conjunction ('and')">
 	      <n>q_clause</n>
 	      <t>&amp;&amp;</t>
@@ -98,18 +116,8 @@
 	    </rhs>
 	    <rhs cmt="Explicit grouping">
 	      <t>(</t>
-	      <n>q_clause</n>
+	      <n>qc_boolean</n>
 	      <t>)</t>
-	    </rhs>
-	  </rule>
-
-	  <!--~~~~~~~~ RULES: qc_basic -->
-	  <rule lhs="qc_basic" cmt="Basic query clause (single logical condition)">
-	    <rhs cmt="Phrase or single-token condition">
-	      <n>qc_tokens</n>
-	    </rhs>
-	    <rhs cmt="Unordered proximity constraint">
-	      <n>qc_near</n>
 	    </rhs>
 	  </rule>
 
@@ -896,7 +904,7 @@
 	      <n>integer</n>
 	    </rhs>
 	    <rhs cmt="... given attribute and offset">
-	      <n>symbol</n>
+	      <n>sym_str</n>
 	      <n>integer</n>
 	    </rhs>
 	  </rule>

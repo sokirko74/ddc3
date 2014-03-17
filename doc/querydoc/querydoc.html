@@ -140,26 +140,8 @@
 <tr>
 <td></td>
 <td></td>
-<td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_q_clause">q_clause</a></span> <span class="ruleTerminal">&amp;&amp;</span> <span class="ruleNonterminal"><a href="#rule_q_clause">q_clause</a></span> </td>
-<td class="ruleComment">/* Logical conjunction ('and') */</td>
-</tr>
-<tr>
-<td></td>
-<td></td>
-<td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_q_clause">q_clause</a></span> <span class="ruleTerminal">||</span> <span class="ruleNonterminal"><a href="#rule_q_clause">q_clause</a></span> </td>
-<td class="ruleComment">/* Logical disjunction ('or') */</td>
-</tr>
-<tr>
-<td></td>
-<td></td>
-<td class="ruleRHS">| <span class="ruleTerminal">!</span> <span class="ruleNonterminal"><a href="#rule_q_clause">q_clause</a></span> </td>
-<td class="ruleComment">/* Logical negation ('not'): not be interpretable for all clauses */</td>
-</tr>
-<tr>
-<td></td>
-<td></td>
-<td class="ruleRHS">| <span class="ruleTerminal">(</span> <span class="ruleNonterminal"><a href="#rule_q_clause">q_clause</a></span> <span class="ruleTerminal">)</span> </td>
-<td class="ruleComment">/* Explicit grouping */</td>
+<td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_qc_boolean">qc_boolean</a></span> </td>
+<td class="ruleComment">/* Complex boolean condition */</td>
 </tr>
 <tr>
 <td></td>
@@ -185,6 +167,43 @@
 <td></td>
 <td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_qc_near">qc_near</a></span> </td>
 <td class="ruleComment">/* Unordered proximity constraint */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td><b>;</b></td>
+</tr>
+<tr></tr>
+<tr>
+<td><b><a name="rule_qc_boolean">qc_boolean</a></b></td>
+<td>::=</td>
+<td></td>
+<td class="ruleCommentTop">/* Boolean combination of query conditions */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS1">
+<span class="ruleNonterminal"><a href="#rule_q_clause">q_clause</a></span> <span class="ruleTerminal">&amp;&amp;</span> <span class="ruleNonterminal"><a href="#rule_q_clause">q_clause</a></span> </td>
+<td class="ruleComment">/* Logical conjunction ('and') */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_q_clause">q_clause</a></span> <span class="ruleTerminal">||</span> <span class="ruleNonterminal"><a href="#rule_q_clause">q_clause</a></span> </td>
+<td class="ruleComment">/* Logical disjunction ('or') */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleTerminal">!</span> <span class="ruleNonterminal"><a href="#rule_q_clause">q_clause</a></span> </td>
+<td class="ruleComment">/* Logical negation ('not'): not be interpretable for all clauses */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleTerminal">(</span> <span class="ruleNonterminal"><a href="#rule_qc_boolean">qc_boolean</a></span> <span class="ruleTerminal">)</span> </td>
+<td class="ruleComment">/* Explicit grouping */</td>
 </tr>
 <tr>
 <td></td>
@@ -1500,7 +1519,7 @@
 <tr>
 <td></td>
 <td></td>
-<td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_symbol">symbol</a></span> <span class="ruleNonterminal"><a href="#rule_integer">integer</a></span> </td>
+<td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_sym_str">sym_str</a></span> <span class="ruleNonterminal"><a href="#rule_integer">integer</a></span> </td>
 <td class="ruleComment">/* ... given attribute and offset */</td>
 </tr>
 <tr>
@@ -2885,7 +2904,7 @@ regex_modifier	[gimsx]
   </body></div>
 <div class="footers">
 <div class="footer_sig">
-<address><a href="mailto:jurish@bbaw.de">jurish@bbaw.de</a></address>Last modified: Fri, 14 Mar 2014 13:08:51 +0100</div>
+<address><a href="mailto:jurish@bbaw.de">jurish@bbaw.de</a></address>Last modified: Mon, 17 Mar 2014 11:12:30 +0100</div>
 <div class="footer_linkbar"><p class="nopad"><a class="navLink" href="/">Root</a><a class="navLink" href="./">Back</a><span class="navLinkDisabled">Help</span></p></div>
 <p class="dummy"></p>
 </div>

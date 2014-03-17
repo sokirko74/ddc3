@@ -96,6 +96,7 @@ int yylex (void*,  void*);
 %type	<m_pfilt>	qfb_int
 %type	<m_pfilt>	qfb_date
 %type	<m_pfilt>	qfb_bibl
+%type	<m_pfilt>	qfb_bibl_ne
 %type	<m_int>		qfb_ctxsort
 %type	<m_int>		qfb_ctxkey
 
@@ -104,6 +105,7 @@ int yylex (void*,  void*);
 
 %type	<m_pnode>	q_clause
 %type	<m_pnode>	qc_basic
+%type	<m_pnode>	qc_boolean
 %type	<m_pnode>	qc_tokens
 %type	<m_pnode>	qc_near
 %type	<m_pnode>	qc_word
@@ -327,7 +329,7 @@ qf_random_sort:
 	;
 
 qf_bibl_sort:
-		LESS_BY '[' symbol qfb_bibl ']'		{ $$ = _newBFilter(LessByFreeBiblField, *$3); }
+		LESS_BY    '[' symbol qfb_bibl ']'	{ $$ = _newBFilter(LessByFreeBiblField, *$3); }
 	|	GREATER_BY '[' symbol qfb_bibl ']'	{ $$ = _newBFilter(GreaterByFreeBiblField, *$3); }
 	;
 
@@ -355,24 +357,29 @@ qfb_date:
 
 qfb_bibl:
 		/* empty */		{ $$=NULL; _qc->SetFilterBounds(); }
-	|	','			{ $$=NULL; _qc->SetFilterBounds(); }
-	|	',' ','			{ $$=NULL; _qc->SetFilterBounds(); }
+	|	qfb_bibl_ne		{ $$=$1; }
+	;
+
+qfb_bibl_ne:
+		',' 			{ $$=NULL; _qc->SetFilterBounds(); }
+	|	','        ','		{ $$=NULL; _qc->SetFilterBounds(); }
 	|	',' symbol		{ $$=NULL; _qc->SetFilterBounds(*$2); }
 	|	',' symbol ','		{ $$=NULL; _qc->SetFilterBounds(*$2); }
-	|	',' ',' symbol		{ $$=NULL; _qc->SetFilterBounds(string(""),*$3); }
+	|	','        ',' symbol	{ $$=NULL; _qc->SetFilterBounds(string(""),*$3); }
 	|	',' symbol ',' symbol	{ $$=NULL; _qc->SetFilterBounds(*$2,*$4); }
 	;
 
 qfb_ctxsort:
-		'[' qfb_ctxkey          ']'	{ $$=$2; }
-	|	'['            qfb_bibl ']'	{ $$=0;  _qc->m_FilterField=""; }
-	|	'[' qfb_ctxkey qfb_bibl ']'	{ $$=$2; }
+		/* empty */			{ $$= 0; _qc->SetFilterBounds(); }
+	|	'[' qfb_ctxkey             ']'	{ $$=$2; _qc->SetFilterBounds(); }
+	|	'['            qfb_bibl_ne ']'	{ $$= 0; _qc->m_FilterField=""; }
+	|	'[' qfb_ctxkey qfb_bibl_ne ']'	{ $$=$2; }
 	;
 
 qfb_ctxkey:
 		sym_str			{ $$=0;  _qc->m_FilterField=*$1; _qc->SetFilterBounds(); }
 	|	        integer		{ $$=$1; _qc->m_FilterField="";  _qc->SetFilterBounds(); }
-	|	symbol  integer		{ $$=$2; _qc->m_FilterField=*$1; _qc->SetFilterBounds(); }
+	|	sym_str integer		{ $$=$2; _qc->m_FilterField=*$1; _qc->SetFilterBounds(); }
 	;
 
  /*-------------------------------------------------------------
@@ -380,11 +387,15 @@ qfb_ctxkey:
   */
 q_clause:
 		qc_basic			{ $$ = $1; }
-	/*|	q_clause q_clause %prec OP_NONE	{ $$ = _qc->PushQuery(new CQAnd($1,$2)); }*/
-	|	q_clause OP_AND q_clause	{ $$ = _qc->PushQuery(new CQAnd($1,$3)); }
+	|	qc_boolean			{ $$ = $1; }
+	/*|	q_clause qc_basic %prec OP_NONE	{ $$ = _qc->PushQuery(new CQAnd($1,$2)); } %*/
+	;
+
+qc_boolean:
+		q_clause OP_AND q_clause	{ $$ = _qc->PushQuery(new CQAnd($1,$3)); }
 	|	q_clause OP_OR q_clause		{ $$ = _qc->PushQuery(new CQOr($1,$3)); }
-	|	'!' q_clause %prec '!'			{ $$ = $2; $$->Negate(); }
-	|	'(' q_clause ')'		{ $$ = $2; }
+	|	'!' q_clause %prec '!'		{ $$ = $2; $$->Negate(); }
+	|	'(' qc_boolean ')'		{ $$ = $2; }
 	;
 
 
@@ -418,8 +429,8 @@ qc_near:
   * qc_tokens: condition with hit position (can be arg to NEAR()):
   */
 qc_tokens: 	
-		qc_word		{ $$ = $1; }
-	|	qc_phrase 	{ $$ = $1; }
+		qc_word			{ $$ = $1; }
+	|	qc_phrase 		{ $$ = $1; }
 	;
 
 qc_phrase:
