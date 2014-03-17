@@ -79,10 +79,11 @@
      GREATER_BY_CONTEXT = 297,
      DEBUG_RANK = 298,
      RANDOM = 299,
-     OP_OR = 300,
-     OP_AND = 301,
-     NEAR = 302,
-     WITH = 303
+     NOOP = 300,
+     OP_OR = 301,
+     OP_AND = 302,
+     NEAR = 303,
+     WITH = 304
    };
 #endif
 
@@ -103,7 +104,7 @@ typedef union YYSTYPE
 
 
 /* Line 2068 of yacc.c  */
-#line 107 "yyQParser.h"
+#line 108 "yyQParser.h"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */

@@ -106,6 +106,7 @@ int yylex (void*,  void*);
 %type	<m_pnode>	q_clause
 %type	<m_pnode>	qc_basic
 %type	<m_pnode>	qc_boolean
+%type	<m_pnode>	qc_concat
 %type	<m_pnode>	qc_tokens
 %type	<m_pnode>	qc_near
 %type	<m_pnode>	qc_word
@@ -224,7 +225,7 @@ int yylex (void*,  void*);
 
 //------------------------------------------------------
 // Operator precedence and associativity
-//%left   OP_NONE
+%left   CONCAT
 %left	OP_AND OP_OR
 %right  '!'
 %left	NEAR
@@ -245,7 +246,7 @@ int yylex (void*,  void*);
   * query (q*): Top Level (Query Root)
   */
 query:
-		q_clause q_filters 	  	{ _qc->m_pQuery = $$ = $1; }
+		q_clause q_filters		{ _qc->m_pQuery = $$ = $1; }
 	;
 
  /*-------------------------------------------------------------
@@ -256,6 +257,8 @@ q_filters:
 	|	q_filters q_flag		{ $$=NULL; }
 	|	q_filters q_filter		{ $$=NULL; _qc->m_QFilters.push_back($2); }
 	;
+
+
 
 q_flag:	
 		':' qf_subcorpora 	{ $$=NULL; }
@@ -388,16 +391,27 @@ qfb_ctxkey:
 q_clause:
 		qc_basic			{ $$ = $1; }
 	|	qc_boolean			{ $$ = $1; }
-	/*|	q_clause qc_basic %prec OP_NONE	{ $$ = _qc->PushQuery(new CQAnd($1,$2)); } %*/
+	|	qc_concat				{ $$ = $1; }
 	;
 
+ /*-------------------------------------------------------------
+  * qc_boolean: query clause: complex boolean expression
+  */
 qc_boolean:
 		q_clause OP_AND q_clause	{ $$ = _qc->PushQuery(new CQAnd($1,$3)); }
 	|	q_clause OP_OR q_clause		{ $$ = _qc->PushQuery(new CQOr($1,$3)); }
-	|	'!' q_clause %prec '!'		{ $$ = $2; $$->Negate(); }
+	|	'!' q_clause 			{ $$ = $2; $$->Negate(); }
 	|	'(' qc_boolean ')'		{ $$ = $2; }
 	;
 
+ /*-------------------------------------------------------------
+  * qc_concat: query clause: implicit logical conjunction
+  */
+qc_concat:
+ 	  qc_basic qc_basic	{ $$ = _qc->PushQuery(new CQAnd($1,$2)); };
+	| qc_concat  qc_basic	{ $$ = _qc->PushQuery(new CQAnd($1,$2)); };
+	| '(' qc_concat ')'	{ $$ = $2; }
+	;
 
  /*-------------------------------------------------------------
   * qc_basic: query clause: basic (single logical condition)
@@ -405,7 +419,10 @@ qc_boolean:
 qc_basic:
 		qc_tokens	{ $$ = $1; }
 	|	qc_near		{ $$ = $1; }
+	/*|	qc_basic qc_tokens { $$ = _qc->PushQuery(new CQAnd($1,$2)); } ok!*/
+	/*|	qc_basic qc_near   { $$ = _qc->PushQuery(new CQAnd($1,$2)); } ok!*/
 	;
+
 
 qc_near:
 		NEAR '(' qc_tokens ',' qc_tokens ',' integer ')'

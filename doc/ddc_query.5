@@ -110,10 +110,11 @@ Comments may appear after each rule in C notation
 \fIQuery Rules\fR
 .IX Subsection "Query Rules"
 .PP
-.Vb 4
+.Vb 5
 \& q_clause      ::=                                                       /*\-\- Main query clause (logical operations) \-\-*/
 \&                   qc_basic                                              /* Single\-condition clause */
 \&                 | qc_boolean                                            /* Complex boolean condition */
+\&                 | qc_concat                                             /* Concatenated query clauses (implicit logical conjunction) */
 \&                 ;
 \& 
 \& qc_basic      ::=                                                       /*\-\- Basic query clause (single logical condition) \-\-*/
@@ -126,6 +127,12 @@ Comments may appear after each rule in C notation
 \&                 | q_clause || q_clause                                  /* Logical disjunction (\*(Aqor\*(Aq) */
 \&                 | ! q_clause                                            /* Logical negation (\*(Aqnot\*(Aq): not be interpretable for all clauses */
 \&                 | ( qc_boolean )                                        /* Explicit grouping */
+\&                 ;
+\& 
+\& qc_noop       ::=                                                       /*\-\- Implicit conjunction of multiple independent query clauses (ddc >= v2.0.20) \-\-*/
+\&                   qc_basic qc_basic                                     /* ... only basic query clauses can be implicitly conjoined */
+\&                 | qc_noop qc_basic                                      /* ... arbitrarily many clauses may be added */
+\&                 | ( qc_noop )                                           /* ... explicit grouping is allowed */
 \&                 ;
 \& 
 \& qc_near       ::=                                                       /*\-\- Unordered proximity constraint \-\-*/

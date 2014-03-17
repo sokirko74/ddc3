@@ -85,6 +85,9 @@
 	    <rhs cmt="Complex boolean condition">
 	      <n>qc_boolean</n>
 	    </rhs>
+	    <rhs cmt="Concatenated query clauses (implicit logical conjunction)">
+	      <n>qc_concat</n>
+	    </rhs>
 	  </rule>
 
 	  <!--~~~~~~~~ RULES: qc_basic -->
@@ -117,6 +120,23 @@
 	    <rhs cmt="Explicit grouping">
 	      <t>(</t>
 	      <n>qc_boolean</n>
+	      <t>)</t>
+	    </rhs>
+	  </rule>
+
+	  <!--~~~~~~~~ RULES: qc_noop -->
+	  <rule lhs="qc_noop" cmt="Implicit conjunction of multiple independent query clauses (ddc &gt;= v2.0.20)">
+	    <rhs cmt="... only basic query clauses can be implicitly conjoined">
+	      <n>qc_basic</n>
+	      <n>qc_basic</n>
+	    </rhs>
+	    <rhs cmt="... arbitrarily many clauses may be added">
+	      <n>qc_noop</n>
+	      <n>qc_basic</n>
+	    </rhs>
+	    <rhs cmt="... explicit grouping is allowed">
+	      <t>(</t>
+	      <n>qc_noop</n>
 	      <t>)</t>
 	    </rhs>
 	  </rule>
