@@ -218,7 +218,7 @@
 </tr>
 <tr></tr>
 <tr>
-<td><b><a name="rule_qc_noop">qc_noop</a></b></td>
+<td><b><a name="rule_qc_concat">qc_concat</a></b></td>
 <td>::=</td>
 <td></td>
 <td class="ruleCommentTop">/* Implicit conjunction of multiple independent query clauses (ddc &gt;= v2.0.20) */</td>
@@ -233,13 +233,13 @@
 <tr>
 <td></td>
 <td></td>
-<td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_qc_noop">qc_noop</a></span> <span class="ruleNonterminal"><a href="#rule_qc_basic">qc_basic</a></span> </td>
+<td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_qc_concat">qc_concat</a></span> <span class="ruleNonterminal"><a href="#rule_qc_basic">qc_basic</a></span> </td>
 <td class="ruleComment">/* ... arbitrarily many clauses may be added */</td>
 </tr>
 <tr>
 <td></td>
 <td></td>
-<td class="ruleRHS">| <span class="ruleTerminal">(</span> <span class="ruleNonterminal"><a href="#rule_qc_noop">qc_noop</a></span> <span class="ruleTerminal">)</span> </td>
+<td class="ruleRHS">| <span class="ruleTerminal">(</span> <span class="ruleNonterminal"><a href="#rule_qc_concat">qc_concat</a></span> <span class="ruleTerminal">)</span> </td>
 <td class="ruleComment">/* ... explicit grouping is allowed */</td>
 </tr>
 <tr>
@@ -2941,7 +2941,7 @@ regex_modifier	[gimsx]
   </body></div>
 <div class="footers">
 <div class="footer_sig">
-<address><a href="mailto:jurish@bbaw.de">jurish@bbaw.de</a></address>Last modified: Mon, 17 Mar 2014 12:58:53 +0100</div>
+<address><a href="mailto:jurish@bbaw.de">jurish@bbaw.de</a></address>Last modified: Mon, 17 Mar 2014 13:34:08 +0100</div>
 <div class="footer_linkbar"><p class="nopad"><a class="navLink" href="/">Root</a><a class="navLink" href="./">Back</a><span class="navLinkDisabled">Help</span></p></div>
 <p class="dummy"></p>
 </div>

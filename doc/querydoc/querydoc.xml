@@ -124,19 +124,19 @@
 	    </rhs>
 	  </rule>
 
-	  <!--~~~~~~~~ RULES: qc_noop -->
-	  <rule lhs="qc_noop" cmt="Implicit conjunction of multiple independent query clauses (ddc &gt;= v2.0.20)">
+	  <!--~~~~~~~~ RULES: qc_concat -->
+	  <rule lhs="qc_concat" cmt="Implicit conjunction of multiple independent query clauses (ddc &gt;= v2.0.20)">
 	    <rhs cmt="... only basic query clauses can be implicitly conjoined">
 	      <n>qc_basic</n>
 	      <n>qc_basic</n>
 	    </rhs>
 	    <rhs cmt="... arbitrarily many clauses may be added">
-	      <n>qc_noop</n>
+	      <n>qc_concat</n>
 	      <n>qc_basic</n>
 	    </rhs>
 	    <rhs cmt="... explicit grouping is allowed">
 	      <t>(</t>
-	      <n>qc_noop</n>
+	      <n>qc_concat</n>
 	      <t>)</t>
 	    </rhs>
 	  </rule>

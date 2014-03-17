@@ -68,10 +68,10 @@ Comments may appear after each rule in C notation
                  | ( qc_boolean )                                        /* Explicit grouping */
                  ;
  
- qc_noop       ::=                                                       /*-- Implicit conjunction of multiple independent query clauses (ddc >= v2.0.20) --*/
+ qc_concat     ::=                                                       /*-- Implicit conjunction of multiple independent query clauses (ddc >= v2.0.20) --*/
                    qc_basic qc_basic                                     /* ... only basic query clauses can be implicitly conjoined */
-                 | qc_noop qc_basic                                      /* ... arbitrarily many clauses may be added */
-                 | ( qc_noop )                                           /* ... explicit grouping is allowed */
+                 | qc_concat qc_basic                                    /* ... arbitrarily many clauses may be added */
+                 | ( qc_concat )                                         /* ... explicit grouping is allowed */
                  ;
  
  qc_near       ::=                                                       /*-- Unordered proximity constraint --*/
