@@ -1190,16 +1190,17 @@ void CConcHolder::InitSortByContext(const CDDCFilterWithBounds& F) const
 
 	for (size_t HitNo=0; HitNo< HitsCount; HitNo++) {
 		CHit& H = Hits[HitNo];
-		DWORD start_occur = (HitNo == 0) ? 0 : Hits[HitNo-1].m_HighlightOccurrenceEnd;
+		DWORD occur_i      = (F.m_ContextOffset <= 0 
+				      ? ((HitNo == 0) ? 0 : Hits[HitNo-1].m_HighlightOccurrenceEnd)	//-- #left : stick to first occurrence
+				      : Hits[HitNo].m_HighlightOccurrenceEnd-1);			//-- #right: stick to final occurrence
 		DWORD StartTokenNo = (H.m_BreakNo==0) ?  0 : Breaks[H.m_BreakNo-1];
 		DWORD EndTokenNo   = Breaks[H.m_BreakNo];
 
-		if (start_occur >= qnod->m_Occurrences.size())
-			throw CExpc("CConcHolder::InitSortByContext(): start_occur=%i exceeds m_Occurrences.size()=%zd for hit #%zd", start_occur, qnod->m_Occurrences.size(), HitNo);
+		if (occur_i >= qnod->m_Occurrences.size())
+			throw CExpc("CConcHolder::InitSortByContext(): occur_i=%i exceeds m_Occurrences.size()=%zd for hit #%zd", occur_i, qnod->m_Occurrences.size(), HitNo);
 
 		//-- usual case: assign both int and string keys
-		CTokenNo tokId = qnod->m_Occurrences[start_occur];
-		CTokenNo keyId = tokId + F.m_ContextOffset;
+		CTokenNo keyId = qnod->m_Occurrences[occur_i] + F.m_ContextOffset;
 		if (keyId >= StartTokenNo && keyId < EndTokenNo && (H.m_SortKey.i=pIdx->GetTokenIndexId(keyId)) != DWORD_MAX) {
 			//-- usual case: within target break and with a valid item id
 			H.m_SortKey.s = pIdx->GetIndexItemStr( pIdx->m_Index[H.m_SortKey.i] );
