@@ -62,7 +62,7 @@
 .\" ========================================================================
 .\"
 .IX Title "DDC_OPT 5"
-.TH DDC_OPT 5 "2014-03-18" "2.0.20-pre3" "DDC Corpus Indexing System"
+.TH DDC_OPT 5 "2014-03-18" "2.0.20-pre4" "DDC Corpus Indexing System"
 .\" For nroff, turn off justification.  Always turn off hyphenation; it makes
 .\" way too many mistakes in technical documents.
 .if n .ad l
@@ -97,6 +97,7 @@ option files (\*(L"opt-files\*(R") used by the \s-1DDC\s0 corpus indexing system
 \& NoContextOperator
 \& AllowUnsafeQueries
 \& OutputBibliographyOfHits
+\& LemmaQueryUsesMorphPattern
 \& 
 \& IndexChunks
 \& IndexMorphPatterns
@@ -144,6 +145,7 @@ option files (\*(L"opt-files\*(R") used by the \s-1DDC\s0 corpus indexing system
 \& Bibl ...
 \& Expand ...
 \& ExpandBibl ...
+\& DefaultQueryIndex ...
 \& Bigrams ...
 .Ve
 .SH "DESCRIPTION"
@@ -283,6 +285,14 @@ are considered \*(L"unsafe\*(R" for such purposes.
 .PP
 (from DDCReadme):
 If set, then \s-1DDC\s0 outputs bibliographical information for hits instead of filenames.
+.PP
+\fILemmaQueryUsesMorphPattern\fR
+.IX Subsection "LemmaQueryUsesMorphPattern"
+.PP
+If true (default), then \s-1DDC\s0 will treat \f(CW%LEMMA\fR queries as \f(CW\*(C`$Lemma=[LEMMA]\*(C'\fR,
+i.e. implicitly insert @\-delimters around a regex \f(CW\*(C`LEMMA\*(C'\fR.
+Otherwise, \f(CW%LEMMA\fR queries will be treated as \f(CW\*(C`$Lema=@LEMMA\*(C'\fR, i.e. literal matches.
+Since ddc v2.0.20.
 .PP
 \fIIndexChunks\fR
 .IX Subsection "IndexChunks"
@@ -872,6 +882,35 @@ Currently (ddc v2.0.5), all \fI\s-1CLASS\s0\fRes supported by the Expand option 
 by \f(CW\*(C`ExpandBibl\*(C'\fR, except for the \f(CW\*(C`Chain|/chain\*(C'\fR class.
 .PP
 No bibliographic expanders are defined by default.
+.PP
+\fIDefaultQueryIndex\fR
+.IX Subsection "DefaultQueryIndex"
+.PP
+.Vb 1
+\& DefaultQueryIndex OPKEY INDEXNAME
+.Ve
+.PP
+Use index \f(CW\*(C`INDEXNAME\*(C'\fR if otherwise unspecified for runtime queries using operator \f(CW\*(C`OPKEY\*(C'\fR.
+Known values for \f(CW\*(C`OPKEY\*(C'\fR, the associated query classes, and the associated default values for \f(CW\*(C`INDEXNAME\*(C'\fR
+are:
+.PP
+.Vb 12
+\&  OPKEY (INDEXNAME)     CLASS...
+\& \-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
+\&   _    (Token)         CQTokInfl
+\&  @_    (Token)         CQTokExact
+\&  %_    (Lemma)         CQTokLemma
+\&  /_/   (Token)         CQTokRegex, CQTokSuffix, CQTokPrefix, CQTokInfix
+\&  [_]   (MorphPattern)  CQTokMorph
+\& :{_}   (Thes)          CQTokThes
+\&  ^_    (Chunk)         CQTokChunk
+\&  <_    (Token)         CQTokFile
+\&   *    (Token)         none (generic fallback)
+\&   .    n/a             CQTokAnchor
+.Ve
+.PP
+The \*(L".\*(R" operator key is used by $. queries; its \f(CW\*(C`INDEXNAME\*(C'\fR should resolve to a break name rather than a
+token-level index name. Default is whatever break collection was declared as the default.
 .SH "ACKNOWLEDGEMENTS"
 .IX Header "ACKNOWLEDGEMENTS"
 Alexey Sokirko wrote the original \s-1DDC\s0 and the DDCReadme.pdf

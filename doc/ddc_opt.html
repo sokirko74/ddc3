@@ -48,6 +48,7 @@
 			<li><a href="#nocontextoperator">NoContextOperator</a></li>
 			<li><a href="#allowunsafequeries">AllowUnsafeQueries</a></li>
 			<li><a href="#outputbibliographyofhits">OutputBibliographyOfHits</a></li>
+			<li><a href="#lemmaqueryusesmorphpattern">LemmaQueryUsesMorphPattern</a></li>
 			<li><a href="#indexchunks">IndexChunks</a></li>
 			<li><a href="#indexmorphpatterns">IndexMorphPatterns</a></li>
 			<li><a href="#indexpunctuation">IndexPunctuation</a></li>
@@ -92,6 +93,7 @@
 			<li><a href="#bigrams">Bigrams</a></li>
 			<li><a href="#expand">Expand</a></li>
 			<li><a href="#expandbibl">ExpandBibl</a></li>
+			<li><a href="#defaultqueryindex">DefaultQueryIndex</a></li>
 		</ul>
 
 	</ul>
@@ -138,6 +140,7 @@ option files (&quot;opt-files&quot;) used by the DDC corpus indexing system.</p>
  NoContextOperator
  AllowUnsafeQueries
  OutputBibliographyOfHits
+ LemmaQueryUsesMorphPattern
  
  IndexChunks
  IndexMorphPatterns
@@ -185,6 +188,7 @@ option files (&quot;opt-files&quot;) used by the DDC corpus indexing system.</p>
  Bibl ...
  Expand ...
  ExpandBibl ...
+ DefaultQueryIndex ...
  Bigrams ...</pre>
 <p>
 </p>
@@ -309,6 +313,13 @@ are considered &quot;unsafe&quot; for such purposes.</p>
 <h3><a name="outputbibliographyofhits">OutputBibliographyOfHits</a></h3>
 <p>(from DDCReadme):
 If set, then DDC outputs bibliographical information for hits instead of filenames.</p>
+<p>
+</p>
+<h3><a name="lemmaqueryusesmorphpattern">LemmaQueryUsesMorphPattern</a></h3>
+<p>If true (default), then DDC will treat <code>%LEMMA</code> queries as <code>$Lemma=[LEMMA]</code>,
+i.e. implicitly insert @-delimters around a regex <code>LEMMA</code>.
+Otherwise, <code>%LEMMA</code> queries will be treated as <code>$Lema=@LEMMA</code>, i.e. literal matches.
+Since ddc v2.0.20.</p>
 <p>
 </p>
 <h3><a name="indexchunks">IndexChunks</a></h3>
@@ -841,6 +852,29 @@ then the pseudo-field declared with <code>ExpandBibl</code> has precedence when 
 Currently (ddc v2.0.5), all <em>CLASS</em>es supported by the <a href="#expand">Expand</a> option are also supported
 by <code>ExpandBibl</code>, except for the <code>Chain|/chain</code> class.</p>
 <p>No bibliographic expanders are defined by default.</p>
+<p>
+</p>
+<h3><a name="defaultqueryindex">DefaultQueryIndex</a></h3>
+<pre>
+ DefaultQueryIndex OPKEY INDEXNAME</pre>
+<p>Use index <code>INDEXNAME</code> if otherwise unspecified for runtime queries using operator <code>OPKEY</code>.
+Known values for <code>OPKEY</code>, the associated query classes, and the associated default values for <code>INDEXNAME</code>
+are:</p>
+<pre>
+  OPKEY (INDEXNAME)     CLASS...
+ -----------------------------------------------------------------------
+   _    (Token)         CQTokInfl
+  @_    (Token)         CQTokExact
+  %_    (Lemma)         CQTokLemma
+  /_/   (Token)         CQTokRegex, CQTokSuffix, CQTokPrefix, CQTokInfix
+  [_]   (MorphPattern)  CQTokMorph
+ :{_}   (Thes)          CQTokThes
+  ^_    (Chunk)         CQTokChunk
+  &lt;_    (Token)         CQTokFile
+   *    (Token)         none (generic fallback)
+   .    n/a             CQTokAnchor</pre>
+<p>The &quot;.&quot; operator key is used by $. queries; its <code>INDEXNAME</code> should resolve to a break name rather than a
+token-level index name. Default is whatever break collection was declared as the default.</p>
 <p>
 </p>
 <hr />

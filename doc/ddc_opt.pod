@@ -38,6 +38,7 @@ option files ("opt-files") used by the DDC corpus indexing system.
  NoContextOperator
  AllowUnsafeQueries
  OutputBibliographyOfHits
+ LemmaQueryUsesMorphPattern
  
  IndexChunks
  IndexMorphPatterns
@@ -85,6 +86,7 @@ option files ("opt-files") used by the DDC corpus indexing system.
  Bibl ...
  Expand ...
  ExpandBibl ...
+ DefaultQueryIndex ...
  Bigrams ...
 
 =cut
@@ -237,6 +239,13 @@ are considered "unsafe" for such purposes.
 
 (from DDCReadme):
 If set, then DDC outputs bibliographical information for hits instead of filenames.
+
+=head3 LemmaQueryUsesMorphPattern
+
+If true (default), then DDC will treat C<%LEMMA> queries as C<$Lemma=[LEMMA]>,
+i.e. implicitly insert @-delimters around a regex C<LEMMA>.
+Otherwise, C<%LEMMA> queries will be treated as C<$Lema=@LEMMA>, i.e. literal matches.
+Since ddc v2.0.20.
 
 =head3 IndexChunks
 
@@ -788,6 +797,31 @@ Currently (ddc v2.0.5), all I<CLASS>es supported by the L<Expand|/expand> option
 by C<ExpandBibl>, except for the C<Chain|/chain> class.
 
 No bibliographic expanders are defined by default.
+
+=head3 DefaultQueryIndex
+
+ DefaultQueryIndex OPKEY INDEXNAME
+
+Use index C<INDEXNAME> if otherwise unspecified for runtime queries using operator C<OPKEY>.
+Known values for C<OPKEY>, the associated query classes, and the associated default values for C<INDEXNAME>
+are:
+
+
+  OPKEY	(INDEXNAME)	CLASS...
+ -----------------------------------------------------------------------
+   _	(Token)		CQTokInfl
+  @_    (Token)		CQTokExact
+  %_    (Lemma)		CQTokLemma
+  /_/   (Token)		CQTokRegex, CQTokSuffix, CQTokPrefix, CQTokInfix
+  [_]   (MorphPattern)	CQTokMorph
+ :{_}   (Thes)		CQTokThes
+  ^_    (Chunk)		CQTokChunk
+  <_    (Token)		CQTokFile
+   *    (Token)		none (generic fallback)
+   .    n/a		CQTokAnchor
+
+The "." operator key is used by $. queries; its C<INDEXNAME> should resolve to a break name rather than a
+token-level index name. Default is whatever break collection was declared as the default.
 
 =cut
 
