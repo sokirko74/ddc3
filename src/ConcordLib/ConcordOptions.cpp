@@ -25,6 +25,23 @@
 
 const int DefaultKwicContextSize = 4;
 
+// LC_CTYPE_UTF8_DEFAULT : default LC_CTYPE to use for Utf8 mode if no utf8 locale is detected
+const char *LC_CTYPE_UTF8_DEFAULT = "en_US.UTF-8";
+
+//-- option-parsing utility for boolean options
+bool StringToBool(const string &s, bool onempty=true)
+{
+	if (s.empty()) return onempty;
+	string ls = stolower(s);
+	return (ls!="no" && ls!="n" && ls!="false" && ls!="off" && ls!="disabled" && ls!="0");
+}
+
+//-- boolean value reporting
+const char *BoolToString(bool b)
+{
+	return b ? "true" : "false";
+}
+
 void CConcIndexator::InitDefaultOptions()
 {
    	m_Path = "#empty_path";
@@ -77,8 +94,10 @@ void CConcIndexator::InitDefaultOptions()
 	m_TokenDelimiter = "";
 	m_Utf8 = false;
 	m_AllowUnsafeQueries = false;
+	m_bLemmaQueryUsesMorphPattern = true;
 	m_Timestamp = 0;
 	m_Txd.clear();
+	m_OpDefaultIndexNames.clear();
 }
 
 const char* CConcIndexator::GetIndexTypeStr () const
@@ -118,8 +137,6 @@ bool CConcIndexator::LoadOptionsFromString(string Options)
 	string IndicesStr, HitTypesStr, FreeBiblDescr, TextAreasDescr;
 	m_Language = morphUnknown;
 	m_IndicesToShow.resize(1,0);
-    vector<string> BigramDescr;
-	
 
 	while (lines())
 	{
@@ -187,8 +204,8 @@ bool CConcIndexator::LoadOptionsFromString(string Options)
 			}
 		else if (q == "CaseInsensitive")
 			{
-				m_bCaseSensitive = false;
-				fprintf (stderr,"CaseInsensitive\n");
+				m_bCaseSensitive = !StringToBool(fields.next_token());
+				fprintf (stderr,"CaseInsensitive %s\n", BoolToString(m_bCaseSensitive));
 			}
 		else if (q == "HtmlHighlighting")
 			{
@@ -219,8 +236,8 @@ bool CConcIndexator::LoadOptionsFromString(string Options)
 			}
 		else if (q == "ShowNumberOfRelevantDocuments")
 			{
-				m_bShowNumberOfRelevantDocuments = true;
-				fprintf (stderr,"ShowNumberOfRelevantDocuments\n");
+				m_bShowNumberOfRelevantDocuments = StringToBool(fields.next_token());
+				fprintf (stderr,"ShowNumberOfRelevantDocuments %s\n", BoolToString(m_bShowNumberOfRelevantDocuments));
 			}
 		else if (q == FreeBiblAttribOptionFieldName)
 			{
@@ -232,30 +249,31 @@ bool CConcIndexator::LoadOptionsFromString(string Options)
 			}
 		else if (q == "UseParagraphTagToDivide")
 			{
-				m_bUseParagraphTagToDivide = true;
+				m_bUseParagraphTagToDivide = StringToBool(fields.next_token());
 			}
 		else if (q == "QueryOnlyFiles")
 			{
-				m_bQueryOnlyFiles = true;
-				fprintf (stderr,"QueryOnlyFiles\n");
+				m_bQueryOnlyFiles = StringToBool(fields.next_token());
+				fprintf (stderr,"QueryOnlyFiles %s\n", BoolToString(m_bQueryOnlyFiles));
 			}
-		else if (q == "NoContextOperator" )
+		else if (q == "NoContextOperator")
 			{
-				m_bNoContextOperator = true;
+				m_bNoContextOperator = StringToBool(fields.next_token());
+				fprintf (stderr,"NoContextOperator %s\n", BoolToString(m_bNoContextOperator));
 			}
 			
 		else if (q == "EmptyLineIsNotSentenceDelim")
 			{
-				m_bEmptyLineIsSentenceDelim = false;
+				m_bEmptyLineIsSentenceDelim = StringToBool(fields.next_token());
 			}
 		else if (q == "DontUseIndention")
 			{
-				m_bUseIndention = false;
+				m_bUseIndention = StringToBool(fields.next_token());
 			}
 		else if (q == "UseDwdsThesaurus")
 			{
-				m_bUseDwdsThesaurus = true;
-				fprintf (stderr,"UseDwdsThesaurus\n");
+				m_bUseDwdsThesaurus = StringToBool(fields.next_token());
+				fprintf (stderr,"UseDwdsThesaurus %s\n", BoolToString(m_bUseDwdsThesaurus));
 			}
 		else if (q == "MaxRegExpExpansionSize")
 			{
@@ -345,14 +363,17 @@ bool CConcIndexator::LoadOptionsFromString(string Options)
 			}
 		else if (q == "Utf8")
 			{
-				m_Utf8 = true;
-				setlocale(LC_CTYPE,"en_US.UTF-8"); //-- hack
-				fprintf (stderr,"Utf8 mode enabled\n");
+				m_Utf8 = StringToBool(fields.next_token());
 			}
 		else if (q == "AllowUnsafeQueries")
 			{
-				m_AllowUnsafeQueries = true;
-				fprintf (stderr,"AllowUnsafeQueries\n");
+				m_AllowUnsafeQueries = StringToBool(fields.next_token());
+				fprintf (stderr,"AllowUnsafeQueries %s\n", BoolToString(m_AllowUnsafeQueries));
+			}
+		else if (q == "LemmaQueryUsesMorphPattern")
+			{
+				m_bLemmaQueryUsesMorphPattern = StringToBool(fields.next_token());
+				fprintf (stderr, "bLemmaQueryUsesMorphPattern %s\n", BoolToString(m_bLemmaQueryUsesMorphPattern));
 			}
 		else if (q == "IndicesToShow")
 			{
@@ -408,17 +429,17 @@ bool CConcIndexator::LoadOptionsFromString(string Options)
 			}
 		else if (q == "GutenbergInterface")
 			{
-				m_bGutenbergInterface = true;
-				fprintf (stderr,"GutenbergInterface\n");
+				m_bGutenbergInterface = StringToBool(fields.next_token());
+				fprintf (stderr,"GutenbergInterface %s\n", BoolToString(m_bGutenbergInterface));
 			}
 		else if (q == "DwdsCorpusInterface")
 			{
-				m_bDwdsCorpusInterface = true;
-				fprintf (stderr,"DwdsCorpusInterface\n");
+				m_bDwdsCorpusInterface = StringToBool(fields.next_token());
+				fprintf (stderr,"DwdsCorpusInterface %s\n", BoolToString(m_bDwdsCorpusInterface));
 			}
 		else if (q == "Bigrams")
 			{
-                		BigramDescr.push_back( fields.get_rest() );
+				fprintf(stderr, "WARNING: Bigrams declaration ignored for ddc >= v2.0.19: `Bigrams %s'\n", fields.get_rest());
 			}
 		else if (q == "Indices")
 			{
@@ -430,38 +451,38 @@ bool CConcIndexator::LoadOptionsFromString(string Options)
 			}
 		else if (q == "IndexPunctuation")
 			{
-				m_bIndexPunctuation = true;
-				fprintf (stderr,"IndexPunctuation\n");
+				m_bIndexPunctuation = StringToBool(fields.next_token());
+				fprintf (stderr,"IndexPunctuation %s\n", BoolToString(m_bIndexPunctuation));
 			}
 		else if (q == "ResumeOnIndexErrors")
 			{
-				m_bResumeOnIndexErrors = true;
-				fprintf (stderr,"ResumeOnIndexErrors\n");
+				m_bResumeOnIndexErrors = StringToBool(fields.next_token());
+				fprintf (stderr,"ResumeOnIndexErrors %s\n", BoolToString(m_bResumeOnIndexErrors));
 			}
 		else if (q == "IndexMorphPatterns")
 			{
-				m_bIndexMorphPatterns = true;
-				fprintf (stderr,"IndexMorphPatterns\n");
+				m_bIndexMorphPatterns = StringToBool(fields.next_token());
+				fprintf (stderr,"IndexMorphPatterns %s\n", BoolToString(m_bIndexMorphPatterns));
 			}
 		else if (q == "DisableDefaultQueryLexicalExpansion")
 			{
-				m_bDisableDefaultQueryLexicalExpansion = true;
-				fprintf (stderr,"DisableDefaultQueryLexicalExpansion\n");
+				m_bDisableDefaultQueryLexicalExpansion = StringToBool(fields.next_token());
+				fprintf (stderr,"DisableDefaultQueryLexicalExpansion %s\n", BoolToString(m_bDisableDefaultQueryLexicalExpansion));
 			}
 		else if (q == "ArchiveIndex")
 			{
-				m_bArchiveIndex = true;
-				fprintf (stderr,"ArchiveIndex\n");
+				m_bArchiveIndex = StringToBool(fields.next_token());
+				fprintf (stderr,"ArchiveIndex %s\n", BoolToString(m_bArchiveIndex));
 			}
 		else if (q == "OutputBibliographyOfHits")
 			{
-				m_bOutputBibliographyOfHits = true;
-				fprintf (stderr,"OutputBibliographyOfHits\n");
+				m_bOutputBibliographyOfHits = StringToBool(fields.next_token());
+				fprintf (stderr,"OutputBibliographyOfHits %s\n", BoolToString(m_bOutputBibliographyOfHits));
 			}
 		else if (q == "IndexChunks")
 			{
-				m_bIndexChunks = true;
-				fprintf (stderr,"IndexChunks\n");
+				m_bIndexChunks = StringToBool(fields.next_token());
+				fprintf (stderr,"IndexChunks %s\n", BoolToString(m_bIndexChunks));
 			}
 		else if (q == "UserMaxTokenCountInOnePeriod")
 			{
@@ -503,6 +524,11 @@ bool CConcIndexator::LoadOptionsFromString(string Options)
 			bx->compile();
 			fprintf(stderr, "ExpandBibl %s\n", bx->configString().c_str());
 		}
+		else if (q == "DefaultQueryIndex") {
+			string query_op   = fields.next_token();
+			string index_name = fields.next_token();
+			m_OpDefaultIndexNames[query_op] = index_name;
+		}
 		else
 		{
 			fprintf (stderr, "bad syntax in opt-file : %s!\n", q.c_str());
@@ -516,6 +542,21 @@ bool CConcIndexator::LoadOptionsFromString(string Options)
 		ErrorMessage ("There is no language definition in the options file");
 		return false;
 	};
+
+	//-- set utf-8 flag
+	if (m_Utf8) {
+		const char *lc_ctype = setlocale(LC_CTYPE,NULL);
+		if (strstr(lc_ctype,"UTF-8")==NULL && strstr(lc_ctype,"utf8")==NULL) {
+			//-- hack for locale-sensitive internal iconv conversions to/from wchar_t
+			fprintf(stderr, "WARNING: Utf8 mode requested but LC_CTYPE `%s' doesn't seem to be a UTF-8 locale\n", lc_ctype);
+			fprintf(stderr, "WARNING: attempting to set Utf8 LC_CTYPE=%s\n", LC_CTYPE_UTF8_DEFAULT);
+			setlocale(LC_CTYPE,LC_CTYPE_UTF8_DEFAULT);
+			lc_ctype = setlocale(LC_CTYPE,NULL);
+		}
+		fprintf (stderr,"Utf8 mode enabled (LC_CTYPE=%s)\n", lc_ctype);
+	} else {
+		fprintf (stderr,"Utf8 mode disabled\n");
+	}
 
 	//-- ensure default expanders exist
 	m_Txd.ensureDefaultExpanders(langua,
@@ -622,12 +663,26 @@ bool CConcIndexator::LoadOptionsFromString(string Options)
 		}
 	}
 
-        for (size_t i=0; i<BigramDescr.size(); i++) {
-		fprintf(stderr, "WARNING: Bigrams declaration ignored for ddc >= v2.0.19: `%s'\n", BigramDescr[i].c_str());
-	}
-
 	//-- propagate regex-related options to m_Bibl
 	m_Bibl.SetRegexOptions(GetRegexOptions());
+
+	//-- sanity check for m_OpDefaultIndexNames[query_op] = index_name;
+	for (map<string,string>::iterator oni=m_OpDefaultIndexNames.begin(); oni != m_OpDefaultIndexNames.end(); ) {
+		if (oni->first == "." && !GetBreakCollectionByName(oni->second)) {
+			map<string,string>::iterator tmp = oni;
+			fprintf(stderr, "WARNING: ignoring unknown default break collection `%s' for query operator `%s'\n", oni->second.c_str(), oni->first.c_str());
+			++oni;
+			m_OpDefaultIndexNames.erase(tmp);
+			continue;
+		}
+		else if (!GetIndexByNameOrShortName(oni->second)) {
+			map<string,string>::iterator tmp = oni;
+			fprintf(stderr, "WARNING: ignoring unknown default index `%s' for query operator `%s'\n", oni->second.c_str(), oni->first.c_str());
+			++oni;
+			m_OpDefaultIndexNames.erase(tmp);
+			continue;
+		}
+	}
 
 
 	return true;

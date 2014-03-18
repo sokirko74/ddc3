@@ -62,7 +62,7 @@
 .\" ========================================================================
 .\"
 .IX Title "DDC_OPT 5"
-.TH DDC_OPT 5 "2014-03-12" "2.0.20-pre1" "DDC Corpus Indexing System"
+.TH DDC_OPT 5 "2014-03-18" "2.0.20-pre3" "DDC Corpus Indexing System"
 .\" For nroff, turn off justification.  Always turn off hyphenation; it makes
 .\" way too many mistakes in technical documents.
 .if n .ad l
@@ -105,6 +105,8 @@ option files (\*(L"opt-files\*(R") used by the \s-1DDC\s0 corpus indexing system
 \& UseParagraphTagToDivide
 \& EmptyLineIsNotSentenceDelim
 \& DontUseIndention
+\& ArchiveIndex
+\& ResumeOnIndexErrors
 \& 
 \& GutenbergInterface
 \& DwdsCorpusInterface
@@ -122,7 +124,7 @@ option files (\*(L"opt-files\*(R") used by the \s-1DDC\s0 corpus indexing system
 \& TokenDelimiter STRING
 \& InterpDelimiter STRING
 \& 
-\& RightKwicContextSize VAL
+\& RightKwicContextSize N
 \& LeftKwicContextSize N
 \& NumberOfKwicLinesInSnippets N
 \& MaxRegExpExpansionSize N
@@ -138,8 +140,8 @@ option files (\*(L"opt-files\*(R") used by the \s-1DDC\s0 corpus indexing system
 \& ##\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
 \& ## Multi\-valued Options
 \& 
-\& Bibl ...
 \& textarea ...
+\& Bibl ...
 \& Expand ...
 \& ExpandBibl ...
 \& Bigrams ...
@@ -215,13 +217,19 @@ Known languages are \f(CW\*(C`German\*(C'\fR, \f(CW\*(C`Russian\*(C'\fR, \f(CW\*
 .IX Subsection "Boolean Flags and Switches"
 The following options represent boolean flags and switches, which
 are set if and only if the corresponding flag appears in the corpus opt-file.
-To disable an option, omit it from the opt-file or comment it out.
-There is currently no way to override a previously set boolean switch.
+As of ddc v2.0.20, each boolean flag may appear with an optional value argument.
+The value arguments \f(CW\*(C`no\*(C'\fR, \f(CW\*(C`n\*(C'\fR, \f(CW\*(C`false\*(C'\fR, \f(CW\*(C`off\*(C'\fR, \f(CW\*(C`disabled\*(C'\fR, and \f(CW0\fR cause the corresponding
+boolean flag to be cleared.  Omitting the value argument or specifying any other value causes
+the flag to be set.
+.PP
+Prior to ddc v2.0.20,
+there was no way to override a previously set boolean flag:
+to disable a boolean option backwards-compatibly, omit it from the opt-file or comment it out.
 .PP
 \fIUtf8\fR
 .IX Subsection "Utf8"
 .PP
-If present, \s-1DDC\s0 expects all corpus data and external queries to be encoded in \s-1UTF\-8\s0.
+If specified true, \s-1DDC\s0 expects all corpus data and external queries to be encoded in \s-1UTF\-8\s0.
 This uses both iconv and C99 locales internally, so you should ensure that your
 \&\s-1LC_CTYPE\s0 variable has a \s-1UTF\-8\s0 encoding (e.g. \fIexport LC_CTYPE=\*(L"en_US.UTF\-8\*(R"\fR in the parent shell.)
 if you choose to use this option.
@@ -229,7 +237,7 @@ if you choose to use this option.
 \fIDisableDefaultQueryLexicalExpansion\fR
 .IX Subsection "DisableDefaultQueryLexicalExpansion"
 .PP
-If present, \s-1DDC\s0 will not include the \f(CW\*(C`infl\*(C'\fR term expander to the default expansion
+If specified and true, \s-1DDC\s0 will not include the \f(CW\*(C`infl\*(C'\fR term expander to the default expansion
 pipeline for the \f(CW\*(C`Token\*(C'\fR index.
 .PP
 Note that a term expansion explicitly defined with an Expand clause for
@@ -238,7 +246,7 @@ the \f(CW\*(C`Token\*(C'\fR index will override the effects of this option.
 \fICaseInsensitive\fR
 .IX Subsection "CaseInsensitive"
 .PP
-If present, \s-1DDC\s0 will not add the \f(CW\*(C`case\*(C'\fR term expander to the default expansion
+If specified and true, \s-1DDC\s0 will not add the \f(CW\*(C`case\*(C'\fR term expander to the default expansion
 pipeline for the \f(CW\*(C`Token\*(C'\fR index.
 .PP
 Note that a term expansion explicitly defined with an Expand clause for
@@ -248,20 +256,20 @@ the \f(CW\*(C`Token\*(C'\fR index will override the effects of this option.
 .IX Subsection "ShowNumberOfRelevantDocuments"
 .PP
 (from DDCReadme):
-If on, \s-1DDC\s0 calculates the number of relevant documents, otherwise the member that holds this number is set to 0.
+If set, \s-1DDC\s0 calculates the number of relevant documents, otherwise the member that holds this number is set to 0.
 .PP
 \fIQueryOnlyFiles\fR
 .IX Subsection "QueryOnlyFiles"
 .PP
 (from DDCReadme):
-If on, \s-1DDC\s0 doesnât create a sentence break collection.
+If set, \s-1DDC\s0 doesnât create a sentence break collection.
 Only meaningful for \f(CW\*(C`DWDS_Index\*(C'\fR or \f(CW\*(C`MorphXML_Index\*(C'\fR Index Types.
 .PP
 \fINoContextOperator\fR
 .IX Subsection "NoContextOperator"
 .PP
 (from DDCReadme):
-Prohibits context operator (#CNTXT) in the query language.
+If set, prohibits context operator (#CNTXT) in the query language.
 .PP
 \fIAllowUnsafeQueries\fR
 .IX Subsection "AllowUnsafeQueries"
@@ -274,13 +282,13 @@ are considered \*(L"unsafe\*(R" for such purposes.
 .IX Subsection "OutputBibliographyOfHits"
 .PP
 (from DDCReadme):
-If it is on, then \s-1DDC\s0 outputs bibliographical information for hits instead of filenames.
+If set, then \s-1DDC\s0 outputs bibliographical information for hits instead of filenames.
 .PP
 \fIIndexChunks\fR
 .IX Subsection "IndexChunks"
 .PP
 (from DDCReadme):
-Enables indexing and querying using 'chunks', otherwise chunks are ignored.
+If set, enables indexing and querying using 'chunks', otherwise chunks are ignored.
 Only meaningful for the \f(CW\*(C`Free_Index\*(C'\fR Index Type.
 .PP
 \&\s-1NOTE:\s0 seems to control implicit creation of a \f(CW\*(C`Chunk\*(C'\fR index.
@@ -289,7 +297,7 @@ Only meaningful for the \f(CW\*(C`Free_Index\*(C'\fR Index Type.
 .IX Subsection "IndexMorphPatterns"
 .PP
 (from DDCReadme):
-If on, \s-1DDC\s0 creates a \f(CW\*(C`MorphPattern\*(C'\fR index.
+If set, \s-1DDC\s0 creates a \f(CW\*(C`MorphPattern\*(C'\fR index.
 Only meaningful for the \f(CW\*(C`DWDS_Index\*(C'\fR Index Type.
 .PP
 \fIIndexPunctuation\fR
@@ -303,14 +311,14 @@ Only meaningful for the \f(CW\*(C`DWDS_Index\*(C'\fR Index Type.
 .IX Subsection "UseDwdsThesaurus"
 .PP
 (from DDCReadme):
-Enable creation and use of the \f(CW\*(C`Thes\*(C'\fR thesaurus index.
+Enable creation and use of the \f(CW\*(C`Thes\*(C'\fR thesaurus index if set.
 Only meaningful for the \f(CW\*(C`DWDS_Index\*(C'\fR Index Type.
 .PP
 \fIUseParagraphTagToDivide\fR
 .IX Subsection "UseParagraphTagToDivide"
 .PP
 (from DDCReadme):
-If on, the tokenizer seeks \f(CW\*(C`</p>\*(C'\fR in the input 
+If set, the tokenizer seeks \f(CW\*(C`</p>\*(C'\fR in the input 
 texts in order to  divide the text into paragraphs.
 Only meaningful for the \f(CW\*(C`DWDS_Index\*(C'\fR Index Type.
 .PP
@@ -318,15 +326,25 @@ Only meaningful for the \f(CW\*(C`DWDS_Index\*(C'\fR Index Type.
 .IX Subsection "EmptyLineIsNotSentenceDelim"
 .PP
 (from DDCReadme):
-If on, an empty line in the input texts is not interpreted as an end of sentence.
+If set, an empty line in the input texts is not interpreted as an end of sentence.
 Only meaningful for the \f(CW\*(C`DWDS_Index\*(C'\fR Index Type.
 .PP
 \fIDontUseIndention\fR
 .IX Subsection "DontUseIndention"
 .PP
 (from DDCReadme):
-If on, \s-1DDC\s0  doesnât use indention (sic; assumedly \*(L"indentation\*(R" is meant) to find paragraph breaks.
+If set, \s-1DDC\s0  doesnât use indention (sic; assumedly \*(L"indentation\*(R" is meant) to find paragraph breaks.
 Only meaningful for the \f(CW\*(C`DWDS_Index\*(C'\fR Index Type.
+.PP
+\fIArchiveIndex\fR
+.IX Subsection "ArchiveIndex"
+.PP
+Undocumented
+.PP
+\fIResumeOnIndexErrors\fR
+.IX Subsection "ResumeOnIndexErrors"
+.PP
+Undocumented
 .PP
 \fIGutenbergInterface\fR
 .IX Subsection "GutenbergInterface"
@@ -337,7 +355,7 @@ Undocumented
 .IX Subsection "DwdsCorpusInterface"
 .PP
 (from DDCReadme):
-Enables DWDS-like formatting for output hits.
+If set, enables DWDS-like formatting for output hits.
 .SS "Single-valued Options"
 .IX Subsection "Single-valued Options"
 The following options take a single argument, which may be a list of values.
@@ -668,7 +686,8 @@ the sort.
 Example usage: \f(CW\*(C`Bigrams Token 2 s\*(C'\fR.
 .PP
 \&\fB\s-1OBSOLETE\s0\fR as of ddc v2.0.19, which supports generic \f(CW\*(C`#left\*(C'\fR and/or \f(CW\*(C`#right\*(C'\fR query operators
-on arbitrary token attributes within the current query break collection.
+on arbitrary token attributes within the current query break collection, provided the indices for 
+the attributes in question were built with the \s-1STORAGE\s0 option set.
 .PP
 \fIExpand\fR
 .IX Subsection "Expand"

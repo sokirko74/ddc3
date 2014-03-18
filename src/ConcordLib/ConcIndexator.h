@@ -230,6 +230,9 @@ public:
 	//! potentially unsafe queries will throw an exception unless this is true (default=false)
 	bool m_AllowUnsafeQueries;
 
+	//! interpret "%foo" queries using MorphPattern? (default=true)
+	bool m_bLemmaQueryUsesMorphPattern;
+
 	//! indices to show for Free_Index
 	vector<size_t>					m_IndicesToShow;
 
@@ -238,6 +241,21 @@ public:
 
 	//! term expansion dispatcher; should define at least an entry for "default"
 	TxDispatcher m_Txd;
+
+	/** \brief maps token-query operators to default index names; keys are as returned by CQToken::OperatorKey()
+	 * \detail
+	 * \li "_" ~ CQTokInfl (Token)
+	 * \li "@_" ~ CQTokExact (Token)
+	 * \li "%_" ~ CQTokLemma (Lemma)
+	 * \li "/_/" ~ CQTokRegex, CQTokSuffix, CQTokPrefix, CQTokInfix (Token)
+	 * \li "[_]" ~ CQTokMorph (MorphPattern)
+	 * \li ":{_}" ~ CQTokThes (Thes)
+	 * \li "^_" ~ CQTokChunk (Chunk)
+	 * \li "<_" ~ CQTokFile (Token)
+	 * \li "." : CQTokAnchor (sentence: should resolve to a break name rather than a token-level index name)
+	 * \li "*" : generic fallback (Token)
+	 */
+	map<string,string> m_OpDefaultIndexNames;
 
 	CConcIndexator();
 	~CConcIndexator();

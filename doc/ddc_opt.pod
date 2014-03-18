@@ -46,6 +46,8 @@ option files ("opt-files") used by the DDC corpus indexing system.
  UseParagraphTagToDivide
  EmptyLineIsNotSentenceDelim
  DontUseIndention
+ ArchiveIndex
+ ResumeOnIndexErrors
  
  GutenbergInterface
  DwdsCorpusInterface
@@ -63,7 +65,7 @@ option files ("opt-files") used by the DDC corpus indexing system.
  TokenDelimiter STRING
  InterpDelimiter STRING
  
- RightKwicContextSize VAL
+ RightKwicContextSize N
  LeftKwicContextSize N
  NumberOfKwicLinesInSnippets N
  MaxRegExpExpansionSize N
@@ -79,8 +81,8 @@ option files ("opt-files") used by the DDC corpus indexing system.
  ##-------------------------------------------------------------
  ## Multi-valued Options
  
- Bibl ...
  textarea ...
+ Bibl ...
  Expand ...
  ExpandBibl ...
  Bigrams ...
@@ -150,7 +152,7 @@ may change in the future.
 
 Each DDC option file requires two obligatory declarations L<Lang|/lang> and L<IndexType|/indextype>, which
 should occur as the first two options in an opt-file (although they
-may be defined by an external file loaded with the L<include> directive).
+may be defined by an external file loaded with the L<include|/include> directive).
 
 =head3 IndexType
 
@@ -176,19 +178,26 @@ Known languages are C<German>, C<Russian>, C<English>, and (possibly) C<Generic>
 
 The following options represent boolean flags and switches, which
 are set if and only if the corresponding flag appears in the corpus opt-file.
-To disable an option, omit it from the opt-file or comment it out.
-There is currently no way to override a previously set boolean switch.
+As of ddc v2.0.20, each boolean flag may appear with an optional value argument.
+The value arguments C<no>, C<n>, C<false>, C<off>, C<disabled>, and C<0> cause the corresponding
+boolean flag to be cleared.  Omitting the value argument or specifying any other value causes
+the flag to be set.
+
+Prior to ddc v2.0.20,
+there was no way to override a previously set boolean flag:
+to disable a boolean option backwards-compatibly, omit it from the opt-file or comment it out.
+
 
 =head3 Utf8
 
-If present, DDC expects all corpus data and external queries to be encoded in UTF-8.
+If specified true, DDC expects all corpus data and external queries to be encoded in UTF-8.
 This uses both iconv and C99 locales internally, so you should ensure that your
 LC_CTYPE variable has a UTF-8 encoding (e.g. I<export LC_CTYPE="en_US.UTF-8"> in the parent shell.)
 if you choose to use this option.
 
 =head3 DisableDefaultQueryLexicalExpansion
 
-If present, DDC will not include the C<infl> term expander to the default expansion
+If specified and true, DDC will not include the C<infl> term expander to the default expansion
 pipeline for the C<Token> index.
 
 Note that a term expansion explicitly defined with an L<Expand|/expand> clause for
@@ -196,7 +205,7 @@ the C<Token> index will override the effects of this option.
 
 =head3 CaseInsensitive
 
-If present, DDC will not add the C<case> term expander to the default expansion
+If specified and true, DDC will not add the C<case> term expander to the default expansion
 pipeline for the C<Token> index.
 
 Note that a term expansion explicitly defined with an L<Expand|/expand> clause for
@@ -205,18 +214,18 @@ the C<Token> index will override the effects of this option.
 =head3 ShowNumberOfRelevantDocuments
 
 (from DDCReadme):
-If on, DDC calculates the number of relevant documents, otherwise the member that holds this number is set to 0.
+If set, DDC calculates the number of relevant documents, otherwise the member that holds this number is set to 0.
 
 =head3 QueryOnlyFiles
 
 (from DDCReadme):
-If on, DDC doesn’t create a sentence break collection.
+If set, DDC doesn’t create a sentence break collection.
 Only meaningful for C<DWDS_Index> or C<MorphXML_Index> L<Index Types|/indextype>.
 
 =head3 NoContextOperator
 
 (from DDCReadme):
-Prohibits context operator (#CNTXT) in the query language.
+If set, prohibits context operator (#CNTXT) in the query language.
 
 =head3 AllowUnsafeQueries
 
@@ -227,12 +236,12 @@ are considered "unsafe" for such purposes.
 =head3 OutputBibliographyOfHits
 
 (from DDCReadme):
-If it is on, then DDC outputs bibliographical information for hits instead of filenames.
+If set, then DDC outputs bibliographical information for hits instead of filenames.
 
 =head3 IndexChunks
 
 (from DDCReadme):
-Enables indexing and querying using 'chunks', otherwise chunks are ignored.
+If set, enables indexing and querying using 'chunks', otherwise chunks are ignored.
 Only meaningful for the C<Free_Index> L<Index Type|/indextype>.
 
 NOTE: seems to control implicit creation of a C<Chunk> index.
@@ -240,7 +249,7 @@ NOTE: seems to control implicit creation of a C<Chunk> index.
 =head3 IndexMorphPatterns
 
 (from DDCReadme):
-If on, DDC creates a C<MorphPattern> index.
+If set, DDC creates a C<MorphPattern> index.
 Only meaningful for the C<DWDS_Index> L<Index Type|/indextype>.
 
 =head3 IndexPunctuation
@@ -252,27 +261,35 @@ Only meaningful for the C<DWDS_Index> L<Index Type|/indextype>.
 =head3 UseDwdsThesaurus
 
 (from DDCReadme):
-Enable creation and use of the C<Thes> thesaurus index.
+Enable creation and use of the C<Thes> thesaurus index if set.
 Only meaningful for the C<DWDS_Index> L<Index Type|/indextype>.
 
 =head3 UseParagraphTagToDivide
 
 (from DDCReadme):
-If on, the tokenizer seeks C<E<lt>/pE<gt>> in the input 
+If set, the tokenizer seeks C<E<lt>/pE<gt>> in the input 
 texts in order to  divide the text into paragraphs.
 Only meaningful for the C<DWDS_Index> L<Index Type|/indextype>.
 
 =head3 EmptyLineIsNotSentenceDelim
 
 (from DDCReadme):
-If on, an empty line in the input texts is not interpreted as an end of sentence.
+If set, an empty line in the input texts is not interpreted as an end of sentence.
 Only meaningful for the C<DWDS_Index> L<Index Type|/indextype>.
 
 =head3 DontUseIndention
 
 (from DDCReadme):
-If on, DDC  doesn’t use indention (sic; assumedly "indentation" is meant) to find paragraph breaks.
+If set, DDC  doesn’t use indention (sic; assumedly "indentation" is meant) to find paragraph breaks.
 Only meaningful for the C<DWDS_Index> L<Index Type|/indextype>.
+
+=head3 ArchiveIndex
+
+Undocumented
+
+=head3 ResumeOnIndexErrors
+
+Undocumented
 
 =head3 GutenbergInterface
 
@@ -281,7 +298,7 @@ Undocumented
 =head3 DwdsCorpusInterface
 
 (from DDCReadme):
-Enables DWDS-like formatting for output hits.
+If set, enables DWDS-like formatting for output hits.
 
 =cut
 
@@ -332,7 +349,7 @@ By default the first index is build with a storage (if it is not manually prohib
 
 =back
 
-The L<indices> option is only supported for the C<Free_Index> L<Index Type|/indextype>.
+The L<indices|/indices> option is only supported for the C<Free_Index> L<Index Type|/indextype>.
 
 
 =head3 IndicesToShow
@@ -581,7 +598,8 @@ the sort.
 Example usage: C<Bigrams Token 2 s>.
 
 B<OBSOLETE> as of ddc v2.0.19, which supports generic C<#left> and/or C<#right> query operators
-on arbitrary token attributes within the current query break collection.
+on arbitrary token attributes within the current query break collection, provided the indices for 
+the attributes in question were built with the L<STORAGE|/STORAGE> option set.
 
 =head3 Expand
 

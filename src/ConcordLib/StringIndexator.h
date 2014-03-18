@@ -139,11 +139,6 @@ public:
 	size_t							m_MaxRegExpExpansionSize;
 	//! a quick reference to a chunk index, if CConcIndexator::m_bIndexChunks	is on, otherwise null
 	CStringIndexSet*				m_pChunkIndex;
-	//! a quick reference to the left bigrams index 
-	CStringIndexSet*				m_pLeftBigramsIndex;
-	//! a quick reference to the right bigrams index 
-	CStringIndexSet*				m_pRightBigramsIndex;
-	
 
 	CStringIndexator();
 	~CStringIndexator();

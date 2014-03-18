@@ -10,6 +10,8 @@ BEGIN {
   binmode(STDOUT,':utf8');
 }
 
+our $txtkey = 'u'; ##-- token "text" attribute name
+
 our ($buf);
 { local $/=undef; $buf=<>; }
 our $hits = from_json($buf, {utf8=>!utf8::is_utf8($buf)})
@@ -21,14 +23,15 @@ foreach my $hit (@$hits) {
   my $f = basename($hit->{meta_}{file_});
   $f =~ s/\..*$//;
   my $p = ($hit->{meta_}{page_}//0);
-  my $pagei = (grep {$hit->{meta_}{indices_}[$_] eq 'page'} (0..$#{$hit->{meta_}{indices_}}))[0];
+  my $pagei = (grep {$hit->{meta_}{indices_}[$_] eq 'page'}   (0..$#{$hit->{meta_}{indices_}}))[0];
+  my $texti = ((grep {$hit->{meta_}{indices_}[$_] eq $txtkey} (0..$#{$hit->{meta_}{indices_}}))[0] // 0) +1;
 
   my (@l,@c,@r);
   my $ary = \@l;
   foreach (map {@$_} @{$hit->{ctx_}}) {
     if    ($ary eq \@l && ref($_) && $_->[0]) { $ary = \@c; $p = $_->[$pagei+1] if (!$p && $pagei) }
     elsif ($ary eq \@c) { $ary = \@r; }
-    push(@$ary, ref($_) ? ($_->[0] ? "_$_->[1]_" : $_->[1]) : $_);
+    push(@$ary, ref($_) ? ($_->[0] ? "_$_->[$texti]_" : $_->[$texti]) : $_);
   }
 
   push(@hits, ["$f:$p",map {join(' ',@$_)} (\@l,\@c,\@r)]);

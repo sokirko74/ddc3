@@ -55,6 +55,8 @@
 			<li><a href="#useparagraphtagtodivide">UseParagraphTagToDivide</a></li>
 			<li><a href="#emptylineisnotsentencedelim">EmptyLineIsNotSentenceDelim</a></li>
 			<li><a href="#dontuseindention">DontUseIndention</a></li>
+			<li><a href="#archiveindex">ArchiveIndex</a></li>
+			<li><a href="#resumeonindexerrors">ResumeOnIndexErrors</a></li>
 			<li><a href="#gutenberginterface">GutenbergInterface</a></li>
 			<li><a href="#dwdscorpusinterface">DwdsCorpusInterface</a></li>
 		</ul>
@@ -144,6 +146,8 @@ option files (&quot;opt-files&quot;) used by the DDC corpus indexing system.</p>
  UseParagraphTagToDivide
  EmptyLineIsNotSentenceDelim
  DontUseIndention
+ ArchiveIndex
+ ResumeOnIndexErrors
  
  GutenbergInterface
  DwdsCorpusInterface</pre>
@@ -161,7 +165,7 @@ option files (&quot;opt-files&quot;) used by the DDC corpus indexing system.</p>
  TokenDelimiter STRING
  InterpDelimiter STRING
  
- RightKwicContextSize VAL
+ RightKwicContextSize N
  LeftKwicContextSize N
  NumberOfKwicLinesInSnippets N
  MaxRegExpExpansionSize N
@@ -177,8 +181,8 @@ option files (&quot;opt-files&quot;) used by the DDC corpus indexing system.</p>
  ##-------------------------------------------------------------
  ## Multi-valued Options
  
- Bibl ...
  textarea ...
+ Bibl ...
  Expand ...
  ExpandBibl ...
  Bigrams ...</pre>
@@ -231,7 +235,7 @@ may change in the future.</p>
 <h2><a name="required_declarations">Required Declarations</a></h2>
 <p>Each DDC option file requires two obligatory declarations <a href="#lang">Lang</a> and <a href="#indextype">IndexType</a>, which
 should occur as the first two options in an opt-file (although they
-may be defined by an external file loaded with the <a href="#include">the include manpage</a> directive).</p>
+may be defined by an external file loaded with the <a href="#include">include</a> directive).</p>
 <p>
 </p>
 <h3><a name="indextype">IndexType</a></h3>
@@ -250,26 +254,31 @@ Known languages are <code>German</code>, <code>Russian</code>, <code>English</co
 <h2><a name="boolean_flags_and_switches">Boolean Flags and Switches</a></h2>
 <p>The following options represent boolean flags and switches, which
 are set if and only if the corresponding flag appears in the corpus opt-file.
-To disable an option, omit it from the opt-file or comment it out.
-There is currently no way to override a previously set boolean switch.</p>
+As of ddc v2.0.20, each boolean flag may appear with an optional value argument.
+The value arguments <code>no</code>, <code>n</code>, <code>false</code>, <code>off</code>, <code>disabled</code>, and <code>0</code> cause the corresponding
+boolean flag to be cleared.  Omitting the value argument or specifying any other value causes
+the flag to be set.</p>
+<p>Prior to ddc v2.0.20,
+there was no way to override a previously set boolean flag:
+to disable a boolean option backwards-compatibly, omit it from the opt-file or comment it out.</p>
 <p>
 </p>
 <h3><a name="utf8">Utf8</a></h3>
-<p>If present, DDC expects all corpus data and external queries to be encoded in UTF-8.
+<p>If specified true, DDC expects all corpus data and external queries to be encoded in UTF-8.
 This uses both iconv and C99 locales internally, so you should ensure that your
 LC_CTYPE variable has a UTF-8 encoding (e.g. <em>export LC_CTYPE=&quot;en_US.UTF-8&quot;</em> in the parent shell.)
 if you choose to use this option.</p>
 <p>
 </p>
 <h3><a name="disabledefaultquerylexicalexpansion">DisableDefaultQueryLexicalExpansion</a></h3>
-<p>If present, DDC will not include the <a href="#infl"><code>infl</code></a> term expander to the default expansion
+<p>If specified and true, DDC will not include the <a href="#infl"><code>infl</code></a> term expander to the default expansion
 pipeline for the <a href="#token"><code>Token</code></a> index.</p>
 <p>Note that a term expansion explicitly defined with an <a href="#expand">Expand</a> clause for
 the <a href="#token"><code>Token</code></a> index will override the effects of this option.</p>
 <p>
 </p>
 <h3><a name="caseinsensitive">CaseInsensitive</a></h3>
-<p>If present, DDC will not add the <a href="#case"><code>case</code></a> term expander to the default expansion
+<p>If specified and true, DDC will not add the <a href="#case"><code>case</code></a> term expander to the default expansion
 pipeline for the <a href="#token"><code>Token</code></a> index.</p>
 <p>Note that a term expansion explicitly defined with an <a href="#expand">Expand</a> clause for
 the <a href="#token"><code>Token</code></a> index will override the effects of this option.</p>
@@ -277,18 +286,18 @@ the <a href="#token"><code>Token</code></a> index will override the effects of t
 </p>
 <h3><a name="shownumberofrelevantdocuments">ShowNumberOfRelevantDocuments</a></h3>
 <p>(from DDCReadme):
-If on, DDC calculates the number of relevant documents, otherwise the member that holds this number is set to 0.</p>
+If set, DDC calculates the number of relevant documents, otherwise the member that holds this number is set to 0.</p>
 <p>
 </p>
 <h3><a name="queryonlyfiles">QueryOnlyFiles</a></h3>
 <p>(from DDCReadme):
-If on, DDC doesn’t create a sentence break collection.
+If set, DDC doesn’t create a sentence break collection.
 Only meaningful for <code>DWDS_Index</code> or <code>MorphXML_Index</code> <a href="#indextype">Index Types</a>.</p>
 <p>
 </p>
 <h3><a name="nocontextoperator">NoContextOperator</a></h3>
 <p>(from DDCReadme):
-Prohibits context operator (#CNTXT) in the query language.</p>
+If set, prohibits context operator (#CNTXT) in the query language.</p>
 <p>
 </p>
 <h3><a name="allowunsafequeries">AllowUnsafeQueries</a></h3>
@@ -299,19 +308,19 @@ are considered &quot;unsafe&quot; for such purposes.</p>
 </p>
 <h3><a name="outputbibliographyofhits">OutputBibliographyOfHits</a></h3>
 <p>(from DDCReadme):
-If it is on, then DDC outputs bibliographical information for hits instead of filenames.</p>
+If set, then DDC outputs bibliographical information for hits instead of filenames.</p>
 <p>
 </p>
 <h3><a name="indexchunks">IndexChunks</a></h3>
 <p>(from DDCReadme):
-Enables indexing and querying using 'chunks', otherwise chunks are ignored.
+If set, enables indexing and querying using 'chunks', otherwise chunks are ignored.
 Only meaningful for the <code>Free_Index</code> <a href="#indextype">Index Type</a>.</p>
 <p>NOTE: seems to control implicit creation of a <code>Chunk</code> index.</p>
 <p>
 </p>
 <h3><a name="indexmorphpatterns">IndexMorphPatterns</a></h3>
 <p>(from DDCReadme):
-If on, DDC creates a <code>MorphPattern</code> index.
+If set, DDC creates a <code>MorphPattern</code> index.
 Only meaningful for the <code>DWDS_Index</code> <a href="#indextype">Index Type</a>.</p>
 <p>
 </p>
@@ -323,27 +332,35 @@ Only meaningful for the <code>DWDS_Index</code> <a href="#indextype">Index Type<
 </p>
 <h3><a name="usedwdsthesaurus">UseDwdsThesaurus</a></h3>
 <p>(from DDCReadme):
-Enable creation and use of the <code>Thes</code> thesaurus index.
+Enable creation and use of the <code>Thes</code> thesaurus index if set.
 Only meaningful for the <code>DWDS_Index</code> <a href="#indextype">Index Type</a>.</p>
 <p>
 </p>
 <h3><a name="useparagraphtagtodivide">UseParagraphTagToDivide</a></h3>
 <p>(from DDCReadme):
-If on, the tokenizer seeks <code>&lt;/p&gt;</code> in the input 
+If set, the tokenizer seeks <code>&lt;/p&gt;</code> in the input 
 texts in order to  divide the text into paragraphs.
 Only meaningful for the <code>DWDS_Index</code> <a href="#indextype">Index Type</a>.</p>
 <p>
 </p>
 <h3><a name="emptylineisnotsentencedelim">EmptyLineIsNotSentenceDelim</a></h3>
 <p>(from DDCReadme):
-If on, an empty line in the input texts is not interpreted as an end of sentence.
+If set, an empty line in the input texts is not interpreted as an end of sentence.
 Only meaningful for the <code>DWDS_Index</code> <a href="#indextype">Index Type</a>.</p>
 <p>
 </p>
 <h3><a name="dontuseindention">DontUseIndention</a></h3>
 <p>(from DDCReadme):
-If on, DDC  doesn’t use indention (sic; assumedly &quot;indentation&quot; is meant) to find paragraph breaks.
+If set, DDC  doesn’t use indention (sic; assumedly &quot;indentation&quot; is meant) to find paragraph breaks.
 Only meaningful for the <code>DWDS_Index</code> <a href="#indextype">Index Type</a>.</p>
+<p>
+</p>
+<h3><a name="archiveindex">ArchiveIndex</a></h3>
+<p>Undocumented</p>
+<p>
+</p>
+<h3><a name="resumeonindexerrors">ResumeOnIndexErrors</a></h3>
+<p>Undocumented</p>
 <p>
 </p>
 <h3><a name="gutenberginterface">GutenbergInterface</a></h3>
@@ -352,7 +369,7 @@ Only meaningful for the <code>DWDS_Index</code> <a href="#indextype">Index Type<
 </p>
 <h3><a name="dwdscorpusinterface">DwdsCorpusInterface</a></h3>
 <p>(from DDCReadme):
-Enables DWDS-like formatting for output hits.</p>
+If set, enables DWDS-like formatting for output hits.</p>
 <p>
 </p>
 <h2><a name="single_valued_options">Single-valued Options</a></h2>
@@ -397,7 +414,7 @@ If it is <code>storage</code>, then the index is supplied with a storage during 
 By default the first index is build with a storage (if it is not manually prohibited), other indices are built without storages.</p>
 </dd>
 </dl>
-<p>The <a href="#indices">the indices manpage</a> option is only supported for the <code>Free_Index</code> <a href="#indextype">Index Type</a>.</p>
+<p>The <a href="#indices">indices</a> option is only supported for the <code>Free_Index</code> <a href="#indextype">Index Type</a>.</p>
 <p>
 </p>
 <h3><a name="indicestoshow">IndicesToShow</a></h3>
@@ -631,7 +648,8 @@ Up to <em>MAXLEN</em> neighbors are considered for the sort.  Breaks of type <em
 the sort.
 Example usage: <code>Bigrams Token 2 s</code>.</p>
 <p><strong>OBSOLETE</strong> as of ddc v2.0.19, which supports generic <code>#left</code> and/or <code>#right</code> query operators
-on arbitrary token attributes within the current query break collection.</p>
+on arbitrary token attributes within the current query break collection, provided the indices for 
+the attributes in question were built with the <a href="#storage">STORAGE</a> option set.</p>
 <p>
 </p>
 <h3><a name="expand">Expand</a></h3>

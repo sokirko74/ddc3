@@ -1,3 +1,4 @@
+// -*- Mode: C++; c-basic-offset: 8; -*-
 //  DDC originally by Alexey Sokirko
 //  Changes and modifications 2011-2014 by Bryan Jurish
 //
@@ -27,12 +28,9 @@
 
 CStringIndexator::CStringIndexator()
 {
-	
 	m_Path = "#empty_path";
 	m_MaxRegExpExpansionSize = 1000000;
-    m_pChunkIndex = 0;
-    m_pLeftBigramsIndex = 0;
-    m_pRightBigramsIndex = 0;
+	m_pChunkIndex = NULL;
 };
 
 CStringIndexator::~CStringIndexator()

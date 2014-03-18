@@ -1558,44 +1558,35 @@ BYTE ReverseChar (BYTE ch, MorphLanguageEnum langua)
    if  (langua == morphGerman)
    {
 	   if (is_english_lower (ch))
-		   return etoupper (ch);
+	       return etoupper (ch);
+	   else if (is_english_upper (ch))
+	       return etolower (ch);
 	   else
-		 if (is_english_upper (ch))
-			return etolower (ch);
-		 else switch (ch )
-		 {
-			case Auml  : return auml;
-			case auml  : return Auml;;
-			case Uuml  : return uuml;
-			case uuml  : return Uuml;
-			case Ouml  : return ouml;
-			case ouml  : return Ouml;
-			default : return ch;
-		 };
+	       switch (ch ) {
+	       case Auml  : return auml;
+	       case auml  : return Auml;;
+	       case Uuml  : return uuml;
+	       case uuml  : return Uuml;
+	       case Ouml  : return ouml;
+	       case ouml  : return Ouml;
+	       default : return ch;
+	       };
    }
-   else if (langua == morphGeneric)
-   {
-	   if (is_english_lower (ch))
-		   return etoupper (ch);
-	   else
-		 if (is_english_upper (ch))
-			return etolower (ch);
-
-    }
-   else
-   if (is_russian_lower(ch))
-	   return rtoupper (ch);
-   else
-     if (is_russian_upper(ch))
-		 return rtolower(ch);
-     else
+   else if (langua == morphEnglish || langua == morphGeneric) {
        if (is_english_lower (ch))
-			return etoupper (ch);
-       else
-			if (is_english_upper (ch))
-				return etolower (ch);
-
-	return ch;
+	   return etoupper (ch);
+       else if (is_english_upper (ch))
+	   return etolower (ch);
+   }
+   else if (is_russian_lower(ch))
+       return rtoupper (ch);
+   else if (is_russian_upper(ch))
+       return rtolower(ch);
+   else if (is_english_lower (ch))
+       return etoupper (ch);
+   else if (is_english_upper (ch))
+       return etolower (ch);
+   return ch;
 };
 
 

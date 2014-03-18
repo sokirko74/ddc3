@@ -264,7 +264,18 @@ bool CQToken::Create(CQueryTokenNode *pNode)
 string CQToken::IndexName(const string& DefaultIndexName)
 {
   assert(m_Compiler->m_pHolder->m_pIndexator);
-  string name = m_IndexName.empty() ? DefaultIndexName : m_IndexName;
+  string name(m_IndexName);
+  if (m_IndexName.empty()) {
+    const map<string,string> &op2name = m_Compiler->m_pHolder->m_pIndexator->m_OpDefaultIndexNames;
+    map<string,string>::const_iterator namei;
+    if ( (namei = op2name.find(this->OperatorKey())) != op2name.end() ) {
+      name = namei->second;
+    } else if ( (namei = op2name.find("*")) != op2name.end() ) {
+      name = namei->second;
+    } else {
+      name = DefaultIndexName;
+    }
+  }
   const CStringIndexSet* pIndexSet = m_Compiler->m_pHolder->m_pIndexator->GetIndexByNameOrShortName(name);
   if (!pIndexSet) return name; //-- default
   return pIndexSet->m_Name;
@@ -273,7 +284,16 @@ string CQToken::IndexName(const string& DefaultIndexName)
 string CQToken::BreakName(const string& DefaultBreakName)
 {
   assert(m_Compiler->m_pHolder->m_pIndexator);
-  string name = m_IndexName.empty() ? DefaultBreakName : m_IndexName;
+  string name(m_IndexName);
+  if (m_IndexName.empty()) {
+    const map<string,string> &op2name = m_Compiler->m_pHolder->m_pIndexator->m_OpDefaultIndexNames;
+    map<string,string>::const_iterator namei;
+    if ( (namei = op2name.find(this->OperatorKey())) != op2name.end() ) {
+      name = namei->second;
+    } else {
+      name = DefaultBreakName;
+    }
+  }
   const CHitBorders::CBreakCollection* pBreaks = m_Compiler->m_pHolder->m_pIndexator->GetBreakCollectionByName(name);
   if (!pBreaks) return name; //-- default
   return pBreaks->m_LongName;
@@ -498,12 +518,12 @@ string CQTokInfixSet::ValueString(void) {
 
 bool CQTokMorph::Create(CQueryTokenNode *pNode)
 {
-  if (m_IndexName.empty()) m_IndexName = "MorphPattern";
+  if (m_IndexName.empty()) m_IndexName = this->IndexName("MorphPattern");
 
   //-- sanity checks
   if (m_Items.empty())
     throw CExpc(errParseError,"empty pattern not allowed in morphological pattern query `%s'", this->toString().c_str());
-  if (IndexName("MorphPattern").empty())
+  if (m_IndexName.empty())
     throw CExpc(errParseError,"unknown index $%s in morphological pattern query `%s'", m_IndexName.c_str(), this->toString().c_str());
 
 
@@ -525,8 +545,13 @@ string CQTokMorph::ValueString(void) {
 
 bool CQTokLemma::Create(CQueryTokenNode *pNode)
 {
-  if (m_IndexName.empty()) m_IndexName = "Lemma";
-  return CQTokMorph::Create(pNode);
+  assert(m_Compiler->m_pHolder->m_pIndexator);
+  if (m_IndexName.empty()) m_IndexName = this->IndexName("Lemma");
+
+  if (m_Compiler->m_pHolder->m_pIndexator->m_bLemmaQueryUsesMorphPattern) 
+    return CQTokMorph::Create(pNode);
+  else
+    return CQToken::Create(pNode);
 }
 
 string CQTokLemma::ValueString() {

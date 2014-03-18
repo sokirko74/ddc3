@@ -238,6 +238,9 @@ public:
   //! \li default implementation just calls pNode->CreateStringPattern(m_IndexName,m_Value) 
   virtual bool Create(CQueryTokenNode *pNode);
 
+  //! Compilation utility: return query-operator key for use with CConcIndexator::m_OpDefaultIndexNames
+  virtual const char *OperatorKey(void) const { return "_"; };
+
   //! Compilation utility: get long index name (requires non-NULL compiler), empty string is returned if not found
   string IndexName(const string& DefaultIndexName=string(""));
 
@@ -262,6 +265,7 @@ public:
     : CQToken(indexName,value)
   {};
 
+  virtual const char *OperatorKey(void) const { return "@_"; };
   virtual string ValueString();
 };
 
@@ -273,6 +277,7 @@ public:
     : CQToken("",value)
   {};
 
+  virtual const char *OperatorKey(void) const { return "*"; };
   virtual bool Create(CQueryTokenNode *pNode);
   virtual string ValueString();
 };
@@ -291,6 +296,7 @@ public:
     m_ValueInt = strtol(value.c_str(), NULL, 0);
   };
 
+  virtual const char *OperatorKey(void) const { return "."; };
   virtual bool Create(CQueryTokenNode *pNode);
   virtual string IndexString(void);
   virtual string ValueString();
@@ -306,6 +312,7 @@ public:
     : CQToken(indexName,regex), m_bRegexNegated(negated)
   {};
 
+  virtual const char *OperatorKey(void) const { return "/_/"; };
   virtual bool Create(CQueryTokenNode *pNode);
   virtual string ValueString();
 };
@@ -323,6 +330,7 @@ public:
   {};
 
   virtual bool Create(CQueryTokenNode *pNode);
+  virtual const char *OperatorKey(void) const { return "@_"; };
 
   //! utility for use by subclasses: comma-separated list of strings in \a values
   string SetValueString(const set<string> &values);
@@ -354,6 +362,7 @@ public:
     : CQTokSet(indexName,string(""),values), m_Expanders(expanders), m_Txc("(CQTokInfl)")
   {};
 
+
   //! utility gets expansion chain for m_Expanders in m_Txc; requires non-NULL m_Compiler
   //! \li if m_Expanders is empty, uses default expansion chain for index, or identity expander if none is defined
   //! \li an empty string in m_Expanders likewise corresponds to the default expansion chain
@@ -361,6 +370,7 @@ public:
   //! \li returns m_Txc (by reference)
   TxChain& GetChain(void);
 
+  virtual const char *OperatorKey(void) const { return "_"; };
   virtual bool Create(CQueryTokenNode *pNode);
   virtual string ValueString(void);
 
@@ -391,6 +401,8 @@ public:
   CQTokPrefix(const string &indexName=string(""), const string &prefix=string(""))
     : CQToken(indexName,prefix)
   {};
+
+  virtual const char *OperatorKey(void) const { return "/_/"; };
   virtual bool Create(CQueryTokenNode *pNode);
   virtual string ValueString();
 };
@@ -402,6 +414,7 @@ public:
   CQTokSuffix(const string &indexName=string(""), const string &suffix=string(""))
     : CQToken(indexName,suffix)
   {};
+  virtual const char *OperatorKey(void) const { return "/_/"; };
   virtual bool Create(CQueryTokenNode *pNode);
   virtual string ValueString();
 };
@@ -413,6 +426,7 @@ public:
   CQTokInfix(const string &indexName=string(""), const string &infix=string(""))
     : CQToken(indexName,infix)
   {};
+  virtual const char *OperatorKey(void) const { return "/_/"; };
   virtual bool Create(CQueryTokenNode *pNode);
   virtual string ValueString();
 };
@@ -424,6 +438,7 @@ public:
   CQTokPrefixSet(const string &indexName=string(""), const set<string> &prefixes=set<string>())
     : CQTokSet(indexName,"",prefixes)
   {};
+  virtual const char *OperatorKey(void) const { return "/_/"; };
   virtual bool Create(CQueryTokenNode *pNode);
   virtual string ValueString();
 };
@@ -435,6 +450,7 @@ public:
   CQTokSuffixSet(const string &indexName=string(""), const set<string> &suffixes=set<string>())
     : CQTokSet(indexName,"",suffixes)
   {};
+  virtual const char *OperatorKey(void) const { return "/_/"; };
   virtual bool Create(CQueryTokenNode *pNode);
   virtual string ValueString();
 };
@@ -446,6 +462,7 @@ public:
   CQTokInfixSet(const string &indexName=string(""), const set<string> &infixes=set<string>())
     : CQTokSet(indexName,"",infixes)
   {};
+  virtual const char *OperatorKey(void) const { return "/_/"; };
   virtual bool Create(CQueryTokenNode *pNode);
   virtual string ValueString();
 };
@@ -465,18 +482,20 @@ public:
   //! append an item to the current list
   void Append(const string &item) { m_Items.push_back(item); };
 
+  virtual const char *OperatorKey(void) const { return "[_]"; };
   virtual bool Create(CQueryTokenNode *pNode);
   virtual string ValueString();
 };
 
 //------------------------------------------------------------
-//! single-token query: literal lemma match "%LEMMA" (compiles, but UNTESTED)
+//! single-token query: literal lemma match "%LEMMA" (compiles, but UNTESTED under LemmaQueryUsesMorphPattern=true (default))
 class CQTokLemma : public CQTokMorph {
 public:
   CQTokLemma(const string &indexName=string("Lemma"), const string &value=string(""))
     : CQTokMorph(indexName,vector<string>(1,value))
   {};
 
+  virtual const char *OperatorKey(void) const { return "%_"; };
   virtual bool Create(CQueryTokenNode *pNode);
   virtual string ValueString();
 };
@@ -489,6 +508,7 @@ public:
     : CQToken(indexName,value)
   {};
 
+  virtual const char *OperatorKey(void) const { return ":{_}"; };
   virtual bool Create(CQueryTokenNode *pNode);
   virtual string ValueString();
 };
@@ -501,6 +521,7 @@ public:
     : CQToken(indexName,value)
   {};
 
+  virtual const char *OperatorKey(void) const { return "^_"; };
   virtual bool Create(CQueryTokenNode *pNode);
   virtual string ValueString();
 };
@@ -513,6 +534,7 @@ public:
     : CQToken(indexName,fileName)
   {};
 
+  virtual const char *OperatorKey(void) const { return "<_"; };
   virtual bool Create(CQueryTokenNode *pNode);
   virtual string ValueString();
 };

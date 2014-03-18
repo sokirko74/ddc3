@@ -1,5 +1,16 @@
 ##-*- Mode: Change-Log; coding: utf-8; -*-
 
+v2.0.20-pre4 Tue, 18 Mar 2014 12:32:54 +0100 moocow
+	+ added *.opt options LemmaQueryUsesMorphPattern, DefaultQueryIndex
+	+ added parsing of boolean values for *.opt options to CConcIndexator::LoadOptionsFromString()
+	  - this means we can finally override pre-specified boolean flags
+	+ added CConcIndexator::m_OpDefaultIndexNames : operator-specific default index names
+	  - potentially useful to discriminate between "_" (bareword TokInfl queries) vs. "@_" (literal match) and "/_/" (regex, globs)
+	  - idea: map "_" to "Lemma", set default expander "Lemma" to some (CAB-based) external best-lemmatizer,
+	    and avoid the traffic, computational load, and loss of both precision and recall associated with
+	    the current "all-inflected-forms" strategy of CQTokInfl
+	+ cleaned up some lingering bigrams-index crud
+
 v2.0.20-pre3 Mon, 17 Mar 2014 15:45:55 +0100 moocow
 	+ fixed mantis bug #650: subcorpus crash caused by perl-style \x{...} escapes in escapeJsonString()
 	+ fix sort-key selection for #left/#right on multi-token hits
@@ -7,7 +18,7 @@ v2.0.20-pre3 Mon, 17 Mar 2014 15:45:55 +0100 moocow
 	  - NOW: sort-key anchor depends on context-offset distance
 	    ~ anchor is FIRST matching token of hit for #left
 	    ~ anchor is FINAL matching token of hit for #right
-	    ~ anchor is MIDDLE matching token of hit for #context
+	    ~ anchor is MIDDLE matching token of hit for #context (i0 + (iN-i0)/2)
 
 v2.0.20-pre2 Mon, 17 Mar 2014 13:08:43 +0100 moocow
 	+ updated querydoc for new operators
