@@ -88,10 +88,10 @@ bool	CQueryNode::GetNegation() const
 
 void	CQueryNode::AddOccurrences(const CQueryNode& FromNode, int start, int end)
 {
-	m_Occurrences.insert(m_Occurrences.end(), FromNode.m_Occurrences.begin() + start,  FromNode.m_Occurrences.begin() + end);
+	m_Occurrences.insert(m_Occurrences.end(), FromNode.m_Occurrences.begin()+start,  FromNode.m_Occurrences.begin()+end);
 
 	if (m_bUseNodeIndices)
-		m_OccurrenceNodeIndices.insert(m_OccurrenceNodeIndices.end(), FromNode.m_OccurrenceNodeIndices.begin() + start,  FromNode.m_OccurrenceNodeIndices.begin() + end);
+		m_OccurrenceNodeIndices.insert(m_OccurrenceNodeIndices.end(), FromNode.m_OccurrenceNodeIndices.begin()+start,  FromNode.m_OccurrenceNodeIndices.begin()+end);
 }
 
 void	CQueryNode::ClearAndReserveOccurrences(int size)
@@ -1095,18 +1095,18 @@ void CQuerySequenceNode::Evaluate(bool bSeparateHits)
 
 
 CQueryNearNode::CQueryNearNode()
- : CQueryNode(false)
+	: CQueryNode(false)
 {
-	m_pChild1 = 0;
-	m_pChild2 = 0;
-	m_pMiddleChild = 0;
+	m_pChild1 = NULL;
+	m_pChild2 = NULL;
+	m_pChild3 = NULL;
 };
 
 CQueryNearNode::~CQueryNearNode()
 {
 	if (m_pChild1) delete m_pChild1;
 	if (m_pChild2) delete m_pChild2;
-	if (m_pMiddleChild) delete m_pMiddleChild;
+	if (m_pChild3) delete m_pChild3;
 };
 
 size_t CQueryNearNode::GetNodeFrequenceByNodeIndex(size_t NodeIndex) const
@@ -1114,50 +1114,8 @@ size_t CQueryNearNode::GetNodeFrequenceByNodeIndex(size_t NodeIndex) const
 	size_t Result = 0;
 	if (m_pChild1) Result += m_pChild1->GetNodeFrequenceByNodeIndex(NodeIndex);
 	if (m_pChild2) Result += m_pChild2->GetNodeFrequenceByNodeIndex(NodeIndex);
-	if (m_pMiddleChild) Result += m_pMiddleChild->GetNodeFrequenceByNodeIndex(NodeIndex);
+	if (m_pChild3) Result += m_pChild3->GetNodeFrequenceByNodeIndex(NodeIndex);
 	return Result;
-}
-
-
-bool CQueryNearNode::ReadDistanceFromString(const string& s)
-{
-	if (s=="0")
-	{
-		m_Distance = 0;
-		return true;
-	}
-
-	int distance = atoi(s.c_str());
-	if (distance == 0)
-		return false;
-	if (distance > MaxDistanceForNear)
-		return false;
-	m_Distance = distance;
-	return true;
-};
-
-bool CQueryNearNode::Create(const CConcHolder* pHolder, const string& distance_str, CQueryNode* child1, CQueryNode* child2, CQueryNode* child3)
-{
-	if (!ReadDistanceFromString(distance_str)) return false;
-
-	if (!child1->m_bAtomic) return false;
-	if (!child2->m_bAtomic) return false;
-	if (child3 != 0)
-		if (!child3->m_bAtomic) return false;
-
-	if (!child3)
-	{
-		m_pChild1 = child1;
-		m_pChild2 = child2;
-	}
-	else
-	{
-		m_pChild1 = child1;
-		m_pMiddleChild = child2;
-		m_pChild2 = child3;
-	};
-	SetHolder(pHolder);
-	return  true;
 }
 
 bool CQueryNearNode::Create(const CConcHolder* pHolder, BYTE distance, CQueryNode* child1, CQueryNode* child2, CQueryNode* child3)
@@ -1173,147 +1131,100 @@ bool CQueryNearNode::Create(const CConcHolder* pHolder, BYTE distance, CQueryNod
 	if (child3 && !child3->m_bAtomic)
 		throw CExpc(errParseError, "child3 not atomic in near query");
 
-	if (!child3) {
-		m_pChild1 = child1;
-		m_pChild2 = child2;
-	}
-	else {
-		m_pChild1 = child1;
-		m_pMiddleChild = child2;
-		m_pChild2 = child3;
-	}
+	m_pChild1 = child1;
+	m_pChild2 = child2;
+	m_pChild3 = child3;
 
 	SetHolder(pHolder);
 	return  true;
 }
 
 
-void CQueryNearNode::Evaluate(bool bSeparateHits)
+inline CTokenNo absDistance(const CTokenNo t1, const CTokenNo t2)
+{
+	return (t1 >= t2 ? (t1-t2) : (t2-t1));
+}
+
+struct CQNearEvalItem {
+	CQueryNode *node; //-- query node m_pChild$i
+	int cnt;	  //-- limit for  node->m_Occurrences[]
+	int cur;	  //-- index into node->m_Occurrences[]
+	size_t chpos;	  //-- index into node->m_ChunkLengths[] (match occurrence)
+
+	CQNearEvalItem(CQueryNode *node_)
+	: node(node_), cnt(0), cur(0), chpos(0)
+	{
+		if (node) cnt = node->GetOccurrencesSize();
+	};
+
+	inline bool valid() const
+	{ return cur < cnt; };
+
+	inline void operator++()
+	{ 
+		if (!valid()) return;
+		cur += node->m_ChunkLengths[chpos];
+		chpos++;
+	};
+
+	inline CTokenNo chunksize() const
+	{  return node->m_ChunkLengths[chpos]; };
+
+	inline CTokenNo t0() const
+	{ return node->m_Occurrences[cur]; };
+
+	inline CTokenNo t1() const
+	{ return node->m_Occurrences[cur + node->m_ChunkLengths[chpos] - 1]; };
+
+	inline bool operator<(const CQNearEvalItem &b) const
+	{ return t0() < b.t0(); };
+
+	inline CTokenNo distance(const CQNearEvalItem &b) const
+	{
+		CTokenNo max0 = max( t0(), b.t0() );
+		CTokenNo min1 = min( t1(), b.t1() );
+		return max0 < min1 ? 0 : absDistance( max(t0(),b.t0()), min(t1(),b.t1()) );
+	};
+};
+
+void CQueryNearNode::EvaluateWithoutHits()
 {
 	m_ChunkLengths.clear();
 	m_pChild1->EvaluateWithoutHits();
 	m_pChild2->EvaluateWithoutHits();
+	CTokenNo MaxDistance = m_Distance+1;
 
-	if (m_pMiddleChild) 
-	{
-		m_pMiddleChild->EvaluateWithoutHits();
-	};
+	CQNearEvalItem item1(m_pChild1);
+	CQNearEvalItem item2(m_pChild2);
+	CQNearEvalItem item3(m_pChild3); //-- TODO: implement near/3
+	CTokenNo size1, size2, size3;
+	ClearAndReserveOccurrences(min(item1.cnt, item2.cnt)*2);
 
-	int cnt1 = m_pChild1->GetOccurrencesSize();
-	int cnt2 = m_pChild2->GetOccurrencesSize();
-	int cnt_middle = 0;
-	if (m_pMiddleChild) 
-		cnt_middle = m_pMiddleChild->GetOccurrencesSize();
-	if (cnt1 < cnt2)
-	{
-		swap(m_pChild1, m_pChild2);
-		swap(cnt1, cnt2);
+	for ( ; item1.valid() && item2.valid() && (!m_pChild3 || item3.valid()); ) {
+		if (item2 < item1) {
+			//-- case: item2 < item1 , !item3
+			if (item1.distance(item2) <= MaxDistance) {
+				AddOccurrences(*item2.node, item2.cur, item2.cur+item2.chunksize());
+				AddOccurrences(*item1.node, item1.cur, item1.cur+item1.chunksize());
+				m_ChunkLengths.push_back(item1.chunksize()+item2.chunksize());
+			}
+			++item2;
+		}
+		else {
+			//-- case: item1 <= item2, !item3
+			if (item1.distance(item2) <= MaxDistance) {
+				AddOccurrences(*item1.node, item1.cur, item1.cur+item1.chunksize());
+				AddOccurrences(*item2.node, item2.cur, item2.cur+item2.chunksize());
+				m_ChunkLengths.push_back(item1.chunksize()+item2.chunksize());
+			}
+			++item1;
+		}
 	}
+}
 
-	// Start2 is a index in m_pChild2->m_Occurrences
-	int Start2 = 0;
-
-	// Start3 is a index in m_pChild3->m_Occurrences
-	int Start_middle = 0;
-
-	ClearAndReserveOccurrences(min(m_pChild1->GetOccurrencesSize(),  m_pChild2->GetOccurrencesSize())*2);
-	size_t  pos1 = 0, pos2=0, pos_middle = 0; 
-	size_t PatternSize2, PatternSize1, PatternSizeMiddle=0;
-	const bool bMiddleChild  = m_pMiddleChild != 0;
-	for (int i = 0; i < cnt1; i+=m_pChild1->m_ChunkLengths[pos1], pos1++)
-	{
-		CTokenNo  T  = m_pChild1->m_Occurrences[i];
-
-		for (; Start2 < cnt2; Start2 += m_pChild2->m_ChunkLengths[pos2], pos2++)
-			if ( T <= m_pChild2->m_Occurrences[Start2+m_pChild2->m_ChunkLengths[pos2]-1] + m_Distance+1) 
-				break;
-
-		
-
-		// T is the position of the last word in chunk from the first list
-		PatternSize1 = m_pChild1->m_ChunkLengths[pos1];
-		T  = m_pChild1->m_Occurrences[i + PatternSize1 - 1];
-
-	
-		size_t _pos2 = pos2;
-		for (int k = Start2; k < cnt2; k+=m_pChild2->m_ChunkLengths[_pos2++])
-			if ( T + m_Distance+1 < m_pChild2->m_Occurrences[k]) 
-				  //  == " if m_pChild2->m_Occurrences[k] is outside [T-m_Distance, T+m_Distance] then break"
-				break;
-			else
-			{
-				PatternSize2 = m_pChild2->m_ChunkLengths[_pos2];
-
-				if (T < m_pChild2->m_Occurrences[k])
-				{
-					if (bMiddleChild)
-					{
-						bool bCheckMiddle = false;
-						for (; Start_middle < cnt_middle; Start_middle+=m_pMiddleChild->m_ChunkLengths[pos_middle++])
-							if ( m_pMiddleChild->m_Occurrences[Start_middle] > T) 
-							{
-								bCheckMiddle = (m_pMiddleChild->m_Occurrences[Start_middle] < m_pChild2->m_Occurrences[k]);
-								break;
-							};
-						if (!bCheckMiddle)
-							continue;
-					};
-					
-
-					// adding chunk from the first vector
-					AddOccurrences(*m_pChild1, i, i+PatternSize1);
-
-					if (bMiddleChild)
-					{
-						PatternSizeMiddle = m_pMiddleChild->m_ChunkLengths[pos_middle];
-						AddOccurrences(*m_pMiddleChild,  Start_middle, Start_middle+PatternSizeMiddle);
-					};
-
-					// adding chunk from the second vector
-					AddOccurrences(*m_pChild2, k, k+PatternSize2);
-
-					m_ChunkLengths.push_back(PatternSize1+PatternSizeMiddle+PatternSize2);
-
-				}
-				else
-				if (T > m_pChild2->m_Occurrences[k])
-				{
-					if (bMiddleChild)
-					{
-						bool bCheckMiddle = false;
-						for (; Start_middle < cnt_middle; Start_middle+=m_pMiddleChild->m_ChunkLengths[pos_middle++])
-							if ( m_pMiddleChild->m_Occurrences[Start_middle] > m_pChild2->m_Occurrences[k]) 
-							{
-								bCheckMiddle = (m_pMiddleChild->m_Occurrences[Start_middle] < T);
-								break;
-							};
-						if (!bCheckMiddle)
-							continue;
-					};
-
-					// adding chunk from the second vector
-					AddOccurrences(*m_pChild2, k, k+PatternSize2);
-
-					if (bMiddleChild)
-					{
-						PatternSizeMiddle = m_pMiddleChild->m_ChunkLengths[pos_middle];
-						AddOccurrences(*m_pMiddleChild, Start_middle, Start_middle+PatternSizeMiddle);
-					};
-
-					// adding chunk from the first vector
-					AddOccurrences(*m_pChild1, i, i+PatternSize1);
-
-					m_ChunkLengths.push_back(PatternSize1+PatternSizeMiddle+PatternSize2);
-				};
-			};
-
-		// if the middle child is finished than stop processing
-		if (bMiddleChild)
-			if (Start_middle == cnt_middle)
-				break;
-
-	};
-
+void CQueryNearNode::Evaluate(bool bSeparateHits)
+{
+	EvaluateWithoutHits();
 	ConvertOccurrencesToHitsForPatterns(bSeparateHits);
 };
 

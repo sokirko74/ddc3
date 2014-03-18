@@ -93,7 +93,7 @@ public:
 	 * The main task it to build CQueryNode::m_Occurrences, which is written by chunks,
 	 * sorted by the first item of a chunk. 
 	 */
-	virtual void EvaluateWithoutHits();	
+	virtual void EvaluateWithoutHits();
 
 	//! set m_bNegated
 	void SetNegation(bool Value);
@@ -101,13 +101,13 @@ public:
 	//! get m_bNegated
 	bool GetNegation() const;
 
-	//! ?
+	//! inserts occurences [FromNode.m_Occurrences.begin()+start,  FromNode.m_Occurrences.begin()+end) into m_Occurrences[] (and m_OccurrenceNodeIndices if appropriate)
 	void AddOccurrences(const CQueryNode& FromNode, int start, int end);
 
-	//! ?
+	//! clears m_Occurrences[] and reserves at least \a size elements.  Also clears m_OccurrenceNodeIndices[] and reserves if m_bUseNodeIndices is true.
 	void ClearAndReserveOccurrences(int size);
 
-	//! ?
+	//! swaps m_Occurrences[] and m_OccurrenceNodeIndices[] between caller object and Node
 	void SwapOccurrences(CQueryNode& Node);
 
 	//! convert occurrences to hits  using m_pHolder->GetBreaks()
@@ -320,30 +320,23 @@ public:
 	//!  the first child 
 	CQueryNode*		m_pChild1;  
 
-	//!  the middle  child  (can be null)
-	CQueryNode*		m_pMiddleChild;   
-
 	//!  the second  child  
 	CQueryNode*		m_pChild2;  
 
+	//!  the third  child (may be NULL)
+	CQueryNode*		m_pChild3;   
+
 	//!  the distance between the first child and the second child
 	BYTE			m_Distance;
-
-	//! read the  text distance from a string, return false if it is to large
-	//! \deprecated
-	bool ReadDistanceFromString(const string& s);
 
 public:
 	CQueryNearNode();
 	virtual ~CQueryNearNode();
 
-	//! create the node during yacc parsing
-	//! \deprecated in favor of Create(const CConcHolder* pHolder, BYTE distance, CQueryNode* child1, CQueryNode* child2, CQueryNode* child3 = NULL);
-	bool Create(const CConcHolder* pHolder, const string& distance_str, CQueryNode* child1, CQueryNode* child2, CQueryNode* child3 = 0);
-
 	//! create the node after yacc parsing (compile-time)
 	bool Create(const CConcHolder* pHolder, BYTE distance, CQueryNode* child1, CQueryNode* child2, CQueryNode* child3 = NULL);
 
+	void EvaluateWithoutHits();
 	void Evaluate(bool bSeparateHits=false);
 	size_t GetNodeFrequenceByNodeIndex(size_t NodeIndex) const;
 };

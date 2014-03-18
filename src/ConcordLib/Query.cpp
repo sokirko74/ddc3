@@ -618,7 +618,7 @@ void CQNear::ClearNode()
     CQueryNearNode *nn = (CQueryNearNode*)m_Node;
     nn->m_pChild1 = NULL;
     nn->m_pChild2 = NULL;
-    nn->m_pMiddleChild = NULL;
+    nn->m_pChild3 = NULL;
   }
   CQuery::ClearNode();
 }

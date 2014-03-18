@@ -252,8 +252,8 @@ public:
 	 * \li ":{_}" ~ CQTokThes (Thes)
 	 * \li "^_" ~ CQTokChunk (Chunk)
 	 * \li "<_" ~ CQTokFile (Token)
-	 * \li "." : CQTokAnchor (sentence: should resolve to a break name rather than a token-level index name)
-	 * \li "*" : generic fallback (Token)
+	 * \li "." ~ CQTokAnchor (sentence: should resolve to a break name rather than a token-level index name)
+	 * \li "*" ~ generic fallback (Token)
 	 */
 	map<string,string> m_OpDefaultIndexNames;
 

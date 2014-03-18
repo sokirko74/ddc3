@@ -544,8 +544,7 @@ public:
 // Misc
 
 //! 'NEAR' query (e.g. NEAR(a,b,2))
-//! searches 2 or 3 daughter nodes
-//! which are inside some text period of length \c m_Dist.
+//! un-ordered proximity constraint over 2 sub-queries
 class CQNear : public CQNegatable {
 public:
   //! first query argument (required)
@@ -579,6 +578,7 @@ public:
 
   virtual string toString();
 };
+
 
 //! sequence query (e.g. "a #1 b #1 c")
 //!  This class holds a sequence of nodes of type CQToken (slot m_Items).
