@@ -216,8 +216,8 @@ int yylex (void*,  void*);
 %token	<m_str>	GREATER_BY_LEFT
 %token	<m_str>	LESS_BY_RIGHT
 %token	<m_str>	GREATER_BY_RIGHT
-%token	<m_str>	LESS_BY_CONTEXT
-%token	<m_str>	GREATER_BY_CONTEXT
+%token	<m_str>	LESS_BY_MIDDLE
+%token	<m_str>	GREATER_BY_MIDDLE
 %token	<m_str>	DEBUG_RANK
 %token	<m_str>	RANDOM
 
@@ -307,12 +307,12 @@ qf_rank_sort:
 	;
 
 qf_context_sort:
-		LESS_BY_LEFT       qfb_ctxsort	{ $$ = _newCFilter(LessByLeftContext,     ($2!=NOINT ? $2 : -1)); }
-	|	GREATER_BY_LEFT	   qfb_ctxsort	{ $$ = _newCFilter(GreaterByLeftContext,  ($2!=NOINT ? $2 : -1)); }
-	|	LESS_BY_RIGHT      qfb_ctxsort	{ $$ = _newCFilter(LessByRightContext,    ($2!=NOINT ? $2 :  1)); }
-	|	GREATER_BY_RIGHT   qfb_ctxsort	{ $$ = _newCFilter(GreaterByRightContext, ($2!=NOINT ? $2 :  1)); }
-	|	LESS_BY_CONTEXT    qfb_ctxsort	{ $$ = _newCFilter(LessByContext,         ($2!=NOINT ? $2 :  0)); }
-	|	GREATER_BY_CONTEXT qfb_ctxsort	{ $$ = _newCFilter(GreaterByContext,      ($2!=NOINT ? $2 :  0)); }
+		LESS_BY_LEFT       qfb_ctxsort	{ $$ = _newCFilter(LessByLeftContext,      ($2!=NOINT ? $2 : -1)); }
+	|	GREATER_BY_LEFT	   qfb_ctxsort	{ $$ = _newCFilter(GreaterByLeftContext,   ($2!=NOINT ? $2 : -1)); }
+	|	LESS_BY_RIGHT      qfb_ctxsort	{ $$ = _newCFilter(LessByRightContext,     ($2!=NOINT ? $2 :  1)); }
+	|	GREATER_BY_RIGHT   qfb_ctxsort	{ $$ = _newCFilter(GreaterByRightContext,  ($2!=NOINT ? $2 :  1)); }
+	|	LESS_BY_MIDDLE     qfb_ctxsort	{ $$ = _newCFilter(LessByMiddleContext,    ($2!=NOINT ? $2 :  0)); }
+	|	GREATER_BY_MIDDLE  qfb_ctxsort	{ $$ = _newCFilter(GreaterByMiddleContext, ($2!=NOINT ? $2 :  0)); }
 	;
 
 qf_size_sort:

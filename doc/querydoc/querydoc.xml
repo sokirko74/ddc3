@@ -696,29 +696,29 @@
 	    </rhs>
 	  </rule>
 
-	  <!--~~~~~~~~ RULES: qf_context_sort (v2.0.19) -->
+	  <!--~~~~~~~~ RULES: qf_context_sort (v2.0.19(#context) - v2.0.20(#middle)) -->
 	  <rule lhs="qf_context_sort" cmt="Sort and/or filter hits lexicographically by context (required Bigrams index prior to ddc v2.0.19)">
-	    <rhs cmt="... in ascending order by user-specified key offset (aliases: #ASC_CONTEXT, #ASC_BY_CONTEXT)">
-	      <t>#LESS_BY_CONTEXT</t>
+	    <rhs cmt="... in ascending order by user-specified offset relative to hit center (default offset=0; aliases: #MID, #MIDDLE, #ASC_MIDDLE, ...)">
+	      <t>#LESS_BY_MIDDLE</t>
 	      <n>qfb_ctxsort</n>
 	    </rhs>
-	    <rhs cmt="... in descending order by user-specified key offset (aliases: #DESC_CONTEXT, #DESC_BY_CONTEXT)">
-	      <t>#GREATER_BY_CONTEXT</t>
+	    <rhs cmt="... in descending order by user-specified offset relative to hit center (default offset=0; aliases: #DESC_MIDDLE, #DESC_BY_MIDDLE, ...)">
+	      <t>#GREATER_BY_MIDDLE</t>
 	      <n>qfb_ctxsort</n>
 	    </rhs>
-	    <rhs cmt="... in ascending order by preceding context, like #ASC_CONTEXT[-1] (aliases: #LEFT, #ASC_LEFT, #ASC_BY_LEFT)">
+	    <rhs cmt="... in ascending order by preceding context (default offset=-1; aliases: #LEFT, #ASC_LEFT, #ASC_BY_LEFT, ...)">
 	      <t>#LESS_BY_LEFT</t>
 	      <n>qfb_ctxsort</n>
 	    </rhs>
-	    <rhs cmt="... in descending order by preceding context, like #DSC_CONTEXT[-1] (aliases: #DESC_LEFT, #DESC_BY_LEFT)">
+	    <rhs cmt="... in descending order by preceding context (default offset=-1; aliases: #DESC_LEFT, #DESC_BY_LEFT, ....)">
 	      <t>#GREATER_BY_LEFT</t>
 	      <n>qfb_ctxsort</n>
 	    </rhs>
-	    <rhs cmt="... in ascending order by following context, like #ASC_CONTEXT[1] (aliases: #RIGHT, #ASC_RIGHT, #ASC_BY_RIGHT)">
+	    <rhs cmt="... in ascending order by following context (default offset=1; aliases: #RIGHT, #ASC_RIGHT, ...)">
 	      <t>#LESS_BY_RIGHT</t>
 	      <n>qfb_ctxsort</n>
 	    </rhs>
-	    <rhs cmt="... in descending order by following context, like #DSC_CONTEXT[1] (aliases: #RIGHT, #DESC_RIGHT, #DESC_BY_RIGHT)">
+	    <rhs cmt="... in descending order by following context (default offset=1; aliases: #DESC_RIGHT, #DESC_BY_RIGHT, ...)">
 	      <t>#GREATER_BY_RIGHT</t>
 	      <n>qfb_ctxsort</n>
 	    </rhs>
@@ -1279,8 +1279,8 @@ regex_modifier	[gimsx]
 (?i:\#((greater|de?sc)(_by)?_)left)
 (?i:\#((less|asc)(_by)?_)?right)
 (?i:\#((greater|de?sc)(_by)?_)right)
-(?i:\#(less|asc)(_by)?_co?n?te?xt?)
-(?i:\#(greater|de?sc)(_by)?_co?n?te?xt?)
+(?i:\#((less|asc)(_by)?_)?mid(dle)?)
+(?i:\#((greater|de?sc)(_by)?_)mid(dle)?)
 (?i:\#(less|asc)(_by)?)		  
 (?i:\#(greater|de?sc)(_by)?)	
 (?i:\#rand(om)?)

@@ -1208,11 +1208,11 @@ void CConcHolder::InitSortByContext(const CDDCFilterWithBounds& F) const
 			occur_i = H.m_HighlightOccurrenceEnd - 1;
 			break;
 
-		case LessByContext:
-		case GreaterByContext:
+		case LessByMiddleContext:
+		case GreaterByMiddleContext:
 		default:
 			{
-				//-- #context : stick to MIDDLE match-token of each hit
+				//-- #middle : stick to MIDDLE match-token of each hit
 				DWORD occur_li = occur_i = (HitNo == 0) ? 0 : Hits[HitNo-1].m_HighlightOccurrenceEnd;
 				DWORD occur_ri = H.m_HighlightOccurrenceEnd - 1;
 				occur_i = occur_li + (occur_ri-occur_li)/2;
@@ -1257,8 +1257,8 @@ void CConcHolder::InitSortKeyForHits(const CDDCFilterWithBounds& Filter)
 		InitSortByRank();
 		break;
 
-	case LessByContext:
-	case GreaterByContext:
+	case LessByMiddleContext:
+	case GreaterByMiddleContext:
 	case LessByLeftContext:
 	case GreaterByLeftContext:
 	case LessByRightContext:

@@ -129,10 +129,10 @@ enum HitSortEnum {
 	LessByRank = 7,
 	//! sort by document rank (descending) 
 	GreaterByRank = 8,
-	//! sort by match context (ascending) 
-	LessByContext = 9,
+	//! sort by central context (ascending) 
+	LessByMiddleContext = 9,
 	//! sort by match context (descending) 
-	GreaterByContext = 10,
+	GreaterByMiddleContext = 10,
 	//! sort by left context (ascending) 
 	LessByLeftContext = 11,
 	//! sort by left context (descending) 
@@ -166,8 +166,8 @@ static const char *HitSortEnumNames[HitSortsCount] =
 	"GreaterByFreeBiblField",
 	"LessByRank",
 	"GreaterByRank",
-	"LessByContext",
-	"GreaterByContext",
+	"LessByMiddleContext",
+	"GreaterByMiddleContext",
 	"LesaByLeftContext",
 	"GreaterByLeftContext",
 	"LesaByRightContext",
@@ -272,7 +272,7 @@ struct CDDCFilterWithBounds
 		case GreaterByRank:
 		case GreaterBySize:
 		case GreaterByFreeBiblField:
-		case GreaterByContext:
+		case GreaterByMiddleContext:
 		case GreaterByLeftContext:
 		case GreaterByRightContext:
 			return hsoDescending;

@@ -4,6 +4,7 @@ v2.0.20 Wed, 19 Mar 2014 12:34:39 +0100 moocow
 	+ re-worked near() queries (class CQueryNearNode in QueryNode.(cpp|h))
 	  - near(a,b,c, n) now allows all match-orders abc, acb, bac, bca, cab, cba
 	  - previously, near(a,b,c, n) only allowed "b"-central orders abc, cba
+	+ renamed #(asc|dsc)_by_middle to #(asc|dsc)_by_middle to reflect anchor-positioning code
 
 v2.0.20-pre4 Tue, 18 Mar 2014 12:32:54 +0100 moocow
 	+ added *.opt options LemmaQueryUsesMorphPattern, DefaultQueryIndex

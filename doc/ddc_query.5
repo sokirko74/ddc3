@@ -62,7 +62,7 @@
 .\" ========================================================================
 .\"
 .IX Title "DDC_QUERY 5"
-.TH DDC_QUERY 5 "2014-03-17" "2.0.20-pre2" "DDC Corpus Indexing System"
+.TH DDC_QUERY 5 "2014-03-19" "2.0.20" "DDC Corpus Indexing System"
 .\" For nroff, turn off justification.  Always turn off hyphenation; it makes
 .\" way too many mistakes in technical documents.
 .if n .ad l
@@ -320,12 +320,12 @@ Comments may appear after each rule in C notation
 \&                   ;
 \& 
 \& qf_context_sort ::=                                   /*\-\- Sort and/or filter hits lexicographically by context (required Bigrams index prior to ddc v2.0.19) \-\-*/
-\&                     #LESS_BY_CONTEXT qfb_ctxsort      /* ... in ascending order by user\-specified key offset (aliases: #ASC_CONTEXT, #ASC_BY_CONTEXT) */
-\&                   | #GREATER_BY_CONTEXT qfb_ctxsort   /* ... in descending order by user\-specified key offset (aliases: #DESC_CONTEXT, #DESC_BY_CONTEXT) */
-\&                   | #LESS_BY_LEFT qfb_ctxsort         /* ... in ascending order by preceding context, like #ASC_CONTEXT[\-1] (aliases: #LEFT, #ASC_LEFT, #ASC_BY_LEFT) */
-\&                   | #GREATER_BY_LEFT qfb_ctxsort      /* ... in descending order by preceding context, like #DSC_CONTEXT[\-1] (aliases: #DESC_LEFT, #DESC_BY_LEFT) */
-\&                   | #LESS_BY_RIGHT qfb_ctxsort        /* ... in ascending order by following context, like #ASC_CONTEXT[1] (aliases: #RIGHT, #ASC_RIGHT, #ASC_BY_RIGHT) */
-\&                   | #GREATER_BY_RIGHT qfb_ctxsort     /* ... in descending order by following context, like #DSC_CONTEXT[1] (aliases: #RIGHT, #DESC_RIGHT, #DESC_BY_RIGHT) */
+\&                     #LESS_BY_MIDDLE qfb_ctxsort       /* ... in ascending order by offset relative to hit center (default offset=0; aliases: #MID, #MIDDLE, #ASC_MIDDLE, ...) */
+\&                   | #GREATER_BY_MIDDLE qfb_ctxsort    /* ... in descending order by key offset relative to hit center (default offset=0; aliases: #DESC_MIDDLE, #DESC_BY_MIDDLE, ...) */
+\&                   | #LESS_BY_LEFT qfb_ctxsort         /* ... in ascending order by preceding context (default offset=\-1; aliases: #LEFT, #ASC_LEFT, #ASC_BY_LEFT, ...) */
+\&                   | #GREATER_BY_LEFT qfb_ctxsort      /* ... in descending order by preceding context (default offset=\-1; aliases: #DESC_LEFT, #DESC_BY_LEFT, ....) */
+\&                   | #LESS_BY_RIGHT qfb_ctxsort        /* ... in ascending order by following context (default offset=1; aliases: #RIGHT, #ASC_RIGHT, ...) */
+\&                   | #GREATER_BY_RIGHT qfb_ctxsort     /* ... in descending order by following context (default offset=1; aliases: #DESC_RIGHT, #DESC_BY_RIGHT, ...) */
 \&                   ;
 \& 
 \& qf_size_sort    ::=                                   /*\-\- Sort or filter hits by (sentence) length \-\-*/
@@ -585,8 +585,8 @@ The following macros are defined for the underlying scanner:
 \& (?i:\e#((greater|de?sc)(_by)?_)left)
 \& (?i:\e#((less|asc)(_by)?_)?right)
 \& (?i:\e#((greater|de?sc)(_by)?_)right)
-\& (?i:\e#(less|asc)(_by)?_co?n?te?xt?)
-\& (?i:\e#(greater|de?sc)(_by)?_co?n?te?xt?)
+\& (?i:\e#((less|asc)(_by)?_)?mid(dle)?)
+\& (?i:\e#((greater|de?sc)(_by)?_)mid(dle)?)
 \& (?i:\e#(less|asc)(_by)?)                  
 \& (?i:\e#(greater|de?sc)(_by)?)   
 \& (?i:\e#rand(om)?)

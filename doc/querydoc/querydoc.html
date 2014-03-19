@@ -1196,38 +1196,38 @@
 <td></td>
 <td></td>
 <td class="ruleRHS1">
-<span class="ruleTerminal">#LESS_BY_CONTEXT</span> <span class="ruleNonterminal"><a href="#rule_qfb_ctxsort">qfb_ctxsort</a></span> </td>
-<td class="ruleComment">/* ... in ascending order by user-specified key offset (aliases: #ASC_CONTEXT, #ASC_BY_CONTEXT) */</td>
+<span class="ruleTerminal">#LESS_BY_MIDDLE</span> <span class="ruleNonterminal"><a href="#rule_qfb_ctxsort">qfb_ctxsort</a></span> </td>
+<td class="ruleComment">/* ... in ascending order by offset relative to hit center (default offset=0; aliases: #MID, #MIDDLE, #ASC_MIDDLE, ...) */</td>
 </tr>
 <tr>
 <td></td>
 <td></td>
-<td class="ruleRHS">| <span class="ruleTerminal">#GREATER_BY_CONTEXT</span> <span class="ruleNonterminal"><a href="#rule_qfb_ctxsort">qfb_ctxsort</a></span> </td>
-<td class="ruleComment">/* ... in descending order by user-specified key offset (aliases: #DESC_CONTEXT, #DESC_BY_CONTEXT) */</td>
+<td class="ruleRHS">| <span class="ruleTerminal">#GREATER_BY_MIDDLE</span> <span class="ruleNonterminal"><a href="#rule_qfb_ctxsort">qfb_ctxsort</a></span> </td>
+<td class="ruleComment">/* ... in descending order by key offset relative to hit center (default offset=0; aliases: #DESC_MIDDLE, #DESC_BY_MIDDLE, ...) */</td>
 </tr>
 <tr>
 <td></td>
 <td></td>
 <td class="ruleRHS">| <span class="ruleTerminal">#LESS_BY_LEFT</span> <span class="ruleNonterminal"><a href="#rule_qfb_ctxsort">qfb_ctxsort</a></span> </td>
-<td class="ruleComment">/* ... in ascending order by preceding context, like #ASC_CONTEXT[-1] (aliases: #LEFT, #ASC_LEFT, #ASC_BY_LEFT) */</td>
+<td class="ruleComment">/* ... in ascending order by preceding context (default offset=-1; aliases: #LEFT, #ASC_LEFT, #ASC_BY_LEFT, ...) */</td>
 </tr>
 <tr>
 <td></td>
 <td></td>
 <td class="ruleRHS">| <span class="ruleTerminal">#GREATER_BY_LEFT</span> <span class="ruleNonterminal"><a href="#rule_qfb_ctxsort">qfb_ctxsort</a></span> </td>
-<td class="ruleComment">/* ... in descending order by preceding context, like #DSC_CONTEXT[-1] (aliases: #DESC_LEFT, #DESC_BY_LEFT) */</td>
+<td class="ruleComment">/* ... in descending order by preceding context (default offset=-1; aliases: #DESC_LEFT, #DESC_BY_LEFT, ....) */</td>
 </tr>
 <tr>
 <td></td>
 <td></td>
 <td class="ruleRHS">| <span class="ruleTerminal">#LESS_BY_RIGHT</span> <span class="ruleNonterminal"><a href="#rule_qfb_ctxsort">qfb_ctxsort</a></span> </td>
-<td class="ruleComment">/* ... in ascending order by following context, like #ASC_CONTEXT[1] (aliases: #RIGHT, #ASC_RIGHT, #ASC_BY_RIGHT) */</td>
+<td class="ruleComment">/* ... in ascending order by following context (default offset=1; aliases: #RIGHT, #ASC_RIGHT, ...) */</td>
 </tr>
 <tr>
 <td></td>
 <td></td>
 <td class="ruleRHS">| <span class="ruleTerminal">#GREATER_BY_RIGHT</span> <span class="ruleNonterminal"><a href="#rule_qfb_ctxsort">qfb_ctxsort</a></span> </td>
-<td class="ruleComment">/* ... in descending order by following context, like #DSC_CONTEXT[1] (aliases: #RIGHT, #DESC_RIGHT, #DESC_BY_RIGHT) */</td>
+<td class="ruleComment">/* ... in descending order by following context (default offset=1; aliases: #DESC_RIGHT, #DESC_BY_RIGHT, ...) */</td>
 </tr>
 <tr>
 <td></td>
@@ -2276,8 +2276,8 @@ regex_modifier	[gimsx]
 (?i:\#((greater|de?sc)(_by)?_)left)
 (?i:\#((less|asc)(_by)?_)?right)
 (?i:\#((greater|de?sc)(_by)?_)right)
-(?i:\#(less|asc)(_by)?_co?n?te?xt?)
-(?i:\#(greater|de?sc)(_by)?_co?n?te?xt?)
+(?i:\#((less|asc)(_by)?_)?mid(dle)?)
+(?i:\#((greater|de?sc)(_by)?_)mid(dle)?)
 (?i:\#(less|asc)(_by)?)		  
 (?i:\#(greater|de?sc)(_by)?)	
 (?i:\#rand(om)?)
@@ -2941,7 +2941,7 @@ regex_modifier	[gimsx]
   </body></div>
 <div class="footers">
 <div class="footer_sig">
-<address><a href="mailto:jurish@bbaw.de">jurish@bbaw.de</a></address>Last modified: Mon, 17 Mar 2014 13:34:08 +0100</div>
+<address><a href="mailto:jurish@bbaw.de">jurish@bbaw.de</a></address>Last modified: Wed, 19 Mar 2014 13:42:21 +0100</div>
 <div class="footer_linkbar"><p class="nopad"><a class="navLink" href="/">Root</a><a class="navLink" href="./">Back</a><span class="navLinkDisabled">Help</span></p></div>
 <p class="dummy"></p>
 </div>

@@ -51,8 +51,8 @@ Grammar
    35                | GREATER_BY_LEFT qfb_ctxsort
    36                | LESS_BY_RIGHT qfb_ctxsort
    37                | GREATER_BY_RIGHT qfb_ctxsort
-   38                | LESS_BY_CONTEXT qfb_ctxsort
-   39                | GREATER_BY_CONTEXT qfb_ctxsort
+   38                | LESS_BY_MIDDLE qfb_ctxsort
+   39                | GREATER_BY_MIDDLE qfb_ctxsort
 
    40 qf_size_sort: LESS_BY_SIZE qfb_int
    41             | GREATER_BY_SIZE qfb_int
@@ -337,8 +337,8 @@ LESS_BY_LEFT (292) 34
 GREATER_BY_LEFT (293) 35
 LESS_BY_RIGHT (294) 36
 GREATER_BY_RIGHT (295) 37
-LESS_BY_CONTEXT (296) 38
-GREATER_BY_CONTEXT (297) 39
+LESS_BY_MIDDLE (296) 38
+GREATER_BY_MIDDLE (297) 39
 DEBUG_RANK (298) 12 13
 RANDOM (299) 46 47 48
 CONCAT (300)
@@ -1989,32 +1989,32 @@ state 93
     3 q_filters: q_filters . q_flag
     4          | q_filters . q_filter
 
-    CNTXT               shift, and go to state 132
-    WITHIN              shift, and go to state 133
-    SEPARATE_HITS       shift, and go to state 134
-    NOSEPARATE_HITS     shift, and go to state 135
-    HAS_FIELD           shift, and go to state 136
-    FILENAMES_ONLY      shift, and go to state 137
-    GREATER_BY_RANK     shift, and go to state 138
-    LESS_BY_RANK        shift, and go to state 139
-    GREATER_BY_SIZE     shift, and go to state 140
-    LESS_BY_SIZE        shift, and go to state 141
-    IS_SIZE             shift, and go to state 142
-    GREATER_BY_DATE     shift, and go to state 143
-    LESS_BY_DATE        shift, and go to state 144
-    IS_DATE             shift, and go to state 145
-    GREATER_BY          shift, and go to state 146
-    LESS_BY             shift, and go to state 147
-    LESS_BY_LEFT        shift, and go to state 148
-    GREATER_BY_LEFT     shift, and go to state 149
-    LESS_BY_RIGHT       shift, and go to state 150
-    GREATER_BY_RIGHT    shift, and go to state 151
-    LESS_BY_CONTEXT     shift, and go to state 152
-    GREATER_BY_CONTEXT  shift, and go to state 153
-    DEBUG_RANK          shift, and go to state 154
-    RANDOM              shift, and go to state 155
-    '!'                 shift, and go to state 156
-    ':'                 shift, and go to state 157
+    CNTXT              shift, and go to state 132
+    WITHIN             shift, and go to state 133
+    SEPARATE_HITS      shift, and go to state 134
+    NOSEPARATE_HITS    shift, and go to state 135
+    HAS_FIELD          shift, and go to state 136
+    FILENAMES_ONLY     shift, and go to state 137
+    GREATER_BY_RANK    shift, and go to state 138
+    LESS_BY_RANK       shift, and go to state 139
+    GREATER_BY_SIZE    shift, and go to state 140
+    LESS_BY_SIZE       shift, and go to state 141
+    IS_SIZE            shift, and go to state 142
+    GREATER_BY_DATE    shift, and go to state 143
+    LESS_BY_DATE       shift, and go to state 144
+    IS_DATE            shift, and go to state 145
+    GREATER_BY         shift, and go to state 146
+    LESS_BY            shift, and go to state 147
+    LESS_BY_LEFT       shift, and go to state 148
+    GREATER_BY_LEFT    shift, and go to state 149
+    LESS_BY_RIGHT      shift, and go to state 150
+    GREATER_BY_RIGHT   shift, and go to state 151
+    LESS_BY_MIDDLE     shift, and go to state 152
+    GREATER_BY_MIDDLE  shift, and go to state 153
+    DEBUG_RANK         shift, and go to state 154
+    RANDOM             shift, and go to state 155
+    '!'                shift, and go to state 156
+    ':'                shift, and go to state 157
 
     $default  reduce using rule 1 (query)
 
@@ -2711,7 +2711,7 @@ state 151
 
 state 152
 
-   38 qf_context_sort: LESS_BY_CONTEXT . qfb_ctxsort
+   38 qf_context_sort: LESS_BY_MIDDLE . qfb_ctxsort
 
     '['  shift, and go to state 209
 
@@ -2722,7 +2722,7 @@ state 152
 
 state 153
 
-   39 qf_context_sort: GREATER_BY_CONTEXT . qfb_ctxsort
+   39 qf_context_sort: GREATER_BY_MIDDLE . qfb_ctxsort
 
     '['  shift, and go to state 209
 
@@ -3511,14 +3511,14 @@ state 213
 
 state 214
 
-   38 qf_context_sort: LESS_BY_CONTEXT qfb_ctxsort .
+   38 qf_context_sort: LESS_BY_MIDDLE qfb_ctxsort .
 
     $default  reduce using rule 38 (qf_context_sort)
 
 
 state 215
 
-   39 qf_context_sort: GREATER_BY_CONTEXT qfb_ctxsort .
+   39 qf_context_sort: GREATER_BY_MIDDLE qfb_ctxsort .
 
     $default  reduce using rule 39 (qf_context_sort)
 

@@ -165,7 +165,7 @@ public:
 //! m_arg0: field name, m_arg1: lower_bound, m_arg2: upper_bound
 class CQFContextSort : public CQFSort {
 public:
-  CQFContextSort(HitSortEnum ftype=LessByContext,
+  CQFContextSort(HitSortEnum ftype=LessByMiddleContext,
 		 const string &field=string(""),
 		 int offset=0,
 		 const string &lb=string(""),

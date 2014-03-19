@@ -176,8 +176,8 @@ int yylex (void*,  void*);
      GREATER_BY_LEFT = 293,
      LESS_BY_RIGHT = 294,
      GREATER_BY_RIGHT = 295,
-     LESS_BY_CONTEXT = 296,
-     GREATER_BY_CONTEXT = 297,
+     LESS_BY_MIDDLE = 296,
+     GREATER_BY_MIDDLE = 297,
      DEBUG_RANK = 298,
      RANDOM = 299,
      CONCAT = 300,
@@ -626,24 +626,23 @@ static const char *const yytname[] =
   "GREATER_BY_RANK", "LESS_BY_RANK", "GREATER_BY_SIZE", "LESS_BY_SIZE",
   "IS_SIZE", "GREATER_BY_DATE", "LESS_BY_DATE", "IS_DATE", "GREATER_BY",
   "LESS_BY", "LESS_BY_LEFT", "GREATER_BY_LEFT", "LESS_BY_RIGHT",
-  "GREATER_BY_RIGHT", "LESS_BY_CONTEXT", "GREATER_BY_CONTEXT",
-  "DEBUG_RANK", "RANDOM", "CONCAT", "OP_OR", "OP_AND", "'!'", "NEAR",
-  "','", "WITH", "'='", "'<'", "'$'", "'@'", "'^'", "'%'", "'#'", "':'",
-  "'['", "']'", "'{'", "'}'", "'('", "')'", "'\"'", "'*'", "';'",
-  "$accept", "query", "q_filters", "q_flag", "qf_subcorpora", "q_filter",
-  "qf_has_field", "qf_rank_sort", "qf_context_sort", "qf_size_sort",
-  "qf_date_sort", "qf_random_sort", "qf_bibl_sort", "qfb_int", "qfb_date",
-  "qfb_bibl", "qfb_bibl_ne", "qfb_ctxsort", "qfb_ctxkey", "q_clause",
-  "qc_boolean", "qc_concat", "qc_basic", "qc_near", "qc_tokens",
-  "qc_phrase", "qc_word", "qw_bareword", "qw_exact", "qw_regex", "qw_any",
-  "qw_set_exact", "qw_set_infl", "qw_prefix", "qw_suffix", "qw_infix",
-  "qw_infix_set", "qw_prefix_set", "qw_suffix_set", "qw_thesaurus",
-  "qw_morph", "qw_lemma", "qw_chunk", "qw_anchor", "qw_listfile",
-  "qw_with", "l_set", "l_morph", "l_phrase", "l_txchain", "s_index",
-  "s_word", "s_semclass", "s_lemma", "s_chunk", "s_filename",
-  "s_morphitem", "s_subcorpus", "symbol", "sym_str", "s_prefix",
-  "s_suffix", "s_infix", "s_expander", "regex", "neg_regex", "int_str",
-  "integer", "date", 0
+  "GREATER_BY_RIGHT", "LESS_BY_MIDDLE", "GREATER_BY_MIDDLE", "DEBUG_RANK",
+  "RANDOM", "CONCAT", "OP_OR", "OP_AND", "'!'", "NEAR", "','", "WITH",
+  "'='", "'<'", "'$'", "'@'", "'^'", "'%'", "'#'", "':'", "'['", "']'",
+  "'{'", "'}'", "'('", "')'", "'\"'", "'*'", "';'", "$accept", "query",
+  "q_filters", "q_flag", "qf_subcorpora", "q_filter", "qf_has_field",
+  "qf_rank_sort", "qf_context_sort", "qf_size_sort", "qf_date_sort",
+  "qf_random_sort", "qf_bibl_sort", "qfb_int", "qfb_date", "qfb_bibl",
+  "qfb_bibl_ne", "qfb_ctxsort", "qfb_ctxkey", "q_clause", "qc_boolean",
+  "qc_concat", "qc_basic", "qc_near", "qc_tokens", "qc_phrase", "qc_word",
+  "qw_bareword", "qw_exact", "qw_regex", "qw_any", "qw_set_exact",
+  "qw_set_infl", "qw_prefix", "qw_suffix", "qw_infix", "qw_infix_set",
+  "qw_prefix_set", "qw_suffix_set", "qw_thesaurus", "qw_morph", "qw_lemma",
+  "qw_chunk", "qw_anchor", "qw_listfile", "qw_with", "l_set", "l_morph",
+  "l_phrase", "l_txchain", "s_index", "s_word", "s_semclass", "s_lemma",
+  "s_chunk", "s_filename", "s_morphitem", "s_subcorpus", "symbol",
+  "sym_str", "s_prefix", "s_suffix", "s_infix", "s_expander", "regex",
+  "neg_regex", "int_str", "integer", "date", 0
 };
 #endif
 
@@ -2060,42 +2059,42 @@ yyreduce:
 
 /* Line 1806 of yacc.c  */
 #line 310 "yyQParser.y"
-    { (yyval.m_pfilt) = _newCFilter(LessByLeftContext,     ((yyvsp[(2) - (2)].m_int)!=NOINT ? (yyvsp[(2) - (2)].m_int) : -1)); }
+    { (yyval.m_pfilt) = _newCFilter(LessByLeftContext,      ((yyvsp[(2) - (2)].m_int)!=NOINT ? (yyvsp[(2) - (2)].m_int) : -1)); }
     break;
 
   case 36:
 
 /* Line 1806 of yacc.c  */
 #line 311 "yyQParser.y"
-    { (yyval.m_pfilt) = _newCFilter(GreaterByLeftContext,  ((yyvsp[(2) - (2)].m_int)!=NOINT ? (yyvsp[(2) - (2)].m_int) : -1)); }
+    { (yyval.m_pfilt) = _newCFilter(GreaterByLeftContext,   ((yyvsp[(2) - (2)].m_int)!=NOINT ? (yyvsp[(2) - (2)].m_int) : -1)); }
     break;
 
   case 37:
 
 /* Line 1806 of yacc.c  */
 #line 312 "yyQParser.y"
-    { (yyval.m_pfilt) = _newCFilter(LessByRightContext,    ((yyvsp[(2) - (2)].m_int)!=NOINT ? (yyvsp[(2) - (2)].m_int) :  1)); }
+    { (yyval.m_pfilt) = _newCFilter(LessByRightContext,     ((yyvsp[(2) - (2)].m_int)!=NOINT ? (yyvsp[(2) - (2)].m_int) :  1)); }
     break;
 
   case 38:
 
 /* Line 1806 of yacc.c  */
 #line 313 "yyQParser.y"
-    { (yyval.m_pfilt) = _newCFilter(GreaterByRightContext, ((yyvsp[(2) - (2)].m_int)!=NOINT ? (yyvsp[(2) - (2)].m_int) :  1)); }
+    { (yyval.m_pfilt) = _newCFilter(GreaterByRightContext,  ((yyvsp[(2) - (2)].m_int)!=NOINT ? (yyvsp[(2) - (2)].m_int) :  1)); }
     break;
 
   case 39:
 
 /* Line 1806 of yacc.c  */
 #line 314 "yyQParser.y"
-    { (yyval.m_pfilt) = _newCFilter(LessByContext,         ((yyvsp[(2) - (2)].m_int)!=NOINT ? (yyvsp[(2) - (2)].m_int) :  0)); }
+    { (yyval.m_pfilt) = _newCFilter(LessByMiddleContext,    ((yyvsp[(2) - (2)].m_int)!=NOINT ? (yyvsp[(2) - (2)].m_int) :  0)); }
     break;
 
   case 40:
 
 /* Line 1806 of yacc.c  */
 #line 315 "yyQParser.y"
-    { (yyval.m_pfilt) = _newCFilter(GreaterByContext,      ((yyvsp[(2) - (2)].m_int)!=NOINT ? (yyvsp[(2) - (2)].m_int) :  0)); }
+    { (yyval.m_pfilt) = _newCFilter(GreaterByMiddleContext, ((yyvsp[(2) - (2)].m_int)!=NOINT ? (yyvsp[(2) - (2)].m_int) :  0)); }
     break;
 
   case 41:
@@ -3206,7 +3205,7 @@ yyreduce:
 
 
 /* Line 1806 of yacc.c  */
-#line 3210 "yyQParser.cpp"
+#line 3209 "yyQParser.cpp"
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires
