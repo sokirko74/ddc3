@@ -1140,11 +1140,6 @@ bool CQueryNearNode::Create(const CConcHolder* pHolder, BYTE distance, CQueryNod
 }
 
 
-inline CTokenNo absDistance(const CTokenNo t1, const CTokenNo t2)
-{
-	return (t1 >= t2 ? (t1-t2) : (t2-t1));
-}
-
 struct CQNearEvalItem {
 	CQueryNode *node; //-- query node m_pChild$i
 	int cnt;	  //-- limit for  node->m_Occurrences[]
@@ -1157,6 +1152,19 @@ struct CQNearEvalItem {
 		if (node) cnt = node->GetOccurrencesSize();
 	};
 
+	CQNearEvalItem(const CQNearEvalItem &b)
+	: node(b.node), cnt(b.cnt), cur(b.cur), chpos(b.chpos)
+	{};
+
+	inline CQNearEvalItem &operator=(CQNearEvalItem &b)
+	{
+		node = b.node;
+		cnt = b.cnt;
+		cur = b.cur;
+		chpos = b.chpos;
+		return *this;
+	};
+
 	inline bool valid() const
 	{ return cur < cnt; };
 
@@ -1167,67 +1175,118 @@ struct CQNearEvalItem {
 		chpos++;
 	};
 
-	inline CTokenNo chunksize() const
+	inline size_t chunksize() const
 	{  return node->m_ChunkLengths[chpos]; };
 
-	inline CTokenNo t0() const
+	inline CTokenNo tbegin() const
 	{ return node->m_Occurrences[cur]; };
 
-	inline CTokenNo t1() const
+	inline CTokenNo tend() const
 	{ return node->m_Occurrences[cur + node->m_ChunkLengths[chpos] - 1]; };
-
-	inline bool operator<(const CQNearEvalItem &b) const
-	{ return t0() < b.t0(); };
-
-	inline CTokenNo distance(const CQNearEvalItem &b) const
-	{
-		CTokenNo max0 = max( t0(), b.t0() );
-		CTokenNo min1 = min( t1(), b.t1() );
-		return max0 < min1 ? 0 : absDistance( max(t0(),b.t0()), min(t1(),b.t1()) );
-	};
 };
 
-void CQueryNearNode::EvaluateWithoutHits()
+void CQueryNearNode::FindOccurrences2()
 {
 	m_ChunkLengths.clear();
 	m_pChild1->EvaluateWithoutHits();
 	m_pChild2->EvaluateWithoutHits();
 	CTokenNo MaxDistance = m_Distance+1;
 
+	if (m_pChild2->GetOccurrencesSize() < m_pChild1->GetOccurrencesSize())
+		swap(m_pChild1,m_pChild2);
+
 	CQNearEvalItem item1(m_pChild1);
 	CQNearEvalItem item2(m_pChild2);
-	CQNearEvalItem item3(m_pChild3); //-- TODO: implement near/3
-	CTokenNo size1, size2, size3;
-	ClearAndReserveOccurrences(min(item1.cnt, item2.cnt)*2);
+	ClearAndReserveOccurrences(item1.cnt*2);
 
-	for ( ; item1.valid() && item2.valid() && (!m_pChild3 || item3.valid()); ) {
-		if (item2 < item1) {
-			//-- case: item2 < item1 , !item3
-			if (item1.distance(item2) <= MaxDistance) {
-				AddOccurrences(*item2.node, item2.cur, item2.cur+item2.chunksize());
-				AddOccurrences(*item1.node, item1.cur, item1.cur+item1.chunksize());
-				m_ChunkLengths.push_back(item1.chunksize()+item2.chunksize());
-			}
-			++item2;
+	for ( ; item1.valid() && item2.valid(); ++item1 ) {
+
+		//-- advance item2 until (item1.tbegin() <= item2.tend()+MaxDistance)
+		for ( ; item2.valid() && item1.tbegin() > item2.tend() + MaxDistance; ++item2 )
+			;
+
+		//-- find all item2 occurences s.t. (item1.tend()+MaxDistance >= item2.tbegin())
+		CQNearEvalItem resume2(item2);
+		for ( ; item2.valid() && item1.tend()+MaxDistance >= item2.tbegin(); ++item2 ) {
+			size_t occsize0 = m_Occurrences.size();
+			size_t size1 = item1.chunksize();
+			size_t size2 = item2.chunksize();
+			AddOccurrences(*item1.node, item1.cur, item1.cur+size1);
+			AddOccurrences(*item2.node, item2.cur, item2.cur+size2);
+			m_ChunkLengths.push_back(size1+size2);
+			sort(m_Occurrences.begin()+occsize0, m_Occurrences.end()); //-- ensure m_Occurrences is sorted
 		}
-		else {
-			//-- case: item1 <= item2, !item3
-			if (item1.distance(item2) <= MaxDistance) {
-				AddOccurrences(*item1.node, item1.cur, item1.cur+item1.chunksize());
-				AddOccurrences(*item2.node, item2.cur, item2.cur+item2.chunksize());
-				m_ChunkLengths.push_back(item1.chunksize()+item2.chunksize());
+
+		//-- update positions
+		item2 = resume2;
+	}
+}
+
+void CQueryNearNode::FindOccurrences3()
+{
+	m_ChunkLengths.clear();
+	m_pChild1->EvaluateWithoutHits();
+	m_pChild2->EvaluateWithoutHits();
+	m_pChild3->EvaluateWithoutHits();
+	CTokenNo MaxDistance = m_Distance+1;
+
+	if (m_pChild2->GetOccurrencesSize() < m_pChild1->GetOccurrencesSize())
+		swap(m_pChild1,m_pChild2);
+	if (m_pChild3->GetOccurrencesSize() < m_pChild1->GetOccurrencesSize())
+		swap(m_pChild1,m_pChild3);
+
+	CQNearEvalItem item1(m_pChild1);
+	CQNearEvalItem item2(m_pChild2);
+	CQNearEvalItem item3(m_pChild3);
+	ClearAndReserveOccurrences(item1.cnt*3);
+
+	for ( ; item1.valid() && item2.valid() && item3.valid(); ++item1 ) {
+
+		//-- advance item2 until (item1.tbegin() <= item2.tend()+MaxDistance)
+		for ( ; item2.valid() && item1.tbegin() > item2.tend() + MaxDistance; ++item2 ) ;
+
+		//-- find all item2 occurences s.t. (item1.tend()+MaxDistance >= item2.tbegin())
+		CQNearEvalItem resume2(item2);
+		for ( ; item2.valid() && item3.valid() && item1.tend()+MaxDistance >= item2.tbegin(); ++item2 ) {
+			CTokenNo max_begin = max(item1.tbegin(), item2.tbegin());
+			CTokenNo min_end   = min(item1.tend(),   item2.tend());
+
+			//-- advance item3 until (max_begin <= item3.tend()+MaxDistance)
+			for ( ; item3.valid() && max_begin > item3.tend() + MaxDistance; ++item3 ) ;
+
+			//-- find all item3 occurences s.t. (min_end+MaxDistance >= item3.tbegin())
+			CQNearEvalItem resume3(item3);
+			for ( ; item3.valid() && min_end+MaxDistance >= item3.tbegin(); ++item3 ) {
+				size_t occsize0 = m_Occurrences.size();
+				size_t size1 = item1.chunksize();
+				size_t size2 = item2.chunksize();
+				size_t size3 = item3.chunksize();
+				AddOccurrences(*item1.node, item1.cur, item1.cur+size1);
+				AddOccurrences(*item2.node, item2.cur, item2.cur+size2);
+				AddOccurrences(*item3.node, item3.cur, item3.cur+size3);
+				m_ChunkLengths.push_back(size1+size2+size3);
+				sort(m_Occurrences.begin()+occsize0, m_Occurrences.end()); //-- ensure m_Occurrences is sorted
 			}
-			++item1;
+
+			//-- update item3 position
+			item3 = resume3;
 		}
+
+		//-- update item2 position
+		item2 = resume2;
 	}
 }
 
 void CQueryNearNode::Evaluate(bool bSeparateHits)
 {
-	EvaluateWithoutHits();
+	if (m_pChild3)
+		FindOccurrences3();
+	else
+		FindOccurrences2();
 	ConvertOccurrencesToHitsForPatterns(bSeparateHits);
 };
 
+//======================== CQueryWithNode =========================
 
 CQueryWithNode::CQueryWithNode()
 {

@@ -310,9 +310,11 @@ public:
 
 //----------------------------------------------------------------------
 /*!
-  \brief CQueryNearNode is a class which is used to search two or three 
-  nodes, which are inside some text period of length CQueryNearNode::m_Distance. It other words
-  it is an implementation of "near" operator: for example, NEAR(a,b,2).
+  \brief CQueryNearNode is a class which is used to search two or three
+  child nodes, which are inside some text period of length CQueryNearNode::m_Distance ,
+  i.e. an implementation of "near" operator NEAR(a,b,2) and NEAR(a,b,c, 2).
+  Note that for the 3-subquery form NEAR(a,b,c, n), n specifies the maximum number
+  of tokens between ANY PAIR of subqueries (a,b), (b,c), or (a,c).
 */ 
 class CQueryNearNode : public CQueryNode 
 {
@@ -336,7 +338,8 @@ public:
 	//! create the node after yacc parsing (compile-time)
 	bool Create(const CConcHolder* pHolder, BYTE distance, CQueryNode* child1, CQueryNode* child2, CQueryNode* child3 = NULL);
 
-	void EvaluateWithoutHits();
+	void FindOccurrences2();
+	void FindOccurrences3();
 	void Evaluate(bool bSeparateHits=false);
 	size_t GetNodeFrequenceByNodeIndex(size_t NodeIndex) const;
 };
