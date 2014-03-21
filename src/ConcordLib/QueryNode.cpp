@@ -162,9 +162,9 @@ void CQueryNode::ConvertOccurrencesToHits (bool bSeparateHits)
 				
 
 
-		if (	m_Hits.empty() 
+		if (	bSeparateHits
+			|| m_Hits.empty() 
 			|| ( m_Hits.back().m_BreakNo != BreakNo)
-			|| bSeparateHits
 		   )
    		{
 			CHit H(BreakNo);
@@ -180,8 +180,6 @@ void CQueryNode::ConvertOccurrencesToHits (bool bSeparateHits)
 		SwapOccurrences(NewNode);
 		
 };
-
-
 
 
 void CQueryNode::ConvertOccurrencesToHitsForPatterns (bool bSeparateHits)	
@@ -202,12 +200,12 @@ void CQueryNode::ConvertOccurrencesToHitsForPatterns (bool bSeparateHits)
 	size_t InputStarter = 0;
 	size_t NewOccurrencesCount = 0;
 
-	vector<CTokenNo>::const_iterator break_it = Breaks.begin();
+	vector<CTokenNo>::const_iterator break_it=Breaks.begin();
 	bool bLongSequence = m_ChunkLengths.size()*5 > Breaks.size() ;
 	
 	size_t ChunkNo = 0;
 	int i = 0;
-	for (;  i < cnt; i += m_ChunkLengths[ChunkNo], ChunkNo++)
+	for ( ;  i < cnt; i += m_ChunkLengths[ChunkNo], ChunkNo++ )
 	{
 		size_t ItemsCount = m_ChunkLengths[ChunkNo];
 
@@ -215,7 +213,7 @@ void CQueryNode::ConvertOccurrencesToHitsForPatterns (bool bSeparateHits)
 		{
 			break_it = lower_bound (break_it, Breaks.end(), m_Occurrences[i]);
 			assert (break_it != Breaks.end());
-			if (*break_it == m_Occurrences[i]) 
+			if (*break_it == m_Occurrences[i])
 				break_it++; // then Break is the first position of the next break
 		}
 		else
@@ -223,34 +221,28 @@ void CQueryNode::ConvertOccurrencesToHitsForPatterns (bool bSeparateHits)
 			while(m_Occurrences[i] >= *break_it) break_it++;
 		}
 
-		if (m_Occurrences[i + ItemsCount - 1] >= *break_it )
+		DWORD break_start = (break_it==Breaks.begin() ? 0 : *(break_it-1));
+		if (m_Occurrences[i] < break_start || m_Occurrences[i + ItemsCount - 1] >= *break_it)
 		{
-			if ( i > InputStarter)
-				NewNode.AddOccurrences(*this, InputStarter,  i);
-			InputStarter = i + ItemsCount;
 			 //this period of m_Occurrences should be ignored since 
 			 // it belongs two or more breaks simultaneously
 			continue;
 		};
 
 		DWORD BreakNo = break_it - Breaks.begin();
-		if (bTextAreaNo)
-			if ( BreakNo%TextAreasCount != TextAreaNo )
-			{
-				if ( i > InputStarter)
-					NewNode.AddOccurrences(*this, InputStarter,  i);
-				InputStarter = i + ItemsCount;
-
+		if (bTextAreaNo) {
+			if ( BreakNo%TextAreasCount != TextAreaNo ) {
 				continue;
 			}
-		
+		}
+
+		NewNode.AddOccurrences(*this, i, i+ItemsCount);
 		NewNode.m_ChunkLengths.push_back(ItemsCount);
 		NewOccurrencesCount += ItemsCount;
-		
 
-		if (	m_Hits.empty() 
+		if (	bSeparateHits
+			|| m_Hits.empty() 
 			|| ( m_Hits.back().m_BreakNo != BreakNo)
-			|| bSeparateHits
 		   )
    		{
 			CHit H(BreakNo);
@@ -263,9 +255,7 @@ void CQueryNode::ConvertOccurrencesToHitsForPatterns (bool bSeparateHits)
 			assert (m_Hits.back().m_HighlightOccurrenceEnd == NewOccurrencesCount); 
 		};
 		
-	};
-	if ( i > InputStarter)
-		NewNode.AddOccurrences(*this, InputStarter,  i);
+	}
 
 	SwapOccurrences(NewNode);
 	NewNode.m_ChunkLengths.swap(m_ChunkLengths);
@@ -1134,6 +1124,12 @@ bool CQueryNearNode::Create(const CConcHolder* pHolder, BYTE distance, CQueryNod
 	m_pChild1 = child1;
 	m_pChild2 = child2;
 	m_pChild3 = child3;
+
+	if (m_Source.empty()) {
+		m_Source = string("NEAR(") + m_pChild1->m_Source + "," + m_pChild2->m_Source + ",";
+		if (child3!=NULL) m_Source += m_pChild3->m_Source + ",";
+		m_Source += Format("%d", m_Distance);
+	}
 
 	SetHolder(pHolder);
 	return  true;

@@ -1,5 +1,14 @@
 ##-*- Mode: Change-Log; coding: utf-8; -*-
 
+v2.0.21-pre1 Fri, 21 Mar 2014 11:08:02 +0100 moocow
+	+ fixed mantis bug #651 : bogus highlighting for near/2
+	  - problem was overlapping matches some of which crossed sentence boundaries
+	  - the bogus cross-boundary matches were getting mis-interpreted in CQueryNode::ConvertOccurrencesToHitsForPatterns()
+	  - workaround tracks current break start as well as end, but may potentially miss some overlapping occurrences if
+	    (as in the case of near()) m_Occurrences[] aren't sorted in strictly break-increasing order
+	    and (as is hopefully NOT the case for near()) if the valid matches in m_Occurrences[] also arent't sorted in
+	    strictly break-increasing order
+
 v2.0.20 Wed, 19 Mar 2014 12:34:39 +0100 moocow
 	+ re-worked near() queries (class CQueryNearNode in QueryNode.(cpp|h))
 	  - near(a,b,c, n) now allows all match-orders abc, acb, bac, bca, cab, cba

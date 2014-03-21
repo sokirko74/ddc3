@@ -261,8 +261,8 @@ Comments may appear after each rule in C notation
                    ;
  
  qf_context_sort ::=                                   /*-- Sort and/or filter hits lexicographically by context (required Bigrams index prior to ddc v2.0.19) --*/
-                     #LESS_BY_MIDDLE qfb_ctxsort       /* ... in ascending order by offset relative to hit center (default offset=0; aliases: #MID, #MIDDLE, #ASC_MIDDLE, ...) */
-                   | #GREATER_BY_MIDDLE qfb_ctxsort    /* ... in descending order by key offset relative to hit center (default offset=0; aliases: #DESC_MIDDLE, #DESC_BY_MIDDLE, ...) */
+                     #LESS_BY_MIDDLE qfb_ctxsort       /* ... in ascending order by user-specified offset relative to hit center (default offset=0; aliases: #MID, #MIDDLE, #ASC_MIDDLE, ...) */
+                   | #GREATER_BY_MIDDLE qfb_ctxsort    /* ... in descending order by user-specified offset relative to hit center (default offset=0; aliases: #DESC_MIDDLE, #DESC_BY_MIDDLE, ...) */
                    | #LESS_BY_LEFT qfb_ctxsort         /* ... in ascending order by preceding context (default offset=-1; aliases: #LEFT, #ASC_LEFT, #ASC_BY_LEFT, ...) */
                    | #GREATER_BY_LEFT qfb_ctxsort      /* ... in descending order by preceding context (default offset=-1; aliases: #DESC_LEFT, #DESC_BY_LEFT, ....) */
                    | #LESS_BY_RIGHT qfb_ctxsort        /* ... in ascending order by following context (default offset=1; aliases: #RIGHT, #ASC_RIGHT, ...) */
