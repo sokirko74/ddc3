@@ -8,6 +8,10 @@ v2.0.21-pre1 Fri, 21 Mar 2014 11:08:02 +0100 moocow
 	    (as in the case of near()) m_Occurrences[] aren't sorted in strictly break-increasing order
 	    and (as is hopefully NOT the case for near()) if the valid matches in m_Occurrences[] also arent't sorted in
 	    strictly break-increasing order
+	+ fixed mantis bug #652 :  context-sort not working for boolean queries (&&, ||)
+	  - fix was to ensure occurrences are sorted in QueryNode.cpp CQueryBinaryOperationNode::hits_and_positions_union(), hits_and_positions_intersection()
+	  - not quite kosher in #separate mode; e.g. for input "a b1 b2 c" querying (a && b* #separate) finds only "__a__ _b1_ b2 c" and
+	    not "__a__ b1 _b2_ c"
 
 v2.0.20 Wed, 19 Mar 2014 12:34:39 +0100 moocow
 	+ re-worked near() queries (class CQueryNearNode in QueryNode.(cpp|h))

@@ -336,10 +336,9 @@ void CQueryBinaryOperationNode::hits_and_positions_union()
 
 	size_t  prev_end1 = 0;
 	size_t  prev_end2 = 0;
-	for (; _First1 != _Last1 && _First2 != _Last2; )
+	for (; _First1 != _Last1 && _First2 != _Last2; ) {
 		if (_First1->m_BreakNo < _First2->m_BreakNo)
 		{
-			
 			AddOccurrences(*m_pChild1, prev_end1, _First1->m_HighlightOccurrenceEnd);
 			prev_end1 = _First1->m_HighlightOccurrenceEnd;
 
@@ -350,8 +349,7 @@ void CQueryBinaryOperationNode::hits_and_positions_union()
 			}
 			_First1++;
 		}
-		else 
-		if (_First2->m_BreakNo < _First1->m_BreakNo)
+		else if (_First2->m_BreakNo < _First1->m_BreakNo)
 		{
 			AddOccurrences (*m_pChild2, prev_end2,  _First2->m_HighlightOccurrenceEnd);
 			prev_end2 = _First2->m_HighlightOccurrenceEnd;
@@ -365,8 +363,10 @@ void CQueryBinaryOperationNode::hits_and_positions_union()
 		else
 		{
 			{	// inserting highlight occurrences from the first and the second child
+				size_t occsize0 = m_Occurrences.size();
 				AddOccurrences(*m_pChild1, prev_end1, _First1->m_HighlightOccurrenceEnd);
 				AddOccurrences(*m_pChild2, prev_end2, _First2->m_HighlightOccurrenceEnd);
+				sort(m_Occurrences.begin()+occsize0, m_Occurrences.end()); //-- ensure occurrences for this match in m_Occurrences[] are sorted
 				{
 					CHit  H(_First1->m_BreakNo);
 					H.m_HighlightOccurrenceEnd = GetOccurrencesSize();
@@ -378,7 +378,8 @@ void CQueryBinaryOperationNode::hits_and_positions_union()
 
 			_First1++;
 			_First2++;
-		};
+		}
+	}
 
 	hits_add(*m_pChild1, _First1);
 	hits_add(*m_pChild2, _First2);
@@ -408,14 +409,15 @@ void CQueryBinaryOperationNode::hits_and_positions_intersection()
 		{
 			prev_end2 = _First2->m_HighlightOccurrenceEnd;
 			_First2++;
-			
 		}
 		else
 		{
 
 			{	// inserting highlight occurrences from the first and the second child
+				size_t occsize0 = m_Occurrences.size();
 				AddOccurrences(*m_pChild1, prev_end1, _First1->m_HighlightOccurrenceEnd);
 				AddOccurrences(*m_pChild2, prev_end2, _First2->m_HighlightOccurrenceEnd);
+				sort(m_Occurrences.begin()+occsize0, m_Occurrences.end()); //-- ensure occurrences for this match in m_Occurrences[] are sorted
 				{
 					CHit  H (_First1->m_BreakNo);
 					H.m_HighlightOccurrenceEnd = GetOccurrencesSize();
@@ -456,8 +458,7 @@ void CQueryBinaryOperationNode::hits_and_positions_difference()
 			}
 			_First1++;
 		}
-		else 
-		if (_First2->m_BreakNo < _First1->m_BreakNo)
+		else if (_First2->m_BreakNo < _First1->m_BreakNo)
 		{
 			_First2++;
 		}
@@ -1210,7 +1211,7 @@ void CQueryNearNode::FindOccurrences2()
 			AddOccurrences(*item1.node, item1.cur, item1.cur+size1);
 			AddOccurrences(*item2.node, item2.cur, item2.cur+size2);
 			m_ChunkLengths.push_back(size1+size2);
-			sort(m_Occurrences.begin()+occsize0, m_Occurrences.end()); //-- ensure m_Occurrences is sorted
+			sort(m_Occurrences.begin()+occsize0, m_Occurrences.end()); //-- ensure occurrences for this match in m_Occurrences[] are sorted
 		}
 
 		//-- update positions
