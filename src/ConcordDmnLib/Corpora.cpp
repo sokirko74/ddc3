@@ -276,7 +276,7 @@ void CDDCCorpusListenHost::ServerInfoJson(string &Result)
 {
 	//-- info : corpus info
 	CConcIndexator *ix = m_pHolder ? m_pHolder->m_pIndexator : NULL;
-	string ProjectName = ix ? basename(MakeFName(ix->m_Path, "").c_str()) : "";
+	string ProjectName = ix ? FileBasename(MakeFName(ix->m_Path, "")) : "";
 
 	if (!ProjectName.empty()) ProjectName.erase(ProjectName.size()-1);
 	Result = (string("{\n\t")

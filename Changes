@@ -1,6 +1,9 @@
 ##-*- Mode: Change-Log; coding: utf-8; -*-
 
-v2.0.21 Fri, 21 Mar 2014 12:52:05 +0100
+v2.0.22 Fri, 21 Mar 2014 12:52:05 +0100	moocow
+	+ replaced basename() calls with new FileBasename() wrapper to prevent cygwin build failures
+
+v2.0.21 Fri, 21 Mar 2014 12:52:05 +0100 moocow
 	+ fixed mantis bug #651 : bogus highlighting for near/2
 	  - problem was overlapping matches some of which crossed sentence boundaries
 	  - the bogus cross-boundary matches were getting mis-interpreted in CQueryNode::ConvertOccurrencesToHitsForPatterns()

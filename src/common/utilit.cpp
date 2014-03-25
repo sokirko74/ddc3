@@ -733,6 +733,20 @@ string FileDirectory (const string& FileName)
     return string(".");
 }
 
+string FileBasename (const string& FileName)
+{
+    size_t pos = FileName.find_last_of("/"
+#   ifdef WIN32
+				       "\\:"
+#   endif
+				       );
+    if (pos != FileName.npos)
+	return FileName.substr(pos);
+
+    return FileName;
+}
+
+
 string CurrentDirectory(void)
 {
     size_t size = 128;

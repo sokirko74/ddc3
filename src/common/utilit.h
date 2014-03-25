@@ -227,8 +227,11 @@ extern bool	IsTableFile (const string& FileName);
 extern bool	IsJsonFile (const string& FileName);
 extern string	FileExtension (const string& FileName);
 
-//! Returns directory part of \a FileName, or "." if FileName is a bare filename
+//! Returns directory part of \a FileName, or "." if FileName is a bare filename, like dirname(3)
 extern string	FileDirectory (const string& FileName);
+
+//! Returns file part of \a FileName, like basename(3)
+extern string	FileBasename  (const string& FileName);
 
 //! Wrapper for getcwd(); returns current working directory of current process
 extern string	CurrentDirectory(void);
