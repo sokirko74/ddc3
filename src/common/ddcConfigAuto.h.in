@@ -21,6 +21,9 @@
 /* Define to 1 if you have the `erand48' function. */
 #undef HAVE_ERAND48
 
+/* Define if you have the iconv() function and it works. */
+#undef HAVE_ICONV
+
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
 
@@ -59,6 +62,9 @@
 
 /* Define to 1 if you have the <unistd.h> header file. */
 #undef HAVE_UNISTD_H
+
+/* Define as const if the declaration of iconv() needs const. */
+#undef ICONV_CONST
 
 /* Defined if libcurl supports AsynchDNS */
 #undef LIBCURL_FEATURE_ASYNCHDNS

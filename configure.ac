@@ -214,6 +214,17 @@ fi
 ##^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 ##----------------------------------------------------------------------
+## libs: iconv
+AM_ICONV
+if test "$am_cv_func_iconv" != "yes"; then
+  AC_MSG_ERROR([could not find working libiconv: ensure that CPPFLAGS, LDFLAGS, and LIBS are set to use to libiconv])
+else
+  LIBS="$LIBS $LIBICONV"
+fi
+## /libs: iconv
+##^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+##----------------------------------------------------------------------
 ## libs: curl
 LIBCURL_CHECK_CONFIG(yes,
 	[0.0.0],
@@ -226,7 +237,6 @@ LIBCURL_CHECK_CONFIG(yes,
 	])
 ## /libs: curl
 ##^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
 
 ##----------------------------------------------------------------------
 ## defs: static buffer length(s)?
