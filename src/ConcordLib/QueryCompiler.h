@@ -187,6 +187,9 @@ public:
 	//! debug: return a string form for the current query + operators
 	string QueryToString(void);
 
+	//! return a json string form for the current query + operators
+	string QueryToJson(void);
+
 	//! error reporting: throws a errParseError exception
 	void barf(const std::string &msg) const throw(CExpc);
 

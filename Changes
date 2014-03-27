@@ -1,5 +1,10 @@
 ##-*- Mode: Change-Log; coding: utf-8; -*-
 
+v2.0.22(pre) Thu, 27 Mar 2014 13:46:48 +0100 moocow
+	+ added ddc.pc for help in building dependent packages
+	+ added CQuery::toJson(), CQFilter::toJson(), CQueryCompiler::QueryToJson() functions
+	+ various changes and fixes while working on DDC::XS perl module
+
 v2.0.21-1 Fri, 21 Mar 2014 12:52:05 +0100 moocow
 	+ replaced basename() calls with new FileBasename() wrapper to prevent cygwin build failures
 	+ added AM_ICONV call for iconv support under cygwin, fixes mantis bug #656

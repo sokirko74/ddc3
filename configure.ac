@@ -3,7 +3,7 @@ AC_PREREQ(2.5)
 
 dnl Some handy macros
 define([THE_PACKAGE_NAME],    [ddc])
-define([THE_PACKAGE_VERSION], [2.0.21-1])
+define([THE_PACKAGE_VERSION], [2.0.22])
 define([THE_PACKAGE_MAINTAINER],  [jurish@bbaw.de])
 
 AC_INIT(THE_PACKAGE_NAME, THE_PACKAGE_VERSION, THE_PACKAGE_MAINTAINER)
@@ -375,8 +375,26 @@ AC_CHECK_FUNCS([erand48 jrand48 nrand48 rand_r])
 ## /functions
 ##---------------------------------------------------------------
 
-##---------------------------------------------------------------
-## pkg-config (expunged)
+dnl ---------------------------------------------------------------
+dnl pkg-config : program
+dnl
+AC_ARG_VAR(PKG_CONFIG, [How to run the pkg-config program])
+AC_ARG_VAR(PKG_CONFIG_PATH, [Directories to search for pkg-config])
+if test -z "$PKG_CONFIG" ; then
+  AC_PATH_PROG(PKG_CONFIG,pkg-config,[])
+fi
+dnl pkg-config: destination directory
+AC_ARG_WITH(pkgconfig-dir,
+	AS_HELP_STRING([--with-pkgconfig-dir=DIR],[install pkg-config metafile(s) in DIR (default=LIBDIR/pkgconfig)]),
+	[ac_cv_pkgconfigdir="$withval"])
+if test -z "$ac_cv_pkgconfigdir" ; then
+  ac_cv_pkgconfigdir="\$(libdir)/pkgconfig"
+fi
+pkgconfigdir="$ac_cv_pkgconfigdir"
+AC_SUBST(pkgconfigdir)
+dnl
+dnl pkg-config
+dnl ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 
 ##vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
@@ -513,6 +531,7 @@ AC_CONFIG_FILES(src/tinyxml/Makefile)
 AC_CONFIG_FILES(src/RmlTar/Makefile)
 AC_CONFIG_FILES(src/MorphWizardLib/Makefile)
 AC_CONFIG_FILES(src/ConcordDmnLib/Makefile)
+AC_CONFIG_FILES(src/CommonLib/Makefile)
 AC_CONFIG_FILES(src/ddc_index/Makefile)
 AC_CONFIG_FILES(src/ddc_dump/Makefile)
 AC_CONFIG_FILES(src/ddc_simple/Makefile)
@@ -536,5 +555,6 @@ dnl AC_CONFIG_FILES(doc/programs/Makefile)
 dnl AC_CONFIG_FILES(doc/tutorial/Makefile)
 dnl AC_CONFIG_FILES(doc/Makefile)
 dnl AC_CONFIG_FILES(tests/atlocal tests/Makefile)
+AC_CONFIG_FILES(ddc.pc)
 AC_CONFIG_FILES(Makefile)
 AC_OUTPUT

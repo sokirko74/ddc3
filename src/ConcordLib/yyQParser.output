@@ -107,8 +107,8 @@ Grammar
    80         | qc_boolean
    81         | qc_concat
 
-   82 qc_boolean: q_clause OP_AND q_clause
-   83           | q_clause OP_OR q_clause
+   82 qc_boolean: q_clause OP_BOOL_AND q_clause
+   83           | q_clause OP_BOOL_OR q_clause
    84           | '!' q_clause
    85           | '(' qc_boolean ')'
 
@@ -342,8 +342,8 @@ GREATER_BY_MIDDLE (297) 39
 DEBUG_RANK (298) 12 13
 RANDOM (299) 46 47 48
 CONCAT (300)
-OP_OR (301) 83
-OP_AND (302) 82
+OP_BOOL_OR (301) 83
+OP_BOOL_AND (302) 82
 NEAR (303) 91 92
 WITH (304) 156
 
@@ -968,11 +968,11 @@ state 25
 state 26
 
     1 query: q_clause . q_filters
-   82 qc_boolean: q_clause . OP_AND q_clause
-   83           | q_clause . OP_OR q_clause
+   82 qc_boolean: q_clause . OP_BOOL_AND q_clause
+   83           | q_clause . OP_BOOL_OR q_clause
 
-    OP_OR   shift, and go to state 91
-    OP_AND  shift, and go to state 92
+    OP_BOOL_OR   shift, and go to state 91
+    OP_BOOL_AND  shift, and go to state 92
 
     $default  reduce using rule 2 (q_filters)
 
@@ -1435,8 +1435,8 @@ state 68
 
 state 69
 
-   82 qc_boolean: q_clause . OP_AND q_clause
-   83           | q_clause . OP_OR q_clause
+   82 qc_boolean: q_clause . OP_BOOL_AND q_clause
+   83           | q_clause . OP_BOOL_OR q_clause
    84           | '!' q_clause .
 
     $default  reduce using rule 84 (qc_boolean)
@@ -1596,11 +1596,11 @@ state 80
 
 state 81
 
-   82 qc_boolean: q_clause . OP_AND q_clause
-   83           | q_clause . OP_OR q_clause
+   82 qc_boolean: q_clause . OP_BOOL_AND q_clause
+   83           | q_clause . OP_BOOL_OR q_clause
 
-    OP_OR   shift, and go to state 91
-    OP_AND  shift, and go to state 92
+    OP_BOOL_OR   shift, and go to state 91
+    OP_BOOL_AND  shift, and go to state 92
 
 
 state 82
@@ -1853,7 +1853,7 @@ state 90
 
 state 91
 
-   83 qc_boolean: q_clause OP_OR . q_clause
+   83 qc_boolean: q_clause OP_BOOL_OR . q_clause
 
     SYMBOL        shift, and go to state 1
     REGEX         shift, and go to state 2
@@ -1919,7 +1919,7 @@ state 91
 
 state 92
 
-   82 qc_boolean: q_clause OP_AND . q_clause
+   82 qc_boolean: q_clause OP_BOOL_AND . q_clause
 
     SYMBOL        shift, and go to state 1
     REGEX         shift, and go to state 2
@@ -2508,18 +2508,18 @@ state 129
 
 state 130
 
-   82 qc_boolean: q_clause . OP_AND q_clause
-   83           | q_clause . OP_OR q_clause
-   83           | q_clause OP_OR q_clause .
+   82 qc_boolean: q_clause . OP_BOOL_AND q_clause
+   83           | q_clause . OP_BOOL_OR q_clause
+   83           | q_clause OP_BOOL_OR q_clause .
 
     $default  reduce using rule 83 (qc_boolean)
 
 
 state 131
 
-   82 qc_boolean: q_clause . OP_AND q_clause
-   82           | q_clause OP_AND q_clause .
-   83           | q_clause . OP_OR q_clause
+   82 qc_boolean: q_clause . OP_BOOL_AND q_clause
+   82           | q_clause OP_BOOL_AND q_clause .
+   83           | q_clause . OP_BOOL_OR q_clause
 
     $default  reduce using rule 82 (qc_boolean)
 

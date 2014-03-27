@@ -105,8 +105,8 @@ regex_modifier	[gimsx]
 %%
 
  /* operators */
-"&&"				{ return OP_AND; }
-"||"				{ return OP_OR; }
+"&&"				{ return OP_BOOL_AND; }
+"||"				{ return OP_BOOL_OR; }
 (?i:near)			{ return NEAR; }
 (?i:with)			{ return WITH; }
 

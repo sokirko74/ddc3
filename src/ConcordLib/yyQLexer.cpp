@@ -1221,12 +1221,12 @@ do_action:	/* This label is used only to access EOF actions. */
 case 1:
 YY_RULE_SETUP
 #line 108 "yyQLexer.l"
-{ return OP_AND; }
+{ return OP_BOOL_AND; }
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
 #line 109 "yyQLexer.l"
-{ return OP_OR; }
+{ return OP_BOOL_OR; }
 	YY_BREAK
 case 3:
 YY_RULE_SETUP

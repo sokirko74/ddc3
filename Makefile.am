@@ -27,7 +27,7 @@ SUBDIRS = config doc etc src bin skel
 SUFFIXES += .pc
 
 ## --- package config data
-#pkgconfig_DATA = @PACKAGE@.pc
+pkgconfig_DATA = @PACKAGE@.pc
 
 ##-- for gnulib
 ACLOCAL_AMFLAGS = -I m4
@@ -109,6 +109,7 @@ EXTRA_DIST = \
 	$(PODS) \
 	$(PODS:.pod=.txt) \
 	$(PODS:.pod=.html) \
+	ddc.pc.in \
 	autoreconf.sh \
 	configure
 

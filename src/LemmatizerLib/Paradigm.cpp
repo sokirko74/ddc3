@@ -38,7 +38,7 @@ CFormInfo::CFormInfo()
     
 }
 
-void	CFormInfo::Copy(const CFormInfo& from)
+void	CFormInfo::CopyFrom(const CFormInfo& from)
 {
 	m_InnerAnnot = from.m_InnerAnnot;
 	m_pParent = from.m_pParent;

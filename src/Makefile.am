@@ -25,6 +25,7 @@ SUBDIRS = \
 	RmlTar \
 	MorphWizardLib \
 	ConcordDmnLib \
+	CommonLib \
 	\
 	ddc_index \
 	ddc_dump \
@@ -88,7 +89,7 @@ DIST_SUBDIRS = $(SUBDIRS)
 ## + this should really be done in the corresponding subdirectories with
 ##   a _HEADERS variable, but that requires a whole mess of autoconf
 ##   directory variables (one for each subdirectory containing headers)
-header_dirs = $(SUBDIRS)
+header_dirs = $(SUBDIRS) PCRE
 
 install-data-local:
 	for d in $(header_dirs) ; do \

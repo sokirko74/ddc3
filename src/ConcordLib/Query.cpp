@@ -155,6 +155,14 @@ string CQBinOp::toString() {
   return NegString(string("(") + m_dtr1->toString() + " " + m_OpName + " " + m_dtr2->toString() + ")");
 }
 
+string CQBinOp::jsonData() {
+  return (CQNegatable::jsonData()
+	  +","+string("\"OpName\":")+jsonStr(m_OpName)
+	  +","+string("\"Dtr1\":")+m_dtr1->toJson()
+	  +","+string("\"Dtr2\":")+m_dtr2->toJson()
+	  );
+}
+
 //======================================================================
 // CQAnd
 
@@ -306,9 +314,19 @@ string CQToken::IndexString(void) {
 string CQToken::ValueString(void) {
   return sqString(m_Value);
 }
+string CQToken::jsonValue(void) {
+  return jsonStr(m_Value);
+}
 
 string CQToken::toString(void) {
   return NegString(this->IndexString() + this->ValueString());
+}
+
+string CQToken::jsonData() {
+  return (CQNegatable::jsonData()
+	  +","+string("\"IndexName\":")+jsonStr(m_IndexName)
+	  +","+string("\"Value\":")+this->jsonValue()
+	  );
 }
 
 
@@ -432,8 +450,24 @@ string CQTokInfl::ExpanderString(void) {
   return s;
 }
 
+string CQTokInfl::ExpanderJson(void) {
+  string s("[");
+  for (vector<string>::const_iterator xi=m_Expanders.begin(); xi != m_Expanders.end(); xi++) {
+    if (s.size()>1) s.push_back(',');
+    s += jsonStr(*xi);
+  }
+  s.push_back(']');
+  return s;
+}
+
 string CQTokInfl::ValueString(void) {
   return CQToken::ValueString() + this->ExpanderString();
+}
+
+string CQTokInfl::jsonData() {
+  return (CQToken::jsonData()
+	  +",\"Expanders\":"+this->ExpanderJson()
+	  );
 }
 
 //======================================================================
@@ -678,6 +712,15 @@ string CQNear::toString() {
   return NegString(os);
 }
 
+string CQNear::jsonData() {
+  return (CQNegatable::jsonData()
+	  +",\"Dtr1\":"+m_dtr1->toJson()
+	  +",\"Dtr2\":"+m_dtr1->toJson()
+	  +",\"Dtr3\":"+(m_dtr3 ? m_dtr3->toJson() : "null")
+	  +",\"Dist\":"+Format("%u", m_Dist)
+	  );
+}
+
 //======================================================================
 // CQSeq
 
@@ -764,4 +807,12 @@ string CQSeq::toString() {
   }
   os += "\"";
   return NegString(os);
+}
+
+string CQSeq::jsonData() {
+  return (CQNegatable::jsonData()
+	  +",\"Items\":"+jsonArray(m_Items)
+	  +",\"Dists\":"+jsonArray(m_Dists)
+	  +",\"DistOps\":"+jsonArray(m_DistOps)
+	  );
 }

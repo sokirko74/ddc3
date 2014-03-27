@@ -54,8 +54,8 @@
  typedef unsigned char uchar;
 #endif
 
-#define UTF8_MAXBYTES  4
-#define UTF8_MAXBYTES1 5
+#define UTF8XX_MAXBYTES  4
+#define UTF8XX_MAXBYTES1 5
 /*--/moo--*/
 
 #include <stdarg.h>
@@ -108,7 +108,7 @@ size_t u8_ws_len(const ucs4str &src);
 /** append single UCS-4 character to a UTF-8 string
  * \param dst UTF-8 destination buffer
  * \param ch UCS-4 character to convert
- * \returns number of bytes written to \a dst (0 <= RETVAL <= UTF8_MAXBYTES)
+ * \returns number of bytes written to \a dst (0 <= RETVAL <= UTF8XX_MAXBYTES)
  */
 size_t u8_wc_toutf8(utf8str &dst, ucs4 ch);
 

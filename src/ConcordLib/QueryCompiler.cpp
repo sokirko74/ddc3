@@ -345,6 +345,49 @@ string CQueryCompiler::QueryToString(void)
 	return qs;
 }
 
+string CQueryCompiler::QueryToJson(void)
+{
+	string qs("{");
+	qs += "\"Query\":" + (m_pQuery ? m_pQuery->toJson() : "null");
+
+	if (!m_HitTypeStr.empty()) {
+		qs += ",\"Within\":" + jsonStr(m_HitTypeStr);
+	}
+	if (m_ContextSentencesCount != 0) {
+		qs += Format(",\"ContextCount\":%u", m_ContextSentencesCount);
+	}
+	if (m_bSeparateHits) {
+		qs += ",\"SeparateHits\":1";
+	}
+	if (m_bEnableBibliographyForThisQuery) {
+		qs += ",\"EnableBibliography\":1";
+	}
+	if (m_bDebugRank) {
+		qs += ",\"DebugRank\":1";
+	}
+
+	//-- filters
+	qs += ",\"Filters\":[";
+	for (CQFilterList::iterator fi=m_QFilters.begin(); fi != m_QFilters.end(); fi++) {
+		if (*fi == NULL) continue; //-- should never happen
+		if (fi!=m_QFilters.begin()) qs.push_back(',');
+			qs += (*fi)->toJson();
+	}
+	qs.push_back(']');
+
+	if (!m_Subcorpora.empty()) {
+		qs += ",\"Subcorpora\":[";
+		for (CQSubcorpusList::iterator ci=m_Subcorpora.begin(); ci != m_Subcorpora.end(); ci++) {
+			if (ci != m_Subcorpora.begin()) qs.push_back(',');
+			qs += jsonStr(*ci);
+		}
+		qs.push_back(']');
+	}
+	qs.push_back('}');
+
+	return qs;
+}
+
 //----------------------------------------------------------------------
 // ERROR REPORTING
 

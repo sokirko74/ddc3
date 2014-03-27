@@ -228,7 +228,7 @@ int yylex (void*,  void*);
 //------------------------------------------------------
 // Operator precedence and associativity
 %left   CONCAT
-%left	OP_AND OP_OR
+%left	OP_BOOL_AND OP_BOOL_OR
 %right  '!'
 %left	NEAR
 %left	','
@@ -401,8 +401,8 @@ q_clause:
   * qc_boolean: query clause: complex boolean expression
   */
 qc_boolean:
-		q_clause OP_AND q_clause	{ $$ = _qc->PushQuery(new CQAnd($1,$3)); }
-	|	q_clause OP_OR q_clause		{ $$ = _qc->PushQuery(new CQOr($1,$3)); }
+		q_clause OP_BOOL_AND q_clause	{ $$ = _qc->PushQuery(new CQAnd($1,$3)); }
+	|	q_clause OP_BOOL_OR q_clause	{ $$ = _qc->PushQuery(new CQOr($1,$3)); }
 	|	'!' q_clause 			{ $$ = $2; $$->Negate(); }
 	|	'(' qc_boolean ')'		{ $$ = $2; }
 	;

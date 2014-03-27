@@ -80,8 +80,8 @@
      DEBUG_RANK = 298,
      RANDOM = 299,
      CONCAT = 300,
-     OP_OR = 301,
-     OP_AND = 302,
+     OP_BOOL_OR = 301,
+     OP_BOOL_AND = 302,
      NEAR = 303,
      WITH = 304
    };

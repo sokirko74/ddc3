@@ -142,6 +142,21 @@ string CQFSort::toString(void)
   return os;
 };
 
+//--------------------------------------------------------------
+string CQFSort::jsonMinMax()
+{
+  return (string("\"Min\":")+jsonStr(m_arg0)
+	  +",\"Max\":"+jsonStr(m_arg1)
+	  );
+};
+
+//--------------------------------------------------------------
+string CQFSort::jsonType()
+{
+  return string("\"FilterType\":")+HitSortNames[m_Filter.m_FilterType];
+};
+
+
 //======================================================================
 // CQFRankSort
 
@@ -238,6 +253,14 @@ string CQFBiblSort::toString(void)
   return os;
 };
 
+string CQFBiblSort::jsonData(void)
+{
+  return (this->jsonType()
+	  +",\"Field\":"+jsonStr(m_arg0)
+	  +","+this->jsonMinMax()
+	  );
+};
+
 //======================================================================
 // CQFContextSort
 
@@ -271,6 +294,15 @@ string CQFContextSort::toString(void)
   os.push_back(']');
 
   return os;
+};
+
+string CQFContextSort::jsonData(void)
+{
+  return (this->jsonType()
+	  +",\"Field\":"+jsonStr(m_arg0)
+	  +",\"Offset\":"+Format("%d", m_Filter.m_ContextOffset)
+	  +","+this->jsonMinMax()
+	  );
 };
 
 
@@ -307,6 +339,14 @@ string CQFHasField::toString()
 string CQFHasField::valueString()
 {
   return sqString(m_arg1);
+}
+
+string CQFHasField::jsonMinMax(void)
+{
+  return (string("\"Field\":")+jsonStr(m_arg0)
+	  +",\"Value\":"+this->jsonFieldValue()
+	  +",\"Negated\":"+(m_Negated ? "1" : "0")
+	  );
 }
 
 //======================================================================
@@ -397,4 +437,15 @@ string CQFHasFieldSet::SetValueString(const set<string> &values)
 string CQFHasFieldSet::valueString()
 {
   return std::string("{") + SetValueString() + "}";
+}
+
+string CQFHasFieldSet::jsonFieldValue()
+{
+  string s("[");
+  for (set<string>::const_iterator vi=m_Values.begin(); vi != m_Values.end(); vi++) {
+    if (s.size() > 1) s.push_back(',');
+    s += jsonStr(*vi);
+  }
+  s.push_back(']');
+  return s;
 }

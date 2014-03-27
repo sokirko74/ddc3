@@ -44,7 +44,7 @@ public:
 	
 	CFormInfo();
 	void	Create(const CLemmatizer*	pParent, const CAutomAnnotationInner& A, const string& InputWordForm, bool bFound);
-	void	Copy(const CFormInfo& from);
+	void	CopyFrom(const CFormInfo& from);
 	void	AttachLemmatizer(const CLemmatizer* parent);
 	bool	SetParadigmId(DWORD newVal);
 

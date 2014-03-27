@@ -38,6 +38,11 @@ public:
 
   //! convert filter to a canonical string
   virtual string toString(void) { return string("#FILTER[?]"); };
+
+  //! convert filter to a json string, including class_ key
+  virtual string toJson(void) { return string("{\"class_\":")+this->jsonClass()+","+this->jsonData()+"}"; };
+  virtual string jsonClass(void) { return "CQFilter"; };
+  virtual string jsonData(void) { return ""; };
   //@}
 };
 
@@ -84,7 +89,10 @@ public:
 
   //! stringification
   virtual string toString(void);
-
+  virtual string jsonClass(void) { return "CQFSort"; };
+  virtual string jsonMinMax(void);
+  virtual string jsonType(void);
+  virtual string jsonData(void) { return (this->jsonType()+","+this->jsonMinMax()); };
 };
 
 //======================================================================
@@ -95,6 +103,9 @@ public:
   CQFRankSort(HitSortEnum ftype=GreaterByRank)
     : CQFSort(ftype)
   {};
+
+  virtual string jsonClass(void) { return "CQFRankSort"; };
+  virtual string jsonData(void) { return this->jsonType(); };
 };
 
 //======================================================================
@@ -109,6 +120,7 @@ public:
   int Str2Date(const std::string &datestr, int onEmpty=0);
 
   virtual bool Compile(CQueryCompiler *compiler);
+  virtual string jsonClass(void) { return "CQFDateSort"; };
 };
 
 //======================================================================
@@ -123,6 +135,7 @@ public:
   CQFSizeSort(HitSortEnum ftype=LessBySize, int lb=INT_MIN, int ub=INT_MAX);
 
   virtual bool Compile(CQueryCompiler *compiler);
+  virtual string jsonClass(void) { return "CQFSizeSort"; };
 };
 
 //======================================================================
@@ -137,6 +150,8 @@ public:
   CQFRandomSort(int seed0);
 
   virtual bool Compile(CQueryCompiler *compiler);
+  virtual string jsonClass(void) { return "CQFRandomSort"; };
+  virtual string jsonData(void) { return (this->jsonType()+",\"Seed\":"+jsonStr(m_arg1)); };
 };
 
 //======================================================================
@@ -157,6 +172,8 @@ public:
   virtual bool Compile(CQueryCompiler *compiler);
 
   virtual string toString(void);
+  virtual string jsonClass(void) { return "CQFBiblSort"; };
+  virtual string jsonData(void);
 };
 
 //======================================================================
@@ -180,6 +197,8 @@ public:
 
   //! stringify
   virtual string toString(void);
+  virtual string jsonClass(void) { return "CQFContextSort"; };
+  virtual string jsonData(void);
 };
 
 //======================================================================
@@ -207,6 +226,10 @@ public:
 
   //! generic stringification; uses valueString()
   virtual string toString(void);
+
+  virtual string jsonClass(void) { return "CQFHasField"; };
+  virtual string jsonFieldValue(void) { return jsonStr(m_arg1); };
+  virtual string jsonMinMax(void);
 };
 
 
@@ -221,6 +244,7 @@ public:
 
   //! compile the filter.  requires reference to underlying CConcIndexator
   virtual bool Compile(CQueryCompiler *compiler);
+  virtual string jsonClass(void) { return "CQFHasFieldValue"; };
 };
 
 //======================================================================
@@ -240,6 +264,7 @@ public:
   virtual bool Compile(CQueryCompiler *compiler);
 
   virtual string valueString(void);
+  virtual string jsonClass(void) { return "CQFHasFieldRegex"; };
 };
 
 //======================================================================
@@ -254,6 +279,7 @@ public:
   };
 
   virtual string valueString(void);
+  virtual string jsonClass(void) { return "CQFHasFieldPrefix"; };
 };
 
 //======================================================================
@@ -268,6 +294,7 @@ public:
   };
 
   virtual string valueString(void);
+  virtual string jsonClass(void) { return "CQFHasFieldSuffix"; };
 };
 
 //======================================================================
@@ -282,6 +309,7 @@ public:
   };
 
   virtual string valueString(void);
+  virtual string jsonClass(void) { return "CQFHasFieldInfix"; };
 };
 
 //======================================================================
@@ -309,6 +337,9 @@ public:
 
   //! stringification virtual method
   virtual string valueString(void);
+
+  virtual string jsonClass(void) { return "CQFHasFieldSet"; };
+  virtual string jsonFieldValue(void);
 };
 
 

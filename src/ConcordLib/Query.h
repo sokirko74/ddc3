@@ -79,6 +79,13 @@ public:
 
   //! \b DEBUG: return a canonical string form for this query (default just returns m_Label)
   virtual string toString() { return m_Label; };
+
+  //! return a JSON representation of this query
+  //! \li default just returns this->toString()
+  //! \li JSON query structures relflect C++ class structures with an additional 'class_' key
+  virtual string toJson() { return string("{\"class_\":"+jsonStr(this->jsonClass())+","+this->jsonData()+"}"); };
+  virtual string jsonClass() { return "CQuery"; };
+  virtual string jsonData()  { return ""; };
   //@}
 
   //------------------------------------------------------------
@@ -124,6 +131,9 @@ public:
 
   //! override just calls m_Node->SetNegation(m_Negated)
   virtual bool Compile(CQueryCompiler *compiler);
+
+  virtual string jsonClass() { return "CQNegatable"; };
+  virtual string jsonData()  { return string("\"Negated\":")+(m_Negated ? "1" : "0"); };
 };
 
 //======================================================================
@@ -134,6 +144,8 @@ public:
   CQAtomic(const string &label=string(""), bool negated=false)
     : CQNegatable(label,negated)
   {};
+
+  virtual string jsonClass() { return "CQAtomic"; };
 };
 
 
@@ -169,6 +181,8 @@ public:
 
   virtual bool Compile(CQueryCompiler *compiler);
   virtual string toString();
+  virtual string jsonClass() { return "CQBinOp"; };
+  virtual string jsonData();
 };
 
 //------------------------------------------------------------
@@ -183,6 +197,7 @@ public:
   virtual bool RootOK() { return true; };
 
   virtual bool Compile(CQueryCompiler *compiler);
+  virtual string jsonClass() { return "CQAnd"; };
 };
 
 //------------------------------------------------------------
@@ -197,6 +212,7 @@ public:
   virtual bool RootOK() { return true; };
 
   virtual bool Compile(CQueryCompiler *compiler);
+  virtual string jsonClass() { return "CQOr"; };
 };
 
 //------------------------------------------------------------
@@ -208,6 +224,7 @@ public:
   {};
 
   virtual bool Compile(CQueryCompiler *compiler);
+  virtual string jsonClass() { return "CQWith"; };
 };
 
 
@@ -255,6 +272,12 @@ public:
 
   //! Default stringification: NegString(IndexString() + ValueString())
   virtual string toString(void);
+
+  //! json stringification utility
+  virtual string jsonValue(void);
+
+  virtual string jsonClass() { return "CQToken"; };
+  virtual string jsonData();
 };
 
 //------------------------------------------------------------
@@ -267,6 +290,8 @@ public:
 
   virtual const char *OperatorKey(void) const { return "@_"; };
   virtual string ValueString();
+
+  virtual string jsonClass() { return "CQTokExact"; };
 };
 
 //------------------------------------------------------------
@@ -280,6 +305,7 @@ public:
   virtual const char *OperatorKey(void) const { return "*"; };
   virtual bool Create(CQueryTokenNode *pNode);
   virtual string ValueString();
+  virtual string jsonClass() { return "CQTokAny"; };
 };
 
 
@@ -300,6 +326,8 @@ public:
   virtual bool Create(CQueryTokenNode *pNode);
   virtual string IndexString(void);
   virtual string ValueString();
+  virtual string jsonClass() { return "CQTokAnchor"; };
+  virtual string jsonValue() { return Format("%d", m_ValueInt); };
 };
 
 //------------------------------------------------------------
@@ -315,7 +343,31 @@ public:
   virtual const char *OperatorKey(void) const { return "/_/"; };
   virtual bool Create(CQueryTokenNode *pNode);
   virtual string ValueString();
+  virtual string jsonClass() { return "CQTokRegex"; };
 };
+
+//------------------------------------------------------------
+// json-stringification utilities
+
+inline string jsonStr(BYTE b)
+{ return Format("%u",b); };
+
+inline string jsonStr(CQuery *q)
+{ return q->toJson(); };
+
+template<class Container>
+string jsonArray(const Container &values)
+{
+  string s("[");
+  for (typename Container::const_iterator vi=values.begin(); vi != values.end(); vi++) {
+    if (s.size() > 1) s.push_back(',');
+    s += jsonStr(*vi);
+  }
+  s.push_back(']');
+  return s;
+};
+
+
 
 //------------------------------------------------------------
 //! single-token query: disjunction over a finite set of values
@@ -336,11 +388,16 @@ public:
   string SetValueString(const set<string> &values);
 
   //! wrapper for SetValueString(m_Values)
-  inline string SetValueString(void)
-  { return SetValueString(m_Values); };
+  inline string SetValueString(void) { return SetValueString(m_Values); };
+
+  //! wrapper for jsonArray(m_Values)
+  inline string jsonValues(void) { return jsonArray(m_Values); };
 
   //! ValueString() returns "@{" + SetValueString() + "}"
   virtual string ValueString(void);
+
+  virtual string jsonClass() { return "CQTokSet"; };
+  virtual string jsonValue() { return jsonValues(); };
 };
 
 //------------------------------------------------------------
@@ -376,6 +433,11 @@ public:
 
   //! Stringification utility: returns string "%X1%X2%X3..." for m_Expanders
   virtual string ExpanderString(void);
+  virtual string ExpanderJson(void);
+
+  virtual string jsonClass() { return "CQTokInfl"; };
+  virtual string jsonValue() { return CQToken::jsonValue(); };
+  virtual string jsonData();
 };
 
 //------------------------------------------------------------
@@ -392,6 +454,9 @@ public:
 
   virtual bool Create(CQueryTokenNode *pNode);
   virtual string ValueString(void);
+
+  virtual string jsonClass() { return "CQTokSetInfl"; };
+  virtual string jsonValue() { return CQTokSet::jsonValue(); };
 };
 
 //------------------------------------------------------------
@@ -405,6 +470,8 @@ public:
   virtual const char *OperatorKey(void) const { return "/_/"; };
   virtual bool Create(CQueryTokenNode *pNode);
   virtual string ValueString();
+
+  virtual string jsonClass() { return "CQTokPrefix"; };
 };
 
 //------------------------------------------------------------
@@ -417,6 +484,7 @@ public:
   virtual const char *OperatorKey(void) const { return "/_/"; };
   virtual bool Create(CQueryTokenNode *pNode);
   virtual string ValueString();
+  virtual string jsonClass() { return "CQTokSuffix"; };
 };
 
 //------------------------------------------------------------
@@ -429,6 +497,7 @@ public:
   virtual const char *OperatorKey(void) const { return "/_/"; };
   virtual bool Create(CQueryTokenNode *pNode);
   virtual string ValueString();
+  virtual string jsonClass() { return "CQTokInfix"; };
 };
 
 //------------------------------------------------------------
@@ -441,6 +510,7 @@ public:
   virtual const char *OperatorKey(void) const { return "/_/"; };
   virtual bool Create(CQueryTokenNode *pNode);
   virtual string ValueString();
+  virtual string jsonClass() { return "CQTokPrefixSet"; };
 };
 
 //------------------------------------------------------------
@@ -453,6 +523,7 @@ public:
   virtual const char *OperatorKey(void) const { return "/_/"; };
   virtual bool Create(CQueryTokenNode *pNode);
   virtual string ValueString();
+  virtual string jsonClass() { return "CQTokSuffixSet"; };
 };
 
 //------------------------------------------------------------
@@ -465,6 +536,7 @@ public:
   virtual const char *OperatorKey(void) const { return "/_/"; };
   virtual bool Create(CQueryTokenNode *pNode);
   virtual string ValueString();
+  virtual string jsonClass() { return "CQTokInfixSet"; };
 };
 
 //------------------------------------------------------------
@@ -485,6 +557,9 @@ public:
   virtual const char *OperatorKey(void) const { return "[_]"; };
   virtual bool Create(CQueryTokenNode *pNode);
   virtual string ValueString();
+
+  virtual string jsonClass() { return "CQTokMorph"; };
+  virtual string jsonValue() { return jsonArray(m_Items); };
 };
 
 //------------------------------------------------------------
@@ -498,6 +573,9 @@ public:
   virtual const char *OperatorKey(void) const { return "%_"; };
   virtual bool Create(CQueryTokenNode *pNode);
   virtual string ValueString();
+
+  virtual string jsonClass() { return "CQTokLemma"; };
+  virtual string jsonValue() { return CQToken::jsonValue(); };
 };
 
 //------------------------------------------------------------
@@ -511,6 +589,8 @@ public:
   virtual const char *OperatorKey(void) const { return ":{_}"; };
   virtual bool Create(CQueryTokenNode *pNode);
   virtual string ValueString();
+
+  virtual string jsonClass() { return "CQTokThes"; };
 };
 
 //------------------------------------------------------------
@@ -524,6 +604,7 @@ public:
   virtual const char *OperatorKey(void) const { return "^_"; };
   virtual bool Create(CQueryTokenNode *pNode);
   virtual string ValueString();
+  virtual string jsonClass() { return "CQTokChunk"; };
 };
 
 //------------------------------------------------------------
@@ -537,6 +618,7 @@ public:
   virtual const char *OperatorKey(void) const { return "<_"; };
   virtual bool Create(CQueryTokenNode *pNode);
   virtual string ValueString();
+  virtual string jsonClass() { return "CQTokFile"; };
 };
 
 
@@ -577,15 +659,18 @@ public:
   virtual bool Compile(CQueryCompiler *compiler);
 
   virtual string toString();
+
+  virtual string jsonClass() { return "CQNear"; };
+  virtual string jsonData();
 };
 
 
 //! sequence query (e.g. "a #1 b #1 c")
-//!  This class holds a sequence of nodes of type CQToken (slot m_Items).
-//!  Distance constraints: between \c m_Items[i] and \c m_Items[i+1] must be
-//!   + no more than \c m_Dists[i] tokens if \c m_DistOps[i] == '<' (default)
-//!   + no less than \c m_Dists[i] tokens if \c m_DistOps[i] == '>'
-//!   + exactly      \c m_Dists[i] tokens if \c m_DistOps[i] == '='
+//! This class holds a sequence of nodes of type CQToken (slot m_Items).
+//! Distance constraints: between \c m_Items[i] and \c m_Items[i+1] must be
+//!  \li no more than \c m_Dists[i] tokens if \c m_DistOps[i] == '<' (default)
+//!  \li no less than \c m_Dists[i] tokens if \c m_DistOps[i] == '>'
+//!  \li exactly      \c m_Dists[i] tokens if \c m_DistOps[i] == '='
 class CQSeq : public CQAtomic {
 public:
   //! items to be queried (must be token nodes)
@@ -624,6 +709,9 @@ public:
   //! Compile() method implicitly compiles daughter nodes
   virtual bool Compile(CQueryCompiler *compiler);
   virtual string toString();
+
+  virtual string jsonClass() { return "CQSeq"; };
+  virtual string jsonData();
 };
 
 #endif /* DDC_QUERY_H */

@@ -181,8 +181,8 @@ int yylex (void*,  void*);
      DEBUG_RANK = 298,
      RANDOM = 299,
      CONCAT = 300,
-     OP_OR = 301,
-     OP_AND = 302,
+     OP_BOOL_OR = 301,
+     OP_BOOL_AND = 302,
      NEAR = 303,
      WITH = 304
    };
@@ -627,22 +627,23 @@ static const char *const yytname[] =
   "IS_SIZE", "GREATER_BY_DATE", "LESS_BY_DATE", "IS_DATE", "GREATER_BY",
   "LESS_BY", "LESS_BY_LEFT", "GREATER_BY_LEFT", "LESS_BY_RIGHT",
   "GREATER_BY_RIGHT", "LESS_BY_MIDDLE", "GREATER_BY_MIDDLE", "DEBUG_RANK",
-  "RANDOM", "CONCAT", "OP_OR", "OP_AND", "'!'", "NEAR", "','", "WITH",
-  "'='", "'<'", "'$'", "'@'", "'^'", "'%'", "'#'", "':'", "'['", "']'",
-  "'{'", "'}'", "'('", "')'", "'\"'", "'*'", "';'", "$accept", "query",
-  "q_filters", "q_flag", "qf_subcorpora", "q_filter", "qf_has_field",
-  "qf_rank_sort", "qf_context_sort", "qf_size_sort", "qf_date_sort",
-  "qf_random_sort", "qf_bibl_sort", "qfb_int", "qfb_date", "qfb_bibl",
-  "qfb_bibl_ne", "qfb_ctxsort", "qfb_ctxkey", "q_clause", "qc_boolean",
-  "qc_concat", "qc_basic", "qc_near", "qc_tokens", "qc_phrase", "qc_word",
-  "qw_bareword", "qw_exact", "qw_regex", "qw_any", "qw_set_exact",
-  "qw_set_infl", "qw_prefix", "qw_suffix", "qw_infix", "qw_infix_set",
-  "qw_prefix_set", "qw_suffix_set", "qw_thesaurus", "qw_morph", "qw_lemma",
-  "qw_chunk", "qw_anchor", "qw_listfile", "qw_with", "l_set", "l_morph",
-  "l_phrase", "l_txchain", "s_index", "s_word", "s_semclass", "s_lemma",
-  "s_chunk", "s_filename", "s_morphitem", "s_subcorpus", "symbol",
-  "sym_str", "s_prefix", "s_suffix", "s_infix", "s_expander", "regex",
-  "neg_regex", "int_str", "integer", "date", 0
+  "RANDOM", "CONCAT", "OP_BOOL_OR", "OP_BOOL_AND", "'!'", "NEAR", "','",
+  "WITH", "'='", "'<'", "'$'", "'@'", "'^'", "'%'", "'#'", "':'", "'['",
+  "']'", "'{'", "'}'", "'('", "')'", "'\"'", "'*'", "';'", "$accept",
+  "query", "q_filters", "q_flag", "qf_subcorpora", "q_filter",
+  "qf_has_field", "qf_rank_sort", "qf_context_sort", "qf_size_sort",
+  "qf_date_sort", "qf_random_sort", "qf_bibl_sort", "qfb_int", "qfb_date",
+  "qfb_bibl", "qfb_bibl_ne", "qfb_ctxsort", "qfb_ctxkey", "q_clause",
+  "qc_boolean", "qc_concat", "qc_basic", "qc_near", "qc_tokens",
+  "qc_phrase", "qc_word", "qw_bareword", "qw_exact", "qw_regex", "qw_any",
+  "qw_set_exact", "qw_set_infl", "qw_prefix", "qw_suffix", "qw_infix",
+  "qw_infix_set", "qw_prefix_set", "qw_suffix_set", "qw_thesaurus",
+  "qw_morph", "qw_lemma", "qw_chunk", "qw_anchor", "qw_listfile",
+  "qw_with", "l_set", "l_morph", "l_phrase", "l_txchain", "s_index",
+  "s_word", "s_semclass", "s_lemma", "s_chunk", "s_filename",
+  "s_morphitem", "s_subcorpus", "symbol", "sym_str", "s_prefix",
+  "s_suffix", "s_infix", "s_expander", "regex", "neg_regex", "int_str",
+  "integer", "date", 0
 };
 #endif
 
@@ -3205,7 +3206,7 @@ yyreduce:
 
 
 /* Line 1806 of yacc.c  */
-#line 3209 "yyQParser.cpp"
+#line 3210 "yyQParser.cpp"
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires
