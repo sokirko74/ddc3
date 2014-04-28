@@ -1,6 +1,6 @@
 ##-*- Mode: Change-Log; coding: utf-8; -*-
 
-v2.0.22(pre) Thu, 27 Mar 2014 13:46:48 +0100 moocow
+v2.0.22-1 Thu, 27 Mar 2014 13:46:48 +0100 moocow
 	+ added ddc.pc for help in building dependent packages
 	+ added CQuery::toJson(), CQFilter::toJson(), CQueryCompiler::QueryToJson() functions
 	+ various changes and fixes while working on DDC::XS perl module
