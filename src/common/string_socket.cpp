@@ -468,6 +468,7 @@ CHost::CHost(bool bDoubleMessage, ProtocolDensityEnum pdProtocolDensity)
 	m_LogFunction = 0;
 	m_pdProtocolDensity = pdProtocolDensity;
 	m_bDoubleMessage = bDoubleMessage;
+	m_bExpectMore = false;
 	m_ListenSocket = -1;
 	m_Port = -1;
 	m_maxReceiveBytes = 0;
@@ -510,9 +511,8 @@ int	CHost::CreateAndConnectSocket(string& strError) const
 };
 
 
-void CHost::AnswerByRequest (SOCKET rConnectedSocket, const struct sockaddr_in* client_addr, int TimeOut, bool& bCloseSocket )
+void CHost::AnswerByRequest (SOCKET rConnectedSocket, const struct sockaddr_in* client_addr, int TimeOut)
 {
-	bCloseSocket = false;
 	string S;
 
 	if (m_pdProtocolDensity  == pdHeavyDensity)
@@ -525,6 +525,7 @@ void CHost::AnswerByRequest (SOCKET rConnectedSocket, const struct sockaddr_in* 
 	{
 		//ClientError(0, Format("Error [%d]: %s", Res, GetNetworkErrorString(Res).c_str()), rConnectedSocket); //-- doesn't work well...
 		m_LogFunction(Format("Error: Cannot receive string for corpus \"%s\" (error: %s)", m_CorpusName.c_str(), GetNetworkErrorString(Res).c_str()));
+		m_bExpectMore = false;
 		return;
 	};
 
@@ -535,15 +536,7 @@ void CHost::AnswerByRequest (SOCKET rConnectedSocket, const struct sockaddr_in* 
 		m_LogFunction(Format("%s recv \"%s\" from %s", m_CorpusName.c_str(), S.c_str(),src_addr ));
 	}
 
-	string Result;
-	if (S == DDCCloseSocketString )
-	{
-		// closing socket
-		bCloseSocket = true;
-		Result = "ok";
-	}
-	else
-		Result  = ProcessSocketString(S, rConnectedSocket);
+	string Result = ProcessSocketString(S, rConnectedSocket);
 
 	// send the answer
 	if (m_pdProtocolDensity  == pdHeavyDensity)
@@ -555,6 +548,7 @@ void CHost::AnswerByRequest (SOCKET rConnectedSocket, const struct sockaddr_in* 
 	if (!SendString(rConnectedSocket, Result.c_str(), Result.length(), ErrorStr))
 	{
 		m_LogFunction(Format("Error! Cannot send string: %s", ErrorStr.c_str()));
+		m_bExpectMore = false;
 	}
 	else
 	if (m_pdProtocolDensity  == pdHeavyDensity)
@@ -658,16 +652,11 @@ void   CHost::RunThread()
 		try
 		{
 			//  if we have passed "accept", then Timeout can be very short
-			bool bCloseSocket;
+			m_bExpectMore = m_bDoubleMessage;
 
-			AnswerByRequest(rConnectedSocket, &client_addr, 10, bCloseSocket);
-			if (bCloseSocket)  {
-				CloseSocket(rConnectedSocket);
-				break;
-			}
-
-			if (m_bDoubleMessage) {
-				AnswerByRequest(rConnectedSocket, &client_addr, 30, bCloseSocket);
+			AnswerByRequest(rConnectedSocket, &client_addr, 10);
+			for (int i=0; i<10 && m_bExpectMore; ++i) {
+				AnswerByRequest(rConnectedSocket, &client_addr, 30);
 			}
 
 			if (!CloseSocket(rConnectedSocket))

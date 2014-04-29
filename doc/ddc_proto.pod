@@ -38,6 +38,7 @@ and " " represents a literal space character (ASCII byte with decimal value 32).
  status
  vstatus
  info
+ reload
 
  ##=====================================================================
  ## Subcorpus Server Messages
@@ -52,6 +53,7 @@ and " " represents a literal space character (ASCII byte with decimal value 32).
  version
  status
  info
+ reload
 
 =cut
 
@@ -218,6 +220,8 @@ Dummy request used internally to avoid
 annoying complaints unless each subcorpus socket gets exactly 2 messages per user request.
 B<DANGEROUS> to use on a distributed server, can cause server lockup!
 
+Should be B<OBSOLETE> since v2.0.23.
+
 Since v2.0.0
 
 =cut
@@ -308,6 +312,17 @@ Returns information about associated subcorpora as a JSON object of the form:
  }
 
 Since v2.0.18
+
+=cut
+
+##--------------------------------------------------------------
+=pod
+
+=head3 reload
+
+Requests re-loading local (sub)corpus data from disk.
+
+Since v2.0.23
 
 =cut
 
@@ -454,6 +469,8 @@ Should always return the response "ok".
 Causes the server to terminate the client connection.
 B<DANGEROUS> to use directly on a subcorpus server, can cause premature server termination!
 
+Should be B<OBSOLETE> since v2.0.23.
+
 Since v2.0.0.
 
 =cut
@@ -562,6 +579,16 @@ Returns information about the associated (sub)corpus as a JSON object of the for
   }
 
 Since v2.0.18
+
+
+##--------------------------------------------------------------
+=pod
+
+=head3 reload
+
+Requests re-loading local subcorpus data from disk.
+
+Since v2.0.23
 
 =cut
 

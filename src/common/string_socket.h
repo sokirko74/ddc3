@@ -57,11 +57,12 @@ protected:
 	int					m_Port;
 	SOCKET					m_ListenSocket;
 	bool					m_bDoubleMessage;
+	bool					m_bExpectMore;	///< moo: whether to expect more requests from current client
 	string					m_LocalPath;
 	ProtocolDensityEnum			m_pdProtocolDensity;
 	uint32_t				m_maxReceiveBytes; ///< maximum receivable packet length (default=0: no limit)
 
-	void AnswerByRequest (SOCKET rConnectedSocket, const struct sockaddr_in* client_addr, int TimeOut, bool& bCloseSocket );
+	void AnswerByRequest (SOCKET rConnectedSocket, const struct sockaddr_in* client_addr, int TimeOut);
 
 protected:
 	virtual string	ProcessSocketString(const string& S, SOCKET rConnectedSocket);
@@ -76,7 +77,6 @@ public:
 	string				m_CorpusName;
 	void				(*m_LogFunction)(const string&);
 	
-
 	CHost(bool bDoubleMessage, ProtocolDensityEnum pdProtocolDensity);
 	bool			ReadFromString (string S);
 	void			CreateListener();

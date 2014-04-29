@@ -1,5 +1,14 @@
 ##-*- Mode: Change-Log; coding: utf-8; -*-
 
+v2.0.23 Tue, 29 Apr 2014 16:34:47 +0200 moocow
+	+ re-factored old monolithic src/ConcordDmnLib/Corpora.cpp into
+	  - Server.(h|cpp) : abstract server base class
+	  - LeafServer.(h|cpp) : subcorpus server, formerly CDDCCorpusListenHost
+	  - BranchServer.(h|cpp) : distributed server, formerly CDDCServerListenHost
+	+ added 'reload' server message
+	+ unified (leaf|branch) message parsing code and syntax
+	+ TODO: implement leaf-node commands (get_first_hits, get_hit_strings) for branch-node servers
+
 v2.0.22-1 Thu, 27 Mar 2014 13:46:48 +0100 moocow
 	+ added ddc.pc for help in building dependent packages
 	+ added CQuery::toJson(), CQFilter::toJson(), CQueryCompiler::QueryToJson() functions
