@@ -21,6 +21,7 @@
 #define __CORPORA_H_
 
 #include "../common/string_socket.h"
+
 extern void LoadDDCServer (ProtocolDensityEnum ProtocolDensity, string ServerConfigFile);
 extern void LoadLocalCorpora(ProtocolDensityEnum ProtocolDensity, string ConfigFile);
 extern void UnloadLocalCorporaAndServer ();
