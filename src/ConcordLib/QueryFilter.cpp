@@ -103,7 +103,8 @@ void CQFSort::SortBounds(void) {
 bool CQFSort::Compile(CQueryCompiler *compiler)
 {
   assert(compiler!=NULL);
-  compiler->m_Filters.push_back(m_Filter);
+  assert(compiler->m_pQuery!=NULL);
+  compiler->m_pQuery->m_Filters.push_back(m_Filter);
   return true;
 }
 

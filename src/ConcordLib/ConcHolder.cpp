@@ -486,7 +486,7 @@ string CConcHolder::BuildJsonContextString (const vector<COutputToken>& Tokens, 
 bool CConcHolder::GetContext(int  StartBreakNo, int  EndBreakNo, const DWORD CurrFileNo,  const bool bConvertASCIIToHtmlSymbols, string& Result) const
 {
 	Result = "";
-	if (m_pQueryCompiler->m_HitTypeStr == PredefinedFileBreakName) return true;
+	if (m_pQueryCompiler->m_pQuery->m_HitTypeStr == PredefinedFileBreakName) return true;
 
 	if (StartBreakNo == EndBreakNo) 
 	{
@@ -529,7 +529,7 @@ bool CConcHolder::GetContext(int  StartBreakNo, int  EndBreakNo, const DWORD Cur
 bool CConcHolder::GetContextJson(int StartBreakNo, int EndBreakNo, const DWORD CurrFileNo, string& js) const
 {
     js.clear();
-    if (m_pQueryCompiler->m_HitTypeStr == PredefinedFileBreakName)
+    if (m_pQueryCompiler->m_pQuery->m_HitTypeStr == PredefinedFileBreakName)
 	return true;
 
     if (StartBreakNo == EndBreakNo) 
@@ -643,7 +643,7 @@ bool CConcHolder::GenerateOneHitString(DWORD PageNumber, const CHit& Hit, const 
 	{
 		
 		string LeftContext;
-		if (!GetContext((int)Hit.m_BreakNo-(int)m_pQueryCompiler->m_ContextSentencesCount, Hit.m_BreakNo,  Hit.m_FileNo,  bConvASCIIToHtml, LeftContext )) 
+		if (!GetContext((int)Hit.m_BreakNo-(int)m_pQueryCompiler->m_pQuery->m_ContextSentencesCount, Hit.m_BreakNo,  Hit.m_FileNo,  bConvASCIIToHtml, LeftContext )) 
 		{
 			ErrorMessage("Error while getting the left-hand context");
 			return false;
@@ -673,7 +673,7 @@ bool CConcHolder::GenerateOneHitString(DWORD PageNumber, const CHit& Hit, const 
 	// =============   add right hit context  =================
 	{
 		string RightContext;
-		if (!GetContext(Hit.m_BreakNo+1, Hit.m_BreakNo+m_pQueryCompiler->m_ContextSentencesCount+1, Hit.m_FileNo, bConvASCIIToHtml, RightContext )) 
+		if (!GetContext(Hit.m_BreakNo+1, Hit.m_BreakNo+m_pQueryCompiler->m_pQuery->m_ContextSentencesCount+1, Hit.m_FileNo, bConvASCIIToHtml, RightContext )) 
 		{
 			ErrorMessage("Error while  getting the right-hand context");
 			return false;
@@ -742,7 +742,7 @@ bool CConcHolder::GenerateOneHitStringJson(DWORD PageNumber, const CHit& Hit, co
     // hit context: left
     {
 	string LeftContext;
-	if (!GetContextJson((int)Hit.m_BreakNo-(int)m_pQueryCompiler->m_ContextSentencesCount, Hit.m_BreakNo,  Hit.m_FileNo, LeftContext )) {
+	if (!GetContextJson((int)Hit.m_BreakNo-(int)m_pQueryCompiler->m_pQuery->m_ContextSentencesCount, Hit.m_BreakNo,  Hit.m_FileNo, LeftContext )) {
 	    ErrorMessage("Error while getting the left-hand context");
 	    return false;
 	}
@@ -758,7 +758,7 @@ bool CConcHolder::GenerateOneHitStringJson(DWORD PageNumber, const CHit& Hit, co
     // hit context: right
     {
 	string RightContext;
-	if (!GetContextJson(Hit.m_BreakNo+1, Hit.m_BreakNo+m_pQueryCompiler->m_ContextSentencesCount+1, Hit.m_FileNo, RightContext ))  {
+	if (!GetContextJson(Hit.m_BreakNo+1, Hit.m_BreakNo+m_pQueryCompiler->m_pQuery->m_ContextSentencesCount+1, Hit.m_FileNo, RightContext ))  {
 	    ErrorMessage("Error while  getting the right-hand context");
 	    return false;
 	}
@@ -878,6 +878,8 @@ bool CConcHolder::GetFileSnippets(const int HitNo, vector<COutputToken>& ResultT
 
 DDCErrorEnum CConcHolder::GenerateHitStrings(const int StartHitNo) 
 {
+	assert(m_pQueryCompiler!=NULL);
+	assert(m_pQueryCompiler->m_pQuery!=NULL);
 	DwordVector PageBreaks;
 
 	m_pIndexator->ConvertHitsToPageBreaks(m_Hits.begin(), m_Hits.end(), GetBreaks(), PageBreaks);
@@ -894,7 +896,7 @@ DDCErrorEnum CConcHolder::GenerateHitStrings(const int StartHitNo)
 			m_QueryResultStr.push_back('[');
 
 		vector<COutputToken> Tokens;
-		if (m_pQueryCompiler->m_HitTypeStr == PredefinedFileBreakName)
+		if (m_pQueryCompiler->m_pQuery->m_HitTypeStr == PredefinedFileBreakName)
 		{
 			if (!GetFileSnippets(EndHitNo, Tokens))
 				return errReadSourceFile;
@@ -1298,7 +1300,8 @@ DDCErrorEnum CConcHolder::GetAllHits(const string &Query, size_t Limit)
 	m_ShortOccurCaches.clear();
 
 	ClearQueryResults();
-	CQueryNode   *qNode = m_pQueryCompiler->m_pQuery->m_Node;
+	CQuery       *qRoot = m_pQueryCompiler->m_pQuery;
+	CQueryNode   *qNode = qRoot->m_Node;
 	vector<CHit> &qHits = qNode->m_Hits;
 
 	size_t CountOfPeriods = m_pIndexator->GetSearchPeriodsCount();		
@@ -1327,8 +1330,8 @@ DDCErrorEnum CConcHolder::GetAllHits(const string &Query, size_t Limit)
 		}
 
 		m_SortOrder = hsoNone; //-- no sort
-		for (size_t FilterNo = 0; FilterNo < m_pQueryCompiler->m_Filters.size(); FilterNo++) {
-			const CDDCFilterWithBounds& F = m_pQueryCompiler->m_Filters[FilterNo];
+		for (size_t FilterNo = 0; FilterNo < qRoot->m_Filters.size(); FilterNo++) {
+			const CDDCFilterWithBounds& F = qRoot->m_Filters[FilterNo];
 
 			//-- init Hits::m_SortKey (always initialized in raw ascending order)
 			InitSortKeyForHits(F);
@@ -1848,9 +1851,10 @@ const vector<CTokenNo>&	CConcHolder::GetBreaks	()  const
 
 void	CConcHolder::SetHitType()
 {
-	assert(m_pQueryCompiler);
-	string BreakName = m_pQueryCompiler->m_HitTypeStr;
-	int TextAreaNo = m_pQueryCompiler->m_TextAreaNo;
+	assert(m_pQueryCompiler!=NULL);
+	assert(m_pQueryCompiler->m_pQuery!=NULL);
+	string BreakName = m_pQueryCompiler->m_pQuery->m_HitTypeStr;
+	int TextAreaNo = m_pQueryCompiler->m_pQuery->m_TextAreaNo;
 
 	if (TextAreaNo != UnknownTextAreaNo)
 		m_pBreaks = m_pIndexator->GetBreaksByName(PredefinedTextAreaBreakName);
@@ -1861,8 +1865,9 @@ void	CConcHolder::SetHitType()
 
 int	CConcHolder::GetTextArea() const
 {
-	assert(m_pQueryCompiler);
-	return m_pQueryCompiler->m_TextAreaNo;
+	assert(m_pQueryCompiler!=NULL);
+	assert(m_pQueryCompiler->m_pQuery!=NULL);
+	return m_pQueryCompiler->m_pQuery->m_TextAreaNo;
 }
 
 
@@ -1891,9 +1896,9 @@ void CConcHolder::ClearQueryCache()
 
 bool	CConcHolder::HasRankOrderOperator() const
 {
-	for (size_t FilterNo = 0; FilterNo < m_pQueryCompiler->m_Filters.size(); FilterNo++)
+	for (size_t FilterNo = 0; FilterNo < m_pQueryCompiler->m_pQuery->m_Filters.size(); FilterNo++)
 	{
-		const CDDCFilterWithBounds& F = m_pQueryCompiler->m_Filters[FilterNo];
+		const CDDCFilterWithBounds& F = m_pQueryCompiler->m_pQuery->m_Filters[FilterNo];
 		if ( (F.m_FilterType == LessByRank) || (F.m_FilterType == GreaterByRank))
 			return true;
 	}

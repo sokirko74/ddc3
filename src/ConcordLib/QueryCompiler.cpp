@@ -63,11 +63,11 @@ void yyqerror(const char *a)
 
 
 CQueryCompiler::CQueryCompiler(const CConcHolder* pHolder) 
-	:	m_pQuery(NULL)
 {
 	m_pHolder = pHolder;
-	m_ContextSentencesCount = 0;
-	m_bSeparateHits = false;
+	m_pQuery  = NULL;
+	mq_ContextSentencesCount = 0;
+	mq_bSeparateHits = false;
 	m_bEnableBibliographyForThisQuery = true;
 	m_bDebugRank = false;
 	m_CurrentNodeIndex = 0;
@@ -90,47 +90,17 @@ size_t CQueryCompiler::GetNodeIndicesCount() const
 
 bool CQueryCompiler::CompileFilters()
 {
-	bool rc=true;
-
-	//-- clear compiled filter list
-	m_Filters.clear();
-	m_Filters.reserve(m_QFilters.size());
-
-	//-- compile abstract filters in m_QFilters to old-style m_Filters
-	for (CQFilterList::iterator fi=m_QFilters.begin(); rc && fi != m_QFilters.end(); fi++) {
-		assert(*fi != NULL);
-		rc = (rc && (*fi)->Compile(this));
-	}
-
-	//-- find the last run-time sort operator and swap it out the back of the list
-	//   for easy access (used to present the result hit set in the proper order)
-	for (int i=m_Filters.size()-1;  i>=0; i--) {
-		if(m_Filters[i].m_FilterType != NoSort) {
-			if (i+1 != m_Filters.size())
-				swap(m_Filters[i],  m_Filters.back());
-			break;
-		}
-	}
-
-	//-- sanity checks for compiler-global flags
-	if (m_ContextSentencesCount > m_MaxContextSentencesCount)
-		throw CExpc(errParseError, "Requested context window of length=%d exceeds maximum context size=%d", m_ContextSentencesCount, m_MaxContextSentencesCount);
-
-	//-- index-dependent flag-setting from old CQueryParser::ParseQuery()
-	m_HitTypeStr = m_pHolder->m_pIndexator->WithinBreakName(m_Within);
-	m_TextAreaNo = m_pHolder->m_pIndexator->m_Bibl.WithinTextArea(m_Within);
-
-	return rc;
+	assert(m_pQuery != NULL);
+	return m_pQuery->CompileFilters(this);
 }
 
 bool CQueryCompiler::Compile()
 {
 	assert(m_pQuery != NULL);
-
 	if (!m_pQuery->RootOK())
 		throw CExpc(errParseError, "unsupported negation or invalid query root `%s'", m_pQuery->toString().c_str());
 
-	return (CompileFilters() && m_pQuery->Compile(this));
+	return (m_pQuery->CompileFilters(this) && m_pQuery->Compile(this));
 }
 
 bool	CQueryCompiler::Evaluate()
@@ -207,27 +177,27 @@ void CQueryCompiler::CleanParser()
 	m_CurrentNodeIndex = 0;
 
 	//-- clear global filter list
-	for (CQFilterList::iterator fi=m_QFilters.begin(); fi != m_QFilters.end(); fi++) {
-		if (*fi != NULL) delete *fi;
+	if (!m_pQuery) {
+		for (CQFilterList::iterator fi=mq_QFilters.begin(); fi != mq_QFilters.end(); fi++) {
+			if (*fi != NULL) delete *fi;
+		}
 	}
-	m_QFilters.clear();
-	m_Filters.clear();
+	mq_QFilters.clear();
 
 	//-- clear global query flags
-	m_Within.clear();
-	m_HitTypeStr.clear();
-	m_Subcorpora.clear();
+	mq_ContextSentencesCount = 0;
+	mq_bSeparateHits = false;
+	mq_Within.clear();
+	mq_HitTypeStr.clear();
+	mq_Subcorpora.clear();
 	m_WordSet.clear();
 	m_MorphItems.clear();
 	m_Expanders.clear();
 	m_FilterField.clear();
 	m_FilterLB.clear();
 	m_FilterUB.clear();
-	m_TextAreaNo = UnknownTextAreaNo;
 	m_bEnableBibliographyForThisQuery = true;
 	m_bDebugRank = false;
-	m_ContextSentencesCount = 0;
-	m_bSeparateHits = false;
 }
 
 void CQueryCompiler::DeleteTree()
@@ -297,6 +267,20 @@ string* CQueryCompiler::newString(const string& s)
 	return &(m_Labels.back());
 }
 
+CQuery* CQueryCompiler::SetQuery(CQuery* qp)
+{
+	m_pQuery = qp;
+	qp->m_ContextSentencesCount = mq_ContextSentencesCount;
+	qp->m_bSeparateHits = mq_bSeparateHits;
+	qp->m_Within = mq_Within;
+	qp->m_HitTypeStr = mq_HitTypeStr;
+	qp->m_TextAreaNo = UnknownTextAreaNo;
+	qp->m_QFilters = mq_QFilters;
+	qp->m_Subcorpora = mq_Subcorpora;
+	mq_QFilters.clear();
+	return qp;
+}
+
 void CQueryCompiler::SetFilterBounds(const string& lb, const string& ub)
 {
 	m_FilterLB=lb;
@@ -309,15 +293,33 @@ string CQueryCompiler::QueryToString(void)
 	string qs;
 	if (m_pQuery != NULL) {
 		qs += m_pQuery->toString();
-	}
-	if (!m_HitTypeStr.empty()) {
-		qs += string(" #WITHIN '") + escapeChars(m_HitTypeStr,"\\'") + "'";
-	}
-	if (m_ContextSentencesCount != 0) {
-		qs += Format(" #CNTXT %u", m_ContextSentencesCount);
-	}
-	if (m_bSeparateHits) {
-		qs += " #SEPARATE";
+
+		if (!m_pQuery->m_HitTypeStr.empty()) {
+			qs += string(" #WITHIN '") + escapeChars(m_pQuery->m_HitTypeStr,"\\'") + "'";
+		}
+		if (m_pQuery->m_ContextSentencesCount != 0) {
+			qs += Format(" #CNTXT %u", m_pQuery->m_ContextSentencesCount);
+		}
+		if (m_pQuery->m_bSeparateHits) {
+			qs += " #SEPARATE";
+		}
+		if (!m_pQuery->m_QFilters.empty()) {
+			string fs;
+			for (CQFilterList::iterator fi=m_pQuery->m_QFilters.begin(); fi != m_pQuery->m_QFilters.end(); fi++) {
+				if (*fi == NULL) continue; //-- should never happen
+				if (!fs.empty()) fs.push_back(' ');
+				fs += (*fi)->toString();
+			}
+			qs += string(" ") + fs;
+		}
+		if (!m_pQuery->m_Subcorpora.empty()) {
+			string cs;
+			for (CQSubcorpusList::iterator ci=m_pQuery->m_Subcorpora.begin(); ci != m_pQuery->m_Subcorpora.end(); ci++) {
+				if (!cs.empty()) cs.push_back(',');
+				cs += string("'") + escapeChars(*ci,"\\'") + "'";
+			}
+			if (!cs.empty()) qs += string(" :") + cs;
+		}
 	}
 	if (!m_bEnableBibliographyForThisQuery) {
 		qs += " #FILENAMES";
@@ -325,39 +327,45 @@ string CQueryCompiler::QueryToString(void)
 	if (m_bDebugRank) {
 		qs += " #DEBUG_RANK";
 	}
-	if (!m_QFilters.empty()) {
-		string fs;
-		for (CQFilterList::iterator fi=m_QFilters.begin(); fi != m_QFilters.end(); fi++) {
-			if (*fi == NULL) continue; //-- should never happen
-			if (!fs.empty()) fs.push_back(' ');
-			fs += (*fi)->toString();
-		}
-		qs += string(" ") + fs;
-	}
-	if (!m_Subcorpora.empty()) {
-		string cs;
-		for (CQSubcorpusList::iterator ci=m_Subcorpora.begin(); ci != m_Subcorpora.end(); ci++) {
-			if (!cs.empty()) cs.push_back(',');
-			cs += string("'") + escapeChars(*ci,"\\'") + "'";
-		}
-		if (!cs.empty()) qs += string(" :") + cs;
-	}
 	return qs;
 }
 
 string CQueryCompiler::QueryToJson(void)
 {
 	string qs("{");
-	qs += "\"Query\":" + (m_pQuery ? m_pQuery->toJson() : "null");
+	if (m_pQuery) {
+		qs += "\"Query\":" + m_pQuery->toJson();
 
-	if (!m_HitTypeStr.empty()) {
-		qs += ",\"Within\":" + jsonStr(m_HitTypeStr);
-	}
-	if (m_ContextSentencesCount != 0) {
-		qs += Format(",\"ContextCount\":%u", m_ContextSentencesCount);
-	}
-	if (m_bSeparateHits) {
-		qs += ",\"SeparateHits\":1";
+		if (!m_pQuery->m_HitTypeStr.empty()) {
+			qs += ",\"Within\":" + jsonStr(m_pQuery->m_HitTypeStr);
+		}
+		if (m_pQuery->m_ContextSentencesCount != 0) {
+			qs += Format(",\"ContextCount\":%u", m_pQuery->m_ContextSentencesCount);
+		}
+		if (m_pQuery->m_bSeparateHits) {
+			qs += ",\"SeparateHits\":1";
+		}
+
+		//-- filters
+		qs += ",\"Filters\":[";
+		for (CQFilterList::iterator fi=m_pQuery->m_QFilters.begin(); fi != m_pQuery->m_QFilters.end(); fi++) {
+			if (*fi == NULL) continue; //-- should never happen
+			if (fi!=m_pQuery->m_QFilters.begin()) qs.push_back(',');
+			qs += (*fi)->toJson();
+		}
+		qs.push_back(']');
+
+		if (!m_pQuery->m_Subcorpora.empty()) {
+			qs += ",\"Subcorpora\":[";
+			for (CQSubcorpusList::iterator ci=m_pQuery->m_Subcorpora.begin(); ci != m_pQuery->m_Subcorpora.end(); ci++) {
+				if (ci != m_pQuery->m_Subcorpora.begin()) qs.push_back(',');
+				qs += jsonStr(*ci);
+			}
+			qs.push_back(']');
+		}
+		qs.push_back('}');
+	} else {
+		qs += "\"Query\":null";
 	}
 	if (m_bEnableBibliographyForThisQuery) {
 		qs += ",\"EnableBibliography\":1";
@@ -365,25 +373,6 @@ string CQueryCompiler::QueryToJson(void)
 	if (m_bDebugRank) {
 		qs += ",\"DebugRank\":1";
 	}
-
-	//-- filters
-	qs += ",\"Filters\":[";
-	for (CQFilterList::iterator fi=m_QFilters.begin(); fi != m_QFilters.end(); fi++) {
-		if (*fi == NULL) continue; //-- should never happen
-		if (fi!=m_QFilters.begin()) qs.push_back(',');
-			qs += (*fi)->toJson();
-	}
-	qs.push_back(']');
-
-	if (!m_Subcorpora.empty()) {
-		qs += ",\"Subcorpora\":[";
-		for (CQSubcorpusList::iterator ci=m_Subcorpora.begin(); ci != m_Subcorpora.end(); ci++) {
-			if (ci != m_Subcorpora.begin()) qs.push_back(',');
-			qs += jsonStr(*ci);
-		}
-		qs.push_back(']');
-	}
-	qs.push_back('}');
 
 	return qs;
 }

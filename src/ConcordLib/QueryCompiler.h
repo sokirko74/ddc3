@@ -37,9 +37,6 @@
 #define PARSER_USE_OLD_API
 #undef PARSER_USE_OLD_API
 
-typedef vector<string>    CQSubcorpusList;
-typedef vector<CQFilter*> CQFilterList;
-
 /*!
 	CQueryCompiler  is a class for the parse tree of the input query and its general properties.
 
@@ -51,30 +48,52 @@ typedef vector<CQFilter*> CQFilterList;
 class CQueryCompiler : public yyqLexer
 {
 public:
+	//--------------------------------------------------------------
+	// constants
+
 	//! maximum context size for #cntxt operator
 	static const size_t m_MaxContextSentencesCount = 5;
 
 public:
-	//! current node index to set CQueryTokenNode::m_NodeIndex
-	int m_CurrentNodeIndex;
+	//--------------------------------------------------------------
+	// top-level query properties
+
+	//!  a reference to the holder, for which this query is parsed
+	const CConcHolder* m_pHolder;
+
+	//! root of the abstract parse tree
+	CQuery* m_pQuery;
+
+	//--------------------------------------------------------------
+	// query options (adopted into top-level m_pQuery on SetQuery())
+
+	//! how many hits of the left and right context should be output (must be &lt;= m_MaxContextSentencesCount)
+	size_t mq_ContextSentencesCount;
+
+	//! whether to return a separate hit for each occurrence, or collect into distinct instances of the selected container (sentence)
+	//! default=false; used by CQueryNode::Evaluate()
+	bool mq_bSeparateHits;
 
 	//! list of all '#WITHIN' arguments (break collections or text areas) from currently parsed query 
-	vector<string> m_Within;
+	vector<string> mq_Within;
 
 	//! the break collection name which should be used while querying
-	string m_HitTypeStr;
+	string mq_HitTypeStr;
 
-	//! the index of text area where DDC should perform the input query
-	int m_TextAreaNo;
+	// the index of text area where DDC should perform the input query
+	//int m_TextAreaNo;
 
 	//! (abstract) filters and sort operators which should be applied to the resulted hit set
-	CQFilterList m_QFilters;
+	CQFilterList mq_QFilters;
 
-	//! (runtime) filters and sort operators which should be applied to the resulted hit set (available after Compile())
-	vector<CDDCFilterWithBounds> m_Filters; 
+	// (runtime) filters and sort operators which should be applied to the resulted hit set (available after Compile())
+	//vector<CDDCFilterWithBounds> m_Filters; 
 
 	//! selected subcorpora for this query
-	CQSubcorpusList m_Subcorpora;
+	CQSubcorpusList mq_Subcorpora;
+
+	//--------------------------------------------------------------
+	// temporaries
 
 	//! temporary for $i={w1,w2,...,wN} word-set queries
 	set<string> m_WordSet;
@@ -97,21 +116,14 @@ public:
 	//! temporary for regexes (used for lexer handling of regex modifiers)
 	string m_Regex;
 
-	//! how many hits of the left and right context should be output (must be &lt;= m_MaxContextSentencesCount)
-	size_t m_ContextSentencesCount;
+	//--------------------------------------------------------------
+	// administrivia
 
-	//! whether to return a separate hit for each occurrence, or collect into distinct instances of the selected container (sentence)
-	//! default=false; used by CQueryNode::Evaluate()
-	bool m_bSeparateHits;
-
-	//! root of the abstract parse tree
-	CQuery* m_pQuery;
+	//! current node index to set CQueryTokenNode::m_NodeIndex
+	int m_CurrentNodeIndex;
 
 	//! set of all query nodes allocated during current parse
 	vector<CQuery*> m_Queries;
-
-	//!  a reference to the holder, for which this query is parsed
-	const CConcHolder* m_pHolder;
 
 	//! a special slot for YACC (which contains all string leaves of the parse tree)
 	list<string> m_Labels;
@@ -125,7 +137,7 @@ public:
 
 public:
 	//! default constructor
-	CQueryCompiler(const CConcHolder* pHolder);
+	CQueryCompiler(const CConcHolder* pHolder=NULL);
 
 	//! default destructor
 	virtual ~CQueryCompiler();
@@ -157,13 +169,13 @@ public:
 	//! \returns false on failure (and may throw an exception)
 	bool ParseQuery(const string &QueryStr);
 
-	//! moo: compile and apply filters in m_QFilters
-	//! \li implicitly called by Compile()
+	//! moo: compile and apply filters in m_pQuery->m_QFilters
+	//! \b OBSOLETE : now just a wrapper for m_pQuery->CompileFilters(this)
 	bool CompileFilters();
 
 	//! moo: compile the current parsed query (m_pQuery) with respect to
 	//! the current index (m_pHolder) and compiler options (m_HitTypeStr etc.)
-	//! \li really just a wrapper for CompileFilters() && m_pQuery->Compile(this);
+	//! \li really just a wrapper for m_pQuery->CompileFilters(this) && m_pQuery->Compile(this);
 	//! \returns false on failure (and may throw an exception)
 	bool Compile(void);
 
@@ -176,6 +188,10 @@ public:
 
 	//! return m_CurrentNodeIndex
 	size_t	GetNodeIndicesCount() const;
+
+	//! set current top-level query, adopting filters and flags; sets this->m_pQuery=qp
+	//! Called by bison during the parse.
+	CQuery* SetQuery(CQuery* qp);
 
 	//! push a newly allocated CQuery* onto the stack.
 	//! Called by bison during the parse.

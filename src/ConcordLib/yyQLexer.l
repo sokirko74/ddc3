@@ -109,6 +109,7 @@ regex_modifier	[gimsx]
 "||"				{ return OP_BOOL_OR; }
 (?i:near)			{ return NEAR; }
 (?i:with)			{ return WITH; }
+(?i:count)			{ return COUNT; }
 
  /* query operators */
 (?i:\#(cntxt|n))		{ return CNTXT; }

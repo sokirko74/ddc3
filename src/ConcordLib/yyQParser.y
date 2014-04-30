@@ -105,7 +105,9 @@ int yylex (void*,  void*);
 //------------------------------------------------------
 // Types: Queries
 
+%type   <m_pnode>	query_conditions
 %type	<m_pnode>	q_clause
+//type	<m_pnode>	q_count
 %type	<m_pnode>	qc_basic
 %type	<m_pnode>	qc_boolean
 %type	<m_pnode>	qc_concat
@@ -230,6 +232,7 @@ int yylex (void*,  void*);
 %left   CONCAT
 %left	OP_BOOL_AND OP_BOOL_OR
 %right  '!'
+%left	COUNT
 %left	NEAR
 %left	','
 %left	WITH 
@@ -245,10 +248,26 @@ int yylex (void*,  void*);
 %%
 
  /*-------------------------------------------------------------
-  * query (q*): Top Level (Query Root)
+  * query (query*): Top Level (Query Root)
   */
 query:
-		q_clause q_filters		{ _qc->m_pQuery = $$ = $1; }
+		query_conditions	{ $$ = _qc->SetQuery($1); }
+	;
+
+ /*	|	query_counts		{ $$ = _qc->SetQuery($1); } */
+
+ /*-------------------------------------------------------------
+  * query_counts (qn*)
+  */
+ /*query_counts:
+		COUNT '(' query_conditions ')'	qn_filters	{ $$ = _qc->PushQuery(new CQCount($3,$5)); }
+	;*/
+
+ /*-------------------------------------------------------------
+  * query_conditions (q*)
+  */
+query_conditions:
+		q_clause q_filters		{ $$ = $1; }
 	;
 
  /*-------------------------------------------------------------
@@ -257,17 +276,17 @@ query:
 q_filters:
 		/* empty */			{ $$=NULL; }
 	|	q_filters q_flag		{ $$=NULL; }
-	|	q_filters q_filter		{ $$=NULL; _qc->m_QFilters.push_back($2); }
+	|	q_filters q_filter		{ $$=NULL; _qc->mq_QFilters.push_back($2); }
 	;
 
 
 
 q_flag:	
 		':' qf_subcorpora 	{ $$=NULL; }
-	|	CNTXT integer 		{ $$=NULL; _qc->m_ContextSentencesCount = (size_t)$2; }
-	|	WITHIN symbol 		{ $$=NULL; _qc->m_Within.push_back(*$2); }
-	|	SEPARATE_HITS		{ $$=NULL; _qc->m_bSeparateHits = 1; }
-	|	NOSEPARATE_HITS		{ $$=NULL; _qc->m_bSeparateHits = 0; }
+	|	CNTXT integer 		{ $$=NULL; _qc->mq_ContextSentencesCount = (size_t)$2; }
+	|	WITHIN symbol 		{ $$=NULL; _qc->mq_Within.push_back(*$2); }
+	|	SEPARATE_HITS		{ $$=NULL; _qc->mq_bSeparateHits = 1; }
+	|	NOSEPARATE_HITS		{ $$=NULL; _qc->mq_bSeparateHits = 0; }
 	|	FILENAMES_ONLY 		{ $$=NULL; _qc->m_bEnableBibliographyForThisQuery = false;  }
 	|	'!' FILENAMES_ONLY	{ $$=NULL; _qc->m_bEnableBibliographyForThisQuery = true;  }
 	|	DEBUG_RANK		{ $$=NULL; _qc->m_bDebugRank = true;  }
@@ -276,8 +295,8 @@ q_flag:
 
 qf_subcorpora:
 		/* empty */			{ $$=NULL; }
-	|	s_subcorpus			{ _qc->m_Subcorpora.push_back(*$1); $$ = NULL; }
-	|	qf_subcorpora ',' s_subcorpus	{ _qc->m_Subcorpora.push_back(*$3); $$ = $1; }
+	|	s_subcorpus			{ _qc->mq_Subcorpora.push_back(*$1); $$ = NULL; }
+	|	qf_subcorpora ',' s_subcorpus	{ _qc->mq_Subcorpora.push_back(*$3); $$ = $1; }
 	;
 
 q_filter:

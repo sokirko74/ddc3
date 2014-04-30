@@ -33,6 +33,45 @@ bool CQuery::Compile(CQueryCompiler *compiler)
 }
 
 //--------------------------------------------------------------
+bool CQuery::CompileFilters(CQueryCompiler *compiler)
+{
+  if (compiler==NULL) compiler = m_Compiler;
+  assert(compiler!=NULL);
+
+  //-- clear and resize compiled filter list
+  bool rc = true;
+  m_Filters.clear();
+  m_Filters.reserve(m_QFilters.size());
+
+  //-- compile abstract filters in m_QFilters to old-style m_Filters
+  for (CQFilterList::iterator fi=m_QFilters.begin(); rc && fi != m_QFilters.end(); fi++) {
+    assert(*fi != NULL);
+    rc = (rc && (*fi)->Compile(compiler));
+  }
+
+  //-- find the last run-time sort operator and swap it out the back of the list
+  //   for easy access (used to present the result hit set in the proper order)
+  for (int i=m_Filters.size()-1;  i>=0; i--) {
+    if(m_Filters[i].m_FilterType != NoSort) {
+      if (i+1 != m_Filters.size())
+	swap(m_Filters[i],  m_Filters.back());
+      break;
+    }
+  }
+  //-- sanity checks for query-global flags
+  if (m_ContextSentencesCount > CQueryCompiler::m_MaxContextSentencesCount)
+    throw CExpc(errParseError, "Requested context window of length=%d exceeds maximum context size=%d", m_ContextSentencesCount, CQueryCompiler::m_MaxContextSentencesCount);
+
+  //-- index-dependent flag-setting from old CQueryParser::ParseQuery()
+  assert(compiler->m_pHolder!=NULL);
+  assert(compiler->m_pHolder->m_pIndexator!=NULL);
+  m_HitTypeStr = compiler->m_pHolder->m_pIndexator->WithinBreakName(m_Within);
+  m_TextAreaNo = compiler->m_pHolder->m_pIndexator->m_Bibl.WithinTextArea(m_Within);
+
+  return rc;
+}
+
+//--------------------------------------------------------------
 void CQuery::SetCompiler(CQueryCompiler *compiler)
 {
   assert(compiler!=NULL);
@@ -50,9 +89,23 @@ void CQuery::ClearNode()
 }
 
 //--------------------------------------------------------------
+void CQuery::ClearFilters()
+{
+  //-- clear filter list
+  for (CQFilterList::iterator fi=m_QFilters.begin(); fi != m_QFilters.end(); fi++) {
+    if (*fi != NULL) delete *fi;
+  }
+  m_QFilters.clear();
+  m_Filters.clear();
+  m_Subcorpora.clear();
+}
+
+//--------------------------------------------------------------
 void CQuery::Clear(bool deep)
 {
   ClearNode();
+  if (deep)
+    ClearFilters();
 }
 
 //--------------------------------------------------------------
@@ -66,7 +119,7 @@ void CQuery::Evaluate()
 {
   assert(m_Node != NULL);
   assert(m_Compiler != NULL);
-  m_Node->Evaluate(m_Compiler->m_bSeparateHits);
+  m_Node->Evaluate(m_bSeparateHits);
 }
 
 //--------------------------------------------------------------
