@@ -150,12 +150,13 @@ bool CQueryCompiler::ParseQuery(const string &QueryStr)
 	// state which was not "INITIAL", and the previous call returned "Parse error", 
 	// then right now the parser is in  the last state,  which is not  "INITIAL".
 	//yy_start = 0;
-	//switch_streams((istream*)(&QueryStream), 0);
+	//switch_streams((istream*)(&QueryStream), NULL);
 	yyrestart((istream*)(&QueryStream));
+
+	//-- actual parse
 	yylineno = 1;
-
-
-	if (yyqparse((void*)this) != 0) {
+	int rc = yyqparse((void*)this);
+	if (rc != 0) {
 		CleanParser();
 		return false;
 	}
@@ -204,6 +205,7 @@ void CQueryCompiler::DeleteTree()
 {
 	for (vector<CQuery*>::reverse_iterator qi=m_Queries.rbegin(); qi != m_Queries.rend(); qi++) {
 		if (*qi == NULL) continue;
+		(*qi)->ClearFilters();
 		(*qi)->Clear(false);
 		delete *qi;
 	}

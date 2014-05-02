@@ -55,6 +55,7 @@ void CDDCBranchServer::handle__run_query(string &Result, const char *CorpusName,
     string ResultString;
     string HitDistrib;
     string DocDistrib;
+    m_ErrorStr.clear();
     iNetworkError = RunDistributed(strQuery, strResultType, StartHitNo, ResultLimit,
 				   InternalError, EndHitNo, HitsCount, TimeOut,
 				   ResultString, RelevantDocsCount, HitDistrib, DocDistrib);
