@@ -1454,7 +1454,9 @@ DDCErrorEnum CConcHolder::GetAllHits(const string &Query, size_t Limit)
 
 	//  we cannot call here CleanParser, because we would use later some slots of  m_pQueryCompiler 
 	//  but  we should delete the parse tree itself in order to free meemory
-	m_pQueryCompiler->DeleteTree();
+	//  + moo: this won't work in v2.0.23 because we still need query filters in m_pQueryCompiler->m_pQuery->m_Filters
+	//         it's called implicitly by CQueryCompiler::CleanParser(), i.e. before the next parse
+	//m_pQueryCompiler->DeleteTree();
 
 	return errNone;
 };
@@ -1802,7 +1804,7 @@ DDCErrorEnum CConcHolder::GetOccurrences(const string &Query, int ContextSize,  
 		if (m_bStdout)
 				fprintf (stderr," %i/%i             \n", m_CurrentSearchPeriodNo, m_pIndexator->GetSearchPeriodsCount());
 		
-		m_pQueryCompiler->DeleteTree();
+		//m_pQueryCompiler->DeleteTree();
 
 		return errNone;
 	}

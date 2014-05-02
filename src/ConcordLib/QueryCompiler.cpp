@@ -172,17 +172,17 @@ bool CQueryCompiler::ParseQuery(const string &QueryStr)
 
 void CQueryCompiler::CleanParser()
 {
-	m_Labels.clear();
-	DeleteTree();
-	m_CurrentNodeIndex = 0;
-
-	//-- clear global filter list
+	//-- clear global filter list (before DeleteTree())
 	if (!m_pQuery) {
 		for (CQFilterList::iterator fi=mq_QFilters.begin(); fi != mq_QFilters.end(); fi++) {
 			if (*fi != NULL) delete *fi;
 		}
 	}
 	mq_QFilters.clear();
+
+	m_Labels.clear();
+	DeleteTree();
+	m_CurrentNodeIndex = 0;
 
 	//-- clear global query flags
 	mq_ContextSentencesCount = 0;
