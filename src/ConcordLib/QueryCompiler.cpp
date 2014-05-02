@@ -94,23 +94,23 @@ bool CQueryCompiler::CompileFilters()
 	return m_pQuery->CompileOptions(this);
 }
 
-bool CQueryCompiler::Compile()
+bool CQueryCompiler::Compile(CQuery *query)
 {
-	assert(m_pQuery != NULL);
-	if (!m_pQuery->RootOK())
-		throw CExpc(errParseError, "unsupported negation or invalid query root `%s'", m_pQuery->toString().c_str());
+	assert(query != NULL);
+	if (!query->RootOK())
+		throw CExpc(errParseError, "unsupported negation or invalid query root `%s'", query->toString().c_str());
 
-	return m_pQuery->CompileOptions(this) && m_pQuery->Compile(this);
+	return query->CompileOptions(this) && query->Compile(this);
 }
 
-bool	CQueryCompiler::Evaluate()
+bool	CQueryCompiler::Evaluate(CQuery *query)
 {
-	assert (m_pQuery != NULL);
-	if (!m_pQuery)
+	assert(query != NULL);
+	if (!query)
 		return false;
-	if (m_pQuery->m_Compiler != this && !Compile())
+	if (query->m_Compiler != this && !Compile(query))
 		return false;
-	m_pQuery->Evaluate() ; 
+	query->Evaluate() ; 
 	return true;
 }
 

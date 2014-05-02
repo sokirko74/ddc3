@@ -173,15 +173,26 @@ public:
 	//! \b OBSOLETE : now just a wrapper for m_pQuery->CompileOptions(this)
 	bool CompileFilters();
 
+	//! moo: compile the given query (query) with respect to
+	//! the current index (m_pHolder) and compiler options (m_HitTypeStr etc.)
+	//! \li really just a wrapper for query->CompileOptions(this) && query->Compile(this)
+	//! \returns false on failure (and may throw an exception)
+	bool Compile(CQuery *query);
+
+	//! evaluate parse tree bottom-up
+	//! \li query defaults to m_pQuery
+	bool Evaluate(CQuery *query);
+
 	//! moo: compile the current parsed query (m_pQuery) with respect to
 	//! the current index (m_pHolder) and compiler options (m_HitTypeStr etc.)
 	//! \li really just a wrapper for m_pQuery->CompileOptions(this) && m_pQuery->Compile(this)
 	//! \returns false on failure (and may throw an exception)
-	bool Compile(void);
+	inline bool Compile()
+	{ return Compile(m_pQuery); };
 
-	//! evaluate parse tree bottom-up
-	//! \li moo: not at all sure what this does
-	bool Evaluate();
+	//! evaluate parse tree bottom-up; wrapper for Evaluate(m_pQuery)
+	inline bool Evaluate()
+	{ return Evaluate(m_pQuery); };
 
 	//! return current node index to set CQueryTokenNode::m_NodeIndex
 	int GetNewNodeIndex();

@@ -30,6 +30,12 @@ class CQueryOptions;   //-- forward decl
 typedef vector<CQFilter*> CQFilterList;
 typedef vector<string>    CQSubcorpusList;
 
+
+typedef enum {
+  cqtCondition = 0,
+  cqtCount = 1
+} CQueryTypeE;
+
 //======================================================================
 /*!
  \brief
@@ -41,6 +47,9 @@ class CQuery {
 public:
   //! arbitrary name for this query node (e.g. string from which it was parsed)
   string m_Label;
+
+  //! query type
+  CQueryTypeE m_Type;
 
   //! associated query compiler (only set on Compile())
   CQueryCompiler *m_Compiler;
@@ -58,6 +67,7 @@ public:
   //! Default constructor
   CQuery(const string &label=string(""))
     : m_Label(label),
+      m_Type(cqtCondition),
       m_Compiler(NULL),
       m_Node(NULL),
       m_Options(NULL)
@@ -647,6 +657,7 @@ public:
 //======================================================================
 // Misc
 
+//------------------------------------------------------------
 //! 'NEAR' query (e.g. NEAR(a,b,2))
 //! un-ordered proximity constraint over 2 sub-queries
 class CQNear : public CQNegatable {
@@ -686,7 +697,7 @@ public:
   virtual string jsonData();
 };
 
-
+//------------------------------------------------------------
 //! sequence query (e.g. "a #1 b #1 c")
 //! This class holds a sequence of nodes of type CQToken (slot m_Items).
 //! Distance constraints: between \c m_Items[i] and \c m_Items[i+1] must be
@@ -735,6 +746,50 @@ public:
   virtual string jsonClass() { return "CQSeq"; };
   virtual string jsonData();
 };
+
+//======================================================================
+/*!
+ \brief
+   count query
+*/
+class CQCount : public CQuery {
+public:
+  //! underlying query conditions to be counted
+  CQuery *m_dtr;
+
+public:
+  //! bison constructor
+  CQCount(CQuery *dtr)
+  : CQuery("count"),
+    m_dtr(dtr)
+  {
+    m_Type = cqtCount;
+  };
+
+  //! Default destructor.
+  virtual ~CQCount(void);
+
+public:
+  //! Compile index-dependent query properties
+  virtual bool Compile(CQueryCompiler *compiler);
+
+  //! evaluate query
+  virtual void Evaluate();
+
+  //! \b DEBUG: return a canonical string form for this query
+  virtual string toString();
+
+  virtual string jsonClass() { return "CQCount"; };
+  virtual string jsonData()  { return "\"dtr\":"+m_dtr->toJson(); };
+
+  //! deletes m_Node if non-NULL
+  virtual void ClearNode();
+
+  //! clear query contents.  if \c deep is true, propagates operation to daughters
+  virtual void Clear(bool deep=true);
+};
+
+
 
 //======================================================================
 /*!

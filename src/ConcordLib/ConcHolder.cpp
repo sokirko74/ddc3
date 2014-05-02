@@ -56,6 +56,16 @@ struct IsLessByHitSortKey
 	};
 };
 
+//! comparison operator for hits on CHit::m_FileNo (for std::sort)
+struct IsLessByFileNo
+{
+	IsLessByFileNo()
+	{};
+
+	bool operator() (const CHit &h1, const CHit &h2) const 
+	{ return h1.m_FileNo < h2.m_FileNo; };
+};
+
 
 // cannot create cross-platform heterogenious predicate lower_bound:
 // http://groups.google.com/group/comp.std.c++/browse_thread/thread/151b0210b6266c2f?hl=en&lr=&safe=off&ic=1&seekm=MPG.143ab91a14f21268989743%40news.supernews.com
@@ -318,7 +328,7 @@ void CConcHolder::ShowBibliographyForTextOrHtml(const CHit& Hit, DWORD PageNumbe
 
 		//-- rank stuff / text
 		if (m_pQueryCompiler->m_bDebugRank) {
-			const char* DebugInfo = (const char*)(void*)(&m_DebugInfo[0]) + Hit.m_DebugRankNo;
+			const char* DebugInfo = (const char*)(void*)(&m_DebugInfo[0]) + Hit.m_Value.m_DebugRankNo;
 			m_QueryResultStr += Format(" %s ### ",DebugInfo);
 		}
 
@@ -588,7 +598,7 @@ bool CConcHolder::ShowBibliographyForTable(DWORD PageNumber, const CHit& Hit, co
 	if (HasRankOrderOperator()) {
 		m_QueryResultStr += string("rank") + globalTableItemsDelim + Format("%d", Hit.m_SortKey.i) + globalTableItemsDelim;
 		if (m_pQueryCompiler->m_bDebugRank) {
-			const char* DebugInfo = (const char*)(void*)(&m_DebugInfo[0]) + Hit.m_DebugRankNo;
+			const char* DebugInfo = (const char*)(void*)(&m_DebugInfo[0]) + Hit.m_Value.m_DebugRankNo;
 			m_QueryResultStr += string("rank_debug") + globalTableItemsDelim + DebugInfo + globalTableItemsDelim;
 		}
 	}
@@ -634,7 +644,7 @@ bool CConcHolder::GenerateOneHitString(DWORD PageNumber, const CHit& Hit, const 
 		if (!m_pQueryCompiler->m_bDebugRank) {
 			m_QueryResultStr += Format("<i>Rank = %i</i><br>", Hit.m_SortKey.i > 0 ? Hit.m_SortKey.i : -Hit.m_SortKey.i);
 		} else {
-			const char* DebugInfo = (const char*)(void*)(&m_DebugInfo[0]) + Hit.m_DebugRankNo;
+			const char* DebugInfo = (const char*)(void*)(&m_DebugInfo[0]) + Hit.m_Value.m_DebugRankNo;
 			m_QueryResultStr += Format("<i>%s</i><br>",DebugInfo);
 		}
 	}
@@ -717,7 +727,7 @@ bool CConcHolder::GenerateOneHitStringJson(DWORD PageNumber, const CHit& Hit, co
     if (HasRankOrderOperator()) {
 	    hitStr += Format(",\"rank_\":%d", Hit.m_SortKey.i);
 	    if (m_pQueryCompiler->m_bDebugRank) {
-		    const char* DebugInfo = (const char*)(void*)(&m_DebugInfo[0]) + Hit.m_DebugRankNo;
+		    const char* DebugInfo = (const char*)(void*)(&m_DebugInfo[0]) + Hit.m_Value.m_DebugRankNo;
 		    hitStr += ",\"rank_debug_\":" + jsonStr(DebugInfo, utf8);
 	    }
     }
@@ -1141,7 +1151,7 @@ void CConcHolder::InitSortByRank() const
 		int SortKey = H.m_SortKey.i+(int)(rank*(double)1000);
 		if (bShowDebugRank)
 		{
-			H.m_DebugRankNo = m_DebugInfo.size();
+			H.m_Value.m_DebugRankNo = m_DebugInfo.size();
 			string DebugInfo = Format("Rank=%i (tfidf=%05f near=%05f pos=%05f(%i) PR=%i)", 
 							SortKey, tfidf, near_rank, position_rank, 
 							pos_from_the_hit_beginning, H.m_SortKey.i);
@@ -1291,8 +1301,13 @@ void CConcHolder::InitSortKeyForHits(const CDDCFilterWithBounds& Filter)
 //#define DEBUG_HIT_SORT 1
 #undef DEBUG_HIT_SORT
 
-
 DDCErrorEnum CConcHolder::GetAllHits(const string &Query, size_t Limit) 
+{
+	return GetAllHits(m_pQueryCompiler->m_pQuery, Limit);
+}
+
+
+DDCErrorEnum CConcHolder::GetAllHits(CQuery *QueryRoot, size_t Limit) 
 {
 	m_AllHitsCount = 0;
 	m_RelevantDocumentCount = 0;
@@ -1300,7 +1315,17 @@ DDCErrorEnum CConcHolder::GetAllHits(const string &Query, size_t Limit)
 	m_ShortOccurCaches.clear();
 
 	ClearQueryResults();
-	CQuery        *qRoot = m_pQueryCompiler->m_pQuery;
+
+	//-- tweak query root for count-queries
+	assert(QueryRoot != NULL);
+	CQuery *qRoot = QueryRoot;
+	if (QueryRoot->m_Type == cqtCount) {
+		m_bCounts = true;
+		Limit = INT_MAX;
+		qRoot = ((CQCount*)QueryRoot)->m_dtr;
+	}
+
+	//CQuery        *qRoot = m_pQueryCompiler->m_pQuery;
 	CQueryNode    *qNode = qRoot->m_Node;
 	CQueryOptions *qOpts = qRoot->m_Options;
 	vector<CHit> &qHits = qNode->m_Hits;
@@ -1316,7 +1341,7 @@ DDCErrorEnum CConcHolder::GetAllHits(const string &Query, size_t Limit)
 
 	for (m_CurrentSearchPeriodNo = 0;  m_CurrentSearchPeriodNo < CountOfPeriods; m_CurrentSearchPeriodNo++)
 	{
-		m_pQueryCompiler->Evaluate();
+		m_pQueryCompiler->Evaluate(qRoot);
 		InitFileReferences(qHits);
 
 		vector<size_t>		PeriodHitsIndex;
@@ -1459,6 +1484,49 @@ DDCErrorEnum CConcHolder::GetAllHits(const string &Query, size_t Limit)
 	//         it's called implicitly by CQueryCompiler::CleanParser(), i.e. before the next parse
 	//m_pQueryCompiler->DeleteTree();
 
+	//-- moo: count query: aggregate
+	if (m_bCounts) {
+		//-- sort by file-id
+		if (qRoot->m_Options && !qRoot->m_Options->m_Filters.empty() && qRoot->m_Options->m_Filters.back().m_FilterType!=NoSort) 
+			stable_sort(m_Hits.begin(), m_Hits.end(), IsLessByFileNo());
+
+		//-- count by filename
+		DWORD f = (size_t)-1;
+		DWORD n = 0;
+		string key("");
+		map<string, size_t> counts;
+		for (vector<CHit>::const_iterator hi=m_Hits.begin(); hi != m_Hits.end(); ++hi, ++n) {
+			if (hi->m_FileNo != f) {
+				//-- next file
+				if (!key.empty()) counts[key] += n;
+				n   = 0;
+				f   = hi->m_FileNo;
+				key = m_pIndexator->GetShortFilename(f);
+			}
+		}
+		if (!key.empty()) counts[key] += n;
+
+		//-- tweak hit-list
+		vector<CHit> newHits;
+		newHits.resize(counts.size());
+		vector<CHit>::iterator hi = newHits.begin(); 
+		for (map<string,size_t>::const_iterator ci=counts.begin(); ci != counts.end(); ++ci, ++hi) {
+			hi->m_BreakNo = -1;
+			hi->m_HighlightOccurrenceEnd = 0;
+			hi->m_FileNo  = -1;
+			hi->m_Value.m_Count = ci->second;
+			hi->m_SortKey = ci->first;
+		}
+
+		//-- tweak hit-results
+		m_Hits.swap(newHits);
+		m_HighlightOccurs.clear();
+		m_bSortByString = 1;
+		m_bCounts       = 1;
+		m_SortOrder     = hsoNone;
+	}
+
+
 	return errNone;
 };
 
@@ -1468,6 +1536,7 @@ void	CQueryResult::ClearQueryResults()
 	ClearVector(m_HighlightOccurs);
 	ClearVector(m_DebugInfo);
 	m_bSortByString = false;
+	m_bCounts = false;
 	m_SortOrder = hsoNone;
 }
 
@@ -1477,7 +1546,11 @@ string CConcHolder::GetHitIds()  const
 
 	for (size_t i=0; i < m_Hits.size(); i++) {
 		const CHit &h = m_Hits[i];
-		Result += Format("\t%i -0 ", i); //-- HitId, OrderId (for ddc < v2.0.19)
+		if (!m_bCounts) {
+			Result += Format("\t%i -0 ", i); //-- HitId, OrderId (for ddc < v2.0.19)
+		} else {
+			Result += Format("\t%i %zi ", i, h.m_Value.m_Count); //-- HitId, Count (for count-queries, ddc >= v2.0.23)
+		}
 		if (m_bSortByString) {
 			//-- string-based sort
 			Result.append(h.m_SortKey.s, 0, DDC_SORTKEY_MAXLEN-1);
@@ -1518,6 +1591,7 @@ bool CConcHolder::TryToGetFromCache(const string &Query,  DWORD& EndHitNo)
 	m_RelevantDocumentCount = CacheItem.m_RelevantDocumentCount;
 	m_SortOrder = CacheItem.m_SortOrder;
 	m_bSortByString = CacheItem.m_bSortByString;
+	m_bCounts = CacheItem.m_bCounts;
 	return true;
 };
 
@@ -1550,6 +1624,7 @@ void  CConcHolder::SaveToCache(const string& Query, vector<size_t>::const_iterat
 	I.m_RelevantDocumentCount = m_RelevantDocumentCount;
 	I.m_SortOrder = m_SortOrder;
 	I.m_bSortByString = m_bSortByString;
+	I.m_bCounts = m_bCounts;
 	size_t End  = min (MaxCachedHitsCount, (size_t)(end-start));
 	for (size_t i=0; i < End; i++)
 	{

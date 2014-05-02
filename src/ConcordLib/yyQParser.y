@@ -106,8 +106,8 @@ int yylex (void*,  void*);
 // Types: Queries
 
 %type   <m_pnode>	query_conditions
+%type	<m_pnode>	count_query
 %type	<m_pnode>	q_clause
-//type	<m_pnode>	q_count
 %type	<m_pnode>	qc_basic
 %type	<m_pnode>	qc_boolean
 %type	<m_pnode>	qc_concat
@@ -252,16 +252,15 @@ int yylex (void*,  void*);
   */
 query:
 		query_conditions	{ $$ = _qc->SetQuery($1); }
+ 	|	count_query		{ $$ = _qc->SetQuery($1); }
 	;
-
- /*	|	query_counts		{ $$ = _qc->SetQuery($1); } */
 
  /*-------------------------------------------------------------
   * query_counts (qn*)
   */
- /*query_counts:
-		COUNT '(' query_conditions ')'	qn_filters	{ $$ = _qc->PushQuery(new CQCount($3,$5)); }
-	;*/
+count_query:
+		COUNT '(' query_conditions ')'	{ $$ = _qc->PushQuery(new CQCount(_qc->SetQuery($3)) ); }
+	;
 
  /*-------------------------------------------------------------
   * query_conditions (q*)

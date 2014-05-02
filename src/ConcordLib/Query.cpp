@@ -851,6 +851,63 @@ string CQSeq::jsonData() {
 	  );
 }
 
+//======================================================================
+// CQCount
+
+//--------------------------------------------------------------
+CQCount::~CQCount()
+{
+  Clear(true);
+}
+
+//--------------------------------------------------------------
+void CQCount::ClearNode()
+{
+  if (m_dtr) m_dtr->ClearNode();
+  CQuery::ClearNode();
+}
+
+//--------------------------------------------------------------
+void CQCount::Clear(bool deep)
+{
+  ClearNode();
+  ClearOptions();
+  if (deep) {
+    if (m_dtr) delete m_dtr;
+  }
+  m_dtr = NULL;
+}
+
+//--------------------------------------------------------------
+bool CQCount::Compile(CQueryCompiler *compiler)
+{
+  SetCompiler(compiler);
+
+  //-- sanity check(s)
+  if (!m_dtr)
+    throw CExpc(errParseError,"no argument conditions specified for count-query `%s'", this->toString().c_str());
+
+  //-- compile daughter(s)
+  if (!m_dtr->Compile(compiler))
+    throw CExpc(errParseError,"could not compile argument conditions `%s' for count-query", m_dtr->toString().c_str());
+
+  //-- child methods hook in here
+  return true;
+}
+
+//--------------------------------------------------------------
+void CQCount::Evaluate()
+{
+  //-- sanity check(s)
+  assert(m_dtr != NULL);
+  m_dtr->Evaluate();
+}
+
+//--------------------------------------------------------------
+string CQCount::toString()
+{
+  return string("COUNT(") + m_dtr->toString() + ")";
+}
 
 
 //======================================================================
@@ -859,7 +916,7 @@ string CQSeq::jsonData() {
 //--------------------------------------------------------------
 CQueryOptions::~CQueryOptions()
 {
-  CQueryOptions::Clear();
+  Clear();
 }
 
 //--------------------------------------------------------------

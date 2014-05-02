@@ -566,9 +566,9 @@ Returns information about the associated (sub)corpus as a JSON object of the for
   //-- index structure: token-level indices
   "indices":[
 	{"shortname":"w", "longname":"Token", "visible":1, "bigrams":2, "size":9369},
-	{"shortname":"l", "longname":"Lemma", "visible":1, "bigrams":0, "size":5706},
+	{"shortname":"l", "longname":"Lemma", "visible":1, "size":5706},
 	//... other token-level indices ...
-	{"shortname":"p", "longname":"Pos", "visible":1, "bigrams":0, "size":53},
+	{"shortname":"p", "longname":"Pos", "visible":1, "size":53},
 	],
   //
   //-- query operators: bibliographic expanders ("ExpandBibl" options)

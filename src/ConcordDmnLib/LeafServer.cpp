@@ -196,7 +196,7 @@ void CDDCLeafServer::handle__info(string &Result, bool verbose)
 				   + "\"longname\":" + jsonStr(sis->m_Name) + ", "
 				   + "\"visible\":" + (visibleIndices.find(i)!=visibleIndices.end() ? '1' : '0') + ", "
 				   //+ "\"bigrams\":" + Format("%d", sis->m_MaxBigramWindowSize) + ", "
-				   + "\"bigrams\":" + Format("%d", -1) + ", "
+				   //+ "\"bigrams\":" + Format("%d", -1) + ", "
 				   + "\"size\":" + Format("%zd", sis->m_Index.size()) //+ ", " //-- indices[i].size : number of values (?)
 				   //+ "\"bigramBorder\":" + Format("%d", sis->m_BigramBorder) + ", "
 				   //+ "\"left\":" + Format("%zd", sis->m_BigramsIndex.m_LeftBigrams.m_FirstWords.size()) + ", "

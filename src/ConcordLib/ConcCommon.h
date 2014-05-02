@@ -304,14 +304,20 @@ struct CHit
 	DWORD	m_HighlightOccurrenceEnd;
 	//! the index of \ref corpus_file_def "coprus file", where this hit is found, it is equal to  m_BreakNo if user searches within files
 	DWORD	m_FileNo;
-	//! the string which displays how the rank was calculated
-	size_t	m_DebugRankNo;
+
+	union {
+		//! the string which displays how the rank was calculated (for rank-sorted queries)
+		size_t	m_DebugRankNo;
+
+		//! count for this item (for count-queries)
+		size_t  m_Count;
+	} m_Value;
 
 	//! key for sorting and/or filtering, which is calculated either by an instance of CDDCFilterWithBounds or by CConcHolder.
 	//! formerly m_OrderId
 	CHitSortKey m_SortKey;
 
-	CHit(DWORD BreakNo) : m_BreakNo(BreakNo), m_SortKey(0) {};
+	CHit(DWORD BreakNo=0) : m_BreakNo(BreakNo), m_SortKey(0) {};
 };
 
 

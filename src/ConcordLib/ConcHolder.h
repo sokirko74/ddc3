@@ -27,7 +27,8 @@
 //! save trigger for ConcordPattern application
 typedef bool (*SaveTriggerType) (const string&,DWORD LParam);
 
-class CQueryCompiler;
+class CQueryCompiler; //-- forward decl
+class CQuery;	      //-- forward decl
 
 
 /*! \brief
@@ -42,16 +43,20 @@ struct CQueryResult
 	vector<CHit>		m_Hits;
 	//! words that should be highlighted in hits; m_HighlightOccurs is the concatenation of CQueryNode::m_Occurrences for all \ref period_def "subcorpora"
 	vector<CTokenNo>	m_HighlightOccurs;
+
 	//! the number of all found hits (if m_AllHitsCount < MaxCachedHitsCount, then m_Hits.size() == m_AllHitsCount)
 	size_t			m_AllHitsCount;
 	//! the number of documents, where at least one hit is found
 	size_t			m_RelevantDocumentCount;
 
 	//! whether to sort by string-value
-	bool 			m_bSortByString;
+	bool 			m_bSortByString : 1;
+
+	//! whether this is a count-query
+	bool			m_bCounts : 1;
 
 	//! hit sort order (-1:descending, 0:no-sort, 1:ascending)
-	HitSortOrderEnum	m_SortOrder;
+	HitSortOrderEnum	m_SortOrder : 2;
 
 
 	mutable vector<BYTE>	m_DebugInfo;
@@ -124,8 +129,13 @@ private:
 	//! append json hit strings [StartBreakNo,  EndBreakNo) without highlighting to js
 	bool	GetContextJson(int  StartBreakNo, int  EndBreakNo, const DWORD CurrFileNo, string& js) const;
 
-	//! run query to the corpus, initializes slots from CQueryResult
-	DDCErrorEnum	GetAllHits(const string &Query, size_t Limit);
+	//! evaluate query on the corpus and initialize slots from CQueryResult
+	//! \li backwards-compatible version assuming Query was already have been parsed
+	DDCErrorEnum GetAllHits(const string &Query, size_t Limit);
+
+	//! evaluate query on the corpus and initialize slots from CQueryResult, given a pre-parsed query
+	//! \li ddc-2.0.23 version
+	DDCErrorEnum	GetAllHits(CQuery *QueryRoot, size_t Limit);
 
 	//! checks if Query  si already in the cache, and if true, it returns its hit results from the cache
 	bool	TryToGetFromCache(const string &Query,  DWORD& EndHitNo);
