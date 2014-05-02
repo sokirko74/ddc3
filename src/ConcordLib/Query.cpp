@@ -33,42 +33,15 @@ bool CQuery::Compile(CQueryCompiler *compiler)
 }
 
 //--------------------------------------------------------------
-bool CQuery::CompileFilters(CQueryCompiler *compiler)
+bool CQuery::CompileOptions(CQueryCompiler *compiler)
 {
   if (compiler==NULL) compiler = m_Compiler;
   assert(compiler!=NULL);
 
-  //-- clear and resize compiled filter list
-  bool rc = true;
-  m_Filters.clear();
-  m_Filters.reserve(m_QFilters.size());
+  if (m_Options == NULL)
+    m_Options = new CQueryOptions();
 
-  //-- compile abstract filters in m_QFilters to old-style m_Filters
-  for (CQFilterList::iterator fi=m_QFilters.begin(); rc && fi != m_QFilters.end(); fi++) {
-    assert(*fi != NULL);
-    rc = (rc && (*fi)->Compile(compiler));
-  }
-
-  //-- find the last run-time sort operator and swap it out the back of the list
-  //   for easy access (used to present the result hit set in the proper order)
-  for (int i=m_Filters.size()-1;  i>=0; i--) {
-    if(m_Filters[i].m_FilterType != NoSort) {
-      if (i+1 != m_Filters.size())
-	swap(m_Filters[i],  m_Filters.back());
-      break;
-    }
-  }
-  //-- sanity checks for query-global flags
-  if (m_ContextSentencesCount > CQueryCompiler::m_MaxContextSentencesCount)
-    throw CExpc(errParseError, "Requested context window of length=%d exceeds maximum context size=%d", m_ContextSentencesCount, CQueryCompiler::m_MaxContextSentencesCount);
-
-  //-- index-dependent flag-setting from old CQueryParser::ParseQuery()
-  assert(compiler->m_pHolder!=NULL);
-  assert(compiler->m_pHolder->m_pIndexator!=NULL);
-  m_HitTypeStr = compiler->m_pHolder->m_pIndexator->WithinBreakName(m_Within);
-  m_TextAreaNo = compiler->m_pHolder->m_pIndexator->m_Bibl.WithinTextArea(m_Within);
-
-  return rc;
+  return m_Options->Compile(compiler);
 }
 
 //--------------------------------------------------------------
@@ -89,23 +62,19 @@ void CQuery::ClearNode()
 }
 
 //--------------------------------------------------------------
-void CQuery::ClearFilters()
+void CQuery::ClearOptions()
 {
-  //-- clear filter list
-  for (CQFilterList::iterator fi=m_QFilters.begin(); fi != m_QFilters.end(); fi++) {
-    if (*fi != NULL) delete *fi;
+  if (m_Options != NULL) {
+    delete m_Options;
+    m_Options = NULL;
   }
-  m_QFilters.clear();
-  m_Filters.clear();
-  m_Subcorpora.clear();
 }
 
 //--------------------------------------------------------------
 void CQuery::Clear(bool deep)
 {
   ClearNode();
-  if (deep)
-    ClearFilters();
+  ClearOptions();
 }
 
 //--------------------------------------------------------------
@@ -118,8 +87,9 @@ CQuery::~CQuery(void)
 void CQuery::Evaluate()
 {
   assert(m_Node != NULL);
-  assert(m_Compiler != NULL);
-  m_Node->Evaluate(m_bSeparateHits);
+  assert(m_Options != NULL);
+  //assert(m_Compiler != NULL);
+  m_Node->Evaluate(m_Options->m_bSeparateHits);
 }
 
 //--------------------------------------------------------------
@@ -128,6 +98,14 @@ bool CQuery::Negate(void)
   throw CExpc(errParseError, "attempt to negate non-negatable query `%s'", toString().c_str());
   return this->Negated();
 };
+
+//--------------------------------------------------------------
+void CQuery::SetOptions(CQueryOptions *opts)
+{
+  if (m_Options) delete m_Options;
+  m_Options = opts;
+}
+
 
 //======================================================================
 // CQNegatable
@@ -178,6 +156,7 @@ void CQBinOp::ClearNode()
 void CQBinOp::Clear(bool deep)
 {
   ClearNode();
+  ClearOptions();
   if (deep) {
     if (m_dtr1) delete m_dtr1;
     if (m_dtr2) delete m_dtr2;
@@ -713,6 +692,7 @@ void CQNear::ClearNode()
 void CQNear::Clear(bool deep)
 {
   ClearNode();
+  ClearOptions();
   if (deep) {
     if (m_dtr1) delete m_dtr1;
     if (m_dtr2) delete m_dtr2;
@@ -789,6 +769,7 @@ void CQSeq::ClearNode() {
 
 void CQSeq::Clear(bool deep) {
   ClearNode();
+  ClearOptions();
   for (vector<CQToken*>::iterator ii=m_Items.begin(); ii != m_Items.end(); ii++) {
     if (deep && *ii) delete *ii;
     *ii = NULL;
@@ -868,4 +849,65 @@ string CQSeq::jsonData() {
 	  +",\"Dists\":"+jsonArray(m_Dists)
 	  +",\"DistOps\":"+jsonArray(m_DistOps)
 	  );
+}
+
+
+
+//======================================================================
+// CQueryOptions
+
+//--------------------------------------------------------------
+CQueryOptions::~CQueryOptions()
+{
+  CQueryOptions::Clear();
+}
+
+//--------------------------------------------------------------
+bool CQueryOptions::Compile(CQueryCompiler *compiler)
+{
+  assert(compiler!=NULL);
+
+  //-- clear and resize compiled filter list
+  bool rc = true;
+  m_Filters.clear();
+  m_Filters.reserve(m_QFilters.size());
+
+  //-- compile abstract filters in m_QFilters to old-style m_Filters
+  for (CQFilterList::iterator fi=m_QFilters.begin(); rc && fi != m_QFilters.end(); fi++) {
+    assert(*fi != NULL);
+    rc = (rc && (*fi)->Compile(compiler));
+  }
+
+  //-- find the last run-time sort operator and swap it out the back of the list
+  //   for easy access (used to present the result hit set in the proper order)
+  for (int i=m_Filters.size()-1;  i>=0; i--) {
+    if(m_Filters[i].m_FilterType != NoSort) {
+      if (i+1 != m_Filters.size())
+	swap(m_Filters[i],  m_Filters.back());
+      break;
+    }
+  }
+  //-- sanity checks for query-global flags
+  if (m_ContextSentencesCount > CQueryCompiler::m_MaxContextSentencesCount)
+    throw CExpc(errParseError, "Requested context window of length=%d exceeds maximum context size=%d", m_ContextSentencesCount, CQueryCompiler::m_MaxContextSentencesCount);
+
+  //-- index-dependent flag-setting from old CQueryParser::ParseQuery()
+  assert(compiler->m_pHolder!=NULL);
+  assert(compiler->m_pHolder->m_pIndexator!=NULL);
+  m_HitTypeStr = compiler->m_pHolder->m_pIndexator->WithinBreakName(m_Within);
+  m_TextAreaNo = compiler->m_pHolder->m_pIndexator->m_Bibl.WithinTextArea(m_Within);
+
+  return rc;
+}
+
+//--------------------------------------------------------------
+void CQueryOptions::Clear()
+{
+  //-- clear filter list
+  for (CQFilterList::iterator fi=m_QFilters.begin(); fi != m_QFilters.end(); fi++) {
+    if (*fi != NULL) delete *fi;
+  }
+  m_QFilters.clear();
+  m_Filters.clear();
+  m_Subcorpora.clear();
 }

@@ -104,7 +104,8 @@ bool CQFSort::Compile(CQueryCompiler *compiler)
 {
   assert(compiler!=NULL);
   assert(compiler->m_pQuery!=NULL);
-  compiler->m_pQuery->m_Filters.push_back(m_Filter);
+  assert(compiler->m_pQuery->m_Options!=NULL);
+  compiler->m_pQuery->m_Options->m_Filters.push_back(m_Filter);
   return true;
 }
 

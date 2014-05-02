@@ -169,13 +169,13 @@ public:
 	//! \returns false on failure (and may throw an exception)
 	bool ParseQuery(const string &QueryStr);
 
-	//! moo: compile and apply filters in m_pQuery->m_QFilters
-	//! \b OBSOLETE : now just a wrapper for m_pQuery->CompileFilters(this)
+	//! moo: compile and apply filters in m_pQuery->m_Options->m_QFilters
+	//! \b OBSOLETE : now just a wrapper for m_pQuery->CompileOptions(this)
 	bool CompileFilters();
 
 	//! moo: compile the current parsed query (m_pQuery) with respect to
 	//! the current index (m_pHolder) and compiler options (m_HitTypeStr etc.)
-	//! \li really just a wrapper for m_pQuery->CompileFilters(this) && m_pQuery->Compile(this);
+	//! \li really just a wrapper for m_pQuery->CompileOptions(this) && m_pQuery->Compile(this)
 	//! \returns false on failure (and may throw an exception)
 	bool Compile(void);
 

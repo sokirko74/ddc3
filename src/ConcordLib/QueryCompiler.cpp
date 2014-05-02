@@ -91,7 +91,7 @@ size_t CQueryCompiler::GetNodeIndicesCount() const
 bool CQueryCompiler::CompileFilters()
 {
 	assert(m_pQuery != NULL);
-	return m_pQuery->CompileFilters(this);
+	return m_pQuery->CompileOptions(this);
 }
 
 bool CQueryCompiler::Compile()
@@ -100,7 +100,7 @@ bool CQueryCompiler::Compile()
 	if (!m_pQuery->RootOK())
 		throw CExpc(errParseError, "unsupported negation or invalid query root `%s'", m_pQuery->toString().c_str());
 
-	return (m_pQuery->CompileFilters(this) && m_pQuery->Compile(this));
+	return m_pQuery->CompileOptions(this) && m_pQuery->Compile(this);
 }
 
 bool	CQueryCompiler::Evaluate()
@@ -174,10 +174,8 @@ bool CQueryCompiler::ParseQuery(const string &QueryStr)
 void CQueryCompiler::CleanParser()
 {
 	//-- clear global filter list (before DeleteTree())
-	if (!m_pQuery) {
-		for (CQFilterList::iterator fi=mq_QFilters.begin(); fi != mq_QFilters.end(); fi++) {
-			if (*fi != NULL) delete *fi;
-		}
+	for (CQFilterList::iterator fi=mq_QFilters.begin(); fi != mq_QFilters.end(); fi++) {
+		if (*fi != NULL) delete *fi;
 	}
 	mq_QFilters.clear();
 
@@ -205,7 +203,6 @@ void CQueryCompiler::DeleteTree()
 {
 	for (vector<CQuery*>::reverse_iterator qi=m_Queries.rbegin(); qi != m_Queries.rend(); qi++) {
 		if (*qi == NULL) continue;
-		(*qi)->ClearFilters();
 		(*qi)->Clear(false);
 		delete *qi;
 	}
@@ -271,15 +268,18 @@ string* CQueryCompiler::newString(const string& s)
 
 CQuery* CQueryCompiler::SetQuery(CQuery* qp)
 {
-	m_pQuery = qp;
-	qp->m_ContextSentencesCount = mq_ContextSentencesCount;
-	qp->m_bSeparateHits = mq_bSeparateHits;
-	qp->m_Within = mq_Within;
-	qp->m_HitTypeStr = mq_HitTypeStr;
-	qp->m_TextAreaNo = UnknownTextAreaNo;
-	qp->m_QFilters = mq_QFilters;
-	qp->m_Subcorpora = mq_Subcorpora;
+	CQueryOptions *opts = new CQueryOptions();
+	opts->m_ContextSentencesCount = mq_ContextSentencesCount;
+	opts->m_bSeparateHits = mq_bSeparateHits;
+	opts->m_Within = mq_Within;
+	opts->m_HitTypeStr = mq_HitTypeStr;
+	opts->m_TextAreaNo = UnknownTextAreaNo;
+	opts->m_QFilters.swap(mq_QFilters);
+	opts->m_Subcorpora.swap(mq_Subcorpora);
 	mq_QFilters.clear();
+	mq_Subcorpora.clear();
+	m_pQuery = qp;
+	m_pQuery->SetOptions(opts);
 	return qp;
 }
 
@@ -294,29 +294,30 @@ string CQueryCompiler::QueryToString(void)
 {
 	string qs;
 	if (m_pQuery != NULL) {
+		assert(m_pQuery->m_Options != NULL);
 		qs += m_pQuery->toString();
 
-		if (!m_pQuery->m_HitTypeStr.empty()) {
-			qs += string(" #WITHIN '") + escapeChars(m_pQuery->m_HitTypeStr,"\\'") + "'";
+		if (!m_pQuery->m_Options->m_HitTypeStr.empty()) {
+			qs += string(" #WITHIN '") + escapeChars(m_pQuery->m_Options->m_HitTypeStr,"\\'") + "'";
 		}
-		if (m_pQuery->m_ContextSentencesCount != 0) {
-			qs += Format(" #CNTXT %u", m_pQuery->m_ContextSentencesCount);
+		if (m_pQuery->m_Options->m_ContextSentencesCount != 0) {
+			qs += Format(" #CNTXT %u", m_pQuery->m_Options->m_ContextSentencesCount);
 		}
-		if (m_pQuery->m_bSeparateHits) {
+		if (m_pQuery->m_Options->m_bSeparateHits) {
 			qs += " #SEPARATE";
 		}
-		if (!m_pQuery->m_QFilters.empty()) {
+		if (!m_pQuery->m_Options->m_QFilters.empty()) {
 			string fs;
-			for (CQFilterList::iterator fi=m_pQuery->m_QFilters.begin(); fi != m_pQuery->m_QFilters.end(); fi++) {
+			for (CQFilterList::iterator fi=m_pQuery->m_Options->m_QFilters.begin(); fi != m_pQuery->m_Options->m_QFilters.end(); fi++) {
 				if (*fi == NULL) continue; //-- should never happen
 				if (!fs.empty()) fs.push_back(' ');
 				fs += (*fi)->toString();
 			}
 			qs += string(" ") + fs;
 		}
-		if (!m_pQuery->m_Subcorpora.empty()) {
+		if (!m_pQuery->m_Options->m_Subcorpora.empty()) {
 			string cs;
-			for (CQSubcorpusList::iterator ci=m_pQuery->m_Subcorpora.begin(); ci != m_pQuery->m_Subcorpora.end(); ci++) {
+			for (CQSubcorpusList::iterator ci=m_pQuery->m_Options->m_Subcorpora.begin(); ci != m_pQuery->m_Options->m_Subcorpora.end(); ci++) {
 				if (!cs.empty()) cs.push_back(',');
 				cs += string("'") + escapeChars(*ci,"\\'") + "'";
 			}
@@ -336,31 +337,32 @@ string CQueryCompiler::QueryToJson(void)
 {
 	string qs("{");
 	if (m_pQuery) {
+		assert(m_pQuery->m_Options != NULL);
 		qs += "\"Query\":" + m_pQuery->toJson();
 
-		if (!m_pQuery->m_HitTypeStr.empty()) {
-			qs += ",\"Within\":" + jsonStr(m_pQuery->m_HitTypeStr);
+		if (!m_pQuery->m_Options->m_HitTypeStr.empty()) {
+			qs += ",\"Within\":" + jsonStr(m_pQuery->m_Options->m_HitTypeStr);
 		}
-		if (m_pQuery->m_ContextSentencesCount != 0) {
-			qs += Format(",\"ContextCount\":%u", m_pQuery->m_ContextSentencesCount);
+		if (m_pQuery->m_Options->m_ContextSentencesCount != 0) {
+			qs += Format(",\"ContextCount\":%u", m_pQuery->m_Options->m_ContextSentencesCount);
 		}
-		if (m_pQuery->m_bSeparateHits) {
+		if (m_pQuery->m_Options->m_bSeparateHits) {
 			qs += ",\"SeparateHits\":1";
 		}
 
 		//-- filters
 		qs += ",\"Filters\":[";
-		for (CQFilterList::iterator fi=m_pQuery->m_QFilters.begin(); fi != m_pQuery->m_QFilters.end(); fi++) {
+		for (CQFilterList::iterator fi=m_pQuery->m_Options->m_QFilters.begin(); fi != m_pQuery->m_Options->m_QFilters.end(); fi++) {
 			if (*fi == NULL) continue; //-- should never happen
-			if (fi!=m_pQuery->m_QFilters.begin()) qs.push_back(',');
+			if (fi!=m_pQuery->m_Options->m_QFilters.begin()) qs.push_back(',');
 			qs += (*fi)->toJson();
 		}
 		qs.push_back(']');
 
-		if (!m_pQuery->m_Subcorpora.empty()) {
+		if (!m_pQuery->m_Options->m_Subcorpora.empty()) {
 			qs += ",\"Subcorpora\":[";
-			for (CQSubcorpusList::iterator ci=m_pQuery->m_Subcorpora.begin(); ci != m_pQuery->m_Subcorpora.end(); ci++) {
-				if (ci != m_pQuery->m_Subcorpora.begin()) qs.push_back(',');
+			for (CQSubcorpusList::iterator ci=m_pQuery->m_Options->m_Subcorpora.begin(); ci != m_pQuery->m_Options->m_Subcorpora.end(); ci++) {
+				if (ci != m_pQuery->m_Options->m_Subcorpora.begin()) qs.push_back(',');
 				qs += jsonStr(*ci);
 			}
 			qs.push_back(']');

@@ -25,6 +25,7 @@
 #include "../ConcordLib/QueryFilter.h"
 
 class CQueryCompiler;  //-- forward decl
+class CQueryOptions;   //-- forward decl
 
 typedef vector<CQFilter*> CQFilterList;
 typedef vector<string>    CQSubcorpusList;
@@ -47,35 +48,8 @@ public:
   //! underlying CQueryNode (DDC-v1.x API)
   CQueryNode *m_Node;
 
-  //------------------------------------------------------------
-  ///\name Filters and Flags
-  //@{
-
-  //! how many hits of the left and right context should be output (must be &lt;= m_MaxContextSentencesCount)
-  size_t m_ContextSentencesCount;
-
-  //! whether to return a separate hit for each occurrence, or collect into distinct instances of the selected container (sentence)
-  //! default=false; used by CQueryNode::Evaluate()
-  bool m_bSeparateHits;
-
-  //! list of all '#WITHIN' arguments (break collections or text areas) from currently parsed query 
-  vector<string> m_Within;
-
-  //! the break collection name which should be used while querying
-  string m_HitTypeStr;
-  
-  //! the index of text area where DDC should perform the input query
-  int m_TextAreaNo;
-
-  //! (abstract) filters and sort operators which should be applied to the resulted hit set
-  CQFilterList m_QFilters;
-
-  //! (runtime) filters and sort operators which should be applied to the resulted hit set (available after Compile())
-  vector<CDDCFilterWithBounds> m_Filters; 
-
-  //! selected subcorpora for this query
-  CQSubcorpusList m_Subcorpora;
-  //@}
+  //! root-level options (root queries only)
+  CQueryOptions *m_Options;
 
 public:
   //------------------------------------------------------------
@@ -86,15 +60,12 @@ public:
     : m_Label(label),
       m_Compiler(NULL),
       m_Node(NULL),
-      m_ContextSentencesCount(0),
-      m_bSeparateHits(false),    
-      m_HitTypeStr(""),
-      m_TextAreaNo(UnknownTextAreaNo)
+      m_Options(NULL)
   {};
 
   //! Default destructor.
   //! \li child classes should propagate deletion to daughter nodes
-  //! \li default implementation calls ClearNode()
+  //! \li default implementation calls CQuery::Clear(true) [i.e. ClearNode() and ClearOptions()]
   virtual ~CQuery(void);
   //@}
 
@@ -105,9 +76,9 @@ public:
   //! Compile index-dependent query properties (required for evaluation).  Required.
   virtual bool Compile(CQueryCompiler *compiler);
 
-  //! Compile index-dependent filter properties (required for evaluation).  Optional.
+  //! Compile index-dependent options in m_Options.  Optional.
   //! \li compiler defaults to this->m_Compiler
-  virtual bool CompileFilters(CQueryCompiler *compiler=NULL);
+  virtual bool CompileOptions(CQueryCompiler *compiler=NULL);
 
   //! Wrapper for m_Node->Evaluate()
   virtual void Evaluate();
@@ -119,7 +90,8 @@ public:
   virtual bool Negate();
 
   //! Is this query an admissible root of a compiled parse tree (default returns !this->Negated())
-  virtual bool RootOK() { return !this->Negated(); };
+  virtual bool RootOK()
+  { return !this->Negated(); };
 
   //! \b DEBUG: return a canonical string form for this query (default just returns m_Label)
   virtual string toString() { return m_Label; };
@@ -140,14 +112,17 @@ public:
   //! \li calls CQuery::ClearNode()
   void SetCompiler(CQueryCompiler *compiler);
 
-  //! deletes m_Node if it is non-NULL
+  //! deletes m_Node if non-NULL
   virtual void ClearNode();
 
-  //! clear query filters and subcorpora
-  virtual void ClearFilters();
+  //! deletes m_Options if non-NULL
+  virtual void ClearOptions();
 
-  //! clear query contents.  if \c deep is true, propagates operation to daughters and filters
+  //! clear query contents.  if \c deep is true, propagates operation to daughters
   virtual void Clear(bool deep=true);
+
+  //! set global query options ; deletes any pre-existing m_Options
+  virtual void SetOptions(CQueryOptions *opts);
   //@}
 };
 
@@ -761,5 +736,64 @@ public:
   virtual string jsonData();
 };
 
-#endif /* DDC_QUERY_H */
+//======================================================================
+/*!
+  \brief root-level query options (filters and flags)
+*/
+class CQueryOptions {
+public:
+  //! how many hits of the left and right context should be output (must be &lt;= m_MaxContextSentencesCount)
+  size_t m_ContextSentencesCount;
 
+  //! whether to return a separate hit for each occurrence, or collect into distinct instances of the selected container (sentence)
+  //! default=false; used by CQueryNode::Evaluate()
+  bool m_bSeparateHits;
+
+  //! list of all '#WITHIN' arguments (break collections or text areas) from currently parsed query 
+  vector<string> m_Within;
+
+  //! the break collection name which should be used while querying
+  string m_HitTypeStr;
+  
+  //! the index of text area where DDC should perform the input query
+  int m_TextAreaNo;
+
+  //! (abstract) filters and sort operators which should be applied to the resulted hit set
+  CQFilterList m_QFilters;
+
+  //! (runtime) filters and sort operators which should be applied to the resulted hit set (available after Compile())
+  vector<CDDCFilterWithBounds> m_Filters; 
+
+  //! selected subcorpora for this query
+  CQSubcorpusList m_Subcorpora;
+
+public:
+  //------------------------------------------------------------
+  ///\name Constructors etc.
+  //@{
+
+  //! Default constructor
+  CQueryOptions()
+    : m_ContextSentencesCount(0),
+      m_bSeparateHits(false),    
+      m_HitTypeStr(""),
+      m_TextAreaNo(UnknownTextAreaNo)
+  {};
+
+  //! Default destructor; calls Clear
+  virtual ~CQueryOptions(void);
+  //@}
+
+public:
+  //------------------------------------------------------------
+  ///\name API
+  //@{
+  //! Compile index-dependent filter properties (required for evaluation).-
+  virtual bool Compile(CQueryCompiler *compiler);
+
+  //! clear options.
+  virtual void Clear();
+  //@}
+};
+
+#endif /* DDC_QUERY_H */
