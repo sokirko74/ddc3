@@ -30,6 +30,8 @@ typedef bool (*SaveTriggerType) (const string&,DWORD LParam);
 class CQueryCompiler; //-- forward decl
 class CQuery;	      //-- forward decl
 
+const size_t DDCCountQueryLimit = INT_MAX;
+
 
 /*! \brief
 	Class  CQueryResult contains all information about the first MaxCachedHitsCount hits for 
@@ -60,8 +62,9 @@ struct CQueryResult
 
 
 	mutable vector<BYTE>	m_DebugInfo;
-	void			ClearQueryResults();
 
+	//! clears CQueryResult fields
+	void			ClearQueryResults();
 };
 
 
@@ -137,6 +140,9 @@ private:
 	//! \li ddc-2.0.23 version
 	DDCErrorEnum	GetAllHits(CQuery *QueryRoot, size_t Limit);
 
+	//! evaluate a count-query on the corpus and initialize slots from CQueryResult
+	DDCErrorEnum	GetAllCounts(CQuery *CountQueryRoot, size_t Limit);
+
 	//! checks if Query  si already in the cache, and if true, it returns its hit results from the cache
 	bool	TryToGetFromCache(const string &Query,  DWORD& EndHitNo);
 
@@ -157,11 +163,11 @@ private:
 
 	//! initializes CHit::m_SortKey for each in m_pQueryCompiler->m_pQueryTree->m_Hits.
 	//! Also sets m_bSortDescending=Filter.isDescending() and m_bSortByString appropriately
-	void	InitSortKeyForHits(const CDDCFilterWithBounds& Filter);
-	void	InitSortByRank() const;
-	void	InitSortBySize() const;
-	void	InitSortByRandom() const;
-	void    InitSortByContext(const CDDCFilterWithBounds& Filter) const;
+	void	InitSortKeyForHits(const CQuery *pQuery, const CDDCFilterWithBounds& Filter);
+	void	InitSortByRank(const CQuery *pQuery) const;
+	void	InitSortBySize(const CQuery *pQuery) const;
+	void	InitSortByRandom(const CQuery *pQuery) const;
+	void    InitSortByContext(const CQuery *pQuery, const CDDCFilterWithBounds& Filter) const;
 
 public:
 	//! initial random-state components for m_pRandom
@@ -223,8 +229,11 @@ public:
 	//! GetHits does the same as SimpleQuery does, but without GenerateHitStrings()
 	DDCErrorEnum	GetHits(const string &Query,  DWORD& EndHitNo);
 
-	//! initializes m_QueryResultStr using current m_Hits and m_HighlightOccurs
+	//! initializes m_QueryResultStr using current m_Hits and m_HighlightOccurs (for context-queries)
 	DDCErrorEnum	GenerateHitStrings(const int StartHitNo);
+
+	//! initializes m_QueryResultStr using current m_Hits (for count-queries)
+	DDCErrorEnum	GenerateCountStrings(const int StartHitNo);
 
 	//! stores sortk-keys (CHit::m_SortKey) of current m_Hits to a string
 	string GetHitIds()  const;

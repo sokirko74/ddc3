@@ -70,6 +70,13 @@ public:
 	//! how many hits of the left and right context should be output (must be &lt;= m_MaxContextSentencesCount)
 	size_t mq_ContextSentencesCount;
 
+	// if true, DDC shows file names, instead of bibliographical information for this query
+	//! (CConcIndexator::m_bOutputBibliographyOfHits is default value for outputting bibliography
+	bool mq_bEnableBibliography;
+
+	//! if true, DDC initializes CHit::m_DebugRank
+	bool mq_bDebugRank;
+
 	//! whether to return a separate hit for each occurrence, or collect into distinct instances of the selected container (sentence)
 	//! default=false; used by CQueryNode::Evaluate()
 	bool mq_bSeparateHits;
@@ -91,6 +98,9 @@ public:
 
 	//! selected subcorpora for this query
 	CQSubcorpusList mq_Subcorpora;
+
+	//! count-by #BY key,.... lists
+	CQCountByList mq_CountBy;
 
 	//--------------------------------------------------------------
 	// temporaries
@@ -127,13 +137,6 @@ public:
 
 	//! a special slot for YACC (which contains all string leaves of the parse tree)
 	list<string> m_Labels;
-
-	// if true, DDC shows file names, instead of bibliographical information for this query
-	//! (CConcIndexator::m_bOutputBibliographyOfHits is default value for outputting bibliography
-	bool m_bEnableBibliographyForThisQuery;
-
-	//! if true, DDC initializes CHit::m_DebugRank
-	bool m_bDebugRank;
 
 public:
 	//! default constructor
@@ -211,10 +214,10 @@ public:
 	//! set string bounds for current filter (called by bison parser)
 	void SetFilterBounds(const string& lb="", const string& ub="");
 
-	//! debug: return a string form for the current query + operators
+	//! debug: return a string form for the current query; wraps m_pQuery->toString() + m_pQuery->optionsToString()
 	string QueryToString(void);
 
-	//! return a json string form for the current query + operators
+	//! return a json string form for the current query; wraps m_pQuery->toJson() + m_pQuery->optionsToJson()
 	string QueryToJson(void);
 
 	//! error reporting: throws a errParseError exception

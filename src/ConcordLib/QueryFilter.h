@@ -24,6 +24,7 @@
 #include "ConcHolder.h"
 
 class CQueryCompiler; //-- forward decl
+class CQueryOptions;  //-- forward decl
 
 //======================================================================
 // CQFilter
@@ -34,7 +35,7 @@ public:
   //!\name API
   //@{
   //! apply the filter to the given compiler
-  virtual bool Compile(CQueryCompiler *compiler);
+  virtual bool Compile(CQueryCompiler *compiler, CQueryOptions *options);
 
   //! convert filter to a canonical string
   virtual string toString(void) { return string("#FILTER[?]"); };
@@ -82,7 +83,7 @@ public:
   void SortBounds(void);
 
   //! compile the filter.  Default implementation just pushes m_Filter onto compiler->m_Filters
-  virtual bool Compile(CQueryCompiler *compiler);
+  virtual bool Compile(CQueryCompiler *compiler, CQueryOptions *options);
 
   //! stringification utility: quoted strign for arg, or empty string
   string argString(const string &arg) const;
@@ -119,7 +120,7 @@ public:
 
   int Str2Date(const std::string &datestr, int onEmpty=0);
 
-  virtual bool Compile(CQueryCompiler *compiler);
+  virtual bool Compile(CQueryCompiler *compiler, CQueryOptions *options);
   virtual string jsonClass(void) { return "CQFDateSort"; };
 };
 
@@ -134,7 +135,7 @@ public:
 
   CQFSizeSort(HitSortEnum ftype=LessBySize, int lb=INT_MIN, int ub=INT_MAX);
 
-  virtual bool Compile(CQueryCompiler *compiler);
+  virtual bool Compile(CQueryCompiler *compiler, CQueryOptions *options);
   virtual string jsonClass(void) { return "CQFSizeSort"; };
 };
 
@@ -149,7 +150,7 @@ public:
 
   CQFRandomSort(int seed0);
 
-  virtual bool Compile(CQueryCompiler *compiler);
+  virtual bool Compile(CQueryCompiler *compiler, CQueryOptions *options);
   virtual string jsonClass(void) { return "CQFRandomSort"; };
   virtual string jsonData(void) { return (this->jsonType()+",\"Seed\":"+jsonStr(m_arg1)); };
 };
@@ -169,7 +170,7 @@ public:
 
 
   //! compile the filter.  requires reference to underlying CConcIndexator
-  virtual bool Compile(CQueryCompiler *compiler);
+  virtual bool Compile(CQueryCompiler *compiler, CQueryOptions *options);
 
   virtual string toString(void);
   virtual string jsonClass(void) { return "CQFBiblSort"; };
@@ -193,7 +194,7 @@ public:
   };
 
   //! compile the filter
-  virtual bool Compile(CQueryCompiler *compiler);
+  virtual bool Compile(CQueryCompiler *compiler, CQueryOptions *options);
 
   //! stringify
   virtual string toString(void);
@@ -219,7 +220,7 @@ public:
 
   //! compile the filter.  requires reference to underlying CConcIndexator.
   //! CQFHasField implementation just ensures that m_arg0, m_arg1 are non-empty, throwing a CExpc otherwise
-  virtual bool Compile(CQueryCompiler *compiler);
+  virtual bool Compile(CQueryCompiler *compiler, CQueryOptions *options);
 
   //! value string for stringification
   virtual std::string valueString(void);
@@ -243,7 +244,7 @@ public:
   {};
 
   //! compile the filter.  requires reference to underlying CConcIndexator
-  virtual bool Compile(CQueryCompiler *compiler);
+  virtual bool Compile(CQueryCompiler *compiler, CQueryOptions *options);
   virtual string jsonClass(void) { return "CQFHasFieldValue"; };
 };
 
@@ -261,7 +262,7 @@ public:
   {};
 
   //! compile the filter.  requires reference to underlying CConcIndexator
-  virtual bool Compile(CQueryCompiler *compiler);
+  virtual bool Compile(CQueryCompiler *compiler, CQueryOptions *options);
 
   virtual string valueString(void);
   virtual string jsonClass(void) { return "CQFHasFieldRegex"; };
@@ -326,7 +327,7 @@ public:
   {};
 
   //! compile the filter.  requires reference to underlying CConcIndexator
-  virtual bool Compile(CQueryCompiler *compiler);
+  virtual bool Compile(CQueryCompiler *compiler, CQueryOptions *options);
 
   //! utility for use by subclasses: comma-separated list of strings in \a values
   string SetValueString(const set<string> &values);

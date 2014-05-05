@@ -22,7 +22,8 @@
 #include "ddcConfig.h" /*-- moo --*/
 #include "../common/DDCInternalError.h"
 
-const char globalTableItemsDelim = '\x2';
+const char  globalTableItemsDelim = '\x2';
+const char  globalCountKeyDelim   = '\x02';
 
 /** string global for human-readable version reporting (see also ddcVersion.h) */
 const string DDCVersionStr = "Dialing DWDS Concordance (DDC), Version " PACKAGE_VERSION ;

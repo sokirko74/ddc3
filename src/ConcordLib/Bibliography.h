@@ -342,7 +342,6 @@ public:
 	//! add a new bibliographic expander to m_BiblExpanders, or replace an existing one; returns new expander
 	CBiblExpander* AddBiblExpander(const string& spec);
 
-
 	//! moo: ugly dangerous hack
 	const  FreeBiblStringMap& GetFreeBiblStringMap() const
 	{ return m_FreeBiblIndices; };
@@ -351,6 +350,15 @@ public:
 	const  BiblExpanderMap& GetBiblExpanderMap() const
 	{ return m_BiblExpanders; };
 
+	//! moo: ugly dangerous hack
+	const vector<int>& GetDates() const
+	{ return m_Dates; };
+
+	//! moo: not quite as ugly or dangerous a hack
+	CFreeBiblIndex* GetFreeBiblIndex(const string& FreeBiblAttribName) const;
+
+	//! moo: not quite as ugly or dangerous a hack
+	CBiblExpander*  GetBiblExpander(const string& ExpanderName) const;
 };
 
 

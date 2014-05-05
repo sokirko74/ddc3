@@ -27,9 +27,9 @@
 class CQueryCompiler;  //-- forward decl
 class CQueryOptions;   //-- forward decl
 
-typedef vector<CQFilter*> CQFilterList;
-typedef vector<string>    CQSubcorpusList;
-
+typedef vector<CQFilter*> 	CQFilterList;
+typedef vector<string>    	CQSubcorpusList;
+typedef vector<string>    	CQCountByList;
 
 typedef enum {
   cqtCondition = 0,
@@ -106,12 +106,19 @@ public:
   //! \b DEBUG: return a canonical string form for this query (default just returns m_Label)
   virtual string toString() { return m_Label; };
 
+  //! \b DEBUG: return canonical option string
+  virtual string optionsToString();
+
   //! return a JSON representation of this query
   //! \li default just returns this->toString()
   //! \li JSON query structures relflect C++ class structures with an additional 'class_' key
   virtual string toJson() { return string("{\"class_\":"+jsonStr(this->jsonClass())+","+this->jsonData()+"}"); };
   virtual string jsonClass() { return "CQuery"; };
   virtual string jsonData()  { return ""; };
+
+  //! return json format option string
+  virtual string optionsToJson();
+
   //@}
 
   //------------------------------------------------------------
@@ -778,6 +785,7 @@ public:
 
   //! \b DEBUG: return a canonical string form for this query
   virtual string toString();
+  virtual string optionsToString();
 
   virtual string jsonClass() { return "CQCount"; };
   virtual string jsonData()  { return "\"dtr\":"+m_dtr->toJson(); };
@@ -799,6 +807,13 @@ class CQueryOptions {
 public:
   //! how many hits of the left and right context should be output (must be &lt;= m_MaxContextSentencesCount)
   size_t m_ContextSentencesCount;
+
+  // if true, DDC shows file names, instead of bibliographical information for this query
+  //! (CConcIndexator::m_bOutputBibliographyOfHits is default value for outputting bibliography
+  bool m_bEnableBibliography;
+  
+  //! if true, DDC initializes CHit::m_DebugRank
+  bool m_bDebugRank;
 
   //! whether to return a separate hit for each occurrence, or collect into distinct instances of the selected container (sentence)
   //! default=false; used by CQueryNode::Evaluate()
@@ -822,6 +837,10 @@ public:
   //! selected subcorpora for this query
   CQSubcorpusList m_Subcorpora;
 
+  //! count-by #BY key,.... lists (strings only)
+  CQCountByList m_CountBy;
+
+ 
 public:
   //------------------------------------------------------------
   ///\name Constructors etc.
@@ -830,6 +849,8 @@ public:
   //! Default constructor
   CQueryOptions()
     : m_ContextSentencesCount(0),
+      m_bEnableBibliography(true),
+      m_bDebugRank(false),
       m_bSeparateHits(false),    
       m_HitTypeStr(""),
       m_TextAreaNo(UnknownTextAreaNo)
@@ -848,6 +869,12 @@ public:
 
   //! clear options.
   virtual void Clear();
+
+  //! return a canonical string form for these query options
+  virtual string toString();
+
+  //! return a JSON representation of these query options
+  virtual string toJson();
   //@}
 };
 

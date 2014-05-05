@@ -320,8 +320,6 @@ struct CHit
 	CHit(DWORD BreakNo=0) : m_BreakNo(BreakNo), m_SortKey(0) {};
 };
 
-
-
 //!  a type for mappping an index item no to its \ref perdiv_def "period division"
 typedef map<DWORD, vector<DWORD> > PeriodsDivisionMap;
 

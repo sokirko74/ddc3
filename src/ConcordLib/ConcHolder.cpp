@@ -26,11 +26,10 @@
 #include "ddcString.h"
 
 
+//==============================================================================
 const size_t MaxCachedHitsCount = 500;
 const size_t MaxQueryCacheSize = 500;
 const time_t TheEndOfTheWorld = 0xffffffff;
-
-
 
 #ifdef DETECT_MEMORY_LEAK
 	#ifdef _DEBUG
@@ -40,6 +39,7 @@ const time_t TheEndOfTheWorld = 0xffffffff;
 	#endif
 #endif
 
+//==============================================================================
 //! comparison operator for hits on CHit::m_SortKey.i (for std::sort); replaces IsLessByHitOrderId .
 //! \li true string-based sorting occurs only at distributed server level
 struct IsLessByHitSortKey
@@ -56,6 +56,7 @@ struct IsLessByHitSortKey
 	};
 };
 
+//==============================================================================
 //! comparison operator for hits on CHit::m_FileNo (for std::sort)
 struct IsLessByFileNo
 {
@@ -67,6 +68,210 @@ struct IsLessByFileNo
 };
 
 
+//==============================================================================
+/*! structure for quick extraction of hit count-keys, for count(...) by[...] queries */
+class CountKeyReaderBase
+{
+public:
+	CConcHolder *m_Holder;
+	string       m_AttrName;
+
+	CountKeyReaderBase(CConcHolder *holder, const string &attrName="")
+		: m_Holder(holder), m_AttrName(attrName)
+	{};
+	virtual ~CountKeyReaderBase() {};
+
+	virtual string Key(DWORD fileno)
+	{ throw CExpc(errRuntime, "abstract method CountKeyReaderBaser::Key() called"); };
+};
+
+//----------------------------------------------------------------------
+/*! count-key reader: constant */
+class CountKeyReaderConstant : public CountKeyReaderBase
+{
+public:
+	CountKeyReaderConstant(CConcHolder *holder, const string &attrName="*")
+		: CountKeyReaderBase(holder,attrName)
+	{};
+	virtual ~CountKeyReaderConstant() {};
+
+	virtual string Key(DWORD fileno)
+	{ return m_AttrName; };
+};
+
+//----------------------------------------------------------------------
+/*! count-key reader: fileid */
+class CountKeyReaderFileId : public CountKeyReaderBase
+{
+private:
+	char buf[16];
+
+public:
+	CountKeyReaderFileId(CConcHolder *holder, const string &attrName="fileid")
+		: CountKeyReaderBase(holder,attrName)
+	{};
+	virtual ~CountKeyReaderFileId() {};
+
+	virtual string Key(DWORD fileno)
+	{ sprintf(buf,"%d",fileno); return buf; };
+};
+
+//----------------------------------------------------------------------
+/*! count-key reader: filename */
+class CountKeyReaderFileName : public CountKeyReaderBase
+{
+public:
+	CountKeyReaderFileName(CConcHolder *holder, const string &attrName="file")
+		: CountKeyReaderBase(holder,attrName)
+	{};
+	virtual ~CountKeyReaderFileName() {};
+	virtual string Key(DWORD fileno)
+	{ return m_Holder->m_pIndexator->GetShortFilename(fileno); };
+};
+
+//----------------------------------------------------------------------
+/*! count-key reader: date: full */
+class CountKeyReaderDate : public CountKeyReaderBase
+{
+public:
+	const vector<int> *m_pDates;
+	unsigned int     m_year;
+	unsigned int     m_month;
+	unsigned int     m_day;
+	char             buf[16];
+
+public:
+	CountKeyReaderDate(CConcHolder *holder, const string &attrName="date")
+		: CountKeyReaderBase(holder,attrName),
+		  m_pDates(NULL), m_year(0), m_month(0), m_day(0)
+	{
+		m_pDates = &(holder->m_pIndexator->m_Bibl.GetDates());
+	};
+	virtual ~CountKeyReaderDate() {};
+
+	virtual string Key(DWORD fileno)
+	{
+		int2date((*m_pDates)[fileno], &m_year, &m_month, &m_day);
+		sprintf(buf, "%u-%0.2u-%0.2u", m_year, m_month, m_day);
+		return buf;
+	};
+};
+
+//----------------------------------------------------------------------
+/*! count-key reader: date: slice (by year) */
+class CountKeyReaderDateSlice : public CountKeyReaderDate
+{
+public:
+	unsigned int m_slice;
+
+public:
+	CountKeyReaderDateSlice(CConcHolder *holder, const string &attrName="date/1")
+		: CountKeyReaderDate(holder,attrName), m_slice(0)
+	{
+		size_t p = m_AttrName.find('/');
+		if (p != m_AttrName.npos) {
+			string istr = m_AttrName.substr(p+1);
+			m_slice     = strtoul(istr.c_str(), NULL, 0);
+		}
+		if (!m_slice) {
+			//-- avoid divide-by-zero errors
+			m_slice = 1;
+		}
+	};
+
+	virtual ~CountKeyReaderDateSlice() {};
+
+	virtual string Key(DWORD fileno)
+	{
+		int2date((*m_pDates)[fileno], &m_year, NULL, NULL);
+		m_year /= m_slice;
+		sprintf(buf, "%u", m_slice*m_year);
+		return buf;
+	};
+};
+
+//----------------------------------------------------------------------
+/*! count-key reader: bibl string */
+class CountKeyReaderBibl : public CountKeyReaderBase
+{
+public:
+	CConcXml::CFreeBiblIndex *m_Bibl;
+public:
+	CountKeyReaderBibl(CConcHolder *holder, const string &attrName="")
+		: CountKeyReaderBase(holder,attrName)
+	{
+		m_Bibl = holder->m_pIndexator->m_Bibl.GetFreeBiblIndex(attrName);
+		if (m_Bibl == NULL)
+			throw CExpc(errOther, Format("CountKeyReaderBibl::CountKeyReaderBibl(): cannot use unknown attribute `%s' as count-key", attrName.c_str()));
+	};
+	virtual ~CountKeyReaderBibl() {};
+
+	virtual string Key(DWORD fileno)
+	{ return m_Bibl->GetStringValue(fileno); };
+};
+
+
+//----------------------------------------------------------------------
+// count-key reader: top-level
+class CountKeyReader
+{
+public:
+	vector<CountKeyReaderBase*> m_Readers;
+
+	CountKeyReader(CConcHolder *holder, const CQCountByList& countby)
+	{
+		m_Readers.clear();
+		m_Readers.reserve(countby.size());
+		for (CQCountByList::const_iterator cbi=countby.begin(); cbi != countby.end(); cbi++) {
+			if (holder->m_pIndexator->m_Bibl.IsRegisteredBiblField(*cbi)) {
+				m_Readers.push_back(new CountKeyReaderBibl(holder, *cbi));
+			} else {
+				string attr(*cbi);
+				EngMakeLower(attr);
+				if (attr == "date")
+					m_Readers.push_back(new CountKeyReaderDate(holder,*cbi));
+				else if (attr.substr(0,5)=="date/")
+					m_Readers.push_back(new CountKeyReaderDateSlice(holder,*cbi));
+				else if (attr == "fileid" || attr == "fileid_" || attr == "docid")
+					m_Readers.push_back(new CountKeyReaderFileId(holder,*cbi));
+				else if (attr == "file" || attr == "file_" || attr == "filename")
+					m_Readers.push_back(new CountKeyReaderFileName(holder,*cbi));
+				else if (attr == "*")
+					m_Readers.push_back(new CountKeyReaderConstant(holder,*cbi));
+				else
+					throw CExpc(errOther, Format("CountKeyReader::CountKeyReader(): cannot use unknown attribute `%s' as count-key", cbi->c_str()));
+			}
+		}
+		if (m_Readers.empty()) {
+			m_Readers.push_back(new CountKeyReaderConstant(holder)); //-- default: count all
+		}
+	};
+
+	~CountKeyReader()
+	{ clear(); };
+
+	void clear()
+	{
+		for (vector<CountKeyReaderBase*>::iterator ri=m_Readers.begin(); ri!=m_Readers.end(); ri++) {
+			if (*ri) delete *ri;
+		}
+		m_Readers.clear();
+	};
+
+	string Key(DWORD fileno)
+	{
+		string k("");
+		for (vector<CountKeyReaderBase*>::iterator ri=m_Readers.begin(); ri!=m_Readers.end(); ri++) {
+			if (ri != m_Readers.begin()) k.push_back(globalCountKeyDelim);
+			k.push_back(' ');
+			k += (*ri)->Key(fileno);
+		}
+		return k;
+	};
+};
+
+
+//==============================================================================
 // cannot create cross-platform heterogenious predicate lower_bound:
 // http://groups.google.com/group/comp.std.c++/browse_thread/thread/151b0210b6266c2f?hl=en&lr=&safe=off&ic=1&seekm=MPG.143ab91a14f21268989743%40news.supernews.com
 // that's why we are to create i
@@ -160,6 +365,7 @@ void  SpaceStartQuoteMarks (string& s)
 
 
 };
+
 //======================================================
 void CShortOccurCache::Clear()
 {
@@ -327,7 +533,7 @@ void CConcHolder::ShowBibliographyForTextOrHtml(const CHit& Hit, DWORD PageNumbe
 		m_QueryResultStr += " ### ";
 
 		//-- rank stuff / text
-		if (m_pQueryCompiler->m_bDebugRank) {
+		if (m_pQueryCompiler->mq_bDebugRank) {
 			const char* DebugInfo = (const char*)(void*)(&m_DebugInfo[0]) + Hit.m_Value.m_DebugRankNo;
 			m_QueryResultStr += Format(" %s ### ",DebugInfo);
 		}
@@ -597,7 +803,7 @@ bool CConcHolder::ShowBibliographyForTable(DWORD PageNumber, const CHit& Hit, co
 	//-- rank stuff / table
 	if (HasRankOrderOperator()) {
 		m_QueryResultStr += string("rank") + globalTableItemsDelim + Format("%d", Hit.m_SortKey.i) + globalTableItemsDelim;
-		if (m_pQueryCompiler->m_bDebugRank) {
+		if (m_pQueryCompiler->mq_bDebugRank) {
 			const char* DebugInfo = (const char*)(void*)(&m_DebugInfo[0]) + Hit.m_Value.m_DebugRankNo;
 			m_QueryResultStr += string("rank_debug") + globalTableItemsDelim + DebugInfo + globalTableItemsDelim;
 		}
@@ -634,14 +840,14 @@ bool CConcHolder::GenerateOneHitString(DWORD PageNumber, const CHit& Hit, const 
 	if (m_ResultFormat == DDC_ResultTable) 
 		ShowBibliographyForTable(PageNumber, Hit, Tokens);
 	else
-		if ( m_pQueryCompiler->m_bEnableBibliographyForThisQuery && m_pIndexator->OutputBibliographyOfHits() )
+		if ( m_pQueryCompiler->mq_bEnableBibliography && m_pIndexator->OutputBibliographyOfHits() )
 			ShowBibliographyForTextOrHtml(Hit, PageNumber);
 		else
 			AddFileReference(Hit.m_FileNo);
 
 	//-- rank stuff / html
 	if (m_ResultFormat==DDC_ResultHTML && HasRankOrderOperator()) {
-		if (!m_pQueryCompiler->m_bDebugRank) {
+		if (!m_pQueryCompiler->mq_bDebugRank) {
 			m_QueryResultStr += Format("<i>Rank = %i</i><br>", Hit.m_SortKey.i > 0 ? Hit.m_SortKey.i : -Hit.m_SortKey.i);
 		} else {
 			const char* DebugInfo = (const char*)(void*)(&m_DebugInfo[0]) + Hit.m_Value.m_DebugRankNo;
@@ -726,7 +932,7 @@ bool CConcHolder::GenerateOneHitStringJson(DWORD PageNumber, const CHit& Hit, co
 
     if (HasRankOrderOperator()) {
 	    hitStr += Format(",\"rank_\":%d", Hit.m_SortKey.i);
-	    if (m_pQueryCompiler->m_bDebugRank) {
+	    if (m_pQueryCompiler->mq_bDebugRank) {
 		    const char* DebugInfo = (const char*)(void*)(&m_DebugInfo[0]) + Hit.m_Value.m_DebugRankNo;
 		    hitStr += ",\"rank_debug_\":" + jsonStr(DebugInfo, utf8);
 	    }
@@ -890,6 +1096,9 @@ DDCErrorEnum CConcHolder::GenerateHitStrings(const int StartHitNo)
 {
 	assert(m_pQueryCompiler!=NULL);
 	assert(m_pQueryCompiler->m_pQuery!=NULL);
+	if (m_bCounts)
+		return GenerateCountStrings(StartHitNo);
+
 	DwordVector PageBreaks;
 
 	m_pIndexator->ConvertHitsToPageBreaks(m_Hits.begin(), m_Hits.end(), GetBreaks(), PageBreaks);
@@ -977,6 +1186,63 @@ DDCErrorEnum CConcHolder::GenerateHitStrings(const int StartHitNo)
 		m_QueryResultStr += m_AdditionalHitDelimeter;
 
 	};
+
+	return errNone;
+};
+
+DDCErrorEnum CConcHolder::GenerateCountStrings(const int StartHitNo) 
+{
+	assert(m_pQueryCompiler!=NULL);
+	assert(m_pQueryCompiler->m_pQuery!=NULL);
+
+	m_QueryResultStr = "";
+	int end = min (m_Hits.size(), StartHitNo + m_ResultLimit);
+	char keysep[2] = {globalCountKeyDelim,'\0'};
+
+	for(DWORD EndHitNo = StartHitNo; EndHitNo<end; EndHitNo++ ) {
+		const CHit &hit = m_Hits[EndHitNo];
+		StringTokenizer keytok(hit.m_SortKey.s.c_str(), keysep);
+
+		switch (m_ResultFormat) {
+		case DDC_ResultJson:
+			//-- count strings, json format "[[COUNT, KEY0, KEY1, ... ], ..., [COUNT, KEY0, KEY1, ...]"
+			if (m_ResultFormat == DDC_ResultJson && EndHitNo==StartHitNo)
+				m_QueryResultStr.push_back('[');
+			m_QueryResultStr += Format("[%zi", hit.m_Value.m_Count);
+			while (keytok()) {
+				m_QueryResultStr.push_back(',');
+				m_QueryResultStr.append(jsonStr(keytok.val()+1));
+			}
+			m_QueryResultStr.push_back(']');
+			m_QueryResultStr.push_back(EndHitNo < end-1 ? ',' : ']');
+			m_QueryResultStr.push_back('\n');
+			break;
+			
+		case DDC_ResultHTML:
+			//-- count strings, html
+			m_QueryResultStr += Format("<TR><TD>%zi</TD>", hit.m_Value.m_Count);
+			while (keytok()) {
+				m_QueryResultStr += "<TD>" + ConvertASCIIToHtmlSymbols(keytok.val()+1) + "</TD>";
+			}
+			m_QueryResultStr += "</TR>\n";
+			break;
+
+			
+		case DDC_ResultText:
+		case DDC_ResultTable:
+		default:
+			//-- count strings, text or table
+			m_QueryResultStr += Format("%zi", hit.m_Value.m_Count);
+			while (keytok()) {
+				m_QueryResultStr.push_back('\t');
+				m_QueryResultStr += keytok.val()+1;
+			}
+			m_QueryResultStr.push_back('\n');
+			break;
+
+		}
+		m_QueryResultStr += m_AdditionalHitDelimeter;
+	}
 
 	return errNone;
 };
@@ -1083,11 +1349,11 @@ void GetHitRankLen(vector<COccurrenceAndQueryNodeIndex >& OccurrenceAndQueryNode
 	
 }
 
-void CConcHolder::InitSortByRank() const
+void CConcHolder::InitSortByRank(const CQuery *pQuery) const
 {
 	const vector<CTokenNo>& Breaks = GetBreaks();
-	vector<CHit>& Hits = m_pQueryCompiler->m_pQuery->m_Node->m_Hits;
-	const bool bShowDebugRank = m_pQueryCompiler->m_bDebugRank;
+	vector<CHit>& Hits = pQuery->m_Node->m_Hits;
+	const bool bShowDebugRank = pQuery->m_Options->m_bDebugRank;
 	size_t HitsCount = Hits.size();
 	CHitRank HitRank;
 	size_t NodeIndicesCount = m_pQueryCompiler->GetNodeIndicesCount();
@@ -1096,7 +1362,7 @@ void CConcHolder::InitSortByRank() const
 	// initializing idf for all query items
 	for (size_t i=0; i < NodeIndicesCount; i++)
 	{
-		double cf = m_pQueryCompiler->m_pQuery->m_Node->GetNodeFrequenceByNodeIndex(i);
+		double cf = pQuery->m_Node->GetNodeFrequenceByNodeIndex(i);
 		double c = (double)Breaks.size();
 		// we have no document frequence, that's why we use collection frequence, which can be more than "c".
 		if (cf > c)
@@ -1108,8 +1374,8 @@ void CConcHolder::InitSortByRank() const
 	
 	vector<COccurrenceAndQueryNodeIndex > OccurrenceAndQueryNodeIndex;	
 	{
-		const vector<BYTE>& NodeIndices = m_pQueryCompiler->m_pQuery->m_Node->m_OccurrenceNodeIndices;
-		const vector<CTokenNo>& Occurrences = m_pQueryCompiler->m_pQuery->m_Node->m_Occurrences;
+		const vector<BYTE>& NodeIndices = pQuery->m_Node->m_OccurrenceNodeIndices;
+		const vector<CTokenNo>& Occurrences = pQuery->m_Node->m_Occurrences;
 		assert (Occurrences.size() == NodeIndices.size());
 		size_t  Count = Occurrences.size();
 		OccurrenceAndQueryNodeIndex.reserve(Count);
@@ -1120,7 +1386,7 @@ void CConcHolder::InitSortByRank() const
 	double AverageHitLength = m_pIndexator->GetCorpusEndTokenNo()/Breaks.size();
 
 	if (m_pIndexator->m_Bibl.IsRegisteredBiblField("PageRank"))
-		m_pIndexator->m_Bibl.InitSortByBiblIntegerField("PageRank", m_pQueryCompiler->m_pQuery->m_Node->m_Hits);
+		m_pIndexator->m_Bibl.InitSortByBiblIntegerField("PageRank", pQuery->m_Node->m_Hits);
 	else
 		for (size_t HitNo=0; HitNo< HitsCount; HitNo++)
 			Hits[HitNo].m_SortKey = 0;
@@ -1163,42 +1429,42 @@ void CConcHolder::InitSortByRank() const
 	}
 }
 
-void CConcHolder::InitSortBySize() const
+void CConcHolder::InitSortBySize(const CQuery *pQuery) const
 {
 	const vector<CTokenNo>& Breaks = GetBreaks();
-	size_t HitsCount = m_pQueryCompiler->m_pQuery->m_Node->m_Hits.size();
+	size_t HitsCount = pQuery->m_Node->m_Hits.size();
 	for (size_t HitNo=0; HitNo< HitsCount; HitNo++)
 	{
-		CHit&  H = m_pQueryCompiler->m_pQuery->m_Node->m_Hits[HitNo];
+		CHit&  H = pQuery->m_Node->m_Hits[HitNo];
 		DWORD BreakNo = H.m_BreakNo;
 		H.m_SortKey = (BreakNo==0) ? Breaks[BreakNo] : Breaks[BreakNo] - Breaks[BreakNo-1];
 	}
 }
 
-void CConcHolder::InitSortByRandom() const
+void CConcHolder::InitSortByRandom(const CQuery *pQuery) const
 {
-	size_t HitsCount = m_pQueryCompiler->m_pQuery->m_Node->m_Hits.size();
+	size_t HitsCount = pQuery->m_Node->m_Hits.size();
 	for (size_t HitNo=0; HitNo< HitsCount; HitNo++)
 	{
-		CHit&  H = m_pQueryCompiler->m_pQuery->m_Node->m_Hits[HitNo];
+		CHit&  H = pQuery->m_Node->m_Hits[HitNo];
 		//unsigned short ostate0=m_pRandom->m_state[0], ostate1=m_pRandom->m_state[1], ostate2=m_pRandom->m_state[2]; //-- DEBUG RANDOM
 		H.m_SortKey = m_pRandom->random_n();
 		//concord_daemon_log( Format("InitSortByRandom: RandomSeed=%d, state=[%d,%d,%d]; HitNo=%u, SortKey.i=%d", m_RandomSeed, ostate0,ostate1,ostate2, HitNo, H.m_SortKey.i) ); //-- DEBUG RANDOM
 	}
 }
 
-void CConcHolder::InitSortByContext(const CDDCFilterWithBounds& F) const
+void CConcHolder::InitSortByContext(const CQuery *pQuery, const CDDCFilterWithBounds& F) const
 {
 	CStringIndexSet* pIdx = (F.m_AttrName.empty()
 				 ? m_pIndexator->GetTokenIndex()
 				 : m_pIndexator->GetIndexByNameOrShortName(F.m_AttrName));
-	CQueryNode   *qnod = m_pQueryCompiler->m_pQuery->m_Node;
+	CQueryNode   *qnod = pQuery->m_Node;
 	vector<CHit>& Hits = qnod->m_Hits;
 	size_t HitsCount = qnod->m_Hits.size();
 	const vector<CTokenNo>& Breaks = GetBreaks();
 
 	if (!pIdx)
-		throw CExpc("CConcHolder::InitSortByContext(): Error: could not find index `%s' for context sort", F.m_AttrName.c_str());
+		throw CExpc(errOther, Format("CConcHolder::InitSortByContext(): Error: could not find index `%s' for context sort", F.m_AttrName.c_str()));
 
 	for (size_t HitNo=0; HitNo< HitsCount; HitNo++) {
 		CHit& H = Hits[HitNo];
@@ -1233,7 +1499,7 @@ void CConcHolder::InitSortByContext(const CDDCFilterWithBounds& F) const
 		}
 
 		if (occur_i >= qnod->m_Occurrences.size())
-			throw CExpc("CConcHolder::InitSortByContext(): occur_i=%i exceeds m_Occurrences.size()=%zd for hit #%zd", occur_i, qnod->m_Occurrences.size(), HitNo);
+			throw CExpc(errOther, Format("CConcHolder::InitSortByContext(): occur_i=%i exceeds m_Occurrences.size()=%zd for hit #%zd", occur_i, qnod->m_Occurrences.size(), HitNo));
 
 		//-- usual case: assign both int and string keys
 		CTokenNo keyId = qnod->m_Occurrences[occur_i] + F.m_ContextOffset;
@@ -1248,7 +1514,7 @@ void CConcHolder::InitSortByContext(const CDDCFilterWithBounds& F) const
 }
 
 
-void CConcHolder::InitSortKeyForHits(const CDDCFilterWithBounds& Filter)
+void CConcHolder::InitSortKeyForHits(const CQuery *pQuery, const CDDCFilterWithBounds& Filter)
 {
 	assert (Filter.m_FilterType != HitSortsCount);
 
@@ -1261,12 +1527,12 @@ void CConcHolder::InitSortKeyForHits(const CDDCFilterWithBounds& Filter)
 	{
 	case GreaterByDate:
 	case LessByDate:
-		m_pIndexator->m_Bibl.InitSortByDate(m_pQueryCompiler->m_pQuery->m_Node->m_Hits);
+		m_pIndexator->m_Bibl.InitSortByDate(pQuery->m_Node->m_Hits);
 		break;
 
 	case GreaterByRank:
 	case LessByRank:
-		InitSortByRank();
+		InitSortByRank(pQuery);
 		break;
 
 	case LessByMiddleContext:
@@ -1275,28 +1541,27 @@ void CConcHolder::InitSortKeyForHits(const CDDCFilterWithBounds& Filter)
 	case GreaterByLeftContext:
 	case LessByRightContext:
 	case GreaterByRightContext:
-		InitSortByContext(Filter);
+		InitSortByContext(pQuery,Filter);
 		m_bSortByString = true;
 		break;
 
 	case GreaterBySize:
 	case LessBySize:
-		InitSortBySize();
+		InitSortBySize(pQuery);
 		break;
 
 	case NoSort: // NoSort is used for filtering, must be ascending
 	case GreaterByFreeBiblField:
 	case LessByFreeBiblField:	
-		m_pIndexator->m_Bibl.InitSortByBiblIntegerField(Filter.m_AttrName, m_pQueryCompiler->m_pQuery->m_Node->m_Hits);
+		m_pIndexator->m_Bibl.InitSortByBiblIntegerField(Filter.m_AttrName, pQuery->m_Node->m_Hits);
 		m_bSortByString = (m_pIndexator->m_Bibl.GetBiblFieldTypeId(Filter.m_AttrName) == cfbiString);
 		break;
 
 	case RandomSort:
-		InitSortByRandom();
+		InitSortByRandom(pQuery);
 		break;
 	};
 }
-
 
 //#define DEBUG_HIT_SORT 1
 #undef DEBUG_HIT_SORT
@@ -1306,28 +1571,19 @@ DDCErrorEnum CConcHolder::GetAllHits(const string &Query, size_t Limit)
 	return GetAllHits(m_pQueryCompiler->m_pQuery, Limit);
 }
 
-
 DDCErrorEnum CConcHolder::GetAllHits(CQuery *QueryRoot, size_t Limit) 
 {
-	m_AllHitsCount = 0;
-	m_RelevantDocumentCount = 0;
+	assert(QueryRoot != NULL);
+	if (QueryRoot->m_Type == cqtCount)
+		return GetAllCounts(QueryRoot, Limit);
+
 	m_bStoppedByUser = false;
 	m_ShortOccurCaches.clear();
-
 	ClearQueryResults();
 
-	//-- tweak query root for count-queries
-	assert(QueryRoot != NULL);
-	CQuery *qRoot = QueryRoot;
-	if (QueryRoot->m_Type == cqtCount) {
-		m_bCounts = true;
-		Limit = INT_MAX;
-		qRoot = ((CQCount*)QueryRoot)->m_dtr;
-	}
-
-	//CQuery        *qRoot = m_pQueryCompiler->m_pQuery;
-	CQueryNode    *qNode = qRoot->m_Node;
-	CQueryOptions *qOpts = qRoot->m_Options;
+	//CQuery    *QueryRoot = m_pQueryCompiler->m_pQuery;
+	CQueryNode    *qNode = QueryRoot->m_Node;
+	CQueryOptions *qOpts = QueryRoot->m_Options;
 	vector<CHit> &qHits = qNode->m_Hits;
 
 	size_t CountOfPeriods = m_pIndexator->GetSearchPeriodsCount();		
@@ -1341,7 +1597,7 @@ DDCErrorEnum CConcHolder::GetAllHits(CQuery *QueryRoot, size_t Limit)
 
 	for (m_CurrentSearchPeriodNo = 0;  m_CurrentSearchPeriodNo < CountOfPeriods; m_CurrentSearchPeriodNo++)
 	{
-		m_pQueryCompiler->Evaluate(qRoot);
+		m_pQueryCompiler->Evaluate(QueryRoot);
 		InitFileReferences(qHits);
 
 		vector<size_t>		PeriodHitsIndex;
@@ -1360,7 +1616,7 @@ DDCErrorEnum CConcHolder::GetAllHits(CQuery *QueryRoot, size_t Limit)
 			const CDDCFilterWithBounds& F = qOpts->m_Filters[FilterNo];
 
 			//-- init Hits::m_SortKey (always initialized in raw ascending order)
-			InitSortKeyForHits(F);
+			InitSortKeyForHits(QueryRoot,F);
 
 			size_t hits_start, hits_end;
 			if (m_SortOrder >= 0) {
@@ -1445,7 +1701,7 @@ DDCErrorEnum CConcHolder::GetAllHits(CQuery *QueryRoot, size_t Limit)
 			}
 		}
 
-		// calculating m_RelevantDocumentCount if it is necessary
+		// calculate m_RelevantDocumentCount if it is necessary
 		if (m_pIndexator->m_bShowNumberOfRelevantDocuments) {
 			size_t Count = PeriodHitsIndex.size();
 			for (size_t i=0; i <Count; i++) {
@@ -1484,61 +1740,81 @@ DDCErrorEnum CConcHolder::GetAllHits(CQuery *QueryRoot, size_t Limit)
 	//         it's called implicitly by CQueryCompiler::CleanParser(), i.e. before the next parse
 	//m_pQueryCompiler->DeleteTree();
 
-	//-- moo: count query: aggregate
-	if (m_bCounts) {
-		//-- sort by file-id
-		if (qRoot->m_Options && !qRoot->m_Options->m_Filters.empty() && qRoot->m_Options->m_Filters.back().m_FilterType!=NoSort) 
-			stable_sort(m_Hits.begin(), m_Hits.end(), IsLessByFileNo());
-
-		//-- count by filename
-		DWORD f = (size_t)-1;
-		DWORD n = 0;
-		string key("");
-		map<string, size_t> counts;
-		for (vector<CHit>::const_iterator hi=m_Hits.begin(); hi != m_Hits.end(); ++hi, ++n) {
-			if (hi->m_FileNo != f) {
-				//-- next file
-				if (!key.empty()) counts[key] += n;
-				n   = 0;
-				f   = hi->m_FileNo;
-				key = m_pIndexator->GetShortFilename(f);
-			}
-		}
-		if (!key.empty()) counts[key] += n;
-
-		//-- tweak hit-list
-		vector<CHit> newHits;
-		newHits.resize(counts.size());
-		vector<CHit>::iterator hi = newHits.begin(); 
-		for (map<string,size_t>::const_iterator ci=counts.begin(); ci != counts.end(); ++ci, ++hi) {
-			hi->m_BreakNo = -1;
-			hi->m_HighlightOccurrenceEnd = 0;
-			hi->m_FileNo  = -1;
-			hi->m_Value.m_Count = ci->second;
-			hi->m_SortKey = ci->first;
-		}
-
-		//-- tweak hit-results
-		m_Hits.swap(newHits);
-		m_HighlightOccurs.clear();
-		m_bSortByString = 1;
-		m_bCounts       = 1;
-		m_SortOrder     = hsoNone;
-	}
-
-
 	return errNone;
 };
+
+DDCErrorEnum CConcHolder::GetAllCounts(CQuery *CountQueryRoot, size_t Limit)
+{
+	//-- sanity check(s)
+	assert(CountQueryRoot != NULL);
+	assert(CountQueryRoot->m_Type == cqtCount);
+
+	//-- evaluate subordinate query-conditions, populating CQueryResult fields (esp. m_Hits)
+	CQuery *qRoot   = ((CQCount*)CountQueryRoot)->m_dtr;
+	DDCErrorEnum rc = GetAllHits(qRoot, DDCCountQueryLimit);
+	if (rc != errNone)
+		return rc;
+
+	//-- ensure m_Hits are sorted by file-id
+	if (qRoot->m_Options && !qRoot->m_Options->m_Filters.empty() && qRoot->m_Options->m_Filters.back().m_FilterType!=NoSort) 
+		sort(m_Hits.begin(), m_Hits.end(), IsLessByFileNo());
+
+	//-- counting guts
+	DWORD f = (size_t)-1;
+	DWORD n = 0;
+	string key;
+	map<string, size_t> counts;
+	CountKeyReader keyReader(this, CountQueryRoot->m_Options->m_CountBy);
+	for (vector<CHit>::const_iterator hi=m_Hits.begin(); hi != m_Hits.end(); ++hi, ++n) {
+		if (hi->m_FileNo != f) {
+			//-- next file
+			if (n>0) counts[key] += n;
+			n   = 0;
+			f   = hi->m_FileNo;
+			key = keyReader.Key(f);
+		}
+	}
+	if (n>0) counts[key] += n;
+	keyReader.clear();
+
+	//-- setup new dummy m_Hits
+	vector<CHit> newHits;
+	newHits.resize(counts.size());
+	vector<CHit>::iterator hi = newHits.begin(); 
+	for (map<string,size_t>::const_iterator ci=counts.begin(); ci != counts.end(); ++ci, ++hi) {
+		hi->m_BreakNo = -1;
+		hi->m_HighlightOccurrenceEnd = 0;
+		hi->m_FileNo  = -1;
+		hi->m_Value.m_Count = ci->second;
+		hi->m_SortKey = ci->first;
+	}
+
+	//-- count query: setup CQueryResult fields
+	m_Hits.swap(newHits);
+	m_HighlightOccurs.clear();
+	m_AllHitsCount  = m_Hits.size();
+	m_bSortByString = 1;
+	m_bCounts       = 1;
+	m_SortOrder     = hsoNone;
+	m_DebugInfo.clear();
+
+	return errNone;
+}
+
 
 void	CQueryResult::ClearQueryResults()
 {
 	ClearVector(m_Hits);
 	ClearVector(m_HighlightOccurs);
 	ClearVector(m_DebugInfo);
+	m_AllHitsCount = 0;
+	m_RelevantDocumentCount = 0;
 	m_bSortByString = false;
 	m_bCounts = false;
 	m_SortOrder = hsoNone;
 }
+
+
 
 string CConcHolder::GetHitIds()  const
 {
@@ -1546,11 +1822,7 @@ string CConcHolder::GetHitIds()  const
 
 	for (size_t i=0; i < m_Hits.size(); i++) {
 		const CHit &h = m_Hits[i];
-		if (!m_bCounts) {
-			Result += Format("\t%i -0 ", i); //-- HitId, OrderId (for ddc < v2.0.19)
-		} else {
-			Result += Format("\t%i %zi ", i, h.m_Value.m_Count); //-- HitId, Count (for count-queries, ddc >= v2.0.23)
-		}
+		Result += Format("\t%i -0 ", i); //-- HitId, OrderId (for ddc < v2.0.19)
 		if (m_bSortByString) {
 			//-- string-based sort
 			Result.append(h.m_SortKey.s, 0, DDC_SORTKEY_MAXLEN-1);

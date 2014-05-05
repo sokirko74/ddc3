@@ -106,6 +106,22 @@ void CQuery::SetOptions(CQueryOptions *opts)
   m_Options = opts;
 }
 
+//--------------------------------------------------------------
+string CQuery::optionsToString()
+{
+  if (m_Options!=NULL) 
+    return m_Options->toString();
+  return string("");
+}
+
+//--------------------------------------------------------------
+string CQuery::optionsToJson()
+{
+  if (m_Options!=NULL) 
+    return m_Options->toJson();
+  return string("null");
+}
+
 
 //======================================================================
 // CQNegatable
@@ -888,8 +904,8 @@ bool CQCount::Compile(CQueryCompiler *compiler)
     throw CExpc(errParseError,"no argument conditions specified for count-query `%s'", this->toString().c_str());
 
   //-- compile daughter(s)
-  if (!m_dtr->Compile(compiler))
-    throw CExpc(errParseError,"could not compile argument conditions `%s' for count-query", m_dtr->toString().c_str());
+  if (!m_dtr->CompileOptions(compiler) || !m_dtr->Compile(compiler))
+    throw CExpc(errParseError,"could not compile sub-query `%s' for count-query", m_dtr->toString().c_str());
 
   //-- child methods hook in here
   return true;
@@ -906,7 +922,18 @@ void CQCount::Evaluate()
 //--------------------------------------------------------------
 string CQCount::toString()
 {
-  return string("COUNT(") + m_dtr->toString() + ")";
+  return string("COUNT(") + m_dtr->toString() + m_dtr->optionsToString() + ")";
+}
+
+//--------------------------------------------------------------
+string CQCount::optionsToString()
+{
+  if (m_Options) {
+    CQueryOptions opts;
+    opts.m_CountBy = m_Options->m_CountBy;
+    return opts.toString();
+  }
+  return "";
 }
 
 
@@ -932,7 +959,7 @@ bool CQueryOptions::Compile(CQueryCompiler *compiler)
   //-- compile abstract filters in m_QFilters to old-style m_Filters
   for (CQFilterList::iterator fi=m_QFilters.begin(); rc && fi != m_QFilters.end(); fi++) {
     assert(*fi != NULL);
-    rc = (rc && (*fi)->Compile(compiler));
+    rc = (rc && (*fi)->Compile(compiler,this));
   }
 
   //-- find the last run-time sort operator and swap it out the back of the list
@@ -967,4 +994,108 @@ void CQueryOptions::Clear()
   m_QFilters.clear();
   m_Filters.clear();
   m_Subcorpora.clear();
+  m_CountBy.clear();
+}
+
+//--------------------------------------------------------------
+string CQueryOptions::toString()
+{
+  string qs("");
+  if (!m_HitTypeStr.empty()) {
+    qs += string(" #WITHIN '") + escapeChars(m_HitTypeStr,"\\'") + "'";
+  }
+  if (m_ContextSentencesCount != 0) {
+    qs += Format(" #CNTXT %u", m_ContextSentencesCount);
+  }
+  if (m_bSeparateHits) {
+    qs += " #SEPARATE";
+  }
+  if (!m_bEnableBibliography) {
+    qs += " #FILENAMES";
+  }
+  if (m_bDebugRank) {
+    qs += " #DEBUG_RANK";
+  }
+  if (!m_QFilters.empty()) {
+    string fs;
+    for (CQFilterList::iterator fi=m_QFilters.begin(); fi != m_QFilters.end(); fi++) {
+      if (*fi == NULL) continue; //-- should never happen
+      if (!fs.empty()) fs.push_back(' ');
+      fs += (*fi)->toString();
+    }
+    qs += string(" ") + fs;
+  }
+  if (!m_Subcorpora.empty()) {
+    string cs;
+    for (CQSubcorpusList::iterator ci=m_Subcorpora.begin(); ci != m_Subcorpora.end(); ci++) {
+      if (!cs.empty()) cs.push_back(',');
+      cs += string("'") + escapeChars(*ci,"\\'") + "'";
+    }
+    if (!cs.empty()) qs += string(" :") + cs;
+  }
+  if (!m_CountBy.empty()) {
+    string cs;
+    for (CQSubcorpusList::iterator ci=m_CountBy.begin(); ci != m_CountBy.end(); ci++) {
+      if (!cs.empty()) cs.push_back(',');
+      cs += string("'") + escapeChars(*ci,"\\'") + "'";
+    }
+    if (!cs.empty()) qs += string(" #BY ") + cs;
+  }
+  return qs;
+}
+
+//--------------------------------------------------------------
+string CQueryOptions::toJson()
+{
+  string qs("");
+
+  if (!m_HitTypeStr.empty()) {
+    qs += ",\"Within\":" + jsonStr(m_HitTypeStr);
+  }
+  if (m_ContextSentencesCount != 0) {
+    qs += Format(",\"ContextCount\":%u", m_ContextSentencesCount);
+  }
+  if (m_bSeparateHits) {
+    qs += ",\"SeparateHits\":1";
+  }
+  if (m_bEnableBibliography) {
+    qs += ",\"EnableBibliography\":1";
+  }
+  if (m_bDebugRank) {
+    qs += ",\"DebugRank\":1";
+  }
+
+  //-- filters
+  qs += ",\"Filters\":[";
+  for (CQFilterList::iterator fi=m_QFilters.begin(); fi != m_QFilters.end(); fi++) {
+    if (*fi == NULL) continue; //-- should never happen
+    if (fi!=m_QFilters.begin()) qs.push_back(',');
+    qs += (*fi)->toJson();
+  }
+  qs.push_back(']');
+
+  if (!m_Subcorpora.empty()) {
+    qs += ",\"Subcorpora\":[";
+    for (CQCountByList::iterator ci=m_Subcorpora.begin(); ci != m_Subcorpora.end(); ci++) {
+      if (ci != m_Subcorpora.begin()) qs.push_back(',');
+      qs += jsonStr(*ci);
+    }
+    qs.push_back(']');
+  }
+  if (!m_CountBy.empty()) {
+    qs += ",\"CountBy\":[";
+    for (CQSubcorpusList::iterator ci=m_CountBy.begin(); ci != m_CountBy.end(); ci++) {
+      if (ci != m_CountBy.begin()) qs.push_back(',');
+      qs += jsonStr(*ci);
+    }
+    qs.push_back(']');
+  }
+
+  if (qs.empty()) {
+    qs = "{";
+  }
+  qs[0] = '{';
+  qs.push_back('}');
+
+  return qs;
 }

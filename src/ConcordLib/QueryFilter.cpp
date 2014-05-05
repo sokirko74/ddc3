@@ -47,9 +47,10 @@ static const char *HitSortNames[17] = {
 //======================================================================
 // CQFilter
 
-bool CQFilter::Compile(CQueryCompiler *compiler)
+bool CQFilter::Compile(CQueryCompiler *compiler, CQueryOptions *options)
 {
   assert(compiler!=NULL);
+  assert(options!=NULL);
   throw CExpc(errParseError,"CQFilter::Compile(): abstract method called!");
   return false;
 }
@@ -100,12 +101,15 @@ void CQFSort::SortBounds(void) {
 }
 
 //--------------------------------------------------------------
-bool CQFSort::Compile(CQueryCompiler *compiler)
+bool CQFSort::Compile(CQueryCompiler *compiler, CQueryOptions *options)
 {
+  /*
   assert(compiler!=NULL);
   assert(compiler->m_pQuery!=NULL);
   assert(compiler->m_pQuery->m_Options!=NULL);
-  compiler->m_pQuery->m_Options->m_Filters.push_back(m_Filter);
+  */
+  assert(options != NULL);
+  options->m_Filters.push_back(m_Filter);
   return true;
 }
 
@@ -176,7 +180,7 @@ int CQFDateSort::Str2Date(const std::string &datestr, int onEmpty)
   return val;
 }
 
-bool CQFDateSort::Compile(CQueryCompiler *compiler)
+bool CQFDateSort::Compile(CQueryCompiler *compiler, CQueryOptions *options)
 {
   m_Filter.m_KeyLo = INT_MIN+1;
   m_Filter.m_KeyHi = INT_MAX-1;
@@ -184,7 +188,7 @@ bool CQFDateSort::Compile(CQueryCompiler *compiler)
   if (!m_arg1.empty()) m_Filter.m_KeyLo.i = Str2Date(m_arg1);
   if (!m_arg2.empty()) m_Filter.m_KeyHi.i = Str2Date(m_arg2)+1;
 
-  return CQFSort::Compile(compiler);
+  return CQFSort::Compile(compiler, options);
 }
 
   
@@ -198,11 +202,11 @@ CQFSizeSort::CQFSizeSort(HitSortEnum ftype, int lb, int ub)
   m_arg2 = Format("%d", ub);
 }
 
-bool CQFSizeSort::Compile(CQueryCompiler *compiler)
+bool CQFSizeSort::Compile(CQueryCompiler *compiler, CQueryOptions *options)
 {
   m_Filter.m_KeyLo = (m_arg1.empty() ? INT_MIN : atoi(m_arg1.c_str()));
   m_Filter.m_KeyHi = (m_arg2.empty() ? INT_MAX : atoi(m_arg2.c_str()));
-  return CQFSort::Compile(compiler);
+  return CQFSort::Compile(compiler, options);
 }
 
 //======================================================================
@@ -214,20 +218,20 @@ CQFRandomSort::CQFRandomSort(int seed0)
   m_arg1 = Format("%d", seed0);
 }
 
-bool CQFRandomSort::Compile(CQueryCompiler *compiler)
+bool CQFRandomSort::Compile(CQueryCompiler *compiler, CQueryOptions *options)
 {
   //-- #RANDOM[] is equivalent to #RANDOM[0]
   //   + we __could__ use time(NULL) to seed here, but DDC's cache prevents re-sorting for identical query strings
   int seed = m_arg1.empty() ? 0 : atoi(m_arg1.c_str());
   compiler->m_pHolder->SetRandomSeed((unsigned int)seed);
-  return CQFSort::Compile(compiler);
+  return CQFSort::Compile(compiler, options);
 }
 
 
 //======================================================================
 // CQFBiblSort
 
-bool CQFBiblSort::Compile(CQueryCompiler *compiler)
+bool CQFBiblSort::Compile(CQueryCompiler *compiler, CQueryOptions *options)
 {
   CConcIndexator *ix = compiler->m_pHolder->m_pIndexator;
   assert(ix != NULL);
@@ -238,7 +242,7 @@ bool CQFBiblSort::Compile(CQueryCompiler *compiler)
   if (!ix->m_Bibl.GetFilterBounds(m_Filter, m_arg1, m_arg2))
       throw CExpc(errParseError,"Can't determine bound(s) for bibliographic sort operator `%s'", toString().c_str());
 
-  return CQFSort::Compile(compiler);
+  return CQFSort::Compile(compiler, options);
 }
 
 string CQFBiblSort::toString(void)
@@ -266,7 +270,7 @@ string CQFBiblSort::jsonData(void)
 //======================================================================
 // CQFContextSort
 
-bool CQFContextSort::Compile(CQueryCompiler *compiler)
+bool CQFContextSort::Compile(CQueryCompiler *compiler, CQueryOptions *options)
 {
   CConcIndexator *ix = compiler->m_pHolder->m_pIndexator;
   assert(ix != NULL);
@@ -279,7 +283,7 @@ bool CQFContextSort::Compile(CQueryCompiler *compiler)
   if (!ixx->GetContextBounds(m_Filter, m_arg1, m_arg2))
       throw CExpc(errParseError,"Can't determine bound(s) for context-sort operator `%s'", toString().c_str());
 
-  return CQFSort::Compile(compiler);
+  return CQFSort::Compile(compiler,options);
 }
 
 string CQFContextSort::toString(void)
@@ -316,7 +320,7 @@ void CQFHasField::Negate(void)
   m_Negated = !m_Negated;
 }
 
-bool CQFHasField::Compile(CQueryCompiler *compiler)
+bool CQFHasField::Compile(CQueryCompiler *compiler, CQueryOptions *options)
 {
   if (m_arg0.empty())
     throw CExpc(errParseError,"Empty bibliographic field not allowed in filter operator `%s'", toString().c_str());
@@ -354,9 +358,9 @@ string CQFHasField::jsonMinMax(void)
 //======================================================================
 // CQFHasFieldValue
 
-bool CQFHasFieldValue::Compile(CQueryCompiler *compiler)
+bool CQFHasFieldValue::Compile(CQueryCompiler *compiler, CQueryOptions *options)
 {
-  CQFHasField::Compile(compiler);
+  CQFHasField::Compile(compiler,options);
 
   m_Filter.m_bNegated = m_Negated;
   CConcIndexator *ix = compiler->m_pHolder->m_pIndexator;
@@ -364,22 +368,22 @@ bool CQFHasFieldValue::Compile(CQueryCompiler *compiler)
   if (!ix->m_Bibl.GetFilterValue(m_Filter, m_arg1))
     throw CExpc(errParseError,"Can't compile literal filter condition `%s'", toString().c_str());
 
-  return CQFSort::Compile(compiler);
+  return CQFSort::Compile(compiler,options);
 }
 
 //======================================================================
 // CQFHasFieldRegex
 
-bool CQFHasFieldRegex::Compile(CQueryCompiler *compiler)
+bool CQFHasFieldRegex::Compile(CQueryCompiler *compiler, CQueryOptions *options)
 {
-  CQFHasField::Compile(compiler);
+  CQFHasField::Compile(compiler,options);
 
   m_Filter.m_bNegated = m_Negated;
   CConcIndexator *ix = compiler->m_pHolder->m_pIndexator;
   if (!ix->m_Bibl.GetFilterValues(m_Filter, m_Regex))
     throw CExpc(errParseError,"Can't compile regex filter condition `%s'", toString().c_str());
 
-  return CQFSort::Compile(compiler);
+  return CQFSort::Compile(compiler,options);
 }
 
 string CQFHasFieldRegex::valueString()
@@ -414,16 +418,16 @@ string CQFHasFieldInfix::valueString()
 //======================================================================
 // CQFHasFieldSet
 
-bool CQFHasFieldSet::Compile(CQueryCompiler *compiler)
+bool CQFHasFieldSet::Compile(CQueryCompiler *compiler, CQueryOptions *options)
 {
-  CQFHasField::Compile(compiler);
+  CQFHasField::Compile(compiler,options);
 
   m_Filter.m_bNegated = m_Negated;
   CConcIndexator *ix = compiler->m_pHolder->m_pIndexator;
   if (!ix->m_Bibl.GetFilterValues(m_Filter, m_Values))
     throw CExpc(errParseError,"Can't compile set-valued filter restriction `%s'", toString().c_str());
 
-  return CQFSort::Compile(compiler);
+  return CQFSort::Compile(compiler,options);
 }
 
 string CQFHasFieldSet::SetValueString(const set<string> &values)

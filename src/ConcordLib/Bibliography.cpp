@@ -1669,3 +1669,17 @@ int CConcXml::WithinTextArea(const vector<string>& Within) const
 	}
 	return UnknownTextAreaNo;
 }
+
+CConcXml::CFreeBiblIndex* CConcXml::GetFreeBiblIndex(const string& FreeBiblAttribName) const
+{
+	FreeBiblStringMap::const_iterator it = m_FreeBiblIndices.find(FreeBiblAttribName);
+	if (it == m_FreeBiblIndices.end()) return NULL; // attribute not found
+	return it->second;
+}
+
+CBiblExpander*  CConcXml::GetBiblExpander(const string& ExpanderName) const
+{
+	BiblExpanderMap::const_iterator xit = m_BiblExpanders.find(ExpanderName);
+	if (xit == m_BiblExpanders.end()) return NULL; // expander not found
+	return xit->second;
+}

@@ -86,6 +86,10 @@ int yylex (void*,  void*);
 %type	<m_pfilt>	q_filter
 %type	<m_pfilt>	q_flag
 
+%type   <m_pfilt>	count_filters
+%type   <m_pfilt>	count_filter
+%type   <m_pfilt>	count_by
+
 %type	<m_pfilt>	qf_subcorpora
 %type	<m_pfilt>	qf_has_field
 %type	<m_pfilt>	qf_rank_sort
@@ -148,6 +152,7 @@ int yylex (void*,  void*);
 %type	<m_pnode>	l_phrase
 %type	<m_pnode>	l_set
 %type	<m_pnode>	l_txchain
+%type	<m_pnode>	l_countkeys
 
 //------------------------------------------------------
 // Types: Semantic Sugar (symbols)
@@ -222,6 +227,7 @@ int yylex (void*,  void*);
 %token	<m_str>	GREATER_BY_MIDDLE
 %token	<m_str>	DEBUG_RANK
 %token	<m_str>	RANDOM
+%token	<m_str>	BY
 
 //------------------------------------------------------
 // Start Symbol
@@ -256,10 +262,24 @@ query:
 	;
 
  /*-------------------------------------------------------------
-  * query_counts (qn*)
+  * count_query (count_*)
   */
 count_query:
-		COUNT '(' query_conditions ')'	{ $$ = _qc->PushQuery(new CQCount(_qc->SetQuery($3)) ); }
+		COUNT '(' query_conditions ')'	count_filters	{ $$ = _qc->PushQuery( new CQCount(_qc->SetQuery($3)) ); }
+	;
+
+count_filters:
+		/* empty */			{ $$=NULL; }
+	|	count_filters count_filter	{ $$=$1;   }
+	;
+
+count_filter:
+		count_by 			{ $$=$1; }
+	;
+
+count_by:
+		BY l_countkeys 			{ $$=NULL; }
+	|	BY '[' l_countkeys ']'  	{ $$=NULL; }
 	;
 
  /*-------------------------------------------------------------
@@ -286,10 +306,10 @@ q_flag:
 	|	WITHIN symbol 		{ $$=NULL; _qc->mq_Within.push_back(*$2); }
 	|	SEPARATE_HITS		{ $$=NULL; _qc->mq_bSeparateHits = 1; }
 	|	NOSEPARATE_HITS		{ $$=NULL; _qc->mq_bSeparateHits = 0; }
-	|	FILENAMES_ONLY 		{ $$=NULL; _qc->m_bEnableBibliographyForThisQuery = false;  }
-	|	'!' FILENAMES_ONLY	{ $$=NULL; _qc->m_bEnableBibliographyForThisQuery = true;  }
-	|	DEBUG_RANK		{ $$=NULL; _qc->m_bDebugRank = true;  }
-	|	'!' DEBUG_RANK		{ $$=NULL; _qc->m_bDebugRank = false;  }
+	|	FILENAMES_ONLY 		{ $$=NULL; _qc->mq_bEnableBibliography = false;  }
+	|	'!' FILENAMES_ONLY	{ $$=NULL; _qc->mq_bEnableBibliography = true;  }
+	|	DEBUG_RANK		{ $$=NULL; _qc->mq_bDebugRank = true;  }
+	|	'!' DEBUG_RANK		{ $$=NULL; _qc->mq_bDebugRank = false;  }
 	;
 
 qf_subcorpora:
@@ -625,8 +645,15 @@ l_phrase :
 	;
 
 l_txchain:
-	/* empty */				{ $$ = NULL; _qc->m_Expanders.clear(); }
-	|	l_txchain s_expander		{ $$ = $1;   _qc->m_Expanders.push_back(*$2); }
+	/* empty */			{ $$ = NULL; _qc->m_Expanders.clear(); }
+	|	l_txchain s_expander	{ $$ = $1;   _qc->m_Expanders.push_back(*$2); }
+	;
+
+l_countkeys:
+		/* empty */		{ $$=NULL; _qc->mq_CountBy.clear(); }
+	|	l_countkeys symbol	{ $$=$1;   _qc->mq_CountBy.push_back(*$2); }
+	|	l_countkeys '*'		{ $$=$1;   _qc->mq_CountBy.push_back("*"); }
+	|	l_countkeys ','		{ $$=$1; }
 	;
 
  /*-------------------------------------------------------------

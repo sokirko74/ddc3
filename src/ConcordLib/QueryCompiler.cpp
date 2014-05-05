@@ -68,8 +68,8 @@ CQueryCompiler::CQueryCompiler(const CConcHolder* pHolder)
 	m_pQuery  = NULL;
 	mq_ContextSentencesCount = 0;
 	mq_bSeparateHits = false;
-	m_bEnableBibliographyForThisQuery = true;
-	m_bDebugRank = false;
+	mq_bEnableBibliography = true;
+	mq_bDebugRank = false;
 	m_CurrentNodeIndex = 0;
 }
 
@@ -185,18 +185,19 @@ void CQueryCompiler::CleanParser()
 
 	//-- clear global query flags
 	mq_ContextSentencesCount = 0;
+	mq_bEnableBibliography = true;
+	mq_bDebugRank = false;
 	mq_bSeparateHits = false;
 	mq_Within.clear();
 	mq_HitTypeStr.clear();
 	mq_Subcorpora.clear();
+	mq_CountBy.clear();
 	m_WordSet.clear();
 	m_MorphItems.clear();
 	m_Expanders.clear();
 	m_FilterField.clear();
 	m_FilterLB.clear();
 	m_FilterUB.clear();
-	m_bEnableBibliographyForThisQuery = true;
-	m_bDebugRank = false;
 }
 
 void CQueryCompiler::DeleteTree()
@@ -270,14 +271,20 @@ CQuery* CQueryCompiler::SetQuery(CQuery* qp)
 {
 	CQueryOptions *opts = new CQueryOptions();
 	opts->m_ContextSentencesCount = mq_ContextSentencesCount;
+	opts->m_bEnableBibliography = mq_bEnableBibliography;
+	opts->m_bDebugRank = mq_bDebugRank;
 	opts->m_bSeparateHits = mq_bSeparateHits;
 	opts->m_Within = mq_Within;
 	opts->m_HitTypeStr = mq_HitTypeStr;
 	opts->m_TextAreaNo = UnknownTextAreaNo;
 	opts->m_QFilters.swap(mq_QFilters);
-	opts->m_Subcorpora.swap(mq_Subcorpora);
 	mq_QFilters.clear();
+	opts->m_Subcorpora.swap(mq_Subcorpora);
 	mq_Subcorpora.clear();
+	if (qp->m_Type == cqtCount) {
+		opts->m_CountBy.swap(mq_CountBy);
+		mq_CountBy.clear();
+	}
 	m_pQuery = qp;
 	m_pQuery->SetOptions(opts);
 	return qp;
@@ -292,93 +299,16 @@ void CQueryCompiler::SetFilterBounds(const string& lb, const string& ub)
 //-- debug
 string CQueryCompiler::QueryToString(void)
 {
-	string qs;
-	if (m_pQuery != NULL) {
-		assert(m_pQuery->m_Options != NULL);
-		qs += m_pQuery->toString();
-
-		if (!m_pQuery->m_Options->m_HitTypeStr.empty()) {
-			qs += string(" #WITHIN '") + escapeChars(m_pQuery->m_Options->m_HitTypeStr,"\\'") + "'";
-		}
-		if (m_pQuery->m_Options->m_ContextSentencesCount != 0) {
-			qs += Format(" #CNTXT %u", m_pQuery->m_Options->m_ContextSentencesCount);
-		}
-		if (m_pQuery->m_Options->m_bSeparateHits) {
-			qs += " #SEPARATE";
-		}
-		if (!m_pQuery->m_Options->m_QFilters.empty()) {
-			string fs;
-			for (CQFilterList::iterator fi=m_pQuery->m_Options->m_QFilters.begin(); fi != m_pQuery->m_Options->m_QFilters.end(); fi++) {
-				if (*fi == NULL) continue; //-- should never happen
-				if (!fs.empty()) fs.push_back(' ');
-				fs += (*fi)->toString();
-			}
-			qs += string(" ") + fs;
-		}
-		if (!m_pQuery->m_Options->m_Subcorpora.empty()) {
-			string cs;
-			for (CQSubcorpusList::iterator ci=m_pQuery->m_Options->m_Subcorpora.begin(); ci != m_pQuery->m_Options->m_Subcorpora.end(); ci++) {
-				if (!cs.empty()) cs.push_back(',');
-				cs += string("'") + escapeChars(*ci,"\\'") + "'";
-			}
-			if (!cs.empty()) qs += string(" :") + cs;
-		}
-	}
-	if (!m_bEnableBibliographyForThisQuery) {
-		qs += " #FILENAMES";
-	}
-	if (m_bDebugRank) {
-		qs += " #DEBUG_RANK";
-	}
-	return qs;
+	if (m_pQuery != NULL)
+		return m_pQuery->toString() + m_pQuery->optionsToString();
+	return "";
 }
 
 string CQueryCompiler::QueryToJson(void)
 {
-	string qs("{");
-	if (m_pQuery) {
-		assert(m_pQuery->m_Options != NULL);
-		qs += "\"Query\":" + m_pQuery->toJson();
-
-		if (!m_pQuery->m_Options->m_HitTypeStr.empty()) {
-			qs += ",\"Within\":" + jsonStr(m_pQuery->m_Options->m_HitTypeStr);
-		}
-		if (m_pQuery->m_Options->m_ContextSentencesCount != 0) {
-			qs += Format(",\"ContextCount\":%u", m_pQuery->m_Options->m_ContextSentencesCount);
-		}
-		if (m_pQuery->m_Options->m_bSeparateHits) {
-			qs += ",\"SeparateHits\":1";
-		}
-
-		//-- filters
-		qs += ",\"Filters\":[";
-		for (CQFilterList::iterator fi=m_pQuery->m_Options->m_QFilters.begin(); fi != m_pQuery->m_Options->m_QFilters.end(); fi++) {
-			if (*fi == NULL) continue; //-- should never happen
-			if (fi!=m_pQuery->m_Options->m_QFilters.begin()) qs.push_back(',');
-			qs += (*fi)->toJson();
-		}
-		qs.push_back(']');
-
-		if (!m_pQuery->m_Options->m_Subcorpora.empty()) {
-			qs += ",\"Subcorpora\":[";
-			for (CQSubcorpusList::iterator ci=m_pQuery->m_Options->m_Subcorpora.begin(); ci != m_pQuery->m_Options->m_Subcorpora.end(); ci++) {
-				if (ci != m_pQuery->m_Options->m_Subcorpora.begin()) qs.push_back(',');
-				qs += jsonStr(*ci);
-			}
-			qs.push_back(']');
-		}
-		qs.push_back('}');
-	} else {
-		qs += "\"Query\":null";
-	}
-	if (m_bEnableBibliographyForThisQuery) {
-		qs += ",\"EnableBibliography\":1";
-	}
-	if (m_bDebugRank) {
-		qs += ",\"DebugRank\":1";
-	}
-
-	return qs;
+	if (m_pQuery)
+		return string("{\"Query\":") + m_pQuery->toJson() + ",\"Options\":", m_pQuery->optionsToJson() + "}";
+	return "null";
 }
 
 //----------------------------------------------------------------------
