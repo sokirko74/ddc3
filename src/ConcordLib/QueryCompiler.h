@@ -22,9 +22,10 @@
 
 #include <list>
 
-#include "QueryNode.h"   // OLD query-node API
-#include "Query.h"       // NEW query-node API
-#include "QueryFilter.h" // NEW query-node API
+#include "QueryNode.h"    // v1.x query-node API
+#include "QueryFilter.h"  // v2.x query-filter API
+#include "Query.h"        // v2.x query-node API (wrapper)
+#include "QCount.h"	  // v2.0.23+ count-query API
 
 #include "yyQParser.h"
 
@@ -64,43 +65,11 @@ public:
 	//! root of the abstract parse tree
 	CQuery* m_pQuery;
 
-	//--------------------------------------------------------------
-	// query options (adopted into top-level m_pQuery on SetQuery())
+	//! query options (adopted into top-level m_pQuery on SetQuery())
+	CQueryOptions m_qOptions;
 
-	//! how many hits of the left and right context should be output (must be &lt;= m_MaxContextSentencesCount)
-	size_t mq_ContextSentencesCount;
-
-	// if true, DDC shows file names, instead of bibliographical information for this query
-	//! (CConcIndexator::m_bOutputBibliographyOfHits is default value for outputting bibliography
-	bool mq_bEnableBibliography;
-
-	//! if true, DDC initializes CHit::m_DebugRank
-	bool mq_bDebugRank;
-
-	//! whether to return a separate hit for each occurrence, or collect into distinct instances of the selected container (sentence)
-	//! default=false; used by CQueryNode::Evaluate()
-	bool mq_bSeparateHits;
-
-	//! list of all '#WITHIN' arguments (break collections or text areas) from currently parsed query 
-	vector<string> mq_Within;
-
-	//! the break collection name which should be used while querying
-	string mq_HitTypeStr;
-
-	// the index of text area where DDC should perform the input query
-	//int m_TextAreaNo;
-
-	//! (abstract) filters and sort operators which should be applied to the resulted hit set
-	CQFilterList mq_QFilters;
-
-	// (runtime) filters and sort operators which should be applied to the resulted hit set (available after Compile())
-	//vector<CDDCFilterWithBounds> m_Filters; 
-
-	//! selected subcorpora for this query
-	CQSubcorpusList mq_Subcorpora;
-
-	//! count-by #BY key,.... lists
-	CQCountByList mq_CountBy;
+	//! NEW temporary for count-by lists
+	CQCountKeyExprList m_qCountKeys;
 
 	//--------------------------------------------------------------
 	// temporaries
@@ -164,7 +133,7 @@ public:
 	//! flex convenience wrapper
 	inline string yystring() const { return string(YYText(),YYLeng()); };
 
-	//! delete parse tree (m_pQuery) if non-NULL
+	//! delete parse tree (m_pQuery) if non-NULL; actually wipes all queries in m_Queries and m_qCountKeys
 	void DeleteTree();
 
 	//! parse \c QueryStr and build a parse tree for it in \c m_pQuery
@@ -210,6 +179,10 @@ public:
 	//! push a newly allocated CQuery* onto the stack.
 	//! Called by bison during the parse.
 	inline CQuery* PushQuery(CQuery* qp) { m_Queries.push_back(qp); return qp; };
+
+	//! push a newly allocated CQCount* count-query onto the stack, setting m_CountBy
+	//! Called by bison during the parse.
+	CQCount* PushCountQuery(CQuery *qConditions);
 
 	//! set string bounds for current filter (called by bison parser)
 	void SetFilterBounds(const string& lb="", const string& ub="");

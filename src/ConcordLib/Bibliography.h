@@ -361,5 +361,7 @@ public:
 	CBiblExpander*  GetBiblExpander(const string& ExpanderName) const;
 };
 
+/*! raise CFreeBiblIndex type to global */
+typedef CConcXml::CFreeBiblIndex CFreeBiblIndex;
 
 #endif

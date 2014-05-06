@@ -66,10 +66,6 @@ CQueryCompiler::CQueryCompiler(const CConcHolder* pHolder)
 {
 	m_pHolder = pHolder;
 	m_pQuery  = NULL;
-	mq_ContextSentencesCount = 0;
-	mq_bSeparateHits = false;
-	mq_bEnableBibliography = true;
-	mq_bDebugRank = false;
 	m_CurrentNodeIndex = 0;
 }
 
@@ -173,25 +169,14 @@ bool CQueryCompiler::ParseQuery(const string &QueryStr)
 
 void CQueryCompiler::CleanParser()
 {
-	//-- clear global filter list (before DeleteTree())
-	for (CQFilterList::iterator fi=mq_QFilters.begin(); fi != mq_QFilters.end(); fi++) {
-		if (*fi != NULL) delete *fi;
-	}
-	mq_QFilters.clear();
+	//-- clear temporary options (before DeleteTree())
+	m_qOptions.Clear();
 
 	m_Labels.clear();
 	DeleteTree();
 	m_CurrentNodeIndex = 0;
 
 	//-- clear global query flags
-	mq_ContextSentencesCount = 0;
-	mq_bEnableBibliography = true;
-	mq_bDebugRank = false;
-	mq_bSeparateHits = false;
-	mq_Within.clear();
-	mq_HitTypeStr.clear();
-	mq_Subcorpora.clear();
-	mq_CountBy.clear();
 	m_WordSet.clear();
 	m_MorphItems.clear();
 	m_Expanders.clear();
@@ -208,6 +193,7 @@ void CQueryCompiler::DeleteTree()
 		delete *qi;
 	}
 	m_Queries.clear();
+	m_qCountKeys.Clear();
 	m_pQuery = NULL;
 }
 
@@ -270,25 +256,21 @@ string* CQueryCompiler::newString(const string& s)
 CQuery* CQueryCompiler::SetQuery(CQuery* qp)
 {
 	CQueryOptions *opts = new CQueryOptions();
-	opts->m_ContextSentencesCount = mq_ContextSentencesCount;
-	opts->m_bEnableBibliography = mq_bEnableBibliography;
-	opts->m_bDebugRank = mq_bDebugRank;
-	opts->m_bSeparateHits = mq_bSeparateHits;
-	opts->m_Within = mq_Within;
-	opts->m_HitTypeStr = mq_HitTypeStr;
-	opts->m_TextAreaNo = UnknownTextAreaNo;
-	opts->m_QFilters.swap(mq_QFilters);
-	mq_QFilters.clear();
-	opts->m_Subcorpora.swap(mq_Subcorpora);
-	mq_Subcorpora.clear();
-	if (qp->m_Type == cqtCount) {
-		opts->m_CountBy.swap(mq_CountBy);
-		mq_CountBy.clear();
-	}
+	opts->swap(m_qOptions);
+	m_qOptions.Clear();
 	m_pQuery = qp;
 	m_pQuery->SetOptions(opts);
 	return qp;
 }
+
+CQCount* CQueryCompiler::PushCountQuery(CQuery* qConditions)
+{
+	this->SetQuery(qConditions);
+	CQCount *qc = new CQCount(qConditions, m_qCountKeys);
+	m_qCountKeys.m_Exprs.clear();
+	return (CQCount*)(this->PushQuery(qc));
+}
+
 
 void CQueryCompiler::SetFilterBounds(const string& lb, const string& ub)
 {

@@ -22,19 +22,7 @@
 #define DDC_QUERY_H
 
 #include "../ConcordLib/QueryNode.h" 	//-- DDC-v1.x query API, wrapped here
-#include "../ConcordLib/QueryFilter.h"
-
-class CQueryCompiler;  //-- forward decl
-class CQueryOptions;   //-- forward decl
-
-typedef vector<CQFilter*> 	CQFilterList;
-typedef vector<string>    	CQSubcorpusList;
-typedef vector<string>    	CQCountByList;
-
-typedef enum {
-  cqtCondition = 0,
-  cqtCount = 1
-} CQueryTypeE;
+#include "../ConcordLib/QueryOptions.h"
 
 //======================================================================
 /*!
@@ -47,9 +35,6 @@ class CQuery {
 public:
   //! arbitrary name for this query node (e.g. string from which it was parsed)
   string m_Label;
-
-  //! query type
-  CQueryTypeE m_Type;
 
   //! associated query compiler (only set on Compile())
   CQueryCompiler *m_Compiler;
@@ -67,7 +52,6 @@ public:
   //! Default constructor
   CQuery(const string &label=string(""))
     : m_Label(label),
-      m_Type(cqtCondition),
       m_Compiler(NULL),
       m_Node(NULL),
       m_Options(NULL)
@@ -754,128 +738,5 @@ public:
   virtual string jsonData();
 };
 
-//======================================================================
-/*!
- \brief
-   count query
-*/
-class CQCount : public CQuery {
-public:
-  //! underlying query conditions to be counted
-  CQuery *m_dtr;
-
-public:
-  //! bison constructor
-  CQCount(CQuery *dtr)
-  : CQuery("count"),
-    m_dtr(dtr)
-  {
-    m_Type = cqtCount;
-  };
-
-  //! Default destructor.
-  virtual ~CQCount(void);
-
-public:
-  //! Compile index-dependent query properties
-  virtual bool Compile(CQueryCompiler *compiler);
-
-  //! evaluate query
-  virtual void Evaluate();
-
-  //! \b DEBUG: return a canonical string form for this query
-  virtual string toString();
-  virtual string optionsToString();
-
-  virtual string jsonClass() { return "CQCount"; };
-  virtual string jsonData()  { return "\"dtr\":"+m_dtr->toJson(); };
-
-  //! deletes m_Node if non-NULL
-  virtual void ClearNode();
-
-  //! clear query contents.  if \c deep is true, propagates operation to daughters
-  virtual void Clear(bool deep=true);
-};
-
-
-
-//======================================================================
-/*!
-  \brief root-level query options (filters and flags)
-*/
-class CQueryOptions {
-public:
-  //! how many hits of the left and right context should be output (must be &lt;= m_MaxContextSentencesCount)
-  size_t m_ContextSentencesCount;
-
-  // if true, DDC shows file names, instead of bibliographical information for this query
-  //! (CConcIndexator::m_bOutputBibliographyOfHits is default value for outputting bibliography
-  bool m_bEnableBibliography;
-  
-  //! if true, DDC initializes CHit::m_DebugRank
-  bool m_bDebugRank;
-
-  //! whether to return a separate hit for each occurrence, or collect into distinct instances of the selected container (sentence)
-  //! default=false; used by CQueryNode::Evaluate()
-  bool m_bSeparateHits;
-
-  //! list of all '#WITHIN' arguments (break collections or text areas) from currently parsed query 
-  vector<string> m_Within;
-
-  //! the break collection name which should be used while querying
-  string m_HitTypeStr;
-  
-  //! the index of text area where DDC should perform the input query
-  int m_TextAreaNo;
-
-  //! (abstract) filters and sort operators which should be applied to the resulted hit set
-  CQFilterList m_QFilters;
-
-  //! (runtime) filters and sort operators which should be applied to the resulted hit set (available after Compile())
-  vector<CDDCFilterWithBounds> m_Filters; 
-
-  //! selected subcorpora for this query
-  CQSubcorpusList m_Subcorpora;
-
-  //! count-by #BY key,.... lists (strings only)
-  CQCountByList m_CountBy;
-
- 
-public:
-  //------------------------------------------------------------
-  ///\name Constructors etc.
-  //@{
-
-  //! Default constructor
-  CQueryOptions()
-    : m_ContextSentencesCount(0),
-      m_bEnableBibliography(true),
-      m_bDebugRank(false),
-      m_bSeparateHits(false),    
-      m_HitTypeStr(""),
-      m_TextAreaNo(UnknownTextAreaNo)
-  {};
-
-  //! Default destructor; calls Clear
-  virtual ~CQueryOptions(void);
-  //@}
-
-public:
-  //------------------------------------------------------------
-  ///\name API
-  //@{
-  //! Compile index-dependent filter properties (required for evaluation).-
-  virtual bool Compile(CQueryCompiler *compiler);
-
-  //! clear options.
-  virtual void Clear();
-
-  //! return a canonical string form for these query options
-  virtual string toString();
-
-  //! return a JSON representation of these query options
-  virtual string toJson();
-  //@}
-};
 
 #endif /* DDC_QUERY_H */

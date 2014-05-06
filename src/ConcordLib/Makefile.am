@@ -31,6 +31,8 @@ libDDCConcord_la_SOURCES = \
  yyQParser.cpp yyQParser.h \
  \
  Query.h Query.cpp \
+ QCount.h QCount.cpp \
+ QueryOptions.h QueryOptions.cpp \
  QueryFilter.h QueryFilter.cpp \
  QueryNode.cpp QueryNode.h \
  QueryCompiler.cpp QueryCompiler.h \

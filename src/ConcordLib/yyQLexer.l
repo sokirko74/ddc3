@@ -77,12 +77,13 @@
 ws		[ \t\n\r\f\v]
 punct	        [\^\!\~\$\@\%\/\=\?\_\:\;\+\#\.\\\*\,\'\"\&\|\(\)\[\]\{\}\<\>]
 
-symbol_cfirst	[^ \t\r\n\f\v\0\^\&\|\!\(\)\[\]\{\}\<\>\'\"\,\;\:\#\=\*\%\\\~\$\@\/\?\_\+\.]
-symbol_crest	[^ \t\r\n\f\v\0\^\&\|\!\(\)\[\]\{\}\<\>\'\"\,\;\:\#\=\*\%\\]
+symbol_cfirst	[^ \t\r\n\f\v\0\^\&\|\!\(\)\[\]\{\}\<\>\'\"\,\;\:\#\=\*\%\\\~\/\$\@\?\_\+\.]
+symbol_crest	[^ \t\r\n\f\v\0\^\&\|\!\(\)\[\]\{\}\<\>\'\"\,\;\:\#\=\*\%\\\~\/]
 symbol_cescape  (\\.)
 symbol_text     ({symbol_cescape}|{symbol_cfirst})(({symbol_cescape}|{symbol_crest})*)
 
 int_boundary	[ \t\n\r\f\v\0\^\&\|\!\(\)\[\]\{\}\<\>\'\"\,\;\:\#\=\*\%\~\\\$\@\/\?\_\+\.]
+kw_boundary	[ \t\n\r\f\v\0\^\&\|\!\(\)\[\]\{\}\<\>\'\"\,\;\:\#\=\*\%\~\\\$\@\/\?\_\+\.]
 
 index_name      {symbol_text}
 
@@ -110,6 +111,12 @@ regex_modifier	[gimsx]
 (?i:near)			{ return NEAR; }
 (?i:with)			{ return WITH; }
 (?i:count)			{ return COUNT; }
+
+ /* count-by keywords */
+(?i:(file|doc)?id)		{ return KW_FILEID; }
+(?i:(file|doc)_?(name)?)	{ return KW_FILENAME; }
+(?i:date)			{ return KW_DATE; }
+
 
  /* query operators */
 (?i:\#(cntxt|n))		{ return CNTXT; }
@@ -152,7 +159,7 @@ regex_modifier	[gimsx]
 "$."				{ return DOLLAR_DOT; /* dollar+dot: anchor operator (position-index in segment) */ }
 [\!\.\,\:\;\$\@\%\^\#\=]	{ return ((int)yytext[0]); /* single-character punctuation operators */ }
 [\[\]\{\}\(\)\<\>]		{ return ((int)yytext[0]); /* parentheses */ }
-[\"]				{ return ((int)yytext[0]); /* quotes */ }
+[\"\/]				{ return ((int)yytext[0]); /* quotes */ }
 ":{"				{ return COLON_LBRACE; /* thesaurus-query opener */ }
 "@{"				{ return AT_LBRACE; /* literal-set opener */ }
 "*{"				{ return STAR_LBRACE; /* prefix-set opener */ }

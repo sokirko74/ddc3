@@ -60,6 +60,7 @@
 #include  <algorithm>
 #include  <stdexcept>
 #include  <vector>
+#include  <typeinfo>  //-- moo: for typeid()
 #include  "set"
 #include  "stack"
 #include  "map"

@@ -24,7 +24,6 @@
 %output  "yyQParser.cpp"
 %defines "yyQParser.h"
 
-
 //-----------------------------------------------------------------------------------------------------------------
 //			Simple  Parser && , ||  without negation and words as atoms 
 //-----------------------------------------------------------------------------------------------------------------
@@ -110,7 +109,6 @@ int yylex (void*,  void*);
 // Types: Queries
 
 %type   <m_pnode>	query_conditions
-%type	<m_pnode>	count_query
 %type	<m_pnode>	q_clause
 %type	<m_pnode>	qc_basic
 %type	<m_pnode>	qc_boolean
@@ -119,6 +117,12 @@ int yylex (void*,  void*);
 %type	<m_pnode>	qc_near
 %type	<m_pnode>	qc_word
 %type	<m_pnode>	qc_phrase
+
+//------------------------------------------------------
+// Types: count-queries
+
+%type	<m_pnode>	count_query
+%type	<m_pnode>	count_key
 
 //------------------------------------------------------
 // Types: Queries: Single-token queries
@@ -169,6 +173,8 @@ int yylex (void*,  void*);
 %type	<m_str>		s_morphitem
 %type	<m_str>		s_expander
 %type	<m_str>		s_subcorpus
+%type	<m_str>		s_biblname
+%type	<m_str>		s_breakname
 
 //------------------------------------------------------
 // Types: Preterminals
@@ -229,6 +235,10 @@ int yylex (void*,  void*);
 %token	<m_str>	RANDOM
 %token	<m_str>	BY
 
+%token	<m_str>	KW_DATE
+%token	<m_str>	KW_FILEID
+%token	<m_str>	KW_FILENAME
+
 //------------------------------------------------------
 // Start Symbol
 %start  query
@@ -244,7 +254,7 @@ int yylex (void*,  void*);
 %left	WITH 
 %left   '=' '<'
 %left   '$' 
-%left	'@' '^' '%' '#'
+%left	'@' '^' '%' '#' '/' '~'
 
  //%left	SIM_PRECISE  //-- what was this for?
 
@@ -265,7 +275,7 @@ query:
   * count_query (count_*)
   */
 count_query:
-		COUNT '(' query_conditions ')'	count_filters	{ $$ = _qc->PushQuery( new CQCount(_qc->SetQuery($3)) ); }
+		COUNT '(' query_conditions ')'	count_filters	{ $$ = _qc->PushCountQuery($3); }
 	;
 
 count_filters:
@@ -295,27 +305,27 @@ query_conditions:
 q_filters:
 		/* empty */			{ $$=NULL; }
 	|	q_filters q_flag		{ $$=NULL; }
-	|	q_filters q_filter		{ $$=NULL; _qc->mq_QFilters.push_back($2); }
+	|	q_filters q_filter		{ $$=NULL; _qc->m_qOptions.m_QFilters.push_back($2); }
 	;
 
 
 
 q_flag:	
 		':' qf_subcorpora 	{ $$=NULL; }
-	|	CNTXT integer 		{ $$=NULL; _qc->mq_ContextSentencesCount = (size_t)$2; }
-	|	WITHIN symbol 		{ $$=NULL; _qc->mq_Within.push_back(*$2); }
-	|	SEPARATE_HITS		{ $$=NULL; _qc->mq_bSeparateHits = 1; }
-	|	NOSEPARATE_HITS		{ $$=NULL; _qc->mq_bSeparateHits = 0; }
-	|	FILENAMES_ONLY 		{ $$=NULL; _qc->mq_bEnableBibliography = false;  }
-	|	'!' FILENAMES_ONLY	{ $$=NULL; _qc->mq_bEnableBibliography = true;  }
-	|	DEBUG_RANK		{ $$=NULL; _qc->mq_bDebugRank = true;  }
-	|	'!' DEBUG_RANK		{ $$=NULL; _qc->mq_bDebugRank = false;  }
+	|	CNTXT integer 		{ $$=NULL; _qc->m_qOptions.m_ContextSentencesCount = (size_t)$2; }
+	|	WITHIN s_breakname	{ $$=NULL; _qc->m_qOptions.m_Within.push_back(*$2); }
+	|	SEPARATE_HITS		{ $$=NULL; _qc->m_qOptions.m_bSeparateHits = 1; }
+	|	NOSEPARATE_HITS		{ $$=NULL; _qc->m_qOptions.m_bSeparateHits = 0; }
+	|	FILENAMES_ONLY 		{ $$=NULL; _qc->m_qOptions.m_bEnableBibliography = false;  }
+	|	'!' FILENAMES_ONLY	{ $$=NULL; _qc->m_qOptions.m_bEnableBibliography = true;  }
+	|	DEBUG_RANK		{ $$=NULL; _qc->m_qOptions.m_bDebugRank = true;  }
+	|	'!' DEBUG_RANK		{ $$=NULL; _qc->m_qOptions.m_bDebugRank = false;  }
 	;
 
 qf_subcorpora:
 		/* empty */			{ $$=NULL; }
-	|	s_subcorpus			{ _qc->mq_Subcorpora.push_back(*$1); $$ = NULL; }
-	|	qf_subcorpora ',' s_subcorpus	{ _qc->mq_Subcorpora.push_back(*$3); $$ = $1; }
+	|	s_subcorpus			{ _qc->m_qOptions.m_Subcorpora.push_back(*$1); $$ = NULL; }
+	|	qf_subcorpora ',' s_subcorpus	{ _qc->m_qOptions.m_Subcorpora.push_back(*$3); $$ = $1; }
 	;
 
 q_filter:
@@ -329,13 +339,13 @@ q_filter:
 	;
 
 qf_has_field:
-		HAS_FIELD '[' symbol ',' symbol ']'	{ $$ = new CQFHasFieldValue(*$3,*$5); }
-	|	HAS_FIELD '[' symbol ',' regex ']'	{ $$ = new CQFHasFieldRegex(*$3,*$5); }
-	|	HAS_FIELD '[' symbol ',' neg_regex ']'	{ $$ = new CQFHasFieldRegex(*$3,*$5); ((CQFHasFieldRegex*)$$)->Negate(); }
-	|	HAS_FIELD '[' symbol ',' s_prefix ']'	{ $$ = new CQFHasFieldPrefix(*$3,*$5); }
-	|	HAS_FIELD '[' symbol ',' s_suffix ']'	{ $$ = new CQFHasFieldSuffix(*$3,*$5); }
-	|	HAS_FIELD '[' symbol ',' s_infix ']'	{ $$ = new CQFHasFieldInfix(*$3,*$5); }
-	|	HAS_FIELD '[' symbol ',' '{' l_set '}' ']'	{ $$ = new CQFHasFieldSet(*$3,_qc->m_WordSet); }
+		HAS_FIELD '[' s_biblname ',' symbol ']'	{ $$ = new CQFHasFieldValue(*$3,*$5); }
+	|	HAS_FIELD '[' s_biblname ',' regex ']'	{ $$ = new CQFHasFieldRegex(*$3,*$5); }
+	|	HAS_FIELD '[' s_biblname ',' neg_regex ']'	{ $$ = new CQFHasFieldRegex(*$3,*$5); ((CQFHasFieldRegex*)$$)->Negate(); }
+	|	HAS_FIELD '[' s_biblname ',' s_prefix ']'	{ $$ = new CQFHasFieldPrefix(*$3,*$5); }
+	|	HAS_FIELD '[' s_biblname ',' s_suffix ']'	{ $$ = new CQFHasFieldSuffix(*$3,*$5); }
+	|	HAS_FIELD '[' s_biblname ',' s_infix ']'	{ $$ = new CQFHasFieldInfix(*$3,*$5); }
+	|	HAS_FIELD '[' s_biblname ',' '{' l_set '}' ']'	{ $$ = new CQFHasFieldSet(*$3,_qc->m_WordSet); }
 	|	'!' qf_has_field 				{ $$ = $2; ((CQFHasFieldValue*)$$)->Negate(); }
 	;
 
@@ -372,8 +382,8 @@ qf_random_sort:
 	;
 
 qf_bibl_sort:
-		LESS_BY    '[' symbol qfb_bibl ']'	{ $$ = _newBFilter(LessByFreeBiblField, *$3); }
-	|	GREATER_BY '[' symbol qfb_bibl ']'	{ $$ = _newBFilter(GreaterByFreeBiblField, *$3); }
+		LESS_BY    '[' s_biblname qfb_bibl ']'	{ $$ = _newBFilter(LessByFreeBiblField, *$3); }
+	|	GREATER_BY '[' s_biblname qfb_bibl ']'	{ $$ = _newBFilter(GreaterByFreeBiblField, *$3); }
 	;
 
  /*-------------------------------------------------------------
@@ -650,10 +660,23 @@ l_txchain:
 	;
 
 l_countkeys:
-		/* empty */		{ $$=NULL; _qc->mq_CountBy.clear(); }
-	|	l_countkeys symbol	{ $$=$1;   _qc->mq_CountBy.push_back(*$2); }
-	|	l_countkeys '*'		{ $$=$1;   _qc->mq_CountBy.push_back("*"); }
+		/* empty */		{ $$=NULL; _qc->m_qCountKeys.Clear(); }
 	|	l_countkeys ','		{ $$=$1; }
+	|	l_countkeys count_key	{ $$=$1; _qc->m_qCountKeys.PushKey((CQCountKeyExpr*)$2); }
+	;
+
+ /*-------------------------------------------------------------
+  * ck_*: count-key expressions
+  */
+
+count_key:
+		'*'			{ $$=new CQCountKeyExprConstant("*"); };
+	|	'@' symbol		{ $$=new CQCountKeyExprConstant(*$2); };
+	|	KW_FILEID		{ $$=new CQCountKeyExprFileId("fileid"); };
+	|	KW_FILENAME		{ $$=new CQCountKeyExprFileName("filename"); };
+	|	KW_DATE			{ $$=new CQCountKeyExprDate("date"); };
+	|	KW_DATE '/' integer	{ $$=new CQCountKeyExprDateSlice("date",$3); };
+	|	s_biblname		{ $$=new CQCountKeyExprBibl(*$1); };
 	;
 
  /*-------------------------------------------------------------
@@ -672,6 +695,8 @@ s_chunk: 	symbol		{ $$ = $1; };
 s_filename:	symbol		{ $$ = $1; };
 s_morphitem:	symbol		{ $$ = $1; };
 s_subcorpus:	symbol		{ $$ = $1; };
+s_biblname:	symbol		{ $$ = $1; };
+s_breakname:	symbol		{ $$ = $1; };
 
  /*-------------------------------------------------------------
   * Preterminals

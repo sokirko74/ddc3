@@ -80,12 +80,15 @@
      DEBUG_RANK = 298,
      RANDOM = 299,
      BY = 300,
-     CONCAT = 301,
-     OP_BOOL_OR = 302,
-     OP_BOOL_AND = 303,
-     COUNT = 304,
-     NEAR = 305,
-     WITH = 306
+     KW_DATE = 301,
+     KW_FILEID = 302,
+     KW_FILENAME = 303,
+     CONCAT = 304,
+     OP_BOOL_OR = 305,
+     OP_BOOL_AND = 306,
+     COUNT = 307,
+     NEAR = 308,
+     WITH = 309
    };
 #endif
 
@@ -96,7 +99,7 @@ typedef union YYSTYPE
 {
 
 /* Line 2068 of yacc.c  */
-#line 70 "yyQParser.y"
+#line 69 "yyQParser.y"
 
   std::string*	 	m_str;     /* For returning simple strings  */
   int                   m_int;     /* For returning integers */
@@ -106,7 +109,7 @@ typedef union YYSTYPE
 
 
 /* Line 2068 of yacc.c  */
-#line 110 "yyQParser.h"
+#line 113 "yyQParser.h"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */

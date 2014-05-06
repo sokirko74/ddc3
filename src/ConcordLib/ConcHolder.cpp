@@ -68,208 +68,6 @@ struct IsLessByFileNo
 };
 
 
-//==============================================================================
-/*! structure for quick extraction of hit count-keys, for count(...) by[...] queries */
-class CountKeyReaderBase
-{
-public:
-	CConcHolder *m_Holder;
-	string       m_AttrName;
-
-	CountKeyReaderBase(CConcHolder *holder, const string &attrName="")
-		: m_Holder(holder), m_AttrName(attrName)
-	{};
-	virtual ~CountKeyReaderBase() {};
-
-	virtual string Key(DWORD fileno)
-	{ throw CExpc(errRuntime, "abstract method CountKeyReaderBaser::Key() called"); };
-};
-
-//----------------------------------------------------------------------
-/*! count-key reader: constant */
-class CountKeyReaderConstant : public CountKeyReaderBase
-{
-public:
-	CountKeyReaderConstant(CConcHolder *holder, const string &attrName="*")
-		: CountKeyReaderBase(holder,attrName)
-	{};
-	virtual ~CountKeyReaderConstant() {};
-
-	virtual string Key(DWORD fileno)
-	{ return m_AttrName; };
-};
-
-//----------------------------------------------------------------------
-/*! count-key reader: fileid */
-class CountKeyReaderFileId : public CountKeyReaderBase
-{
-private:
-	char buf[16];
-
-public:
-	CountKeyReaderFileId(CConcHolder *holder, const string &attrName="fileid")
-		: CountKeyReaderBase(holder,attrName)
-	{};
-	virtual ~CountKeyReaderFileId() {};
-
-	virtual string Key(DWORD fileno)
-	{ sprintf(buf,"%d",fileno); return buf; };
-};
-
-//----------------------------------------------------------------------
-/*! count-key reader: filename */
-class CountKeyReaderFileName : public CountKeyReaderBase
-{
-public:
-	CountKeyReaderFileName(CConcHolder *holder, const string &attrName="file")
-		: CountKeyReaderBase(holder,attrName)
-	{};
-	virtual ~CountKeyReaderFileName() {};
-	virtual string Key(DWORD fileno)
-	{ return m_Holder->m_pIndexator->GetShortFilename(fileno); };
-};
-
-//----------------------------------------------------------------------
-/*! count-key reader: date: full */
-class CountKeyReaderDate : public CountKeyReaderBase
-{
-public:
-	const vector<int> *m_pDates;
-	unsigned int     m_year;
-	unsigned int     m_month;
-	unsigned int     m_day;
-	char             buf[16];
-
-public:
-	CountKeyReaderDate(CConcHolder *holder, const string &attrName="date")
-		: CountKeyReaderBase(holder,attrName),
-		  m_pDates(NULL), m_year(0), m_month(0), m_day(0)
-	{
-		m_pDates = &(holder->m_pIndexator->m_Bibl.GetDates());
-	};
-	virtual ~CountKeyReaderDate() {};
-
-	virtual string Key(DWORD fileno)
-	{
-		int2date((*m_pDates)[fileno], &m_year, &m_month, &m_day);
-		sprintf(buf, "%u-%0.2u-%0.2u", m_year, m_month, m_day);
-		return buf;
-	};
-};
-
-//----------------------------------------------------------------------
-/*! count-key reader: date: slice (by year) */
-class CountKeyReaderDateSlice : public CountKeyReaderDate
-{
-public:
-	unsigned int m_slice;
-
-public:
-	CountKeyReaderDateSlice(CConcHolder *holder, const string &attrName="date/1")
-		: CountKeyReaderDate(holder,attrName), m_slice(0)
-	{
-		size_t p = m_AttrName.find('/');
-		if (p != m_AttrName.npos) {
-			string istr = m_AttrName.substr(p+1);
-			m_slice     = strtoul(istr.c_str(), NULL, 0);
-		}
-		if (!m_slice) {
-			//-- avoid divide-by-zero errors
-			m_slice = 1;
-		}
-	};
-
-	virtual ~CountKeyReaderDateSlice() {};
-
-	virtual string Key(DWORD fileno)
-	{
-		int2date((*m_pDates)[fileno], &m_year, NULL, NULL);
-		m_year /= m_slice;
-		sprintf(buf, "%u", m_slice*m_year);
-		return buf;
-	};
-};
-
-//----------------------------------------------------------------------
-/*! count-key reader: bibl string */
-class CountKeyReaderBibl : public CountKeyReaderBase
-{
-public:
-	CConcXml::CFreeBiblIndex *m_Bibl;
-public:
-	CountKeyReaderBibl(CConcHolder *holder, const string &attrName="")
-		: CountKeyReaderBase(holder,attrName)
-	{
-		m_Bibl = holder->m_pIndexator->m_Bibl.GetFreeBiblIndex(attrName);
-		if (m_Bibl == NULL)
-			throw CExpc(errOther, Format("CountKeyReaderBibl::CountKeyReaderBibl(): cannot use unknown attribute `%s' as count-key", attrName.c_str()));
-	};
-	virtual ~CountKeyReaderBibl() {};
-
-	virtual string Key(DWORD fileno)
-	{ return m_Bibl->GetStringValue(fileno); };
-};
-
-
-//----------------------------------------------------------------------
-// count-key reader: top-level
-class CountKeyReader
-{
-public:
-	vector<CountKeyReaderBase*> m_Readers;
-
-	CountKeyReader(CConcHolder *holder, const CQCountByList& countby)
-	{
-		m_Readers.clear();
-		m_Readers.reserve(countby.size());
-		for (CQCountByList::const_iterator cbi=countby.begin(); cbi != countby.end(); cbi++) {
-			if (holder->m_pIndexator->m_Bibl.IsRegisteredBiblField(*cbi)) {
-				m_Readers.push_back(new CountKeyReaderBibl(holder, *cbi));
-			} else {
-				string attr(*cbi);
-				EngMakeLower(attr);
-				if (attr == "date")
-					m_Readers.push_back(new CountKeyReaderDate(holder,*cbi));
-				else if (attr.substr(0,5)=="date/")
-					m_Readers.push_back(new CountKeyReaderDateSlice(holder,*cbi));
-				else if (attr == "fileid" || attr == "fileid_" || attr == "docid")
-					m_Readers.push_back(new CountKeyReaderFileId(holder,*cbi));
-				else if (attr == "file" || attr == "file_" || attr == "filename")
-					m_Readers.push_back(new CountKeyReaderFileName(holder,*cbi));
-				else if (attr == "*")
-					m_Readers.push_back(new CountKeyReaderConstant(holder,*cbi));
-				else
-					throw CExpc(errOther, Format("CountKeyReader::CountKeyReader(): cannot use unknown attribute `%s' as count-key", cbi->c_str()));
-			}
-		}
-		if (m_Readers.empty()) {
-			m_Readers.push_back(new CountKeyReaderConstant(holder)); //-- default: count all
-		}
-	};
-
-	~CountKeyReader()
-	{ clear(); };
-
-	void clear()
-	{
-		for (vector<CountKeyReaderBase*>::iterator ri=m_Readers.begin(); ri!=m_Readers.end(); ri++) {
-			if (*ri) delete *ri;
-		}
-		m_Readers.clear();
-	};
-
-	string Key(DWORD fileno)
-	{
-		string k("");
-		for (vector<CountKeyReaderBase*>::iterator ri=m_Readers.begin(); ri!=m_Readers.end(); ri++) {
-			if (ri != m_Readers.begin()) k.push_back(globalCountKeyDelim);
-			k.push_back(' ');
-			k += (*ri)->Key(fileno);
-		}
-		return k;
-	};
-};
-
 
 //==============================================================================
 // cannot create cross-platform heterogenious predicate lower_bound:
@@ -533,7 +331,7 @@ void CConcHolder::ShowBibliographyForTextOrHtml(const CHit& Hit, DWORD PageNumbe
 		m_QueryResultStr += " ### ";
 
 		//-- rank stuff / text
-		if (m_pQueryCompiler->mq_bDebugRank) {
+		if (m_pQueryCompiler->m_pQuery->m_Options->m_bDebugRank) {
 			const char* DebugInfo = (const char*)(void*)(&m_DebugInfo[0]) + Hit.m_Value.m_DebugRankNo;
 			m_QueryResultStr += Format(" %s ### ",DebugInfo);
 		}
@@ -803,7 +601,7 @@ bool CConcHolder::ShowBibliographyForTable(DWORD PageNumber, const CHit& Hit, co
 	//-- rank stuff / table
 	if (HasRankOrderOperator()) {
 		m_QueryResultStr += string("rank") + globalTableItemsDelim + Format("%d", Hit.m_SortKey.i) + globalTableItemsDelim;
-		if (m_pQueryCompiler->mq_bDebugRank) {
+		if (m_pQueryCompiler->m_pQuery->m_Options->m_bDebugRank) {
 			const char* DebugInfo = (const char*)(void*)(&m_DebugInfo[0]) + Hit.m_Value.m_DebugRankNo;
 			m_QueryResultStr += string("rank_debug") + globalTableItemsDelim + DebugInfo + globalTableItemsDelim;
 		}
@@ -840,14 +638,14 @@ bool CConcHolder::GenerateOneHitString(DWORD PageNumber, const CHit& Hit, const 
 	if (m_ResultFormat == DDC_ResultTable) 
 		ShowBibliographyForTable(PageNumber, Hit, Tokens);
 	else
-		if ( m_pQueryCompiler->mq_bEnableBibliography && m_pIndexator->OutputBibliographyOfHits() )
+		if ( m_pQueryCompiler->m_pQuery->m_Options->m_bEnableBibliography && m_pIndexator->OutputBibliographyOfHits() )
 			ShowBibliographyForTextOrHtml(Hit, PageNumber);
 		else
 			AddFileReference(Hit.m_FileNo);
 
 	//-- rank stuff / html
 	if (m_ResultFormat==DDC_ResultHTML && HasRankOrderOperator()) {
-		if (!m_pQueryCompiler->mq_bDebugRank) {
+		if (!m_pQueryCompiler->m_pQuery->m_Options->m_bDebugRank) {
 			m_QueryResultStr += Format("<i>Rank = %i</i><br>", Hit.m_SortKey.i > 0 ? Hit.m_SortKey.i : -Hit.m_SortKey.i);
 		} else {
 			const char* DebugInfo = (const char*)(void*)(&m_DebugInfo[0]) + Hit.m_Value.m_DebugRankNo;
@@ -932,7 +730,7 @@ bool CConcHolder::GenerateOneHitStringJson(DWORD PageNumber, const CHit& Hit, co
 
     if (HasRankOrderOperator()) {
 	    hitStr += Format(",\"rank_\":%d", Hit.m_SortKey.i);
-	    if (m_pQueryCompiler->mq_bDebugRank) {
+	    if (m_pQueryCompiler->m_pQuery->m_Options->m_bDebugRank) {
 		    const char* DebugInfo = (const char*)(void*)(&m_DebugInfo[0]) + Hit.m_Value.m_DebugRankNo;
 		    hitStr += ",\"rank_debug_\":" + jsonStr(DebugInfo, utf8);
 	    }
@@ -1574,7 +1372,7 @@ DDCErrorEnum CConcHolder::GetAllHits(const string &Query, size_t Limit)
 DDCErrorEnum CConcHolder::GetAllHits(CQuery *QueryRoot, size_t Limit) 
 {
 	assert(QueryRoot != NULL);
-	if (QueryRoot->m_Type == cqtCount)
+	if (typeid(*QueryRoot) == typeid(CQCount))
 		return GetAllCounts(QueryRoot, Limit);
 
 	m_bStoppedByUser = false;
@@ -1747,10 +1545,11 @@ DDCErrorEnum CConcHolder::GetAllCounts(CQuery *CountQueryRoot, size_t Limit)
 {
 	//-- sanity check(s)
 	assert(CountQueryRoot != NULL);
-	assert(CountQueryRoot->m_Type == cqtCount);
+	assert(typeid(*CountQueryRoot) == typeid(CQCount));
 
 	//-- evaluate subordinate query-conditions, populating CQueryResult fields (esp. m_Hits)
-	CQuery *qRoot   = ((CQCount*)CountQueryRoot)->m_dtr;
+	CQCount *qCount  = (CQCount*)CountQueryRoot;
+	CQuery  *qRoot   = qCount->m_dtr;
 	DDCErrorEnum rc = GetAllHits(qRoot, DDCCountQueryLimit);
 	if (rc != errNone)
 		return rc;
@@ -1764,18 +1563,17 @@ DDCErrorEnum CConcHolder::GetAllCounts(CQuery *CountQueryRoot, size_t Limit)
 	DWORD n = 0;
 	string key;
 	map<string, size_t> counts;
-	CountKeyReader keyReader(this, CountQueryRoot->m_Options->m_CountBy);
+	CQCountKeyExprList &keys = qCount->m_keys;
 	for (vector<CHit>::const_iterator hi=m_Hits.begin(); hi != m_Hits.end(); ++hi, ++n) {
 		if (hi->m_FileNo != f) {
 			//-- next file
 			if (n>0) counts[key] += n;
 			n   = 0;
 			f   = hi->m_FileNo;
-			key = keyReader.Key(f);
+			key = keys.Evaluate(f);
 		}
 	}
 	if (n>0) counts[key] += n;
-	keyReader.clear();
 
 	//-- setup new dummy m_Hits
 	vector<CHit> newHits;

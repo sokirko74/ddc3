@@ -1,0 +1,184 @@
+//-*- Mode: C++; c-basic-offset: 2; -*-
+//
+//  DDC originally by Alexey Sokirko
+//  Changes and modifications 2011-2014 by Bryan Jurish
+//
+//  This file is part of DDC.
+// 
+//  DDC is free software: you can redistribute it and/or modify
+//  it under the terms of the GNU Lesser General Public License as published by
+//  the Free Software Foundation, either version 3 of the License, or
+//  (at your option) any later version.
+// 
+//  DDC is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//  GNU Lesser General Public License for more details.
+// 
+//  You should have received a copy of the GNU Lesser General Public License
+//  along with DDC.  If not, see <http://www.gnu.org/licenses/>.
+
+#include <QueryOptions.h>
+#include <QueryCompiler.h>
+
+//======================================================================
+// CQueryOptions
+
+//--------------------------------------------------------------
+CQueryOptions::~CQueryOptions()
+{
+  Clear();
+}
+
+//--------------------------------------------------------------
+void CQueryOptions::swap(CQueryOptions &o)
+{
+  std::swap(m_ContextSentencesCount, o.m_ContextSentencesCount);
+  std::swap(m_bEnableBibliography, o.m_bEnableBibliography);
+  std::swap(m_bDebugRank, o.m_bDebugRank);
+  std::swap(m_TextAreaNo, o.m_TextAreaNo);
+  std::swap(m_bSeparateHits, o.m_bSeparateHits);
+  m_Within.swap(o.m_Within);
+  m_HitTypeStr.swap(o.m_HitTypeStr);
+  m_QFilters.swap(o.m_QFilters);
+  m_Filters.swap(o.m_Filters);
+  m_Subcorpora.swap(o.m_Subcorpora);
+}
+
+//--------------------------------------------------------------
+bool CQueryOptions::Compile(CQueryCompiler *compiler)
+{
+  assert(compiler!=NULL);
+
+  //-- clear and resize compiled filter list
+  bool rc = true;
+  m_Filters.clear();
+  m_Filters.reserve(m_QFilters.size());
+
+  //-- compile abstract filters in m_QFilters to old-style m_Filters
+  for (CQFilterList::iterator fi=m_QFilters.begin(); rc && fi != m_QFilters.end(); fi++) {
+    assert(*fi != NULL);
+    rc = (rc && (*fi)->Compile(compiler,this));
+  }
+
+  //-- find the last run-time sort operator and swap it out the back of the list
+  //   for easy access (used to present the result hit set in the proper order)
+  for (int i=m_Filters.size()-1;  i>=0; i--) {
+    if(m_Filters[i].m_FilterType != NoSort) {
+      if (i+1 != m_Filters.size())
+	std::swap(m_Filters[i],  m_Filters.back());
+      break;
+    }
+  }
+  //-- sanity checks for query-global flags
+  if (m_ContextSentencesCount > CQueryCompiler::m_MaxContextSentencesCount)
+    throw CExpc(errParseError, "Requested context window of length=%d exceeds maximum context size=%d", m_ContextSentencesCount, CQueryCompiler::m_MaxContextSentencesCount);
+
+  //-- index-dependent flag-setting from old CQueryParser::ParseQuery()
+  assert(compiler->m_pHolder!=NULL);
+  assert(compiler->m_pHolder->m_pIndexator!=NULL);
+  m_HitTypeStr = compiler->m_pHolder->m_pIndexator->WithinBreakName(m_Within);
+  m_TextAreaNo = compiler->m_pHolder->m_pIndexator->m_Bibl.WithinTextArea(m_Within);
+
+  return rc;
+}
+
+//--------------------------------------------------------------
+void CQueryOptions::Clear()
+{
+  //-- clear filter list
+  for (CQFilterList::iterator fi=m_QFilters.begin(); fi != m_QFilters.end(); fi++) {
+    if (*fi != NULL) delete *fi;
+  }
+  m_QFilters.clear();
+  m_Filters.clear();
+  m_Subcorpora.clear();
+}
+
+//--------------------------------------------------------------
+string CQueryOptions::toString()
+{
+  string qs("");
+  if (!m_HitTypeStr.empty()) {
+    qs += string(" #WITHIN '") + escapeChars(m_HitTypeStr,"\\'") + "'";
+  }
+  if (m_ContextSentencesCount != 0) {
+    qs += Format(" #CNTXT %u", m_ContextSentencesCount);
+  }
+  if (m_bSeparateHits) {
+    qs += " #SEPARATE";
+  }
+  if (!m_bEnableBibliography) {
+    qs += " #FILENAMES";
+  }
+  if (m_bDebugRank) {
+    qs += " #DEBUG_RANK";
+  }
+  if (!m_QFilters.empty()) {
+    string fs;
+    for (CQFilterList::iterator fi=m_QFilters.begin(); fi != m_QFilters.end(); fi++) {
+      if (*fi == NULL) continue; //-- should never happen
+      if (!fs.empty()) fs.push_back(' ');
+      fs += (*fi)->toString();
+    }
+    qs += string(" ") + fs;
+  }
+  if (!m_Subcorpora.empty()) {
+    string cs;
+    for (CQSubcorpusList::iterator ci=m_Subcorpora.begin(); ci != m_Subcorpora.end(); ci++) {
+      if (!cs.empty()) cs.push_back(',');
+      cs += string("'") + escapeChars(*ci,"\\'") + "'";
+    }
+    if (!cs.empty()) qs += string(" :") + cs;
+  }
+  return qs;
+}
+
+//--------------------------------------------------------------
+string CQueryOptions::toJson()
+{
+  string qs("");
+
+  if (!m_HitTypeStr.empty()) {
+    qs += ",\"Within\":" + jsonStr(m_HitTypeStr);
+  }
+  if (m_ContextSentencesCount != 0) {
+    qs += Format(",\"ContextCount\":%u", m_ContextSentencesCount);
+  }
+  if (m_bSeparateHits) {
+    qs += ",\"SeparateHits\":1";
+  }
+  if (m_bEnableBibliography) {
+    qs += ",\"EnableBibliography\":1";
+  }
+  if (m_bDebugRank) {
+    qs += ",\"DebugRank\":1";
+  }
+
+  //-- filters
+  qs += ",\"Filters\":[";
+  for (CQFilterList::iterator fi=m_QFilters.begin(); fi != m_QFilters.end(); fi++) {
+    if (*fi == NULL) continue; //-- should never happen
+    if (fi!=m_QFilters.begin()) qs.push_back(',');
+    qs += (*fi)->toJson();
+  }
+  qs.push_back(']');
+
+  if (!m_Subcorpora.empty()) {
+    qs += ",\"Subcorpora\":[";
+    for (CQSubcorpusList::iterator ci=m_Subcorpora.begin(); ci != m_Subcorpora.end(); ci++) {
+      if (ci != m_Subcorpora.begin()) qs.push_back(',');
+      qs += jsonStr(*ci);
+    }
+    qs.push_back(']');
+  }
+
+  if (qs.empty()) {
+    qs = "{";
+  }
+  qs[0] = '{';
+  qs.push_back('}');
+
+  return qs;
+}
+
