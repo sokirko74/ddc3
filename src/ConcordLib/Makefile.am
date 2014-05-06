@@ -34,8 +34,8 @@ libDDCConcord_la_SOURCES = \
  QCount.h QCount.cpp \
  QueryOptions.h QueryOptions.cpp \
  QueryFilter.h QueryFilter.cpp \
- QueryNode.cpp QueryNode.h \
- QueryCompiler.cpp QueryCompiler.h \
+ QueryNode.h QueryNode.cpp \
+ QueryCompiler.h QueryCompiler.cpp \
  \
  ConcordAlgorithm.cpp ConcordAlgorithm.h \
  ConcHolder.cpp ConcHolder.h \
@@ -76,6 +76,10 @@ noinst_HEADERS = \
  IndexSetForQueryingStage.h \
  IndexSet.h \
  my_stl.h \
+ Query.h \
+ QCount.h \
+ QueryOptions.h  \
+ QueryFilter.h \
  QueryNode.h \
  QueryCompiler.h \
  SourceFileHolder.h \
