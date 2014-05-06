@@ -260,3 +260,46 @@ string CQCount::jsonData()
   }
   return qs;
 }
+
+//======================================================================
+// functions
+
+void GenerateCountString(string &ResultStr, DDCFormatTypeEnum fmt, const string& key, DWORD count)
+{
+  char keysep[2] = {globalCountKeyDelim,'\0'};
+  StringTokenizer keytok(key.c_str(), keysep);
+
+  switch (fmt) {
+  case DDC_ResultJson:
+    //-- count strings, json format "[[COUNT, KEY0, KEY1, ... ], ..., [COUNT, KEY0, KEY1, ...]"
+    ResultStr += Format("[%zi", count);
+    while (keytok()) {
+      ResultStr.push_back(',');
+      ResultStr.append(jsonStr(keytok.val()+1));
+    }
+    ResultStr.push_back(']');
+    break;
+			
+  case DDC_ResultHTML:
+    //-- count strings, html
+    ResultStr += Format("<TR><TD>%zi</TD>", count);
+    while (keytok()) {
+      ResultStr += "<TD>" + ConvertASCIIToHtmlSymbols(keytok.val()+1) + "</TD>";
+    }
+    ResultStr += "</TR>\n";
+    break;
+
+			
+  case DDC_ResultText:
+  case DDC_ResultTable:
+  default:
+    //-- count strings, text or table
+    ResultStr += Format("%zi", count);
+    while (keytok()) {
+      ResultStr.push_back('\t');
+      ResultStr += keytok.val()+1;
+    }
+    ResultStr.push_back('\n');
+    break;
+  }
+}

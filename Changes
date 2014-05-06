@@ -1,6 +1,6 @@
 ##-*- Mode: Change-Log; coding: utf-8; -*-
 
-v2.0.23 Tue, 29 Apr 2014 16:34:47 +0200 moocow
+v2.0.23 Tue, 06 May 2014 13:44:17 +0200
 	+ re-factored old monolithic src/ConcordDmnLib/Corpora.cpp into
 	  - Server.(h|cpp) : abstract server base class
 	  - LeafServer.(h|cpp) : subcorpus server, formerly CDDCCorpusListenHost
@@ -10,6 +10,9 @@ v2.0.23 Tue, 29 Apr 2014 16:34:47 +0200 moocow
 	+ TODO: implement leaf-node commands (get_first_hits, get_hit_strings) for branch-node servers
 	+ moved root-level query options (filters, flags, etc) into new CQueryOptions *CQuery::m_Options
 	  - only set for root-level query on CQueryCompiler::SetRoot
+	+ cleaned up query-local options and count-query code into QueryOptions.(h|cpp) rsp QCount.(h|cpp)
+	+ cleaned up count-key parsing code into something resembling 'real' parser-level expressions
+	  - TODO: allow regex transformations for string bibl fields, analagous to date-slice)
 
 v2.0.22-1 Thu, 27 Mar 2014 13:46:48 +0100 moocow
 	+ added ddc.pc for help in building dependent packages

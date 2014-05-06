@@ -54,11 +54,8 @@ struct CQueryResult
 	//! whether to sort by string-value
 	bool 			m_bSortByString : 1;
 
-	//! whether this is a count-query
-	bool			m_bCounts : 1;
-
-	//! hit sort order (-1:descending, 0:no-sort, 1:ascending)
-	HitSortOrderEnum	m_SortOrder : 2;
+	//! hit sort order (-1:descending, 0:no-sort, 1:ascending, 2:ascending_counts)
+	HitSortOrderEnum	m_SortOrder : 3;
 
 
 	mutable vector<BYTE>	m_DebugInfo;
@@ -77,17 +74,6 @@ struct CQueryResult
 class CConcHolder : public CConcIndexatorInvoker, 
 					public CQueryResult
 {
-public:
-	/*! \brief FormatTypeEnum defines the format of output hits: 
-	- DDC_ResultHTML -  output hits  should be written in HTML-format; the tags "<STRONG><FONT COLOR=red>"
-						are used for highlighting.
-	- DDC_ResultText -  output hits  should be written in plain-format; the string "&&" is used to select the first  highlighting position, "_"  for the following positions
-						are used for higlighting.
-	- DDC_ResultTable -  output hits  should be written in table-format; there is no highlighting in the string at all, instead of this highligted words are written after the string 
-	- DDC_ResultJson -  output hits  should be written in json format
-	*/
-    enum FormatTypeEnum{DDC_ResultHTML, DDC_ResultText, DDC_ResultTable, DDC_ResultDocIds, DDC_ResultJson};
-
 private:
 	//! hit results for the last MaxQueryCacheSize queries 
 	map<string, CQueryResult>	m_QueryCache;
@@ -108,12 +94,12 @@ private:
 	const vector<CTokenNo>*			m_pBreaks;
 
 	//! the format of query result 
-	FormatTypeEnum				m_ResultFormat;
+	DDCFormatTypeEnum			m_ResultFormat;
 
 	//! whether the current hit-sorting mode is primarily string-based
 	bool					m_bSortByString;
 
-	//! the current hit-sorting order (-1:descending, 0:none, 1:ascending)
+	//! the current hit-sorting order (-1:descending, 0:none, 1:ascending, 2:ascending_counts)
 	HitSortOrderEnum			m_SortOrder;
 
 
@@ -201,7 +187,7 @@ public:
 	const vector<CTokenNo>&	GetBreaks	()  const;
 
 	//! return the current format of hit
-	FormatTypeEnum	GetResultFormat() const { return m_ResultFormat; };;
+	DDCFormatTypeEnum	GetResultFormat() const { return m_ResultFormat; };;
 
 	//! return string representation of m_ResultFormat
 	string				GetResultFormatStr() const;
@@ -238,7 +224,10 @@ public:
 	//! stores sortk-keys (CHit::m_SortKey) of current m_Hits to a string
 	string GetHitIds()  const;
 
-	//! get logical hit sort order: (-1:descending, 1:ascending sort, 0:sort); replaces HitsShouldBeSorted()
+	//! GetHidIds() variant for count-queries
+	string GetCountIds()  const;
+
+	//! get logical hit sort order: (-1:descending, 0:none, 1:ascending, 2:ascending_counts); replaces HitsShouldBeSorted()
 	HitSortOrderEnum HitSortOrder() const;
 
 	//! sets timeout for query processing
@@ -255,7 +244,7 @@ public:
 	{ return m_QueryCache.size(); };
 
 	//! converts a string to a FormatTypeEnum
-	static FormatTypeEnum GetResultFormatByString(const string& ResultTypeStr );
+	static DDCFormatTypeEnum GetResultFormatByString(const string& ResultTypeStr );
 
 	//! adds header and footer to QueryResultStr according to format ResultTypeStr
 	static void DecorateQueryResults(const string& ResultTypeStr, string& QueryResultString);

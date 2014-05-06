@@ -151,7 +151,8 @@ enum HitSortEnum {
 enum HitSortOrderEnum {
 	hsoDescending = -1,
 	hsoNone = 0,
-	hsoAscending = 1
+	hsoAscending = 1,
+	hsoAscendingCounts = 2
 };
 
 /*! symbolic names for HitSortEnum, for debugging */
@@ -265,7 +266,7 @@ struct CDDCFilterWithBounds
 		m_SatisfiedValues.clear();
 	};
 
-	//! returns integer sort order as a HitSortOrderEnum (-1:descending, 0:none, 1:ascending)
+	//! returns integer sort order as a HitSortOrderEnum (-1:descending, 0:none, 1:ascending, 2:ascending_counts)
 	inline HitSortOrderEnum SortOrder() const {
 		switch (m_FilterType) {
 		case GreaterByDate:
@@ -318,6 +319,20 @@ struct CHit
 	CHitSortKey m_SortKey;
 
 	CHit(DWORD BreakNo=0) : m_BreakNo(BreakNo), m_SortKey(0) {};
+};
+
+/*! \brief FormatTypeEnum defines the format of output hits:
+  - DDC_ResultHTML -  output hits  should be written in HTML-format; the tags "<STRONG><FONT COLOR=red>" are used for highlighting.
+  - DDC_ResultText -  output hits  should be written in plain-format; the string "&&" is used to select the first  highlighting position, "_"  for the following positions are used for higlighting.
+  - DDC_ResultTable -  output hits  should be written in table-format; there is no highlighting in the string at all, instead of this highligted words are written after the string
+  - DDC_ResultJson -  output hits  should be written in json format
+*/
+enum DDCFormatTypeEnum {
+	DDC_ResultHTML,
+	DDC_ResultText,
+	DDC_ResultTable,
+	DDC_ResultDocIds,
+	DDC_ResultJson
 };
 
 //!  a type for mappping an index item no to its \ref perdiv_def "period division"

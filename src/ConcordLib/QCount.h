@@ -237,5 +237,15 @@ public:
   virtual void Clear(bool deep=true);
 };
 
+//======================================================================
+// functions
+
+/** generate a single count string from a (key,count)-pair */
+void GenerateCountString(string &ResultStr, DDCFormatTypeEnum fmt, const string& key, DWORD count);
+
+/** generate a single count string from a CHit */
+inline void GenerateCountString(string &ResultStr, DDCFormatTypeEnum fmt, const CHit &hit)
+{ GenerateCountString(ResultStr, fmt, hit.m_SortKey.s, hit.m_Value.m_Count); };
+
 
 #endif /* DDC_QCOUNT_H */

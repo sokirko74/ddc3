@@ -26,9 +26,9 @@
 /** single hit data in get_first_hits responses */
 struct CHitToSort 
 {
-    BYTE	m_HostNo;
-    DWORD	m_HitNo;
-    string	m_SortKeyStr;
+    BYTE	m_HostNo;	///< subcorpus id
+    DWORD	m_HitNo;	///< subcorpus-local hit-number for context queries ; hit count for count-queries
+    string	m_SortKeyStr;	///< hit sort-string
 
     CHitToSort(BYTE HostNo=0)
 	: m_HostNo(HostNo)
@@ -36,6 +36,14 @@ struct CHitToSort
 
     inline bool operator < (const CHitToSort& X) const {
 	return m_SortKeyStr < X.m_SortKeyStr;
+    };
+
+    /** steal data from X */
+    inline void steal(CHitToSort &X)
+    {
+	m_HostNo = X.m_HostNo;
+	m_HitNo  = X.m_HitNo;
+	m_SortKeyStr.swap(X.m_SortKeyStr);
     };
 
     /** string form of hit, for debugging messages */
@@ -53,7 +61,7 @@ struct CFirstHitsQueryResult  {
     string			m_HitsDistributionStr;
     string			m_RelevantDocsDistributionStr;
     int				m_InternalError;
-    HitSortOrderEnum		m_SortOrder;		//< hit sort order (-1:descending, 0:none, 1:ascending); formerly bool m_bSort
+    HitSortOrderEnum		m_SortOrder;		//< hit sort order (-1:descending, 0:none, 1:ascending, 2:ascending_counts); formerly bool m_bSort
     NetworkErrorsEnum		m_NetworkError;
     string			m_ErrorStr;
     vector<CHitToSort>  	m_Hits;
@@ -64,19 +72,15 @@ struct CFirstHitsQueryResult  {
 	return (m_NetworkError != neSuccess )  || (m_InternalError != errNone);
     };
 
-    void CloseSockets()
-    {
-	// closing sockets, which were opened before
-	for (size_t j=0; j<m_Sockets.size(); j++) {
-	    if (m_Sockets[j] != -1)
-		CloseSocket(m_Sockets[j]);
-	    m_Sockets[j] = -1;
-	}
-    };
+    /** close any previously opened sockets */
+    void CloseSockets();
+
+    /** collect counts by sort-key, only makes sense if m_SortOrder==hsoAscendingCounts */
+    void CollectCounts();
 };
 
 //======================================================================
-/** CDDCBranchServer statistics */
+/** CDDCBranchServer statistics [UNUSED?] */
 struct CQueryStatistics 
 {
     DwordVector	m_HitsEnds;
@@ -154,6 +158,17 @@ public:
 				     DWORD&  RelevantDocsCount,
 				     string& HitDistrib,
 				     string& DocDistrib);
+
+    /** mid-level guts for handle__run_query() , context-queries only */
+    NetworkErrorsEnum GetHitContexts(CFirstHitsQueryResult& FHResult,
+				     const string& ResultType,
+				     DDCFormatTypeEnum ResultTypeE,
+				     DwordVector& PossibleHosts,
+				     int&  InternalError,
+				     int     TimeOut,
+				     string& ResultString
+				     //DWORD&  RelevantDocsCount
+				     );
 
     /** guts for handle__run_query() phase 1 */
     void GetFirstHitsFromCorpora(const DwordVector& PossibleHosts,

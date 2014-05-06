@@ -894,7 +894,7 @@ DDCErrorEnum CConcHolder::GenerateHitStrings(const int StartHitNo)
 {
 	assert(m_pQueryCompiler!=NULL);
 	assert(m_pQueryCompiler->m_pQuery!=NULL);
-	if (m_bCounts)
+	if (m_SortOrder == hsoAscendingCounts)
 		return GenerateCountStrings(StartHitNo);
 
 	DwordVector PageBreaks;
@@ -993,51 +993,18 @@ DDCErrorEnum CConcHolder::GenerateCountStrings(const int StartHitNo)
 	assert(m_pQueryCompiler!=NULL);
 	assert(m_pQueryCompiler->m_pQuery!=NULL);
 
-	m_QueryResultStr = "";
+
 	int end = min (m_Hits.size(), StartHitNo + m_ResultLimit);
-	char keysep[2] = {globalCountKeyDelim,'\0'};
+	m_QueryResultStr = "";
+	
+	if (m_ResultFormat == DDC_ResultJson)
+		m_QueryResultStr.push_back('[');
 
-	for(DWORD EndHitNo = StartHitNo; EndHitNo<end; EndHitNo++ ) {
-		const CHit &hit = m_Hits[EndHitNo];
-		StringTokenizer keytok(hit.m_SortKey.s.c_str(), keysep);
-
-		switch (m_ResultFormat) {
-		case DDC_ResultJson:
-			//-- count strings, json format "[[COUNT, KEY0, KEY1, ... ], ..., [COUNT, KEY0, KEY1, ...]"
-			if (m_ResultFormat == DDC_ResultJson && EndHitNo==StartHitNo)
-				m_QueryResultStr.push_back('[');
-			m_QueryResultStr += Format("[%zi", hit.m_Value.m_Count);
-			while (keytok()) {
-				m_QueryResultStr.push_back(',');
-				m_QueryResultStr.append(jsonStr(keytok.val()+1));
-			}
-			m_QueryResultStr.push_back(']');
+	for (DWORD EndHitNo = StartHitNo; EndHitNo<end; EndHitNo++ ) {
+		GenerateCountString(m_QueryResultStr, m_ResultFormat, m_Hits[EndHitNo]);
+		if (m_ResultFormat == DDC_ResultJson) {
 			m_QueryResultStr.push_back(EndHitNo < end-1 ? ',' : ']');
 			m_QueryResultStr.push_back('\n');
-			break;
-			
-		case DDC_ResultHTML:
-			//-- count strings, html
-			m_QueryResultStr += Format("<TR><TD>%zi</TD>", hit.m_Value.m_Count);
-			while (keytok()) {
-				m_QueryResultStr += "<TD>" + ConvertASCIIToHtmlSymbols(keytok.val()+1) + "</TD>";
-			}
-			m_QueryResultStr += "</TR>\n";
-			break;
-
-			
-		case DDC_ResultText:
-		case DDC_ResultTable:
-		default:
-			//-- count strings, text or table
-			m_QueryResultStr += Format("%zi", hit.m_Value.m_Count);
-			while (keytok()) {
-				m_QueryResultStr.push_back('\t');
-				m_QueryResultStr += keytok.val()+1;
-			}
-			m_QueryResultStr.push_back('\n');
-			break;
-
 		}
 		m_QueryResultStr += m_AdditionalHitDelimeter;
 	}
@@ -1592,8 +1559,7 @@ DDCErrorEnum CConcHolder::GetAllCounts(CQuery *CountQueryRoot, size_t Limit)
 	m_HighlightOccurs.clear();
 	m_AllHitsCount  = m_Hits.size();
 	m_bSortByString = 1;
-	m_bCounts       = 1;
-	m_SortOrder     = hsoNone;
+	m_SortOrder     = hsoAscendingCounts;
 	m_DebugInfo.clear();
 
 	return errNone;
@@ -1608,7 +1574,6 @@ void	CQueryResult::ClearQueryResults()
 	m_AllHitsCount = 0;
 	m_RelevantDocumentCount = 0;
 	m_bSortByString = false;
-	m_bCounts = false;
 	m_SortOrder = hsoNone;
 }
 
@@ -1616,8 +1581,9 @@ void	CQueryResult::ClearQueryResults()
 
 string CConcHolder::GetHitIds()  const
 {
-	string Result;
+	if (m_SortOrder == hsoAscendingCounts) return GetCountIds();
 
+	string Result;
 	for (size_t i=0; i < m_Hits.size(); i++) {
 		const CHit &h = m_Hits[i];
 		Result += Format("\t%i -0 ", i); //-- HitId, OrderId (for ddc < v2.0.19)
@@ -1629,6 +1595,17 @@ string CConcHolder::GetHitIds()  const
 			//-- integer-based sort
 			Result += int2hex(m_Hits[i].m_SortKey.i);
 		}
+	}
+	return Result;
+};
+
+string CConcHolder::GetCountIds()  const
+{
+	string Result;
+	for (size_t i=0; i < m_Hits.size(); i++) {
+		const CHit &h = m_Hits[i];
+		Result += Format("\t%zi -0%c", h.m_Value.m_Count, globalCountKeyDelim); //-- formerly (HitId, OrderId: ddc < v2.0.19) now (HitCount -0: ddc >= v2.0.23, count-queries only)
+		Result.append(h.m_SortKey.s, 0, DDC_SORTKEY_MAXLEN-1);
 	}
 	return Result;
 };
@@ -1661,7 +1638,6 @@ bool CConcHolder::TryToGetFromCache(const string &Query,  DWORD& EndHitNo)
 	m_RelevantDocumentCount = CacheItem.m_RelevantDocumentCount;
 	m_SortOrder = CacheItem.m_SortOrder;
 	m_bSortByString = CacheItem.m_bSortByString;
-	m_bCounts = CacheItem.m_bCounts;
 	return true;
 };
 
@@ -1694,7 +1670,6 @@ void  CConcHolder::SaveToCache(const string& Query, vector<size_t>::const_iterat
 	I.m_RelevantDocumentCount = m_RelevantDocumentCount;
 	I.m_SortOrder = m_SortOrder;
 	I.m_bSortByString = m_bSortByString;
-	I.m_bCounts = m_bCounts;
 	size_t End  = min (MaxCachedHitsCount, (size_t)(end-start));
 	for (size_t i=0; i < End; i++)
 	{
@@ -1962,13 +1937,13 @@ DDCErrorEnum CConcHolder::GetOccurrences(const string &Query, int ContextSize,  
 	}
 };
 
-CConcHolder::FormatTypeEnum CConcHolder::GetResultFormatByString(const string& ResultTypeStr )
+DDCFormatTypeEnum CConcHolder::GetResultFormatByString(const string& ResultTypeStr )
 {
 	string q = ResultTypeStr;
 	EngMakeUpper(q);
-	if (q == "HTML") return DDC_ResultHTML;
+	if (q == "JSON") return DDC_ResultJson;
+	else if (q == "HTML") return DDC_ResultHTML;
 	else if (q == "DOCIDS") return DDC_ResultDocIds;
-	else if (q == "JSON") return DDC_ResultJson;
 	else if (q == "TABLE") return DDC_ResultTable;
 	else return DDC_ResultText;
 };
