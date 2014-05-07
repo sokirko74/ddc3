@@ -1,18 +1,18 @@
 ##-*- Mode: Change-Log; coding: utf-8; -*-
 
-v2.0.23 Tue, 06 May 2014 13:44:17 +0200
+v2.0.23 Wed, 07 May 2014 13:38:30 +0200 moocow
 	+ re-factored old monolithic src/ConcordDmnLib/Corpora.cpp into
 	  - Server.(h|cpp) : abstract server base class
 	  - LeafServer.(h|cpp) : subcorpus server, formerly CDDCCorpusListenHost
 	  - BranchServer.(h|cpp) : distributed server, formerly CDDCServerListenHost
-	+ added 'reload' server message
-	+ unified (leaf|branch) message parsing code and syntax
+	+ unified (leaf|branch) request-parsing code and syntax in common base class CDDCServer
+	+ added 'reload' server request
+	+ added 'clear_cache' server request
+	+ added MaxCachedHitsCount, MaxQueryCacheSize *.opt options (stored in CConcIndexator, used by CConcHolder)
 	+ TODO: implement leaf-node commands (get_first_hits, get_hit_strings) for branch-node servers
-	+ moved root-level query options (filters, flags, etc) into new CQueryOptions *CQuery::m_Options
-	  - only set for root-level query on CQueryCompiler::SetRoot
-	+ cleaned up query-local options and count-query code into QueryOptions.(h|cpp) rsp QCount.(h|cpp)
-	+ cleaned up count-key parsing code into something resembling 'real' parser-level expressions
+	+ added simple count() queries for online histogram generation
 	  - TODO: allow regex transformations for string bibl fields, analagous to date-slice)
+	+ cleaned up query-local options and count-query code into QueryOptions.(h|cpp) rsp QCount.(h|cpp)
 
 v2.0.22-1 Thu, 27 Mar 2014 13:46:48 +0100 moocow
 	+ added ddc.pc for help in building dependent packages

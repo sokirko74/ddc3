@@ -139,7 +139,7 @@ class CConcIndexator : public CStringIndexator, public CHitBorders, public CSour
 	//! Enables  indexing all punctuation marks 
 	bool							m_bIndexPunctuation;	
 	//!  the type of index
-	DDCIndexTypeEnum				m_IndexType;
+	DDCIndexTypeEnum					m_IndexType;
 
 	string							m_InternetPathPrefix;
 	string							m_LocalPathPrefix;
@@ -174,7 +174,7 @@ class CConcIndexator : public CStringIndexator, public CHitBorders, public CSour
     void        InitDefaultOptions();
 public:
 	//! the language of the corpus
-	MorphLanguageEnum				m_Language;
+	MorphLanguageEnum					m_Language;
 	//! Enables the index  of morph patterns 
 	bool							m_bIndexMorphPatterns;
 	//! Enables indexing and querying using  chunks
@@ -190,7 +190,7 @@ public:
 	//! if true, CConcIndexatorInvoker skips source documents with errors 
 	bool						    m_bResumeOnIndexErrors;
 	//! \ref corpus_file_def "Corpus files"
-	vector<string>					m_CorpusFiles;
+	vector<string>					    m_CorpusFiles;
 	//! masked (deleted corpus files)
 	set<size_t>					    m_MaskedFiles;
 	//!  a member which holds a index for bibliographical information
@@ -238,6 +238,12 @@ public:
 
 	//! moo: timestamp of project *._con file
 	time_t m_Timestamp;
+
+	//! moo: maximum number of hits in a CConcHolder cache entry -- query results with more than MaxCachedHitsCount hits will not be cached (default=512)
+	size_t m_MaxCachedHitsCount;
+
+	//! moo: maximum number of queries to be cached by an associated CConcHolder (default=512)
+	size_t m_MaxQueryCacheSize;
 
 	//! term expansion dispatcher; should define at least an entry for "default"
 	TxDispatcher m_Txd;

@@ -481,7 +481,6 @@ string CHighlightTags::ToString() const
 CConcIndexator::CConcIndexator()  
 {
     InitDefaultOptions();
-
 };
 
 

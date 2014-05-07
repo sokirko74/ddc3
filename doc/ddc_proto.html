@@ -23,29 +23,31 @@
 	<ul>
 
 		<li><a href="#generic_message_format">Generic Message Format</a></li>
-		<li><a href="#distributed_server_messages">Distributed Server Messages</a></li>
+		<li><a href="#common_messages">Common Messages</a></li>
 		<ul>
 
-			<li><a href="#run_query">run_query</a></li>
-			<li><a href="#expand_terms">expand_terms</a></li>
-			<li><a href="#get_paradigm">get_paradigm</a></li>
-			<li><a href="#ddc_close_socket">ddc_close_socket</a></li>
 			<li><a href="#version">version</a></li>
 			<li><a href="#status">status</a></li>
 			<li><a href="#vstatus">vstatus</a></li>
 			<li><a href="#info">info</a></li>
+			<li><a href="#reload">reload</a></li>
+			<li><a href="#clear_cache">clear_cache</a></li>
+			<li><a href="#expand_terms">expand_terms</a></li>
+			<li><a href="#get_paradigm">get_paradigm</a></li>
+			<li><a href="#ddc_close_socket">ddc_close_socket</a></li>
 		</ul>
 
-		<li><a href="#subcorpus_server_messages">Subcorpus Server Messages</a></li>
+		<li><a href="#branch_server_messages">Branch-Server Messages</a></li>
+		<ul>
+
+			<li><a href="#run_query">run_query</a></li>
+		</ul>
+
+		<li><a href="#leaf_server_messages">Leaf Server Messages</a></li>
 		<ul>
 
 			<li><a href="#get_first_hits">get_first_hits</a></li>
 			<li><a href="#get_hit_strings">get_hit_strings</a></li>
-			<li><a href="#expand_terms">expand_terms</a></li>
-			<li><a href="#ddc_close_socket">ddc_close_socket</a></li>
-			<li><a href="#version">version</a></li>
-			<li><a href="#status">status</a></li>
-			<li><a href="#info">info</a></li>
 		</ul>
 
 	</ul>
@@ -78,40 +80,38 @@ and &quot; &quot; represents a literal space character (ASCII byte with decimal 
  LENGTH DATA</pre>
 <pre>
  ##=====================================================================
- ## Distributed Server Messages
+ ## Common Messages
  
- run_query &quot; &quot; CORPUS &quot;\x01&quot; QUERY &quot;\x01&quot; FORMAT &quot;\x01&quot; OFFSET &quot; &quot; LIMIT &quot; &quot; TIMEOUT
+ version
+ status
+ vstatus
+ info
+ reload
+ clear_cache
  
  expand_terms &quot;\x01&quot; PIPELINE &quot;\x01&quot; TERMS &quot;\x01&quot; TIMEOUT
  expand_terms &quot;\x01&quot; PIPELINE &quot;\x01&quot; TERMS &quot;\x01&quot; TIMEOUT &quot;\x01&quot; CORPUS
  
  get_paradigm &quot; &quot; WORD &quot;\x01&quot; ILEMMATIZE &quot; &quot; ILANG
- ddc_close_socket
  
- version
- status
- vstatus
- info</pre>
+ ddc_close_socket</pre>
 <pre>
  ##=====================================================================
- ## Subcorpus Server Messages
+ ## Branch-Server Messages
+ 
+ run_query &quot; &quot; CORPUS &quot;\x01&quot; QUERY &quot;\x01&quot; FORMAT &quot;\x01&quot; OFFSET &quot; &quot; LIMIT &quot; &quot; TIMEOUT</pre>
+<pre>
+ ##=====================================================================
+ ## Leaf-Server Messages
  
  get_first_hits &quot; &quot; QUERY &quot;\x01 &quot; TIMEOUT &quot; &quot; LIMIT
- get_hit_strings &quot; &quot; FORMAT &quot;\x01&quot; OFFSET &quot; &quot; LIMIT
- 
- expand_terms &quot;\x01&quot; PIPELINE &quot;\x01&quot; TERMS &quot;\x01&quot; TIMEOUT
- 
- ddc_close_socket
- 
- version
- status
- info</pre>
+ get_hit_strings &quot; &quot; FORMAT &quot;\x01&quot; OFFSET &quot; &quot; LIMIT</pre>
 <p>
 </p>
 <hr />
 <h1><a name="description">DESCRIPTION</a></h1>
-<p>This section contains descriptions of the various messages which may
-be sent to a DDC (sub)corpus- or distributed-server and their expected responses.</p>
+<p>This section contains descriptions of the various requests which may
+be sent to a DDC server and their expected responses.</p>
 <p>
 </p>
 <h2><a name="generic_message_format">Generic Message Format</a></h2>
@@ -122,126 +122,15 @@ where <code>LENGTH</code> is a 32-bit little-endian unsigned integer,
 and <code>DATA</code> is the underlying message data, which is exactly <code>LENGTH</code> bytes long.</p>
 <p>
 </p>
-<h2><a name="distributed_server_messages">Distributed Server Messages</a></h2>
-<p>
-</p>
-<h3><a name="run_query">run_query</a></h3>
-<pre>
- run_query &quot; &quot; CORPUS &quot;\x01&quot; QUERY &quot;\x01&quot; FORMAT &quot;\x01&quot; OFFSET &quot; &quot; LIMIT &quot; &quot; TIMEOUT</pre>
-<p>Top-level user query request.</p>
-<dl>
-<dt><strong><a name="corpus" class="item">CORPUS</a></strong></dt>
-
-<dd>
-<p>is a vacuous parameter, by convention the string &quot;Distributed&quot; is used.</p>
-</dd>
-<dt><strong><a name="query" class="item">QUERY</a></strong></dt>
-
-<dd>
-<p>is the user query in DDC syntax (see <em>ddc_query(5)</em> for details).</p>
-</dd>
-<dt><strong><a name="format" class="item">FORMAT</a></strong></dt>
-
-<dd>
-<p>is a string representing the data format to be returned by DDC.
-Currently, DDC supports the following formats: &quot;JSON&quot;, &quot;TABLE&quot;, &quot;TEXT&quot;, &quot;HTML&quot;, or &quot;DOCIDS&quot;.</p>
-</dd>
-<dt><strong><a name="offset" class="item">OFFSET</a></strong></dt>
-
-<dd>
-<p>is the index of the first hit to be retrieved, starting from 0 (zero).</p>
-</dd>
-<dt><strong><a name="limit" class="item">LIMIT</a></strong></dt>
-
-<dd>
-<p>is the maximum number of hits to be retrieved.</p>
-</dd>
-<dt><strong><a name="timeout" class="item">TIMEOUT</a></strong></dt>
-
-<dd>
-<p>is the maximum number of seconds</p>
-</dd>
-</dl>
-<p>Server response depends on FORMAT.  In <code>JSON</code> mode, the response data is a JSON object
-of the form:</p>
-<pre>
- {
-   &quot;istatus_&quot; : 0,              //-- rsp. istatus_internal status code, 0:success
-   &quot;nstatus_&quot; : 0,              //-- network status code, 0:success
-   &quot;error_&quot; : null,             //-- error string, null:no error
-   &quot;nhits_&quot; : 31,               //-- total number of hits
-   &quot;dhits_&quot; : &quot;17+4+10=31&quot;,     //-- distribution of hits over subcorpora
-   &quot;ndocs_&quot; : 0,                //-- (?) number of documents containing hits (?)
-   &quot;ddocs_&quot; : &quot;0+0+0=0&quot;,        //-- (?) distribution of hit-documents over subcorpora (?)
-   &quot;end_&quot; : 2,                  //-- index of last returned hit
-   &quot;hits_&quot; : [                  //-- list of hits
-     {                                                  //-- each hit is an object
-       &quot;meta_&quot; : {                                      //-- hit.meta_: bibliographic metadata
-            &quot;file_&quot; : &quot;busch_max_1865.xml&quot;,             //-- indexed filename
-            &quot;indices_&quot; : [&quot;w&quot;,&quot;p&quot;,&quot;l&quot;],                 //-- indexed token fields for ctx_[1]
-            &quot;date_&quot; : &quot;1865&quot;,                           //-- indexed date (decoded)
-            &quot;orig_&quot; : &quot;&quot;,
-            &quot;page_&quot; : null,
-            &quot;scan_&quot; : &quot;&quot;,
-            //... other indexed metadata fields go here ...
-       },
-       &quot;ctx_&quot;: [                                        //-- hit.ctx_ provides result context
-         [ &quot;Ach&quot;,&quot;,&quot;,&quot;was&quot;,&quot;muß&quot;,&quot;man&quot;,&quot;oft&quot;,... ],    //-- hit.ctx_[0] is left extra-sentential context (token strings only)
-         [                                              //-- hit.ctx_[1] is the hit sentence itself (structured tokens)
-           [ 0, &quot;Wie&quot;,      &quot;PWAV&quot;,    &quot;wie&quot; ],         //-- tok[0] is boolean, tok[1] is field meta_.indices_[0], etc
-           ...
-           [ 1, &quot;Max&quot;,      &quot;NE&quot;,      &quot;Max&quot; ],         //-- tok[0] is true iff token matched a term in the user query
-           [ 0, &quot;und&quot;,      &quot;KON&quot;,     &quot;und&quot; ],
-           [ 1, &quot;Moritz&quot;,   &quot;NE&quot;,      &quot;Moritz&quot; ],
-           ...
-         ],
-         [ ...,&quot;heimlich&quot;,&quot;lustig&quot;,&quot;machen&quot;,&quot;.&quot; ]       //-- hit.ctx_[2] is right extra-sentential context (token strings only)
-       ],
-     },
-     //... other hits go here ...
-   ]
- }</pre>
-<p>Since v1.x, JSON format and error messages since v2.0.0.</p>
-<p>
-</p>
-<h3><a name="expand_terms">expand_terms</a></h3>
-<pre>
- expand_terms &quot; \x01&quot; PIPELINE &quot;\x01&quot; TERMS &quot;\x01&quot; TIMEOUT
- expand_terms &quot; \x01&quot; PIPELINE &quot;\x01&quot; TERMS &quot;\x01&quot; TIMEOUT &quot;\x01&quot; CORPUS</pre>
-<p>Requests online term expansion of the terms <code>TERMS</code>
-by the expansion pipeline <code>PIPELINE</code>, which must be known to the server (see <em>ddc_opt(5)</em>).  <a href="#timeout"><code>TIMEOUT</code></a> is a request timeout in seconds.
-If specified, <a href="#corpus"><code>CORPUS</code></a> is the the name of a subcorpus known to the server which should
-be queried to perform the expansion.  If unspecified, the first registered subcorpus is queried.
-Response is as for the subcorpus <code>expand_terms</code> command.</p>
-<p>Since v2.0.0</p>
-<p>
-</p>
-<h3><a name="get_paradigm">get_paradigm</a></h3>
-<pre>
- get_paradigm &quot; &quot; WORD &quot;\x01&quot; ILEMMATIZE &quot; &quot; ILANG</pre>
-<p>Request morphological analysis of the word <code>WORD</code> using legacy built-in language-specific heuristics.
-<code>ILEMMATIZE</code> is a boolean integer; if true, only lemmatization is performed.
-<code>ILANG</code> is an integer indicating the built-in language rule-set to use; it should
-be a valid MorphLanguageEnum value as defined in ${DDC_SRC}/src/common/utilit.h ;
-currently recognized values are (0:unknown, 1:Russian, 2:English, 3:German, 4:Generic, 5:URL, 6:Digits).</p>
-<p>Response is an HTML fragment.</p>
-<p>Since v1.x</p>
-<p>
-</p>
-<h3><a name="ddc_close_socket">ddc_close_socket</a></h3>
-<pre>
- ddc_close_socket</pre>
-<p>Dummy request used internally to avoid
-annoying complaints unless each subcorpus socket gets exactly 2 messages per user request.
-<strong>DANGEROUS</strong> to use on a distributed server, can cause server lockup!</p>
-<p>Since v2.0.0</p>
+<h2><a name="common_messages">Common Messages</a></h2>
+<p>This section describes the messages accepted by both DDC &quot;branch&quot; and &quot;leaf&quot; servers.</p>
 <p>
 </p>
 <h3><a name="version">version</a></h3>
 <pre>
  version</pre>
 <p>Returns the version number of the
-distributed server
+running server
 as a string, by convention of the form
 <code>MAJOR.MINOR.MICRO-PATCHLEVEL</code>
 where <code>MAJOR</code>, <code>MINOR</code>, and <code>MICRO</code> are unsigned decimal integers,
@@ -253,7 +142,7 @@ This should be the same string reported by <strong>ddc_daemon</strong> on startu
 <h3><a name="status">status</a></h3>
 <pre>
  status</pre>
-<p>Returns status information on the distributed server as a JSON object of the form:</p>
+<p>Returns status information on the running server as a JSON object of the form:</p>
 <pre>
  {
   &quot;name&quot;:&quot;server&quot;,                      //-- distributed server name
@@ -263,7 +152,8 @@ This should be the same string reported by <strong>ddc_daemon</strong> on startu
   &quot;started&quot;:&quot;2014-02-17T13:49:59Z&quot;,     //-- ISO-8601 timestamp of last server start
   &quot;uptime&quot;:1392644999,                  //-- server instance uptime in seconds
   &quot;nrequests&quot;:21,                       //-- number of served requests
-  &quot;corpora&quot;:[&quot;corpus1&quot;,&quot;corpus2&quot;,...]   //-- registered subcorpora (names only)
+  &quot;cachesize&quot;:42,                       //-- size of query cache (leaf servers only)
+  &quot;corpora&quot;:[&quot;corpus1&quot;,&quot;corpus2&quot;,...]   //-- registered subcorpus names (branch servers only)
  }</pre>
 <p>Very fast turnaround, since all returned data is known to the distributed server itself,
 and no subcorpora need to be queried.</p>
@@ -273,167 +163,15 @@ and no subcorpora need to be queried.</p>
 <h3><a name="vstatus">vstatus</a></h3>
 <pre>
  vstatus</pre>
-<p>Like the <code>status</code> command, but the elements of the returned &quot;corpora&quot; list
+<p>Like the <code>status</code> command, but the elements of the returned &quot;corpora&quot; list for a branch server
 are the JSON objects returned by the <code>status</code> command to the associated subcorpus servers,
 rather than just subcorpus names.</p>
 <p>Since v2.0.18.</p>
 <p>
 </p>
 <h3><a name="info">info</a></h3>
-<p>Returns information about associated subcorpora as a JSON object of the form:</p>
-<pre>
- {
-  &quot;name&quot;:&quot;server&quot;,
-  &quot;version&quot;:&quot;2.0.18-pre1&quot;,
-  &quot;corpora&quot;:[
-        {
-         &quot;name&quot;:&quot;corpus1&quot;,
-         //... information for subcorpus &quot;corpus1&quot; ...
-        },
-        //... information for other subcorpora ...
-        {
-         &quot;name&quot;:&quot;corpusN&quot;,
-         //... information for subcorpus &quot;corpusN&quot; ...
-        }
-  ]
- }</pre>
-<p>Since v2.0.18</p>
-<p>
-</p>
-<h2><a name="subcorpus_server_messages">Subcorpus Server Messages</a></h2>
-<p>
-</p>
-<h3><a name="get_first_hits">get_first_hits</a></h3>
-<pre>
- get_first_hits &quot; &quot; QUERY &quot;\x01&quot; TIMEOUT &quot; &quot; LIMIT</pre>
-<p>Requests subcorpus-local evaluation of the user query <a href="#query"><code>QUERY</code></a>.
-<a href="#timeout"><code>TIMEOUT</code></a> is an operation timeout in seconds, and <a href="#limit"><code>LIMIT</code></a> is the maximum
-number of hits to evaluate.</p>
-<p>If an error occurs, the response is of the form:</p>
-<pre>
- STATUS 0 0 0 0 &quot;\n&quot; ERROR</pre>
-<p>where <code>STATUS</code> is a non-zero decimal integer error code, and ERROR is a text string describing the error.</p>
-<p>On success, responses have the form:</p>
-<pre>
- STATUS &quot; &quot; MAXHIT &quot; &quot; NHITS &quot; &quot; NDOCS &quot; &quot; SORT &quot; &quot; HITIDS</pre>
-<p>where <code>STATUS</code> is a decimal integer status, 0 (zero) for success,
-<code>MAXHIT</code> is the index of the last hit computed (?? see CConcHolder::GetHits(q, __EndHitNo__)),
-<code>NHITS</code> is the number of hits found (?? see CConcHolder::m_AllHitsCount),
-<code>NDOCS</code> is the number of relevant documents found (?? see CConcHolder::m_RelevantDocumentCount),
-<code>SORT</code> is a indicates whether and/or how the hits are to be sorted
-(0: no sort, 1: ascending sort, -1: descending sort),
-and <code>HITIDS</code> is a TAB-separated list of <code>NHITS</code> hit-identification triples (see CConcHolder::GetHitIds()),
-each element of which has the form:</p>
-<pre>
- INDEX &quot; &quot; ORDERID &quot; &quot; ORDER_STRING</pre>
-<p>where <code>INDEX</code> is the query-dependent hit index,
-<code>ORDERID</code> is an integer, and <code>ORDER_STRING</code> is a string.
-Prior to ddc version 2.0.19,
-<code>ORDERID</code> was a global integer primary sort-key for the hit and <code>ORDER_STRING</code>
-was only non-trivially populated
-if the query contained a context-dependend sort operation such as <code>#left</code> or <code>#right</code>,
-and was otherwise assigned the literal string &quot;&lt;empty&gt;&quot;.</p>
-<p>As of v2.0.19, <code>ORDERID</code> is the literal string &quot;-0&quot;, and
-<code>ORDER_STRING</code> is the (possibly empty) actual sort key for the hit.
-If <code>ORDER_STRING</code> is the literal string &quot;&lt;empty&gt;&quot;, it is treated as an empty string for compatibility reasons.
-<code>ORDER_STRING</code> may also be a string of the form &quot;#XXXXXXXX&quot; representing a 32-bit integer
-sort key in hexidecimal notation (msb order, high bit set for non-negative numbers only, no fill bits).</p>
-<p>Since v1.x, error message strings since v2.0.0.</p>
-<p>
-</p>
-<h3><a name="get_hit_strings">get_hit_strings</a></h3>
-<pre>
- get_hit_strings &quot; &quot; FORMAT &quot;\x01&quot; OFFSET &quot; &quot; LIMIT</pre>
-<p>Requests verbose hit strings for the current query
-(assumedly the query itself was specified in the previous <code>get_first_hits</code> request).
-Hits are to be formatted in <a href="#format"><code>FORMAT</code></a>, which should be a format known to DDC.
-<a href="#offset"><code>OFFSET</code></a> is th offset of the first hit to return, starting from zero,
-and <a href="#limit"><code>LIMIT</code></a> is the maximum number of formatted hits to return.</p>
-<p>If an error occurred, the response will be of the form:</p>
-<pre>
- STATUS &quot;\x01&quot; &quot;\n&quot; ERROR</pre>
-<p>where <code>STATUS</code> is a non-zero decimal integer error code (DDCErrorEnum InternalError),
-and <code>ERROR</code> is a text string describing the error.</p>
-<p>On success, the response is of the form:</p>
-<pre>
- STATUS &quot;\x01&quot; HIT_STRINGS &quot;\x01&quot;</pre>
-<p>where <code>STATUS</code> is a decimal integer zero (&quot;0&quot;)
-and <code>HIT_STRINGS</code> are the formatted hit strings, separated by &quot;\x01&quot;.
-By convention, each hit is terminated by &quot;\n&quot; and preceded by &quot;\x01&quot;.
-For &quot;JSON&quot; format hit strings, the first character of the first hit is a &quot;[&quot; character,
-the final character of all non-final hits is a &quot;,&quot; character, and the final character
-of the final hit is a &quot;]&quot; character, so hits can be parsed as raw JSON data by removing
-the initial <code>STATUS</code> code and all &quot;\x01&quot; characters from <code>HIT_STRINGS</code> before parsing.</p>
-<p>An example response in JSON format is:</p>
-<pre>
- 0\x01[{&quot;meta_&quot;:{&quot;file_&quot;:&quot;dannhauer_catechismus05_1654.xml&quot;,...},&quot;ctx_&quot;:[[],[...],[]]},
- \x01{&quot;meta_&quot;:{&quot;file_&quot;:&quot;frentzel_schauplatz_1744.xml&quot;,...},&quot;ctx_&quot;:[[],[...],[]]},
- ...
- \x01{&quot;meta_&quot;:{&quot;file_&quot;:&quot;busch_max_1865.xml&quot;,...},&quot;ctx_&quot;:[[],[...],[]]},
- \x01{&quot;meta_&quot;:{&quot;file_&quot;:&quot;frege_sinn_1892.xml&quot;,...},&quot;ctx_&quot;:[[],[...],[]]}]
- \x01</pre>
-<p>Since v1.x, JSON format and error messages since v2.0.0.</p>
-<p>
-</p>
-<h3><a name="expand_terms">expand_terms</a></h3>
-<pre>
- expand_terms &quot;\x01&quot; PIPELINE &quot;\x01&quot; TERMS &quot;\x01&quot; TIMEOUT
- expand_terms &quot; \x01&quot; PIPELINE &quot;\x01&quot; TERMS &quot;\x01&quot; TIMEOUT &quot;\x01&quot; ...</pre>
-<p>Requests online term expansion of the terms <code>TERMS</code>
-by the expansion pipeline <code>PIPELINE</code>, which must be known to the subcorpus server (see <em>ddc_opt(5)</em>).
-<a href="#timeout"><code>TIMEOUT</code></a> is a request timeout in seconds.</p>
-<p>Response data is of the form</p>
-<pre>
- STATUS &quot; &quot; NTERMS &quot;\n&quot; DATA</pre>
-<p>where <code>STATUS</code> is a decimal integer indicating the operation status (0 indicates success).
-<code>NTERMS</code> is the number of expanded terms being returned in the <code>DATA</code> portion,
-and <code>DATA</code> is either an error message (just in case STATUS is non-zero) or a list of expanded terms
-separated by TABs, newlines, and/or carriage returns (ASCII 0x09, 0x0a, 0x0d).</p>
-<p>Since v2.0.0.</p>
-<p>
-</p>
-<h3><a name="ddc_close_socket">ddc_close_socket</a></h3>
-<pre>
- ddc_close_socket</pre>
-<p>Dummy request used internally to avoid
-annoying complaints unless each subcorpus socket gets exactly 2 messages per user request.
-Should always return the response &quot;ok&quot;.
-Causes the server to terminate the client connection.
-<strong>DANGEROUS</strong> to use directly on a subcorpus server, can cause premature server termination!</p>
-<p>Since v2.0.0.</p>
-<p>
-</p>
-<h3><a name="version">version</a></h3>
-<pre>
- version</pre>
-<p>Returns the version number of the subcorpus server as a string, by convention of the form
-<code>MAJOR.MINOR.MICRO-PATCHLEVEL</code>
-where <code>MAJOR</code>, <code>MINOR</code>, and <code>MICRO</code> are unsigned decimal integers,
-and <code>-PATCHLEVEL</code> is an optional string suffix.
-This should be the same string reported by <strong>ddc_daemon</strong> on startup.</p>
-<p>Since v2.0.18</p>
-<p>
-</p>
-<h3><a name="status">status</a></h3>
-<pre>
- status</pre>
-<p>Returns status information on the subcorpus server as a JSON object of the form:</p>
-<pre>
- {
-  &quot;name&quot;:&quot;corpus1&quot;,                     //-- subcorpus name
-  &quot;version&quot;:&quot;2.0.18-pre1&quot;,              //-- subcorpus server version
-  &quot;host&quot;:&quot;127.0.0.1&quot;,                   //-- subcorpus server socket hostname or IP
-  &quot;port&quot;:50011,                         //-- subcorpus server socket port
-  &quot;started&quot;:&quot;2014-02-17T13:49:59Z&quot;,     //-- ISO-8601 timestamp of last server start
-  &quot;uptime&quot;:1392644999,                  //-- subcorpus server instance uptime in seconds
-  &quot;nrequests&quot;:21,                       //-- number of served requests
-  &quot;cachesize&quot;:42,                       //-- size of query cache
- }</pre>
-<p>Since v2.0.18</p>
-<p>
-</p>
-<h3><a name="info">info</a></h3>
-<p>Returns information about the associated (sub)corpus as a JSON object of the form:</p>
+<p>Returns information about associated corpora as a JSON object.
+For a leaf server, the returned object is of the form:</p>
 <pre>
  {
   //-- basic information
@@ -478,9 +216,9 @@ This should be the same string reported by <strong>ddc_daemon</strong> on startu
   //-- index structure: token-level indices
   &quot;indices&quot;:[
         {&quot;shortname&quot;:&quot;w&quot;, &quot;longname&quot;:&quot;Token&quot;, &quot;visible&quot;:1, &quot;bigrams&quot;:2, &quot;size&quot;:9369},
-        {&quot;shortname&quot;:&quot;l&quot;, &quot;longname&quot;:&quot;Lemma&quot;, &quot;visible&quot;:1, &quot;bigrams&quot;:0, &quot;size&quot;:5706},
+        {&quot;shortname&quot;:&quot;l&quot;, &quot;longname&quot;:&quot;Lemma&quot;, &quot;visible&quot;:1, &quot;size&quot;:5706},
         //... other token-level indices ...
-        {&quot;shortname&quot;:&quot;p&quot;, &quot;longname&quot;:&quot;Pos&quot;, &quot;visible&quot;:1, &quot;bigrams&quot;:0, &quot;size&quot;:53},
+        {&quot;shortname&quot;:&quot;p&quot;, &quot;longname&quot;:&quot;Pos&quot;, &quot;visible&quot;:1, &quot;size&quot;:53},
         ],
   //
   //-- query operators: bibliographic expanders (&quot;ExpandBibl&quot; options)
@@ -489,7 +227,289 @@ This should be the same string reported by <strong>ddc_daemon</strong> on startu
   //-- query operators: term expanders (&quot;Expand&quot; options)
   &quot;expanders&quot;:[&quot;Token&quot;,...]
   }</pre>
+<p>For a branch server, the returned object has the form:</p>
+<pre>
+ {
+  &quot;name&quot;:&quot;server&quot;,
+  &quot;version&quot;:&quot;2.0.18-pre1&quot;,
+  &quot;corpora&quot;:[
+        {
+         &quot;name&quot;:&quot;corpus1&quot;,
+         //... information for subcorpus &quot;corpus1&quot; ...
+        },
+        //... information for other subcorpora ...
+        {
+         &quot;name&quot;:&quot;corpusN&quot;,
+         //... information for subcorpus &quot;corpusN&quot; ...
+        }
+  ]
+ }</pre>
+<p>where each object in the &quot;corpora&quot; array is the associated subcorpus server's
+response to an &quot;info&quot; request.</p>
 <p>Since v2.0.18</p>
+<p>
+</p>
+<h3><a name="reload">reload</a></h3>
+<p>Requests re-loading local (sub)corpus data from disk.
+Branch servers distribute the reload request to all subcopora.</p>
+<p>Since v2.0.23</p>
+<p>
+</p>
+<h3><a name="clear_cache">clear_cache</a></h3>
+<p>Request that the receiving server and any subordinate servers clear any in-memory query cache(s).</p>
+<p>Since v2.0.23</p>
+<p>
+</p>
+<h3><a name="expand_terms">expand_terms</a></h3>
+<pre>
+ expand_terms &quot; \x01&quot; PIPELINE &quot;\x01&quot; TERMS &quot;\x01&quot; TIMEOUT
+ expand_terms &quot; \x01&quot; PIPELINE &quot;\x01&quot; TERMS &quot;\x01&quot; TIMEOUT &quot;\x01&quot; CORPUS</pre>
+<p>Requests online term expansion of the terms <code>TERMS</code>
+by the expansion pipeline <code>PIPELINE</code>, which must be known to the leaf server chosen for expansion (see <em>ddc_opt(5)</em>).
+<a href="#timeout"><code>TIMEOUT</code></a> is a request timeout in seconds.</p>
+<p>For branch servers, if <a href="#corpus"><code>CORPUS</code></a> is specified, it should be the the name of an immediate subcorpus which should
+be queried to perform the expansion.  If unspecified, the first registered subcorpus is queried.</p>
+<p>Response data is of the form</p>
+<pre>
+ STATUS &quot; &quot; NTERMS &quot;\n&quot; DATA</pre>
+<p>where <code>STATUS</code> is a decimal integer indicating the operation status (0 indicates success).
+<code>NTERMS</code> is the number of expanded terms being returned in the <code>DATA</code> portion,
+and <code>DATA</code> is either an error message (just in case STATUS is non-zero) or a list of expanded terms
+separated by TABs, newlines, and/or carriage returns (ASCII 0x09, 0x0a, 0x0d).</p>
+<p>Since v2.0.0</p>
+<p>
+</p>
+<h3><a name="get_paradigm">get_paradigm</a></h3>
+<pre>
+ get_paradigm &quot; &quot; WORD &quot;\x01&quot; ILEMMATIZE &quot; &quot; ILANG</pre>
+<p>Request morphological analysis of the word <code>WORD</code> using legacy built-in language-specific heuristics.
+<code>ILEMMATIZE</code> is a boolean integer; if true, only lemmatization is performed.
+<code>ILANG</code> is an integer indicating the built-in language rule-set to use; it should
+be a valid MorphLanguageEnum value as defined in ${DDC_SRC}/src/common/utilit.h ;
+currently recognized values are (0:unknown, 1:Russian, 2:English, 3:German, 4:Generic, 5:URL, 6:Digits).</p>
+<p>Response is an HTML fragment.</p>
+<p>Since v1.x</p>
+<p>
+</p>
+<h3><a name="ddc_close_socket">ddc_close_socket</a></h3>
+<pre>
+ ddc_close_socket</pre>
+<p>Dummy request used internally prior to ddc-v2.0.23 to avoid
+annoying complaints unless each subcorpus socket gets exactly 2 messages per user request.
+<strong>DANGEROUS</strong> to use directly, can cause server lockup!</p>
+<p>Since v2.0.0</p>
+<p><strong>OBSOLETE</strong> since v2.0.23.</p>
+<p>
+</p>
+<h2><a name="branch_server_messages">Branch-Server Messages</a></h2>
+<p>This section describes the messages accepted by DDC &quot;branch&quot; servers,
+also known as &quot;distributed&quot; or &quot;nonterminal&quot; servers.  A branch server is not associated directly
+with any single index, but functions as an aggregator for one or more subordinate
+(&quot;leaf&quot;) servers.</p>
+<p>
+</p>
+<h3><a name="run_query">run_query</a></h3>
+<pre>
+ run_query &quot; &quot; CORPUS &quot;\x01&quot; QUERY &quot;\x01&quot; FORMAT &quot;\x01&quot; OFFSET &quot; &quot; LIMIT &quot; &quot; TIMEOUT</pre>
+<p>Top-level user query request.</p>
+<dl>
+<dt><strong><a name="corpus" class="item">CORPUS</a></strong></dt>
+
+<dd>
+<p>is a vacuous parameter, by convention the string &quot;Distributed&quot; is used.</p>
+</dd>
+<dt><strong><a name="query" class="item">QUERY</a></strong></dt>
+
+<dd>
+<p>is the user query in DDC syntax (see <em>ddc_query(5)</em> for details).</p>
+</dd>
+<dt><strong><a name="format" class="item">FORMAT</a></strong></dt>
+
+<dd>
+<p>is a string representing the data format to be returned by DDC.
+Currently, DDC supports the following formats: &quot;JSON&quot;, &quot;TABLE&quot;, &quot;TEXT&quot;, &quot;HTML&quot;, or &quot;DOCIDS&quot;.</p>
+</dd>
+<dt><strong><a name="offset" class="item">OFFSET</a></strong></dt>
+
+<dd>
+<p>is the index of the first hit to be retrieved, starting from 0 (zero).</p>
+</dd>
+<dt><strong><a name="limit" class="item">LIMIT</a></strong></dt>
+
+<dd>
+<p>is the maximum number of hits to be retrieved.</p>
+</dd>
+<dt><strong><a name="timeout" class="item">TIMEOUT</a></strong></dt>
+
+<dd>
+<p>is the maximum number of seconds</p>
+</dd>
+</dl>
+<p>Server response depends on FORMAT.  In <code>JSON</code> mode, the response data
+for a traditional context-query is a JSON object of the form:</p>
+<pre>
+ {
+   &quot;istatus_&quot; : 0,              //-- rsp. istatus_internal status code, 0:success
+   &quot;nstatus_&quot; : 0,              //-- network status code, 0:success
+   &quot;error_&quot; : null,             //-- error string, null:no error
+   &quot;nhits_&quot; : 31,               //-- total number of hits
+   &quot;dhits_&quot; : &quot;17+4+10=31&quot;,     //-- distribution of hits over subcorpora
+   &quot;ndocs_&quot; : 0,                //-- (?) number of documents containing hits (?)
+   &quot;ddocs_&quot; : &quot;0+0+0=0&quot;,        //-- (?) distribution of hit-documents over subcorpora (?)
+   &quot;end_&quot; : 2,                  //-- index of last returned hit
+   &quot;hits_&quot; : [                  //-- list of hits
+     {                                                  //-- each hit is an object
+       &quot;meta_&quot; : {                                      //-- hit.meta_: bibliographic metadata
+            &quot;file_&quot; : &quot;busch_max_1865.xml&quot;,             //-- indexed filename
+            &quot;indices_&quot; : [&quot;w&quot;,&quot;p&quot;,&quot;l&quot;],                 //-- indexed token fields for ctx_[1]
+            &quot;date_&quot; : &quot;1865&quot;,                           //-- indexed date (decoded)
+            &quot;orig_&quot; : &quot;&quot;,
+            &quot;page_&quot; : null,
+            &quot;scan_&quot; : &quot;&quot;,
+            //... other indexed metadata fields go here ...
+       },
+       &quot;ctx_&quot;: [                                        //-- hit.ctx_ provides result context
+         [ &quot;Ach&quot;,&quot;,&quot;,&quot;was&quot;,&quot;muß&quot;,&quot;man&quot;,&quot;oft&quot;,... ],    //-- hit.ctx_[0] is left extra-sentential context (token strings only)
+         [                                              //-- hit.ctx_[1] is the hit sentence itself (structured tokens)
+           [ 0, &quot;Wie&quot;,      &quot;PWAV&quot;,    &quot;wie&quot; ],         //-- tok[0] is boolean, tok[1] is field meta_.indices_[0], etc
+           ...
+           [ 1, &quot;Max&quot;,      &quot;NE&quot;,      &quot;Max&quot; ],         //-- tok[0] is true iff token matched a term in the user query
+           [ 0, &quot;und&quot;,      &quot;KON&quot;,     &quot;und&quot; ],
+           [ 1, &quot;Moritz&quot;,   &quot;NE&quot;,      &quot;Moritz&quot; ],
+           ...
+         ],
+         [ ...,&quot;heimlich&quot;,&quot;lustig&quot;,&quot;machen&quot;,&quot;.&quot; ]       //-- hit.ctx_[2] is right extra-sentential context (token strings only)
+       ],
+     },
+     //... other hits go here ...
+   ]
+ }</pre>
+<p>As of v2.0.23, ddc supports aggregate count-queries by means of the <code>count()</code> operator.
+If the requested <a href="#query"><code>QUERY</code></a> was such a count-query, the query response is slightly different:</p>
+<dl>
+<dt><strong><a name="nhits_" class="item">nhits_</a></strong></dt>
+
+<dd>
+<p>indicates the best-guess maximum number of non-zero histogram bins for this query.
+This number may be smaller than the actual number of non-zero histogram bins
+if <a href="#limit"><code>LIMIT</code></a> was less than the total number of non-zero bins in some subcorpus
+and some non-zero bins occurred in more than one subcorpus:
+such duplicate bins are merged by the branch server only, but only up to <a href="#limit"><code>LIMIT</code></a>
+are retrieved by the branch server for any query, so some uncertainty remains
+regarding the status of duplicates among the bins beyond <a href="#limit"><code>LIMIT</code></a>.</p>
+</dd>
+<dt><strong><a name="dhits_" class="item">dhits_</a></strong></dt>
+
+<dd>
+<p>is of the form &quot;N1+N2+...=NTOTAL~NMAX&quot;, where the <code>Ni</code> are the number of hits
+(non-zero histogram bins) in the associated subcorpora, <code>NTOTAL</code> is the total
+number of non-zero histogram bins in any subcorpus (regardless of duplicates),
+and <code>NMAX</code> is the best-guess maximum number of non-zero histogram bins as reported
+in <a href="#nhits_"><code>nhits_</code></a>.</p>
+</dd>
+<dt><strong><a name="hits_" class="item">hits_</a></strong></dt>
+
+<dd>
+<p>is not present.</p>
+</dd>
+<dt><strong><a name="counts_" class="item">counts_</a></strong></dt>
+
+<dd>
+<p>is a JSON array of the form:</p>
+<pre>
+ [ BIN1, BIN2, ..., BINn ]</pre>
+<p>Each element <code>BINi</code> of the <a href="#counts_"><code>counts_</code></a> array represents a single histogram bin
+as a JSON array</p>
+<pre>
+ [ COUNT, KEY(s)... ]</pre>
+<p>where <code>COUNT</code> is the total count for the bin in question and <code>KEY(s)...</code>
+are the key strings as requested in the <a href="#query"><code>QUERY</code></a> &quot;#BY&quot;-clause.</p>
+</dd>
+</dl>
+<p>Since v1.x, JSON format and error messages since v2.0.0.</p>
+<p>
+</p>
+<h2><a name="leaf_server_messages">Leaf Server Messages</a></h2>
+<p>This section describes the messages accepted by DDC &quot;leaf&quot; servers,
+also known as &quot;subcorpus&quot;, &quot;local&quot;, or &quot;terminal&quot; servers.
+A leaf server is directly associated with exactly one index on the local filesystem,
+and has no subcorpora itself.</p>
+<p>
+</p>
+<h3><a name="get_first_hits">get_first_hits</a></h3>
+<pre>
+ get_first_hits &quot; &quot; QUERY &quot;\x01&quot; TIMEOUT &quot; &quot; LIMIT</pre>
+<p>Requests subcorpus-local evaluation of the user query <a href="#query"><code>QUERY</code></a>.
+<a href="#timeout"><code>TIMEOUT</code></a> is an operation timeout in seconds, and <a href="#limit"><code>LIMIT</code></a> is the maximum
+number of hits to evaluate.</p>
+<p>If an error occurs, the response is of the form:</p>
+<pre>
+ STATUS 0 0 0 0 &quot;\n&quot; ERROR</pre>
+<p>where <code>STATUS</code> is a non-zero decimal integer error code, and ERROR is a text string describing the error.</p>
+<p>On success, responses have the form:</p>
+<pre>
+ STATUS &quot; &quot; MAXHIT &quot; &quot; NHITS &quot; &quot; NDOCS &quot; &quot; SORT &quot; &quot; HITIDS</pre>
+<p>where <code>STATUS</code> is a decimal integer status, 0 (zero) for success,
+<code>MAXHIT</code> is the index of the last hit computed (?? see CConcHolder::GetHits(q, __EndHitNo__)),
+<code>NHITS</code> is the number of hits found (?? see CConcHolder::m_AllHitsCount),
+<code>NDOCS</code> is the number of relevant documents found (?? see CConcHolder::m_RelevantDocumentCount),
+<code>SORT</code> is a indicates whether and/or how the hits are to be sorted
+(0: no sort, 1: ascending sort, -1: descending sort),
+and <code>HITIDS</code> is a TAB-separated list of <code>NHITS</code> hit-identification triples (see CConcHolder::GetHitIds()),
+each element of which has the form:</p>
+<pre>
+ INDEX &quot; &quot; ORDERID &quot; &quot; ORDER_STRING</pre>
+<p>where <code>INDEX</code> is the query-dependent hit index,
+<code>ORDERID</code> is an integer, and <code>ORDER_STRING</code> is a string.
+Prior to ddc version 2.0.19,
+<code>ORDERID</code> was a global integer primary sort-key for the hit and <code>ORDER_STRING</code>
+was only non-trivially populated
+if the query contained a context-dependend sort operation such as <code>#left</code> or <code>#right</code>,
+and was otherwise assigned the literal string &quot;&lt;empty&gt;&quot;.</p>
+<p>As of v2.0.19, <code>ORDERID</code> is the literal string &quot;-0&quot;, and
+<code>ORDER_STRING</code> is the (possibly empty) actual sort key for the hit.
+If <code>ORDER_STRING</code> is the literal string &quot;&lt;empty&gt;&quot;, it is treated as an empty string for compatibility reasons.
+<code>ORDER_STRING</code> may also be a string of the form &quot;#XXXXXXXX&quot; representing a 32-bit integer
+sort key in hexidecimal notation (msb order, high bit set for non-negative numbers only, no fill bits).</p>
+<p>As of v2.0.23, ddc supports aggregate count-queries (by means of the <code>count()</code> operator)
+in addition to traditional &quot;context&quot; queries.  If the requested <a href="#query"><code>QUERY</code></a> was such a count-query,
+then <code>ORDER_STRING</code> is a &quot;\x02&quot;-separated list of count-key components, and <code>INDEX</code> is the
+total count of the associated histogram bin.</p>
+<p>Since v1.x, error message strings since v2.0.0, count-queries since v2.0.23.</p>
+<p>
+</p>
+<h3><a name="get_hit_strings">get_hit_strings</a></h3>
+<pre>
+ get_hit_strings &quot; &quot; FORMAT &quot;\x01&quot; OFFSET &quot; &quot; LIMIT</pre>
+<p>Requests verbose hit strings for the current query
+(assumedly the query itself was specified in the previous <code>get_first_hits</code> request).
+Hits are to be formatted in <a href="#format"><code>FORMAT</code></a>, which should be a format known to DDC.
+<a href="#offset"><code>OFFSET</code></a> is th offset of the first hit to return, starting from zero,
+and <a href="#limit"><code>LIMIT</code></a> is the maximum number of formatted hits to return.</p>
+<p>If an error occurred, the response will be of the form:</p>
+<pre>
+ STATUS &quot;\x01&quot; &quot;\n&quot; ERROR</pre>
+<p>where <code>STATUS</code> is a non-zero decimal integer error code (DDCErrorEnum InternalError),
+and <code>ERROR</code> is a text string describing the error.</p>
+<p>On success, the response is of the form:</p>
+<pre>
+ STATUS &quot;\x01&quot; HIT_STRINGS &quot;\x01&quot;</pre>
+<p>where <code>STATUS</code> is a decimal integer zero (&quot;0&quot;)
+and <code>HIT_STRINGS</code> are the formatted hit strings, separated by &quot;\x01&quot;.
+By convention, each hit is terminated by &quot;\n&quot; and preceded by &quot;\x01&quot;.
+For &quot;JSON&quot; format hit strings, the first character of the first hit is a &quot;[&quot; character,
+the final character of all non-final hits is a &quot;,&quot; character, and the final character
+of the final hit is a &quot;]&quot; character, so hits can be parsed as raw JSON data by removing
+the initial <code>STATUS</code> code and all &quot;\x01&quot; characters from <code>HIT_STRINGS</code> before parsing.</p>
+<p>An example response in JSON format is:</p>
+<pre>
+ 0\x01[{&quot;meta_&quot;:{&quot;file_&quot;:&quot;dannhauer_catechismus05_1654.xml&quot;,...},&quot;ctx_&quot;:[[],[...],[]]},
+ \x01{&quot;meta_&quot;:{&quot;file_&quot;:&quot;frentzel_schauplatz_1744.xml&quot;,...},&quot;ctx_&quot;:[[],[...],[]]},
+ ...
+ \x01{&quot;meta_&quot;:{&quot;file_&quot;:&quot;busch_max_1865.xml&quot;,...},&quot;ctx_&quot;:[[],[...],[]]},
+ \x01{&quot;meta_&quot;:{&quot;file_&quot;:&quot;frege_sinn_1892.xml&quot;,...},&quot;ctx_&quot;:[[],[...],[]]}]
+ \x01</pre>
+<p>Since v1.x, JSON format and error messages since v2.0.0.</p>
 <p>
 </p>
 <hr />

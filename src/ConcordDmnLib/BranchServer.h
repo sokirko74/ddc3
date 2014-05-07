@@ -138,6 +138,9 @@ public:
     /** request handler: reload: required (leaf|branch) */
     virtual void handle__reload(string &Result);
 
+    /** request handler: clear_cache: required (leaf|branch) */
+    virtual void handle__clear_cache(string &Result);
+
 public:
     //--------------------------------------------------------------
     // local methods

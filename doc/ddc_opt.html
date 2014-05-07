@@ -77,6 +77,8 @@
 			<li><a href="#rightkwiccontextsize">RightKwicContextSize</a></li>
 			<li><a href="#numberofkwiclinesinsnippets">NumberOfKwicLinesInSnippets</a></li>
 			<li><a href="#maxregexpexpansionsize">MaxRegExpExpansionSize</a></li>
+			<li><a href="#maxcachedhitscount">MaxCachedHitsCount</a></li>
+			<li><a href="#maxquerycachesize">MaxQueryCacheSize</a></li>
 			<li><a href="#usermaxtokencountinoneperiod">UserMaxTokenCountInOnePeriod</a></li>
 			<li><a href="#localpathprefix">LocalPathPrefix</a></li>
 			<li><a href="#internetpathprefix">InternetPathPrefix</a></li>
@@ -172,6 +174,8 @@ option files (&quot;opt-files&quot;) used by the DDC corpus indexing system.</p>
  LeftKwicContextSize N
  NumberOfKwicLinesInSnippets N
  MaxRegExpExpansionSize N
+ MaxCachedHitsCount N
+ MaxQueryCacheSize N
  UserMaxTokenCountInOnePeriod N
  
  LocalPathPrefix VAL
@@ -557,6 +561,23 @@ Set the number of kwic lines in snippets. The default value is 10.</p>
 Set the maximum number of indexed items
 which can be included in an expansion set of one regular expression.
 Default value is 1000000.</p>
+<p>
+</p>
+<h3><a name="maxcachedhitscount">MaxCachedHitsCount</a></h3>
+<pre>
+ MaxCachedHitsCount N</pre>
+<p>Set maximum number of hits to store in a cache entry of an associated CConcHolder (subcorpus server).
+Query results with more than <code>N</code> hits will not be cached.
+Default=512.</p>
+<p>Since v2.0.23 (formerly a global constant = 500).</p>
+<p>
+</p>
+<h3><a name="maxquerycachesize">MaxQueryCacheSize</a></h3>
+<pre>
+ MaxQueryCacheSize N</pre>
+<p>Set maximum number of queries to be LRU-cached by an associated CConcHolder (subcorpus server).
+Default=512.</p>
+<p>Since v2.0.23 (formerly a global constant = 500).</p>
 <p>
 </p>
 <h3><a name="usermaxtokencountinoneperiod">UserMaxTokenCountInOnePeriod</a></h3>

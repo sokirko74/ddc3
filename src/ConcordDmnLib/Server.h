@@ -103,6 +103,9 @@ public:
     /** request handler: reload: required (leaf|branch) */
     virtual void handle__reload(string &Result);
 
+    /** request handler: clear_cache: required (leaf|branch) */
+    virtual void handle__clear_cache(string &Result);
+
 public:
     //--------------------------------------------------------------
     // DDCServer API: request handlers: optional
@@ -121,6 +124,12 @@ public:
 
     /** request handler: vinfo: optional (leaf|branch): default wraps handle__info(Result,true) */
     virtual void handle__vinfo(string &Result);
+
+public:
+    //--------------------------------------------------------------
+    // DDCServer: utilities
+    inline void method_not_implemented(const char *methodName)
+    { throw CExpc(errRuntime, "DDCServer API method %s not implemented for object %s", methodName, typeid(*this).name()); };
 };
 
 #endif /* DDC_SERVER_H */

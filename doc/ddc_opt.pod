@@ -70,6 +70,8 @@ option files ("opt-files") used by the DDC corpus indexing system.
  LeftKwicContextSize N
  NumberOfKwicLinesInSnippets N
  MaxRegExpExpansionSize N
+ MaxCachedHitsCount N
+ MaxQueryCacheSize N
  UserMaxTokenCountInOnePeriod N
  
  LocalPathPrefix VAL
@@ -500,6 +502,25 @@ Set the number of kwic lines in snippets. The default value is 10.
 Set the maximum number of indexed items
 which can be included in an expansion set of one regular expression.
 Default value is 1000000.
+
+=head3 MaxCachedHitsCount
+
+ MaxCachedHitsCount N
+
+Set maximum number of hits to store in a cache entry of an associated CConcHolder (subcorpus server).
+Query results with more than C<N> hits will not be cached.
+Default=512.
+
+Since v2.0.23 (formerly a global constant = 500).
+
+=head3 MaxQueryCacheSize
+
+ MaxQueryCacheSize N
+
+Set maximum number of queries to be LRU-cached by an associated CConcHolder (subcorpus server).
+Default=512.
+
+Since v2.0.23 (formerly a global constant = 500).
 
 =head3 UserMaxTokenCountInOnePeriod
 

@@ -34,19 +34,19 @@ const size_t DDCCountQueryLimit = INT_MAX;
 
 
 /*! \brief
-	Class  CQueryResult contains all information about the first MaxCachedHitsCount hits for 
-	the input query. 	Other hits (beyond  MaxCachedHitsCount) are not stored but 
+	Class  CQueryResult contains all information about the first m_pIndexator->m_MaxCachedHitsCount hits for 
+	the input query. 	Other hits (beyond  m_pIndexator->m_MaxCachedHitsCount) are not stored but 
 	they can be retrieved on user's demand. 
 */
 
 struct CQueryResult 
 {
-	//! found hits (not more than MaxCachedHitsCount). 
+	//! found hits (not more than m_pIndexator->m_MaxCachedHitsCount). 
 	vector<CHit>		m_Hits;
 	//! words that should be highlighted in hits; m_HighlightOccurs is the concatenation of CQueryNode::m_Occurrences for all \ref period_def "subcorpora"
 	vector<CTokenNo>	m_HighlightOccurs;
 
-	//! the number of all found hits (if m_AllHitsCount < MaxCachedHitsCount, then m_Hits.size() == m_AllHitsCount)
+	//! the number of all found hits (if m_AllHitsCount < m_pIndexator->m_MaxCachedHitsCount, then m_Hits.size() == m_AllHitsCount)
 	size_t			m_AllHitsCount;
 	//! the number of documents, where at least one hit is found
 	size_t			m_RelevantDocumentCount;

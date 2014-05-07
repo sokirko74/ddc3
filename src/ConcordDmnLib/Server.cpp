@@ -159,6 +159,10 @@ string CDDCServer::ProcessSocketString(const string& SocketInput, SOCKET rConnec
 	    //-- reload
 	    this->handle__reload(Result);
 	}
+	else if (cmd == "clear_cache") {
+	    //-- clear_cache
+	    this->handle__clear_cache(Result);
+	}
 	else {
 	    //-- unknown request
 	    throw CExpc(errParseError, Format("unknown command `%s'", cmd.c_str()));
@@ -181,25 +185,25 @@ string CDDCServer::ProcessSocketString(const string& SocketInput, SOCKET rConnec
 //----------------------------------------------------------------------
 void CDDCServer::handle__get_first_hits(string &Result, const char *Query, int TimeOut, int ResultLimit)
 {
-    throw CExpc(errRuntime, "method not implemented: handle__get_first_hits()");
+    method_not_implemented("handle__get_first_hits()");
 }
 
 //----------------------------------------------------------------------
 void CDDCServer::handle__get_hit_strings(string &Result, const char *ResultType, int StartHitNo, int ResultLimit)
 {
-    throw CExpc(errRuntime, "method not implemented: handle__get_hit_strings()");
+    method_not_implemented("handle__get_hit_strings()");
 }
 
 //----------------------------------------------------------------------
 void CDDCServer::handle__run_query(string &Result, const char *CorpusName, const char *Query, const char *ResultType, int StartHitNo, int ResultLimit, int TimeOut)
 {
-    throw CExpc(errRuntime, "method not implemented: handle__run_query()");
+    method_not_implemented("handle__run_query()");
 }
 
 //----------------------------------------------------------------------
 void CDDCServer::handle__expand_terms(string &Result, const string& pipeline, const string& terms, int timeout, const string &corpus)
 {
-    throw CExpc(errRuntime, "method not implemented: handle__expand_terms()");
+    method_not_implemented("handle__expand_terms()");
 }
 
 //----------------------------------------------------------------------
@@ -231,7 +235,7 @@ void CDDCServer::handle__version(string &Result)
 //----------------------------------------------------------------------
 void CDDCServer::handle__status(string &Result, bool verbose)
 {
-    throw CExpc(errRuntime, "method not implemented: handle__status()");
+    method_not_implemented("handle__status");
 }
 
 //----------------------------------------------------------------------
@@ -243,7 +247,7 @@ void CDDCServer::handle__vstatus(string &Result)
 //----------------------------------------------------------------------
 void CDDCServer::handle__info(string &Result, bool verbose)
 {
-    throw CExpc(errRuntime, "method not implemented: handle__info()");
+    method_not_implemented("handle__info()");
 }
 
 //----------------------------------------------------------------------
@@ -255,6 +259,12 @@ void CDDCServer::handle__vinfo(string &Result)
 //----------------------------------------------------------------------
 void CDDCServer::handle__reload(string &Result)
 {
-    throw CExpc(errRuntime, "method not implemented: handle__reload()");
+    method_not_implemented("handle__reload()");
+}
+
+//----------------------------------------------------------------------
+void CDDCServer::handle__clear_cache(string &Result)
+{
+    method_not_implemented("handle__clear_cache()");
 }
 

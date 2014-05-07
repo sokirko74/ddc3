@@ -236,6 +236,13 @@ void CDDCBranchServer::handle__reload(string &Result)
     m_bExpectMore = false;
 }
 
+//----------------------------------------------------------------------
+void CDDCBranchServer::handle__clear_cache(string &Result)
+{
+    Result = string("{") + jsonStr(m_CorpusName) + ":" + GetSubcorpusJsonArray("clear_cache") + "}";
+    m_bExpectMore = false;
+}
+
 //==============================================================================
 // local methods
 

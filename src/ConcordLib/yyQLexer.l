@@ -159,7 +159,7 @@ regex_modifier	[gimsx]
 "$."				{ return DOLLAR_DOT; /* dollar+dot: anchor operator (position-index in segment) */ }
 [\!\.\,\:\;\$\@\%\^\#\=]	{ return ((int)yytext[0]); /* single-character punctuation operators */ }
 [\[\]\{\}\(\)\<\>]		{ return ((int)yytext[0]); /* parentheses */ }
-[\"\/]				{ return ((int)yytext[0]); /* quotes */ }
+[\"]				{ return ((int)yytext[0]); /* quotes */ }
 ":{"				{ return COLON_LBRACE; /* thesaurus-query opener */ }
 "@{"				{ return AT_LBRACE; /* literal-set opener */ }
 "*{"				{ return STAR_LBRACE; /* prefix-set opener */ }

@@ -13,8 +13,9 @@
 <li>
 <a href="#grammar">Grammar Rules</a><ul>
 <li><a href="#toplevel">Top-Level Rule(s)</a></li>
-<li><a href="#query">Query Rules</a></li>
+<li><a href="#query">Context Query Rules</a></li>
 <li><a href="#filters">Query Filter Rules</a></li>
+<li><a href="#count">Count-Query Rules</a></li>
 <li><a href="#list">List-like Constituents</a></li>
 <li><a href="#list">Preterminals and Aliases</a></li>
 </ul>
@@ -62,7 +63,7 @@
 <h2><a name="overview">Overview</a></h2>
 <p>
 	This documentation describes the query language accepted by
-	DDC version 2.0.20.  Current sources for DDC should be available
+	DDC version 2.0.23.  Current sources for DDC should be available
 	from
 	<!--<a href="http://odo.dwds.de/code/viewvc.cgi/ddc/trunk/?root=dev">svn+ssh://odo.dwds.de/home/svn/dev/ddc/trunk</a>.-->
 	<a href="http://sourceforge.net/projects/ddc-concordance">http://sourceforge.net/projects/ddc-concordance</a>.
@@ -71,7 +72,10 @@
 	The DDC query parsing, compilation, and evaluation code was
 	re-written for version 2.0.  The new query parser should be
 	largely compatible with older DDC versions; incompatibilities are
-	due to new query sub-types (e.g. <a href="#rule_qw_set_infl">value sets</a>, <a href="#rule_l_txchain">term expansion pipelines</a>)
+	due to new query sub-types (e.g.
+	<a href="#rule_qw_set_infl">value sets</a>,
+	<a href="#rule_l_txchain">term expansion pipelines</a>,
+	<a href="#rule_count_query">count-queries</a>)
 	and/or bugfixes (symbol and regex escapes, quoted symbols, etc.).
 	Documentation for the legacy DDC query language can be found with
 	the source or on the web at
@@ -110,8 +114,14 @@
 <td></td>
 <td></td>
 <td class="ruleRHS1">
-<span class="ruleNonterminal"><a href="#rule_q_clause">q_clause</a></span> <span class="ruleNonterminal"><a href="#rule_q_filters">q_filters</a></span> </td>
-<td class="ruleComment">/* Filters may be empty */</td>
+<span class="ruleNonterminal"><a href="#rule_query_conditions">query_conditions</a></span> </td>
+<td class="ruleComment">/* Traditional context-query */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_count_query">count_query</a></span> </td>
+<td class="ruleComment">/* Count-query (histogram data) */</td>
 </tr>
 <tr>
 <td></td>
@@ -121,9 +131,28 @@
 <tr></tr>
 </table>
 </div>
-<!--/rules:toplevel--><!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ --><!-- Grammar: Query Rules --><div class="subsection">
-<h3><a name="query">Query Rules</a></h3>
+<!--/rules:toplevel--><!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ --><!-- Grammar: Context Query Rules --><div class="subsection">
+<h3><a name="query">Context Query Rules</a></h3>
 <table class="rulesTable">
+<tr>
+<td><b><a name="rule_query_conditions">query_conditions</a></b></td>
+<td>::=</td>
+<td></td>
+<td class="ruleCommentTop">/* Top-level context-query root */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS1">
+<span class="ruleNonterminal"><a href="#rule_q_clause">q_clause</a></span> <span class="ruleNonterminal"><a href="#rule_q_filters">q_filters</a></span> </td>
+<td class="ruleComment">/* Filters may be empty */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td><b>;</b></td>
+</tr>
+<tr></tr>
 <tr>
 <td><b><a name="rule_q_clause">q_clause</a></b></td>
 <td>::=</td>
@@ -1567,6 +1596,183 @@
 <tr></tr>
 </table>
 </div>
+<!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ --><!-- Grammar: Count-Query Rules --><div class="subsection">
+<h3><a name="count">Count-Query Rules</a></h3>
+<table class="rulesTable">
+<tr>
+<td><b><a name="rule_count_query">count_query</a></b></td>
+<td>::=</td>
+<td></td>
+<td class="ruleCommentTop">/* Top-level count-query root */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS1">
+<span class="ruleTerminal">COUNT</span> <span class="ruleTerminal">(</span> <span class="ruleNonterminal"><a href="#rule_query_conditions">query_conditions</a></span> <span class="ruleTerminal">)</span> <span class="ruleNonterminal"><a href="#rule_count_filters">count_filters</a></span> </td>
+<td class="ruleComment">/* Filters may be empty */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td><b>;</b></td>
+</tr>
+<tr></tr>
+<tr>
+<td><b><a name="rule_count_filters">count_filters</a></b></td>
+<td>::=</td>
+<td></td>
+<td class="ruleCommentTop">/* List of count-query options */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS1"></td>
+<td class="ruleComment">/* empty */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_count_filters">count_filters</a></span> <span class="ruleNonterminal"><a href="#rule_count_filter">count_filter</a></span> </td>
+<td class="ruleComment">/* non-empty */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td><b>;</b></td>
+</tr>
+<tr></tr>
+<tr>
+<td><b><a name="rule_count_filter">count_filter</a></b></td>
+<td>::=</td>
+<td></td>
+<td class="ruleCommentTop">/* Single count-query option */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS1">
+<span class="ruleNonterminal"><a href="#rule_count_by">count_by</a></span> </td>
+<td class="ruleComment">/* histogram bin selection */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td><b>;</b></td>
+</tr>
+<tr></tr>
+<tr>
+<td><b><a name="rule_count_by">count_by</a></b></td>
+<td>::=</td>
+<td></td>
+<td class="ruleCommentTop">/* Select count-query histogram keys (metadata tuples) */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS1">
+<span class="ruleTerminal">BY</span> <span class="ruleNonterminal"><a href="#rule_l_countkeys">l_countkeys</a></span> </td>
+<td class="ruleComment">/* SQL-style syntax */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleTerminal">BY</span> <span class="ruleTerminal">[</span> <span class="ruleNonterminal"><a href="#rule_l_countkeys">l_countkeys</a></span> <span class="ruleTerminal">]</span> </td>
+<td class="ruleComment">/* DDC filter-style syntax */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td><b>;</b></td>
+</tr>
+<tr></tr>
+<tr>
+<td><b><a name="rule_l_countkeys">l_countkeys</a></b></td>
+<td>::=</td>
+<td></td>
+<td class="ruleCommentTop">/* Tuple of bibliographic metadata fields */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS1"></td>
+<td class="ruleComment">/* ... empty */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_l_countkeys">l_countkeys</a></span> <span class="ruleTerminal">,</span> </td>
+<td class="ruleComment">/* ... comma-separated */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_l_countkeys">l_countkeys</a></span> <span class="ruleNonterminal"><a href="#rule_count_key">count_key</a></span> </td>
+<td class="ruleComment">/* ... or space-separated */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td><b>;</b></td>
+</tr>
+<tr></tr>
+<tr>
+<td><b><a name="rule_count_key">count_key</a></b></td>
+<td>::=</td>
+<td></td>
+<td class="ruleCommentTop">/* Histogram bin component */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS1">
+<span class="ruleTerminal">*</span> </td>
+<td class="ruleComment">/* ... constant string '*' (global counts only) */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleTerminal">@</span> <span class="ruleNonterminal"><a href="#rule_symbol">symbol</a></span> </td>
+<td class="ruleComment">/* ... constant user-defined string */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleTerminal">FILEID</span> </td>
+<td class="ruleComment">/* ... subcorpus-local file-id (integer) */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleTerminal">FILENAME</span> </td>
+<td class="ruleComment">/* ... filename */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleTerminal">DATE</span> </td>
+<td class="ruleComment">/* ... date string (YYYY-MM-DD) */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleTerminal">DATE</span> <span class="ruleTerminal">/</span> <span class="ruleNonterminal"><a href="#rule_i_slice">i_slice</a></span> </td>
+<td class="ruleComment">/* ... date slice, computed as (i_slice*int(year/i_slice)) */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_s_field">s_field</a></span> </td>
+<td class="ruleComment">/* ... other bibliographic field value (e.g. textClass) */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td><b>;</b></td>
+</tr>
+<tr></tr>
+</table>
+</div>
 <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ --><!-- Grammar: List-like consituents --><div class="subsection">
 <h3><a name="list">List-like Constituents</a></h3>
 <table class="rulesTable">
@@ -2193,6 +2399,25 @@
 </tr>
 <tr></tr>
 <tr>
+<td><b><a name="rule_i_slice">i_slice</a></b></td>
+<td>::=</td>
+<td></td>
+<td class="ruleCommentTop">/* Date interval for histogram bins */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS1">
+<span class="ruleNonterminal"><a href="#rule_integer">integer</a></span> </td>
+<td class="ruleComment">/* ... is just an integer (interval size in years) */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td><b>;</b></td>
+</tr>
+<tr></tr>
+<tr>
 <td><b><a name="rule_date">date</a></b></td>
 <td>::=</td>
 <td></td>
@@ -2237,8 +2462,8 @@
 ws		[ \t\n\r\f\v]
 punct	        [\^\!\~\$\@\%\/\=\?\_\:\;\+\#\.\\\*\,\'\"\&amp;\|\(\)\[\]\{\}\&lt;\&gt;]
 
-symbol_cfirst	[^ \t\r\n\f\v\0\^\&amp;\|\!\(\)\[\]\{\}\&lt;\&gt;\'\"\,\;\:\#\=\*\%\\\~\$\@\/\?\_\+\.]
-symbol_crest	[^ \t\r\n\f\v\0\^\&amp;\|\!\(\)\[\]\{\}\&lt;\&gt;\'\"\,\;\:\#\=\*\%\\]
+symbol_cfirst	[^ \t\r\n\f\v\0\^\&amp;\|\!\(\)\[\]\{\}\&lt;\&gt;\'\"\,\;\:\#\=\*\%\\\~\/\$\@\?\_\+\.]
+symbol_crest	[^ \t\r\n\f\v\0\^\&amp;\|\!\(\)\[\]\{\}\&lt;\&gt;\'\"\,\;\:\#\=\*\%\\\~\/]
 symbol_cescape  (\\.)
 symbol_text     ({symbol_cescape}|{symbol_cfirst})(({symbol_cescape}|{symbol_crest})*)
 
@@ -2257,6 +2482,10 @@ regex_modifier	[gimsx]
 <pre>
 (?i:near)
 (?i:with)
+(?i:count)
+(?i:(file|doc)?id)
+(?i:(file|doc)_?(name)?)
+(?i:date)
 (?i:\#(cntxt|n))
 (?i:\#(with)?in)
 (?i:\#(sep(arate)?|nojoin)(_hits)?)
@@ -2281,6 +2510,7 @@ regex_modifier	[gimsx]
 (?i:\#(less|asc)(_by)?)		  
 (?i:\#(greater|de?sc)(_by)?)	
 (?i:\#rand(om)?)
+(?i:\#by)
 </pre>
 <p>
 	  The scanner supports the various reserved words used in
@@ -2335,8 +2565,8 @@ regex_modifier	[gimsx]
 "#&lt;"				/* max-distance hint for phrase queries */
 "#&gt;"				/* min-distance hint for phrase queries */
 "$."				/* anchor pseudo-index (position-index in "break collection" segment) */
-[\!\.\,\:\;\$\@\%\^\#\=]	/* single-character punctuation operators */
-[\[\]\{\}\(\)\&lt;\&gt;]		/* parentheses */
+[\!\.\,\:\;\$\@\%\^\#\=\/]	/* single-character punctuation operators */
+[\[\]\{\}\(\)\&lt;\&gt;]	/* parentheses */
 [\"]				/* double quotes (for pharse queries) */
 ":{"				/* thesaurus-query opener */
 "@{"				/* literal-set opener */
@@ -2941,7 +3171,7 @@ regex_modifier	[gimsx]
   </body></div>
 <div class="footers">
 <div class="footer_sig">
-<address><a href="mailto:jurish@bbaw.de">jurish@bbaw.de</a></address>Last modified: Wed, 19 Mar 2014 14:33:45 +0100</div>
+<address><a href="mailto:jurish@bbaw.de">jurish@bbaw.de</a></address>Last modified: Wed, 07 May 2014 14:03:06 +0200</div>
 <div class="footer_linkbar"><p class="nopad"><a class="navLink" href="/">Root</a><a class="navLink" href="./">Back</a><span class="navLinkDisabled">Help</span></p></div>
 <p class="dummy"></p>
 </div>

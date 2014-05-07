@@ -1,4 +1,5 @@
 //-*- Mode: C++; c-basic-offset: 8; -*-
+//
 //  DDC originally by Alexey Sokirko
 //  Changes and modifications 2011-2014 by Bryan Jurish
 //
@@ -96,6 +97,8 @@ void CConcIndexator::InitDefaultOptions()
 	m_AllowUnsafeQueries = false;
 	m_bLemmaQueryUsesMorphPattern = true;
 	m_Timestamp = 0;
+	m_MaxCachedHitsCount = 512;
+	m_MaxQueryCacheSize = 512;
 	m_Txd.clear();
 	m_OpDefaultIndexNames.clear();
 }
@@ -278,10 +281,25 @@ bool CConcIndexator::LoadOptionsFromString(string Options)
 		else if (q == "MaxRegExpExpansionSize")
 			{
 				q = fields.next_token();
-				if (!q.empty()) 
-				{
+				if (!q.empty()) {
 					m_MaxRegExpExpansionSize = atoi(q.c_str());
 					fprintf (stderr,"MaxRegExpExpansionSize = %i\n", m_MaxRegExpExpansionSize);
+				}
+			}
+		else if (q == "MaxCachedHitsCount")
+			{
+				q = fields.next_token();
+				if (!q.empty()) {
+					m_MaxCachedHitsCount = atoi(q.c_str());
+					fprintf(stderr, "MaxCachedHitsCount = %i\n", m_MaxCachedHitsCount);
+				}
+			}
+		else if (q == "MaxQueryCacheSize")
+			{
+				q = fields.next_token();
+				if (!q.empty()) {
+					m_MaxQueryCacheSize = atoi(q.c_str());
+					fprintf(stderr, "MaxQueryCacheSize = %i\n", m_MaxQueryCacheSize);
 				}
 			}
 		else if (q == "RightKwicContextSize")
@@ -797,7 +815,9 @@ string CConcIndexator::SaveOptionsToString()  const
 
 	Result += m_Txd.configString("Expand ");
 
-	Result += Format("MaxRegExpExpansionSize %i\n", m_MaxRegExpExpansionSize);			
+	Result += Format("MaxRegExpExpansionSize %i\n", m_MaxRegExpExpansionSize);
+	Result += Format("MaxCachedHitsCount %zi\n", m_MaxCachedHitsCount);
+	Result += Format("MaxQueryCacheSize %zi\n", m_MaxQueryCacheSize);
 
 	if (m_bDwdsCorpusInterface)
 		Result += Format("DwdsCorpusInterface\n");

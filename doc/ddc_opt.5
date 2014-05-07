@@ -62,7 +62,7 @@
 .\" ========================================================================
 .\"
 .IX Title "DDC_OPT 5"
-.TH DDC_OPT 5 "2014-03-18" "2.0.21-2" "DDC Corpus Indexing System"
+.TH DDC_OPT 5 "2014-05-07" "2.0.23" "DDC Corpus Indexing System"
 .\" For nroff, turn off justification.  Always turn off hyphenation; it makes
 .\" way too many mistakes in technical documents.
 .if n .ad l
@@ -129,6 +129,8 @@ option files (\*(L"opt-files\*(R") used by the \s-1DDC\s0 corpus indexing system
 \& LeftKwicContextSize N
 \& NumberOfKwicLinesInSnippets N
 \& MaxRegExpExpansionSize N
+\& MaxCachedHitsCount N
+\& MaxQueryCacheSize N
 \& UserMaxTokenCountInOnePeriod N
 \& 
 \& LocalPathPrefix VAL
@@ -577,6 +579,31 @@ Set the number of kwic lines in snippets. The default value is 10.
 Set the maximum number of indexed items
 which can be included in an expansion set of one regular expression.
 Default value is 1000000.
+.PP
+\fIMaxCachedHitsCount\fR
+.IX Subsection "MaxCachedHitsCount"
+.PP
+.Vb 1
+\& MaxCachedHitsCount N
+.Ve
+.PP
+Set maximum number of hits to store in a cache entry of an associated CConcHolder (subcorpus server).
+Query results with more than \f(CW\*(C`N\*(C'\fR hits will not be cached.
+Default=512.
+.PP
+Since v2.0.23 (formerly a global constant = 500).
+.PP
+\fIMaxQueryCacheSize\fR
+.IX Subsection "MaxQueryCacheSize"
+.PP
+.Vb 1
+\& MaxQueryCacheSize N
+.Ve
+.PP
+Set maximum number of queries to be LRU-cached by an associated CConcHolder (subcorpus server).
+Default=512.
+.PP
+Since v2.0.23 (formerly a global constant = 500).
 .PP
 \fIUserMaxTokenCountInOnePeriod\fR
 .IX Subsection "UserMaxTokenCountInOnePeriod"

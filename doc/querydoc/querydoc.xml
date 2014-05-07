@@ -11,7 +11,7 @@
     <section name="overview" title="Overview">
       <p>
 	This documentation describes the query language accepted by
-	DDC version 2.0.20.  Current sources for DDC should be available
+	DDC version 2.0.23.  Current sources for DDC should be available
 	from
 	<!--<a href="http://odo.dwds.de/code/viewvc.cgi/ddc/trunk/?root=dev">svn+ssh://odo.dwds.de/home/svn/dev/ddc/trunk</a>.-->
 	<a href="http://sourceforge.net/projects/ddc-concordance">http://sourceforge.net/projects/ddc-concordance</a>.
@@ -20,7 +20,10 @@
 	The DDC query parsing, compilation, and evaluation code was
 	re-written for version 2.0.  The new query parser should be
 	largely compatible with older DDC versions; incompatibilities are
-	due to new query sub-types (e.g. <a href="#rule_qw_set_infl">value sets</a>, <a href="#rule_l_txchain">term expansion pipelines</a>)
+	due to new query sub-types (e.g.
+	<a href="#rule_qw_set_infl">value sets</a>,
+	<a href="#rule_l_txchain">term expansion pipelines</a>,
+	<a href="#rule_count_query">count-queries</a>)
 	and/or bugfixes (symbol and regex escapes, quoted symbols, etc.).
 	Documentation for the legacy DDC query language can be found with
 	the source or on the web at
@@ -62,9 +65,11 @@
 
 	  <!--~~~~~~~~ RULES: query -->
 	  <rule lhs="query" cmt="Top-level rule (query root)">
-	    <rhs cmt="Filters may be empty">
-	      <n>q_clause</n>
-	      <n>q_filters</n>
+	    <rhs cmt="Traditional context-query">
+	      <n>query_conditions</n>
+	    </rhs>
+	    <rhs cmt="Count-query (histogram data)">
+	      <n>count_query</n>
 	    </rhs>
 	  </rule>
 
@@ -73,9 +78,17 @@
       <!--/rules:toplevel-->
 
       <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
-      <!-- Grammar: Query Rules -->
-      <subsection name="query" title="Query Rules">
+      <!-- Grammar: Context Query Rules -->
+      <subsection name="query" title="Context Query Rules">
 	<rules>
+
+	  <!--~~~~~~~~ RULES: query_conditions -->
+	  <rule lhs="query_conditions" cmt="Top-level context-query root">
+	    <rhs cmt="Filters may be empty">
+	      <n>q_clause</n>
+	      <n>q_filters</n>
+	    </rhs>
+	  </rule>
 
 	  <!--~~~~~~~~ RULES: q_clause -->
 	  <rule lhs="q_clause" cmt="Main query clause (logical operations)">
@@ -932,6 +945,95 @@
 	</rules>
       </subsection>
 
+      <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+      <!-- Grammar: Count-Query Rules -->
+      <subsection name="count" title="Count-Query Rules">
+	<rules>
+
+	  <!--~~~~~~~~ RULES: count_query -->
+	  <rule lhs="count_query" cmt="Top-level count-query root">
+	    <rhs cmt="Filters may be empty">
+	      <t>COUNT</t>
+	      <t>(</t>
+	      <n>query_conditions</n>
+	      <t>)</t>
+	      <n>count_filters</n>
+	    </rhs>
+	  </rule>
+
+	  <!--~~~~~~~~ RULES: count_filters -->
+	  <rule lhs="count_filters" cmt="List of count-query options">
+	    <rhs cmt="empty"/>
+	    <rhs cmt="non-empty">
+	      <n>count_filters</n>
+	      <n>count_filter</n>
+	    </rhs>
+	  </rule>
+
+	  <!--~~~~~~~~ RULES: count_filter -->
+	  <rule lhs="count_filter" cmt="Single count-query option">
+	    <rhs cmt="histogram bin selection">
+	      <n>count_by</n>
+	    </rhs>
+	  </rule>
+
+	  <!--~~~~~~~~ RULES: count_by -->
+	  <rule lhs="count_by" cmt="Select count-query histogram keys (metadata tuples)">
+	    <rhs cmt="SQL-style syntax">
+	      <t>BY</t>
+	      <n>l_countkeys</n>
+	    </rhs>
+	    <rhs cmt="DDC filter-style syntax">
+	      <t>BY</t>
+	      <t>[</t>
+	      <n>l_countkeys</n>
+	      <t>]</t>
+	    </rhs>
+	  </rule>
+
+	  <!--~~~~~~~~ RULES: l_countkeys -->
+	  <rule lhs="l_countkeys" cmt="Tuple of bibliographic metadata fields">
+	    <rhs cmt="... empty"/>
+	    <rhs cmt="... comma-separated">
+	      <n>l_countkeys</n>
+	      <t>,</t>
+	    </rhs>
+	    <rhs cmt="... or space-separated">
+	      <n>l_countkeys</n>
+	      <n>count_key</n>
+	    </rhs>
+	  </rule>
+
+	  <!--~~~~~~~~ RULES: count_key -->
+	  <rule lhs="count_key" cmt="Histogram bin component">
+	    <rhs cmt="... constant string '*' (global counts only)">
+	      <t>*</t>
+	    </rhs>
+	    <rhs cmt="... constant user-defined string">
+	      <t>@</t>
+	      <n>symbol</n>
+	    </rhs>
+	    <rhs cmt="... subcorpus-local file-id (integer)">
+	      <t>FILEID</t>
+	    </rhs>
+	    <rhs cmt="... filename">
+	      <t>FILENAME</t>
+	    </rhs>
+	    <rhs cmt="... date string (YYYY-MM-DD)">
+	      <t>DATE</t>
+	    </rhs>
+	    <rhs cmt="... date slice, computed as (i_slice*int(year/i_slice))">
+	      <t>DATE</t>
+	      <t>/</t>
+	      <n>i_slice</n>
+	    </rhs>
+	    <rhs cmt="... other bibliographic field value (e.g. textClass)">
+	      <n>s_field</n>
+	    </rhs>
+	  </rule>
+
+	</rules>
+      </subsection>
 
       <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
       <!-- Grammar: List-like consituents -->
@@ -1206,6 +1308,13 @@
 	    </rhs>
 	  </rule>
 
+	  <!--~~~~~~~~ RULES: i_slice -->
+	  <rule lhs="i_slice" cmt="Date interval for histogram bins">
+	    <rhs cmt="... is just an integer (interval size in years)">
+	      <n>integer</n>
+	    </rhs>
+	  </rule>
+
 	  <!--~~~~~~~~ RULES: date -->
 	  <rule lhs="date" cmt="date string">
 	    <rhs cmt="... e.g. YYYY(-MM(-DD)?)?">
@@ -1238,8 +1347,8 @@
 ws		[ \t\n\r\f\v]
 punct	        [\^\!\~\$\@\%\/\=\?\_\:\;\+\#\.\\\*\,\'\"\&amp;\|\(\)\[\]\{\}\&lt;\&gt;]
 
-symbol_cfirst	[^ \t\r\n\f\v\0\^\&amp;\|\!\(\)\[\]\{\}\&lt;\&gt;\'\"\,\;\:\#\=\*\%\\\~\$\@\/\?\_\+\.]
-symbol_crest	[^ \t\r\n\f\v\0\^\&amp;\|\!\(\)\[\]\{\}\&lt;\&gt;\'\"\,\;\:\#\=\*\%\\]
+symbol_cfirst	[^ \t\r\n\f\v\0\^\&amp;\|\!\(\)\[\]\{\}\&lt;\&gt;\'\"\,\;\:\#\=\*\%\\\~\/\$\@\?\_\+\.]
+symbol_crest	[^ \t\r\n\f\v\0\^\&amp;\|\!\(\)\[\]\{\}\&lt;\&gt;\'\"\,\;\:\#\=\*\%\\\~\/]
 symbol_cescape  (\\.)
 symbol_text     ({symbol_cescape}|{symbol_cfirst})(({symbol_cescape}|{symbol_crest})*)
 
@@ -1260,6 +1369,10 @@ regex_modifier	[gimsx]
 <pre>
 (?i:near)
 (?i:with)
+(?i:count)
+(?i:(file|doc)?id)
+(?i:(file|doc)_?(name)?)
+(?i:date)
 (?i:\#(cntxt|n))
 (?i:\#(with)?in)
 (?i:\#(sep(arate)?|nojoin)(_hits)?)
@@ -1284,6 +1397,7 @@ regex_modifier	[gimsx]
 (?i:\#(less|asc)(_by)?)		  
 (?i:\#(greater|de?sc)(_by)?)	
 (?i:\#rand(om)?)
+(?i:\#by)
 </pre>
 	<p>
 	  The scanner supports the various reserved words used in
@@ -1344,8 +1458,8 @@ regex_modifier	[gimsx]
 "#&lt;"				/* max-distance hint for phrase queries */
 "#&gt;"				/* min-distance hint for phrase queries */
 "$."				/* anchor pseudo-index (position-index in "break collection" segment) */
-[\!\.\,\:\;\$\@\%\^\#\=]	/* single-character punctuation operators */
-[\[\]\{\}\(\)\&lt;\&gt;]		/* parentheses */
+[\!\.\,\:\;\$\@\%\^\#\=\/]	/* single-character punctuation operators */
+[\[\]\{\}\(\)\&lt;\&gt;]	/* parentheses */
 [\"]				/* double quotes (for pharse queries) */
 ":{"				/* thesaurus-query opener */
 "@{"				/* literal-set opener */

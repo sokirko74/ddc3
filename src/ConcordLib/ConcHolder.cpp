@@ -27,8 +27,6 @@
 
 
 //==============================================================================
-const size_t MaxCachedHitsCount = 500;
-const size_t MaxQueryCacheSize = 500;
 const time_t TheEndOfTheWorld = 0xffffffff;
 
 #ifdef DETECT_MEMORY_LEAK
@@ -1609,17 +1607,33 @@ string CConcHolder::GetCountIds()  const
 	return Result;
 };
 
+//#define DEBUG_CACHE
+#undef DEBUG_CACHE
+#ifdef DEBUG_CACHE
+# define CACHEDEBUG(code) code
+#else
+# define CACHEDEBUG(code)
+#endif
+
 bool CConcHolder::TryToGetFromCache(const string &Query,  DWORD& EndHitNo)
 {
+	CACHEDEBUG(fprintf(stderr,"TryToGetFromCache() : Query=%s, EndHitNo=%d, CacheSize=%zi\n", jsonStr(Query).c_str(), EndHitNo, m_Queries.size()));
+
 	map<string, CQueryResult>::const_iterator it = m_QueryCache.find(Query);
 	// if the query is not the cache then exit
-	if (it == m_QueryCache.end()) return false;
+	if (it == m_QueryCache.end()) {
+		CACHEDEBUG(fprintf(stderr,"TryToGetFromCache() --> not found\n"));
+		return false;
+	}
 
+	CACHEDEBUG(fprintf(stderr,"TryToGetFromCache() --> found\n"));
 	const CQueryResult& CacheItem = it->second;
 
 	// if one asks hits, which were beyond the storage limits of the cache
-	if (CacheItem.m_AllHitsCount > MaxCachedHitsCount)
-		if (EndHitNo+m_ResultLimit > MaxCachedHitsCount) return false;
+	if (CacheItem.m_AllHitsCount > m_pIndexator->m_MaxCachedHitsCount) {
+		CACHEDEBUG(fprintf(stderr,"TryToGetFromCache() --> nHits=%zd > MaxCachedHitsCount=%zd : must re-evaluate\n", CacheItem.m_AllHitsCount, m_pIndexator->m_MaxCachedHitsCount));
+		if (EndHitNo+m_ResultLimit > m_pIndexator->m_MaxCachedHitsCount) return false;
+	}
 
 	ClearQueryResults();
 	
@@ -1643,23 +1657,26 @@ bool CConcHolder::TryToGetFromCache(const string &Query,  DWORD& EndHitNo)
 // saving results to the cache
 void  CConcHolder::SaveToCache(const string& Query, vector<size_t>::const_iterator start, vector<size_t>::const_iterator end)
 {
+	CACHEDEBUG(fprintf(stderr,"SaveToCache() : Query=%s, nItems=%zd, CacheSize=%zi\n", jsonStr(Query).c_str(), end-start, m_Queries.size()));
+
 	if (m_QueryCache.find(Query) !=  m_QueryCache.end())
 	{
 		// it can be so that SaveToCache was called but the input query is already in the cache,
 		// because the user now wants some hits after MaxCachedHitsCount 
 		// so TryToGetFromCache has returned false, and now we are here
+		CACHEDEBUG(fprintf(stderr,"SaveToCache() --> already present\n"));
 		return;
 	};
 
 	// if the cache is full, then we should delete the oldest item
-	if (m_Queries.size() >= MaxQueryCacheSize)
+	if (m_Queries.size() >= m_pIndexator->m_MaxQueryCacheSize)
 	{
 		//  erasing  the first item from Query queue and from the Query cache
 		map<string, CQueryResult>::iterator it = m_QueryCache.find(m_Queries.front());
 		assert (it != m_QueryCache.end());
+		CACHEDEBUG(fprintf(stderr,"SaveToCache() --> dropping stale cache-item %s\n", jsonStr(it->first).c_str()));
 		m_QueryCache.erase(it);
 		m_Queries.erase(m_Queries.begin());
-		
 	};
 	m_Queries.push_back(Query);
 	
@@ -1669,7 +1686,7 @@ void  CConcHolder::SaveToCache(const string& Query, vector<size_t>::const_iterat
 	I.m_RelevantDocumentCount = m_RelevantDocumentCount;
 	I.m_SortOrder = m_SortOrder;
 	I.m_bSortByString = m_bSortByString;
-	size_t End  = min (MaxCachedHitsCount, (size_t)(end-start));
+	size_t End  = min (m_pIndexator->m_MaxCachedHitsCount, (size_t)(end-start));
 	for (size_t i=0; i < End; i++)
 	{
 		size_t HitNo = *start;
@@ -1698,7 +1715,7 @@ DDCErrorEnum CConcHolder::GetHits(const string &Query,  DWORD& EndHitNo)
 		if ( !TryToGetFromCache(Query, EndHitNo) )
 		{
 			// a new query occurs
-			DDCErrorEnum result = GetAllHits(Query, max(EndHitNo+m_ResultLimit,MaxCachedHitsCount) );
+			DDCErrorEnum result = GetAllHits(Query, max(EndHitNo+m_ResultLimit, m_pIndexator->m_MaxCachedHitsCount) );
 			if (result != errNone) 
 				return result;
 

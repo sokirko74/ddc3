@@ -62,7 +62,7 @@
 .\" ========================================================================
 .\"
 .IX Title "DDC_QUERY 5"
-.TH DDC_QUERY 5 "2014-03-19" "2.0.21-2" "DDC Corpus Indexing System"
+.TH DDC_QUERY 5 "2014-05-07" "2.0.23" "DDC Corpus Indexing System"
 .\" For nroff, turn off justification.  Always turn off hyphenation; it makes
 .\" way too many mistakes in technical documents.
 .if n .ad l
@@ -72,14 +72,17 @@
 .SS "Overview"
 .IX Subsection "Overview"
 This documentation describes the query language accepted by
-\&\s-1DDC\s0 version 2.0.20.  Current sources for \s-1DDC\s0 should be available
+\&\s-1DDC\s0 version 2.0.23.  Current sources for \s-1DDC\s0 should be available
 from
 http://sourceforge.net/projects/ddc\-concordance.
 .PP
 The \s-1DDC\s0 query parsing, compilation, and evaluation code was
 re-written for version 2.0.  The new query parser should be
 largely compatible with older \s-1DDC\s0 versions; incompatibilities are
-due to new query sub-types (e.g. value sets, term expansion pipelines)
+due to new query sub-types (e.g.
+value sets,
+term expansion pipelines,
+count-queries)
 and/or bugfixes (symbol and regex escapes, quoted symbols, etc.).
 Documentation for the legacy \s-1DDC\s0 query language can be found with
 the source or on the web at
@@ -101,174 +104,179 @@ Comments may appear after each rule in C notation
 \fITop-Level Rule(s)\fR
 .IX Subsection "Top-Level Rule(s)"
 .PP
-.Vb 3
-\& query ::=                     /*\-\- Top\-level rule (query root) \-\-*/
-\&           q_clause q_filters  /* Filters may be empty */
+.Vb 4
+\& query ::=                   /*\-\- Top\-level rule (query root) \-\-*/
+\&           query_conditions  /* Traditional context\-query */
+\&         | count_query       /* Count\-query (histogram data) */
 \&         ;
 .Ve
 .PP
-\fIQuery Rules\fR
-.IX Subsection "Query Rules"
+\fIContext Query Rules\fR
+.IX Subsection "Context Query Rules"
 .PP
-.Vb 5
-\& q_clause      ::=                                                       /*\-\- Main query clause (logical operations) \-\-*/
-\&                   qc_basic                                              /* Single\-condition clause */
-\&                 | qc_boolean                                            /* Complex boolean condition */
-\&                 | qc_concat                                             /* Concatenated query clauses (implicit logical conjunction) */
-\&                 ;
+.Vb 3
+\& query_conditions ::=                                                       /*\-\- Top\-level context\-query root \-\-*/
+\&                      q_clause q_filters                                    /* Filters may be empty */
+\&                    ;
 \& 
-\& qc_basic      ::=                                                       /*\-\- Basic query clause (single logical condition) \-\-*/
-\&                   qc_tokens                                             /* Phrase or single\-token condition */
-\&                 | qc_near                                               /* Unordered proximity constraint */
-\&                 ;
+\& q_clause         ::=                                                       /*\-\- Main query clause (logical operations) \-\-*/
+\&                      qc_basic                                              /* Single\-condition clause */
+\&                    | qc_boolean                                            /* Complex boolean condition */
+\&                    | qc_concat                                             /* Concatenated query clauses (implicit logical conjunction) */
+\&                    ;
 \& 
-\& qc_boolean    ::=                                                       /*\-\- Boolean combination of query conditions \-\-*/
-\&                   q_clause && q_clause                                  /* Logical conjunction (\*(Aqand\*(Aq) */
-\&                 | q_clause || q_clause                                  /* Logical disjunction (\*(Aqor\*(Aq) */
-\&                 | ! q_clause                                            /* Logical negation (\*(Aqnot\*(Aq): not be interpretable for all clauses */
-\&                 | ( qc_boolean )                                        /* Explicit grouping */
-\&                 ;
+\& qc_basic         ::=                                                       /*\-\- Basic query clause (single logical condition) \-\-*/
+\&                      qc_tokens                                             /* Phrase or single\-token condition */
+\&                    | qc_near                                               /* Unordered proximity constraint */
+\&                    ;
 \& 
-\& qc_concat     ::=                                                       /*\-\- Implicit conjunction of multiple independent query clauses (ddc >= v2.0.20) \-\-*/
-\&                   qc_basic qc_basic                                     /* ... only basic query clauses can be implicitly conjoined */
-\&                 | qc_concat qc_basic                                    /* ... arbitrarily many clauses may be added */
-\&                 | ( qc_concat )                                         /* ... explicit grouping is allowed */
-\&                 ;
+\& qc_boolean       ::=                                                       /*\-\- Boolean combination of query conditions \-\-*/
+\&                      q_clause && q_clause                                  /* Logical conjunction (\*(Aqand\*(Aq) */
+\&                    | q_clause || q_clause                                  /* Logical disjunction (\*(Aqor\*(Aq) */
+\&                    | ! q_clause                                            /* Logical negation (\*(Aqnot\*(Aq): not be interpretable for all clauses */
+\&                    | ( qc_boolean )                                        /* Explicit grouping */
+\&                    ;
 \& 
-\& qc_near       ::=                                                       /*\-\- Unordered proximity constraint \-\-*/
-\&                   NEAR ( qc_tokens , qc_tokens , integer )              /* ... over 2 argument conditions */
-\&                 | NEAR ( qc_tokens , qc_tokens , qc_tokens , integer )  /* ... over 3 argument conditions */
-\&                 | ( qc_near )                                           /* Explicit grouping (vacuous) */
-\&                 ;
+\& qc_concat        ::=                                                       /*\-\- Implicit conjunction of multiple independent query clauses (ddc >= v2.0.20) \-\-*/
+\&                      qc_basic qc_basic                                     /* ... only basic query clauses can be implicitly conjoined */
+\&                    | qc_concat qc_basic                                    /* ... arbitrarily many clauses may be added */
+\&                    | ( qc_concat )                                         /* ... explicit grouping is allowed */
+\&                    ;
 \& 
-\& qc_tokens     ::=                                                       /*\-\- Phrase or single\-token condition \-\-*/
-\&                   qc_word                                               /* Single\-token condition */
-\&                 | qc_phrase                                             /* Ordered sequence of single\-token conditions */
-\&                 ;
+\& qc_near          ::=                                                       /*\-\- Unordered proximity constraint \-\-*/
+\&                      NEAR ( qc_tokens , qc_tokens , integer )              /* ... over 2 argument conditions */
+\&                    | NEAR ( qc_tokens , qc_tokens , qc_tokens , integer )  /* ... over 3 argument conditions */
+\&                    | ( qc_near )                                           /* Explicit grouping (vacuous) */
+\&                    ;
 \& 
-\& qc_phrase     ::=                                                       /*\-\- Ordered sequence of single\-token conditions \-\-*/
-\&                   " l_phrase "                                          /* Phrases are enclosed in double\-quotes */
-\&                 | ( qc_phrase )                                         /* Explicit grouping (vacuous) */
-\&                 ;
+\& qc_tokens        ::=                                                       /*\-\- Phrase or single\-token condition \-\-*/
+\&                      qc_word                                               /* Single\-token condition */
+\&                    | qc_phrase                                             /* Ordered sequence of single\-token conditions */
+\&                    ;
 \& 
-\& qc_word       ::=                                                       /*\-\- Single\-token condition \-\-*/
-\&                   qw_bareword                                           /* Bareword query (expanded) */
-\&                 | qw_exact                                              /* Exact match (not expanded) */
-\&                 | qw_regex                                              /* Regular expression */
-\&                 | qw_any                                                /* Universal match (arbitrary value) */
-\&                 | qw_set_infl                                           /* Disjunction over a set of targets (expanded) */
-\&                 | qw_set_exact                                          /* Disjunction over a set of literals (not expanded) */
-\&                 | qw_prefix                                             /* Right\-truncated string (prefix condition) */
-\&                 | qw_prefix_set                                         /* Disjunction over right\-truncated strings (prefix\-set condition) */
-\&                 | qw_suffix                                             /* Left\-truncated string (suffix condition) */
-\&                 | qw_suffix_set                                         /* Disjunction over left\-truncated strings (suffix\-set condition) */
-\&                 | qw_infix                                              /* Substring (infix) condition */
-\&                 | qw_infix_set                                          /* Disjunction over substrings (infix\-set condition) */
-\&                 | qw_thesaurus                                          /* Thesaurus condition (\*(AqThes\*(Aq index) */
-\&                 | qw_morph                                              /* Morphological property condition (\*(AqMorphPattern\*(Aq index) */
-\&                 | qw_lemma                                              /* Lemma property condition (\*(AqLemma\*(Aq index) */
-\&                 | qw_chunk                                              /* Syntactic property condition (\*(AqChunk\*(Aq index) */
-\&                 | qw_anchor                                             /* Position in segment (a.k.a. \*(Aqbreak collection\*(Aq) */
-\&                 | qw_listfile                                           /* Disjunction over values (lines) read from a server\-side file (command\-line only) */
-\&                 | qw_with                                               /* Conjunction of multiple conditions on a single token */
-\&                 | ( qc_word )                                           /* Explicit grouping (e.g. for WITH, expanders, etc.) */
-\&                 ;
+\& qc_phrase        ::=                                                       /*\-\- Ordered sequence of single\-token conditions \-\-*/
+\&                      " l_phrase "                                          /* Phrases are enclosed in double\-quotes */
+\&                    | ( qc_phrase )                                         /* Explicit grouping (vacuous) */
+\&                    ;
 \& 
-\& qw_bareword   ::=                                                       /*\-\- String match condition with implicit term expansion \-\-*/
-\&                   s_word l_txchain                                      /* ... on \*(AqToken\*(Aq index, with optional expansion pipeline */
-\&                 | s_index = s_word l_txchain                            /* ... on user\-specified index, with optional expansion pipeline */
-\&                 ;
+\& qc_word          ::=                                                       /*\-\- Single\-token condition \-\-*/
+\&                      qw_bareword                                           /* Bareword query (expanded) */
+\&                    | qw_exact                                              /* Exact match (not expanded) */
+\&                    | qw_regex                                              /* Regular expression */
+\&                    | qw_any                                                /* Universal match (arbitrary value) */
+\&                    | qw_set_infl                                           /* Disjunction over a set of targets (expanded) */
+\&                    | qw_set_exact                                          /* Disjunction over a set of literals (not expanded) */
+\&                    | qw_prefix                                             /* Right\-truncated string (prefix condition) */
+\&                    | qw_prefix_set                                         /* Disjunction over right\-truncated strings (prefix\-set condition) */
+\&                    | qw_suffix                                             /* Left\-truncated string (suffix condition) */
+\&                    | qw_suffix_set                                         /* Disjunction over left\-truncated strings (suffix\-set condition) */
+\&                    | qw_infix                                              /* Substring (infix) condition */
+\&                    | qw_infix_set                                          /* Disjunction over substrings (infix\-set condition) */
+\&                    | qw_thesaurus                                          /* Thesaurus condition (\*(AqThes\*(Aq index) */
+\&                    | qw_morph                                              /* Morphological property condition (\*(AqMorphPattern\*(Aq index) */
+\&                    | qw_lemma                                              /* Lemma property condition (\*(AqLemma\*(Aq index) */
+\&                    | qw_chunk                                              /* Syntactic property condition (\*(AqChunk\*(Aq index) */
+\&                    | qw_anchor                                             /* Position in segment (a.k.a. \*(Aqbreak collection\*(Aq) */
+\&                    | qw_listfile                                           /* Disjunction over values (lines) read from a server\-side file (command\-line only) */
+\&                    | qw_with                                               /* Conjunction of multiple conditions on a single token */
+\&                    | ( qc_word )                                           /* Explicit grouping (e.g. for WITH, expanders, etc.) */
+\&                    ;
 \& 
-\& qw_exact      ::=                                                       /*\-\- Literal string match condition \-\-*/
-\&                   @ s_word                                              /* ... on \*(AqToken\*(Aq index */
-\&                 | s_index = @ s_word                                    /* ... or on user\-specified index */
-\&                 ;
+\& qw_bareword      ::=                                                       /*\-\- String match condition with implicit term expansion \-\-*/
+\&                      s_word l_txchain                                      /* ... on \*(AqToken\*(Aq index, with optional expansion pipeline */
+\&                    | s_index = s_word l_txchain                            /* ... on user\-specified index, with optional expansion pipeline */
+\&                    ;
 \& 
-\& qw_regex      ::=                                                       /*\-\- Regular expression match using perl syntax \-\-*/
-\&                   regex                                                 /* ... on \*(AqToken\*(Aq index */
-\&                 | s_index = regex                                       /* ... on user\-specified index */
-\&                 | neg_regex                                             /* ... on \*(AqToken\*(Aq index, negated */
-\&                 | s_index = neg_regex                                   /* ... on user\-specified index, negated */
-\&                 ;
+\& qw_exact         ::=                                                       /*\-\- Literal string match condition \-\-*/
+\&                      @ s_word                                              /* ... on \*(AqToken\*(Aq index */
+\&                    | s_index = @ s_word                                    /* ... or on user\-specified index */
+\&                    ;
 \& 
-\& qw_any        ::=                                                       /*\-\- Universal match (aka wildcard token) \-\-*/
-\&                   *                                                     /* ... on \*(AqToken\*(Aq index */
-\&                 | s_index = *                                           /* ... on user\-specified index (vacuous; index name is ignored) */
-\&                 ;
+\& qw_regex         ::=                                                       /*\-\- Regular expression match using perl syntax \-\-*/
+\&                      regex                                                 /* ... on \*(AqToken\*(Aq index */
+\&                    | s_index = regex                                       /* ... on user\-specified index */
+\&                    | neg_regex                                             /* ... on \*(AqToken\*(Aq index, negated */
+\&                    | s_index = neg_regex                                   /* ... on user\-specified index, negated */
+\&                    ;
 \& 
-\& qw_set_infl   ::=                                                       /*\-\- Disjunction over a set of (expanded) target values \-\-*/
-\&                   { l_set } l_txchain                                   /* ... in \*(AqToken\*(Aq index, with optional expansion pipeline */
-\&                 | s_index = { l_set } l_txchain                         /* ... in user\-specified index, with optional expansion pipeline */
-\&                 ;
+\& qw_any           ::=                                                       /*\-\- Universal match (aka wildcard token) \-\-*/
+\&                      *                                                     /* ... on \*(AqToken\*(Aq index */
+\&                    | s_index = *                                           /* ... on user\-specified index (vacuous; index name is ignored) */
+\&                    ;
 \& 
-\& qw_set_exact  ::=                                                       /*\-\- Disjunction over a set of literal values \-\-*/
-\&                   @{ l_set }                                            /* ... in the \*(AqToken\*(Aq index */
-\&                 | s_index = @{ l_set }                                  /* ... in a user\-specified index */
-\&                 ;
+\& qw_set_infl      ::=                                                       /*\-\- Disjunction over a set of (expanded) target values \-\-*/
+\&                      { l_set } l_txchain                                   /* ... in \*(AqToken\*(Aq index, with optional expansion pipeline */
+\&                    | s_index = { l_set } l_txchain                         /* ... in user\-specified index, with optional expansion pipeline */
+\&                    ;
 \& 
-\& qw_prefix     ::=                                                       /*\-\- Right\-truncated string (prefix condition) \-\-*/
-\&                   s_prefix                                              /* ... on \*(AqToken\*(Aq index */
-\&                 | s_index = s_prefix                                    /* ... on user\-specified index */
-\&                 ;
+\& qw_set_exact     ::=                                                       /*\-\- Disjunction over a set of literal values \-\-*/
+\&                      @{ l_set }                                            /* ... in the \*(AqToken\*(Aq index */
+\&                    | s_index = @{ l_set }                                  /* ... in a user\-specified index */
+\&                    ;
 \& 
-\& qw_prefix_set ::=                                                       /*\-\- Disjunction over right\-truncated strings (prefix\-set condition) \-\-*/
-\&                   { l_set }*                                            /* ... on \*(AqToken\*(Aq index */
-\&                 | s_index = { l_set }*                                  /* ... on user\-specified index */
-\&                 ;
+\& qw_prefix        ::=                                                       /*\-\- Right\-truncated string (prefix condition) \-\-*/
+\&                      s_prefix                                              /* ... on \*(AqToken\*(Aq index */
+\&                    | s_index = s_prefix                                    /* ... on user\-specified index */
+\&                    ;
 \& 
-\& qw_suffix     ::=                                                       /*\-\- Left\-truncated string (suffix condition) \-\-*/
-\&                   s_suffix                                              /* ... on \*(AqToken\*(Aq index */
-\&                 | s_index = s_suffix                                    /* ... on user\-specified index */
-\&                 ;
+\& qw_prefix_set    ::=                                                       /*\-\- Disjunction over right\-truncated strings (prefix\-set condition) \-\-*/
+\&                      { l_set }*                                            /* ... on \*(AqToken\*(Aq index */
+\&                    | s_index = { l_set }*                                  /* ... on user\-specified index */
+\&                    ;
 \& 
-\& qw_suffix_set ::=                                                       /*\-\- Disjunction over left\-truncated strings (suffix\-set condition) \-\-*/
-\&                   *{ l_set }                                            /* ... on \*(AqToken\*(Aq index */
-\&                 | s_index = *{ l_set }                                  /* ... on user\-specified index */
-\&                 ;
+\& qw_suffix        ::=                                                       /*\-\- Left\-truncated string (suffix condition) \-\-*/
+\&                      s_suffix                                              /* ... on \*(AqToken\*(Aq index */
+\&                    | s_index = s_suffix                                    /* ... on user\-specified index */
+\&                    ;
 \& 
-\& qw_infix      ::=                                                       /*\-\- Substring (infix) condition \-\-*/
-\&                   s_infix                                               /* ... on \*(AqToken\*(Aq index */
-\&                 | s_index = s_infix                                     /* ... on user\-specified index */
-\&                 ;
+\& qw_suffix_set    ::=                                                       /*\-\- Disjunction over left\-truncated strings (suffix\-set condition) \-\-*/
+\&                      *{ l_set }                                            /* ... on \*(AqToken\*(Aq index */
+\&                    | s_index = *{ l_set }                                  /* ... on user\-specified index */
+\&                    ;
 \& 
-\& qw_infix_set  ::=                                                       /*\-\- Disjunction over substrings (infix set) \-\-*/
-\&                   *{ l_set }*                                           /* ... on \*(AqToken\*(Aq index */
-\&                 | s_index = *{ l_set }*                                 /* ... on user\-specified index */
-\&                 ;
+\& qw_infix         ::=                                                       /*\-\- Substring (infix) condition \-\-*/
+\&                      s_infix                                               /* ... on \*(AqToken\*(Aq index */
+\&                    | s_index = s_infix                                     /* ... on user\-specified index */
+\&                    ;
 \& 
-\& qw_thesaurus  ::=                                                       /*\-\- Thesaurus condition (SYNTAX CHANGED!) \-\-*/
-\&                   :{ s_semclass }                                       /* ... on \*(AqThes\*(Aq index */
-\&                 | s_index = :{ s_semclass }                             /* ... on user\-specified index */
-\&                 ;
+\& qw_infix_set     ::=                                                       /*\-\- Disjunction over substrings (infix set) \-\-*/
+\&                      *{ l_set }*                                           /* ... on \*(AqToken\*(Aq index */
+\&                    | s_index = *{ l_set }*                                 /* ... on user\-specified index */
+\&                    ;
 \& 
-\& qw_morph      ::=                                                       /*\-\- Morphological property condition \-\-*/
-\&                   [ l_morph ]                                           /* ... on \*(AqMorphPattern\*(Aq index */
-\&                 | s_index = [ l_morph ]                                 /* ... on user\-specified index */
-\&                 ;
+\& qw_thesaurus     ::=                                                       /*\-\- Thesaurus condition (SYNTAX CHANGED!) \-\-*/
+\&                      :{ s_semclass }                                       /* ... on \*(AqThes\*(Aq index */
+\&                    | s_index = :{ s_semclass }                             /* ... on user\-specified index */
+\&                    ;
 \& 
-\& qw_lemma      ::=                                                       /*\-\- Lemma property condition (not for D* corpora) \-\-*/
-\&                   % s_lemma                                             /* ... on \*(AqLemma\*(Aq index */
-\&                 | s_index = % s_lemma                                   /* ... on user\-specified index */
-\&                 ;
+\& qw_morph         ::=                                                       /*\-\- Morphological property condition \-\-*/
+\&                      [ l_morph ]                                           /* ... on \*(AqMorphPattern\*(Aq index */
+\&                    | s_index = [ l_morph ]                                 /* ... on user\-specified index */
+\&                    ;
 \& 
-\& qw_chunk      ::=                                                       /*\-\- Syntactic property condition \-\-*/
-\&                   ^ s_chunk                                             /* ... on \*(AqChunk\*(Aq index */
-\&                 | s_index = ^ s_chunk                                   /* ... on user\-specified index */
-\&                 ;
+\& qw_lemma         ::=                                                       /*\-\- Lemma property condition (not for D* corpora) \-\-*/
+\&                      % s_lemma                                             /* ... on \*(AqLemma\*(Aq index */
+\&                    | s_index = % s_lemma                                   /* ... on user\-specified index */
+\&                    ;
 \& 
-\& qw_anchor     ::=                                                       /*\-\- Position in segment (a.k.a. \*(Aqbreak collection\*(Aq) \-\-*/
-\&                   $. = int_str                                          /* ... in \*(Aqs\*(Aq collection (0:initial, \-1:final) */
-\&                 | $. s_break = int_str                                  /* ... in user\-specified break collection */
-\&                 ;
+\& qw_chunk         ::=                                                       /*\-\- Syntactic property condition \-\-*/
+\&                      ^ s_chunk                                             /* ... on \*(AqChunk\*(Aq index */
+\&                    | s_index = ^ s_chunk                                   /* ... on user\-specified index */
+\&                    ;
 \& 
-\& qw_listfile   ::=                                                       /*\-\- Disjunction over values read from a server\-side file (command\-line only) \-\-*/
-\&                   < s_filename                                          /* ... on \*(AqToken\*(Aq index */
-\&                 | s_index = < s_filename                                /* ... on user\-specified index */
-\&                 ;
+\& qw_anchor        ::=                                                       /*\-\- Position in segment (a.k.a. \*(Aqbreak collection\*(Aq) \-\-*/
+\&                      $. = int_str                                          /* ... in \*(Aqs\*(Aq collection (0:initial, \-1:final) */
+\&                    | $. s_break = int_str                                  /* ... in user\-specified break collection */
+\&                    ;
 \& 
-\& qw_with       ::=                                                       /*\-\- Conjunction of multiple conditions over a single token \-\-*/
-\&                   qc_word WITH qc_word                                  /* ... note that negated conditions are not admissable here */
-\&                 ;
+\& qw_listfile      ::=                                                       /*\-\- Disjunction over values read from a server\-side file (command\-line only) \-\-*/
+\&                      < s_filename                                          /* ... on \*(AqToken\*(Aq index */
+\&                    | s_index = < s_filename                                /* ... on user\-specified index */
+\&                    ;
+\& 
+\& qw_with          ::=                                                       /*\-\- Conjunction of multiple conditions over a single token \-\-*/
+\&                      qc_word WITH qc_word                                  /* ... note that negated conditions are not admissable here */
+\&                    ;
 .Ve
 .PP
 \fIQuery Filter Rules\fR
@@ -390,6 +398,45 @@ Comments may appear after each rule in C notation
 \&                   | integer                           /* ... given offset (Token attribute) */
 \&                   | sym_str integer                   /* ... given attribute and offset */
 \&                   ;
+.Ve
+.PP
+\fICount-Query Rules\fR
+.IX Subsection "Count-Query Rules"
+.PP
+.Vb 3
+\& count_query   ::=                                           /*\-\- Top\-level count\-query root \-\-*/
+\&                   COUNT ( query_conditions ) count_filters  /* Filters may be empty */
+\&                 ;
+\& 
+\& count_filters ::=                                           /*\-\- List of count\-query options \-\-*/
+\&                                                             /* empty */
+\&                 | count_filters count_filter                /* non\-empty */
+\&                 ;
+\& 
+\& count_filter  ::=                                           /*\-\- Single count\-query option \-\-*/
+\&                   count_by                                  /* histogram bin selection */
+\&                 ;
+\& 
+\& count_by      ::=                                           /*\-\- Select count\-query histogram keys (metadata tuples) \-\-*/
+\&                   BY l_countkeys                            /* SQL\-style syntax */
+\&                 | BY [ l_countkeys ]                        /* DDC filter\-style syntax */
+\&                 ;
+\& 
+\& l_countkeys   ::=                                           /*\-\- Tuple of bibliographic metadata fields \-\-*/
+\&                                                             /* ... empty */
+\&                 | l_countkeys ,                             /* ... comma\-separated */
+\&                 | l_countkeys count_key                     /* ... or space\-separated */
+\&                 ;
+\& 
+\& count_key     ::=                                           /*\-\- Histogram bin component \-\-*/
+\&                   *                                         /* ... constant string \*(Aq*\*(Aq (global counts only) */
+\&                 | @ symbol                                  /* ... constant user\-defined string */
+\&                 | FILEID                                    /* ... subcorpus\-local file\-id (integer) */
+\&                 | FILENAME                                  /* ... filename */
+\&                 | DATE                                      /* ... date string (YYYY\-MM\-DD) */
+\&                 | DATE / i_slice                            /* ... date slice, computed as (i_slice*int(year/i_slice)) */
+\&                 | s_field                                   /* ... other bibliographic field value (e.g. textClass) */
+\&                 ;
 .Ve
 .PP
 \fIList-like Constituents\fR
@@ -527,6 +574,10 @@ Comments may appear after each rule in C notation
 \&                 INTEGER           /* ... parsed as a string */
 \&               ;
 \& 
+\& i_slice     ::=                   /*\-\- Date interval for histogram bins \-\-*/
+\&                 integer           /* ... is just an integer (interval size in years) */
+\&               ;
+\& 
 \& date        ::=                   /*\-\- date string \-\-*/
 \&                 DATE              /* ... e.g. YYYY(\-MM(\-DD)?)? */
 \&               | INTEGER           /* ... every valid integer is also a valid date (year part only) */
@@ -545,8 +596,8 @@ The following macros are defined for the underlying scanner:
 \& ws             [ \et\en\er\ef\ev]
 \& punct          [\e^\e!\e~\e$\e@\e%\e/\e=\e?\e_\e:\e;\e+\e#\e.\e\e\e*\e,\e\*(Aq\e"\e&\e|\e(\e)\e[\e]\e{\e}\e<\e>]
 \& 
-\& symbol_cfirst  [^ \et\er\en\ef\ev\e0\e^\e&\e|\e!\e(\e)\e[\e]\e{\e}\e<\e>\e\*(Aq\e"\e,\e;\e:\e#\e=\e*\e%\e\e\e~\e$\e@\e/\e?\e_\e+\e.]
-\& symbol_crest   [^ \et\er\en\ef\ev\e0\e^\e&\e|\e!\e(\e)\e[\e]\e{\e}\e<\e>\e\*(Aq\e"\e,\e;\e:\e#\e=\e*\e%\e\e]
+\& symbol_cfirst  [^ \et\er\en\ef\ev\e0\e^\e&\e|\e!\e(\e)\e[\e]\e{\e}\e<\e>\e\*(Aq\e"\e,\e;\e:\e#\e=\e*\e%\e\e\e~\e/\e$\e@\e?\e_\e+\e.]
+\& symbol_crest   [^ \et\er\en\ef\ev\e0\e^\e&\e|\e!\e(\e)\e[\e]\e{\e}\e<\e>\e\*(Aq\e"\e,\e;\e:\e#\e=\e*\e%\e\e\e~\e/]
 \& symbol_cescape  (\e\e.)
 \& symbol_text     ({symbol_cescape}|{symbol_cfirst})(({symbol_cescape}|{symbol_crest})*)
 \& 
@@ -566,6 +617,10 @@ The following macros are defined for the underlying scanner:
 .Vb 10
 \& (?i:near)
 \& (?i:with)
+\& (?i:count)
+\& (?i:(file|doc)?id)
+\& (?i:(file|doc)_?(name)?)
+\& (?i:date)
 \& (?i:\e#(cntxt|n))
 \& (?i:\e#(with)?in)
 \& (?i:\e#(sep(arate)?|nojoin)(_hits)?)
@@ -590,6 +645,7 @@ The following macros are defined for the underlying scanner:
 \& (?i:\e#(less|asc)(_by)?)                  
 \& (?i:\e#(greater|de?sc)(_by)?)   
 \& (?i:\e#rand(om)?)
+\& (?i:\e#by)
 .Ve
 .PP
 The scanner supports the various reserved words used in
@@ -642,8 +698,8 @@ thus /REGEX/g is a equivalent to /^(?:REGEX)$/.
 \& "#<"                           /* max\-distance hint for phrase queries */
 \& "#>"                           /* min\-distance hint for phrase queries */
 \& "$."                           /* anchor pseudo\-index (position\-index in "break collection" segment) */
-\& [\e!\e.\e,\e:\e;\e$\e@\e%\e^\e#\e=]       /* single\-character punctuation operators */
-\& [\e[\e]\e{\e}\e(\e)\e<\e>]             /* parentheses */
+\& [\e!\e.\e,\e:\e;\e$\e@\e%\e^\e#\e=\e/]     /* single\-character punctuation operators */
+\& [\e[\e]\e{\e}\e(\e)\e<\e>]     /* parentheses */
 \& [\e"]                           /* double quotes (for pharse queries) */
 \& ":{"                           /* thesaurus\-query opener */
 \& "@{"                           /* literal\-set opener */

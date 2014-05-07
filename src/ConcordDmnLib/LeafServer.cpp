@@ -272,6 +272,15 @@ void CDDCLeafServer::handle__reload(string &Result)
     }
     m_pHolder = pHolder;
     Result = Format("{%s:1}", jsonStr(m_CorpusName).c_str());
+    m_bExpectMore = false;
+}
+
+//----------------------------------------------------------------------
+void CDDCLeafServer::handle__clear_cache(string &Result)
+{
+    m_pHolder->ClearQueryCache();
+    Result = Format("{%s:1}", jsonStr(m_CorpusName).c_str());
+    m_bExpectMore = false;
 }
 
 //==============================================================================

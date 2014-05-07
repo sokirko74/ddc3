@@ -62,7 +62,7 @@
 .\" ========================================================================
 .\"
 .IX Title "DDC_PROTO 5"
-.TH DDC_PROTO 5 "2014-03-07" "2.0.21-2" "DDC Corpus Indexing System"
+.TH DDC_PROTO 5 "2014-05-07" "2.0.23" "DDC Corpus Indexing System"
 .\" For nroff, turn off justification.  Always turn off hyphenation; it makes
 .\" way too many mistakes in technical documents.
 .if n .ad l
@@ -83,39 +83,37 @@ and \*(L" \*(R" represents a literal space character (\s-1ASCII\s0 byte with dec
 \& LENGTH DATA
 \&
 \& ##=====================================================================
-\& ## Distributed Server Messages
-\& 
-\& run_query " " CORPUS "\ex01" QUERY "\ex01" FORMAT "\ex01" OFFSET " " LIMIT " " TIMEOUT
-\& 
-\& expand_terms "\ex01" PIPELINE "\ex01" TERMS "\ex01" TIMEOUT
-\& expand_terms "\ex01" PIPELINE "\ex01" TERMS "\ex01" TIMEOUT "\ex01" CORPUS
-\& 
-\& get_paradigm " " WORD "\ex01" ILEMMATIZE " " ILANG
-\& ddc_close_socket
+\& ## Common Messages
 \& 
 \& version
 \& status
 \& vstatus
 \& info
+\& reload
+\& clear_cache
+\& 
+\& expand_terms "\ex01" PIPELINE "\ex01" TERMS "\ex01" TIMEOUT
+\& expand_terms "\ex01" PIPELINE "\ex01" TERMS "\ex01" TIMEOUT "\ex01" CORPUS
+\& 
+\& get_paradigm " " WORD "\ex01" ILEMMATIZE " " ILANG
+\& 
+\& ddc_close_socket
 \&
 \& ##=====================================================================
-\& ## Subcorpus Server Messages
+\& ## Branch\-Server Messages
+\& 
+\& run_query " " CORPUS "\ex01" QUERY "\ex01" FORMAT "\ex01" OFFSET " " LIMIT " " TIMEOUT
+\&
+\& ##=====================================================================
+\& ## Leaf\-Server Messages
 \& 
 \& get_first_hits " " QUERY "\ex01 " TIMEOUT " " LIMIT
 \& get_hit_strings " " FORMAT "\ex01" OFFSET " " LIMIT
-\& 
-\& expand_terms "\ex01" PIPELINE "\ex01" TERMS "\ex01" TIMEOUT
-\& 
-\& ddc_close_socket
-\& 
-\& version
-\& status
-\& info
 .Ve
 .SH "DESCRIPTION"
 .IX Header "DESCRIPTION"
-This section contains descriptions of the various messages which may
-be sent to a \s-1DDC\s0 (sub)corpus\- or distributed-server and their expected responses.
+This section contains descriptions of the various requests which may
+be sent to a \s-1DDC\s0 server and their expected responses.
 .SS "Generic Message Format"
 .IX Subsection "Generic Message Format"
 .Vb 1
@@ -125,8 +123,237 @@ be sent to a \s-1DDC\s0 (sub)corpus\- or distributed-server and their expected r
 All messages sent to or from a \s-1DDC\s0 server share the common generic format \f(CW\*(C`LENGTH DATA\*(C'\fR,
 where \f(CW\*(C`LENGTH\*(C'\fR is a 32\-bit little-endian unsigned integer,
 and \f(CW\*(C`DATA\*(C'\fR is the underlying message data, which is exactly \f(CW\*(C`LENGTH\*(C'\fR bytes long.
-.SS "Distributed Server Messages"
-.IX Subsection "Distributed Server Messages"
+.SS "Common Messages"
+.IX Subsection "Common Messages"
+This section describes the messages accepted by both \s-1DDC\s0 \*(L"branch\*(R" and \*(L"leaf\*(R" servers.
+.PP
+\fIversion\fR
+.IX Subsection "version"
+.PP
+.Vb 1
+\& version
+.Ve
+.PP
+Returns the version number of the
+running server
+as a string, by convention of the form
+\&\f(CW\*(C`MAJOR.MINOR.MICRO\-PATCHLEVEL\*(C'\fR
+where \f(CW\*(C`MAJOR\*(C'\fR, \f(CW\*(C`MINOR\*(C'\fR, and \f(CW\*(C`MICRO\*(C'\fR are unsigned decimal integers,
+and \f(CW\*(C`\-PATCHLEVEL\*(C'\fR is an optional string suffix.
+This should be the same string reported by \fBddc_daemon\fR on startup.
+.PP
+Since v2.0.18
+.PP
+\fIstatus\fR
+.IX Subsection "status"
+.PP
+.Vb 1
+\& status
+.Ve
+.PP
+Returns status information on the running server as a \s-1JSON\s0 object of the form:
+.PP
+.Vb 11
+\& {
+\&  "name":"server",                      //\-\- distributed server name
+\&  "version":"2.0.18\-pre1",              //\-\- distributed server version
+\&  "host":"127.0.0.1",                   //\-\- distributed server socket hostname or IP
+\&  "port":50011,                         //\-\- distributed server socket port
+\&  "started":"2014\-02\-17T13:49:59Z",     //\-\- ISO\-8601 timestamp of last server start
+\&  "uptime":1392644999,                  //\-\- server instance uptime in seconds
+\&  "nrequests":21,                       //\-\- number of served requests
+\&  "cachesize":42,                       //\-\- size of query cache (leaf servers only)
+\&  "corpora":["corpus1","corpus2",...]   //\-\- registered subcorpus names (branch servers only)
+\& }
+.Ve
+.PP
+Very fast turnaround, since all returned data is known to the distributed server itself,
+and no subcorpora need to be queried.
+.PP
+Since v2.0.18
+.PP
+\fIvstatus\fR
+.IX Subsection "vstatus"
+.PP
+.Vb 1
+\& vstatus
+.Ve
+.PP
+Like the \f(CW\*(C`status\*(C'\fR command, but the elements of the returned \*(L"corpora\*(R" list for a branch server
+are the \s-1JSON\s0 objects returned by the \f(CW\*(C`status\*(C'\fR command to the associated subcorpus servers,
+rather than just subcorpus names.
+.PP
+Since v2.0.18.
+.PP
+\fIinfo\fR
+.IX Subsection "info"
+.PP
+Returns information about associated corpora as a \s-1JSON\s0 object.
+For a leaf server, the returned object is of the form:
+.PP
+.Vb 10
+\& {
+\&  //\-\- basic information
+\&  "name":"corpus1",                     //\-\- subcorpus name
+\&  "version":"2.0.18\-pre1",              //\-\- subcorpus server version
+\&  "project":"corpus1",                  //\-\- project basename
+\&  "indexed":"2014\-02\-17T13:49:56Z",     //\-\- index timestamp (mtime of PROJECT._con)
+\&  "nfiles":4,                           //\-\- number of indexed files
+\&  "ntokens":56294,                      //\-\- number of indexed tokens
+\&  //
+\&  //\-\- global index options (see ddc_opt(5))
+\&  "lang":"German",
+\&  "utf8":1,
+\&  "caseSensitive":1,
+\&  "contextOperator":1,
+\&  "dwdsThesaurus":0,
+\&  "interpDelimiter":"\eu001f",
+\&  "tokenDelimiter":"\eu001e",
+\&  "allowUnsafeQueries":0,
+\&  "indexPunctuation":1,
+\&  "indexMorphPatterns":0,
+\&  "indexChunks":0,
+\&  //
+\&  //\-\- index structure: bibliographic metadata
+\&  "bibl":[
+\&        {"name":"orig","builtin":1},
+\&        {"name":"scan","builtin":1},
+\&        {"name":"date","builtin":1},
+\&        {"name":"page","builtin":1},
+\&        {"name":"author", "visible":1, "size":4},
+\&        //... other bibliographic fields ...
+\&        {"name":"title", "visible":1, "size":4}
+\&        ],
+\&  //
+\&  //\-\- index structure: break collections
+\&  "breaks":[
+\&        {"shortname":"s", "longname":"sentence", "size":2823},
+\&        //... other break collections ...
+\&        {"shortname":"textarea", "longname":"textarea", "size":4}
+\&        ],
+\&  //
+\&  //\-\- index structure: token\-level indices
+\&  "indices":[
+\&        {"shortname":"w", "longname":"Token", "visible":1, "bigrams":2, "size":9369},
+\&        {"shortname":"l", "longname":"Lemma", "visible":1, "size":5706},
+\&        //... other token\-level indices ...
+\&        {"shortname":"p", "longname":"Pos", "visible":1, "size":53},
+\&        ],
+\&  //
+\&  //\-\- query operators: bibliographic expanders ("ExpandBibl" options)
+\&  "xbibl":["xauthor",...]
+\&  //
+\&  //\-\- query operators: term expanders ("Expand" options)
+\&  "expanders":["Token",...]
+\&  }
+.Ve
+.PP
+For a branch server, the returned object has the form:
+.PP
+.Vb 10
+\& {
+\&  "name":"server",
+\&  "version":"2.0.18\-pre1",
+\&  "corpora":[
+\&        {
+\&         "name":"corpus1",
+\&         //... information for subcorpus "corpus1" ...
+\&        },
+\&        //... information for other subcorpora ...
+\&        {
+\&         "name":"corpusN",
+\&         //... information for subcorpus "corpusN" ...
+\&        }
+\&  ]
+\& }
+.Ve
+.PP
+where each object in the \*(L"corpora\*(R" array is the associated subcorpus server's
+response to an \*(L"info\*(R" request.
+.PP
+Since v2.0.18
+.PP
+\fIreload\fR
+.IX Subsection "reload"
+.PP
+Requests re-loading local (sub)corpus data from disk.
+Branch servers distribute the reload request to all subcopora.
+.PP
+Since v2.0.23
+.PP
+\fIclear_cache\fR
+.IX Subsection "clear_cache"
+.PP
+Request that the receiving server and any subordinate servers clear any in-memory query cache(s).
+.PP
+Since v2.0.23
+.PP
+\fIexpand_terms\fR
+.IX Subsection "expand_terms"
+.PP
+.Vb 2
+\& expand_terms " \ex01" PIPELINE "\ex01" TERMS "\ex01" TIMEOUT
+\& expand_terms " \ex01" PIPELINE "\ex01" TERMS "\ex01" TIMEOUT "\ex01" CORPUS
+.Ve
+.PP
+Requests online term expansion of the terms \f(CW\*(C`TERMS\*(C'\fR
+by the expansion pipeline \f(CW\*(C`PIPELINE\*(C'\fR, which must be known to the leaf server chosen for expansion (see \fIddc_opt\fR\|(5)).
+\&\f(CW\*(C`TIMEOUT\*(C'\fR is a request timeout in seconds.
+.PP
+For branch servers, if \f(CW\*(C`CORPUS\*(C'\fR is specified, it should be the the name of an immediate subcorpus which should
+be queried to perform the expansion.  If unspecified, the first registered subcorpus is queried.
+.PP
+Response data is of the form
+.PP
+.Vb 1
+\& STATUS " " NTERMS "\en" DATA
+.Ve
+.PP
+where \f(CW\*(C`STATUS\*(C'\fR is a decimal integer indicating the operation status (0 indicates success).
+\&\f(CW\*(C`NTERMS\*(C'\fR is the number of expanded terms being returned in the \f(CW\*(C`DATA\*(C'\fR portion,
+and \f(CW\*(C`DATA\*(C'\fR is either an error message (just in case \s-1STATUS\s0 is non-zero) or a list of expanded terms
+separated by TABs, newlines, and/or carriage returns (\s-1ASCII\s0 0x09, 0x0a, 0x0d).
+.PP
+Since v2.0.0
+.PP
+\fIget_paradigm\fR
+.IX Subsection "get_paradigm"
+.PP
+.Vb 1
+\& get_paradigm " " WORD "\ex01" ILEMMATIZE " " ILANG
+.Ve
+.PP
+Request morphological analysis of the word \f(CW\*(C`WORD\*(C'\fR using legacy built-in language-specific heuristics.
+\&\f(CW\*(C`ILEMMATIZE\*(C'\fR is a boolean integer; if true, only lemmatization is performed.
+\&\f(CW\*(C`ILANG\*(C'\fR is an integer indicating the built-in language rule-set to use; it should
+be a valid MorphLanguageEnum value as defined in ${\s-1DDC_SRC\s0}/src/common/utilit.h ;
+currently recognized values are (0:unknown, 1:Russian, 2:English, 3:German, 4:Generic, 5:URL, 6:Digits).
+.PP
+Response is an \s-1HTML\s0 fragment.
+.PP
+Since v1.x
+.PP
+\fIddc_close_socket\fR
+.IX Subsection "ddc_close_socket"
+.PP
+.Vb 1
+\& ddc_close_socket
+.Ve
+.PP
+Dummy request used internally prior to ddc\-v2.0.23 to avoid
+annoying complaints unless each subcorpus socket gets exactly 2 messages per user request.
+\&\fB\s-1DANGEROUS\s0\fR to use directly, can cause server lockup!
+.PP
+Since v2.0.0
+.PP
+\&\fB\s-1OBSOLETE\s0\fR since v2.0.23.
+.SS "Branch-Server Messages"
+.IX Subsection "Branch-Server Messages"
+This section describes the messages accepted by \s-1DDC\s0 \*(L"branch\*(R" servers,
+also known as \*(L"distributed\*(R" or \*(L"nonterminal\*(R" servers.  A branch server is not associated directly
+with any single index, but functions as an aggregator for one or more subordinate
+(\*(L"leaf\*(R") servers.
+.PP
 \fIrun_query\fR
 .IX Subsection "run_query"
 .PP
@@ -155,8 +382,8 @@ is the maximum number of hits to be retrieved.
 .IX Item "TIMEOUT"
 is the maximum number of seconds
 .PP
-Server response depends on \s-1FORMAT\s0.  In \f(CW\*(C`JSON\*(C'\fR mode, the response data is a \s-1JSON\s0 object
-of the form:
+Server response depends on \s-1FORMAT\s0.  In \f(CW\*(C`JSON\*(C'\fR mode, the response data
+for a traditional context-query is a \s-1JSON\s0 object of the form:
 .PP
 .Vb 10
 \& {
@@ -197,137 +424,53 @@ of the form:
 \& }
 .Ve
 .PP
+As of v2.0.23, ddc supports aggregate count-queries by means of the \f(CW\*(C`count()\*(C'\fR operator.
+If the requested \f(CW\*(C`QUERY\*(C'\fR was such a count-query, the query response is slightly different:
+.IP "nhits_" 4
+.IX Item "nhits_"
+indicates the best-guess maximum number of non-zero histogram bins for this query.
+This number may be smaller than the actual number of non-zero histogram bins
+if \f(CW\*(C`LIMIT\*(C'\fR was less than the total number of non-zero bins in some subcorpus
+and some non-zero bins occurred in more than one subcorpus:
+such duplicate bins are merged by the branch server only, but only up to \f(CW\*(C`LIMIT\*(C'\fR
+are retrieved by the branch server for any query, so some uncertainty remains
+regarding the status of duplicates among the bins beyond \f(CW\*(C`LIMIT\*(C'\fR.
+.IP "dhits_" 4
+.IX Item "dhits_"
+is of the form \*(L"N1+N2+...=NTOTAL~NMAX\*(R", where the \f(CW\*(C`Ni\*(C'\fR are the number of hits
+(non-zero histogram bins) in the associated subcorpora, \f(CW\*(C`NTOTAL\*(C'\fR is the total
+number of non-zero histogram bins in any subcorpus (regardless of duplicates),
+and \f(CW\*(C`NMAX\*(C'\fR is the best-guess maximum number of non-zero histogram bins as reported
+in \f(CW\*(C`nhits_\*(C'\fR.
+.IP "hits_" 4
+.IX Item "hits_"
+is not present.
+.IP "counts_" 4
+.IX Item "counts_"
+is a \s-1JSON\s0 array of the form:
+.Sp
+.Vb 1
+\& [ BIN1, BIN2, ..., BINn ]
+.Ve
+.Sp
+Each element \f(CW\*(C`BINi\*(C'\fR of the \f(CW\*(C`counts_\*(C'\fR array represents a single histogram bin
+as a \s-1JSON\s0 array
+.Sp
+.Vb 1
+\& [ COUNT, KEY(s)... ]
+.Ve
+.Sp
+where \f(CW\*(C`COUNT\*(C'\fR is the total count for the bin in question and \f(CW\*(C`KEY(s)...\*(C'\fR
+are the key strings as requested in the \f(CW\*(C`QUERY\*(C'\fR \*(L"#BY\*(R"\-clause.
+.PP
 Since v1.x, \s-1JSON\s0 format and error messages since v2.0.0.
+.SS "Leaf Server Messages"
+.IX Subsection "Leaf Server Messages"
+This section describes the messages accepted by \s-1DDC\s0 \*(L"leaf\*(R" servers,
+also known as \*(L"subcorpus\*(R", \*(L"local\*(R", or \*(L"terminal\*(R" servers.
+A leaf server is directly associated with exactly one index on the local filesystem,
+and has no subcorpora itself.
 .PP
-\fIexpand_terms\fR
-.IX Subsection "expand_terms"
-.PP
-.Vb 2
-\& expand_terms " \ex01" PIPELINE "\ex01" TERMS "\ex01" TIMEOUT
-\& expand_terms " \ex01" PIPELINE "\ex01" TERMS "\ex01" TIMEOUT "\ex01" CORPUS
-.Ve
-.PP
-Requests online term expansion of the terms \f(CW\*(C`TERMS\*(C'\fR
-by the expansion pipeline \f(CW\*(C`PIPELINE\*(C'\fR, which must be known to the server (see \fIddc_opt\fR\|(5)).  \f(CW\*(C`TIMEOUT\*(C'\fR is a request timeout in seconds.
-If specified, \f(CW\*(C`CORPUS\*(C'\fR is the the name of a subcorpus known to the server which should
-be queried to perform the expansion.  If unspecified, the first registered subcorpus is queried.
-Response is as for the subcorpus \f(CW\*(C`expand_terms\*(C'\fR command.
-.PP
-Since v2.0.0
-.PP
-\fIget_paradigm\fR
-.IX Subsection "get_paradigm"
-.PP
-.Vb 1
-\& get_paradigm " " WORD "\ex01" ILEMMATIZE " " ILANG
-.Ve
-.PP
-Request morphological analysis of the word \f(CW\*(C`WORD\*(C'\fR using legacy built-in language-specific heuristics.
-\&\f(CW\*(C`ILEMMATIZE\*(C'\fR is a boolean integer; if true, only lemmatization is performed.
-\&\f(CW\*(C`ILANG\*(C'\fR is an integer indicating the built-in language rule-set to use; it should
-be a valid MorphLanguageEnum value as defined in ${\s-1DDC_SRC\s0}/src/common/utilit.h ;
-currently recognized values are (0:unknown, 1:Russian, 2:English, 3:German, 4:Generic, 5:URL, 6:Digits).
-.PP
-Response is an \s-1HTML\s0 fragment.
-.PP
-Since v1.x
-.PP
-\fIddc_close_socket\fR
-.IX Subsection "ddc_close_socket"
-.PP
-.Vb 1
-\& ddc_close_socket
-.Ve
-.PP
-Dummy request used internally to avoid
-annoying complaints unless each subcorpus socket gets exactly 2 messages per user request.
-\&\fB\s-1DANGEROUS\s0\fR to use on a distributed server, can cause server lockup!
-.PP
-Since v2.0.0
-.PP
-\fIversion\fR
-.IX Subsection "version"
-.PP
-.Vb 1
-\& version
-.Ve
-.PP
-Returns the version number of the
-distributed server
-as a string, by convention of the form
-\&\f(CW\*(C`MAJOR.MINOR.MICRO\-PATCHLEVEL\*(C'\fR
-where \f(CW\*(C`MAJOR\*(C'\fR, \f(CW\*(C`MINOR\*(C'\fR, and \f(CW\*(C`MICRO\*(C'\fR are unsigned decimal integers,
-and \f(CW\*(C`\-PATCHLEVEL\*(C'\fR is an optional string suffix.
-This should be the same string reported by \fBddc_daemon\fR on startup.
-.PP
-Since v2.0.18
-.PP
-\fIstatus\fR
-.IX Subsection "status"
-.PP
-.Vb 1
-\& status
-.Ve
-.PP
-Returns status information on the distributed server as a \s-1JSON\s0 object of the form:
-.PP
-.Vb 10
-\& {
-\&  "name":"server",                      //\-\- distributed server name
-\&  "version":"2.0.18\-pre1",              //\-\- distributed server version
-\&  "host":"127.0.0.1",                   //\-\- distributed server socket hostname or IP
-\&  "port":50011,                         //\-\- distributed server socket port
-\&  "started":"2014\-02\-17T13:49:59Z",     //\-\- ISO\-8601 timestamp of last server start
-\&  "uptime":1392644999,                  //\-\- server instance uptime in seconds
-\&  "nrequests":21,                       //\-\- number of served requests
-\&  "corpora":["corpus1","corpus2",...]   //\-\- registered subcorpora (names only)
-\& }
-.Ve
-.PP
-Very fast turnaround, since all returned data is known to the distributed server itself,
-and no subcorpora need to be queried.
-.PP
-Since v2.0.18
-.PP
-\fIvstatus\fR
-.IX Subsection "vstatus"
-.PP
-.Vb 1
-\& vstatus
-.Ve
-.PP
-Like the \f(CW\*(C`status\*(C'\fR command, but the elements of the returned \*(L"corpora\*(R" list
-are the \s-1JSON\s0 objects returned by the \f(CW\*(C`status\*(C'\fR command to the associated subcorpus servers,
-rather than just subcorpus names.
-.PP
-Since v2.0.18.
-.PP
-\fIinfo\fR
-.IX Subsection "info"
-.PP
-Returns information about associated subcorpora as a \s-1JSON\s0 object of the form:
-.PP
-.Vb 10
-\& {
-\&  "name":"server",
-\&  "version":"2.0.18\-pre1",
-\&  "corpora":[
-\&        {
-\&         "name":"corpus1",
-\&         //... information for subcorpus "corpus1" ...
-\&        },
-\&        //... information for other subcorpora ...
-\&        {
-\&         "name":"corpusN",
-\&         //... information for subcorpus "corpusN" ...
-\&        }
-\&  ]
-\& }
-.Ve
-.PP
-Since v2.0.18
-.SS "Subcorpus Server Messages"
-.IX Subsection "Subcorpus Server Messages"
 \fIget_first_hits\fR
 .IX Subsection "get_first_hits"
 .PP
@@ -380,7 +523,12 @@ If \f(CW\*(C`ORDER_STRING\*(C'\fR is the literal string \*(L"<empty>\*(R", it is
 \&\f(CW\*(C`ORDER_STRING\*(C'\fR may also be a string of the form \*(L"#XXXXXXXX\*(R" representing a 32\-bit integer
 sort key in hexidecimal notation (msb order, high bit set for non-negative numbers only, no fill bits).
 .PP
-Since v1.x, error message strings since v2.0.0.
+As of v2.0.23, ddc supports aggregate count-queries (by means of the \f(CW\*(C`count()\*(C'\fR operator)
+in addition to traditional \*(L"context\*(R" queries.  If the requested \f(CW\*(C`QUERY\*(C'\fR was such a count-query,
+then \f(CW\*(C`ORDER_STRING\*(C'\fR is a \*(L"\ex02\*(R"\-separated list of count-key components, and \f(CW\*(C`INDEX\*(C'\fR is the
+total count of the associated histogram bin.
+.PP
+Since v1.x, error message strings since v2.0.0, count-queries since v2.0.23.
 .PP
 \fIget_hit_strings\fR
 .IX Subsection "get_hit_strings"
@@ -430,149 +578,6 @@ An example response in \s-1JSON\s0 format is:
 .Ve
 .PP
 Since v1.x, \s-1JSON\s0 format and error messages since v2.0.0.
-.PP
-\fIexpand_terms\fR
-.IX Subsection "expand_terms"
-.PP
-.Vb 2
-\& expand_terms "\ex01" PIPELINE "\ex01" TERMS "\ex01" TIMEOUT
-\& expand_terms " \ex01" PIPELINE "\ex01" TERMS "\ex01" TIMEOUT "\ex01" ...
-.Ve
-.PP
-Requests online term expansion of the terms \f(CW\*(C`TERMS\*(C'\fR
-by the expansion pipeline \f(CW\*(C`PIPELINE\*(C'\fR, which must be known to the subcorpus server (see \fIddc_opt\fR\|(5)).
-\&\f(CW\*(C`TIMEOUT\*(C'\fR is a request timeout in seconds.
-.PP
-Response data is of the form
-.PP
-.Vb 1
-\& STATUS " " NTERMS "\en" DATA
-.Ve
-.PP
-where \f(CW\*(C`STATUS\*(C'\fR is a decimal integer indicating the operation status (0 indicates success).
-\&\f(CW\*(C`NTERMS\*(C'\fR is the number of expanded terms being returned in the \f(CW\*(C`DATA\*(C'\fR portion,
-and \f(CW\*(C`DATA\*(C'\fR is either an error message (just in case \s-1STATUS\s0 is non-zero) or a list of expanded terms
-separated by TABs, newlines, and/or carriage returns (\s-1ASCII\s0 0x09, 0x0a, 0x0d).
-.PP
-Since v2.0.0.
-.PP
-\fIddc_close_socket\fR
-.IX Subsection "ddc_close_socket"
-.PP
-.Vb 1
-\& ddc_close_socket
-.Ve
-.PP
-Dummy request used internally to avoid
-annoying complaints unless each subcorpus socket gets exactly 2 messages per user request.
-Should always return the response \*(L"ok\*(R".
-Causes the server to terminate the client connection.
-\&\fB\s-1DANGEROUS\s0\fR to use directly on a subcorpus server, can cause premature server termination!
-.PP
-Since v2.0.0.
-.PP
-\fIversion\fR
-.IX Subsection "version"
-.PP
-.Vb 1
-\& version
-.Ve
-.PP
-Returns the version number of the subcorpus server as a string, by convention of the form
-\&\f(CW\*(C`MAJOR.MINOR.MICRO\-PATCHLEVEL\*(C'\fR
-where \f(CW\*(C`MAJOR\*(C'\fR, \f(CW\*(C`MINOR\*(C'\fR, and \f(CW\*(C`MICRO\*(C'\fR are unsigned decimal integers,
-and \f(CW\*(C`\-PATCHLEVEL\*(C'\fR is an optional string suffix.
-This should be the same string reported by \fBddc_daemon\fR on startup.
-.PP
-Since v2.0.18
-.PP
-\fIstatus\fR
-.IX Subsection "status"
-.PP
-.Vb 1
-\& status
-.Ve
-.PP
-Returns status information on the subcorpus server as a \s-1JSON\s0 object of the form:
-.PP
-.Vb 10
-\& {
-\&  "name":"corpus1",                     //\-\- subcorpus name
-\&  "version":"2.0.18\-pre1",              //\-\- subcorpus server version
-\&  "host":"127.0.0.1",                   //\-\- subcorpus server socket hostname or IP
-\&  "port":50011,                         //\-\- subcorpus server socket port
-\&  "started":"2014\-02\-17T13:49:59Z",     //\-\- ISO\-8601 timestamp of last server start
-\&  "uptime":1392644999,                  //\-\- subcorpus server instance uptime in seconds
-\&  "nrequests":21,                       //\-\- number of served requests
-\&  "cachesize":42,                       //\-\- size of query cache
-\& }
-.Ve
-.PP
-Since v2.0.18
-.PP
-\fIinfo\fR
-.IX Subsection "info"
-.PP
-Returns information about the associated (sub)corpus as a \s-1JSON\s0 object of the form:
-.PP
-.Vb 10
-\& {
-\&  //\-\- basic information
-\&  "name":"corpus1",                     //\-\- subcorpus name
-\&  "version":"2.0.18\-pre1",              //\-\- subcorpus server version
-\&  "project":"corpus1",                  //\-\- project basename
-\&  "indexed":"2014\-02\-17T13:49:56Z",     //\-\- index timestamp (mtime of PROJECT._con)
-\&  "nfiles":4,                           //\-\- number of indexed files
-\&  "ntokens":56294,                      //\-\- number of indexed tokens
-\&  //
-\&  //\-\- global index options (see ddc_opt(5))
-\&  "lang":"German",
-\&  "utf8":1,
-\&  "caseSensitive":1,
-\&  "contextOperator":1,
-\&  "dwdsThesaurus":0,
-\&  "interpDelimiter":"\eu001f",
-\&  "tokenDelimiter":"\eu001e",
-\&  "allowUnsafeQueries":0,
-\&  "indexPunctuation":1,
-\&  "indexMorphPatterns":0,
-\&  "indexChunks":0,
-\&  //
-\&  //\-\- index structure: bibliographic metadata
-\&  "bibl":[
-\&        {"name":"orig","builtin":1},
-\&        {"name":"scan","builtin":1},
-\&        {"name":"date","builtin":1},
-\&        {"name":"page","builtin":1},
-\&        {"name":"author", "visible":1, "size":4},
-\&        //... other bibliographic fields ...
-\&        {"name":"title", "visible":1, "size":4}
-\&        ],
-\&  //
-\&  //\-\- index structure: break collections
-\&  "breaks":[
-\&        {"shortname":"s", "longname":"sentence", "size":2823},
-\&        //... other break collections ...
-\&        {"shortname":"textarea", "longname":"textarea", "size":4}
-\&        ],
-\&  //
-\&  //\-\- index structure: token\-level indices
-\&  "indices":[
-\&        {"shortname":"w", "longname":"Token", "visible":1, "bigrams":2, "size":9369},
-\&        {"shortname":"l", "longname":"Lemma", "visible":1, "bigrams":0, "size":5706},
-\&        //... other token\-level indices ...
-\&        {"shortname":"p", "longname":"Pos", "visible":1, "bigrams":0, "size":53},
-\&        ],
-\&  //
-\&  //\-\- query operators: bibliographic expanders ("ExpandBibl" options)
-\&  "xbibl":["xauthor",...]
-\&  //
-\&  //\-\- query operators: term expanders ("Expand" options)
-\&  "expanders":["Token",...]
-\&  }
-.Ve
-.PP
-Since v2.0.18
 .SH "ACKNOWLEDGEMENTS"
 .IX Header "ACKNOWLEDGEMENTS"
 Alexey Sokirko wrote the original \s-1DDC\s0.
