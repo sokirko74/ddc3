@@ -20,6 +20,7 @@
 
 #include "BranchServer.h"
 #include "../common/ddcString.h"
+#include "../ConcordLib/QueryCompiler.h"
 
 //==============================================================================
 // CFirstHitsQueryResult
@@ -45,6 +46,7 @@ void CFirstHitsQueryResult::CollectCounts()
     for (vector<CHitToSort>::iterator hi=m_Hits.begin(); hi != m_Hits.end(); hi++) {
 	if (cur && cur->m_SortKeyStr == hi->m_SortKeyStr) {
 	    cur->m_HitNo += hi->m_HitNo;
+	    --m_AllHitsCount;
 	} else {
 	    newHits.push_back(CHitToSort());
 	    cur = &(newHits.back());
@@ -89,10 +91,11 @@ void CDDCBranchServer::handle__run_query(string &Result, const char *CorpusName,
     string ResultString;
     string HitDistrib;
     string DocDistrib;
+    string HitsKey;
     m_ErrorStr.clear();
     iNetworkError = RunDistributed(strQuery, strResultType, StartHitNo, ResultLimit,
 				   InternalError, EndHitNo, HitsCount, TimeOut,
-				   ResultString, RelevantDocsCount, HitDistrib, DocDistrib);
+				   ResultString, RelevantDocsCount, HitDistrib, DocDistrib, HitsKey);
 
     if (CConcHolder::GetResultFormatByString(strResultType) == DDC_ResultJson) {
 	Result = (string("{")
@@ -111,7 +114,7 @@ void CDDCBranchServer::handle__run_query(string &Result, const char *CorpusName,
 		  + Format(",\"ndocs_\":%i", RelevantDocsCount)
 		  + ",\"dhits_\":" + jsonStr(HitDistrib)
 		  + ",\"ddocs_\":" + jsonStr(DocDistrib)
-		  + ",\"hits_\":[\n" + ResultString
+		  + ",\"" + HitsKey + "\":[\n" + ResultString
 		  + "\n]}");
     }
     else if (m_ErrorStr.empty()) {
@@ -248,7 +251,8 @@ NetworkErrorsEnum CDDCBranchServer::RunDistributed(string Query,
 						   string& ResultString,
 						   DWORD&  RelevantDocsCount,
 						   string& HitDistrib,
-						   string& DocDistrib)
+						   string& DocDistrib,
+						   string& HitsKey)
 {
 	DwordVector PossibleHosts;
 	string CleanQuery;
@@ -334,12 +338,14 @@ NetworkErrorsEnum CDDCBranchServer::RunDistributed(string Query,
 
 	if (FHResult.m_SortOrder == hsoAscendingCounts) {
 	    //-- count-query can generate strings immediately
-	    //GetHitCounts(FHResult, ResultTypeE);
-	    ;
+	    GetHitCounts(FHResult, ResultTypeE, ResultString);
+	    HitsCount = FHResult.m_AllHitsCount;
+	    FHResult.m_HitsDistributionStr.insert(FHResult.m_HitsDistributionStr.size()-2, Format("~%d", HitsCount));
+	    HitsKey = "counts_";
 	} else {
 	    //-- context-query must retrieve full hit strings
-	    GetHitContexts(FHResult, ResultType, ResultTypeE, PossibleHosts,
-			   InternalError, TimeOut, ResultString);
+	    GetHitContexts(FHResult, ResultType, ResultTypeE, PossibleHosts, InternalError, TimeOut, ResultString);
+	    HitsKey = "hits_";
 	}
 
 	CConcHolder::DecorateQueryResults(ResultType, ResultString);
@@ -347,14 +353,36 @@ NetworkErrorsEnum CDDCBranchServer::RunDistributed(string Query,
 	    // we always write relevant document numbers (RelevantDocsDistributionStr) to output, 
 	    // even though it is not specified in the option file of the coprus threads.
 	    // The problem is, that daemon doesn't know anything about options files of their coprus threads.
-	    ResultString = FHResult.m_HitsDistributionStr + FHResult.m_RelevantDocsDistributionStr+ResultString;
+	    ResultString = FHResult.m_HitsDistributionStr + FHResult.m_RelevantDocsDistributionStr + ResultString;
 	}
 	HitDistrib = FHResult.m_HitsDistributionStr.substr(21,FHResult.m_HitsDistributionStr.size()-23);
 	DocDistrib = FHResult.m_RelevantDocsDistributionStr.substr(32,FHResult.m_RelevantDocsDistributionStr.size()-34);
-	
 	EndHitNo = StartHitNo + FHResult.m_Hits.size();
 
 	return neSuccess;	
+}
+
+//----------------------------------------------------------------------
+NetworkErrorsEnum CDDCBranchServer::GetHitCounts(CFirstHitsQueryResult& FHResult, DDCFormatTypeEnum ResultTypeE, string& ResultString)
+{
+    if (ResultTypeE == DDC_ResultHTML) {
+	ResultString += "<TABLE>\n";
+    }
+
+    for (vector<CHitToSort>::const_iterator hi=FHResult.m_Hits.begin(); hi != FHResult.m_Hits.end(); hi++) {
+	GenerateCountString(ResultString, ResultTypeE, hi->m_SortKeyStr, hi->m_HitNo);
+	if (ResultTypeE == DDC_ResultJson) {
+	    ResultString += ",\n";
+	}
+    }
+
+    if (ResultTypeE == DDC_ResultJson && !FHResult.m_Hits.empty()) {
+	ResultString.erase(ResultString.size()-2);
+    }
+    else if (ResultTypeE == DDC_ResultHTML) {
+	ResultString += "</TABLE>";
+    }
+    return neSuccess;
 }
 
 //----------------------------------------------------------------------

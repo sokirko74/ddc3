@@ -972,17 +972,13 @@ DDCErrorEnum CConcHolder::GenerateHitStrings(const int StartHitNo)
 		    m_QueryResultStr += "<BR>";
 		}
 		else if (m_ResultFormat==DDC_ResultJson) {
-		    if (EndHitNo < end-1)
-			m_QueryResultStr.push_back(',');
-		    else
-			m_QueryResultStr.push_back(']');
+		    m_QueryResultStr.push_back(EndHitNo < end-1 ? ',' : ']');
 		    m_QueryResultStr.push_back('\n');
 		}
 		else {
 		    m_QueryResultStr.push_back('\n');
 		}
 		m_QueryResultStr += m_AdditionalHitDelimeter;
-
 	};
 
 	return errNone;
@@ -1603,8 +1599,11 @@ string CConcHolder::GetCountIds()  const
 {
 	string Result;
 	for (size_t i=0; i < m_Hits.size(); i++) {
+		//-- "HitId OrderId" for ddc < v2.0.19
+		//-- "HitId    -0"   for ddc >=v2.0.19, context-queries
+		//-- "HitCount -0"   for ddc >=v2.0.23, count-queries
 		const CHit &h = m_Hits[i];
-		Result += Format("\t%zi -0%c", h.m_Value.m_Count, globalCountKeyDelim); //-- formerly (HitId, OrderId: ddc < v2.0.19) now (HitCount -0: ddc >= v2.0.23, count-queries only)
+		Result += Format("\t%zi -0%c", h.m_Value.m_Count, globalCountKeyDelim);
 		Result.append(h.m_SortKey.s, 0, DDC_SORTKEY_MAXLEN-1);
 	}
 	return Result;

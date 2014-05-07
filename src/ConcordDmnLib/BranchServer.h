@@ -75,7 +75,7 @@ struct CFirstHitsQueryResult  {
     /** close any previously opened sockets */
     void CloseSockets();
 
-    /** collect counts by sort-key, only makes sense if m_SortOrder==hsoAscendingCounts */
+    /** collect counts by sort-key, only makes sense if m_SortOrder==hsoAscendingCounts ; also modified m_AllHitsCount */
     void CollectCounts();
 };
 
@@ -157,7 +157,8 @@ public:
 				     string& ResultString,
 				     DWORD&  RelevantDocsCount,
 				     string& HitDistrib,
-				     string& DocDistrib);
+				     string& DocDistrib,
+				     string& HitsKey);
 
     /** mid-level guts for handle__run_query() , context-queries only */
     NetworkErrorsEnum GetHitContexts(CFirstHitsQueryResult& FHResult,
@@ -167,8 +168,10 @@ public:
 				     int&  InternalError,
 				     int     TimeOut,
 				     string& ResultString
-				     //DWORD&  RelevantDocsCount
 				     );
+
+    /** mid-level guts for handle__run_query() , count-queries only */
+    NetworkErrorsEnum GetHitCounts(CFirstHitsQueryResult& FHResult, DDCFormatTypeEnum ResultTypeE, string& ResultString);
 
     /** guts for handle__run_query() phase 1 */
     void GetFirstHitsFromCorpora(const DwordVector& PossibleHosts,
