@@ -28,7 +28,7 @@
 #else
 #endif
 
-#define DEBUG_HIT_SORT
+//#define DEBUG_HIT_SORT
 #ifdef DEBUG_HIT_SORT
 # define HSDEBUG(s) m_LogFunction(s)
 #else
