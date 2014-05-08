@@ -97,6 +97,7 @@ regex_modifier	[gimsx]
  */
  /*%x Q_INT*/
 
+%x Q_DATE
 %x Q_REGOPT
 %x Q_REGREP
 %x Q_XPIPE
@@ -116,7 +117,10 @@ regex_modifier	[gimsx]
  /* count-by keywords */
 (?i:(file|doc)?id)		{ return KW_FILEID; }
 (?i:(file|doc)_?(name)?)	{ return KW_FILENAME; }
-(?i:date)			{ return KW_DATE; }
+(?i:date)			{ BEGIN(Q_DATE); return KW_DATE; }
+<Q_DATE>{ws}+			{ ; /* whitespace: skip */ }
+<Q_DATE>"/"			{ BEGIN(INITIAL); return '/'; }
+<Q_DATE>""/.			{ BEGIN(INITIAL); }
 
  /* query operators */
 (?i:\#(cntxt|n))		{ return CNTXT; }
