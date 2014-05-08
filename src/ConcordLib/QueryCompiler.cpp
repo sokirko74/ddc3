@@ -183,6 +183,9 @@ void CQueryCompiler::CleanParser()
 	m_FilterField.clear();
 	m_FilterLB.clear();
 	m_FilterUB.clear();
+	m_RegexPattern.clear();
+	m_RegexReplacement.clear();
+	m_RegexModifiers.clear();
 }
 
 void CQueryCompiler::DeleteTree()
@@ -216,7 +219,18 @@ int CQueryCompiler::yyqlex(void* valp)
 	switch (iRetVal) {
 	case REGEX:
 	case NEG_REGEX:
-		m_Regex = s;
+	case REGEX_SEARCH:
+		m_RegexPattern = s;
+		((YYSTYPE *)valp)->m_str = &m_RegexPattern;
+		break;
+	case REGOPT:
+		m_RegexModifiers = s;
+		((YYSTYPE *)valp)->m_str = &m_RegexModifiers;
+		break;
+	case REGEX_REPLACE:
+		m_RegexReplacement = s;
+		((YYSTYPE *)valp)->m_str = &m_RegexReplacement;
+		break;
 	case SYMBOL:
 	case INFIX:
 	case PREFIX:
@@ -225,19 +239,6 @@ int CQueryCompiler::yyqlex(void* valp)
 	case DATE:
 	case EXPANDER:
 		((YYSTYPE *)valp)->m_str = newString(s);
-		break;
-	case REGOPT:
-		//-- hack: interpret 'g' modifer as "match whole string only"
-		if ((gpos=s.find('g')) != s.npos) {
-			m_Regex.insert(0,"^(?:");
-			m_Regex.append(")$");
-			do {
-				s.erase(gpos,1);
-				gpos = s.find('g',gpos);
-			} while (gpos != s.npos);
-		}
-		if (!s.empty()) m_Regex.insert(0, string("(?") + s + ")");  //-- insert pcre modifiers
-		((YYSTYPE *)valp)->m_str = newString(m_Regex);
 		break;
 	default:
 		((YYSTYPE *)valp)->m_str = NULL;
@@ -251,6 +252,30 @@ string* CQueryCompiler::newString(const string& s)
 {
 	m_Labels.push_back(s);
 	return &(m_Labels.back());
+}
+
+string *CQueryCompiler::newRegex(const string &pattern, const string &modifiers, bool isMatch)
+{
+	//-- hack: interpret 'g' modifer as "match whole string only"
+	string regex(pattern);
+	string regopts(modifiers);
+	int gpos;
+	if ( (gpos=regopts.find('g')) != regopts.npos ) {
+		if (isMatch) {
+			regex.insert(0,"^(?:");
+			regex.append(")$");
+		}
+		do {
+			regopts.erase(gpos,1);
+			gpos = regopts.find('g',gpos);
+		} while (gpos != regopts.npos);
+	}
+	if (!regopts.empty()) {
+		//-- insert pcre modifiers (except for /g)
+		regex.insert(0, string("(?") + regopts + ")"); 
+	}
+
+	return newString(regex);
 }
 
 CQuery* CQueryCompiler::SetQuery(CQuery* qp)

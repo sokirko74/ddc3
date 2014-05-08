@@ -1763,7 +1763,19 @@
 <td></td>
 <td></td>
 <td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_s_field">s_field</a></span> </td>
-<td class="ruleComment">/* ... other bibliographic field value (e.g. textClass) */</td>
+<td class="ruleComment">/* ... bibliographic string-field value (e.g. textClass) */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_count_key">count_key</a></span> <span class="ruleTerminal">~</span> <span class="ruleNonterminal"><a href="#rule_replace_regex">replace_regex</a></span> </td>
+<td class="ruleComment">/* ... on-the-fly regex transformation (can be chained) */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleTerminal">(</span> <span class="ruleNonterminal"><a href="#rule_count_key">count_key</a></span> <span class="ruleTerminal">)</span> </td>
+<td class="ruleComment">/* ... explicit grouping */</td>
 </tr>
 <tr>
 <td></td>
@@ -2361,6 +2373,31 @@
 </tr>
 <tr></tr>
 <tr>
+<td><b><a name="rule_replace_regex">replace_regex</a></b></td>
+<td>::=</td>
+<td></td>
+<td class="ruleCommentTop">/* On-the-fly regular expression search-and-replace */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS1">
+<span class="ruleXTerminal"><a href="#term_SEARCH_REPLACE_REGEX">SEARCH_REPLACE_REGEX</a></span> </td>
+<td class="ruleComment">/* ... are slash-delimited in perl syntax: s/SEARCH/REPLACE/ */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleXTerminal"><a href="#term_SEARCH_REPLACE_REGEX">SEARCH_REPLACE_REGEX</a></span> <span class="ruleXTerminal"><a href="#term_REGOPT">REGOPT</a></span> </td>
+<td class="ruleComment">/* ... with optional modifiers (gimsx) */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td><b>;</b></td>
+</tr>
+<tr></tr>
+<tr>
 <td><b><a name="rule_integer">integer</a></b></td>
 <td>::=</td>
 <td></td>
@@ -2527,11 +2564,12 @@ regex_modifier	[gimsx]
 	  in a literal <a href="#term_SYMBOL">symbol</a>, e.g. by enclosing the symbol in single quotes.
 	</p>
 </div>
-<!--/terminals:keywords--><!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ --><a name="term_REGOPT"></a><a name="term_NEG_REGEX"></a><div class="subsection">
+<!--/terminals:keywords--><!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ --><a name="term_REGOPT"></a><a name="term_NEG_REGEX"></a><a name="term_SEARCH_REPLACE_REGEX"></a><div class="subsection">
 <h3><a name="term_REGEX">Regular Expressions</a></h3>
 <pre>
-   \/{regex_text}\/{regex_modifier}*	/* slash-quoted regex, with option modifiers */
-"!"\/{regex_text}\/{regex_modifier}*	/* negated regex (complement) */
+  "/"{regex_text}"/"{regex_modifier}*			/* slash-quoted regex, with option modifiers */
+ "!/"{regex_text}"/"{regex_modifier}*			/* negated regex (complement) */
+ "s/"{regex_text}"/"{regex_text}"/"{regex_modifier}*	/* search-and-replace regex (for count-by) */
 </pre>
 <p>
 	  The scanner supports regular expressions enclosed by forward slashes, with
@@ -2548,12 +2586,15 @@ regex_modifier	[gimsx]
 	  must be escaped with a backslash ("\/").
 
 	  The regular expression modifier "<tt>/g</tt>" (mnemonic: 'match <b>G</b>lobally')
-	  has a special meaning for DDC: if this modifier is set, only those index
+	  has a special meaning when used in DDC regex match expressions: if this modifier is set, only those index
 	  items are retrieved which match the regular expression in the entirety;
 	  otherwise all index items for which any substring matches the regular expression
 	  will be retrieved.  Internally this behavior is implemented by implicitly
 	  inserting beginning- and end-of-string anchors into the regular expression,
 	  thus <tt>/REGEX/g</tt> is a equivalent to <tt>/^(?:REGEX)$/</tt>.
+	  When used in search-and-replace operations <tt>s/SEARCH/REPLACE/g</tt>, the
+	  "<tt>/g</tt>" modifier causes all occurrences of the <tt>SEARCH</tt> pattern
+	  to be replaced by the <tt>REPLACE</tt> string.
 	</p>
 </div>
 <!--/terminals:regex--><!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ --><div class="subsection">
@@ -2565,7 +2606,7 @@ regex_modifier	[gimsx]
 "#&lt;"				/* max-distance hint for phrase queries */
 "#&gt;"				/* min-distance hint for phrase queries */
 "$."				/* anchor pseudo-index (position-index in "break collection" segment) */
-[\!\.\,\:\;\$\@\%\^\#\=\/]	/* single-character punctuation operators */
+[\!\.\,\:\;\$\@\%\^\#\=\/\~]	/* single-character punctuation operators */
 [\[\]\{\}\(\)\&lt;\&gt;]	/* parentheses */
 [\"]				/* double quotes (for pharse queries) */
 ":{"				/* thesaurus-query opener */
@@ -3171,7 +3212,7 @@ regex_modifier	[gimsx]
   </body></div>
 <div class="footers">
 <div class="footer_sig">
-<address><a href="mailto:jurish@bbaw.de">jurish@bbaw.de</a></address>Last modified: Wed, 07 May 2014 14:03:06 +0200</div>
+<address><a href="mailto:jurish@bbaw.de">jurish@bbaw.de</a></address>Last modified: Thu, 08 May 2014 10:12:19 +0200</div>
 <div class="footer_linkbar"><p class="nopad"><a class="navLink" href="/">Root</a><a class="navLink" href="./">Back</a><span class="navLinkDisabled">Help</span></p></div>
 <p class="dummy"></p>
 </div>

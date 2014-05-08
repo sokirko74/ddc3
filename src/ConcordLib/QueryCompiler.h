@@ -92,8 +92,14 @@ public:
 	//! temporary for filter upper bound (#less_by_xyz, #greater_by_xyz)
 	string m_FilterUB;
 
-	//! temporary for regexes (used for lexer handling of regex modifiers)
-	string m_Regex;
+	//! temporary for regex patterns
+	string m_RegexPattern;
+
+	//! temporary for regex replacement strings (used by count-keys)
+	string m_RegexReplacement;
+
+	//! temporary for regex modifiers
+	string m_RegexModifiers;
 
 	//--------------------------------------------------------------
 	// administrivia
@@ -123,6 +129,10 @@ public:
 
 	//! wrapper to push a new string pointer onto the m_Labels stack (to be freed on CleanParser())
 	string* newString(const string &s=string(""));
+
+	//! wrapper for regexes, similar to "(?" + modifers + ":" + pattern + ")"
+	//! \param isMatch if true (default), /g modifier will cause regex to be wrapped in '^' and '$' anchors (match whole string)
+	string* newRegex(const string &pattern, const string &modifiers=string(""), bool isMatch=true);
 
 	//! flex convenience wrapper
 	inline const char* yytext() const { return YYText(); };

@@ -98,6 +98,7 @@ regex_modifier	[gimsx]
  /*%x Q_INT*/
 
 %x Q_REGOPT
+%x Q_REGREP
 %x Q_XPIPE
 
 /*======================================================================
@@ -116,7 +117,6 @@ regex_modifier	[gimsx]
 (?i:(file|doc)?id)		{ return KW_FILEID; }
 (?i:(file|doc)_?(name)?)	{ return KW_FILENAME; }
 (?i:date)			{ return KW_DATE; }
-
 
  /* query operators */
 (?i:\#(cntxt|n))		{ return CNTXT; }
@@ -146,18 +146,21 @@ regex_modifier	[gimsx]
 (?i:\#by)				{ return BY; }
 
  /* regexes */
-\!\/{regex_text}\//{regex_modifier}	{ yytext+=2; yyleng-=3; BEGIN(Q_REGOPT); return NEG_REGEX; /* negated regex, +modifiers */ }
-\!\/{regex_text}\/			{ yytext+=2; yyleng-=3;                  return NEG_REGEX; /* negated regex, -modifiers */ }
-\/{regex_text}\//{regex_modifier}	{ yytext++; yyleng-=2; BEGIN(Q_REGOPT);  return REGEX; /* slash-quoted regex with modifiers */ }
-\/{regex_text}\/			{ yytext++; yyleng-=2;                   return REGEX; /* slash-quoted regex with no modifiers */ }
-<Q_REGOPT>{regex_modifier}+		{ BEGIN(INITIAL); return REGOPT; }
+"!/"{regex_text}"/"/{regex_modifier}		{ yytext+=2; yyleng-=3; BEGIN(Q_REGOPT); return NEG_REGEX; /* negated regex, +modifiers */ }
+"!/"{regex_text}"/"				{ yytext+=2; yyleng-=3;                  return NEG_REGEX; /* negated regex, -modifiers */ }
+"/"{regex_text}"/"/{regex_modifier}		{ yytext++; yyleng-=2; BEGIN(Q_REGOPT);  return REGEX; /* slash-quoted regex with modifiers */ }
+"/"{regex_text}"/"				{ yytext++; yyleng-=2;                   return REGEX; /* slash-quoted regex with no modifiers */ }
+"s/"{regex_text}"/"				{ yytext+=2; yyleng-=3; BEGIN(Q_REGREP); return REGEX_SEARCH;  /* search-replace pattern */ }
+<Q_REGREP>{regex_text}"/"/{regex_modifier}	{            yyleng--;  BEGIN(Q_REGOPT); return REGEX_REPLACE; /* search-replace replacement, +modifiers */ }
+<Q_REGREP>{regex_text}"/"			{            yyleng--;  BEGIN(INITIAL);  return REGEX_REPLACE; /* search-replace replacement, -modifiers */ }
+<Q_REGOPT>{regex_modifier}+			{ BEGIN(INITIAL); return REGOPT; }
 
  /* punctuation */
 "#="				{ return HASH_EQUAL; /* hash+equal: exact distance */ }
 "#<"				{ return HASH_LESS; /* hash+less: max distance */ }
 "#>"				{ return HASH_GREATER; /* hash+greater: min distance */ }
 "$."				{ return DOLLAR_DOT; /* dollar+dot: anchor operator (position-index in segment) */ }
-[\!\.\,\:\;\$\@\%\^\#\=]	{ return ((int)yytext[0]); /* single-character punctuation operators */ }
+[\!\.\,\:\;\$\@\%\^\#\=\~\/]	{ return ((int)yytext[0]); /* single-character punctuation operators */ }
 [\[\]\{\}\(\)\<\>]		{ return ((int)yytext[0]); /* parentheses */ }
 [\"]				{ return ((int)yytext[0]); /* quotes */ }
 ":{"				{ return COLON_LBRACE; /* thesaurus-query opener */ }

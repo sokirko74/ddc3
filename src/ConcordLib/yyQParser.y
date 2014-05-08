@@ -183,6 +183,7 @@ int yylex (void*,  void*);
 %type	<m_str>		sym_str
 %type	<m_str>		regex
 %type	<m_str>		neg_regex
+%type	<m_str>		replace_regex
 %type	<m_str>		int_str
 %type	<m_int>		integer
 %type	<m_str>		date
@@ -194,6 +195,8 @@ int yylex (void*,  void*);
 %token	<m_str>	REGEX
 %token	<m_str>	NEG_REGEX
 %token	<m_str>	REGOPT
+%token	<m_str>	REGEX_SEARCH
+%token	<m_str>	REGEX_REPLACE
 %token	<m_str>	INTEGER
 %token	<m_str>	DATE
 %token	<m_str>	PREFIX
@@ -670,13 +673,15 @@ l_countkeys:
   */
 
 count_key:
-		'*'			{ $$=new CQCountKeyExprConstant("*"); };
-	|	'@' symbol		{ $$=new CQCountKeyExprConstant(*$2); };
-	|	KW_FILEID		{ $$=new CQCountKeyExprFileId("fileid"); };
-	|	KW_FILENAME		{ $$=new CQCountKeyExprFileName("filename"); };
-	|	KW_DATE			{ $$=new CQCountKeyExprDate("date"); };
-	|	KW_DATE '/' integer	{ $$=new CQCountKeyExprDateSlice("date",$3); };
-	|	s_biblname		{ $$=new CQCountKeyExprBibl(*$1); };
+		'*'				{ $$=new CQCountKeyExprConstant("*"); }
+	|	'@' symbol			{ $$=new CQCountKeyExprConstant(*$2); }
+	|	KW_FILEID			{ $$=new CQCountKeyExprFileId("fileid"); }
+	|	KW_FILENAME			{ $$=new CQCountKeyExprFileName("filename"); }
+	|	KW_DATE				{ $$=new CQCountKeyExprDate("date"); }
+	|	KW_DATE '/' integer		{ $$=new CQCountKeyExprDateSlice("date",$3); }
+	|	s_biblname			{ $$=new CQCountKeyExprBibl(*$1); }
+ 	|	count_key '~' replace_regex	{ $$=new CQCountKeyExprRegex((CQCountKeyExpr*)$1,*$3,_qc->m_RegexReplacement,_qc->m_RegexModifiers); }
+	|	'(' count_key ')'		{ $$=$2; }
 	;
 
  /*-------------------------------------------------------------
@@ -715,12 +720,17 @@ s_infix:	INFIX		{ *$1 = unescapeCString(*$1); $$ = $1; };
 
 s_expander:	EXPANDER	{ *$1 = unescapeCString(*$1); $$ = $1; };
 
-regex:		REGEX		{ $$ = $1; }
-	|	REGEX REGOPT	{ $$ = $2; }
+regex:		REGEX		{ $$ = _qc->newRegex(*$1); }
+	|	REGEX REGOPT	{ $$ = _qc->newRegex(*$1,*$2); }
 	;
 
-neg_regex:	NEG_REGEX		{ $$ = $1; }
-	|	NEG_REGEX REGOPT	{ $$ = $2; }
+neg_regex:	NEG_REGEX		{ $$ = _qc->newRegex(*$1); }
+	|	NEG_REGEX REGOPT	{ $$ = _qc->newRegex(*$1,*$2); }
+	;
+
+ /* replace_regex leaves replacement string in _qc->m_RegexReplacement */
+replace_regex:	REGEX_SEARCH REGEX_REPLACE		{ $$ = _qc->newRegex(*$1,"",false); }
+	|	REGEX_SEARCH REGEX_REPLACE REGOPT	{ $$ = _qc->newRegex(*$1,*$3,false); }
 	;
 
 int_str: 	INTEGER	{ $$ = $1; }

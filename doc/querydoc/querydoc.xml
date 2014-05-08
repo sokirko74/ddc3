@@ -1027,9 +1027,19 @@
 	      <t>/</t>
 	      <n>i_slice</n>
 	    </rhs>
-	    <rhs cmt="... other bibliographic field value (e.g. textClass)">
+	    <rhs cmt="... bibliographic string-field value (e.g. textClass)">
 	      <n>s_field</n>
 	    </rhs>
+          <rhs cmt="... on-the-fly regex transformation (can be chained)">
+            <n>count_key</n>
+            <t>~</t>
+            <n>replace_regex</n>
+          </rhs>
+          <rhs cmt="... explicit grouping">
+            <t>(</t>
+            <n>count_key</n>
+            <t>)</t>
+          </rhs>
 	  </rule>
 
 	</rules>
@@ -1294,6 +1304,18 @@
 	    </rhs>
 	  </rule>
 
+	  <!--~~~~~~~~ RULES: replace_regex -->
+	  <rule lhs="replace_regex" cmt="On-the-fly regular expression search-and-replace">
+	    <rhs cmt="... are slash-delimited in perl syntax: s/SEARCH/REPLACE/">
+	      <xt>SEARCH_REPLACE_REGEX</xt>
+	    </rhs>
+	    <rhs cmt="... with optional modifiers (gimsx)">
+	      <xt>SEARCH_REPLACE_REGEX</xt>
+	      <xt>REGOPT</xt>
+	    </rhs>
+	  </rule>
+
+
 	  <!--~~~~~~~~ RULES: integer -->
 	  <rule lhs="integer" cmt="Non-negative decimal integer">
 	    <rhs cmt="... parsed as an integer">
@@ -1419,10 +1441,12 @@ regex_modifier	[gimsx]
       <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
       <a name="term_REGOPT"/>
       <a name="term_NEG_REGEX"/>
+      <a name="term_SEARCH_REPLACE_REGEX"/>
       <subsection name="term_REGEX" title="Regular Expressions">
 <pre>
-   \/{regex_text}\/{regex_modifier}*	/* slash-quoted regex, with option modifiers */
-"!"\/{regex_text}\/{regex_modifier}*	/* negated regex (complement) */
+  "/"{regex_text}"/"{regex_modifier}*			/* slash-quoted regex, with option modifiers */
+ "!/"{regex_text}"/"{regex_modifier}*			/* negated regex (complement) */
+ "s/"{regex_text}"/"{regex_text}"/"{regex_modifier}*	/* search-and-replace regex (for count-by) */
 </pre>
 	<p>
 	  The scanner supports regular expressions enclosed by forward slashes, with
@@ -1439,12 +1463,15 @@ regex_modifier	[gimsx]
 	  must be escaped with a backslash ("\/").
 
 	  The regular expression modifier "<tt>/g</tt>" (mnemonic: 'match <b>G</b>lobally')
-	  has a special meaning for DDC: if this modifier is set, only those index
+	  has a special meaning when used in DDC regex match expressions: if this modifier is set, only those index
 	  items are retrieved which match the regular expression in the entirety;
 	  otherwise all index items for which any substring matches the regular expression
 	  will be retrieved.  Internally this behavior is implemented by implicitly
 	  inserting beginning- and end-of-string anchors into the regular expression,
 	  thus <tt>/REGEX/g</tt> is a equivalent to <tt>/^(?:REGEX)$/</tt>.
+	  When used in search-and-replace operations <tt>s/SEARCH/REPLACE/g</tt>, the
+	  "<tt>/g</tt>" modifier causes all occurrences of the <tt>SEARCH</tt> pattern
+	  to be replaced by the <tt>REPLACE</tt> string.
 	</p>
       </subsection>
       <!--/terminals:regex-->
@@ -1458,7 +1485,7 @@ regex_modifier	[gimsx]
 "#&lt;"				/* max-distance hint for phrase queries */
 "#&gt;"				/* min-distance hint for phrase queries */
 "$."				/* anchor pseudo-index (position-index in "break collection" segment) */
-[\!\.\,\:\;\$\@\%\^\#\=\/]	/* single-character punctuation operators */
+[\!\.\,\:\;\$\@\%\^\#\=\/\~]	/* single-character punctuation operators */
 [\[\]\{\}\(\)\&lt;\&gt;]	/* parentheses */
 [\"]				/* double quotes (for pharse queries) */
 ":{"				/* thesaurus-query opener */

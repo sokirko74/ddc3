@@ -578,25 +578,21 @@ bool RML_RE::Rewrite(string *out, const StringPiece &rewrite,
   for (const char *s = rewrite.data(), *end = s + rewrite.size();
        s < end; s++) {
     int c = *s;
-    if (c == '\\') {
+    if ((c == '\\' || c == '$') && isdigit(*(s+1))) {
       c = *++s;
-      if (isdigit(c)) {
-        int n = (c - '0');
-        if (n >= veclen) {
-          //fprintf(stderr, requested group %d in regexp %.*s\n",
-          //        n, rewrite.size(), rewrite.data());
-          return false;
-        }
-        int start = vec[2 * n];
-        if (start >= 0)
-          out->append(text.data() + start, vec[2 * n + 1] - start);
-      } else if (c == '\\') {
-        out->push_back('\\');
-      } else {
-        //fprintf(stderr, "invalid rewrite pattern: %.*s\n",
-        //        rewrite.size(), rewrite.data());
-        return false;
+      int n = (c - '0');
+      if (n >= veclen) {
+	      //fprintf(stderr, requested group %d in regexp %.*s\n",
+	      //        n, rewrite.size(), rewrite.data());
+	      return false;
       }
+      int start = vec[2 * n];
+      if (start >= 0)
+	      out->append(text.data() + start, vec[2 * n + 1] - start);
+    }
+    else if (c == '\\') {
+      c = *++s;
+      out->push_back(c);
     } else {
       out->push_back(c);
     }

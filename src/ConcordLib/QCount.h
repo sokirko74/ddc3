@@ -158,6 +158,29 @@ public:
 };
 
 //----------------------------------------------------------------------
+/*! count-key expr: regular expression replacement */
+class CQCountKeyExprRegex : public CQCountKeyExprIndexed
+{
+public:
+  CQCountKeyExpr *m_Src;
+  string      m_Pattern;
+  string      m_Replacement;
+  string      m_Modifiers;
+  bool	      isGlobal;
+  RML_RE     *m_Regex;
+
+public:
+  CQCountKeyExprRegex(CQCountKeyExpr *src, const string& pattern, const string &replacement, const string& modifiers=string(""))
+    : CQCountKeyExprIndexed("regex"), m_Src(src), m_Pattern(pattern), m_Replacement(replacement), m_Modifiers(modifiers), isGlobal(false), m_Regex(NULL) {};
+  virtual ~CQCountKeyExprRegex();
+  virtual bool Compile(CQueryCompiler *compiler);
+  virtual string Evaluate(DWORD fileno);
+  virtual string toString();
+  virtual string jsonClass() { return "CQCountKeyExprRegex"; };
+  virtual string jsonData();
+};
+
+//----------------------------------------------------------------------
 // count-key expr: list
 class CQCountKeyExprList : public CQCountKeyExpr
 {

@@ -378,7 +378,9 @@ Comments may appear after each rule in C notation
                  | FILENAME                                  /* ... filename */
                  | DATE                                      /* ... date string (YYYY-MM-DD) */
                  | DATE / i_slice                            /* ... date slice, computed as (i_slice*int(year/i_slice)) */
-                 | s_field                                   /* ... other bibliographic field value (e.g. textClass) */
+                 | s_field                                   /* ... bibliographic string-field value (e.g. textClass) */
+                 | count_key ~ replace_regex                 /* ... on-the-fly regex transformation (can be chained) */
+                 | ( count_key )                             /* ... explicit grouping */
                  ;
  
 
@@ -428,107 +430,112 @@ Comments may appear after each rule in C notation
 
 
 
- s_index     ::=                   /*-- Index name (must be defined in .opt file) --*/
-                 $                 /* Bare dollar uses query-type default (usually 'Token') */
-               | $ symbol          /* Explicit index name */
-               ;
+ s_index       ::=                              /*-- Index name (must be defined in .opt file) --*/
+                   $                            /* Bare dollar uses query-type default (usually 'Token') */
+                 | $ symbol                     /* Explicit index name */
+                 ;
  
- s_word      ::=                   /*-- A single word or string value --*/
-                 symbol            /* ... can be any symbol */
-               ;
+ s_word        ::=                              /*-- A single word or string value --*/
+                   symbol                       /* ... can be any symbol */
+                 ;
  
- s_semclass  ::=                   /*-- Semantic class used by :{...} queries --*/
-                 symbol            /* ... can be any symbol */
-               ;
+ s_semclass    ::=                              /*-- Semantic class used by :{...} queries --*/
+                   symbol                       /* ... can be any symbol */
+                 ;
  
- s_lemma     ::=                   /*-- Lemma used by %L queries --*/
-                 symbol            /* ... can be any symbol */
-               ;
+ s_lemma       ::=                              /*-- Lemma used by %L queries --*/
+                   symbol                       /* ... can be any symbol */
+                 ;
  
- s_chunk     ::=                   /*-- Chunk name used by ^C queries --*/
-                 symbol            /* ... can be any symbol */
-               ;
+ s_chunk       ::=                              /*-- Chunk name used by ^C queries --*/
+                   symbol                       /* ... can be any symbol */
+                 ;
  
- s_break     ::=                   /*-- Break collection name used by $. queries --*/
-                 symbol            /* ... can be any symbol (but must be defined in .opt file) */
-               ;
+ s_break       ::=                              /*-- Break collection name used by $. queries --*/
+                   symbol                       /* ... can be any symbol (but must be defined in .opt file) */
+                 ;
  
- s_filename  ::=                   /*-- Filename used by <F queries --*/
-                 symbol            /* ... can be any symbol (server-side filename) */
-               ;
+ s_filename    ::=                              /*-- Filename used by <F queries --*/
+                   symbol                       /* ... can be any symbol (server-side filename) */
+                 ;
  
- s_morphitem ::=                   /*-- Morphological property used by [...] queries --*/
-                 symbol            /* ... can be any symbol */
-               ;
+ s_morphitem   ::=                              /*-- Morphological property used by [...] queries --*/
+                   symbol                       /* ... can be any symbol */
+                 ;
  
- symbol      ::=                   /*-- User-specified symbol or string --*/
-                 SYMBOL            /* Bareword or single-quoted string with C-style escapes */
-               | INTEGER           /* ... every decimal number is also a valid symbol */
-               | DATE              /* ... every date-string is also a valid symbol */
-               ;
+ symbol        ::=                              /*-- User-specified symbol or string --*/
+                   SYMBOL                       /* Bareword or single-quoted string with C-style escapes */
+                 | INTEGER                      /* ... every decimal number is also a valid symbol */
+                 | DATE                         /* ... every date-string is also a valid symbol */
+                 ;
  
- sym_str     ::=                   /*-- User-specified string symbol --*/
-                 SYMBOL            /* ... cannot be an integer or date */
-               ;
+ sym_str       ::=                              /*-- User-specified string symbol --*/
+                   SYMBOL                       /* ... cannot be an integer or date */
+                 ;
  
- s_prefix    ::=                   /*-- Prefix condition string --*/
-                 PREFIX            /* ... ends with a literal '*' */
-               ;
+ s_prefix      ::=                              /*-- Prefix condition string --*/
+                   PREFIX                       /* ... ends with a literal '*' */
+                 ;
  
- s_suffix    ::=                   /*-- Suffix condition string --*/
-                 SUFFIX            /* ... begins with a literal '*' */
-               ;
+ s_suffix      ::=                              /*-- Suffix condition string --*/
+                   SUFFIX                       /* ... begins with a literal '*' */
+                 ;
  
- s_infix     ::=                   /*-- Infix condition string --*/
-                 INFIX             /* ... begins and ends with literal '*' */
-               ;
+ s_infix       ::=                              /*-- Infix condition string --*/
+                   INFIX                        /* ... begins and ends with literal '*' */
+                 ;
  
- s_expander  ::=                   /*-- Term expander label --*/
-                 EXPANDER          /* ... begins with a literal '|', and may be '|-' for an index-dependent default */
-               ;
+ s_expander    ::=                              /*-- Term expander label --*/
+                   EXPANDER                     /* ... begins with a literal '|', and may be '|-' for an index-dependent default */
+                 ;
  
- s_subcorpus ::=                   /*-- Named subcorpus used by :... filter --*/
-                 symbol            /* ... can be any symbol */
-               ;
+ s_subcorpus   ::=                              /*-- Named subcorpus used by :... filter --*/
+                   symbol                       /* ... can be any symbol */
+                 ;
  
- s_field     ::=                   /*-- Document metadata field name --*/
-                 symbol            /* ... is just a symbol */
-               ;
+ s_field       ::=                              /*-- Document metadata field name --*/
+                   symbol                       /* ... is just a symbol */
+                 ;
  
- s_fieldval  ::=                   /*-- Document metadata field value --*/
-                 symbol            /* ... is just a symbol */
-               ;
+ s_fieldval    ::=                              /*-- Document metadata field value --*/
+                   symbol                       /* ... is just a symbol */
+                 ;
  
- s_xfield    ::=                   /*-- Document metadata field name or pseudo-field --*/
-                 symbol            /* ... is just a symbol */
-               ;
+ s_xfield      ::=                              /*-- Document metadata field name or pseudo-field --*/
+                   symbol                       /* ... is just a symbol */
+                 ;
  
- regex       ::=                   /*-- Regular expressions --*/
-                 REGEX             /* ... are slash-delimited in perl syntax */
-               | REGEX REGOPT      /* ... with optional modifiers (gimsx) */
-               ;
+ regex         ::=                              /*-- Regular expressions --*/
+                   REGEX                        /* ... are slash-delimited in perl syntax */
+                 | REGEX REGOPT                 /* ... with optional modifiers (gimsx) */
+                 ;
  
- neg_regex   ::=                   /*-- Negated regular expressions --*/
-                 NEG_REGEX         /* ... are slash-delimited in perl syntax, with leading '!' */
-               | NEG_REGEX REGOPT  /* ... and with optional modifiers (gimsx) */
-               ;
+ neg_regex     ::=                              /*-- Negated regular expressions --*/
+                   NEG_REGEX                    /* ... are slash-delimited in perl syntax, with leading '!' */
+                 | NEG_REGEX REGOPT             /* ... and with optional modifiers (gimsx) */
+                 ;
  
- integer     ::=                   /*-- Non-negative decimal integer --*/
-                 int_str           /* ... parsed as an integer */
-               ;
+ replace_regex ::=                              /*-- On-the-fly regular expression search-and-replace --*/
+                   SEARCH_REPLACE_REGEX         /* ... are slash-delimited in perl syntax: s/SEARCH/REPLACE/ */
+                 | SEARCH_REPLACE_REGEX REGOPT  /* ... with optional modifiers (gimsx) */
+                 ;
  
- int_str     ::=                   /*-- Non-negative decimal integer --*/
-                 INTEGER           /* ... parsed as a string */
-               ;
+ integer       ::=                              /*-- Non-negative decimal integer --*/
+                   int_str                      /* ... parsed as an integer */
+                 ;
  
- i_slice     ::=                   /*-- Date interval for histogram bins --*/
-                 integer           /* ... is just an integer (interval size in years) */
-               ;
+ int_str       ::=                              /*-- Non-negative decimal integer --*/
+                   INTEGER                      /* ... parsed as a string */
+                 ;
  
- date        ::=                   /*-- date string --*/
-                 DATE              /* ... e.g. YYYY(-MM(-DD)?)? */
-               | INTEGER           /* ... every valid integer is also a valid date (year part only) */
-               ;
+ i_slice       ::=                              /*-- Date interval for histogram bins --*/
+                   integer                      /* ... is just an integer (interval size in years) */
+                 ;
+ 
+ date          ::=                              /*-- date string --*/
+                   DATE                         /* ... e.g. YYYY(-MM(-DD)?)? */
+                 | INTEGER                      /* ... every valid integer is also a valid date (year part only) */
+                 ;
  
 
 
@@ -614,8 +621,9 @@ in a literal symbol, e.g. by enclosing the symbol in single quotes.
 
 =head3 Regular Expressions
 
-    \/{regex_text}\/{regex_modifier}*	/* slash-quoted regex, with option modifiers */
- "!"\/{regex_text}\/{regex_modifier}*	/* negated regex (complement) */
+   "/"{regex_text}"/"{regex_modifier}*			/* slash-quoted regex, with option modifiers */
+  "!/"{regex_text}"/"{regex_modifier}*			/* negated regex (complement) */
+  "s/"{regex_text}"/"{regex_text}"/"{regex_modifier}*	/* search-and-replace regex (for count-by) */
 
 The scanner supports regular expressions enclosed by forward slashes, with
 an optional suffix modifer string.  If the expression is immediately
@@ -630,12 +638,15 @@ Unicode character escapes ("\x{17f}", "\x{364}") may occur
 within regular expressions.  Literal slashes as part of a regular expression
 must be escaped with a backslash ("\/").
 The regular expression modifier "/g" (mnemonic: 'match Globally')
-has a special meaning for DDC: if this modifier is set, only those index
+has a special meaning when used in DDC regex match expressions: if this modifier is set, only those index
 items are retrieved which match the regular expression in the entirety;
 otherwise all index items for which any substring matches the regular expression
 will be retrieved.  Internally this behavior is implemented by implicitly
 inserting beginning- and end-of-string anchors into the regular expression,
 thus /REGEX/g is a equivalent to /^(?:REGEX)$/.
+When used in search-and-replace operations s/SEARCH/REPLACE/g, the
+"/g" modifier causes all occurrences of the SEARCH pattern
+to be replaced by the REPLACE string.
 
 
 
@@ -648,7 +659,7 @@ thus /REGEX/g is a equivalent to /^(?:REGEX)$/.
  "#<"				/* max-distance hint for phrase queries */
  "#>"				/* min-distance hint for phrase queries */
  "$."				/* anchor pseudo-index (position-index in "break collection" segment) */
- [\!\.\,\:\;\$\@\%\^\#\=\/]	/* single-character punctuation operators */
+ [\!\.\,\:\;\$\@\%\^\#\=\/\~]	/* single-character punctuation operators */
  [\[\]\{\}\(\)\<\>]	/* parentheses */
  [\"]				/* double quotes (for pharse queries) */
  ":{"				/* thesaurus-query opener */

@@ -1,5 +1,9 @@
 ##-*- Mode: Change-Log; coding: utf-8; -*-
 
+v2.0.24 Thu, 08 May 2014 10:15:44 +0200 moocow
+	+ added search-and-replace regex expressions KEY ~ s/SEARCH/REPLACE/ for count-by
+	  - useful e.g. for counts by primary textclass: #by (textClass~s/::.*//)
+
 v2.0.23 Wed, 07 May 2014 13:38:30 +0200 moocow
 	+ re-factored old monolithic src/ConcordDmnLib/Corpora.cpp into
 	  - Server.(h|cpp) : abstract server base class

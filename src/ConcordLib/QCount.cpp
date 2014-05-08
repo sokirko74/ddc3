@@ -113,6 +113,51 @@ string CQCountKeyExprBibl::Evaluate(DWORD fileno)
   return m_Bibl->GetStringValue(fileno);
 };
 
+//==============================================================================
+// CQCountKeyExprRegex
+
+//----------------------------------------------------------------------
+CQCountKeyExprRegex::~CQCountKeyExprRegex()
+{
+  if (m_Src) delete m_Src;
+  if (m_Regex) delete m_Regex;
+}
+
+//----------------------------------------------------------------------
+bool CQCountKeyExprRegex::Compile(CQueryCompiler *compiler)
+{
+  if (!m_Src || !m_Src->Compile(compiler)) return false;
+  CQCountKeyExprIndexed::Compile(compiler);
+  m_Regex = new RML_RE(m_Pattern, m_pIndexator->GetRegexOptions());
+  //m_Pcre  = m_Regex->Compile(RML_RE::UNANCHORED);
+  isGlobal = (m_Modifiers.find('g') != m_Modifiers.npos);
+  return true;
+}
+
+//----------------------------------------------------------------------
+string CQCountKeyExprRegex::Evaluate(DWORD fileno)
+{
+  string key = m_Src->Evaluate(fileno);
+  if (isGlobal)
+    m_Regex->GlobalReplace(m_Replacement, &key);
+  else
+    m_Regex->Replace(m_Replacement, &key);
+  return key;
+}
+
+//----------------------------------------------------------------------
+string CQCountKeyExprRegex::toString()
+{
+  return string("(") + m_Src->toString() + " ~ s/" + m_Pattern + "/" + m_Replacement + "/" + m_Modifiers + ")";
+}
+
+//----------------------------------------------------------------------
+string CQCountKeyExprRegex::jsonData()
+{
+  return "\"Pattern\":" + jsonStr(m_Pattern) + ",\"Replacement\":" + jsonStr(m_Replacement), + ",\"Modifiers\":" + jsonStr(m_Modifiers);
+}
+
+
 
 //==============================================================================
 // CQCountKeyExprList

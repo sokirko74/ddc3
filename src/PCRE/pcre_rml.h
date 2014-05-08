@@ -88,6 +88,10 @@ class RML_RE {
     Init(pat);
   };
 
+  //-- moo: potentially dangerous low-level access
+  //inline Options& getOptions() { return opts_; };
+  //inline pcre*    re_full() { return re_full_; };
+  //inline pcre*    re_partial() { return re_partial_; };
 
   // copy constructor
   RML_RE(const RML_RE& re)
@@ -197,15 +201,13 @@ class RML_RE {
                       const Arg& ptr15 = no_arg,
                       const Arg& ptr16 = no_arg) const;
 
-  bool Replace(const StringPiece& rewrite,
-               string *str) const;
+  bool Replace(const StringPiece& rewrite, string *str) const;
 
-  int GlobalReplace(const StringPiece& rewrite,
-                    string *str) const;
+  int GlobalReplace(const StringPiece& rewrite, string *str) const;
 
-  bool Extract(const StringPiece &rewrite,
-               const StringPiece &text,
-               string *out) const;
+  bool Extract(const StringPiece &rewrite, const StringPiece &text, string *out) const;
+
+
 
   /***** Generic matching interface *****/
 
