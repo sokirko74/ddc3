@@ -1520,7 +1520,7 @@ DDCErrorEnum CConcHolder::GetAllCounts(CQuery *CountQueryRoot, size_t Limit)
 		sort(m_Hits.begin(), m_Hits.end(), IsLessByFileNo());
 
 	//-- counting guts
-	DWORD f = (size_t)-1;
+	DWORD f = (DWORD)-1;
 	DWORD n = 0;
 	string key;
 	map<string, size_t> counts;
