@@ -385,7 +385,9 @@ qf_random_sort:
 	;
 
 qf_bibl_sort:
-		LESS_BY    '[' s_biblname qfb_bibl ']'	{ $$ = _newBFilter(LessByFreeBiblField, *$3); }
+		LESS_BY    '[' KW_DATE qfb_bibl ']'	{ $$ = _newFilter(CQFDateSort, LessByDate); }
+	|	GREATER_BY '[' KW_DATE qfb_bibl ']'	{ $$ = _newFilter(CQFDateSort, GreaterByDate); }
+	|	LESS_BY    '[' s_biblname qfb_bibl ']'	{ $$ = _newBFilter(LessByFreeBiblField, *$3); }
 	|	GREATER_BY '[' s_biblname qfb_bibl ']'	{ $$ = _newBFilter(GreaterByFreeBiblField, *$3); }
 	;
 
@@ -669,16 +671,16 @@ l_countkeys:
 	;
 
  /*-------------------------------------------------------------
-  * ck_*: count-key expressions
+  * count_key: count-key expressions
   */
 
 count_key:
 		'*'				{ $$=new CQCountKeyExprConstant("*"); }
 	|	'@' symbol			{ $$=new CQCountKeyExprConstant(*$2); }
-	|	KW_FILEID			{ $$=new CQCountKeyExprFileId("fileid"); }
-	|	KW_FILENAME			{ $$=new CQCountKeyExprFileName("filename"); }
-	|	KW_DATE				{ $$=new CQCountKeyExprDate("date"); }
-	|	KW_DATE '/' integer		{ $$=new CQCountKeyExprDateSlice("date",$3); }
+	|	KW_FILEID			{ $$=new CQCountKeyExprFileId(*$1); }
+	|	KW_FILENAME			{ $$=new CQCountKeyExprFileName(*$1); }
+	|	KW_DATE				{ $$=new CQCountKeyExprDate(*$1); }
+	|	KW_DATE '/' integer		{ $$=new CQCountKeyExprDateSlice(*$1,$3); }
 	|	s_biblname			{ $$=new CQCountKeyExprBibl(*$1); }
  	|	count_key '~' replace_regex	{ $$=new CQCountKeyExprRegex((CQCountKeyExpr*)$1,*$3,_qc->m_RegexReplacement,_qc->m_RegexModifiers); }
 	|	'(' count_key ')'		{ $$=$2; }
@@ -701,7 +703,10 @@ s_filename:	symbol		{ $$ = $1; };
 s_morphitem:	symbol		{ $$ = $1; };
 s_subcorpus:	symbol		{ $$ = $1; };
 s_biblname:	symbol		{ $$ = $1; };
-s_breakname:	symbol		{ $$ = $1; };
+
+s_breakname:	symbol		{ $$ = $1; }
+	|	KW_FILENAME	{ $$ = _qc->newString("file"); }
+	;
 
  /*-------------------------------------------------------------
   * Preterminals

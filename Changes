@@ -1,5 +1,8 @@
 ##-*- Mode: Change-Log; coding: utf-8; -*-
 
+v2.0.24-1 Fri, 09 May 2014 11:02:24 +0200 moocow
+	+ fixes for unifying "#in file" vs. "#by file"
+
 v2.0.24 Thu, 08 May 2014 10:15:44 +0200 moocow
 	+ added search-and-replace regex expressions KEY ~ s/SEARCH/REPLACE/ for count-by
 	  - useful e.g. for counts by primary textclass: #by (textClass~s/::.*//)

@@ -238,6 +238,9 @@ int CQueryCompiler::yyqlex(void* valp)
 	case INTEGER:
 	case DATE:
 	case EXPANDER:
+	case KW_DATE:
+	case KW_FILENAME:
+	case KW_FILEID:
 		((YYSTYPE *)valp)->m_str = newString(s);
 		break;
 	default:

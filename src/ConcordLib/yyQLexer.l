@@ -115,7 +115,7 @@ regex_modifier	[gimsx]
 (?i:count)			{ return COUNT; }
 
  /* count-by keywords */
-(?i:(file|doc)?id)		{ return KW_FILEID; }
+(?i:(file|doc)_?id)		{ return KW_FILEID; }
 (?i:(file|doc)_?(name)?)	{ return KW_FILENAME; }
 (?i:date)			{ BEGIN(Q_DATE); return KW_DATE; }
 <Q_DATE>{ws}+			{ ; /* whitespace: skip */ }
