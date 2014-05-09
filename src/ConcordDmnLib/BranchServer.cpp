@@ -61,9 +61,10 @@ void CFirstHitsQueryResult::CollectCounts()
 
 //----------------------------------------------------------------------
 CDDCBranchServer::CDDCBranchServer(bool bDoubleMessage, ProtocolDensityEnum pdProtocolDensity)
- : CDDCServer(bDoubleMessage, pdProtocolDensity)
+    : CDDCServer(bDoubleMessage, pdProtocolDensity)
 {
     m_maxReceiveBytes = DDC_STATIC_BUFLEN;
+    m_bLogRequests = true;
 };
 
 //==============================================================================

@@ -55,13 +55,16 @@ public:
     /** moo: number of served requests */
     size_t m_nRequests;	
 
+    /* moo: whether to log all requests received in ProcessSocketString() */
+    bool m_bLogRequests;
+
 public:
     //--------------------------------------------------------------
     // Constructors etc.
 
     /** default constructor */
     CDDCServer(bool bDoubleMessage=false, ProtocolDensityEnum pdProtocolDensity=pdWeakDensity)
-	: CHost(bDoubleMessage, pdProtocolDensity), m_tStarted(0), m_nRequests(0)
+	: CHost(bDoubleMessage, pdProtocolDensity), m_tStarted(0), m_nRequests(0), m_bLogRequests(false)
     {
 	m_LogFunction = concord_daemon_log;
 	m_tStarted = time(NULL);

@@ -31,7 +31,9 @@ string CDDCServer::ProcessSocketString(const string& SocketInput, SOCKET rConnec
 {
     string Result;
     try {
-	//m_LogFunction(Format("%s recv \"%s\"", m_CorpusName.c_str(), SocketInput.c_str()));
+	if (m_bLogRequests) {
+	    m_LogFunction(Format("%s recv \"%s\"", m_CorpusName.c_str(), SocketInput.c_str()));
+	}
 
     	//-- moo: check for buffer overflow
 	if (SocketInput.size() > DDC_STATIC_BUFLEN) {
