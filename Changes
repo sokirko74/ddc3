@@ -1,5 +1,9 @@
 ##-*- Mode: Change-Log; coding: utf-8; -*-
 
+v2.0.25 Wed, 14 May 2014 09:10:00 +0200 moocow
+	+ added 'depth' paramter to reload and clear_cache server requests
+	+ added strerror() calls to string_socket.cpp create_socket() function (hunting mantis bug #672)
+
 v2.0.24-1 Fri, 09 May 2014 12:21:38 +0200 moocow
 	+ fixes for unifying "#in file" vs. "#by file"
 	+ fixed unconditional logging of all requests for branch servers (uses new CDDCServer.m_bLogRequests)

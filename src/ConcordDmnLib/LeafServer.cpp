@@ -261,7 +261,7 @@ void CDDCLeafServer::handle__info(string &Result, bool verbose)
 }
 
 //----------------------------------------------------------------------
-void CDDCLeafServer::handle__reload(string &Result)
+void CDDCLeafServer::handle__reload(string &Result, int depth)
 {
     CConcHolder *pHolder = NULL;
     if (!LoadHolder(&pHolder))
@@ -276,7 +276,7 @@ void CDDCLeafServer::handle__reload(string &Result)
 }
 
 //----------------------------------------------------------------------
-void CDDCLeafServer::handle__clear_cache(string &Result)
+void CDDCLeafServer::handle__clear_cache(string &Result, int depth)
 {
     m_pHolder->ClearQueryCache();
     Result = Format("{%s:1}", jsonStr(m_CorpusName).c_str());

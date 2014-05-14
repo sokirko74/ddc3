@@ -104,10 +104,10 @@ public:
     virtual void handle__info(string &Result, bool verbose=false);
 
     /** request handler: reload: required (leaf|branch) */
-    virtual void handle__reload(string &Result);
+    virtual void handle__reload(string &Result, int depth=0);
 
     /** request handler: clear_cache: required (leaf|branch) */
-    virtual void handle__clear_cache(string &Result);
+    virtual void handle__clear_cache(string &Result, int depth=0);
 
 public:
     //--------------------------------------------------------------

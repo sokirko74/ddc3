@@ -231,16 +231,28 @@ void CDDCBranchServer::handle__info(string &Result, bool verbose)
 }
 
 //----------------------------------------------------------------------
-void CDDCBranchServer::handle__reload(string &Result)
+void CDDCBranchServer::handle__reload(string &Result, int depth)
 {
-    Result = string("{") + jsonStr(m_CorpusName) + ":" + GetSubcorpusJsonArray("reload") + "}";
+    Result = string("{") + jsonStr(m_CorpusName) + ":";
+    if (depth != 0) {
+	Result += GetSubcorpusJsonArray(Format("reload %d",depth-1));
+    } else {
+	Result.push_back('1');
+    }
+    Result.push_back('}');
     m_bExpectMore = false;
 }
 
 //----------------------------------------------------------------------
-void CDDCBranchServer::handle__clear_cache(string &Result)
+void CDDCBranchServer::handle__clear_cache(string &Result, int depth)
 {
-    Result = string("{") + jsonStr(m_CorpusName) + ":" + GetSubcorpusJsonArray("clear_cache") + "}";
+    Result = string("{") + jsonStr(m_CorpusName) + ":";
+    if (depth != 0) {
+	Result += GetSubcorpusJsonArray(Format("clear_cache %d",depth-1));
+    } else {
+	Result.push_back('1');
+    }
+    Result.push_back('}');
     m_bExpectMore = false;
 }
 

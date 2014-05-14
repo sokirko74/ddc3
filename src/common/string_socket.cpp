@@ -326,7 +326,7 @@ SOCKET create_socket (const char* HostName, int Port, bool bBind, string& strErr
 		l_socket = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
 		if (l_socket < 0) 
 		{
-			cause = "Could not create socket";
+			cause = Format("Could not create socket: %s", strerror(errno));
 			continue;
 		} 
 		int Res;
@@ -338,7 +338,7 @@ SOCKET create_socket (const char* HostName, int Port, bool bBind, string& strErr
 
 			if (setsockopt( l_socket, SOL_SOCKET, SO_REUSEADDR, (const char*)&flag, sizeof(flag) ) != 0)
 			{
-				cause = "Socket Error! Could not set socket option SO_REUSEADDR";
+				cause = Format("Socket Error! Could not set socket option SO_REUSEADDR: %s", strerror(errno));
 				CloseSocket(l_socket);
 				l_socket = -1;
 				continue;

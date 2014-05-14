@@ -30,8 +30,8 @@ and " " represents a literal space character (ASCII byte with decimal value 32).
  status
  vstatus
  info
- reload
- clear_cache
+ reload DEPTH
+ clear_cache DEPTH
  
  expand_terms "\x01" PIPELINE "\x01" TERMS "\x01" TIMEOUT
  expand_terms "\x01" PIPELINE "\x01" TERMS "\x01" TIMEOUT "\x01" CORPUS
@@ -156,6 +156,8 @@ Since v2.0.18.
 
 =head3 info
 
+ info
+
 Returns information about associated corpora as a JSON object.
 For a leaf server, the returned object is of the form:
 
@@ -245,10 +247,15 @@ Since v2.0.18
 
 =head3 reload
 
-Requests re-loading local (sub)corpus data from disk.
-Branch servers distribute the reload request to all subcopora.
+ reload
+ reload DEPTH
 
-Since v2.0.23
+Requests re-loading local (sub)corpus data from disk.
+If C<DEPTH> is present and non-zero, a receiving branch server
+will send a C<reload> message with paramter C<DEPTH-1> to any subordinate
+servers on the user's behalf; a C<DEPTH> parameter of -1 requests maximum depth.
+
+Since v2.0.23, DEPTH parameter since v2.0.25.
 
 =cut
 
@@ -257,9 +264,15 @@ Since v2.0.23
 
 =head3 clear_cache
 
-Request that the receiving server and any subordinate servers clear any in-memory query cache(s).
+ clear_cache
+ clear_cache DEPTH
 
-Since v2.0.23
+Request that the receiving server immediately clear any in-memory query cache(s).
+If C<DEPTH> is present and non-zero, a receiving branch server
+will send a C<reload> message with paramter C<DEPTH-1> to any subordinate
+servers on the user's behalf; a C<DEPTH> parameter of -1 requests maximum depth.
+
+Since v2.0.23, DEPTH parameter since v2.0.25.
 
 =cut
 

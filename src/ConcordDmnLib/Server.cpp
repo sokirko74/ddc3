@@ -159,11 +159,13 @@ string CDDCServer::ProcessSocketString(const string& SocketInput, SOCKET rConnec
 	}
 	else if (cmd == "reload") {
 	    //-- reload
-	    this->handle__reload(Result);
+	    int depth = strtol(SocketInput.substr(eocpos).c_str(),NULL,0);
+	    this->handle__reload(Result, depth);
 	}
 	else if (cmd == "clear_cache") {
 	    //-- clear_cache
-	    this->handle__clear_cache(Result);
+	    int depth = strtol(SocketInput.substr(eocpos).c_str(),NULL,0);
+	    this->handle__clear_cache(Result, depth);
 	}
 	else {
 	    //-- unknown request
@@ -259,13 +261,13 @@ void CDDCServer::handle__vinfo(string &Result)
 }
 
 //----------------------------------------------------------------------
-void CDDCServer::handle__reload(string &Result)
+void CDDCServer::handle__reload(string &Result, int depth)
 {
     method_not_implemented("handle__reload()");
 }
 
 //----------------------------------------------------------------------
-void CDDCServer::handle__clear_cache(string &Result)
+void CDDCServer::handle__clear_cache(string &Result, int depth)
 {
     method_not_implemented("handle__clear_cache()");
 }
