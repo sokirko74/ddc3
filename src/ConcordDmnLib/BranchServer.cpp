@@ -173,14 +173,7 @@ void CDDCBranchServer::handle__expand_terms(string &Result, const string& pipeli
 	throw CExpc(errOther, "expand_terms failed to read a response from subcorpus `%s'", h->m_CorpusName.c_str());
     }
 
-#if 0
-    //-- ddc annoyingly complains unless each subcorpus socket gets doubled messages: why?!
-    string tmp;
-    SendString(hsock, "ddc_close_socket", ErrorStr);
-    ReceiveString(hsock, tmp, timeout);
-#endif
     CloseSocket(hsock);
-
     m_bExpectMore = false;
 }
 
@@ -190,6 +183,19 @@ void CDDCBranchServer::handle__status(string &Result, bool verbose)
     //-- status or vstatus : distributed server status
     double uptime = difftime(time(NULL), m_tStarted);
 
+    string subResult;
+    if (verbose) {
+	//-- vstatus: get subcorpus status
+	subResult = GetSubcorpusJsonArray("vstatus");
+    } else {
+	//-- status: just get subcorpus names
+	for (size_t i=0; i < m_Hosts.size(); ++i) {
+	    subResult += (i==0 ? '[' : ',');
+	    subResult += jsonStr(m_Hosts[i].m_CorpusName);
+	}
+	subResult += "]\n";
+    }
+
     Result = (string("{\n")
 	      + "\"name\":" + jsonStr(m_CorpusName) + ",\n"
 	      + "\"version\":" + jsonStr(PACKAGE_VERSION) + ",\n"
@@ -198,22 +204,8 @@ void CDDCBranchServer::handle__status(string &Result, bool verbose)
 	      + "\"started\":" + jsonStr(timestampUTC(m_tStarted)) + ",\n"
 	      + "\"uptime\":" + Format("%.0f", uptime) + ",\n"
 	      + "\"nrequests\":" + Format("%zd", m_nRequests) + ",\n"
-	      + "\"corpora\":"
+	      + "\"corpora\":" + subResult + "}\n"
 	      );
-
-    if (verbose) {
-	//-- vstatus: get subcorpus status
-	Result += GetSubcorpusJsonArray("vstatus");
-    } else {
-	//-- status: just get subcorpus names
-	for (size_t i=0; i < m_Hosts.size(); ++i) {
-	    Result += (i==0 ? '[' : ',');
-	    Result += jsonStr(m_Hosts[i].m_CorpusName);
-	}
-	Result += "]\n";
-    }
-    Result += "}\n";
-
     m_bExpectMore = false;
 }
 
@@ -402,6 +394,8 @@ NetworkErrorsEnum CDDCBranchServer::GetHitCounts(CFirstHitsQueryResult& FHResult
     else if (ResultTypeE == DDC_ResultHTML) {
 	ResultString += "</TABLE>";
     }
+
+    FHResult.CloseSockets();
     return neSuccess;
 }
 
@@ -537,7 +531,7 @@ void CDDCBranchServer::GetFirstHitsFromCorpora(const DwordVector& PossibleHosts,
 		Result.m_NetworkError = ReceiveString(Result.m_Sockets[i], S, TimeOut);
 		if (Result.m_NetworkError != neSuccess)
 		{
-			concord_daemon_log ( " Cannot receive a resulting string from a client  " );
+			concord_daemon_log ( " Cannot receive a result string from a client  " );
 			return;
 		};
 
@@ -762,29 +756,13 @@ string CDDCBranchServer::GetSubcorpusJsonArray(const string& request, int timeou
 
 		//-- read response
 		if (ReceiveString(Sockets[i], Results[i], timeout) != neSuccess) {
-			CloseSocket(Sockets[i]);
-			Sockets[i] = -1;
 			Results[i] = Format("{\"name\":%s,\"error\":\"failed to read response data from socket\"},", m_Hosts[i].m_CorpusName.c_str());
-			continue;
 		}
 
-#if 0
-		//-- send doubled messages to avoid ddc complaints of the form 'Cannot receive string for corpus "corpus2" (error: Could not receive data to a socket)'
-		errorStr.clear();
-		SendString(Sockets[i], "ddc_close_socket", errorStr);
-#endif
-	}
-
-#if 0
-	//-- get responses for "ddc_close_socket" messages
-	for (i=0; i < m_Hosts.size(); ++i) {
-		if (Sockets[i] == -1) continue;
-
-		errorStr.clear();
-		ReceiveString(Sockets[i], errorStr, timeout);
+		//-- close socket (forgetting this causes an fd-leak resulting in "Could not create socket: Too many open files for HOST:PORT" messages later)
 		CloseSocket(Sockets[i]);
+		Sockets[i] = -1;
 	}
-#endif
 
 	//-- build result
 	string Result("[");

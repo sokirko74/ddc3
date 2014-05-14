@@ -86,8 +86,8 @@ and &quot; &quot; represents a literal space character (ASCII byte with decimal 
  status
  vstatus
  info
- reload
- clear_cache
+ reload DEPTH
+ clear_cache DEPTH
  
  expand_terms &quot;\x01&quot; PIPELINE &quot;\x01&quot; TERMS &quot;\x01&quot; TIMEOUT
  expand_terms &quot;\x01&quot; PIPELINE &quot;\x01&quot; TERMS &quot;\x01&quot; TIMEOUT &quot;\x01&quot; CORPUS
@@ -170,6 +170,8 @@ rather than just subcorpus names.</p>
 <p>
 </p>
 <h3><a name="info">info</a></h3>
+<pre>
+ info</pre>
 <p>Returns information about associated corpora as a JSON object.
 For a leaf server, the returned object is of the form:</p>
 <pre>
@@ -250,14 +252,25 @@ response to an &quot;info&quot; request.</p>
 <p>
 </p>
 <h3><a name="reload">reload</a></h3>
+<pre>
+ reload
+ reload DEPTH</pre>
 <p>Requests re-loading local (sub)corpus data from disk.
-Branch servers distribute the reload request to all subcopora.</p>
-<p>Since v2.0.23</p>
+If <code>DEPTH</code> is present and non-zero, a receiving branch server
+will send a <code>reload</code> message with paramter <code>DEPTH-1</code> to any subordinate
+servers on the user's behalf; a <code>DEPTH</code> parameter of -1 requests maximum depth.</p>
+<p>Since v2.0.23, DEPTH parameter since v2.0.25.</p>
 <p>
 </p>
 <h3><a name="clear_cache">clear_cache</a></h3>
-<p>Request that the receiving server and any subordinate servers clear any in-memory query cache(s).</p>
-<p>Since v2.0.23</p>
+<pre>
+ clear_cache
+ clear_cache DEPTH</pre>
+<p>Request that the receiving server immediately clear any in-memory query cache(s).
+If <code>DEPTH</code> is present and non-zero, a receiving branch server
+will send a <code>reload</code> message with paramter <code>DEPTH-1</code> to any subordinate
+servers on the user's behalf; a <code>DEPTH</code> parameter of -1 requests maximum depth.</p>
+<p>Since v2.0.23, DEPTH parameter since v2.0.25.</p>
 <p>
 </p>
 <h3><a name="expand_terms">expand_terms</a></h3>
