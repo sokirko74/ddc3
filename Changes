@@ -1,9 +1,10 @@
 ##-*- Mode: Change-Log; coding: utf-8; -*-
 
-v2.0.25 Wed, 14 May 2014 12:37:09 +0200 moocow
+v2.0.25 Wed, 14 May 2014 15:37:23 +0200 moocow
 	+ added 'depth' paramter to reload and clear_cache server requests
 	+ added strerror() calls to string_socket.cpp create_socket()
 	+ fixed mantis bug #672 (file-descriptor leak in branch server for info, vstatus, and count() queries)
+	+ fixed leading "/" bug on relative pathnames through FileBasename() [used e.g. for subcorpus "project" key]
 
 v2.0.24-1 Fri, 09 May 2014 12:21:38 +0200 moocow
 	+ fixes for unifying "#in file" vs. "#by file"
