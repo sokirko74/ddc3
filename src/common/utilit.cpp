@@ -740,8 +740,8 @@ string FileBasename (const string& FileName)
 				       "\\:"
 #   endif
 				       );
-    if (pos != FileName.npos)
-	return FileName.substr(pos);
+    if (pos+1 < FileName.size())
+	return FileName.substr(pos+1);
 
     return FileName;
 }
