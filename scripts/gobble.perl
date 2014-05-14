@@ -8,10 +8,12 @@ use utf8;
 my $dclient = DDC::Client::Distributed->new(connect=>{PeerAddr=>"localhost:50290"}, mode=>'req');
 $|=1;
 
-my $srand = 0;
+#my $srand=0;
+#srand($srand);
+
 my $sleep_min = 0;
 my $sleep_max = 0;
-srand($srand);
+
 
 my $lemmalist = @ARGV ? shift : "$ENV{HOME}/www/dta-lemmadist/data/full-top-30000.1g";
 open(LEMMATA,"<:utf8", $lemmalist)
@@ -29,7 +31,7 @@ for (; 1; ++$i) {
   if (1) {
     my $qstr    = "\$l=@".$lemma." #has[textClass,/^(?:Belletristik|Gebrauchsliteratur|Zeitung)\\b/] #sep";
     my $countby = "date/1,textClass~s/:.*//";
-    my $docount = 0;
+    my $docount = 1;
     my $rsp = $dclient->queryJson(join("\x{01}",
 				       "run_query Distributed",
 				       ($docount ? "count($qstr) #by[$countby]" : $qstr),
