@@ -691,14 +691,15 @@ bool CConcIndexator::LoadOptionsFromString(string Options)
 			fprintf(stderr, "WARNING: ignoring unknown default break collection `%s' for query operator `%s'\n", oni->second.c_str(), oni->first.c_str());
 			++oni;
 			m_OpDefaultIndexNames.erase(tmp);
-			continue;
 		}
 		else if (!GetIndexByNameOrShortName(oni->second)) {
 			map<string,string>::iterator tmp = oni;
 			fprintf(stderr, "WARNING: ignoring unknown default index `%s' for query operator `%s'\n", oni->second.c_str(), oni->first.c_str());
 			++oni;
 			m_OpDefaultIndexNames.erase(tmp);
-			continue;
+		}
+		else {
+			++oni;
 		}
 	}
 
