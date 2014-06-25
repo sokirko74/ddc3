@@ -63,6 +63,8 @@ typedef enum {
 	cfbiUnknown,
 	cfbiInteger,
 	cfbiString,
+	cfbiIntegerConstant, //-- unused
+	cfbiStringConstant,
 	cfbiOther
 } CFreeBiblIndexTypeId;
 
@@ -74,6 +76,7 @@ const string TextAreaOptionFieldName = "textarea";
 class CConcXml
 {
 public:
+	//--------------------------------------------------------------
 	class CFreeBiblIndex 
 	{
 		string	GetIndexFileName (string Path) const;
@@ -96,8 +99,8 @@ public:
 	public:
 		CFreeBiblIndex();
 		virtual ~CFreeBiblIndex();
-		string	GetDescriptionStr () const;
-		int	GetIntegerValue(DWORD FileNo ) const;
+		string GetDescriptionStr () const;
+		virtual int GetIntegerValue(DWORD FileNo ) const;
 
 		virtual void	clear();
 		virtual string	GetStringValue(DWORD FileNo ) const;
@@ -107,6 +110,7 @@ public:
 		virtual bool	DeleteBiblFiles (string Path) const;
 		virtual bool	ConvertAndSaveToDiskAfterIndexing (string Path);
 		virtual string	GetTypeStr() const;
+		virtual const string& GetXpathStr() const;
 
 		//! return bibl-field subtype identifier
 		virtual CFreeBiblIndexTypeId GetTypeId() const;
@@ -135,9 +139,11 @@ public:
 		virtual size_t size(void) const
 		{ return 0; };
 	};
-    
+
+	//--------------------------------------------------------------    
 	class CFreeBiblStringIndex : public CFreeBiblIndex
 	{
+	protected:
 		struct CStringItem  
 		{
 			string	m_BiblString;
@@ -164,18 +170,17 @@ public:
 
 
 	public:
-	
 		CFreeBiblStringIndex();
 		virtual ~CFreeBiblStringIndex();
-		void	clear();
-		string	GetTypeStr() const;
+		virtual void clear();
+		virtual string GetTypeStr() const;
 		virtual CFreeBiblIndexTypeId GetTypeId() const;
-		string	GetStringValue(DWORD FileNo ) const;
-		bool	ReadFromDisk (string Path, DWORD FileBreaksSize);
+		virtual string GetStringValue(DWORD FileNo ) const;
 		void	CreateUnion (string Path, const CFreeBiblIndex* pIndex1, const CFreeBiblIndex* pIndex2);
 		bool	RegisterBiblStringItemId(const string& Value);
 		bool	DeleteBiblFiles (string Path) const;
-		bool	ConvertAndSaveToDiskAfterIndexing(string Path);
+		virtual bool ReadFromDisk (string Path, DWORD FileBreaksSize);
+		virtual bool ConvertAndSaveToDiskAfterIndexing(string Path);
 
 		//! initialize CDDCFilterWithBounds for a literal target or regex value (default treats Value as integer string and sets range)
 		//! \param Filter filter to populate
@@ -201,6 +206,28 @@ public:
 		{ return m_Values.size(); };
 	};
 
+	//--------------------------------------------------------------
+	class CFreeBiblStringConstant : public CFreeBiblStringIndex
+	{
+	protected:
+		string  m_Value;
+	public:
+		CFreeBiblStringConstant(const string &value="");
+		virtual ~CFreeBiblStringConstant();
+		virtual void clear();
+		virtual string GetTypeStr() const;
+		virtual CFreeBiblIndexTypeId GetTypeId() const;
+		virtual const string& GetXpathStr() const;
+		virtual string GetStringValue(DWORD FileNo) const;
+		virtual int GetIntegerValue(DWORD FileNo) const;
+		virtual bool ReadFromDisk (string Path, DWORD FileBreaksSize);
+		virtual bool ConvertAndSaveToDiskAfterIndexing(string Path);
+	public:
+		//-- set constant value
+		void setValue(const string& value);
+	};
+
+	//--------------------------------------------------------------
 	class CTextArea 
 	{
 		public:
@@ -210,7 +237,7 @@ public:
 		string					m_Xpath;
 	};
 
-
+	//--------------------------------------------------------------
 	typedef map<string, CFreeBiblIndex*> FreeBiblStringMap;
 	typedef map<string, CBiblExpander*> BiblExpanderMap;
 

@@ -1,4 +1,4 @@
-//*-*- Mode: C++; c-basic-offset: 8; -*-*/
+/*-*- Mode: C++; c-basic-offset: 8; -*-*/
 //  DDC originally by Alexey Sokirko
 //  Changes and modifications 2011-2014 by Bryan Jurish
 //
@@ -24,7 +24,8 @@
 #include <typeinfo>	//-- for typeid()
 
 const char IntegerTypeStr[] = "integer";
-const char StringTypeStr[] = "string";
+const char StringTypeStr[]  = "string";
+const char StringConstantTypeStr[]  = "constant";
 const size_t MaxBiblStringLen = 20000;
 
 string& DeleteEoln (string& s)
@@ -230,8 +231,8 @@ bool CConcXml::CFreeBiblIndex::ReadFromDisk (string Path,  DWORD FileBreaksSize)
 string  CConcXml::CFreeBiblIndex::GetDescriptionStr () const
 {
 	return Format ("%s %s %i %s %s", 
-			FreeBiblAttribOptionFieldName.c_str(),  GetTypeStr().c_str(),
-			m_bShowInHeader ? 1:0,  m_Name.c_str(),  m_Xpath.c_str());
+			FreeBiblAttribOptionFieldName.c_str(),  this->GetTypeStr().c_str(),
+		       m_bShowInHeader ? 1:0,  m_Name.c_str(),  this->GetXpathStr().c_str());
 };
 
 string  CConcXml::CFreeBiblIndex::GetIndexFileName (string Path) const
@@ -302,6 +303,11 @@ string CConcXml::CFreeBiblIndex::GetTypeStr() const
 CFreeBiblIndexTypeId CConcXml::CFreeBiblIndex::GetTypeId() const
 {
 	return cfbiInteger;
+};
+
+const string& CConcXml::CFreeBiblIndex::GetXpathStr() const
+{
+	return m_Xpath;
 };
 
 
@@ -649,6 +655,67 @@ bool CConcXml::CFreeBiblStringIndex::ConvertAndSaveToDiskAfterIndexing (string m
 	return true;
 };
 
+//=============================================
+
+CConcXml::CFreeBiblStringConstant::CFreeBiblStringConstant(const string &value)
+{
+	m_Values.reserve(1);
+	setValue(value);
+};
+
+CConcXml::CFreeBiblStringConstant::~CFreeBiblStringConstant()
+{
+};
+
+void CConcXml::CFreeBiblStringConstant::setValue(const string& value)
+{
+	clear();
+	m_Value = value;
+	m_Values.push_back(m_Value);
+}
+
+void CConcXml::CFreeBiblStringConstant::clear()
+{
+	CFreeBiblStringIndex::clear();
+	m_Value.clear();
+};
+
+string CConcXml::CFreeBiblStringConstant::GetTypeStr() const
+{
+	return StringConstantTypeStr;
+};
+
+CFreeBiblIndexTypeId CConcXml::CFreeBiblStringConstant::GetTypeId() const
+{
+	return cfbiStringConstant;
+};
+
+const string& CConcXml::CFreeBiblStringConstant::GetXpathStr() const
+{
+	return m_Value;
+};
+
+
+string CConcXml::CFreeBiblStringConstant::GetStringValue(DWORD FileNo) const
+{
+	return m_Value;
+};
+
+int CConcXml::CFreeBiblStringConstant::GetIntegerValue(DWORD FileNo ) const 
+{
+	return 0;
+};
+
+bool CConcXml::CFreeBiblStringConstant::ReadFromDisk(string Path, DWORD FileBreaksSize) 
+{
+	return true;
+};
+
+bool CConcXml::CFreeBiblStringConstant::ConvertAndSaveToDiskAfterIndexing(string Path) 
+{
+	return true;
+};
+
 
 //=============================================
 CConcXml::CConcXml()
@@ -820,8 +887,6 @@ bool CConcXml::RegisterFreeBiblAttributes(string fields, string& ErrorStr)
 	m_ScanXPath = "";
 	m_StartPageXPath = "";
 	
-
-
 	StringTokenizer lines(fields.c_str(), "\n\r");
 	while (lines())
 	{
@@ -851,19 +916,20 @@ bool CConcXml::RegisterFreeBiblAttributes(string fields, string& ErrorStr)
 
 
 		string TypeStr = tok.val() ; 
-		if (		 (TypeStr != StringTypeStr) 
-				&&	(TypeStr != IntegerTypeStr)
-	
-				)
-		{
-			ErrorStr = Format("Error! Bad syntax in a bibliographical field, the field type (the second column) must be \"%s\"  or \"%s\" ", IntegerTypeStr, StringTypeStr);
+		bool   isConstant = false;
+		if ((TypeStr == StringTypeStr) || (TypeStr == IntegerTypeStr)) {
+			isConstant = false;
+		} else if (TypeStr == StringConstantTypeStr) {
+			isConstant = true;
+		} else {
+			ErrorStr = Format("Error! Bad type \"%s\" in free bibliographical filed type; known types are \"%s\", \"%s\", and \"%s\"", TypeStr.c_str(), IntegerTypeStr, StringTypeStr, StringConstantTypeStr);
 			return false;
 		};
 
 		// reading show in header 
 		if (!tok()) 
 		{
-			ErrorStr = "Error! Bad syntax in free bibliographical attribute description";
+			ErrorStr = "Error! Bad syntax in free bibliographical attribute description: missing visibility flag";
 			return false;
 		};
 
@@ -890,16 +956,18 @@ bool CConcXml::RegisterFreeBiblAttributes(string fields, string& ErrorStr)
 		};
 
 		string Name = tok.val();
-		if (!tok()) 		
-		{
-			ErrorStr = "Error! Bad syntax in free bibliographical attribute description";
-			return false;
-		};
+		string Xpath;
+		if (isConstant) {
+			Xpath = tok.get_rest();
+		} else if (tok()) {
+			Xpath = tok.val();
+		}
 
-		// reading xpath
-		string Xpath = tok.val();
-		if (!CheckXPath(Xpath, ErrorStr))
+		// read xpath (or value for constants)
+		if (!isConstant && !CheckXPath(Xpath, ErrorStr)) {
+			ErrorStr += Format(" for free bibliographical attribte `%s'", Name.c_str());
 			return false;
+		}
 
 		if (Name == "orig")
 			m_OrigXPath = Xpath;
@@ -921,16 +989,20 @@ bool CConcXml::RegisterFreeBiblAttributes(string fields, string& ErrorStr)
 			};
 
 			CFreeBiblIndex* pIndex;
-			if (TypeStr == StringTypeStr)
+			if (TypeStr == StringTypeStr) {
 				pIndex = new CFreeBiblStringIndex;
-			else
-				if (TypeStr == IntegerTypeStr)
-					pIndex = new CFreeBiblIndex;
-				else
-				{
-					ErrorStr = Format("Error! Unknown type \"%s\" in the options file!", TypeStr.c_str());
-					return false;
-				}
+			}
+			else if (TypeStr ==  StringConstantTypeStr) {
+				pIndex = new CFreeBiblStringConstant(unescapeCString(Xpath));
+				Xpath  = "/..";
+			}
+			else if (TypeStr == IntegerTypeStr) {
+				pIndex = new CFreeBiblIndex;
+			}
+			else {
+				ErrorStr = Format("Error! Unknown type \"%s\" in the options file!", TypeStr.c_str());
+				return false;
+			}
 				
 			pIndex->m_Name = Name;
 			pIndex->m_Xpath = Xpath;
