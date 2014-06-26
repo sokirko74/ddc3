@@ -58,6 +58,7 @@ option files ("opt-files") used by the DDC corpus indexing system.
  
  Indices INDEXLIST
  IndicesToShow INTLIST
+ DefaultBibl NAME
  HitBorders BREAKLIST
  
  HtmlHighlighting L;R;LL;RR
@@ -378,6 +379,25 @@ By default, L<IndicesToShow|/indicestoShow> is C<1>, i.e. words are represented 
 
 Only supported for the C<Free_Index> L<Index Type|/indextype>.
 
+=head3 DefaultBibl
+
+ DefaultBibl NAME
+
+C<NAME> is the name of a fallback bibliographic field to be queried if no literal match is found for a runtime
+(user) filter.  C<NAME> must be the name of a bibliographic metadata attribute as defined by the
+L<Bibl|/bibl> option.
+This option can be used in conjunction with a C<constant> bibliographic metadata attribute
+to provide a default value for unknown bibliographic metadata attributes, e.g. to facilitate interoperability
+between multiple heterogeneous corpora without the need for re-indexing or explicit definition of
+L<Bibl|/bibl> constant fields.
+If omitted or set to the empty string (the default), query filters on an undefined bibliographic
+attribute will raise a runtime error.
+
+B<CAVEAT>: You should think B<carefully> before using this feature, since it will suppress error and/or warning
+messages due to typographical errors for "real" attribute fields.
+
+Since v2.0.27
+
 =head3 HitBorders
 
  HitBorders BREAKLIST
@@ -587,7 +607,7 @@ XPATH is an X-Path.
 
 =head3 Bibl
 
- Bibl TYPE VISIBILITY NAME XPATH
+ Bibl TYPE VISIBILITY NAME VALUE
 
 (from DDCReadme):
 Each C<Bibl> declaration describes a single bibliographical field (such as date of publication, author, and so on).
@@ -601,7 +621,7 @@ The arguments to free C<Bibl> are:
 
 =item TYPE
 
-either C<string> or C<integer>;
+is the type of the bibliographic field; either C<string>, C<integer>, or C<constant>;
 
 =item VISIBILITY
 
@@ -611,11 +631,19 @@ either C<1> or C<0>: if it is "1",  then DDC displays the value of the field for
 
 a symbolic name for this bibliographic field (by convention all lower-case); and
 
-=item XPATH
+=item VALUE
 
-an X-Path specification of the location of the field data in corpus source documents.
+For the C<string> and C<integer> types, C<VALUE> should be an X-Path specification of the location
+of the field data in corpus source documents; for
+the C<constant> type, it should be a literal string indicating the value to be returned.
 
 =back
+
+Note that additions, deletions, and/or changes to C<constant> bibliographic fields do B<not>
+require re-indexing, whereas any changes to non-C<constant> fields B<do>.
+
+Since v1.x; C<constant> fields since v2.0.27.
+
 
 =head3 Bigrams
 

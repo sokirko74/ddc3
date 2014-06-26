@@ -67,6 +67,7 @@
 
 			<li><a href="#indices">Indices</a></li>
 			<li><a href="#indicestoshow">IndicesToShow</a></li>
+			<li><a href="#defaultbibl">DefaultBibl</a></li>
 			<li><a href="#hitborders">HitBorders</a></li>
 			<li><a href="#htmlhighlighting">HtmlHighlighting</a></li>
 			<li><a href="#texthighlighting">TextHighlighting</a></li>
@@ -162,6 +163,7 @@ option files (&quot;opt-files&quot;) used by the DDC corpus indexing system.</p>
  
  Indices INDEXLIST
  IndicesToShow INTLIST
+ DefaultBibl NAME
  HitBorders BREAKLIST
  
  HtmlHighlighting L;R;LL;RR
@@ -446,6 +448,23 @@ By default, <a href="#indicestoshow">IndicesToShow</a> is <code>1</code>, i.e. w
 <p>Only supported for the <code>Free_Index</code> <a href="#indextype">Index Type</a>.</p>
 <p>
 </p>
+<h3><a name="defaultbibl">DefaultBibl</a></h3>
+<pre>
+ DefaultBibl NAME</pre>
+<p><a href="#name"><code>NAME</code></a> is the name of a fallback bibliographic field to be queried if no literal match is found for a runtime
+(user) filter.  <a href="#name"><code>NAME</code></a> must be the name of a bibliographic metadata attribute as defined by the
+<a href="#bibl">Bibl</a> option.
+This option can be used in conjunction with a <code>constant</code> bibliographic metadata attribute
+to provide a default value for unknown bibliographic metadata attributes, e.g. to facilitate interoperability
+between multiple heterogeneous corpora without the need for re-indexing or explicit definition of
+<a href="#bibl">Bibl</a> constant fields.
+If omitted or set to the empty string (the default), query filters on an undefined bibliographic
+attribute will raise a runtime error.</p>
+<p><strong>CAVEAT</strong>: You should think <strong>carefully</strong> before using this feature, since it will suppress error and/or warning
+messages due to typographical errors for &quot;real&quot; attribute fields.</p>
+<p>Since v2.0.27</p>
+<p>
+</p>
 <h3><a name="hitborders">HitBorders</a></h3>
 <pre>
  HitBorders BREAKLIST</pre>
@@ -639,7 +658,7 @@ XPATH is an X-Path.</p>
 </p>
 <h3><a name="bibl">Bibl</a></h3>
 <pre>
- Bibl TYPE VISIBILITY NAME XPATH</pre>
+ Bibl TYPE VISIBILITY NAME VALUE</pre>
 <p>(from DDCReadme):
 Each <code>Bibl</code> declaration describes a single bibliographical field (such as date of publication, author, and so on).
 The bibliographical field can be predefined (&quot;orig&quot;, &quot;scan&quot;, &quot;date&quot;, &quot;page&quot;, &quot;pagerank&quot;) or free (user-defined).
@@ -651,7 +670,7 @@ The arguments to free <code>Bibl</code> are:</p>
 <dt><strong><a name="type" class="item">TYPE</a></strong></dt>
 
 <dd>
-<p>either <code>string</code> or <code>integer</code>;</p>
+<p>is the type of the bibliographic field; either <code>string</code>, <code>integer</code>, or <code>constant</code>;</p>
 </dd>
 <dt><strong><a name="visibility" class="item">VISIBILITY</a></strong></dt>
 
@@ -663,12 +682,17 @@ The arguments to free <code>Bibl</code> are:</p>
 <dd>
 <p>a symbolic name for this bibliographic field (by convention all lower-case); and</p>
 </dd>
-<dt><strong><a name="xpath" class="item">XPATH</a></strong></dt>
+<dt><strong><a name="value" class="item">VALUE</a></strong></dt>
 
 <dd>
-<p>an X-Path specification of the location of the field data in corpus source documents.</p>
+<p>For the <code>string</code> and <code>integer</code> types, <a href="#value"><code>VALUE</code></a> should be an X-Path specification of the location
+of the field data in corpus source documents; for
+the <code>constant</code> type, it should be a literal string indicating the value to be returned.</p>
 </dd>
 </dl>
+<p>Note that additions, deletions, and/or changes to <code>constant</code> bibliographic fields do <strong>not</strong>
+require re-indexing, whereas any changes to non-<code>constant</code> fields <strong>do</strong>.</p>
+<p>Since v1.x; <code>constant</code> fields since v2.0.27.</p>
 <p>
 </p>
 <h3><a name="bigrams">Bigrams</a></h3>

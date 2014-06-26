@@ -62,7 +62,7 @@
 .\" ========================================================================
 .\"
 .IX Title "DDC_OPT 5"
-.TH DDC_OPT 5 "2014-05-12" "2.0.24-1" "DDC Corpus Indexing System"
+.TH DDC_OPT 5 "2014-06-26" "2.0.27-pre1" "DDC Corpus Indexing System"
 .\" For nroff, turn off justification.  Always turn off hyphenation; it makes
 .\" way too many mistakes in technical documents.
 .if n .ad l
@@ -117,6 +117,7 @@ option files (\*(L"opt-files\*(R") used by the \s-1DDC\s0 corpus indexing system
 \& 
 \& Indices INDEXLIST
 \& IndicesToShow INTLIST
+\& DefaultBibl NAME
 \& HitBorders BREAKLIST
 \& 
 \& HtmlHighlighting L;R;LL;RR
@@ -428,6 +429,28 @@ By default, IndicesToShow is \f(CW1\fR, i.e. words are represented only by the v
 .PP
 Only supported for the \f(CW\*(C`Free_Index\*(C'\fR Index Type.
 .PP
+\fIDefaultBibl\fR
+.IX Subsection "DefaultBibl"
+.PP
+.Vb 1
+\& DefaultBibl NAME
+.Ve
+.PP
+\&\f(CW\*(C`NAME\*(C'\fR is the name of a fallback bibliographic field to be queried if no literal match is found for a runtime
+(user) filter.  \f(CW\*(C`NAME\*(C'\fR must be the name of a bibliographic metadata attribute as defined by the
+Bibl option.
+This option can be used in conjunction with a \f(CW\*(C`constant\*(C'\fR bibliographic metadata attribute
+to provide a default value for unknown bibliographic metadata attributes, e.g. to facilitate interoperability
+between multiple heterogeneous corpora without the need for re-indexing or explicit definition of
+Bibl constant fields.
+If omitted or set to the empty string (the default), query filters on an undefined bibliographic
+attribute will raise a runtime error.
+.PP
+\&\fB\s-1CAVEAT\s0\fR: You should think \fBcarefully\fR before using this feature, since it will suppress error and/or warning
+messages due to typographical errors for \*(L"real\*(R" attribute fields.
+.PP
+Since v2.0.27
+.PP
 \fIHitBorders\fR
 .IX Subsection "HitBorders"
 .PP
@@ -686,7 +709,7 @@ Each \f(CW\*(C`textarea\*(C'\fR declaration describes a single text area, where
 .IX Subsection "Bibl"
 .PP
 .Vb 1
-\& Bibl TYPE VISIBILITY NAME XPATH
+\& Bibl TYPE VISIBILITY NAME VALUE
 .Ve
 .PP
 (from DDCReadme):
@@ -698,16 +721,23 @@ the general filter operator or general order operators (\f(CW\*(C`#HAS\*(C'\fR a
 The arguments to free \f(CW\*(C`Bibl\*(C'\fR are:
 .IP "\s-1TYPE\s0" 4
 .IX Item "TYPE"
-either \f(CW\*(C`string\*(C'\fR or \f(CW\*(C`integer\*(C'\fR;
+is the type of the bibliographic field; either \f(CW\*(C`string\*(C'\fR, \f(CW\*(C`integer\*(C'\fR, or \f(CW\*(C`constant\*(C'\fR;
 .IP "\s-1VISIBILITY\s0" 4
 .IX Item "VISIBILITY"
 either \f(CW1\fR or \f(CW0\fR: if it is \*(L"1\*(R",  then \s-1DDC\s0 displays the value of the field for each hit header;
 .IP "\s-1NAME\s0" 4
 .IX Item "NAME"
 a symbolic name for this bibliographic field (by convention all lower-case); and
-.IP "\s-1XPATH\s0" 4
-.IX Item "XPATH"
-an X\-Path specification of the location of the field data in corpus source documents.
+.IP "\s-1VALUE\s0" 4
+.IX Item "VALUE"
+For the \f(CW\*(C`string\*(C'\fR and \f(CW\*(C`integer\*(C'\fR types, \f(CW\*(C`VALUE\*(C'\fR should be an X\-Path specification of the location
+of the field data in corpus source documents; for
+the \f(CW\*(C`constant\*(C'\fR type, it should be a literal string indicating the value to be returned.
+.PP
+Note that additions, deletions, and/or changes to \f(CW\*(C`constant\*(C'\fR bibliographic fields do \fBnot\fR
+require re-indexing, whereas any changes to non\-\f(CW\*(C`constant\*(C'\fR fields \fBdo\fR.
+.PP
+Since v1.x; \f(CW\*(C`constant\*(C'\fR fields since v2.0.27.
 .PP
 \fIBigrams\fR
 .IX Subsection "Bigrams"
