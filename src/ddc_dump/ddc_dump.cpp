@@ -18,13 +18,18 @@
 //
 
 #include <stdio.h>
+#include <errno.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
 #include "../ConcordLib/ConcHolder.h"
 using namespace std;
 
 //======================================================================
 const char *prog = "ddc_dump";
 const char *confilename = NULL;
-const char *outfilename = "-";
+const char *outfilename = NULL;
+bool  dump_full = false;
 
 //--------------------------------------------------------------
 void show_version(void) {
@@ -42,7 +47,9 @@ void show_usage(void) {
 	  " Options:\n"
 	  "  -h, --help         # this help message\n"
 	  "  -v, --version      # show version and exit\n"
-	  "  -o, --output FILE  # specify output file (default=stdout)\n"
+	  "  -o, --output OUT   # specify output file or directory (default=stdout)\n"
+	  "  -f, --full         # full dump, output to directory\n"
+	  "  -b, --bibl         # bibliography only dump (default; output to file)\n"
 	  "\n"
 	  );
 }
@@ -69,6 +76,12 @@ int main(int argc, char* argv[])
       if (argi < argc)
 	outfilename = argv[argi];
     }
+    else if (s=="--full" || s=="-f") {
+      dump_full = true;
+    }
+    else if (s=="--bibl" || s=="-b") {
+      dump_full = false;
+    }
     else {
       confilename = argv[argi];
     }
@@ -81,15 +94,6 @@ int main(int argc, char* argv[])
     exit(1);
   }
 
-  //-- output file
-  FILE *outfile = stdout;
-  if (string(outfilename) != "-")
-    outfile = fopen(outfilename,"wb");
-  if (!outfile) {
-    fprintf(stderr, "Error: cannot open output file `%s': %s", outfilename, strerror(errno));
-    exit(-1);
-  }
-
   //-- load project
   CConcHolder R;
   R.m_pIndexator = new CConcIndexator;
@@ -98,10 +102,62 @@ int main(int argc, char* argv[])
     exit(-1);
   }
 
-  //-- dump
-  fprintf(stderr, "%s: dumping bibliographic metadata to %s ...", prog, (outfile==stdout ? "standard output" : outfilename));
-  R.m_pIndexator->DumpBibliography(outfile); 
-  fprintf(stderr, " done.\n");
+  try {
+    if (!dump_full) {
+      //-- bibliographic dump
+
+      //-- bibl dump: output file
+      FILE *outfile = stdout;
+      if (!outfilename) outfilename = "-";
+      if (string(outfilename) != "-")
+	outfile = fopen(outfilename,"wb");
+      if (!outfile)
+	throw CExpc(errRuntime, "Error: cannot open output file `%s': %s", outfilename, strerror(errno));
+
+      //-- bibl dump: data
+      fprintf(stderr, "%s: dumping bibliographic metadata to %s ...", prog, (outfile==stdout ? "standard output" : outfilename));
+      R.m_pIndexator->DumpBibliography(outfile); 
+      fprintf(stderr, " done.\n");
+
+      fclose(outfile);
+    }
+    else {
+      //-- full dump
+
+      //-- full dump: check for dump directory
+      if (!outfilename)
+	throw CExpc(errRuntime,"Error: full dump requested but no output directory specified with -output");
+
+      string outdir_s  = outfilename;
+      size_t slashpos  = outdir_s.find_last_not_of("/");
+      outdir_s.erase(slashpos+1);
+      const char *outdir = outdir_s.c_str();
+
+      struct stat s;
+      if (stat(outdir, &s)==-1) {
+	if (errno == ENOENT) {
+	  //-- doesn't exist
+	  throw CExpc(errRuntime,"Error: output directory `%s' does not exist", outdir);
+	} else {
+	  //-- error during stat()
+	  throw CExpc(errRuntime,"could not open output directory `%s': %s", outdir, strerror(errno));
+	}
+      }
+      else if(!S_ISDIR(s.st_mode)) {
+        //-- exists but is not a directory
+	throw CExpc(errRuntime,"Error: invalid output directory `%s': %s", outdir, strerror(errno));
+      }
+      
+      //-- full dump: data
+      fprintf(stderr, "%s: dumping index data to %s ...\n", prog, outdir);
+      R.m_pIndexator->DumpIndex(outdir);
+      fprintf(stderr, "%s: done.\n", prog);
+    }
+  }
+  catch (exception &e) {
+    fprintf(stderr, "%s: Exception: %s\n", prog, e.what());
+    exit(-1);
+  }
 
   //-- cleanup
   delete R.m_pIndexator;

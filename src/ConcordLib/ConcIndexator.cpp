@@ -2087,6 +2087,82 @@ string CConcIndexator::DumpFileBibliography(DWORD FileNo) const
     return fb;
 }
 
+//----------------------------------------------------------------------
+void CConcIndexator::DumpFileIndex(DWORD FileNo, FILE *f) const
+{
+	if (f==NULL) f=stdout;
+
+	//-- dump: token range
+	CTokenNo tok_min = FileNo==0 ? 0 : GetFileBreaks()[FileNo-1];
+	CTokenNo tok_max = GetFileBreaks()[FileNo];
+	fprintf(f, "{\n\t\"tokids_\":{\"min\":%d, \"max\":%d},\n", tok_min,tok_max);
+
+
+	//-- dump: metadata
+	fputs("\t\"meta_\":",f);
+	string fs = DumpFileBibliography(FileNo);
+	fwrite(fs.data(), 1, fs.size(), f);
+	fputs(",\n", f);
+
+	//-- dump: free breaks
+	fputs("\t\"breaks_\":\[\n", f);
+	for (vector<CBreakCollection>::const_iterator brki=m_Breaks.begin(); brki!=m_Breaks.end(); brki++) {
+		fprintf(f, "\t\t\{\"shortname\":%s,\"longname\":%s,\"offsets\":\[", jsonStr(brki->m_ShortName,m_Utf8).c_str(), jsonStr(brki->m_LongName,m_Utf8).c_str());
+		vector<CTokenNo>::const_iterator off0 = lower_bound(brki->m_BreakOffsets.begin(), brki->m_BreakOffsets.end(), tok_min);
+		for (vector<CTokenNo>::const_iterator offi=off0; offi != brki->m_BreakOffsets.end() && *offi < tok_max; offi++) {
+			if (offi != off0) fputc(',',f);
+			fprintf(f,"%u", *offi);
+		}
+		fputs("]},\n",f);
+	}
+	fputs("\t],\n", f);
+
+	//-- dump: page-breaks
+	fputs("\t\"pagebreaks_\":\{", f);
+	vector<CPageNumber>::const_iterator pb0 = GetTokenPageBreak(tok_min);
+	for (vector<CPageNumber>::const_iterator pbi = pb0; pbi != m_PageBreaks.end() && pbi->m_StartTokenNo < tok_max; pbi++) {
+			if (pbi != pb0) fputc(',',f);
+			fprintf(f,"%u:%u", pbi->m_PageNumber, pbi->m_StartTokenNo);
+	}
+	fputs("},\n", f);
+
+
+	//-- construct: tokens
+	vector<COutputToken> tmptoks;
+	tmptoks.reserve(tok_max-tok_min);
+
+	fputs("\t\"indices_\":\[\n", f);
+	for (vector<CStringIndexSet*>::const_iterator ixi=m_Indices.begin(); ixi!=m_Indices.end(); ixi++) {
+		if (ixi != m_Indices.begin()) fputs(",\n",f);
+		fprintf(f, "\t\t{\"shortname\":%s,\"longname\":%s,\"values\":[", jsonStr((*ixi)->m_ShortName,m_Utf8).c_str(), jsonStr((*ixi)->m_Name,m_Utf8).c_str());
+		if ((*ixi)->GetTokensFromStorage(tok_min, tok_max, tmptoks)) {
+			for (vector<COutputToken>::const_iterator tmpi=tmptoks.begin(); tmpi!=tmptoks.end(); tmpi++) {
+				if (tmpi != tmptoks.begin()) fputc(',',f);
+				fputs(jsonStr(tmpi->m_TokenStr,m_Utf8).c_str(), f);
+			}
+		}
+		fputs("]}", f);
+		tmptoks.clear();
+	}
+	fputs("\n\t]\n}\n", f);
+
+	return;
+}
+
+//----------------------------------------------------------------------
+void CConcIndexator::DumpIndex(const char *dirname) const
+{
+    size_t nfiles=m_CorpusFiles.size();
+    for (size_t fn=0; fn < nfiles; ++fn) {
+	    string dumpfile = Format("%s/%d.json", dirname, fn);
+	    FILE  *dumpfh   = fopen(dumpfile.c_str(), "wb");
+	    if (!dumpfh)
+		    throw CExpc(errRuntime, "Error: open failed for dump file '%s': %s", dumpfile.c_str(), strerror(errno));
+	    fprintf(stderr, "dumping %s ~ %s\n", dumpfile.c_str(), m_CorpusFiles[fn].c_str());
+	    DumpFileIndex(fn, dumpfh);
+	    fclose(dumpfh);
+    }
+}
 
 // Local Variables:
 // mode: c++

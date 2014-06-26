@@ -326,6 +326,12 @@ void CHitBorders::ConvertHitsToPageBreaks (
 };
 
 
+// for each hit calculate a page number, at which it starts. (a hit can divided by a page break)
+vector<CPageNumber>::const_iterator CHitBorders::GetTokenPageBreak(CTokenNo tok) const
+{
+	return lower_bound(m_PageBreaks.begin(), m_PageBreaks.end(), tok, LessPageBreak());
+}
+
 bool CHitBorders::RegisterBreak(string ShortName, string LongName)
 {
 	CBreakCollection T (ShortName, LongName);

@@ -77,7 +77,7 @@ class CHitBorders
 		void			CloseFileForIndexing();
 	};
 
- private:
+ protected:
 	//! all breaks
 	vector<CBreakCollection>	m_Breaks;
 
@@ -161,6 +161,9 @@ public:
 	bool						LoadHitBorders(string Path);
 	//! converts hits to page breaks, which contains this breaks 
 	void						ConvertHitsToPageBreaks (vector<CHit>::const_iterator hits_begin, vector<CHit>::const_iterator hits_end, const vector<CTokenNo>& Breaks, DwordVector& PageBreaks)	const;
+	//! get page break for a given token number as an interator into m_PageBreaks
+	vector<CPageNumber>::const_iterator GetTokenPageBreak(CTokenNo tok) const;
+
 	//! adds one break to a collection identified by a short name (during indexing)
 	bool						AddBreakByName(const string& ShortName, const CTokenNo& B);
 	//!   closes all CBreakCollectionDescr::m_FileForIndexing from  m_Breaks (during indexing)

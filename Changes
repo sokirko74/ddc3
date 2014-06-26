@@ -1,5 +1,8 @@
 ##-*- Mode: Change-Log; coding: utf-8; -*-
 
+v2.0.28 Thu, 26 Jun 2014 15:51:11 +0200 moocow
+	+ added --ful option to ddc_dump : full index dump (not just metadata)
+
 v2.0.27 Thu, 26 Jun 2014 09:16:48 +0200 moocow
 	+ added 'constant' bibl type (parallel to 'string' and 'integer'): runtime string constants (e.g. characterisitc corpus values)
 	+ added scripts/ddc-make-bibl.perl to add a metadata attribute to an existing DDC project without re-indexing

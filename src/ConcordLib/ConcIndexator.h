@@ -346,6 +346,12 @@ public:
 	//! dump file metadata to a string (JSON)
 	string DumpFileBibliography(DWORD FileNo) const;
 
+	//! dump file data to a file (JSON)
+	void DumpFileIndex(DWORD FileNo, FILE *f=stdout) const;
+
+	//! dump index data to a directory (JSON)
+	void DumpIndex(const char *dirname) const;
+
 	// ==========================
 	// ====== Indexing Stage
 	// ==========================
