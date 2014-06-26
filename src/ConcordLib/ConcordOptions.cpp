@@ -101,6 +101,7 @@ void CConcIndexator::InitDefaultOptions()
 	m_MaxQueryCacheSize = 512;
 	m_Txd.clear();
 	m_OpDefaultIndexNames.clear();
+	m_Bibl.m_DefaultAttrName = "";
 }
 
 const char* CConcIndexator::GetIndexTypeStr () const
@@ -547,6 +548,10 @@ bool CConcIndexator::LoadOptionsFromString(string Options)
 			string index_name = fields.next_token();
 			m_OpDefaultIndexNames[query_op] = index_name;
 		}
+		else if (q == "DefaultBibl") {
+			m_Bibl.m_DefaultAttrName = fields.next_token();
+			fprintf(stderr, "DefaultBibl %s\n", m_Bibl.m_DefaultAttrName.c_str());
+		}
 		else
 		{
 			fprintf (stderr, "bad syntax in opt-file : %s!\n", q.c_str());
@@ -652,6 +657,11 @@ bool CConcIndexator::LoadOptionsFromString(string Options)
 		return false;
 	}
 	fprintf (stderr,"%s", m_Bibl.GetFreeBibiAttributesDescr().c_str());
+
+	if (!m_Bibl.m_DefaultAttrName.empty() && !m_Bibl.IsRegisteredBiblField(m_Bibl.m_DefaultAttrName)) {
+		ErrorMessage(Format("DefaultBibl target field `%s' is undefined", m_Bibl.m_DefaultAttrName.c_str()));
+		return false;
+	}
 
 	if (!m_Bibl.RegisterTextAreas(TextAreasDescr, ErrorStr))
 	{
@@ -813,6 +823,9 @@ string CConcIndexator::SaveOptionsToString()  const
 
 	if (m_AllowUnsafeQueries)
 		Result += "AllowUnsafeQueries\n";
+
+	if (!m_Bibl.m_DefaultAttrName.empty())
+		Result += Format("DefaultBibl %s\n", m_Bibl.m_DefaultAttrName.c_str());
 
 	Result += m_Txd.configString("Expand ");
 

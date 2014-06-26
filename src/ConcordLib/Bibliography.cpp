@@ -1424,7 +1424,7 @@ bool CConcXml::GetFilterBounds(CDDCFilterWithBounds& Filter, const string& LoVal
 	Filter.clear();
 	//-- filter bounds: require physically indexed bibliographic field
 	FreeBiblStringMap::const_iterator it = m_FreeBiblIndices.find(Filter.m_AttrName);
-	if (it == m_FreeBiblIndices.end()) return false; // attribute not found
+	if (it == m_FreeBiblIndices.end()) return false;  //-- attribute not found
 	return it->second->GetFilterBounds(Filter, LoValue, HiValue);
 }
 

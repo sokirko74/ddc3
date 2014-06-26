@@ -85,6 +85,12 @@ public:
   //! compile the filter.  Default implementation just pushes m_Filter onto compiler->m_Filters
   virtual bool Compile(CQueryCompiler *compiler, CQueryOptions *options);
 
+  //! compilation utility: return a valid bibliographic attribute for \a attrName
+  //!  + prefers \a attrName if that is a valid attribute name
+  //!  + otherwise uses compiler->m_pHolder->m_pIndexator->m_Bibl.m_DefaultAttrName if non-empty and a valid attribute name
+  //!  + otherwise returns an empty string
+  string ResolveAttributeName(CQueryCompiler *compiler, const string& attrName);
+
   //! stringification utility: quoted strign for arg, or empty string
   string argString(const string &arg) const;
 

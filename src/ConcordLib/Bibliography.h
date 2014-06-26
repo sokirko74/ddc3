@@ -255,7 +255,7 @@ private:
 	string					m_ScanXPath;
 	string					m_DateXPath;
 	string					m_StartPageXPath;
-	vector<CTextArea>		m_TextAreas;
+	vector<CTextArea>			m_TextAreas;
 
 	
 	void	DeleteFiles();
@@ -266,10 +266,20 @@ private:
 	
 	//! common regex options
 	RML_RE::Options m_RegexOpts;
-	
 
+public:
+	/** \brief name of default bibliographic field to query if no literal match is found
+	 * \detail
+	 *   This can be used in conjunction with a constant bibliographic metadata attribute (CConcXml::CFreeBiblStringConstant)
+	 *   to provide a default value for unknown bibliographic metadata attributes, e.g. to facilitate interoperability
+	 *   between multiple corpora.  If set to the empty string (the default), query filters on an undefined bibliographic
+	 *   attribute will raise an error.
+	 * \warning
+	 *   Think \b carefully before using this feature, since it will suppress error and/or warning messages due to
+	 *   typographical errors for "real" attribute fields.
+	 */
+	string m_DefaultAttrName;
 
-	
 		
 public:
 	CConcXml();

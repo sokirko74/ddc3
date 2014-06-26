@@ -1,10 +1,12 @@
 ##-*- Mode: Change-Log; coding: utf-8; -*-
 
-v2.0.27 Wed, 25 Jun 2014 15:36:44 +0200 moocow
+v2.0.27 Thu, 26 Jun 2014 09:16:48 +0200 moocow
 	+ added 'constant' bibl type (parallel to 'string' and 'integer'): runtime string constants (e.g. characterisitc corpus values)
 	+ added scripts/ddc-make-bibl.perl to add a metadata attribute to an existing DDC project without re-indexing
 	  - string fields only
 	  - supports constants (obsoleted by 'constant' bibl type) or tsv dict with filenam keys as occurring in project *.con file
+	+ added 'DefaultBibl' *.opt option: together with e.g. 'constant' allows universal fallback bibliographic field
+	  - can be used to suppress subcorpus server errors for heterogeneous corpora
 
 v2.0.26 Fri, 06 Jun 2014 15:16:31 +0200 moocow
 	+ fixed bogus unterminating loop when setting "DefaultQueryIndex _ Lemma"

@@ -114,6 +114,21 @@ bool CQFSort::Compile(CQueryCompiler *compiler, CQueryOptions *options)
 }
 
 //--------------------------------------------------------------
+string CQFSort::ResolveAttributeName(CQueryCompiler *compiler, const string& attrName)
+{
+  CConcIndexator *ix = compiler->m_pHolder->m_pIndexator;
+  assert(ix != NULL);
+
+  if (!attrName.empty() && ix->m_Bibl.GetFreeBiblIndex(attrName)!=NULL)
+    return attrName;
+
+  if (!ix->m_Bibl.m_DefaultAttrName.empty() && ix->m_Bibl.GetFreeBiblIndex(ix->m_Bibl.m_DefaultAttrName)!=NULL)
+    return ix->m_Bibl.m_DefaultAttrName;
+
+  return string("");
+}
+
+//--------------------------------------------------------------
 string CQFSort::argString(const string &arg) const
 {
   if (arg.empty()) return arg;
@@ -237,10 +252,18 @@ bool CQFBiblSort::Compile(CQueryCompiler *compiler, CQueryOptions *options)
   assert(ix != NULL);
 
   if (m_arg0.empty())
-    throw CExpc(errParseError,"Empty bibliographic field not allowed in sort operator `%s'", toString().c_str());
+    throw CExpc(errParseError,"Empty bibliographic field not allowed in sort operator `%s'", this->toString().c_str());
 
-  if (!ix->m_Bibl.GetFilterBounds(m_Filter, m_arg1, m_arg2))
-      throw CExpc(errParseError,"Can't determine bound(s) for bibliographic sort operator `%s'", toString().c_str());
+  //-- resolve attribute name (fallback to DefaultBibl)
+  m_Filter.m_AttrName = ResolveAttributeName(compiler, m_arg0);
+  if (m_Filter.m_AttrName.empty()) {
+    throw CExpc(errParseError,"Can't resolve attribute name `%s' for bibliographic sort operator `%s'", m_arg0.c_str(), this->toString().c_str());
+  }
+
+  //-- guts: get filter bounds
+  if (!ix->m_Bibl.GetFilterBounds(m_Filter, m_arg1, m_arg2)) {
+    throw CExpc(errParseError,"Can't determine bound(s) for bibliographic sort operator `%s'", this->toString().c_str());
+  }
 
   return CQFSort::Compile(compiler, options);
 }
@@ -327,6 +350,12 @@ bool CQFHasField::Compile(CQueryCompiler *compiler, CQueryOptions *options)
 
   if (m_arg1.empty())
     throw CExpc(errParseError,"Empty value field not allowed in filter operator `%s'", toString().c_str());
+
+  //-- resolve attribute name (fallback to DefaultBibl)
+  m_Filter.m_AttrName = ResolveAttributeName(compiler, m_arg0);
+  if (m_Filter.m_AttrName.empty()) {
+    throw CExpc(errParseError,"Can't resolve attribute name `%s' in bibliographic filter operator `%s'", m_arg0.c_str(), this->toString().c_str());
+  }
 
   return true;
 }
