@@ -2123,7 +2123,7 @@ void CConcIndexator::DumpFileIndex(DWORD FileNo, FILE *f) const
 	vector<CPageNumber>::const_iterator pb0 = GetTokenPageBreak(tok_min);
 	for (vector<CPageNumber>::const_iterator pbi = pb0; pbi != m_PageBreaks.end() && pbi->m_StartTokenNo < tok_max; pbi++) {
 			if (pbi != pb0) fputc(',',f);
-			fprintf(f,"%u:%u", pbi->m_PageNumber, pbi->m_StartTokenNo);
+			fprintf(f,"\"%u\":%u", pbi->m_StartTokenNo, pbi->m_PageNumber);
 	}
 	fputs("\n\t},\n", f);
 
