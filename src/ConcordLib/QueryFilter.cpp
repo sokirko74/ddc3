@@ -219,8 +219,8 @@ CQFSizeSort::CQFSizeSort(HitSortEnum ftype, int lb, int ub)
 
 bool CQFSizeSort::Compile(CQueryCompiler *compiler, CQueryOptions *options)
 {
-  m_Filter.m_KeyLo = (m_arg1.empty() ? INT_MIN : atoi(m_arg1.c_str()));
-  m_Filter.m_KeyHi = (m_arg2.empty() ? INT_MAX : atoi(m_arg2.c_str()));
+  m_Filter.m_KeyLo = (m_arg1.empty() ? INT_MIN : atoi(m_arg1.c_str())  );
+  m_Filter.m_KeyHi = (m_arg2.empty() ? INT_MAX : atoi(m_arg2.c_str())+1);
   return CQFSort::Compile(compiler, options);
 }
 

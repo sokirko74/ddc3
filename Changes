@@ -1,7 +1,8 @@
 ##-*- Mode: Change-Log; coding: utf-8; -*-
 
 v2.0.28 Thu, 26 Jun 2014 15:51:11 +0200 moocow
-	+ added --ful option to ddc_dump : full index dump (not just metadata)
+	+ added --full option to ddc_dump : full index dump (not just metadata)
+	+ fixed #size[N] bug, also changes #asc_size[LO,HI] semantics to be inclusive (analagous to other sort filters)
 
 v2.0.27 Thu, 26 Jun 2014 09:16:48 +0200 moocow
 	+ added 'constant' bibl type (parallel to 'string' and 'integer'): runtime string constants (e.g. characterisitc corpus values)
