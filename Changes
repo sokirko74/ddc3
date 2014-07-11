@@ -1,6 +1,6 @@
 ##-*- Mode: Change-Log; coding: utf-8; -*-
 
-v2.0.28 Thu, 26 Jun 2014 15:51:11 +0200 moocow
+v2.0.28 Fri, 11 Jul 2014 15:03:58 +0200 moocow
 	+ added --full option to ddc_dump : full index dump (not just metadata)
 	+ fixed #size[N] bug, also changes #asc_size[LO,HI] semantics to be inclusive (analagous to other sort filters)
 
