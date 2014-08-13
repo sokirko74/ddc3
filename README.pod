@@ -149,7 +149,6 @@ supported options.
 
 Many.
 
-
 =head1 AUTHOR
 
 Alexey Sokirko wrote DDC.

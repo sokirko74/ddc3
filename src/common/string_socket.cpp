@@ -498,7 +498,7 @@ bool CHost::ReadFromString (string S)
 			ItemNo++;
 	};
 
-	if (m_HostName.empty()) return false;
+	if (m_HostName.empty() || m_Port==-1) return false;
 
 	return true;
 };
