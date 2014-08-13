@@ -59,7 +59,8 @@ void LoadLocalCorpora (ProtocolDensityEnum ProtocolDensity, string ConfigFile)
 
 	concord_daemon_log ( Format ("Start loading corpora from %s", ConfigFile.c_str()) );
 	vector<CHost> Hosts;
-	LoadHosts(ConfigFile, Hosts);
+	if (!LoadHosts(ConfigFile, Hosts))
+		throw CExpc("failed to load config file %s", ConfigFile.c_str());
 
 
 	concord_daemon_log ( Format("  Found %i Hosts ", Hosts.size()) );
@@ -106,8 +107,10 @@ void LoadDDCServer (ProtocolDensityEnum ProtocolDensity, string ServerConfigFile
 		concord_daemon_log ( "Error! cannot allocate memory for a server instance");
 		return;
 	};
+
+	if (!LoadHosts(ServerConfigFile, pServer->m_Hosts))
+		throw CExpc("failed to load server config file %s", ServerConfigFile.c_str());
 	
-	LoadHosts(ServerConfigFile, pServer->m_Hosts);
 	if (pServer->m_Hosts.empty())
 	{
 		delete pServer;
