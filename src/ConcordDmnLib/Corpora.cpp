@@ -60,7 +60,7 @@ void LoadLocalCorpora (ProtocolDensityEnum ProtocolDensity, string ConfigFile)
 	concord_daemon_log ( Format ("Start loading corpora from %s", ConfigFile.c_str()) );
 	vector<CHost> Hosts;
 	if (!LoadHosts(ConfigFile, Hosts))
-		throw CExpc("failed to load config file %s", ConfigFile.c_str());
+		throw CExpc(errOther, "failed to load config file %s", ConfigFile.c_str());
 
 
 	concord_daemon_log ( Format("  Found %i Hosts ", Hosts.size()) );
@@ -109,7 +109,7 @@ void LoadDDCServer (ProtocolDensityEnum ProtocolDensity, string ServerConfigFile
 	};
 
 	if (!LoadHosts(ServerConfigFile, pServer->m_Hosts))
-		throw CExpc("failed to load server config file %s", ServerConfigFile.c_str());
+		throw CExpc(errOther, "failed to load server config file %s", ServerConfigFile.c_str());
 	
 	if (pServer->m_Hosts.empty())
 	{

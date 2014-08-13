@@ -105,6 +105,7 @@ void  termination_handler(int signum)
 
 int puke(const std::string& msg) {
 	fprintf(stdout, msg.c_str());
+	fputc('\n', stdout);
 	syslog(LOG_ALERT, msg.c_str());
 	concord_daemon_log(msg.c_str());
 	UnloadData();
