@@ -51,7 +51,7 @@ test -d "$skeldir" \
 ##-- create output directory
 runcmd mkdir -p "$outdir" \
   || die "could not create output directory '$outdir'!"
-runcmd mkdir -p "$outdir/log/etc" \
+runcmd mkdir -p "$outdir/etc" \
   || die "could not create output log directory '$outdir/etc'!"
 runcmd mkdir -p "$outdir/log/concord" \
   || die "could not create output log directory '$outdir/log/concord'!"

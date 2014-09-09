@@ -659,7 +659,7 @@ XPATH is an X-Path.</p>
 <h3><a name="bibl">Bibl</a></h3>
 <pre>
  Bibl TYPE VISIBILITY NAME VALUE</pre>
-<p>(from DDCReadme):
+<p>(mostly from DDCReadme):
 Each <code>Bibl</code> declaration describes a single bibliographical field (such as date of publication, author, and so on).
 The bibliographical field can be predefined (&quot;orig&quot;, &quot;scan&quot;, &quot;date&quot;, &quot;page&quot;, &quot;pagerank&quot;) or free (user-defined).
 Predefined bibliographical fields have special processing in DDC, for example, field &quot;scan&quot; is used to build a hit
@@ -692,7 +692,11 @@ the <code>constant</code> type, it should be a literal string indicating the val
 </dl>
 <p>Note that additions, deletions, and/or changes to <code>constant</code> bibliographic fields do <strong>not</strong>
 require re-indexing, whereas any changes to non-<code>constant</code> fields <strong>do</strong>.</p>
-<p>Since v1.x; <code>constant</code> fields since v2.0.27.</p>
+<p>Prior to v2.0.30, multiple definitions of a bibliographic field <a href="#name"><code>NAME</code></a> caused a fatal
+error when loading a corpus project.  As of v2.0.30, a warning is emitted in these cases,
+and the most recent definition is used (later definitions effectively &quot;clobbering&quot; earlier
+ones).</p>
+<p>Since v1.x; <code>constant</code> fields since v2.0.27, multiple definition since v2.0.30.</p>
 <p>
 </p>
 <h3><a name="bigrams">Bigrams</a></h3>

@@ -62,7 +62,7 @@
 .\" ========================================================================
 .\"
 .IX Title "DDC_OPT 5"
-.TH DDC_OPT 5 "2014-06-26" "2.0.30" "DDC Corpus Indexing System"
+.TH DDC_OPT 5 "2014-09-09" "2.0.30" "DDC Corpus Indexing System"
 .\" For nroff, turn off justification.  Always turn off hyphenation; it makes
 .\" way too many mistakes in technical documents.
 .if n .ad l
@@ -712,7 +712,7 @@ Each \f(CW\*(C`textarea\*(C'\fR declaration describes a single text area, where
 \& Bibl TYPE VISIBILITY NAME VALUE
 .Ve
 .PP
-(from DDCReadme):
+(mostly from DDCReadme):
 Each \f(CW\*(C`Bibl\*(C'\fR declaration describes a single bibliographical field (such as date of publication, author, and so on).
 The bibliographical field can be predefined (\*(L"orig\*(R", \*(L"scan\*(R", \*(L"date\*(R", \*(L"page\*(R", \*(L"pagerank\*(R") or free (user-defined).
 Predefined bibliographical fields have special processing in \s-1DDC\s0, for example, field \*(L"scan\*(R" is used to build a hit
@@ -737,7 +737,12 @@ the \f(CW\*(C`constant\*(C'\fR type, it should be a literal string indicating th
 Note that additions, deletions, and/or changes to \f(CW\*(C`constant\*(C'\fR bibliographic fields do \fBnot\fR
 require re-indexing, whereas any changes to non\-\f(CW\*(C`constant\*(C'\fR fields \fBdo\fR.
 .PP
-Since v1.x; \f(CW\*(C`constant\*(C'\fR fields since v2.0.27.
+Prior to v2.0.30, multiple definitions of a bibliographic field \f(CW\*(C`NAME\*(C'\fR caused a fatal
+error when loading a corpus project.  As of v2.0.30, a warning is emitted in these cases,
+and the most recent definition is used (later definitions effectively \*(L"clobbering\*(R" earlier
+ones).
+.PP
+Since v1.x; \f(CW\*(C`constant\*(C'\fR fields since v2.0.27, multiple definition since v2.0.30.
 .PP
 \fIBigrams\fR
 .IX Subsection "Bigrams"
