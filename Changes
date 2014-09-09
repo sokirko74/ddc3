@@ -1,5 +1,8 @@
 ##-*- Mode: Change-Log; coding: utf-8; -*-
 
+wip Tue, 09 Sep 2014 13:40:41 +0200 moocow
+	+ corrected typo in ddc-mkrml.sh (log/etc instead of etc)
+
 v2.0.30 Tue, 09 Sep 2014 13:26:10 +0200 moocow
 	+ changed handling of multiply-defined bibl fields
 	  - formerly caused fatal errors, now just produce warnings
