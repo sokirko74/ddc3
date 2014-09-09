@@ -214,7 +214,7 @@ extern bool		FSeek(FILE* fp, file_off_t pos, int origin);
 extern file_off_t	FTell(FILE* fp);
 
 
-extern void	ErrorMessage (const string& Titul, const string& Message);
+extern void	ErrorMessage (const string& Label, const string& Message);
 extern void	ErrorMessage (const string& Message);
 extern string	MakeFName ( const string& InpitFileName,  const string& Ext);
 extern bool	MakePath (const char* RossPath, const char* FileName, char* FullPath);

@@ -45,17 +45,20 @@ bool  CheckXPath (string XPath, string& ErrStr )
 	ErrStr = "";
 	if (XPath.empty() ) 
 	{
-		ErrStr = "Error! Empty  XPath!";
+		ErrStr = "Empty XPath";
 		return false;
 	};
+#if 0
+	//-- no longer required as of v2.0.19, which supports constant XPath expressions (e.g. for date)
 	if (XPath[0] != '/' ) 
 	{
-		ErrStr = "Error! XPath should start with '/' !";
+		ErrStr = "XPath should start with '/'";
 		return false;
 	};
+#endif
 	if (XPath[XPath.length() - 1] == '/' ) 
 	{
-		ErrStr = "Error! XPath should not terminate with '/' !";
+		ErrStr = "XPath should not end with '/'";
 		return false;
 	};
 	return true;
@@ -70,37 +73,59 @@ string ReadXmlField (const TiXmlDocument& pDoc, string XPath)
 	if (xp_proc.e_error != TinyXPath::xpath_processor::e_no_error)
 		// not present in this dociment 
 		return "";
-	
-	TinyXPath::node_set* pSet = er_res.nsp_get_node_set();
-	string Result;
-	size_t Count = pSet->u_get_nb_node_in_set();
-	for (size_t u_node= 0; u_node < Count; u_node++)
-	{
-		string s;
-		const TiXmlBase* pBase = pSet->XBp_get_base_in_set(u_node);
-		if (pSet->o_is_attrib(u_node)  )
-		{
-			const TiXmlAttribute * node =  pSet->XAp_get_attribute_in_set(u_node);
-			s = node->Value();
-		}
-		else
-		{
-			const TiXmlNode * node =  pSet->XNp_get_node_in_set(u_node);
-			for (TiXmlNode* child = node->FirstChild();  child;  child = child->NextSibling())
-			if (child -> Type () == TiXmlNode::TEXT)
-			{
-				string  q = child->Value();
-				Trim(q);
-				s += q;
-			};
-		}
-		Result += s;
-		if (u_node+1 < Count) 
-				Result += ":";
-	}
-	
-	DeleteEoln(Result);
 
+	string Result;
+	switch (er_res.e_type) {
+	case TinyXPath::e_bool:
+		Result = (er_res.o_get_bool() ? "1" : "0");
+		break;
+
+	case TinyXPath::e_string:
+		Result = er_res.cp_get_string();
+		break;
+
+	case TinyXPath::e_int:
+		Result = Format("%d", er_res.i_get_int());
+		break;
+
+	case TinyXPath::e_double:
+		Result = Format("%g", er_res.d_get_double());
+		break;
+
+	case TinyXPath::e_node_set:
+		{
+			TinyXPath::node_set* pSet = er_res.nsp_get_node_set();
+			size_t Count = pSet->u_get_nb_node_in_set();
+			for (size_t u_node= 0; u_node < Count; u_node++) {
+				string s;
+				const TiXmlBase* pBase = pSet->XBp_get_base_in_set(u_node);
+				if (pSet->o_is_attrib(u_node)  ) {
+					const TiXmlAttribute * node =  pSet->XAp_get_attribute_in_set(u_node);
+					s = node->Value();
+				}
+				else {
+					const TiXmlNode * node =  pSet->XNp_get_node_in_set(u_node);
+					for (TiXmlNode* child = node->FirstChild();  child;  child = child->NextSibling())
+						if (child -> Type () == TiXmlNode::TEXT) {
+							string  q = child->Value();
+							Trim(q);
+							s += q;
+						};
+				}
+				Result += s;
+				if (u_node+1 < Count) 
+					Result += ":";
+			}
+		}
+		break;
+
+	case TinyXPath::e_invalid:
+	default:
+		ErrorMessage( Format("Error: Unknown or invalid return type for XPath `%s'", XPath.c_str()) );
+		break;
+	}
+
+	DeleteEoln(Result);
 	return Result;
 };
 
@@ -868,8 +893,10 @@ bool CConcXml::RegisterTextAreas(string fields, string& ErrorStr)
 			return false;
 		};
 		TextArea.m_Xpath = tok.val();
-		if (!CheckXPath(TextArea.m_Xpath, ErrorStr))
+		if (!CheckXPath(TextArea.m_Xpath, ErrorStr)) {
+			ErrorStr += " for TextArea XPath";
 			return false;
+		};
 
 		
 		m_TextAreas.push_back(TextArea);
@@ -963,10 +990,11 @@ bool CConcXml::RegisterFreeBiblAttributes(string fields, string& ErrorStr)
 			Xpath = tok.val();
 		}
 
-		// read xpath (or value for constants)
+		// check xpath (or value for constants)
 		if (!isConstant && !CheckXPath(Xpath, ErrorStr)) {
-			ErrorStr += Format(" for free bibliographical attribte `%s'", Name.c_str());
-			return false;
+			//-- just warn about dodgy-looking XPaths (fatal error prior to v2.0.29)
+			ErrorMessage( "WARNING", ErrorStr + Format(" for free bibliographical attribte `%s'", Name.c_str()) );
+			//return false;
 		}
 
 		if (Name == "orig")
@@ -984,8 +1012,11 @@ bool CConcXml::RegisterFreeBiblAttributes(string fields, string& ErrorStr)
 		{
 			if ( m_FreeBiblIndices.find(Name) != m_FreeBiblIndices.end() ) 
 			{ 
-				ErrorStr = Format("Error! Two free bibliographical attributes with the same name (%s)", Name.c_str());
-				return false;
+				//-- just warn about duplicate bibl fields and use the most recent definitition
+				//   (prior to v2.0.29, multiple bibl fields with the same name caused a fatal error)
+				FreeBiblStringMap::iterator oldi = m_FreeBiblIndices.find(Name);
+				delete oldi->second;
+				ErrorMessage( "WARNING", Format(" multiple definitions for free bibliographic attribute `%s', using most recent\n", Name.c_str()) );
 			};
 
 			CFreeBiblIndex* pIndex;
@@ -1506,7 +1537,7 @@ bool CConcXml::LoadXmlAndReadBibliography(TiXmlDocument& doc, const char* pFileB
 			if (Bibl.m_DateStr.empty())
 				strError = Format("Empty date!", Bibl.m_DateStr.c_str());
 			else
-				strError = Format("Bad format of the date(\"%s\")", Bibl.m_DateStr.c_str());
+				strError = Format("Bad date format (\"%s\")", Bibl.m_DateStr.c_str());
 			return false;
 		};
 	}

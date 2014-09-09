@@ -573,7 +573,7 @@ void CDDCBranchServer::GetFirstHitsFromCorpora(const DwordVector& PossibleHosts,
 			while (tok()) {
 				CHitToSort HS(HostNo);
 				const char* rest = tok.val();
-				int OrderId_IGNORED; //-- formerly integer sort-key Hit.m_OrderId sent by ddc < v2.0.19; used for count-queries by ddc >= v2.0.23
+				int OrderId_IGNORED; //-- formerly integer sort-key Hit.m_OrderId sent by ddc < v2.0.19
 				int nscanned = sscanf(rest, "%i %i %[^\t]", &HS.m_HitNo, &OrderId_IGNORED, SortKeyBuf);
 
 				if (nscanned < 2) {
@@ -732,21 +732,32 @@ string CDDCBranchServer::GetSubcorpusJsonArray(const string& request, int timeou
 
 		//-- open socket
 		errorStr.clear();
-		SOCKET sock = Host.CreateAndConnectSocket(errorStr);
-		if (sock == -1 || !errorStr.empty()) {
-			Results[i] = Format("{\"name\":%s,\"error\":\"could not open socket: %s\"},", Host.m_CorpusName.c_str(), jsonStr(errorStr, true, false).c_str());
+		try {
+		    SOCKET sock = Host.CreateAndConnectSocket(errorStr);
+		    if (sock == -1 || !errorStr.empty()) {
+			Results[i] = Format("{\"name\":%s,\"error\":\"could not open socket: %s\"}", Host.m_CorpusName.c_str(), jsonStr(errorStr, true, false).c_str());
 			continue;
-		}
+		    }
 
-		//-- send request
-		if (!SendString(sock, request, errorStr) || !errorStr.empty()) {
+		    //-- send request
+		    if (!SendString(sock, request, errorStr) || !errorStr.empty()) {
 			CloseSocket(sock);
-			Results[i] = Format("{\"name\":%s,\"error\":\"could not send to socket: %s\"},", Host.m_CorpusName.c_str(), jsonStr(errorStr, true, false).c_str());
+			Results[i] = Format("{\"name\":%s,\"error\":\"could not send to socket: %s\"}", Host.m_CorpusName.c_str(), jsonStr(errorStr, true, false).c_str());
 			continue;
+		    }
+
+		    //-- store socket
+		    Sockets[i] = sock;
+		}
+		catch (exception &e) {
+		    Results[i] = Format("{\"name\":%s,\"error\":\"error sending to socket: %s\"}", Host.m_CorpusName.c_str(), jsonStr(e.what(), true, false).c_str());
+		    continue;
+		}
+		catch (...) {
+		    Results[i] = Format("{\"name\":%s,\"error\":\"error sending to socket\"}", Host.m_CorpusName.c_str());
+		    continue;
 		}
 
-		//-- store socket
-		Sockets[i] = sock;
 	}
 
 	//-- read responses
@@ -755,8 +766,16 @@ string CDDCBranchServer::GetSubcorpusJsonArray(const string& request, int timeou
 			continue;
 
 		//-- read response
-		if (ReceiveString(Sockets[i], Results[i], timeout) != neSuccess) {
-			Results[i] = Format("{\"name\":%s,\"error\":\"failed to read response data from socket\"},", m_Hosts[i].m_CorpusName.c_str());
+		try {
+		    if (ReceiveString(Sockets[i], Results[i], timeout) != neSuccess) {
+			Results[i] = Format("{\"name\":%s,\"error\":\"failed to read response data from socket\"}", m_Hosts[i].m_CorpusName.c_str());
+		    }
+		}
+		catch (exception &e) {
+		    Results[i] = Format("{\"name\":%s,\"error\":\"error reading response data from socket: %s\"}", m_Hosts[i].m_CorpusName.c_str(), jsonStr(e.what(),true,false).c_str());
+		}
+		catch (...) {
+		    Results[i] = Format("{\"name\":%s,\"error\":\"error reading response data from socket\"}", m_Hosts[i].m_CorpusName.c_str());
 		}
 
 		//-- close socket (forgetting this causes an fd-leak resulting in "Could not create socket: Too many open files for HOST:PORT" messages later)

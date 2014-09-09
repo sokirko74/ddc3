@@ -1,5 +1,16 @@
 ##-*- Mode: Change-Log; coding: utf-8; -*-
 
+v2.0.29 Tue, 09 Sep 2014 13:15:33 +0200 moocow
+	+ sanity checks when loading server config in ConcordDmnLib/Corpora.cpp: ensure subcorpora are reachable
+	+ changed handling of multiply-defined bibl fields
+	  - formerly caused fatal errors, now just produce warnings
+	+ fleshed out ReadXmlField() in Bibliography.cpp to handle e.g. constant XPath expressions (especially for built-in integer fields (date))
+	+ allow "server:MYNAME" syntax in ddc_server.cfg for providing symbolic names for branch servers
+	  - useful for log files shared by multiple branch servers
+	+ more robust 'vstatus' and 'info' commands via try+catch in CDDCBranchServer::GetSubcorpusJsonArray()
+	  - detect and report error strings for each subcorpus rather than falling back to server-loop catch
+	  - runtime queries to buggy subcorpora still trigger the server-loop catch, returning just an error message
+
 v2.0.28 Fri, 11 Jul 2014 15:03:58 +0200 moocow
 	+ added --full option to ddc_dump : full index dump (not just metadata)
 	+ fixed #size[N] bug, also changes #asc_size[LO,HI] semantics to be inclusive (analagous to other sort filters)

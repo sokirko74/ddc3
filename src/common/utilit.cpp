@@ -381,11 +381,11 @@ file_off_t FTell(FILE* fp)
 
 void(*GlobalErrorMessage)(const string&) = 0;
 
-void ErrorMessage (const string& Titul, const string& Message)
+void ErrorMessage (const string& Label, const string& Message)
 {
 	if (GlobalErrorMessage)
 	{
-		string q = Titul + ":"+Message;
+		string q = Label + ":" + Message;
 		if (q.empty()|| (q[q.length() -1]!='\n'))	q+='\n';
 		GlobalErrorMessage(q);
 		return;
@@ -393,14 +393,14 @@ void ErrorMessage (const string& Titul, const string& Message)
 	
 	#ifdef WIN32
 		#ifndef _CONSOLE
-			MessageBox(0, Message.c_str(), Titul.c_str(), MB_OK);
+			MessageBox(0, Message.c_str(), Label.c_str(), MB_OK);
 			return;
 		#endif
 	#endif
 
 	string q = Message;
 	if (q.empty()|| (q[q.length() -1]!='\n'))	q+='\n';
-	fprintf(stderr, "%s: %s", Titul.c_str(), q.c_str());
+	fprintf(stderr, "%s: %s", Label.c_str(), q.c_str());
 	
 };
 

@@ -36,6 +36,7 @@ string ServerCorporaFile;
 string Action;
 bool   doFork;
 bool   log_stderr;
+char   log_label[64]; //-- ddc log-label
 
 const char *prog = "ddc_daemon";
 
@@ -230,7 +231,8 @@ int do_start(bool clientMode=false)
 		
 		}
 
-	ddc_thread_init("server");
+	sprintf(log_label, "server-main[pid=%i]", getpid());
+	ddc_thread_init(log_label);
 
 	concord_daemon_log (string("LoadCorpora (CWD=") + CurrentDirectory() + ")");
 	LoadLocalCorpora(ProtocolDensity, CorporaFile);
@@ -275,9 +277,12 @@ int do_start(bool clientMode=false)
 // MAIN
 int	main(int argc, char	**argv)
 {
-	ddcInitGlobal();
-	ddc_thread_init("main");
 	prog = argv[0];
+	sprintf(log_label, "main[pid=%i]", getpid());
+
+	ddcInitGlobal();
+	ddc_thread_init(log_label);
+
 
 	if (argc == 2) 	
 	{		

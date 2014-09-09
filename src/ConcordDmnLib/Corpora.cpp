@@ -119,7 +119,7 @@ void LoadDDCServer (ProtocolDensityEnum ProtocolDensity, string ServerConfigFile
 	};
 	bool bServerIsFound = false;	
 	for (int i = 0; i<pServer->m_Hosts.size(); i++)
-	if (pServer->m_Hosts[i].m_CorpusName == "server")
+        if (pServer->m_Hosts[i].m_CorpusName == "server" || pServer->m_Hosts[i].m_CorpusName.find("server:")==0)
 	{
 		pServer->CopyAddressParametersFrom(pServer->m_Hosts[i]);
 		pServer->m_LogFunction = concord_daemon_log;;

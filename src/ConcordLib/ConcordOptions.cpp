@@ -653,7 +653,7 @@ bool CConcIndexator::LoadOptionsFromString(string Options)
 	string ErrorStr;
 	if (!m_Bibl.RegisterFreeBiblAttributes(FreeBiblDescr, ErrorStr))
 	{
-		ErrorMessage( Format("Cannot parse %s\n (%s)", FreeBiblDescr.c_str(), ErrorStr.c_str()));
+		ErrorMessage( Format("Cannot parse %s\n (%s)", FreeBiblDescr.c_str(), ErrorStr.c_str()) );
 		return false;
 	}
 	fprintf (stderr,"%s", m_Bibl.GetFreeBibiAttributesDescr().c_str());
