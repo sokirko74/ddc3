@@ -617,7 +617,7 @@ bool CConcIndexator::LoadOptionsFromString(string Options)
 
 	if (!RegisterStringIndices(IndicesStr))
 	{
-		fprintf (stderr," Cannot parse index defintion: %s\n", IndicesStr.c_str());
+		fprintf (stderr," Cannot parse index definition: %s\n", IndicesStr.c_str());
 		return false;
 	};
 
