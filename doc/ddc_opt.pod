@@ -379,6 +379,7 @@ By default, L<IndicesToShow|/indicestoShow> is C<1>, i.e. words are represented 
 
 Only supported for the C<Free_Index> L<Index Type|/indextype>.
 
+
 =head3 DefaultBibl
 
  DefaultBibl NAME
@@ -609,7 +610,7 @@ XPATH is an X-Path.
 
  Bibl TYPE VISIBILITY NAME VALUE
 
-(from DDCReadme):
+(mostly from DDCReadme):
 Each C<Bibl> declaration describes a single bibliographical field (such as date of publication, author, and so on).
 The bibliographical field can be predefined ("orig", "scan", "date", "page", "pagerank") or free (user-defined).
 Predefined bibliographical fields have special processing in DDC, for example, field "scan" is used to build a hit
@@ -642,7 +643,12 @@ the C<constant> type, it should be a literal string indicating the value to be r
 Note that additions, deletions, and/or changes to C<constant> bibliographic fields do B<not>
 require re-indexing, whereas any changes to non-C<constant> fields B<do>.
 
-Since v1.x; C<constant> fields since v2.0.27.
+Prior to v2.0.30, multiple definitions of a bibliographic field C<NAME> caused a fatal
+error when loading a corpus project.  As of v2.0.30, a warning is emitted in these cases,
+and the most recent definition is used (later definitions effectively "clobbering" earlier
+ones).
+
+Since v1.x; C<constant> fields since v2.0.27, multiple definition since v2.0.30.
 
 
 =head3 Bigrams

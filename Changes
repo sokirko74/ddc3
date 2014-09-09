@@ -1,6 +1,6 @@
 ##-*- Mode: Change-Log; coding: utf-8; -*-
 
-v2.0.30 Tue, 09 Sep 2014 13:25:05 +0200 moocow
+v2.0.30 Tue, 09 Sep 2014 13:26:10 +0200 moocow
 	+ changed handling of multiply-defined bibl fields
 	  - formerly caused fatal errors, now just produce warnings
 	+ fleshed out ReadXmlField() in Bibliography.cpp to handle e.g. constant XPath expressions (especially for built-in integer fields (date))
