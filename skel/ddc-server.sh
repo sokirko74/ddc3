@@ -6,6 +6,7 @@
 
 ##--------------------------------------------------------------
 ## globals
+cd "$DDC_ROOT"
 ddc_startcmd="$RML/bin/ddc_daemon start $DAEMON_OPTS"
 ddc_stopcmd="$RML/bin/ddc_daemon stop $DAEMON_OPTS"
 
@@ -257,7 +258,7 @@ case "$1" in
     server_client || exit 1
     ;;
   debug)
-    DAEMON_OPTS="$DAEMON_OPTS --protocol heavy --nofork --stderr"
+    ddc_startcmd="$ddc_startcmd --protocol heavy --nofork --stderr"
     server_stop
     sleep 3
     server_start || exit 1
