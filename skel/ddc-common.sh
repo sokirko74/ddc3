@@ -72,31 +72,36 @@ server_pgrep() {
 ##--------------------------------------------------------------
 ## privelege restriction (for cron scripts)
 
-## ddc_user
-##  + user as whom to run the server (empty string for current user $LOGNAME)
-test -z "$ddc_user" && ddc_user="taxi"
+## DDC_USER
+##  + user as whom to run the server (set to empty (default) for current user $LOGNAME)
+#DDC_USER=ddc
 
 ## DDC_SSHKEY
 ##  + password-free ssh public key to use for gaining $DDC_USER privileges (default=none)
-test -z "$ddc_sshkey" && ddc_sshkey="$DDC_ROOT/ssh/${LOGNAME}_$(hostname -s)_ddc"
+test -z "$DDC_SSHKEY" -a -r "$DDC_ROOT/ssh/${LOGNAME}_$(hostname -s)_ddc" && DDC_SSHKEY="$DDC_ROOT/ssh/${LOGNAME}_$(hostname -s)_ddc"
+test -z "$DDC_SSHKEY" -a -r "$DDC_ROOT/ssh/$(hostname -s)_ddc"            && DDC_SSHKEY="$DDC_ROOT/ssh/$(hostname -s)_ddc"
+test -z "$DDC_SSHKEY" -a -r "$DDC_ROOT/ssh/id_dsa"                        && DDC_SSHKEY="$DDC_ROOT/ssh/id_dsa"
+test -z "$DDC_SSHKEY" -a -r "$HOME/.ssh/${LOGNAME}_$(hostname -s)_ddc"    && DDC_SSHKEY="$HOME/.ssh/${LOGNAME}_$(hostname -s)_ddc"
+test -z "$DDC_SSHKEY" -a -r "$HOME/.ssh/$(hostname -s)_ddc"               && DDC_SSHKEY="$HOME/.ssh/$(hostname -s)_ddc"
+test -z "$DDC_SSHKEY" -a -r "$HOME/.ssh/id_dsa"                           && DDC_SSHKEY="$HOME/.ssh/id_dsa"
 
 ## ddcsu CMD...
-##  + run CMD as $ddc_user
+##  + run CMD as $DDC_USER
 ddcsu() {
-  if test -z "$ddc_user" -o "$LOGNAME" = "$ddc_user" ; then
+  if test -z "$DDC_USER" -o "$DDC_USER" = "$LOGNAME"  ; then
     ##-- we're already the ddc user: just run
     runcmd "$@"
-  elif test -n "$ddc_sshkey" -a -r "$ddc_sshkey" ; then
+  elif test -n "$DDC_SSHKEY" -a -r "$DDC_SSHKEY" ; then
     ##-- we have an ssh key: use it
-    runcmd ssh -i "$ddc_sshkey" -o PreferredAuthentications=publickey "${ddc_user}@localhost" "cd $PWD" \; env RML="$RML" LC_CTYPE="$LC_CTYPE" "$@"
+    runcmd ssh -i "$DDC_SSHKEY" -o PreferredAuthentications=publickey "${DDC_USER}@localhost" "cd $PWD" \; env RML="$RML" LC_CTYPE="$LC_CTYPE" "$@"
   elif test -n "$(which sudo 2>/dev/null)" ; then
     ##-- try to use sudo
-    runcmd sudo -u "$ddc_user" env RML="$RML" LC_CTYPE="$LC_CTYPE" "$@"
+    runcmd sudo -u "$DDC_USER" env RML="$RML" LC_CTYPE="$LC_CTYPE" "$@"
   elif test "$LOGNAME" = "root" ; then
     ##-- we're root: use su (watch out for shell quotes though)
-    runcmd su -p -c "$*" "$ddc_user"
+    runcmd su -p -c "$*" "$DDC_USER"
   else
-    die "ddcsu($*): could not run command as ddc_user=$ddc_user"
+    die "ddcsu($*): could not run command as DDC_USER=$DDC_USER"
   fi
 }
 

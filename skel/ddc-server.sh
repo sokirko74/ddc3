@@ -248,7 +248,6 @@ case "$1" in
     server_query -timeout=5 -req status
     ;;
   pgrep|pids)
-    #echo "pgrep -u $ddc_user -x -f '$ddc_startcmd'"
     server_pgrep
     ;;
   ports)
