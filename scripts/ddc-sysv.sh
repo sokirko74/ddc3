@@ -4,10 +4,12 @@
 ## Author: Bryan Jurish <jurish@bbaw.de>
 ## Description: sysV-style init script for ddc servers a la ddc-mkrml.sh
 ## Usage:
-##  + install this script as e.g. /etc/init.d/ddc.sh
+##  + install this script as e.g. /etc/init.d/ddc
 ##  + create and edit /etc/default/ddc so that the variable DDC_ROOTS is
 ##    a list of all ddc root dirs as created e.g. by ddc-mkrml.sh
-##  + start/stop all selected ddc instances by calling /etc/init.d/ddc.sh {start|stop}
+##  + start/stop all selected ddc instances by calling /etc/init.d/ddc {start|stop}
+##  + enable system-wide usage on debian-based systems by calling:
+##    # update-rc.d ddc defaults
 
 ### BEGIN INIT INFO
 # Provides:          ddc

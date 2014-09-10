@@ -7,6 +7,8 @@
 ##  + edit the list variable DDC_ROOTS to contain a list of all ddc root dirs as created e.g. by ddc-mkrml.sh
 ##  + install scripts/ddc-sysv.sh from the ddc distribution as e.g. /etc/init.d/ddc.sh
 ##  + start/stop all selected ddc instances by calling /etc/init.d/ddc.sh {start|stop}
+##  + enable system-wide usage on debian-based systems by calling:
+##    # update-rc.d ddc defaults
 
 ## DDC_ROOTS
 ##  + list of ddc root directories
