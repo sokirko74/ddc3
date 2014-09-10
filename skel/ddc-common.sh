@@ -30,7 +30,8 @@ export RML
 ##  + configuration directory of the local ddc corpus, should contain the following files:
 ##     $RML_ETC/ddc_server.cfg		##-- server configuration
 ##     $RML_ETC/ddc_local_corpora.cfg	##-- local corpora (may be empty)
-test -z "$RML_ETC" && RML_ETC="$RML/etc"
+test -z "$RML_ETC" -a -d "$DDC_ROOT/etc" && RML_ETC="$DDC_ROOT/etc"
+test -z "$RML_ETC"                       && RML_ETC="$RML/etc"
 
 ## DUMMY
 ##  + if non-empty, don't actually run any commands; just print them to stderr
