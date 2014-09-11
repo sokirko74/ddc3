@@ -5,7 +5,7 @@
 ## Description: sysV-style init script for ddc servers a la ddc-mkrml.sh
 ## Usage:
 ##  + install this script as e.g. /etc/init.d/ddc
-##  + create and edit /etc/default/ddc so that the variable DDC_ROOTS is
+##  + create and edit /etc/default/ddc so that the variable DDC_RUNDIRS is
 ##    a list of all ddc root dirs as created e.g. by ddc-mkrml.sh
 ##  + start/stop all selected ddc instances by calling /etc/init.d/ddc {start|stop}
 ##  + enable system-wide usage on debian-based systems by calling:
@@ -42,9 +42,9 @@ fi
 test -r "$DDC_SYSRC" && . "$DDC_SYSRC"
 
 
-test "${#DDC_ROOTS}" = "0" -o -z "${DDC_ROOTS[*]}" && DDC_ROOTS=("${DDC_RMLS[@]}")
-if test "${#DDC_ROOTS}" = "0" -o -z "${DDC_ROOTS[*]}" ; then
-  echo "$0: DDC_ROOTS is not set; edit config file '$DDC_SYSRC' to enable" >&2
+test "${#DDC_RUNDIRS}" = "0" -o -z "${DDC_RUNDIRS[*]}" && DDC_RUNDIRS=("${DDC_RMLS[@]}")
+if test "${#DDC_RUNDIRS}" = "0" -o -z "${DDC_RUNDIRS[*]}" ; then
+  echo "$0: neither DDC_RUNDIRS nor DDC_RMLS is set: edit config file '$DDC_SYSRC' to enable" >&2
   exit 0
 fi
 
@@ -53,7 +53,7 @@ case "$1" in
     rc=ok
     cmd="$1"
     test "$cmd" = "stop" && cmd="killall"  ##-- hack: using 'killall' is safer than daemon 'stop' command
-    for d in "${DDC_ROOTS[@]}" ; do
+    for d in "${DDC_RUNDIRS[@]}" ; do
       cd "$d" \
       && ./ddc-server.sh "$cmd" \
       || rc=FAILED

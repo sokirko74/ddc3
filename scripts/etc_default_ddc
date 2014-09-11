@@ -4,17 +4,17 @@
 ## Description: system-wide config file for SysV-style init script ddc-sysv.sh
 ## Usage:
 ##  + install this script as e.g. /etc/default/ddc
-##  + edit the list variable DDC_ROOTS to contain a list of all ddc root dirs as created e.g. by ddc-mkrml.sh
-##  + install scripts/ddc-sysv.sh from the ddc distribution as e.g. /etc/init.d/ddc.sh
-##  + start/stop all selected ddc instances by calling /etc/init.d/ddc.sh {start|stop}
+##  + edit the list variable DDC_RUNDIRS to contain a list of all ddc root dirs as created e.g. by ddc-mkrml.sh
+##  + install scripts/ddc-sysv.sh from the ddc distribution as e.g. /etc/init.d/ddc
+##  + start/stop all selected ddc instances by calling /etc/init.d/ddc {start|stop}
 ##  + enable system-wide usage on debian-based systems by calling:
 ##    # update-rc.d ddc defaults
 
-## DDC_ROOTS
+## DDC_RUNDIRS
 ##  + list of ddc root directories
 ##  + each directory should contain a ddc-server.sh script
-DDC_ROOTS=()
-#DDC_ROOTS=("${DDC_ROOTS[@]}" "/home/taxi/ddc/dta")
-#DDC_ROOTS=("${DDC_ROOTS[@]}" "/home/taxi/ddc/dta.beta")
-#DDC_ROOTS=("${DDC_ROOTS[@]}" "/home/taxi/ddc/dingler")
-#DDC_ROOTS=("${DDC_ROOTS[@]}" "/home/taxi/ddc/dta+dwds")
+DDC_RUNDIRS=()
+#DDC_RUNDIRS=("${DDC_RUNDIRS[@]}" "/home/taxi/ddc/dta")
+#DDC_RUNDIRS=("${DDC_RUNDIRS[@]}" "/home/taxi/ddc/dta.beta")
+#DDC_RUNDIRS=("${DDC_RUNDIRS[@]}" "/home/taxi/ddc/dingler")
+#DDC_RUNDIRS=("${DDC_RUNDIRS[@]}" "/home/taxi/ddc/dta+dwds")
