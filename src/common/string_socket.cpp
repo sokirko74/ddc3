@@ -37,6 +37,13 @@
 #endif
 
 
+#ifdef WIN32
+const int ddcSocketChunkSize = 1024;
+#else
+const int ddcSocketChunkSize = 4096;
+#endif
+const int ddcListenSocketBufferSize = 131072;
+
 
 
 #include "string_socket.h"
@@ -51,7 +58,6 @@
 	static char THIS_FILE[] = __FILE__;
 	#endif
 #endif
-
 
 
 
@@ -151,7 +157,7 @@ bool SendString (int client_fd, const char* Str, uint32_t  PacketLength, string&
 		if (!send_buffer(client_fd, (const char*)&PacketLength_lsb, sizeof(PacketLength_lsb), ErrorStr) )
 			return false;
 
-		const int buffer_len = 1024;
+		const int buffer_len = ddcSocketChunkSize;
 		if (PacketLength <= buffer_len)
 		{
 			if (!send_buffer(client_fd, Str, (int)PacketLength, ErrorStr))
@@ -174,7 +180,6 @@ bool SendString (int client_fd, const char* Str, uint32_t  PacketLength, string&
 				return false;
 			}
 		};
-		
 		return true;
 	}
 	catch (...)
@@ -242,7 +247,7 @@ NetworkErrorsEnum ReceiveString(int  client_fd, string& Result, int TimeOut, uin
 		Result.clear();
 		Result.reserve(PacketLength);
 
-		const int buffer_len = 1024;
+		const int buffer_len = ddcSocketChunkSize;
 		char buffer[buffer_len];
 		uint32_t  AllRead = 0;
 
@@ -253,13 +258,14 @@ NetworkErrorsEnum ReceiveString(int  client_fd, string& Result, int TimeOut, uin
 					to_read = PacketLength - AllRead;
 
 			
-			NetworkErrorsEnum Res = receive_buffer (client_fd, (char*)buffer, to_read, have_read, TimeOut);
+			Res = receive_buffer (client_fd, (char*)buffer, to_read, have_read, TimeOut);
 			if (Res != neSuccess )
 					return Res;
 
 			AllRead += have_read;
 			Result.append(buffer,have_read);
 		};
+
 		return neSuccess;
 	}
 	catch (...)
@@ -374,9 +380,9 @@ SOCKET create_socket (const char* HostName, int Port, bool bBind, string& strErr
 		throw CExpc(errRuntime, strError);
 		/*NOTREACHED*/
 	}
-	freeaddrinfo(res0); 
-	return l_socket;
+	freeaddrinfo(res0);
 
+	return l_socket;
 };
 
 
@@ -610,7 +616,7 @@ void   CHost::RunThread()
 		return ;
 	};
 
-	SetSocketReceiveBuffer (m_ListenSocket, 100000);
+	SetSocketReceiveBuffer (m_ListenSocket, ddcListenSocketBufferSize);
 
 	// set maximal length of pending queue to 5 
 	int listen_val = listen(m_ListenSocket, 5);

@@ -49,6 +49,12 @@ enum ProtocolDensityEnum {
 	struct sockaddr_in;
 #endif
 
+// default socket chunk size (for recv() loops)
+extern const int ddcSocketChunkSize;
+
+// default socket recv-buffer size (for CHost listen sockets)
+extern const int ddcListenSocketBufferSize;
+
 
 class CHost  
 {
@@ -110,6 +116,7 @@ extern bool SendString (int client_fd, const char* Str, uint32_t StrLen, string&
 extern bool SendString (int client_fd, const std::string &str, string& ErrorStr);
 extern NetworkErrorsEnum receive_buffer(int client_fd, char* Buffer,int Length, int& have_read, int TimeOut);
 extern NetworkErrorsEnum ReceiveString (int  client_fd, string& Result, int TimeOut, uint32_t maxPacketLength=0);
+
 extern bool SetSocketReceiveBuffer(int socket_fd, int BufferSize);
 extern bool SetSocketSendBuffer(int socket_fd, int BufferSize);
 	
