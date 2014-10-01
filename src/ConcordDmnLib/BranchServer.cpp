@@ -238,6 +238,10 @@ void CDDCBranchServer::handle__reload(string &Result, int depth)
 //----------------------------------------------------------------------
 void CDDCBranchServer::handle__clear_cache(string &Result, int depth)
 {
+    ddcCurlCache.lock();
+    ddcCurlCache.clear();
+    ddcCurlCache.unlock();
+
     Result = string("{") + jsonStr(m_CorpusName) + ":";
     if (depth != 0) {
 	Result += GetSubcorpusJsonArray(Format("clear_cache %d",depth-1));
@@ -624,13 +628,22 @@ NetworkErrorsEnum CDDCBranchServer::GetHitStringsFromOneCorpus(CHost& Host,
 							       int&    InternalError,
 							       string& Result)
 {
+	string ErrorStr;
 	if (CorpusSocket == -1)
 		return neNetworkError;
+
+	if (ResultLimit==0) {
+	    //-- vacuous request; just close up the socket to avoid ~40ms turnaround (data from A. Barbaresi, tested kerncorpus@data)
+	    SendString(CorpusSocket, "ddc_close_socket", 16, ErrorStr);
+	    CloseSocket(CorpusSocket);
+	    InternalError = errNone;
+	    Result.clear();
+	    return neSuccess;
+	}
 
 	//Query\x01StartHitNo ResultLimit bGetText
 	string S = Format ("get_hit_strings %s\x01%i %i",  ResultType.c_str(), StartHitNo,  ResultLimit);
 
-	string ErrorStr;
 	if (!SendString(CorpusSocket, S.c_str(), S.length(), ErrorStr)) 
 	{
 		ErrorMessage (Format("cannot send a string to socket %s : %s", Host.GetAddressStr().c_str(), ErrorStr.c_str() ));

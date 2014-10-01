@@ -162,11 +162,11 @@ public:
 
   //! lock the cache mutex, if any
   inline void lock()
-  { DDC_IFPTHREAD(pthread_mutex_lock(m_mutex)); };
+  { DDC_IFPTHREAD(if (m_mutex) pthread_mutex_lock(m_mutex)); };
 
   //! unlock cache mutex
   inline void unlock()
-  { DDC_IFPTHREAD(pthread_mutex_unlock(m_mutex)); };
+  { DDC_IFPTHREAD(if (m_mutex) pthread_mutex_unlock(m_mutex)); };
 
   //------------------------------------------------------------
   // public methods: map iterators

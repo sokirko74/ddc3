@@ -323,7 +323,7 @@ void TxCab::expand(const set<string>& src, set<string>& dst)
 
   //-- low-level query
   m_CCurl.url(url);
-  if (!m_CCurl.perform() || m_CCurl.m_Response.empty()) {
+  if (!this->perform() || m_CCurl.m_Response.empty()) {
     //-- query failed: silently do identity expansion
 #if 0
     throw CExpc(errRuntime, "TxCab::expand(): ERROR: %s", m_CCurl.m_CurlErr);

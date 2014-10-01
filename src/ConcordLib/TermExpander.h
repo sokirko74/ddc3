@@ -225,9 +225,9 @@ public:
   //! Default implementation sets CCurl url(""), timeout(5), noSignal(1), failOnError(1), and setDataCallback()
   virtual void compile(void);
 
-  //! Wrapper for m_CCurl.perform()
+  //! Wrapper for m_CCurl.perform_cached()
   virtual bool perform(void)
-  { return m_CCurl.perform(); };
+  { return m_CCurl.perform_cached(); };
   //@}
 
   //--------------------------------------------------------------

@@ -56,6 +56,7 @@ CCurlCache ddcCurlCache(ddcCurlCacheCapacity, DDC_IFPTHREADELSE(&ddcCurlMutex,NU
 int ddcCurlInitialized = 0;
 
 void ddcInitCurl(void) {
+  if (ddcCurlInitialized) return;
   DDC_IFPTHREAD(pthread_mutex_lock(&ddcCurlMutex));
   if (!ddcCurlInitialized) {
     curl_global_init(CURL_GLOBAL_ALL);
@@ -109,7 +110,7 @@ bool CCurl::perform(void)
 //--------------------------------------------------------------
 bool CCurl::perform_cached(CCurlCache *cache)
 {
-  bool rc = true;
+  int rc = 0;
 
   cache->lock();
   CCurlCache::iterator cachei = cache->get(m_Url);
@@ -123,7 +124,7 @@ bool CCurl::perform_cached(CCurlCache *cache)
   }
   cache->unlock();
 
-  return false;
+  return (rc==0);
 }
 
 

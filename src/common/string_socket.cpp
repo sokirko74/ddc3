@@ -30,6 +30,7 @@
 	#include <sys/types.h>
 	#include <sys/socket.h>
 	#include <netinet/in.h>
+	#include <netinet/tcp.h>
 	#include <netdb.h>
 	#include <stdio.h>
 	#include <fcntl.h>
@@ -59,8 +60,8 @@ const int ddcListenSocketBufferSize = 131072;
 	#endif
 #endif
 
-
-
+//! DDC_SOCKET_SEND_MULTI : define this to enable old multiple-send() calls
+#undef DDC_SOCKET_SEND_MULTI
 
 struct ERROR_STRUCT
 {     
@@ -157,6 +158,8 @@ bool SendString (int client_fd, const char* Str, uint32_t  PacketLength, string&
 		if (!send_buffer(client_fd, (const char*)&PacketLength_lsb, sizeof(PacketLength_lsb), ErrorStr) )
 			return false;
 
+#ifdef DDC_SOCKET_SEND_MULTI
+		//-- iterative chunked send
 		const int buffer_len = ddcSocketChunkSize;
 		if (PacketLength <= buffer_len)
 		{
@@ -181,6 +184,10 @@ bool SendString (int client_fd, const char* Str, uint32_t  PacketLength, string&
 			}
 		};
 		return true;
+#else
+		//-- single send() (let the kernel handle it)
+		return send_buffer(client_fd, Str, (int)PacketLength, ErrorStr);
+#endif
 	}
 	catch (...)
 	{
@@ -380,7 +387,13 @@ SOCKET create_socket (const char* HostName, int Port, bool bBind, string& strErr
 		throw CExpc(errRuntime, strError);
 		/*NOTREACHED*/
 	}
+	else {
+		//-- setup socket options (TCP_NODELAY : disable Nagle's algorithm / force immediate send())
+		int flag=1;
+		setsockopt(l_socket, IPPROTO_TCP, TCP_NODELAY, (char *)&flag, sizeof(int));
+	}
 	freeaddrinfo(res0);
+
 
 	return l_socket;
 };
@@ -616,7 +629,7 @@ void   CHost::RunThread()
 		return ;
 	};
 
-	SetSocketReceiveBuffer (m_ListenSocket, ddcListenSocketBufferSize);
+	//SetSocketReceiveBuffer (m_ListenSocket, ddcListenSocketBufferSize);
 
 	// set maximal length of pending queue to 5 
 	int listen_val = listen(m_ListenSocket, 5);
