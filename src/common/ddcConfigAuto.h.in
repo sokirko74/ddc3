@@ -39,6 +39,9 @@
 /* Define to 1 if you have the `nrand48' function. */
 #undef HAVE_NRAND48
 
+/* Define this to enable support for POSIX threads (pthreads) */
+#undef HAVE_PTHREAD
+
 /* Define to 1 if you have the `rand_r' function. */
 #undef HAVE_RAND_R
 

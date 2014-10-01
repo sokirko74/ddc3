@@ -24,6 +24,7 @@
 #include "../common/utilit.h"
 #include "../common/ddcString.h"
 #include "../common/ddcConfig.h"
+#include "LRUCache.h"
 
 #ifdef HAVE_LIBCURL
 
@@ -42,11 +43,24 @@
 //======================================================================
 // Globals
 
+#if HAVE_PTHREAD
+//! global mutex for non-thread-safe curl operations (global init, lru-cached proxy)
+extern pthread_mutex_t ddcCurlMutex;
+#endif
+
 //! sentinel to determine whether curl_global_init() has been called
 extern int ddcCurlInitialized;
 
+//! \brief curl response cache, maps URLs to responses
+typedef ddcLRUCache<std::string,std::string> CCurlCache;
+
+//! global curl response cache to avoid TCP retransmissions due to multiple subcorpora
+//! converging on a single shared expander
+extern CCurlCache ddcCurlCache;
+
 //! global initialization function (multiple calls should be safe)
 extern void ddcInitCurl(void);
+
 
 //======================================================================
 //! \brief CCurl: abstract term expander using libcurl
@@ -91,6 +105,14 @@ public:
   //! \li Returns false on error and populates m_CurlErr if the default callbacks are used
   //! \li implicitly calls reset()
   bool perform(void);
+
+  //! Wrapper for perform() which uses a CCurlCache to guarantee that at most 1 query
+  //! is sent per process and url.  Really only useful in conjunction with the default
+  //! callbacks or something custom which populates m_Response with the data to be cached.
+  //! \li implicitly calls reset()
+  //! \li may call perform()
+  //! \li on completion, cache should have an entry for the current m_Url
+  bool perform_cached(CCurlCache *cache=&ddcCurlCache);
 
   //! Set default options: 
   bool SetDefaultOptions();

@@ -23,6 +23,7 @@ lib_LTLIBRARIES = libDDCConcord.la
 ## sources
 
 libDDCConcord_la_SOURCES = \
+ LRUCache.h \
  CCurl.cpp CCurl.h \
  TermExpander.cpp TermExpander.h \
  BiblExpander.cpp BiblExpander.h \
@@ -61,6 +62,7 @@ libDDCConcord_la_SOURCES = \
  ../common/ddcRandom.h
 
 noinst_HEADERS = \
+ LRUCache.h \
  CCurl.h \
  TermExpander.h \
  BiblExpander.h \

@@ -3,7 +3,7 @@ AC_PREREQ(2.5)
 
 dnl Some handy macros
 define([THE_PACKAGE_NAME],    [ddc])
-define([THE_PACKAGE_VERSION], [2.0.30])
+define([THE_PACKAGE_VERSION], [2.0.31])
 define([THE_PACKAGE_MAINTAINER],  [jurish@bbaw.de])
 AC_INIT(THE_PACKAGE_NAME, THE_PACKAGE_VERSION, THE_PACKAGE_MAINTAINER)
 
@@ -167,6 +167,7 @@ AC_SEARCH_LIBS(pthread_create, [pthread])
 if test "$ac_cv_search_pthread_create" = "no" ; then
   AC_MSG_ERROR([could not find pthread_create(): ensure that LDFLAGS, LIBS are set to link to libpthread])
 fi
+AC_DEFINE(HAVE_PTHREAD,1, [Define this to enable support for POSIX threads (pthreads)])
 ## /libs: pthread
 ##^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 

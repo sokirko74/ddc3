@@ -46,13 +46,24 @@
 //======================================================================
 // Globals
 
+#if HAVE_PTHREAD
+ pthread_mutex_t ddcCurlMutex = PTHREAD_MUTEX_INITIALIZER;
+#endif
+
+static const int ddcCurlCacheCapacity = 1024;
+CCurlCache ddcCurlCache(ddcCurlCacheCapacity, DDC_IFPTHREADELSE(&ddcCurlMutex,NULL));
+
 int ddcCurlInitialized = 0;
 
 void ddcInitCurl(void) {
-  if (ddcCurlInitialized) return;
-  curl_global_init(CURL_GLOBAL_ALL);
-  ddcCurlInitialized = 1;
+  DDC_IFPTHREAD(pthread_mutex_lock(&ddcCurlMutex));
+  if (!ddcCurlInitialized) {
+    curl_global_init(CURL_GLOBAL_ALL);
+    ddcCurlInitialized = 1;
+  }
+  DDC_IFPTHREAD(pthread_mutex_unlock(&ddcCurlMutex));
 }
+
 
 //======================================================================
 // CCurl
@@ -92,6 +103,26 @@ bool CCurl::perform(void)
 #ifndef HAVE_LIBCURL
   strcpy(m_CurlErr, "CCurl::perform() called but libcurl support disabled!");
 #endif
+  return false;
+}
+
+//--------------------------------------------------------------
+bool CCurl::perform_cached(CCurlCache *cache)
+{
+  bool rc = true;
+
+  cache->lock();
+  CCurlCache::iterator cachei = cache->get(m_Url);
+  if (cachei != cache->end()) {
+    reset();
+    m_Response = cachei->second->second;
+  }
+  else {
+    rc = curl_easy_perform(m_Curl);
+    cache->insert(m_Url, m_Response);
+  }
+  cache->unlock();
+
   return false;
 }
 
