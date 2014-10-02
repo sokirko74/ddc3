@@ -65,6 +65,7 @@ CDDCBranchServer::CDDCBranchServer(bool bDoubleMessage, ProtocolDensityEnum pdPr
 {
     m_maxReceiveBytes = DDC_STATIC_BUFLEN;
     m_bLogRequests = true;
+    m_bLogFinish   = (pdProtocolDensity >= pdMediumDensity);
 };
 
 //==============================================================================

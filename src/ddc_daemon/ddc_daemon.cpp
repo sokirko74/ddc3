@@ -315,70 +315,56 @@ int	main(int argc, char	**argv)
 	for (size_t i=1; i<argc; i++)
 	{
 		string s = argv[i];
-		if (	 (s == "-h")
-				|| (s == "--help")
-				|| (s == "/h")
-				|| (s == "/help")
-			)
+		if ((s == "-h")
+		    || (s == "--help")
+		    || (s == "/h")
+		    || (s == "/help")
+		    ) {
 			PrintUsage();
-		else
-			if (s == "--protocol")
-			{
-				if (i+1 >= argc) 
-					PrintUsage();
-				i++;
-				s = argv[i];
-				if (s == "medium")
-					ProtocolDensity = pdMediumDensity;
-				else
-				if (s == "weak")
-					ProtocolDensity = pdWeakDensity;
-				else
-				if (s == "heavy")
-					ProtocolDensity = pdHeavyDensity;
-				else
-					PrintUsage();
+		}
+		else if (s == "--protocol" || s == "--log") {
+			if (i+1 >= argc) 
+				PrintUsage();
+			i++;
+			s = argv[i];
+			if (s == "weak" || s == "light")
+				ProtocolDensity = pdWeakDensity;
+			else if (s == "medium")
+				ProtocolDensity = pdMediumDensity;
+			else if (s == "heavy")
+				ProtocolDensity = pdHeavyDensity;
+			else
+				PrintUsage();
 
-			}
-			else
-				if (s == "--local")
-				{
-					if (i+1 >= argc) 
-						PrintUsage();
-					i++;
-					CorporaFile = argv[i];
-				}
-			else
-				if (s == "--server")
-				{
-					if (i+1 >= argc) 
-						PrintUsage();
-					i++;
-					ServerCorporaFile = argv[i];
-				}
-			else
-				if (s == "--fork")
-				{
-				  doFork = true;
-				}
-			else
-				if (s == "--nofork")
-				{
-				  doFork = false;
-				}
-			else
-				if (s == "--stderr")
-				{
-				  log_stderr = true;
-				}
-
-				
-				else
-				{
-					Action = argv[i];
-				};
-
-	};
+		}
+		else if (s == "--local") {
+			if (i+1 >= argc) 
+				PrintUsage();
+			i++;
+			CorporaFile = argv[i];
+		}
+		else if (s == "--server") {
+			if (i+1 >= argc) 
+				PrintUsage();
+			i++;
+			ServerCorporaFile = argv[i];
+		}
+		else if (s == "--fork") {
+			doFork = true;
+		}
+		else if (s == "--nofork") {
+			doFork = false;
+		}
+		else if (s == "--stderr") {
+			log_stderr = true;
+		}
+		else if (s == "--nostderr") {
+			log_stderr = false;
+		}
+		else {
+			Action = argv[i];
+		}
+	}
 
 	if (!FileExists(CorporaFile.c_str()))
 	{

@@ -228,6 +228,7 @@ void CDDCServer::handle__get_paradigm(string &Result, const char *Word, int iLem
 void CDDCServer::handle__close_socket(string &Result)
 {
     m_bExpectMore = false;
+    m_bRespond    = false;
 }
 
 //----------------------------------------------------------------------

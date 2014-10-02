@@ -43,8 +43,6 @@ const int ddcSocketChunkSize = 1024;
 #else
 const int ddcSocketChunkSize = 4096;
 #endif
-const int ddcListenSocketBufferSize = 131072;
-
 
 
 #include "string_socket.h"
@@ -185,7 +183,7 @@ bool SendString (int client_fd, const char* Str, uint32_t  PacketLength, string&
 		};
 		return true;
 #else
-		//-- single send() (let the kernel handle it)
+		//-- single send() call; let libc+kernel handle chunking
 		return send_buffer(client_fd, Str, (int)PacketLength, ErrorStr);
 #endif
 	}
@@ -254,25 +252,22 @@ NetworkErrorsEnum ReceiveString(int  client_fd, string& Result, int TimeOut, uin
 		Result.clear();
 		Result.reserve(PacketLength);
 
+		//-- iterative chunked recv
 		const int buffer_len = ddcSocketChunkSize;
 		char buffer[buffer_len];
-		uint32_t  AllRead = 0;
+		int n_remaining=PacketLength;
 
-		while (AllRead < PacketLength)
+		while (n_remaining > 0)
 		{
-			int to_read = buffer_len;
-			if (PacketLength - AllRead < buffer_len)
-					to_read = PacketLength - AllRead;
-
+			int to_read = n_remaining < buffer_len ? n_remaining : buffer_len;
 			
 			Res = receive_buffer (client_fd, (char*)buffer, to_read, have_read, TimeOut);
-			if (Res != neSuccess )
-					return Res;
+			if (Res != neSuccess)
+				return Res;
 
-			AllRead += have_read;
+			n_remaining -= have_read;
 			Result.append(buffer,have_read);
 		};
-
 		return neSuccess;
 	}
 	catch (...)
@@ -315,7 +310,6 @@ bool fd_is_valid(int fd)
 
 SOCKET create_socket (const char* HostName, int Port, bool bBind, string& strError)
 {
-	
 	strError = "";
 	struct addrinfo hints, *res, *res0; 
 	int error;
@@ -392,10 +386,22 @@ SOCKET create_socket (const char* HostName, int Port, bool bBind, string& strErr
 		int flag=1;
 		setsockopt(l_socket, IPPROTO_TCP, TCP_NODELAY, (char *)&flag, sizeof(int));
 	}
-	freeaddrinfo(res0);
+ 	freeaddrinfo(res0);
 
 
 	return l_socket;
+};
+
+void flush_socket(SOCKET sock)
+{
+	// explicitly flush a socket by (temporarily) enabling the TCP_NODELAY option
+	// - see discussion at http://stackoverflow.com/questions/6835216/how-to-push-i-e-flush-data-sent-to-a-tcp-stream
+	socklen_t flaglen = sizeof(int);
+	int oldflag, flag=1;
+	getsockopt(sock, IPPROTO_TCP, TCP_NODELAY, (char*)&oldflag, &flaglen);
+	if (oldflag) return;
+	setsockopt(sock, IPPROTO_TCP, TCP_NODELAY, (char*)&flag,     flaglen);
+	setsockopt(sock, IPPROTO_TCP, TCP_NODELAY, (char*)&oldflag,  flaglen);
 };
 
 
@@ -488,6 +494,8 @@ CHost::CHost(bool bDoubleMessage, ProtocolDensityEnum pdProtocolDensity)
 	m_pdProtocolDensity = pdProtocolDensity;
 	m_bDoubleMessage = bDoubleMessage;
 	m_bExpectMore = false;
+	m_bRespond   = true;
+	m_bLogFinish = false;
 	m_ListenSocket = -1;
 	m_Port = -1;
 	m_maxReceiveBytes = 0;
@@ -564,18 +572,17 @@ void CHost::AnswerByRequest (SOCKET rConnectedSocket, const struct sockaddr_in* 
 	}
 
 	string ErrorStr;
-	if (!SendString(rConnectedSocket, Result.c_str(), Result.length(), ErrorStr))
-	{
+	if (m_bRespond && !SendString(rConnectedSocket, Result.c_str(), Result.length(), ErrorStr)) {
 		m_LogFunction(Format("Error! Cannot send string: %s", ErrorStr.c_str()));
 		m_bExpectMore = false;
 	}
-	else
-	if (m_pdProtocolDensity  == pdHeavyDensity)
-	{
+	else if (m_bLogFinish || m_pdProtocolDensity == pdHeavyDensity) {
 		const char* src_addr = inet_ntoa(client_addr->sin_addr);
-		m_LogFunction(Format("%s sent back the result to %s (%zd bytes)", m_CorpusName.c_str(), src_addr, Result.size() ));
+		if (m_bRespond) 
+			m_LogFunction(Format("%s sent back the result to %s (%zd bytes)", m_CorpusName.c_str(), src_addr, Result.size() ));
+		else
+			m_LogFunction(Format("%s no response required for client %s", m_CorpusName.c_str(), src_addr ));
 	}
-
 }
 
 void	CHost::StopAcceptingThread() 
@@ -629,8 +636,6 @@ void   CHost::RunThread()
 		return ;
 	};
 
-	//SetSocketReceiveBuffer (m_ListenSocket, ddcListenSocketBufferSize);
-
 	// set maximal length of pending queue to 5 
 	int listen_val = listen(m_ListenSocket, 5);
 	if (listen_val == -1) {
@@ -672,6 +677,7 @@ void   CHost::RunThread()
 		{
 			//  if we have passed "accept", then Timeout can be very short
 			m_bExpectMore = m_bDoubleMessage;
+			m_bRespond    = true;
 
 			AnswerByRequest(rConnectedSocket, &client_addr, 10);
 			for (int i=0; i<10 && m_bExpectMore; ++i) {
@@ -680,7 +686,6 @@ void   CHost::RunThread()
 
 			if (!CloseSocket(rConnectedSocket))
 				m_LogFunction ( Format("cannot close socket for %s", m_CorpusName.c_str())  );
-
 		}
 		catch (CExpc& e) {
 		  strError = Format("Exception[%d]: %s", e.code(), e.what());

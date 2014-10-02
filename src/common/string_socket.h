@@ -52,10 +52,6 @@ enum ProtocolDensityEnum {
 // default socket chunk size (for recv() loops)
 extern const int ddcSocketChunkSize;
 
-// default socket recv-buffer size (for CHost listen sockets)
-extern const int ddcListenSocketBufferSize;
-
-
 class CHost  
 {
 protected:
@@ -64,6 +60,8 @@ protected:
 	SOCKET					m_ListenSocket;
 	bool					m_bDoubleMessage;
 	bool					m_bExpectMore;	///< moo: whether to expect more requests from current client
+	bool					m_bRespond;     ///< moo: whether current request has a real (possibly empty) response
+	bool					m_bLogFinish;	///< moo: whether to log connection completion
 	string					m_LocalPath;
 	ProtocolDensityEnum			m_pdProtocolDensity;
 	uint32_t				m_maxReceiveBytes; ///< maximum receivable packet length (default=0: no limit)
@@ -105,6 +103,7 @@ extern uint32_t lsb_to_size(uint32_t sz_lsb);
 
 extern bool fd_is_valid(int fd);
 extern SOCKET create_socket (const char* HostName, int Port, bool bBind, string& strError);
+extern void flush_socket (SOCKET sock);
 extern bool SocketInitialize(bool bReadFromLocalFile);
 extern bool SocketDeinitialize();
 extern bool CloseSocket(int l_socket);
@@ -117,6 +116,7 @@ extern bool SendString (int client_fd, const std::string &str, string& ErrorStr)
 extern NetworkErrorsEnum receive_buffer(int client_fd, char* Buffer,int Length, int& have_read, int TimeOut);
 extern NetworkErrorsEnum ReceiveString (int  client_fd, string& Result, int TimeOut, uint32_t maxPacketLength=0);
 
+//-- set system-level socket buffer sizes (UNUSED)
 extern bool SetSocketReceiveBuffer(int socket_fd, int BufferSize);
 extern bool SetSocketSendBuffer(int socket_fd, int BufferSize);
 	
