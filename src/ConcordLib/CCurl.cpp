@@ -111,11 +111,12 @@ bool CCurl::perform(void)
 bool CCurl::perform_cached(CCurlCache *cache)
 {
   int rc = 0;
+  CCurlCache::iterator cachei;
+  reset();
 
   cache->lock();
-  CCurlCache::iterator cachei = cache->get(m_Url);
+  cachei = cache->get(m_Url);
   if (cachei != cache->end()) {
-    reset();
     m_Response = cachei->second->second;
   }
   else {
