@@ -1,7 +1,7 @@
 ##-*- Mode: Change-Log; coding: utf-8; -*-
 
 v2.0.31 Thu, 02 Oct 2014 13:11:11 +0200 moocow
-	+ string_socket.(h|cpp): added global constatn ddcSocketChunkSize (=4096) for recv() chunking
+	+ string_socket.(h|cpp): added global constant ddcSocketChunkSize (=4096) for recv() chunking
 	+ string_socket.cpp: optimized recv() loop
 	+ string_socket.cpp: 1 send() per message
 	+ set TCP_NODELAY during create_socket() to disable buffering

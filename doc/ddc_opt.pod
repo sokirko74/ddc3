@@ -552,6 +552,8 @@ Set the size of internal subcorpora.
 The greater the value of this parameter is, the faster
 querying procedures work, and the more memory the program needs.
 
+Default if unspecified is hard-coded as 5000000.
+
 =head3 LocalPathPrefix
 
  LocalPathPrefix STRING
