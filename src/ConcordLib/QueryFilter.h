@@ -89,7 +89,7 @@ public:
   //!  + prefers \a attrName if that is a valid attribute name
   //!  + otherwise uses compiler->m_pHolder->m_pIndexator->m_Bibl.m_DefaultAttrName if non-empty and a valid attribute name
   //!  + otherwise returns an empty string
-  string ResolveAttributeName(CQueryCompiler *compiler, const string& attrName);
+  string ResolveAttributeName(CQueryCompiler *compiler, const string& attrName, bool allowBiblExpander=false);
 
   //! stringification utility: quoted strign for arg, or empty string
   string argString(const string &arg) const;

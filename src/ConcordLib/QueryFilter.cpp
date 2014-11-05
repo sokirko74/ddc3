@@ -114,13 +114,15 @@ bool CQFSort::Compile(CQueryCompiler *compiler, CQueryOptions *options)
 }
 
 //--------------------------------------------------------------
-string CQFSort::ResolveAttributeName(CQueryCompiler *compiler, const string& attrName)
+string CQFSort::ResolveAttributeName(CQueryCompiler *compiler, const string& attrName, bool allowBiblExpander)
 {
   CConcIndexator *ix = compiler->m_pHolder->m_pIndexator;
   assert(ix != NULL);
 
-  if (!attrName.empty() && ix->m_Bibl.GetFreeBiblIndex(attrName)!=NULL)
-    return attrName;
+  if (!attrName.empty() && ((ix->m_Bibl.GetFreeBiblIndex(attrName)!=NULL)
+			    ||
+			    (allowBiblExpander && ix->m_Bibl.GetBiblExpander(attrName)!=NULL)))
+      return attrName;
 
   if (!ix->m_Bibl.m_DefaultAttrName.empty() && ix->m_Bibl.GetFreeBiblIndex(ix->m_Bibl.m_DefaultAttrName)!=NULL)
     return ix->m_Bibl.m_DefaultAttrName;
@@ -351,8 +353,8 @@ bool CQFHasField::Compile(CQueryCompiler *compiler, CQueryOptions *options)
   if (m_arg1.empty())
     throw CExpc(errParseError,"Empty value field not allowed in filter operator `%s'", toString().c_str());
 
-  //-- resolve attribute name (fallback to DefaultBibl)
-  m_Filter.m_AttrName = ResolveAttributeName(compiler, m_arg0);
+  //-- resolve attribute name (allow expanders, fallback to DefaultBibl)
+  m_Filter.m_AttrName = ResolveAttributeName(compiler, m_arg0, true);
   if (m_Filter.m_AttrName.empty()) {
     throw CExpc(errParseError,"Can't resolve attribute name `%s' in bibliographic filter operator `%s'", m_arg0.c_str(), this->toString().c_str());
   }

@@ -1,5 +1,8 @@
 ##-*- Mode: Change-Log; coding: utf-8; -*-
 
+v2.0.32 Wed, 05 Nov 2014 15:29:11 +0100 moocow
+	+ fixed bug breaking bibliographic expanders introduced by DefaultBibl tweaks in v2.0.27
+
 v2.0.31 Thu, 02 Oct 2014 13:11:11 +0200 moocow
 	+ string_socket.(h|cpp): added global constant ddcSocketChunkSize (=4096) for recv() chunking
 	+ string_socket.cpp: optimized recv() loop
