@@ -38,7 +38,7 @@ const time_t TheEndOfTheWorld = 0xffffffff;
 #endif
 
 //==============================================================================
-//! comparison operator for hits on CHit::m_SortKey.i (for std::sort); replaces IsLessByHitOrderId .
+//! indirect comparison operator for hits on CHit::m_SortKey.i (for std::sort); replaces IsLessByHitOrderId .
 //! \li true string-based sorting occurs only at distributed server level
 struct IsLessByHitSortKey
 {
@@ -697,7 +697,10 @@ bool CConcHolder::GenerateOneHitString(DWORD PageNumber, const CHit& Hit, const 
 
 }
 
+//==============================================================================
 
+//#define DEBUG_HIT_JSON 1
+#undef DEBUG_HIT_JSON
 
 bool CConcHolder::GenerateOneHitStringJson(DWORD PageNumber, const CHit& Hit, const vector<COutputToken>& Tokens)
 {
@@ -720,8 +723,13 @@ bool CConcHolder::GenerateOneHitStringJson(DWORD PageNumber, const CHit& Hit, co
 		      + ",\"orig_\":" + jsonStr(B.m_OrigBibl, utf8)
 		      + ",\"date_\":" + jsonStr(B.m_DateStr, utf8)
 		      + ",\"page_\":" + pageStr
+#ifdef DEBUG_HIT_JSON
+		      + ",\"breakno_\":" + Format("%u",Hit.m_BreakNo)
+		      + ",\"highlight_\":" + Format("%u",Hit.m_HighlightOccurrenceEnd)
+		      + ",\"fileno_\":" + Format("%u",Hit.m_FileNo)
+		      + ",\"key_\":[" + Format("%d",Hit.m_SortKey.i) + "," + jsonStr(Hit.m_SortKey.s, utf8) + "]"
+#endif
 		      );
-
     if (m_pIndexator->OutputBibliographyOfHits()) {
 	hitStr += "," + m_pIndexator->m_Bibl.GetFreeHeaderBiblAttributesJson(Hit.m_FileNo, utf8);
     }
@@ -1322,8 +1330,11 @@ void CConcHolder::InitSortKeyForHits(const CQuery *pQuery, const CDDCFilterWithB
 	};
 }
 
+//==============================================================================
 //#define DEBUG_HIT_SORT 1
 #undef DEBUG_HIT_SORT
+
+//==============================================================================
 
 DDCErrorEnum CConcHolder::GetAllHits(const string &Query, size_t Limit) 
 {
@@ -1345,7 +1356,7 @@ DDCErrorEnum CConcHolder::GetAllHits(CQuery *QueryRoot, size_t Limit)
 	CQueryOptions *qOpts = QueryRoot->m_Options;
 	vector<CHit> &qHits = qNode->m_Hits;
 
-	size_t CountOfPeriods = m_pIndexator->GetSearchPeriodsCount();		
+	size_t CountOfPeriods = m_pIndexator->GetSearchPeriodsCount(); 
 	time_t  last_time;
 
 	if (m_QueryEndTime != TheEndOfTheWorld)
@@ -1399,8 +1410,9 @@ DDCErrorEnum CConcHolder::GetAllHits(CQuery *QueryRoot, size_t Limit)
 			}
 
 #if DEBUG_HIT_SORT //-- DEBUG
-			fprintf(stderr, "DEBUG[pre-trim,period=%d,filter=%s(%s),sort=%c]: KeyLo={%d,%s}, KeyHi={%d,%s}, hits_start=%zd, hits_end=%zd\n",
-				m_CurrentSearchPeriodNo, HitSortEnumNames[F.m_FilterType], F.m_AttrName.c_str(), (m_bSortDescending ? '>' : '<'),
+			fprintf(stderr, "DEBUG[pre-trim,period=%d/%d,filter=%s(%s),order=%d]: KeyLo={%d,%s}, KeyHi={%d,%s}, hits_start=%zd, hits_end=%zd\n",
+				m_CurrentSearchPeriodNo, CountOfPeriods,
+				HitSortEnumNames[F.m_FilterType], F.m_AttrName.c_str(), m_SortOrder,
 				F.m_KeyLo.i, jsonStr(F.m_KeyLo.s).c_str(),
 				F.m_KeyHi.i, jsonStr(F.m_KeyHi.s).c_str(),
 				hits_start, hits_end);
@@ -1415,7 +1427,6 @@ DDCErrorEnum CConcHolder::GetAllHits(CQuery *QueryRoot, size_t Limit)
 			PeriodHitsIndex.erase(PeriodHitsIndex.begin()+hits_end, PeriodHitsIndex.end());
 			PeriodHitsIndex.erase(PeriodHitsIndex.begin(), PeriodHitsIndex.begin()+hits_start);
 
-			size_t debug_size =  PeriodHitsIndex.size();
 			if (F.m_bSet) {
 				// we have to intersect F.m_SatisfiedValues with qHits using integer sort-key m_CHit::m_SortKey.i
 				vector<size_t>::const_iterator hits_start = PeriodHitsIndex.begin();
@@ -1444,20 +1455,22 @@ DDCErrorEnum CConcHolder::GetAllHits(CQuery *QueryRoot, size_t Limit)
 
 		m_AllHitsCount += PeriodHitsIndex.size();
 
-		{ //-- add period-local hits to m_Hits and highlight occurrences
-			size_t Count = min(Limit, PeriodHitsIndex.size());
-			for (size_t i=0; i < Count; i++) {
-				size_t  HitNo = PeriodHitsIndex[i];
-				const CHit &H = qHits[ HitNo ];
+		//-- add period-local hits to m_Hits and highlight occurrences
+		// + we ought to merge-sort here e.g. with std::inplace_merge()
+		//   *but* we also need to keep m_HighlightOccurs[] aligned with m_Hits[]
+		// + current solution is full post-retrieval re-sort in calling method CConcHolder::GetHits()
+		size_t Count = min(Limit, PeriodHitsIndex.size());
+		for (size_t i=0; i < Count; i++) {
+			size_t  HitNo = PeriodHitsIndex[i];
+			const CHit &H = qHits[ HitNo ];
 				
-				int start_index = (HitNo == 0) ? 0 : qHits[HitNo-1].m_HighlightOccurrenceEnd;
-				m_HighlightOccurs.insert(m_HighlightOccurs.end(),
-							 qNode->m_Occurrences.begin()+start_index,
-							 qNode->m_Occurrences.begin()+H.m_HighlightOccurrenceEnd
-							 );
-				m_Hits.push_back(H);
-				m_Hits.back().m_HighlightOccurrenceEnd = m_HighlightOccurs.size();
-			}
+			int start_index = (HitNo == 0) ? 0 : qHits[HitNo-1].m_HighlightOccurrenceEnd;
+			m_HighlightOccurs.insert(m_HighlightOccurs.end(),
+						 qNode->m_Occurrences.begin()+start_index,
+						 qNode->m_Occurrences.begin()+H.m_HighlightOccurrenceEnd
+						 );
+			m_Hits.push_back(H);
+			m_Hits.back().m_HighlightOccurrenceEnd = m_HighlightOccurs.size();
 		}
 
 		// calculate m_RelevantDocumentCount if it is necessary
@@ -1474,6 +1487,7 @@ DDCErrorEnum CConcHolder::GetAllHits(CQuery *QueryRoot, size_t Limit)
 
 
 		if (!m_Hits.empty()) {
+			//-- inexpensive hack to check that m_HighlightOccurrs[] and m_Hits[] are aligned 1:1
 			assert (m_Hits.back().m_HighlightOccurrenceEnd == m_HighlightOccurs.size());
 		}
 	
@@ -1727,9 +1741,9 @@ DDCErrorEnum CConcHolder::GetHits(const string &Query,  DWORD& EndHitNo)
 #if DEBUG_HIT_SORT //-- DEBUG
 			for (size_t hi=0; hi < m_Hits.size(); hi++) {
 				const CHit &h=m_Hits[hi];
-				fprintf(stderr, "DEBUG[pre-sort:%c]: m_Hits[%u] = {m_BreakNo=%u, m_HighlightOccurrenceEnd=%u, m_SortKey={%d,%s}, m_FileNo=%u, m_DebugRankNo=%u}\n",
-					(m_bSortDescending ? '>' : '<'),
-					hi, h.m_BreakNo, h.m_HighlightOccurrenceEnd, h.m_SortKey.i, jsonStr(h.m_SortKey.s).c_str(), h.m_FileNo, h.m_DebugRankNo);
+				fprintf(stderr, "DEBUG[pre-sort;order=%d]: m_Hits[%u] = {m_BreakNo=%u, m_HighlightOccurrenceEnd=%u, m_SortKey={%d,%s}, m_FileNo=%u, m_DebugRankNo=%u}\n",
+					m_SortOrder,
+					hi, h.m_BreakNo, h.m_HighlightOccurrenceEnd, h.m_SortKey.i, jsonStr(h.m_SortKey.s).c_str(), h.m_FileNo, h.m_Value.m_DebugRankNo);
 			}
 #endif //-- DEBUG
 

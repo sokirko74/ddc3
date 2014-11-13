@@ -34,8 +34,8 @@
 const size_t MaxCompressRatio = 5;
 size_t AllBytesRead =  0;
 //!  the size of the buffer, which is used to read occurrences from the disk
-const DWORD OccurBufferSize = 512;
 //const DWORD OccurBufferSize = 32;
+const DWORD OccurBufferSize = 512;
 
 
 
@@ -219,6 +219,8 @@ void  CIndexSetForQueryingStage::AddOccurs (size_t PeriodDevId, const bool bOneO
 	  //fprintf(stderr, "DEBUG: AddOccurs(): per_dev_it != m_EndPeriodOffsets.end()\n");
             
             const vector<DWORD>& Periods = per_dev_it->second;
+
+	    //-- moo: this assertion catches if we redefine & manually re-calculate search-period size WITHOUT re-indexing (Thu, 13 Nov 2014 09:57:03 +0100)
             assert (Periods.size() == m_pParent->GetSearchPeriodsCount());
             const QWORD StartOfPeriod  = (PeriodNo == 0) ? StartOccurNo      : (QWORD)StartOccurNo + Periods[PeriodNo - 1];
             const QWORD PeriodSize     = (PeriodNo == 0) ? Periods[PeriodNo] : Periods[PeriodNo]   - Periods[PeriodNo - 1];

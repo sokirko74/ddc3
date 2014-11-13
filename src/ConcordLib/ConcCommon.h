@@ -169,9 +169,9 @@ static const char *HitSortEnumNames[HitSortsCount] =
 	"GreaterByRank",
 	"LessByMiddleContext",
 	"GreaterByMiddleContext",
-	"LesaByLeftContext",
+	"LessByLeftContext",
 	"GreaterByLeftContext",
-	"LesaByRightContext",
+	"LessByRightContext",
 	"GreaterByRightContext",
 	"RandomSort"
 	};
