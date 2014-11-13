@@ -147,6 +147,14 @@ void CDDCLeafServer::handle__info(string &Result, bool verbose)
 			   + "\"indexChunks\":" + (ix->m_bIndexChunks ? '1' : '0') + ",\n\t"
 			   );
 
+		//-- info.periods
+		Result += string("\"periods\":[");
+		for (i=0; i < ix->GetSearchPeriodsCount(); i++) {
+		    if (i!=0) Result += ",";
+		    Result += Format("%u", ix->GetSearchPeriod(i));
+		}
+		Result += "],\n\t";
+
 		//-- info.bibl
 		Result += (string("\"bibl\":[")
 			   + "\n\t\t{\"name\":\"orig\",\"builtin\":1},"
