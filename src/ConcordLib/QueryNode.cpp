@@ -53,7 +53,7 @@ CQueryNode::~CQueryNode()
 	ClearVector(m_OccurrenceNodeIndices);
 };
 
-size_t CQueryNode::GetNodeFrequenceByNodeIndex(size_t NodeIndex) const
+size_t CQueryNode::GetNodeFrequencyByNodeIndex(size_t NodeIndex) const
 {
 	assert (false);
 	return 0;
@@ -283,11 +283,11 @@ void CQueryBinaryOperationNode::Create(const CConcHolder*	pHolder, CQueryNode* c
 	m_Source = child1->m_Source + Operation + child2->m_Source;
 }
 
-size_t CQueryBinaryOperationNode::GetNodeFrequenceByNodeIndex(size_t NodeIndex) const
+size_t CQueryBinaryOperationNode::GetNodeFrequencyByNodeIndex(size_t NodeIndex) const
 {
 	size_t Result = 0;
-	if (m_pChild1) Result += m_pChild1->GetNodeFrequenceByNodeIndex(NodeIndex);
-	if (m_pChild2) Result += m_pChild2->GetNodeFrequenceByNodeIndex(NodeIndex);
+	if (m_pChild1) Result += m_pChild1->GetNodeFrequencyByNodeIndex(NodeIndex);
+	if (m_pChild2) Result += m_pChild2->GetNodeFrequencyByNodeIndex(NodeIndex);
 	return Result;
 }
 
@@ -622,7 +622,7 @@ bool	CQueryTokenNode::CreateAnchorPattern(const CConcHolder* pHolder, const stri
   return pHolder->m_pIndexator->GetOccurrencesByPosition(m_IndexName, anchor, m_IndexItems);
 };
 
-size_t CQueryTokenNode::GetNodeFrequenceByNodeIndex(size_t NodeIndex) const
+size_t CQueryTokenNode::GetNodeFrequencyByNodeIndex(size_t NodeIndex) const
 {
 	if (m_NodeIndex == NodeIndex)
 		return m_Occurrences.size();
@@ -903,11 +903,11 @@ bool CQuerySequenceNode::AddDistance(const string& s, char op)
 	return true;
 };
 
-size_t CQuerySequenceNode::GetNodeFrequenceByNodeIndex(size_t NodeIndex) const
+size_t CQuerySequenceNode::GetNodeFrequencyByNodeIndex(size_t NodeIndex) const
 {
 	size_t Result = 0;
 	for (int i = 0; i < m_Items.size(); i++)
-		Result += m_Items[i]->GetNodeFrequenceByNodeIndex(NodeIndex);
+		Result += m_Items[i]->GetNodeFrequencyByNodeIndex(NodeIndex);
 	return Result;
 }
 
@@ -1100,12 +1100,12 @@ CQueryNearNode::~CQueryNearNode()
 	if (m_pChild3) delete m_pChild3;
 };
 
-size_t CQueryNearNode::GetNodeFrequenceByNodeIndex(size_t NodeIndex) const
+size_t CQueryNearNode::GetNodeFrequencyByNodeIndex(size_t NodeIndex) const
 {
 	size_t Result = 0;
-	if (m_pChild1) Result += m_pChild1->GetNodeFrequenceByNodeIndex(NodeIndex);
-	if (m_pChild2) Result += m_pChild2->GetNodeFrequenceByNodeIndex(NodeIndex);
-	if (m_pChild3) Result += m_pChild3->GetNodeFrequenceByNodeIndex(NodeIndex);
+	if (m_pChild1) Result += m_pChild1->GetNodeFrequencyByNodeIndex(NodeIndex);
+	if (m_pChild2) Result += m_pChild2->GetNodeFrequencyByNodeIndex(NodeIndex);
+	if (m_pChild3) Result += m_pChild3->GetNodeFrequencyByNodeIndex(NodeIndex);
 	return Result;
 }
 

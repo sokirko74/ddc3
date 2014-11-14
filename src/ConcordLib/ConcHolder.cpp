@@ -1129,7 +1129,7 @@ void CConcHolder::InitSortByRank(const CQuery *pQuery) const
 	// initializing idf for all query items
 	for (size_t i=0; i < NodeIndicesCount; i++)
 	{
-		double cf = pQuery->m_Node->GetNodeFrequenceByNodeIndex(i);
+		double cf = pQuery->m_Node->GetNodeFrequencyByNodeIndex(i);
 		double c = (double)Breaks.size();
 		// we have no document frequence, that's why we use collection frequence, which can be more than "c".
 		if (cf > c)
@@ -1747,6 +1747,7 @@ DDCErrorEnum CConcHolder::GetHits(const string &Query,  DWORD& EndHitNo)
 			}
 #endif //-- DEBUG
 
+			//-- re-sort hits here, since they might be drawn from different corpus periods
 			if (m_SortOrder > 0) {
 				//-- ascending sort
 				stable_sort (HitsIndex.begin(), HitsIndex.end(), IsLessByHitSortKey(m_Hits));

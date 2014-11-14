@@ -120,7 +120,7 @@ public:
 	void SetHolder(const CConcHolder* pHolder);
 
 	//! ?
-	virtual size_t GetNodeFrequenceByNodeIndex(size_t NodeIndex) const;
+	virtual size_t GetNodeFrequencyByNodeIndex(size_t NodeIndex) const;
 };
 
 //----------------------------------------------------------------------
@@ -162,7 +162,7 @@ public:
 	//! a modified version of std::difference which simultaneously  deals  with two pairs of vectors
 	void hits_and_positions_difference();
 
-	size_t GetNodeFrequenceByNodeIndex(size_t NodeIndex) const;
+	size_t GetNodeFrequencyByNodeIndex(size_t NodeIndex) const;
 };
 
 //----------------------------------------------------------------------
@@ -269,7 +269,7 @@ public:
 
 	void	EvaluateWithoutHits();
 	void	Evaluate(bool bSeparateHits=false);
-	size_t	GetNodeFrequenceByNodeIndex(size_t NodeIndex) const;
+	size_t	GetNodeFrequencyByNodeIndex(size_t NodeIndex) const;
 
 };
 
@@ -305,7 +305,7 @@ public:
 
 	void	EvaluateWithoutHits();
 	void	Evaluate(bool bSeparateHits=false);
-	size_t	GetNodeFrequenceByNodeIndex(size_t NodeIndex) const;
+	size_t	GetNodeFrequencyByNodeIndex(size_t NodeIndex) const;
 };
 
 //----------------------------------------------------------------------
@@ -341,7 +341,7 @@ public:
 	void FindOccurrences2();
 	void FindOccurrences3();
 	void Evaluate(bool bSeparateHits=false);
-	size_t GetNodeFrequenceByNodeIndex(size_t NodeIndex) const;
+	size_t GetNodeFrequencyByNodeIndex(size_t NodeIndex) const;
 };
 
 //----------------------------------------------------------------------
