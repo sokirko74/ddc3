@@ -147,6 +147,7 @@ int yylex (void*,  void*);
 %type	<m_pnode>	qw_chunk
 %type	<m_pnode>	qw_listfile
 %type	<m_pnode>	qw_with
+%type	<m_pnode>	qw_without
 %type	<m_pnode>	qw_anchor
 
 
@@ -254,7 +255,7 @@ int yylex (void*,  void*);
 %left	COUNT
 %left	NEAR
 %left	','
-%left	WITH 
+%left	WITH WITHOUT
 %left   '=' '<'
 %left   '$' 
 %left	'@' '^' '%' '#' '/' '~'
@@ -532,6 +533,7 @@ qc_word:
 	|	qw_anchor		{ $$ = $1; }
 	|	qw_listfile		{ $$ = $1; }
 	|	qw_with			{ $$ = $1; }
+	|	qw_without		{ $$ = $1; }
 	|	'(' qc_word ')'		{ $$ = $2; }
 	;
 
@@ -628,7 +630,11 @@ qw_listfile:
 	;
 
 qw_with:
-		qc_word WITH qc_word		{ $$ = _qc->PushQuery(new CQWith($1,$3)); }
+		qc_word WITH    qc_word		{ $$ = _qc->PushQuery(new CQWith($1,$3)); }
+	;
+
+qw_without:
+		qc_word WITHOUT qc_word		{ $$ = _qc->PushQuery(new CQWithout($1,$3)); }
 	;
 
 

@@ -1302,7 +1302,7 @@ void CQueryWithNode::EvaluateWithoutHits()
 	((CQueryTokenNode*)m_pChild1)->EvaluateWithoutHits();
 	((CQueryTokenNode*)m_pChild2)->EvaluateWithoutHits();
 
-	m_Occurrences.resize( m_pChild1->GetOccurrencesSize() + m_pChild2->GetOccurrencesSize() );
+	m_Occurrences.resize( min(m_pChild1->GetOccurrencesSize(), m_pChild2->GetOccurrencesSize()) );
 
 	vector<CTokenNo>::iterator it = set_intersection(m_pChild1->m_Occurrences.begin(), m_pChild1->m_Occurrences.end(),
 							 m_pChild2->m_Occurrences.begin(), m_pChild2->m_Occurrences.end(),
@@ -1323,5 +1323,28 @@ void CQueryWithNode::Evaluate(bool bSeparateHits)
 	ConvertOccurrencesToHits(bSeparateHits);
 };
 
+//======================== CQueryWithoutNode =========================
+
+bool CQueryWithoutNode::Create(const CConcHolder* pHolder, CQueryNode* child1, CQueryNode* child2)
+{
+	CQueryBinaryOperationNode::Create(pHolder, child1, child2, string(" without ") );
+	return true;
+};
 
 
+void CQueryWithoutNode::EvaluateWithoutHits()
+{
+	((CQueryTokenNode*)m_pChild1)->EvaluateWithoutHits();
+	((CQueryTokenNode*)m_pChild2)->EvaluateWithoutHits();
+
+	m_Occurrences.resize( m_pChild1->GetOccurrencesSize() );
+	vector<CTokenNo>::iterator it = set_difference(m_pChild1->m_Occurrences.begin(), m_pChild1->m_Occurrences.end(),
+						       m_pChild2->m_Occurrences.begin(), m_pChild2->m_Occurrences.end(),
+						       m_Occurrences.begin());
+	m_Occurrences.resize(it - m_Occurrences.begin());
+
+	if (m_bUseNodeIndices)
+		m_OccurrenceNodeIndices.resize(m_Occurrences.size(), ((CQueryTokenNode*)m_pChild1)->m_NodeIndex);
+
+	m_ChunkLengths.resize(GetOccurrencesSize(), 1);
+};

@@ -11,7 +11,7 @@
     <section name="overview" title="Overview">
       <p>
 	This documentation describes the query language accepted by
-	DDC version 2.0.23.  Current sources for DDC should be available
+	DDC version 2.0.33.  Current sources for DDC should be available
 	from
 	<!--<a href="http://odo.dwds.de/code/viewvc.cgi/ddc/trunk/?root=dev">svn+ssh://odo.dwds.de/home/svn/dev/ddc/trunk</a>.-->
 	<a href="http://sourceforge.net/projects/ddc-concordance">http://sourceforge.net/projects/ddc-concordance</a>.
@@ -265,8 +265,11 @@
 	    <rhs cmt="Disjunction over values (lines) read from a server-side file (command-line only)">
 	      <n>qw_listfile</n>
 	    </rhs>
-	    <rhs cmt="Conjunction of multiple conditions on a single token">
+	    <rhs cmt="Conjunction of multiple conditions on a single token (token-set intersection)">
 	      <n>qw_with</n>
+	    </rhs>
+	    <rhs cmt="Conjunction of a negated condition on a single token (token-set difference)">
+	      <n>qw_without</n>
 	    </rhs>
 	    <rhs cmt="Explicit grouping (e.g. for WITH, expanders, etc.)">
 	      <t>(</t>
@@ -543,10 +546,19 @@
 	  </rule>
 
 	  <!--~~~~~~~~ RULES: qw_with -->
-	  <rule lhs="qw_with" cmt="Conjunction of multiple conditions over a single token">
+	  <rule lhs="qw_with" cmt="Conjunction of multiple conditions over a single token (token-set intersection)">
 	    <rhs cmt="... note that negated conditions are not admissable here">
 	      <n>qc_word</n>
 	      <t>WITH</t>
+	      <n>qc_word</n>
+	    </rhs>
+	  </rule>
+
+	  <!--~~~~~~~~ RULES: qw_without -->
+	  <rule lhs="qw_without" cmt="Conjunction of positive and negative conditions on a single token (token-set difference)">
+	    <rhs cmt="aliases: !WITH, WITH!">
+	      <n>qc_word</n>
+	      <t>WITHOUT</t>
 	      <n>qc_word</n>
 	    </rhs>
 	  </rule>
@@ -1391,6 +1403,7 @@ regex_modifier	[gimsx]
 <pre>
 (?i:near)
 (?i:with)
+(?i:\!with|with(out|{ws}*\!))
 (?i:count)
 (?i:(file|doc)?id)
 (?i:(file|doc)_?(name)?)

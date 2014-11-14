@@ -90,7 +90,8 @@
      OP_BOOL_AND = 308,
      COUNT = 309,
      NEAR = 310,
-     WITH = 311
+     WITHOUT = 311,
+     WITH = 312
    };
 #endif
 
@@ -111,7 +112,7 @@ typedef union YYSTYPE
 
 
 /* Line 2068 of yacc.c  */
-#line 115 "yyQParser.h"
+#line 116 "yyQParser.h"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */

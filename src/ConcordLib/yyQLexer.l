@@ -112,6 +112,7 @@ regex_modifier	[gimsx]
 "||"				{ return OP_BOOL_OR; }
 (?i:near)			{ return NEAR; }
 (?i:with)			{ return WITH; }
+(?i:\!with|with(out|{ws}*\!))   { return WITHOUT; }
 (?i:count)			{ return COUNT; }
 
  /* count-by keywords */

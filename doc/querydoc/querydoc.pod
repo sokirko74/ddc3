@@ -3,7 +3,7 @@
 =head2 Overview
 
 This documentation describes the query language accepted by
-DDC version 2.0.23.  Current sources for DDC should be available
+DDC version 2.0.33.  Current sources for DDC should be available
 from
 http://sourceforge.net/projects/ddc-concordance.
 
@@ -117,7 +117,8 @@ Comments may appear after each rule in C notation
                     | qw_chunk                                              /* Syntactic property condition ('Chunk' index) */
                     | qw_anchor                                             /* Position in segment (a.k.a. 'break collection') */
                     | qw_listfile                                           /* Disjunction over values (lines) read from a server-side file (command-line only) */
-                    | qw_with                                               /* Conjunction of multiple conditions on a single token */
+                    | qw_with                                               /* Conjunction of multiple conditions on a single token (token-set intersection) */
+                    | qw_without                                            /* Conjunction of a negated condition on a single token (token-set difference) */
                     | ( qc_word )                                           /* Explicit grouping (e.g. for WITH, expanders, etc.) */
                     ;
  
@@ -213,8 +214,12 @@ Comments may appear after each rule in C notation
                     | s_index = < s_filename                                /* ... on user-specified index */
                     ;
  
- qw_with          ::=                                                       /*-- Conjunction of multiple conditions over a single token --*/
+ qw_with          ::=                                                       /*-- Conjunction of multiple conditions over a single token (token-set intersection) --*/
                       qc_word WITH qc_word                                  /* ... note that negated conditions are not admissable here */
+                    ;
+ 
+ qw_without       ::=                                                       /*-- Conjunction of positive and negative conditions on a single token (token-set difference) --*/
+                      qc_word WITHOUT qc_word                               /* aliases: !WITH, WITH! */
                     ;
  
 
@@ -574,6 +579,7 @@ The following macros are defined for the underlying scanner:
 
  (?i:near)
  (?i:with)
+ (?i:\!with|with(out|{ws}*\!))
  (?i:count)
  (?i:(file|doc)?id)
  (?i:(file|doc)_?(name)?)

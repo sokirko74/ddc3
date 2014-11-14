@@ -250,6 +250,18 @@ public:
   virtual string jsonClass() { return "CQWith"; };
 };
 
+//------------------------------------------------------------
+//! 'WITHOUT' query
+class CQWithout : public CQBinOp {
+public:
+  CQWithout(CQuery *dtr1=NULL, CQuery *dtr2=NULL)
+    : CQBinOp(dtr1,dtr2,"WITHOUT")
+  {};
+
+  virtual bool Compile(CQueryCompiler *compiler);
+  virtual string jsonClass() { return "CQWithout"; };
+};
+
 
 //======================================================================
 // CQToken: single-token queries

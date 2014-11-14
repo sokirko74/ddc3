@@ -362,6 +362,22 @@ public:
 };
 
 //----------------------------------------------------------------------
+/*!
+  \brief CQueryWithoutNode: (EXPR1 without EXPR2) behavees like (EXPR1 WITH !EXPR2)
+*/ 
+class CQueryWithoutNode : public CQueryWithNode
+{
+public:
+	CQueryWithoutNode()
+	{};
+
+	//! create the node during yacc parsing
+	bool Create(const CConcHolder*	pHolder, CQueryNode* child1, CQueryNode* child2);
+
+	void EvaluateWithoutHits();
+};
+
+//----------------------------------------------------------------------
 /** compute the set of types \c WordForms which may share a lemma with \c src in language \c Langua.
  *
  *  The underlying CLemmatizer should handle transcoding of user queries transparently, assuming you

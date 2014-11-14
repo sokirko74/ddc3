@@ -2,6 +2,8 @@
 
 v2.0.33 Thu, 13 Nov 2014 16:13:22 +0100 moocow
 	+ added "periods" attribute to  leaf-server 'info' request output
+	+ added support for WITHOUT queries
+	  - TODO(?): extend this strategy to allow full-blown token-level boolean expressions
 
 v2.0.32 Wed, 05 Nov 2014 15:29:11 +0100 moocow
 	+ fixed bug breaking bibliographic expanders introduced by DefaultBibl tweaks in v2.0.27

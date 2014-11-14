@@ -300,6 +300,26 @@ bool CQWith::Compile(CQueryCompiler *compiler)
 }
 
 //======================================================================
+// CQWithout
+
+bool CQWithout::Compile(CQueryCompiler *compiler)
+{
+  if (!CQBinOp::Compile(compiler)) return false;
+
+  //-- extra sanity checks
+  if (m_dtr1->Negated() || m_dtr2->Negated())
+    throw CExpc(errParseError, "negated sub-queries not supported in WITHOUT query `%s'", this->toString().c_str());
+
+  //-- create underyling node
+  CQueryWithoutNode* pObj = new CQueryWithoutNode;
+  m_Node = pObj;
+  if ( !pObj->Create(compiler->m_pHolder, m_dtr1->m_Node, m_dtr2->m_Node) )
+    throw CExpc(errParseError,"could not compile WITHOUT clause `%s'", this->toString().c_str());
+
+  return CQNegatable::Compile(compiler);
+}
+
+//======================================================================
 // CQToken
 
 bool CQToken::Compile(CQueryCompiler *compiler)
