@@ -657,7 +657,7 @@ to be replaced by the REPLACE string.
 
 
 
-=head3 Punctutation Operators and Special Characters
+=head3 Punctuation Operators and Special Characters
 
  "&&"				/* clause-level conjunction operator */
  "||"				/* clause-level disjunction operator */

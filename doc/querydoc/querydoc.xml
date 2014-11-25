@@ -1490,7 +1490,7 @@ regex_modifier	[gimsx]
       <!--/terminals:regex-->
 
       <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
-      <subsection name="term_PUNCT" title="Punctutation Operators and Special Characters">
+      <subsection name="term_PUNCT" title="Punctuation Operators and Special Characters">
 <pre>
 "&amp;&amp;"				/* clause-level conjunction operator */
 "||"				/* clause-level disjunction operator */
