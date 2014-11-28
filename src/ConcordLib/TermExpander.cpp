@@ -329,6 +329,7 @@ void TxCab::expand(const set<string>& src, set<string>& dst)
     throw CExpc(errRuntime, "TxCab::expand(): ERROR: %s", m_CCurl.m_CurlErr);
 #else
     concord_daemon_log(Format("TxCab::expand(%s) failed: %s", m_UrlBase.c_str(), m_CCurl.m_CurlErr));
+    if (m_MapMode) dst = src; //-- fallback to literal search in map mode
 #endif
     return;
   }
