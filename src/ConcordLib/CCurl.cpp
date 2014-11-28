@@ -121,7 +121,10 @@ bool CCurl::perform_cached(CCurlCache *cache)
   }
   else {
     rc = curl_easy_perform(m_Curl);
-    cache->insert(m_Url, m_Response);
+    if (rc==0) {
+      //-- only cache successful responses (avoid perpetuating mantis bug #701)
+      cache->insert(m_Url, m_Response);
+    }
   }
   cache->unlock();
 

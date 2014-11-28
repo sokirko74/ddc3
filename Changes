@@ -1,5 +1,8 @@
 ##-*- Mode: Change-Log; coding: utf-8; -*-
 
+v2.0.34-pre1 Fri, 28 Nov 2014 14:26:06 +0100 moocow
+	+ CCurl::perform_cached(): only cache successful responses (avoid perpetuating mantis bug #701)
+
 v2.0.33 Thu, 13 Nov 2014 16:13:22 +0100 moocow
 	+ added "periods" attribute to  leaf-server 'info' request output
 	+ added support for WITHOUT queries
