@@ -62,7 +62,7 @@
 .\" ========================================================================
 .\"
 .IX Title "DDC_OPT 5"
-.TH DDC_OPT 5 "2014-10-07" "2.0.34-pre2" "DDC Corpus Indexing System"
+.TH DDC_OPT 5 "2014-12-01" "2.0.34-pre2" "DDC Corpus Indexing System"
 .\" For nroff, turn off justification.  Always turn off hyphenation; it makes
 .\" way too many mistakes in technical documents.
 .if n .ad l
@@ -140,6 +140,9 @@ option files (\*(L"opt-files\*(R") used by the \s-1DDC\s0 corpus indexing system
 \& TfIdfRank FLOAT
 \& PositionRank FLOAT
 \& NearRank FLOAT
+\& 
+\& ServerInfo KEY VALUE
+\& ServerInfoFile KEY FILENAME
 \&
 \& ##\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
 \& ## Multi\-valued Options
@@ -691,6 +694,35 @@ Float parameter (0 <=FLOAT < 1) for position weighting.
 .Ve
 .PP
 Float parameter (0 <=FLOAT < 1) for \s-1NEAR\s0 weighting.
+.PP
+\fIServerInfo\fR
+.IX Subsection "ServerInfo"
+.PP
+.Vb 1
+\& ServerInfo KEY VALUE
+.Ve
+.PP
+Sets a constant value to be returned in responses to client 'info' requests
+to an associated CDDCLeafServer (see ddc_proto).  \s-1KEY\s0 is a key string optionally
+containing C escapes, and \s-1VALUE\s0 is a literal \s-1JSON\s0 value to be returned as the value
+of \f(CW\*(C`user.KEY\*(C'\fR in leaf-server 'info' responses.
+.PP
+Since v2.0.34.
+.PP
+\fIServerInfoFile\fR
+.IX Subsection "ServerInfoFile"
+.PP
+.Vb 1
+\& ServerInfoFile KEY FILENAME
+.Ve
+.PP
+Sets an external filename value to be returned in responses to client 'info' requests
+to an associated CDDCLeafServer (see ddc_proto).  \s-1KEY\s0 is a key string optionally
+containing C escapes, and \s-1FILENAME\s0 is a filename containing literal \s-1JSON\s0 code to be returned as the value
+of \f(CW\*(C`user.KEY\*(C'\fR in leaf-server 'info' responses.  \s-1FILENAME\s0 is interpreted relative to the directory
+containing the project *.con file associated with the leaf server.
+.PP
+Since v2.0.34.
 .SS "Multi-valued Options"
 .IX Subsection "Multi-valued Options"
 The following options may occur multiple times in a single opt-file.

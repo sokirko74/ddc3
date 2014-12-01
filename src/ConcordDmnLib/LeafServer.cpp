@@ -166,6 +166,7 @@ void CDDCLeafServer::handle__info(string &Result, bool verbose)
 		i=0;
 		for (CConcXml::FreeBiblStringMap::const_iterator bmi=bmap.begin(); bmi != bmap.end(); ++i, ++bmi) {
 			const CConcXml::CFreeBiblIndex *fbi = bmi->second;
+			const CFreeBiblIndexTypeId fbtyp = fbi->GetTypeId();
 			Result += (string(",\n\t\t{")
 				   + "\"name\":" + jsonStr(fbi->m_Name) + ", "
 #if DDC_VERBOSE_CORPUS_INFO
@@ -173,8 +174,11 @@ void CDDCLeafServer::handle__info(string &Result, bool verbose)
 #endif
 				   + "\"visible\":" + (fbi->m_bShowInHeader ? '1' : '0') + ", "
 				   + "\"size\":" + Format("%zd", fbi->size()) //-- bibl[i].size : number of breaks
-				   + "}"
 				   );
+			if (fbtyp==cfbiStringConstant) {
+			    Result += string(", \"value\":") + jsonStr(fbi->GetXpathStr(),ix->m_Utf8);
+			}
+			Result += "}";
 		}
 		Result += "\n\t\t],\n\t";
 		//-- /info.bibl

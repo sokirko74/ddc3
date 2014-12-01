@@ -86,6 +86,8 @@
 			<li><a href="#tfidfrank">TfIdfRank</a></li>
 			<li><a href="#positionrank">PositionRank</a></li>
 			<li><a href="#nearrank">NearRank</a></li>
+			<li><a href="#serverinfo">ServerInfo</a></li>
+			<li><a href="#serverinfofile">ServerInfoFile</a></li>
 		</ul>
 
 		<li><a href="#multi_valued_options">Multi-valued Options</a></li>
@@ -185,7 +187,10 @@ option files (&quot;opt-files&quot;) used by the DDC corpus indexing system.</p>
  
  TfIdfRank FLOAT
  PositionRank FLOAT
- NearRank FLOAT</pre>
+ NearRank FLOAT
+ 
+ ServerInfo KEY VALUE
+ ServerInfoFile KEY FILENAME</pre>
 <pre>
  ##-------------------------------------------------------------
  ## Multi-valued Options
@@ -642,6 +647,27 @@ Float parameter (0 &lt;=FLOAT &lt; 1) for position weighting.</p>
 <pre>
  NearRank FLOAT</pre>
 <p>Float parameter (0 &lt;=FLOAT &lt; 1) for NEAR weighting.</p>
+<p>
+</p>
+<h3><a name="serverinfo">ServerInfo</a></h3>
+<pre>
+ ServerInfo KEY VALUE</pre>
+<p>Sets a constant value to be returned in responses to client 'info' requests
+to an associated CDDCLeafServer (see <em>ddc_proto</em>).  KEY is a key string optionally
+containing C escapes, and VALUE is a literal JSON value to be returned as the value
+of <code>user.KEY</code> in leaf-server 'info' responses.</p>
+<p>Since v2.0.34.</p>
+<p>
+</p>
+<h3><a name="serverinfofile">ServerInfoFile</a></h3>
+<pre>
+ ServerInfoFile KEY FILENAME</pre>
+<p>Sets an external filename value to be returned in responses to client 'info' requests
+to an associated CDDCLeafServer (see <em>ddc_proto</em>).  KEY is a key string optionally
+containing C escapes, and FILENAME is a filename containing literal JSON code to be returned as the value
+of <code>user.KEY</code> in leaf-server 'info' responses.  FILENAME is interpreted relative to the directory
+containing the project *.con file associated with the leaf server.</p>
+<p>Since v2.0.34.</p>
 <p>
 </p>
 <h2><a name="multi_valued_options">Multi-valued Options</a></h2>

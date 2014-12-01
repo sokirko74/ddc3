@@ -214,7 +214,10 @@ For a leaf server, the returned object is of the form:
   "xbibl":["xauthor",...]
   //
   //-- query operators: term expanders ("Expand" options)
-  "expanders":["Token",...]
+  "expanders":["Token",...],
+  //
+  //-- user-supplied information ("ServerInfo" and "ServerInfoFile" options)
+  "user":{"foo":"bar","baz":["bonk","boffo"]},
   }
 
 
@@ -239,7 +242,7 @@ For a branch server, the returned object has the form:
 where each object in the "corpora" array is the associated subcorpus server's
 response to an "info" request.
 
-Since v2.0.18
+Since v2.0.18, user-supplied info since v2.0.34.
 
 =cut
 
