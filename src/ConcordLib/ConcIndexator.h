@@ -263,6 +263,12 @@ public:
 	 */
 	map<string,string> m_OpDefaultIndexNames;
 
+	/** \brief maps symbolic keys to string constants to be included in corpus 'info' response as info.user.KEY=VAL
+	 * \detail
+	 * values are pairs (isFile,Value) s.t. Value is filename iff isFile is a true value, otherwise a literal value
+	 */
+	map<string, pair<bool,string> > m_ServerInfo;
+
 	CConcIndexator();
 	~CConcIndexator();
 

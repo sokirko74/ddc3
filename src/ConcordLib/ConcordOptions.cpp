@@ -101,6 +101,7 @@ void CConcIndexator::InitDefaultOptions()
 	m_MaxQueryCacheSize = 512;
 	m_Txd.clear();
 	m_OpDefaultIndexNames.clear();
+	m_ServerInfo.clear();
 	m_Bibl.m_DefaultAttrName = "";
 }
 
@@ -551,6 +552,16 @@ bool CConcIndexator::LoadOptionsFromString(string Options)
 		else if (q == "DefaultBibl") {
 			m_Bibl.m_DefaultAttrName = fields.next_token();
 			fprintf(stderr, "DefaultBibl %s\n", m_Bibl.m_DefaultAttrName.c_str());
+		}
+		else if (q == "ServerInfo") {
+			string info_key = unescapeCString(fields.next_token());
+			string info_val = fields.get_rest();
+			m_ServerInfo[info_key] = make_pair(false,info_val);
+		}
+		else if (q == "ServerInfoFile") {
+			string info_key = unescapeCString(fields.next_token());
+			string info_val = unescapeCString(fields.get_rest());
+			m_ServerInfo[info_key] = make_pair(true,info_val);
 		}
 		else
 		{

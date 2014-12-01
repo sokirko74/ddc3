@@ -260,8 +260,35 @@ void CDDCLeafServer::handle__info(string &Result, bool verbose)
 			Result += jsonStr(tx->m_Label);
 #endif
 		}
-		Result += "]\n\t";
+		Result += "],\n\t";
 		//--/info.expanders
+
+		//-- info.user
+		Result += "\"user\":";
+		if (!ix->m_ServerInfo.empty()) {
+		    Result += "{";
+		    for (map<string,pair<bool,string> >::const_iterator ii=ix->m_ServerInfo.begin(); ii!=ix->m_ServerInfo.end(); ++ii) {
+			const string &ikey = ii->first;
+			const pair<bool,string> &ival = ii->second;
+			if (ii != ix->m_ServerInfo.begin()) Result.push_back(',');
+			Result += string("\n\t\t") + jsonStr(ikey,ix->m_Utf8,true) + ":";
+			if (ival.first) {
+			    //-- user-supplied json file
+			    string filename = RelativeFileName(ix->m_Path, ival.second);
+			    //fprintf(stderr, "info file for key '%s'='%s' ; cwd=%s\n", ikey.c_str(), filename.c_str(), CurrentDirectory().c_str()); //-- DEBUG
+			    if (!LoadFileToString(filename, Result, false)) {
+				Result += string("null");
+			    }
+			} else {
+			    //-- user-supplied json string
+			    Result += ival.second;
+			}
+		    }
+		    Result += (ix->m_ServerInfo.empty() ? "}" : "\n\t\t}");
+		} else {
+		    Result += "null";
+		}
+		Result += "\n\t";
 	}
 	Result += "}";
 	//-- /info

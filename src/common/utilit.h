@@ -280,7 +280,7 @@ extern string&  TrimLeft (string& str);
 extern string&  TrimRight (string& str);
 extern string&	Trim (string& str);
 extern void		rml_TRACE( const char* format, ... );
-extern bool		LoadFileToString(string FileName, string& Result);
+extern bool		LoadFileToString(string FileName, string& Result, bool clobber=true);
 extern void		SqueezeSpacesAndDeleteEoln(string& s);
 extern void		KOI8ToWin (string& s);
 extern void		WinToKOI8 (string& s);

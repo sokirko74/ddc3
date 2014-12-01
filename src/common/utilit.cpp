@@ -2330,14 +2330,16 @@ void QPDecodeString(string& s)
 
 
 
-bool LoadFileToString(string FileName, string& Result)
+bool LoadFileToString(string FileName, string& Result, bool clobber)
 {
-	if ( access(FileName.c_str(), 4) != 0) return false;
-
-
+	if ( access(FileName.c_str(), R_OK) != 0) return false;
 	vector<char> V;
 	ReadVector(FileName,V);
-	Result = string (V.begin(), V.end());
+	if (clobber) {
+	    Result.assign(V.begin(), V.end());
+	} else {
+	    Result.append(V.begin(), V.end());
+	}
 	return true;
 };
 

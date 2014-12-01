@@ -1,7 +1,9 @@
 ##-*- Mode: Change-Log; coding: utf-8; -*-
 
-v2.0.34-pre1 Fri, 28 Nov 2014 14:26:06 +0100 moocow
+v2.0.34-pre2 Mon, 01 Dec 2014 14:22:43 +0100
 	+ CCurl::perform_cached(): only cache successful responses (avoid perpetuating mantis bug #701)
+	+ TxCab::expand(): implicit fallback to query set in cab-expander map-mode on curl errors
+	+ added 'ServerInfo' and 'ServerInfoFile' options: leaf-server JSON constants for 'info' responses
 
 v2.0.33 Thu, 13 Nov 2014 16:13:22 +0100 moocow
 	+ added "periods" attribute to  leaf-server 'info' request output
