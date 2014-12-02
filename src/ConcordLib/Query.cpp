@@ -881,9 +881,17 @@ string CQSeq::toString() {
 }
 
 string CQSeq::jsonData() {
-  return (CQNegatable::jsonData()
-	  +",\"Items\":"+jsonArray(m_Items)
-	  +",\"Dists\":"+jsonArray(m_Dists)
-	  +",\"DistOps\":"+jsonArray(m_DistOps)
-	  );
+  string s =  (CQNegatable::jsonData()
+	       +",\"Items\":"+jsonArray(m_Items)
+	       +",\"Dists\":"+jsonArray(m_Dists)
+	       +",\"DistOps\":["
+	       );
+  for (vector<BYTE>::const_iterator doi=m_DistOps.begin(); doi != m_DistOps.end(); ++doi) {
+    if (doi != m_DistOps.begin()) s.push_back(',');
+    s.push_back('"');
+    s.push_back(*doi);
+    s.push_back('"');
+  }
+  s.push_back(']');
+  return s;
 }

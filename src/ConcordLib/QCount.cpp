@@ -299,9 +299,9 @@ string CQCount::toString()
 //--------------------------------------------------------------
 string CQCount::jsonData()
 {
-  string qs("\"dtr\":" + m_dtr->toJson());
+  string qs("\"Dtr\":" + m_dtr->toJson() + ",\"DtrOptions\":" + m_dtr->optionsToJson());
   if (!m_keys.empty()) {
-    qs += string(",\"keys\":") + m_keys.toJson();
+    qs += string(",\"Keys\":") + m_keys.toJson();
   }
   return qs;
 }

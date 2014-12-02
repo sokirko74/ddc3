@@ -101,6 +101,15 @@ string CQueryOptions::toString()
   string qs("");
   if (!m_HitTypeStr.empty()) {
     qs += string(" #WITHIN '") + escapeChars(m_HitTypeStr,"\\'") + "'";
+  } else {
+    for (vector<string>::const_iterator wi=m_Within.begin(); wi != m_Within.end(); ++wi) {
+      qs += string(" #WITHIN ");
+      if (*wi == PredefinedFileBreakName) {
+	qs += PredefinedFileBreakName;
+      } else {
+	qs += sqString(*wi);
+      }
+    }
   }
   if (m_ContextSentencesCount != 0) {
     qs += Format(" #CNTXT %u", m_ContextSentencesCount);
@@ -141,6 +150,8 @@ string CQueryOptions::toJson()
 
   if (!m_HitTypeStr.empty()) {
     qs += ",\"Within\":" + jsonStr(m_HitTypeStr);
+  } else if (!m_Within.empty()) {
+    qs += ",\"Within\":" + jsonArray(m_Within);
   }
   if (m_ContextSentencesCount != 0) {
     qs += Format(",\"ContextCount\":%u", m_ContextSentencesCount);

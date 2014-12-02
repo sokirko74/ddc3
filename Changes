@@ -1,6 +1,8 @@
 ##-*- Mode: Change-Log; coding: utf-8; -*-
 
-v2.0.34-pre2 Mon, 01 Dec 2014 14:22:43 +0100
+v2.0.34-pre2 Tue, 02 Dec 2014 10:29:31 +0100 moocow
+	+ fixed canonical query-generation for #WITHIN operators
+	+ fixed typo in CQueryCompiler::QueryToJson()
 	+ CCurl::perform_cached(): only cache successful responses (avoid perpetuating mantis bug #701)
 	+ TxCab::expand(): implicit fallback to query set in cab-expander map-mode on curl errors
 	+ added 'ServerInfo' and 'ServerInfoFile' options: leaf-server JSON constants for 'info' responses

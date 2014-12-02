@@ -200,7 +200,7 @@ void  CIndexSetForQueryingStage::AddOccurs (size_t PeriodDevId, const bool bOneO
 	const CTokenNo StartSearchPeriod = (PeriodNo == 0)? 0: m_pParent->GetSearchPeriod(PeriodNo-1);
 	const CTokenNo EndSearchPeriod =  m_pParent->GetSearchPeriod(PeriodNo);
 	//  if there is only one occurrence if this index item  in the corpora
-	// then  w>e should get from IndexItem.m_EndOccurOffset
+	// then  we should get from IndexItem.m_EndOccurOffset
 	if (bOneOccurrence )
 	{
 		
