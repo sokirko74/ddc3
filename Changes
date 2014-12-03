@@ -1,6 +1,6 @@
 ##-*- Mode: Change-Log; coding: utf-8; -*-
 
-v2.0.34-pre2 Wed, 03 Dec 2014 11:38:46 +0100 moocow
+v2.0.34 Wed, 03 Dec 2014 14:32:11 +0100 moocow
 	+ optimized evaluation of simple count(*) queries (fixes mantis bug #706)
 	+ added support for user-defined match-ids via =ID token-query suffix operator
 	+ fixed typo in CQueryCompiler::QueryToJson()

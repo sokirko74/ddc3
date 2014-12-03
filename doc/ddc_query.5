@@ -62,7 +62,7 @@
 .\" ========================================================================
 .\"
 .IX Title "DDC_QUERY 5"
-.TH DDC_QUERY 5 "2014-11-25" "2.0.34-pre2" "DDC Corpus Indexing System"
+.TH DDC_QUERY 5 "2014-12-03" "2.0.34" "DDC Corpus Indexing System"
 .\" For nroff, turn off justification.  Always turn off hyphenation; it makes
 .\" way too many mistakes in technical documents.
 .if n .ad l
@@ -72,7 +72,7 @@
 .SS "Overview"
 .IX Subsection "Overview"
 This documentation describes the query language accepted by
-\&\s-1DDC\s0 version 2.0.33.  Current sources for \s-1DDC\s0 should be available
+\&\s-1DDC\s0 version 2.0.34.  Current sources for \s-1DDC\s0 should be available
 from
 http://sourceforge.net/projects/ddc\-concordance.
 .PP
@@ -180,6 +180,7 @@ Comments may appear after each rule in C notation
 \&                    | qw_listfile                                           /* Disjunction over values (lines) read from a server\-side file (command\-line only) */
 \&                    | qw_with                                               /* Conjunction of multiple conditions on a single token (token\-set intersection) */
 \&                    | qw_without                                            /* Conjunction of a negated condition on a single token (token\-set difference) */
+\&                    | qw_matchid                                            /* Assign explicit highlighting ID (e.g. for batch\-queries) */
 \&                    | ( qc_word )                                           /* Explicit grouping (e.g. for WITH, expanders, etc.) */
 \&                    ;
 \& 
@@ -281,6 +282,10 @@ Comments may appear after each rule in C notation
 \& 
 \& qw_without       ::=                                                       /*\-\- Conjunction of positive and negative conditions on a single token (token\-set difference) \-\-*/
 \&                      qc_word WITHOUT qc_word                               /* aliases: !WITH, WITH! */
+\&                    ;
+\& 
+\& qw_matchid       ::=                                                       /*\-\- Assign explicit highlighting ID (incurs a minor performance penalty) \-\-*/
+\&                      qc_word = integer                                     /* valid IDs are in the range (1\-255); default=1 */
 \&                    ;
 .Ve
 .PP
