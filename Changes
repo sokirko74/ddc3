@@ -1,11 +1,12 @@
 ##-*- Mode: Change-Log; coding: utf-8; -*-
 
-v2.0.34-pre2 Wed, 03 Dec 2014 10:15:31 +0100 moocow
+v2.0.34-pre2 Wed, 03 Dec 2014 11:38:46 +0100 moocow
+	+ optimized evaluation of simple count(*) queries (fixes mantis bug #706)
 	+ added support for user-defined match-ids via =ID token-query suffix operator
 	+ fixed typo in CQueryCompiler::QueryToJson()
 	+ fixed canonical query-generation for #WITHIN operators
-	+ CCurl::perform_cached(): only cache successful responses (avoid perpetuating mantis bug #701)
-	+ TxCab::expand(): implicit fallback to query set in cab-expander map-mode on curl errors
+	+ CCurl::perform_cached(): only cache successful responses (avoid cache-propagation of mantis bug #701)
+	+ TxCab::expand(): implicit fallback to query set in cab-expander map-mode on curl errors (hide mantis bug #701)
 	+ added 'ServerInfo' and 'ServerInfoFile' options: leaf-server JSON constants for 'info' responses
 	+ added "value" attribute in 'info' responses for string-constant bibl fields
 

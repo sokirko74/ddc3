@@ -1542,32 +1542,79 @@ DDCErrorEnum CConcHolder::GetAllCounts(CQuery *CountQueryRoot, size_t Limit)
 	//-- evaluate subordinate query-conditions, populating CQueryResult fields (esp. m_Hits)
 	CQCount *qCount  = (CQCount*)CountQueryRoot;
 	CQuery  *qRoot   = qCount->m_dtr;
-	DDCErrorEnum rc = GetAllHits(qRoot, DDCCountQueryLimit);
-	if (rc != errNone)
-		return rc;
-
-	//-- ensure m_Hits are sorted by file-id
-	if (qRoot->m_Options && !qRoot->m_Options->m_Filters.empty() && qRoot->m_Options->m_Filters.back().m_FilterType!=NoSort) 
-		sort(m_Hits.begin(), m_Hits.end(), IsLessByFileNo());
-
-	//-- counting guts
-	DWORD f = (DWORD)-1;
-	DWORD n = 0;
-	string key;
-	map<string, size_t> counts;
 	CQCountKeyExprList &keys = qCount->m_keys;
-	for (vector<CHit>::const_iterator hi=m_Hits.begin(); hi != m_Hits.end(); ++hi, ++n) {
-		if (hi->m_FileNo != f) {
-			//-- next file
-			if (n>0) counts[key] += n;
-			n   = 0;
-			f   = hi->m_FileNo;
-			key = keys.Evaluate(f);
+
+	//-- countHits[] encodes element CHit hit.m_Sortkey.s (count-key) and hit.m_Value.m_Count attributes,
+	//   used to transport count()-query results in a backwards-compatible manner.
+	map<string, size_t> counts;
+
+	if (typeid(*qRoot) == typeid(CQTokAny) && qRoot->m_Options->m_QFilters.empty()) {
+		//-- count(* ...) query: do memory-optimized computatiopn
+		CConcIndexator *ix = m_pIndexator;
+		const vector<CTokenNo> &fbreaks = ix->GetFileBreaks();
+		DWORD nfiles = ix->GetSourceFilesCount();
+		string key;
+
+		if (qRoot->m_Options->m_bSeparateHits) {
+			//-- count(* #sep): count tokens
+			CTokenNo fw_begin=0, fw_end;
+			for (DWORD f=0; f<nfiles; ++f, fw_begin=fw_end) {
+				fw_end = fbreaks[f];
+				key    = keys.Evaluate(f);
+				counts[key] += (fw_end - fw_begin);
+			}
+		}
+		else {
+			//-- count(* #join): count selected breaks
+			const CHitBorders::CBreakCollection *sbreaks = ix->GetBreakCollectionByName(qRoot->m_Options->m_HitTypeStr);
+			DWORD    f = 0;
+			CTokenNo fw_end = fbreaks[f];
+			DWORD n=1;
+			for (vector<CTokenNo>::const_iterator bi=sbreaks->m_BreakOffsets.begin(); bi != sbreaks->m_BreakOffsets.end(); ++bi, ++n) {
+				if (*bi >= fw_end) {
+					//-- new file
+					if (n>0) {
+						key = keys.Evaluate(f);
+						counts[key] += n;
+					}
+					do {
+						++f;
+						fw_end = fbreaks[f];
+					} while (*bi >= fw_end);
+					n = 0;
+				}
+			}
 		}
 	}
-	if (n>0) counts[key] += n;
+	else {
+		//-- generic count() query: compute all hits and map to sort keys
+		DDCErrorEnum rc = GetAllHits(qRoot, DDCCountQueryLimit);
+		if (rc != errNone)
+			return rc;
 
-	//-- setup new dummy m_Hits
+		//-- ensure m_Hits are sorted by file-id
+		if (qRoot->m_Options && !qRoot->m_Options->m_Filters.empty() && qRoot->m_Options->m_Filters.back().m_FilterType!=NoSort) 
+			sort(m_Hits.begin(), m_Hits.end(), IsLessByFileNo());
+
+		//-- counting guts
+		DWORD f = (DWORD)-1;
+		DWORD n = 0;
+		string key;
+		for (vector<CHit>::const_iterator hi=m_Hits.begin(); hi != m_Hits.end(); ++hi, ++n) {
+			if (hi->m_FileNo != f) {
+				//-- next file
+				if (n>0) counts[key] += n;
+				n   = 0;
+				f   = hi->m_FileNo;
+				key = keys.Evaluate(f);
+			}
+		}
+		if (n>0) counts[key] += n;
+	}
+
+	//-- count query: setup m_Hits[]
+	// + m_Hits[] for count()-queries encodes element CHit hit.m_Sortkey.s (count-key) and hit.m_Value.m_Count
+	//   attributes; used to transport count()-query results in a backwards-compatible manner.
 	vector<CHit> newHits;
 	newHits.resize(counts.size());
 	vector<CHit>::iterator hi = newHits.begin(); 
