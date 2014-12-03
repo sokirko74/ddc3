@@ -62,7 +62,7 @@
 .\" ========================================================================
 .\"
 .IX Title "DDC_PROTO 5"
-.TH DDC_PROTO 5 "2014-12-01" "2.0.34-pre2" "DDC Corpus Indexing System"
+.TH DDC_PROTO 5 "2014-12-03" "2.0.34" "DDC Corpus Indexing System"
 .\" For nroff, turn off justification.  Always turn off hyphenation; it makes
 .\" way too many mistakes in technical documents.
 .if n .ad l
@@ -431,11 +431,11 @@ for a traditional context-query is a \s-1JSON\s0 object of the form:
 \&       "ctx_": [                                        //\-\- hit.ctx_ provides result context
 \&         [ "Ach",",","was","muÃ","man","oft",... ],    //\-\- hit.ctx_[0] is left extra\-sentential context (token strings only)
 \&         [                                              //\-\- hit.ctx_[1] is the hit sentence itself (structured tokens)
-\&           [ 0, "Wie",      "PWAV",    "wie" ],         //\-\- tok[0] is boolean, tok[1] is field meta_.indices_[0], etc
+\&           [ 0, "Wie",      "PWAV",    "wie" ],         //\-\- tok[0] is match\-ID, tok[1] is field meta_.indices_[0], etc
 \&           ...
-\&           [ 1, "Max",      "NE",      "Max" ],         //\-\- tok[0] is true iff token matched a term in the user query
+\&           [ 1, "Max",      "NE",      "Max" ],         //\-\- tok[0] is nonzero iff token matched a term in the user query
 \&           [ 0, "und",      "KON",     "und" ],
-\&           [ 1, "Moritz",   "NE",      "Moritz" ],
+\&           [ 2, "Moritz",   "NE",      "Moritz" ],      //\-\- user\-supplied match\-IDs are reported in tok[0]
 \&           ...
 \&         ],
 \&         [ ...,"heimlich","lustig","machen","." ]       //\-\- hit.ctx_[2] is right extra\-sentential context (token strings only)
@@ -445,6 +445,10 @@ for a traditional context-query is a \s-1JSON\s0 object of the form:
 \&   ]
 \& }
 .Ve
+.PP
+As of v2.0.34, ddc supports user-supplied match-IDs via the \f(CW\*(C`=ID\*(C'\fR query operator.
+Matched tokens for which an explicit nonzero match-ID was supplied in the query
+encode that \s-1ID\s0 as the first element of the returned token-array.
 .PP
 As of v2.0.23, ddc supports aggregate count-queries by means of the \f(CW\*(C`count()\*(C'\fR operator.
 If the requested \f(CW\*(C`QUERY\*(C'\fR was such a count-query, the query response is slightly different:

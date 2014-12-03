@@ -393,11 +393,11 @@ for a traditional context-query is a JSON object of the form:</p>
        &quot;ctx_&quot;: [                                        //-- hit.ctx_ provides result context
          [ &quot;Ach&quot;,&quot;,&quot;,&quot;was&quot;,&quot;muß&quot;,&quot;man&quot;,&quot;oft&quot;,... ],    //-- hit.ctx_[0] is left extra-sentential context (token strings only)
          [                                              //-- hit.ctx_[1] is the hit sentence itself (structured tokens)
-           [ 0, &quot;Wie&quot;,      &quot;PWAV&quot;,    &quot;wie&quot; ],         //-- tok[0] is boolean, tok[1] is field meta_.indices_[0], etc
+           [ 0, &quot;Wie&quot;,      &quot;PWAV&quot;,    &quot;wie&quot; ],         //-- tok[0] is match-ID, tok[1] is field meta_.indices_[0], etc
            ...
-           [ 1, &quot;Max&quot;,      &quot;NE&quot;,      &quot;Max&quot; ],         //-- tok[0] is true iff token matched a term in the user query
+           [ 1, &quot;Max&quot;,      &quot;NE&quot;,      &quot;Max&quot; ],         //-- tok[0] is nonzero iff token matched a term in the user query
            [ 0, &quot;und&quot;,      &quot;KON&quot;,     &quot;und&quot; ],
-           [ 1, &quot;Moritz&quot;,   &quot;NE&quot;,      &quot;Moritz&quot; ],
+           [ 2, &quot;Moritz&quot;,   &quot;NE&quot;,      &quot;Moritz&quot; ],      //-- user-supplied match-IDs are reported in tok[0]
            ...
          ],
          [ ...,&quot;heimlich&quot;,&quot;lustig&quot;,&quot;machen&quot;,&quot;.&quot; ]       //-- hit.ctx_[2] is right extra-sentential context (token strings only)
@@ -406,6 +406,9 @@ for a traditional context-query is a JSON object of the form:</p>
      //... other hits go here ...
    ]
  }</pre>
+<p>As of v2.0.34, ddc supports user-supplied match-IDs via the <code>=ID</code> query operator.
+Matched tokens for which an explicit nonzero match-ID was supplied in the query
+encode that ID as the first element of the returned token-array.</p>
 <p>As of v2.0.23, ddc supports aggregate count-queries by means of the <code>count()</code> operator.
 If the requested <a href="#query"><code>QUERY</code></a> was such a count-query, the query response is slightly different:</p>
 <dl>
