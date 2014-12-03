@@ -247,7 +247,9 @@ struct CDDCFilterWithBounds
 	//! \li false if DDC should use range defined by CDDCFilterWithBounds::m_LevelStart and CDDCFilterWithBounds::m_LevelEnd slots
 	//! (formerly m_bRegExp)
 	bool			m_bSet;
-  	bool			m_bNegated;  ///< ... for negated filters
+
+	//! true iff this is a negated filter
+  	bool			m_bNegated; 
 
 	//!  offset from matched token for context-sort operators
 	int m_ContextOffset;
@@ -259,7 +261,10 @@ struct CDDCFilterWithBounds
 	CHitSortKey m_KeyHi;
 
 	//!  the possible (integer) values for this bibliographical field,  valid only if m_bSet==true
-	set<int> m_SatisfiedValues;  
+	set<int> m_SatisfiedValues;
+
+	//! pointer to the CConcXml::CFreeBiblIndex responsible for populating this filter (only after compile)
+	const void *m_BiblIndex;
 
 	inline void clear()
 	{
@@ -284,13 +289,43 @@ struct CDDCFilterWithBounds
 		};
 	};
 
+	//! returns true iff this is a file-based filter (for optimized count(*) queries)
+	inline bool IsFileFilter() const
+	{
+		switch (m_FilterType) {
+		case NoSort:
+		case LessByDate:
+		case GreaterByDate:
+			return true; //-- special handling in CConcXml::FileMatches()
+		case LessByFreeBiblField:
+		case GreaterByFreeBiblField:
+			return true; //-- usual case of metadata-based filtering
+		case LessByRank:
+		case GreaterByRank:
+		case RandomSort:
+			return true; //-- non-filter operators are ignored
+		case LessBySize:
+		case GreaterBySize:
+		case LessByMiddleContext:
+		case GreaterByMiddleContext:
+		case LessByLeftContext:
+		case GreaterByLeftContext:
+		case LessByRightContext:
+		case GreaterByRightContext:
+		default:
+			return false; //-- not file-based
+		}
+	};
+
+
 	CDDCFilterWithBounds()
 		: m_bSet(false),
 		  m_bNegated(false),
 		  m_FilterType(NoSort),
 		  m_ContextOffset(0),
 		  m_KeyLo(INT_MIN),
-		  m_KeyHi(INT_MAX)
+		  m_KeyHi(INT_MAX),
+		  m_BiblIndex(NULL)
 	{};
 };
 

@@ -95,11 +95,14 @@ public:
   //------------------------------------------------------------
   ///\name API
   //@{
-  //! Compile index-dependent filter properties (required for evaluation).-
+  //! Compile index-dependent filter properties (required for evaluation)
   virtual bool Compile(CQueryCompiler *compiler);
 
   //! clear options.
   virtual void Clear();
+
+  //! returns true iff all defined filters are file-based (for optimized count(*) evaluation)
+  bool CanFilterByFile() const;
 
   //! return a canonical string form for these query options
   virtual string toString();

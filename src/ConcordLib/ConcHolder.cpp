@@ -1548,7 +1548,7 @@ DDCErrorEnum CConcHolder::GetAllCounts(CQuery *CountQueryRoot, size_t Limit)
 	//   used to transport count()-query results in a backwards-compatible manner.
 	map<string, size_t> counts;
 
-	if (typeid(*qRoot) == typeid(CQTokAny) && qRoot->m_Options->m_QFilters.empty()) {
+	if (typeid(*qRoot) == typeid(CQTokAny) && qRoot->m_Options->CanFilterByFile()) {
 		//-- count(* ...) query: do memory-optimized computatiopn
 		CConcIndexator *ix = m_pIndexator;
 		const vector<CTokenNo> &fbreaks = ix->GetFileBreaks();
@@ -1560,8 +1560,10 @@ DDCErrorEnum CConcHolder::GetAllCounts(CQuery *CountQueryRoot, size_t Limit)
 			CTokenNo fw_begin=0, fw_end;
 			for (DWORD f=0; f<nfiles; ++f, fw_begin=fw_end) {
 				fw_end = fbreaks[f];
-				key    = keys.Evaluate(f);
-				counts[key] += (fw_end - fw_begin);
+				if (ix->m_Bibl.FileMatches(f, qRoot->m_Options->m_Filters)) {
+					key          = keys.Evaluate(f);
+					counts[key] += (fw_end - fw_begin);
+				}
 			}
 		}
 		else {
@@ -1573,8 +1575,8 @@ DDCErrorEnum CConcHolder::GetAllCounts(CQuery *CountQueryRoot, size_t Limit)
 			for (vector<CTokenNo>::const_iterator bi=sbreaks->m_BreakOffsets.begin(); bi != sbreaks->m_BreakOffsets.end(); ++bi, ++n) {
 				if (*bi >= fw_end) {
 					//-- new file
-					if (n>0) {
-						key = keys.Evaluate(f);
+					if (n>0 && ix->m_Bibl.FileMatches(f, qRoot->m_Options->m_Filters)) {
+						key          = keys.Evaluate(f);
 						counts[key] += n;
 					}
 					do {

@@ -96,6 +96,16 @@ void CQueryOptions::Clear()
 }
 
 //--------------------------------------------------------------
+bool CQueryOptions::CanFilterByFile() const
+{
+  for (vector<CDDCFilterWithBounds>::const_iterator fi=m_Filters.begin(); fi != m_Filters.end(); ++fi) {
+    if (!fi->IsFileFilter())
+      return false;
+  }
+  return true;
+}
+
+//--------------------------------------------------------------
 string CQueryOptions::toString()
 {
   string qs("");

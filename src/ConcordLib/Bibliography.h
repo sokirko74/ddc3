@@ -121,10 +121,9 @@ public:
 		//! \param HiValue upper bound value to seek (exclusive)
 		virtual bool	GetFilterBounds  (CDDCFilterWithBounds& Filter, const string& LoValue, const string &HiValue) const;
 
-		//! initialize CDDCFilterWithBounds for a literal target or regex value (default treats Value as integer string and sets range)
+		//! initialize CDDCFilterWithBounds for a literal target value (treats Value as integer string and sets singleton range)
 		//! \param Filter filter to populate
 		//! \param Value value to seek
-		//! \param useBound 0 (default): literal match only, 1: lower bound, 2: upper bound (ignored here)
 		//! \li formerly GetValueForDDCFilter() with isRegex==false (default)
 		virtual bool	GetFilterValue   (CDDCFilterWithBounds& Filter, const string& Value) const;
 
@@ -134,6 +133,9 @@ public:
 
 		//! initialize CDDCFilterWithBounds for a set of target values (default throws errLogic)
 		virtual bool	GetFilterValues  (CDDCFilterWithBounds& Filter, const set<string>& Values) const;
+
+		//! test whether a given file matches the filter condition (for count(*) queries)
+		virtual bool    FileMatches(DWORD FileNo, const CDDCFilterWithBounds& Filter) const;
 
 		//! for server info
 		virtual size_t size(void) const
@@ -188,13 +190,13 @@ public:
 		//! \param HiValue upper bound value to seek (exclusive)
 		virtual bool	GetFilterBounds  (CDDCFilterWithBounds& Filter, const string& LoValue, const string &HiValue) const;
 
-		//! initialize CDDCFilterWithBounds for a literal target value (default treats Value as integer string and sets range)
+		//! initialize CDDCFilterWithBounds for a literal target value (default treats Value as integer string and sets singleton range)
 		//! \param Filter filter to populate
 		//! \param Value value to seek
 		//! \li formerly GetValueForDDCFilter() with isRegex==false (default)
 		virtual bool	GetFilterValue  (CDDCFilterWithBounds& Filter, const string& Value) const;
 
-		//! initialize CDDCFilterWithBounds for a target regex (default throws errLogic)
+		//! initialize CDDCFilterWithBounds for a target regex
 		//! \li formerly GetValueForDDCFilter() with isRegex==true
 		virtual bool	GetFilterValues (CDDCFilterWithBounds& Filter, const string &Regex) const;
 
@@ -375,6 +377,9 @@ public:
 
 	//! set regex options for all registered fields
 	void SetRegexOptions(const RML_RE::Options &opts);
+
+	//! test whether all compiled Filters match FileNo
+	bool FileMatches(DWORD FileNo, const vector<CDDCFilterWithBounds>& Filters) const;
 
 	//! add a new bibliographic expander to m_BiblExpanders, or replace an existing one; returns new expander
 	CBiblExpander* AddBiblExpander(const string& spec);

@@ -277,6 +277,7 @@ bool CConcXml::CFreeBiblIndex::GetFilterBounds (CDDCFilterWithBounds& Filter, co
 	Filter.m_bSet = false;
 	Filter.m_KeyLo = LoValue.empty() ? INT_MIN : atoi(LoValue.c_str());
 	Filter.m_KeyHi = HiValue.empty() ? INT_MAX : atoi(HiValue.c_str());
+	Filter.m_BiblIndex = this;
 	return true;
 };
 
@@ -285,6 +286,7 @@ bool CConcXml::CFreeBiblIndex::GetFilterValue (CDDCFilterWithBounds& Filter, con
 	Filter.m_bSet = false;
 	Filter.m_KeyLo = atoi(Value.c_str());
 	Filter.m_KeyHi = Filter.m_KeyLo.i+1;
+	Filter.m_BiblIndex = this;
 	return true;
 };
 
@@ -300,6 +302,14 @@ bool CConcXml::CFreeBiblIndex::GetFilterValues (CDDCFilterWithBounds& Filter, co
 	return false;
 };
 
+bool CConcXml::CFreeBiblIndex::FileMatches(DWORD FileNo, const CDDCFilterWithBounds& Filter) const
+{
+	DWORD val = this->GetIntegerValue(FileNo);
+	return (Filter.m_bSet
+		? (Filter.m_SatisfiedValues.find(val) != Filter.m_SatisfiedValues.end())
+		: ((val >= Filter.m_KeyLo.i) && (val < Filter.m_KeyHi.i))
+		);
+}
 
 bool CConcXml::CFreeBiblIndex::RegisterBiblStringItemId(const string& ValueStr)
 {
@@ -468,6 +478,7 @@ void CConcXml::CFreeBiblStringIndex::CreateUnion (string Path, const CFreeBiblIn
 bool CConcXml::CFreeBiblStringIndex::GetFilterBounds (CDDCFilterWithBounds& Filter, const string &LoValue, const string &HiValue) const
 {
 	Filter.m_bSet = false;
+	Filter.m_BiblIndex = this;
 
 	//-- lower bound
 	Filter.m_KeyLo.assign(INT_MIN,LoValue);
@@ -495,6 +506,8 @@ bool CConcXml::CFreeBiblStringIndex::GetFilterBounds (CDDCFilterWithBounds& Filt
 bool CConcXml::CFreeBiblStringIndex::GetFilterValue (CDDCFilterWithBounds& Filter, const string &Value) const
 {
 	Filter.m_bSet = false;
+	Filter.m_BiblIndex = this;
+
 	if (Value.empty()) return true; //-- compatibility
 
 	if (Filter.m_bNegated) {
@@ -522,7 +535,8 @@ bool CConcXml::CFreeBiblStringIndex::GetFilterValues (CDDCFilterWithBounds& Filt
 	size_t Count = m_Values.size();
 
 	//-- regex condition: positive or negative
-	Filter.m_bSet = true;
+	Filter.m_bSet  = true;
+	Filter.m_BiblIndex = this;
 	for (size_t i=0; i<Count; i++) {
 		bool isMatch = re.PartialMatch(m_Values[i]);
 		if (Filter.m_bNegated ? (!isMatch) : isMatch)
@@ -549,6 +563,7 @@ bool CConcXml::CFreeBiblStringIndex::GetFilterValues (CDDCFilterWithBounds& Filt
 bool CConcXml::CFreeBiblStringIndex::GetFilterValues (CDDCFilterWithBounds& Filter, const set<string> &Values) const
 {
 	Filter.m_bSet = true;
+	Filter.m_BiblIndex = this;
 
 	if (!Filter.m_bNegated) {
 		//-- set-valued condition: positive: iterate over argument values (assume |Values| << |m_Values|)
@@ -1379,6 +1394,27 @@ void CConcXml::SetRegexOptions(const RML_RE::Options &opts)
 	for (FreeBiblStringMap::iterator mi=m_FreeBiblIndices.begin(); mi!=m_FreeBiblIndices.end(); mi++) {
 		mi->second->m_pRegexOpts = &m_RegexOpts;
 	}
+}
+
+bool CConcXml::FileMatches(DWORD FileNo, const vector<CDDCFilterWithBounds>& Filters) const
+{
+	for (vector<CDDCFilterWithBounds>::const_iterator fi=Filters.begin(); fi != Filters.end(); ++fi) {
+		CFreeBiblIndex *fbi = (CFreeBiblIndex*)(fi->m_BiblIndex);
+		if (fbi && !fbi->FileMatches(FileNo, *fi)) {
+			//-- free bibl filter is tested with CFreeBiblIndex::FileMatches()
+			return false;
+		}
+		else if (!fbi && (fi->m_FilterType==LessByDate || fi->m_FilterType==GreaterByDate)) {
+			//-- date filter is tested manually...
+			int fdate = m_Dates[FileNo];
+			if (fdate < fi->m_KeyLo.i || fdate > fi->m_KeyHi.i)
+				return false;
+		}
+		else {
+			; //-- other filter tyes are ignored
+		}
+	}
+	return true;
 }
 
 CBiblExpander* CConcXml::AddBiblExpander(const string &spec)
