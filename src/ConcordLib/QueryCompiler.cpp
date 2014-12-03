@@ -317,7 +317,7 @@ string CQueryCompiler::QueryToString(void)
 string CQueryCompiler::QueryToJson(void)
 {
 	if (m_pQuery)
-		return string("{\"Query\":") + m_pQuery->toJson() + ",\"Options\":", m_pQuery->optionsToJson() + "}";
+		return string("{\"Query\":") + m_pQuery->toJson() + ",\"Options\":" + m_pQuery->optionsToJson() + "}";
 	return "null";
 }
 

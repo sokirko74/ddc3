@@ -101,6 +101,19 @@ bool CQuery::Negate(void)
 };
 
 //--------------------------------------------------------------
+BYTE CQuery::SetMatchId(BYTE matchId)
+{
+  throw CExpc(errParseError, "attempt to set match-ID for non-token query `%s'", toString().c_str());
+  return 0;
+};
+
+//--------------------------------------------------------------
+bool CQuery::HasMatchId() const
+{
+  return false;
+};
+
+//--------------------------------------------------------------
 void CQuery::SetOptions(CQueryOptions *opts)
 {
   if (m_Options) delete m_Options;
@@ -156,6 +169,20 @@ bool CQNegatable::Compile(CQueryCompiler *compiler)
 CQBinOp::~CQBinOp()
 {
   Clear(true);
+}
+
+BYTE CQBinOp::SetMatchId(BYTE matchId)
+{
+  if (m_dtr1) m_dtr1->SetMatchId(matchId);
+  if (m_dtr2) m_dtr2->SetMatchId(matchId);
+  return matchId;
+}
+
+bool CQBinOp::HasMatchId() const
+{
+  return ((m_dtr1 && m_dtr1->HasMatchId())
+	  ||
+	  (m_dtr2 && m_dtr2->HasMatchId()));
 }
 
 void CQBinOp::ClearNode()
@@ -322,10 +349,21 @@ bool CQWithout::Compile(CQueryCompiler *compiler)
 //======================================================================
 // CQToken
 
+BYTE CQToken::SetMatchId(BYTE matchId)
+{
+  m_MatchId = matchId;
+  return m_MatchId;
+}
+
+bool CQToken::HasMatchId() const
+{
+  return m_MatchId > 1;
+}
+
 bool CQToken::Compile(CQueryCompiler *compiler)
 {
   SetCompiler(compiler);
-  CQueryTokenNode* pObj = new CQueryTokenNode(compiler->GetNewNodeIndex());
+  CQueryTokenNode* pObj = new CQueryTokenNode(compiler->GetNewNodeIndex(), m_MatchId);
   m_Node  = pObj;
   bool rc = this->Create(pObj);
   if (!rc)
@@ -383,18 +421,24 @@ string CQToken::IndexString(void) {
 string CQToken::ValueString(void) {
   return sqString(m_Value);
 }
+
+string CQToken::MatchIdString(void) {
+  return m_MatchId <= 1 ? string("") : Format(" $~ %u", m_MatchId);
+}
+
 string CQToken::jsonValue(void) {
   return jsonStr(m_Value);
 }
 
 string CQToken::toString(void) {
-  return NegString(this->IndexString() + this->ValueString());
+  return NegString(this->IndexString() + this->ValueString() + this->MatchIdString());
 }
 
 string CQToken::jsonData() {
   return (CQNegatable::jsonData()
 	  +","+string("\"IndexName\":")+jsonStr(m_IndexName)
 	  +","+string("\"Value\":")+this->jsonValue()
+	  +","+Format("\"MatchId\":%u", m_MatchId)
 	  );
 }
 
@@ -745,6 +789,21 @@ CQNear::~CQNear()
   Clear(true);
 }
 
+BYTE CQNear::SetMatchId(BYTE matchId)
+{
+  if (m_dtr1) m_dtr1->SetMatchId(matchId);
+  if (m_dtr2) m_dtr2->SetMatchId(matchId);
+  if (m_dtr3) m_dtr3->SetMatchId(matchId);
+  return matchId;
+}
+
+bool CQNear::HasMatchId() const
+{
+  return ((m_dtr1 && m_dtr1->HasMatchId())
+	  || (m_dtr2 && m_dtr2->HasMatchId())
+	  || (m_dtr3 && m_dtr3->HasMatchId()));
+}
+
 bool CQNear::Compile(CQueryCompiler *compiler)
 {
   //-- inherited compilation
@@ -819,6 +878,23 @@ void CQSeq::Clear(bool deep) {
 CQSeq::~CQSeq()
 {
   Clear(true);
+}
+
+BYTE CQSeq::SetMatchId(BYTE matchId)
+{
+  for (vector<CQToken*>::const_iterator ii=m_Items.begin(); ii!=m_Items.end(); ++ii) {
+    (*ii)->SetMatchId(matchId);
+  }
+  return matchId;
+}
+
+bool CQSeq::HasMatchId() const
+{
+  for (vector<CQToken*>::const_iterator ii=m_Items.begin(); ii!=m_Items.end(); ++ii) {
+    if ((*ii)->HasMatchId())
+      return true;
+  }
+  return false;
 }
 
 void CQSeq::Append(CQToken *nextItem, BYTE nextDist, BYTE nextDistOp)

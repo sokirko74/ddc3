@@ -285,6 +285,7 @@ int main(int argc, char* argv[])
 					    fprintf (stderr, "Query[%d / %d] = %s\n", QueryNo, queries.size(), Query.c_str());
 					    try {
 						    fprintf (stderr, "Canon[%d / %d] = %s\n", QueryNo, queries.size(), R.CanonicalQueryString(Query).c_str());
+						    fprintf (stderr, "Json [%d / %d] = %s\n", QueryNo, queries.size(), R.JsonQueryString(Query).c_str());
 					    }
 					    catch (exception &e) {
 						    fprintf(stderr, "Exception: %s\n", e.what());

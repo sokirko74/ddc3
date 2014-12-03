@@ -146,10 +146,10 @@ int yylex (void*,  void*);
 %type	<m_pnode>	qw_lemma
 %type	<m_pnode>	qw_chunk
 %type	<m_pnode>	qw_listfile
+%type	<m_pnode>	qw_anchor
 %type	<m_pnode>	qw_with
 %type	<m_pnode>	qw_without
-%type	<m_pnode>	qw_anchor
-
+%type	<m_pnode>	qw_matchid
 
 //------------------------------------------------------
 // Types: Lists (dummy types)
@@ -212,6 +212,7 @@ int yylex (void*,  void*);
 %token	<m_str>	HASH_GREATER
 %token	<m_str>	HASH_EQUAL
 %token	<m_str>	DOLLAR_DOT
+%token	<m_str>	DOLLAR_DOLLAR
 
 %token	<m_str>	CNTXT
 %token	<m_str>	WITHIN
@@ -534,6 +535,7 @@ qc_word:
 	|	qw_listfile		{ $$ = $1; }
 	|	qw_with			{ $$ = $1; }
 	|	qw_without		{ $$ = $1; }
+	|	qw_matchid		{ $$ = $1; }
 	|	'(' qc_word ')'		{ $$ = $2; }
 	;
 
@@ -637,6 +639,9 @@ qw_without:
 		qc_word WITHOUT qc_word		{ $$ = _qc->PushQuery(new CQWithout($1,$3)); }
 	;
 
+qw_matchid:
+		qc_word '=' integer 		{ $$ = $1; $$->SetMatchId($3); }
+	;
 
  /*-------------------------------------------------------------
   * l_*: List-like constituents

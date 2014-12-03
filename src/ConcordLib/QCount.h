@@ -188,9 +188,6 @@ public:
   /** underlying expression list */
   vector<CQCountKeyExpr*> m_Exprs;
 
-  /* list of expression source strings [TODO: get rid of this] */
-  //CQCountByList m_CountBy;
-
 public:
   CQCountKeyExprList() {};
   virtual ~CQCountKeyExprList();

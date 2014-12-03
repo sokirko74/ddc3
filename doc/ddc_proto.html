@@ -233,7 +233,10 @@ For a leaf server, the returned object is of the form:</p>
   &quot;xbibl&quot;:[&quot;xauthor&quot;,...]
   //
   //-- query operators: term expanders (&quot;Expand&quot; options)
-  &quot;expanders&quot;:[&quot;Token&quot;,...]
+  &quot;expanders&quot;:[&quot;Token&quot;,...],
+  //
+  //-- user-supplied information (&quot;ServerInfo&quot; and &quot;ServerInfoFile&quot; options)
+  &quot;user&quot;:{&quot;foo&quot;:&quot;bar&quot;,&quot;baz&quot;:[&quot;bonk&quot;,&quot;boffo&quot;]},
   }</pre>
 <p>For a branch server, the returned object has the form:</p>
 <pre>
@@ -254,7 +257,7 @@ For a leaf server, the returned object is of the form:</p>
  }</pre>
 <p>where each object in the &quot;corpora&quot; array is the associated subcorpus server's
 response to an &quot;info&quot; request.</p>
-<p>Since v2.0.18</p>
+<p>Since v2.0.18, user-supplied info since v2.0.34.</p>
 <p>
 </p>
 <h3><a name="reload">reload</a></h3>

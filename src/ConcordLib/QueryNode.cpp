@@ -51,6 +51,7 @@ CQueryNode::~CQueryNode()
 {
 	ClearVector(m_Occurrences);
 	ClearVector(m_OccurrenceNodeIndices);
+	ClearVector(m_OccurrenceMatchIds);
 };
 
 size_t CQueryNode::GetNodeFrequencyByNodeIndex(size_t NodeIndex) const
@@ -92,6 +93,88 @@ void	CQueryNode::AddOccurrences(const CQueryNode& FromNode, int start, int end)
 
 	if (m_bUseNodeIndices)
 		m_OccurrenceNodeIndices.insert(m_OccurrenceNodeIndices.end(), FromNode.m_OccurrenceNodeIndices.begin()+start,  FromNode.m_OccurrenceNodeIndices.begin()+end);
+
+	if (m_bUseMatchIds)
+		m_OccurrenceMatchIds.insert(m_OccurrenceMatchIds.end(), FromNode.m_OccurrenceMatchIds.begin()+start,  FromNode.m_OccurrenceMatchIds.begin()+end);
+}
+
+void	CQueryNode::AddOccurrences2(const CQueryNode& FromNode1, int start1, int end1,
+				    const CQueryNode& FromNode2, int start2, int end2)
+{
+	if (!m_bUseNodeIndices && !m_bUseMatchIds) {
+		//-- no node-indices or match-ids : just append to m_Occurrences[] and sort appended data
+		size_t occsize0 = m_Occurrences.size();
+		AddOccurrences(FromNode1, start1, end1);
+		AddOccurrences(FromNode2, start2, end2);
+		sort(m_Occurrences.begin()+occsize0, m_Occurrences.end());
+	}
+	else {
+		//-- node-indices or match-ids in use: assume source nodes are sorted and append
+		int i1, i2;
+		m_Occurrences.reserve(m_Occurrences.size() + (end1-start1) + (end2-start2));
+		for (i1=start1, i2=start2; i1 < end1 || i2 < end2; ) {
+			const CQueryNode *pnod;
+			int *pi;
+			if (i1 < end1 && (i2 >= end2 || FromNode1.m_Occurrences[i1] <= FromNode2.m_Occurrences[i2])) {
+				pnod = &FromNode1;
+				pi   = &i1;
+			} else {
+				pnod = &FromNode2;
+				pi   = &i2;
+			}
+			m_Occurrences.push_back(pnod->m_Occurrences[*pi]);
+			if (m_bUseNodeIndices)
+				m_OccurrenceNodeIndices.push_back(pnod->m_OccurrenceNodeIndices[*pi]);
+			if (m_bUseMatchIds)
+				m_OccurrenceMatchIds.push_back(pnod->m_OccurrenceMatchIds[*pi]);
+			++(*pi);
+		}
+	}
+}
+
+void	CQueryNode::AddOccurrences3(const CQueryNode& FromNode1, int start1, int end1,
+				    const CQueryNode& FromNode2, int start2, int end2,
+				    const CQueryNode& FromNode3, int start3, int end3)
+{
+	if (!m_bUseNodeIndices && !m_bUseMatchIds) {
+		//-- no node-indices or match-ids : just append to m_Occurrences[] and sort appended data
+		size_t occsize0 = m_Occurrences.size();
+		AddOccurrences(FromNode1, start1, end1);
+		AddOccurrences(FromNode2, start2, end2);
+		AddOccurrences(FromNode2, start3, end3);
+		sort(m_Occurrences.begin()+occsize0, m_Occurrences.end());
+	}
+	else {
+		//-- node-indices or match-ids in use: assume source nodes are sorted and append
+		int i1, i2, i3;
+		m_Occurrences.reserve(m_Occurrences.size() + (end1-start1) + (end2-start2) + (end3-start3));
+		for (i1=start1, i2=start2, i3=start3; i1 < end1 || i2 < end2 || i3 < end3; ) {
+			const CQueryNode *pnod;
+			int *pi;
+			if (i1 < end1
+			    && (i2 >= end2 || FromNode1.m_Occurrences[i1] <= FromNode2.m_Occurrences[i2])
+			    && (i3 >= end3 || FromNode1.m_Occurrences[i1] <= FromNode3.m_Occurrences[i3])) {
+				pnod = &FromNode1;
+				pi   = &i1;
+			}
+			else if (i2 < end2
+				 && (i1 >= end1 || FromNode2.m_Occurrences[i2] <  FromNode1.m_Occurrences[i1])
+				 && (i3 >= end3 || FromNode2.m_Occurrences[i2] <= FromNode3.m_Occurrences[i3])) {
+				pnod = &FromNode2;
+				pi   = &i2;
+			}
+			else {
+				pnod = &FromNode3;
+				pi   = &i3;
+			}
+			m_Occurrences.push_back(pnod->m_Occurrences[*pi]);
+			if (m_bUseNodeIndices)
+				m_OccurrenceNodeIndices.push_back(pnod->m_OccurrenceNodeIndices[*pi]);
+			if (m_bUseMatchIds)
+				m_OccurrenceMatchIds.push_back(pnod->m_OccurrenceMatchIds[*pi]);
+			++(*pi);
+		}
+	}
 }
 
 void	CQueryNode::ClearAndReserveOccurrences(int size)
@@ -102,18 +185,22 @@ void	CQueryNode::ClearAndReserveOccurrences(int size)
 	m_OccurrenceNodeIndices.clear();
 	if (m_bUseNodeIndices)
 		m_OccurrenceNodeIndices.reserve(size);
+	if (m_bUseMatchIds)
+		m_OccurrenceMatchIds.reserve(size);
 }
 
 void	CQueryNode::SwapOccurrences(CQueryNode& Node)
 {
 	Node.m_Occurrences.swap(m_Occurrences);
 	Node.m_OccurrenceNodeIndices.swap(m_OccurrenceNodeIndices);
+	Node.m_OccurrenceMatchIds.swap(m_OccurrenceMatchIds);
 }
 
 void CQueryNode::SetHolder(const CConcHolder*	pHolder)
 {
 	m_pHolder = pHolder;
 	m_bUseNodeIndices = m_pHolder->HasRankOrderOperator();
+	m_bUseMatchIds    = m_pHolder->HasMatchIdOperator();
 }
 
 void CQueryNode::ConvertOccurrencesToHits (bool bSeparateHits)
@@ -130,7 +217,7 @@ void CQueryNode::ConvertOccurrencesToHits (bool bSeparateHits)
 	bool bLongSequence = GetOccurrencesSize()*5 > Breaks.size() ;
 	vector<CTokenNo>::const_iterator break_it = Breaks.begin();
 
-	CQueryNode NewNode(m_bUseNodeIndices);
+	CQueryNode NewNode(m_bUseNodeIndices, m_bUseMatchIds);
 	if (bTextAreaNo)
 		NewNode.ClearAndReserveOccurrences(GetOccurrencesSize());
 
@@ -194,7 +281,7 @@ void CQueryNode::ConvertOccurrencesToHitsForPatterns (bool bSeparateHits)
 
 	int cnt = GetOccurrencesSize();
 
-	CQueryNode NewNode(m_bUseNodeIndices);
+	CQueryNode NewNode(m_bUseNodeIndices, m_bUseMatchIds);
 	NewNode.ClearAndReserveOccurrences(cnt);
 	NewNode.m_ChunkLengths.reserve(m_ChunkLengths.size());
 	size_t InputStarter = 0;
@@ -363,10 +450,8 @@ void CQueryBinaryOperationNode::hits_and_positions_union()
 		else
 		{
 			{	// inserting highlight occurrences from the first and the second child
-				size_t occsize0 = m_Occurrences.size();
-				AddOccurrences(*m_pChild1, prev_end1, _First1->m_HighlightOccurrenceEnd);
-				AddOccurrences(*m_pChild2, prev_end2, _First2->m_HighlightOccurrenceEnd);
-				sort(m_Occurrences.begin()+occsize0, m_Occurrences.end()); //-- ensure occurrences for this match in m_Occurrences[] are sorted
+				AddOccurrences2(*m_pChild1, prev_end1, _First1->m_HighlightOccurrenceEnd,
+						*m_pChild2, prev_end2, _First2->m_HighlightOccurrenceEnd);
 				{
 					CHit  H(_First1->m_BreakNo);
 					H.m_HighlightOccurrenceEnd = GetOccurrencesSize();
@@ -414,10 +499,8 @@ void CQueryBinaryOperationNode::hits_and_positions_intersection()
 		{
 
 			{	// inserting highlight occurrences from the first and the second child
-				size_t occsize0 = m_Occurrences.size();
-				AddOccurrences(*m_pChild1, prev_end1, _First1->m_HighlightOccurrenceEnd);
-				AddOccurrences(*m_pChild2, prev_end2, _First2->m_HighlightOccurrenceEnd);
-				sort(m_Occurrences.begin()+occsize0, m_Occurrences.end()); //-- ensure occurrences for this match in m_Occurrences[] are sorted
+				AddOccurrences2(*m_pChild1, prev_end1, _First1->m_HighlightOccurrenceEnd,
+						*m_pChild2, prev_end2, _First2->m_HighlightOccurrenceEnd);
 				{
 					CHit  H (_First1->m_BreakNo);
 					H.m_HighlightOccurrenceEnd = GetOccurrencesSize();
@@ -539,19 +622,27 @@ void CQueryOrOperation::Evaluate(bool bSeparateHits)
 
 // ================ CQueryTokenNode ==================
 
-CQueryTokenNode::CQueryTokenNode(int NodeIndex)
- : CQueryNode(false)
+CQueryTokenNode::CQueryTokenNode(int NodeIndex, BYTE MatchId)
+	: CQueryNode(false,false)
 {
 	m_bAtomic = true;
 	m_bChunk = false;
 	m_bAnchor = false;
 	m_bAny    = false;
 	m_NodeIndex = NodeIndex;
+	m_MatchId = max(MatchId,(unsigned char)'\1');
+	m_bUseMatchIds  = (m_MatchId > 1);
 };
 
 CQueryTokenNode::~CQueryTokenNode()
 {
 };
+
+void CQueryTokenNode::SetMatchId(BYTE MatchId)
+{
+	m_MatchId = max(MatchId,(unsigned char)'\1');
+	m_bUseMatchIds = (MatchId > 1);
+}
 
 
 bool CQueryTokenNode::BuildRegExp(string RegExpStr, vector<DWORD>& IndexItems, bool negated)
@@ -857,6 +948,8 @@ void CQueryTokenNode::EvaluateWithoutHits()
 
 	if (m_bUseNodeIndices)
 		m_OccurrenceNodeIndices.resize(m_Occurrences.size(), m_NodeIndex);
+	if (m_bUseMatchIds)
+		m_OccurrenceMatchIds.resize(m_Occurrences.size(), m_MatchId);
 };
 
 
@@ -1205,13 +1298,11 @@ void CQueryNearNode::FindOccurrences2()
 		//-- find all item2 occurences s.t. (item1.tend()+MaxDistance >= item2.tbegin())
 		CQNearEvalItem resume2(item2);
 		for ( ; item2.valid() && item1.tend()+MaxDistance >= item2.tbegin(); ++item2 ) {
-			size_t occsize0 = m_Occurrences.size();
 			size_t size1 = item1.chunksize();
 			size_t size2 = item2.chunksize();
-			AddOccurrences(*item1.node, item1.cur, item1.cur+size1);
-			AddOccurrences(*item2.node, item2.cur, item2.cur+size2);
+			AddOccurrences2(*item1.node, item1.cur, item1.cur+size1,
+					*item2.node, item2.cur, item2.cur+size2);
 			m_ChunkLengths.push_back(size1+size2);
-			sort(m_Occurrences.begin()+occsize0, m_Occurrences.end()); //-- ensure occurrences for this match in m_Occurrences[] are sorted
 		}
 
 		//-- update positions
@@ -1254,15 +1345,13 @@ void CQueryNearNode::FindOccurrences3()
 			//-- find all item3 occurences s.t. (min_end+MaxDistance >= item3.tbegin())
 			CQNearEvalItem resume3(item3);
 			for ( ; item3.valid() && min_end+MaxDistance >= item3.tbegin(); ++item3 ) {
-				size_t occsize0 = m_Occurrences.size();
 				size_t size1 = item1.chunksize();
 				size_t size2 = item2.chunksize();
 				size_t size3 = item3.chunksize();
-				AddOccurrences(*item1.node, item1.cur, item1.cur+size1);
-				AddOccurrences(*item2.node, item2.cur, item2.cur+size2);
-				AddOccurrences(*item3.node, item3.cur, item3.cur+size3);
+				AddOccurrences3(*item1.node, item1.cur, item1.cur+size1,
+						*item2.node, item2.cur, item2.cur+size2,
+						*item3.node, item3.cur, item3.cur+size3);
 				m_ChunkLengths.push_back(size1+size2+size3);
-				sort(m_Occurrences.begin()+occsize0, m_Occurrences.end()); //-- ensure m_Occurrences is sorted
 			}
 
 			//-- update item3 position
@@ -1312,6 +1401,9 @@ void CQueryWithNode::EvaluateWithoutHits()
 
 	if (m_bUseNodeIndices)
 		m_OccurrenceNodeIndices.resize(m_Occurrences.size(), ((CQueryTokenNode*)m_pChild1)->m_NodeIndex);
+	if (m_bUseMatchIds)
+		m_OccurrenceMatchIds.resize(m_Occurrences.size(), ((CQueryTokenNode*)m_pChild2)->m_MatchId>1 ? ((CQueryTokenNode*)m_pChild2)->m_MatchId : ((CQueryTokenNode*)m_pChild1)->m_MatchId);
+
 
 	m_ChunkLengths.resize(GetOccurrencesSize(), 1);
 
@@ -1345,6 +1437,8 @@ void CQueryWithoutNode::EvaluateWithoutHits()
 
 	if (m_bUseNodeIndices)
 		m_OccurrenceNodeIndices.resize(m_Occurrences.size(), ((CQueryTokenNode*)m_pChild1)->m_NodeIndex);
+	if (m_bUseMatchIds)
+		m_OccurrenceMatchIds.resize(m_Occurrences.size(), ((CQueryTokenNode*)m_pChild2)->m_MatchId>1 ? ((CQueryTokenNode*)m_pChild2)->m_MatchId : ((CQueryTokenNode*)m_pChild1)->m_MatchId);
 
 	m_ChunkLengths.resize(GetOccurrencesSize(), 1);
 };

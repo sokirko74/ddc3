@@ -29,10 +29,15 @@ foreach my $hit (@$hits) {
 
   my (@l,@c,@r);
   my $ary = \@l;
+  my $hl  = '__';
   foreach (map {@$_} @{$hit->{ctx_}}) {
-    if    ($ary eq \@l && ref($_) && $_->[0]) { $ary = \@c; $p = $_->[$pagei+1] if (!$p && $pagei) }
-    elsif ($ary eq \@c) { $ary = \@r; }
-    push(@$ary, ref($_) ? ($_->[0] ? "_$_->[$texti]_" : $_->[$texti]) : $_);
+    if    ($ary eq \@l && ref($_) && $_->[0]) { $ary=\@c; $hl='__'; $p=$_->[$pagei+1] if (!$p && $pagei) }
+    elsif ($ary eq \@c) { $ary=\@r; $hl='_'; }
+    push(@$ary, (ref($_)
+		 ? ($_->[0]
+		    ? ($hl.$_->[$texti].$hl.($_->[0]>1 ? "/$_->[0]" : ''))
+		    : $_->[$texti])
+		 : $_));
   }
 
   push(@hits, ["$f:$p",map {join(' ',@$_)} (\@l,\@c,\@r)]);
@@ -53,7 +58,7 @@ foreach (@hits) {
   substr($l,0,length($l)-$xlen+3,'...') if (length($l)>$xlen);
   substr($r,$xlen-3,length($r)-$xlen+3,'...') if (length($r)>$xlen);
   #$r = substr($r,0,$xlen) if (length($r)>$xlen);
-  @$_ = ($f,$l,"_${c}_",$r);
+  @$_ = ($f,$l,$c,$r);
 }
 
 ##-- format

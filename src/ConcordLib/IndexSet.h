@@ -1,3 +1,5 @@
+//*-*- Mode: C++; c-basic-offset: 8; -*-*/
+
 //  DDC originally by Alexey Sokirko
 //  Changes and modifications 2011-2014 by Bryan Jurish
 //
@@ -32,18 +34,14 @@ struct COutputToken
 	string	m_TokenStr;
 	//! the interpretation of the token 
 	string	m_InterpStr;
-	//! should DDC highlight this token in the output hit 
-	bool	m_bHighlight;
+	//! how DDC should highlight this token in the output hit
+	BYTE	m_Highlight;
+	
+	COutputToken () : m_Highlight(0)
+	{};
 
-	COutputToken () {
-		m_bHighlight = false; 
-	};
-
-	COutputToken(string WordStr, bool bHighlight)
-	{
-		m_TokenStr = WordStr;
-		m_bHighlight = bHighlight;
-	};
+	COutputToken(string WordStr, BYTE Highlight) : m_TokenStr(WordStr), m_Highlight(Highlight)
+	{};
 
 	bool operator == (const COutputToken& X)const 
 	{

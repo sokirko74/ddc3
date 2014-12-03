@@ -318,7 +318,7 @@ struct CHit
 	//! formerly m_OrderId
 	CHitSortKey m_SortKey;
 
-	CHit(DWORD BreakNo=0) : m_BreakNo(BreakNo), m_SortKey(0) {};
+	CHit(DWORD BreakNo=0) : m_BreakNo(BreakNo), m_SortKey(0) { m_Value.m_Count=0; };
 };
 
 /*! \brief FormatTypeEnum defines the format of output hits:

@@ -347,7 +347,7 @@ bool CStringIndexSet::GetTokensFromStorage(const size_t start_offset,  const siz
 		if (fread(&(u),sizeof(u), 1, m_StorageFile) != 1) return false;
 		if (u > m_Index.size()) return false;
 		Tokens[i].m_TokenStr  = GetIndexItemStr(m_Index[u]);
-		Tokens[i].m_bHighlight  = false;
+		Tokens[i].m_Highlight = 0;
 	};
 	return true;
 };

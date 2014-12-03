@@ -60,6 +60,12 @@ public:
 	//! query node indices for each occurrence (the origin for each occurrence)
 	vector<BYTE> m_OccurrenceNodeIndices;
 
+	//! should DDC use m_OccurrenceMatchIds to track match-ids?
+	bool m_bUseMatchIds;
+
+	//! match-ids for each occurrence in m_Occurrences (only if m_bUseMatchIds is true)
+	vector<BYTE> m_OccurrenceMatchIds;
+
 	//! all hits of this node in the current \ref period_def "subcorpora"
 	vector<CHit> m_Hits;
 
@@ -74,10 +80,11 @@ public:
 
 
 	//! Constructor
-	CQueryNode(bool bUseNodeIndices=false, const CConcHolder *holder=NULL)
+	CQueryNode(bool bUseNodeIndices=false, bool bUseMatchIds=false, const CConcHolder *holder=NULL)
 		: m_bAtomic(false),
 		  m_bNegated(false),
 		  m_bUseNodeIndices(bUseNodeIndices),
+		  m_bUseMatchIds(bUseMatchIds),
 		  m_pHolder(holder)
 	{};
 
@@ -101,8 +108,17 @@ public:
 	//! get m_bNegated
 	bool GetNegation() const;
 
-	//! inserts occurences [FromNode.m_Occurrences.begin()+start,  FromNode.m_Occurrences.begin()+end) into m_Occurrences[] (and m_OccurrenceNodeIndices if appropriate)
+	//! inserts occurrences [FromNode.m_Occurrences.begin()+start,  FromNode.m_Occurrences.begin()+end) into m_Occurrences[] (and m_OccurrenceNodeIndices if appropriate)
 	void AddOccurrences(const CQueryNode& FromNode, int start, int end);
+
+	//! appends occurrences from both FromNode1 and FromNode2, maintaining sort-order and respecting both m_bUseNodeIndices and m_bUseMatchIds
+	void AddOccurrences2(const CQueryNode& FromNode1, int start1, int end1,
+			     const CQueryNode& FromNode2, int start2, int end2);
+
+	//! appends occurrences from FromNode1, FromNode2, and FromNode3 maintaining sort-order and respecting both m_bUseNodeIndices and m_bUseMatchIds
+	void AddOccurrences3(const CQueryNode& FromNode1, int start1, int end1,
+			     const CQueryNode& FromNode2, int start2, int end2,
+			     const CQueryNode& FromNode3, int start3, int end3);
 
 	//! clears m_Occurrences[] and reserves at least \a size elements.  Also clears m_OccurrenceNodeIndices[] and reserves if m_bUseNodeIndices is true.
 	void ClearAndReserveOccurrences(int size);
@@ -118,8 +134,8 @@ public:
 
 	//! set  m_pHolder
 	void SetHolder(const CConcHolder* pHolder);
-
-	//! ?
+	
+	//! get occurrence count by query-node index; used by rank-sort operator. default implementation in CQueryNode just chokes.
 	virtual size_t GetNodeFrequencyByNodeIndex(size_t NodeIndex) const;
 };
 
@@ -162,6 +178,7 @@ public:
 	//! a modified version of std::difference which simultaneously  deals  with two pairs of vectors
 	void hits_and_positions_difference();
 
+	//! get occurrence count by query-node index; used by rank-sort operator.
 	size_t GetNodeFrequencyByNodeIndex(size_t NodeIndex) const;
 };
 
@@ -204,11 +221,17 @@ public:
 	bool m_bAny;
 
 public:
-	// a unique index of the node in query tree
+	//! a unique index of the node in query tree (used by rank-sort operator)
 	BYTE m_NodeIndex;
+
+	//! user-specified match-id (0 specifies default behavior, which is to use highlight-id=1)
+	BYTE m_MatchId;
 	
-	CQueryTokenNode(int NodeIndex);
+	CQueryTokenNode(int NodeIndex, BYTE MatchId=0);
 	virtual ~CQueryTokenNode();
+
+	//! compilation utility: set match-id
+	void SetMatchId(BYTE MatchId);
 
 	//! low-level: populates m_IndexName and returns appropriate index; throws exception if no appropriate index is found
 	CStringIndexSet* GetIndex(const CConcHolder* pHolder, const string &IndexName);

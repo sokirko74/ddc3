@@ -83,6 +83,12 @@ public:
   //! Toggle negation flag, returns new value.  Default throws an exception.
   virtual bool Negate();
 
+  //! Set match-id, returns new value.  Default throws an exception
+  virtual BYTE SetMatchId(BYTE matchId);
+
+  //! Returns true iff this query uses a nontrival match-id operator; default just returns false
+  virtual bool HasMatchId() const;
+
   //! Is this query an admissible root of a compiled parse tree (default returns !this->Negated())
   virtual bool RootOK()
   { return !this->Negated(); };
@@ -196,6 +202,12 @@ public:
   //! destructor deletes daughters
   virtual ~CQBinOp();
 
+  //! override propagates matchId to daughters
+  virtual BYTE SetMatchId(BYTE matchId);
+
+  //! returns true iff this query uses a nontrival match-id operator; override returns true iff either daughter does.
+  virtual bool HasMatchId() const;
+
   //! deletes associated daughter nodes (avoiding double-free)
   virtual void ClearNode();
 
@@ -276,10 +288,20 @@ public:
   //! value to be searched for (default="")
   string m_Value;
 
+  //! match-id for highlighting and context-sort reference
+  //! initialized to 0; anything other than 0 or 1 is considered a non-trivial user-specified match-id
+  BYTE m_MatchId;
+
 public:
-  CQToken(const string &indexName=string(""), const string &value=string(""))
-    : CQAtomic(value), m_IndexName(indexName), m_Value(value)
+  CQToken(const string &indexName=string(""), const string &value=string(""), const BYTE matchId=0)
+    : CQAtomic(value), m_IndexName(indexName), m_Value(value), m_MatchId(matchId)
   {};
+
+  //! Set match-id, returns new value.  Override sets m_MatchId.
+  virtual BYTE SetMatchId(BYTE matchId);
+
+  //! returns true iff this query uses a nontrival match-id operator; override returns true if m_MatchId>1
+  virtual bool HasMatchId() const;
 
   //! Compile query.  Default implementation just calls CQueryTokenNode::CreateStringPattern(m_IndexName,m_Value)
   virtual bool Compile(CQueryCompiler *compiler);
@@ -304,6 +326,9 @@ public:
 
   //! Stringification utility for use by subclasses; default returns sqString(m_Value)
   virtual string ValueString(void);
+
+  //! Stringification utility for use by subclasses; default should be sensible
+  virtual string MatchIdString(void);
 
   //! Default stringification: NegString(IndexString() + ValueString())
   virtual string toString(void);
@@ -691,6 +716,12 @@ public:
   //! clear query contents.  if \c deep is true, propagates operation to daughters
   virtual void Clear(bool deep=true);
 
+  //! Set match-id, returns new value.
+  virtual BYTE SetMatchId(BYTE matchId);
+
+  //! Returns true iff this query uses a nontrival match-id operator.
+  virtual bool HasMatchId() const;
+
   //! Compile() method implicitly compiles daughter nodes
   virtual bool Compile(CQueryCompiler *compiler);
 
@@ -731,6 +762,12 @@ public:
 
   //! destructor deletes all child nodes in m_Items
   virtual ~CQSeq();
+
+  //! Set match-id, returns new value.
+  virtual BYTE SetMatchId(BYTE matchId);
+
+  //! Returns true iff this query uses a nontrival match-id operator.
+  virtual bool HasMatchId() const;
 
   //! ClearNode() clears associated m_Node's pointer vector to avoid double-free
   virtual void ClearNode();

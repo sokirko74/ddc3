@@ -45,6 +45,8 @@ struct CQueryResult
 	vector<CHit>		m_Hits;
 	//! words that should be highlighted in hits; m_HighlightOccurs is the concatenation of CQueryNode::m_Occurrences for all \ref period_def "subcorpora"
 	vector<CTokenNo>	m_HighlightOccurs;
+	//! highlighting match-ids for m_HighlightOccurs
+	vector<BYTE>		m_HighlightIds;
 
 	//! the number of all found hits (if m_AllHitsCount < m_pIndexator->m_MaxCachedHitsCount, then m_Hits.size() == m_AllHitsCount)
 	size_t			m_AllHitsCount;
@@ -253,6 +255,10 @@ public:
 	//! moo: sick, bad, ugly, and wrong!
 	bool HasRankOrderOperator() const;
 
+	//! return true iff the input query contains a match-id operator ($~ID)
+	//! moo: sicker, badder, uglier, and wronger!
+	bool HasMatchIdOperator() const;
+
 	//! return the length of break prefix, where DDC should search (#within[sentence, 10])
 	int GetBreakStarterLength() const;
 
@@ -261,6 +267,9 @@ public:
 
 	//! moo: return a canonical representation of the query string \c Query (implicitly parses)
 	string CanonicalQueryString(const string &Query);
+
+	//! moo: return a JSONr epresentation of the query string \c Query (implicitly parses)
+	string JsonQueryString(const string &Query);
 
 	//! moo: set internal random seed to m_RandomSeed+seed1
 	void SetRandomSeed(unsigned int seed1=0) const;

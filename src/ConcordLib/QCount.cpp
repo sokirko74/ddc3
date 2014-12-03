@@ -154,7 +154,7 @@ string CQCountKeyExprRegex::toString()
 //----------------------------------------------------------------------
 string CQCountKeyExprRegex::jsonData()
 {
-  return "\"Pattern\":" + jsonStr(m_Pattern) + ",\"Replacement\":" + jsonStr(m_Replacement), + ",\"Modifiers\":" + jsonStr(m_Modifiers);
+  return "\"Src\":" + m_Src->toJson() + ",\"Pattern\":" + jsonStr(m_Pattern) + ",\"Replacement\":" + jsonStr(m_Replacement) + ",\"Modifiers\":" + jsonStr(m_Modifiers);
 }
 
 
@@ -291,7 +291,7 @@ string CQCount::toString()
 {
   string qs("COUNT(" + m_dtr->toString() + m_dtr->optionsToString() + ")");
   if (!m_keys.empty()) {
-    qs += " #BY " + m_keys.toString();
+    qs += " #BY[" + m_keys.toString() + "]";
   }
   return qs;
 }

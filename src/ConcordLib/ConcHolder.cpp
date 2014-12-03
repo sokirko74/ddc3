@@ -372,7 +372,7 @@ string BuildHtmlHitStrWithHighlighting (const vector<COutputToken>& Tokens, bool
 		if (bUseAnchorSpan && !Tokens[i].m_InterpStr.empty())
 			HitStr += "<span title=\"" + Tokens[i].m_InterpStr +"\">";
 
-		if (Tokens[i].m_bHighlight)
+		if (Tokens[i].m_Highlight)
 			HitStr += StartHighl;
 
 		// ===============  convert to html if it needs ======================
@@ -384,7 +384,7 @@ string BuildHtmlHitStrWithHighlighting (const vector<COutputToken>& Tokens, bool
 		if (!bUseAnchorSpan && !Tokens[i].m_InterpStr.empty())
 			HitStr += Tokens[i].m_InterpStr;
 
-		if (Tokens[i].m_bHighlight)
+		if (Tokens[i].m_Highlight)
 			HitStr += EndHighl;
 
 		if (bUseAnchorSpan && !Tokens[i].m_InterpStr.empty())
@@ -432,6 +432,7 @@ string CConcHolder::BuildJsonContextString (const vector<COutputToken>& Tokens, 
     //==================================================
     // create hit string
     bool utf8 = m_pIndexator->m_Utf8;
+    char hlbuf[32];
     string js("");
 
     for (int i=0; i< Tokens.size(); i++) {
@@ -459,14 +460,24 @@ string CConcHolder::BuildJsonContextString (const vector<COutputToken>& Tokens, 
 		js.append(jsonStr(fields[fi], utf8));
 	    }
 	    js += ",\"hl_\":";
-	    js.push_back(Tokens[i].m_bHighlight ? '1' : '0');
+	    if (Tokens[i].m_Highlight) {
+		    sprintf(hlbuf, "%u", Tokens[i].m_Highlight);
+		    js.append(hlbuf);
+	    } else {
+		    js.push_back('0');
+	    }
 	    js.push_back('}');
 
 #else // !defined(JSON_USE_HASH)
 
 	    //-- return each token as a json array (with 0th elt ~ highlighting flag)
 	    js.push_back('[');
-	    js.push_back(Tokens[i].m_bHighlight ? '1' : '0');
+	    if (Tokens[i].m_Highlight) {
+		    sprintf(hlbuf, "%u", Tokens[i].m_Highlight);
+		    js.append(hlbuf);
+	    } else {
+		    js.push_back('0');
+	    }
 	    js.push_back(',');
 	    for (vector<string>::const_iterator fi=fields.begin(); fi != fields.end(); fi++) {
 		if (fi != fields.begin()) js.push_back(',');
@@ -576,7 +587,7 @@ bool CConcHolder::ShowBibliographyForTable(DWORD PageNumber, const CHit& Hit, co
 {
 	string KeyWords;
 	for (int i=0; i< Tokens.size(); i++)
-		if (		Tokens[i].m_bHighlight 
+		if (		Tokens[i].m_Highlight 
 				&&	(		(i==0)
 						||	(find(Tokens.begin(), Tokens.begin()+i-1,Tokens[i])== Tokens.begin()+i-1)
 					)
@@ -887,7 +898,7 @@ bool CConcHolder::GetFileSnippets(const int HitNo, vector<COutputToken>& ResultT
 		};
 		for (size_t i=0; i<end_kwic_line-start_kwic_line; i++)
 		{
-			CurrTokens[i].m_bHighlight = binary_search(positions.begin(), positions.end(), start_kwic_line + i)  ;
+			CurrTokens[i].m_Highlight = binary_search(positions.begin(), positions.end(), start_kwic_line + i) ? 1 : 0;
 			ResultTokens.push_back(CurrTokens[i]);
 		};
 		ResultTokens.push_back(COutputToken("...", false));
@@ -909,7 +920,6 @@ DDCErrorEnum CConcHolder::GenerateHitStrings(const int StartHitNo)
 
 	m_QueryResultStr = "";
 
-	int PGitrevFileNo = -1;
 	int end = min (m_Hits.size(), StartHitNo + m_ResultLimit);
 	for(DWORD EndHitNo = StartHitNo; EndHitNo<end; EndHitNo++ )
 	{
@@ -955,18 +965,19 @@ DDCErrorEnum CConcHolder::GenerateHitStrings(const int StartHitNo)
 			}
 
 
-			vector<CTokenNo>::const_iterator start = (EndHitNo != 0) ? m_HighlightOccurs.begin()+m_Hits[EndHitNo-1].m_HighlightOccurrenceEnd : m_HighlightOccurs.begin();
-			vector<CTokenNo>::const_iterator end = m_HighlightOccurs.begin()+m_Hits[EndHitNo].m_HighlightOccurrenceEnd;
+			size_t start_occ = (EndHitNo == 0) ? 0 : m_Hits[EndHitNo-1].m_HighlightOccurrenceEnd;
+			size_t end_occ   = m_Hits[EndHitNo].m_HighlightOccurrenceEnd;
+			vector<CTokenNo>::const_iterator start = m_HighlightOccurs.begin() + start_occ;
+			vector<CTokenNo>::const_iterator end   = m_HighlightOccurs.begin() + end_occ;
 			const DWORD StartHitTokenNo = (BreakNo == 0) ? 0 : GetBreaks()[BreakNo-1];
+			const bool  bUseMatchIds    = !m_HighlightIds.empty();
 
 			for( long line=0; line<Tokens.size(); line++ )
 			{
-				if( find(start, end, StartHitTokenNo + line)  != end)
-				{
-					Tokens[line].m_bHighlight = true;
-				};
-
-			};
+				vector<CTokenNo>::const_iterator found = find(start, end, StartHitTokenNo + line);
+				if (found != end)
+					Tokens[line].m_Highlight = (bUseMatchIds ? m_HighlightIds[start_occ + (found-start)] : 1);
+			}
 		}
 
 		const DWORD& PageNumber = m_pIndexator->GetPageNumber(PageBreaks[EndHitNo]);
@@ -1356,6 +1367,7 @@ DDCErrorEnum CConcHolder::GetAllHits(CQuery *QueryRoot, size_t Limit)
 	CQueryOptions *qOpts = QueryRoot->m_Options;
 	vector<CHit> &qHits = qNode->m_Hits;
 
+	bool   bUseMatchIds   = qNode->m_bUseMatchIds;
 	size_t CountOfPeriods = m_pIndexator->GetSearchPeriodsCount(); 
 	time_t  last_time;
 
@@ -1469,6 +1481,11 @@ DDCErrorEnum CConcHolder::GetAllHits(CQuery *QueryRoot, size_t Limit)
 						 qNode->m_Occurrences.begin()+start_index,
 						 qNode->m_Occurrences.begin()+H.m_HighlightOccurrenceEnd
 						 );
+			if (bUseMatchIds)
+				m_HighlightIds.insert(m_HighlightIds.end(),
+						      qNode->m_OccurrenceMatchIds.begin()+start_index,
+						      qNode->m_OccurrenceMatchIds.begin()+H.m_HighlightOccurrenceEnd
+						      );
 			m_Hits.push_back(H);
 			m_Hits.back().m_HighlightOccurrenceEnd = m_HighlightOccurs.size();
 		}
@@ -1565,6 +1582,7 @@ DDCErrorEnum CConcHolder::GetAllCounts(CQuery *CountQueryRoot, size_t Limit)
 	//-- count query: setup CQueryResult fields
 	m_Hits.swap(newHits);
 	m_HighlightOccurs.clear();
+	m_HighlightIds.clear();
 	m_AllHitsCount  = m_Hits.size();
 	m_bSortByString = 1;
 	m_SortOrder     = hsoAscendingCounts;
@@ -1578,6 +1596,7 @@ void	CQueryResult::ClearQueryResults()
 {
 	ClearVector(m_Hits);
 	ClearVector(m_HighlightOccurs);
+	ClearVector(m_HighlightIds);
 	ClearVector(m_DebugInfo);
 	m_AllHitsCount = 0;
 	m_RelevantDocumentCount = 0;
@@ -1651,13 +1670,15 @@ bool CConcHolder::TryToGetFromCache(const string &Query,  DWORD& EndHitNo)
 
 	ClearQueryResults();
 	
-	//  copying [EndHitNo...EndHitNo+m_ResultLimit) hits from teh cache to  m_Hits and  m_HighlightOccurs
+	//  copying [EndHitNo...EndHitNo+m_ResultLimit) hits from the cache to  m_Hits,  m_HighlightOccurs,  and m_HighlightIds
 	size_t End  = min (EndHitNo+m_ResultLimit, CacheItem.m_Hits.size());
 	for (; EndHitNo < End; EndHitNo++)
 	{
 		m_Hits.push_back(CacheItem.m_Hits[EndHitNo]);
 		int start = (EndHitNo == 0) ? 0 : CacheItem.m_Hits[EndHitNo-1].m_HighlightOccurrenceEnd;
 		m_HighlightOccurs.insert(m_HighlightOccurs.end(), CacheItem.m_HighlightOccurs.begin()+start, CacheItem.m_HighlightOccurs.begin()+CacheItem.m_Hits[EndHitNo].m_HighlightOccurrenceEnd);
+		if (!CacheItem.m_HighlightIds.empty())
+			m_HighlightIds.insert(m_HighlightIds.end(), CacheItem.m_HighlightIds.begin()+start, CacheItem.m_HighlightIds.begin()+CacheItem.m_Hits[EndHitNo].m_HighlightOccurrenceEnd);
 		m_Hits.back().m_HighlightOccurrenceEnd = m_HighlightOccurs.size();
 	};
 	m_DebugInfo = CacheItem.m_DebugInfo;
@@ -1708,6 +1729,8 @@ void  CConcHolder::SaveToCache(const string& Query, vector<size_t>::const_iterat
 		I.m_Hits.push_back(m_Hits[ HitNo ]);
 		int start_index = (HitNo == 0) ? 0 : m_Hits[HitNo-1].m_HighlightOccurrenceEnd;
 		I.m_HighlightOccurs.insert(I.m_HighlightOccurs.end(), m_HighlightOccurs.begin()+start_index, m_HighlightOccurs.begin()+m_Hits[HitNo].m_HighlightOccurrenceEnd);
+		if (!m_HighlightIds.empty())
+			I.m_HighlightIds.insert(I.m_HighlightIds.end(), m_HighlightIds.begin()+start_index, m_HighlightIds.begin()+m_Hits[HitNo].m_HighlightOccurrenceEnd);
 		I.m_Hits.back().m_HighlightOccurrenceEnd = I.m_HighlightOccurs.size();
 
 	};
@@ -1764,6 +1787,7 @@ DDCErrorEnum CConcHolder::GetHits(const string &Query,  DWORD& EndHitNo)
 				size_t  End = min (EndHitNo+m_ResultLimit, HitsIndex.size());
 				vector<CHit>		NewHits;
 				vector<CTokenNo>	NewHighlightOccurs;
+				vector<BYTE>		NewHighlightIds;
 
 				for (; EndHitNo < End; EndHitNo++)
 				{
@@ -1773,11 +1797,14 @@ DDCErrorEnum CConcHolder::GetHits(const string &Query,  DWORD& EndHitNo)
 
 					int start_index = (HitNo == 0) ? 0 : m_Hits[HitNo-1].m_HighlightOccurrenceEnd;
 					NewHighlightOccurs.insert(NewHighlightOccurs.end(), m_HighlightOccurs.begin()+start_index, m_HighlightOccurs.begin()+m_Hits[HitNo].m_HighlightOccurrenceEnd);
+					if (!m_HighlightIds.empty())
+						NewHighlightIds.insert(NewHighlightIds.end(), m_HighlightIds.begin()+start_index, m_HighlightIds.begin()+m_Hits[HitNo].m_HighlightOccurrenceEnd);
 
 					NewHits.back().m_HighlightOccurrenceEnd = NewHighlightOccurs.size();
 				};
 				m_Hits.swap(NewHits);
 				m_HighlightOccurs.swap(NewHighlightOccurs);
+				m_HighlightIds.swap(NewHighlightIds);
 			}
 		}
 		
@@ -2059,12 +2086,25 @@ bool	CConcHolder::HasRankOrderOperator() const
 	return  false;
 }
 
+bool	CConcHolder::HasMatchIdOperator() const
+{
+	return m_pQueryCompiler->m_pQuery->HasMatchId();
+}
+
 string CConcHolder::CanonicalQueryString(const string &Query)
 {
 	ClearQueryResults();
 	if ( !m_pQueryCompiler || !m_pQueryCompiler->ParseQuery(Query) )
 		return string("");
 	return m_pQueryCompiler->QueryToString();
+}
+
+string CConcHolder::JsonQueryString(const string &Query)
+{
+	ClearQueryResults();
+	if ( !m_pQueryCompiler || !m_pQueryCompiler->ParseQuery(Query) )
+		return string("");
+	return m_pQueryCompiler->QueryToJson();
 }
 
 void CConcHolder::SetRandomSeed(unsigned int seed1) const
