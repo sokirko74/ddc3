@@ -1610,19 +1610,20 @@ DDCErrorEnum CConcHolder::GetAllCounts(CQuery *CountQueryRoot, size_t Limit)
 			sort(m_Hits.begin(), m_Hits.end(), IsLessByFileNo());
 
 		//-- counting guts
+		bool isWithinFile = (qRoot->m_Options->m_HitTypeStr == PredefinedFileBreakName);
 		DWORD  f = (DWORD)-1;
 		size_t n = 0;
 		string key;
 		for (vector<CHit>::const_iterator hi=m_Hits.begin(); hi != m_Hits.end(); ++hi, ++n) {
 			if (hi->m_FileNo != f) {
 				//-- next file
-				if (n>0) counts[key] += n;
+				if (n>0) counts[key] += (isWithinFile ? 1 : n);
 				n   = 0;
 				f   = hi->m_FileNo;
 				key = keys.Evaluate(f);
 			}
 		}
-		if (n>0) counts[key] += n;
+		if (n>0) counts[key] += (isWithinFile ? 1 : n);
 	}
 
 	//-- count query: setup m_Hits[]

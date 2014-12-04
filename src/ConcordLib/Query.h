@@ -101,7 +101,7 @@ public:
 
   //! return a JSON representation of this query
   //! \li default just returns this->toString()
-  //! \li JSON query structures relflect C++ class structures with an additional 'class_' key
+  //! \li JSON query structures relflect C++ class structures with an additional "class" key
   virtual string toJson() { return string("{\"class\":"+jsonStr(this->jsonClass())+","+this->jsonData()+"}"); };
   virtual string jsonClass() { return "CQuery"; };
   virtual string jsonData()  { return ""; };

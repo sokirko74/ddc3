@@ -176,7 +176,7 @@ string CQFSort::jsonMinMax()
 //--------------------------------------------------------------
 string CQFSort::jsonType()
 {
-  return string("\"FilterType\":")+HitSortNames[m_Filter.m_FilterType];
+  return string("\"FilterType\":")+jsonStr(HitSortNames[m_Filter.m_FilterType]);
 };
 
 
@@ -289,6 +289,13 @@ string CQFBiblSort::jsonData(void)
   return (this->jsonType()
 	  +",\"Field\":"+jsonStr(m_arg0)
 	  +","+this->jsonMinMax()
+	  );
+};
+
+string CQFBiblSort::jsonMinMax(void)
+{
+  return (string("\"Min\":")+jsonStr(m_arg1)
+	  +",\"Max\":"+jsonStr(m_arg2)
 	  );
 };
 

@@ -40,8 +40,8 @@ public:
   //! convert filter to a canonical string
   virtual string toString(void) { return string("#FILTER[?]"); };
 
-  //! convert filter to a json string, including class_ key
-  virtual string toJson(void) { return string("{\"class_\":")+jsonStr(this->jsonClass())+","+this->jsonData()+"}"; };
+  //! convert filter to a json string, including "class" key
+  virtual string toJson(void) { return string("{\"class\":")+jsonStr(this->jsonClass())+","+this->jsonData()+"}"; };
   virtual string jsonClass(void) { return "CQFilter"; };
   virtual string jsonData(void) { return ""; };
   //@}
@@ -99,7 +99,7 @@ public:
   virtual string jsonClass(void) { return "CQFSort"; };
   virtual string jsonMinMax(void);
   virtual string jsonType(void);
-  virtual string jsonData(void) { return (jsonStr(this->jsonType())+","+this->jsonMinMax()); };
+  virtual string jsonData(void) { return (this->jsonType()+","+this->jsonMinMax()); };
 };
 
 //======================================================================
@@ -181,6 +181,7 @@ public:
   virtual string toString(void);
   virtual string jsonClass(void) { return "CQFBiblSort"; };
   virtual string jsonData(void);
+  virtual string jsonMinMax(void);
 };
 
 //======================================================================
