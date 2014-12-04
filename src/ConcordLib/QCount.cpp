@@ -309,7 +309,7 @@ string CQCount::jsonData()
 //======================================================================
 // functions
 
-void GenerateCountString(string &ResultStr, DDCFormatTypeEnum fmt, const string& key, DWORD count)
+void GenerateCountString(string &ResultStr, DDCFormatTypeEnum fmt, const string& key, size_t count)
 {
   char keysep[2] = {globalCountKeyDelim,'\0'};
   StringTokenizer keytok(key.c_str(), keysep);
