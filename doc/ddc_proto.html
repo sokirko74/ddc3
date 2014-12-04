@@ -153,12 +153,14 @@ This should be the same string reported by <strong>ddc_daemon</strong> on startu
  {
   &quot;name&quot;:&quot;server&quot;,                      //-- distributed server name
   &quot;version&quot;:&quot;2.0.18-pre1&quot;,              //-- distributed server version
-  &quot;host&quot;:&quot;127.0.0.1&quot;,                   //-- distributed server socket hostname or IP
+  &quot;hostname&quot;:&quot;www.dwds.de&quot;,             //-- distributed server hostname if available (E&lt;gt&gt;= v2.0.35)
+  &quot;hostaddr&quot;:&quot;127.0.0.1&quot;,               //-- distributed server socket hostname or address (&quot;host&quot; for ddc E&lt;lt&gt; v2.0.35)
   &quot;port&quot;:50011,                         //-- distributed server socket port
   &quot;started&quot;:&quot;2014-02-17T13:49:59Z&quot;,     //-- ISO-8601 timestamp of last server start
   &quot;uptime&quot;:1392644999,                  //-- server instance uptime in seconds
   &quot;nrequests&quot;:21,                       //-- number of served requests
   &quot;cachesize&quot;:42,                       //-- size of query cache (leaf servers only)
+  &quot;curlcachesize&quot;:24,                   //-- size of curl cache (leaf servers only)
   &quot;corpora&quot;:[&quot;corpus1&quot;,&quot;corpus2&quot;,...]   //-- registered subcorpus names (branch servers only)
  }</pre>
 <p>Very fast turnaround, since all returned data is known to the distributed server itself,
@@ -187,7 +189,9 @@ For a leaf server, the returned object is of the form:</p>
   &quot;version&quot;:&quot;2.0.18-pre1&quot;,              //-- subcorpus server version
   &quot;project&quot;:&quot;corpus1&quot;,                  //-- project basename
   &quot;indexed&quot;:&quot;2014-02-17T13:49:56Z&quot;,     //-- index timestamp (mtime of PROJECT._con)
-  &quot;nfiles&quot;:4,                           //-- number of indexed files
+  &quot;nfiles&quot;:4,                           //-- number of successfully indexed files
+  &quot;nsources&quot;:4,                         //-- number of source files (including empty and erroneous files)
+  &quot;nmasked&quot;:0,                          //-- number of &quot;masked&quot; (blacklisted) files in PROJECT._masked
   &quot;ntokens&quot;:56294,                      //-- number of indexed tokens
   //
   //-- global index options (see ddc_opt(5))

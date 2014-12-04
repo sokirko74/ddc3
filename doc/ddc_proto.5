@@ -62,7 +62,7 @@
 .\" ========================================================================
 .\"
 .IX Title "DDC_PROTO 5"
-.TH DDC_PROTO 5 "2014-12-03" "2.0.34" "DDC Corpus Indexing System"
+.TH DDC_PROTO 5 "2014-12-04" "2.0.35" "DDC Corpus Indexing System"
 .\" For nroff, turn off justification.  Always turn off hyphenation; it makes
 .\" way too many mistakes in technical documents.
 .if n .ad l
@@ -153,16 +153,18 @@ Since v2.0.18
 .PP
 Returns status information on the running server as a \s-1JSON\s0 object of the form:
 .PP
-.Vb 11
+.Vb 10
 \& {
 \&  "name":"server",                      //\-\- distributed server name
 \&  "version":"2.0.18\-pre1",              //\-\- distributed server version
-\&  "host":"127.0.0.1",                   //\-\- distributed server socket hostname or IP
+\&  "hostname":"www.dwds.de",             //\-\- distributed server hostname if available (E<gt>= v2.0.35)
+\&  "hostaddr":"127.0.0.1",               //\-\- distributed server socket hostname or address ("host" for ddc E<lt> v2.0.35)
 \&  "port":50011,                         //\-\- distributed server socket port
 \&  "started":"2014\-02\-17T13:49:59Z",     //\-\- ISO\-8601 timestamp of last server start
 \&  "uptime":1392644999,                  //\-\- server instance uptime in seconds
 \&  "nrequests":21,                       //\-\- number of served requests
 \&  "cachesize":42,                       //\-\- size of query cache (leaf servers only)
+\&  "curlcachesize":24,                   //\-\- size of curl cache (leaf servers only)
 \&  "corpora":["corpus1","corpus2",...]   //\-\- registered subcorpus names (branch servers only)
 \& }
 .Ve
@@ -202,7 +204,9 @@ For a leaf server, the returned object is of the form:
 \&  "version":"2.0.18\-pre1",              //\-\- subcorpus server version
 \&  "project":"corpus1",                  //\-\- project basename
 \&  "indexed":"2014\-02\-17T13:49:56Z",     //\-\- index timestamp (mtime of PROJECT._con)
-\&  "nfiles":4,                           //\-\- number of indexed files
+\&  "nfiles":4,                           //\-\- number of successfully indexed files
+\&  "nsources":4,                         //\-\- number of source files (including empty and erroneous files)
+\&  "nmasked":0,                          //\-\- number of "masked" (blacklisted) files in PROJECT._masked
 \&  "ntokens":56294,                      //\-\- number of indexed tokens
 \&  //
 \&  //\-\- global index options (see ddc_opt(5))
