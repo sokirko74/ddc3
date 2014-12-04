@@ -98,7 +98,7 @@ void CDDCLeafServer::handle__status(string &Result, bool verbose)
 	      + "\"name\":" + jsonStr(m_CorpusName) + ",\n\t"
 	      + "\"version\":" + jsonStr(PACKAGE_VERSION) + ",\n\t"
 	      + "\"hostname\":" + jsonStr(m_FQHostName) + ",\n\t"
-	      + "\"host\":" + jsonStr(m_HostAddr) + ",\n\t"
+	      + "\"hostaddr\":" + jsonStr(m_HostAddr) + ",\n\t"
 	      + "\"port\":" + Format("%d", m_Port) + ",\n\t"
 	      + "\"started\":" + jsonStr(timestampUTC(m_tStarted)) + ",\n\t"
 	      + "\"uptime\":" + Format("%.0f", uptime) + ",\n\t"
