@@ -1,5 +1,12 @@
 ##-*- Mode: Change-Log; coding: utf-8; -*-
 
+v2.0.35 Thu, 04 Dec 2014 11:03:18 +0100 moocow
+	+ fixed bug in optimized count(*) evaluation producing garbage and sometimes segfaults
+	  whenever ix->GetSourceFilesCount() was greater than ix->GetCorpusFilesCount();
+	  in particular whenever empty source-files were dropped during the indexing stage
+	  (e.g. kern)
+	+ upgraded count datatype to size_t in BranchServer.(h|cpp) : avoid integer overflow
+
 v2.0.34 Wed, 03 Dec 2014 14:32:11 +0100 moocow
 	+ optimized evaluation of simple count(*) queries (fixes mantis bug #706)
 	+ added support for user-defined match-ids via =ID token-query suffix operator

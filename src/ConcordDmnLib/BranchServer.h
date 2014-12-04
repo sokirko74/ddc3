@@ -27,7 +27,7 @@
 struct CHitToSort 
 {
     BYTE	m_HostNo;	///< subcorpus id
-    DWORD	m_HitNo;	///< subcorpus-local hit-number for context queries ; hit count for count-queries
+    size_t	m_HitNo;	///< subcorpus-local hit-number for context queries OR hit count for count-queries
     string	m_SortKeyStr;	///< hit sort-string
 
     CHitToSort(BYTE HostNo=0)
@@ -49,7 +49,7 @@ struct CHitToSort
     /** string form of hit, for debugging messages */
     inline string debugStr(void) const
     {
-	return Format("{HostNo=%d,HitNo=%d,SortKey=%s}", m_HostNo, m_HitNo, jsonStr(m_SortKeyStr).c_str());
+	return Format("{HostNo=%d,HitNo=%zd,SortKey=%s}", m_HostNo, m_HitNo, jsonStr(m_SortKeyStr).c_str());
     };
 };
 

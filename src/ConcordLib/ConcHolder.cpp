@@ -1546,20 +1546,29 @@ DDCErrorEnum CConcHolder::GetAllCounts(CQuery *CountQueryRoot, size_t Limit)
 
 	//-- countHits[] encodes element CHit hit.m_Sortkey.s (count-key) and hit.m_Value.m_Count attributes,
 	//   used to transport count()-query results in a backwards-compatible manner.
-	map<string, size_t> counts;
+	map<string, DWORD> counts;
 
 	if (typeid(*qRoot) == typeid(CQTokAny) && qRoot->m_Options->CanFilterByFile()) {
-		//-- count(* ...) query: do memory-optimized computatiopn
+		//-- count(* ...) query: do memory-optimized computation
 		CConcIndexator *ix = m_pIndexator;
 		const vector<CTokenNo> &fbreaks = ix->GetFileBreaks();
-		DWORD nfiles = ix->GetSourceFilesCount();
+		const set<size_t>      &fmasked = ix->m_MaskedFiles; 
+		set<size_t>::const_iterator fmaski = fmasked.begin();
+		DWORD nfiles = ix->GetCorpusFilesCount();
 		string key;
+
+		assert(nfiles <= fbreaks.size()); //-- sanity check
 
 		if (qRoot->m_Options->m_bSeparateHits) {
 			//-- count(* #sep): count tokens
 			CTokenNo fw_begin=0, fw_end;
 			for (DWORD f=0; f<nfiles; ++f, fw_begin=fw_end) {
 				fw_end = fbreaks[f];
+				if (fmaski != fmasked.end() && f == *fmaski) {
+					//-- don't count tokens in masked files
+					++fmaski;
+					continue;
+				}
 				if (ix->m_Bibl.FileMatches(f, qRoot->m_Options->m_Filters)) {
 					key          = keys.Evaluate(f);
 					counts[key] += (fw_end - fw_begin);
@@ -1569,13 +1578,15 @@ DDCErrorEnum CConcHolder::GetAllCounts(CQuery *CountQueryRoot, size_t Limit)
 		else {
 			//-- count(* #join): count selected breaks
 			const CHitBorders::CBreakCollection *sbreaks = ix->GetBreakCollectionByName(qRoot->m_Options->m_HitTypeStr);
-			DWORD    f = 0;
+			DWORD    f=0, n=1;
 			CTokenNo fw_end = fbreaks[f];
-			DWORD n=1;
 			for (vector<CTokenNo>::const_iterator bi=sbreaks->m_BreakOffsets.begin(); bi != sbreaks->m_BreakOffsets.end(); ++bi, ++n) {
 				if (*bi >= fw_end) {
 					//-- new file
-					if (n>0 && ix->m_Bibl.FileMatches(f, qRoot->m_Options->m_Filters)) {
+					if (fmaski != fmasked.end() && f == *fmaski) {
+						++fmaski;
+					}
+					else if (n>0 && ix->m_Bibl.FileMatches(f, qRoot->m_Options->m_Filters)) {
 						key          = keys.Evaluate(f);
 						counts[key] += n;
 					}

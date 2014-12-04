@@ -261,7 +261,7 @@ public:
 // functions
 
 /** generate a single count string from a (key,count)-pair */
-void GenerateCountString(string &ResultStr, DDCFormatTypeEnum fmt, const string& key, DWORD count);
+void GenerateCountString(string &ResultStr, DDCFormatTypeEnum fmt, const string& key, size_t count);
 
 /** generate a single count string from a CHit */
 inline void GenerateCountString(string &ResultStr, DDCFormatTypeEnum fmt, const CHit &hit)

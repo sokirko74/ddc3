@@ -428,7 +428,7 @@ NetworkErrorsEnum CDDCBranchServer::GetHitContexts(CFirstHitsQueryResult& FHResu
 
 	const vector<int>&  V = SortedHits[HostNo];
 	string S;
-	int FirstHitNo = (V.empty()) ? 0 : FHResult.m_Hits[V[0]].m_HitNo;
+	size_t FirstHitNo = (V.empty()) ? 0 : FHResult.m_Hits[V[0]].m_HitNo;
 	InternalError = errNone;
 	NetworkErrorsEnum Res = GetHitStringsFromOneCorpus
 	    (m_Hosts[HostNo], ResultType, FirstHitNo, V.size(), TimeOut,FHResult.m_Sockets[i], InternalError, S);
@@ -579,7 +579,7 @@ void CDDCBranchServer::GetFirstHitsFromCorpora(const DwordVector& PossibleHosts,
 				CHitToSort HS(HostNo);
 				const char* rest = tok.val();
 				int OrderId_IGNORED; //-- formerly integer sort-key Hit.m_OrderId sent by ddc < v2.0.19
-				int nscanned = sscanf(rest, "%i %i %[^\t]", &HS.m_HitNo, &OrderId_IGNORED, SortKeyBuf);
+				int nscanned = sscanf(rest, "%zi %i %[^\t]", &HS.m_HitNo, &OrderId_IGNORED, SortKeyBuf);
 
 				if (nscanned < 2) {
 					Result.m_NetworkError = neProtocolError;

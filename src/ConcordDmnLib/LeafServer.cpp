@@ -130,7 +130,9 @@ void CDDCLeafServer::handle__info(string &Result, bool verbose)
 		//-- index required
 		Result += (string(",\n\t")
 			   + "\"indexed\":" + jsonStr(timestampUTC(ix->m_Timestamp)) + ",\n\t"
-			   + "\"nfiles\":"  + Format("%zd", ix->GetSourceFilesCount()) + ",\n\t"
+			   + "\"nfiles\":"  + Format("%zd", ix->GetCorpusFilesCount()) + ",\n\t"
+			   + "\"nmasked\":"  + Format("%zd", ix->GetMaskedFilesCount()) + ",\n\t"
+			   + "\"nsources\":"  + Format("%zd", ix->GetSourceFilesCount()) + ",\n\t"
 			   + "\"ntokens\":" + Format("%zd", ix->GetCorpusEndTokenNo()) + ",\n\t"
 			   //
 			   //-- options

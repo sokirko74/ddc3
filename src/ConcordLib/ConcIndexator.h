@@ -64,6 +64,8 @@ public:
 	void DeleteAllSourceFiles();
 
 	//! get the number of source files
+	//! \note this may greater than the actual number of file-breaks as indexed by the HitBorder class,
+	//!  in particular if empty files were ignored during indexing.
 	size_t	GetSourceFilesCount()  const;
 
 	//! get the source file by the index
@@ -313,10 +315,24 @@ public:
 	
 	//! get file name for masked files
 	string	GetFileNameForMaskedFiles() const;
-
 	//! parse a delimited token into fields by splitting on m_InterpDelimiter
 	vector<string> GetTokenFields(const COutputToken &tok);
-    
+
+	//! get the number of indexed corpus files
+	inline size_t GetCorpusFilesCount() const
+	{ return m_CorpusFiles.size(); };
+
+	//! get corpus file by index
+	inline string GetCorpusFile(size_t FileNo) const
+	{ return m_CorpusFiles[FileNo]; };
+
+	//! returns true iff corpus-file FileNo is masked
+	inline bool IsMaskedFile(size_t FileNo) const
+	{ return m_MaskedFiles.find(FileNo) != m_MaskedFiles.end(); };
+
+	//! get count of masked files
+	inline size_t GetMaskedFilesCount() const
+	{ return m_MaskedFiles.size(); };
 	
 
 	//! initializes graphematics using current options
