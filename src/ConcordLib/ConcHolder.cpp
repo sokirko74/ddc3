@@ -1546,7 +1546,7 @@ DDCErrorEnum CConcHolder::GetAllCounts(CQuery *CountQueryRoot, size_t Limit)
 
 	//-- countHits[] encodes element CHit hit.m_Sortkey.s (count-key) and hit.m_Value.m_Count attributes,
 	//   used to transport count()-query results in a backwards-compatible manner.
-	map<string, DWORD> counts;
+	map<string, size_t> counts;
 
 	if (typeid(*qRoot) == typeid(CQTokAny) && qRoot->m_Options->CanFilterByFile()) {
 		//-- count(* ...) query: do memory-optimized computation
@@ -1610,8 +1610,8 @@ DDCErrorEnum CConcHolder::GetAllCounts(CQuery *CountQueryRoot, size_t Limit)
 			sort(m_Hits.begin(), m_Hits.end(), IsLessByFileNo());
 
 		//-- counting guts
-		DWORD f = (DWORD)-1;
-		DWORD n = 0;
+		DWORD  f = (DWORD)-1;
+		size_t n = 0;
 		string key;
 		for (vector<CHit>::const_iterator hi=m_Hits.begin(); hi != m_Hits.end(); ++hi, ++n) {
 			if (hi->m_FileNo != f) {
