@@ -55,7 +55,7 @@ extern const int ddcSocketChunkSize;
 class CHost  
 {
 protected:
-	string					m_HostName;
+        string					m_HostAddr;	///< string representation of address to bind or connect to
 	int					m_Port;
 	SOCKET					m_ListenSocket;
 	bool					m_bDoubleMessage;
@@ -91,7 +91,8 @@ public:
 	string			GetAddressStr() const;
 	const string&		GetLocalPathOfIndex() const;
 
-	inline const string&	HostName() const { return m_HostName; };
+	inline const string&	HostName() const { return m_HostAddr; };
+	inline const string&	HostAddr() const { return m_HostAddr; };
 	inline const int	Port() const { return m_Port; };
 };
 
@@ -102,7 +103,7 @@ extern uint32_t size_to_lsb(uint32_t sz);
 extern uint32_t lsb_to_size(uint32_t sz_lsb);
 
 extern bool fd_is_valid(int fd);
-extern SOCKET create_socket (const char* HostName, int Port, bool bBind, string& strError);
+extern SOCKET create_socket (const char* HostAddr, int Port, bool bBind, string& strError);
 extern void flush_socket (SOCKET sock);
 extern bool SocketInitialize(bool bReadFromLocalFile);
 extern bool SocketDeinitialize();

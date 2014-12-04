@@ -308,7 +308,7 @@ bool fd_is_valid(int fd)
     return fcntl(fd, F_GETFD) != -1 || errno != EBADF;
 }
 
-SOCKET create_socket (const char* HostName, int Port, bool bBind, string& strError)
+SOCKET create_socket (const char* HostAddr, int Port, bool bBind, string& strError)
 {
 	strError = "";
 	struct addrinfo hints, *res, *res0; 
@@ -321,7 +321,7 @@ SOCKET create_socket (const char* HostName, int Port, bool bBind, string& strErr
 		hints.ai_flags = AI_PASSIVE;
 	hints.ai_family = PF_UNSPEC;
 	hints.ai_socktype = SOCK_STREAM;
-	error = getaddrinfo(HostName, Format("%i",Port).c_str(), &hints, &res0);
+	error = getaddrinfo(HostAddr, Format("%i",Port).c_str(), &hints, &res0);
 	if (error) {
 		strError = Format("Socket Error! %s", gai_strerror(error)); /*NOTREACHED*/
 		throw CExpc(errRuntime, strError);
@@ -377,7 +377,7 @@ SOCKET create_socket (const char* HostName, int Port, bool bBind, string& strErr
 	}
 	if (l_socket == -1)
 	{
-		strError = Format("%s for %s:%i\n", cause.c_str(), HostName, Port);
+		strError = Format("%s for %s:%i\n", cause.c_str(), HostAddr, Port);
 		throw CExpc(errRuntime, strError);
 		/*NOTREACHED*/
 	}
@@ -513,7 +513,7 @@ bool CHost::ReadFromString (string S)
 				m_CorpusName = Item;
 			else
 			if (ItemNo == 1)
-				m_HostName = Item;
+				m_HostAddr = Item;
 			else
 			if (ItemNo == 2)
 			{
@@ -525,15 +525,15 @@ bool CHost::ReadFromString (string S)
 			ItemNo++;
 	};
 
-	if (m_HostName.empty() || m_Port==-1) return false;
+	if (m_HostAddr.empty() || m_Port==-1) return false;
 
 	return true;
 };
 
 int	CHost::CreateAndConnectSocket(string& strError) const
 {
-	int l_socket =  create_socket(m_HostName.c_str(), m_Port, false, strError);
-	//fprintf (stderr, "create_and_connect %s:%i resulted in %i\n", HostName, Port, l_socket);
+	int l_socket =  create_socket(m_HostAddr.c_str(), m_Port, false, strError);
+	//fprintf (stderr, "create_and_connect %s:%i resulted in %i\n", HostAddr, Port, l_socket);
 	return l_socket;
 };
 
@@ -628,7 +628,7 @@ void   CHost::RunThread()
 	m_ListenSocket = -1;
 	string strError;
 
-	m_ListenSocket = create_socket(m_HostName.c_str(), m_Port, true, strError);
+	m_ListenSocket = create_socket(m_HostAddr.c_str(), m_Port, true, strError);
 	if (m_ListenSocket == -1)
 	{
 		string s = Format("%s [corpus name = %s] \n", strError.c_str(), m_CorpusName.c_str());
@@ -644,7 +644,7 @@ void   CHost::RunThread()
 		m_ListenSocket = -1;
 	}
 
-	m_LogFunction ( Format("CHost on %s:%d waiting for accept", m_HostName.c_str(), m_Port) );
+	m_LogFunction ( Format("CHost on %s:%d waiting for accept", m_HostAddr.c_str(), m_Port) );
 	size_t NumberOfSocketAccepts = 0;
 	for (;;)
 	{
@@ -741,11 +741,11 @@ void   CHost::RunThread()
 		pHost->m_LogFunction("Service could invoke AfxSocketInit()");
     }
     catch (exception &e) {
-	    pHost->m_LogFunction( Format("ListenerThread[%s:%d]: Exception: %s", pHost->HostName().c_str(), pHost->Port(), e.what()) );
+	    pHost->m_LogFunction( Format("ListenerThread[%s:%d]: Exception: %s", pHost->HostAddr().c_str(), pHost->Port(), e.what()) );
 	    throw;
     }
     catch (...) {
-	    pHost->m_LogFunction( Format("ListenerThread[%s:%d]: Exception: (unhandled exception)", pHost->HostName().c_str(), pHost->Port()) );
+	    pHost->m_LogFunction( Format("ListenerThread[%s:%d]: Exception: (unhandled exception)", pHost->HostAddr().c_str(), pHost->Port()) );
 	    throw;
     }
 	
@@ -775,10 +775,10 @@ void CHost::CreateListener()
 
 string	CHost::GetAddressStr() const
 {
-	if (m_HostName.empty())
+	if (m_HostAddr.empty())
 		return "(null)";
 	else
-		return Format("%s:%i", m_HostName.c_str(), m_Port);
+		return Format("%s:%i", m_HostAddr.c_str(), m_Port);
 };
 
 const string&	CHost::GetLocalPathOfIndex() const
@@ -788,7 +788,7 @@ const string&	CHost::GetLocalPathOfIndex() const
 
 void CHost::CopyAddressParametersFrom(const CHost& X)
 {
-	m_HostName = X.m_HostName;
+	m_HostAddr = X.m_HostAddr;
 	m_Port = X.m_Port;
 	m_LocalPath = X.m_LocalPath;
 	m_CorpusName = X.m_CorpusName;

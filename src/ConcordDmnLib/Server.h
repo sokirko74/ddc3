@@ -58,17 +58,15 @@ public:
     /* moo: whether to log all requests received in ProcessSocketString() */
     bool m_bLogRequests;
 
+    /* moo: FQDN if available, otherwise symbolic hostname as returned by gethostname() */
+    string m_FQHostName;
+
 public:
     //--------------------------------------------------------------
     // Constructors etc.
 
     /** default constructor */
-    CDDCServer(bool bDoubleMessage=false, ProtocolDensityEnum pdProtocolDensity=pdWeakDensity)
-	: CHost(bDoubleMessage, pdProtocolDensity), m_tStarted(0), m_nRequests(0), m_bLogRequests(false)
-    {
-	m_LogFunction = concord_daemon_log;
-	m_tStarted = time(NULL);
-    };
+    CDDCServer(bool bDoubleMessage=false, ProtocolDensityEnum pdProtocolDensity=pdWeakDensity);
 
     /** default destructor */
     virtual ~CDDCServer()

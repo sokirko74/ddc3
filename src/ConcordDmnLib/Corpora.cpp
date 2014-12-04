@@ -33,9 +33,9 @@
 // globals
 
 // all sockets which are opened by this daemon 
-vector<CDDCCorpusListenHost> LocalCorpora;
+vector<CDDCLeafServer> LocalCorpora;
 
-CDDCServerListenHost* pServer = NULL;
+CDDCBranchServer* pServer = NULL;
 
 //==============================================================================
 // global functions
@@ -68,14 +68,14 @@ void LoadLocalCorpora (ProtocolDensityEnum ProtocolDensity, string ConfigFile)
 
 	try {	
 		for (int i = 0; i<Hosts.size(); i++) {
-			CDDCCorpusListenHost H(true, ProtocolDensity);
+			CDDCLeafServer H(true, ProtocolDensity);
 			H.CopyAddressParametersFrom(Hosts[i]);
 			if (!H.LoadHolder())
 				throw CExpc(errOther, "LoadHolder() failed for host %d", i);
 			LocalCorpora.push_back(H);
 		}
 		for (int i = 0; i<LocalCorpora.size(); i++) {
-			CDDCCorpusListenHost& H = LocalCorpora[i];
+			CDDCLeafServer& H = LocalCorpora[i];
 			H.CreateListener();
 		}
 	}
@@ -101,7 +101,7 @@ void LoadDDCServer (ProtocolDensityEnum ProtocolDensity, string ServerConfigFile
 
 	if (pServer)
 		delete pServer;
-	pServer = new CDDCServerListenHost(false, ProtocolDensity);
+	pServer = new CDDCBranchServer(false, ProtocolDensity);
 	if (!pServer)
 	{
 		concord_daemon_log ( "Error! cannot allocate memory for a server instance");

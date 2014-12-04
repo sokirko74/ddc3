@@ -200,7 +200,8 @@ void CDDCBranchServer::handle__status(string &Result, bool verbose)
     Result = (string("{\n")
 	      + "\"name\":" + jsonStr(m_CorpusName) + ",\n"
 	      + "\"version\":" + jsonStr(PACKAGE_VERSION) + ",\n"
-	      + "\"host\":" + jsonStr(m_HostName) + ",\n"
+	      + "\"hostname\":" + jsonStr(m_FQHostName) + ",\n"
+	      + "\"hostaddr\":" + jsonStr(m_HostAddr) + ",\n"
 	      + "\"port\":" + Format("%d", m_Port) + ",\n"
 	      + "\"started\":" + jsonStr(timestampUTC(m_tStarted)) + ",\n"
 	      + "\"uptime\":" + Format("%.0f", uptime) + ",\n"

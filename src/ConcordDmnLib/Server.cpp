@@ -21,9 +21,43 @@
 #include "Server.h"
 #include "Morphan.h"
 
+#ifdef HAVE_UNISTD_H
+# include <unistd.h>
+#endif
+
+#ifdef HAVE_NETDB_H
+# include <netdb.h>
+#endif
+
 //==============================================================================
 
 const char *CDDCServer::AdditionalHitDelimeter = "\x01";
+
+//----------------------------------------------------------------------
+CDDCServer::CDDCServer(bool bDoubleMessage, ProtocolDensityEnum pdProtocolDensity)
+    : CHost(bDoubleMessage, pdProtocolDensity),
+      m_tStarted(0),
+      m_nRequests(0),
+      m_bLogRequests(false)
+{
+    m_LogFunction = concord_daemon_log;
+    m_tStarted = time(NULL);
+
+    //-- attempt to set m_FQHostName
+#if HAVE_UNISTD_H
+    char hostname[1024];
+    memset(hostname,0,1024);
+    gethostname(hostname, 1023);
+# if HAVE_NETDB_H
+    struct hostent *h = gethostbyname(hostname);
+    m_FQHostName = h ? h->h_name : hostname;
+# else
+    m_FQHostName = hostname;
+# endif
+#else
+    m_FQHostName = m_HostAddr;
+#endif
+};
 
 
 //----------------------------------------------------------------------

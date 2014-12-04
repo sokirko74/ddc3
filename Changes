@@ -1,6 +1,8 @@
 ##-*- Mode: Change-Log; coding: utf-8; -*-
 
 v2.0.35 Thu, 04 Dec 2014 11:03:18 +0100 moocow
+	+ added 'hostname' key to server status messages (fqdn or short hostname via gethostname())
+	+ renamed 'host' key to 'hostaddr' in server status messages
 	+ fixed bug in optimized count(*) evaluation producing garbage and sometimes segfaults
 	  whenever ix->GetSourceFilesCount() was greater than ix->GetCorpusFilesCount();
 	  in particular whenever empty source-files were dropped during the indexing stage
