@@ -1,3 +1,5 @@
+=encoding utf8
+
 ########################################################################
 ## Header
 =pod
@@ -227,7 +229,7 @@ If set, DDC calculates the number of relevant documents, otherwise the member th
 =head3 QueryOnlyFiles
 
 (from DDCReadme):
-If set, DDC doesn’t create a sentence break collection.
+If set, DDC doesn't create a sentence break collection.
 Only meaningful for C<DWDS_Index> or C<MorphXML_Index> L<Index Types|/indextype>.
 
 =head3 NoContextOperator

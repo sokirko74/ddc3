@@ -19,7 +19,7 @@ pod2txt: $(POD_TXT)
 if HAVE_POD2TEXT
 POD_CLEANFILES += $(POD_TXT)
 .pod.txt:
-	pod2text $< $@
+	-pod2text $< $@
 endif
 
 ##------------------------------------------------------
@@ -31,7 +31,7 @@ pod2html: $(PODS:.pod=.html)
 if HAVE_POD2HTML
 POD_CLEANFILES += $(POD_HTML)
 .pod.html:
-	pod2html $(POD2HTMLFLAGS) --infile=$< --outfile=$@
+	-pod2html $(POD2HTMLFLAGS) --infile=$< --outfile=$@
 endif
 
 ##------------------------------------------------------
@@ -43,11 +43,11 @@ pod2man: $(POD_MAN)
 if HAVE_POD2MAN
  POD_CLEANFILES += $(POD_MAN)
 .pod.man:
-	pod2man $(POD2MANFLAGS) $< $@
+	-pod2man $(POD2MANFLAGS) $< $@
 .pod.1:
-	pod2man $(POD2MANFLAGS) --section=1 $< $@
+	-pod2man $(POD2MANFLAGS) --section=1 $< $@
 .pod.5:
-	pod2man $(POD2MANFLAGS) --section=5 $< $@
+	-pod2man $(POD2MANFLAGS) --section=5 $< $@
 endif
 
 ##------------------------------------------------------

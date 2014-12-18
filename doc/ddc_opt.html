@@ -2,7 +2,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-<title>DDC *.opt FILE SYNTAX</title>
+<title></title>
 <link rel="stylesheet" href="pod2x.css" type="text/css" />
 <meta http-equiv="content-type" content="text/html; charset=utf-8" />
 <link rev="made" href="mailto:root@localhost" />
@@ -11,129 +11,113 @@
 <body>
 
 
-<!-- INDEX BEGIN -->
-<div name="index">
-<p><a name="__index__"></a></p>
 
-<ul>
-
-	<li><a href="#ddc___opt_file_syntax">DDC *.opt FILE SYNTAX</a></li>
-	<li><a href="#synopsis">SYNOPSIS</a></li>
-	<li><a href="#description">DESCRIPTION</a></li>
-	<ul>
-
-		<li><a href="#sources">Sources</a></li>
-		<li><a href="#option_processor_directives">Option Processor Directives</a></li>
-		<ul>
-
-			<li><a href="#_comment">#comment</a></li>
-			<li><a href="#include">include</a></li>
-		</ul>
-
-		<li><a href="#required_declarations">Required Declarations</a></li>
-		<ul>
-
-			<li><a href="#indextype">IndexType</a></li>
-			<li><a href="#lang">LANG</a></li>
-		</ul>
-
-		<li><a href="#boolean_flags_and_switches">Boolean Flags and Switches</a></li>
-		<ul>
-
-			<li><a href="#utf8">Utf8</a></li>
-			<li><a href="#disabledefaultquerylexicalexpansion">DisableDefaultQueryLexicalExpansion</a></li>
-			<li><a href="#caseinsensitive">CaseInsensitive</a></li>
-			<li><a href="#shownumberofrelevantdocuments">ShowNumberOfRelevantDocuments</a></li>
-			<li><a href="#queryonlyfiles">QueryOnlyFiles</a></li>
-			<li><a href="#nocontextoperator">NoContextOperator</a></li>
-			<li><a href="#allowunsafequeries">AllowUnsafeQueries</a></li>
-			<li><a href="#outputbibliographyofhits">OutputBibliographyOfHits</a></li>
-			<li><a href="#lemmaqueryusesmorphpattern">LemmaQueryUsesMorphPattern</a></li>
-			<li><a href="#indexchunks">IndexChunks</a></li>
-			<li><a href="#indexmorphpatterns">IndexMorphPatterns</a></li>
-			<li><a href="#indexpunctuation">IndexPunctuation</a></li>
-			<li><a href="#usedwdsthesaurus">UseDwdsThesaurus</a></li>
-			<li><a href="#useparagraphtagtodivide">UseParagraphTagToDivide</a></li>
-			<li><a href="#emptylineisnotsentencedelim">EmptyLineIsNotSentenceDelim</a></li>
-			<li><a href="#dontuseindention">DontUseIndention</a></li>
-			<li><a href="#archiveindex">ArchiveIndex</a></li>
-			<li><a href="#resumeonindexerrors">ResumeOnIndexErrors</a></li>
-			<li><a href="#gutenberginterface">GutenbergInterface</a></li>
-			<li><a href="#dwdscorpusinterface">DwdsCorpusInterface</a></li>
-		</ul>
-
-		<li><a href="#single_valued_options">Single-valued Options</a></li>
-		<ul>
-
-			<li><a href="#indices">Indices</a></li>
-			<li><a href="#indicestoshow">IndicesToShow</a></li>
-			<li><a href="#defaultbibl">DefaultBibl</a></li>
-			<li><a href="#hitborders">HitBorders</a></li>
-			<li><a href="#htmlhighlighting">HtmlHighlighting</a></li>
-			<li><a href="#texthighlighting">TextHighlighting</a></li>
-			<li><a href="#tablehighlighting">TableHighlighting</a></li>
-			<li><a href="#tokendelimiter">TokenDelimiter</a></li>
-			<li><a href="#interpdelimiter">InterpDelimiter</a></li>
-			<li><a href="#leftkwiccontextsize">LeftKwicContextSize</a></li>
-			<li><a href="#rightkwiccontextsize">RightKwicContextSize</a></li>
-			<li><a href="#numberofkwiclinesinsnippets">NumberOfKwicLinesInSnippets</a></li>
-			<li><a href="#maxregexpexpansionsize">MaxRegExpExpansionSize</a></li>
-			<li><a href="#maxcachedhitscount">MaxCachedHitsCount</a></li>
-			<li><a href="#maxquerycachesize">MaxQueryCacheSize</a></li>
-			<li><a href="#usermaxtokencountinoneperiod">UserMaxTokenCountInOnePeriod</a></li>
-			<li><a href="#localpathprefix">LocalPathPrefix</a></li>
-			<li><a href="#internetpathprefix">InternetPathPrefix</a></li>
-			<li><a href="#tfidfrank">TfIdfRank</a></li>
-			<li><a href="#positionrank">PositionRank</a></li>
-			<li><a href="#nearrank">NearRank</a></li>
-			<li><a href="#serverinfo">ServerInfo</a></li>
-			<li><a href="#serverinfofile">ServerInfoFile</a></li>
-		</ul>
-
-		<li><a href="#multi_valued_options">Multi-valued Options</a></li>
-		<ul>
-
-			<li><a href="#textarea">textarea</a></li>
-			<li><a href="#bibl">Bibl</a></li>
-			<li><a href="#bigrams">Bigrams</a></li>
-			<li><a href="#expand">Expand</a></li>
-			<li><a href="#expandbibl">ExpandBibl</a></li>
-			<li><a href="#defaultqueryindex">DefaultQueryIndex</a></li>
-		</ul>
-
-	</ul>
-
-	<li><a href="#acknowledgements">ACKNOWLEDGEMENTS</a></li>
-	<li><a href="#author">AUTHOR</a></li>
-	<li><a href="#see_also">SEE ALSO</a></li>
+<ul id="index">
+  <li><a href="#DDC-.opt-FILE-SYNTAX">DDC *.opt FILE SYNTAX</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a>
+    <ul>
+      <li><a href="#Sources">Sources</a></li>
+      <li><a href="#Option-Processor-Directives">Option Processor Directives</a>
+        <ul>
+          <li><a href="#comment">#comment</a></li>
+          <li><a href="#include">include</a></li>
+        </ul>
+      </li>
+      <li><a href="#Required-Declarations">Required Declarations</a>
+        <ul>
+          <li><a href="#IndexType">IndexType</a></li>
+          <li><a href="#LANG">LANG</a></li>
+        </ul>
+      </li>
+      <li><a href="#Boolean-Flags-and-Switches">Boolean Flags and Switches</a>
+        <ul>
+          <li><a href="#Utf8">Utf8</a></li>
+          <li><a href="#DisableDefaultQueryLexicalExpansion">DisableDefaultQueryLexicalExpansion</a></li>
+          <li><a href="#CaseInsensitive">CaseInsensitive</a></li>
+          <li><a href="#ShowNumberOfRelevantDocuments">ShowNumberOfRelevantDocuments</a></li>
+          <li><a href="#QueryOnlyFiles">QueryOnlyFiles</a></li>
+          <li><a href="#NoContextOperator">NoContextOperator</a></li>
+          <li><a href="#AllowUnsafeQueries">AllowUnsafeQueries</a></li>
+          <li><a href="#OutputBibliographyOfHits">OutputBibliographyOfHits</a></li>
+          <li><a href="#LemmaQueryUsesMorphPattern">LemmaQueryUsesMorphPattern</a></li>
+          <li><a href="#IndexChunks">IndexChunks</a></li>
+          <li><a href="#IndexMorphPatterns">IndexMorphPatterns</a></li>
+          <li><a href="#IndexPunctuation">IndexPunctuation</a></li>
+          <li><a href="#UseDwdsThesaurus">UseDwdsThesaurus</a></li>
+          <li><a href="#UseParagraphTagToDivide">UseParagraphTagToDivide</a></li>
+          <li><a href="#EmptyLineIsNotSentenceDelim">EmptyLineIsNotSentenceDelim</a></li>
+          <li><a href="#DontUseIndention">DontUseIndention</a></li>
+          <li><a href="#ArchiveIndex">ArchiveIndex</a></li>
+          <li><a href="#ResumeOnIndexErrors">ResumeOnIndexErrors</a></li>
+          <li><a href="#GutenbergInterface">GutenbergInterface</a></li>
+          <li><a href="#DwdsCorpusInterface">DwdsCorpusInterface</a></li>
+        </ul>
+      </li>
+      <li><a href="#Single-valued-Options">Single-valued Options</a>
+        <ul>
+          <li><a href="#Indices">Indices</a></li>
+          <li><a href="#IndicesToShow">IndicesToShow</a></li>
+          <li><a href="#DefaultBibl">DefaultBibl</a></li>
+          <li><a href="#HitBorders">HitBorders</a></li>
+          <li><a href="#HtmlHighlighting">HtmlHighlighting</a></li>
+          <li><a href="#TextHighlighting">TextHighlighting</a></li>
+          <li><a href="#TableHighlighting">TableHighlighting</a></li>
+          <li><a href="#TokenDelimiter">TokenDelimiter</a></li>
+          <li><a href="#InterpDelimiter">InterpDelimiter</a></li>
+          <li><a href="#LeftKwicContextSize">LeftKwicContextSize</a></li>
+          <li><a href="#RightKwicContextSize">RightKwicContextSize</a></li>
+          <li><a href="#NumberOfKwicLinesInSnippets">NumberOfKwicLinesInSnippets</a></li>
+          <li><a href="#MaxRegExpExpansionSize">MaxRegExpExpansionSize</a></li>
+          <li><a href="#MaxCachedHitsCount">MaxCachedHitsCount</a></li>
+          <li><a href="#MaxQueryCacheSize">MaxQueryCacheSize</a></li>
+          <li><a href="#UserMaxTokenCountInOnePeriod">UserMaxTokenCountInOnePeriod</a></li>
+          <li><a href="#LocalPathPrefix">LocalPathPrefix</a></li>
+          <li><a href="#InternetPathPrefix">InternetPathPrefix</a></li>
+          <li><a href="#TfIdfRank">TfIdfRank</a></li>
+          <li><a href="#PositionRank">PositionRank</a></li>
+          <li><a href="#NearRank">NearRank</a></li>
+          <li><a href="#ServerInfo">ServerInfo</a></li>
+          <li><a href="#ServerInfoFile">ServerInfoFile</a></li>
+        </ul>
+      </li>
+      <li><a href="#Multi-valued-Options">Multi-valued Options</a>
+        <ul>
+          <li><a href="#textarea">textarea</a></li>
+          <li><a href="#Bibl">Bibl</a></li>
+          <li><a href="#Bigrams">Bigrams</a></li>
+          <li><a href="#Expand">Expand</a></li>
+          <li><a href="#ExpandBibl">ExpandBibl</a></li>
+          <li><a href="#DefaultQueryIndex">DefaultQueryIndex</a></li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li><a href="#ACKNOWLEDGEMENTS">ACKNOWLEDGEMENTS</a></li>
+  <li><a href="#AUTHOR">AUTHOR</a></li>
+  <li><a href="#SEE-ALSO">SEE ALSO</a></li>
 </ul>
 
-<hr name="index" />
-</div>
-<!-- INDEX END -->
+<p>######################################################################## ## Header =pod</p>
 
-<p>
-</p>
-<h1><a name="ddc___opt_file_syntax">DDC *.opt FILE SYNTAX</a></h1>
-<p>This manpage describes the syntax of *.opt index
-option files (&quot;opt-files&quot;) used by the DDC corpus indexing system.</p>
-<p>
-</p>
-<hr />
-<h1><a name="synopsis">SYNOPSIS</a></h1>
-<pre>
- ##-------------------------------------------------------------
+<h1 id="DDC-.opt-FILE-SYNTAX">DDC *.opt FILE SYNTAX</h1>
+
+<p>This manpage describes the syntax of *.opt index option files (&quot;opt-files&quot;) used by the DDC corpus indexing system.</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code> ##-------------------------------------------------------------
  ## Option Processor Directives
  
  #comment
- include &quot;OPTFILE&quot;</pre>
-<pre>
+ include &quot;OPTFILE&quot;
+
  ##-------------------------------------------------------------
  ## Required Declarations
  
  LANG
- IndexType TYPE</pre>
-<pre>
+ IndexType TYPE
+
  ##-------------------------------------------------------------
  ## Boolean Flags and Switches
  
@@ -158,8 +142,8 @@ option files (&quot;opt-files&quot;) used by the DDC corpus indexing system.</p>
  ResumeOnIndexErrors
  
  GutenbergInterface
- DwdsCorpusInterface</pre>
-<pre>
+ DwdsCorpusInterface
+
  ##-------------------------------------------------------------
  ## Single-valued Options
  
@@ -190,8 +174,8 @@ option files (&quot;opt-files&quot;) used by the DDC corpus indexing system.</p>
  NearRank FLOAT
  
  ServerInfo KEY VALUE
- ServerInfoFile KEY FILENAME</pre>
-<pre>
+ ServerInfoFile KEY FILENAME
+
  ##-------------------------------------------------------------
  ## Multi-valued Options
  
@@ -200,744 +184,594 @@ option files (&quot;opt-files&quot;) used by the DDC corpus indexing system.</p>
  Expand ...
  ExpandBibl ...
  DefaultQueryIndex ...
- Bigrams ...</pre>
-<p>
-</p>
-<hr />
-<h1><a name="description">DESCRIPTION</a></h1>
-<p>This section contains descriptions of the various options and flags
-which may occur in a DDC opt-file, insofar as the author is able
-to provide them.  These are for the most part legacy options which
-may or may not be fully functional.  I have not tested (most of)
-these options for functionality.  The reader is strongly advised
-to perform his or her own tests before using any of the options
-described below (but particularly the undocumented ones)
-in a production environment.</p>
-<p>
-</p>
-<h2><a name="sources">Sources</a></h2>
-<p>DDC opt-files are parsed and processed by the method
-CConcIndexator::LoadOptionsFromString()
-after intialization of
-default option values by the method
-CConcIndexator::InitDefaultOptions(),
-both of which methods are defined in
-<em class="file">src/ConcordLib/ConcordOptions.cpp</em>.
-Refer to the source code for further enlightenment.</p>
-<p>
-</p>
-<h2><a name="option_processor_directives">Option Processor Directives</a></h2>
-<p>
-</p>
-<h3><a name="_comment">#comment</a></h3>
-<p>Comments are lines starting with a literal hash-mark (<code>#</code>).
-Such lines are ignored by the option processor
-<strong>except</strong> for the backwards-compatible <a href="#include">#include</a> directive.</p>
-<p>
-</p>
-<h3><a name="include">include</a></h3>
-<pre>
- include &quot;OPTFILE&quot;
- #include &quot;OPTFILE&quot;</pre>
-<p>The <code>include</code> directive inserts the contents of an external opt-file at the
-current position.  If OPTFILE is a relative pathname, it is interpreted relative
-to the directory containing the top-level .opt file for the current corpus.</p>
-<p>Note that for historical reasons, the C preprocessor syntax <code>#include &quot;OPTFILE&quot;</code>
-is also supported, is <strong>NOT</strong> a comment, and <strong>WILL</strong> be evaluated.  This behavior
-may change in the future.</p>
-<p>
-</p>
-<h2><a name="required_declarations">Required Declarations</a></h2>
-<p>Each DDC option file requires two obligatory declarations <a href="#lang">Lang</a> and <a href="#indextype">IndexType</a>, which
-should occur as the first two options in an opt-file (although they
-may be defined by an external file loaded with the <a href="#include">include</a> directive).</p>
-<p>
-</p>
-<h3><a name="indextype">IndexType</a></h3>
-<pre>
- IndexType TYPE</pre>
-<p>Sets the type of the underlying corpus index.
-<em>TYPE</em> can be <code>DWDS_Index</code>,  <code>MorphXML_Index</code>, or <code>Free_Index</code>.</p>
+ Bigrams ...</code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>This section contains descriptions of the various options and flags which may occur in a DDC opt-file, insofar as the author is able to provide them. These are for the most part legacy options which may or may not be fully functional. I have not tested (most of) these options for functionality. The reader is strongly advised to perform his or her own tests before using any of the options described below (but particularly the undocumented ones) in a production environment.</p>
+
+<h2 id="Sources">Sources</h2>
+
+<p>DDC opt-files are parsed and processed by the method CConcIndexator::LoadOptionsFromString() after intialization of default option values by the method CConcIndexator::InitDefaultOptions(), both of which methods are defined in <i>src/ConcordLib/ConcordOptions.cpp</i>. Refer to the source code for further enlightenment.</p>
+
+<h2 id="Option-Processor-Directives">Option Processor Directives</h2>
+
+<h3 id="comment">#comment</h3>
+
+<p>Comments are lines starting with a literal hash-mark (<code>#</code>). Such lines are ignored by the option processor <b>except</b> for the backwards-compatible <a href="#include">#include</a> directive.</p>
+
+<h3 id="include">include</h3>
+
+<pre><code> include &quot;OPTFILE&quot;
+ #include &quot;OPTFILE&quot;</code></pre>
+
+<p>The <code>include</code> directive inserts the contents of an external opt-file at the current position. If OPTFILE is a relative pathname, it is interpreted relative to the directory containing the top-level .opt file for the current corpus.</p>
+
+<p>Note that for historical reasons, the C preprocessor syntax <code>#include &quot;OPTFILE&quot;</code> is also supported, is <b>NOT</b> a comment, and <b>WILL</b> be evaluated. This behavior may change in the future.</p>
+
+<h2 id="Required-Declarations">Required Declarations</h2>
+
+<p>Each DDC option file requires two obligatory declarations <a href="#lang">Lang</a> and <a href="#indextype">IndexType</a>, which should occur as the first two options in an opt-file (although they may be defined by an external file loaded with the <a href="#include">include</a> directive).</p>
+
+<h3 id="IndexType">IndexType</h3>
+
+<pre><code> IndexType TYPE</code></pre>
+
+<p>Sets the type of the underlying corpus index. <i>TYPE</i> can be <code>DWDS_Index</code>, <code>MorphXML_Index</code>, or <code>Free_Index</code>.</p>
+
 <p>Future versions of DDC may support only the <code>Free_Index</code> type.</p>
-<p>
-</p>
-<h3><a name="lang">LANG</a></h3>
-<p>Sets language to use for runtime lexical expansion and possibly index-time analysis.
-Known languages are <code>German</code>, <code>Russian</code>, <code>English</code>, and (possibly) <code>Generic</code>.</p>
-<p>
-</p>
-<h2><a name="boolean_flags_and_switches">Boolean Flags and Switches</a></h2>
-<p>The following options represent boolean flags and switches, which
-are set if and only if the corresponding flag appears in the corpus opt-file.
-As of ddc v2.0.20, each boolean flag may appear with an optional value argument.
-The value arguments <code>no</code>, <code>n</code>, <code>false</code>, <code>off</code>, <code>disabled</code>, and <code>0</code> cause the corresponding
-boolean flag to be cleared.  Omitting the value argument or specifying any other value causes
-the flag to be set.</p>
-<p>Prior to ddc v2.0.20,
-there was no way to override a previously set boolean flag:
-to disable a boolean option backwards-compatibly, omit it from the opt-file or comment it out.</p>
-<p>
-</p>
-<h3><a name="utf8">Utf8</a></h3>
-<p>If specified true, DDC expects all corpus data and external queries to be encoded in UTF-8.
-This uses both iconv and C99 locales internally, so you should ensure that your
-LC_CTYPE variable has a UTF-8 encoding (e.g. <em>export LC_CTYPE=&quot;en_US.UTF-8&quot;</em> in the parent shell.)
-if you choose to use this option.</p>
-<p>
-</p>
-<h3><a name="disabledefaultquerylexicalexpansion">DisableDefaultQueryLexicalExpansion</a></h3>
-<p>If specified and true, DDC will not include the <a href="#infl"><code>infl</code></a> term expander to the default expansion
-pipeline for the <a href="#token"><code>Token</code></a> index.</p>
-<p>Note that a term expansion explicitly defined with an <a href="#expand">Expand</a> clause for
-the <a href="#token"><code>Token</code></a> index will override the effects of this option.</p>
-<p>
-</p>
-<h3><a name="caseinsensitive">CaseInsensitive</a></h3>
-<p>If specified and true, DDC will not add the <a href="#case"><code>case</code></a> term expander to the default expansion
-pipeline for the <a href="#token"><code>Token</code></a> index.</p>
-<p>Note that a term expansion explicitly defined with an <a href="#expand">Expand</a> clause for
-the <a href="#token"><code>Token</code></a> index will override the effects of this option.</p>
-<p>
-</p>
-<h3><a name="shownumberofrelevantdocuments">ShowNumberOfRelevantDocuments</a></h3>
-<p>(from DDCReadme):
-If set, DDC calculates the number of relevant documents, otherwise the member that holds this number is set to 0.</p>
-<p>
-</p>
-<h3><a name="queryonlyfiles">QueryOnlyFiles</a></h3>
-<p>(from DDCReadme):
-If set, DDC doesn’t create a sentence break collection.
-Only meaningful for <code>DWDS_Index</code> or <code>MorphXML_Index</code> <a href="#indextype">Index Types</a>.</p>
-<p>
-</p>
-<h3><a name="nocontextoperator">NoContextOperator</a></h3>
-<p>(from DDCReadme):
-If set, prohibits context operator (#CNTXT) in the query language.</p>
-<p>
-</p>
-<h3><a name="allowunsafequeries">AllowUnsafeQueries</a></h3>
-<p>If set, any attempt to compile a potentially unsafe query will cause a runtime
-exception to be thrown.  Currently, only file-list queries (<code>&lt; FILENAME</code>)
-are considered &quot;unsafe&quot; for such purposes.</p>
-<p>
-</p>
-<h3><a name="outputbibliographyofhits">OutputBibliographyOfHits</a></h3>
-<p>(from DDCReadme):
-If set, then DDC outputs bibliographical information for hits instead of filenames.</p>
-<p>
-</p>
-<h3><a name="lemmaqueryusesmorphpattern">LemmaQueryUsesMorphPattern</a></h3>
-<p>If true (default), then DDC will treat <code>%LEMMA</code> queries as <code>$Lemma=[LEMMA]</code>,
-i.e. implicitly insert @-delimters around a regex <code>LEMMA</code>.
-Otherwise, <code>%LEMMA</code> queries will be treated as <code>$Lema=@LEMMA</code>, i.e. literal matches.
-Since ddc v2.0.20.</p>
-<p>
-</p>
-<h3><a name="indexchunks">IndexChunks</a></h3>
-<p>(from DDCReadme):
-If set, enables indexing and querying using 'chunks', otherwise chunks are ignored.
-Only meaningful for the <code>Free_Index</code> <a href="#indextype">Index Type</a>.</p>
+
+<h3 id="LANG">LANG</h3>
+
+<p>Sets language to use for runtime lexical expansion and possibly index-time analysis. Known languages are <code>German</code>, <code>Russian</code>, <code>English</code>, and (possibly) <code>Generic</code>.</p>
+
+<h2 id="Boolean-Flags-and-Switches">Boolean Flags and Switches</h2>
+
+<p>The following options represent boolean flags and switches, which are set if and only if the corresponding flag appears in the corpus opt-file. As of ddc v2.0.20, each boolean flag may appear with an optional value argument. The value arguments <code>no</code>, <code>n</code>, <code>false</code>, <code>off</code>, <code>disabled</code>, and <code>0</code> cause the corresponding boolean flag to be cleared. Omitting the value argument or specifying any other value causes the flag to be set.</p>
+
+<p>Prior to ddc v2.0.20, there was no way to override a previously set boolean flag: to disable a boolean option backwards-compatibly, omit it from the opt-file or comment it out.</p>
+
+<h3 id="Utf8">Utf8</h3>
+
+<p>If specified true, DDC expects all corpus data and external queries to be encoded in UTF-8. This uses both iconv and C99 locales internally, so you should ensure that your LC_CTYPE variable has a UTF-8 encoding (e.g. <i>export LC_CTYPE=&quot;en_US.UTF-8&quot;</i> in the parent shell.) if you choose to use this option.</p>
+
+<h3 id="DisableDefaultQueryLexicalExpansion">DisableDefaultQueryLexicalExpansion</h3>
+
+<p>If specified and true, DDC will not include the <code>infl</code> term expander to the default expansion pipeline for the <code>Token</code> index.</p>
+
+<p>Note that a term expansion explicitly defined with an <a href="#expand">Expand</a> clause for the <code>Token</code> index will override the effects of this option.</p>
+
+<h3 id="CaseInsensitive">CaseInsensitive</h3>
+
+<p>If specified and true, DDC will not add the <code>case</code> term expander to the default expansion pipeline for the <code>Token</code> index.</p>
+
+<p>Note that a term expansion explicitly defined with an <a href="#expand">Expand</a> clause for the <code>Token</code> index will override the effects of this option.</p>
+
+<h3 id="ShowNumberOfRelevantDocuments">ShowNumberOfRelevantDocuments</h3>
+
+<p>(from DDCReadme): If set, DDC calculates the number of relevant documents, otherwise the member that holds this number is set to 0.</p>
+
+<h3 id="QueryOnlyFiles">QueryOnlyFiles</h3>
+
+<p>(from DDCReadme): If set, DDC doesn&#39;t create a sentence break collection. Only meaningful for <code>DWDS_Index</code> or <code>MorphXML_Index</code> <a href="#indextype">Index Types</a>.</p>
+
+<h3 id="NoContextOperator">NoContextOperator</h3>
+
+<p>(from DDCReadme): If set, prohibits context operator (#CNTXT) in the query language.</p>
+
+<h3 id="AllowUnsafeQueries">AllowUnsafeQueries</h3>
+
+<p>If set, any attempt to compile a potentially unsafe query will cause a runtime exception to be thrown. Currently, only file-list queries (<code>&lt; FILENAME</code>) are considered &quot;unsafe&quot; for such purposes.</p>
+
+<h3 id="OutputBibliographyOfHits">OutputBibliographyOfHits</h3>
+
+<p>(from DDCReadme): If set, then DDC outputs bibliographical information for hits instead of filenames.</p>
+
+<h3 id="LemmaQueryUsesMorphPattern">LemmaQueryUsesMorphPattern</h3>
+
+<p>If true (default), then DDC will treat <code>%LEMMA</code> queries as <code>$Lemma=[LEMMA]</code>, i.e. implicitly insert @-delimters around a regex <code>LEMMA</code>. Otherwise, <code>%LEMMA</code> queries will be treated as <code>$Lema=@LEMMA</code>, i.e. literal matches. Since ddc v2.0.20.</p>
+
+<h3 id="IndexChunks">IndexChunks</h3>
+
+<p>(from DDCReadme): If set, enables indexing and querying using &#39;chunks&#39;, otherwise chunks are ignored. Only meaningful for the <code>Free_Index</code> <a href="#indextype">Index Type</a>.</p>
+
 <p>NOTE: seems to control implicit creation of a <code>Chunk</code> index.</p>
-<p>
-</p>
-<h3><a name="indexmorphpatterns">IndexMorphPatterns</a></h3>
-<p>(from DDCReadme):
-If set, DDC creates a <code>MorphPattern</code> index.
-Only meaningful for the <code>DWDS_Index</code> <a href="#indextype">Index Type</a>.</p>
-<p>
-</p>
-<h3><a name="indexpunctuation">IndexPunctuation</a></h3>
-<p>(from DDCReadme):
-Index punctuation marks only if set.
-Only meaningful for the <code>DWDS_Index</code> <a href="#indextype">Index Type</a>.</p>
-<p>
-</p>
-<h3><a name="usedwdsthesaurus">UseDwdsThesaurus</a></h3>
-<p>(from DDCReadme):
-Enable creation and use of the <code>Thes</code> thesaurus index if set.
-Only meaningful for the <code>DWDS_Index</code> <a href="#indextype">Index Type</a>.</p>
-<p>
-</p>
-<h3><a name="useparagraphtagtodivide">UseParagraphTagToDivide</a></h3>
-<p>(from DDCReadme):
-If set, the tokenizer seeks <code>&lt;/p&gt;</code> in the input 
-texts in order to  divide the text into paragraphs.
-Only meaningful for the <code>DWDS_Index</code> <a href="#indextype">Index Type</a>.</p>
-<p>
-</p>
-<h3><a name="emptylineisnotsentencedelim">EmptyLineIsNotSentenceDelim</a></h3>
-<p>(from DDCReadme):
-If set, an empty line in the input texts is not interpreted as an end of sentence.
-Only meaningful for the <code>DWDS_Index</code> <a href="#indextype">Index Type</a>.</p>
-<p>
-</p>
-<h3><a name="dontuseindention">DontUseIndention</a></h3>
-<p>(from DDCReadme):
-If set, DDC  doesn’t use indention (sic; assumedly &quot;indentation&quot; is meant) to find paragraph breaks.
-Only meaningful for the <code>DWDS_Index</code> <a href="#indextype">Index Type</a>.</p>
-<p>
-</p>
-<h3><a name="archiveindex">ArchiveIndex</a></h3>
+
+<h3 id="IndexMorphPatterns">IndexMorphPatterns</h3>
+
+<p>(from DDCReadme): If set, DDC creates a <code>MorphPattern</code> index. Only meaningful for the <code>DWDS_Index</code> <a href="#indextype">Index Type</a>.</p>
+
+<h3 id="IndexPunctuation">IndexPunctuation</h3>
+
+<p>(from DDCReadme): Index punctuation marks only if set. Only meaningful for the <code>DWDS_Index</code> <a href="#indextype">Index Type</a>.</p>
+
+<h3 id="UseDwdsThesaurus">UseDwdsThesaurus</h3>
+
+<p>(from DDCReadme): Enable creation and use of the <code>Thes</code> thesaurus index if set. Only meaningful for the <code>DWDS_Index</code> <a href="#indextype">Index Type</a>.</p>
+
+<h3 id="UseParagraphTagToDivide">UseParagraphTagToDivide</h3>
+
+<p>(from DDCReadme): If set, the tokenizer seeks <code>&lt;/p&gt;</code> in the input texts in order to divide the text into paragraphs. Only meaningful for the <code>DWDS_Index</code> <a href="#indextype">Index Type</a>.</p>
+
+<h3 id="EmptyLineIsNotSentenceDelim">EmptyLineIsNotSentenceDelim</h3>
+
+<p>(from DDCReadme): If set, an empty line in the input texts is not interpreted as an end of sentence. Only meaningful for the <code>DWDS_Index</code> <a href="#indextype">Index Type</a>.</p>
+
+<h3 id="DontUseIndention">DontUseIndention</h3>
+
+<p>(from DDCReadme): If set, DDC doesn&rsquo;t use indention (sic; assumedly &quot;indentation&quot; is meant) to find paragraph breaks. Only meaningful for the <code>DWDS_Index</code> <a href="#indextype">Index Type</a>.</p>
+
+<h3 id="ArchiveIndex">ArchiveIndex</h3>
+
 <p>Undocumented</p>
-<p>
-</p>
-<h3><a name="resumeonindexerrors">ResumeOnIndexErrors</a></h3>
+
+<h3 id="ResumeOnIndexErrors">ResumeOnIndexErrors</h3>
+
 <p>Undocumented</p>
-<p>
-</p>
-<h3><a name="gutenberginterface">GutenbergInterface</a></h3>
+
+<h3 id="GutenbergInterface">GutenbergInterface</h3>
+
 <p>Undocumented</p>
-<p>
-</p>
-<h3><a name="dwdscorpusinterface">DwdsCorpusInterface</a></h3>
-<p>(from DDCReadme):
-If set, enables DWDS-like formatting for output hits.</p>
-<p>
-</p>
-<h2><a name="single_valued_options">Single-valued Options</a></h2>
-<p>The following options take a single argument, which may be a list of values.
-Each of these options should occur at most once in an opt-file.
-Assumedly, in the case of multiple occurrences of the same option, the most recent
-declaration &quot;wins&quot;.</p>
-<p>
-</p>
-<h3><a name="indices">Indices</a></h3>
-<pre>
- Indices INDEXLIST</pre>
-<p>(largely drawn from DDCReadme):
-Declares index fields used by the underlying corpus index.
-<code>INDEXLIST</code> is a list  of index declarations delimited by semicolons <code>;</code>.
-Each index declaration is a string of the form</p>
-<pre>
- [LONGNAME SHORTNAME ARCHIVE STORAGE]</pre>
+
+<h3 id="DwdsCorpusInterface">DwdsCorpusInterface</h3>
+
+<p>(from DDCReadme): If set, enables DWDS-like formatting for output hits.</p>
+
+<h2 id="Single-valued-Options">Single-valued Options</h2>
+
+<p>The following options take a single argument, which may be a list of values. Each of these options should occur at most once in an opt-file. Assumedly, in the case of multiple occurrences of the same option, the most recent declaration &quot;wins&quot;.</p>
+
+<h3 id="Indices">Indices</h3>
+
+<pre><code> Indices INDEXLIST</code></pre>
+
+<p>(largely drawn from DDCReadme): Declares index fields used by the underlying corpus index. <code>INDEXLIST</code> is a list of index declarations delimited by semicolons <code>;</code>. Each index declaration is a string of the form</p>
+
+<pre><code> [LONGNAME SHORTNAME ARCHIVE STORAGE]</code></pre>
+
 <p>where:</p>
-<dl>
-<dt><strong><a name="longname" class="item">LONGNAME</a></strong></dt>
 
+<dl>
+
+<dt id="LONGNAME">LONGNAME</dt>
 <dd>
+
 <p>is a long name for the index, conventionally in CamelCase;</p>
-</dd>
-<dt><strong><a name="shortname" class="item">SHORTNAME</a></strong></dt>
 
+</dd>
+<dt id="SHORTNAME">SHORTNAME</dt>
 <dd>
+
 <p>is a short name for the index, conventionally in all lower-case and frequently only a single character;</p>
-</dd>
-<dt><strong><a name="archive" class="item">ARCHIVE</a></strong></dt>
 
-<dd>
-<p>is one of the strings <code>archive</code> or <code>normal</code>.
-If it is <code>archive</code>, the current index is archived, otherwise it is not; and</p>
 </dd>
-<dt><strong><a name="storage" class="item">STORAGE</a></strong></dt>
-
+<dt id="ARCHIVE">ARCHIVE</dt>
 <dd>
-<p>is one of the strings <code>storage</code> or <code>storage_omit</code>.
-If it is <code>storage</code>, then the index is supplied with a storage during indexing, otherwise storage is not built.
-By default the first index is build with a storage (if it is not manually prohibited), other indices are built without storages.</p>
+
+<p>is one of the strings <code>archive</code> or <code>normal</code>. If it is <code>archive</code>, the current index is archived, otherwise it is not; and</p>
+
+</dd>
+<dt id="STORAGE">STORAGE</dt>
+<dd>
+
+<p>is one of the strings <code>storage</code> or <code>storage_omit</code>. If it is <code>storage</code>, then the index is supplied with a storage during indexing, otherwise storage is not built. By default the first index is build with a storage (if it is not manually prohibited), other indices are built without storages.</p>
+
 </dd>
 </dl>
+
 <p>The <a href="#indices">indices</a> option is only supported for the <code>Free_Index</code> <a href="#indextype">Index Type</a>.</p>
-<p>
-</p>
-<h3><a name="indicestoshow">IndicesToShow</a></h3>
-<pre>
- IndicesToShow INTLIST</pre>
-<p>(largely from DDCReadme):
-Declares a list of those indices which should be returned in hit responses to user queries.
-<code>INTLIST</code> is a space-separated list of integers, where each integer <em>i</em> is the position of some index declaration in the
-<a href="#indices">Indices</a> declaration, counting from 1;
-i.e. for each <em>i</em>, 1 &lt;= <em>i</em> &lt;= N_INDICES, where N_INDICES is the number of index declarations by the <a href="#indices">Indices</a> option.
-For each output word, this list determines the order of the indices whose values are used to represent this word in an output hit.
-By default, <a href="#indicestoshow">IndicesToShow</a> is <code>1</code>, i.e. words are represented only by the value of the first index
-(normally the text of the token itself). If some index is mentioned  inIndicesToShow, then it must have an index storage built during indexing.</p>
+
+<h3 id="IndicesToShow">IndicesToShow</h3>
+
+<pre><code> IndicesToShow INTLIST</code></pre>
+
+<p>(largely from DDCReadme): Declares a list of those indices which should be returned in hit responses to user queries. <code>INTLIST</code> is a space-separated list of integers, where each integer <i>i</i> is the position of some index declaration in the <a href="#indices">Indices</a> declaration, counting from 1; i.e. for each <i>i</i>, 1 &lt;= <i>i</i> &lt;= N_INDICES, where N_INDICES is the number of index declarations by the <a href="#indices">Indices</a> option. For each output word, this list determines the order of the indices whose values are used to represent this word in an output hit. By default, <a href="#indicestoShow">IndicesToShow</a> is <code>1</code>, i.e. words are represented only by the value of the first index (normally the text of the token itself). If some index is mentioned inIndicesToShow, then it must have an index storage built during indexing.</p>
+
 <p>Only supported for the <code>Free_Index</code> <a href="#indextype">Index Type</a>.</p>
-<p>
-</p>
-<h3><a name="defaultbibl">DefaultBibl</a></h3>
-<pre>
- DefaultBibl NAME</pre>
-<p><a href="#name"><code>NAME</code></a> is the name of a fallback bibliographic field to be queried if no literal match is found for a runtime
-(user) filter.  <a href="#name"><code>NAME</code></a> must be the name of a bibliographic metadata attribute as defined by the
-<a href="#bibl">Bibl</a> option.
-This option can be used in conjunction with a <code>constant</code> bibliographic metadata attribute
-to provide a default value for unknown bibliographic metadata attributes, e.g. to facilitate interoperability
-between multiple heterogeneous corpora without the need for re-indexing or explicit definition of
-<a href="#bibl">Bibl</a> constant fields.
-If omitted or set to the empty string (the default), query filters on an undefined bibliographic
-attribute will raise a runtime error.</p>
-<p><strong>CAVEAT</strong>: You should think <strong>carefully</strong> before using this feature, since it will suppress error and/or warning
-messages due to typographical errors for &quot;real&quot; attribute fields.</p>
+
+<h3 id="DefaultBibl">DefaultBibl</h3>
+
+<pre><code> DefaultBibl NAME</code></pre>
+
+<p><code>NAME</code> is the name of a fallback bibliographic field to be queried if no literal match is found for a runtime (user) filter. <code>NAME</code> must be the name of a bibliographic metadata attribute as defined by the <a href="#bibl">Bibl</a> option. This option can be used in conjunction with a <code>constant</code> bibliographic metadata attribute to provide a default value for unknown bibliographic metadata attributes, e.g. to facilitate interoperability between multiple heterogeneous corpora without the need for re-indexing or explicit definition of <a href="#bibl">Bibl</a> constant fields. If omitted or set to the empty string (the default), query filters on an undefined bibliographic attribute will raise a runtime error.</p>
+
+<p><b>CAVEAT</b>: You should think <b>carefully</b> before using this feature, since it will suppress error and/or warning messages due to typographical errors for &quot;real&quot; attribute fields.</p>
+
 <p>Since v2.0.27</p>
-<p>
-</p>
-<h3><a name="hitborders">HitBorders</a></h3>
-<pre>
- HitBorders BREAKLIST</pre>
-<p>(largely from DDCReadme):
-<code>BREAKLIST</code> is a string of break collection declarations delimited by semicolons <code>;</code>.
-Each break collection declaration is a colon-separated string of the form
-<code>[LONGNAME:SHORTNAME]</code> or <code>[LONGNAME:SHORTNAME:default]</code>, where</p>
-<dl>
-<dt><strong><a name="longname2" class="item">LONGNAME</a></strong></dt>
 
+<h3 id="HitBorders">HitBorders</h3>
+
+<pre><code> HitBorders BREAKLIST</code></pre>
+
+<p>(largely from DDCReadme): <code>BREAKLIST</code> is a string of break collection declarations delimited by semicolons <code>;</code>. Each break collection declaration is a colon-separated string of the form <code>[LONGNAME:SHORTNAME]</code> or <code>[LONGNAME:SHORTNAME:default]</code>, where</p>
+
+<dl>
+
+<dt id="LONGNAME1">LONGNAME</dt>
 <dd>
+
 <p>is a long name for the break collection, conventionally in CamelCase;</p>
-</dd>
-<dt><strong><a name="shortname2" class="item">SHORTNAME</a></strong></dt>
 
+</dd>
+<dt id="SHORTNAME1">SHORTNAME</dt>
 <dd>
+
 <p>is a short name for the break collection, conventionally in all lower-case and frequently only a single character; and</p>
-</dd>
-<dt><strong><a name="default" class="item"><code>default</code></a></strong></dt>
 
+</dd>
+<dt id="default"><code>default</code></dt>
 <dd>
-<p>is the literal string <a href="#default"><code>default</code></a>, which if present indicates that the
-current break collection is to be used for queries which do not specify any
-break collection specification (e.g. using the <code>#WITHIN</code> query operator).</p>
+
+<p>is the literal string <code>default</code>, which if present indicates that the current break collection is to be used for queries which do not specify any break collection specification (e.g. using the <code>#WITHIN</code> query operator).</p>
+
 </dd>
 </dl>
+
 <p>The <a href="#hitborders">HitBorders</a> option is only supported for the <code>Free_Index</code> <a href="#indextype">Index Type</a>.</p>
-<p>
-</p>
-<h3><a name="htmlhighlighting">HtmlHighlighting</a></h3>
-<pre>
- HtmlHighlighting TAGS</pre>
-<p>Set highlighting strings to use for identifying matched tokens in hits returned in HTML format.
-<code>TAGS</code> is a string of the form <code>L;R;LL;RR</code>, where
-the first matched token <em>w</em> in any hit is marked by <code>L</code><em>w</em><code>R</code>,
-and subsequent matched tokens in the same hit are marked as <code>LL</code><em>w</em><code>RR</code>.
-Tag strings support C-style escapes as well as JSON-style unicode (UTF-8) escapes.</p>
+
+<h3 id="HtmlHighlighting">HtmlHighlighting</h3>
+
+<pre><code> HtmlHighlighting TAGS</code></pre>
+
+<p>Set highlighting strings to use for identifying matched tokens in hits returned in HTML format. <code>TAGS</code> is a string of the form <code>L;R;LL;RR</code>, where the first matched token <i>w</i> in any hit is marked by <code>L</code><i>w</i><code>R</code>, and subsequent matched tokens in the same hit are marked as <code>LL</code><i>w</i><code>RR</code>. Tag strings support C-style escapes as well as JSON-style unicode (UTF-8) escapes.</p>
+
 <p>Default is:</p>
-<pre>
- HtmlHighlighting &lt;STRONG&gt;&lt;FONT COLOR=red&gt;;&lt;/FONT&gt;&lt;/STRONG&gt;;&lt;STRONG&gt;&lt;FONT COLOR=red&gt;;&lt;/FONT&gt;&lt;/STRONG&gt;</pre>
-<p>
-</p>
-<h3><a name="texthighlighting">TextHighlighting</a></h3>
-<pre>
- TextHighlighting TAGS</pre>
-<p>Set highlighting strings to use for identifying matched tokens in hits returned in text format.
-<code>TAGS</code> is string as described under <a href="#htmlhighlighting">HtmlHighlighting</a>.</p>
+
+<pre><code> HtmlHighlighting &lt;STRONG&gt;&lt;FONT COLOR=red&gt;;&lt;/FONT&gt;&lt;/STRONG&gt;;&lt;STRONG&gt;&lt;FONT COLOR=red&gt;;&lt;/FONT&gt;&lt;/STRONG&gt;</code></pre>
+
+<h3 id="TextHighlighting">TextHighlighting</h3>
+
+<pre><code> TextHighlighting TAGS</code></pre>
+
+<p>Set highlighting strings to use for identifying matched tokens in hits returned in text format. <code>TAGS</code> is string as described under <a href="#htmlhighlighting">HtmlHighlighting</a>.</p>
+
 <p>Default is:</p>
-<pre>
- TextHighlighting &amp;&amp;;&amp;&amp;;_&amp;;&amp;_</pre>
-<p>
-</p>
-<h3><a name="tablehighlighting">TableHighlighting</a></h3>
-<pre>
- TableHighlighting TAGS</pre>
-<p>Set highlighting strings to use for identifying matched tokens in hits returned in table format.
-<code>TAGS</code> is string as described under <a href="#htmlhighlighting">HtmlHighlighting</a>.</p>
+
+<pre><code> TextHighlighting &amp;&amp;;&amp;&amp;;_&amp;;&amp;_</code></pre>
+
+<h3 id="TableHighlighting">TableHighlighting</h3>
+
+<pre><code> TableHighlighting TAGS</code></pre>
+
+<p>Set highlighting strings to use for identifying matched tokens in hits returned in table format. <code>TAGS</code> is string as described under <a href="#htmlhighlighting">HtmlHighlighting</a>.</p>
+
 <p>Default is:</p>
-<pre>
- TableHighlighting &amp;&amp;;&amp;&amp;;_&amp;;&amp;_</pre>
-<p>
-</p>
-<h3><a name="tokendelimiter">TokenDelimiter</a></h3>
-<pre>
- TokenDelimiter DELIM</pre>
-<p>Set delimiter string to be inserted before the data for each token in HTML, Text, and Table output formats.
-Prior to DDC release 2.0 (branch 1.80-dx1), this option was not present and token boundaries could not be reliably
-determined from the built-in output formats.
-The string DELIM may not contain any literal whitespace, but C-style escapes and
-JSON-style unicode escapes are supported</p>
+
+<pre><code> TableHighlighting &amp;&amp;;&amp;&amp;;_&amp;;&amp;_</code></pre>
+
+<h3 id="TokenDelimiter">TokenDelimiter</h3>
+
+<pre><code> TokenDelimiter DELIM</code></pre>
+
+<p>Set delimiter string to be inserted before the data for each token in HTML, Text, and Table output formats. Prior to DDC release 2.0 (branch 1.80-dx1), this option was not present and token boundaries could not be reliably determined from the built-in output formats. The string DELIM may not contain any literal whitespace, but C-style escapes and JSON-style unicode escapes are supported</p>
+
 <p>For historical reasons, DELIM defaults to an empty string.</p>
-<p>
-</p>
-<h3><a name="interpdelimiter">InterpDelimiter</a></h3>
-<pre>
- InterpDelimiter DELIM</pre>
-<p>Set delimiter string to be inserted between individual index fields for each token in HTML, Text, and Table output formats.
-The string DELIM may not contain any literal whitespace, but C-style escapes and
-JSON-style unicode escapes are supported
-Defaults to <code>#</code>.</p>
+
+<h3 id="InterpDelimiter">InterpDelimiter</h3>
+
+<pre><code> InterpDelimiter DELIM</code></pre>
+
+<p>Set delimiter string to be inserted between individual index fields for each token in HTML, Text, and Table output formats. The string DELIM may not contain any literal whitespace, but C-style escapes and JSON-style unicode escapes are supported Defaults to <code>#</code>.</p>
+
 <p>For historical reasons, the (misspelled) option <code>InterpDelimeter</code> is an alias for <code>InterpDelimiter</code>.</p>
-<p>
-</p>
-<h3><a name="leftkwiccontextsize">LeftKwicContextSize</a></h3>
-<pre>
- LeftKwicContextSize N</pre>
-<p>(from DDCReadme):
-Set the length of the right context to use for each
-KWIC line when generating file summaries (snippets).
-The default value is 4.</p>
-<p>
-</p>
-<h3><a name="rightkwiccontextsize">RightKwicContextSize</a></h3>
-<pre>
- RightKwicContextSize N</pre>
-<p>(from DDCReadme):
-Set the length of the right context to use for each
-KWIC line when generating file summaries (snippets).
-The default value is 4.</p>
-<p>
-</p>
-<h3><a name="numberofkwiclinesinsnippets">NumberOfKwicLinesInSnippets</a></h3>
-<pre>
- NumberOfKwicLinesInSnippets N</pre>
-<p>(from DDCReadme):
-Set the number of kwic lines in snippets. The default value is 10.</p>
-<p>
-</p>
-<h3><a name="maxregexpexpansionsize">MaxRegExpExpansionSize</a></h3>
-<pre>
- MaxRegExpExpansionSize N</pre>
-<p>(from DDCReadme):
-Set the maximum number of indexed items
-which can be included in an expansion set of one regular expression.
-Default value is 1000000.</p>
-<p>
-</p>
-<h3><a name="maxcachedhitscount">MaxCachedHitsCount</a></h3>
-<pre>
- MaxCachedHitsCount N</pre>
-<p>Set maximum number of hits to store in a cache entry of an associated CConcHolder (subcorpus server).
-Query results with more than <code>N</code> hits will not be cached.
-Default=512.</p>
+
+<h3 id="LeftKwicContextSize">LeftKwicContextSize</h3>
+
+<pre><code> LeftKwicContextSize N</code></pre>
+
+<p>(from DDCReadme): Set the length of the right context to use for each KWIC line when generating file summaries (snippets). The default value is 4.</p>
+
+<h3 id="RightKwicContextSize">RightKwicContextSize</h3>
+
+<pre><code> RightKwicContextSize N</code></pre>
+
+<p>(from DDCReadme): Set the length of the right context to use for each KWIC line when generating file summaries (snippets). The default value is 4.</p>
+
+<h3 id="NumberOfKwicLinesInSnippets">NumberOfKwicLinesInSnippets</h3>
+
+<pre><code> NumberOfKwicLinesInSnippets N</code></pre>
+
+<p>(from DDCReadme): Set the number of kwic lines in snippets. The default value is 10.</p>
+
+<h3 id="MaxRegExpExpansionSize">MaxRegExpExpansionSize</h3>
+
+<pre><code> MaxRegExpExpansionSize N</code></pre>
+
+<p>(from DDCReadme): Set the maximum number of indexed items which can be included in an expansion set of one regular expression. Default value is 1000000.</p>
+
+<h3 id="MaxCachedHitsCount">MaxCachedHitsCount</h3>
+
+<pre><code> MaxCachedHitsCount N</code></pre>
+
+<p>Set maximum number of hits to store in a cache entry of an associated CConcHolder (subcorpus server). Query results with more than <code>N</code> hits will not be cached. Default=512.</p>
+
 <p>Since v2.0.23 (formerly a global constant = 500).</p>
-<p>
-</p>
-<h3><a name="maxquerycachesize">MaxQueryCacheSize</a></h3>
-<pre>
- MaxQueryCacheSize N</pre>
-<p>Set maximum number of queries to be LRU-cached by an associated CConcHolder (subcorpus server).
-Default=512.</p>
+
+<h3 id="MaxQueryCacheSize">MaxQueryCacheSize</h3>
+
+<pre><code> MaxQueryCacheSize N</code></pre>
+
+<p>Set maximum number of queries to be LRU-cached by an associated CConcHolder (subcorpus server). Default=512.</p>
+
 <p>Since v2.0.23 (formerly a global constant = 500).</p>
-<p>
-</p>
-<h3><a name="usermaxtokencountinoneperiod">UserMaxTokenCountInOnePeriod</a></h3>
-<pre>
- UserMaxTokenCountInOnePeriod N</pre>
-<p>(from DDCReadme):
-Set the size of internal subcorpora.
-The greater the value of this parameter is, the faster
-querying procedures work, and the more memory the program needs.</p>
+
+<h3 id="UserMaxTokenCountInOnePeriod">UserMaxTokenCountInOnePeriod</h3>
+
+<pre><code> UserMaxTokenCountInOnePeriod N</code></pre>
+
+<p>(from DDCReadme): Set the size of internal subcorpora. The greater the value of this parameter is, the faster querying procedures work, and the more memory the program needs.</p>
+
 <p>Default if unspecified is hard-coded as 5000000.</p>
-<p>
-</p>
-<h3><a name="localpathprefix">LocalPathPrefix</a></h3>
-<pre>
- LocalPathPrefix STRING</pre>
-<p>(from DDCReadme):
-The common prefix of each corpus filename that should be replaced by
-the value of <a href="#internetpathprefix">InternetPathPrefix</a> when DDC outputs file names.</p>
-<p>
-</p>
-<h3><a name="internetpathprefix">InternetPathPrefix</a></h3>
-<pre>
- InternetPathPrefix STRING</pre>
-<p>Replaces the value of <a href="#localpathprefix">LocalPathPrefix</a> in corpus filenames
-if and when they occur in DDC output.</p>
-<p>
-</p>
-<h3><a name="tfidfrank">TfIdfRank</a></h3>
-<pre>
- TfIdfRank FLOAT</pre>
-<p>(from DDCReadme):
-Float parameter (0 &lt;=FLOAT &lt; 1) for TFIDF weighting.</p>
-<p>
-</p>
-<h3><a name="positionrank">PositionRank</a></h3>
-<pre>
- PositionRank FLOAT</pre>
-<p>(from DDCReadme):
-Float parameter (0 &lt;=FLOAT &lt; 1) for position weighting.</p>
-<p>
-</p>
-<h3><a name="nearrank">NearRank</a></h3>
-<pre>
- NearRank FLOAT</pre>
+
+<h3 id="LocalPathPrefix">LocalPathPrefix</h3>
+
+<pre><code> LocalPathPrefix STRING</code></pre>
+
+<p>(from DDCReadme): The common prefix of each corpus filename that should be replaced by the value of <a href="#internetpathprefix">InternetPathPrefix</a> when DDC outputs file names.</p>
+
+<h3 id="InternetPathPrefix">InternetPathPrefix</h3>
+
+<pre><code> InternetPathPrefix STRING</code></pre>
+
+<p>Replaces the value of <a href="#localpathprefix">LocalPathPrefix</a> in corpus filenames if and when they occur in DDC output.</p>
+
+<h3 id="TfIdfRank">TfIdfRank</h3>
+
+<pre><code> TfIdfRank FLOAT</code></pre>
+
+<p>(from DDCReadme): Float parameter (0 &lt;=FLOAT &lt; 1) for TFIDF weighting.</p>
+
+<h3 id="PositionRank">PositionRank</h3>
+
+<pre><code> PositionRank FLOAT</code></pre>
+
+<p>(from DDCReadme): Float parameter (0 &lt;=FLOAT &lt; 1) for position weighting.</p>
+
+<h3 id="NearRank">NearRank</h3>
+
+<pre><code> NearRank FLOAT</code></pre>
+
 <p>Float parameter (0 &lt;=FLOAT &lt; 1) for NEAR weighting.</p>
-<p>
-</p>
-<h3><a name="serverinfo">ServerInfo</a></h3>
-<pre>
- ServerInfo KEY VALUE</pre>
-<p>Sets a constant value to be returned in responses to client 'info' requests
-to an associated CDDCLeafServer (see <em>ddc_proto</em>).  KEY is a key string optionally
-containing C escapes, and VALUE is a literal JSON value to be returned as the value
-of <code>user.KEY</code> in leaf-server 'info' responses.</p>
+
+<h3 id="ServerInfo">ServerInfo</h3>
+
+<pre><code> ServerInfo KEY VALUE</code></pre>
+
+<p>Sets a constant value to be returned in responses to client &#39;info&#39; requests to an associated CDDCLeafServer (see <a>ddc_proto</a>). KEY is a key string optionally containing C escapes, and VALUE is a literal JSON value to be returned as the value of <code>user.KEY</code> in leaf-server &#39;info&#39; responses.</p>
+
 <p>Since v2.0.34.</p>
-<p>
-</p>
-<h3><a name="serverinfofile">ServerInfoFile</a></h3>
-<pre>
- ServerInfoFile KEY FILENAME</pre>
-<p>Sets an external filename value to be returned in responses to client 'info' requests
-to an associated CDDCLeafServer (see <em>ddc_proto</em>).  KEY is a key string optionally
-containing C escapes, and FILENAME is a filename containing literal JSON code to be returned as the value
-of <code>user.KEY</code> in leaf-server 'info' responses.  FILENAME is interpreted relative to the directory
-containing the project *.con file associated with the leaf server.</p>
+
+<h3 id="ServerInfoFile">ServerInfoFile</h3>
+
+<pre><code> ServerInfoFile KEY FILENAME</code></pre>
+
+<p>Sets an external filename value to be returned in responses to client &#39;info&#39; requests to an associated CDDCLeafServer (see <a>ddc_proto</a>). KEY is a key string optionally containing C escapes, and FILENAME is a filename containing literal JSON code to be returned as the value of <code>user.KEY</code> in leaf-server &#39;info&#39; responses. FILENAME is interpreted relative to the directory containing the project *.con file associated with the leaf server.</p>
+
 <p>Since v2.0.34.</p>
-<p>
-</p>
-<h2><a name="multi_valued_options">Multi-valued Options</a></h2>
+
+<h2 id="Multi-valued-Options">Multi-valued Options</h2>
+
 <p>The following options may occur multiple times in a single opt-file.</p>
-<p>
-</p>
-<h3><a name="textarea">textarea</a></h3>
-<pre>
- textarea NAME XPATH</pre>
-<p>(from DDCReadme):
-Each <code>textarea</code> declaration describes a single text area, where
-NAME is name of the text area field, and
-XPATH is an X-Path.</p>
-<p>
-</p>
-<h3><a name="bibl">Bibl</a></h3>
-<pre>
- Bibl TYPE VISIBILITY NAME VALUE</pre>
-<p>(mostly from DDCReadme):
-Each <code>Bibl</code> declaration describes a single bibliographical field (such as date of publication, author, and so on).
-The bibliographical field can be predefined (&quot;orig&quot;, &quot;scan&quot;, &quot;date&quot;, &quot;page&quot;, &quot;pagerank&quot;) or free (user-defined).
-Predefined bibliographical fields have special processing in DDC, for example, field &quot;scan&quot; is used to build a hit
-header. Free bibliographical fields can contain either integer or string data: for both datatypes, one can use
-the general filter operator or general order operators (<code>#HAS</code> and <code>#LESS_BY</code> respectively).
-The arguments to free <code>Bibl</code> are:</p>
-<dl>
-<dt><strong><a name="type" class="item">TYPE</a></strong></dt>
 
+<h3 id="textarea">textarea</h3>
+
+<pre><code> textarea NAME XPATH</code></pre>
+
+<p>(from DDCReadme): Each <code>textarea</code> declaration describes a single text area, where NAME is name of the text area field, and XPATH is an X-Path.</p>
+
+<h3 id="Bibl">Bibl</h3>
+
+<pre><code> Bibl TYPE VISIBILITY NAME VALUE</code></pre>
+
+<p>(mostly from DDCReadme): Each <code>Bibl</code> declaration describes a single bibliographical field (such as date of publication, author, and so on). The bibliographical field can be predefined (&quot;orig&quot;, &quot;scan&quot;, &quot;date&quot;, &quot;page&quot;, &quot;pagerank&quot;) or free (user-defined). Predefined bibliographical fields have special processing in DDC, for example, field &quot;scan&quot; is used to build a hit header. Free bibliographical fields can contain either integer or string data: for both datatypes, one can use the general filter operator or general order operators (<code>#HAS</code> and <code>#LESS_BY</code> respectively). The arguments to free <code>Bibl</code> are:</p>
+
+<dl>
+
+<dt id="TYPE">TYPE</dt>
 <dd>
+
 <p>is the type of the bibliographic field; either <code>string</code>, <code>integer</code>, or <code>constant</code>;</p>
-</dd>
-<dt><strong><a name="visibility" class="item">VISIBILITY</a></strong></dt>
 
-<dd>
-<p>either <code>1</code> or <code>0</code>: if it is &quot;1&quot;,  then DDC displays the value of the field for each hit header;</p>
 </dd>
-<dt><strong><a name="name" class="item">NAME</a></strong></dt>
-
+<dt id="VISIBILITY">VISIBILITY</dt>
 <dd>
+
+<p>either <code>1</code> or <code>0</code>: if it is &quot;1&quot;, then DDC displays the value of the field for each hit header;</p>
+
+</dd>
+<dt id="NAME">NAME</dt>
+<dd>
+
 <p>a symbolic name for this bibliographic field (by convention all lower-case); and</p>
-</dd>
-<dt><strong><a name="value" class="item">VALUE</a></strong></dt>
 
+</dd>
+<dt id="VALUE">VALUE</dt>
 <dd>
-<p>For the <code>string</code> and <code>integer</code> types, <a href="#value"><code>VALUE</code></a> should be an X-Path specification of the location
-of the field data in corpus source documents; for
-the <code>constant</code> type, it should be a literal string indicating the value to be returned.</p>
+
+<p>For the <code>string</code> and <code>integer</code> types, <code>VALUE</code> should be an X-Path specification of the location of the field data in corpus source documents; for the <code>constant</code> type, it should be a literal string indicating the value to be returned.</p>
+
 </dd>
 </dl>
-<p>Note that additions, deletions, and/or changes to <code>constant</code> bibliographic fields do <strong>not</strong>
-require re-indexing, whereas any changes to non-<code>constant</code> fields <strong>do</strong>.</p>
-<p>Prior to v2.0.30, multiple definitions of a bibliographic field <a href="#name"><code>NAME</code></a> caused a fatal
-error when loading a corpus project.  As of v2.0.30, a warning is emitted in these cases,
-and the most recent definition is used (later definitions effectively &quot;clobbering&quot; earlier
-ones).</p>
+
+<p>Note that additions, deletions, and/or changes to <code>constant</code> bibliographic fields do <b>not</b> require re-indexing, whereas any changes to non-<code>constant</code> fields <b>do</b>.</p>
+
+<p>Prior to v2.0.30, multiple definitions of a bibliographic field <code>NAME</code> caused a fatal error when loading a corpus project. As of v2.0.30, a warning is emitted in these cases, and the most recent definition is used (later definitions effectively &quot;clobbering&quot; earlier ones).</p>
+
 <p>Since v1.x; <code>constant</code> fields since v2.0.27, multiple definition since v2.0.30.</p>
-<p>
-</p>
-<h3><a name="bigrams">Bigrams</a></h3>
-<pre>
- Bigrams INDEXNAME MAXLEN BREAKNAME</pre>
-<p>Request construction of an n-gram index at indexing time, suitable for sorting runtime hits
-lexicographically by neighbor <em>INDEXNAME</em> using the <code>#left</code> and/or <code>#right</code> query operators.
-Up to <em>MAXLEN</em> neighbors are considered for the sort.  Breaks of type <em>BREAKNAME</em> terminate
-the sort.
-Example usage: <code>Bigrams Token 2 s</code>.</p>
-<p><strong>OBSOLETE</strong> as of ddc v2.0.19, which supports generic <code>#left</code> and/or <code>#right</code> query operators
-on arbitrary token attributes within the current query break collection, provided the indices for 
-the attributes in question were built with the <a href="#storage">STORAGE</a> option set.</p>
-<p>
-</p>
-<h3><a name="expand">Expand</a></h3>
-<pre>
- Expand LABEL CLASS PARAM...</pre>
-<p>Declares a named term expander which can be used to expand index queries
-using either the explicit pipeline notation (<code>|LABEL|...</code>), or implicit
-expansion heuristics on a per-index basis.  Conceptually,
-each expander in a pipeline operates on the set of terms returned by the
-previous expander in the pipeline, and the set returned by the final expander
-in the pipeline represents that set of index values which qualify as &quot;matches&quot; to the term queried.</p>
-<p><em>LABEL</em> is a label string
-used to identify the expander in user-specified pipelines.
-If <em>LABEL</em> is also the <em>LONGNAME</em> of an index field declared in <a href="#indices">Indices</a>,
-then the corresponding expander is used implicitly if no explicit pipeline is
-specified or if the default pipeline <code>|-</code> is used.</p>
-<p><em>CLASS</em> is a string representing the expansion function to use, and
-<em>PARAM...</em> are additional parameters to the expansion function.
-Currently supported expander classes are:</p>
+
+<h3 id="Bigrams">Bigrams</h3>
+
+<pre><code> Bigrams INDEXNAME MAXLEN BREAKNAME</code></pre>
+
+<p>Request construction of an n-gram index at indexing time, suitable for sorting runtime hits lexicographically by neighbor <i>INDEXNAME</i> using the <code>#left</code> and/or <code>#right</code> query operators. Up to <i>MAXLEN</i> neighbors are considered for the sort. Breaks of type <i>BREAKNAME</i> terminate the sort. Example usage: <code>Bigrams Token 2 s</code>.</p>
+
+<p><b>OBSOLETE</b> as of ddc v2.0.19, which supports generic <code>#left</code> and/or <code>#right</code> query operators on arbitrary token attributes within the current query break collection, provided the indices for the attributes in question were built with the <a href="#STORAGE">STORAGE</a> option set.</p>
+
+<h3 id="Expand">Expand</h3>
+
+<pre><code> Expand LABEL CLASS PARAM...</code></pre>
+
+<p>Declares a named term expander which can be used to expand index queries using either the explicit pipeline notation (<code>|LABEL|...</code>), or implicit expansion heuristics on a per-index basis. Conceptually, each expander in a pipeline operates on the set of terms returned by the previous expander in the pipeline, and the set returned by the final expander in the pipeline represents that set of index values which qualify as &quot;matches&quot; to the term queried.</p>
+
+<p><i>LABEL</i> is a label string used to identify the expander in user-specified pipelines. If <i>LABEL</i> is also the <i>LONGNAME</i> of an index field declared in <a href="#indices">Indices</a>, then the corresponding expander is used implicitly if no explicit pipeline is specified or if the default pipeline <code>|-</code> is used.</p>
+
+<p><i>CLASS</i> is a string representing the expansion function to use, and <i>PARAM...</i> are additional parameters to the expansion function. Currently supported expander classes are:</p>
+
 <dl>
-<dt><strong><a name="id" class="item">Id</a></strong></dt>
 
+<dt id="Id">Id</dt>
 <dd>
-<pre>
- Expand LABEL Id
- Expand LABEL Null</pre>
-<p>Identity expander (no-op).  Parameters: none.</p>
+
+<pre><code> Expand LABEL Id
+ Expand LABEL Null</code></pre>
+
+<p>Identity expander (no-op). Parameters: none.</p>
+
 </dd>
-<dt><strong><a name="case" class="item">Case</a></strong></dt>
-
+<dt id="Case">Case</dt>
 <dd>
-<pre>
-  Expand LABEL Case LANG</pre>
-<p>Letter-case expander (upper- vs. lower-case).
-Parameters: <code>LANG</code>, a language string as accepted by the
-<a href="#lang">LANG</a> declaration.  In particular, the
-&quot;language&quot; <code>Generic</code> can be used to specify that
-the C99 locale settings should be used to provide
-upper/lower-case mappings on wide character strings:
-in this case, you must ensure that the <em>LC_CTYPE</em>
-enviornment variable for the DDC process is set
-appropriately for the corpus and runtime query data.</p>
-<p>Note that not all letter-case variants are created
-by this expander (&quot;McTaggart problem&quot;).</p>
+
+<pre><code>  Expand LABEL Case LANG</code></pre>
+
+<p>Letter-case expander (upper- vs. lower-case). Parameters: <code>LANG</code>, a language string as accepted by the <a href="#lang">LANG</a> declaration. In particular, the &quot;language&quot; <code>Generic</code> can be used to specify that the C99 locale settings should be used to provide upper/lower-case mappings on wide character strings: in this case, you must ensure that the <i>LC_CTYPE</i> enviornment variable for the DDC process is set appropriately for the corpus and runtime query data.</p>
+
+<p>Note that not all letter-case variants are created by this expander (&quot;McTaggart problem&quot;).</p>
+
 </dd>
-<dt><strong><a name="tolower" class="item">ToLower</a></strong></dt>
-
+<dt id="ToLower">ToLower</dt>
 <dd>
-<pre>
-  Expand LABEL ToLower LANG</pre>
-<p>Forces all terms to lower-case.
-Parameters: <code>LANG</code>, a language string as accepted by the
-<a href="#lang">LANG</a> declaration, or <code>Generic</code> to use the C99 locale settings.</p>
+
+<pre><code>  Expand LABEL ToLower LANG</code></pre>
+
+<p>Forces all terms to lower-case. Parameters: <code>LANG</code>, a language string as accepted by the <a href="#lang">LANG</a> declaration, or <code>Generic</code> to use the C99 locale settings.</p>
+
 </dd>
-<dt><strong><a name="toupper" class="item">ToUpper</a></strong></dt>
-
+<dt id="ToUpper">ToUpper</dt>
 <dd>
-<pre>
-  Expand LABEL ToUpper LANG</pre>
-<p>Forces all terms to upper-case.
-Parameters: <code>LANG</code>, a language string as accepted by the
-<a href="#lang">LANG</a> declaration, or <code>Generic</code> to use the C99 locale settings.</p>
+
+<pre><code>  Expand LABEL ToUpper LANG</code></pre>
+
+<p>Forces all terms to upper-case. Parameters: <code>LANG</code>, a language string as accepted by the <a href="#lang">LANG</a> declaration, or <code>Generic</code> to use the C99 locale settings.</p>
+
 </dd>
-<dt><strong><a name="infl" class="item">Infl</a></strong></dt>
-
+<dt id="Infl">Infl</dt>
 <dd>
-<pre>
- Expand LABEL Infl LANG
- Expand LABEL Morph LANG</pre>
-<p>Inflectional variant expander using built-in morphology
-tables.  Parameters: <code>LANG</code>, a language string as
-accepted by the <a href="#lang">LANG</a> declaration.</p>
+
+<pre><code> Expand LABEL Infl LANG
+ Expand LABEL Morph LANG</code></pre>
+
+<p>Inflectional variant expander using built-in morphology tables. Parameters: <code>LANG</code>, a language string as accepted by the <a href="#lang">LANG</a> declaration.</p>
+
 </dd>
-<dt><strong><a name="cab" class="item">Cab</a></strong></dt>
-
+<dt id="Cab">Cab</dt>
 <dd>
-<pre>
- Expand LABEL Cab URL TIMEOUT DEBUG MAPMODE</pre>
-<p>Orthographic variant expander which queries an external DTA::CAB HTTP server.
-Parameters:</p>
+
+<pre><code> Expand LABEL Cab URL TIMEOUT DEBUG MAPMODE</code></pre>
+
+<p>Orthographic variant expander which queries an external DTA::CAB HTTP server. Parameters:</p>
+
 <dl>
-<dt><strong><a name="url" class="item">URL</a></strong></dt>
 
+<dt id="URL">URL</dt>
 <dd>
-<p>URL of the DTA::CAB HTTP server to be queried with GET request.
-The underlying implementation appends a URL-encoded parameter <code>qd=DATA</code>
-to this URL before requesting data from the server, where <em>DATA</em> is
-a newline-separated list of types to be expanded.
-The data format returned by the server is assumed to be a list
-of expanded types separated by TABs, newlines, and/or carriage returns.
-Empty types in the output are ignored.</p>
+
+<p>URL of the DTA::CAB HTTP server to be queried with GET request. The underlying implementation appends a URL-encoded parameter <code>qd=DATA</code> to this URL before requesting data from the server, where <i>DATA</i> is a newline-separated list of types to be expanded. The data format returned by the server is assumed to be a list of expanded types separated by TABs, newlines, and/or carriage returns. Empty types in the output are ignored.</p>
+
 </dd>
-<dt><strong><a name="timeout" class="item">TIMEOUT</a></strong></dt>
-
+<dt id="TIMEOUT">TIMEOUT</dt>
 <dd>
-<p>Timeout in seconds for the expansion query.
-If the timeout is exceeded, a warning is printed and the
-CAB expander behaves like an <a href="#id">Id</a> expander, returning
-the same set it was passed.</p>
+
+<p>Timeout in seconds for the expansion query. If the timeout is exceeded, a warning is printed and the CAB expander behaves like an <a href="#id">Id</a> expander, returning the same set it was passed.</p>
+
 </dd>
-<dt><strong><a name="debug" class="item">DEBUG</a></strong></dt>
-
+<dt id="DEBUG">DEBUG</dt>
 <dd>
-<p>Boolean flag for debugging.  If set to a true value, all data
-passed to and from the external DTA::CAB server will be echoed
-to stderr.  Not for production use.</p>
+
+<p>Boolean flag for debugging. If set to a true value, all data passed to and from the external DTA::CAB server will be echoed to stderr. Not for production use.</p>
+
 </dd>
-<dt><strong><a name="mapmode" class="item">MAPMODE</a></strong></dt>
-
+<dt id="MAPMODE">MAPMODE</dt>
 <dd>
-<p>Boolean flag.  If false or unspecified (&quot;union-mode&quot;), all input terms are
-implicitly included to the output set, regardless of whether or not they are
-also present in the server's response.  If <em>MAPMODE</em> specified and true, only those
-terms explicitly included in the server's response are included in the output set.</p>
+
+<p>Boolean flag. If false or unspecified (&quot;union-mode&quot;), all input terms are implicitly included to the output set, regardless of whether or not they are also present in the server&#39;s response. If <i>MAPMODE</i> specified and true, only those terms explicitly included in the server&#39;s response are included in the output set.</p>
+
 </dd>
 </dl>
-</dd>
-<dt><strong><a name="cabmap" class="item">CabMap</a></strong></dt>
 
-<dd>
-<pre>
- Expand LABEL CabMap URL TIMEOUT DEBUG MAPMODE</pre>
-<p>Wrapper for the <a href="#cab">Cab</a> class with a default <em>MAPMODE</em>=1.</p>
 </dd>
-<dt><strong><a name="chain" class="item">Chain</a></strong></dt>
-
+<dt id="CabMap">CabMap</dt>
 <dd>
-<pre>
- Expand LABEL Chain PIPELINE...</pre>
-<p>Assigns a label to a chain of previously defined expanders.
-Takes a <code>PIPELINE</code> of expander labels as its argument:
-expander labels in <code>PIPELINE</code> may separated by whitespace
-and/or the <code>|</code> symbol (multiple consecutive delimiters are ignored).
-Note that an empty expander chain is equivalent to an <a href="#id">Id</a> expander.</p>
+
+<pre><code> Expand LABEL CabMap URL TIMEOUT DEBUG MAPMODE</code></pre>
+
+<p>Wrapper for the <a href="#cab">Cab</a> class with a default <i>MAPMODE</i>=1.</p>
+
+</dd>
+<dt id="Chain">Chain</dt>
+<dd>
+
+<pre><code> Expand LABEL Chain PIPELINE...</code></pre>
+
+<p>Assigns a label to a chain of previously defined expanders. Takes a <code>PIPELINE</code> of expander labels as its argument: expander labels in <code>PIPELINE</code> may separated by whitespace and/or the <code>|</code> symbol (multiple consecutive delimiters are ignored). Note that an empty expander chain is equivalent to an <a href="#id">Id</a> expander.</p>
+
 </dd>
 </dl>
-<p>DDC ensures that the following expander labels are defined,
-instantiating them with default parameters only if no other
-expander with the same label is explicitly defined in the opt-file:</p>
-<dl>
-<dt><strong><a name="id" class="item">id</a></strong></dt>
 
+<p>DDC ensures that the following expander labels are defined, instantiating them with default parameters only if no other expander with the same label is explicitly defined in the opt-file:</p>
+
+<dl>
+
+<dt id="id">id</dt>
 <dd>
+
 <p>Defined as <code>Expand id Id</code></p>
-</dd>
-<dt><strong><a name="null" class="item">null</a></strong></dt>
 
+</dd>
+<dt id="null">null</dt>
 <dd>
+
 <p>Defined as <code>Expand null Id</code></p>
-</dd>
-<dt><strong><a name="case" class="item">case</a></strong></dt>
 
-<dd>
-<p>Defined as <code>Expand case LANG</code> unless the <a href="#utf8">Utf8</a> flag was set,
-in which case the default <em>case</em> expander is defined as <code>Expand case Generic</code>.</p>
 </dd>
-<dt><strong><a name="infl" class="item">infl</a></strong></dt>
-
+<dt id="case">case</dt>
 <dd>
+
+<p>Defined as <code>Expand case LANG</code> unless the <a href="#utf8">Utf8</a> flag was set, in which case the default <i>case</i> expander is defined as <code>Expand case Generic</code>.</p>
+
+</dd>
+<dt id="infl">infl</dt>
+<dd>
+
 <p>Defined as <code>Expand infl LANG</code>.</p>
-</dd>
-<dt><strong><a name="token" class="item">Token</a></strong></dt>
 
+</dd>
+<dt id="Token">Token</dt>
 <dd>
-<p>Default expansion chain for the <em>Token</em> index.
-Usually defined as <code>Expand Token Chain infl case</code>,
-but note that the <a href="#case"><code>case</code></a> component will be omitted from
-the default chain unless the legacy <a href="#caseinsensitive">CaseInsensitive</a> flag is set,
-and the <a href="#infl"><code>infl</code></a> component will be omitted if
-the legacy <a href="#disabledefaultquerylexicalexpansion">DisableDefaultQueryLexicalExpansion</a>
-option is set.</p>
+
+<p>Default expansion chain for the <i>Token</i> index. Usually defined as <code>Expand Token Chain infl case</code>, but note that the <code>case</code> component will be omitted from the default chain unless the legacy <a href="#caseinsensitive">CaseInsensitive</a> flag is set, and the <code>infl</code> component will be omitted if the legacy <a href="#disabledefaultquerylexicalexpansion">DisableDefaultQueryLexicalExpansion</a> option is set.</p>
+
 </dd>
 </dl>
-<p>
-</p>
-<h3><a name="expandbibl">ExpandBibl</a></h3>
-<pre>
- ExpandBibl LABEL TARGET CLASS PARAM...</pre>
-<p>Declares a named bibliographic expander which can be used in place of a
-physically indexed bibliographic fields (as declared with the <a href="#bibl">Bibl</a> option)
-in #HAS_FIELD queries.</p>
-<p><em>LABEL</em> is a label string
-used to identify the expander in user-specified pipelines.
-<em>TARGET</em> is the unique <em>NAME</em> associated with a physically indexed bibliographic field used for the underlying query.
-If <em>LABEL</em> is also the <em>NAME</em> of a physically indexed bibliographic field declared with <a href="#bibl">Bibl</a>,
-then the pseudo-field declared with <code>ExpandBibl</code> has precedence when evaluating user queries.</p>
-<p><em>CLASS</em> is a string representing the expansion function to use, and
-<em>PARAM...</em> are additional parameters to the expansion function.
-Currently (ddc v2.0.5), all <em>CLASS</em>es supported by the <a href="#expand">Expand</a> option are also supported
-by <code>ExpandBibl</code>, except for the <code>Chain|/chain</code> class.</p>
+
+<h3 id="ExpandBibl">ExpandBibl</h3>
+
+<pre><code> ExpandBibl LABEL TARGET CLASS PARAM...</code></pre>
+
+<p>Declares a named bibliographic expander which can be used in place of a physically indexed bibliographic fields (as declared with the <a href="#bibl">Bibl</a> option) in #HAS_FIELD queries.</p>
+
+<p><i>LABEL</i> is a label string used to identify the expander in user-specified pipelines. <i>TARGET</i> is the unique <i>NAME</i> associated with a physically indexed bibliographic field used for the underlying query. If <i>LABEL</i> is also the <i>NAME</i> of a physically indexed bibliographic field declared with <a href="#bibl">Bibl</a>, then the pseudo-field declared with <code>ExpandBibl</code> has precedence when evaluating user queries.</p>
+
+<p><i>CLASS</i> is a string representing the expansion function to use, and <i>PARAM...</i> are additional parameters to the expansion function. Currently (ddc v2.0.5), all <i>CLASS</i>es supported by the <a href="#expand">Expand</a> option are also supported by <code>ExpandBibl</code>, except for the <code>Chain|/chain</code> class.</p>
+
 <p>No bibliographic expanders are defined by default.</p>
-<p>
-</p>
-<h3><a name="defaultqueryindex">DefaultQueryIndex</a></h3>
-<pre>
- DefaultQueryIndex OPKEY INDEXNAME</pre>
-<p>Use index <code>INDEXNAME</code> if otherwise unspecified for runtime queries using operator <code>OPKEY</code>.
-Known values for <code>OPKEY</code>, the associated query classes, and the associated default values for <code>INDEXNAME</code>
-are:</p>
-<pre>
-  OPKEY (INDEXNAME)     CLASS...
+
+<h3 id="DefaultQueryIndex">DefaultQueryIndex</h3>
+
+<pre><code> DefaultQueryIndex OPKEY INDEXNAME</code></pre>
+
+<p>Use index <code>INDEXNAME</code> if otherwise unspecified for runtime queries using operator <code>OPKEY</code>. Known values for <code>OPKEY</code>, the associated query classes, and the associated default values for <code>INDEXNAME</code> are:</p>
+
+<pre><code>  OPKEY (INDEXNAME)     CLASS...
  -----------------------------------------------------------------------
    _    (Token)         CQTokInfl
   @_    (Token)         CQTokExact
@@ -948,38 +782,25 @@ are:</p>
   ^_    (Chunk)         CQTokChunk
   &lt;_    (Token)         CQTokFile
    *    (Token)         none (generic fallback)
-   .    n/a             CQTokAnchor</pre>
-<p>The &quot;.&quot; operator key is used by $. queries; its <code>INDEXNAME</code> should resolve to a break name rather than a
-token-level index name. Default is whatever break collection was declared as the default.</p>
-<p>
-</p>
-<hr />
-<h1><a name="acknowledgements">ACKNOWLEDGEMENTS</a></h1>
-<p>Alexey Sokirko wrote the original DDC and the DDCReadme.pdf
-on which much of the information in this manpage is based.</p>
-<p>
-</p>
-<hr />
-<h1><a name="author">AUTHOR</a></h1>
-<p>Bryan Jurish &lt;<a href="mailto:jurish@bbaw.de">jurish@bbaw.de</a>&gt;</p>
-<p>
-</p>
-<hr />
-<h1><a name="see_also">SEE ALSO</a></h1>
-<p><code>ddc_console(1)</code>,
-<code>ddc_daemon(1)</code>,
-<code>ddc_expand(1)</code>,
-<code>ddc_file_lem(1)</code>,
-<code>ddc_graphmat_thick(1)</code>,
-<code>ddc_index(1)</code>,
-<code>ddc_morph_gen(1)</code>,
-<code>ddc_search(1)</code>,
-<code>ddc_simple(1)</code>,
-<code>ddc_stats(1)</code>,
-<code>ddc_struct_dict_loader(1)</code>,
-<code>ddc_test_lem(1)</code>,
-<code>ddc_xml(1)</code></p>
+   .    n/a             CQTokAnchor</code></pre>
+
+<p>The &quot;.&quot; operator key is used by $. queries; its <code>INDEXNAME</code> should resolve to a break name rather than a token-level index name. Default is whatever break collection was declared as the default.</p>
+
+<h1 id="ACKNOWLEDGEMENTS">ACKNOWLEDGEMENTS</h1>
+
+<p>Alexey Sokirko wrote the original DDC and the DDCReadme.pdf on which much of the information in this manpage is based.</p>
+
+<h1 id="AUTHOR">AUTHOR</h1>
+
+<p>Bryan Jurish &lt;jurish@bbaw.de&gt;</p>
+
+<h1 id="SEE-ALSO">SEE ALSO</h1>
+
+<p>ddc_console(1), ddc_daemon(1), ddc_expand(1), ddc_file_lem(1), ddc_graphmat_thick(1), ddc_index(1), ddc_morph_gen(1), ddc_search(1), ddc_simple(1), ddc_stats(1), ddc_struct_dict_loader(1), ddc_test_lem(1), ddc_xml(1)</p>
+
 
 </body>
 
 </html>
+
+
