@@ -232,7 +232,7 @@ string escapeUrlString(const string &s)
 	os.push_back(*si);
 	continue;
       }
-    snprintf(buf, 4, "%%%0.2X", ((unsigned char)*si));
+    snprintf(buf, 4, "%%%02X", ((unsigned char)*si));
     os.append(buf);
   }
 

@@ -1388,12 +1388,12 @@ bool CConcIndexator::CreateMorphIndex()
 	pMorphIndexSet->CreateTempFiles(m_Path);
 	size_t CountOfTokens = pTokensIndexSet->m_Index.size();
 	size_t OccursCount =0;
-	const DWORD MaxTokenCountInOnePeriod = GetMaxTokenCountInOnePeriod();
+	const size_t MaxTokenCountInOnePeriod = GetMaxTokenCountInOnePeriod();
 
-	for (int i = 0; i< CountOfTokens; i++)
+	for (size_t i = 0; i< CountOfTokens; i++)
 	{
 		if ( (i % 1000) == 0)
-				fprintf(stderr, "%i/%i (%i/%i)             \r", i, CountOfTokens, OccursCount, 3*MaxTokenCountInOnePeriod);
+				fprintf(stderr, "%zi/%zi (%zi/%zi)             \r", i, CountOfTokens, OccursCount, 3*MaxTokenCountInOnePeriod);
 
 		const char* sToken = pTokensIndexSet->GetIndexItemStr(pTokensIndexSet->m_Index[i]);
 		if (CheckLanguage(sToken, m_Language)) 
@@ -1439,7 +1439,7 @@ bool CConcIndexator::CreateMorphIndex()
 			OccursCount = 0;
 		};
 	};
-	fprintf(stderr, "%i/%i                         \n", CountOfTokens, CountOfTokens);
+	fprintf(stderr, "%zi/%zi                         \n", CountOfTokens, CountOfTokens);
 
 	fprintf(stderr, "final writing morph index\n");
 	if ( !pMorphIndexSet->WriteToFile(true) ) return false;
@@ -1587,9 +1587,9 @@ void CConcIndexatorInvoker::WriteTimeStatistics	(const CConcIndexator& Indexator
 			int AllSeconds = (int)(AllClocksCount/CLOCKS_PER_SEC);
 			int u = (AllSeconds > 0) ? (int)((CorpusEndTokenNo)/AllSeconds) : 0;
 			fprintf (fp, "Speed (Tokens per second) = %i\n",u);
-			fprintf (fp, "MaxTokenCountInOnePeriod = %i (tokens in one subcorpus)\n",MaxTokenCountInOnePeriod);
-			fprintf (fp, "Count of subcorpora = %i\n",Indexator.GetSearchPeriodsCount());
-			fprintf (fp, "Count of running tokens  = %i\n",CorpusEndTokenNo);
+			fprintf (fp, "MaxTokenCountInOnePeriod = %u (tokens in one subcorpus)\n",MaxTokenCountInOnePeriod);
+			fprintf (fp, "Count of subcorpora = %zi\n",Indexator.GetSearchPeriodsCount());
+			fprintf (fp, "Count of running tokens  = %u\n",CorpusEndTokenNo);
 			
 			fclose(fp);
 		};

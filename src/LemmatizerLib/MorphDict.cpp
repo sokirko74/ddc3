@@ -248,17 +248,17 @@ bool CMorphDict::Save(string GrammarFileName) const
 		
 		assert (!m_Prefixes.empty() && m_Prefixes[0].empty());
 		// do not write the first empty prefix, instead add it manually each time during loading
-		fprintf(fp, "%i\n", m_Prefixes.size()-1);
+		fprintf(fp, "%zi\n", m_Prefixes.size()-1);
 
 		for (size_t i=1; i < m_Prefixes.size(); i++)
 			fprintf (fp, "%s\n",m_Prefixes[i].c_str());
 		
 
-		fprintf(fp, "%i\n", m_LemmaInfos.size());
+		fprintf(fp, "%zi\n", m_LemmaInfos.size());
 		if (!WriteVectorInner(fp, m_LemmaInfos)) return false;
 
 		assert (m_NPSs.size()  == m_FlexiaModels.size());
-		fprintf(fp, "%i\n", m_NPSs.size());
+		fprintf(fp, "%zi\n", m_NPSs.size());
 		if (!WriteVectorInner(fp, m_NPSs)) return false;
 		
 

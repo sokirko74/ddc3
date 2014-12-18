@@ -21,6 +21,9 @@
 #include "MorphAutomat.h"
 #include "../common/bserialize.h"
 
+//-- suppress gcc warnings of the form "ignoring return value of ‘fread’, declared with attribute warn_unused_result [-Wunused-result]"
+#pragma GCC diagnostic ignored "-Wunused-result"
+
 #ifdef DETECT_MEMORY_LEAK
 	#ifdef _DEBUG
 	#define new DEBUG_NEW
@@ -295,11 +298,11 @@ bool CMorphAutomat::Save(string AutomatFileName) const
 			ErrorMessage (Format("CMorphAutomat::Save, cannot write to %s", AutomatFileName.c_str()));
 			return false;
 		};
-		fprintf(fp, "%i\n", m_NodesCount);
+		fprintf(fp, "%zi\n", m_NodesCount);
 		if (fwrite(m_pNodes, sizeof(CMorphAutomNode),m_NodesCount, fp) != m_NodesCount)
 			return  false;
 
-		fprintf(fp, "%i\n", m_RelationsCount);
+		fprintf(fp, "%zi\n", m_RelationsCount);
 		if (fwrite(m_pRelations, sizeof(CMorphAutomRelation),m_RelationsCount, fp) != m_RelationsCount)
 			return  false;
 		
@@ -308,8 +311,8 @@ bool CMorphAutomat::Save(string AutomatFileName) const
 
 		fclose(fp);
 
-		printf ("%i children\n",m_RelationsCount);
-		printf ("%i nodes\n",m_NodesCount);
+		printf ("%zi children\n",m_RelationsCount);
+		printf ("%zi nodes\n",m_NodesCount);
 
 
 		return true;

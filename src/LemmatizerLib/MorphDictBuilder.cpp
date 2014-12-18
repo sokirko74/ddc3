@@ -90,7 +90,7 @@ bool CMorphDictBuilder::GenerateLemmas(const MorphoWizard& Wizard)
 	
 	if (m_LemmaInfos.size() >= MaxLemmaCount)
 	{
-		fprintf (stderr, "Cannot be more than %i lemmas\n", MaxLemmaCount-1); 
+		fprintf (stderr, "Cannot be more than %zi lemmas\n", MaxLemmaCount-1); 
 		return false;
 	};
 
@@ -110,7 +110,7 @@ bool  CMorphDictBuilder::GenerateUnitedFlexModels(const MorphoWizard& Wizard)
 	m_NPSs.clear();
 	if (Wizard.m_FlexiaModels.size() >=  MaxFlexiaModelsCount)
 	{
-		fprintf (stderr, "Cannot be more than %i flexia models\n", MaxFlexiaModelsCount-1); 
+		fprintf (stderr, "Cannot be more than %zi flexia models\n", MaxFlexiaModelsCount-1); 
 		return false;
 	};
 
@@ -127,7 +127,7 @@ bool  CMorphDictBuilder::GenerateUnitedFlexModels(const MorphoWizard& Wizard)
 
 		if ( p.m_Flexia.size() >=  MaxNumberFormsInOneParadigm)
 		{
-			fprintf (stderr, "Error: flexia No %i contains more than %i forms. !\n", MaxNumberFormsInOneParadigm); 
+		  	fprintf (stderr, "Error: flexia ModelNo %zi contains more than %zi forms. !\n", ModelNo, MaxNumberFormsInOneParadigm); 
 			return false;
 		};
 
@@ -167,14 +167,14 @@ bool  CMorphDictBuilder::GeneratePrefixes(const MorphoWizard& Wizard)
 		};
 		if (m_PrefixSets.back().empty())
 		{
-			fprintf (stderr, "PrefixSet %i  has no prefixes\n", i); 
+			fprintf (stderr, "PrefixSet %zi has no prefixes\n", i); 
 			return false;
 		};
 
 	};
 	if (m_Prefixes.size() >= MaxLemmaPrefixCount)
 	{
-		fprintf (stderr, "Cannot be more than %i prefixes\n", MaxLemmaPrefixCount-1); 
+		fprintf (stderr, "Cannot be more than %zi prefixes\n", MaxLemmaPrefixCount-1); 
 		return false;
 	};
 
@@ -213,7 +213,7 @@ bool  CMorphDictBuilder::CreateAutomat(const MorphoWizard& Wizard)
 	{
 
 		if (!(LemmaNo % 100))
-			fprintf (stderr,"Lemma %i/%i  RegisterSize = %i \r", LemmaNo, Wizard.m_LemmaToParadigm.size(), RegisterSize);
+			fprintf (stderr,"Lemma %zi/%zi  RegisterSize = %zi \r", LemmaNo, Wizard.m_LemmaToParadigm.size(), RegisterSize);
 			
 		
 		//if (LemmaNo  >  12000)
@@ -287,14 +287,14 @@ bool  CMorphDictBuilder::CreateAutomat(const MorphoWizard& Wizard)
 
 		
 	};
-	fprintf (stderr,"Lemma %i/%i  RegisterSize=%i   \n", LemmaNo, Wizard.m_LemmaToParadigm.size(), RegisterSize);
+	fprintf (stderr,"Lemma %zi/%zi  RegisterSize=%zi   \n", LemmaNo, Wizard.m_LemmaToParadigm.size(), RegisterSize);
 
 	if (LemmaNo >  0xffffff)
 	{
 		fprintf (stderr, "Cannot be more than 0xffffff lemmas\n"); 
 		return false;
 	};
-	fprintf (stderr,"Count of word forms =  %i \n", FormsCount);
+	fprintf (stderr,"Count of word forms =  %zi \n", FormsCount);
 	
 
 	bool bResult = true;

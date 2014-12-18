@@ -204,7 +204,7 @@ bool	CStringIndexator::IndexOneToken(const char* InputLine, const CTokenNo& Toke
 
 	if (length >= MaxIndexLineLength)
 	{
-		fprintf (stderr, "Error! Line \"%s\" is too long! It cannot be more than %i chars\n", InputLine, MaxIndexLineLength);
+		fprintf (stderr, "Error! Line \"%s\" is too long! It cannot be more than %zi chars\n", InputLine, MaxIndexLineLength);
 		return false;
 	};
 	strcpy(Line, InputLine);

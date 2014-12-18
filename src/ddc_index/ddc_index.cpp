@@ -102,7 +102,8 @@ int main(int argc, char* argv[])
 
 	time_t t2;
 	time(&t2);
-	printf ("Seconds = %i\n", t2 - t1);
+	long int elapsed = t2-t1;
+	printf ("Seconds = %ld\n", elapsed);
 	FreeConcordDicts();
 	return 0;
 }

@@ -25,6 +25,9 @@
 #include "LessDomItem.h"
 #include "../common/util_classes.h"
 
+//-- suppress gcc warnings of the form "ignoring return value of вЂfreadвЂ™, declared with attribute warn_unused_result [-Wunused-result]"
+#pragma GCC diagnostic ignored "-Wunused-result"
+
 //=================================================
 //=============== CDomen =========================
 //==================================================
@@ -95,71 +98,71 @@ TItemContainer::TItemContainer()
 {
 	m_Language = morphRussian;
 
-	m_Russian2EnglishFields["СХ"] = "SF";
-	m_Russian2EnglishFields["ГХ"] = "GF";
-	m_Russian2EnglishFields["ВАЛ"] = "VAL";
-	m_Russian2EnglishFields["ИЛЛ"] = "EXM";
-	m_Russian2EnglishFields["ОТС"] = "REF";
-	m_Russian2EnglishFields["ЛХ"] = "LEX";
-	m_Russian2EnglishFields["ТЕРМ"] = "TERM";
+	m_Russian2EnglishFields["Г‘Г•"] = "SF";
+	m_Russian2EnglishFields["ГѓГ•"] = "GF";
+	m_Russian2EnglishFields["Г‚ГЂГ‹"] = "VAL";
+	m_Russian2EnglishFields["Г€Г‹Г‹"] = "EXM";
+	m_Russian2EnglishFields["ГЋГ’Г‘"] = "REF";
+	m_Russian2EnglishFields["Г‹Г•"] = "LEX";
+	m_Russian2EnglishFields["Г’Г…ГђГЊ"] = "TERM";
 	
-	m_Russian2EnglishFields["КАТ"] = "CAT";
-	m_Russian2EnglishFields["СОСТАВ"] = "CONTENT";
-	m_Russian2EnglishFields["ОГРН"] = "RESTR";
-	m_Russian2EnglishFields["ДОП"] = "AUX";
-	m_Russian2EnglishFields["АЛГОРИТМ"] = "ALG";
-	m_Russian2EnglishFields["ПО"] = "DOMAIN";
+	m_Russian2EnglishFields["ГЉГЂГ’"] = "CAT";
+	m_Russian2EnglishFields["Г‘ГЋГ‘Г’ГЂГ‚"] = "CONTENT";
+	m_Russian2EnglishFields["ГЋГѓГђГЌ"] = "RESTR";
+	m_Russian2EnglishFields["Г„ГЋГЏ"] = "AUX";
+	m_Russian2EnglishFields["ГЂГ‹ГѓГЋГђГ€Г’ГЊ"] = "ALG";
+	m_Russian2EnglishFields["ГЏГЋ"] = "DOMAIN";
 
-	m_Russian2EnglishFields["АНГ"] = "ENG";
-	m_Russian2EnglishFields["АГХ"] = "EGF";
-	m_Russian2EnglishFields["АПО"] = "EDOMAIN";
-	m_Russian2EnglishFields["АСХ"] = "ESF";
-	m_Russian2EnglishFields["АВРЕМ"] = "ETENSE";
-	m_Russian2EnglishFields["АЛФ"] = "ELF";
-	m_Russian2EnglishFields["АЛХ"] = "ELEX";
-	m_Russian2EnglishFields["АОПЕРАТОР"] = "EOPERATOR";
-	m_Russian2EnglishFields["АЧИСЛО"] = "ENUMBER";
-	m_Russian2EnglishFields["АПРЕДЛОГ"] = "EPREP";
+	m_Russian2EnglishFields["ГЂГЌГѓ"] = "ENG";
+	m_Russian2EnglishFields["ГЂГѓГ•"] = "EGF";
+	m_Russian2EnglishFields["ГЂГЏГЋ"] = "EDOMAIN";
+	m_Russian2EnglishFields["ГЂГ‘Г•"] = "ESF";
+	m_Russian2EnglishFields["ГЂГ‚ГђГ…ГЊ"] = "ETENSE";
+	m_Russian2EnglishFields["ГЂГ‹Г”"] = "ELF";
+	m_Russian2EnglishFields["ГЂГ‹Г•"] = "ELEX";
+	m_Russian2EnglishFields["ГЂГЋГЏГ…ГђГЂГ’ГЋГђ"] = "EOPERATOR";
+	m_Russian2EnglishFields["ГЂГ—Г€Г‘Г‹ГЋ"] = "ENUMBER";
+	m_Russian2EnglishFields["ГЂГЏГђГ…Г„Г‹ГЋГѓ"] = "EPREP";
 	
 
-	m_Russian2EnglishFields["ЛФ"] = "LF";
-	m_Russian2EnglishFields["СЛСЧ"] = "COLLOC";
-	m_Russian2EnglishFields["ВАР"] = "SYN";
-	m_Russian2EnglishFields["ТИП"] = "TYP";
+	m_Russian2EnglishFields["Г‹Г”"] = "LF";
+	m_Russian2EnglishFields["Г‘Г‹Г‘Г—"] = "COLLOC";
+	m_Russian2EnglishFields["Г‚ГЂГђ"] = "SYN";
+	m_Russian2EnglishFields["Г’Г€ГЏ"] = "TYP";
 	
-	m_Russian2EnglishFields["НЕСОВМ"] = "INCONS";
-	m_Russian2EnglishFields["КОММ"] = "COMM";
-	m_Russian2EnglishFields["ПОЗ"] = "POS";
-	m_Russian2EnglishFields["АРТИКЛЬ"] = "DETERM";
-	m_Russian2EnglishFields["РУСАВРЕМ"] = "RUSETENSE";
+	m_Russian2EnglishFields["ГЌГ…Г‘ГЋГ‚ГЊ"] = "INCONS";
+	m_Russian2EnglishFields["ГЉГЋГЊГЊ"] = "COMM";
+	m_Russian2EnglishFields["ГЏГЋГ‡"] = "POS";
+	m_Russian2EnglishFields["ГЂГђГ’Г€ГЉГ‹Гњ"] = "DETERM";
+	m_Russian2EnglishFields["ГђГ“Г‘ГЂГ‚ГђГ…ГЊ"] = "RUSETENSE";
 
-	m_Russian2EnglishFields["РУС"] = "RUS";
-	m_Russian2EnglishFields["РГХ"] = "RGF";
-	m_Russian2EnglishFields["РСХ"] = "RSF";
-	m_Russian2EnglishFields["РПО"] = "RDOMAIN";
+	m_Russian2EnglishFields["ГђГ“Г‘"] = "RUS";
+	m_Russian2EnglishFields["ГђГѓГ•"] = "RGF";
+	m_Russian2EnglishFields["ГђГ‘Г•"] = "RSF";
+	m_Russian2EnglishFields["ГђГЏГЋ"] = "RDOMAIN";
 
-	m_Russian2EnglishFields["ОЛХ"] = "MANLEX";
-	m_Russian2EnglishFields["СИНО"] = "SYNR";
-	m_Russian2EnglishFields["СГС"] = "ROOT";
-	m_Russian2EnglishFields["ПРЕДЛОГ"] = "PREP";
+	m_Russian2EnglishFields["ГЋГ‹Г•"] = "MANLEX";
+	m_Russian2EnglishFields["Г‘Г€ГЌГЋ"] = "SYNR";
+	m_Russian2EnglishFields["Г‘ГѓГ‘"] = "ROOT";
+	m_Russian2EnglishFields["ГЏГђГ…Г„Г‹ГЋГѓ"] = "PREP";
 	
-	m_Russian2EnglishFields["ЭНЦ"] = "ENC";
-	m_Russian2EnglishFields["ЭСИТ"] = "BSIT";
-	m_Russian2EnglishFields["СВЯЗКА"] = "COPUL";
+	m_Russian2EnglishFields["ГќГЌГ–"] = "ENC";
+	m_Russian2EnglishFields["ГќГ‘Г€Г’"] = "BSIT";
+	m_Russian2EnglishFields["Г‘Г‚ГџГ‡ГЉГЂ"] = "COPUL";
 	
-	m_Russian2EnglishFields["ПРОИЗВ"] = "DERIV";
-	m_Russian2EnglishFields["КАЧ"] = "QUALIT";
-	m_Russian2EnglishFields["КР"] = "PREDIC";
-	m_Russian2EnglishFields["РОД"] = "GENUS";
-	m_Russian2EnglishFields["ВЕС"] = "WEIGHT";
-	m_Russian2EnglishFields["ВЫШЕ"] = "ISA";
-	m_Russian2EnglishFields["ёСЦ"] = "ASS";
-	m_Russian2EnglishFields["КЛАУЗА"] = "CLAUSE";
-	m_Russian2EnglishFields["АКЛАУЗА"] = "ECLAUSE";
-	m_Russian2EnglishFields["УЗЕЛ"] = "NODE";
-	m_Russian2EnglishFields["СТРУКТ_ВЕС"] = "STRUCT_WEIGHT";
+	m_Russian2EnglishFields["ГЏГђГЋГ€Г‡Г‚"] = "DERIV";
+	m_Russian2EnglishFields["ГЉГЂГ—"] = "QUALIT";
+	m_Russian2EnglishFields["ГЉГђ"] = "PREDIC";
+	m_Russian2EnglishFields["ГђГЋГ„"] = "GENUS";
+	m_Russian2EnglishFields["Г‚Г…Г‘"] = "WEIGHT";
+	m_Russian2EnglishFields["Г‚Г›ГГ…"] = "ISA";
+	m_Russian2EnglishFields["ВёГ‘Г–"] = "ASS";
+	m_Russian2EnglishFields["ГЉГ‹ГЂГ“Г‡ГЂ"] = "CLAUSE";
+	m_Russian2EnglishFields["ГЂГЉГ‹ГЂГ“Г‡ГЂ"] = "ECLAUSE";
+	m_Russian2EnglishFields["Г“Г‡Г…Г‹"] = "NODE";
+	m_Russian2EnglishFields["Г‘Г’ГђГ“ГЉГ’_Г‚Г…Г‘"] = "STRUCT_WEIGHT";
 
-	m_Russian2EnglishFields["СИНП"] = "SYNREP";
+	m_Russian2EnglishFields["Г‘Г€ГЌГЏ"] = "SYNREP";
 	m_Russian2EnglishFields["TR"] = "TR";
 	m_Russian2EnglishFields["PR"] = "PR";
 	
@@ -274,8 +277,8 @@ bool   TItemContainer::InitDomensConsts()
 };
 
 
-//  перестраивает все константые домены (те, которые могут меняться только 
-// из редактора схемы. Константые домены - это просто не текстовые домены (CDomen::Source != dsText).
+//  ГЇГҐГ°ГҐГ±ГІГ°Г ГЁГўГ ГҐГІ ГўГ±ГҐ ГЄГ®Г­Г±ГІГ Г­ГІГ»ГҐ Г¤Г®Г¬ГҐГ­Г» (ГІГҐ, ГЄГ®ГІГ®Г°Г»ГҐ Г¬Г®ГЈГіГІ Г¬ГҐГ­ГїГІГјГ±Гї ГІГ®Г«ГјГЄГ® 
+// ГЁГ§ Г°ГҐГ¤Г ГЄГІГ®Г°Г  Г±ГµГҐГ¬Г». ГЉГ®Г­Г±ГІГ Г­ГІГ»ГҐ Г¤Г®Г¬ГҐГ­Г» - ГЅГІГ® ГЇГ°Г®Г±ГІГ® Г­ГҐ ГІГҐГЄГ±ГІГ®ГўГ»ГҐ Г¤Г®Г¬ГҐГ­Г» (CDomen::Source != dsText).
 void   TItemContainer::UpdateConstDomens()
 {
   for (size_t i=0; i < m_Domens.size(); i++)
@@ -317,7 +320,7 @@ bool   TItemContainer::BuildDomens (char* LastReadLine)
 	fgets  (buffer,255,domens);
 	DomensCount = atoi(buffer);
 
-	// не превосходит  максимального индекса
+	// Г­ГҐ ГЇГ°ГҐГўГ®Г±ГµГ®Г¤ГЁГІ  Г¬Г ГЄГ±ГЁГ¬Г Г«ГјГ­Г®ГЈГ® ГЁГ­Г¤ГҐГЄГ±Г 
 	if ( (DomensCount ==0) || (DomensCount >= ErrUChar) )
 	{
 		strcpy (LastReadLine, "cannot parse the first line!");
@@ -360,7 +363,7 @@ bool   TItemContainer::BuildDomens (char* LastReadLine)
 		m_Domens[k].Color =  atoi (tok.val());
 
 		m_Domens[k].PartsSize = 0;
-		// может быть равен нулю
+		// Г¬Г®Г¦ГҐГІ ГЎГ»ГІГј Г°Г ГўГҐГ­ Г­ГіГ«Гѕ
 		m_Domens[k].Format[0] = 0;
 		if  (m_Domens[k].Source == dsExpres) 
 		{ 
@@ -371,7 +374,7 @@ bool   TItemContainer::BuildDomens (char* LastReadLine)
 		m_Domens[k].m_DomNo = k;
 
 	}
-	// закрываем файл
+	// Г§Г ГЄГ°Г»ГўГ ГҐГ¬ ГґГ Г©Г«
 	fclose (domens);
 
 
@@ -410,9 +413,9 @@ bool   TItemContainer::BuildDomItems ()
 		{ 
 			char q[255];
 			/*
-				при добавлении новых доменов файл Items получается  неполным
-				(там нет добавленных доменов), поэтому  следующий fgets
-				на добавленном домене вернет false
+				ГЇГ°ГЁ Г¤Г®ГЎГ ГўГ«ГҐГ­ГЁГЁ Г­Г®ГўГ»Гµ Г¤Г®Г¬ГҐГ­Г®Гў ГґГ Г©Г« Items ГЇГ®Г«ГіГ·Г ГҐГІГ±Гї  Г­ГҐГЇГ®Г«Г­Г»Г¬
+				(ГІГ Г¬ Г­ГҐГІ Г¤Г®ГЎГ ГўГ«ГҐГ­Г­Г»Гµ Г¤Г®Г¬ГҐГ­Г®Гў), ГЇГ®ГЅГІГ®Г¬Гі  Г±Г«ГҐГ¤ГіГѕГ№ГЁГ© fgets
+				Г­Г  Г¤Г®ГЎГ ГўГ«ГҐГ­Г­Г®Г¬ Г¤Г®Г¬ГҐГ­ГҐ ГўГҐГ°Г­ГҐГІ false
 			*/
 			if (!fgets  (q,255,fp)) break;
 			
@@ -519,11 +522,11 @@ BYTE  TItemContainer::GetDomNoForLePlus ( const char*  s) const
 };
 
 
-// строка:
-// 1. Cодержащая  только кириллицу;
-// 2. Может включать в себя только один дефис;
-// 3. Может начинаться с большой буквы, но все остальные буквы должны быть
-//    маленькими. 
+// Г±ГІГ°Г®ГЄГ :
+// 1. CГ®Г¤ГҐГ°Г¦Г Г№Г Гї  ГІГ®Г«ГјГЄГ® ГЄГЁГ°ГЁГ«Г«ГЁГ¶Гі;
+// 2. ГЊГ®Г¦ГҐГІ ГўГЄГ«ГѕГ·Г ГІГј Гў Г±ГҐГЎГї ГІГ®Г«ГјГЄГ® Г®Г¤ГЁГ­ Г¤ГҐГґГЁГ±;
+// 3. ГЊГ®Г¦ГҐГІ Г­Г Г·ГЁГ­Г ГІГјГ±Гї Г± ГЎГ®Г«ГјГёГ®Г© ГЎГіГЄГўГ», Г­Г® ГўГ±ГҐ Г®Г±ГІГ Г«ГјГ­Г»ГҐ ГЎГіГЄГўГ» Г¤Г®Г«Г¦Г­Г» ГЎГ»ГІГј
+//    Г¬Г Г«ГҐГ­ГјГЄГЁГ¬ГЁ. 
 bool    TItemContainer::IsStandardRusLexeme (const char* s) const 
 {
    bool FlagHasHyphen = false;
@@ -539,8 +542,8 @@ bool    TItemContainer::IsStandardRusLexeme (const char* s) const
        else
          FlagHasHyphen = true;
       else
-/* вообще-то в словаре леммы и словоформы  принято писять маленькими буквами,
-но отдельные плохие люди пишут большими, поэтому приходится проверять и те, и другие */
+/* ГўГ®Г®ГЎГ№ГҐ-ГІГ® Гў Г±Г«Г®ГўГ Г°ГҐ Г«ГҐГ¬Г¬Г» ГЁ Г±Г«Г®ГўГ®ГґГ®Г°Г¬Г»  ГЇГ°ГЁГ­ГїГІГ® ГЇГЁГ±ГїГІГј Г¬Г Г«ГҐГ­ГјГЄГЁГ¬ГЁ ГЎГіГЄГўГ Г¬ГЁ,
+Г­Г® Г®ГІГ¤ГҐГ«ГјГ­Г»ГҐ ГЇГ«Г®ГµГЁГҐ Г«ГѕГ¤ГЁ ГЇГЁГёГіГІ ГЎГ®Г«ГјГёГЁГ¬ГЁ, ГЇГ®ГЅГІГ®Г¬Гі ГЇГ°ГЁГµГ®Г¤ГЁГІГ±Гї ГЇГ°Г®ГўГҐГ°ГїГІГј ГЁ ГІГҐ, ГЁ Г¤Г°ГіГЈГЁГҐ */
        if  (!is_russian_alpha ((unsigned char)s[i]))
          return false;
 
@@ -716,10 +719,10 @@ bool    TItemContainer::BuildFields(BYTE MaxNumDom)
 bool    TItemContainer::WriteFields() const 
 {
   FILE* fp = fopen(FieldsFile,"wb");
-  fprintf (fp, "%i\r\n",Fields.size());
+  fprintf (fp, "%zi\r\n",Fields.size());
   for (size_t i=0; i<Fields.size(); i++)
   {
-	  fprintf (fp, "%i;%i;%s;%c;%s;%i\r\n",Fields[i].FieldId,Fields[i].m_Signats.size(),Fields[i].FieldStr,Fields[i].TypeRes,Fields[i].IsApplicToActant? "TRUE":"FALSE",Fields[i].OrderId);
+	  fprintf (fp, "%i;%zi;%s;%c;%s;%i\r\n", Fields[i].FieldId, Fields[i].m_Signats.size(), Fields[i].FieldStr, Fields[i].TypeRes, Fields[i].IsApplicToActant? "TRUE" : "FALSE", Fields[i].OrderId);
 	 for (size_t k=0; k<Fields[i].m_Signats.size(); k++)
 	   fprintf (fp, "%i;%i;%s;%s\r\n",Fields[i].m_Signats[k].SignatId, Fields[i].m_Signats[k].OrderNo, Fields[i].m_Signats[k].FormatStr, Fields[i].m_Signats[k].FormatName);
      fprintf (fp,"\r\n");
@@ -755,7 +758,7 @@ bool   TItemContainer::BuildFormats(BYTE MaxNumDom)
 
 	if (!UpdateSignatsOfTheFieldInCorteges(FieldNo,	Signats))
 		{
-			m_LastError = "удален формат, который присут. в словаре; Field = ";
+			m_LastError = "ГіГ¤Г Г«ГҐГ­ ГґГ®Г°Г¬Г ГІ, ГЄГ®ГІГ®Г°Г»Г© ГЇГ°ГЁГ±ГіГІ. Гў Г±Г«Г®ГўГ Г°ГҐ; Field = ";
 			m_LastError += Fields[FieldNo].FieldStr;
 			return false;
 		};
@@ -780,12 +783,12 @@ bool TItemContainer::BuildOneFieldFormat (CSignat& Sgn, char* Frmt, char* Name, 
 	 Sgn.Doms.clear();
      if (_Frmt[0] == 0) 
 	 {
-		 m_LastError = Format ("В формате поля  %s оставлены пустые строки!", Name);
+		 m_LastError = Format ("Г‚ ГґГ®Г°Г¬Г ГІГҐ ГЇГ®Г«Гї  %s Г®Г±ГІГ ГўГ«ГҐГ­Г» ГЇГіГ±ГІГ»ГҐ Г±ГІГ°Г®ГЄГЁ!", Name);
          return false;
 	 };
 
-     // FunRec.Doms. В конце переменная DomMeanNum должна содержать число
-     // значимых доменов.
+     // FunRec.Doms. Г‚ ГЄГ®Г­Г¶ГҐ ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г Гї DomMeanNum Г¤Г®Г«Г¦Г­Г  Г±Г®Г¤ГҐГ°Г¦Г ГІГј Г·ГЁГ±Г«Г®
+     // Г§Г­Г Г·ГЁГ¬Г»Гµ Г¤Г®Г¬ГҐГ­Г®Гў.
 	StringTokenizer tok(_Frmt," ");
 
     while (tok())
@@ -799,12 +802,12 @@ bool TItemContainer::BuildOneFieldFormat (CSignat& Sgn, char* Frmt, char* Name, 
          BYTE DomenNo = GetDomenNoByDomStr(DomStr);
          if  (DomenNo == ErrUChar)
 		 {
-			m_LastError = Format ("Домен %s  не объявлен в таблице доменов (формат функции %s)!", DomStr, Name);
+			m_LastError = Format ("Г„Г®Г¬ГҐГ­ %s  Г­ГҐ Г®ГЎГєГїГўГ«ГҐГ­ Гў ГІГ ГЎГ«ГЁГ¶ГҐ Г¤Г®Г¬ГҐГ­Г®Гў (ГґГ®Г°Г¬Г ГІ ГґГіГ­ГЄГ¶ГЁГЁ %s)!", DomStr, Name);
             return false;
          };
          if  (m_Domens[DomenNo].Source == dsSystem)
 		 {
-			m_LastError = Format ("Домен %s  объявлен как системный. Такие домены нельзя использовать в сигнатурах(формат функции %s)!", DomStr, Name);
+			m_LastError = Format ("Г„Г®Г¬ГҐГ­ %s  Г®ГЎГєГїГўГ«ГҐГ­ ГЄГ ГЄ Г±ГЁГ±ГІГҐГ¬Г­Г»Г©. Г’Г ГЄГЁГҐ Г¤Г®Г¬ГҐГ­Г» Г­ГҐГ«ГјГ§Гї ГЁГ±ГЇГ®Г«ГјГ§Г®ГўГ ГІГј Гў Г±ГЁГЈГ­Г ГІГіГ°Г Гµ(ГґГ®Г°Г¬Г ГІ ГґГіГ­ГЄГ¶ГЁГЁ %s)!", DomStr, Name);
             return false;
          };
 
@@ -827,7 +830,7 @@ bool TItemContainer::BuildOneFieldFormat (CSignat& Sgn, char* Frmt, char* Name, 
 
               if (Sgn.Doms.size() == MaxNumDom) 
 			  {
-    			m_LastError = Format ("Функция %s   Число значимых доменов  не может превышать %i!", Name, MaxNumDom);
+    			m_LastError = Format ("Г”ГіГ­ГЄГ¶ГЁГї %s   Г—ГЁГ±Г«Г® Г§Г­Г Г·ГЁГ¬Г»Гµ Г¤Г®Г¬ГҐГ­Г®Гў  Г­ГҐ Г¬Г®Г¦ГҐГІ ГЇГ°ГҐГўГ»ГёГ ГІГј %i!", Name, MaxNumDom);
                 return false;
 			  }
 			  if (IsMult)
@@ -835,7 +838,7 @@ bool TItemContainer::BuildOneFieldFormat (CSignat& Sgn, char* Frmt, char* Name, 
 				  DomenNo = GetDomenNoByDomStr("D_MULT");
 				  if  (DomenNo == ErrUChar)
 				  { 
-			         m_LastError = Format ("Домен D_MULT  не объявлен в таблице доменов, а функции %s используется оператор повтора(+)!", DomStr, Name);
+			         m_LastError = Format ("Г„Г®Г¬ГҐГ­ D_MULT  Г­ГҐ Г®ГЎГєГїГўГ«ГҐГ­ Гў ГІГ ГЎГ«ГЁГ¶ГҐ Г¤Г®Г¬ГҐГ­Г®Гў, Г  ГґГіГ­ГЄГ¶ГЁГЁ %s ГЁГ±ГЇГ®Г«ГјГ§ГіГҐГІГ±Гї Г®ГЇГҐГ°Г ГІГ®Г° ГЇГ®ГўГІГ®Г°Г (+)!", DomStr, Name);
 					 return false;
 				  };
 			  };
@@ -852,7 +855,7 @@ bool TItemContainer::BuildOneFieldFormat (CSignat& Sgn, char* Frmt, char* Name, 
 bool   TItemContainer::WriteDomens () const
 {
 	FILE* domens = fopen(DomensFile,"wb");
-	fprintf  (domens, "%u\r\n",m_Domens.size());
+	fprintf  (domens, "%zi\r\n",m_Domens.size());
 	for (size_t k=0; k < m_Domens.size(); k ++)
 		fprintf (domens, "%i;%i;%i;%s;%c;%i;%i;%i;%s\r\n",
      		m_Domens[k].DomId,

@@ -28,6 +28,9 @@
 
 #include "../PCRE/pcre_rml.h"
 
+//-- suppress gcc warnings of the form "ignoring return value of вЂfreadвЂ™, declared with attribute warn_unused_result [-Wunused-result]"
+#pragma GCC diagnostic ignored "-Wunused-result"
+
 //----------------------------------------------------------------------------
 const char* AnyCommonAncode = " ";
 
@@ -258,9 +261,9 @@ bool CParadigmInfo::IsAnyEqual( const CParadigmInfo& X ) const
 
 
 //==============================================================================
-//	Данный класс предназначен для обработки морфологического словаря.
-//	Умееет загрузить словарь, найти/отредактировать/удалить/добавить словоформу,
-//	сохранить изменения в словаре.
+//	Г„Г Г­Г­Г»Г© ГЄГ«Г Г±Г± ГЇГ°ГҐГ¤Г­Г Г§Г­Г Г·ГҐГ­ Г¤Г«Гї Г®ГЎГ°Г ГЎГ®ГІГЄГЁ Г¬Г®Г°ГґГ®Г«Г®ГЈГЁГ·ГҐГ±ГЄГ®ГЈГ® Г±Г«Г®ГўГ Г°Гї.
+//	Г“Г¬ГҐГҐГҐГІ Г§Г ГЈГ°ГіГ§ГЁГІГј Г±Г«Г®ГўГ Г°Гј, Г­Г Г©ГІГЁ/Г®ГІГ°ГҐГ¤Г ГЄГІГЁГ°Г®ГўГ ГІГј/ГіГ¤Г Г«ГЁГІГј/Г¤Г®ГЎГ ГўГЁГІГј Г±Г«Г®ГўГ®ГґГ®Г°Г¬Гі,
+//	Г±Г®ГµГ°Г Г­ГЁГІГј ГЁГ§Г¬ГҐГ­ГҐГ­ГЁГї Гў Г±Г«Г®ГўГ Г°ГҐ.
 
 
 MorphoWizard::MorphoWizard()
@@ -334,10 +337,10 @@ void MorphoWizard::load_string_vector(const string &name, StringVector &res)
 }
 
 
-//	загружает *.mwz файл.
-//	Пример файла:
+//	Г§Г ГЈГ°ГіГ¦Г ГҐГІ *.mwz ГґГ Г©Г«.
+//	ГЏГ°ГЁГ¬ГҐГ° ГґГ Г©Г«Г :
 
-//# русская морфология
+//# Г°ГіГ±Г±ГЄГ Гї Г¬Г®Г°ГґГ®Г«Г®ГЈГЁГї
 //MRD_FILE 	L:\MORPH.COM\SOURCE\RUS_SRC\morphs.mrd
 //LANG	        RUSSIAN
 //USERS       user1, user2, user3
@@ -625,7 +628,7 @@ void ReadFlexiaModels(FILE* fp, vector<CFlexiaModel>& FlexiaModels )
 
 void WriteFlexiaModels(FILE* out_fp, const vector<CFlexiaModel>& FlexiaModels )
 {
-	fprintf (out_fp, "%i\n", FlexiaModels.size());
+	fprintf (out_fp, "%zi\n", FlexiaModels.size());
 	for(size_t i=0; i < FlexiaModels.size(); i++)
 		fprintf (out_fp, "%s\n", FlexiaModels[i].ToString().c_str());
 };
@@ -658,7 +661,7 @@ void ReadAccentModels (FILE* fp, vector<CAccentModel>&	AccentModels )
 
 void WriteAccentModels(FILE* out_fp, const vector<CAccentModel>& AccentModels )
 {
-	fprintf (out_fp, "%i\n", AccentModels.size());
+	fprintf (out_fp, "%zi\n", AccentModels.size());
 	for(size_t i=0; i < AccentModels.size(); i++)
 		fprintf (out_fp, "%s\n", AccentModels[i].ToString().c_str());
 };
@@ -802,9 +805,9 @@ static void ReadLemmas (FILE* fp, MorphoWizard& W )
 }
 
 
-//	Загружает *.mrd file.
+//	Г‡Г ГЈГ°ГіГ¦Г ГҐГІ *.mrd file.
 //---------------------------------------------------
-//	Описание формата *.mrd.
+//	ГЋГЇГЁГ±Г Г­ГЁГҐ ГґГ®Г°Г¬Г ГІГ  *.mrd.
 	
 //	file: paradigm_number
 //		paradigm |
@@ -815,21 +818,21 @@ static void ReadLemmas (FILE* fp, MorphoWizard& W )
 //		...	  } base_number times
 //		base PNUM |
 //	paradigm: DICT_TYPE DEPR form ...
-//	base: неизменяемая часть слова, или # если неизменяемая часть пустая
-//	DICT_TYPE: тип словаря, одна буква
-//	DEPR: одна буква (не используется, всегда '#')
+//	base: Г­ГҐГЁГ§Г¬ГҐГ­ГїГҐГ¬Г Гї Г·Г Г±ГІГј Г±Г«Г®ГўГ , ГЁГ«ГЁ # ГҐГ±Г«ГЁ Г­ГҐГЁГ§Г¬ГҐГ­ГїГҐГ¬Г Гї Г·Г Г±ГІГј ГЇГіГ±ГІГ Гї
+//	DICT_TYPE: ГІГЁГЇ Г±Г«Г®ГўГ Г°Гї, Г®Г¤Г­Г  ГЎГіГЄГўГ 
+//	DEPR: Г®Г¤Г­Г  ГЎГіГЄГўГ  (Г­ГҐ ГЁГ±ГЇГ®Г«ГјГ§ГіГҐГІГ±Гї, ГўГ±ГҐГЈГ¤Г  '#')
 //	form: % FLEX * ancode ...
 //
-//	PNUM - номер парадигиы, начиная с 0
+//	PNUM - Г­Г®Г¬ГҐГ° ГЇГ Г°Г Г¤ГЁГЈГЁГ», Г­Г Г·ГЁГ­Г Гї Г± 0
 //	
-//	FLEX: окончание.
+//	FLEX: Г®ГЄГ®Г­Г·Г Г­ГЁГҐ.
 //
-//	Первое окончание - окончание нормальной формы.
-//	Остальные окончания отсортированы по алфавиту.
-//	Внутри одной формы анкоды отсортированы по алфавиту
-//	(сначала маленькие буквы, потом большие)
+//	ГЏГҐГ°ГўГ®ГҐ Г®ГЄГ®Г­Г·Г Г­ГЁГҐ - Г®ГЄГ®Г­Г·Г Г­ГЁГҐ Г­Г®Г°Г¬Г Г«ГјГ­Г®Г© ГґГ®Г°Г¬Г».
+//	ГЋГ±ГІГ Г«ГјГ­Г»ГҐ Г®ГЄГ®Г­Г·Г Г­ГЁГї Г®ГІГ±Г®Г°ГІГЁГ°Г®ГўГ Г­Г» ГЇГ® Г Г«ГґГ ГўГЁГІГі.
+//	Г‚Г­ГіГІГ°ГЁ Г®Г¤Г­Г®Г© ГґГ®Г°Г¬Г» Г Г­ГЄГ®Г¤Г» Г®ГІГ±Г®Г°ГІГЁГ°Г®ГўГ Г­Г» ГЇГ® Г Г«ГґГ ГўГЁГІГі
+//	(Г±Г­Г Г·Г Г«Г  Г¬Г Г«ГҐГ­ГјГЄГЁГҐ ГЎГіГЄГўГ», ГЇГ®ГІГ®Г¬ ГЎГ®Г«ГјГёГЁГҐ)
 
-//	Пробела внутри парадигмы нет.
+//	ГЏГ°Г®ГЎГҐГ«Г  ГўГ­ГіГІГ°ГЁ ГЇГ Г°Г Г¤ГЁГЈГ¬Г» Г­ГҐГІ.
 //---------------------------------------------------
 
 
@@ -838,7 +841,7 @@ void MorphoWizard::load_mrd(bool guest, bool bCreatePrediction)
 {
 	m_ReadOnly  =  guest || (access(get_lock_file_name().c_str(), 0) != -1);
 
-	// лочим файл
+	// Г«Г®Г·ГЁГ¬ ГґГ Г©Г«
 	if (!m_ReadOnly)
 	   CreateLockFile(get_lock_file_name());
 
@@ -886,7 +889,7 @@ string &MorphoWizard::get_value(const string &key)
 
 
 
-//	Сохраняет изменения в mrd file.
+//	Г‘Г®ГµГ°Г Г­ГїГҐГІ ГЁГ§Г¬ГҐГ­ГҐГ­ГЁГї Гў mrd file.
 void MorphoWizard::save_mrd()
 {
 	assert(m_bLoaded);
@@ -900,8 +903,8 @@ void MorphoWizard::save_mrd()
 	EndSession();
 	
 	
-	// здесь раньше сохраняли с помощью stream, я заменил на FILE, стало работать
-	// в  3 раз быстрее
+	// Г§Г¤ГҐГ±Гј Г°Г Г­ГјГёГҐ Г±Г®ГµГ°Г Г­ГїГ«ГЁ Г± ГЇГ®Г¬Г®Г№ГјГѕ stream, Гї Г§Г Г¬ГҐГ­ГЁГ« Г­Г  FILE, Г±ГІГ Г«Г® Г°Г ГЎГ®ГІГ ГІГј
+	// Гў  3 Г°Г Г§ ГЎГ»Г±ГІГ°ГҐГҐ
 	
 	FILE * out_fp  = fopen (Path.c_str(), "w");
 	if(!out_fp) throw CExpc("Error while saving to file. It may be corrupted");
@@ -910,15 +913,15 @@ void MorphoWizard::save_mrd()
 
 	WriteAccentModels(out_fp,m_AccentModels);
 
-	fprintf (out_fp, "%i\n", m_Sessions.size());
+	fprintf (out_fp, "%zi\n", m_Sessions.size());
 	for(size_t i=0; i < m_Sessions.size(); i++)
 		fprintf (out_fp, "%s\n", m_Sessions[i].ToString().c_str());
 
-	fprintf (out_fp, "%i\n", m_PrefixSets.size());
+	fprintf (out_fp, "%zi\n", m_PrefixSets.size());
 	for(size_t i=0; i < m_PrefixSets.size(); i++)
 			fprintf (out_fp, "%s\n", get_prefix_set_str(i).c_str());
 
-	fprintf (out_fp, "%i\n", m_LemmaToParadigm.size());
+	fprintf (out_fp, "%zi\n", m_LemmaToParadigm.size());
 	for(lemma_iterator_t b = m_LemmaToParadigm.begin(); b != m_LemmaToParadigm.end(); ++b)
 	{
 		const CFlexiaModel&p = m_FlexiaModels[b->second.m_FlexiaModelNo];
@@ -997,7 +1000,7 @@ void MorphoWizard::find_lemm(string lemm, bool bCheckLemmaPrefix, vector<lemma_i
 
 		for( lemma_iterator_t it=range.first; it!=range.second; ++it )
 		{
-			if (pos_acc==string::npos || GetLemmaAccent(it)==pos_acc)  // проверка ударения [17/Dec/2003]
+			if (pos_acc==string::npos || GetLemmaAccent(it)==pos_acc)  // ГЇГ°Г®ГўГҐГ°ГЄГ  ГіГ¤Г Г°ГҐГ­ГЁГї [17/Dec/2003]
 				if	(		(		!Prefix.empty() 
 								&& (it->second.m_PrefixSetNo != UnknownPrefixSetNo)
 								&& (m_PrefixSets[it->second.m_PrefixSetNo].find(Prefix) != m_PrefixSets[it->second.m_PrefixSetNo].end())	
@@ -1220,7 +1223,7 @@ void MorphoWizard::find_lemm_by_grammem(const string &pos_and_grammems, vector<l
 {
 	BYTE pos;
 	QWORD gra;
-	/*{	// processing type grammems for example "С лок | од,
+	/*{	// processing type grammems for example "Г‘ Г«Г®ГЄ | Г®Г¤,
 		int u = pos_and_grammems.find("|");
 		if (u != string::npos)
 		{
@@ -1580,10 +1583,10 @@ struct CSlfLineByAncode
 
 
 //----------------------------------------------------------------------------
-// при добавлении парадигмы производится сортировка сначала по граммемам, 
-//		при совпадающих граммемах - по формам,
-//		при совпадающих формах - по ударениям
-// изменено Кецарисом [12/Apr/2004]
+// ГЇГ°ГЁ Г¤Г®ГЎГ ГўГ«ГҐГ­ГЁГЁ ГЇГ Г°Г Г¤ГЁГЈГ¬Г» ГЇГ°Г®ГЁГ§ГўГ®Г¤ГЁГІГ±Гї Г±Г®Г°ГІГЁГ°Г®ГўГЄГ  Г±Г­Г Г·Г Г«Г  ГЇГ® ГЈГ°Г Г¬Г¬ГҐГ¬Г Г¬, 
+//		ГЇГ°ГЁ Г±Г®ГўГЇГ Г¤Г ГѕГ№ГЁГµ ГЈГ°Г Г¬Г¬ГҐГ¬Г Гµ - ГЇГ® ГґГ®Г°Г¬Г Г¬,
+//		ГЇГ°ГЁ Г±Г®ГўГЇГ Г¤Г ГѕГ№ГЁГµ ГґГ®Г°Г¬Г Гµ - ГЇГ® ГіГ¤Г Г°ГҐГ­ГЁГїГ¬
+// ГЁГ§Г¬ГҐГ­ГҐГ­Г® ГЉГҐГ¶Г Г°ГЁГ±Г®Г¬ [12/Apr/2004]
 //----------------------------------------------------------------------------
 struct CSlfLineByAncodeLess
 {
@@ -2504,7 +2507,7 @@ bool MorphoWizard::attach_form_prefixes_to_bases()
 	{
 		Count++;
 		if (!(Count% 1000))
-			printf ("%i/%i  \r", Count,Size);
+			printf ("%zi/%zi  \r", Count,Size);
 	
 		if (binary_search(ModelsWithPrefixes.begin(), ModelsWithPrefixes.end(), it->second.m_FlexiaModelNo))
 		{
@@ -2543,7 +2546,7 @@ bool MorphoWizard::attach_form_prefixes_to_bases()
 		}
 	}
 
-	printf ("%i/%i\n", Count,Size);
+	printf ("%zi/%zi\n", Count,Size);
 
 	if (!bFound) return true;
 
@@ -2569,15 +2572,15 @@ bool MorphoWizard::attach_form_prefixes_to_bases()
 
 
 //----------------------------------------------------------------------------
-// эта функция приводит русскую морфологию к виду, который она должна  иметь в Диалинге:
-// 1. удаление "ё"
+// ГЅГІГ  ГґГіГ­ГЄГ¶ГЁГї ГЇГ°ГЁГўГ®Г¤ГЁГІ Г°ГіГ±Г±ГЄГіГѕ Г¬Г®Г°ГґГ®Г«Г®ГЈГЁГѕ ГЄ ГўГЁГ¤Гі, ГЄГ®ГІГ®Г°Г»Г© Г®Г­Г  Г¤Г®Г«Г¦Г­Г   ГЁГ¬ГҐГІГј Гў Г„ГЁГ Г«ГЁГ­ГЈГҐ:
+// 1. ГіГ¤Г Г«ГҐГ­ГЁГҐ "Вё"
 // 2. ...
 //----------------------------------------------------------------------------
 bool	MorphoWizard::prepare_for_RML()
 {
 	if (m_Language != morphRussian) return true;
 
-	// перевод "ё"  в "е"
+	// ГЇГҐГ°ГҐГўГ®Г¤ "Вё"  Гў "ГҐ"
 	for (int ModelNo = 0; ModelNo < m_FlexiaModels.size(); ModelNo++)
 		for (size_t k=0; k< m_FlexiaModels[ModelNo].m_Flexia.size(); k++)
 		{

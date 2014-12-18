@@ -147,7 +147,7 @@ bool CMorphologyHolder::GetMorphology(string str, bool bFile, int& CountOfWords)
 			fprintf (stderr,"CountOfWords = %i\n",CountOfWords);
 
 			double speed =  ((double)CountOfWords)/((t2-t1)/((double)CLOCKS_PER_SEC));
-			fprintf(stderr,"Graphan: Ticks = %i Speed = %6.0f\n", t2-t1, speed );
+			fprintf(stderr,"Graphan: Ticks = %zi Speed = %6.0f\n", t2-t1, speed );
 			
 
 		};
@@ -169,7 +169,7 @@ bool CMorphologyHolder::GetMorphology(string str, bool bFile, int& CountOfWords)
 		{
 			t2 = clock();
 			double speed =  ((double)CountOfWords)/((t2-t1)/((double)CLOCKS_PER_SEC));
-			fprintf(stderr,"Morphology: Ticks = %i Speed = %6.0f\n", t2-t1, speed );
+			fprintf(stderr,"Morphology: Ticks = %zi Speed = %6.0f\n", t2-t1, speed );
 		};
 		m_Graphan.FreeTable();
 		return true;

@@ -81,7 +81,7 @@ int main(int argc, char **argv)
 			printf ("  Cannot process %s \n", f.c_str() );
 			continue;
 		};
-		printf ("  Found %i items\n", Holder.m_PlmLines.m_Items.size() );
+		printf ("  Found %zi items\n", Holder.m_PlmLines.m_Items.size() );
 		//  morphology
 		//  save
 		std::string LemFile = MakeFName(f, "lem");

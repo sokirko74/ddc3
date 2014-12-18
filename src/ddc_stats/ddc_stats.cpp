@@ -33,16 +33,16 @@ bool DumpFreqOrPositions(const CConcHolder& R, string IndexName, bool bDumpPosit
 	const CStringIndexSet* SI = R.m_pIndexator->GetIndexByName(IndexName);
 	if (!SI)
 	{
-		fprintf(stderr, "Cannot find index name: !\n", IndexName.c_str() );
+		fprintf(stderr, "Cannot find index name `%s'!\n", IndexName.c_str() );
 		return false;
 	};
 
 		
-	for (int i = 0; i< SI->m_Index.size(); i++)
+	for (size_t i = 0; i< SI->m_Index.size(); i++)
 	{
 		if ( (i % 1000) == 0)
 		{
-			fprintf(stderr, "%i/%i  \r", i, SI->m_Index.size());
+			fprintf(stderr, "%zi/%zi  \r", i, SI->m_Index.size());
 		};
 		const char* s = SI->GetIndexItemStr(SI->m_Index[i]);
 
@@ -57,9 +57,9 @@ bool DumpFreqOrPositions(const CConcHolder& R, string IndexName, bool bDumpPosit
 
 		if (bDumpPositions)
 			for (size_t i=0; i < Occurs.size(); i++)
-				printf("%i ", Occurs[i] );
+				printf("%u ", Occurs[i] );
 		else
-			printf("%i", Occurs.size());
+			printf("%zi", Occurs.size());
 
 		printf("\n");
 		
@@ -74,7 +74,7 @@ bool DumpStorage(const CConcHolder& R, string IndexName)
 	const CStringIndexSet* SI = R.m_pIndexator->GetIndexByName(IndexName);
 	if (!SI)
 	{
-		fprintf(stderr, "Cannot find index name: !\n", IndexName.c_str() );
+		fprintf(stderr, "Cannot find index name `%s'!\n", IndexName.c_str() );
 		return false;
 	};
 	return SI->DumpStorage();
@@ -85,7 +85,7 @@ bool DumpBigrams(const CConcHolder& R, string IndexName)
 	const CStringIndexSet* SI = R.m_pIndexator->GetIndexByName(IndexName);
 	if (!SI)
 	{
-		fprintf(stderr, "Cannot find index name: !\n", IndexName.c_str() );
+		fprintf(stderr, "Cannot find index name `%s'!\n", IndexName.c_str() );
 		return false;
 	};
 #if 0

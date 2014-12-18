@@ -26,6 +26,13 @@
 #include <errno.h>
 #include <string.h>
 
+#if HAVE_SYS_RESOURCE_H
+#include <sys/resource.h>
+#endif
+
+//-- suppress gcc warnings of the form "ignoring return value of `fread', declared with attribute warn_unused_result [-Wunused-result]"
+#pragma GCC diagnostic ignored "-Wunused-result"
+
 //----------------------------------------------------------------------
 // Globals
 string LockFileName; //-- lock file: stores pid of running server, indicates whether server *should* be running
@@ -100,14 +107,14 @@ void  termination_handler(int signum)
 {
 	UnloadData();
 	syslog(LOG_ALERT, "Exiting from concordance ");
-	concord_daemon_log	("Exiting from concordance");
+	concord_daemon_log("Exiting from concordance");
 	exit(1);
 };
 
 int puke(const std::string& msg) {
-	fprintf(stdout, msg.c_str());
+	fputs(msg.c_str(), stdout);
 	fputc('\n', stdout);
-	syslog(LOG_ALERT, msg.c_str());
+	syslog(LOG_ALERT, "%s", msg.c_str());
 	concord_daemon_log(msg.c_str());
 	UnloadData();
 	RemoveLockFile();
@@ -133,7 +140,7 @@ int do_stop(void)
 
 	fp = fopen(LockFileName.c_str(), "r");
 	if (!fp) {
-		fprintf(stderr, "open failed for lock file `%s': %s\n", strerror(errno));
+		fprintf(stderr, "open failed for lock file `%s': %s\n", LockFileName.c_str(), strerror(errno));
 		rc=1;
 		goto stop_clean;
 	}

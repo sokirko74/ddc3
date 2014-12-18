@@ -17,7 +17,8 @@ dnl local autoconf macros
 AC_CONFIG_MACRO_DIR([m4])
 
 dnl use automake
-AM_INIT_AUTOMAKE(THE_PACKAGE_NAME, THE_PACKAGE_VERSION)
+dnl AM_INIT_AUTOMAKE(THE_PACKAGE_NAME, THE_PACKAGE_VERSION)
+AM_INIT_AUTOMAKE([subdir-objects])
 
 dnl use autoheader
 AM_CONFIG_HEADER([src/common/ddcConfigAuto.h])
@@ -161,11 +162,16 @@ AC_CHECK_HEADERS_ONCE([sys/types.h sys/stat.h])
 ##^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 ##----------------------------------------------------------------------
-## headers: for gethostname(), gethostbyname()
-AC_CHECK_HEADERS_ONCE([unistd.h netdb.h])
-## /headers: mtime
+## headers: struct rlimit, RLIMIT_NOFILE
+AC_CHECK_HEADERS_ONCE([sys/resource.h])
+## /headers: rlimit
 ##^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+##----------------------------------------------------------------------
+## headers: for gethostname(), gethostbyname()
+AC_CHECK_HEADERS_ONCE([unistd.h netdb.h])
+## /headers: gethostname
+##^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 ##----------------------------------------------------------------------
 ## libs: pthread

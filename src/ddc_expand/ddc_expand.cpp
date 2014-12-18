@@ -29,6 +29,9 @@
 #include "../ConcordLib/ConcCommon.h"
 #include "../ConcordLib/TermExpander.h"
 
+//-- suppress gcc warnings of the form "ignoring return value of `fread', declared with attribute warn_unused_result [-Wunused-result]"
+#pragma GCC diagnostic ignored "-Wunused-result"
+
 const char *prog = "ddcExpand";
 CTermExpander *tx = NULL;
 TxChain       txc;
@@ -165,7 +168,7 @@ int main(int argc, char **argv)
 	//-- create new expander
 	tx = newTermExpander(txclass, txlabel, txparam);
 	if (!tx) {
-	    fprintf(stderr, "%s: could not create term expander of class `%s'\n", txclass.c_str());
+	    fprintf(stderr, "%s: could not create term expander of class `%s'\n", prog, txclass.c_str());
 	    exit(-1);
 	}
 	tx->compile();
@@ -218,7 +221,7 @@ int main(int argc, char **argv)
 		    if (op == "#define" || op == "#def") {
 			CTermExpander *tx_ = txd.addExpander(arg);
 			if (!tx_) {
-			    fprintf(stderr, "%s: could not parse expander spec `%s'\n", arg.c_str());
+			    fprintf(stderr, "%s: could not parse expander spec `%s'\n", prog, arg.c_str());
 			    exit(-1);
 			}
 			tx->compile();

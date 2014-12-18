@@ -2038,11 +2038,11 @@ DDCErrorEnum CConcHolder::GetOccurrences(const string &Query, int ContextSize,  
 			}
 
 			if (m_bStdout)
-				fprintf (stderr," %i/%i             \r", m_CurrentSearchPeriodNo, m_pIndexator->GetSearchPeriodsCount());
+				fprintf (stderr," %zi/%zi             \r", m_CurrentSearchPeriodNo, m_pIndexator->GetSearchPeriodsCount());
 		};
 
 		if (m_bStdout)
-				fprintf (stderr," %i/%i             \n", m_CurrentSearchPeriodNo, m_pIndexator->GetSearchPeriodsCount());
+				fprintf (stderr," %zi/%zi             \n", m_CurrentSearchPeriodNo, m_pIndexator->GetSearchPeriodsCount());
 		
 		//m_pQueryCompiler->DeleteTree();
 

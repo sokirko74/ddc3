@@ -397,7 +397,7 @@ bool CConcXml::CFreeBiblStringIndex::ReadBiblStringItems (vector<string>&  Set, 
 		Set.push_back(q);
 	};
 
-	fprintf(stderr, "Read  %i items  from %s\n", Set.size(), FileName.c_str());
+	fprintf(stderr, "Read %zi items from %s\n", Set.size(), FileName.c_str());
 	fclose (fp);
 	return true;
 };
@@ -615,7 +615,7 @@ bool CConcXml::CFreeBiblStringIndex::RegisterBiblStringItemId(const string& Valu
 	}
 	if (ValueStr.length() > MaxBiblStringLen)
 	{
-		fprintf(stderr, "Bibl item in index %s is too long (%i chars). Cannot be more than %i chars\n", m_Name.c_str(), ValueStr.length(), MaxBiblStringLen);
+		fprintf(stderr, "Bibl item in index %s is too long (%zi chars). Cannot be more than %zi chars\n", m_Name.c_str(), ValueStr.length(), MaxBiblStringLen);
 		return false;
 	}
 
@@ -675,7 +675,7 @@ bool CConcXml::CFreeBiblStringIndex::ConvertAndSaveToDiskAfterIndexing (string m
 			return false;
 		};
 		const list<CStringItem>&  Set = m_BuildStringItems;
-		fprintf(stderr, "Writing %i items  to %s\n", Set.size(), StringFileName.c_str());
+		fprintf(stderr, "Writing %zi items  to %s\n", Set.size(), StringFileName.c_str());
 		
 		for (list<CStringItem>::const_iterator it = Set.begin(); it != Set.end(); it++)
 		{
@@ -1242,7 +1242,7 @@ CBibliography CConcXml::GetFullBibliographyOfHit(size_t FileNo) const
 
 bool  CConcXml::CheckBibl(size_t FileBreaksNumber) const 
 {
-	printf ("Test %i bibl. references...\n", m_EndOffsetsInBiblFile.size());
+	printf ("Test %zi bibl. references...\n", m_EndOffsetsInBiblFile.size());
 	if (m_EndOffsetsInBiblFile.empty()) 
 	{
 		fprintf (stderr, "There is no bibl. index\n");
@@ -1695,7 +1695,7 @@ bool CConcXml::ReadMorphXmlFileIntoGraTable(string FileName,  const char* pFileB
 					};
 					if (Word.m_WordStr.empty())
 					{
-						fprintf(stderr, "empty word after word WordNo=%i WordStr=%s\n", AllWordsCount, LastReadWord.c_str());
+						fprintf(stderr, "empty word after word WordNo=%zi WordStr=%s\n", AllWordsCount, LastReadWord.c_str());
 						continue;
 					};
 

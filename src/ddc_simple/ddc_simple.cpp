@@ -217,7 +217,7 @@ int main(int argc, char* argv[])
 			if (ResultLimit != -1)
 				R.m_ResultLimit = ResultLimit;
 
-			fprintf  (stderr, "Finding at least %i occurrences\n", R.m_ResultLimit);
+			fprintf  (stderr, "Finding at least %zi occurrences\n", R.m_ResultLimit);
 
                         if (ResultFormat=="GUESS")
                         {
@@ -282,10 +282,10 @@ int main(int argc, char* argv[])
 			
 					string Query = queries[QueryNo];
 					if (ProfileCycleNo==0) {
-					    fprintf (stderr, "Query[%d / %d] = %s\n", QueryNo, queries.size(), Query.c_str());
+					    fprintf (stderr, "Query[%d / %zi] = %s\n", QueryNo, queries.size(), Query.c_str());
 					    try {
-						    fprintf (stderr, "Canon[%d / %d] = %s\n", QueryNo, queries.size(), R.CanonicalQueryString(Query).c_str());
-						    fprintf (stderr, "Json [%d / %d] = %s\n", QueryNo, queries.size(), R.JsonQueryString(Query).c_str());
+						    fprintf (stderr, "Canon[%d / %zi] = %s\n", QueryNo, queries.size(), R.CanonicalQueryString(Query).c_str());
+						    fprintf (stderr, "Json [%d / %zi] = %s\n", QueryNo, queries.size(), R.JsonQueryString(Query).c_str());
 					    }
 					    catch (exception &e) {
 						    fprintf(stderr, "Exception: %s\n", e.what());
@@ -301,14 +301,14 @@ int main(int argc, char* argv[])
 						long      TimeSpan = EndTime - StartTime;
 						
 						if (ProfileCycleNo==0) {
-							fprintf (stderr, "ticks %i\n", TimeSpan ); 
+							fprintf (stderr, "ticks %zi\n", TimeSpan ); 
 						
 							if (Error != errNone) {
 								fprintf (stderr, "Error! %s \n", GetDDCErrorString(Error));
 								return -1;
 							}
 							else {
-								fprintf (stderr, "Number of found docs : %i\n", R.m_AllHitsCount);
+								fprintf (stderr, "Number of found docs : %zi\n", R.m_AllHitsCount);
 							}
 
 							if (bOnlyGetHitIds) {
@@ -356,7 +356,7 @@ int main(int argc, char* argv[])
 			fprintf (OutFile, "%s", R.m_QueryResultStr.c_str());
 			if (OutFile != stdout) fclose(OutFile);
 
-			fprintf (stderr, "All bytes read while querying = %i\n", AllBytesRead);
+			fprintf (stderr, "All bytes read while querying = %zi\n", AllBytesRead);
 			if (bPrintProfile)
 				fprintf (stderr, "===== Profiler  ====\n %s\n",R.m_Profiler.GetStrRepresentation().c_str());
 

@@ -247,7 +247,7 @@ void	CStringIndexSet::UnionIndexSet(const CStringIndexSet& First, const CStringI
 		Curr = (FirstIsLarger) ? pos1 : pos2;
 
 		if (!(Curr%1000))
-			fprintf (stderr, "%i/%i\r", Curr, Count);
+			fprintf (stderr, "%zi/%zi\r", Curr, Count);
 		const char* IndexItemStr1 = First.GetIndexItemStr(*i1);
 		const char* IndexItemStr2 = Second.GetIndexItemStr(*i2);
 
@@ -319,7 +319,7 @@ void	CStringIndexSet::UnionIndexSet(const CStringIndexSet& First, const CStringI
 
 		
 	};
-	fprintf (stderr, "%i/%i\n", Curr, Count);
+	fprintf (stderr, "%zi/%zi\n", Curr, Count);
 	M.FreeOccurs();
 	fclose(res_fp);
 	if (!WritePeriodsDivision()) 

@@ -423,11 +423,11 @@ bool	CIndexSetForQueryingStage::BuildPeriodsDivisionAndCompress (const DWORD Per
 					// if we are here, it means that some j (*IndexItem.GetOccurs())[j]
 					// is greater than the upper bound of the last search period
 					fprintf (stderr, "Error while writing occurrences periods for \"%s\": CurrentPeriod >= m_pParent->m_pSearchPeriods.size()\n", GetName().c_str());
-					fprintf (stderr, "CurrentPeriod = %i\n", CurrentPeriod);
-					fprintf (stderr, "m_pParent->m_pSearchPeriods.size() = %i\n", m_pParent->GetSearchPeriodsCount());
-					fprintf (stderr, "Occurrence =%i, Number of occurrences = %i\n",InputTokens[j], OriginalTokenCount);
+					fprintf (stderr, "CurrentPeriod = %zi\n", CurrentPeriod);
+					fprintf (stderr, "m_pParent->m_pSearchPeriods.size() = %zi\n", m_pParent->GetSearchPeriodsCount());
+					fprintf (stderr, "Occurrence =%i, Number of occurrences = %zi\n",InputTokens[j], OriginalTokenCount);
 					for (size_t p = 0; p < m_pParent->GetSearchPeriodsCount(); p++)
-						fprintf (stderr, "CurrentPeriod = %i, EndTokenNo = %i\n", p, m_pParent->GetSearchPeriod(p));
+						fprintf (stderr, "CurrentPeriod = %zi, EndTokenNo = %u\n", p, m_pParent->GetSearchPeriod(p));
 
 					return false;
 				};
@@ -457,11 +457,11 @@ bool	CIndexSetForQueryingStage::BuildPeriodsDivisionAndCompress (const DWORD Per
 			// if we are here, it means that some j (*IndexItem.GetOccurs())[j]
 			// is greater than the upper bound of the last search period
 			fprintf (stderr, "Error while writing occurrences periods for \"%s\": CurrentPeriod >= m_pParent->m_pSearchPeriods.size()\n", GetName().c_str());
-			fprintf (stderr, "CurrentPeriod = %i\n", CurrentPeriod);
-			fprintf (stderr, "m_pParent->m_pSearchPeriods.size() = %i\n", m_pParent->GetSearchPeriodsCount());
-			fprintf (stderr, "Occurrence =%i, Number of occurrences = %i\n",InputTokens[j], OriginalTokenCount);
+			fprintf (stderr, "CurrentPeriod = %zi\n", CurrentPeriod);
+			fprintf (stderr, "m_pParent->m_pSearchPeriods.size() = %zi\n", m_pParent->GetSearchPeriodsCount());
+			fprintf (stderr, "Occurrence =%u, Number of occurrences = %zi\n",InputTokens[j], OriginalTokenCount);
 			for (size_t p = 0; p < m_pParent->GetSearchPeriodsCount(); p++)
-				fprintf (stderr, "CurrentPeriod = %i, EndTokenNo = %i\n", p, m_pParent->GetSearchPeriod(p));
+				fprintf (stderr, "CurrentPeriod = %zi, EndTokenNo = %u\n", p, m_pParent->GetSearchPeriod(p));
 			return false;
 		};
 
@@ -557,7 +557,7 @@ bool	CIndexSetForQueryingStage::WritePeriodsDivision ()
 		count++;
 	};
 	fclose(fp);
-	printf ("To file  %s %i vectors were written \n", FName.c_str(), count);
+	printf ("To file %s %zi vectors were written \n", FName.c_str(), count);
 	return true;
 
 };

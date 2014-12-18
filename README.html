@@ -2,7 +2,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-<title>DESCRIPTION</title>
+<title></title>
 <meta http-equiv="content-type" content="text/html; charset=utf-8" />
 <link rev="made" href="mailto:root@localhost" />
 </head>
@@ -10,172 +10,174 @@
 <body style="background-color: white">
 
 
-<!-- INDEX BEGIN -->
-<div name="index">
-<p><a name="__index__"></a></p>
 
-<ul>
-
-	<li><a href="#description">DESCRIPTION</a></li>
-	<li><a href="#dependencies">DEPENDENCIES</a></li>
-	<li><a href="#installation">INSTALLATION</a></li>
-	<li><a href="#build_options">BUILD OPTIONS</a></li>
-	<li><a href="#known_bugs">KNOWN BUGS</a></li>
-	<li><a href="#author">AUTHOR</a></li>
+<ul id="index">
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#DEPENDENCIES">DEPENDENCIES</a></li>
+  <li><a href="#INSTALLATION">INSTALLATION</a></li>
+  <li><a href="#BUILD-OPTIONS">BUILD OPTIONS</a></li>
+  <li><a href="#KNOWN-BUGS">KNOWN BUGS</a></li>
+  <li><a href="#AUTHOR">AUTHOR</a></li>
 </ul>
 
-<hr name="index" />
-</div>
-<!-- INDEX END -->
-
 <p>README for package ddc</p>
+
 <p>Last updated for ddc v2.0.15</p>
-<p>
-</p>
-<hr />
-<h1><a name="description">DESCRIPTION</a></h1>
-<p>The ddc package contains core C++ utilities
-for the DWDS/Dialing Concordance document indexing
-system.</p>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>The ddc package contains core C++ utilities for the DWDS/Dialing Concordance document indexing system.</p>
+
 <p>The DDC-2.x branch is maintained in SVN under:</p>
-<pre>
- svn+ssh://svn.code.sf.net/p/ddc-concordance/code/ddc/
+
+<pre><code> svn+ssh://svn.code.sf.net/p/ddc-concordance/code/ddc/
  https://svn.code.sf.net/p/ddc-concordance/code/ddc/
- svn://svn.code.sf.net/p/ddc-concordance/code/ddc/</pre>
-<p>
-</p>
-<hr />
-<h1><a name="dependencies">DEPENDENCIES</a></h1>
+ svn://svn.code.sf.net/p/ddc-concordance/code/ddc/</code></pre>
+
+<h1 id="DEPENDENCIES">DEPENDENCIES</h1>
+
 <dl>
-<dt><strong><a name="ddc_morph_v2_0_0" class="item">ddc-morph &gt;= v2.0.0</a></strong></dt>
 
+<dt id="ddc-morph-v2.0.0">ddc-morph &gt;= v2.0.0</dt>
 <dd>
+
 <p>Morphology data.</p>
-<p>In order to use most of the runtime utilities,
-you will also need a set of morphology data files
-available in the ddc-morph package, which should be available
-wherever you downloaded these sources.</p>
-<p>You should build (and optionally install)
-this package <strong>BEFORE</strong> attempting to build ddc-morph.</p>
+
+<p>In order to use most of the runtime utilities, you will also need a set of morphology data files available in the ddc-morph package, which should be available wherever you downloaded these sources.</p>
+
+<p>You should build (and optionally install) this package <b>BEFORE</b> attempting to build ddc-morph.</p>
+
 <p>The ddc-morph sources are maintained in SVN under:</p>
-<pre>
- https://ddc-concordance.svn.sourceforge.net/svnroot/ddc-morph</pre>
-</dd>
-<dt><strong><a name="libpcre_libpcrecpp" class="item">libpcre, libpcrecpp</a></strong></dt>
 
+<pre><code> https://ddc-concordance.svn.sourceforge.net/svnroot/ddc-morph</code></pre>
+
+</dd>
+<dt id="libpcre-libpcrecpp">libpcre, libpcrecpp</dt>
 <dd>
+
 <p>Perl-compatibile regular expression C library and C++ wrappers.</p>
-<p>URL: <a href="http://www.pcre.org/">http://www.pcre.org/</a></p>
+
+<p>URL: http://www.pcre.org/</p>
+
 <p>Tested version(s): 8.02</p>
-</dd>
-<dt><strong><a name="libcurl" class="item">libcurl (optional)</a></strong></dt>
 
+</dd>
+<dt id="libcurl-optional">libcurl (optional)</dt>
 <dd>
-<p>If available, libcurl can be used for accessing external HTTP-based
-term expanders from within a running DDC process.  DDC should
-still compile and run even if libcurl is unavailable,
-but e.g. external HTTP-based term expanders will be unuseable.</p>
-<p>URL: <a href="http://curl.haxx.se/">http://curl.haxx.se/</a></p>
+
+<p>If available, libcurl can be used for accessing external HTTP-based term expanders from within a running DDC process. DDC should still compile and run even if libcurl is unavailable, but e.g. external HTTP-based term expanders will be unuseable.</p>
+
+<p>URL: http://curl.haxx.se/</p>
+
 <p>Tested version(s): 7.21.0</p>
-</dd>
-<dt><strong><a name="bison" class="item">GNU bison (optional)</a></strong></dt>
 
-<dd>
-<p>Tested version 2.4.1.  If you get errors compiling src/ConcordLib/yyQParser.o,
-try re-extracting the source archive and call</p>
-<pre>
- $ touch src/ConcordLib/yyQParser.cpp src/ConcordLib/yyQParser.h</pre>
-<p>before re-compiling.</p>
 </dd>
-<dt><strong><a name="flex" class="item">GNU flex (optional)</a></strong></dt>
-
+<dt id="GNU-bison-optional">GNU bison (optional)</dt>
 <dd>
-<p>Tested version 2.5.35.  If you get errors compiling src/ConcordLib/yyQLexer.o,
-try re-extracting the source archive and call</p>
-<pre>
- $ touch src/ConcordLib/yyQLexer.cpp src/ConcordLib/yyQLexer.h</pre>
+
+<p>Tested version 2.4.1. If you get errors compiling src/ConcordLib/yyQParser.o, try re-extracting the source archive and call</p>
+
+<pre><code> $ touch src/ConcordLib/yyQParser.cpp src/ConcordLib/yyQParser.h</code></pre>
+
 <p>before re-compiling.</p>
+
+</dd>
+<dt id="GNU-flex-optional">GNU flex (optional)</dt>
+<dd>
+
+<p>Tested version 2.5.35. If you get errors compiling src/ConcordLib/yyQLexer.o, try re-extracting the source archive and call</p>
+
+<pre><code> $ touch src/ConcordLib/yyQLexer.cpp src/ConcordLib/yyQLexer.h</code></pre>
+
+<p>before re-compiling.</p>
+
 </dd>
 </dl>
-<p>
-</p>
-<hr />
-<h1><a name="installation">INSTALLATION</a></h1>
+
+<h1 id="INSTALLATION">INSTALLATION</h1>
+
 <p>Issue the following commands to the shell:</p>
-<pre>
- cd ddc-X.Y.dx-Z       ##-- (or wherever you extracted the ddc distribution)
+
+<pre><code> cd ddc-X.Y.dx-Z       ##-- (or wherever you extracted the ddc distribution)
  sh ./configure
  make
- make install</pre>
+ make install</code></pre>
+
 <p>To build the ddc morph package, then do:</p>
-<pre>
- cd ..
+
+<pre><code> cd ..
  cd ddc-morph-X.Y-dx-Z ##-- (or wherever the ddc-morph distribution lives)
  sh ./configure
  make
- make install</pre>
-<p>Finally, set the (legacy) environment variable RML to the directory
-into which ddc was installed (by default /usr/local/ddc):</p>
-<pre>
- export RML=/usr/local/ddc</pre>
-<p>... and you ought to be ready to roll.  Take a look at the configuration
-files in $RML/etc/ and the example corpora in Test/ to get started.</p>
-<p>
-</p>
-<hr />
-<h1><a name="build_options">BUILD OPTIONS</a></h1>
-<p>The 'configure' script supports the following options, among others:</p>
-<dl>
-<dt><strong><a name="prefix_prefix" class="item">--prefix=PREFIX</a></strong></dt>
+ make install</code></pre>
 
+<p>Finally, set the (legacy) environment variable RML to the directory into which ddc was installed (by default /usr/local/ddc):</p>
+
+<pre><code> export RML=/usr/local/ddc</code></pre>
+
+<p>... and you ought to be ready to roll. Take a look at the configuration files in $RML/etc/ and the example corpora in Test/ to get started.</p>
+
+<h1 id="BUILD-OPTIONS">BUILD OPTIONS</h1>
+
+<p>The &#39;configure&#39; script supports the following options, among others:</p>
+
+<dl>
+
+<dt id="prefix-PREFIX">--prefix=PREFIX</dt>
 <dd>
-<p>Installation prefix (default=/usr/local).
-This package installs itself to:</p>
-<pre>
- PREFIX/ddc          ##-- root directory (a.k.a. $RML)
+
+<p>Installation prefix (default=/usr/local). This package installs itself to:</p>
+
+<pre><code> PREFIX/ddc          ##-- root directory (a.k.a. $RML)
  PREFIX/ddc/bin      ##-- executable programs &amp; scripts
  PREFIX/ddc/etc      ##-- runtime configuration files
  PREFIX/ddc/include  ##-- C++ headers
- PREFIX/lib          ##-- runtime libtool libraries</pre>
-<p>Additionally, the package requires a directory PREFIX/ddc/dict
-containing morphology data, which should be installed by
-the ddc-morph package (see <a href="#dependencies">DEPENDENCIES</a>).</p>
-</dd>
-<dt><strong><a name="enable_debug" class="item">--enable-debug</a></strong></dt>
+ PREFIX/lib          ##-- runtime libtool libraries</code></pre>
 
+<p>Additionally, the package requires a directory PREFIX/ddc/dict containing morphology data, which should be installed by the ddc-morph package (see <a href="#DEPENDENCIES">&quot;DEPENDENCIES&quot;</a>).</p>
+
+</dd>
+<dt id="enable-debug">--enable-debug</dt>
 <dd>
+
 <p>Enable debugging flags. Only works for GNU C++ compiler.</p>
-</dd>
-<dt><strong><a name="enable_warnings" class="item">--enable-warnings</a></strong></dt>
 
-<dd>
-<p>Enable lots of compiler warnings.  Only works for GNU C++ compiler.</p>
 </dd>
-<dt><strong><a name="disable_shared" class="item">--disable-shared</a></strong></dt>
-
+<dt id="enable-warnings">--enable-warnings</dt>
 <dd>
+
+<p>Enable lots of compiler warnings. Only works for GNU C++ compiler.</p>
+
+</dd>
+<dt id="disable-shared">--disable-shared</dt>
+<dd>
+
 <p>Disable compilation of shared libraries.</p>
-</dd>
-<dt><strong><a name="without_libcurl" class="item">--without-libcurl</a></strong></dt>
 
+</dd>
+<dt id="without-libcurl">--without-libcurl</dt>
 <dd>
+
 <p>Force DDC to build without CURL support.</p>
+
 </dd>
 </dl>
-<p>See the output of `./configure --help` for details on additional
-supported options.</p>
-<p>
-</p>
-<hr />
-<h1><a name="known_bugs">KNOWN BUGS</a></h1>
+
+<p>See the output of `./configure --help` for details on additional supported options.</p>
+
+<h1 id="KNOWN-BUGS">KNOWN BUGS</h1>
+
 <p>Many.</p>
-<p>
-</p>
-<hr />
-<h1><a name="author">AUTHOR</a></h1>
+
+<h1 id="AUTHOR">AUTHOR</h1>
+
 <p>Alexey Sokirko wrote DDC.</p>
-<p>Bryan Jurish &lt;<a href="mailto:jurish@bbaw.de">jurish@bbaw.de</a>&gt; made various improvements and maintains the DDC-2.x branch.</p>
+
+<p>Bryan Jurish &lt;jurish@bbaw.de&gt; made various improvements and maintains the DDC-2.x branch.</p>
+
 
 </body>
 
 </html>
+
+

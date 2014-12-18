@@ -24,6 +24,9 @@
 #pragma warning(disable:4786)
 #pragma warning(disable:4530)
 
+//-- suppress gcc warnings of the form "ignoring return value of `fread', declared with attribute warn_unused_result [-Wunused-result]"
+#pragma GCC diagnostic ignored "-Wunused-result"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -191,9 +194,9 @@ void ProcessFile(std::string Filename)
 		Results[i] = (char*)OutBuffer;
 	};
 	long ticks = clock() - start;
-	printf ("Count of words = %i\n", Count);
+	printf ("Count of words = %zi\n", Count);
 	double seconds = (double)ticks/(double)CLOCKS_PER_SEC;
-	printf ("Time = %g seconds; %i ticks\n", seconds,ticks);
+	printf ("Time = %g seconds; %li ticks\n", seconds,ticks);
 	if (seconds > 0)
 		printf ("Speed = %g words per seconds\n", (((double)Count)/seconds));
 	else

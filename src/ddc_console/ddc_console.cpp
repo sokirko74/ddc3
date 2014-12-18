@@ -122,7 +122,7 @@ void RunQuery(string Command, string Query)
 	};		
 
 	if (CountOfCycles > 1)
-		printf ("Count of profile cycles = %i\n", CountOfCycles);
+		printf ("Count of profile cycles = %zi\n", CountOfCycles);
 
 	DWORD  EndHitNo = 0, HitsCount;		
 		
@@ -176,9 +176,9 @@ void RunQuery(string Command, string Query)
 	};
 	
 
-	printf ("HitsCount = %i\n", HitsCount);
+	printf ("HitsCount = %u\n", HitsCount);
 	if (bShowTime)
-		fprintf (stderr, "Seconds = %i\n", t2 - t1);
+		fprintf (stderr, "Seconds = %zi\n", t2 - t1);
 
 };
 
@@ -220,7 +220,7 @@ void RunExpand(string Command, string Args)
 	set<string> xwords;
 	txc.expand(words, xwords);
 
-	printf("Got %u expansions for pipeline [%s]\n: ", xwords.size(), txc.chainString().c_str());
+	printf("Got %zi expansions for pipeline [%s]\n: ", xwords.size(), txc.chainString().c_str());
 	for (set<string>::const_iterator xi=xwords.begin(); xi!=xwords.end(); xi++) {
 		printf("%s%s", (xi==xwords.begin() ? "" : ", "), xi->c_str());
 	}
@@ -267,14 +267,14 @@ void RunCommand(string line)
 		if (variab == "profile_cycle")
 			{
 				CountOfCycles = atoi(value.c_str());
-				printf ("Count of profile cycles = %i\n", CountOfCycles);
+				printf ("Count of profile cycles = %zi\n", CountOfCycles);
 				
 			}
 		else
  		 if (variab == "limit")
 			{
 		 		Holder.m_ResultLimit = atoi(value.c_str());
-				fprintf  (stderr, "ResultLimit = %i\n", Holder.m_ResultLimit);
+				fprintf  (stderr, "ResultLimit = %zi\n", Holder.m_ResultLimit);
 			}
 		else
  		 if (variab == "out")

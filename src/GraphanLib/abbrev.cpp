@@ -23,6 +23,10 @@
 #include "GraphanDicts.h"
 #include "../common/util_classes.h"
 
+//-- suppress gcc warnings of the form "ignoring return value of ‘fread’, declared with attribute warn_unused_result [-Wunused-result]"
+#pragma GCC diagnostic ignored "-Wunused-result"
+
+
 struct CStrToCompare {
 	MorphLanguageEnum	m_Language;
 	const char*			m_Str;

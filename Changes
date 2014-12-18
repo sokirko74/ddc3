@@ -1,5 +1,9 @@
 ##-*- Mode: Change-Log; coding: utf-8; -*-
 
+v2.0.36-pre Thu, 18 Dec 2014 11:27:55 +0100 moocow
+	+ general printf format cleanup for "%i" vs "%zi" templates
+	+ minor fixes for building with gcc-4.8.2 + perl-5.18.2 (ubuntu-server 14.04.1)
+
 v2.0.35 Thu, 04 Dec 2014 13:59:31 +0100 moocow
 	+ added 'hostname' key to server status messages (fqdn or short hostname via gethostname())
 	+ renamed 'host' key to 'hostaddr' in server status messages

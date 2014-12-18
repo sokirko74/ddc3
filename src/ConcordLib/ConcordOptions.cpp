@@ -285,7 +285,7 @@ bool CConcIndexator::LoadOptionsFromString(string Options)
 				q = fields.next_token();
 				if (!q.empty()) {
 					m_MaxRegExpExpansionSize = atoi(q.c_str());
-					fprintf (stderr,"MaxRegExpExpansionSize = %i\n", m_MaxRegExpExpansionSize);
+					fprintf (stderr,"MaxRegExpExpansionSize = %zi\n", m_MaxRegExpExpansionSize);
 				}
 			}
 		else if (q == "MaxCachedHitsCount")
@@ -293,7 +293,7 @@ bool CConcIndexator::LoadOptionsFromString(string Options)
 				q = fields.next_token();
 				if (!q.empty()) {
 					m_MaxCachedHitsCount = atoi(q.c_str());
-					fprintf(stderr, "MaxCachedHitsCount = %i\n", m_MaxCachedHitsCount);
+					fprintf(stderr, "MaxCachedHitsCount = %zi\n", m_MaxCachedHitsCount);
 				}
 			}
 		else if (q == "MaxQueryCacheSize")
@@ -301,7 +301,7 @@ bool CConcIndexator::LoadOptionsFromString(string Options)
 				q = fields.next_token();
 				if (!q.empty()) {
 					m_MaxQueryCacheSize = atoi(q.c_str());
-					fprintf(stderr, "MaxQueryCacheSize = %i\n", m_MaxQueryCacheSize);
+					fprintf(stderr, "MaxQueryCacheSize = %zi\n", m_MaxQueryCacheSize);
 				}
 			}
 		else if (q == "RightKwicContextSize")
@@ -423,7 +423,7 @@ bool CConcIndexator::LoadOptionsFromString(string Options)
 					m_IndicesToShow.push_back(a-1);
 					q = fields.next_token();
 				}
-				fprintf (stderr,"IndicesToShow is initialized with %i values\n", m_IndicesToShow.size());
+				fprintf (stderr,"IndicesToShow is initialized with %zi values\n", m_IndicesToShow.size());
 			}
 		else if (q == "NearRank")
 			{
@@ -692,12 +692,12 @@ bool CConcIndexator::LoadOptionsFromString(string Options)
 	{
 		if (m_IndicesToShow[i] >= m_Indices.size())
 		{
-			fprintf (stderr,"Error! index %i specified in IndicesToShow is out  of range\n", m_IndicesToShow[i]);
+			fprintf (stderr,"Error! index %zi specified in IndicesToShow is out of range\n", m_IndicesToShow[i]);
 			return false;
 		}
 		if (!m_Indices[m_IndicesToShow[i]]->m_bUseItemStorage)
 		{
-			fprintf (stderr,"Error! index %i has no storage\n", m_IndicesToShow[i]);
+			fprintf (stderr,"Error! index %zi has no storage\n", m_IndicesToShow[i]);
 			return false;
 		}
 	}

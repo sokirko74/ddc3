@@ -76,7 +76,7 @@ bool CQCountKeyExprDate::Compile(CQueryCompiler *compiler)
 string CQCountKeyExprDate::Evaluate(DWORD fileno)
 {
   int2date((*m_pDates)[fileno], &m_year, &m_month, &m_day);
-  sprintf(buf, "%u-%0.2u-%0.2u", m_year, m_month, m_day);
+  sprintf(buf, "%u-%02u-%02u", m_year, m_month, m_day);
   return buf;
 }
 

@@ -1,4 +1,4 @@
-//-*- Mode: C++; c-basic-offset: 4; -*-
+//-*- Mode: C++; c-basic-offset: 4; coding: raw-text; -*-
 //  DDC originally by Alexey Sokirko
 //  Changes and modifications 2011-2014 by Bryan Jurish
 //
@@ -40,6 +40,9 @@
 #ifdef HAVE_SYS_STAT_H
 # include <sys/stat.h>
 #endif
+
+//-- suppress gcc warnings of the form "ignoring return value of `fread', declared with attribute warn_unused_result [-Wunused-result]"
+#pragma GCC diagnostic ignored "-Wunused-result"
 
 #ifdef DETECT_MEMORY_LEAK
 	#ifdef _DEBUG
@@ -105,7 +108,7 @@ const WORD ASCII[256] = {
 /*dollar sign '$'*/                                fWordDelim|URL_CHAR,
 /*percent sign '%'*/                               fWordDelim|URL_CHAR,
 /*ampersand '&'*/                                  fWordDelim|URL_CHAR,
-/*apostrophe '''*/                                 fWordDelim|RusUpper|RusLower, // твердый знак в виде апострофа
+/*apostrophe '''*/                                 fWordDelim|RusUpper|RusLower, // ГѓВІГѓВўГѓВҐГѓВ°ГѓВ¤ГѓВ»ГѓВ© ГѓВ§ГѓВ­ГѓВ ГѓВЄ ГѓВў ГѓВўГѓВЁГѓВ¤ГѓВҐ ГѓВ ГѓВЇГѓВ®ГѓВ±ГѓВІГѓВ°ГѓВ®ГѓВґГѓВ 
 /*left parenthesis '('*/                           fWordDelim|OpnBrck|URL_CHAR,
 /*right parenthesis ')'*/                          fWordDelim|ClsBrck|URL_CHAR,
 /*asterisk '*'*/                                   fWordDelim|URL_CHAR,
@@ -1815,11 +1818,9 @@ void ConvertJO2JeTemplate(T& src, size_t Length)
 {
 	for (size_t i = 0; i < Length; i++)
 	{
-		if ( ((BYTE)src[i]) == LowerJO)
+		if ( ((BYTE)src[i]) == LowerJO )
 			src[i] = (BYTE)'е';
-		else
-		
-			if ( ( (BYTE)src[i]) == UpperJO)
+		else if ( ( (BYTE)src[i]) == UpperJO )
 			src[i] = (BYTE)'Е';
 	}
 
@@ -1906,6 +1907,7 @@ string& Trim (string& str)
 const string open_brackets = "{[(<";
 const string close_brackets = "}])>";
 const string all_brackets = open_brackets+close_brackets;
+
 
 
 int isbracket  (BYTE x)
@@ -2092,14 +2094,13 @@ CMyTimeSpan::CMyTimeSpan (long SequenceId, long InterfaceNestId)
 
 void CMyTimeSpan::GetStrRepresentation(const char* Name, char* buffer, double AllClocksCount) const
 {
-    buffer[0] = 0;
+    	buffer[0] = 0;
 	for (long i=0; i<m_InterfaceNestId; i++)
 		strcat(buffer,"\t");
 	char t[300];
-	sprintf (t, "%s  = %6.0f seconds;%6.0f ticks ;%i calls", 
+	sprintf (t, "%s  = %6.0f seconds;%6.0f ticks ;%zi calls", 
 		Name, 
 		m_TimeSpan/(double)CLOCKS_PER_SEC, 
-
 		m_TimeSpan, 
 		m_InvokeCount
 		);	

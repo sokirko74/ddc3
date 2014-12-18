@@ -2055,7 +2055,7 @@ void xpath_processor::v_function_opposite ()
 /// We order everything else, and will have to compute attributes order on demand
 void xpath_processor::v_order_tree ()
 {
-   int i_dummy;
+   size_t i_dummy;
 
    i_dummy = 1;
    v_order_recurs (XEp_root, i_dummy);
@@ -2063,7 +2063,7 @@ void xpath_processor::v_order_tree ()
 
 /// Recursive ordering of an XML tree according to XPath's document order.
 /// \n The result is stored as an integer in the void * pointer managed by TiXmlNode::SetUserData / TiXmlNode::GetUserData
-void xpath_processor::v_order_recurs (TiXmlNode * Np_base, int & i_current)
+void xpath_processor::v_order_recurs (TiXmlNode * Np_base, /*int*/ size_t & i_current)
 {
    TiXmlNode * Np_child;
 

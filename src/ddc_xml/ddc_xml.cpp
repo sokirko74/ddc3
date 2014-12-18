@@ -165,7 +165,7 @@ bool CPrototype::Initialize(string  PrototypeStr)
 			for (size_t j=0; j < i;j++)
 				if (m_PrototypeStr[j] == '\n')
 					nl++;
-			fprintf (stderr, "unfinished place holder \"%s\" number %i at offset %i line %i\n", PlaceHolderSequence, m_NameToOffset.size(), i, nl);
+			fprintf (stderr, "unfinished place holder \"%s\" number %zi at offset %zi line %zi\n", PlaceHolderSequence, m_NameToOffset.size(), i, nl);
 			return false;
 		};
 		string Name =	m_PrototypeStr.substr(i+strlen(PlaceHolderSequence), end-i-strlen(PlaceHolderSequence));
@@ -326,7 +326,7 @@ bool RunQuery (string Query, int ResultLimit, int StartHitNo, string TemplateFil
 	try
 	{
 		string  Result;
-		DDCErrorEnum InternalError;
+		int iInternalError;
 		int iNetworkError;
 		
 		DWORD  HitsCount,	EndHitNo, RelevantDocsCount;
@@ -346,12 +346,11 @@ bool RunQuery (string Query, int ResultLimit, int StartHitNo, string TemplateFil
 
 		NetworkString.erase(0, z+1);
 
-		if(sscanf(NetworkString.c_str(), "%i %i %i %i %i", &InternalError, &iNetworkError, &EndHitNo, &HitsCount, &RelevantDocsCount) != 5)
+		if(sscanf(NetworkString.c_str(), "%i %i %i %i %i", &iInternalError, &iNetworkError, &EndHitNo, &HitsCount, &RelevantDocsCount) != 5)
 		{
 			fprintf (stderr,"Bad protocol header\n");
 			return false;
 		};
-
 		
 		if (iNetworkError != neSuccess)
 		{
@@ -359,9 +358,9 @@ bool RunQuery (string Query, int ResultLimit, int StartHitNo, string TemplateFil
 			return false;
 		};
 
-		if (InternalError != errNone)
+		if (iInternalError != errNone)
 		{
-			fprintf (stderr," Internal error: %s\n", GetDDCErrorString(InternalError));
+			fprintf (stderr," Internal error: %s\n", GetDDCErrorString((DDCErrorEnum)iInternalError));
 			return false;
 		};
 		if (OutputFormat == "text")
@@ -400,7 +399,7 @@ bool RunQuery (string Query, int ResultLimit, int StartHitNo, string TemplateFil
 
 		printf ("%s", EndPart.c_str() );
 
-		fprintf (stderr,"%i hits were written\n", Hits.size());
+		fprintf (stderr,"%zi hits were written\n", Hits.size());
 
 		
 

@@ -113,7 +113,7 @@ protected :
    /// flag that says if the tree has been ordered already. This is a rather slow process, 
    /// so we only do it if needed
    void v_order_tree ();
-   void v_order_recurs (TiXmlNode * Np_base, int & i_current);
+   void v_order_recurs (TiXmlNode * Np_base, /*int*/ size_t & i_current);
 
    void v_push_int (int i_val, const char * cp_comment = "")   {xs_stack . v_push_int (i_val, cp_comment);}
    void v_push_string (TIXML_STRING S_val)   {xs_stack . v_push_string (S_val);}
