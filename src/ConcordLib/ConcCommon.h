@@ -398,7 +398,13 @@ extern void concord_daemon_log(const string&  t);
 //! return a string representation of a DDC error
 //extern const char* GetDDCErrorString(DDCErrorEnum ErrorCode);
 
-//! bool: whether to output all log messages on stderr as well
+//! bool: whether to output log messages to local log-files REGISTRY("Software\\Dialing\\Logs\\Main")/log/concord/YYYY-MM-DD.log (default=true)
+extern bool concord_daemon_log_files;
+
+//! bool: whether to output log messages on stderr (default=false)
 extern bool concord_daemon_log_stderr;
+
+//! bool: whether to output log messages via syslog (default=false)
+extern bool concord_daemon_log_syslog;
 
 #endif

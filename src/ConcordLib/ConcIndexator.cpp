@@ -31,6 +31,9 @@
 #include "../GraphanLib/HTMLConv.h"
 #include "../common/ddcString.h"
 
+#ifdef HAVE_SYSLOG_H
+#include <syslog.h>
+#endif
 
 #ifdef DETECT_MEMORY_LEAK
 	#ifdef _DEBUG
@@ -208,17 +211,18 @@ void FreeConcordDicts()
 };
 
 
+bool concord_daemon_log_files  = true;
 bool concord_daemon_log_stderr = false;
-
+bool concord_daemon_log_syslog = false;
 
 void concord_daemon_log(const string&  t)
 {
-	FILE * fp = 0;
+	FILE * fp = NULL;
 	try {
 		
 		string log_path  = GetRegistryString( "Software\\Dialing\\Logs\\Main" );
 		struct tm today = RmlGetCurrentTime();
-
+		const char *loglabel = ddc_log_label();
 		char tmpbuf[255];
 
 		/*-- moo (Tue, 10 May 2011 11:00:05 +0200)
@@ -229,21 +233,28 @@ void concord_daemon_log(const string&  t)
 		 */
 		//strftime( tmpbuf, 255,"%d%B%Y", &today );
 		strftime(tmpbuf, 255, "%F", &today);
-
 		string FileName = log_path + Format("/log/concord/%s.log", tmpbuf);
 
 		strftime( tmpbuf, 255,"%H:%M:%S", &today );
-		fp = fopen (FileName.c_str(), "a");
-		if (!fp) return;
 
-		const char *loglabel = ddc_log_label();
-		fprintf (fp, "%s (%s) > %s\n", tmpbuf, loglabel, t.c_str());
-		fclose(fp);
+		//-- log to local file LOG_PATH/log/concord/YYYY-MM-DD.log
+		if (concord_daemon_log_files && (fp=fopen (FileName.c_str(), "a"))) {
+			fprintf (fp, "%s (%s) > %s\n", tmpbuf, loglabel, t.c_str());
+			fclose(fp);
+		}
 
+		//-- log to stderr
 		if (concord_daemon_log_stderr) {
 			fprintf(stderr, "%s (%s) > %s\n", tmpbuf, loglabel, t.c_str());
 			fflush(stderr);
 		}
+
+		//-- log to syslog
+#if HAVE_SYSLOG_H
+		if (concord_daemon_log_syslog) {
+			syslog(LOG_NOTICE, "(%s) > %s", loglabel, t.c_str());
+		}
+#endif
 	}
 
 	catch (...) {

@@ -21,13 +21,16 @@
 #include "../common/utilit.h"
 #include "../ConcordLib/ConcCommon.h"
 #include "../ConcordDmnLib/Corpora.h"
-#include <syslog.h>
 #include <sys/wait.h>
 #include <errno.h>
 #include <string.h>
 
 #if HAVE_SYS_RESOURCE_H
 #include <sys/resource.h>
+#endif
+
+#ifdef HAVE_SYSLOG_H
+#include <syslog.h>
 #endif
 
 //-- suppress gcc warnings of the form "ignoring return value of `fread', declared with attribute warn_unused_result [-Wunused-result]"
@@ -42,7 +45,9 @@ string CorporaFile;
 string ServerCorporaFile;
 string Action;
 bool   doFork;
-bool   log_stderr;
+bool   log_stderr=false;
+bool   log_syslog=false;
+bool   log_files=true;
 char   log_label[64]; //-- ddc log-label
 
 const char *prog = "ddc_daemon";
@@ -51,17 +56,22 @@ void PrintUsage()
 {
 	printf ("%s\n", DDCVersionStr.c_str() );
 	printf ("Daemon for working with Dialing-DWDS Concordance\n");
-	printf ("Usage: %s <action>  [--protocol p] [--local c] [--server s] [--fork|--nofork] [--stderr]\n", prog);	
-	printf ("Where action can be:\n");
-	printf ("      start - starts daemon\n");
-	printf ("      stop - stops  daemon\n");
-	printf ("      restart - re-starts daemon\n");
-	printf ("      start_cli - starts the program not as a daemon bat as a simple console program\n");	
-	printf ("\"p\" can be weak|medium|heavy\n");
-	printf ("\"c\" is a file for the local corpora, by default $RML/etc/ddc_local_corpora.cfg\n");
-	printf ("\"s\" is a file for the server corpora, by default $RML/etc/ddc_server.cfg\n");
-	
-	
+	printf ("\nUsage: %s ACTION [OPTIONS]\n", prog);
+	printf ("\nOptions:\n"
+		"  --protocol LEVEL      # set log-lvel (weak|medium|heavy)\n"
+		"  --local LOCAL_CFG     # set local corpus config (default=$RML/etc/ddc_local_corpora.cfg)\n"
+		"  --server SERVER_CFG   # set server config (default=$RML/etc/ddc_server.cfg)\n"
+		"  --[no]fork            # do/don't detach from the running terminal (default=--fork)\n"
+		"  --[no]stderr          # do/don't log to stderr (default=--nostderr)\n"
+		"  --[no]syslog          # do/don't log to syslog (default=--nosyslog)\n"
+		"  --[no]logfiles        # do/don't log to local files (default=--logfiles)\n"
+		);
+	printf ("\nActions:\n");
+	printf ("  start                 # start daemon\n");
+	printf ("  stop                  # stop running daemon\n");
+	printf ("  restart               # re-start running daemon\n");
+	printf ("  start_cli             # starts the program not as a daemon bat as a simple console program [BROKEN]\n");	
+	printf ("\n");
 	exit(1);
 };
 
@@ -106,7 +116,6 @@ void UnloadData()
 void  termination_handler(int signum)
 {
 	UnloadData();
-	syslog(LOG_ALERT, "Exiting from concordance ");
 	concord_daemon_log("Exiting from concordance");
 	exit(1);
 };
@@ -114,8 +123,7 @@ void  termination_handler(int signum)
 int puke(const std::string& msg) {
 	fputs(msg.c_str(), stdout);
 	fputc('\n', stdout);
-	syslog(LOG_ALERT, "%s", msg.c_str());
-	concord_daemon_log(msg.c_str());
+	concord_daemon_log(msg);
 	UnloadData();
 	RemoveLockFile();
 	SocketDeinitialize();
@@ -168,7 +176,20 @@ int do_start(bool clientMode=false)
 	string startmsg = Format("Starting ddc_daemon v" PACKAGE_VERSION " in %s %s mode",
 				 (doFork ? "forked" : "unforked"),
 				 (clientMode ? "client" : "server"));
+
+	//-- setup logging options
+	concord_daemon_log_files=log_files;
 	concord_daemon_log_stderr=log_stderr;
+	if (log_syslog) {
+#ifdef HAVE_SYSLOG_H
+		concord_daemon_log_syslog=true;
+		openlog("ddc_daemon", LOG_PID|LOG_CONS, LOG_DAEMON);
+#else
+		fprintf(stderr, "%s: syslog logging disabled because ddc_daemon wasn't compiled with syslog support\n", prog);
+		concord_daemon_log_syslog = false;
+#endif
+	}
+
 	concord_daemon_log(startmsg);
 	if (!log_stderr) fprintf(stderr, "%s\n", startmsg.c_str());
 	
@@ -210,17 +231,16 @@ int do_start(bool clientMode=false)
 		  for(fd=0;fd<flim.rlim_max;fd++)
 		    close(fd);
 		}
-		openlog("ddc_daemon Server",	LOG_PID| LOG_CONS, LOG_DAEMON );
 	}
 
 
-	syslog(LOG_ALERT, "Open	lock file `%s'\n", LockFileName.c_str());
+	//syslog(LOG_ALERT, "Open	lock file `%s'\n", LockFileName.c_str());
+	concord_daemon_log(Format("Open lock file `%s'\n", LockFileName.c_str()));
 	FILE* fp = fopen (LockFileName.c_str(),	"w");
-	if (!fp)
-		{
-			syslog(LOG_ALERT, "Cannot open lock-file `%s': %s\n",	LockFileName.c_str(), strerror(errno));
-			return 1;
-		};
+	if (!fp) {
+		concord_daemon_log(Format("Cannot open lock-file `%s': %s\n",	LockFileName.c_str(), strerror(errno)));
+		return 1;
+	}
 	fprintf(fp, "%i", getpid());
 	fclose (fp);
 	concord_daemon_log (Format("Wrote PID=%i to lock-file `%s'", getpid(), LockFileName.c_str()));
@@ -231,7 +251,6 @@ int do_start(bool clientMode=false)
 	concord_daemon_log ("InitLemmatizers");
 	if (!InitConcordDicts())
 		{
-			syslog(LOG_ALERT, "Cannot load Morphology\n");
 			concord_daemon_log ("Cannot load Morphology");
 			SocketDeinitialize();
 			return 1;
@@ -356,18 +375,14 @@ int	main(int argc, char	**argv)
 			i++;
 			ServerCorporaFile = argv[i];
 		}
-		else if (s == "--fork") {
-			doFork = true;
-		}
-		else if (s == "--nofork") {
-			doFork = false;
-		}
-		else if (s == "--stderr") {
-			log_stderr = true;
-		}
-		else if (s == "--nostderr") {
-			log_stderr = false;
-		}
+		else if (s == "--fork") { doFork = true; }
+		else if (s == "--nofork") { doFork = false; }
+		else if (s == "--stderr") { log_stderr = true; }
+		else if (s == "--nostderr") { log_stderr = false; }
+		else if (s == "--syslog") { log_syslog = true; }
+		else if (s == "--nosyslog") { log_syslog = false; }
+		else if (s == "--logfiles" || s == "--logfile") { log_files = true; }
+		else if (s == "--nologfiles" || s == "--nologfile") { log_files = false; }
 		else {
 			Action = argv[i];
 		}
