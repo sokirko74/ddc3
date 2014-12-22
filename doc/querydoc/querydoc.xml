@@ -975,15 +975,39 @@
 	  </rule>
 
 	  <!--~~~~~~~~ RULES: qfb_ctxkey -->
-	  <rule lhs="qfb_ctxkey" cmt="Optional sort-key attribute and/or offset for context-sort operators">
-	    <rhs cmt="... given attribute (zero offset)">
+	  <rule lhs="qfb_ctxkey" cmt="Optional sort-key attribute, match-id reference, and/or offset for context-sort operators">
+	    <rhs cmt="... given token-attribute, match-reference, and offset">
 	      <n>sym_str</n>
+	      <n>qfbc_matchref</n>
+	      <n>qfbc_offset</n>
 	    </rhs>
-	    <rhs cmt="... given offset (Token attribute)">
+	    <rhs cmt="... given only match-reference and offset">
+	      <n>qfbc_matchref</n>
+	      <n>qfbc_offset</n>
+	    </rhs>
+	  </rule>
+
+	  <!--~~~~~~~~ RULES: qfbc_ctxkey -->
+	  <rule lhs="qfbc_matchref" cmt="Optional match-id reference for context-sort operators">
+	    <rhs cmt="... empty"/>
+	    <rhs cmt="... back-reference to a match-id assigned with &quot;=ID&quot;">
+	      <t>$</t>
 	      <n>integer</n>
 	    </rhs>
-	    <rhs cmt="... given attribute and offset">
-	      <n>sym_str</n>
+	  </rule>
+
+	  <!--~~~~~~~~ RULES: qfbc_offset -->
+	  <rule lhs="qfbc_offset" cmt="Optional offset for context-sort operators">
+	    <rhs cmt="... empty (use operator-dependent default)"/>
+	    <rhs cmt="... explicit offset with respect to left-, right-, or mid-most selected match token">
+	      <n>integer</n>
+	    </rhs>
+	    <rhs cmt="... positive offset (trailing context)">
+	      <t>+</t>
+	      <n>integer</n>
+	    </rhs>
+	    <rhs cmt="... negative offset (leading context)">
+	      <t>-</t>
 	      <n>integer</n>
 	    </rhs>
 	  </rule>

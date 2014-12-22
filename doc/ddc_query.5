@@ -62,7 +62,7 @@
 .\" ========================================================================
 .\"
 .IX Title "DDC_QUERY 5"
-.TH DDC_QUERY 5 "2014-12-22" "2.0.36-pre1" "DDC Corpus Indexing System"
+.TH DDC_QUERY 5 "2014-12-22" "2.0.36-pre2" "DDC Corpus Indexing System"
 .\" For nroff, turn off justification.  Always turn off hyphenation; it makes
 .\" way too many mistakes in technical documents.
 .if n .ad l
@@ -145,7 +145,8 @@ Comments may appear after each rule in C notation
 \&                    ;
 \& 
 \& qc_matchid       ::=                                                       /*\-\- Assign explicit clause\-level highlighting ID (incurs a minor performance penalty) \-\-*/
-\&                      q_clause = integer                                    /* valid IDs are in the range (1\-255); default=255 */
+\&                      q_clause = integer                                    /* ... valid IDs are in the range (1\-255); default=255 */
+\&                    | ( qc_matchid )                                        /* ... explicit grouping is allowed */
 \&                    ;
 \& 
 \& qc_near          ::=                                                       /*\-\- Unordered proximity constraint \-\-*/
@@ -290,7 +291,7 @@ Comments may appear after each rule in C notation
 \&                    ;
 \& 
 \& qw_matchid       ::=                                                       /*\-\- Assign explicit highlighting ID (incurs a minor performance penalty) \-\-*/
-\&                      qc_word = integer                                     /* valid IDs are in the range (1\-255); default=255 */
+\&                      qc_word = integer                                     /* ... valid IDs are in the range (1\-255); default=255 */
 \&                    ;
 .Ve
 .PP
@@ -726,7 +727,7 @@ to be replaced by the \s-1REPLACE\s0 string.
 \& "#>"                           /* min\-distance hint for phrase queries */
 \& "$."                           /* anchor pseudo\-index (position\-index in "break collection" segment) */
 \& [\e!\e.\e,\e:\e;\e$\e@\e%\e^\e#\e=\e/\e~]   /* single\-character punctuation operators */
-\& [\e[\e]\e{\e}\e(\e)\e<\e>]     /* parentheses */
+\& [\e[\e]\e{\e}\e(\e)\e<\e>]             /* parentheses */
 \& [\e"]                           /* double quotes (for pharse queries) */
 \& ":{"                           /* thesaurus\-query opener */
 \& "@{"                           /* literal\-set opener */

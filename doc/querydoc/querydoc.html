@@ -182,7 +182,7 @@
 <td></td>
 <td></td>
 <td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_qc_matchid">qc_matchid</a></span> </td>
-<td class="ruleComment">/* User-specified match-ID */</td>
+<td class="ruleComment">/* User-specified match-ID (distributes over all clause-tokens) */</td>
 </tr>
 <tr>
 <td></td>
@@ -357,6 +357,12 @@
 <td></td>
 <td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_qc_phrase">qc_phrase</a></span> </td>
 <td class="ruleComment">/* Ordered sequence of single-token conditions */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_qc_tokens">qc_tokens</a></span> <span class="ruleTerminal">=</span> <span class="ruleNonterminal"><a href="#rule_integer">integer</a></span> </td>
+<td class="ruleComment">/* User-specified match-ID (distributes over all tokens) */</td>
 </tr>
 <tr>
 <td></td>
@@ -1648,26 +1654,80 @@
 <td><b><a name="rule_qfb_ctxkey">qfb_ctxkey</a></b></td>
 <td>::=</td>
 <td></td>
-<td class="ruleCommentTop">/* Optional sort-key attribute and/or offset for context-sort operators */</td>
+<td class="ruleCommentTop">/* Optional sort-key attribute, match-id reference, and/or offset for context-sort operators */</td>
 </tr>
 <tr>
 <td></td>
 <td></td>
 <td class="ruleRHS1">
-<span class="ruleNonterminal"><a href="#rule_sym_str">sym_str</a></span> </td>
-<td class="ruleComment">/* ... given attribute (zero offset) */</td>
+<span class="ruleNonterminal"><a href="#rule_sym_str">sym_str</a></span> <span class="ruleNonterminal"><a href="#rule_qfbc_matchref">qfbc_matchref</a></span> <span class="ruleNonterminal"><a href="#rule_qfbc_offset">qfbc_offset</a></span> </td>
+<td class="ruleComment">/* ... given token-attribute, match-reference, and offset */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_qfbc_matchref">qfbc_matchref</a></span> <span class="ruleNonterminal"><a href="#rule_qfbc_offset">qfbc_offset</a></span> </td>
+<td class="ruleComment">/* ... given only match-reference and offset */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td><b>;</b></td>
+</tr>
+<tr></tr>
+<tr>
+<td><b><a name="rule_qfbc_matchref">qfbc_matchref</a></b></td>
+<td>::=</td>
+<td></td>
+<td class="ruleCommentTop">/* Optional match-id reference for context-sort operators */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS1"></td>
+<td class="ruleComment">/* ... empty */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleTerminal">$</span> <span class="ruleNonterminal"><a href="#rule_integer">integer</a></span> </td>
+<td class="ruleComment">/* ... back-reference to a match-id assigned with "=ID" */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td><b>;</b></td>
+</tr>
+<tr></tr>
+<tr>
+<td><b><a name="rule_qfbc_offset">qfbc_offset</a></b></td>
+<td>::=</td>
+<td></td>
+<td class="ruleCommentTop">/* Optional offset for context-sort operators */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS1"></td>
+<td class="ruleComment">/* ... empty (use operator-dependent default) */</td>
 </tr>
 <tr>
 <td></td>
 <td></td>
 <td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_integer">integer</a></span> </td>
-<td class="ruleComment">/* ... given offset (Token attribute) */</td>
+<td class="ruleComment">/* ... explicit offset with respect to left-, right-, or mid-most selected match token */</td>
 </tr>
 <tr>
 <td></td>
 <td></td>
-<td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_sym_str">sym_str</a></span> <span class="ruleNonterminal"><a href="#rule_integer">integer</a></span> </td>
-<td class="ruleComment">/* ... given attribute and offset */</td>
+<td class="ruleRHS">| <span class="ruleTerminal">+</span> <span class="ruleNonterminal"><a href="#rule_integer">integer</a></span> </td>
+<td class="ruleComment">/* ... positive offset (trailing context) */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleTerminal">-</span> <span class="ruleNonterminal"><a href="#rule_integer">integer</a></span> </td>
+<td class="ruleComment">/* ... negative offset (leading context) */</td>
 </tr>
 <tr>
 <td></td>
@@ -2682,6 +2742,7 @@ regex_modifier	[gimsx]
 <!--/terminals:regex--><!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ --><div class="subsection">
 <h3><a name="term_PUNCT">Punctuation Operators and Special Characters</a></h3>
 <pre>
+"$"[0-9]+			/* match-id reference (for context-sort operators) */
 "&amp;&amp;"				/* clause-level conjunction operator */
 "||"				/* clause-level disjunction operator */
 "#="				/* exact-distance hint in phrase queries */
@@ -3294,7 +3355,7 @@ regex_modifier	[gimsx]
   </body></div>
 <div class="footers">
 <div class="footer_sig">
-<address><a href="mailto:jurish@bbaw.de">jurish@bbaw.de</a></address>Last modified: Mon, 22 Dec 2014 16:12:49 +0100</div>
+<address><a href="mailto:jurish@bbaw.de">jurish@bbaw.de</a></address>Last modified: Mon, 22 Dec 2014 16:58:00 +0100</div>
 <div class="footer_linkbar"><p class="nopad"><a class="navLink" href="/">Root</a><a class="navLink" href="./">Back</a><span class="navLinkDisabled">Help</span></p></div>
 <p class="dummy"></p>
 </div>
