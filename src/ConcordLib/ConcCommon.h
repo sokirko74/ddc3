@@ -251,6 +251,9 @@ struct CDDCFilterWithBounds
 	//! true iff this is a negated filter
   	bool			m_bNegated; 
 
+	//! match-id of reference token for context-sort operators (default=0:any)
+	int m_ContextMatchId;
+
 	//!  offset from matched token for context-sort operators
 	int m_ContextOffset;
 
@@ -322,6 +325,7 @@ struct CDDCFilterWithBounds
 		: m_bSet(false),
 		  m_bNegated(false),
 		  m_FilterType(NoSort),
+		  m_ContextMatchId(0),
 		  m_ContextOffset(0),
 		  m_KeyLo(INT_MIN),
 		  m_KeyHi(INT_MAX),

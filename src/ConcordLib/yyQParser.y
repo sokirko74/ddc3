@@ -43,9 +43,9 @@
 #define YYLEX_PARAM _qcompiler
 
 #define _qc ((CQueryCompiler*)_qcompiler)
-#define _newFilter(class,ftype)		new class ((ftype), _qc->m_FilterLB, _qc->m_FilterUB)
-#define _newBFilter(ftype,field)	new CQFBiblSort ((ftype), field, _qc->m_FilterLB, _qc->m_FilterUB)
-#define _newCFilter(ftype,offset)	new CQFContextSort ((ftype), _qc->m_FilterField, (offset), _qc->m_FilterLB, _qc->m_FilterUB)
+#define _newFilter(class,ftype)			new class ((ftype), _qc->m_FilterLB, _qc->m_FilterUB)
+#define _newBFilter(ftype,field)		new CQFBiblSort ((ftype), field, _qc->m_FilterLB, _qc->m_FilterUB)
+#define _newCFilter(ftype,DefaultOffset)	new CQFContextSort ((ftype), _qc->m_FilterField, _qc->m_FilterMatchId, (_qc->m_FilterOffset==NOINT ? (DefaultOffset) : _qc->m_FilterOffset), _qc->m_FilterLB, _qc->m_FilterUB)
 
 #ifdef DETECT_MEMORY_LEAK
 	#ifdef _DEBUG
@@ -104,6 +104,8 @@ int yylex (void*,  void*);
 %type	<m_pfilt>	qfb_bibl_ne
 %type	<m_int>		qfb_ctxsort
 %type	<m_int>		qfb_ctxkey
+%type   <m_int>		qfbc_matchref
+%type   <m_int>		qfbc_offset
 
 //------------------------------------------------------
 // Types: Queries
@@ -189,6 +191,7 @@ int yylex (void*,  void*);
 %type	<m_str>		int_str
 %type	<m_int>		integer
 %type	<m_str>		date
+%type	<m_int>		matchref
 
 //------------------------------------------------------
 // Types: Terminals
@@ -213,6 +216,7 @@ int yylex (void*,  void*);
 %token	<m_str>	HASH_GREATER
 %token	<m_str>	HASH_EQUAL
 %token	<m_str>	DOLLAR_DOT
+%token	<m_str>	DOLLAR_INT
 
 %token	<m_str>	CNTXT
 %token	<m_str>	WITHIN
@@ -369,12 +373,12 @@ qf_rank_sort:
 	;
 
 qf_context_sort:
-		LESS_BY_LEFT       qfb_ctxsort	{ $$ = _newCFilter(LessByLeftContext,      ($2!=NOINT ? $2 : -1)); }
-	|	GREATER_BY_LEFT	   qfb_ctxsort	{ $$ = _newCFilter(GreaterByLeftContext,   ($2!=NOINT ? $2 : -1)); }
-	|	LESS_BY_RIGHT      qfb_ctxsort	{ $$ = _newCFilter(LessByRightContext,     ($2!=NOINT ? $2 :  1)); }
-	|	GREATER_BY_RIGHT   qfb_ctxsort	{ $$ = _newCFilter(GreaterByRightContext,  ($2!=NOINT ? $2 :  1)); }
-	|	LESS_BY_MIDDLE     qfb_ctxsort	{ $$ = _newCFilter(LessByMiddleContext,    ($2!=NOINT ? $2 :  0)); }
-	|	GREATER_BY_MIDDLE  qfb_ctxsort	{ $$ = _newCFilter(GreaterByMiddleContext, ($2!=NOINT ? $2 :  0)); }
+		LESS_BY_LEFT       qfb_ctxsort	{ $$ = _newCFilter(LessByLeftContext,      -1); }
+	|	GREATER_BY_LEFT	   qfb_ctxsort	{ $$ = _newCFilter(GreaterByLeftContext,   -1); }
+	|	LESS_BY_RIGHT      qfb_ctxsort	{ $$ = _newCFilter(LessByRightContext,      1); }
+	|	GREATER_BY_RIGHT   qfb_ctxsort	{ $$ = _newCFilter(GreaterByRightContext,   1); }
+	|	LESS_BY_MIDDLE     qfb_ctxsort	{ $$ = _newCFilter(LessByMiddleContext,     0); }
+	|	GREATER_BY_MIDDLE  qfb_ctxsort	{ $$ = _newCFilter(GreaterByMiddleContext,  0); }
 	;
 
 qf_size_sort:
@@ -439,17 +443,26 @@ qfb_bibl_ne:
 	;
 
 qfb_ctxsort:
-		/* empty */			{ $$=NOINT; _qc->SetFilterBounds(); }
-	|	'[' 	                   ']'	{ $$=NOINT; _qc->SetFilterBounds(); }
-	|	'['            qfb_bibl_ne ']'	{ $$=NOINT; _qc->m_FilterField=""; }
-	|	'[' qfb_ctxkey             ']'	{ $$=$2; _qc->SetFilterBounds(); }
-	|	'[' qfb_ctxkey qfb_bibl_ne ']'	{ $$=$2; }
+		/* empty */			{ $$=0; _qc->SetFilterKey(); }
+	|	'[' qfb_ctxkey             ']'	{ $$=0; _qc->SetFilterBounds(); }
+	|	'[' qfb_ctxkey qfb_bibl_ne ']'	{ $$=0; }
 	;
 
 qfb_ctxkey:
-		sym_str			{ $$=NOINT; _qc->m_FilterField=*$1; _qc->SetFilterBounds(); }
-	|	        integer		{ $$=$1;    _qc->m_FilterField="";  _qc->SetFilterBounds(); }
-	|	sym_str integer		{ $$=$2;    _qc->m_FilterField=*$1; _qc->SetFilterBounds(); }
+		sym_str qfbc_matchref qfbc_offset	{ $$=0; _qc->SetFilterKey(*$1, $2, $3); }
+	|		qfbc_matchref qfbc_offset	{ $$=0; _qc->SetFilterKey("",  $1, $2); }
+	;
+
+qfbc_matchref:	
+		/* empty */	{ $$=0; }
+	|	matchref	{ $$=$1; }
+	;
+
+qfbc_offset:
+		/* empty */	{ $$=NOINT; }
+	|	integer		{ $$=$1; }
+	|	'+' integer	{ $$=$2; }
+	|	'-' integer	{ $$=-$2; }
 	;
 
  /*-------------------------------------------------------------
@@ -463,7 +476,7 @@ q_clause:
 	;
 
 qc_matchid:
-		q_clause '=' integer    { $$ = $1; $$->SetMatchId($3); }
+		q_clause '=' integer     { $$ = $1; $$->SetMatchId($3); }
 	|	'(' qc_matchid ')'	{ $$ = $2; }
 	;
 
@@ -775,6 +788,9 @@ integer: 	int_str	{ $$ = atoi($1->c_str()); }
 
 date:		DATE	{ $$ = $1; }
 	|	INTEGER { $$ = $1; }
+	;
+
+matchref:	DOLLAR_INT { $$ = atoi($1->c_str()); }
 	;
 
 

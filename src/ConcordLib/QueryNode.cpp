@@ -349,8 +349,39 @@ void CQueryNode::ConvertOccurrencesToHitsForPatterns (bool bSeparateHits)
 	NewNode.m_ChunkLengths.swap(m_ChunkLengths);
 };
 
+DWORD CQueryNode::GetFirstOccurrenceInHit(DWORD HitNo, BYTE MatchId) const
+{
+	DWORD beg = HitOccurrencesBegin(HitNo);
+	DWORD end = HitOccurrencesEnd(HitNo);
+	for (DWORD i=beg; i < end; ++i) {
+		if (m_OccurrenceMatchIds[i] == MatchId) return i;
+	}
+	return (DWORD)-1;
+}
 
+DWORD CQueryNode::GetLastOccurrenceInHit(DWORD HitNo, BYTE MatchId) const
+{
+	DWORD beg = HitOccurrencesBegin(HitNo);
+	DWORD end = HitOccurrencesEnd(HitNo);
+	for (DWORD i=end-1; i >= beg && i < end; --i) {
+		if (m_OccurrenceMatchIds[i] == MatchId) return i;
+	}
+	return (DWORD)-1;
+}
 
+DWORD CQueryNode::GetMiddleOccurrenceInHit(DWORD HitNo, BYTE MatchId) const
+{
+	DWORD beg = HitOccurrencesBegin(HitNo);
+	DWORD end = HitOccurrencesEnd(HitNo);
+	DWORD width = (end-beg)/2;
+	DWORD mid = beg + width;
+	DWORD off, i;
+	for (off=0; off <= width; ++off) {
+		if      ((i=mid-off) >= beg && i < end && m_OccurrenceMatchIds[i]==MatchId) return i;
+		else if ((i=mid+off) >= beg && i < end && m_OccurrenceMatchIds[i]==MatchId) return i;
+	}
+	return (DWORD)-1;
+}
 
 // ================== CQueryBinaryOperationNode ==================
 

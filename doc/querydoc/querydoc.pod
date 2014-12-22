@@ -84,7 +84,8 @@ Comments may appear after each rule in C notation
                     ;
  
  qc_matchid       ::=                                                       /*-- Assign explicit clause-level highlighting ID (incurs a minor performance penalty) --*/
-                      q_clause = integer                                    /* valid IDs are in the range (1-255); default=255 */
+                      q_clause = integer                                    /* ... valid IDs are in the range (1-255); default=255 */
+                    | ( qc_matchid )                                        /* ... explicit grouping is allowed */
                     ;
  
  qc_near          ::=                                                       /*-- Unordered proximity constraint --*/
@@ -229,7 +230,7 @@ Comments may appear after each rule in C notation
                     ;
  
  qw_matchid       ::=                                                       /*-- Assign explicit highlighting ID (incurs a minor performance penalty) --*/
-                      qc_word = integer                                     /* valid IDs are in the range (1-255); default=255 */
+                      qc_word = integer                                     /* ... valid IDs are in the range (1-255); default=255 */
                     ;
  
 
@@ -676,7 +677,7 @@ to be replaced by the REPLACE string.
  "#>"				/* min-distance hint for phrase queries */
  "$."				/* anchor pseudo-index (position-index in "break collection" segment) */
  [\!\.\,\:\;\$\@\%\^\#\=\/\~]	/* single-character punctuation operators */
- [\[\]\{\}\(\)\<\>]	/* parentheses */
+ [\[\]\{\}\(\)\<\>]		/* parentheses */
  [\"]				/* double quotes (for pharse queries) */
  ":{"				/* thesaurus-query opener */
  "@{"				/* literal-set opener */

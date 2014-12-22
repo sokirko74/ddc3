@@ -294,7 +294,13 @@
 <td></td>
 <td class="ruleRHS1">
 <span class="ruleNonterminal"><a href="#rule_q_clause">q_clause</a></span> <span class="ruleTerminal">=</span> <span class="ruleNonterminal"><a href="#rule_integer">integer</a></span> </td>
-<td class="ruleComment">/* valid IDs are in the range (1-255); default=255 */</td>
+<td class="ruleComment">/* ... valid IDs are in the range (1-255); default=255 */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleTerminal">(</span> <span class="ruleNonterminal"><a href="#rule_qc_matchid">qc_matchid</a></span> <span class="ruleTerminal">)</span> </td>
+<td class="ruleComment">/* ... explicit grouping is allowed */</td>
 </tr>
 <tr>
 <td></td>
@@ -1039,7 +1045,7 @@
 <td></td>
 <td class="ruleRHS1">
 <span class="ruleNonterminal"><a href="#rule_qc_word">qc_word</a></span> <span class="ruleTerminal">=</span> <span class="ruleNonterminal"><a href="#rule_integer">integer</a></span> </td>
-<td class="ruleComment">/* valid IDs are in the range (1-255); default=255 */</td>
+<td class="ruleComment">/* ... valid IDs are in the range (1-255); default=255 */</td>
 </tr>
 <tr>
 <td></td>
@@ -2683,7 +2689,7 @@ regex_modifier	[gimsx]
 "#&gt;"				/* min-distance hint for phrase queries */
 "$."				/* anchor pseudo-index (position-index in "break collection" segment) */
 [\!\.\,\:\;\$\@\%\^\#\=\/\~]	/* single-character punctuation operators */
-[\[\]\{\}\(\)\&lt;\&gt;]	/* parentheses */
+[\[\]\{\}\(\)\&lt;\&gt;]		/* parentheses */
 [\"]				/* double quotes (for pharse queries) */
 ":{"				/* thesaurus-query opener */
 "@{"				/* literal-set opener */
@@ -3288,7 +3294,7 @@ regex_modifier	[gimsx]
   </body></div>
 <div class="footers">
 <div class="footer_sig">
-<address><a href="mailto:jurish@bbaw.de">jurish@bbaw.de</a></address>Last modified: Mon, 22 Dec 2014 11:45:56 +0100</div>
+<address><a href="mailto:jurish@bbaw.de">jurish@bbaw.de</a></address>Last modified: Mon, 22 Dec 2014 16:12:49 +0100</div>
 <div class="footer_linkbar"><p class="nopad"><a class="navLink" href="/">Root</a><a class="navLink" href="./">Back</a><span class="navLinkDisabled">Help</span></p></div>
 <p class="dummy"></p>
 </div>

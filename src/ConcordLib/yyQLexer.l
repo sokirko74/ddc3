@@ -82,8 +82,8 @@ symbol_crest	[^ \t\r\n\f\v\0\^\&\|\!\(\)\[\]\{\}\<\>\'\"\,\;\:\#\=\*\%\\\~\/]
 symbol_cescape  (\\.)
 symbol_text     ({symbol_cescape}|{symbol_cfirst})(({symbol_cescape}|{symbol_crest})*)
 
-int_boundary	[ \t\n\r\f\v\0\^\&\|\!\(\)\[\]\{\}\<\>\'\"\,\;\:\#\=\*\%\~\\\$\@\/\?\_\+\.]
-kw_boundary	[ \t\n\r\f\v\0\^\&\|\!\(\)\[\]\{\}\<\>\'\"\,\;\:\#\=\*\%\~\\\$\@\/\?\_\+\.]
+int_boundary	[ \t\n\r\f\v\0\^\&\|\!\(\)\[\]\{\}\<\>\'\"\,\;\:\#\=\*\%\~\\\$\@\/\?\_\+\-\.]
+kw_boundary	[ \t\n\r\f\v\0\^\&\|\!\(\)\[\]\{\}\<\>\'\"\,\;\:\#\=\*\%\~\\\$\@\/\?\_\+\-\.]
 
 index_name      {symbol_text}
 
@@ -160,6 +160,9 @@ regex_modifier	[gimsx]
 <Q_REGREP>{regex_text}"/"			{            yyleng--;  BEGIN(INITIAL);  return REGEX_REPLACE; /* search-replace replacement, -modifiers */ }
 <Q_REGOPT>{regex_modifier}+			{ BEGIN(INITIAL); return REGOPT; }
 
+ /* match-ids */
+"$"[0-9]+			{ yytext++; yyleng--; return DOLLAR_INT; /* dollar+integer: match reference */ }
+
  /* punctuation */
 "#="				{ return HASH_EQUAL; /* hash+equal: exact distance */ }
 "#<"				{ return HASH_LESS; /* hash+less: max distance */ }
@@ -178,8 +181,8 @@ regex_modifier	[gimsx]
 \'[\+\-]?[0-9]+\'		{ yytext++; yyleng-=2; return INTEGER; }
 [\+\-]?[0-9]+/{int_boundary}	{ return INTEGER; }
 
-\'[0-9\-]+\'			{ yytext++; yyleng-=2; return DATE; }
-[0-9\-]+/{int_boundary}		{ return DATE; }
+\'[0-9\-]+\'			 { yytext++; yyleng-=2; return DATE; }
+[0-9]{4,}[0-9\-]+/{int_boundary} { return DATE; }
 
  /* truncated symbols */
 "*"\'{sq_text}\'"*"		{ yytext+=2; yyleng-=4; return INFIX;  /* dual-truncated quoted string (infix symbol) */ }

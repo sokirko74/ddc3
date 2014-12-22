@@ -192,11 +192,13 @@ class CQFContextSort : public CQFSort {
 public:
   CQFContextSort(HitSortEnum ftype=LessByMiddleContext,
 		 const string &field=string(""),
+		 int matchid=0,
 		 int offset=0,
 		 const string &lb=string(""),
 		 const string &ub=string(""))
     : CQFSort(ftype,field,lb,ub)
   {
+    m_Filter.m_ContextMatchId = matchid;
     m_Filter.m_ContextOffset = offset;
   };
 

@@ -1240,6 +1240,7 @@ void CConcHolder::InitSortByContext(const CQuery *pQuery, const CDDCFilterWithBo
 	vector<CHit>& Hits = qnod->m_Hits;
 	size_t HitsCount = qnod->m_Hits.size();
 	const vector<CTokenNo>& Breaks = GetBreaks();
+	const vector<BYTE> &occur_ids = qnod->m_OccurrenceMatchIds;
 
 	if (!pIdx)
 		throw CExpc(errOther, Format("CConcHolder::InitSortByContext(): Error: could not find index `%s' for context sort", F.m_AttrName.c_str()));
@@ -1251,41 +1252,64 @@ void CConcHolder::InitSortByContext(const CQuery *pQuery, const CDDCFilterWithBo
 
 		//-- get context anchor occurrence-index occur_i
 		DWORD occur_i;
-		switch (F.m_FilterType) {
-		case LessByLeftContext:
-		case GreaterByLeftContext:
-			//-- #left : stick to FIRST match-token in each hit
-			occur_i = (HitNo == 0) ? 0 : Hits[HitNo-1].m_HighlightOccurrenceEnd;
-			break;
+		if (qnod->m_bUseMatchIds && F.m_ContextMatchId!=0) {
+			//-- get occur_i: WITH match-ids
+			switch (F.m_FilterType) {
+			case LessByLeftContext:
+			case GreaterByLeftContext:
+				//-- #left : stick to FIRST id-matching token in each hit
+				occur_i = qnod->GetFirstOccurrenceInHit(HitNo, F.m_ContextMatchId);
+				break;
 
-		case LessByRightContext:
-		case GreaterByRightContext:
-			//-- #right : stick to FINAL match-token in each hit
-			occur_i = H.m_HighlightOccurrenceEnd - 1;
-			break;
+			case LessByRightContext:
+			case GreaterByRightContext:
+				//-- #right : stick to FINAL id-matching token in each hit
+				occur_i = qnod->GetLastOccurrenceInHit(HitNo, F.m_ContextMatchId);
+				break;
 
-		case LessByMiddleContext:
-		case GreaterByMiddleContext:
-		default:
-			{
-				//-- #middle : stick to MIDDLE match-token of each hit
-				DWORD occur_li = occur_i = (HitNo == 0) ? 0 : Hits[HitNo-1].m_HighlightOccurrenceEnd;
-				DWORD occur_ri = H.m_HighlightOccurrenceEnd - 1;
-				occur_i = occur_li + (occur_ri-occur_li)/2;
+			case LessByMiddleContext:
+			case GreaterByMiddleContext:
+			default:
+				//-- #middle : stick to MIDDLE idmatching token in each hit
+				occur_i = qnod->GetMiddleOccurrenceInHit(HitNo, F.m_ContextMatchId);
+				break;
 			}
-			break;
+		}
+		else {
+			//-- get occur_i: WITHOUT match-ids
+			switch (F.m_FilterType) {
+			case LessByLeftContext:
+			case GreaterByLeftContext:
+				//-- #left : stick to FIRST match-token in each hit
+				occur_i = (HitNo == 0) ? 0 : Hits[HitNo-1].m_HighlightOccurrenceEnd;
+				break;
+
+			case LessByRightContext:
+			case GreaterByRightContext:
+				//-- #right : stick to FINAL match-token in each hit
+				occur_i = H.m_HighlightOccurrenceEnd - 1;
+				break;
+
+			case LessByMiddleContext:
+			case GreaterByMiddleContext:
+			default:
+				//-- #middle : stick to MIDDLE match-token of each hit
+				{
+					DWORD occur_li = occur_i = (HitNo == 0) ? 0 : Hits[HitNo-1].m_HighlightOccurrenceEnd;
+					DWORD occur_ri = H.m_HighlightOccurrenceEnd - 1;
+					occur_i = occur_li + (occur_ri-occur_li)/2;
+				}
+				break;
+			}
 		}
 
-		if (occur_i >= qnod->m_Occurrences.size())
-			throw CExpc(errOther, Format("CConcHolder::InitSortByContext(): occur_i=%i exceeds m_Occurrences.size()=%zd for hit #%zd", occur_i, qnod->m_Occurrences.size(), HitNo));
-
-		//-- usual case: assign both int and string keys
-		CTokenNo keyId = qnod->m_Occurrences[occur_i] + F.m_ContextOffset;
+		//-- assign sort key
+		CTokenNo keyId = (occur_i >= qnod->m_Occurrences.size() ? EndTokenNo : (qnod->m_Occurrences[occur_i] + F.m_ContextOffset));
 		if (keyId >= StartTokenNo && keyId < EndTokenNo && (H.m_SortKey.i=pIdx->GetTokenIndexId(keyId)) != DWORD_MAX) {
 			//-- usual case: within target break and with a valid item id
 			H.m_SortKey.s = pIdx->GetIndexItemStr( pIdx->m_Index[H.m_SortKey.i] );
 		} else {
-			//-- break-overflow (EOS etc) or invalid key item: treat as empty
+			//-- break-overflow (EOS etc) or invalid key item: treat as empty sort-key
 			H.m_SortKey = INT_MIN;
 		}
 	}

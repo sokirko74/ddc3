@@ -101,7 +101,7 @@
 	    <rhs cmt="Concatenated query clauses (implicit logical conjunction)">
 	      <n>qc_concat</n>
 	    </rhs>
-	    <rhs cmt="User-specified match-ID">
+	    <rhs cmt="User-specified match-ID (distributes over all clause-tokens)">
 	      <n>qc_matchid</n>
 	    </rhs>
 	  </rule>
@@ -209,6 +209,11 @@
 	    </rhs>
 	    <rhs cmt="Ordered sequence of single-token conditions">
 	      <n>qc_phrase</n>
+	    </rhs>
+	    <rhs cmt="User-specified match-ID (distributes over all tokens)">
+	      <n>qc_tokens</n>
+	      <t>=</t>
+	      <n>integer</n>
 	    </rhs>
 	  </rule>
 
@@ -1521,6 +1526,7 @@ regex_modifier	[gimsx]
       <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
       <subsection name="term_PUNCT" title="Punctuation Operators and Special Characters">
 <pre>
+"$"[0-9]+			/* match-id reference (for context-sort operators) */
 "&amp;&amp;"				/* clause-level conjunction operator */
 "||"				/* clause-level disjunction operator */
 "#="				/* exact-distance hint in phrase queries */
@@ -1528,7 +1534,7 @@ regex_modifier	[gimsx]
 "#&gt;"				/* min-distance hint for phrase queries */
 "$."				/* anchor pseudo-index (position-index in "break collection" segment) */
 [\!\.\,\:\;\$\@\%\^\#\=\/\~]	/* single-character punctuation operators */
-[\[\]\{\}\(\)\&lt;\&gt;]	/* parentheses */
+[\[\]\{\}\(\)\&lt;\&gt;]		/* parentheses */
 [\"]				/* double quotes (for pharse queries) */
 ":{"				/* thesaurus-query opener */
 "@{"				/* literal-set opener */

@@ -92,6 +92,12 @@ public:
 	//! temporary for filter upper bound (#less_by_xyz, #greater_by_xyz)
 	string m_FilterUB;
 
+	//! temporary for filter reference match-id (#left, #right, #mid; default=0:any)
+	BYTE m_FilterMatchId;
+
+	//! temporary for filter offsets (#left, #right, #mid; default=0:any)
+	int m_FilterOffset;
+
 	//! temporary for regex patterns
 	string m_RegexPattern;
 
@@ -196,6 +202,9 @@ public:
 
 	//! set string bounds for current filter (called by bison parser)
 	void SetFilterBounds(const string& lb="", const string& ub="");
+
+	//! set context-filter key
+	void SetFilterKey(const string &field="", BYTE matchid=0, int offset=0);
 
 	//! debug: return a string form for the current query; wraps m_pQuery->toString() + m_pQuery->optionsToString()
 	string QueryToString(void);

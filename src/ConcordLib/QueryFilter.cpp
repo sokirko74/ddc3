@@ -325,7 +325,10 @@ string CQFContextSort::toString(void)
   EngMakeUpper(os);
 
   //if (!m_arg0.empty() || m_Filter.m_ContextOffset!=0 || !m_arg1.empty() || !m_arg2.empty()) {...}
-  os += string("[") + argString(m_arg0) + Format(" %d", m_Filter.m_ContextOffset);
+  os += string("[") + argString(m_arg0);
+  if (m_Filter.m_ContextMatchId != 0)
+    os += Format(" $%u", m_Filter.m_ContextMatchId);
+  os += Format(" %+d", m_Filter.m_ContextMatchId, m_Filter.m_ContextOffset);
   if (!m_arg1.empty() || !m_arg2.empty()) {
     os += string(",") + argString(m_arg1) + "," + argString(m_arg2);
   }
@@ -338,6 +341,7 @@ string CQFContextSort::jsonData(void)
 {
   return (this->jsonType()
 	  +",\"Field\":"+jsonStr(m_arg0)
+	  +",\"MatchId\":"+Format("%u", m_Filter.m_ContextMatchId)
 	  +",\"Offset\":"+Format("%d", m_Filter.m_ContextOffset)
 	  +","+this->jsonMinMax()
 	  );

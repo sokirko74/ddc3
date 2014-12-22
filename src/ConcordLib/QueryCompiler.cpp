@@ -183,6 +183,8 @@ void CQueryCompiler::CleanParser()
 	m_FilterField.clear();
 	m_FilterLB.clear();
 	m_FilterUB.clear();
+	m_FilterMatchId = 0;
+	m_FilterOffset = 0;
 	m_RegexPattern.clear();
 	m_RegexReplacement.clear();
 	m_RegexModifiers.clear();
@@ -241,6 +243,7 @@ int CQueryCompiler::yyqlex(void* valp)
 	case KW_DATE:
 	case KW_FILENAME:
 	case KW_FILEID:
+	case DOLLAR_INT:
 		((YYSTYPE *)valp)->m_str = newString(s);
 		break;
 	default:
@@ -304,6 +307,15 @@ void CQueryCompiler::SetFilterBounds(const string& lb, const string& ub)
 {
 	m_FilterLB=lb;
 	m_FilterUB=ub;
+	//fprintf(stderr, "DEBUG: SetFilterBounds(field=%s, id=%u, offset=%d)\n", m_FilterField.c_str(), m_FilterMatchId, m_FilterOffset);
+}
+
+void CQueryCompiler::SetFilterKey(const string &field, BYTE matchid, int offset)
+{
+	m_FilterField   = field;
+	m_FilterMatchId = matchid;
+	m_FilterOffset  = offset;
+	SetFilterBounds();
 }
 
 //-- debug
