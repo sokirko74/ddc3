@@ -113,6 +113,7 @@ int yylex (void*,  void*);
 %type	<m_pnode>	qc_basic
 %type	<m_pnode>	qc_boolean
 %type	<m_pnode>	qc_concat
+%type	<m_pnode>	qc_matchid
 %type	<m_pnode>	qc_tokens
 %type	<m_pnode>	qc_near
 %type	<m_pnode>	qc_word
@@ -212,7 +213,6 @@ int yylex (void*,  void*);
 %token	<m_str>	HASH_GREATER
 %token	<m_str>	HASH_EQUAL
 %token	<m_str>	DOLLAR_DOT
-%token	<m_str>	DOLLAR_DOLLAR
 
 %token	<m_str>	CNTXT
 %token	<m_str>	WITHIN
@@ -250,9 +250,18 @@ int yylex (void*,  void*);
 
 //------------------------------------------------------
 // Operator precedence and associativity
-%left   CONCAT
-%left	OP_BOOL_AND OP_BOOL_OR
-%right  '!'
+%nonassoc OP_CLAUSE_MATCHID
+%nonassoc OP_CLAUSE_CONCAT
+%nonassoc OP_CLAUSE_BOOL
+%nonassoc OP_CLAUSE_BASIC
+
+//%nonassoc OP_CLAUSE
+%nonassoc OP_PHRASE
+%nonassoc OP_WORD
+
+%left	  OP_BOOL_AND OP_BOOL_OR
+%nonassoc '!'
+
 %left	COUNT
 %left	NEAR
 %left	','
@@ -447,10 +456,17 @@ qfb_ctxkey:
   * q_clause (qc*): query clauses (logical operations)
   */
 q_clause:
-		qc_basic		{ $$ = $1; }
-	|	qc_boolean		{ $$ = $1; }
-	|	qc_concat		{ $$ = $1; }
+		qc_basic		%prec OP_CLAUSE_BASIC	{ $$ = $1; }
+	|	qc_boolean		%prec OP_CLAUSE_BOOL	{ $$ = $1; }
+	|	qc_concat		%prec OP_CLAUSE_CONCAT	{ $$ = $1; }
+	|	qc_matchid		%prec OP_CLAUSE_MATCHID	{ $$ = $1; } 
 	;
+
+qc_matchid:
+		q_clause '=' integer    { $$ = $1; $$->SetMatchId($3); }
+	|	'(' qc_matchid ')'	{ $$ = $2; }
+	;
+
 
  /*-------------------------------------------------------------
   * qc_boolean: query clause: complex boolean expression
@@ -475,8 +491,8 @@ qc_concat:
   * qc_basic: query clause: basic (single logical condition)
   */
 qc_basic:
-		qc_tokens	{ $$ = $1; }
-	|	qc_near		{ $$ = $1; }
+		qc_tokens	%prec OP_PHRASE	{ $$ = $1; }
+	|	qc_near		%prec OP_PHRASE { $$ = $1; }
 	;
 
 
@@ -502,8 +518,9 @@ qc_near:
   * qc_tokens: condition with hit position (can be arg to NEAR()):
   */
 qc_tokens: 	
-		qc_word			{ $$ = $1; }
-	|	qc_phrase 		{ $$ = $1; }
+		qc_word			%prec OP_WORD	{ $$ = $1; }
+	|	qc_phrase 		%prec OP_PHRASE	{ $$ = $1; }
+	|	qc_tokens '=' integer	%prec OP_PHRASE { $$ = $1; $$->SetMatchId($3); }
 	;
 
 qc_phrase:
@@ -535,9 +552,10 @@ qc_word:
 	|	qw_listfile		{ $$ = $1; }
 	|	qw_with			{ $$ = $1; }
 	|	qw_without		{ $$ = $1; }
-	|	qw_matchid		{ $$ = $1; }
+ 	|	qw_matchid		{ $$ = $1; }
 	|	'(' qc_word ')'		{ $$ = $2; }
 	;
+
 
 qw_bareword:
 	 	s_word l_txchain		{ $$ = _qc->PushQuery(new CQTokInfl("", *$1,_qc->m_Expanders)); }

@@ -24,6 +24,8 @@
 #include "../ConcordLib/QueryNode.h" 	//-- DDC-v1.x query API, wrapped here
 #include "../ConcordLib/QueryOptions.h"
 
+extern const BYTE DefaultMatchId;
+
 //======================================================================
 /*!
  \brief
@@ -83,7 +85,7 @@ public:
   //! Toggle negation flag, returns new value.  Default throws an exception.
   virtual bool Negate();
 
-  //! Set match-id, returns new value.  Default throws an exception
+  //! Set match-id, returns new value.  Default throws an exception.
   virtual BYTE SetMatchId(BYTE matchId);
 
   //! Returns true iff this query uses a nontrival match-id operator; default just returns false
@@ -205,7 +207,7 @@ public:
   //! override propagates matchId to daughters
   virtual BYTE SetMatchId(BYTE matchId);
 
-  //! returns true iff this query uses a nontrival match-id operator; override returns true iff either daughter does.
+  //! returns true iff this query uses a nontrival match-id operator; override returns true iff at least one daughter does.
   virtual bool HasMatchId() const;
 
   //! deletes associated daughter nodes (avoiding double-free)
@@ -288,8 +290,8 @@ public:
   //! value to be searched for (default="")
   string m_Value;
 
-  //! match-id for highlighting and context-sort reference
-  //! initialized to 0; anything other than 0 or 1 is considered a non-trivial user-specified match-id
+  //! match-id for highlighting (TODO: and context-sort reference)
+  //! initialized to 0; anything other than 0 is considered a non-trivial user-specified match-id
   BYTE m_MatchId;
 
 public:
@@ -300,7 +302,7 @@ public:
   //! Set match-id, returns new value.  Override sets m_MatchId.
   virtual BYTE SetMatchId(BYTE matchId);
 
-  //! returns true iff this query uses a nontrival match-id operator; override returns true if m_MatchId>1
+  //! returns true iff this query uses a nontrival match-id operator; override returns true if m_MatchId!=0
   virtual bool HasMatchId() const;
 
   //! Compile query.  Default implementation just calls CQueryTokenNode::CreateStringPattern(m_IndexName,m_Value)
@@ -716,7 +718,7 @@ public:
   //! clear query contents.  if \c deep is true, propagates operation to daughters
   virtual void Clear(bool deep=true);
 
-  //! Set match-id, returns new value.
+  //! Set match-id, returns new value; override propagates matchId to daughers.
   virtual BYTE SetMatchId(BYTE matchId);
 
   //! Returns true iff this query uses a nontrival match-id operator.
@@ -763,7 +765,7 @@ public:
   //! destructor deletes all child nodes in m_Items
   virtual ~CQSeq();
 
-  //! Set match-id, returns new value.
+  //! Set match-id, returns new value; override propagates matchId to daughters.
   virtual BYTE SetMatchId(BYTE matchId);
 
   //! Returns true iff this query uses a nontrival match-id operator.

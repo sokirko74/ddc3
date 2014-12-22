@@ -18,6 +18,8 @@ our $hits = from_json($buf, {utf8=>!utf8::is_utf8($buf)})
   or die("$0: could not decode JSON buffer: $!");
 $hits = $hits->{hits_} if (UNIVERSAL::isa($hits,'HASH') && $hits->{hits_});
 
+my $useMatchIds = grep {$_>0 && $_!=1} map {$_->[0]} map {@{$_->{ctx_}[1]}} @$hits;
+
 our @hits  = qw();
 foreach my $hit (@$hits) {
   my $f = basename($hit->{meta_}{file_});
@@ -35,7 +37,7 @@ foreach my $hit (@$hits) {
     elsif ($ary eq \@c) { $ary=\@r; $hl='_'; }
     push(@$ary, (ref($_)
 		 ? ($_->[0]
-		    ? ($hl.$_->[$texti].$hl.($_->[0]>1 ? "/$_->[0]" : ''))
+		    ? ($hl.$_->[$texti].$hl.($useMatchIds ? "/$_->[0]" : ''))
 		    : $_->[$texti])
 		 : $_));
   }

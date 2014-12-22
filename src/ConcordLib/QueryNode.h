@@ -224,7 +224,7 @@ public:
 	//! a unique index of the node in query tree (used by rank-sort operator)
 	BYTE m_NodeIndex;
 
-	//! user-specified match-id (0 specifies default behavior, which is to use highlight-id=1)
+	//! user-specified match-id (0 specifies default behavior, which is to use highlight-id=255)
 	BYTE m_MatchId;
 	
 	CQueryTokenNode(int NodeIndex, BYTE MatchId=0);

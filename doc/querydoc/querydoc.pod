@@ -3,7 +3,7 @@
 =head2 Overview
 
 This documentation describes the query language accepted by
-DDC version 2.0.34.  Current sources for DDC should be available
+DDC version 2.0.36.  Current sources for DDC should be available
 from
 http://sourceforge.net/projects/ddc-concordance.
 
@@ -62,6 +62,7 @@ Comments may appear after each rule in C notation
                       qc_basic                                              /* Single-condition clause */
                     | qc_boolean                                            /* Complex boolean condition */
                     | qc_concat                                             /* Concatenated query clauses (implicit logical conjunction) */
+                    | qc_matchid                                            /* User-specified match-ID */
                     ;
  
  qc_basic         ::=                                                       /*-- Basic query clause (single logical condition) --*/
@@ -80,6 +81,10 @@ Comments may appear after each rule in C notation
                       qc_basic qc_basic                                     /* ... only basic query clauses can be implicitly conjoined */
                     | qc_concat qc_basic                                    /* ... arbitrarily many clauses may be added */
                     | ( qc_concat )                                         /* ... explicit grouping is allowed */
+                    ;
+ 
+ qc_matchid       ::=                                                       /*-- Assign explicit clause-level highlighting ID (incurs a minor performance penalty) --*/
+                      q_clause = integer                                    /* valid IDs are in the range (1-255); default=255 */
                     ;
  
  qc_near          ::=                                                       /*-- Unordered proximity constraint --*/
@@ -224,7 +229,7 @@ Comments may appear after each rule in C notation
                     ;
  
  qw_matchid       ::=                                                       /*-- Assign explicit highlighting ID (incurs a minor performance penalty) --*/
-                      qc_word = integer                                     /* valid IDs are in the range (1-255); default=1 */
+                      qc_word = integer                                     /* valid IDs are in the range (1-255); default=255 */
                     ;
  
 

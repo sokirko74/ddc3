@@ -11,7 +11,7 @@
     <section name="overview" title="Overview">
       <p>
 	This documentation describes the query language accepted by
-	DDC version 2.0.34.  Current sources for DDC should be available
+	DDC version 2.0.36.  Current sources for DDC should be available
 	from
 	<!--<a href="http://odo.dwds.de/code/viewvc.cgi/ddc/trunk/?root=dev">svn+ssh://odo.dwds.de/home/svn/dev/ddc/trunk</a>.-->
 	<a href="http://sourceforge.net/projects/ddc-concordance">http://sourceforge.net/projects/ddc-concordance</a>.
@@ -101,6 +101,9 @@
 	    <rhs cmt="Concatenated query clauses (implicit logical conjunction)">
 	      <n>qc_concat</n>
 	    </rhs>
+	    <rhs cmt="User-specified match-ID">
+	      <n>qc_matchid</n>
+	    </rhs>
 	  </rule>
 
 	  <!--~~~~~~~~ RULES: qc_basic -->
@@ -150,6 +153,20 @@
 	    <rhs cmt="... explicit grouping is allowed">
 	      <t>(</t>
 	      <n>qc_concat</n>
+	      <t>)</t>
+	    </rhs>
+	  </rule>
+
+	  <!--~~~~~~~~ RULES: qc_matchid -->
+	  <rule lhs="qc_matchid" cmt="Assign explicit clause-level highlighting ID (incurs a minor performance penalty)">
+	    <rhs cmt="... valid IDs are in the range (1-255); default=255">
+	      <n>q_clause</n>
+	      <t>=</t>
+	      <n>integer</n>
+	    </rhs>
+	    <rhs cmt="... explicit grouping is allowed">
+	      <t>(</t>
+	      <n>qc_matchid</n>
 	      <t>)</t>
 	    </rhs>
 	  </rule>
@@ -568,7 +585,7 @@
 
 	  <!--~~~~~~~~ RULES: qw_matchid -->
 	  <rule lhs="qw_matchid" cmt="Assign explicit highlighting ID (incurs a minor performance penalty)">
-	    <rhs cmt="valid IDs are in the range (1-255); default=1">
+	    <rhs cmt="... valid IDs are in the range (1-255); default=255">
 	      <n>qc_word</n>
 	      <t>=</t>
 	      <n>integer</n>

@@ -24,6 +24,7 @@
 
 #include "StdConc.h"
 #include "QueryNode.h"
+#include "Query.h"
 #include "../common/DwdsThesaurus.h"
 #include "../common/util_classes.h"
 #include "../common/utilit.h"
@@ -630,8 +631,8 @@ CQueryTokenNode::CQueryTokenNode(int NodeIndex, BYTE MatchId)
 	m_bAnchor = false;
 	m_bAny    = false;
 	m_NodeIndex = NodeIndex;
-	m_MatchId = max(MatchId,(unsigned char)'\1');
-	m_bUseMatchIds  = (m_MatchId > 1);
+	m_MatchId      = (MatchId==0 ? DefaultMatchId : MatchId);
+	m_bUseMatchIds = (m_MatchId > 0);
 };
 
 CQueryTokenNode::~CQueryTokenNode()
@@ -640,8 +641,8 @@ CQueryTokenNode::~CQueryTokenNode()
 
 void CQueryTokenNode::SetMatchId(BYTE MatchId)
 {
-	m_MatchId = max(MatchId,(unsigned char)'\1');
-	m_bUseMatchIds = (MatchId > 1);
+	m_MatchId      = (MatchId==0 ? DefaultMatchId : MatchId);
+	m_bUseMatchIds = (MatchId > 0);
 }
 
 
@@ -1402,7 +1403,7 @@ void CQueryWithNode::EvaluateWithoutHits()
 	if (m_bUseNodeIndices)
 		m_OccurrenceNodeIndices.resize(m_Occurrences.size(), ((CQueryTokenNode*)m_pChild1)->m_NodeIndex);
 	if (m_bUseMatchIds)
-		m_OccurrenceMatchIds.resize(m_Occurrences.size(), ((CQueryTokenNode*)m_pChild2)->m_MatchId>1 ? ((CQueryTokenNode*)m_pChild2)->m_MatchId : ((CQueryTokenNode*)m_pChild1)->m_MatchId);
+		m_OccurrenceMatchIds.resize(m_Occurrences.size(), ((CQueryTokenNode*)m_pChild2)->m_MatchId!=DefaultMatchId ? ((CQueryTokenNode*)m_pChild2)->m_MatchId : ((CQueryTokenNode*)m_pChild1)->m_MatchId);
 
 
 	m_ChunkLengths.resize(GetOccurrencesSize(), 1);
@@ -1438,7 +1439,7 @@ void CQueryWithoutNode::EvaluateWithoutHits()
 	if (m_bUseNodeIndices)
 		m_OccurrenceNodeIndices.resize(m_Occurrences.size(), ((CQueryTokenNode*)m_pChild1)->m_NodeIndex);
 	if (m_bUseMatchIds)
-		m_OccurrenceMatchIds.resize(m_Occurrences.size(), ((CQueryTokenNode*)m_pChild2)->m_MatchId>1 ? ((CQueryTokenNode*)m_pChild2)->m_MatchId : ((CQueryTokenNode*)m_pChild1)->m_MatchId);
+		m_OccurrenceMatchIds.resize(m_Occurrences.size(), ((CQueryTokenNode*)m_pChild2)->m_MatchId!=DefaultMatchId ? ((CQueryTokenNode*)m_pChild2)->m_MatchId : ((CQueryTokenNode*)m_pChild1)->m_MatchId);
 
 	m_ChunkLengths.resize(GetOccurrencesSize(), 1);
 };

@@ -63,7 +63,7 @@
 <h2><a name="overview">Overview</a></h2>
 <p>
 	This documentation describes the query language accepted by
-	DDC version 2.0.34.  Current sources for DDC should be available
+	DDC version 2.0.36.  Current sources for DDC should be available
 	from
 	<!--<a href="http://odo.dwds.de/code/viewvc.cgi/ddc/trunk/?root=dev">svn+ssh://odo.dwds.de/home/svn/dev/ddc/trunk</a>.-->
 	<a href="http://sourceforge.net/projects/ddc-concordance">http://sourceforge.net/projects/ddc-concordance</a>.
@@ -181,6 +181,12 @@
 <tr>
 <td></td>
 <td></td>
+<td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_qc_matchid">qc_matchid</a></span> </td>
+<td class="ruleComment">/* User-specified match-ID */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
 <td><b>;</b></td>
 </tr>
 <tr></tr>
@@ -270,6 +276,25 @@
 <td></td>
 <td class="ruleRHS">| <span class="ruleTerminal">(</span> <span class="ruleNonterminal"><a href="#rule_qc_concat">qc_concat</a></span> <span class="ruleTerminal">)</span> </td>
 <td class="ruleComment">/* ... explicit grouping is allowed */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td><b>;</b></td>
+</tr>
+<tr></tr>
+<tr>
+<td><b><a name="rule_qc_matchid">qc_matchid</a></b></td>
+<td>::=</td>
+<td></td>
+<td class="ruleCommentTop">/* Assign explicit clause-level highlighting ID (incurs a minor performance penalty) */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS1">
+<span class="ruleNonterminal"><a href="#rule_q_clause">q_clause</a></span> <span class="ruleTerminal">=</span> <span class="ruleNonterminal"><a href="#rule_integer">integer</a></span> </td>
+<td class="ruleComment">/* valid IDs are in the range (1-255); default=255 */</td>
 </tr>
 <tr>
 <td></td>
@@ -1014,7 +1039,7 @@
 <td></td>
 <td class="ruleRHS1">
 <span class="ruleNonterminal"><a href="#rule_qc_word">qc_word</a></span> <span class="ruleTerminal">=</span> <span class="ruleNonterminal"><a href="#rule_integer">integer</a></span> </td>
-<td class="ruleComment">/* valid IDs are in the range (1-255); default=1 */</td>
+<td class="ruleComment">/* valid IDs are in the range (1-255); default=255 */</td>
 </tr>
 <tr>
 <td></td>
@@ -3263,7 +3288,7 @@ regex_modifier	[gimsx]
   </body></div>
 <div class="footers">
 <div class="footer_sig">
-<address><a href="mailto:jurish@bbaw.de">jurish@bbaw.de</a></address>Last modified: Wed, 03 Dec 2014 15:26:50 +0100</div>
+<address><a href="mailto:jurish@bbaw.de">jurish@bbaw.de</a></address>Last modified: Mon, 22 Dec 2014 11:45:56 +0100</div>
 <div class="footer_linkbar"><p class="nopad"><a class="navLink" href="/">Root</a><a class="navLink" href="./">Back</a><span class="navLinkDisabled">Help</span></p></div>
 <p class="dummy"></p>
 </div>

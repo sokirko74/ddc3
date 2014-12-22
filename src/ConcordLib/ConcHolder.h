@@ -255,7 +255,7 @@ public:
 	//! moo: sick, bad, ugly, and wrong!
 	bool HasRankOrderOperator() const;
 
-	//! return true iff the input query contains a match-id operator ($~ID)
+	//! return true iff the input query contains a match-id operator (=ID)
 	//! moo: sicker, badder, uglier, and wronger!
 	bool HasMatchIdOperator() const;
 

@@ -22,6 +22,8 @@
 #include <Query.h>
 #include <QueryCompiler.h>
 
+const BYTE DefaultMatchId = 255;
+
 //======================================================================
 // CQuery
 
@@ -357,7 +359,7 @@ BYTE CQToken::SetMatchId(BYTE matchId)
 
 bool CQToken::HasMatchId() const
 {
-  return m_MatchId > 1;
+  return m_MatchId != 0;
 }
 
 bool CQToken::Compile(CQueryCompiler *compiler)
@@ -423,7 +425,7 @@ string CQToken::ValueString(void) {
 }
 
 string CQToken::MatchIdString(void) {
-  return m_MatchId <= 1 ? string("") : Format(" $~ %u", m_MatchId);
+  return m_MatchId==0 ? string("") : Format(" =%u", m_MatchId);
 }
 
 string CQToken::jsonValue(void) {
