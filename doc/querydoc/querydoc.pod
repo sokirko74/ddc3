@@ -91,13 +91,14 @@ Comments may appear after each rule in C notation
  qc_near          ::=                                                       /*-- Unordered proximity constraint --*/
                       NEAR ( qc_tokens , qc_tokens , integer )              /* ... over 2 argument conditions */
                     | NEAR ( qc_tokens , qc_tokens , qc_tokens , integer )  /* ... over 3 argument conditions */
+                    | qc_near matchid                                       /* User-specified match-ID (distributes over all tokens) */
                     | ( qc_near )                                           /* Explicit grouping (vacuous) */
                     ;
  
  qc_tokens        ::=                                                       /*-- Phrase or single-token condition --*/
                       qc_word                                               /* Single-token condition */
                     | qc_phrase                                             /* Ordered sequence of single-token conditions */
-                    | qc_tokens = integer                                   /* User-specified match-ID (distributes over all tokens) */
+                    | qc_tokens matchid                                     /* User-specified match-ID (distributes over all tokens) */
                     ;
  
  qc_phrase        ::=                                                       /*-- Ordered sequence of single-token conditions --*/
@@ -231,7 +232,7 @@ Comments may appear after each rule in C notation
                     ;
  
  qw_matchid       ::=                                                       /*-- Assign explicit highlighting ID (incurs a minor performance penalty) --*/
-                      qc_word = integer                                     /* ... valid IDs are in the range (1-255); default=255 */
+                      qc_word matchid                                       /* ... valid IDs are in the range (1-255); default=255 */
                     ;
  
 
@@ -358,7 +359,7 @@ Comments may appear after each rule in C notation
  
  qfbc_matchref   ::=                                    /*-- Optional match-id reference for context-sort operators --*/
                                                         /* ... empty */
-                   | $ integer                          /* ... back-reference to a match-id assigned with "=ID" */
+                   | matchid                            /* ... back-reference to a match-id assigned with "=ID" */
                    ;
  
  qfbc_offset     ::=                                    /*-- Optional offset for context-sort operators --*/
@@ -389,8 +390,8 @@ Comments may appear after each rule in C notation
                  ;
  
  count_by      ::=                                           /*-- Select count-query histogram keys (metadata tuples) --*/
-                   BY l_countkeys                            /* SQL-style syntax */
-                 | BY [ l_countkeys ]                        /* DDC filter-style syntax */
+                   #BY l_countkeys                           /* SQL-style syntax */
+                 | #BY [ l_countkeys ]                       /* DDC filter-style syntax */
                  ;
  
  l_countkeys   ::=                                           /*-- Tuple of bibliographic metadata fields --*/
@@ -565,6 +566,10 @@ Comments may appear after each rule in C notation
                  | INTEGER                      /* ... every valid integer is also a valid date (year part only) */
                  ;
  
+ matchid       ::=                              /*-- User-specified match-ID or back-reference --*/
+                   MATCHID                      /* ... valid match-IDs are in the range (1-255) */
+                 ;
+ 
 
 
 
@@ -682,7 +687,6 @@ to be replaced by the REPLACE string.
 
 =head3 Punctuation Operators and Special Characters
 
- "$"[0-9]+			/* match-id reference (for context-sort operators) */
  "&&"				/* clause-level conjunction operator */
  "||"				/* clause-level disjunction operator */
  "#="				/* exact-distance hint in phrase queries */
@@ -725,6 +729,21 @@ or quotes in order to separate an integer token from surrounding symbols.
 
 The scanner supports date-like tokens in a superset of the ISO 8601 format
 (YYYY-MM-DD), optionally enclosed by single quotes.
+
+
+
+
+=head3 Match-IDs
+
+ "="[0-9]+			/* user-specified match-id (valid range: 1-255) */
+
+The scanner supports user-specified match-IDs for use e.g. by
+context-dependent sort operators.  Match-IDs are decimal integers between 1 and 255,
+introduced by a leading '=' (equals sign).  Note that no whitespace is allowed between
+the leading '=' and the subsequent integer ID.
+If no match-IDs were specified for a query, every matched token of that query is treated as if
+it had been assigned a match-ID of 1.  Otherwise, if at least one match-ID was explicitly
+assigned, any matched tokens without explicit match-IDs are assigned a match-ID of 255.
 
 
 

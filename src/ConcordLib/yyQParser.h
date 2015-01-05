@@ -57,7 +57,7 @@
      HASH_GREATER = 275,
      HASH_EQUAL = 276,
      DOLLAR_DOT = 277,
-     DOLLAR_INT = 278,
+     MATCHID = 278,
      CNTXT = 279,
      WITHIN = 280,
      SEPARATE_HITS = 281,

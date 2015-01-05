@@ -195,6 +195,10 @@
 	      <n>integer</n>
 	      <t>)</t>
 	    </rhs>
+	    <rhs cmt="User-specified match-ID (distributes over all tokens)">
+	      <n>qc_near</n>
+	      <n>matchid</n>
+	    </rhs>
 	    <rhs cmt="Explicit grouping (vacuous)">
 	      <t>(</t>
 	      <n>qc_near</n>
@@ -212,8 +216,7 @@
 	    </rhs>
 	    <rhs cmt="User-specified match-ID (distributes over all tokens)">
 	      <n>qc_tokens</n>
-	      <t>=</t>
-	      <n>integer</n>
+	      <n>matchid</n>
 	    </rhs>
 	  </rule>
 
@@ -592,8 +595,7 @@
 	  <rule lhs="qw_matchid" cmt="Assign explicit highlighting ID (incurs a minor performance penalty)">
 	    <rhs cmt="... valid IDs are in the range (1-255); default=255">
 	      <n>qc_word</n>
-	      <t>=</t>
-	      <n>integer</n>
+	      <n>matchid</n>
 	    </rhs>
 	  </rule>
 
@@ -991,8 +993,7 @@
 	  <rule lhs="qfbc_matchref" cmt="Optional match-id reference for context-sort operators">
 	    <rhs cmt="... empty"/>
 	    <rhs cmt="... back-reference to a match-id assigned with &quot;=ID&quot;">
-	      <t>$</t>
-	      <n>integer</n>
+	      <n>matchid</n>
 	    </rhs>
 	  </rule>
 
@@ -1050,11 +1051,11 @@
 	  <!--~~~~~~~~ RULES: count_by -->
 	  <rule lhs="count_by" cmt="Select count-query histogram keys (metadata tuples)">
 	    <rhs cmt="SQL-style syntax">
-	      <t>BY</t>
+	      <t>#BY</t>
 	      <n>l_countkeys</n>
 	    </rhs>
 	    <rhs cmt="DDC filter-style syntax">
-	      <t>BY</t>
+	      <t>#BY</t>
 	      <t>[</t>
 	      <n>l_countkeys</n>
 	      <t>]</t>
@@ -1417,6 +1418,13 @@
 	    </rhs>
 	  </rule>
 
+	  <!--~~~~~~~~ RULES: matchid -->
+	  <rule lhs="matchid" cmt="User-specified match-ID or back-reference">
+	    <rhs cmt="... valid match-IDs are in the range (1-255)">
+	      <xt>MATCHID</xt>
+	    </rhs>
+	  </rule>
+
 	</rules>
       </subsection>
 
@@ -1550,7 +1558,6 @@ regex_modifier	[gimsx]
       <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
       <subsection name="term_PUNCT" title="Punctuation Operators and Special Characters">
 <pre>
-"$"[0-9]+			/* match-id reference (for context-sort operators) */
 "&amp;&amp;"				/* clause-level conjunction operator */
 "||"				/* clause-level disjunction operator */
 "#="				/* exact-distance hint in phrase queries */
@@ -1602,6 +1609,23 @@ regex_modifier	[gimsx]
 	</p>
       </subsection>
       <!--/terminals:date-->
+
+      <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+      <subsection name="term_MATCHID" title="Match-IDs">
+<pre>
+"="[0-9]+			/* user-specified match-id (valid range: 1-255) */
+</pre>
+	<p>
+	  The scanner supports user-specified match-IDs for use e.g. by
+	  context-dependent sort operators.  Match-IDs are decimal integers between 1 and 255,
+	  introduced by a leading '=' (equals sign).  Note that no whitespace is allowed between
+	  the leading '=' and the subsequent integer ID.
+	  If no match-IDs were specified for a query, every matched token of that query is treated as if
+	  it had been assigned a match-ID of 1.  Otherwise, if at least one match-ID was explicitly
+	  assigned, any matched tokens without explicit match-IDs are assigned a match-ID of 255.
+	</p>
+      </subsection>
+      <!--/terminals:match-ids-->
 
       <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
       <subsection name="term_SYMBOL" title="Symbols and Barewords">

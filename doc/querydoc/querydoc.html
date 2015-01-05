@@ -28,6 +28,7 @@
 <li><a href="#term_PUNCT">Punctuation Operators and Special Characters</a></li>
 <li><a href="#term_INTEGER">Integers</a></li>
 <li><a href="#term_DATE">Dates</a></li>
+<li><a href="#term_MATCHID">Match-IDs</a></li>
 <li>
 <a href="#term_SYMBOL">Symbols and Barewords</a><ul><li><a href="#escapes">Escapes</a></li></ul>
 </li>
@@ -330,6 +331,12 @@
 <tr>
 <td></td>
 <td></td>
+<td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_qc_near">qc_near</a></span> <span class="ruleNonterminal"><a href="#rule_matchid">matchid</a></span> </td>
+<td class="ruleComment">/* User-specified match-ID (distributes over all tokens) */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
 <td class="ruleRHS">| <span class="ruleTerminal">(</span> <span class="ruleNonterminal"><a href="#rule_qc_near">qc_near</a></span> <span class="ruleTerminal">)</span> </td>
 <td class="ruleComment">/* Explicit grouping (vacuous) */</td>
 </tr>
@@ -361,7 +368,7 @@
 <tr>
 <td></td>
 <td></td>
-<td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_qc_tokens">qc_tokens</a></span> <span class="ruleTerminal">=</span> <span class="ruleNonterminal"><a href="#rule_integer">integer</a></span> </td>
+<td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_qc_tokens">qc_tokens</a></span> <span class="ruleNonterminal"><a href="#rule_matchid">matchid</a></span> </td>
 <td class="ruleComment">/* User-specified match-ID (distributes over all tokens) */</td>
 </tr>
 <tr>
@@ -1050,7 +1057,7 @@
 <td></td>
 <td></td>
 <td class="ruleRHS1">
-<span class="ruleNonterminal"><a href="#rule_qc_word">qc_word</a></span> <span class="ruleTerminal">=</span> <span class="ruleNonterminal"><a href="#rule_integer">integer</a></span> </td>
+<span class="ruleNonterminal"><a href="#rule_qc_word">qc_word</a></span> <span class="ruleNonterminal"><a href="#rule_matchid">matchid</a></span> </td>
 <td class="ruleComment">/* ... valid IDs are in the range (1-255); default=255 */</td>
 </tr>
 <tr>
@@ -1690,7 +1697,7 @@
 <tr>
 <td></td>
 <td></td>
-<td class="ruleRHS">| <span class="ruleTerminal">$</span> <span class="ruleNonterminal"><a href="#rule_integer">integer</a></span> </td>
+<td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_matchid">matchid</a></span> </td>
 <td class="ruleComment">/* ... back-reference to a match-id assigned with "=ID" */</td>
 </tr>
 <tr>
@@ -1812,13 +1819,13 @@
 <td></td>
 <td></td>
 <td class="ruleRHS1">
-<span class="ruleTerminal">BY</span> <span class="ruleNonterminal"><a href="#rule_l_countkeys">l_countkeys</a></span> </td>
+<span class="ruleTerminal">#BY</span> <span class="ruleNonterminal"><a href="#rule_l_countkeys">l_countkeys</a></span> </td>
 <td class="ruleComment">/* SQL-style syntax */</td>
 </tr>
 <tr>
 <td></td>
 <td></td>
-<td class="ruleRHS">| <span class="ruleTerminal">BY</span> <span class="ruleTerminal">[</span> <span class="ruleNonterminal"><a href="#rule_l_countkeys">l_countkeys</a></span> <span class="ruleTerminal">]</span> </td>
+<td class="ruleRHS">| <span class="ruleTerminal">#BY</span> <span class="ruleTerminal">[</span> <span class="ruleNonterminal"><a href="#rule_l_countkeys">l_countkeys</a></span> <span class="ruleTerminal">]</span> </td>
 <td class="ruleComment">/* DDC filter-style syntax */</td>
 </tr>
 <tr>
@@ -2620,6 +2627,25 @@
 <td><b>;</b></td>
 </tr>
 <tr></tr>
+<tr>
+<td><b><a name="rule_matchid">matchid</a></b></td>
+<td>::=</td>
+<td></td>
+<td class="ruleCommentTop">/* User-specified match-ID or back-reference */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS1">
+<span class="ruleXTerminal"><a href="#term_MATCHID">MATCHID</a></span> </td>
+<td class="ruleComment">/* ... valid match-IDs are in the range (1-255) */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td><b>;</b></td>
+</tr>
+<tr></tr>
 </table>
 </div>
 </div>
@@ -2742,7 +2768,6 @@ regex_modifier	[gimsx]
 <!--/terminals:regex--><!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ --><div class="subsection">
 <h3><a name="term_PUNCT">Punctuation Operators and Special Characters</a></h3>
 <pre>
-"$"[0-9]+			/* match-id reference (for context-sort operators) */
 "&amp;&amp;"				/* clause-level conjunction operator */
 "||"				/* clause-level disjunction operator */
 "#="				/* exact-distance hint in phrase queries */
@@ -2790,6 +2815,21 @@ regex_modifier	[gimsx]
 	</p>
 </div>
 <!--/terminals:date--><!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ --><div class="subsection">
+<h3><a name="term_MATCHID">Match-IDs</a></h3>
+<pre>
+"="[0-9]+			/* user-specified match-id (valid range: 1-255) */
+</pre>
+<p>
+	  The scanner supports user-specified match-IDs for use e.g. by
+	  context-dependent sort operators.  Match-IDs are decimal integers between 1 and 255,
+	  introduced by a leading '=' (equals sign).  Note that no whitespace is allowed between
+	  the leading '=' and the subsequent integer ID.
+	  If no match-IDs were specified for a query, every matched token of that query is treated as if
+	  it had been assigned a match-ID of 1.  Otherwise, if at least one match-ID was explicitly
+	  assigned, any matched tokens without explicit match-IDs are assigned a match-ID of 255.
+	</p>
+</div>
+<!--/terminals:match-ids--><!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ --><div class="subsection">
 <h3><a name="term_SYMBOL">Symbols and Barewords</a></h3>
 <pre>
 \'{sq_text}\'                   /* single-quoted symbol */
@@ -3355,7 +3395,7 @@ regex_modifier	[gimsx]
   </body></div>
 <div class="footers">
 <div class="footer_sig">
-<address><a href="mailto:jurish@bbaw.de">jurish@bbaw.de</a></address>Last modified: Mon, 22 Dec 2014 16:58:00 +0100</div>
+<address><a href="mailto:jurish@bbaw.de">jurish@bbaw.de</a></address>Last modified: Mon, 05 Jan 2015 12:24:25 +0100</div>
 <div class="footer_linkbar"><p class="nopad"><a class="navLink" href="/">Root</a><a class="navLink" href="./">Back</a><span class="navLinkDisabled">Help</span></p></div>
 <p class="dummy"></p>
 </div>

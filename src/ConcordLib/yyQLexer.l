@@ -161,7 +161,7 @@ regex_modifier	[gimsx]
 <Q_REGOPT>{regex_modifier}+			{ BEGIN(INITIAL); return REGOPT; }
 
  /* match-ids */
-"$"[0-9]+			{ yytext++; yyleng--; return DOLLAR_INT; /* dollar+integer: match reference */ }
+"="[0-9]+			{ yytext++; yyleng--; return MATCHID; /* equals+integer: match reference */ }
 
  /* punctuation */
 "#="				{ return HASH_EQUAL; /* hash+equal: exact distance */ }

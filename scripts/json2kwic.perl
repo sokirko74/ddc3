@@ -18,8 +18,7 @@ our $hits = from_json($buf, {utf8=>!utf8::is_utf8($buf)})
   or die("$0: could not decode JSON buffer: $!");
 $hits = $hits->{hits_} if (UNIVERSAL::isa($hits,'HASH') && $hits->{hits_});
 
-my $useMatchIds   = grep {$_>0 && $_!=1} map {$_->[0]} map {@{$_->{ctx_}[1]}} @$hits;
-my $targetMatchId = 1;
+my $useMatchIds = grep {$_>0 && $_!=1} map {$_->[0]} map {@{$_->{ctx_}[1]}} @$hits;
 
 our @hits  = qw();
 foreach my $hit (@$hits) {
@@ -30,6 +29,7 @@ foreach my $hit (@$hits) {
   my $texti = ((grep {$hit->{meta_}{indices_}[$_] eq $txtkey} (0..$#{$hit->{meta_}{indices_}}))[0] // 0) +1;
   $texti    = 1 if (($hit->{ctx_}[1][0][$texti]//'') eq '');
 
+  my $targetMatchId = (sort {$a<=>$b} grep {$_} map {$_->[0]} @{$hit->{ctx_}[1]})[0];
   my (@l,@c,@r);
   my $ary = \@l;
   my $hl  = '__';

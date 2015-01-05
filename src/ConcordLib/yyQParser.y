@@ -104,7 +104,6 @@ int yylex (void*,  void*);
 %type	<m_pfilt>	qfb_bibl_ne
 %type	<m_int>		qfb_ctxsort
 %type	<m_int>		qfb_ctxkey
-%type   <m_int>		qfbc_matchref
 %type   <m_int>		qfbc_offset
 
 //------------------------------------------------------
@@ -191,7 +190,7 @@ int yylex (void*,  void*);
 %type	<m_str>		int_str
 %type	<m_int>		integer
 %type	<m_str>		date
-%type	<m_int>		matchref
+%type	<m_int>		matchid
 
 //------------------------------------------------------
 // Types: Terminals
@@ -216,7 +215,7 @@ int yylex (void*,  void*);
 %token	<m_str>	HASH_GREATER
 %token	<m_str>	HASH_EQUAL
 %token	<m_str>	DOLLAR_DOT
-%token	<m_str>	DOLLAR_INT
+%token	<m_str>	MATCHID
 
 %token	<m_str>	CNTXT
 %token	<m_str>	WITHIN
@@ -266,13 +265,14 @@ int yylex (void*,  void*);
 %left	  OP_BOOL_AND OP_BOOL_OR
 %nonassoc '!'
 
-%left	COUNT
-%left	NEAR
-%left	','
-%left	WITH WITHOUT
-%left   '=' '<'
-%left   '$' 
-%left	'@' '^' '%' '#' '/' '~'
+%nonassoc	COUNT
+%nonassoc	NEAR
+%left		','
+%left		WITH WITHOUT
+%left   	'='
+%nonassoc 	'<'
+%nonassoc	'$' 
+%nonassoc	'@' '^' '%' '#' '/' '~' MATCHID
 
  //%left	SIM_PRECISE  //-- what was this for?
 
@@ -455,7 +455,7 @@ qfb_ctxkey:
 
 qfbc_matchref:	
 		/* empty */	{ $$=0; }
-	|	matchref	{ $$=$1; }
+	|	matchid		{ $$=$1; }
 	;
 
 qfbc_offset:
@@ -476,8 +476,8 @@ q_clause:
 	;
 
 qc_matchid:
-		q_clause '=' integer     { $$ = $1; $$->SetMatchId($3); }
-	|	'(' qc_matchid ')'	{ $$ = $2; }
+		q_clause matchid	 { $$ = $1; $$->SetMatchId($2); }
+	|	'(' qc_matchid ')' 	 { $$ = $2; }
 	;
 
 
@@ -510,20 +510,10 @@ qc_basic:
 
 
 qc_near:
-		NEAR '(' qc_tokens ',' qc_tokens ',' integer ')'
-		{
-		  $$ = _qc->PushQuery(new CQNear($7,$3,$5));
-		}
-
-	|	NEAR '(' qc_tokens ',' qc_tokens ',' qc_tokens ',' integer ')'
-		{
-		  $$ = _qc->PushQuery(new CQNear($9,$3,$5,$7));
-		}
-
-	|	'(' qc_near ')'
-		{
-		  $$ = $2;
-		}
+		NEAR '(' qc_tokens ',' qc_tokens ',' integer ')'		{ $$ = _qc->PushQuery(new CQNear($7,$3,$5)); }
+	|	NEAR '(' qc_tokens ',' qc_tokens ',' qc_tokens ',' integer ')'	{ $$ = _qc->PushQuery(new CQNear($9,$3,$5,$7)); }
+ 	|	qc_near matchid		{ $$ = $1; $$->SetMatchId($2); }
+	|	'(' qc_near ')' 	{ $$ = $2; }
 	;
 
 
@@ -533,7 +523,7 @@ qc_near:
 qc_tokens: 	
 		qc_word			%prec OP_WORD	{ $$ = $1; }
 	|	qc_phrase 		%prec OP_PHRASE	{ $$ = $1; }
-	|	qc_tokens '=' integer	%prec OP_PHRASE { $$ = $1; $$->SetMatchId($3); }
+	|	qc_tokens matchid	%prec OP_PHRASE { $$ = $1; $$->SetMatchId($2); }
 	;
 
 qc_phrase:
@@ -671,7 +661,7 @@ qw_without:
 	;
 
 qw_matchid:
-		qc_word '=' integer 		{ $$ = $1; $$->SetMatchId($3); }
+		qc_word matchid 		{ $$ = $1; $$->SetMatchId($2); }
 	;
 
  /*-------------------------------------------------------------
@@ -790,7 +780,7 @@ date:		DATE	{ $$ = $1; }
 	|	INTEGER { $$ = $1; }
 	;
 
-matchref:	DOLLAR_INT { $$ = atoi($1->c_str()); }
+matchid:	MATCHID { $$ = atoi($1->c_str()); }
 	;
 
 
