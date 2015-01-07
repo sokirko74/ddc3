@@ -735,10 +735,11 @@ bool CConcHolder::GenerateOneHitStringJson(DWORD PageNumber, const CHit& Hit, co
 		      + ",\"date_\":" + jsonStr(B.m_DateStr, utf8)
 		      + ",\"page_\":" + pageStr
 #ifdef DEBUG_HIT_JSON
-		      + ",\"breakno_\":" + Format("%u",Hit.m_BreakNo)
-		      + ",\"highlight_\":" + Format("%u",Hit.m_HighlightOccurrenceEnd)
-		      + ",\"fileno_\":" + Format("%u",Hit.m_FileNo)
-		      + ",\"key_\":[" + Format("%d",Hit.m_SortKey.i) + "," + jsonStr(Hit.m_SortKey.s, utf8) + "]"
+		      + ",\"breakno_\":" + Format("%u",  (uint)Hit.m_BreakNo)
+		      + ",\"highlight_\":" + Format("%u",(uint)Hit.m_HighlightOccurrenceEnd)
+		      + ",\"fileno_\":" + Format("%u",   (uint)Hit.m_FileNo)
+		      + ",\"breakstart_\":" + Format("%u",  (uint)(Hit.m_BreakNo==0 ? 0 : GetBreaks()[Hit.m_BreakNo-1]))
+		      + ",\"key_\":[" + Format("%d", Hit.m_SortKey.i) + "," + jsonStr(Hit.m_SortKey.s, utf8) + "]"
 #endif
 		      );
     if (m_pIndexator->OutputBibliographyOfHits()) {
@@ -1238,14 +1239,14 @@ void CConcHolder::InitSortByContext(const CQuery *pQuery, const CDDCFilterWithBo
 				 : m_pIndexator->GetIndexByNameOrShortName(F.m_AttrName));
 	CQueryNode   *qnod = pQuery->m_Node;
 	vector<CHit>& Hits = qnod->m_Hits;
-	size_t HitsCount = qnod->m_Hits.size();
+	DWORD HitsCount = qnod->m_Hits.size();
 	const vector<CTokenNo>& Breaks = GetBreaks();
 	const vector<BYTE> &occur_ids = qnod->m_OccurrenceMatchIds;
 
 	if (!pIdx)
 		throw CExpc(errOther, Format("CConcHolder::InitSortByContext(): Error: could not find index `%s' for context sort", F.m_AttrName.c_str()));
 
-	for (size_t HitNo=0; HitNo< HitsCount; HitNo++) {
+	for (DWORD HitNo=0; HitNo< HitsCount; HitNo++) {
 		CHit& H = Hits[HitNo];
 		DWORD StartTokenNo = (H.m_BreakNo==0) ?  0 : Breaks[H.m_BreakNo-1];
 		DWORD EndTokenNo   = Breaks[H.m_BreakNo];

@@ -184,6 +184,7 @@ void	CQueryNode::ClearAndReserveOccurrences(int size)
 	m_Occurrences.reserve(size);
 
 	m_OccurrenceNodeIndices.clear();
+	m_OccurrenceMatchIds.clear();
 	if (m_bUseNodeIndices)
 		m_OccurrenceNodeIndices.reserve(size);
 	if (m_bUseMatchIds)
@@ -963,7 +964,7 @@ void CQueryTokenNode::EvaluateWithoutHits()
 	else if (m_bAnchor || m_bAny) {
 	  // anchor or universal query
 	  m_pHolder->m_pIndexator->RestrictOccurrencesToSearchPeriod(m_IndexItems,  m_Occurrences,  m_pHolder->m_CurrentSearchPeriodNo);
-	  //m_ChunkLengths.resize(GetOccurrencesSize(), 1); //?
+	  m_ChunkLengths.resize(GetOccurrencesSize(), 1); //-- near() queries use m_ChunkLengths[]
 	}
 	else {
 	  // chunk query
@@ -1305,6 +1306,17 @@ struct CQNearEvalItem {
 
 	inline CTokenNo tend() const
 	{ return node->m_Occurrences[cur + node->m_ChunkLengths[chpos] - 1]; };
+
+	bool operator==(const CQNearEvalItem &b) const
+	{
+		CTokenNo i, len=chunksize();
+		if (len != b.chunksize()) return false;
+		for (i=0; i<len; ++i) {
+			if (node->m_Occurrences[cur+i] != b.node->m_Occurrences[b.cur+i])
+				return false;
+		}
+		return true;
+	};
 };
 
 void CQueryNearNode::FindOccurrences2()
@@ -1330,6 +1342,7 @@ void CQueryNearNode::FindOccurrences2()
 		//-- find all item2 occurences s.t. (item1.tend()+MaxDistance >= item2.tbegin())
 		CQNearEvalItem resume2(item2);
 		for ( ; item2.valid() && item1.tend()+MaxDistance >= item2.tbegin(); ++item2 ) {
+			if (item1==item2) continue; //-- near() sub-matches must be disjoint
 			size_t size1 = item1.chunksize();
 			size_t size2 = item2.chunksize();
 			AddOccurrences2(*item1.node, item1.cur, item1.cur+size1,
@@ -1368,6 +1381,7 @@ void CQueryNearNode::FindOccurrences3()
 		//-- find all item2 occurences s.t. (item1.tend()+MaxDistance >= item2.tbegin())
 		CQNearEvalItem resume2(item2);
 		for ( ; item2.valid() && item3.valid() && item1.tend()+MaxDistance >= item2.tbegin(); ++item2 ) {
+			if (item1==item2) continue; //-- near() sub-matches must be disjoint
 			CTokenNo max_begin = max(item1.tbegin(), item2.tbegin());
 			CTokenNo min_end   = min(item1.tend(),   item2.tend());
 
@@ -1377,6 +1391,7 @@ void CQueryNearNode::FindOccurrences3()
 			//-- find all item3 occurences s.t. (min_end+MaxDistance >= item3.tbegin())
 			CQNearEvalItem resume3(item3);
 			for ( ; item3.valid() && min_end+MaxDistance >= item3.tbegin(); ++item3 ) {
+				if (item1==item3 || item2==item3) continue; //-- near() sub-matches must be disjoint
 				size_t size1 = item1.chunksize();
 				size_t size2 = item2.chunksize();
 				size_t size3 = item3.chunksize();

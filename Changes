@@ -1,6 +1,6 @@
 ##-*- Mode: Change-Log; coding: utf-8; -*-
 
-v2.0.36-pre2 Mon, 22 Dec 2014 16:50:51 +0100 moocow
+v2.0.36-pre3 Tue, 06 Jan 2015 15:10:06 +0100 moocow
 	+ general printf format cleanup for "%i" vs "%zi" templates
 	+ minor fixes for building with gcc-4.8.2 + perl-5.18.2 (ubuntu-server 14.04.1)
 	+ added syslog logging option for concord_daemon_log via ddc_daemon --[no]syslog options
@@ -9,6 +9,12 @@ v2.0.36-pre2 Mon, 22 Dec 2014 16:50:51 +0100 moocow
 	+ added phrase- and clause-level match-id assignment with =ID
 	+ set default matchid=255 if any explicit IDs were assigned; else defaults to backwards-compatible id=1
 	+ implemented match-id references for context-sort operators #left, #right, #middle
+	+ [UNMERGED] first-stab implementation of token-attribute references in count-by clauses (still expensive and quite slow)
+	+ fixed near() wart allowing sub-expressions to match exactly the same token(s)
+	  - e.g. near(Sohn,$p=NN,1) returned among other things every hit for (Sohn with $p=NN)
+	+ fixed near() bug resulting in inappropriate match-id assignments
+	  - problem was missing m_OccurrenceMatchIds.clear() in CQueryNode::ClearAndReserveOccurrences()
+	+ added breakstart_ to DEBUG_HIT_JSON output (CTokenNo of first token in the matched sentence)
 
 v2.0.35 Thu, 04 Dec 2014 13:59:31 +0100 moocow
 	+ added 'hostname' key to server status messages (fqdn or short hostname via gethostname())

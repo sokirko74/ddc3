@@ -21,6 +21,7 @@ $hits = $hits->{hits_} if (UNIVERSAL::isa($hits,'HASH') && $hits->{hits_});
 my $useMatchIds = grep {$_>0 && $_!=1} map {$_->[0]} map {@{$_->{ctx_}[1]}} @$hits;
 
 our @hits  = qw();
+my $n = 0;
 foreach my $hit (@$hits) {
   my $f = basename($hit->{meta_}{file_});
   $f =~ s/\..*$//;
@@ -44,7 +45,13 @@ foreach my $hit (@$hits) {
 		 : $_));
   }
 
-  push(@hits, ["$f:$p",map {join(' ',@$_)} (\@l,\@c,\@r)]);
+  my $label ="$f:$p";
+  if (defined($hit->{meta_}{breakno_})) {
+    my $tokno = $hit->{meta_}{breakstart_} + @l - @{$hit->{ctx_}[0]};
+    $label .= "[n=$n,f=$hit->{meta_}{fileno_},b=$hit->{meta_}{breakno_},w=$tokno]";
+    ++$n;
+  }
+  push(@hits, [$label, map {join(' ',@$_)} (\@l,\@c,\@r)]);
 }
 
 ##-- get lengths

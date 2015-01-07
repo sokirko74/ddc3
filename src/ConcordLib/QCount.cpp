@@ -158,7 +158,6 @@ string CQCountKeyExprRegex::jsonData()
 }
 
 
-
 //==============================================================================
 // CQCountKeyExprList
 

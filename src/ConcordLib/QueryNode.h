@@ -139,24 +139,24 @@ public:
 	virtual size_t GetNodeFrequencyByNodeIndex(size_t NodeIndex) const;
 
 	//! get the index of the first occurrence in m_Occurrences[] for hit number HitNo
-	inline size_t HitOccurrencesBegin(size_t HitNo) const
+	inline DWORD HitOccurrencesBegin(DWORD HitNo) const
 	{ return (HitNo == 0) ? 0 : m_Hits[HitNo-1].m_HighlightOccurrenceEnd; };
 
 	//! get the index of the first occurrence in m_Occurrences[] after hit number HitNo
-	inline size_t HitOccurrencesEnd(size_t HitNo) const
+	inline DWORD HitOccurrencesEnd(DWORD HitNo) const
 	{ return m_Hits[HitNo].m_HighlightOccurrenceEnd >= m_Occurrences.size() ? m_Occurrences.size() : m_Hits[HitNo].m_HighlightOccurrenceEnd; };
 
 	//! scan for first occurrence of match-id \a MatchId for hit \a HitNo in m_OccurrenceMatchIds[]; only valid if m_bUseMatchIds is true
 	//! \returns least occurence-index \a i such that: occurrence \a i belongs to Hits[HitNo] and as match-id MatchId, or (DOWRD)-1 if none exists
-	DWORD GetFirstOccurrenceInHit(size_t HitNo, BYTE MatchId) const;
+	DWORD GetFirstOccurrenceInHit(DWORD HitNo, BYTE MatchId) const;
 
 	//! scan for last occurrence of match-id \a MatchId for hit \a HitNo in m_OccurrenceMatchIds[]; only valid if m_bUseMatchIds is true
 	//! \returns greatest occurence-index \a i such that: occurrence \a i belongs to Hits[HitNo] and as match-id MatchId, or (DWORD)-1 if none exists
-	DWORD GetLastOccurrenceInHit(size_t HitNo, BYTE MatchId) const;
+	DWORD GetLastOccurrenceInHit(DWORD HitNo, BYTE MatchId) const;
 
 	//! scan for middle-most occurrence of match-id \a MatchId for hit \a HitNo in m_OccurrenceMatchIds[]; only valid if m_bUseMatchIds is true
 	//! \returns middle-most occurence-index \a i such that: occurrence \a i belongs to Hits[HitNo] and as match-id MatchId, or (DWORD)-1 if none exists
-	DWORD GetMiddleOccurrenceInHit(size_t HitNo, BYTE MatchId) const;
+	DWORD GetMiddleOccurrenceInHit(DWORD HitNo, BYTE MatchId) const;
 };
 
 //----------------------------------------------------------------------
