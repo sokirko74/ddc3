@@ -1777,6 +1777,7 @@ bool CConcHolder::TryToGetFromCache(const string &Query,  DWORD& EndHitNo)
 // saving results to the cache
 void  CConcHolder::SaveToCache(const string& Query, vector<size_t>::const_iterator start, vector<size_t>::const_iterator end)
 {
+	if (m_pIndexator->m_MaxQueryCacheSize==0) return;
 	CACHEDEBUG(fprintf(stderr,"SaveToCache() : Query=%s, nItems=%zd, CacheSize=%zi\n", jsonStr(Query).c_str(), end-start, m_Queries.size()));
 
 	if (m_QueryCache.find(Query) !=  m_QueryCache.end())
@@ -1793,7 +1794,7 @@ void  CConcHolder::SaveToCache(const string& Query, vector<size_t>::const_iterat
 	{
 		//  erasing  the first item from Query queue and from the Query cache
 		map<string, CQueryResult>::iterator it = m_QueryCache.find(m_Queries.front());
-		assert (it != m_QueryCache.end());
+		assert(it != m_QueryCache.end());
 		CACHEDEBUG(fprintf(stderr,"SaveToCache() --> dropping stale cache-item %s\n", jsonStr(it->first).c_str()));
 		m_QueryCache.erase(it);
 		m_Queries.erase(m_Queries.begin());
