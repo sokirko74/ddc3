@@ -1421,7 +1421,8 @@
 	  <!--~~~~~~~~ RULES: matchid -->
 	  <rule lhs="matchid" cmt="User-specified match-ID or back-reference">
 	    <rhs cmt="... valid match-IDs are in the range (1-255)">
-	      <xt>MATCHID</xt>
+	      <t>=</t>
+	      <xt>INTEGER</xt>
 	    </rhs>
 	  </rule>
 
@@ -1618,8 +1619,8 @@ regex_modifier	[gimsx]
 	<p>
 	  The scanner supports user-specified match-IDs for use e.g. by
 	  context-dependent sort operators.  Match-IDs are decimal integers between 1 and 255,
-	  introduced by a leading '=' (equals sign).  Note that no whitespace is allowed between
-	  the leading '=' and the subsequent integer ID.
+	  introduced by a leading '=' (equals sign).
+	  <!-- Note that no whitespace is allowed between the leading '=' and the subsequent integer ID. -->
 	  If no match-IDs were specified for a query, every matched token of that query is treated as if
 	  it had been assigned a match-ID of 1.  Otherwise, if at least one match-ID was explicitly
 	  assigned, any matched tokens without explicit match-IDs are assigned a match-ID of 255.

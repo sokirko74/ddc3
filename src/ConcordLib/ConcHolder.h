@@ -69,6 +69,9 @@ struct CQueryResult
 
 
 
+/*! type for count-query maps */
+typedef map<string,size_t> CCountMap;
+
  
 /*! Class  CConcHolder is created for querying a corpus. It contains  all user options  for the query process like  m_ResultLimit 
 	(the maximal number of hits, which should be output) or m_QueryResultStr(the string representation of the query result).
@@ -104,6 +107,9 @@ private:
 	//! the current hit-sorting order (-1:descending, 0:none, 1:ascending, 2:ascending_counts)
 	HitSortOrderEnum			m_SortOrder;
 
+	//! temporary for constructing count-query results
+	CCountMap				m_Counts;
+
 
 	//! add a reference to FileNo according to m_ResultFormat
 	void	AddFileReference(const long FileNo);
@@ -128,8 +134,21 @@ private:
 	//! \li ddc-2.0.23 version
 	DDCErrorEnum	GetAllHits(CQuery *QueryRoot, size_t Limit);
 
-	//! evaluate a count-query on the corpus and initialize slots from CQueryResult
-	DDCErrorEnum	GetAllCounts(CQuery *CountQueryRoot, size_t Limit);
+	//! check if CountQuery is a count(*) query suitable for use with GetUniversalCounts()
+	bool IsUniversalCountQuery(CQuery *QueryRoot) const;
+
+	//! evaluate a count(*) query by populating m_Counts[], memory-optimized.
+	//! implicitly calls ConvertCountsToHits(Limit)
+	DDCErrorEnum GetUniversalCounts(CQuery *CountQueryRoot, size_t Limit);
+
+	//! evaluate a period-local count(*) query by updating m_Counts[] for every element in m_Hits[].
+	//! implicitly clears m_Hits[], m_HighlightOccurs[], m_HighlightIds[], and m_AllHitsCount.
+	DDCErrorEnum GetPeriodCounts(CQuery *CountQueryRoot);
+
+	//! encode count()-query results in m_Counts[] to m_Hits[], using
+	//! m_Hits[] element CHit hit.m_Sortkey.s to transport count-key
+	//! and hit.m_Value.m_Count to transport count results in a backwards-compatible manner.
+	DDCErrorEnum    ConvertCountsToHits(size_t Limit);
 
 	//! checks if Query  si already in the cache, and if true, it returns its hit results from the cache
 	bool	TryToGetFromCache(const string &Query,  DWORD& EndHitNo);

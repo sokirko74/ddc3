@@ -243,7 +243,6 @@ int CQueryCompiler::yyqlex(void* valp)
 	case KW_DATE:
 	case KW_FILENAME:
 	case KW_FILEID:
-	case MATCHID:
 		((YYSTYPE *)valp)->m_str = newString(s);
 		break;
 	default:

@@ -104,6 +104,7 @@ int yylex (void*,  void*);
 %type	<m_pfilt>	qfb_bibl_ne
 %type	<m_int>		qfb_ctxsort
 %type	<m_int>		qfb_ctxkey
+%type   <m_int>		qfbc_matchref
 %type   <m_int>		qfbc_offset
 
 //------------------------------------------------------
@@ -215,7 +216,6 @@ int yylex (void*,  void*);
 %token	<m_str>	HASH_GREATER
 %token	<m_str>	HASH_EQUAL
 %token	<m_str>	DOLLAR_DOT
-%token	<m_str>	MATCHID
 
 %token	<m_str>	CNTXT
 %token	<m_str>	WITHIN
@@ -272,7 +272,7 @@ int yylex (void*,  void*);
 %left   	'='
 %nonassoc 	'<'
 %nonassoc	'$' 
-%nonassoc	'@' '^' '%' '#' '/' '~' MATCHID
+%nonassoc	'@' '^' '%' '#' '/' '~'
 
  //%left	SIM_PRECISE  //-- what was this for?
 
@@ -697,9 +697,9 @@ l_txchain:
 	;
 
 l_countkeys:
-		/* empty */		{ $$=NULL; _qc->m_qCountKeys.Clear(); }
-	|	l_countkeys ','		{ $$=$1; }
-	|	l_countkeys count_key	{ $$=$1; _qc->m_qCountKeys.PushKey((CQCountKeyExpr*)$2); }
+		/* empty */			{ $$=NULL; _qc->m_qCountKeys.Clear(); }
+	|	count_key			{ $$=NULL; _qc->m_qCountKeys.Clear(); _qc->m_qCountKeys.PushKey((CQCountKeyExpr*)$1); }
+	|	l_countkeys ',' count_key	{ $$=$1; _qc->m_qCountKeys.PushKey((CQCountKeyExpr*)$3); }
 	;
 
  /*-------------------------------------------------------------
@@ -780,7 +780,7 @@ date:		DATE	{ $$ = $1; }
 	|	INTEGER { $$ = $1; }
 	;
 
-matchid:	MATCHID { $$ = atoi($1->c_str()); }
+matchid:	'=' integer { $$ = $2; }
 	;
 
 

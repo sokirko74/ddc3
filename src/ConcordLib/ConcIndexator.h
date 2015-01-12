@@ -398,6 +398,12 @@ public:
 	DWORD GetMaxTokenCountInOnePeriod() const;
 	//! return a string representation of a set of token properties (in the format which is used in the index)
 	string			GetIndexItemSetByVectorString (const vector<string>& TokenProperties, bool bRegexp );
+
+	//! moo: get a vector of all occurrences in a given search period; used by universal wildcard (*) queries
+	bool GetAllOccurrences(vector<CTokenNo>& occurrences, size_t searchPeriodNo) const;
+
+	//! moo: search named break collection for matching positions, used by anchor queries
+	bool GetOccurrencesByPosition(const string& BreakName, int anchor, vector<CTokenNo>& occurrences, size_t searchPeriodNo) const;
 };
 
 

@@ -153,8 +153,6 @@ public:
 	size_t	GetSearchPeriodsCount() const;
 	//! get a \ref period_def "corpus period" by an index
 	const CTokenNo&  GetSearchPeriod(size_t i) const { return m_SearchPeriods[i]; };
-	//! populates \a PeriodOccurrences with all and only those values from \a AllOccurrences which fall into search period \a searchPeriodNo : used by anchor queries
-	void RestrictOccurrencesToSearchPeriod(const vector<CTokenNo> &AllOccurrences, vector<CTokenNo> &PeriodOccurrences, size_t searchPeriodNo) const;
 
 	//! call CreateTempFiles for all registered indices
 	bool	StartIndexing(string Path);

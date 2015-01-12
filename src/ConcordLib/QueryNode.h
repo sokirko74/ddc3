@@ -240,6 +240,9 @@ public:
 	//! true iff this is a "universal wildcard" query
 	bool m_bAny;
 
+	//! integer offset for break-anchor ($.) queries
+	int m_AnchorOffset;
+
 public:
 	//! a unique index of the node in query tree (used by rank-sort operator)
 	BYTE m_NodeIndex;

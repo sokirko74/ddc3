@@ -120,17 +120,12 @@ protected:
     //! moo: get break collection by long or short name
     const CBreakCollection* GetBreakCollectionByName(const string& Name) const;
 
-    //! moo: search named break collection for matching positions, used by anchor queries
-    bool GetOccurrencesByPosition(const string& BreakName, int anchor, vector<CTokenNo>& occurrences) const;
-
-    //! moo: get a vector of all occurrences (requires at least 1 break collection), used by universal wildcard (*) queries
-    bool GetAllOccurrences(vector<CTokenNo>& occurrences) const;
 
     //! moo: get break collection map (dangerous)
     const vector<CBreakCollection>& GetBreaks(void) const
     { return m_Breaks; };
 
-public:
+ public:
 	
 	CHitBorders();
 	//!return the string representation of break collection descriptions

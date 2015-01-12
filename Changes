@@ -1,6 +1,6 @@
 ##-*- Mode: Change-Log; coding: utf-8; -*-
 
-v2.0.36-pre3 Tue, 06 Jan 2015 15:10:06 +0100 moocow
+v2.0.36-pre3 Mon, 12 Jan 2015 14:19:55 +0100 moocow
 	+ general printf format cleanup for "%i" vs "%zi" templates
 	+ minor fixes for building with gcc-4.8.2 + perl-5.18.2 (ubuntu-server 14.04.1)
 	+ added syslog logging option for concord_daemon_log via ddc_daemon --[no]syslog options
@@ -15,6 +15,11 @@ v2.0.36-pre3 Tue, 06 Jan 2015 15:10:06 +0100 moocow
 	+ fixed near() bug resulting in inappropriate match-id assignments
 	  - problem was missing m_OccurrenceMatchIds.clear() in CQueryNode::ClearAndReserveOccurrences()
 	+ added breakstart_ to DEBUG_HIT_JSON output (CTokenNo of first token in the matched sentence)
+	+ improved period-local evaluation for anchor ($.) and universal (*) queries (fixed mantis bug #716)
+	  - eliminates need for CStringIndexator::RestrictOccurrencesToSearchPeriod() hack
+	+ removed special lexer-token MATCHID, since it was interfering with integer-valued index terms (e.g. $page=42)
+	+ moved count() evaluation back into search-period loop
+	  - attempt to avoid memory explosion by restricting count target-hit generation to inner period-local hits only
 
 v2.0.35 Thu, 04 Dec 2014 13:59:31 +0100 moocow
 	+ added 'hostname' key to server status messages (fqdn or short hostname via gethostname())

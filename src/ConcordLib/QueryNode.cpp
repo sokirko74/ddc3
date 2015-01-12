@@ -662,6 +662,7 @@ CQueryTokenNode::CQueryTokenNode(int NodeIndex, BYTE MatchId)
 	m_bChunk = false;
 	m_bAnchor = false;
 	m_bAny    = false;
+	m_AnchorOffset = 0;
 	m_NodeIndex = NodeIndex;
 	m_MatchId      = (MatchId==0 ? DefaultMatchId : MatchId);
 	m_bUseMatchIds = (m_MatchId > 0);
@@ -733,17 +734,15 @@ bool	CQueryTokenNode::CreateChunkPattern(const CConcHolder* pHolder, const strin
 };
 
 //--------------------------------------------------------------
-bool	CQueryTokenNode::CreateAnchorPattern(const CConcHolder* pHolder, const string& BreakName, int anchor)
+bool	CQueryTokenNode::CreateAnchorPattern(const CConcHolder* pHolder, const string& BreakName, int anchorOffset)
 {
   m_bChunk  = false;
   m_bAnchor = true;
   m_bAtomic = true;
   SetHolder(pHolder);
   m_IndexName = BreakName.empty() ? "s" : BreakName;
-
-  //-- assign occurrences directly to m_IndexItems
-  m_IndexItems.clear();
-  return pHolder->m_pIndexator->GetOccurrencesByPosition(m_IndexName, anchor, m_IndexItems);
+  m_AnchorOffset = anchorOffset;
+  return true;  //-- occurrences are assigned directly to m_Occurrences[] by CQueryTokenNode::EvaluateWithoutHits()
 };
 
 size_t CQueryTokenNode::GetNodeFrequencyByNodeIndex(size_t NodeIndex) const
@@ -900,10 +899,7 @@ bool CQueryTokenNode::CreateUniversalPattern(const CConcHolder* pHolder, const s
   m_Source    = SourceStr;
   m_IndexName.clear();
   SetHolder(pHolder);
-
-  //-- assign occurrences directly to m_IndexItems
-  m_IndexItems.clear();
-  return pHolder->m_pIndexator->GetAllOccurrences(m_IndexItems);
+  return true;  //-- occurrences are assigned directly to m_Occurrences[] by CQueryTokenNode::EvaluateWithoutHits()
 };
 
 
@@ -961,10 +957,15 @@ void CQueryTokenNode::EvaluateWithoutHits()
 					);
 		m_ChunkLengths.resize(GetOccurrencesSize(), 1);
 	}
-	else if (m_bAnchor || m_bAny) {
-	  // anchor or universal query
-	  m_pHolder->m_pIndexator->RestrictOccurrencesToSearchPeriod(m_IndexItems,  m_Occurrences,  m_pHolder->m_CurrentSearchPeriodNo);
-	  m_ChunkLengths.resize(GetOccurrencesSize(), 1); //-- near() queries use m_ChunkLengths[]
+	else if (m_bAnchor) {
+		//-- anchor query ($.=N)
+		m_pHolder->m_pIndexator->GetOccurrencesByPosition(m_IndexName, m_AnchorOffset, m_Occurrences, m_pHolder->m_CurrentSearchPeriodNo);
+		m_ChunkLengths.resize(GetOccurrencesSize(), 1); //-- near() queries use m_ChunkLengths[]
+	}
+	else if (m_bAny) {
+		//-- universal query (*)
+		m_pHolder->m_pIndexator->GetAllOccurrences(m_Occurrences, m_pHolder->m_CurrentSearchPeriodNo);
+		m_ChunkLengths.resize(GetOccurrencesSize(), 1); //-- near() queries use m_ChunkLengths[]
 	}
 	else {
 	  // chunk query

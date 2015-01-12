@@ -281,10 +281,11 @@ int yyFlexLexer::yylex()
 
 #ifdef YY_HEADER_EXPORT_START_CONDITIONS
 #define INITIAL 0
-#define Q_DATE 1
-#define Q_REGOPT 2
-#define Q_REGREP 3
-#define Q_XPIPE 4
+#define S_NOID 1
+#define Q_DATE 2
+#define Q_REGOPT 3
+#define Q_REGREP 4
+#define Q_XPIPE 5
 
 #endif
 
@@ -391,9 +392,9 @@ static int yy_flex_strlen (yyconst char * );
 #undef YY_DECL
 #endif
 
-#line 216 "yyQLexer.l"
+#line 221 "yyQLexer.l"
 
 
-#line 398 "yyQLexer.h"
+#line 399 "yyQLexer.h"
 #undef yyqIN_HEADER
 #endif /* yyqHEADER_H */

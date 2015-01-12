@@ -2064,6 +2064,69 @@ void SortOccurrences (vector<CTokenNo>& occurrences, size_t SortChunkCount)
 	
 };
 
+//==============================================================================
+// anchor and universal query utils
+
+//----------------------------------------------------------------------
+bool CConcIndexator::GetAllOccurrences(vector<CTokenNo> &occurrences, size_t searchPeriodNo) const
+{
+	CTokenNo PeriodBegin = (searchPeriodNo == 0) ? 0 : GetSearchPeriod(searchPeriodNo-1);
+	CTokenNo PeriodEnd   = GetSearchPeriod(searchPeriodNo);
+
+	occurrences.clear();
+	occurrences.reserve(PeriodEnd-PeriodBegin);
+	for (CTokenNo occ=PeriodBegin; occ < PeriodEnd; ++occ) {
+		occurrences.push_back(occ);
+	}
+
+	return true;
+}
+
+//----------------------------------------------------------------------
+bool CConcIndexator::GetOccurrencesByPosition(const string& BreakName, int anchor, vector<CTokenNo>& occurrences, size_t searchPeriodNo) const
+{
+	const CHBreakCollection *bcol = GetBreakCollectionByName(BreakName);
+	if (!bcol)
+		throw CExpc(errRuntime, "CConcIndexator::GetOccurrencesByPosition(): unknown break collection `%s'", BreakName.c_str());
+
+	CTokenNo PeriodBegin = (searchPeriodNo == 0) ? 0 : GetSearchPeriod(searchPeriodNo-1);
+	CTokenNo PeriodEnd   = GetSearchPeriod(searchPeriodNo);
+	vector<CTokenNo>::const_iterator bi = lower_bound(bcol->m_BreakOffsets.begin(), bcol->m_BreakOffsets.end(), PeriodBegin);
+
+	occurrences.clear();
+	CTokenNo b0=0, i;
+	if (anchor >= 0) {
+		//-- non-negative anchor position: count from 0 @ start (left)
+		for ( ; bi != bcol->m_BreakOffsets.end() && *bi < PeriodEnd; bi++) {
+			//-- break segment from i=b0 .. i<*bi
+			i = b0 + anchor;
+			if (i < *bi) occurrences.push_back(i);
+			b0 = *bi;
+		}
+		if (searchPeriodNo == GetSearchPeriodsCount()-1 && bi != bcol->m_BreakOffsets.end() && *bi==PeriodEnd && (i=(b0+anchor)) < *bi) {
+			//-- hack for final break of final search period
+			occurrences.push_back(i);
+		}
+	}
+	else {
+		//-- negative anchor position: count from -1 @ end (right)
+		anchor *= -1;
+		for ( ; bi != bcol->m_BreakOffsets.end() && *bi < PeriodEnd; bi++) {
+			//-- break segment from i=b0 .. i<*bi
+			i = *bi - anchor;
+			if (*bi >= anchor && i >= b0) occurrences.push_back(i);
+			b0 = *bi;
+		}
+		if (searchPeriodNo == GetSearchPeriodsCount()-1 && bi != bcol->m_BreakOffsets.end() && *bi==PeriodEnd && (i=(b0+anchor)) < *bi) {
+			//-- hack for final break of final search period
+			occurrences.push_back(i);
+		}
+	}
+
+	return true;
+}
+
+
 
 //==============================================================================
 // data dumping utils

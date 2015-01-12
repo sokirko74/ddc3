@@ -711,7 +711,7 @@ bool CConcHolder::GenerateOneHitString(DWORD PageNumber, const CHit& Hit, const 
 //==============================================================================
 
 //#define DEBUG_HIT_JSON 1
-#undef DEBUG_HIT_JSON
+//#undef DEBUG_HIT_JSON
 
 bool CConcHolder::GenerateOneHitStringJson(DWORD PageNumber, const CHit& Hit, const vector<COutputToken>& Tokens)
 {
@@ -1380,21 +1380,32 @@ DDCErrorEnum CConcHolder::GetAllHits(const string &Query, size_t Limit)
 DDCErrorEnum CConcHolder::GetAllHits(CQuery *QueryRoot, size_t Limit) 
 {
 	assert(QueryRoot != NULL);
-	if (typeid(*QueryRoot) == typeid(CQCount))
-		return GetAllCounts(QueryRoot, Limit);
-
 	m_bStoppedByUser = false;
 	m_ShortOccurCaches.clear();
 	ClearQueryResults();
 
-	//CQuery    *QueryRoot = m_pQueryCompiler->m_pQuery;
-	CQueryNode    *qNode = QueryRoot->m_Node;
-	CQueryOptions *qOpts = QueryRoot->m_Options;
-	vector<CHit> &qHits = qNode->m_Hits;
+	//-- check for count-queries
+	CQuery  *qRoot=QueryRoot;
+	CQCount *qCount=NULL;
+	size_t qLimit = Limit;
+	if (IsUniversalCountQuery(QueryRoot)) {
+		//-- count(*) query: do memory-optimized computation
+		return GetUniversalCounts(QueryRoot, Limit);
+	}
+	else if (typeid(*QueryRoot) == typeid(CQCount)) {
+		//-- count() query: remember count-node but evaluate (all) daughter hits
+		qCount = (CQCount*)QueryRoot;
+		qRoot  = qCount->m_dtr;
+		qLimit = DDCCountQueryLimit;
+	} 
+	CQueryNode    *qNode = qRoot->m_Node;
+	CQueryOptions *qOpts = qRoot->m_Options;
+	vector<CHit>  &qHits = qNode->m_Hits;
 
 	bool   bUseMatchIds   = qNode->m_bUseMatchIds;
 	size_t CountOfPeriods = m_pIndexator->GetSearchPeriodsCount(); 
-	time_t  last_time;
+	time_t last_time;
+	DDCErrorEnum rc = errNone;
 
 	if (m_QueryEndTime != TheEndOfTheWorld)
 			time(&last_time);
@@ -1496,7 +1507,7 @@ DDCErrorEnum CConcHolder::GetAllHits(CQuery *QueryRoot, size_t Limit)
 		// + we ought to merge-sort here e.g. with std::inplace_merge()
 		//   *but* we also need to keep m_HighlightOccurs[] aligned with m_Hits[]
 		// + current solution is full post-retrieval re-sort in calling method CConcHolder::GetHits()
-		size_t Count = min(Limit, PeriodHitsIndex.size());
+		size_t Count = min(qLimit, PeriodHitsIndex.size());
 		for (size_t i=0; i < Count; i++) {
 			size_t  HitNo = PeriodHitsIndex[i];
 			const CHit &H = qHits[ HitNo ];
@@ -1532,7 +1543,14 @@ DDCErrorEnum CConcHolder::GetAllHits(CQuery *QueryRoot, size_t Limit)
 			//-- inexpensive hack to check that m_HighlightOccurrs[] and m_Hits[] are aligned 1:1
 			assert (m_Hits.back().m_HighlightOccurrenceEnd == m_HighlightOccurs.size());
 		}
-	
+
+		// compute period-local counts
+		if (qCount != NULL) {
+			rc = GetPeriodCounts(qCount);
+			if (rc != errNone) break;
+		}
+		
+		// check for user interrupt
 		if (m_bStoppedByUser) break;
 
 		//  checking timeout, if it was specified
@@ -1549,115 +1567,143 @@ DDCErrorEnum CConcHolder::GetAllHits(CQuery *QueryRoot, size_t Limit)
 		}
 	} //  cycle for corpus periods
 
+	// encode count() query results as hits
+	if (qCount != NULL) {
+		rc = ConvertCountsToHits(qLimit);
+	}
+
 	//  we cannot call here CleanParser, because we would use later some slots of  m_pQueryCompiler 
 	//  but  we should delete the parse tree itself in order to free meemory
 	//  + moo: this won't work in v2.0.23 because we still need query filters in m_pQueryCompiler->m_pQuery->m_Filters
 	//         it's called implicitly by CQueryCompiler::CleanParser(), i.e. before the next parse
 	//m_pQueryCompiler->DeleteTree();
 
-	return errNone;
+	return rc;
 };
 
-DDCErrorEnum CConcHolder::GetAllCounts(CQuery *CountQueryRoot, size_t Limit)
+bool CConcHolder::IsUniversalCountQuery(CQuery *QueryRoot) const
+{
+	if (typeid(*QueryRoot) != typeid(CQCount)) return false;
+	CQCount *qCount = (CQCount*)QueryRoot;
+	return (typeid(*qCount->m_dtr)==typeid(CQTokAny) && qCount->m_dtr->m_Options->CanFilterByFile() /*&& qCount->m_keys.CanCountByFile()*/);
+};
+
+DDCErrorEnum CConcHolder::GetUniversalCounts(CQuery *CountQueryRoot, size_t Limit)
+{
+	//-- sanity check(s)
+	assert(CountQueryRoot != NULL);
+	assert(IsUniversalCountQuery(CountQueryRoot));
+
+	//-- common variables
+	CQCount *qCount  = (CQCount*)CountQueryRoot;
+	CQuery  *qRoot   = qCount->m_dtr;
+	CQCountKeyExprList &keys = qCount->m_keys;
+
+	//-- count(* ...) query: do memory-optimized computation
+	CConcIndexator *ix = m_pIndexator;
+	const vector<CTokenNo> &fbreaks = ix->GetFileBreaks();
+	const set<size_t>      &fmasked = ix->m_MaskedFiles; 
+	set<size_t>::const_iterator fmaski = fmasked.begin();
+	DWORD nfiles = ix->GetCorpusFilesCount();
+	string key;
+
+	assert(nfiles <= fbreaks.size()); //-- sanity check
+		
+	if (qRoot->m_Options->m_bSeparateHits) {
+		//-- count(* #sep): count tokens
+		CTokenNo fw_begin=0, fw_end;
+		for (DWORD f=0; f<nfiles; ++f, fw_begin=fw_end) {
+			fw_end = fbreaks[f];
+			if (fmaski != fmasked.end() && f == *fmaski) {
+				//-- don't count tokens in masked files
+				++fmaski;
+				continue;
+			}
+			if (ix->m_Bibl.FileMatches(f, qRoot->m_Options->m_Filters)) {
+				key            = keys.Evaluate(f);
+				m_Counts[key] += (fw_end - fw_begin);
+			}
+		}
+	}
+	else {
+		//-- count(* #join): count selected breaks
+		const CHitBorders::CBreakCollection *sbreaks = ix->GetBreakCollectionByName(qRoot->m_Options->m_HitTypeStr);
+		DWORD    f=0, n=1;
+		CTokenNo fw_end = fbreaks[f];
+		for (vector<CTokenNo>::const_iterator bi=sbreaks->m_BreakOffsets.begin(); bi != sbreaks->m_BreakOffsets.end(); ++bi, ++n) {
+			if (*bi >= fw_end) {
+				//-- new file
+				if (fmaski != fmasked.end() && f == *fmaski) {
+					++fmaski;
+				}
+				else if (n>0 && ix->m_Bibl.FileMatches(f, qRoot->m_Options->m_Filters)) {
+					key            = keys.Evaluate(f);
+					m_Counts[key] += n;
+				}
+				do {
+					++f;
+					fw_end = fbreaks[f];
+				} while (*bi >= fw_end);
+				n = 0;
+			}
+		}
+	}
+
+	return ConvertCountsToHits(Limit);
+}
+
+DDCErrorEnum CConcHolder::GetPeriodCounts(CQuery *CountQueryRoot)
 {
 	//-- sanity check(s)
 	assert(CountQueryRoot != NULL);
 	assert(typeid(*CountQueryRoot) == typeid(CQCount));
 
-	//-- evaluate subordinate query-conditions, populating CQueryResult fields (esp. m_Hits)
+	//-- common variables
 	CQCount *qCount  = (CQCount*)CountQueryRoot;
 	CQuery  *qRoot   = qCount->m_dtr;
 	CQCountKeyExprList &keys = qCount->m_keys;
 
-	//-- countHits[] encodes element CHit hit.m_Sortkey.s (count-key) and hit.m_Value.m_Count attributes,
-	//   used to transport count()-query results in a backwards-compatible manner.
-	map<string, size_t> counts;
+	//-- counting guts: file-level
+	bool isWithinFile = (qRoot->m_Options->m_HitTypeStr == PredefinedFileBreakName);
+	DWORD  f = (DWORD)-1;
+	size_t n = 0;
+	string key;
 
-	if (typeid(*qRoot) == typeid(CQTokAny) && qRoot->m_Options->CanFilterByFile()) {
-		//-- count(* ...) query: do memory-optimized computation
-		CConcIndexator *ix = m_pIndexator;
-		const vector<CTokenNo> &fbreaks = ix->GetFileBreaks();
-		const set<size_t>      &fmasked = ix->m_MaskedFiles; 
-		set<size_t>::const_iterator fmaski = fmasked.begin();
-		DWORD nfiles = ix->GetCorpusFilesCount();
-		string key;
-
-		assert(nfiles <= fbreaks.size()); //-- sanity check
-
-		if (qRoot->m_Options->m_bSeparateHits) {
-			//-- count(* #sep): count tokens
-			CTokenNo fw_begin=0, fw_end;
-			for (DWORD f=0; f<nfiles; ++f, fw_begin=fw_end) {
-				fw_end = fbreaks[f];
-				if (fmaski != fmasked.end() && f == *fmaski) {
-					//-- don't count tokens in masked files
-					++fmaski;
-					continue;
-				}
-				if (ix->m_Bibl.FileMatches(f, qRoot->m_Options->m_Filters)) {
-					key          = keys.Evaluate(f);
-					counts[key] += (fw_end - fw_begin);
-				}
-			}
-		}
-		else {
-			//-- count(* #join): count selected breaks
-			const CHitBorders::CBreakCollection *sbreaks = ix->GetBreakCollectionByName(qRoot->m_Options->m_HitTypeStr);
-			DWORD    f=0, n=1;
-			CTokenNo fw_end = fbreaks[f];
-			for (vector<CTokenNo>::const_iterator bi=sbreaks->m_BreakOffsets.begin(); bi != sbreaks->m_BreakOffsets.end(); ++bi, ++n) {
-				if (*bi >= fw_end) {
-					//-- new file
-					if (fmaski != fmasked.end() && f == *fmaski) {
-						++fmaski;
-					}
-					else if (n>0 && ix->m_Bibl.FileMatches(f, qRoot->m_Options->m_Filters)) {
-						key          = keys.Evaluate(f);
-						counts[key] += n;
-					}
-					do {
-						++f;
-						fw_end = fbreaks[f];
-					} while (*bi >= fw_end);
-					n = 0;
-				}
-			}
+	//-- ensure m_Hits are sorted by file-id
+	if (qRoot->m_Options && !qRoot->m_Options->m_Filters.empty() && qRoot->m_Options->m_Filters.back().m_FilterType!=NoSort) 
+		sort(m_Hits.begin(), m_Hits.end(), IsLessByFileNo());
+	
+	for (vector<CHit>::const_iterator hi=m_Hits.begin(); hi != m_Hits.end(); ++hi, ++n) {
+		if (hi->m_FileNo != f) {
+			//-- next file
+			if (n>0) m_Counts[key] += (isWithinFile ? 1 : n);
+			n   = 0;
+			f   = hi->m_FileNo;
+			key = keys.Evaluate(f);
 		}
 	}
-	else {
-		//-- generic count() query: compute all hits and map to sort keys
-		DDCErrorEnum rc = GetAllHits(qRoot, DDCCountQueryLimit);
-		if (rc != errNone)
-			return rc;
+	if (n>0) m_Counts[key] += (isWithinFile ? 1 : n);
 
-		//-- ensure m_Hits are sorted by file-id
-		if (qRoot->m_Options && !qRoot->m_Options->m_Filters.empty() && qRoot->m_Options->m_Filters.back().m_FilterType!=NoSort) 
-			sort(m_Hits.begin(), m_Hits.end(), IsLessByFileNo());
+	//-- cleanup period-local count-daughter data
+	m_Hits.clear();
+	m_HighlightOccurs.clear();
+	m_HighlightIds.clear();
+	m_AllHitsCount = 0;
 
-		//-- counting guts
-		bool isWithinFile = (qRoot->m_Options->m_HitTypeStr == PredefinedFileBreakName);
-		DWORD  f = (DWORD)-1;
-		size_t n = 0;
-		string key;
-		for (vector<CHit>::const_iterator hi=m_Hits.begin(); hi != m_Hits.end(); ++hi, ++n) {
-			if (hi->m_FileNo != f) {
-				//-- next file
-				if (n>0) counts[key] += (isWithinFile ? 1 : n);
-				n   = 0;
-				f   = hi->m_FileNo;
-				key = keys.Evaluate(f);
-			}
-		}
-		if (n>0) counts[key] += (isWithinFile ? 1 : n);
-	}
+	return errNone;
+}
+
+DDCErrorEnum CConcHolder::ConvertCountsToHits(size_t Limit) 
+{
+	size_t n = min(Limit, m_Counts.size());
 
 	//-- count query: setup m_Hits[]
 	// + m_Hits[] for count()-queries encodes element CHit hit.m_Sortkey.s (count-key) and hit.m_Value.m_Count
 	//   attributes; used to transport count()-query results in a backwards-compatible manner.
-	vector<CHit> newHits;
-	newHits.resize(counts.size());
-	vector<CHit>::iterator hi = newHits.begin(); 
-	for (map<string,size_t>::const_iterator ci=counts.begin(); ci != counts.end(); ++ci, ++hi) {
+	m_Hits.clear();
+	m_Hits.resize(n);
+	vector<CHit>::iterator hi = m_Hits.begin(); 
+	for (CCountMap::const_iterator ci=m_Counts.begin(); ci != m_Counts.end() && hi != m_Hits.end(); ++ci, ++hi) {
 		hi->m_BreakNo = -1;
 		hi->m_HighlightOccurrenceEnd = 0;
 		hi->m_FileNo  = -1;
@@ -1666,7 +1712,6 @@ DDCErrorEnum CConcHolder::GetAllCounts(CQuery *CountQueryRoot, size_t Limit)
 	}
 
 	//-- count query: setup CQueryResult fields
-	m_Hits.swap(newHits);
 	m_HighlightOccurs.clear();
 	m_HighlightIds.clear();
 	m_AllHitsCount  = m_Hits.size();
@@ -1676,7 +1721,6 @@ DDCErrorEnum CConcHolder::GetAllCounts(CQuery *CountQueryRoot, size_t Limit)
 
 	return errNone;
 }
-
 
 void	CQueryResult::ClearQueryResults()
 {
@@ -1829,6 +1873,7 @@ void  CConcHolder::SaveToCache(const string& Query, vector<size_t>::const_iterat
 DDCErrorEnum CConcHolder::GetHits(const string &Query,  DWORD& EndHitNo) 
 {
 	ClearQueryResults();
+	m_Counts.clear();
 
 	if ( !(m_pQueryCompiler->ParseQuery(Query) && m_pQueryCompiler->Compile()) )
 			return errParseError;
