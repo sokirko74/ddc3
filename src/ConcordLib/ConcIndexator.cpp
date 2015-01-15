@@ -2268,14 +2268,17 @@ void CConcIndexator::DumpFileIndexTabs(DWORD FileNo, FILE *f) const
 
 	//-- construct: tokens
 	vector<vector<COutputToken> > tokattrs;
-	tokattrs.resize(m_IndicesToShow.size());
-	for (size_t ixno=0; ixno < m_IndicesToShow.size(); ++ixno) {
-		size_t ixi = m_IndicesToShow[ixno];
-		const CStringIndexSet *ix = m_Indices[ixi];
-		fprintf(f, "%s:index[%zi]=%s %s\n", cmt, ixno, jsonStr(ix->m_Name,m_Utf8,false).c_str(), jsonStr(ix->m_ShortName,m_Utf8,false).c_str());
-		tokattrs[ixno].reserve(tok_max-tok_min);
-		ix->GetTokensFromStorage(tok_min, tok_max, tokattrs[ixno]);
+	tokattrs.resize(m_Indices.size());
+	size_t ixno, tixno;
+	for (ixno=0, tixno=0; ixno < m_Indices.size(); ++ixno) {
+		const CStringIndexSet *ix = m_Indices[ixno];
+		if (!ix->m_bUseItemStorage) continue;
+		fprintf(f, "%s:index[%zi]=%s %s\n", cmt, tixno, jsonStr(ix->m_Name,m_Utf8,false).c_str(), jsonStr(ix->m_ShortName,m_Utf8,false).c_str());
+		tokattrs[tixno].reserve(tok_max-tok_min);
+		ix->GetTokensFromStorage(tok_min, tok_max, tokattrs[tixno]);
+		++tixno;
 	}
+	tokattrs.resize(tixno);
 
 	//-- iterate over tokens
 	for (CTokenNo tokid=tok_min; tokid!=tok_max; ++tokid) {
@@ -2295,9 +2298,9 @@ void CConcIndexator::DumpFileIndexTabs(DWORD FileNo, FILE *f) const
 		}
 
 		//-- dump current token
-		for (size_t ixno=0; ixno < tokattrs.size(); ++ixno) {
-			if (ixno!=0) fputc('\t',f);
-			fputs(tokattrs[ixno][tokid-tok_min].m_TokenStr.c_str(), f);
+		for (size_t tixno=0; tixno < tokattrs.size(); ++tixno) {
+			if (tixno!=0) fputc('\t',f);
+			fputs(tokattrs[tixno][tokid-tok_min].m_TokenStr.c_str(), f);
 		}
 		fputc('\n', f);
 	}
