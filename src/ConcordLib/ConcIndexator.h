@@ -85,6 +85,14 @@ public:
 
 
 class CDwdsThesaurus;
+
+/* CIndexDumpFormat : enum for index-dump formats */
+typedef enum CIndexDumpFormatE {
+	idfUnknown = 0,
+	idfJson = 1,
+	idfTabs = 2
+} CIndexDumpFormat;
+
 /*!
 	CConcIndexator is the central class of DDC technology.  The most of its  slots come from the 
 	two parent classes:CStringIndexator (indexing tokens and its properties) and CHitBorders (indexing corpus divisions)
@@ -369,10 +377,13 @@ public:
 	string DumpFileBibliography(DWORD FileNo) const;
 
 	//! dump file data to a file (JSON)
-	void DumpFileIndex(DWORD FileNo, FILE *f=stdout) const;
+	void DumpFileIndexJson(DWORD FileNo, FILE *f=stdout) const;
 
-	//! dump index data to a directory (JSON)
-	void DumpIndex(const char *dirname) const;
+	//! dump file data to a file (tabs)
+	void DumpFileIndexTabs(DWORD FileNo, FILE *f=stdout) const;
+
+	//! dump index data to a directory (format-dependent)
+	void DumpIndex(const char *dirname, CIndexDumpFormat fmt=idfJson) const;
 
 	// ==========================
 	// ====== Indexing Stage

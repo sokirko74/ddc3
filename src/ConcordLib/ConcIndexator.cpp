@@ -2162,7 +2162,7 @@ string CConcIndexator::DumpFileBibliography(DWORD FileNo) const
 }
 
 //----------------------------------------------------------------------
-void CConcIndexator::DumpFileIndex(DWORD FileNo, FILE *f) const
+void CConcIndexator::DumpFileIndexJson(DWORD FileNo, FILE *f) const
 {
 	if (f==NULL) f=stdout;
 
@@ -2226,18 +2226,111 @@ void CConcIndexator::DumpFileIndex(DWORD FileNo, FILE *f) const
 }
 
 //----------------------------------------------------------------------
-void CConcIndexator::DumpIndex(const char *dirname) const
+void CConcIndexator::DumpFileIndexTabs(DWORD FileNo, FILE *f) const
 {
-    size_t nfiles=m_CorpusFiles.size();
-    for (size_t fn=0; fn < nfiles; ++fn) {
-	    string dumpfile = Format("%s/%d.json", dirname, fn);
-	    FILE  *dumpfh   = fopen(dumpfile.c_str(), "wb");
-	    if (!dumpfh)
-		    throw CExpc(errRuntime, "Error: open failed for dump file '%s': %s", dumpfile.c_str(), strerror(errno));
-	    fprintf(stderr, "dumping %s ~ %s\n", dumpfile.c_str(), m_CorpusFiles[fn].c_str());
-	    DumpFileIndex(fn, dumpfh);
-	    fclose(dumpfh);
-    }
+	if (f==NULL) f=stdout;
+
+	//-- dump: token range
+	const char *cmt = "%%$DDC";
+	CTokenNo tok_min = FileNo==0 ? 0 : GetFileBreaks()[FileNo-1];
+	CTokenNo tok_max = GetFileBreaks()[FileNo];
+	fprintf(f, "%s:tokid.begin=%u\n", cmt, (uint)tok_min);
+	fprintf(f, "%s:tokid.end=%u\n",   cmt, (uint)tok_max);
+
+	//-- dump: metadata: built-in
+	CBibliography B = m_Bibl.GetFullBibliographyOfHit(FileNo);
+	fprintf(f, "%s:meta.n_=%u\n", cmt, (uint)FileNo);
+	fprintf(f, "%s:meta.file_=%s\n", cmt, jsonStr(m_CorpusFiles[FileNo],m_Utf8,false).c_str());
+	fprintf(f, "%s:meta.masked_=%d\n", cmt, (m_MaskedFiles.find(FileNo) == m_MaskedFiles.end() ? 0 : 1));
+	fprintf(f, "%s:meta.scan_=%s\n", cmt, jsonStr(B.m_ScanBibl,m_Utf8,false).c_str());
+	fprintf(f, "%s:meta.orig_=%s\n", cmt, jsonStr(B.m_OrigBibl,m_Utf8,false).c_str());
+	fprintf(f, "%s:meta.date_=%s\n", cmt, jsonStr(B.m_DateStr,m_Utf8,false).c_str());
+	fprintf(f, "%s:meta.page_=%ld\n", cmt, (B.m_StartPageInfo==UnknownPageNumber ? -1L : (long int)B.m_StartPageInfo));
+	fputs(m_Bibl.GetFreeHeaderBiblAttributesTabsDump(FileNo,m_Utf8).c_str(), f);
+
+	//-- get initial page-breaks
+	vector<CPageNumber>::const_iterator pb = GetTokenPageBreak(tok_min);
+	if (pb != m_PageBreaks.end())
+		fprintf(f, "%s:PAGE=%u\n", cmt, (uint)pb->m_PageNumber);
+
+	//-- get initial free-breaks
+	vector<vector<CTokenNo>::const_iterator> breakis;
+	size_t defaultBreakNo = 0;
+	breakis.resize(m_Breaks.size());
+	for (size_t brkno=0; brkno < m_Breaks.size(); ++brkno) {
+		const CBreakCollection &breaks = m_Breaks[brkno];
+		breakis[brkno] = lower_bound(breaks.m_BreakOffsets.begin(), breaks.m_BreakOffsets.end(), tok_min);
+		if (breakis[brkno] != breaks.m_BreakOffsets.end())
+			fprintf(f, "%s:BREAK.%s=%u\n", cmt, breaks.m_ShortName.c_str(), (uint)(*breakis[brkno]));
+		if (breaks.m_ShortName==m_DefaultBreakName || breaks.m_LongName==m_DefaultBreakName)
+			defaultBreakNo = brkno;
+	}
+
+	//-- construct: tokens
+	vector<vector<COutputToken> > tokattrs;
+	tokattrs.resize(m_IndicesToShow.size());
+	for (size_t ixno=0; ixno < m_IndicesToShow.size(); ++ixno) {
+		size_t ixi = m_IndicesToShow[ixno];
+		const CStringIndexSet *ix = m_Indices[ixi];
+		fprintf(f, "%s:index[%zi]=%s %s\n", cmt, ixno, jsonStr(ix->m_Name,m_Utf8,false).c_str(), jsonStr(ix->m_ShortName,m_Utf8,false).c_str());
+		tokattrs[ixno].reserve(tok_max-tok_min);
+		ix->GetTokensFromStorage(tok_min, tok_max, tokattrs[ixno]);
+	}
+
+	//-- iterate over tokens
+	for (CTokenNo tokid=tok_min; tokid!=tok_max; ++tokid) {
+		//-- check for page-breaks
+		for ( ; pb != m_PageBreaks.end() && pb->m_StartTokenNo <= tokid; ++pb) {
+			fprintf(f, "%s:PAGE=%u\n", cmt, (uint)pb->m_PageNumber);
+		}
+
+		//-- check for free-breaks
+		for (size_t brkno=0; brkno < m_Breaks.size(); ++brkno) {
+			const CBreakCollection       &breaks = m_Breaks[brkno];
+			vector<CTokenNo>::const_iterator &bi = breakis[brkno];
+			for (; bi != breaks.m_BreakOffsets.end() && *bi <= tokid; ++bi) {
+				if (brkno==defaultBreakNo) fputc('\n',f);
+				fprintf(f, "%s:BREAK.%s=%u\n", cmt, breaks.m_ShortName.c_str(), (uint)(*bi));
+			}
+		}
+
+		//-- dump current token
+		for (size_t ixno=0; ixno < tokattrs.size(); ++ixno) {
+			if (ixno!=0) fputc('\t',f);
+			fputs(tokattrs[ixno][tokid-tok_min].m_TokenStr.c_str(), f);
+		}
+		fputc('\n', f);
+	}
+	fputc('\n', f);
+
+	return;
+}
+
+//----------------------------------------------------------------------
+void CConcIndexator::DumpIndex(const char *dirname, CIndexDumpFormat fmt) const
+{
+	const char *file_ext = "";
+	if (fmt==idfJson) {
+		file_ext = "json";
+	} else if (fmt==idfTabs) {
+		file_ext = "tabs";
+	} else {
+		throw CExpc(errRuntime, "CConcIndexator::DumpIndex(): index dump-format %u", (uint)fmt);
+	}
+	size_t nfiles=m_CorpusFiles.size();
+	for (size_t fn=0; fn < nfiles; ++fn) {
+		string dumpfile = Format("%s/%d.%s", dirname, fn, file_ext);
+		FILE  *dumpfh   = fopen(dumpfile.c_str(), "wb");
+		if (!dumpfh)
+			throw CExpc(errRuntime, "Error: open failed for dump file '%s': %s", dumpfile.c_str(), strerror(errno));
+		fprintf(stderr, "dumping %s ~ %s\n", dumpfile.c_str(), m_CorpusFiles[fn].c_str());
+		switch (fmt) {
+		case idfJson: DumpFileIndexJson(fn, dumpfh); break;
+		case idfTabs: DumpFileIndexTabs(fn, dumpfh); break;
+		default: break;
+		}
+		fclose(dumpfh);
+	}
 }
 
 // Local Variables:

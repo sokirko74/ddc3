@@ -351,6 +351,8 @@ public:
 	string			GetFreeHeaderBiblAttributesWithNames(size_t  FileNo,  char Delim) const;
 	//! return names and  values of all free bibliographical attributes for the given FileNo as JSON (without enclosing {})
 	string			GetFreeHeaderBiblAttributesJson(size_t  FileNo, bool assume_utf8=true) const;
+	//! return names and  values of all free bibliographical attributes for the given FileNo as tt-comments (for tt-mode dump)
+	string			GetFreeHeaderBiblAttributesTabsDump(size_t  FileNo, bool assume_utf8=true) const;
 	//! set all free bibliographical attributes to ""
 	void			SetFreeBiblAttribsEmpty(CBibliography& Bibl);
 	//! return all text area elements for this document ("doc")

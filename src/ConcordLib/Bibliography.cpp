@@ -1790,6 +1790,23 @@ string CConcXml::GetFreeHeaderBiblAttributesJson(size_t FileNo, bool assume_utf8
     return js;
 }
 
+string CConcXml::GetFreeHeaderBiblAttributesTabsDump(size_t FileNo, bool assume_utf8) const
+{
+    string ts("");
+    string prefix("%%$DDC:meta.");
+    for (FreeBiblStringMap::const_iterator bibl_it = m_FreeBiblIndices.begin(); bibl_it != m_FreeBiblIndices.end(); bibl_it++) {
+	CFreeBiblIndex* I = bibl_it->second;
+	if (I->m_bShowInHeader) {
+		ts.append(prefix);
+		ts.append(jsonStr(I->m_Name, assume_utf8, false));
+		ts.push_back('=');
+		ts.append(jsonStr(I->GetStringValue(FileNo), assume_utf8, false));
+		ts.push_back('\n');
+	}
+    }
+    return ts;
+}
+
 
 int CConcXml::GetTextAreaByName(const string& Name) const
 {

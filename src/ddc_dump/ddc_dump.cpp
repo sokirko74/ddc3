@@ -29,7 +29,9 @@ using namespace std;
 const char *prog = "ddc_dump";
 const char *confilename = NULL;
 const char *outfilename = NULL;
+
 bool  dump_full = false;
+CIndexDumpFormat dump_fmt = idfJson;
 
 //--------------------------------------------------------------
 void show_version(void) {
@@ -49,6 +51,8 @@ void show_usage(void) {
 	  "  -v, --version      # show version and exit\n"
 	  "  -o, --output OUT   # specify output file or directory (default=stdout)\n"
 	  "  -f, --full         # full dump, output to directory\n"
+	  "  -j, --json         # for full dump: output as JSON (default)\n"
+	  "  -t, --tabs         # for full dump: output as TAB-separated records (aka TT)\n"
 	  "  -b, --bibl         # bibliography only dump (default; output to file)\n"
 	  "\n"
 	  );
@@ -81,6 +85,12 @@ int main(int argc, char* argv[])
     }
     else if (s=="--bibl" || s=="-b") {
       dump_full = false;
+    }
+    else if (s=="--json" || s=="-j") {
+      dump_fmt = idfJson;
+    }
+    else if (s=="--tabs" || s=="-t" || s=="--tt") {
+      dump_fmt = idfTabs;
     }
     else {
       confilename = argv[argi];
@@ -150,7 +160,7 @@ int main(int argc, char* argv[])
       
       //-- full dump: data
       fprintf(stderr, "%s: dumping index data to %s ...\n", prog, outdir);
-      R.m_pIndexator->DumpIndex(outdir);
+      R.m_pIndexator->DumpIndex(outdir, dump_fmt);
       fprintf(stderr, "%s: done.\n", prog);
     }
   }
