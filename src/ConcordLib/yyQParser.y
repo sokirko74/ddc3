@@ -1,5 +1,5 @@
 //-*- Mode: bison; c-basic-offset: 8; -*-*/
-//  Copyright 2011-2014 by Bryan Jurish
+//  Copyright 2011-2015 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -126,6 +126,9 @@ int yylex (void*,  void*);
 
 %type	<m_pnode>	count_query
 %type	<m_pnode>	count_key
+%type	<m_str>		ck_index
+%type	<m_int>		ck_matchid
+%type	<m_int>		ck_offset
 
 //------------------------------------------------------
 // Types: Queries: Single-token queries
@@ -714,8 +717,24 @@ count_key:
 	|	KW_DATE				{ $$=new CQCountKeyExprDate(*$1); }
 	|	KW_DATE '/' integer		{ $$=new CQCountKeyExprDateSlice(*$1,$3); }
 	|	s_biblname			{ $$=new CQCountKeyExprBibl(*$1); }
+	|	ck_index ck_matchid ck_offset	{ $$=new CQCountKeyExprToken(*$1,$2,$3); }
  	|	count_key '~' replace_regex	{ $$=new CQCountKeyExprRegex((CQCountKeyExpr*)$1,*$3,_qc->m_RegexReplacement,_qc->m_RegexModifiers); }
 	|	'(' count_key ')'		{ $$=$2; }
+	;
+
+ck_index:	'$' symbol	{ $$=$2; }
+	;
+
+ck_matchid:
+		/* empty */	{ $$=0; }
+	|	matchid		{ $$=$1; }
+	;
+
+ck_offset:
+		/* empty */	{ $$=0; }
+	|	integer		{ $$=$1; }
+	|	'+' integer	{ $$=$2; }
+	|	'-' integer	{ $$=-$2; }
 	;
 
  /*-------------------------------------------------------------

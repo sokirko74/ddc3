@@ -1,6 +1,6 @@
 //-*- Mode: C++; c-basic-offset:8;-*-
 //  DDC originally by Alexey Sokirko
-//  Changes and modifications 2011-2014 by Bryan Jurish
+//  Changes and modifications 2011-2015 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -220,7 +220,7 @@ void  CIndexSetForQueryingStage::AddOccurs (size_t PeriodDevId, const bool bOneO
             
             const vector<DWORD>& Periods = per_dev_it->second;
 
-	    //-- moo: this assertion catches if we redefine & manually re-calculate search-period size WITHOUT re-indexing (Thu, 13 Nov 2014 09:57:03 +0100)
+	    //-- moo: this assertion catches if we redefine & manually re-calculate search-period size WITHOUT re-indexing (Thu, 13 Nov 2015 09:57:03 +0100)
             assert (Periods.size() == m_pParent->GetSearchPeriodsCount());
             const QWORD StartOfPeriod  = (PeriodNo == 0) ? StartOccurNo      : (QWORD)StartOccurNo + Periods[PeriodNo - 1];
             const QWORD PeriodSize     = (PeriodNo == 0) ? Periods[PeriodNo] : Periods[PeriodNo]   - Periods[PeriodNo - 1];

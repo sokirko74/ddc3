@@ -991,7 +991,7 @@ static yyconst flex_int16_t yy_rule_linenum[79] =
 #line 1 "yyQLexer.l"
 /*-*- Mode: Flex; c-basic-offset: 8 -*-*/
 /*
-//  Copyright 2011-2014 by Bryan Jurish
+//  Copyright 2011-2015 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 

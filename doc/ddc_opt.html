@@ -47,6 +47,7 @@
 			<li><a href="#queryonlyfiles">QueryOnlyFiles</a></li>
 			<li><a href="#nocontextoperator">NoContextOperator</a></li>
 			<li><a href="#allowunsafequeries">AllowUnsafeQueries</a></li>
+			<li><a href="#allowcountbytokenattributes">AllowCountByTokenAttributes</a></li>
 			<li><a href="#outputbibliographyofhits">OutputBibliographyOfHits</a></li>
 			<li><a href="#lemmaqueryusesmorphpattern">LemmaQueryUsesMorphPattern</a></li>
 			<li><a href="#indexchunks">IndexChunks</a></li>
@@ -148,6 +149,7 @@ option files (&quot;opt-files&quot;) used by the DDC corpus indexing system.</p>
  QueryOnlyFiles
  NoContextOperator
  AllowUnsafeQueries
+ AllowCountByTokenAttribute
  OutputBibliographyOfHits
  LemmaQueryUsesMorphPattern
  
@@ -320,9 +322,18 @@ If set, prohibits context operator (#CNTXT) in the query language.</p>
 <p>
 </p>
 <h3><a name="allowunsafequeries">AllowUnsafeQueries</a></h3>
-<p>If set, any attempt to compile a potentially unsafe query will cause a runtime
+<p>Unless this option is set to a true value,
+any attempt to compile a potentially unsafe query will cause a runtime
 exception to be thrown.  Currently, only file-list queries (<code>&lt; FILENAME</code>)
-are considered &quot;unsafe&quot; for such purposes.</p>
+are considered &quot;unsafe&quot; for such purposes.
+False by default.</p>
+<p>
+</p>
+<h3><a name="allowcountbytokenattributes">AllowCountByTokenAttributes</a></h3>
+<p>Unless this option is set to a true value,
+any attempt to use a token-level attribute as a count-key (<code>#by[..., $INDEX ...]</code>)
+will cause a runtime exception to be thrown.
+True by default, can be disabled with e.g. <code>AllowCountByTokenAttributes no</code>.</p>
 <p>
 </p>
 <h3><a name="outputbibliographyofhits">OutputBibliographyOfHits</a></h3>

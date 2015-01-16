@@ -1,6 +1,6 @@
 //-*- Mode: C++; c-basic-offset:4; -*-
 //  DDC originally by Alexey Sokirko
-//  Changes and modifications 2011-2014 by Bryan Jurish
+//  Changes and modifications 2011-2015 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -144,7 +144,8 @@ void CDDCLeafServer::handle__info(string &Result, bool verbose)
 			   + "\"dwdsThesaurus\":" + (ix->UseDwdsThesaurus() ? '1' : '0') + ",\n\t"
 			   + "\"interpDelimiter\":" + jsonStr(ix->m_InterpDelimiter) + ",\n\t"
 			   + "\"tokenDelimiter\":" + jsonStr(ix->m_TokenDelimiter) + ",\n\t"
-			   + "\"allowUnsafeQueries\":" + (ix->m_AllowUnsafeQueries ? '1' : '0') + ",\n\t"
+			   + "\"allowUnsafeQueries\":" + (ix->m_bAllowUnsafeQueries ? '1' : '0') + ",\n\t"
+			   + "\"allowCountByTokenAttributes\":" + (ix->m_bAllowCountByTokenAttributes ? '1' : '0') + ",\n\t"
 			   + "\"indexPunctuation\":" + (ix->IndexPunctuation() ? '1' : '0') + ",\n\t"
 			   + "\"indexMorphPatterns\":" + (ix->m_bIndexMorphPatterns ? '1' : '0') + ",\n\t"
 			   + "\"indexChunks\":" + (ix->m_bIndexChunks ? '1' : '0') + ",\n\t"

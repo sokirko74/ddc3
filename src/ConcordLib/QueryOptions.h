@@ -1,6 +1,6 @@
 //-*- Mode: C++ -*-
 //  DDC originally by Alexey Sokirko
-//  Changes and modifications 2011-2014 by Bryan Jurish
+//  Changes and modifications 2011-2015 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 

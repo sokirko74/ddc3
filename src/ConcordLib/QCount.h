@@ -1,6 +1,6 @@
 //-*- Mode: C++ -*-
 //  DDC originally by Alexey Sokirko
-//  Changes and modifications 2011-2014 by Bryan Jurish
+//  Changes and modifications 2011-2015 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -46,11 +46,14 @@ public:
   virtual ~CQCountKeyExpr()
   {};
 
+  /** returns true iff this expression can count at the file-level; default returns true */
+  virtual bool CanCountByFile() const { return true; };
+
   /** compile the expression relative to a CQueryCompiler and its associated index */
   virtual bool Compile(CQueryCompiler *compiler);
-  
-  /** get string key for the document \a fileno ; default just throws an exception */
-  virtual string Evaluate(DWORD fileno);
+
+  /** get string key for the hit \a Hit ; default just throws an exception */
+  virtual string& Evaluate(const CHit &Hit);
 
   /** stringification (default returns m_Label) */
   virtual string toString() { return m_Label; };
@@ -68,30 +71,45 @@ class CQCountKeyExprConstant : public CQCountKeyExpr {
 public:
   CQCountKeyExprConstant(const string &label="*") : CQCountKeyExpr(label) {};
   virtual ~CQCountKeyExprConstant() {};
-  virtual string Evaluate(DWORD fileno) { return m_Label; };
+  virtual string& Evaluate(const CHit &Hit) { return m_Label; };
   virtual string jsonClass() { return "CQCountKeyExprConstant"; };
   virtual string toString() { return string("@'") + escapeChars(m_Label,"\\'") + "'"; };
 };
 
 //----------------------------------------------------------------------
+/*! count-key expression: metadata-attribute */
+class CQCountKeyExprMeta : public CQCountKeyExpr {
+public:
+  //! last file-number evaluated
+  DWORD  m_CurFile;
+
+  //! last key generated
+  string m_CurKey;
+
+public:
+  CQCountKeyExprMeta(const string &label="*") : CQCountKeyExpr(label), m_CurFile(-1), m_CurKey("") {};
+  virtual ~CQCountKeyExprMeta() {};
+};
+
+//----------------------------------------------------------------------
 /*! count-key expression: fileid (aka docid) */
-class CQCountKeyExprFileId : public CQCountKeyExpr {
+class CQCountKeyExprFileId : public CQCountKeyExprMeta {
 private:
   char buf[16];
 public:
-  CQCountKeyExprFileId(const string &label="fileid") : CQCountKeyExpr(label) {};
+  CQCountKeyExprFileId(const string &label="fileid") : CQCountKeyExprMeta(label) {};
   virtual ~CQCountKeyExprFileId() {};
-  virtual string Evaluate(DWORD fileno);
+  virtual string& Evaluate(const CHit &Hit);
   virtual string jsonClass() { return "CQCountKeyExprFileId"; };
 };
 
 //----------------------------------------------------------------------
 /*! count-key expression: indexed */
-class CQCountKeyExprIndexed : public CQCountKeyExpr {
+class CQCountKeyExprIndexed : public CQCountKeyExprMeta {
 public:
   class CConcIndexator* m_pIndexator;
 public:
-  CQCountKeyExprIndexed(const string &label="file") : CQCountKeyExpr(label) {};
+  CQCountKeyExprIndexed(const string &label="file") : CQCountKeyExprMeta(label) {};
   virtual ~CQCountKeyExprIndexed() {};
   virtual bool Compile(CQueryCompiler *compiler);
   virtual string jsonClass() { return "CQCountKeyExprIndexed"; };
@@ -103,7 +121,7 @@ class CQCountKeyExprFileName : public CQCountKeyExprIndexed {
 public:
   CQCountKeyExprFileName(const string &label="filename") : CQCountKeyExprIndexed(label) {};
   virtual ~CQCountKeyExprFileName() {};
-  virtual string Evaluate(DWORD fileno);
+  virtual string& Evaluate(const CHit &Hit);
   virtual string jsonClass() { return "CQCountKeyExprFileName"; };
 };
 
@@ -122,7 +140,7 @@ public:
   CQCountKeyExprDate(const string &label="date") : CQCountKeyExprIndexed(label), m_pDates(NULL) {};
   virtual ~CQCountKeyExprDate() {};
   virtual bool Compile(CQueryCompiler *compiler);
-  virtual string Evaluate(DWORD fileno);
+  virtual string& Evaluate(const CHit &Hit);
   virtual string jsonClass() { return "CQCountKeyExprDate"; };
 };
 
@@ -136,7 +154,7 @@ public:
   CQCountKeyExprDateSlice(const string &label="date", int slice=1) : CQCountKeyExprDate(label), m_slice(slice) {};
   virtual ~CQCountKeyExprDateSlice() {};
   virtual bool Compile(CQueryCompiler *compiler);
-  virtual string Evaluate(DWORD fileno);
+  virtual string& Evaluate(const CHit &Hit);
   virtual string toString() { return m_Label + Format("/%d",m_slice); };
   virtual string jsonClass() { return "CQCountKeyExprDateSlice"; };
   virtual string jsonData() { return CQCountKeyExprDate::jsonData() + Format(",\"slice\":%d",m_slice); };
@@ -152,7 +170,7 @@ public:
   CQCountKeyExprBibl(const string &attrName="") : CQCountKeyExprIndexed(attrName) {};
   virtual ~CQCountKeyExprBibl() {};
   virtual bool Compile(CQueryCompiler *compiler);
-  virtual string Evaluate(DWORD fileno);
+  virtual string& Evaluate(const CHit &Hit);
   virtual string jsonClass() { return "CQCountKeyExprBibl"; };
   virtual string toString() { return string("'") + escapeChars(m_Label,"\\'") + "'"; };
 };
@@ -173,10 +191,42 @@ public:
   CQCountKeyExprRegex(CQCountKeyExpr *src, const string& pattern, const string &replacement, const string& modifiers=string(""))
     : CQCountKeyExprIndexed("regex"), m_Src(src), m_Pattern(pattern), m_Replacement(replacement), m_Modifiers(modifiers), isGlobal(false), m_Regex(NULL) {};
   virtual ~CQCountKeyExprRegex();
+  virtual bool CanCountByFile() const { return m_Src->CanCountByFile(); };
   virtual bool Compile(CQueryCompiler *compiler);
-  virtual string Evaluate(DWORD fileno);
+  virtual string& Evaluate(const CHit &Hit);
   virtual string toString();
   virtual string jsonClass() { return "CQCountKeyExprRegex"; };
+  virtual string jsonData();
+};
+
+//----------------------------------------------------------------------
+/*! count-key expression: context (token) attribute */
+class CQCountKeyExprToken : public CQCountKeyExprIndexed
+{
+public:
+  //! name of token index attribute
+  string m_IndexName;
+
+  //! match-id of anchor token (0 for any)
+  BYTE   m_MatchId;
+
+  //! offset of reference token
+  int    m_Offset;
+
+  //! underlying index-set (post-compile())
+  CStringIndexSet *m_pIndex;
+
+public:
+  CQCountKeyExprToken(const string &IndexName="Token", BYTE MatchId=0, int Offset=0)
+    : CQCountKeyExprIndexed("token"), m_IndexName(IndexName), m_MatchId(MatchId), m_Offset(Offset), m_pIndex(NULL)
+  {};
+  virtual ~CQCountKeyExprToken() {};
+  virtual bool HasMatchId() const { return (m_MatchId != 0); };
+  virtual bool CanCountByFile() const { return false; };
+  virtual bool Compile(CQueryCompiler *compiler);
+  virtual string& Evaluate(const CHit &Hit);
+  virtual string toString();
+  virtual string jsonClass() { return "CQCountKeyExprToken"; };
   virtual string jsonData();
 };
 
@@ -188,8 +238,11 @@ public:
   /** underlying expression list */
   vector<CQCountKeyExpr*> m_Exprs;
 
+  /** temporary key */
+  string m_Key;
+
 public:
-  CQCountKeyExprList() {};
+  CQCountKeyExprList() : m_Key("") {};
   virtual ~CQCountKeyExprList();
 
   /*! clear and delete all sub-expressions */
@@ -202,8 +255,14 @@ public:
   void PushKey(CQCountKeyExpr *expr)
   { m_Exprs.push_back(expr); };
 
+  /*! returns true iff all sub-expressions can count by file */
+  virtual bool CanCountByFile() const;
+
+  /*! returns true iff any sub-expression uses match-ids */
+  virtual bool HasMatchId() const;
+
   virtual bool Compile(CQueryCompiler *compiler);
-  virtual string Evaluate(DWORD fileno);
+  virtual string& Evaluate(const CHit &Hit);
 
   virtual string toString();
   virtual string jsonClass() { return "CQCountKeyExprList"; };
@@ -241,6 +300,10 @@ public:
 
   //! evaluate query
   virtual void Evaluate();
+
+  //! returns true iff this query uses a nontrival match-id operator
+  virtual bool HasMatchId() const
+  { return (m_dtr && m_dtr->HasMatchId()) || m_keys.HasMatchId(); };
 
   //! \b DEBUG: return a canonical string form for this query
   virtual string toString();

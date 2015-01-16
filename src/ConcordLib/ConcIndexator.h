@@ -238,7 +238,10 @@ public:
 	bool							m_Utf8;
 
 	//! potentially unsafe queries will throw an exception unless this is true (default=false)
-	bool m_AllowUnsafeQueries;
+	bool m_bAllowUnsafeQueries;
+
+	//! using any token attribute as a count-key will throw an exception unless this is true (default=true)
+	bool m_bAllowCountByTokenAttributes;
 
 	//! interpret "%foo" queries using MorphPattern? (default=true)
 	bool m_bLemmaQueryUsesMorphPattern;

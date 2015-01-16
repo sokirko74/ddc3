@@ -1,7 +1,7 @@
 //-*- Mode: C++; c-basic-offset: 2; -*-
 //
 //  DDC originally by Alexey Sokirko
-//  Changes and modifications 2011-2014 by Bryan Jurish
+//  Changes and modifications 2011-2015 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -33,7 +33,7 @@ bool CQCountKeyExpr::Compile(CQueryCompiler *compiler)
 }
 
 //----------------------------------------------------------------------
-string CQCountKeyExpr::Evaluate(DWORD fileno)
+string& CQCountKeyExpr::Evaluate(const CHit &Hit)
 {
   throw CExpc(errRuntime, Format("abstract method CQCountKeyExpr::Evaluate() called for class %s", typeid(*this).name()));
 };
@@ -42,10 +42,14 @@ string CQCountKeyExpr::Evaluate(DWORD fileno)
 // CQCountKeyExpr ...
 
 //----------------------------------------------------------------------
-string CQCountKeyExprFileId::Evaluate(DWORD fileno)
+string& CQCountKeyExprFileId::Evaluate(const CHit &Hit)
 {
-  sprintf(buf,"%d",fileno);
-  return buf;
+  if (Hit.m_FileNo != m_CurFile) {
+    sprintf(buf,"%d",Hit.m_FileNo);
+    m_CurKey  = buf;
+    m_CurFile = Hit.m_FileNo;
+  }
+  return m_CurKey;
 }
 
 //----------------------------------------------------------------------
@@ -59,9 +63,13 @@ bool CQCountKeyExprIndexed::Compile(CQueryCompiler *compiler)
 }
 
 //----------------------------------------------------------------------
-string CQCountKeyExprFileName::Evaluate(DWORD fileno)
+string& CQCountKeyExprFileName::Evaluate(const CHit &Hit)
 {
-  return m_pIndexator->GetShortFilename(fileno);
+  if (Hit.m_FileNo != m_CurFile) {
+    m_CurKey  = m_pIndexator->GetShortFilename(Hit.m_FileNo);
+    m_CurFile = Hit.m_FileNo;
+  }
+  return m_CurKey;
 }
 
 //----------------------------------------------------------------------
@@ -73,11 +81,15 @@ bool CQCountKeyExprDate::Compile(CQueryCompiler *compiler)
 }
 
 //----------------------------------------------------------------------
-string CQCountKeyExprDate::Evaluate(DWORD fileno)
+string& CQCountKeyExprDate::Evaluate(const CHit &Hit)
 {
-  int2date((*m_pDates)[fileno], &m_year, &m_month, &m_day);
-  sprintf(buf, "%u-%02u-%02u", m_year, m_month, m_day);
-  return buf;
+  if (Hit.m_FileNo != m_CurFile) {
+    int2date((*m_pDates)[Hit.m_FileNo], &m_year, &m_month, &m_day);
+    sprintf(buf, "%u-%02u-%02u", m_year, m_month, m_day);
+    m_CurKey  = buf;
+    m_CurFile = Hit.m_FileNo;
+  }
+  return m_CurKey;
 }
 
 //----------------------------------------------------------------------
@@ -89,12 +101,16 @@ bool CQCountKeyExprDateSlice::Compile(CQueryCompiler *compiler)
 }
 
 //----------------------------------------------------------------------
-string CQCountKeyExprDateSlice::Evaluate(DWORD fileno)
+string& CQCountKeyExprDateSlice::Evaluate(const CHit &Hit)
 {
-  int2date((*m_pDates)[fileno], &m_year, NULL, NULL);
-  m_year /= m_slice;
-  sprintf(buf, "%u", m_slice*m_year);
-  return buf;
+  if (Hit.m_FileNo != m_CurFile) {
+    int2date((*m_pDates)[Hit.m_FileNo], &m_year, NULL, NULL);
+    m_year /= m_slice;
+    sprintf(buf, "%u", m_slice*m_year);
+    m_CurKey  = buf;
+    m_CurFile = Hit.m_FileNo;
+  }
+  return m_CurKey;
 }
 
 //----------------------------------------------------------------------
@@ -108,9 +124,13 @@ bool CQCountKeyExprBibl::Compile(CQueryCompiler *compiler)
 }
 
 //----------------------------------------------------------------------
-string CQCountKeyExprBibl::Evaluate(DWORD fileno)
+string& CQCountKeyExprBibl::Evaluate(const CHit &Hit)
 {
-  return m_Bibl->GetStringValue(fileno);
+  if (m_CurFile != Hit.m_FileNo) {
+    m_CurKey = m_Bibl->GetStringValue(Hit.m_FileNo);
+    m_CurFile = Hit.m_FileNo ;
+  }
+  return m_CurKey;
 };
 
 //==============================================================================
@@ -135,14 +155,17 @@ bool CQCountKeyExprRegex::Compile(CQueryCompiler *compiler)
 }
 
 //----------------------------------------------------------------------
-string CQCountKeyExprRegex::Evaluate(DWORD fileno)
+string& CQCountKeyExprRegex::Evaluate(const CHit &Hit)
 {
-  string key = m_Src->Evaluate(fileno);
-  if (isGlobal)
-    m_Regex->GlobalReplace(m_Replacement, &key);
-  else
-    m_Regex->Replace(m_Replacement, &key);
-  return key;
+  if (!m_Src->CanCountByFile() || Hit.m_FileNo != m_CurFile) {
+    m_CurKey = m_Src->Evaluate(Hit);
+    if (isGlobal)
+      m_Regex->GlobalReplace(m_Replacement, &m_CurKey);
+    else
+      m_Regex->Replace(m_Replacement, &m_CurKey);
+    m_CurFile = Hit.m_FileNo;
+  }
+  return m_CurKey;
 }
 
 //----------------------------------------------------------------------
@@ -155,6 +178,83 @@ string CQCountKeyExprRegex::toString()
 string CQCountKeyExprRegex::jsonData()
 {
   return "\"Src\":" + m_Src->toJson() + ",\"Pattern\":" + jsonStr(m_Pattern) + ",\"Replacement\":" + jsonStr(m_Replacement) + ",\"Modifiers\":" + jsonStr(m_Modifiers);
+}
+
+//==============================================================================
+// CQCountKeyExprToken
+
+//----------------------------------------------------------------------
+bool CQCountKeyExprToken::Compile(CQueryCompiler *compiler)
+{
+  CQCountKeyExprIndexed::Compile(compiler);
+
+  /* sanity check */
+  if (!compiler->m_pHolder->m_pIndexator->m_bAllowCountByTokenAttributes)
+    throw CExpc(errParseError,"counting by token attribute `%s' disabled", this->toString().c_str());
+
+  /* get index */
+  if (m_IndexName.empty())
+    m_IndexName = "Token";
+
+  m_pIndex = compiler->m_pHolder->m_pIndexator->GetIndexByNameOrShortName(m_IndexName);
+  if (!m_pIndex)
+    throw CExpc(errParseError,"CQCountKeyExprToken::Compile(): unknown index `%s'", m_IndexName.c_str());
+
+  return true;
+}
+
+//----------------------------------------------------------------------
+string& CQCountKeyExprToken::Evaluate(const CHit &Hit)
+{
+  const CConcHolder *holder = m_Compiler->m_pHolder;
+  const vector<CHit> &hits  = holder->m_Hits;
+  const vector<CTokenNo> &occurrences = holder->m_HighlightOccurs;
+  const vector<CTokenNo> &breaks = holder->GetBreaks();
+  const vector<BYTE>  &matchids = holder->m_HighlightIds;
+
+  //-- get context anchor occurrence-index occur_i
+  DWORD hitno = &Hit - &*hits.begin();
+  DWORD occur_i = (hitno==0 ? 0 : hits[hitno-1].m_HighlightOccurrenceEnd);
+  if (m_MatchId != 0) {
+    DWORD end = Hit.m_HighlightOccurrenceEnd >= occurrences.size() ? occurrences.size() : Hit.m_HighlightOccurrenceEnd;
+    for ( ; occur_i < end && matchids[occur_i] != m_MatchId; occur_i++) ;
+    if (occur_i >= end)
+      occur_i = (DWORD)-1;
+  }
+
+  //-- get break limits and token-id
+  DWORD StartTokenNo = (Hit.m_BreakNo==0) ?  0 : breaks[Hit.m_BreakNo-1];
+  DWORD EndTokenNo   = breaks[Hit.m_BreakNo];
+  CTokenNo tok = (occur_i >= occurrences.size() ? (CTokenNo)-1 : (occurrences[occur_i] + m_Offset));
+  DWORD    key;
+
+  if (tok >= StartTokenNo && tok < EndTokenNo && (key=m_pIndex->GetTokenIndexId(tok)) != DWORD_MAX) {
+    //-- usual case: within target break and with a valid item id
+    m_CurKey = m_pIndex->GetIndexItemStr( m_pIndex->m_Index[key] );
+  } else {
+    //-- break-overflow (EOS etc) or invalid key item: treat as empty sort-key
+    m_CurKey.clear();
+  }
+  
+  return m_CurKey;
+}
+
+//----------------------------------------------------------------------
+string CQCountKeyExprToken::toString()
+{
+  string s("$");
+  s += m_IndexName;
+  if (m_MatchId != 0)
+    s += Format(" =%hhu", m_MatchId);
+  if (m_Offset != 0)
+    s += Format(" %+d", m_Offset);
+  return s;
+}
+
+//----------------------------------------------------------------------
+string CQCountKeyExprToken::jsonData()
+{
+  return string("\"IndexName\":") + jsonStr(m_IndexName) + Format(",\"MatchId\":%hhu,\"Offset\":%d", m_MatchId, m_Offset);
 }
 
 
@@ -171,11 +271,29 @@ CQCountKeyExprList::~CQCountKeyExprList()
 //----------------------------------------------------------------------
 void CQCountKeyExprList::Clear()
 {
-  for (vector<CQCountKeyExpr*>::iterator ri=m_Exprs.begin(); ri!=m_Exprs.end(); ri++) {
-    if (*ri) delete *ri;
+  for (vector<CQCountKeyExpr*>::iterator xi=m_Exprs.begin(); xi!=m_Exprs.end(); xi++) {
+    if (*xi) delete *xi;
   }
   m_Exprs.clear();
 };
+
+//----------------------------------------------------------------------
+bool CQCountKeyExprList::CanCountByFile() const
+{
+  for (vector<CQCountKeyExpr*>::const_iterator xi=m_Exprs.begin(); xi!=m_Exprs.end(); xi++) {
+    if (*xi && !(*xi)->CanCountByFile()) return false;
+  }
+  return true;
+}
+
+//----------------------------------------------------------------------
+bool CQCountKeyExprList::HasMatchId() const
+{
+  for (vector<CQCountKeyExpr*>::const_iterator xi=m_Exprs.begin(); xi!=m_Exprs.end(); xi++) {
+    if (*xi && (*xi)->HasMatchId()) return true;
+  }
+  return false;
+}
 
 //----------------------------------------------------------------------
 bool CQCountKeyExprList::Compile(CQueryCompiler *compiler)
@@ -194,24 +312,24 @@ bool CQCountKeyExprList::Compile(CQueryCompiler *compiler)
 };
 
 //----------------------------------------------------------------------
-string CQCountKeyExprList::Evaluate(DWORD fileno)
+string& CQCountKeyExprList::Evaluate(const CHit &Hit)
 {
-  string k("");
-  for (vector<CQCountKeyExpr*>::iterator ri=m_Exprs.begin(); ri!=m_Exprs.end(); ri++) {
-    if (ri != m_Exprs.begin()) k.push_back(globalCountKeyDelim);
-    k.push_back(' ');
-    k += (*ri)->Evaluate(fileno);
+  m_Key.clear();
+  for (vector<CQCountKeyExpr*>::iterator xi=m_Exprs.begin(); xi!=m_Exprs.end(); xi++) {
+    if (xi != m_Exprs.begin()) m_Key.push_back(globalCountKeyDelim);
+    m_Key.push_back(' ');
+    m_Key += (*xi)->Evaluate(Hit);
   }
-  return k;
+  return m_Key;
 };
 
 //----------------------------------------------------------------------
 string CQCountKeyExprList::toString()
 {
   string s("");
-  for (vector<CQCountKeyExpr*>::iterator ri=m_Exprs.begin(); ri!=m_Exprs.end(); ri++) {
-    if (ri != m_Exprs.begin()) s.push_back(',');
-    s += (*ri)->toString();
+  for (vector<CQCountKeyExpr*>::iterator xi=m_Exprs.begin(); xi!=m_Exprs.end(); xi++) {
+    if (xi != m_Exprs.begin()) s.push_back(',');
+    s += (*xi)->toString();
   }
   return s;
 }
@@ -220,9 +338,9 @@ string CQCountKeyExprList::toString()
 string CQCountKeyExprList::jsonData()
 {
   string s("\"Exprs\":[");
-  for (vector<CQCountKeyExpr*>::iterator ri=m_Exprs.begin(); ri!=m_Exprs.end(); ri++) {
-    if (ri != m_Exprs.begin()) s.push_back(',');
-    s += (*ri)->toJson();
+  for (vector<CQCountKeyExpr*>::iterator xi=m_Exprs.begin(); xi!=m_Exprs.end(); xi++) {
+    if (xi != m_Exprs.begin()) s.push_back(',');
+    s += (*xi)->toJson();
   }
   s.push_back(']');
   return s;

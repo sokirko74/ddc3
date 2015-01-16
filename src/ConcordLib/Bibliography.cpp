@@ -1,6 +1,6 @@
 /*-*- Mode: C++; c-basic-offset: 8; -*-*/
 //  DDC originally by Alexey Sokirko
-//  Changes and modifications 2011-2014 by Bryan Jurish
+//  Changes and modifications 2011-2015 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -195,7 +195,7 @@ bool CBibliography::ConvertDateToInt(int& Result) const
 	if (year > 0xffff) return false; //-- moo: year-part is 16-bit
 	if (tok())
 	{
-		//-- Mon, 17 Feb 2014 13:26:37 +0100 moocow: allow MM > 12, YYYY-MM dates, and YYYY-MM-DD with DD > 31 
+		//-- Mon, 17 Feb 2015 13:26:37 +0100 moocow: allow MM > 12, YYYY-MM dates, and YYYY-MM-DD with DD > 31 
 		month = atoi(tok.val());
 
 		if (tok()) day = atoi(tok.val());

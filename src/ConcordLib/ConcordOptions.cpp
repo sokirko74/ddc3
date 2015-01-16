@@ -1,7 +1,7 @@
 //-*- Mode: C++; c-basic-offset: 8; -*-
 //
 //  DDC originally by Alexey Sokirko
-//  Changes and modifications 2011-2014 by Bryan Jurish
+//  Changes and modifications 2011-2015 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -94,7 +94,8 @@ void CConcIndexator::InitDefaultOptions()
 	m_InterpDelimiter = "#";
 	m_TokenDelimiter = "";
 	m_Utf8 = false;
-	m_AllowUnsafeQueries = false;
+	m_bAllowUnsafeQueries = false;
+	m_bAllowCountByTokenAttributes = true;
 	m_bLemmaQueryUsesMorphPattern = true;
 	m_Timestamp = 0;
 	m_MaxCachedHitsCount = 512;
@@ -387,8 +388,13 @@ bool CConcIndexator::LoadOptionsFromString(string Options)
 			}
 		else if (q == "AllowUnsafeQueries")
 			{
-				m_AllowUnsafeQueries = StringToBool(fields.next_token());
-				fprintf (stderr,"AllowUnsafeQueries %s\n", BoolToString(m_AllowUnsafeQueries));
+				m_bAllowUnsafeQueries = StringToBool(fields.next_token());
+				fprintf (stderr,"AllowUnsafeQueries %s\n", BoolToString(m_bAllowUnsafeQueries));
+			}
+		else if (q == "AllowCountByTokenAttributes")
+			{
+				m_bAllowCountByTokenAttributes = StringToBool(fields.next_token());
+				fprintf (stderr,"AllowCountByTokenAttributes %s\n", BoolToString(m_bAllowCountByTokenAttributes));
 			}
 		else if (q == "LemmaQueryUsesMorphPattern")
 			{
@@ -832,8 +838,11 @@ string CConcIndexator::SaveOptionsToString()  const
 	if (m_Utf8)
 		Result += "Utf8\n";
 
-	if (m_AllowUnsafeQueries)
+	if (m_bAllowUnsafeQueries)
 		Result += "AllowUnsafeQueries\n";
+
+	if (m_bAllowCountByTokenAttributes)
+		Result += "AllowCountByTokenAttributes\n";
 
 	if (!m_Bibl.m_DefaultAttrName.empty())
 		Result += Format("DefaultBibl %s\n", m_Bibl.m_DefaultAttrName.c_str());

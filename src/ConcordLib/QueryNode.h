@@ -1,6 +1,6 @@
 //-*- Mode: C++; c-basic-offset: 8; -*-
 //  DDC originally by Alexey Sokirko
-//  Changes and modifications 2011-2014 by Bryan Jurish
+//  Changes and modifications 2011-2015 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -72,7 +72,8 @@ public:
 	//! a reference to the parent holder (moo: should be unused until evaluation time, but isn't!)
 	const CConcHolder* m_pHolder;
 
-	//! the division of m_Occurrences by chunks , so m_ChunkLengths[0]+m_ChunkLengths[1]... = m_Occurrences.size()
+	//! the division of m_Occurrences by chunks , so m_ChunkLengths[0]+m_ChunkLengths[1]... = m_Occurrences.size() ;
+	//! used by near() queries.
 	vector<size_t> m_ChunkLengths;
 
 	//! ???
@@ -120,11 +121,12 @@ public:
 			     const CQueryNode& FromNode2, int start2, int end2,
 			     const CQueryNode& FromNode3, int start3, int end3);
 
-	//! clears m_Occurrences[] and reserves at least \a size elements.  Also clears m_OccurrenceNodeIndices[] and reserves if m_bUseNodeIndices is true.
+	//! clears m_Occurrences[] and reserves at least \a size elements.
+	//! Also clears and reserves m_OccurrenceNodeIndices[], m_OccurrenceMatchids[] just in case m_bUseNodeIndices rsp. m_bUseMatchIds is true.
 	void ClearAndReserveOccurrences(int size);
 
-	//! swaps m_Occurrences[] and m_OccurrenceNodeIndices[] between caller object and Node
-	void SwapOccurrences(CQueryNode& Node);
+	//! swaps m_Occurrences[], m_OccurrenceNodeIndices[], and m_OccurrenceMatchIds[] between caller object and Node
+	void SwapOccurrences(CQueryNode& Node, bool swapChunkLengths=false);
 
 	//! convert occurrences to hits  using m_pHolder->GetBreaks()
 	void ConvertOccurrencesToHits (bool bSeparateHits);
@@ -132,8 +134,11 @@ public:
 	//! convert occurrences to hits for pattern query construction (like "mother likes father")
 	void ConvertOccurrencesToHitsForPatterns (bool bSeparateHits);
 
-	//! set  m_pHolder
+	//! set  m_pHolder dependent properties m_bUseNodeIndices, m_bUseMatchIds
 	void SetHolder(const CConcHolder* pHolder);
+
+	//! return true iff this is a universal wildcard query (*); default returns false
+	virtual bool IsUniversalWildcard() const;
 	
 	//! get occurrence count by query-node index; used by rank-sort operator. default implementation in CQueryNode just chokes.
 	virtual size_t GetNodeFrequencyByNodeIndex(size_t NodeIndex) const;
@@ -188,6 +193,9 @@ public:
 	void Create(const CConcHolder*	pHolder, CQueryNode* child1, CQueryNode* child2, string Operation);
 
 	virtual ~CQueryBinaryOperationNode();
+
+	//! assign hit occurrences and positions from another node
+	void hits_and_positions_assign(const CQueryNode &NodeFrom);
 
 	//! a modified version of std::union which unites simultaneously  two pairs of vectors
 	void hits_and_positions_union();
@@ -255,6 +263,9 @@ public:
 
 	//! compilation utility: set match-id
 	void SetMatchId(BYTE MatchId);
+
+	//! return true iff this is a universal wildcard query (*); override returns m_bAny
+	virtual bool IsUniversalWildcard() const;
 
 	//! low-level: populates m_IndexName and returns appropriate index; throws exception if no appropriate index is found
 	CStringIndexSet* GetIndex(const CConcHolder* pHolder, const string &IndexName);
@@ -409,7 +420,7 @@ public:
 
 //----------------------------------------------------------------------
 /*!
-  \brief CQueryWithoutNode: (EXPR1 without EXPR2) behavees like (EXPR1 WITH !EXPR2)
+  \brief CQueryWithoutNode: (EXPR1 without EXPR2) behaves like (EXPR1 WITH !EXPR2)
 */ 
 class CQueryWithoutNode : public CQueryWithNode
 {
@@ -424,6 +435,100 @@ public:
 };
 
 //----------------------------------------------------------------------
+/*!
+  \brief CQOccurrenceIterator (formerly CQNearEvalItem) is used to iterate over query occurrences;
+  used by near() and phrase ("") queries
+ */
+struct CQOccurrenceIterator {
+	CQueryNode *node; //!< (sub)query node
+	int cnt;	  //!< limit for  node->m_Occurrences[]
+	int cur;	  //!< index into node->m_Occurrences[]
+	size_t chpos;	  //!< index into node->m_ChunkLengths[] (match occurrence)
+
+	/** default constructor */
+	CQOccurrenceIterator(CQueryNode *node_=NULL)
+	{ assign(node_); };
+
+	/** copy constructor */
+	CQOccurrenceIterator(const CQOccurrenceIterator &b)
+	{ operator=(b); };
+
+	/**
+	 *  Create an iterator bound to the neighbors of \a src, used to avoid expensive EvaluateWithoutHits() for universal sub-queries as near() arguments.
+	 *  Destructively alters \a node_->m_Occurrences[] (and associated vectors).
+	 *  Generates a "bound" occurence in \a node_->m_Occurrences[] for each source-occurence <code>occi = src.node->m_Occurrences[i]</code>
+	 *  and each offset \a off with <code>minOffset <= off <= maxOffset</code> representing token <code>*occi + off</code>, modulo <code>off==0</code>.
+	 *  @param node_ universal wildcard node in which to create bound occurrences.
+	 *  @param src source iterator to use for occurrence generation (should already have been populated by EvaluateWithoutHits())
+	 *  @param minOffset minimum offset for bound occurrences wrt source-occurrence
+	 *  @param maxOffset maximum offset for bound occurrences wrt source-occurrence (inclusive)
+	 */
+	void bind(CQueryTokenNode *node_, const CQOccurrenceIterator &src, int minOffset, int maxOffset);
+
+	/** assignment operator */
+	inline CQOccurrenceIterator& operator=(const CQOccurrenceIterator &b)
+	{
+		node = b.node;
+		cnt = b.cnt;
+		cur = b.cur;
+		chpos = b.chpos;
+		return *this;
+	};
+
+	/** node-assignment */
+	inline void assign(CQueryNode *node_)
+	{
+		node  = node_;
+		cnt   = 0;
+		cur   = 0;
+		chpos = 0;
+		if (node) cnt = node->m_Occurrences.size();
+	};
+
+	/* node-assignment operator; wraps assign() */
+	inline CQOccurrenceIterator& operator=(CQueryNode *node_)
+	{
+		assign(node_);
+		return *this;
+	};
+
+	/** test whether iterator is valid */
+	inline bool valid() const
+	{ return cur < cnt; };
+
+	/** bool typecast just wraps valid() */
+	inline operator bool() const
+	{ return valid(); };
+
+	/** get size of current occurrence-chunk; assumes iterator is valid */
+	inline size_t chunksize() const
+	{  return node->m_ChunkLengths[chpos]; };
+
+	/* get first token-id of current occurrence; assumes iterator is valid */
+	inline CTokenNo tmin() const
+	{ return node->m_Occurrences[cur]; };
+
+	/* get last token-id of current occurrence (inclusive); assumes iterator is valid */
+	inline CTokenNo tmax() const
+	{ return node->m_Occurrences[cur + node->m_ChunkLengths[chpos] - 1]; };
+
+	/* get last token-id of previous occurrence; assumes iterator is valid and cur>0 */
+	inline CTokenNo tmax_prev() const
+	{ return node->m_Occurrences[cur-1]; };
+
+	/* increment operator updates the iterator to point to the next available occurrence, or to an invalid state if no such occurrence exists */
+	inline void operator++()
+	{ 
+		if (!valid()) return;
+		cur += node->m_ChunkLengths[chpos];
+		chpos++;
+	};
+
+	/* equality operator tests whether calling object and argument \a b point to exactly the same tokens */
+	bool operator==(const CQOccurrenceIterator &b) const;
+};
+
+//----------------------------------------------------------------------
 /** compute the set of types \c WordForms which may share a lemma with \c src in language \c Langua.
  *
  *  The underlying CLemmatizer should handle transcoding of user queries transparently, assuming you
@@ -434,6 +539,5 @@ public:
  *  Formerly a hidden function in QueryNode.cpp.
  */
 extern void GetWordForms (const MorphLanguageEnum Langua, const string& src, set<string>& WordForms);
-
 
 #endif /* QUERY_NODE_H */

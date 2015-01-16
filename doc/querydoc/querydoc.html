@@ -38,7 +38,10 @@
 </ul>
 </li>
 <li>
-<a href="#misc">Miscellany</a><ul><li><a href="#misc_compile">Compilation Errors</a></li></ul>
+<a href="#misc">Miscellany</a><ul>
+<li><a href="#misc_compile">Compilation Errors</a></li>
+<li><a href="#misc_wildcards">Wildcard Queries</a></li>
+</ul>
 </li>
 <li>
 <a href="#dta">DTA Corpus Structure</a><ul>
@@ -638,7 +641,7 @@
 <td><b><a name="rule_qw_any">qw_any</a></b></td>
 <td>::=</td>
 <td></td>
-<td class="ruleCommentTop">/* Universal match (aka wildcard token) */</td>
+<td class="ruleCommentTop">/* Universal match (aka wildcard token; see "Wildcard Queries", below) */</td>
 </tr>
 <tr>
 <td></td>
@@ -1692,7 +1695,7 @@
 <td></td>
 <td></td>
 <td class="ruleRHS1"></td>
-<td class="ruleComment">/* ... empty */</td>
+<td class="ruleComment">/* ... empty (use operator-dependent match tokenh) */</td>
 </tr>
 <tr>
 <td></td>
@@ -1849,14 +1852,14 @@
 <tr>
 <td></td>
 <td></td>
-<td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_l_countkeys">l_countkeys</a></span> <span class="ruleTerminal">,</span> </td>
-<td class="ruleComment">/* ... comma-separated */</td>
+<td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_count_key">count_key</a></span> </td>
+<td class="ruleComment">/* ... singleton */</td>
 </tr>
 <tr>
 <td></td>
 <td></td>
-<td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_l_countkeys">l_countkeys</a></span> <span class="ruleNonterminal"><a href="#rule_count_key">count_key</a></span> </td>
-<td class="ruleComment">/* ... or space-separated */</td>
+<td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_l_countkeys">l_countkeys</a></span> <span class="ruleTerminal">,</span> <span class="ruleNonterminal"><a href="#rule_count_key">count_key</a></span> </td>
+<td class="ruleComment">/* ... or comma-separated list */</td>
 </tr>
 <tr>
 <td></td>
@@ -1916,6 +1919,12 @@
 <tr>
 <td></td>
 <td></td>
+<td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_s_index">s_index</a></span> <span class="ruleNonterminal"><a href="#rule_ck_matchid">ck_matchid</a></span> <span class="ruleNonterminal"><a href="#rule_ck_offset">ck_offset</a></span> </td>
+<td class="ruleComment">/* ... indexed token attribute, relative to some matched token */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
 <td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_count_key">count_key</a></span> <span class="ruleTerminal">~</span> <span class="ruleNonterminal"><a href="#rule_replace_regex">replace_regex</a></span> </td>
 <td class="ruleComment">/* ... on-the-fly regex transformation (can be chained) */</td>
 </tr>
@@ -1924,6 +1933,66 @@
 <td></td>
 <td class="ruleRHS">| <span class="ruleTerminal">(</span> <span class="ruleNonterminal"><a href="#rule_count_key">count_key</a></span> <span class="ruleTerminal">)</span> </td>
 <td class="ruleComment">/* ... explicit grouping */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td><b>;</b></td>
+</tr>
+<tr></tr>
+<tr>
+<td><b><a name="rule_ck_matchid">ck_matchid</a></b></td>
+<td>::=</td>
+<td></td>
+<td class="ruleCommentTop">/* Match-ID back-reference for count-key context token */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS1"></td>
+<td class="ruleComment">/* ... empty: use first matched token */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_matchid">matchid</a></span> </td>
+<td class="ruleComment">/* ... non-empty: use first token with specified match-ID */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td><b>;</b></td>
+</tr>
+<tr></tr>
+<tr>
+<td><b><a name="rule_ck_offset">ck_offset</a></b></td>
+<td>::=</td>
+<td></td>
+<td class="ruleCommentTop">/* Token offset for count-key context token */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS1"></td>
+<td class="ruleComment">/* ... empty: use selected match token */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleTerminal">+</span> <span class="ruleNonterminal"><a href="#rule_integer">integer</a></span> </td>
+<td class="ruleComment">/* ... +N: use Nth right-neighbor of match token (negative for left-neightbors) */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleTerminal">-</span> <span class="ruleNonterminal"><a href="#rule_integer">integer</a></span> </td>
+<td class="ruleComment">/* ... -N: use Nth left-neighbor of match token */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_integer">integer</a></span> </td>
+<td class="ruleComment">/* ... N: alias for +N */</td>
 </tr>
 <tr>
 <td></td>
@@ -2637,7 +2706,7 @@
 <td></td>
 <td></td>
 <td class="ruleRHS1">
-<span class="ruleXTerminal"><a href="#term_MATCHID">MATCHID</a></span> </td>
+<span class="ruleTerminal">=</span> <span class="ruleXTerminal"><a href="#term_INTEGER">INTEGER</a></span> </td>
 <td class="ruleComment">/* ... valid match-IDs are in the range (1-255) */</td>
 </tr>
 <tr>
@@ -2822,8 +2891,8 @@ regex_modifier	[gimsx]
 <p>
 	  The scanner supports user-specified match-IDs for use e.g. by
 	  context-dependent sort operators.  Match-IDs are decimal integers between 1 and 255,
-	  introduced by a leading '=' (equals sign).  Note that no whitespace is allowed between
-	  the leading '=' and the subsequent integer ID.
+	  introduced by a leading '=' (equals sign).
+	  <!-- Note that no whitespace is allowed between the leading '=' and the subsequent integer ID. -->
 	  If no match-IDs were specified for a query, every matched token of that query is treated as if
 	  it had been assigned a match-ID of 1.  Otherwise, if at least one match-ID was explicitly
 	  assigned, any matched tokens without explicit match-IDs are assigned a match-ID of 255.
@@ -3007,7 +3076,49 @@ regex_modifier	[gimsx]
 	  and/or the current log file.
 	</p>
 </div>
-<!--/misc_compile-->
+<!--/misc_compile--><!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ --><div class="subsection">
+<h3><a name="misc_wildcards">Wildcard Queries</a></h3>
+<p>
+	  The <a href="#rule_qw_any">wildcard query operator</a> (<code>*</code>) matches every token in the corpus,
+	  and its use in most cases can be expected to substantially degrade query evaluation performance.
+	  There are some exceptions to this rule, however (for ddc as of v2.0.36):
+	</p>
+<dl>
+	    <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
+	    <dt>count(*)</dt>
+	    <dd>
+	      <a href="#count"><code>count(*)</code></a> queries are optimized and can be expected to run quite fast, provided that
+	      only constant or document-level count-keys are used (i.e. no <code>$INDEX</code> items
+	      appear in the query's <code>#by[...]</code> clause.
+	    </dd>
+	    <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
+	    <dt>near(...,*,...)</dt>
+	    <dd>
+	      <a href="#rule_qc_near"><code>near()</code></a> queries are optimized to take advantage of universal wildcard sub-queries,
+	      provided that at least one non-wildcard sub-query is used as well, i.e queries of the form
+	      <code>near(A,*,N)</code>,
+	      <code>near(*,B,N)</code>,
+	      <code>near(A,B,*,N)</code>,
+	      <code>near(A,*,C,N)</code>,
+	      <code>near(*,B,C,N)</code>,
+	      <code>near(A,*,*,N)</code>,
+	      <code>near(*,B,*,N)</code>, and
+	      <code>near(*,*,C,N)</code> can be expected to run efficiently.
+	    </dd>
+	    <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
+	    <dt>".... * ..."</dt>
+	    <dd>
+	      Like <code>near()</code> queries, <a href="#rule_qc_phrase">phrase queries</a> using the double-quote ("...") operator are optimized 
+	      advantage of universal wildcard sub-queries if at least one non-wildcard sequence item
+	      is included in the phrase, e.g. phrases of the forms
+	      <code>"A *"</code>,
+	      <code>"* B"</code>,
+	      <code>"A * C"</code>,
+	      <code>"* B * D"</code>, etc. can be expected to run efficiently.
+	    </dd>
+	  </dl>
+</div>
+<!--/misc_wildcards-->
 </div>
     <!--/miscellany-->
 
@@ -3395,7 +3506,7 @@ regex_modifier	[gimsx]
   </body></div>
 <div class="footers">
 <div class="footer_sig">
-<address><a href="mailto:jurish@bbaw.de">jurish@bbaw.de</a></address>Last modified: Mon, 05 Jan 2015 12:24:25 +0100</div>
+<address><a href="mailto:jurish@bbaw.de">jurish@bbaw.de</a></address>Last modified: Fri, 16 Jan 2015 15:40:10 +0100</div>
 <div class="footer_linkbar"><p class="nopad"><a class="navLink" href="/">Root</a><a class="navLink" href="./">Back</a><span class="navLinkDisabled">Help</span></p></div>
 <p class="dummy"></p>
 </div>

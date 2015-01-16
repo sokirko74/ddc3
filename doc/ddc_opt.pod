@@ -39,6 +39,7 @@ option files ("opt-files") used by the DDC corpus indexing system.
  QueryOnlyFiles
  NoContextOperator
  AllowUnsafeQueries
+ AllowCountByTokenAttribute
  OutputBibliographyOfHits
  LemmaQueryUsesMorphPattern
  
@@ -239,9 +240,18 @@ If set, prohibits context operator (#CNTXT) in the query language.
 
 =head3 AllowUnsafeQueries
 
-If set, any attempt to compile a potentially unsafe query will cause a runtime
+Unless this option is set to a true value,
+any attempt to compile a potentially unsafe query will cause a runtime
 exception to be thrown.  Currently, only file-list queries (C<E<lt> FILENAME>)
 are considered "unsafe" for such purposes.
+False by default.
+
+=head3 AllowCountByTokenAttributes
+
+Unless this option is set to a true value,
+any attempt to use a token-level attribute as a count-key (C<#by[..., $INDEX ...]>)
+will cause a runtime exception to be thrown.
+True by default, can be disabled with e.g. C<AllowCountByTokenAttributes no>.
 
 =head3 OutputBibliographyOfHits
 

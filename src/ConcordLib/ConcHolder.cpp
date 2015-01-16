@@ -1,6 +1,6 @@
 //*-*- Mode: C++; c-basic-offset: 8; -*-*/
 //  DDC originally by Alexey Sokirko
-//  Changes and modifications 2011-2014 by Bryan Jurish
+//  Changes and modifications 2011-2015 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -1271,7 +1271,7 @@ void CConcHolder::InitSortByContext(const CQuery *pQuery, const CDDCFilterWithBo
 			case LessByMiddleContext:
 			case GreaterByMiddleContext:
 			default:
-				//-- #middle : stick to MIDDLE idmatching token in each hit
+				//-- #middle : stick to MIDDLE id-matching token in each hit
 				occur_i = qnod->GetMiddleOccurrenceInHit(HitNo, F.m_ContextMatchId);
 				break;
 			}
@@ -1585,7 +1585,7 @@ bool CConcHolder::IsUniversalCountQuery(CQuery *QueryRoot) const
 {
 	if (typeid(*QueryRoot) != typeid(CQCount)) return false;
 	CQCount *qCount = (CQCount*)QueryRoot;
-	return (typeid(*qCount->m_dtr)==typeid(CQTokAny) && qCount->m_dtr->m_Options->CanFilterByFile() /*&& qCount->m_keys.CanCountByFile()*/);
+	return (typeid(*qCount->m_dtr)==typeid(CQTokAny) && qCount->m_dtr->m_Options->CanFilterByFile() && qCount->m_keys.CanCountByFile());
 };
 
 DDCErrorEnum CConcHolder::GetUniversalCounts(CQuery *CountQueryRoot, size_t Limit)
@@ -1605,6 +1605,7 @@ DDCErrorEnum CConcHolder::GetUniversalCounts(CQuery *CountQueryRoot, size_t Limi
 	const set<size_t>      &fmasked = ix->m_MaskedFiles; 
 	set<size_t>::const_iterator fmaski = fmasked.begin();
 	DWORD nfiles = ix->GetCorpusFilesCount();
+	CHit hit;
 	string key;
 
 	assert(nfiles <= fbreaks.size()); //-- sanity check
@@ -1620,7 +1621,8 @@ DDCErrorEnum CConcHolder::GetUniversalCounts(CQuery *CountQueryRoot, size_t Limi
 				continue;
 			}
 			if (ix->m_Bibl.FileMatches(f, qRoot->m_Options->m_Filters)) {
-				key            = keys.Evaluate(f);
+				hit.m_FileNo   = f;
+				key            = keys.Evaluate(hit);
 				m_Counts[key] += (fw_end - fw_begin);
 			}
 		}
@@ -1637,7 +1639,8 @@ DDCErrorEnum CConcHolder::GetUniversalCounts(CQuery *CountQueryRoot, size_t Limi
 					++fmaski;
 				}
 				else if (n>0 && ix->m_Bibl.FileMatches(f, qRoot->m_Options->m_Filters)) {
-					key            = keys.Evaluate(f);
+					hit.m_FileNo   = f;
+					key            = keys.Evaluate(hit);
 					m_Counts[key] += n;
 				}
 				do {
@@ -1663,26 +1666,36 @@ DDCErrorEnum CConcHolder::GetPeriodCounts(CQuery *CountQueryRoot)
 	CQuery  *qRoot   = qCount->m_dtr;
 	CQCountKeyExprList &keys = qCount->m_keys;
 
-	//-- counting guts: file-level
-	bool isWithinFile = (qRoot->m_Options->m_HitTypeStr == PredefinedFileBreakName);
-	DWORD  f = (DWORD)-1;
-	size_t n = 0;
-	string key;
+	//-- counting guts
+	if (keys.CanCountByFile()) {
+		//-- counting guts: file-level
+		bool isWithinFile = (qRoot->m_Options->m_HitTypeStr == PredefinedFileBreakName);
+		DWORD  f = (DWORD)-1;
+		size_t n = 0;
+		string key;
 
-	//-- ensure m_Hits are sorted by file-id
-	if (qRoot->m_Options && !qRoot->m_Options->m_Filters.empty() && qRoot->m_Options->m_Filters.back().m_FilterType!=NoSort) 
-		sort(m_Hits.begin(), m_Hits.end(), IsLessByFileNo());
-	
-	for (vector<CHit>::const_iterator hi=m_Hits.begin(); hi != m_Hits.end(); ++hi, ++n) {
-		if (hi->m_FileNo != f) {
-			//-- next file
-			if (n>0) m_Counts[key] += (isWithinFile ? 1 : n);
-			n   = 0;
-			f   = hi->m_FileNo;
-			key = keys.Evaluate(f);
+		//-- ensure m_Hits are sorted by file-id
+		if (qRoot->m_Options && !qRoot->m_Options->m_Filters.empty() && qRoot->m_Options->m_Filters.back().m_FilterType!=NoSort) 
+			sort(m_Hits.begin(), m_Hits.end(), IsLessByFileNo());
+
+		for (vector<CHit>::const_iterator hi=m_Hits.begin(); hi != m_Hits.end(); ++hi, ++n) {
+			if (hi->m_FileNo != f) {
+				//-- next file
+				if (n>0) m_Counts[key] += (isWithinFile ? 1 : n);
+				n   = 0;
+				f   = hi->m_FileNo;
+				key = keys.Evaluate(*hi);
+			}
+		}
+		if (n>0) m_Counts[key] += (isWithinFile ? 1 : n);
+	}
+	else {
+		//-- counting guts: token-level
+		for (vector<CHit>::const_iterator hi=m_Hits.begin(); hi != m_Hits.end(); ++hi) {
+			string &key = keys.Evaluate(*hi);
+			m_Counts[key]++;
 		}
 	}
-	if (n>0) m_Counts[key] += (isWithinFile ? 1 : n);
 
 	//-- cleanup period-local count-daughter data
 	m_Hits.clear();

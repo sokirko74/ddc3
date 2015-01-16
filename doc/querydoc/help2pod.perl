@@ -58,6 +58,10 @@ sub xml2pod {
   my $root = $doc->documentElement;
 
   ##----------------------------------------------------
+  ## pod options
+  print "=encoding utf8\n\n";
+
+  ##----------------------------------------------------
   ## headers
   print
     ("=head1 ", xpval($root,'head/title'), "\n\n",

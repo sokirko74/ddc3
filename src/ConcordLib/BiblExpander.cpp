@@ -1,6 +1,6 @@
 //-*- Mode: C++; c-basic-offset: 2; -*-
 //  DDC originally by Alexey Sokirko
-//  Changes and modifications 2013-2014 by Bryan Jurish
+//  Changes and modifications 2013-2015 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 

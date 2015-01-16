@@ -1,7 +1,7 @@
 //-*- Mode: C++; c-basic-offset: 2; -*-
 //
 //  DDC originally by Alexey Sokirko
-//  Changes and modifications 2011-2014 by Bryan Jurish
+//  Changes and modifications 2011-2015 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -746,7 +746,7 @@ string CQTokChunk::ValueString() {
 // CQTokFile
 
 bool CQTokFile::Create(CQueryTokenNode *pNode) {
-  if (!m_Compiler->m_pHolder->m_pIndexator->m_AllowUnsafeQueries)
+  if (!m_Compiler->m_pHolder->m_pIndexator->m_bAllowUnsafeQueries)
     throw CExpc(errParseError,"unsafe file-list query `%s' disabled", this->toString().c_str());
   return pNode->CreateFileList(m_Compiler->m_pHolder, this->IndexName("Token"), m_Value);
 }

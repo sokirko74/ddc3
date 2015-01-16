@@ -355,7 +355,7 @@
 	  </rule>
 
 	  <!--~~~~~~~~ RULES: qw_any -->
-	  <rule lhs="qw_any" cmt="Universal match (aka wildcard token)">
+	  <rule lhs="qw_any" cmt="Universal match (aka wildcard token; see &quot;Wildcard Queries&quot;, below)">
 	    <rhs cmt="... on 'Token' index">
 	      <t>*</t>
 	    </rhs>
@@ -991,7 +991,7 @@
 
 	  <!--~~~~~~~~ RULES: qfbc_ctxkey -->
 	  <rule lhs="qfbc_matchref" cmt="Optional match-id reference for context-sort operators">
-	    <rhs cmt="... empty"/>
+	    <rhs cmt="... empty (use operator-dependent match tokenh)"/>
 	    <rhs cmt="... back-reference to a match-id assigned with &quot;=ID&quot;">
 	      <n>matchid</n>
 	    </rhs>
@@ -1065,12 +1065,12 @@
 	  <!--~~~~~~~~ RULES: l_countkeys -->
 	  <rule lhs="l_countkeys" cmt="Tuple of bibliographic metadata fields">
 	    <rhs cmt="... empty"/>
-	    <rhs cmt="... comma-separated">
+	    <rhs cmt="... singleton">
+	      <n>count_key</n>
+	    </rhs>
+	    <rhs cmt="... or comma-separated list">
 	      <n>l_countkeys</n>
 	      <t>,</t>
-	    </rhs>
-	    <rhs cmt="... or space-separated">
-	      <n>l_countkeys</n>
 	      <n>count_key</n>
 	    </rhs>
 	  </rule>
@@ -1101,16 +1101,45 @@
 	    <rhs cmt="... bibliographic string-field value (e.g. textClass)">
 	      <n>s_field</n>
 	    </rhs>
-          <rhs cmt="... on-the-fly regex transformation (can be chained)">
-            <n>count_key</n>
-            <t>~</t>
-            <n>replace_regex</n>
-          </rhs>
-          <rhs cmt="... explicit grouping">
-            <t>(</t>
-            <n>count_key</n>
-            <t>)</t>
-          </rhs>
+	    <rhs cmt="... indexed token attribute, relative to some matched token">
+	      <n>s_index</n>
+	      <n>ck_matchid</n>
+	      <n>ck_offset</n>
+	    </rhs>
+	    <rhs cmt="... on-the-fly regex transformation (can be chained)">
+	      <n>count_key</n>
+	      <t>~</t>
+	      <n>replace_regex</n>
+	    </rhs>
+	    <rhs cmt="... explicit grouping">
+	      <t>(</t>
+	      <n>count_key</n>
+	      <t>)</t>
+	    </rhs>
+	  </rule>
+
+	  <!--~~~~~~~~ RULES: ck_matchid -->
+	  <rule lhs="ck_matchid" cmt="Match-ID back-reference for count-key context token">
+	    <rhs cmt="... empty: use first matched token"/>
+	    <rhs cmt="... non-empty: use first token with specified match-ID">
+	      <n>matchid</n>
+	    </rhs>
+	  </rule>
+
+	  <!--~~~~~~~~ RULES: ck_matchid -->
+	  <rule lhs="ck_offset" cmt="Token offset for count-key context token">
+	    <rhs cmt="... empty: use selected match token"/>
+	    <rhs cmt="... +N: use Nth right-neighbor of match token (negative for left-neightbors)">
+	      <t>+</t>
+	      <n>integer</n>
+	    </rhs>
+	    <rhs cmt="... -N: use Nth left-neighbor of match token">
+	      <t>-</t>
+	      <n>integer</n>
+	    </rhs>
+	    <rhs cmt="... N: alias for +N">
+	      <n>integer</n>
+	    </rhs>
 	  </rule>
 
 	</rules>
@@ -1775,6 +1804,60 @@ regex_modifier	[gimsx]
 	</p>
       </subsection>
       <!--/misc_compile-->
+
+      <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+      <subsection name="misc_wildcards" title="Wildcard Queries">
+	<p>
+	  The <a href="#rule_qw_any">wildcard query operator</a> (<code>*</code>) matches every token in the corpus,
+	  and its use in most cases can be expected to substantially degrade query evaluation performance.
+	  There are some exceptions to this rule, however (for ddc v2.0.36 and above), which are listed below.
+	  Please note that in some earlier versions of ddc, the optimizations described here were not implemented,
+	  so it is always a good rule of thumb to avoid wildcard queries if you can.
+	</p>
+	  <dl>
+	    <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
+	    <dt>count(*)</dt>
+	    <dd>
+	      <a href="#count"><code>count(*)</code></a> queries are optimized and can be expected to run quite fast, provided that
+	      only constant or document-level count-keys are used (i.e. no <code>$INDEX</code> items
+	      appear in the query's <code>#by[...]</code> clause.
+	    </dd>
+	    <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
+	    <dt>near(...,*,...)</dt>
+	    <dd>
+	      <a href="#rule_qc_near"><code>near()</code></a> queries are optimized to take advantage of universal wildcard sub-queries,
+	      provided that at least one non-wildcard sub-query is used as well, i.e queries of the form
+	      <code>near(A,*,N)</code>,
+	      <code>near(*,B,N)</code>,
+	      <code>near(A,B,*,N)</code>,
+	      <code>near(A,*,C,N)</code>,
+	      <code>near(*,B,C,N)</code>,
+	      <code>near(A,*,*,N)</code>,
+	      <code>near(*,B,*,N)</code>, and
+	      <code>near(*,*,C,N)</code> can be expected to run efficiently.
+	    </dd>
+	    <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
+	    <dt>"... * ..."</dt>
+	    <dd>
+	      Like <code>near()</code> queries, <a href="#rule_qc_phrase">phrase queries</a> using the double-quote ("...") operator are optimized 
+	      advantage of universal wildcard sub-queries if at least one non-wildcard sequence item
+	      is included in the phrase, e.g. phrases of the forms
+	      <code>"A *"</code>,
+	      <code>"* B"</code>,
+	      <code>"A * C"</code>,
+	      <code>"* B * D"</code>, etc. can be expected to run efficiently.
+	    </dd>
+	    <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
+	    <dt>with *</dt>
+	    <dd>
+	      <a href="qw_with"><code>with</code></a> queries containing a universal wildcard are implicitly simplified to
+	      the non-wildcard sub-query, thus
+	      <code>A with *</code> and <code>* with A</code> are both evaluated as <code>A</code>,
+	      without evaluating the wildcard itself.
+	    </dd>
+	  </dl>
+      </subsection>
+      <!--/misc_wildcards-->
 
     </section>
     <!--/miscellany-->

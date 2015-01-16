@@ -62,7 +62,7 @@
 .\" ========================================================================
 .\"
 .IX Title "DDC_QUERY 5"
-.TH DDC_QUERY 5 "2015-01-05" "2.0.36-pre3" "DDC Corpus Indexing System"
+.TH DDC_QUERY 5 "2015-01-16" "2.0.36-pre4" "DDC Corpus Indexing System"
 .\" For nroff, turn off justification.  Always turn off hyphenation; it makes
 .\" way too many mistakes in technical documents.
 .if n .ad l
@@ -209,7 +209,7 @@ Comments may appear after each rule in C notation
 \&                    | s_index = neg_regex                                   /* ... on user\-specified index, negated */
 \&                    ;
 \& 
-\& qw_any           ::=                                                       /*\-\- Universal match (aka wildcard token) \-\-*/
+\& qw_any           ::=                                                       /*\-\- Universal match (aka wildcard token; see "Wildcard Queries", below) \-\-*/
 \&                      *                                                     /* ... on \*(AqToken\*(Aq index */
 \&                    | s_index = *                                           /* ... on user\-specified index (vacuous; index name is ignored) */
 \&                    ;
@@ -417,7 +417,7 @@ Comments may appear after each rule in C notation
 \&                   ;
 \& 
 \& qfbc_matchref   ::=                                    /*\-\- Optional match\-id reference for context\-sort operators \-\-*/
-\&                                                        /* ... empty */
+\&                                                        /* ... empty (use operator\-dependent match tokenh) */
 \&                   | matchid                            /* ... back\-reference to a match\-id assigned with "=ID" */
 \&                   ;
 \& 
@@ -453,8 +453,8 @@ Comments may appear after each rule in C notation
 \& 
 \& l_countkeys   ::=                                           /*\-\- Tuple of bibliographic metadata fields \-\-*/
 \&                                                             /* ... empty */
-\&                 | l_countkeys ,                             /* ... comma\-separated */
-\&                 | l_countkeys count_key                     /* ... or space\-separated */
+\&                 | count_key                                 /* ... singleton */
+\&                 | l_countkeys , count_key                   /* ... or comma\-separated list */
 \&                 ;
 \& 
 \& count_key     ::=                                           /*\-\- Histogram bin component \-\-*/
@@ -465,8 +465,21 @@ Comments may appear after each rule in C notation
 \&                 | DATE                                      /* ... date string (YYYY\-MM\-DD) */
 \&                 | DATE / i_slice                            /* ... date slice, computed as (i_slice*int(year/i_slice)) */
 \&                 | s_field                                   /* ... bibliographic string\-field value (e.g. textClass) */
+\&                 | s_index ck_matchid ck_offset              /* ... indexed token attribute, relative to some matched token */
 \&                 | count_key ~ replace_regex                 /* ... on\-the\-fly regex transformation (can be chained) */
 \&                 | ( count_key )                             /* ... explicit grouping */
+\&                 ;
+\& 
+\& ck_matchid    ::=                                           /*\-\- Match\-ID back\-reference for count\-key context token \-\-*/
+\&                                                             /* ... empty: use first matched token */
+\&                 | matchid                                   /* ... non\-empty: use first token with specified match\-ID */
+\&                 ;
+\& 
+\& ck_offset     ::=                                           /*\-\- Token offset for count\-key context token \-\-*/
+\&                                                             /* ... empty: use selected match token */
+\&                 | + integer                                 /* ... +N: use Nth right\-neighbor of match token (negative for left\-neightbors) */
+\&                 | \- integer                                 /* ... \-N: use Nth left\-neighbor of match token */
+\&                 | integer                                   /* ... N: alias for +N */
 \&                 ;
 .Ve
 .PP
@@ -620,7 +633,7 @@ Comments may appear after each rule in C notation
 \&                 ;
 \& 
 \& matchid       ::=                              /*\-\- User\-specified match\-ID or back\-reference \-\-*/
-\&                   MATCHID                      /* ... valid match\-IDs are in the range (1\-255) */
+\&                   = INTEGER                    /* ... valid match\-IDs are in the range (1\-255) */
 \&                 ;
 .Ve
 .SS "Terminal Symbols"
@@ -790,8 +803,7 @@ The scanner supports date-like tokens in a superset of the \s-1ISO\s0 8601 forma
 .PP
 The scanner supports user-specified match-IDs for use e.g. by
 context-dependent sort operators.  Match-IDs are decimal integers between 1 and 255,
-introduced by a leading '=' (equals sign).  Note that no whitespace is allowed between
-the leading '=' and the subsequent integer \s-1ID\s0.
+introduced by a leading '=' (equals sign).
 If no match-IDs were specified for a query, every matched token of that query is treated as if
 it had been assigned a match-ID of 1.  Otherwise, if at least one match-ID was explicitly
 assigned, any matched tokens without explicit match-IDs are assigned a match-ID of 255.
@@ -917,6 +929,40 @@ will parse successfully but fail to compile.  In such cases,
 \&\s-1DDC\s0 should return an error code of errParseError
 and print an informative diagnostic message to stderr
 and/or the current log file.
+.PP
+\fIWildcard Queries\fR
+.IX Subsection "Wildcard Queries"
+.PP
+The wildcard query operator (*) matches every token in the corpus,
+and its use in most cases can be expected to substantially degrade query evaluation performance.
+There are some exceptions to this rule, however (for ddc as of v2.0.36):
+.IP "\fBcount(*)\fR" 4
+.IX Item "count(*)"
+count(*)queries are optimized and can be expected to run quite fast, provided that
+only constant or document-level count-keys are used (i.e. no \f(CW$INDEX\fRitems
+appear in the query's \f(CW\*(C`#by[...]\*(C'\fRclause.
+.IP "\fBnear(...,*,...)\fR" 4
+.IX Item "near(...,*,...)"
+\&\fInear()\fRqueries are optimized to take advantage of universal wildcard sub-queries,
+provided that at least one non-wildcard sub-query is used as well, i.e queries of the form
+\&\f(CW\*(C`near(A,*,N)\*(C'\fR,
+\&\f(CW\*(C`near(*,B,N)\*(C'\fR,
+\&\f(CW\*(C`near(A,B,*,N)\*(C'\fR,
+\&\f(CW\*(C`near(A,*,C,N)\*(C'\fR,
+\&\f(CW\*(C`near(*,B,C,N)\*(C'\fR,
+\&\f(CW\*(C`near(A,*,*,N)\*(C'\fR,
+\&\f(CW\*(C`near(*,B,*,N)\*(C'\fR, and
+\&\f(CW\*(C`near(*,*,C,N)\*(C'\fRcan be expected to run efficiently.
+.ie n .IP "\fB"".... * ...""\fR" 4
+.el .IP "\fB``.... * ...''\fR" 4
+.IX Item ".... * ..."
+Like \f(CW\*(C`near()\*(C'\fRqueries, phrase queriesusing the double-quote (\*(L"...\*(R") operator are optimized 
+advantage of universal wildcard sub-queries if at least one non-wildcard sequence item
+is included in the phrase, e.g. phrases of the forms
+\&\f(CW"A *"\fR,
+\&\f(CW"* B"\fR,
+\&\f(CW"A * C"\fR,
+\&\f(CW"* B * D"\fR, etc. can be expected to run efficiently.
 .SS "\s-1DTA\s0 Corpus Structure"
 .IX Subsection "DTA Corpus Structure"
 This section gives a brief overview of the index structure used for the

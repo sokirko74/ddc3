@@ -1,7 +1,7 @@
 //-*- Mode: C++; c-basic-offset: 8; -*-
 //
 //  DDC originally by Alexey Sokirko
-//  Changes and modifications 2011-2014 by Bryan Jurish
+//  Changes and modifications 2011-2015 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -142,7 +142,7 @@ void	CQueryNode::AddOccurrences3(const CQueryNode& FromNode1, int start1, int en
 		size_t occsize0 = m_Occurrences.size();
 		AddOccurrences(FromNode1, start1, end1);
 		AddOccurrences(FromNode2, start2, end2);
-		AddOccurrences(FromNode2, start3, end3);
+		AddOccurrences(FromNode3, start3, end3);
 		sort(m_Occurrences.begin()+occsize0, m_Occurrences.end());
 	}
 	else {
@@ -191,11 +191,17 @@ void	CQueryNode::ClearAndReserveOccurrences(int size)
 		m_OccurrenceMatchIds.reserve(size);
 }
 
-void	CQueryNode::SwapOccurrences(CQueryNode& Node)
+void	CQueryNode::SwapOccurrences(CQueryNode& Node, bool swapChunkLengths)
 {
 	Node.m_Occurrences.swap(m_Occurrences);
 	Node.m_OccurrenceNodeIndices.swap(m_OccurrenceNodeIndices);
 	Node.m_OccurrenceMatchIds.swap(m_OccurrenceMatchIds);
+	if (swapChunkLengths) Node.m_ChunkLengths.swap(m_ChunkLengths);
+}
+
+bool CQueryNode::IsUniversalWildcard() const
+{
+	return false;
 }
 
 void CQueryNode::SetHolder(const CConcHolder*	pHolder)
@@ -421,7 +427,7 @@ CQueryAndOperation::CQueryAndOperation()
 
 void CQueryBinaryOperationNode::hits_add(const CQueryNode& NodeFrom, vector<CHit>::const_iterator _First) 
 {
-	
+
 	size_t prev_end =  0;
 	if (_First !=  NodeFrom.m_Hits.begin() )
 		prev_end = (_First-1)->m_HighlightOccurrenceEnd;
@@ -442,6 +448,13 @@ void CQueryBinaryOperationNode::hits_add(const CQueryNode& NodeFrom, vector<CHit
 		}
 	};
 };
+
+void CQueryBinaryOperationNode::hits_and_positions_assign(const CQueryNode& NodeFrom)
+{
+	ClearAndReserveOccurrences(NodeFrom.m_Occurrences.size());
+	AddOccurrences(NodeFrom, 0, NodeFrom.m_Occurrences.size());
+	m_Hits = NodeFrom.m_Hits;
+}
 
 void CQueryBinaryOperationNode::hits_and_positions_union() 
 {	
@@ -594,27 +607,24 @@ void CQueryAndOperation::Evaluate(bool bSeparateHits)
 	m_pChild1->Evaluate(bSeparateHits);
 	m_pChild2->Evaluate(bSeparateHits);
 
-	
-
-	if (!m_pChild1->GetNegation() && !m_pChild2->GetNegation())
-	{
+	if (!m_pChild1->GetNegation() && !m_pChild2->GetNegation()) {
+		// (a && b)
 		hits_and_positions_intersection ();
 	}
-	else
-	if (m_pChild1->GetNegation() && m_pChild2->GetNegation())
-	{
-		// !a && !b == !(a||b)
+	else if (m_pChild1->GetNegation() && m_pChild2->GetNegation()) {
+		// (!a && !b) == !(a || b)
 		hits_and_positions_union ();
 		SetNegation(true);
 	}
-	else
-	if (!m_pChild1->GetNegation() && m_pChild2->GetNegation())
-	{
+	else if (!m_pChild1->GetNegation() && m_pChild2->GetNegation()) {
+		// (a && !b)
 		hits_and_positions_difference ();
 	}
 	else //(m_pChild1->GetNegation() && !m_pChild2->GetNegation())
 	{
-		hits_and_positions_difference ();
+		// (!a && b)
+		swap(m_pChild1, m_pChild2);
+		hits_and_positions_difference();
 	}
 	
 };
@@ -678,6 +688,10 @@ void CQueryTokenNode::SetMatchId(BYTE MatchId)
 	m_bUseMatchIds = (MatchId > 0);
 }
 
+bool CQueryTokenNode::IsUniversalWildcard() const
+{
+	return m_bAny;
+}
 
 bool CQueryTokenNode::BuildRegExp(string RegExpStr, vector<DWORD>& IndexItems, bool negated)
 {
@@ -785,7 +799,7 @@ void CQueryTokenNode::MakeUnique(void)
 //--------------------------------------------------------------
 bool CQueryTokenNode::CreateStringPattern(const CConcHolder* pHolder, const string& IndexName, const string& Value)
 {
-	m_Source = string("$") + IndexName + "=" + Value;
+	m_Source = string("$") + IndexName + "=@" + Value;
 	CStringIndexSet* pIndexSet = GetIndex(pHolder,IndexName);
 
 	m_IndexItems.clear();
@@ -1080,122 +1094,125 @@ bool	CQuerySequenceNode::Create(const CConcHolder* pHolder, const vector<CQueryT
 
 void CQuerySequenceNode::EvaluateWithoutHits()
 {	
-	
-	size_t MinOccurSize = DWORD_MAX;
-	//  first get occurrences for each child
 	int ItemsCount = m_Items.size();
-	for (size_t i = 0; i < ItemsCount; i++)
-	{
-		m_Items[i]->EvaluateWithoutHits();
-		MinOccurSize = min (m_Items[i]->GetOccurrencesSize(), MinOccurSize);
-	}
-
-	ClearAndReserveOccurrences(MinOccurSize*ItemsCount);
-
 	if (ItemsCount==1) {
-		//-- moo: special handling for singleton sequences
+		//-- special handling for singleton sequences
+		m_Items[0]->EvaluateWithoutHits();
 		AddOccurrences(*m_Items[0], 0, m_Items[0]->m_Occurrences.size()-1);
 		return;
 	}
 
-	DwordVector S;	
-	S.resize(ItemsCount, 0);
+	//-- evaluate non-trivial sub-queries and find the one with the smallest result-set (mini)
+	vector<CQOccurrenceIterator> iters(ItemsCount);
+	vector<bool> ibind(ItemsCount);   //-- bind[i]==true iff m_Items[i] is a bound iterator
+	size_t mini=(size_t)-1;           //-- index of item with smallest result-set
+	for (size_t i=0; i < ItemsCount; ++i) {
+		if (m_Items[i]->IsUniversalWildcard() && (mini != (size_t)-1 || i < (ItemsCount-1))) {
+			ibind[i] = true;
+			continue;
+		}
+		m_Items[i]->EvaluateWithoutHits();
+		iters[i] = m_Items[i];
+		ibind[i] = false;
+		if (mini==(size_t)-1 || m_Items[i]->GetOccurrencesSize() < m_Items[mini]->GetOccurrencesSize())
+			mini = i;
+	}
 
-	// Path is currently observed path from an item of the first  list to an item of the last list
+	//-- bind wildcard iterators: left-to-right
+	for (int i=mini+1; i < ItemsCount; ++i) {
+		if (!ibind[i]) continue;
+		switch (m_DistanceOps[i-1]) {
+		default:
+		case '<': iters[i].bind(m_Items[i], iters[i-1], 1,                  1+m_Distances[i-1]);   break;
+		case '>': iters[i].bind(m_Items[i], iters[i-1], 1+m_Distances[i-1], 1+MaxDistanceForNear); break;
+		case '=': iters[i].bind(m_Items[i], iters[i-1], 1+m_Distances[i-1], 1+m_Distances[i-1]);   break;
+		}
+	}
+	//-- bind wildcard iterators: right-to-left
+	for (int i=mini-1; i >= 0; --i) {
+		if (!ibind[i]) continue;
+		switch (m_DistanceOps[i]) {
+		default:
+		case '<': iters[i].bind(m_Items[i], iters[i+1], -1-m_Distances[i],     -1);                break;
+		case '>': iters[i].bind(m_Items[i], iters[i+1], -1-MaxDistanceForNear, -1-m_Distances[i]); break;
+		case '=': iters[i].bind(m_Items[i], iters[i+1], -1-m_Distances[i],     -1-m_Distances[i]); break;
+		}
+	}
+	
+
+	//-- allocate local occurrences
+	ClearAndReserveOccurrences(ItemsCount*m_Items[mini]->GetOccurrencesSize());
+
+	// resume[] stores previous iteration value (resume positions) for iters[]
+	vector<CQOccurrenceIterator> resume(iters);
+
+	// Path[] is currently observed path from an occurrence of the first query-item in m_Items[] to an occurrence of the last query-item in m_Items[]
 	// for each i > 0, 
 	//  if Path[i] != -1, then
 	//   : (m_Items[i]->m_Occurrences[Path[i]] - m_Items[i-1]->m_Occurrences[Path[i-1]]) <= m_Distances[i-1] if m_DistanceOps[i-1]=='<' (default)
 	//   : (m_Items[i]->m_Occurrences[Path[i]] - m_Items[i-1]->m_Occurrences[Path[i-1]]) >= m_Distances[i-1] if m_DistanceOps[i-1]=='>'
 	//   : (m_Items[i]->m_Occurrences[Path[i]] - m_Items[i-1]->m_Occurrences[Path[i-1]]) == m_Distances[i-1] if m_DistanceOps[i-1]=='='
 
-	int* Path = new int[ItemsCount];	
-	for (size_t i=0; i<ItemsCount; i++) Path[i] = -1;
 
-
-	// depth-first search  from Path[0] 
-	size_t Occur0Count = m_Items[0]->GetOccurrencesSize();
-	for (Path[0] = 0; Path[0] < Occur0Count; Path[0]++)
-	{
-		if (Path[0]>0) // ignoring this line if it has the same value
-			if (m_Items[0]->m_Occurrences[Path[0]-1] ==  m_Items[0]->m_Occurrences[Path[0]])
-				continue;
+	// depth-first search  from iters[0]
+	for ( ; iters[0].valid(); ++iters[0]) {
+		if (iters[0].cur > 0 && iters[0].tmin() == iters[0].tmax_prev()) continue; //-- ignore duplicates in iters[0]
 
 		// i is the level of depth-first search
 		size_t i = 1;
-		while (i > 0)
-		{
-			// take the previos token no
-			CTokenNo T = m_Items[i-1]->m_Occurrences[Path[i-1]];
+		while (i > 0) {
+			//-- get token-id of the previous sequence-item
+			CTokenNo tprev = iters[i-1].tmin();
 
-			// get the number of postions in the current column
-			size_t OccurCount = m_Items[i]->GetOccurrencesSize();
+			//-- advance iters[i] to first occurrence after iters[i-1]
+			for (iters[i]=resume[i]; iters[i].valid() && iters[i].tmin() <= tprev; ++iters[i]) ;
+			resume[i] = iters[i];
 
-			// if we are for the first time  on this  level, then  Path[i]!= -1
-			if (Path[i] == -1)
-			{
-				// position  S[i] and  Path[i] on the  first child after T
-				for (Path[i]=S[i]; Path[i] < OccurCount; Path[i]++)
-					if (m_Items[i]->m_Occurrences[Path[i]] >  T)
+
+			//-- attempt to find an iterator-position fulfulling the distance conditions starting from iters[i]
+			BYTE Distance   = m_Distances[i-1] + 1;
+			BYTE DistanceOp = m_DistanceOps[i-1];
+			bool found=false;
+			for ( ; iters[i].valid(); ++iters[i]) {
+				//-- check for distance-constraing violations
+				DWORD CurDistance = iters[i].tmin() - tprev;
+				if (CurDistance < Distance && (DistanceOp=='=' || DistanceOp=='>'))
+					//-- minimum distance not yet reached: increment current iterator and keep searching
+					continue;
+				else if (CurDistance > Distance && (DistanceOp=='=' || DistanceOp=='<'))
+					//-- max distance exceeded
+					break;
+				else if (CurDistance > MaxDistanceForNear)
+					//-- global max distance exceeded
+					break;
+				else {
+					//-- a suitable position has been found for iters[i]
+					if ((i+1)==ItemsCount) {
+						//-- found a complete sequence-match: save it by adding complete path represented by iters[]
+						for (size_t j=0; j < ItemsCount; ++j)
+							AddOccurrences(*m_Items[j], iters[j].cur, iters[j].cur+1);
+					}
+					else {
+						//-- we've got a good match in iters[i]; continue by searching iters[i+1]
+						found = true;
 						break;
-				S[i] = Path[i]; // save the starting position of Path[i] 
+					}
+				}
 			}
-			else
-				Path[i]++; // get the next position in this column and try if it suits
 
-			BYTE Distance   = m_Distances[i-1] + 1; // get the possible distance
-			BYTE DistanceOp = m_DistanceOps[i-1];   // get distance constraint operator
-			bool bPositionIsFound = false;
-
-			// searching for the position, which is inside the distance, starting from Path[i]
-			for (; Path[i] < OccurCount; Path[i]++)
-			{
-			  if (Path[i]>0) // ignoring equal occurrences
-			    if (m_Items[i]->m_Occurrences[Path[i]-1] ==  m_Items[i]->m_Occurrences[Path[i]])
-			      continue;
-
-			  //-- check for distance-constraint violations
-			  DWORD CurDistance = m_Items[i]->m_Occurrences[Path[i]] - T;
-			  if (CurDistance < Distance && (DistanceOp=='=' || DistanceOp=='>'))
-			    //-- minimum distance not yet reached
-			    continue; 
-			  else if (CurDistance > Distance && (DistanceOp=='=' || DistanceOp=='<'))
-			    //-- max distance exceeded
-			    break;
-			  else if (CurDistance > MaxDistanceForNear)
-			    //-- global max distance exceeded
-			    break;
-			  else
-			    //-- a suitable position has been found
-			    if (i+1 == ItemsCount) // if it is the end  of pattern then save this occurrence
-			    {
-			      // adding current path from Path[0] to Path[ItemsCount-1] to occurrences
-			      for (int j=0; j < ItemsCount; j++)
-				AddOccurrences(*m_Items[j], Path[j], Path[j]+1);
-			    }
-			    else
-			    {
-			      // Path[i] is a current node we should search for a child of Path[i]
-			      // it means we should go to the  next level (i+1)
-			      bPositionIsFound = true;
-			      break;
-			    };
-			};
-
-			if (bPositionIsFound)
-			  i++; // going to depth 
-			else
-			{
-			  // leaving this level, clearing Path[i] 
-			  Path[i] = -1;
-			  i--;
-			};
-		};
-		// after this iteration Path[1]...Path[ItemsCount-1] must be -1
-		// we are waiting  for the next value of Path[0]
-		// S[1] ... S[ItemCount-1] were updated 
-		// S[i] is a lower bound of a possible children of S[i-1], 
+			if (found) {
+				//-- found sub-query match in iters[i]; continue by trying to match iters[i+1]
+				++i;
+			} else {
+				//-- no sub-query match iters[i] found: back up
+				--i;
+			}
+		}
+		// after this iteration iters[1]...iters[ItemsCount-1] are non-matches;
+		// we are waiting  for the next value of iters[0]
+		// resume[1] ... resume[ItemCount-1] were possibly updated 
+		// resume[i] is a lower bound of a possible children of resume[i-1],
 	};
-	delete Path;
 
 	// this procedure produces list of occurrences are stored by chunks, and sorted by the first item. 
 	// The length of chunk is equal to the length of the  pattern,
@@ -1263,86 +1280,107 @@ bool CQueryNearNode::Create(const CConcHolder* pHolder, BYTE distance, CQueryNod
 	return  true;
 }
 
+//--------------------------------------------------------------
+void CQOccurrenceIterator::bind(CQueryTokenNode *node_, const CQOccurrenceIterator &src, int minOffset, int maxOffset)
+{
+	assert(node_ && node_->m_bAny);
+	operator=(node_);
 
-struct CQNearEvalItem {
-	CQueryNode *node; //-- query node m_pChild$i
-	int cnt;	  //-- limit for  node->m_Occurrences[]
-	int cur;	  //-- index into node->m_Occurrences[]
-	size_t chpos;	  //-- index into node->m_ChunkLengths[] (match occurrence)
+	cnt = (1+maxOffset-minOffset) * src.cnt;
+	if (minOffset<=0 && maxOffset>=0) cnt -= src.cnt; //-- avoid dups: don't count zero-offsets
+	node->ClearAndReserveOccurrences(cnt);
 
-	CQNearEvalItem(CQueryNode *node_)
-	: node(node_), cnt(0), cur(0), chpos(0)
-	{
-		if (node) cnt = node->GetOccurrencesSize();
-	};
-
-	CQNearEvalItem(const CQNearEvalItem &b)
-	: node(b.node), cnt(b.cnt), cur(b.cur), chpos(b.chpos)
-	{};
-
-	inline CQNearEvalItem &operator=(CQNearEvalItem &b)
-	{
-		node = b.node;
-		cnt = b.cnt;
-		cur = b.cur;
-		chpos = b.chpos;
-		return *this;
-	};
-
-	inline bool valid() const
-	{ return cur < cnt; };
-
-	inline void operator++()
-	{ 
-		if (!valid()) return;
-		cur += node->m_ChunkLengths[chpos];
-		chpos++;
-	};
-
-	inline size_t chunksize() const
-	{  return node->m_ChunkLengths[chpos]; };
-
-	inline CTokenNo tbegin() const
-	{ return node->m_Occurrences[cur]; };
-
-	inline CTokenNo tend() const
-	{ return node->m_Occurrences[cur + node->m_ChunkLengths[chpos] - 1]; };
-
-	bool operator==(const CQNearEvalItem &b) const
-	{
-		CTokenNo i, len=chunksize();
-		if (len != b.chunksize()) return false;
-		for (i=0; i<len; ++i) {
-			if (node->m_Occurrences[cur+i] != b.node->m_Occurrences[b.cur+i])
-				return false;
+	CTokenNo last_tok = (CTokenNo)-1;
+	for (vector<CTokenNo>::const_iterator occi=src.node->m_Occurrences.begin(); occi!=src.node->m_Occurrences.end(); ++occi) {
+		for (int off=minOffset; off<=maxOffset; ++off) {
+			CTokenNo tok = *occi + off;
+			if (off==0 || (last_tok != (CTokenNo)-1 && last_tok >= tok)) continue; //-- avoid overlap
+			node->m_Occurrences.push_back(tok);
+			last_tok = tok;
 		}
-		return true;
-	};
+	}
+	cnt = node->m_Occurrences.size();
+	node->m_ChunkLengths.resize(cnt,1);
+	if (node->m_bUseNodeIndices) {
+		node->m_OccurrenceNodeIndices.resize(cnt,node_->m_NodeIndex);
+	}
+	if (node->m_bUseMatchIds) {
+		node->m_OccurrenceMatchIds.resize(cnt,node_->m_MatchId);
+	}
+}
+
+//--------------------------------------------------------------
+bool CQOccurrenceIterator::operator==(const CQOccurrenceIterator &b) const
+{
+	CTokenNo i, len=chunksize();
+	if (len != b.chunksize()) return false;
+	for (i=0; i<len; ++i) {
+		if (node->m_Occurrences[cur+i] != b.node->m_Occurrences[b.cur+i])
+			return false;
+	}
+	return true;
 };
 
+//--------------------------------------------------------------
 void CQueryNearNode::FindOccurrences2()
 {
-	m_ChunkLengths.clear();
-	m_pChild1->EvaluateWithoutHits();
-	m_pChild2->EvaluateWithoutHits();
 	CTokenNo MaxDistance = m_Distance+1;
+	CQOccurrenceIterator item1, item2;
+	bool bind1=false, bind2=false; //-- whether item1 rsp. item2 is a bound iterator representing a universal wildcard (*)
 
-	if (m_pChild2->GetOccurrencesSize() < m_pChild1->GetOccurrencesSize())
-		swap(m_pChild1,m_pChild2);
+	m_ChunkLengths.clear();
 
-	CQNearEvalItem item1(m_pChild1);
-	CQNearEvalItem item2(m_pChild2);
-	ClearAndReserveOccurrences(item1.cnt*2);
+	//-- wildcard optimization (allowing at most 1 bound sub-query)
+	if (m_pChild1->IsUniversalWildcard())
+		bind1 = true;
+	else if (m_pChild2->IsUniversalWildcard())
+		bind2 = true;
 
+	//-- sub-query evaluation (non-bound sub-queries)
+	if (!bind1) {
+		m_pChild1->EvaluateWithoutHits();
+		item1.assign(m_pChild1);
+	}
+	if (!bind2) {
+		m_pChild2->EvaluateWithoutHits();
+		item2.assign(m_pChild2);
+	}
+
+	//-- sub-query pseudo-evaluation (bound sub-queries); local result-set allocation
+	if (bind1) {
+		item1.bind((CQueryTokenNode*)m_pChild1, item2, -MaxDistance, MaxDistance);
+		ClearAndReserveOccurrences(item1.cnt);
+	}
+	else if (bind2) {
+		item2.bind((CQueryTokenNode*)m_pChild2, item1, -MaxDistance, MaxDistance);
+		ClearAndReserveOccurrences(item2.cnt);
+	}
+	else {
+		ClearAndReserveOccurrences(min(item1.cnt,item2.cnt)*2);
+	}
+
+	//-- ensure that the sub-query with the smallest result-set is used for the outer search loop
+	if (item2.cnt < item1.cnt)
+		swap(item1, item2);
+
+	//-- reserve local result-set m_Occurrences[] etc
+	if (bind1)
+		ClearAndReserveOccurrences(item1.cnt);
+	else if (bind2)
+		ClearAndReserveOccurrences(item2.cnt);
+	else
+		ClearAndReserveOccurrences(item1.cnt*2);
+
+	//-- search guts
 	for ( ; item1.valid() && item2.valid(); ++item1 ) {
 
-		//-- advance item2 until (item1.tbegin() <= item2.tend()+MaxDistance)
-		for ( ; item2.valid() && item1.tbegin() > item2.tend() + MaxDistance; ++item2 )
+		//-- advance item2 until (item1.tmin() <= item2.tmax()+MaxDistance)
+		for ( ; item2.valid() && item1.tmin() > item2.tmax() + MaxDistance; ++item2 )
 			;
 
-		//-- find all item2 occurences s.t. (item1.tend()+MaxDistance >= item2.tbegin())
-		CQNearEvalItem resume2(item2);
-		for ( ; item2.valid() && item1.tend()+MaxDistance >= item2.tbegin(); ++item2 ) {
+		//-- find all item2 occurences s.t. (item1.tmax()+MaxDistance >= item2.tmin())
+		CQOccurrenceIterator resume2(item2);
+		for ( ; item2.valid() && item1.tmax()+MaxDistance >= item2.tmin(); ++item2 ) {
 			if (item1==item2) continue; //-- near() sub-matches must be disjoint
 			size_t size1 = item1.chunksize();
 			size_t size2 = item2.chunksize();
@@ -1358,40 +1396,98 @@ void CQueryNearNode::FindOccurrences2()
 
 void CQueryNearNode::FindOccurrences3()
 {
-	m_ChunkLengths.clear();
-	m_pChild1->EvaluateWithoutHits();
-	m_pChild2->EvaluateWithoutHits();
-	m_pChild3->EvaluateWithoutHits();
 	CTokenNo MaxDistance = m_Distance+1;
+	CQOccurrenceIterator item1, item2, item3;
+	bool bind1=false, bind2=false, bind3=false; //-- whether itemX is a bound iterator representing a universal wildcard (*)
 
-	if (m_pChild2->GetOccurrencesSize() < m_pChild1->GetOccurrencesSize())
-		swap(m_pChild1,m_pChild2);
-	if (m_pChild3->GetOccurrencesSize() < m_pChild1->GetOccurrencesSize())
-		swap(m_pChild1,m_pChild3);
+	m_ChunkLengths.clear();
 
-	CQNearEvalItem item1(m_pChild1);
-	CQNearEvalItem item2(m_pChild2);
-	CQNearEvalItem item3(m_pChild3);
-	ClearAndReserveOccurrences(item1.cnt*3);
+	//-- wildcard optimization (allowing at most 2 bound sub-queries)
+	if (m_pChild1->IsUniversalWildcard()) {
+		bind1 = true;
+		if (m_pChild2->IsUniversalWildcard())
+			bind2 = true;
+		else if (m_pChild3->IsUniversalWildcard())
+			bind3 = true;
+	}
+	else {
+		bind2 = m_pChild2->IsUniversalWildcard();
+		bind3 = m_pChild3->IsUniversalWildcard();
+	}
 
+	//-- sub-query evaluation (non-bound sub-queries)
+	if (!bind1) {
+		m_pChild1->EvaluateWithoutHits();
+		item1.assign(m_pChild1);
+	}
+	if (!bind2) {
+		m_pChild2->EvaluateWithoutHits();
+		item2.assign(m_pChild2);
+	}
+	if (!bind3) {
+		m_pChild3->EvaluateWithoutHits();
+		item3.assign(m_pChild3);
+	}
+
+	//-- sub-query pseudo-evaluation (bound sub-queries); local result-set allocation
+	if (bind1 && bind2) {
+		item1.bind((CQueryTokenNode*)m_pChild1, item3, -MaxDistance, MaxDistance);
+		item2.bind((CQueryTokenNode*)m_pChild2, item3, -MaxDistance, MaxDistance);
+		ClearAndReserveOccurrences(item1.cnt);
+	}
+	else if (bind1 && bind3) {
+		item1.bind((CQueryTokenNode*)m_pChild1, item2, -MaxDistance, MaxDistance);
+		item3.bind((CQueryTokenNode*)m_pChild3, item2, -MaxDistance, MaxDistance);
+		ClearAndReserveOccurrences(item1.cnt);
+	}
+	else if (bind2 && bind3) {
+		item2.bind((CQueryTokenNode*)m_pChild2, item1, -MaxDistance, MaxDistance);
+		item3.bind((CQueryTokenNode*)m_pChild3, item1, -MaxDistance, MaxDistance);
+		ClearAndReserveOccurrences(item2.cnt);
+	}
+	else if (bind1) {
+		item1.bind((CQueryTokenNode*)m_pChild1, (item2.cnt <= item3.cnt ? item2 : item3), -MaxDistance, MaxDistance);
+		ClearAndReserveOccurrences(item1.cnt);
+	}
+	else if (bind2) {
+		item2.bind((CQueryTokenNode*)m_pChild2, (item1.cnt <= item3.cnt ? item1 : item3), -MaxDistance, MaxDistance);
+		ClearAndReserveOccurrences(item2.cnt);
+	}
+	else if (bind3) {
+		item3.bind((CQueryTokenNode*)m_pChild3, (item1.cnt <= item2.cnt ? item1 : item2), -MaxDistance, MaxDistance);
+		ClearAndReserveOccurrences(item3.cnt);
+	}
+	else {
+		ClearAndReserveOccurrences(min(min(item1.cnt,item2.cnt),item3.cnt)*3);
+	}
+
+	//-- ensure that the sub-query with the smallest result-set is used for the outer search loop
+	if (item2.cnt < item1.cnt)
+		swap(item1, item2);
+	if (item3.cnt < item1.cnt)
+		swap(item1, item3);
+	if (item3.cnt < item2.cnt)
+		swap(item2, item3);
+
+	//-- search guts
 	for ( ; item1.valid() && item2.valid() && item3.valid(); ++item1 ) {
 
-		//-- advance item2 until (item1.tbegin() <= item2.tend()+MaxDistance)
-		for ( ; item2.valid() && item1.tbegin() > item2.tend() + MaxDistance; ++item2 ) ;
+		//-- advance item2 until (item1.tmin() <= item2.tmax()+MaxDistance)
+		for ( ; item2.valid() && item1.tmin() > item2.tmax() + MaxDistance; ++item2 ) ;
 
-		//-- find all item2 occurences s.t. (item1.tend()+MaxDistance >= item2.tbegin())
-		CQNearEvalItem resume2(item2);
-		for ( ; item2.valid() && item3.valid() && item1.tend()+MaxDistance >= item2.tbegin(); ++item2 ) {
+		//-- find all item2 occurences s.t. (item1.tmax()+MaxDistance >= item2.tmin())
+		CQOccurrenceIterator resume2(item2);
+		for ( ; item2.valid() && item3.valid() && item1.tmax()+MaxDistance >= item2.tmin(); ++item2 ) {
 			if (item1==item2) continue; //-- near() sub-matches must be disjoint
-			CTokenNo max_begin = max(item1.tbegin(), item2.tbegin());
-			CTokenNo min_end   = min(item1.tend(),   item2.tend());
+			CTokenNo max_begin = max(item1.tmin(), item2.tmin());
+			CTokenNo min_end   = min(item1.tmax(), item2.tmax());
 
-			//-- advance item3 until (max_begin <= item3.tend()+MaxDistance)
-			for ( ; item3.valid() && max_begin > item3.tend() + MaxDistance; ++item3 ) ;
+			//-- advance item3 until (max_begin <= item3.tmax()+MaxDistance)
+			for ( ; item3.valid() && max_begin > item3.tmax() + MaxDistance; ++item3 ) ;
 
-			//-- find all item3 occurences s.t. (min_end+MaxDistance >= item3.tbegin())
-			CQNearEvalItem resume3(item3);
-			for ( ; item3.valid() && min_end+MaxDistance >= item3.tbegin(); ++item3 ) {
+			//-- find all item3 occurences s.t. (min_end+MaxDistance >= item3.tmin())
+			CQOccurrenceIterator resume3(item3);
+			for ( ; item3.valid() && min_end+MaxDistance >= item3.tmin(); ++item3 ) {
 				if (item1==item3 || item2==item3) continue; //-- near() sub-matches must be disjoint
 				size_t size1 = item1.chunksize();
 				size_t size2 = item2.chunksize();
@@ -1436,25 +1532,43 @@ bool CQueryWithNode::Create(const CConcHolder*	pHolder, CQueryNode* child1, CQue
 
 void CQueryWithNode::EvaluateWithoutHits()
 {
-	((CQueryTokenNode*)m_pChild1)->EvaluateWithoutHits();
-	((CQueryTokenNode*)m_pChild2)->EvaluateWithoutHits();
+	CQueryTokenNode *child1 = (CQueryTokenNode*)m_pChild1;
+	CQueryTokenNode *child2 = (CQueryTokenNode*)m_pChild2;
 
-	m_Occurrences.resize( min(m_pChild1->GetOccurrencesSize(), m_pChild2->GetOccurrencesSize()) );
+	//-- wildcard optimization
+	if (child1->IsUniversalWildcard()) {
+		child2->EvaluateWithoutHits();
+		SwapOccurrences(*m_pChild2, true);
+		if (m_bUseNodeIndices)
+			m_OccurrenceNodeIndices.assign(m_OccurrenceNodeIndices.size(), child1->m_NodeIndex);
+		if (m_bUseMatchIds && child2->m_MatchId==DefaultMatchId && child1->m_MatchId!=DefaultMatchId)
+			m_OccurrenceMatchIds.assign(m_OccurrenceMatchIds.size(), child1->m_MatchId);
+		return;
+	}
+	else if (child2->IsUniversalWildcard()) {
+		child1->EvaluateWithoutHits();
+		SwapOccurrences(*m_pChild1, true);
+		if (m_bUseMatchIds && child1->m_MatchId==DefaultMatchId && child2->m_MatchId!=DefaultMatchId)
+			m_OccurrenceMatchIds.assign(m_OccurrenceMatchIds.size(), child2->m_MatchId);
+		return;
+	}
 
-	vector<CTokenNo>::iterator it = set_intersection(m_pChild1->m_Occurrences.begin(), m_pChild1->m_Occurrences.end(),
-							 m_pChild2->m_Occurrences.begin(), m_pChild2->m_Occurrences.end(),
+	//-- evaluation guts
+	child1->EvaluateWithoutHits();
+	child2->EvaluateWithoutHits();
+	m_Occurrences.resize( min(child1->GetOccurrencesSize(), child2->GetOccurrencesSize()) );
+
+	vector<CTokenNo>::iterator it = set_intersection(child1->m_Occurrences.begin(), child1->m_Occurrences.end(),
+							 child2->m_Occurrences.begin(), child2->m_Occurrences.end(),
 							 m_Occurrences.begin());
-
 	m_Occurrences.resize(it - m_Occurrences.begin());
 
 	if (m_bUseNodeIndices)
-		m_OccurrenceNodeIndices.resize(m_Occurrences.size(), ((CQueryTokenNode*)m_pChild1)->m_NodeIndex);
+		m_OccurrenceNodeIndices.resize(m_Occurrences.size(), child1->m_NodeIndex);
 	if (m_bUseMatchIds)
-		m_OccurrenceMatchIds.resize(m_Occurrences.size(), ((CQueryTokenNode*)m_pChild2)->m_MatchId!=DefaultMatchId ? ((CQueryTokenNode*)m_pChild2)->m_MatchId : ((CQueryTokenNode*)m_pChild1)->m_MatchId);
-
+		m_OccurrenceMatchIds.resize(m_Occurrences.size(), child2->m_MatchId!=DefaultMatchId ? child2->m_MatchId : child1->m_MatchId);
 
 	m_ChunkLengths.resize(GetOccurrencesSize(), 1);
-
 };
 
 void CQueryWithNode::Evaluate(bool bSeparateHits)

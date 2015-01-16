@@ -1,3 +1,5 @@
+=encoding utf8
+
 =head1 DDC Query Language Documentation
 
 =head2 Overview
@@ -148,7 +150,7 @@ Comments may appear after each rule in C notation
                     | s_index = neg_regex                                   /* ... on user-specified index, negated */
                     ;
  
- qw_any           ::=                                                       /*-- Universal match (aka wildcard token) --*/
+ qw_any           ::=                                                       /*-- Universal match (aka wildcard token; see "Wildcard Queries", below) --*/
                       *                                                     /* ... on 'Token' index */
                     | s_index = *                                           /* ... on user-specified index (vacuous; index name is ignored) */
                     ;
@@ -358,7 +360,7 @@ Comments may appear after each rule in C notation
                    ;
  
  qfbc_matchref   ::=                                    /*-- Optional match-id reference for context-sort operators --*/
-                                                        /* ... empty */
+                                                        /* ... empty (use operator-dependent match tokenh) */
                    | matchid                            /* ... back-reference to a match-id assigned with "=ID" */
                    ;
  
@@ -396,8 +398,8 @@ Comments may appear after each rule in C notation
  
  l_countkeys   ::=                                           /*-- Tuple of bibliographic metadata fields --*/
                                                              /* ... empty */
-                 | l_countkeys ,                             /* ... comma-separated */
-                 | l_countkeys count_key                     /* ... or space-separated */
+                 | count_key                                 /* ... singleton */
+                 | l_countkeys , count_key                   /* ... or comma-separated list */
                  ;
  
  count_key     ::=                                           /*-- Histogram bin component --*/
@@ -408,8 +410,21 @@ Comments may appear after each rule in C notation
                  | DATE                                      /* ... date string (YYYY-MM-DD) */
                  | DATE / i_slice                            /* ... date slice, computed as (i_slice*int(year/i_slice)) */
                  | s_field                                   /* ... bibliographic string-field value (e.g. textClass) */
+                 | s_index ck_matchid ck_offset              /* ... indexed token attribute, relative to some matched token */
                  | count_key ~ replace_regex                 /* ... on-the-fly regex transformation (can be chained) */
                  | ( count_key )                             /* ... explicit grouping */
+                 ;
+ 
+ ck_matchid    ::=                                           /*-- Match-ID back-reference for count-key context token --*/
+                                                             /* ... empty: use first matched token */
+                 | matchid                                   /* ... non-empty: use first token with specified match-ID */
+                 ;
+ 
+ ck_offset     ::=                                           /*-- Token offset for count-key context token --*/
+                                                             /* ... empty: use selected match token */
+                 | + integer                                 /* ... +N: use Nth right-neighbor of match token (negative for left-neightbors) */
+                 | - integer                                 /* ... -N: use Nth left-neighbor of match token */
+                 | integer                                   /* ... N: alias for +N */
                  ;
  
 
@@ -567,7 +582,7 @@ Comments may appear after each rule in C notation
                  ;
  
  matchid       ::=                              /*-- User-specified match-ID or back-reference --*/
-                   MATCHID                      /* ... valid match-IDs are in the range (1-255) */
+                   = INTEGER                    /* ... valid match-IDs are in the range (1-255) */
                  ;
  
 
@@ -739,8 +754,7 @@ The scanner supports date-like tokens in a superset of the ISO 8601 format
 
 The scanner supports user-specified match-IDs for use e.g. by
 context-dependent sort operators.  Match-IDs are decimal integers between 1 and 255,
-introduced by a leading '=' (equals sign).  Note that no whitespace is allowed between
-the leading '=' and the subsequent integer ID.
+introduced by a leading '=' (equals sign).
 If no match-IDs were specified for a query, every matched token of that query is treated as if
 it had been assigned a match-ID of 1.  Otherwise, if at least one match-ID was explicitly
 assigned, any matched tokens without explicit match-IDs are assigned a match-ID of 255.
@@ -874,6 +888,59 @@ DDC should return an error code of errParseError
 and print an informative diagnostic message to stderr
 and/or the current log file.
 
+
+
+
+=head3 Wildcard Queries
+
+The wildcard query operator (*) matches every token in the corpus,
+and its use in most cases can be expected to substantially degrade query evaluation performance.
+There are some exceptions to this rule, however (for ddc as of v2.0.36):
+
+
+
+
+=over 4
+
+=item B<count(*)>
+
+L<count(*)|/count>queries are optimized and can be expected to run quite fast, provided that
+only constant or document-level count-keys are used (i.e. no C<$INDEX>items
+appear in the query's C<#by[...]>clause.
+
+
+
+
+=item B<near(...,*,...)>
+
+L<near()|/rule_qc_near>queries are optimized to take advantage of universal wildcard sub-queries,
+provided that at least one non-wildcard sub-query is used as well, i.e queries of the form
+C<near(A,*,N)>,
+C<near(*,B,N)>,
+C<near(A,B,*,N)>,
+C<near(A,*,C,N)>,
+C<near(*,B,C,N)>,
+C<near(A,*,*,N)>,
+C<near(*,B,*,N)>, and
+C<near(*,*,C,N)>can be expected to run efficiently.
+
+
+
+
+=item B<".... * ...">
+
+Like C<near()>queries, L<phrase queries|/rule_qc_phrase>using the double-quote ("...") operator are optimized 
+advantage of universal wildcard sub-queries if at least one non-wildcard sequence item
+is included in the phrase, e.g. phrases of the forms
+C<"A *">,
+C<"* B">,
+C<"A * C">,
+C<"* B * D">, etc. can be expected to run efficiently.
+
+
+
+
+=back
 
 
 
