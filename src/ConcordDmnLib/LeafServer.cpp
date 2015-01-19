@@ -39,7 +39,7 @@ void CDDCLeafServer::handle__get_first_hits(string &Result, const char *Query, i
     Result  = Format ("%i %i %i %i %i", Error, EndHitNo, m_pHolder->m_AllHitsCount, m_pHolder->m_RelevantDocumentCount, m_pHolder->HitSortOrder());
     Result += m_pHolder->GetHitIds();
 
-    if (m_pHolder->HitSortOrder() == hsoAscendingCounts)
+    if (IsCountSort(m_pHolder->HitSortOrder()))
 	m_bExpectMore = false;
 }
 

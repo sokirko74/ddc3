@@ -54,8 +54,8 @@ struct CQueryResult
 	//! whether to sort by string-value
 	bool 			m_bSortByString : 1;
 
-	//! hit sort order (-1:descending, 0:no-sort, 1:ascending, 2:ascending_counts)
-	HitSortOrderEnum	m_SortOrder : 3;
+	//! hit sort order
+	HitSortOrderEnum	m_SortOrder : 4;
 
 
 	mutable vector<BYTE>	m_DebugInfo;
@@ -102,7 +102,7 @@ private:
 	//! whether the current hit-sorting mode is primarily string-based
 	bool					m_bSortByString;
 
-	//! the current hit-sorting order (-1:descending, 0:none, 1:ascending, 2:ascending_count_keys)
+	//! the current hit-sorting order
 	HitSortOrderEnum			m_SortOrder;
 
 	//! temporary for constructing count-query results
@@ -248,7 +248,7 @@ public:
 	//! GetHidIds() variant for count-queries
 	string GetCountIds()  const;
 
-	//! get logical hit sort order: (-1:descending, 0:none, 1:ascending, 2:ascending_counts); replaces HitsShouldBeSorted()
+	//! get logical hit sort order; replaces HitsShouldBeSorted()
 	HitSortOrderEnum HitSortOrder() const;
 
 	//! sets timeout for query processing

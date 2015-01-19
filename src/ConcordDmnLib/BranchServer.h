@@ -1,6 +1,6 @@
 //-*- Mode: C++; c-basic-offset:4; -*-
 //  DDC originally by Alexey Sokirko
-//  Changes and modifications 2011-2014 by Bryan Jurish
+//  Changes and modifications 2011-2015 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -53,6 +53,14 @@ struct CHitToSort
     };
 };
 
+//==============================================================================
+/** direct comparison operator for sorting count-hits by m_HitNo (count) */
+struct LessByHitNo {
+	bool operator() (const CHitToSort &a, const CHitToSort &b) const
+	{ return a.m_HitNo < b.m_HitNo; };
+};
+
+
 //======================================================================
 /** parsed get_first_hits response */
 struct CFirstHitsQueryResult  {
@@ -61,7 +69,7 @@ struct CFirstHitsQueryResult  {
     string			m_HitsDistributionStr;
     string			m_RelevantDocsDistributionStr;
     int				m_InternalError;
-    HitSortOrderEnum		m_SortOrder;		//< hit sort order (-1:descending, 0:none, 1:ascending, 2:ascending_counts); formerly bool m_bSort
+    HitSortOrderEnum		m_SortOrder;		//< hit sort order; formerly bool m_bSort
     NetworkErrorsEnum		m_NetworkError;
     string			m_ErrorStr;
     vector<CHitToSort>  	m_Hits;
@@ -75,7 +83,7 @@ struct CFirstHitsQueryResult  {
     /** close any previously opened sockets */
     void CloseSockets();
 
-    /** collect counts by sort-key, only makes sense if m_SortOrder==hsoAscendingCounts ; also modified m_AllHitsCount */
+    /** collect counts by sort-key, only makes sense if m_SortOrder==hsoCounts ; also modifies m_AllHitsCount */
     void CollectCounts();
 };
 

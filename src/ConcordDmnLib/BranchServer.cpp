@@ -1,6 +1,6 @@
 //-*- Mode: C++; c-basic-offset:4; -*-
 //  DDC originally by Alexey Sokirko
-//  Changes and modifications 2011-2014 by Bryan Jurish
+//  Changes and modifications 2011-2015 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -38,7 +38,7 @@ void CFirstHitsQueryResult::CloseSockets()
 //----------------------------------------------------------------------
 void CFirstHitsQueryResult::CollectCounts()
 {
-    assert(m_SortOrder == hsoAscendingCounts);
+    assert(IsCountSort(m_SortOrder));
     vector<CHitToSort> newHits;
     newHits.reserve(m_Hits.size());
 
@@ -54,6 +54,22 @@ void CFirstHitsQueryResult::CollectCounts()
 	}
     }
     m_Hits.swap(newHits);
+
+    //-- v2.0.36: we might need to re-sort hits
+    switch (m_SortOrder) {
+    case hsoDescendingCountKeys:
+	reverse(m_Hits.begin(), m_Hits.end());
+	break;
+    case hsoAscendingCountValues:
+	stable_sort(m_Hits.begin(), m_Hits.end(), LessByHitNo());
+	break;
+    case hsoDescendingCountValues:
+	stable_sort(m_Hits.rbegin(), m_Hits.rend(), LessByHitNo());
+	break;
+    case hsoAscendingCountKeys:
+    default:
+	break;
+    }
 }
 
 //==============================================================================
@@ -325,12 +341,12 @@ NetworkErrorsEnum CDDCBranchServer::RunDistributed(string Query,
 		stable_sort (FHResult.m_Hits.rbegin(), FHResult.m_Hits.rend());
 	}
 	else if (FHResult.m_SortOrder > 0) {
-		//-- sort: ascending
+		//-- sort: ascending or counts
 		stable_sort (FHResult.m_Hits.begin(), FHResult.m_Hits.end());
 	}
 
 	// count-query: aggregate by sort-keys
-	if (FHResult.m_SortOrder == hsoAscendingCounts) {
+	if (IsCountSort(FHResult.m_SortOrder)) {
 	    FHResult.CollectCounts();
 	}
 
@@ -354,7 +370,7 @@ NetworkErrorsEnum CDDCBranchServer::RunDistributed(string Query,
 	}
 #endif
 
-	if (FHResult.m_SortOrder == hsoAscendingCounts) {
+	if (IsCountSort(FHResult.m_SortOrder)) {
 	    //-- count-query can generate strings immediately
 	    GetHitCounts(FHResult, ResultTypeE, ResultString);
 	    HitsCount = FHResult.m_AllHitsCount;

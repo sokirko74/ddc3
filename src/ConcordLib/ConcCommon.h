@@ -160,8 +160,20 @@ enum HitSortOrderEnum {
 	hsoDescending = -1,
 	hsoNone = 0,
 	hsoAscending = 1,
-	hsoAscendingCounts = 2
+	hsoAscendingCountKeys = 2,
+	hsoDescendingCountKeys = 3,
+	hsoAscendingCountValues = 4,
+	hsoDescendingCountValues =  5
 };
+
+inline bool IsCountSort(HitSortOrderEnum e)
+{ return e >= hsoAscendingCountKeys && e <= hsoDescendingCountValues; }
+
+inline bool IsCountKeySort(HitSortOrderEnum e)
+{ return e==hsoAscendingCountKeys || e==hsoDescendingCountKeys; }
+
+inline bool IsCountValueSort(HitSortOrderEnum e)
+{ return e==hsoAscendingCountValues || e==hsoDescendingCountValues; }
 
 /*! symbolic names for HitSortEnum, for debugging */
 static const char *HitSortEnumNames[HitSortsCount] =
@@ -311,7 +323,7 @@ struct CDDCFilterWithBounds
 		m_SatisfiedValues.clear();
 	};
 
-	//! returns integer sort order as a HitSortOrderEnum (-1:descending, 0:none, 1:ascending, 2:ascending_counts)
+	//! returns integer sort order as a HitSortOrderEnum (-1:descending, 0:none, 1:ascending, 2:count_keys, 3:count_values)
 	inline HitSortOrderEnum SortOrder() const {
 		switch (m_FilterType) {
 		case GreaterByDate:

@@ -921,7 +921,7 @@ DDCErrorEnum CConcHolder::GenerateHitStrings(const int StartHitNo)
 {
 	assert(m_pQueryCompiler!=NULL);
 	assert(m_pQueryCompiler->m_pQuery!=NULL);
-	if (m_SortOrder == hsoAscendingCounts)
+	if (IsCountSort(m_SortOrder))
 		return GenerateCountStrings(StartHitNo);
 
 	DwordVector PageBreaks;
@@ -1749,13 +1749,20 @@ DDCErrorEnum CConcHolder::ConvertCountsToHits(CQuery *CountQueryRoot, size_t Lim
 	//-- count query: sort hits 
 	switch (qCount->m_sort) {
 	case LessByCountValue:
-		stable_sort(m_Hits.begin(), m_Hits.end(), HitLessByCountValue()); break;
+		m_SortOrder = hsoAscendingCountValues;
+		stable_sort(m_Hits.begin(), m_Hits.end(), HitLessByCountValue());
+		break;
 	case GreaterByCountValue:
-		stable_sort(m_Hits.rbegin(), m_Hits.rend(), HitLessByCountValue()); break;
+		m_SortOrder = hsoDescendingCountValues;
+		stable_sort(m_Hits.rbegin(), m_Hits.rend(), HitLessByCountValue());
+		break;
 	case GreaterByCountKey:
-		reverse(m_Hits.begin(), m_Hits.end()); break;
+		m_SortOrder = hsoDescendingCountKeys;
+		reverse(m_Hits.begin(), m_Hits.end());
+		break;
 	case LessByCountKey:
 	default:
+		m_SortOrder = hsoAscendingCountKeys;
 		break;
 	}
 
@@ -1769,7 +1776,6 @@ DDCErrorEnum CConcHolder::ConvertCountsToHits(CQuery *CountQueryRoot, size_t Lim
 	m_HighlightIds.clear();
 	m_AllHitsCount  = m_Hits.size();
 	m_bSortByString = 1;
-	m_SortOrder     = hsoAscendingCounts;
 	m_DebugInfo.clear();
 
 	return errNone;
@@ -1791,7 +1797,8 @@ void	CQueryResult::ClearQueryResults()
 
 string CConcHolder::GetHitIds()  const
 {
-	if (m_SortOrder == hsoAscendingCounts) return GetCountIds();
+	if (IsCountSort(m_SortOrder))
+		return GetCountIds();
 
 	string Result;
 	for (size_t i=0; i < m_Hits.size(); i++) {
