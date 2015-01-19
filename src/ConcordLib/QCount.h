@@ -26,6 +26,9 @@
 //======================================================================
 //typedef vector<string>    	CQCountByList;
 
+/** default count()-query sample size */
+const size_t DDCDefaultCountSampleSize = (size_t)-1;
+
 //==============================================================================
 // CQCountKeyExpr and subclasses
 
@@ -280,14 +283,18 @@ public:
   //! underlying query conditions to be counted
   CQuery *m_dtr;
 
+  //! sample size (sub-query limit)
+  size_t m_sample;
+
   //! list of count-bin metadata key expressions
   CQCountKeyExprList m_keys;
 
 public:
   //! bison constructor
-  CQCount(CQuery *dtr, const CQCountKeyExprList &keys)
+  CQCount(CQuery *dtr, const CQCountKeyExprList &keys, size_t sample=DDCDefaultCountSampleSize)
   : CQuery("count"),
     m_dtr(dtr),
+    m_sample(sample),
     m_keys(keys)
   {};
 

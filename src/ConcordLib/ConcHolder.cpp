@@ -1396,7 +1396,8 @@ DDCErrorEnum CConcHolder::GetAllHits(CQuery *QueryRoot, size_t Limit)
 		//-- count() query: remember count-node but evaluate (all) daughter hits
 		qCount = (CQCount*)QueryRoot;
 		qRoot  = qCount->m_dtr;
-		qLimit = DDCCountQueryLimit;
+		qLimit = qCount->m_sample;
+		m_CountSample = 0;
 	} 
 	CQueryNode    *qNode = qRoot->m_Node;
 	CQueryOptions *qOpts = qRoot->m_Options;
@@ -1569,7 +1570,7 @@ DDCErrorEnum CConcHolder::GetAllHits(CQuery *QueryRoot, size_t Limit)
 
 	// encode count() query results as hits
 	if (qCount != NULL) {
-		rc = ConvertCountsToHits(qLimit);
+		rc = ConvertCountsToHits(Limit);
 	}
 
 	//  we cannot call here CleanParser, because we would use later some slots of  m_pQueryCompiler 
@@ -1598,6 +1599,7 @@ DDCErrorEnum CConcHolder::GetUniversalCounts(CQuery *CountQueryRoot, size_t Limi
 	CQCount *qCount  = (CQCount*)CountQueryRoot;
 	CQuery  *qRoot   = qCount->m_dtr;
 	CQCountKeyExprList &keys = qCount->m_keys;
+	m_CountSample = 0;
 
 	//-- count(* ...) query: do memory-optimized computation
 	CConcIndexator *ix = m_pIndexator;
@@ -1607,13 +1609,14 @@ DDCErrorEnum CConcHolder::GetUniversalCounts(CQuery *CountQueryRoot, size_t Limi
 	DWORD nfiles = ix->GetCorpusFilesCount();
 	CHit hit;
 	string key;
+	size_t n;
 
 	assert(nfiles <= fbreaks.size()); //-- sanity check
 		
 	if (qRoot->m_Options->m_bSeparateHits) {
 		//-- count(* #sep): count tokens
 		CTokenNo fw_begin=0, fw_end;
-		for (DWORD f=0; f<nfiles; ++f, fw_begin=fw_end) {
+		for (DWORD f=0; f<nfiles && m_CountSample < qCount->m_sample; ++f, fw_begin=fw_end) {
 			fw_end = fbreaks[f];
 			if (fmaski != fmasked.end() && f == *fmaski) {
 				//-- don't count tokens in masked files
@@ -1623,7 +1626,9 @@ DDCErrorEnum CConcHolder::GetUniversalCounts(CQuery *CountQueryRoot, size_t Limi
 			if (ix->m_Bibl.FileMatches(f, qRoot->m_Options->m_Filters)) {
 				hit.m_FileNo   = f;
 				key            = keys.Evaluate(hit);
-				m_Counts[key] += (fw_end - fw_begin);
+				n              = (fw_end - fw_begin);
+				m_Counts[key] += n;
+				m_CountSample += n;
 			}
 		}
 	}
@@ -1632,7 +1637,7 @@ DDCErrorEnum CConcHolder::GetUniversalCounts(CQuery *CountQueryRoot, size_t Limi
 		const CHitBorders::CBreakCollection *sbreaks = ix->GetBreakCollectionByName(qRoot->m_Options->m_HitTypeStr);
 		DWORD    f=0, n=1;
 		CTokenNo fw_end = fbreaks[f];
-		for (vector<CTokenNo>::const_iterator bi=sbreaks->m_BreakOffsets.begin(); bi != sbreaks->m_BreakOffsets.end(); ++bi, ++n) {
+		for (vector<CTokenNo>::const_iterator bi=sbreaks->m_BreakOffsets.begin(); bi != sbreaks->m_BreakOffsets.end() && m_CountSample < qCount->m_sample; ++bi, ++n) {
 			if (*bi >= fw_end) {
 				//-- new file
 				if (fmaski != fmasked.end() && f == *fmaski) {
@@ -1642,6 +1647,7 @@ DDCErrorEnum CConcHolder::GetUniversalCounts(CQuery *CountQueryRoot, size_t Limi
 					hit.m_FileNo   = f;
 					key            = keys.Evaluate(hit);
 					m_Counts[key] += n;
+					m_CountSample += n;
 				}
 				do {
 					++f;
@@ -1678,22 +1684,28 @@ DDCErrorEnum CConcHolder::GetPeriodCounts(CQuery *CountQueryRoot)
 		if (qRoot->m_Options && !qRoot->m_Options->m_Filters.empty() && qRoot->m_Options->m_Filters.back().m_FilterType!=NoSort) 
 			sort(m_Hits.begin(), m_Hits.end(), IsLessByFileNo());
 
-		for (vector<CHit>::const_iterator hi=m_Hits.begin(); hi != m_Hits.end(); ++hi, ++n) {
+		for (vector<CHit>::const_iterator hi=m_Hits.begin(); hi != m_Hits.end() && m_CountSample < qCount->m_sample; ++hi, ++n) {
 			if (hi->m_FileNo != f) {
 				//-- next file
-				if (n>0) m_Counts[key] += (isWithinFile ? 1 : n);
+				if (n>0) {
+					m_Counts[key] += (isWithinFile ? 1 : n);
+					m_CountSample += (isWithinFile ? 1 : n);
+				}
 				n   = 0;
 				f   = hi->m_FileNo;
 				key = keys.Evaluate(*hi);
 			}
 		}
-		if (n>0) m_Counts[key] += (isWithinFile ? 1 : n);
+		if (n>0) {
+			m_Counts[key] += (isWithinFile ? 1 : n);
+			m_CountSample += (isWithinFile ? 1 : n);
+		}
 	}
 	else {
 		//-- counting guts: token-level
-		for (vector<CHit>::const_iterator hi=m_Hits.begin(); hi != m_Hits.end(); ++hi) {
+		for (vector<CHit>::const_iterator hi=m_Hits.begin(); hi != m_Hits.end() && m_CountSample < qCount->m_sample; ++hi, ++m_CountSample) {
 			string &key = keys.Evaluate(*hi);
-			m_Counts[key]++;
+			++m_Counts[key];
 		}
 	}
 

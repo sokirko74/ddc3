@@ -156,6 +156,7 @@ regex_modifier	[gimsx]
 (?i:\#(greater|de?sc)(_by)?)		{ return GREATER_BY; }
 (?i:\#rand(om)?)			{ return RANDOM; }
 (?i:\#by)				{ return BY; }
+(?i:\#samp(le)?)			{ return SAMPLE; }
 
  /* regexes */
 "!/"{regex_text}"/"/{regex_modifier}		{ yytext+=2; yyleng-=3; BEGIN(Q_REGOPT); return NEG_REGEX; /* negated regex, +modifiers */ }

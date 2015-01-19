@@ -1804,7 +1804,13 @@
 <td></td>
 <td class="ruleRHS1">
 <span class="ruleNonterminal"><a href="#rule_count_by">count_by</a></span> </td>
-<td class="ruleComment">/* histogram bin selection */</td>
+<td class="ruleComment">/* histogram bin-key selection */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_count_sample">count_sample</a></span> </td>
+<td class="ruleComment">/* histogram sample size */</td>
 </tr>
 <tr>
 <td></td>
@@ -1829,6 +1835,31 @@
 <td></td>
 <td></td>
 <td class="ruleRHS">| <span class="ruleTerminal">#BY</span> <span class="ruleTerminal">[</span> <span class="ruleNonterminal"><a href="#rule_l_countkeys">l_countkeys</a></span> <span class="ruleTerminal">]</span> </td>
+<td class="ruleComment">/* DDC filter-style syntax */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td><b>;</b></td>
+</tr>
+<tr></tr>
+<tr>
+<td><b><a name="rule_count_sample">count_sample</a></b></td>
+<td>::=</td>
+<td></td>
+<td class="ruleCommentTop">/* Select minimum count-query sample size (sub-query limit) */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS1">
+<span class="ruleTerminal">#SAMPLE</span> <span class="ruleNonterminal"><a href="#rule_integer">integer</a></span> </td>
+<td class="ruleComment">/* SQL-style syntax */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleTerminal">#SAMPLE</span> <span class="ruleTerminal">[</span> <span class="ruleNonterminal"><a href="#rule_integer">integer</a></span> <span class="ruleTerminal">]</span> </td>
 <td class="ruleComment">/* DDC filter-style syntax */</td>
 </tr>
 <tr>
@@ -3081,7 +3112,9 @@ regex_modifier	[gimsx]
 <p>
 	  The <a href="#rule_qw_any">wildcard query operator</a> (<code>*</code>) matches every token in the corpus,
 	  and its use in most cases can be expected to substantially degrade query evaluation performance.
-	  There are some exceptions to this rule, however (for ddc as of v2.0.36):
+	  There are some exceptions to this rule, however (for ddc v2.0.36 and above), which are listed below.
+	  Please note that in some earlier versions of ddc, the optimizations described here were not implemented,
+	  so it is always a good rule of thumb to avoid wildcard queries if you can.
 	</p>
 <dl>
 	    <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
@@ -3106,7 +3139,7 @@ regex_modifier	[gimsx]
 	      <code>near(*,*,C,N)</code> can be expected to run efficiently.
 	    </dd>
 	    <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
-	    <dt>".... * ..."</dt>
+	    <dt>"... * ..."</dt>
 	    <dd>
 	      Like <code>near()</code> queries, <a href="#rule_qc_phrase">phrase queries</a> using the double-quote ("...") operator are optimized 
 	      advantage of universal wildcard sub-queries if at least one non-wildcard sequence item
@@ -3115,6 +3148,14 @@ regex_modifier	[gimsx]
 	      <code>"* B"</code>,
 	      <code>"A * C"</code>,
 	      <code>"* B * D"</code>, etc. can be expected to run efficiently.
+	    </dd>
+	    <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
+	    <dt>with *</dt>
+	    <dd>
+	      <a href="qw_with"><code>with</code></a> queries containing a universal wildcard are implicitly simplified to
+	      the non-wildcard sub-query, thus
+	      <code>A with *</code> and <code>* with A</code> are both evaluated as <code>A</code>,
+	      without evaluating the wildcard itself.
 	    </dd>
 	  </dl>
 </div>
@@ -3506,7 +3547,7 @@ regex_modifier	[gimsx]
   </body></div>
 <div class="footers">
 <div class="footer_sig">
-<address><a href="mailto:jurish@bbaw.de">jurish@bbaw.de</a></address>Last modified: Fri, 16 Jan 2015 15:40:10 +0100</div>
+<address><a href="mailto:jurish@bbaw.de">jurish@bbaw.de</a></address>Last modified: Mon, 19 Jan 2015 13:23:57 +0100</div>
 <div class="footer_linkbar"><p class="nopad"><a class="navLink" href="/">Root</a><a class="navLink" href="./">Back</a><span class="navLinkDisabled">Help</span></p></div>
 <p class="dummy"></p>
 </div>

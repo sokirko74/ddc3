@@ -88,6 +88,7 @@ int yylex (void*,  void*);
 %type   <m_pfilt>	count_filters
 %type   <m_pfilt>	count_filter
 %type   <m_pfilt>	count_by
+%type	<m_pfilt>	count_sample
 
 %type	<m_pfilt>	qf_subcorpora
 %type	<m_pfilt>	qf_has_field
@@ -245,6 +246,7 @@ int yylex (void*,  void*);
 %token	<m_str>	DEBUG_RANK
 %token	<m_str>	RANDOM
 %token	<m_str>	BY
+%token	<m_str>	SAMPLE
 
 %token	<m_str>	KW_DATE
 %token	<m_str>	KW_FILEID
@@ -306,11 +308,17 @@ count_filters:
 
 count_filter:
 		count_by 			{ $$=$1; }
+	|	count_sample			{ $$=$1; }
 	;
 
 count_by:
 		BY l_countkeys 			{ $$=NULL; }
 	|	BY '[' l_countkeys ']'  	{ $$=NULL; }
+	;
+
+count_sample:
+		SAMPLE integer			{ $$=NULL; _qc->m_qCountSample = $2; }
+	|	SAMPLE '[' integer ']'		{ $$=NULL; _qc->m_qCountSample = $3; }
 	;
 
  /*-------------------------------------------------------------

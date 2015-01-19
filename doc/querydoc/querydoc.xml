@@ -1043,8 +1043,11 @@
 
 	  <!--~~~~~~~~ RULES: count_filter -->
 	  <rule lhs="count_filter" cmt="Single count-query option">
-	    <rhs cmt="histogram bin selection">
+	    <rhs cmt="histogram bin-key selection">
 	      <n>count_by</n>
+	    </rhs>
+	    <rhs cmt="histogram sample size">
+	      <n>count_sample</n>
 	    </rhs>
 	  </rule>
 
@@ -1058,6 +1061,20 @@
 	      <t>#BY</t>
 	      <t>[</t>
 	      <n>l_countkeys</n>
+	      <t>]</t>
+	    </rhs>
+	  </rule>
+
+	  <!--~~~~~~~~ RULES: count_sample -->
+	  <rule lhs="count_sample" cmt="Select minimum count-query sample size (sub-query limit)">
+	    <rhs cmt="SQL-style syntax">
+	      <t>#SAMPLE</t>
+	      <n>integer</n>
+	    </rhs>
+	    <rhs cmt="DDC filter-style syntax">
+	      <t>#SAMPLE</t>
+	      <t>[</t>
+	      <n>integer</n>
 	      <t>]</t>
 	    </rhs>
 	  </rule>

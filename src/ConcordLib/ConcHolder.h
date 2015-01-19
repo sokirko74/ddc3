@@ -30,8 +30,6 @@ typedef bool (*SaveTriggerType) (const string&,DWORD LParam);
 class CQueryCompiler; //-- forward decl
 class CQuery;	      //-- forward decl
 
-const size_t DDCCountQueryLimit = INT_MAX;
-
 
 /*! \brief
 	Class  CQueryResult contains all information about the first m_pIndexator->m_MaxCachedHitsCount hits for 
@@ -104,12 +102,14 @@ private:
 	//! whether the current hit-sorting mode is primarily string-based
 	bool					m_bSortByString;
 
-	//! the current hit-sorting order (-1:descending, 0:none, 1:ascending, 2:ascending_counts)
+	//! the current hit-sorting order (-1:descending, 0:none, 1:ascending, 2:ascending_count_keys)
 	HitSortOrderEnum			m_SortOrder;
 
 	//! temporary for constructing count-query results
 	CCountMap				m_Counts;
 
+	//! temporary for tracking count-query sample size
+	size_t					m_CountSample;
 
 	//! add a reference to FileNo according to m_ResultFormat
 	void	AddFileReference(const long FileNo);

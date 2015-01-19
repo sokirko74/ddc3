@@ -388,12 +388,18 @@ Comments may appear after each rule in C notation
                  ;
  
  count_filter  ::=                                           /*-- Single count-query option --*/
-                   count_by                                  /* histogram bin selection */
+                   count_by                                  /* histogram bin-key selection */
+                 | count_sample                              /* histogram sample size */
                  ;
  
  count_by      ::=                                           /*-- Select count-query histogram keys (metadata tuples) --*/
                    #BY l_countkeys                           /* SQL-style syntax */
                  | #BY [ l_countkeys ]                       /* DDC filter-style syntax */
+                 ;
+ 
+ count_sample  ::=                                           /*-- Select minimum count-query sample size (sub-query limit) --*/
+                   #SAMPLE integer                           /* SQL-style syntax */
+                 | #SAMPLE [ integer ]                       /* DDC filter-style syntax */
                  ;
  
  l_countkeys   ::=                                           /*-- Tuple of bibliographic metadata fields --*/
@@ -895,7 +901,9 @@ and/or the current log file.
 
 The wildcard query operator (*) matches every token in the corpus,
 and its use in most cases can be expected to substantially degrade query evaluation performance.
-There are some exceptions to this rule, however (for ddc as of v2.0.36):
+There are some exceptions to this rule, however (for ddc v2.0.36 and above), which are listed below.
+Please note that in some earlier versions of ddc, the optimizations described here were not implemented,
+so it is always a good rule of thumb to avoid wildcard queries if you can.
 
 
 
@@ -927,7 +935,7 @@ C<near(*,*,C,N)>can be expected to run efficiently.
 
 
 
-=item B<".... * ...">
+=item B<"... * ...">
 
 Like C<near()>queries, L<phrase queries|/rule_qc_phrase>using the double-quote ("...") operator are optimized 
 advantage of universal wildcard sub-queries if at least one non-wildcard sequence item
@@ -936,6 +944,16 @@ C<"A *">,
 C<"* B">,
 C<"A * C">,
 C<"* B * D">, etc. can be expected to run efficiently.
+
+
+
+
+=item B<with *>
+
+B<with> (L<qw_with>)queries containing a universal wildcard are implicitly simplified to
+the non-wildcard sub-query, thus
+C<A with *>and C<* with A>are both evaluated as C<A>,
+without evaluating the wildcard itself.
 
 
 
