@@ -24,6 +24,8 @@ v2.0.36-pre3 Fri, 16 Jan 2015 12:21:00 +0100 moocow
 	+ optimized evaluation for * sub-queries in near()/2, near()/3, and WITH
 	+ renamed CQNearEvalItem to more abstract CQOccurrenceIterator, moved to header file QueryNode.h
 	+ added option AllowCountByTokenAttributes (default=true)
+	+ added #SAMPLE[N] option for count() queries: control subquery sample size
+	+ added #ASC_KEY, #DESC_KEY, #ASC_COUNT, #DESC_COUNT sort operators for count() queries
 
 v2.0.35 Thu, 04 Dec 2014 13:59:31 +0100 moocow
 	+ added 'hostname' key to server status messages (fqdn or short hostname via gethostname())
