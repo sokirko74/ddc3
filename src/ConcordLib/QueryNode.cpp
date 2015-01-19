@@ -1121,21 +1121,23 @@ void CQuerySequenceNode::EvaluateWithoutHits()
 	//-- bind wildcard iterators: left-to-right
 	for (int i=mini+1; i < ItemsCount; ++i) {
 		if (!ibind[i]) continue;
+		int di=m_Distances[i-1], dmax=MaxDistanceForNear;
 		switch (m_DistanceOps[i-1]) {
 		default:
-		case '<': iters[i].bind(m_Items[i], iters[i-1], 1,                  1+m_Distances[i-1]);   break;
-		case '>': iters[i].bind(m_Items[i], iters[i-1], 1+m_Distances[i-1], 1+MaxDistanceForNear); break;
-		case '=': iters[i].bind(m_Items[i], iters[i-1], 1+m_Distances[i-1], 1+m_Distances[i-1]);   break;
+		case '<': iters[i].bind(m_Items[i], iters[i-1], 1,    1+di);   break;
+		case '>': iters[i].bind(m_Items[i], iters[i-1], 1+di, 1+dmax); break;
+		case '=': iters[i].bind(m_Items[i], iters[i-1], 1+di, 1+di);   break;
 		}
 	}
 	//-- bind wildcard iterators: right-to-left
 	for (int i=mini-1; i >= 0; --i) {
 		if (!ibind[i]) continue;
+		int di=m_Distances[i], dmax=MaxDistanceForNear;
 		switch (m_DistanceOps[i]) {
 		default:
-		case '<': iters[i].bind(m_Items[i], iters[i+1], -1-m_Distances[i],     -1);                break;
-		case '>': iters[i].bind(m_Items[i], iters[i+1], -1-MaxDistanceForNear, -1-m_Distances[i]); break;
-		case '=': iters[i].bind(m_Items[i], iters[i+1], -1-m_Distances[i],     -1-m_Distances[i]); break;
+		case '<': iters[i].bind(m_Items[i], iters[i+1], -1-di,   -1);    break;
+		case '>': iters[i].bind(m_Items[i], iters[i+1], -1-dmax, -1-di); break;
+		case '=': iters[i].bind(m_Items[i], iters[i+1], -1-di,   -1-di); break;
 		}
 	}
 	
