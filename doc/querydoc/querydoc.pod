@@ -390,6 +390,7 @@ Comments may appear after each rule in C notation
  count_filter  ::=                                           /*-- Single count-query option --*/
                    count_by                                  /* histogram bin-key selection */
                  | count_sample                              /* histogram sample size */
+                 | count_sort                                /* histogram sort order */
                  ;
  
  count_by      ::=                                           /*-- Select count-query histogram keys (metadata tuples) --*/
@@ -400,6 +401,13 @@ Comments may appear after each rule in C notation
  count_sample  ::=                                           /*-- Select minimum count-query sample size (sub-query limit) --*/
                    #SAMPLE integer                           /* SQL-style syntax */
                  | #SAMPLE [ integer ]                       /* DDC filter-style syntax */
+                 ;
+ 
+ count_sort    ::=                                           /*-- Sort order for count-queries --*/
+                   #LESS_BY_KEY                              /* ... in ascending order by count-key (default; aliases #ASC_BY_KEY, #ASC_KEY, ...) */
+                 | #GREATER_BY_KEY                           /* ... in descending order by count-key (aliases #DESC_BY_KEY, #DESC_KEY, ...) */
+                 | #LESS_BY_COUNT                            /* ... in ascending order by count-value (aliases #ASC_COUNT, #ASC_VALUE, ...) */
+                 | #GREATER_BY_COUNT                         /* ... in descending order by count-value (aliases #DESC_COUNT, #DESC_VALUE, ...) */
                  ;
  
  l_countkeys   ::=                                           /*-- Tuple of bibliographic metadata fields --*/
@@ -654,10 +662,15 @@ The following macros are defined for the underlying scanner:
  (?i:\#((greater|de?sc)(_by)?_)right)
  (?i:\#((less|asc)(_by)?_)?mid(dle)?)
  (?i:\#((greater|de?sc)(_by)?_)mid(dle)?)
- (?i:\#(less|asc)(_by)?)		  
- (?i:\#(greater|de?sc)(_by)?)	
+ (?i:\#(less|asc)(_by)?)
+ (?i:\#(greater|de?sc)(_by)?)
  (?i:\#rand(om)?)
  (?i:\#by)
+ (?i:\#samp(le)?)
+ (?i:\#((less|asc)(_by)?_key))
+ (?i:\#((greater|de?sc)(_by)?_key))
+ (?i:\#((less|asc)(_by)?_(count|val(ue)?)))
+ (?i:\#((greater|de?sc)(_by)?_(count|val(ue)?)))
 
 The scanner supports the various reserved words used in
 the query grammar.  Query keywords are matched

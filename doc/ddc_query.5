@@ -62,7 +62,7 @@
 .\" ========================================================================
 .\"
 .IX Title "DDC_QUERY 5"
-.TH DDC_QUERY 5 "2015-01-16" "2.0.36-pre4" "DDC Corpus Indexing System"
+.TH DDC_QUERY 5 "2015-01-19" "2.0.36" "DDC Corpus Indexing System"
 .\" For nroff, turn off justification.  Always turn off hyphenation; it makes
 .\" way too many mistakes in technical documents.
 .if n .ad l
@@ -443,12 +443,26 @@ Comments may appear after each rule in C notation
 \&                 ;
 \& 
 \& count_filter  ::=                                           /*\-\- Single count\-query option \-\-*/
-\&                   count_by                                  /* histogram bin selection */
+\&                   count_by                                  /* histogram bin\-key selection */
+\&                 | count_sample                              /* histogram sample size */
+\&                 | count_sort                                /* histogram sort order */
 \&                 ;
 \& 
 \& count_by      ::=                                           /*\-\- Select count\-query histogram keys (metadata tuples) \-\-*/
 \&                   #BY l_countkeys                           /* SQL\-style syntax */
 \&                 | #BY [ l_countkeys ]                       /* DDC filter\-style syntax */
+\&                 ;
+\& 
+\& count_sample  ::=                                           /*\-\- Select minimum count\-query sample size (sub\-query limit) \-\-*/
+\&                   #SAMPLE integer                           /* SQL\-style syntax */
+\&                 | #SAMPLE [ integer ]                       /* DDC filter\-style syntax */
+\&                 ;
+\& 
+\& count_sort    ::=                                           /*\-\- Sort order for count\-queries \-\-*/
+\&                   #LESS_BY_KEY                              /* ... in ascending order by count\-key (default; aliases #ASC_BY_KEY, #ASC_KEY, ...) */
+\&                 | #GREATER_BY_KEY                           /* ... in descending order by count\-key (aliases #DESC_BY_KEY, #DESC_KEY, ...) */
+\&                 | #LESS_BY_COUNT                            /* ... in ascending order by count\-value (aliases #ASC_COUNT, #ASC_VALUE, ...) */
+\&                 | #GREATER_BY_COUNT                         /* ... in descending order by count\-value (aliases #DESC_COUNT, #DESC_VALUE, ...) */
 \&                 ;
 \& 
 \& l_countkeys   ::=                                           /*\-\- Tuple of bibliographic metadata fields \-\-*/
@@ -696,10 +710,15 @@ The following macros are defined for the underlying scanner:
 \& (?i:\e#((greater|de?sc)(_by)?_)right)
 \& (?i:\e#((less|asc)(_by)?_)?mid(dle)?)
 \& (?i:\e#((greater|de?sc)(_by)?_)mid(dle)?)
-\& (?i:\e#(less|asc)(_by)?)                  
-\& (?i:\e#(greater|de?sc)(_by)?)   
+\& (?i:\e#(less|asc)(_by)?)
+\& (?i:\e#(greater|de?sc)(_by)?)
 \& (?i:\e#rand(om)?)
 \& (?i:\e#by)
+\& (?i:\e#samp(le)?)
+\& (?i:\e#((less|asc)(_by)?_key))
+\& (?i:\e#((greater|de?sc)(_by)?_key))
+\& (?i:\e#((less|asc)(_by)?_(count|val(ue)?)))
+\& (?i:\e#((greater|de?sc)(_by)?_(count|val(ue)?)))
 .Ve
 .PP
 The scanner supports the various reserved words used in
@@ -935,7 +954,9 @@ and/or the current log file.
 .PP
 The wildcard query operator (*) matches every token in the corpus,
 and its use in most cases can be expected to substantially degrade query evaluation performance.
-There are some exceptions to this rule, however (for ddc as of v2.0.36):
+There are some exceptions to this rule, however (for ddc v2.0.36 and above), which are listed below.
+Please note that in some earlier versions of ddc, the optimizations described here were not implemented,
+so it is always a good rule of thumb to avoid wildcard queries if you can.
 .IP "\fBcount(*)\fR" 4
 .IX Item "count(*)"
 count(*)queries are optimized and can be expected to run quite fast, provided that
@@ -953,9 +974,9 @@ provided that at least one non-wildcard sub-query is used as well, i.e queries o
 \&\f(CW\*(C`near(A,*,*,N)\*(C'\fR,
 \&\f(CW\*(C`near(*,B,*,N)\*(C'\fR, and
 \&\f(CW\*(C`near(*,*,C,N)\*(C'\fRcan be expected to run efficiently.
-.ie n .IP "\fB"".... * ...""\fR" 4
-.el .IP "\fB``.... * ...''\fR" 4
-.IX Item ".... * ..."
+.ie n .IP "\fB""... * ...""\fR" 4
+.el .IP "\fB``... * ...''\fR" 4
+.IX Item "... * ..."
 Like \f(CW\*(C`near()\*(C'\fRqueries, phrase queriesusing the double-quote (\*(L"...\*(R") operator are optimized 
 advantage of universal wildcard sub-queries if at least one non-wildcard sequence item
 is included in the phrase, e.g. phrases of the forms
@@ -963,6 +984,12 @@ is included in the phrase, e.g. phrases of the forms
 \&\f(CW"* B"\fR,
 \&\f(CW"A * C"\fR,
 \&\f(CW"* B * D"\fR, etc. can be expected to run efficiently.
+.IP "\fBwith *\fR" 4
+.IX Item "with *"
+\&\fBwith\fR (qw_with)queries containing a universal wildcard are implicitly simplified to
+the non-wildcard sub-query, thus
+\&\f(CW\*(C`A with *\*(C'\fRand \f(CW\*(C`* with A\*(C'\fRare both evaluated as \f(CW\*(C`A\*(C'\fR,
+without evaluating the wildcard itself.
 .SS "\s-1DTA\s0 Corpus Structure"
 .IX Subsection "DTA Corpus Structure"
 This section gives a brief overview of the index structure used for the

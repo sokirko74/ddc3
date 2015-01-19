@@ -1049,6 +1049,9 @@
 	    <rhs cmt="histogram sample size">
 	      <n>count_sample</n>
 	    </rhs>
+	    <rhs cmt="histogram sort order">
+	      <n>count_sort</n>
+	    </rhs>
 	  </rule>
 
 	  <!--~~~~~~~~ RULES: count_by -->
@@ -1076,6 +1079,22 @@
 	      <t>[</t>
 	      <n>integer</n>
 	      <t>]</t>
+	    </rhs>
+	  </rule>
+
+	  <!--~~~~~~~~ RULES: count_sort -->
+	  <rule lhs="count_sort" cmt="Sort order for count-queries">
+	    <rhs cmt="... in ascending order by count-key (default; aliases #ASC_BY_KEY, #ASC_KEY, ...)">
+	      <t>#LESS_BY_KEY</t>
+	    </rhs>
+	    <rhs cmt="... in descending order by count-key (aliases #DESC_BY_KEY, #DESC_KEY, ...)">
+	      <t>#GREATER_BY_KEY</t>
+	    </rhs>
+	    <rhs cmt="... in ascending order by count-value (aliases #ASC_COUNT, #ASC_VALUE, ...)">
+	      <t>#LESS_BY_COUNT</t>
+	    </rhs>
+	    <rhs cmt="... in descending order by count-value (aliases #DESC_COUNT, #DESC_VALUE, ...)">
+	      <t>#GREATER_BY_COUNT</t>
 	    </rhs>
 	  </rule>
 
@@ -1118,7 +1137,7 @@
 	    <rhs cmt="... bibliographic string-field value (e.g. textClass)">
 	      <n>s_field</n>
 	    </rhs>
-	    <rhs cmt="... indexed token attribute, relative to some matched token">
+	    <rhs cmt="... indexed token attribute, relative to some matched token (may be slow)">
 	      <n>s_index</n>
 	      <n>ck_matchid</n>
 	      <n>ck_offset</n>
@@ -1542,10 +1561,15 @@ regex_modifier	[gimsx]
 (?i:\#((greater|de?sc)(_by)?_)right)
 (?i:\#((less|asc)(_by)?_)?mid(dle)?)
 (?i:\#((greater|de?sc)(_by)?_)mid(dle)?)
-(?i:\#(less|asc)(_by)?)		  
-(?i:\#(greater|de?sc)(_by)?)	
+(?i:\#(less|asc)(_by)?)
+(?i:\#(greater|de?sc)(_by)?)
 (?i:\#rand(om)?)
 (?i:\#by)
+(?i:\#samp(le)?)
+(?i:\#((less|asc)(_by)?_key))
+(?i:\#((greater|de?sc)(_by)?_key))
+(?i:\#((less|asc)(_by)?_(count|val(ue)?)))
+(?i:\#((greater|de?sc)(_by)?_(count|val(ue)?)))
 </pre>
 	<p>
 	  The scanner supports the various reserved words used in

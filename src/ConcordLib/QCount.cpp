@@ -428,6 +428,8 @@ string CQCount::jsonData()
   if (!m_keys.empty()) {
     qs += string(",\"Keys\":") + m_keys.toJson();
   }
+  qs += Format(",\"Sample:\":%zi", m_sample);
+  qs += string(",\"Sort:\":") + jsonStr(HitSortEnumNames[m_sort]);
   return qs;
 }
 

@@ -1815,6 +1815,12 @@
 <tr>
 <td></td>
 <td></td>
+<td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_count_sort">count_sort</a></span> </td>
+<td class="ruleComment">/* histogram sort order */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
 <td><b>;</b></td>
 </tr>
 <tr></tr>
@@ -1861,6 +1867,43 @@
 <td></td>
 <td class="ruleRHS">| <span class="ruleTerminal">#SAMPLE</span> <span class="ruleTerminal">[</span> <span class="ruleNonterminal"><a href="#rule_integer">integer</a></span> <span class="ruleTerminal">]</span> </td>
 <td class="ruleComment">/* DDC filter-style syntax */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td><b>;</b></td>
+</tr>
+<tr></tr>
+<tr>
+<td><b><a name="rule_count_sort">count_sort</a></b></td>
+<td>::=</td>
+<td></td>
+<td class="ruleCommentTop">/* Sort order for count-queries */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS1">
+<span class="ruleTerminal">#LESS_BY_KEY</span> </td>
+<td class="ruleComment">/* ... in ascending order by count-key (default; aliases #ASC_BY_KEY, #ASC_KEY, ...) */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleTerminal">#GREATER_BY_KEY</span> </td>
+<td class="ruleComment">/* ... in descending order by count-key (aliases #DESC_BY_KEY, #DESC_KEY, ...) */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleTerminal">#LESS_BY_COUNT</span> </td>
+<td class="ruleComment">/* ... in ascending order by count-value (aliases #ASC_COUNT, #ASC_VALUE, ...) */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleTerminal">#GREATER_BY_COUNT</span> </td>
+<td class="ruleComment">/* ... in descending order by count-value (aliases #DESC_COUNT, #DESC_VALUE, ...) */</td>
 </tr>
 <tr>
 <td></td>
@@ -2812,10 +2855,15 @@ regex_modifier	[gimsx]
 (?i:\#((greater|de?sc)(_by)?_)right)
 (?i:\#((less|asc)(_by)?_)?mid(dle)?)
 (?i:\#((greater|de?sc)(_by)?_)mid(dle)?)
-(?i:\#(less|asc)(_by)?)		  
-(?i:\#(greater|de?sc)(_by)?)	
+(?i:\#(less|asc)(_by)?)
+(?i:\#(greater|de?sc)(_by)?)
 (?i:\#rand(om)?)
 (?i:\#by)
+(?i:\#samp(le)?)
+(?i:\#((less|asc)(_by)?_key))
+(?i:\#((greater|de?sc)(_by)?_key))
+(?i:\#((less|asc)(_by)?_(count|val(ue)?)))
+(?i:\#((greater|de?sc)(_by)?_(count|val(ue)?)))
 </pre>
 <p>
 	  The scanner supports the various reserved words used in
@@ -3547,7 +3595,7 @@ regex_modifier	[gimsx]
   </body></div>
 <div class="footers">
 <div class="footer_sig">
-<address><a href="mailto:jurish@bbaw.de">jurish@bbaw.de</a></address>Last modified: Mon, 19 Jan 2015 13:23:57 +0100</div>
+<address><a href="mailto:jurish@bbaw.de">jurish@bbaw.de</a></address>Last modified: Mon, 19 Jan 2015 15:50:02 +0100</div>
 <div class="footer_linkbar"><p class="nopad"><a class="navLink" href="/">Root</a><a class="navLink" href="./">Back</a><span class="navLinkDisabled">Help</span></p></div>
 <p class="dummy"></p>
 </div>
