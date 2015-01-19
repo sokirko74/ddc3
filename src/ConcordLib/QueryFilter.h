@@ -82,7 +82,7 @@ public:
   //! swap lower- and upper-bounds if they not in logical order
   void SortBounds(void);
 
-  //! compile the filter.  Default implementation just pushes m_Filter onto compiler->m_Filters
+  //! compile the filter.  Default implementation just pushes m_Filter onto options->m_Filters
   virtual bool Compile(CQueryCompiler *compiler, CQueryOptions *options);
 
   //! compilation utility: return a valid bibliographic attribute for \a attrName

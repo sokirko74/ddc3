@@ -68,11 +68,14 @@ public:
 	//! query options (adopted into top-level m_pQuery on SetQuery())
 	CQueryOptions m_qOptions;
 
-	//! temporary for count #by[] clause
+	//! count()-query keys
 	CQCountKeyExprList m_qCountKeys;
 
-	//! temporary for count #sample clause
+	//! count()-query sample size
 	size_t m_qCountSample;
+
+	//! count()-query sort order
+	HitSortEnum m_qCountSort;
 
 	//--------------------------------------------------------------
 	// temporaries

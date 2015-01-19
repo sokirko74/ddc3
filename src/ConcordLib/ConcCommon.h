@@ -143,8 +143,16 @@ enum HitSortEnum {
 	GreaterByRightContext = 14,
 	//! sort by random key
 	RandomSort = 15,
+	//! sort by count()-key (ascending)
+	LessByCountKey = 16,
+	//! sort by count()-key (descending)
+	GreaterByCountKey = 17,
+	//! sort by count()-value (ascending)
+	LessByCountValue = 18,
+	//! sort by count()-value (descending)
+	GreaterByCountValue = 19,
 	//! end-of-enum sentinel
-	HitSortsCount = 16
+	HitSortsCount = 20
 };
 
 /*! symbolic hit sort order constants */
@@ -173,8 +181,37 @@ static const char *HitSortEnumNames[HitSortsCount] =
 	"GreaterByLeftContext",
 	"LessByRightContext",
 	"GreaterByRightContext",
-	"RandomSort"
+	"RandomSort",
+	"LessByCountKey",
+	"GreaterByCountKey",
+	"LessByCountValue",
+	"GreaterByCountValue"
 	};
+
+/*! symbolic names for HitSortEnum, for stringification */
+static const char *HitSortEnumStrings[HitSortsCount] = {
+  "no_sort",
+  "asc_by_date",
+  "desc_by_date",
+  "asc_by_size",
+  "desc_by_size",
+  "asc",
+  "desc",
+  "asc_by_rank",
+  "desc_by_rank",
+  "asc_context",
+  "desc_context",
+  "asc_left",
+  "desc_left",
+  "asc_right",
+  "desc_right",
+  "random",
+  "asc_by_key",
+  "desc_by_key",
+  "asc_by_count",
+  "desc_by_count"
+};
+
 
 /*! type for hit sort-keys and/or result filtering;
  *  new in v2.0.19
@@ -284,6 +321,8 @@ struct CDDCFilterWithBounds
 		case GreaterByMiddleContext:
 		case GreaterByLeftContext:
 		case GreaterByRightContext:
+		case GreaterByCountKey:
+		case GreaterByCountValue:
 			return hsoDescending;
 		case NoSort:
 			return hsoNone;

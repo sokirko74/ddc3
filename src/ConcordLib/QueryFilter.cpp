@@ -24,26 +24,6 @@
 //======================================================================
 // globals
 
-static const char *HitSortNames[17] = {
-  "no_sort",
-  "asc_by_date",
-  "desc_by_date",
-  "asc_by_size",
-  "desc_by_size",
-  "asc",
-  "desc",
-  "asc_by_rank",
-  "desc_by_rank",
-  "asc_context",
-  "desc_context",
-  "asc_left",
-  "desc_left",
-  "asc_right",
-  "desc_right",
-  "random",
-  "nsorts"
-};
-
 //======================================================================
 // CQFilter
 
@@ -142,7 +122,7 @@ string CQFSort::argString(const string &arg) const
 string CQFSort::toString(void)
 {
   string os("#");
-  os += HitSortNames[m_Filter.m_FilterType];
+  os += HitSortEnumStrings[m_Filter.m_FilterType];
   EngMakeUpper(os);
 
   string as("");
@@ -176,7 +156,7 @@ string CQFSort::jsonMinMax()
 //--------------------------------------------------------------
 string CQFSort::jsonType()
 {
-  return string("\"FilterType\":")+jsonStr(HitSortNames[m_Filter.m_FilterType]);
+  return string("\"FilterType\":")+jsonStr(HitSortEnumStrings[m_Filter.m_FilterType]);
 };
 
 
@@ -273,7 +253,7 @@ bool CQFBiblSort::Compile(CQueryCompiler *compiler, CQueryOptions *options)
 string CQFBiblSort::toString(void)
 {
   string os("#");
-  os += HitSortNames[m_Filter.m_FilterType];
+  os += HitSortEnumStrings[m_Filter.m_FilterType];
   EngMakeUpper(os);
   os += string("['") + escapeChars(m_arg0,"\\'") + "',";
 
@@ -321,7 +301,7 @@ bool CQFContextSort::Compile(CQueryCompiler *compiler, CQueryOptions *options)
 string CQFContextSort::toString(void)
 {
   string os("#");
-  os += HitSortNames[m_Filter.m_FilterType];
+  os += HitSortEnumStrings[m_Filter.m_FilterType];
   EngMakeUpper(os);
 
   //if (!m_arg0.empty() || m_Filter.m_ContextOffset!=0 || !m_arg1.empty() || !m_arg2.empty()) {...}

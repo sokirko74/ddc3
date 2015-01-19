@@ -66,6 +66,15 @@ struct IsLessByFileNo
 };
 
 
+//==============================================================================
+//! direct comparison operator for hits on CHit::m_SortKey.i (for std::sort)
+struct HitLessByCountValue {
+	bool operator() (const CHit &a, const CHit &b) const
+	{
+		return a.m_Value.m_Count < b.m_Value.m_Count;
+	};
+};
+
 
 //==============================================================================
 // cannot create cross-platform heterogenious predicate lower_bound:
@@ -1416,7 +1425,7 @@ DDCErrorEnum CConcHolder::GetAllHits(CQuery *QueryRoot, size_t Limit)
 
 	for (m_CurrentSearchPeriodNo = 0;  m_CurrentSearchPeriodNo < CountOfPeriods; m_CurrentSearchPeriodNo++)
 	{
-		m_pQueryCompiler->Evaluate(QueryRoot);
+		m_pQueryCompiler->Evaluate(qRoot);
 		InitFileReferences(qHits);
 
 		vector<size_t>		PeriodHitsIndex;
@@ -1435,7 +1444,7 @@ DDCErrorEnum CConcHolder::GetAllHits(CQuery *QueryRoot, size_t Limit)
 			const CDDCFilterWithBounds& F = qOpts->m_Filters[FilterNo];
 
 			//-- init Hits::m_SortKey (always initialized in raw ascending order)
-			InitSortKeyForHits(QueryRoot,F);
+			InitSortKeyForHits(qRoot,F);
 
 			size_t hits_start, hits_end;
 			if (m_SortOrder >= 0) {
@@ -1570,7 +1579,7 @@ DDCErrorEnum CConcHolder::GetAllHits(CQuery *QueryRoot, size_t Limit)
 
 	// encode count() query results as hits
 	if (qCount != NULL) {
-		rc = ConvertCountsToHits(Limit);
+		rc = ConvertCountsToHits(qCount, Limit);
 	}
 
 	//  we cannot call here CleanParser, because we would use later some slots of  m_pQueryCompiler 
@@ -1637,7 +1646,7 @@ DDCErrorEnum CConcHolder::GetUniversalCounts(CQuery *CountQueryRoot, size_t Limi
 		const CHitBorders::CBreakCollection *sbreaks = ix->GetBreakCollectionByName(qRoot->m_Options->m_HitTypeStr);
 		DWORD    f=0, n=1;
 		CTokenNo fw_end = fbreaks[f];
-		for (vector<CTokenNo>::const_iterator bi=sbreaks->m_BreakOffsets.begin(); bi != sbreaks->m_BreakOffsets.end() && m_CountSample < qCount->m_sample; ++bi, ++n) {
+		for (vector<CTokenNo>::const_iterator bi=sbreaks->m_BreakOffsets.begin(); bi!=sbreaks->m_BreakOffsets.end() && m_CountSample<qCount->m_sample; ++bi,++n) {
 			if (*bi >= fw_end) {
 				//-- new file
 				if (fmaski != fmasked.end() && f == *fmaski) {
@@ -1658,7 +1667,7 @@ DDCErrorEnum CConcHolder::GetUniversalCounts(CQuery *CountQueryRoot, size_t Limi
 		}
 	}
 
-	return ConvertCountsToHits(Limit);
+	return ConvertCountsToHits(qCount, Limit);
 }
 
 DDCErrorEnum CConcHolder::GetPeriodCounts(CQuery *CountQueryRoot)
@@ -1718,9 +1727,10 @@ DDCErrorEnum CConcHolder::GetPeriodCounts(CQuery *CountQueryRoot)
 	return errNone;
 }
 
-DDCErrorEnum CConcHolder::ConvertCountsToHits(size_t Limit) 
+DDCErrorEnum CConcHolder::ConvertCountsToHits(CQuery *CountQueryRoot, size_t Limit) 
 {
-	size_t n = min(Limit, m_Counts.size());
+	CQCount *qCount = (CQCount*)CountQueryRoot;
+	size_t n = qCount->m_sort==NoSort || qCount->m_sort==LessByCountKey ? min(Limit, m_Counts.size()) : m_Counts.size();
 
 	//-- count query: setup m_Hits[]
 	// + m_Hits[] for count()-queries encodes element CHit hit.m_Sortkey.s (count-key) and hit.m_Value.m_Count
@@ -1735,6 +1745,24 @@ DDCErrorEnum CConcHolder::ConvertCountsToHits(size_t Limit)
 		hi->m_Value.m_Count = ci->second;
 		hi->m_SortKey = ci->first;
 	}
+
+	//-- count query: sort hits 
+	switch (qCount->m_sort) {
+	case LessByCountValue:
+		stable_sort(m_Hits.begin(), m_Hits.end(), HitLessByCountValue()); break;
+	case GreaterByCountValue:
+		stable_sort(m_Hits.rbegin(), m_Hits.rend(), HitLessByCountValue()); break;
+	case GreaterByCountKey:
+		reverse(m_Hits.begin(), m_Hits.end()); break;
+	case LessByCountKey:
+	default:
+		break;
+	}
+
+	//-- count query: trim hits (apply limit)
+	if (Limit < m_Hits.size())
+		m_Hits.resize(Limit);
+	
 
 	//-- count query: setup CQueryResult fields
 	m_HighlightOccurs.clear();

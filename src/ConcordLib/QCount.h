@@ -286,16 +286,20 @@ public:
   //! sample size (sub-query limit)
   size_t m_sample;
 
+  //! sort-order one of: NoSort, (Less|Greater)ByCount(Key|Value)
+  HitSortEnum m_sort;
+
   //! list of count-bin metadata key expressions
   CQCountKeyExprList m_keys;
 
 public:
   //! bison constructor
-  CQCount(CQuery *dtr, const CQCountKeyExprList &keys, size_t sample=DDCDefaultCountSampleSize)
+  CQCount(CQuery *dtr_, const CQCountKeyExprList &keys_, size_t sample_=DDCDefaultCountSampleSize, HitSortEnum sort_=NoSort)
   : CQuery("count"),
-    m_dtr(dtr),
-    m_sample(sample),
-    m_keys(keys)
+    m_dtr(dtr_),
+    m_sample(sample_),
+    m_sort(sort_),
+    m_keys(keys_)
   {};
 
   //! Default destructor.

@@ -410,6 +410,14 @@ string CQCount::toString()
   if (!m_keys.empty()) {
     qs += " #BY[" + m_keys.toString() + "]";
   }
+  if (m_sample != DDCDefaultCountSampleSize)
+    qs += Format(" #SAMPLE[%zi]", m_sample);
+  if (m_sort != NoSort) {
+    string sortstr(" #");
+    sortstr += HitSortEnumStrings[m_sort];
+    EngMakeUpper(sortstr);
+    qs += sortstr;
+  }
   return qs;
 }
 

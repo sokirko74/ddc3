@@ -89,6 +89,7 @@ int yylex (void*,  void*);
 %type   <m_pfilt>	count_filter
 %type   <m_pfilt>	count_by
 %type	<m_pfilt>	count_sample
+%type	<m_pfilt>	count_sort
 
 %type	<m_pfilt>	qf_subcorpora
 %type	<m_pfilt>	qf_has_field
@@ -247,6 +248,10 @@ int yylex (void*,  void*);
 %token	<m_str>	RANDOM
 %token	<m_str>	BY
 %token	<m_str>	SAMPLE
+%token	<m_str>	LESS_BY_KEY
+%token	<m_str>	GREATER_BY_KEY
+%token	<m_str>	LESS_BY_COUNT
+%token	<m_str>	GREATER_BY_COUNT
 
 %token	<m_str>	KW_DATE
 %token	<m_str>	KW_FILEID
@@ -309,6 +314,7 @@ count_filters:
 count_filter:
 		count_by 			{ $$=$1; }
 	|	count_sample			{ $$=$1; }
+	|	count_sort			{ $$=$1; }
 	;
 
 count_by:
@@ -319,6 +325,13 @@ count_by:
 count_sample:
 		SAMPLE integer			{ $$=NULL; _qc->m_qCountSample = $2; }
 	|	SAMPLE '[' integer ']'		{ $$=NULL; _qc->m_qCountSample = $3; }
+	;
+
+count_sort:
+		LESS_BY_KEY			{ $$=NULL; _qc->m_qCountSort = LessByCountKey; }
+	|	GREATER_BY_KEY			{ $$=NULL; _qc->m_qCountSort = GreaterByCountKey; }
+	|	LESS_BY_COUNT			{ $$=NULL; _qc->m_qCountSort = LessByCountValue; }
+	|	GREATER_BY_COUNT		{ $$=NULL; _qc->m_qCountSort = GreaterByCountValue; }
 	;
 
  /*-------------------------------------------------------------

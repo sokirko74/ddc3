@@ -148,7 +148,7 @@ private:
 	//! encode count()-query results in m_Counts[] to m_Hits[], using
 	//! m_Hits[] element CHit hit.m_Sortkey.s to transport count-key
 	//! and hit.m_Value.m_Count to transport count results in a backwards-compatible manner.
-	DDCErrorEnum    ConvertCountsToHits(size_t Limit);
+	DDCErrorEnum    ConvertCountsToHits(CQuery *CountQueryRoot, size_t Limit);
 
 	//! checks if Query  si already in the cache, and if true, it returns its hit results from the cache
 	bool	TryToGetFromCache(const string &Query,  DWORD& EndHitNo);
