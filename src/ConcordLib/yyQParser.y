@@ -39,7 +39,9 @@
 #include "../common/ddcString.h"
 #include <sstream>
 
-#define YYDEBUG 1
+#ifndef YYDEBUG
+# define YYDEBUG 1
+#endif
 
 #define _qc ((CQueryCompiler*)_qcompiler)
 #define _newFilter(class,ftype)			new class ((ftype), _qc->m_FilterLB, _qc->m_FilterUB)
