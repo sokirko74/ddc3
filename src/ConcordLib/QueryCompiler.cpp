@@ -43,7 +43,7 @@
 
 
 extern int yyqdebug;
-//int yyqparse (CQueryCompiler *_qcompiler);
+int yyqparse (CQueryCompiler *_qcompiler);
 
 int yyqlex (void* valp, CQueryCompiler* _prs)
 {
