@@ -1178,6 +1178,8 @@ void CQuerySequenceNode::EvaluateWithoutHits()
 			BYTE DistanceOp = m_DistanceOps[i-1];
 			bool found=false;
 			for ( ; iters[i].valid(); ++iters[i]) {
+				if (iters[i].cur > 0 && iters[i].tmin()==iters[i].tmax_prev()) continue; //-- avoid duplicates in iters[i]
+
 				//-- check for distance-constraing violations
 				DWORD CurDistance = iters[i].tmin() - tprev;
 				if (CurDistance < Distance && (DistanceOp=='=' || DistanceOp=='>'))
@@ -1210,6 +1212,7 @@ void CQuerySequenceNode::EvaluateWithoutHits()
 			} else {
 				//-- no sub-query match iters[i] found: back up
 				--i;
+				++resume[i];
 			}
 		}
 		// after this iteration iters[1]...iters[ItemsCount-1] are non-matches;
