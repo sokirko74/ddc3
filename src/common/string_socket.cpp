@@ -58,6 +58,15 @@ const int ddcSocketChunkSize = 4096;
 	#endif
 #endif
 
+//#define DDC_DEBUG_FDLEAK 1
+#undef DDC_DEBUG_FDLEAK
+#ifdef DDC_DEBUG_FDLEAK
+# define FDDEBUG(x) x
+#else
+# define FDDEBUG(x)
+#endif
+
+
 //! DDC_SOCKET_SEND_MULTI : define this to enable old multiple-send() calls
 #undef DDC_SOCKET_SEND_MULTI
 
@@ -95,12 +104,12 @@ const ERROR_STRUCT errlist[] = {
 bool CloseSocket(int l_socket)
 {
 	bool bResult;
-	#ifdef WIN32
-			bResult = closesocket(l_socket) == 0;
-	#else
-			bResult =  close(l_socket) == 0;
-	#endif
-	//fprintf (stderr, "CloseSocket %i returned %s\n", l_socket, bResult? "true":"false");
+#ifdef WIN32
+	bResult = closesocket(l_socket) == 0;
+#else
+	bResult =  close(l_socket) == 0;
+#endif
+	FDDEBUG(fprintf (stderr, "FDDEBUG: CloseSocket(%u) returned %s\n", (uint)l_socket, (bResult? "true" : "false"));)
 	return bResult;
 };
 
@@ -388,7 +397,7 @@ SOCKET create_socket (const char* HostAddr, int Port, bool bBind, string& strErr
 	}
  	freeaddrinfo(res0);
 
-
+	FDDEBUG(fprintf(stderr, "DEBUG: create_socket(host=%s, port=%d, bind=%d) --> %u\n", HostAddr, Port, (bBind ? 1 : 0), (uint)l_socket);)
 	return l_socket;
 };
 
@@ -532,7 +541,7 @@ bool CHost::ReadFromString (string S)
 
 int	CHost::CreateAndConnectSocket(string& strError) const
 {
-	int l_socket =  create_socket(m_HostAddr.c_str(), m_Port, false, strError);
+	int l_socket = create_socket(m_HostAddr.c_str(), m_Port, false, strError);
 	//fprintf (stderr, "create_and_connect %s:%i resulted in %i\n", HostAddr, Port, l_socket);
 	return l_socket;
 };
