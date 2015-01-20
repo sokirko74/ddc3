@@ -1569,7 +1569,9 @@ DDCErrorEnum CConcHolder::GetAllHits(CQuery *QueryRoot, size_t Limit)
 				time_t curr_time;
 				time(&curr_time);
 				if ((curr_time-last_time+curr_time) > m_QueryEndTime) { // if cannot process next cycle
-					return errTimeoutElapsed;
+					concord_daemon_log( Format("timeout elapsed after %g second(s)", difftime(curr_time, last_time)) );
+					rc = errTimeoutElapsed;
+					break;
 				}
 				//printf ("one period time=%i, left time =%i\n", curr_time-last_time, m_QueryEndTime - curr_time);
 				last_time = curr_time;
