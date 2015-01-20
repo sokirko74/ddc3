@@ -1,5 +1,11 @@
 ##-*- Mode: Change-Log; coding: utf-8; -*-
 
+v2.0.37 Tue, 20 Jan 2015 13:41:14 +0100 moocow
+	+ bugfix release
+	+ fixed over- and underflow bugs in CQuerySequenceNode::EvaluateWithoutHits()
+	+ added verbose logging from CConcHolder on elapsed timeouts (hunting mantis bug #718)
+	+ various tweaks and fixes for compilation with bison v3.0.2 (kira / ubuntu 14.04.1)
+
 v2.0.36 Mon, 19 Jan 2015 15:51:01 +0100 moocow
 	+ general printf format cleanup for "%i" vs "%zi" templates
 	+ minor fixes for building with gcc-4.8.2 + perl-5.18.2 (ubuntu-server 14.04.1)
