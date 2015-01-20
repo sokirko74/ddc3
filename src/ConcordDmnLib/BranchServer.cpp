@@ -329,8 +329,7 @@ NetworkErrorsEnum CDDCBranchServer::RunDistributed(string Query,
 		TimeOut -= end_get_hits-start_get_hits;
 		if (TimeOut < 0)
 		{
-			// if the provious steps took all time we add 10 seconds in order to 
-			// receive at least some results 
+			// if the previous steps took all time we add 10 seconds in order to retrieve at least some results 
 			TimeOut = 10;
 		};
 	};
