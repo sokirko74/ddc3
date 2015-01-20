@@ -19,7 +19,6 @@
 /*======================================================================
  * Bison Options
  */
- /*%define api.pure full*/
 %pure-parser
 %lex-param {CQueryCompiler* _qcompiler}
 %parse-param {CQueryCompiler* _qcompiler}
@@ -36,14 +35,11 @@
  * Bison C Header
  */
 
-/*#include "yyQLexer.h"*/
 #include "QueryCompiler.h"
 #include "../common/ddcString.h"
 #include <sstream>
 
 #define YYDEBUG 1
-//#define YYPARSE_PARAM _qcompiler
-//#define YYLEX_PARAM _qcompiler
 
 #define _qc ((CQueryCompiler*)_qcompiler)
 #define _newFilter(class,ftype)			new class ((ftype), _qc->m_FilterLB, _qc->m_FilterUB)
@@ -61,6 +57,9 @@
 #define NOINT INT_MIN
 
 #define YYERROR_VERBOSE 1
+#ifdef yyqerror
+# undef yyqerror
+#endif
 #define yyqerror(qc,msg) qc->yybarf(msg)
 
 int yylex (void*,  void*);
