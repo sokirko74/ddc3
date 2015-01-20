@@ -64,7 +64,7 @@
 #endif
 #define yyqerror(qc,msg) qc->yybarf(msg)
 
-int yylex (void*,  void*);
+int yylex (void*,  CQueryCompiler*);
 %} 
 
 /*======================================================================

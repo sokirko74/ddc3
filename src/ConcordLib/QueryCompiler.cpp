@@ -43,12 +43,10 @@
 
 
 extern int yyqdebug;
-int yyqparse (void *);
+//int yyqparse (CQueryCompiler *_qcompiler);
 
-int yyqlex (void* valp, void* _p)
+int yyqlex (void* valp, CQueryCompiler* _prs)
 {
-	CQueryCompiler* _prs =  (CQueryCompiler*)_p;
-
 	return _prs->yyqlex(valp);
 };
 
@@ -153,7 +151,7 @@ bool CQueryCompiler::ParseQuery(const string &QueryStr)
 
 	//-- actual parse
 	yylineno = 1;
-	int rc = yyqparse((void*)this);
+	int rc = yyqparse(this);
 	if (rc != 0) {
 		CleanParser();
 		return false;
