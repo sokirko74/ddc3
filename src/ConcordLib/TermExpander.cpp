@@ -302,7 +302,7 @@ void TxCab::compile(void)
   }
 
   //-- curl flags
-  //m_CCurl.forbidReuse(1); //-- CAB closes client connections, but CURL is smart enough to re-connect anyway
+  m_CCurl.forbidReuse(1); //-- CAB closes client connections, but CURL is smart enough to re-connect anyway (?)
   m_CCurl.verbose(m_Debug ? 1 : 0); //-- DEBUG
 }
 

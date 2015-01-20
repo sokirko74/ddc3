@@ -1169,6 +1169,8 @@ void CQuerySequenceNode::EvaluateWithoutHits()
 			//-- advance iters[i] to first occurrence after iters[i-1]
 			for (iters[i]=resume[i]; iters[i].valid() && iters[i].tmin() <= tprev; ++iters[i]) ;
 			resume[i] = iters[i];
+			if (!iters[i].valid())
+				goto seqdone;
 
 
 			//-- attempt to find an iterator-position fulfulling the distance conditions starting from iters[i]
@@ -1215,6 +1217,7 @@ void CQuerySequenceNode::EvaluateWithoutHits()
 		// resume[1] ... resume[ItemCount-1] were possibly updated 
 		// resume[i] is a lower bound of a possible children of resume[i-1],
 	};
+ seqdone:
 
 	// this procedure produces list of occurrences are stored by chunks, and sorted by the first item. 
 	// The length of chunk is equal to the length of the  pattern,
