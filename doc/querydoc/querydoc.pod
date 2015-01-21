@@ -424,7 +424,7 @@ Comments may appear after each rule in C notation
                  | DATE                                      /* ... date string (YYYY-MM-DD) */
                  | DATE / i_slice                            /* ... date slice, computed as (i_slice*int(year/i_slice)) */
                  | s_field                                   /* ... bibliographic string-field value (e.g. textClass) */
-                 | s_index ck_matchid ck_offset              /* ... indexed token attribute, relative to some matched token */
+                 | s_index ck_matchid ck_offset              /* ... indexed token attribute, relative to some matched token (may be slow) */
                  | count_key ~ replace_regex                 /* ... on-the-fly regex transformation (can be chained) */
                  | ( count_key )                             /* ... explicit grouping */
                  ;
