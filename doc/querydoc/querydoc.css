@@ -582,6 +582,7 @@ dd dt {
 }
 .ruleRHS, .ruleRHS1 { 
   word-spacing: 0.5em;
+  white-space: nowrap;
 }
 .ruleRHS1 { 
   padding-left: 1em;
