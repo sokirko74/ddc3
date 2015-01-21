@@ -70,6 +70,7 @@ int main(int argc, char* argv[])
 
 	{
 		StringVector Args;
+		bool bResultLimitGiven = false;
 		int ResultLimit  = -1;
 		bool bPrintProfile = false;
 		bool bOnlyGetHitsCount = false;
@@ -95,6 +96,7 @@ int main(int argc, char* argv[])
 				if (i+1 >= argc)
 					PrintUsageAndExit();
 
+				bResultLimitGiven = true;
 				ResultLimit = atoi(argv[i+1]);
 				i++;
 			}
@@ -214,7 +216,7 @@ int main(int argc, char* argv[])
 
 			R.m_ResultLimit = 10;
 
-			if (ResultLimit != -1)
+			if (bResultLimitGiven)
 				R.m_ResultLimit = ResultLimit;
 
 			fprintf  (stderr, "Finding at least %zi occurrences\n", R.m_ResultLimit);
