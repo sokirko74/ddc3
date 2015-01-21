@@ -210,7 +210,7 @@ public:
 	void SetFilterBounds(const string& lb="", const string& ub="");
 
 	//! set context-filter key
-	void SetFilterKey(const string &field="", BYTE matchid=0, int offset=0);
+	void SetFilterKey(const string &field="", BYTE matchid=0, int offset=INT_MIN);
 
 	//! debug: return a string form for the current query; wraps m_pQuery->toString() + m_pQuery->optionsToString()
 	string QueryToString(void);

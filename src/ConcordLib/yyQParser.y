@@ -43,6 +43,7 @@
 # define YYDEBUG 1
 #endif
 
+#define NOINT INT_MIN
 #define _qc ((CQueryCompiler*)_qcompiler)
 #define _newFilter(class,ftype)			new class ((ftype), _qc->m_FilterLB, _qc->m_FilterUB)
 #define _newBFilter(ftype,field)		new CQFBiblSort ((ftype), field, _qc->m_FilterLB, _qc->m_FilterUB)
@@ -55,8 +56,6 @@
 	static char THIS_FILE[] = __FILE__;
 	#endif
 #endif
-
-#define NOINT INT_MIN
 
 #define YYERROR_VERBOSE 1
 #ifdef yyqerror
