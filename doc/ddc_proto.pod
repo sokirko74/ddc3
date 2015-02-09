@@ -1,7 +1,10 @@
 =encoding utf8
 
+=cut
+
 ########################################################################
 ## Header
+
 =pod
 
 =head1 DDC SERVER PROTOCOL
