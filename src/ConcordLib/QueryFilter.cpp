@@ -307,7 +307,7 @@ string CQFContextSort::toString(void)
   //if (!m_arg0.empty() || m_Filter.m_ContextOffset!=0 || !m_arg1.empty() || !m_arg2.empty()) {...}
   os += string("[") + argString(m_arg0);
   if (m_Filter.m_ContextMatchId != 0)
-    os += Format(" $%u", m_Filter.m_ContextMatchId);
+    os += Format(" =%u", m_Filter.m_ContextMatchId);
   os += Format(" %+d", m_Filter.m_ContextOffset);
   if (!m_arg1.empty() || !m_arg2.empty()) {
     os += string(",") + argString(m_arg1) + "," + argString(m_arg2);
