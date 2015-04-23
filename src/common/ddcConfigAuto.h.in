@@ -3,6 +3,10 @@
 /* Define this to enable debugging code */
 #undef DDC_DEBUG_ENABLED
 
+/* Enable array-encoding of extra-sentential context tokens in JSON output
+   strings? */
+#undef DDC_JSON_COMPLEX_CONTEXT
+
 /* size in bytes of potentially large static ddc-internal string buffers */
 #undef DDC_STATIC_BUFLEN
 

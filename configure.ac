@@ -269,6 +269,21 @@ AC_DEFINE_UNQUOTED(DDC_STATIC_BUFLEN, $ddc_static_buflen, [size in bytes of pote
 ## defs: static buffer length(s)
 ##^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+##----------------------------------------------------------------------
+## defs: complex context tokens
+AC_ARG_ENABLE([json-complex-context],
+	AC_HELP_STRING([--disable-json-complex-context],
+		[Disable array-encoding of extra-sentential context tokens in JSON output strings (default=yes)]),
+		[ddc_json_complex_context="$enableval"],
+		[ddc_json_complex_context="yes"])
+AC_MSG_CHECKING([whether to enable complex context tokens in JSON output strings])
+AC_MSG_RESULT([$ddc_json_complex_context])
+if test "$ddc_json_complex_context" != "no" ; then
+  AC_DEFINE_UNQUOTED(DDC_JSON_COMPLEX_CONTEXT, 1, [Enable array-encoding of extra-sentential context tokens in JSON output strings?])
+fi
+## defs: complex context tokens
+##^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
 ##vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
 ## debug ?
 ##

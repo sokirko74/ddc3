@@ -5,6 +5,7 @@ v2.0.38 Thu, 23 Apr 2015 12:12:00 +0200 moocow : PENDING
 	+ added CQuery::m_User, CQFilter::m_User, CQueryOptions::m_User (user data, e.g. for perl-wrapper SV*)
 	+ updated lexer regex for '#cntxt' keyword to (?i:\#(co?n?te?xt?|n)) [was: (?i:\#(cntxt|n))]
 	+ complex extra-sentential hit tokens in json mode (no longer simple strings)
+	  - can revert to old behavior via configure option --disable-json-complex-context
 	+ added CQuery::Children(), CQuery::Descendants(), CQuery::DisownChildren()
 	  - for future use in perl-wrappers (better reference counting)
 
