@@ -69,6 +69,9 @@ public:
   //! selected subcorpora for this query
   CQSubcorpusList m_Subcorpora;
 
+  //! user data for this options node (for use e.g. by perl wrappers)
+  void *m_User;
+
 public:
   //------------------------------------------------------------
   ///\name Constructors etc.
@@ -81,7 +84,8 @@ public:
       m_bDebugRank(false),
       m_bSeparateHits(false),
       m_TextAreaNo(UnknownTextAreaNo),
-      m_HitTypeStr("")
+      m_HitTypeStr(""),
+      m_User(NULL)
   {};
 
   //! Default destructor; calls Clear

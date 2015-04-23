@@ -131,7 +131,7 @@ regex_modifier	[gimsx]
 <Q_DATE>""/.			{ BEGIN(INITIAL); }
 
  /* query operators */
-(?i:\#(cntxt|n))		{ return CNTXT; }
+(?i:\#(co?n?te?xt?|n))		{ return CNTXT; }
 (?i:\#(with)?in)		{ return WITHIN; }
 (?i:\#(sep(arate)?|nojoin)(_hits)?)	{ return SEPARATE_HITS; }
 (?i:\#(nosep(arate)?|join)(_hits)?)	{ return NOSEPARATE_HITS; }

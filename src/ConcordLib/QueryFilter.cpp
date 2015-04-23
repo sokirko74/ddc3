@@ -27,6 +27,7 @@
 //======================================================================
 // CQFilter
 
+//--------------------------------------------------------------
 bool CQFilter::Compile(CQueryCompiler *compiler, CQueryOptions *options)
 {
   assert(compiler!=NULL);

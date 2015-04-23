@@ -26,6 +26,9 @@
 
 extern const BYTE DefaultMatchId;
 
+class CQuery; //-- forward declaraction
+typedef list<CQuery*> CQueryList;
+
 //======================================================================
 /*!
  \brief
@@ -47,6 +50,9 @@ public:
   //! root-level options (root queries only)
   CQueryOptions *m_Options;
 
+  //! user data associated with this query node (for use e.g. by perl wrappers)
+  void *m_User;
+
 public:
   //------------------------------------------------------------
   ///\name Constructors etc.
@@ -56,7 +62,8 @@ public:
     : m_Label(label),
       m_Compiler(NULL),
       m_Node(NULL),
-      m_Options(NULL)
+      m_Options(NULL),
+      m_User(NULL)
   {};
 
   //! Default destructor.
@@ -94,6 +101,18 @@ public:
   //! Is this query an admissible root of a compiled parse tree (default returns !this->Negated())
   virtual bool RootOK()
   { return !this->Negated(); };
+
+  //! get a list of direct non-NULL CQuery direct daughters of this node
+  //! \li default just returns an empty list
+  virtual CQueryList Children() const;
+
+  //! get a list of all non-NULL CQuery descendants of this node (breadth-first order)
+  //! \li default pushes each daughter in Daughters() and her Descendants() in turn
+  virtual CQueryList Descendants() const;
+
+  //! "disown" any direct child nodes, preventing their destruction if the current object is deleted
+  //! \li default implementation does nothing
+  virtual void DisownChildren();
 
   //! \b DEBUG: return a canonical string form for this query (default just returns m_Label)
   virtual string toString() { return m_Label; };
@@ -215,6 +234,12 @@ public:
 
   //! clear query contents.  if \c deep is true, propagates operation to daughters
   virtual void Clear(bool deep=true);
+
+  //! get a list of direct non-NULL CQuery direct daughters of this node
+  virtual CQueryList Children() const;
+
+  //! "disown" any direct child nodes, preventing their destruction if the current object is deleted
+  virtual void DisownChildren();
 
   virtual bool Compile(CQueryCompiler *compiler);
   virtual string toString();
@@ -718,6 +743,12 @@ public:
   //! clear query contents.  if \c deep is true, propagates operation to daughters
   virtual void Clear(bool deep=true);
 
+  //! get a list of direct non-NULL CQuery direct daughters of this node
+  virtual CQueryList Children() const;
+
+  //! "disown" any direct child nodes, preventing their destruction if the current object is deleted
+  virtual void DisownChildren();
+
   //! Set match-id, returns new value; override propagates matchId to daughers.
   virtual BYTE SetMatchId(BYTE matchId);
 
@@ -776,6 +807,12 @@ public:
 
   //! clear query contents.  if \c deep is true, propagates operation to daughters
   virtual void Clear(bool deep=true);
+
+  //! get a list of direct non-NULL CQuery direct daughters of this node
+  virtual CQueryList Children() const;
+
+  //! "disown" any direct child nodes, preventing their destruction if the current object is deleted
+  virtual void DisownChildren();
 
   //! append another (item,distance) pair onto this sequence
   //! \c nextDist is ignored if this is the first item in the sequence

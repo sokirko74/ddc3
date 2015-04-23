@@ -436,6 +436,7 @@ string BuildHtmlHitStrWithHighlighting (const vector<COutputToken>& Tokens, bool
 #undef   JSON_USE_DDC_SPACING
 #undef   JSON_USE_HASH
 #undef   JSON_SHORT_FILENAMES
+#define JSON_COMPLEX_CONTEXT
 string CConcHolder::BuildJsonContextString (const vector<COutputToken>& Tokens, bool doHighlight) const
 {
     //==================================================
@@ -579,13 +580,36 @@ bool CConcHolder::GetContextJson(int StartBreakNo, int EndBreakNo, const DWORD C
 	    assert (!m_pIndexator->m_IndicesToShow.empty());
 	    vector<COutputToken> Tokens;
 
+#ifdef JSON_COMPLEX_CONTEXT
+	    //-- complex output tokens; copy+paste+edit from CConcHolder::GenerateHitStrings()
+	    assert (!m_pIndexator->m_IndicesToShow.empty());
+	    for (size_t ixno=0; ixno < m_pIndexator->m_IndicesToShow.size(); ++ixno) {
+		    vector<COutputToken> ixTokens;
+		    if (!GetTokensFromStorageByBreak(m_pIndexator->m_IndicesToShow[ixno], BreakNo, ixTokens)) {
+			    throw CExpc(errOther, Format("CConcHolder::GetContextJson(): could not get index items for IndexNo=%i, BreakNo=%i\n",
+							 m_pIndexator->m_IndicesToShow[ixno], BreakNo));
+			    return false;
+		    }
+		    if (ixno==0) {
+			    Tokens.swap(ixTokens);
+		    } else {
+			    assert(Tokens.size()==ixTokens.size());
+			    for (size_t toki=0; toki < Tokens.size(); ++toki) {
+				    if (!ixTokens[toki].m_TokenStr.empty())
+					    Tokens[toki].m_InterpStr += m_pIndexator->m_InterpDelimiter + ixTokens[toki].m_TokenStr;
+			    }
+		    }
+	    }
+	    if (!js.empty()) js.push_back(',');
+	    js += BuildJsonContextString(Tokens, true);
+#else
 	    if (!GetTokensFromStorageByBreak(m_pIndexator->m_IndicesToShow[0], BreakNo, Tokens)) {
 		ErrorMessage(Format("Cannot get sentence: BreakNo=%i,BreakEndTokenNo=%i,  FileNo=%i\n", BreakNo, B, CurrFileNo));
 		return false;
 	    }
-
 	    if (!js.empty()) js.push_back(',');
 	    js += BuildJsonContextString(Tokens, false);
+#endif
 	};
     };
     return true;
@@ -738,7 +762,6 @@ bool CConcHolder::GenerateOneHitStringJson(DWORD PageNumber, const CHit& Hit, co
 #else
 		      + "\"file_\":" + jsonStr(m_pIndexator->m_CorpusFiles[Hit.m_FileNo], utf8)
 #endif // JSON_SHORT_FILENAMES
-
 		      + ",\"scan_\":" + jsonStr(B.m_ScanBibl, utf8)
 		      + ",\"orig_\":" + jsonStr(B.m_OrigBibl, utf8)
 		      + ",\"date_\":" + jsonStr(B.m_DateStr, utf8)
@@ -751,7 +774,7 @@ bool CConcHolder::GenerateOneHitStringJson(DWORD PageNumber, const CHit& Hit, co
 		      + ",\"key_\":[" + Format("%d", Hit.m_SortKey.i) + "," + jsonStr(Hit.m_SortKey.s, utf8) + "]"
 #endif
 		      );
-    if (m_pIndexator->OutputBibliographyOfHits()) {
+    if (m_pQueryCompiler->m_pQuery->m_Options->m_bEnableBibliography && m_pIndexator->OutputBibliographyOfHits()) {
 	hitStr += "," + m_pIndexator->m_Bibl.GetFreeHeaderBiblAttributesJson(Hit.m_FileNo, utf8);
     }
 

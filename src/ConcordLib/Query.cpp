@@ -116,6 +116,31 @@ bool CQuery::HasMatchId() const
 };
 
 //--------------------------------------------------------------
+CQueryList CQuery::Children() const
+{
+  return CQueryList();
+};
+
+//--------------------------------------------------------------
+void CQuery::DisownChildren()
+{
+  return;
+};
+
+//--------------------------------------------------------------
+CQueryList CQuery::Descendants() const
+{
+  CQueryList kids = this->Children();
+  CQueryList descendants(kids);
+  for (CQueryList::const_iterator ki=kids.begin(); ki != kids.end(); ++ki) {
+    if (!*ki) continue;
+    CQueryList kkids = (*ki)->Descendants();
+    descendants.splice(descendants.end(), kkids);
+  }
+  return descendants;
+};
+
+//--------------------------------------------------------------
 void CQuery::SetOptions(CQueryOptions *opts)
 {
   if (m_Options) delete m_Options;
@@ -209,6 +234,20 @@ void CQBinOp::Clear(bool deep)
   }
   m_dtr1=NULL;
   m_dtr2=NULL;
+}
+
+CQueryList CQBinOp::Children() const
+{
+  CQueryList kids;
+  if (m_dtr1) kids.push_back(m_dtr1);
+  if (m_dtr2) kids.push_back(m_dtr2);
+  return kids;
+}
+
+void CQBinOp::DisownChildren()
+{
+  m_dtr1 = NULL;
+  m_dtr2 = NULL;
 }
 
 bool CQBinOp::Compile(CQueryCompiler *compiler)
@@ -786,6 +825,22 @@ void CQNear::Clear(bool deep)
   m_dtr3 = NULL;
 }
 
+CQueryList CQNear::Children() const
+{
+  CQueryList kids;
+  if (m_dtr1) kids.push_back(m_dtr1);
+  if (m_dtr2) kids.push_back(m_dtr2);
+  if (m_dtr3) kids.push_back(m_dtr3);
+  return kids;
+}
+
+void CQNear::DisownChildren()
+{
+  m_dtr1 = NULL;
+  m_dtr2 = NULL;
+  m_dtr3 = NULL;
+}
+
 CQNear::~CQNear()
 {
   Clear(true);
@@ -897,6 +952,20 @@ bool CQSeq::HasMatchId() const
       return true;
   }
   return false;
+}
+
+CQueryList CQSeq::Children() const
+{
+  CQueryList kids;
+  for (vector<CQToken*>::const_iterator qi=m_Items.begin(); qi!=m_Items.end(); ++qi) {
+    if (*qi) kids.push_back((CQuery*)(*qi));
+  }
+  return kids;
+}
+
+void CQSeq::DisownChildren()
+{
+  m_Items.clear();
 }
 
 void CQSeq::Append(CQToken *nextItem, BYTE nextDist, BYTE nextDistOp)

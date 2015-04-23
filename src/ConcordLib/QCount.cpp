@@ -144,6 +144,20 @@ CQCountKeyExprRegex::~CQCountKeyExprRegex()
 }
 
 //----------------------------------------------------------------------
+CQueryList CQCountKeyExprRegex::Children() const
+{
+  CQueryList kids;
+  if (m_Src) kids.push_back(m_Src);
+  return kids;
+}
+
+//----------------------------------------------------------------------
+void CQCountKeyExprRegex::DisownChildren()
+{
+  m_Src = NULL;
+}
+
+//----------------------------------------------------------------------
 bool CQCountKeyExprRegex::Compile(CQueryCompiler *compiler)
 {
   if (!m_Src || !m_Src->Compile(compiler)) return false;
@@ -278,6 +292,22 @@ void CQCountKeyExprList::Clear()
 };
 
 //----------------------------------------------------------------------
+CQueryList CQCountKeyExprList::Children() const
+{
+  CQueryList kids;
+  for (vector<CQCountKeyExpr*>::const_iterator xi=m_Exprs.begin(); xi!=m_Exprs.end(); xi++) {
+    if (*xi) kids.push_back((CQuery*)(*xi));
+  }
+  return kids;
+}
+
+//----------------------------------------------------------------------
+void CQCountKeyExprList::DisownChildren()
+{
+  m_Exprs.clear();
+}
+
+//----------------------------------------------------------------------
 bool CQCountKeyExprList::CanCountByFile() const
 {
   for (vector<CQCountKeyExpr*>::const_iterator xi=m_Exprs.begin(); xi!=m_Exprs.end(); xi++) {
@@ -371,6 +401,20 @@ void CQCount::Clear(bool deep)
     if (m_dtr) delete m_dtr;
     m_keys.Clear();
   }
+  m_dtr = NULL;
+}
+
+//--------------------------------------------------------------
+CQueryList CQCount::Children() const
+{
+  CQueryList kids;
+  if (m_dtr) kids.push_back(m_dtr);
+  return kids;
+}
+
+//--------------------------------------------------------------
+void CQCount::DisownChildren()
+{
   m_dtr = NULL;
 }
 

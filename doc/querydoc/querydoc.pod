@@ -5,7 +5,7 @@
 =head2 Overview
 
 This documentation describes the query language accepted by
-DDC version 2.0.36.  Current sources for DDC should be available
+DDC version 2.0.38.  Current sources for DDC should be available
 from
 http://sourceforge.net/projects/ddc-concordance.
 
@@ -641,7 +641,7 @@ The following macros are defined for the underlying scanner:
  (?i:(file|doc)?id)
  (?i:(file|doc)_?(name)?)
  (?i:date)
- (?i:\#(cntxt|n))
+ (?i:\#(co?n?te?xt?|n))
  (?i:\#(with)?in)
  (?i:\#(sep(arate)?|nojoin)(_hits)?)
  (?i:\#(nosep(arate)?|join)(_hits)?)

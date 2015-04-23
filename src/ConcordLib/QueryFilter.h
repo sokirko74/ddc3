@@ -25,6 +25,9 @@
 
 class CQueryCompiler; //-- forward decl
 class CQueryOptions;  //-- forward decl
+class CQFilter;	      //-- forward decl
+
+typedef list<CQFilter*> StdCQFilterList; //-- for child- and descendant-lists (type "CQFilterList" is really vector<CQFilter*>)
 
 //======================================================================
 // CQFilter
@@ -32,8 +35,20 @@ class CQueryOptions;  //-- forward decl
 //! class for global query filters aka "query operators"
 class CQFilter {
 public:
+  //!\name data
+  //@{
+  //! user data associated with this filter (for use e.g. by perl wrappers)
+  void *m_User;
+  //@}
+
+public:
   //!\name API
   //@{
+  //! Default constructor
+  CQFilter()
+    : m_User(NULL)
+  {};
+
   //! apply the filter to the given compiler
   virtual bool Compile(CQueryCompiler *compiler, CQueryOptions *options);
 
