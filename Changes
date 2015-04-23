@@ -1,5 +1,8 @@
 ##-*- Mode: Change-Log; coding: utf-8; -*-
 
+v2.0.38 Thu, 23 Apr 2015 12:12:00 +0200 moocow
+	+ CQFContextSort::toString() fix for nontrivial match-ids
+
 v2.0.37 Wed, 21 Jan 2015 11:02:25 +0100 moocow
 	+ bugfix release
 	+ fixed over- and underflow bugs in CQuerySequenceNode::EvaluateWithoutHits()
