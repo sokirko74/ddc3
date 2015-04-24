@@ -25,40 +25,30 @@
 
 class CQueryCompiler; //-- forward decl
 class CQueryOptions;  //-- forward decl
-class CQFilter;	      //-- forward decl
-
-typedef list<CQFilter*> StdCQFilterList; //-- for child- and descendant-lists (type "CQFilterList" is really vector<CQFilter*>)
 
 //======================================================================
 // CQFilter
 
 //! class for global query filters aka "query operators"
-class CQFilter {
+class CQFilter : public ddcObject {
 public:
-  //!\name data
-  //@{
-  //! user data associated with this filter (for use e.g. by perl wrappers)
-  void *m_User;
-  //@}
-
-public:
-  //!\name API
+  //------------------------------------------------------------
+  //!\name CQFilter API
   //@{
   //! Default constructor
   CQFilter()
-    : m_User(NULL)
   {};
 
   //! apply the filter to the given compiler
   virtual bool Compile(CQueryCompiler *compiler, CQueryOptions *options);
+  //@}
 
+  //------------------------------------------------------------
+  //!\name ddcObject API
+  //@{
   //! convert filter to a canonical string
   virtual string toString(void) { return string("#FILTER[?]"); };
-
-  //! convert filter to a json string, including "class" key
-  virtual string toJson(void) { return string("{\"class\":")+jsonStr(this->jsonClass())+","+this->jsonData()+"}"; };
   virtual string jsonClass(void) { return "CQFilter"; };
-  virtual string jsonData(void) { return ""; };
   //@}
 };
 
@@ -106,10 +96,9 @@ public:
   //!  + otherwise returns an empty string
   string ResolveAttributeName(CQueryCompiler *compiler, const string& attrName, bool allowBiblExpander=false);
 
+  //-- ddcObject API & utilities
   //! stringification utility: quoted strign for arg, or empty string
   string argString(const string &arg) const;
-
-  //! stringification
   virtual string toString(void);
   virtual string jsonClass(void) { return "CQFSort"; };
   virtual string jsonMinMax(void);
@@ -139,7 +128,7 @@ public:
     : CQFSort(ftype,string(""),lb,ub)
   {};
 
-  int Str2Date(const std::string &datestr, int onEmpty=0);
+  static int Str2Date(const std::string &datestr, int onEmpty=0);
 
   virtual bool Compile(CQueryCompiler *compiler, CQueryOptions *options);
   virtual string jsonClass(void) { return "CQFDateSort"; };
@@ -220,7 +209,6 @@ public:
   //! compile the filter
   virtual bool Compile(CQueryCompiler *compiler, CQueryOptions *options);
 
-  //! stringify
   virtual string toString(void);
   virtual string jsonClass(void) { return "CQFContextSort"; };
   virtual string jsonData(void);
@@ -247,7 +235,7 @@ public:
   virtual bool Compile(CQueryCompiler *compiler, CQueryOptions *options);
 
   //! value string for stringification
-  virtual std::string valueString(void);
+  virtual string valueString(void);
 
   //! generic stringification; uses valueString()
   virtual string toString(void);

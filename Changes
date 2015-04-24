@@ -1,13 +1,18 @@
 ##-*- Mode: Change-Log; coding: utf-8; -*-
 
-v2.0.38 Thu, 23 Apr 2015 12:12:00 +0200 moocow : PENDING
+v2.0.38-pre1 Fri, 24 Apr 2015 13:14:46 +0200 moocow
 	+ CQFContextSort::toString() fix for nontrivial match-ids
-	+ added CQuery::m_User, CQFilter::m_User, CQueryOptions::m_User (user data, e.g. for perl-wrapper SV*)
+	+ added common/ddcObject.h : common base class ddcObject
+	  - user data void *m_User (for perl wrappers)
+	  - stringification method toString()
+	  - json stringification methods toJson(), jsonClass(), jsonData()
+	  - object substructure methods Children(), DisownChildren(), Descendants(), Traverse(), TraverseConst()
+	    * for future use in perl-wrappers (better reference counting)
+	+ re-factored CQuery, CQFilter, CQueryOptions, CQueryCompiler into ddcObject
 	+ updated lexer regex for '#cntxt' keyword to (?i:\#(co?n?te?xt?|n)) [was: (?i:\#(cntxt|n))]
 	+ complex extra-sentential hit tokens in json mode (no longer simple strings)
-	  - can revert to old behavior via configure option --disable-json-complex-context
-	+ added CQuery::Children(), CQuery::Descendants(), CQuery::DisownChildren()
-	  - for future use in perl-wrappers (better reference counting)
+	  - can revert to old behavior via configure option --disable-json-deep-context
+
 
 v2.0.37 Wed, 21 Jan 2015 11:02:25 +0100 moocow
 	+ bugfix release

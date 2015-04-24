@@ -194,11 +194,13 @@ public:
   CQCountKeyExprRegex(CQCountKeyExpr *src, const string& pattern, const string &replacement, const string& modifiers=string(""))
     : CQCountKeyExprIndexed("regex"), m_Src(src), m_Pattern(pattern), m_Replacement(replacement), m_Modifiers(modifiers), isGlobal(false), m_Regex(NULL) {};
   virtual ~CQCountKeyExprRegex();
-  virtual CQueryList Children() const;
   virtual void DisownChildren();
   virtual bool CanCountByFile() const { return m_Src->CanCountByFile(); };
   virtual bool Compile(CQueryCompiler *compiler);
   virtual string& Evaluate(const CHit &Hit);
+
+  //-- ddcObject API
+  virtual ddcObjectList Children() const;
   virtual string toString();
   virtual string jsonClass() { return "CQCountKeyExprRegex"; };
   virtual string jsonData();
@@ -253,12 +255,6 @@ public:
   /*! clear and delete all sub-expressions */
   virtual void Clear();
 
-  /*! get a list of all non-NULL daughters of this node */
-  virtual CQueryList Children() const;
-
-  /*! disown any non-NULL daughters of this node */
-  virtual void DisownChildren();
-
   /*! wrapper for m_Exprs.empty() */
   inline bool empty() const { return m_Exprs.empty(); };
 
@@ -275,6 +271,9 @@ public:
   virtual bool Compile(CQueryCompiler *compiler);
   virtual string& Evaluate(const CHit &Hit);
 
+  //-- ddcObject API
+  virtual ddcObjectList Children() const;
+  virtual void DisownChildren();
   virtual string toString();
   virtual string jsonClass() { return "CQCountKeyExprList"; };
   virtual string jsonData();
@@ -338,10 +337,8 @@ public:
   //! clear query contents.  if \c deep is true, propagates operation to daughters
   virtual void Clear(bool deep=true);
 
-  //! get a list of direct non-NULL CQuery daughters of this node
-  virtual CQueryList Children() const;
-
-  //! disown any direct children
+  //-- ddcObject API
+  virtual ddcObjectList Children() const;
   virtual void DisownChildren();
 };
 

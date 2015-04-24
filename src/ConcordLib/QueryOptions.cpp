@@ -154,7 +154,7 @@ string CQueryOptions::toString()
 }
 
 //--------------------------------------------------------------
-string CQueryOptions::toJson()
+string CQueryOptions::jsonData()
 {
   string qs("");
 
@@ -194,12 +194,18 @@ string CQueryOptions::toJson()
     qs.push_back(']');
   }
 
-  if (qs.empty()) {
-    qs = "{";
-  }
-  qs[0] = '{';
-  qs.push_back('}');
-
+  if (!qs.empty()) qs.erase(qs.begin()); //-- remove initial ',' if any
   return qs;
 }
 
+//--------------------------------------------------------------
+ddcObjectList CQueryOptions::Children() const
+{
+  return ddcObjectList(m_QFilters.begin(), m_QFilters.end());
+}
+ 
+//--------------------------------------------------------------
+void CQueryOptions::DisownChildren()
+{
+  m_QFilters.clear();
+}

@@ -37,6 +37,7 @@
 #include "../AgramtabLib/RusGramTab.h"
 #include "../AgramtabLib/GerGramTab.h"
 #include "../common/DDC_common.h"
+#include "../common/ddcObject.h"
 #include "../tinyxml/tinyxml.h"
 
 #include "../ConcordLib/CCurl.h"

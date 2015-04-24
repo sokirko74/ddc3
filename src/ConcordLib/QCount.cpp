@@ -144,9 +144,9 @@ CQCountKeyExprRegex::~CQCountKeyExprRegex()
 }
 
 //----------------------------------------------------------------------
-CQueryList CQCountKeyExprRegex::Children() const
+ddcObjectList CQCountKeyExprRegex::Children() const
 {
-  CQueryList kids;
+  ddcObjectList kids = CQuery::Children();
   if (m_Src) kids.push_back(m_Src);
   return kids;
 }
@@ -154,6 +154,7 @@ CQueryList CQCountKeyExprRegex::Children() const
 //----------------------------------------------------------------------
 void CQCountKeyExprRegex::DisownChildren()
 {
+  CQuery::DisownChildren();
   m_Src = NULL;
 }
 
@@ -292,11 +293,11 @@ void CQCountKeyExprList::Clear()
 };
 
 //----------------------------------------------------------------------
-CQueryList CQCountKeyExprList::Children() const
+ddcObjectList CQCountKeyExprList::Children() const
 {
-  CQueryList kids;
+  ddcObjectList kids = CQuery::Children();
   for (vector<CQCountKeyExpr*>::const_iterator xi=m_Exprs.begin(); xi!=m_Exprs.end(); xi++) {
-    if (*xi) kids.push_back((CQuery*)(*xi));
+    if (*xi) kids.push_back((ddcObject*)(*xi));
   }
   return kids;
 }
@@ -304,6 +305,7 @@ CQueryList CQCountKeyExprList::Children() const
 //----------------------------------------------------------------------
 void CQCountKeyExprList::DisownChildren()
 {
+  CQuery::DisownChildren();
   m_Exprs.clear();
 }
 
@@ -405,9 +407,9 @@ void CQCount::Clear(bool deep)
 }
 
 //--------------------------------------------------------------
-CQueryList CQCount::Children() const
+ddcObjectList CQCount::Children() const
 {
-  CQueryList kids;
+  ddcObjectList kids = CQuery::Children();
   if (m_dtr) kids.push_back(m_dtr);
   return kids;
 }
@@ -415,6 +417,7 @@ CQueryList CQCount::Children() const
 //--------------------------------------------------------------
 void CQCount::DisownChildren()
 {
+  CQuery::DisownChildren();
   m_dtr = NULL;
 }
 

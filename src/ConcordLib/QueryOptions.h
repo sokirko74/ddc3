@@ -35,7 +35,7 @@ typedef vector<string>    	CQSubcorpusList;
 /*!
   \brief root-level query options (filters and flags)
 */
-class CQueryOptions {
+class CQueryOptions : public ddcObject {
 public:
   //! how many hits of the left and right context should be output (must be &lt;= m_MaxContextSentencesCount)
   size_t m_ContextSentencesCount;
@@ -69,9 +69,6 @@ public:
   //! selected subcorpora for this query
   CQSubcorpusList m_Subcorpora;
 
-  //! user data for this options node (for use e.g. by perl wrappers)
-  void *m_User;
-
 public:
   //------------------------------------------------------------
   ///\name Constructors etc.
@@ -84,8 +81,7 @@ public:
       m_bDebugRank(false),
       m_bSeparateHits(false),
       m_TextAreaNo(UnknownTextAreaNo),
-      m_HitTypeStr(""),
-      m_User(NULL)
+      m_HitTypeStr("")
   {};
 
   //! Default destructor; calls Clear
@@ -97,7 +93,7 @@ public:
 
 public:
   //------------------------------------------------------------
-  ///\name API
+  ///\name CQueryOptions API
   //@{
   //! Compile index-dependent filter properties (required for evaluation)
   virtual bool Compile(CQueryCompiler *compiler);
@@ -107,12 +103,17 @@ public:
 
   //! returns true iff all defined filters are file-based (for optimized count(*) evaluation)
   bool CanFilterByFile() const;
+  //@}
 
-  //! return a canonical string form for these query options
+public:
+  //------------------------------------------------------------
+  ///\name ddcObject API
+  //@{
+  virtual ddcObjectList Children() const;
+  virtual void DisownChildren();
   virtual string toString();
-
-  //! return a JSON representation of these query options
-  virtual string toJson();
+  virtual string jsonClass() { return "CQueryOptions"; };
+  virtual string jsonData();
   //@}
 };
 

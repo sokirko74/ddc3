@@ -54,6 +54,33 @@ inline std::string jsonStr(const std::string &s, bool assume_utf8=true, bool add
 {
   return escapeJsonString(s,assume_utf8,add_quotes);
 }
+
+/** jsonStr(unsigned char) maps to unsigned int */
+inline std::string jsonStr(unsigned char b)
+{
+  char buf[4];
+  sprintf(buf,"%u",b);
+  return std::string(buf);
+};
+
+/** jsonStr(char) maps to single-character string */
+inline std::string jsonStr(char c)
+{
+  return jsonStr(std::string(&c,1));
+};
+
+template<class Container>
+std::string jsonArray(const Container &values)
+{
+  std::string s("[");
+  for (typename Container::const_iterator vi=values.begin(); vi != values.end(); vi++) {
+    if (s.size() > 1) s.push_back(',');
+    s += jsonStr(*vi);
+  }
+  s.push_back(']');
+  return s;
+};
+
 //@}
 
 //----------------------------------------------------------------------

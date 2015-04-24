@@ -363,3 +363,15 @@ void CQueryCompiler::yybarf(const char *yymsg) const throw(CExpc)
 {
 	barf("could not parse query: %s at line %d, near token `%s'", yymsg, lineno(), YYText());
 }
+
+ddcObjectList CQueryCompiler::Children() const
+{
+	ddcObjectList kids;
+	if (m_pQuery) kids.push_back(m_pQuery);
+	return kids;
+}
+
+void CQueryCompiler::DisownChildren()
+{
+	m_pQuery = NULL;
+}

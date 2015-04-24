@@ -116,28 +116,17 @@ bool CQuery::HasMatchId() const
 };
 
 //--------------------------------------------------------------
-CQueryList CQuery::Children() const
+ddcObjectList CQuery::Children() const
 {
-  return CQueryList();
+  ddcObjectList kids;
+  if (m_Options) kids.push_back(m_Options);
+  return kids;
 };
 
 //--------------------------------------------------------------
 void CQuery::DisownChildren()
 {
-  return;
-};
-
-//--------------------------------------------------------------
-CQueryList CQuery::Descendants() const
-{
-  CQueryList kids = this->Children();
-  CQueryList descendants(kids);
-  for (CQueryList::const_iterator ki=kids.begin(); ki != kids.end(); ++ki) {
-    if (!*ki) continue;
-    CQueryList kkids = (*ki)->Descendants();
-    descendants.splice(descendants.end(), kkids);
-  }
-  return descendants;
+  m_Options = NULL;
 };
 
 //--------------------------------------------------------------
@@ -236,9 +225,9 @@ void CQBinOp::Clear(bool deep)
   m_dtr2=NULL;
 }
 
-CQueryList CQBinOp::Children() const
+ddcObjectList CQBinOp::Children() const
 {
-  CQueryList kids;
+  ddcObjectList kids = CQuery::Children();
   if (m_dtr1) kids.push_back(m_dtr1);
   if (m_dtr2) kids.push_back(m_dtr2);
   return kids;
@@ -246,6 +235,7 @@ CQueryList CQBinOp::Children() const
 
 void CQBinOp::DisownChildren()
 {
+  CQuery::DisownChildren();
   m_dtr1 = NULL;
   m_dtr2 = NULL;
 }
@@ -825,9 +815,9 @@ void CQNear::Clear(bool deep)
   m_dtr3 = NULL;
 }
 
-CQueryList CQNear::Children() const
+ddcObjectList CQNear::Children() const
 {
-  CQueryList kids;
+  ddcObjectList kids = CQuery::Children();
   if (m_dtr1) kids.push_back(m_dtr1);
   if (m_dtr2) kids.push_back(m_dtr2);
   if (m_dtr3) kids.push_back(m_dtr3);
@@ -836,6 +826,7 @@ CQueryList CQNear::Children() const
 
 void CQNear::DisownChildren()
 {
+  CQuery::DisownChildren();
   m_dtr1 = NULL;
   m_dtr2 = NULL;
   m_dtr3 = NULL;
@@ -954,17 +945,18 @@ bool CQSeq::HasMatchId() const
   return false;
 }
 
-CQueryList CQSeq::Children() const
+ddcObjectList CQSeq::Children() const
 {
-  CQueryList kids;
+  ddcObjectList kids = CQuery::Children();
   for (vector<CQToken*>::const_iterator qi=m_Items.begin(); qi!=m_Items.end(); ++qi) {
-    if (*qi) kids.push_back((CQuery*)(*qi));
+    if (*qi) kids.push_back((ddcObject*)(*qi));
   }
   return kids;
 }
 
 void CQSeq::DisownChildren()
 {
+  CQuery::DisownChildren();
   m_Items.clear();
 }
 

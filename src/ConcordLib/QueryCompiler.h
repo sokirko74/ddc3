@@ -46,7 +46,7 @@
 
 	moo: renamed CQueryParser to CQueryCompiler to reflect actual functionality.
 */
-class CQueryCompiler : public yyqLexer
+class CQueryCompiler : public yyqLexer, public ddcObject
 {
 public:
 	//--------------------------------------------------------------
@@ -227,6 +227,12 @@ public:
 	//! error reporting: throw a verbose errParseError exception using current lexer+parser context
 	//! \li this is called by underlying bison parser's yyerror() routine
 	void yybarf(const char *yymsg) const throw(CExpc);
+
+	//-- ddcObject API
+	virtual ddcObjectList Children() const;
+	virtual void DisownChildren();
+	virtual string jsonClass() { return "CQueryCompiler"; };
+	virtual string jsonData()  { return string("\"Query\":" + jsonStr(m_pQuery)); };
 };
 
 #endif

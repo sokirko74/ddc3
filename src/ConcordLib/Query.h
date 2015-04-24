@@ -26,9 +26,6 @@
 
 extern const BYTE DefaultMatchId;
 
-class CQuery; //-- forward declaraction
-typedef list<CQuery*> CQueryList;
-
 //======================================================================
 /*!
  \brief
@@ -36,7 +33,7 @@ typedef list<CQuery*> CQueryList;
  \detail
    Should eventually replace old ad-hoc QueryNode.h 
 */
-class CQuery {
+class CQuery : public ddcObject {
 public:
   //! arbitrary name for this query node (e.g. string from which it was parsed)
   string m_Label;
@@ -50,9 +47,6 @@ public:
   //! root-level options (root queries only)
   CQueryOptions *m_Options;
 
-  //! user data associated with this query node (for use e.g. by perl wrappers)
-  void *m_User;
-
 public:
   //------------------------------------------------------------
   ///\name Constructors etc.
@@ -62,8 +56,7 @@ public:
     : m_Label(label),
       m_Compiler(NULL),
       m_Node(NULL),
-      m_Options(NULL),
-      m_User(NULL)
+      m_Options(NULL)
   {};
 
   //! Default destructor.
@@ -101,24 +94,31 @@ public:
   //! Is this query an admissible root of a compiled parse tree (default returns !this->Negated())
   virtual bool RootOK()
   { return !this->Negated(); };
+  //@}
 
+  //------------------------------------------------------------
+  ///\name Object Substructure (ddcObject API)
+  //@{
   //! get a list of direct non-NULL CQuery direct daughters of this node
   //! \li default just returns an empty list
-  virtual CQueryList Children() const;
-
-  //! get a list of all non-NULL CQuery descendants of this node (breadth-first order)
-  //! \li default pushes each daughter in Daughters() and her Descendants() in turn
-  virtual CQueryList Descendants() const;
+  virtual ddcObjectList Children() const;
 
   //! "disown" any direct child nodes, preventing their destruction if the current object is deleted
   //! \li default implementation does nothing
   virtual void DisownChildren();
+  //@}
 
+  //------------------------------------------------------------
+  ///\name Stringification (ddcObject API & associated utilities)
+  //@{
   //! \b DEBUG: return a canonical string form for this query (default just returns m_Label)
   virtual string toString() { return m_Label; };
 
   //! \b DEBUG: return canonical option string
   virtual string optionsToString();
+
+  //! return json format option string
+  virtual string optionsToJson();
 
   //! return a JSON representation of this query
   //! \li default just returns this->toString()
@@ -126,10 +126,6 @@ public:
   virtual string toJson() { return string("{\"class\":"+jsonStr(this->jsonClass())+","+this->jsonData()+"}"); };
   virtual string jsonClass() { return "CQuery"; };
   virtual string jsonData()  { return ""; };
-
-  //! return json format option string
-  virtual string optionsToJson();
-
   //@}
 
   //------------------------------------------------------------
@@ -182,6 +178,7 @@ public:
   //! override just calls m_Node->SetNegation(m_Negated)
   virtual bool Compile(CQueryCompiler *compiler);
 
+  //-- ddcObject API
   virtual string jsonClass() { return "CQNegatable"; };
   virtual string jsonData()  { return string("\"Negated\":")+(m_Negated ? "1" : "0"); };
 };
@@ -195,6 +192,7 @@ public:
     : CQNegatable(label,negated)
   {};
 
+  //-- ddcObject API
   virtual string jsonClass() { return "CQAtomic"; };
 };
 
@@ -235,13 +233,12 @@ public:
   //! clear query contents.  if \c deep is true, propagates operation to daughters
   virtual void Clear(bool deep=true);
 
-  //! get a list of direct non-NULL CQuery direct daughters of this node
-  virtual CQueryList Children() const;
-
-  //! "disown" any direct child nodes, preventing their destruction if the current object is deleted
-  virtual void DisownChildren();
-
+  //! compile the query
   virtual bool Compile(CQueryCompiler *compiler);
+
+  //-- ddcObject API
+  virtual ddcObjectList Children() const;
+  virtual void DisownChildren();
   virtual string toString();
   virtual string jsonClass() { return "CQBinOp"; };
   virtual string jsonData();
@@ -255,9 +252,7 @@ public:
     : CQBinOp(dtr1,dtr2,"&&")
   {};
 
-  //! Is this query an admissible root of a compiled parse tree?
   virtual bool RootOK() { return true; };
-
   virtual bool Compile(CQueryCompiler *compiler);
   virtual string jsonClass() { return "CQAnd"; };
 };
@@ -270,9 +265,7 @@ public:
     : CQBinOp(dtr1,dtr2,"||")
   {};
 
-  //! Is this query an admissible root of a compiled parse tree?
   virtual bool RootOK() { return true; };
-
   virtual bool Compile(CQueryCompiler *compiler);
   virtual string jsonClass() { return "CQOr"; };
 };
@@ -357,6 +350,7 @@ public:
   //! Stringification utility for use by subclasses; default should be sensible
   virtual string MatchIdString(void);
 
+  //-- ddcObject API & utilities
   //! Default stringification: NegString(IndexString() + ValueString())
   virtual string toString(void);
 
@@ -432,29 +426,6 @@ public:
   virtual string ValueString();
   virtual string jsonClass() { return "CQTokRegex"; };
 };
-
-//------------------------------------------------------------
-// json-stringification utilities
-
-inline string jsonStr(BYTE b)
-{ return Format("%u",b); };
-
-inline string jsonStr(CQuery *q)
-{ return q->toJson(); };
-
-template<class Container>
-string jsonArray(const Container &values)
-{
-  string s("[");
-  for (typename Container::const_iterator vi=values.begin(); vi != values.end(); vi++) {
-    if (s.size() > 1) s.push_back(',');
-    s += jsonStr(*vi);
-  }
-  s.push_back(']');
-  return s;
-};
-
-
 
 //------------------------------------------------------------
 //! single-token query: disjunction over a finite set of values
@@ -744,7 +715,7 @@ public:
   virtual void Clear(bool deep=true);
 
   //! get a list of direct non-NULL CQuery direct daughters of this node
-  virtual CQueryList Children() const;
+  virtual ddcObjectList Children() const;
 
   //! "disown" any direct child nodes, preventing their destruction if the current object is deleted
   virtual void DisownChildren();
@@ -808,20 +779,17 @@ public:
   //! clear query contents.  if \c deep is true, propagates operation to daughters
   virtual void Clear(bool deep=true);
 
-  //! get a list of direct non-NULL CQuery direct daughters of this node
-  virtual CQueryList Children() const;
-
-  //! "disown" any direct child nodes, preventing their destruction if the current object is deleted
-  virtual void DisownChildren();
-
   //! append another (item,distance) pair onto this sequence
   //! \c nextDist is ignored if this is the first item in the sequence
   void Append(CQToken *nextItem, BYTE nextDist=0, BYTE nextDistOp='<');
 
   //! Compile() method implicitly compiles daughter nodes
   virtual bool Compile(CQueryCompiler *compiler);
-  virtual string toString();
 
+  //-- ddcObject API
+  virtual ddcObjectList Children() const;
+  virtual void DisownChildren();
+  virtual string toString();
   virtual string jsonClass() { return "CQSeq"; };
   virtual string jsonData();
 };

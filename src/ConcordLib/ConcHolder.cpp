@@ -436,7 +436,7 @@ string BuildHtmlHitStrWithHighlighting (const vector<COutputToken>& Tokens, bool
 #undef   JSON_USE_DDC_SPACING
 #undef   JSON_USE_HASH
 #undef   JSON_SHORT_FILENAMES
-//#define DDC_JSON_COMPLEX_CONTEXT  //-- defined by configure option --(enable|disable)-json-complex-context
+//#define DDC_JSON_DEEP_CONTEXT  //-- defined by configure option --(enable|disable)-json-complex-context
 string CConcHolder::BuildJsonContextString (const vector<COutputToken>& Tokens, bool doHighlight) const
 {
     //==================================================
@@ -580,7 +580,7 @@ bool CConcHolder::GetContextJson(int StartBreakNo, int EndBreakNo, const DWORD C
 	    assert (!m_pIndexator->m_IndicesToShow.empty());
 	    vector<COutputToken> Tokens;
 
-#ifdef DDC_JSON_COMPLEX_CONTEXT
+#ifdef DDC_JSON_DEEP_CONTEXT
 	    //-- complex output tokens; copy+paste+edit from CConcHolder::GenerateHitStrings()
 	    assert (!m_pIndexator->m_IndicesToShow.empty());
 	    for (size_t ixno=0; ixno < m_pIndexator->m_IndicesToShow.size(); ++ixno) {
@@ -602,14 +602,14 @@ bool CConcHolder::GetContextJson(int StartBreakNo, int EndBreakNo, const DWORD C
 	    }
 	    if (!js.empty()) js.push_back(',');
 	    js += BuildJsonContextString(Tokens, true);
-#else //!defined(DDC_JSON_COMPLEX_CONTEXT)
+#else //!defined(DDC_JSON_DEEP_CONTEXT)
 	    if (!GetTokensFromStorageByBreak(m_pIndexator->m_IndicesToShow[0], BreakNo, Tokens)) {
 		ErrorMessage(Format("Cannot get sentence: BreakNo=%i,BreakEndTokenNo=%i,  FileNo=%i\n", BreakNo, B, CurrFileNo));
 		return false;
 	    }
 	    if (!js.empty()) js.push_back(',');
 	    js += BuildJsonContextString(Tokens, false);
-#endif //defined(DDC_JSON_COMPLEX_CONTEXT)
+#endif //defined(DDC_JSON_DEEP_CONTEXT)
 	};
     };
     return true;

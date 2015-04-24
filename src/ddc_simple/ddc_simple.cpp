@@ -24,6 +24,7 @@
 #include <time.h>
 
 #include "../ConcordLib/ConcHolder.h"
+//#include "../ConcordLib/QueryCompiler.h" //-- for debugging ddcObject::Descendants()
 #include "../common/utilit.h"
 extern size_t AllBytesRead;;
 
@@ -288,6 +289,14 @@ int main(int argc, char* argv[])
 					    try {
 						    fprintf (stderr, "Canon[%d / %zi] = %s\n", QueryNo, queries.size(), R.CanonicalQueryString(Query).c_str());
 						    fprintf (stderr, "Json [%d / %zi] = %s\n", QueryNo, queries.size(), R.JsonQueryString(Query).c_str());
+#if 0
+						    //-- test ddcObject::Descendants()
+						    fprintf(stderr, "Descendants[%d / %zi] (Compiler) =\n", QueryNo, queries.size());
+						    ddcObjectList objs = R.m_pQueryCompiler->Descendants();
+						    for (ddcObjectList::const_iterator oi=objs.begin(); oi != objs.end(); ++oi) {
+							    fprintf(stderr, " + %s\n", *oi ? (*oi)->toString().c_str() : "NULL");
+						    }
+#endif
 					    }
 					    catch (exception &e) {
 						    fprintf(stderr, "Exception: %s\n", e.what());

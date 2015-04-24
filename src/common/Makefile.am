@@ -61,6 +61,7 @@ EXTRA_DIST = \
  ddcString.h ddcString.cpp \
  utf8xx.h utf8xx.cpp \
  ddcLocale.h ddcLocale.cpp \
- ddcRandom.h
+ ddcRandom.h \
+ ddcObject.h
 
 # process_flex.sed process_yacc.sed

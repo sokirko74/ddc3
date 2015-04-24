@@ -59,7 +59,8 @@ libDDCConcord_la_SOURCES = \
  ConcCommon.h \
  ../common/ddcString.cpp ../common/ddcString.h \
  ../common/utf8xx.h ../common/utf8xx.cpp \
- ../common/ddcRandom.h
+ ../common/ddcRandom.h \
+ ../common/ddcObject.h
 
 noinst_HEADERS = \
  LRUCache.h \
