@@ -75,8 +75,9 @@ public:
   virtual void DisownChildren()
   {};
 
-  //! traverse the object in visit-first depth-first order, calling Visit(optr) on each descendant node optr
-  //! \li traversal ceases and returns optr if any call to visit(optr) returns true; i.e. there must be a bool Visit::operator(PtrT) defined
+  //! traverse the object in visit-first depth-first order, calling \a visit(optr) on each descendant node \a optr
+  //! \li traversal ceases and returns optr if any call to \a visit(optr) returns true; i.e. there must be a bool \a Visit::operator(PtrT) defined
+  //! \li doesn't terminate for cyclic structures
   //! \li otherwise returns NULL
   template<typename Visit>
   ddcObject* Traverse(Visit& visit)
@@ -90,15 +91,16 @@ public:
 	retval = optr;
 	break;
       }
-      if (optr != NULL)
-	stack.splice(stack.begin(), optr->Children());
+      if (optr != NULL) {
+	ddcObjectList kids(optr->Children());
+	stack.splice(stack.begin(), kids);
+      }
     }
     return retval;
   };
 
-  //! traverse the object in visit-first depth-first order, calling Visit(optr) on each descendant node optr, const version
-  //! \li traversal ceases and returns optr if any call to visit(optr) returns true; i.e. there must be a bool Visit::operator(PtrT) defined
-  //! \li otherwise returns NULL
+  //! traverse the object in visit-first depth-first order, calling \a Visit(optr) on each descendant node \a optr
+  //! \li like Traverse(), const version
   template<typename Visit>
   ddcObject* Traverse(Visit& visit) const
   {
@@ -119,8 +121,52 @@ public:
     return retval;
   };
 
-  //! get a list of all non-NULL CQuery descendants of this node (breadth-first order)
-  //! \li default pushes each daughter in Daughters() and her Descendants() in turn
+  //! traverse the object in visit-last depth-first order, calling \a Visit(optr) on each descendant node \a optr
+  //! \li like Traverse(), but visits descendants before their parents
+  template<typename Visit>
+  ddcObject* TraverseR(Visit& visit)
+  {
+    ddcObject* retval=NULL;
+    ddcObjectList stack(1,this);
+    while (!stack.empty()) {
+      ddcObject *optr = stack.front();
+      ddcObjectList kids;
+      if (optr != NULL)
+	kids = optr->Children();
+      stack.pop_front();
+      if ( visit(optr) ) {
+	retval = optr;
+	break;
+      }
+      stack.splice(stack.begin(), kids);
+    }
+    return retval;
+  };
+
+  //! traverse the object in visit-last depth-first order, calling \a Visit(optr) on each descendant node \a optr
+  //! \li like TraverseR(), const version
+  template<typename Visit>
+  ddcObject* TraverseR(Visit& visit) const
+  {
+    ddcObject* retval=NULL;
+    ddcObjectList stack(1,this);
+    while (!stack.empty()) {
+      ddcObject *optr = stack.front();
+      ddcObjectList kids;
+      if (optr != NULL)
+	kids = optr->Children();
+      stack.pop_front();
+      if ( visit(optr) ) {
+	retval = optr;
+	break;
+      }
+      stack.splice(stack.begin(), kids);
+    }
+    return retval;
+  };
+
+  //! get a list of all non-NULL CQuery descendants of this node in visit-first depth-first order a la Traverse()
+  //! \li default pushes calls Traverse
   virtual ddcObjectList Descendants() const
   {
     ddcObjectDescendantsVisitor visitor;
@@ -134,22 +180,22 @@ public:
   //@{
   //! convert object to a canonical string ()
   //! \li default implementation just returns "CLASSNAME=PTRVAL"
-  virtual string toString(void)
+  virtual string toString()
   { return Format("%s=%p", typeid(*this).name(), this); };
 
   //! convert object to a json representation
   //! \li default implementation returns a json object {"class":this->jsonClass(), this->jsonData()}
-  virtual string toJson(void)
+  virtual string toJson()
   { return string("{\"class\":")+jsonStr(this->jsonClass())+","+this->jsonData()+"}"; };
 
   //! class-name for json strinfication
   //! \li default implementation returns C++ class name
-  virtual string jsonClass(void)
-  { return string(typeid(*this).name()); };
+  virtual string jsonClass()
+  { string cls(typeid(*this).name()); return cls; };
 
   //! instance data for json stringification
   //! \li default implementation returns "NODATA":1, for strict syntax compliance
-  virtual string jsonData(void)
+  virtual string jsonData()
   { return "\"NODATA\":1"; };
   //@}
 };

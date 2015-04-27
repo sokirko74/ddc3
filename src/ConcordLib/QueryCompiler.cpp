@@ -374,4 +374,5 @@ ddcObjectList CQueryCompiler::Children() const
 void CQueryCompiler::DisownChildren()
 {
 	m_pQuery = NULL;
+	m_Queries.clear(); //-- may leak memory after parse errors!
 }

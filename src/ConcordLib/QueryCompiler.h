@@ -46,7 +46,7 @@
 
 	moo: renamed CQueryParser to CQueryCompiler to reflect actual functionality.
 */
-class CQueryCompiler : public yyqLexer, public ddcObject
+class CQueryCompiler : public ddcObject, virtual public yyqLexer
 {
 public:
 	//--------------------------------------------------------------
