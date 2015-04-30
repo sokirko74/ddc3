@@ -146,7 +146,7 @@ CQCountKeyExprRegex::~CQCountKeyExprRegex()
 //----------------------------------------------------------------------
 ddcObjectList CQCountKeyExprRegex::Children() const
 {
-  ddcObjectList kids = CQuery::Children();
+  ddcObjectList kids(CQuery::Children());
   if (m_Src) kids.push_back(m_Src);
   return kids;
 }
@@ -295,7 +295,7 @@ void CQCountKeyExprList::Clear()
 //----------------------------------------------------------------------
 ddcObjectList CQCountKeyExprList::Children() const
 {
-  ddcObjectList kids = CQuery::Children();
+  ddcObjectList kids(CQuery::Children());
   for (vector<CQCountKeyExpr*>::const_iterator xi=m_Exprs.begin(); xi!=m_Exprs.end(); xi++) {
     if (*xi) kids.push_back((ddcObject*)(*xi));
   }
@@ -391,6 +391,7 @@ CQCount::~CQCount()
 void CQCount::ClearNode()
 {
   if (m_dtr) m_dtr->ClearNode();
+  if (m_keys) m_keys->ClearNode();
   CQuery::ClearNode();
 }
 
@@ -401,7 +402,7 @@ void CQCount::Clear(bool deep)
   ClearOptions();
   if (deep) {
     if (m_dtr) delete m_dtr;
-    m_keys.Clear();
+    if (m_keys) delete m_keys;
   }
   m_dtr = NULL;
 }
@@ -409,8 +410,9 @@ void CQCount::Clear(bool deep)
 //--------------------------------------------------------------
 ddcObjectList CQCount::Children() const
 {
-  ddcObjectList kids = CQuery::Children();
+  ddcObjectList kids(CQuery::Children());
   if (m_dtr) kids.push_back(m_dtr);
+  if (m_keys) kids.push_back(m_keys);
   return kids;
 }
 
@@ -419,6 +421,7 @@ void CQCount::DisownChildren()
 {
   CQuery::DisownChildren();
   m_dtr = NULL;
+  m_keys = NULL;
 }
 
 //--------------------------------------------------------------
@@ -435,8 +438,9 @@ bool CQCount::Compile(CQueryCompiler *compiler)
     throw CExpc(errParseError,"could not compile sub-query `%s' for count-query", m_dtr->toString().c_str());
 
   //-- compile key expression(s)
-  if (!m_keys.Compile(compiler)) 
-    throw CExpc(errParseError,"could not compile key expression(s) `%s' for count-query", m_keys.toString().c_str());
+  if (!m_keys) m_keys = new CQCountKeyExprList();
+  if (!m_keys->Compile(compiler)) 
+    throw CExpc(errParseError,"could not compile key expression(s) `%s' for count-query", m_keys->toString().c_str());
 
   //-- child methods hook in here
   return true;
@@ -454,8 +458,8 @@ void CQCount::Evaluate()
 string CQCount::toString()
 {
   string qs("COUNT(" + m_dtr->toString() + m_dtr->optionsToString() + ")");
-  if (!m_keys.empty()) {
-    qs += " #BY[" + m_keys.toString() + "]";
+  if (m_keys && !m_keys->empty()) {
+    qs += " #BY[" + m_keys->toString() + "]";
   }
   if (m_sample != DDCDefaultCountSampleSize)
     qs += Format(" #SAMPLE[%zi]", m_sample);
@@ -472,8 +476,8 @@ string CQCount::toString()
 string CQCount::jsonData()
 {
   string qs("\"Dtr\":" + m_dtr->toJson() + ",\"DtrOptions\":" + m_dtr->optionsToJson());
-  if (!m_keys.empty()) {
-    qs += string(",\"Keys\":") + m_keys.toJson();
+  if (m_keys && !m_keys->empty()) {
+    qs += string(",\"Keys\":") + m_keys->toJson();
   }
   qs += Format(",\"Sample:\":%zi", m_sample);
   qs += string(",\"Sort:\":") + jsonStr(HitSortEnumNames[m_sort]);

@@ -227,7 +227,7 @@ void CQBinOp::Clear(bool deep)
 
 ddcObjectList CQBinOp::Children() const
 {
-  ddcObjectList kids = CQuery::Children();
+  ddcObjectList kids(CQuery::Children());
   if (m_dtr1) kids.push_back(m_dtr1);
   if (m_dtr2) kids.push_back(m_dtr2);
   return kids;
@@ -817,7 +817,7 @@ void CQNear::Clear(bool deep)
 
 ddcObjectList CQNear::Children() const
 {
-  ddcObjectList kids = CQuery::Children();
+  ddcObjectList kids(CQuery::Children());
   if (m_dtr1) kids.push_back(m_dtr1);
   if (m_dtr2) kids.push_back(m_dtr2);
   if (m_dtr3) kids.push_back(m_dtr3);
@@ -947,7 +947,7 @@ bool CQSeq::HasMatchId() const
 
 ddcObjectList CQSeq::Children() const
 {
-  ddcObjectList kids = CQuery::Children();
+  ddcObjectList kids(CQuery::Children());
   for (vector<CQToken*>::const_iterator qi=m_Items.begin(); qi!=m_Items.end(); ++qi) {
     if (*qi) kids.push_back((ddcObject*)(*qi));
   }

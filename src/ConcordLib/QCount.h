@@ -250,6 +250,11 @@ public:
 
 public:
   CQCountKeyExprList() : m_Key("") {};
+
+  CQCountKeyExprList(const CQCountKeyExprList &src)
+  : m_Exprs(src.m_Exprs), m_Key(src.m_Key)
+  {};
+
   virtual ~CQCountKeyExprList();
 
   /*! clear and delete all sub-expressions */
@@ -297,17 +302,18 @@ public:
   HitSortEnum m_sort;
 
   //! list of count-bin metadata key expressions
-  CQCountKeyExprList m_keys;
+  CQCountKeyExprList* m_keys;
 
 public:
   //! bison constructor
-  CQCount(CQuery *dtr_, const CQCountKeyExprList &keys_, size_t sample_=DDCDefaultCountSampleSize, HitSortEnum sort_=NoSort)
+  CQCount(CQuery *dtr_, CQCountKeyExprList* keys_, size_t sample_=DDCDefaultCountSampleSize, HitSortEnum sort_=NoSort)
   : CQuery("count"),
     m_dtr(dtr_),
     m_sample(sample_),
     m_sort(sort_),
     m_keys(keys_)
-  {};
+  {
+  };
 
   //! Default destructor.
   virtual ~CQCount(void);
@@ -321,7 +327,7 @@ public:
 
   //! returns true iff this query uses a nontrival match-id operator
   virtual bool HasMatchId() const
-  { return (m_dtr && m_dtr->HasMatchId()) || m_keys.HasMatchId(); };
+  { return (m_dtr && m_dtr->HasMatchId()) || (m_keys && m_keys->HasMatchId()); };
 
   //! \b DEBUG: return a canonical string form for this query
   virtual string toString();

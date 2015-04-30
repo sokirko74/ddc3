@@ -11,7 +11,8 @@ v2.0.38-pre1 Fri, 24 Apr 2015 13:14:46 +0200 moocow
 	+ re-factored CQuery, CQFilter, CQueryOptions, CQueryCompiler into ddcObject
 	+ updated lexer regex for '#cntxt' keyword to (?i:\#(co?n?te?xt?|n)) [was: (?i:\#(cntxt|n))]
 	+ complex extra-sentential hit tokens in json mode (no longer simple strings)
-	  - can revert to old behavior via configure option --disable-json-deep-context
+	  - disabled by default, can be enabled by configure option --disable-json-deep-context
+	+ CQCount::m_keys is now a pointer, for better perl wrapper integration
 
 
 v2.0.37 Wed, 21 Jan 2015 11:02:25 +0100 moocow

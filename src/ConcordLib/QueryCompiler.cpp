@@ -301,7 +301,7 @@ CQuery* CQueryCompiler::SetQuery(CQuery* qp)
 CQCount* CQueryCompiler::PushCountQuery(CQuery* qConditions)
 {
 	this->SetQuery(qConditions);
-	CQCount *qc = new CQCount(qConditions, m_qCountKeys, m_qCountSample, m_qCountSort);
+	CQCount *qc = new CQCount(qConditions, new CQCountKeyExprList(m_qCountKeys), m_qCountSample, m_qCountSort);
 	m_qCountKeys.m_Exprs.clear();
 	m_qCountSample = DDCDefaultCountSampleSize;
 	m_qCountSort   = NoSort;

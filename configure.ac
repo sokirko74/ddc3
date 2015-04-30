@@ -3,7 +3,7 @@ AC_PREREQ(2.5)
 
 dnl Some handy macros
 define([THE_PACKAGE_NAME],    [ddc])
-define([THE_PACKAGE_VERSION], [2.0.38-pre1])
+define([THE_PACKAGE_VERSION], [2.0.38-pre2])
 define([THE_PACKAGE_MAINTAINER],  [jurish@bbaw.de])
 AC_INIT(THE_PACKAGE_NAME, THE_PACKAGE_VERSION, THE_PACKAGE_MAINTAINER)
 
@@ -272,10 +272,10 @@ AC_DEFINE_UNQUOTED(DDC_STATIC_BUFLEN, $ddc_static_buflen, [size in bytes of pote
 ##----------------------------------------------------------------------
 ## defs: json-deep-context
 AC_ARG_ENABLE([json-deep-context],
-	AC_HELP_STRING([--disable-json-deep-context],
-		[Disable deep encoding of extra-sentential context tokens in JSON output strings (default=yes)]),
+	AC_HELP_STRING([--enable-json-deep-context],
+		[Enable deep encoding of extra-sentential context tokens in JSON output strings (default=no)]),
 		[ddc_json_deep_context="$enableval"],
-		[ddc_json_deep_context="yes"])
+		[ddc_json_deep_context="no"])
 AC_MSG_CHECKING([whether to enable deep encoding of context tokens in JSON output strings])
 AC_MSG_RESULT([$ddc_json_deep_context])
 if test "$ddc_json_deep_context" != "no" ; then

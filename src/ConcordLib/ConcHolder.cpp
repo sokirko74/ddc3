@@ -1620,7 +1620,9 @@ bool CConcHolder::IsUniversalCountQuery(CQuery *QueryRoot) const
 {
 	if (typeid(*QueryRoot) != typeid(CQCount)) return false;
 	CQCount *qCount = (CQCount*)QueryRoot;
-	return (typeid(*qCount->m_dtr)==typeid(CQTokAny) && qCount->m_dtr->m_Options->CanFilterByFile() && qCount->m_keys.CanCountByFile());
+	return (typeid(*qCount->m_dtr)==typeid(CQTokAny)
+		&& qCount->m_dtr->m_Options->CanFilterByFile()
+		&& (!qCount->m_keys || qCount->m_keys->CanCountByFile()));
 };
 
 DDCErrorEnum CConcHolder::GetUniversalCounts(CQuery *CountQueryRoot, size_t Limit)
@@ -1632,7 +1634,7 @@ DDCErrorEnum CConcHolder::GetUniversalCounts(CQuery *CountQueryRoot, size_t Limi
 	//-- common variables
 	CQCount *qCount  = (CQCount*)CountQueryRoot;
 	CQuery  *qRoot   = qCount->m_dtr;
-	CQCountKeyExprList &keys = qCount->m_keys;
+	CQCountKeyExprList* keys = qCount->m_keys;
 	m_CountSample = 0;
 
 	//-- count(* ...) query: do memory-optimized computation
@@ -1659,7 +1661,7 @@ DDCErrorEnum CConcHolder::GetUniversalCounts(CQuery *CountQueryRoot, size_t Limi
 			}
 			if (ix->m_Bibl.FileMatches(f, qRoot->m_Options->m_Filters)) {
 				hit.m_FileNo   = f;
-				key            = keys.Evaluate(hit);
+				key            = keys->Evaluate(hit);
 				n              = (fw_end - fw_begin);
 				m_Counts[key] += n;
 				m_CountSample += n;
@@ -1679,7 +1681,7 @@ DDCErrorEnum CConcHolder::GetUniversalCounts(CQuery *CountQueryRoot, size_t Limi
 				}
 				else if (n>0 && ix->m_Bibl.FileMatches(f, qRoot->m_Options->m_Filters)) {
 					hit.m_FileNo   = f;
-					key            = keys.Evaluate(hit);
+					key            = keys->Evaluate(hit);
 					m_Counts[key] += n;
 					m_CountSample += n;
 				}
@@ -1704,10 +1706,10 @@ DDCErrorEnum CConcHolder::GetPeriodCounts(CQuery *CountQueryRoot)
 	//-- common variables
 	CQCount *qCount  = (CQCount*)CountQueryRoot;
 	CQuery  *qRoot   = qCount->m_dtr;
-	CQCountKeyExprList &keys = qCount->m_keys;
+	CQCountKeyExprList* keys = qCount->m_keys;
 
 	//-- counting guts
-	if (keys.CanCountByFile()) {
+	if (keys->CanCountByFile()) {
 		//-- counting guts: file-level
 		bool isWithinFile = (qRoot->m_Options->m_HitTypeStr == PredefinedFileBreakName);
 		DWORD  f = (DWORD)-1;
@@ -1727,7 +1729,7 @@ DDCErrorEnum CConcHolder::GetPeriodCounts(CQuery *CountQueryRoot)
 				}
 				n   = 0;
 				f   = hi->m_FileNo;
-				key = keys.Evaluate(*hi);
+				key = keys->Evaluate(*hi);
 			}
 		}
 		if (n>0) {
@@ -1738,7 +1740,7 @@ DDCErrorEnum CConcHolder::GetPeriodCounts(CQuery *CountQueryRoot)
 	else {
 		//-- counting guts: token-level
 		for (vector<CHit>::const_iterator hi=m_Hits.begin(); hi != m_Hits.end() && m_CountSample < qCount->m_sample; ++hi, ++m_CountSample) {
-			string &key = keys.Evaluate(*hi);
+			string &key = keys->Evaluate(*hi);
 			++m_Counts[key];
 		}
 	}
