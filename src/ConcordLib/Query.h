@@ -380,7 +380,7 @@ public:
 class CQTokAny : public CQToken {
 public:
   CQTokAny(const string &indexName=string(""), const string &value=string("*"))
-    : CQToken("",value)
+    : CQToken(indexName,value)
   {};
 
   virtual const char *OperatorKey(void) const { return "*"; };

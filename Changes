@@ -1,6 +1,6 @@
 ##-*- Mode: Change-Log; coding: utf-8; -*-
 
-v2.0.38-pre1 Fri, 24 Apr 2015 13:14:46 +0200 moocow
+v2.0.38-pre1 Mon, 04 May 2015 15:12:44 +0200 moocow
 	+ CQFContextSort::toString() fix for nontrivial match-ids
 	+ added common/ddcObject.h : common base class ddcObject
 	  - user data void *m_User (for perl wrappers)
@@ -13,8 +13,8 @@ v2.0.38-pre1 Fri, 24 Apr 2015 13:14:46 +0200 moocow
 	+ complex extra-sentential hit tokens in json mode (no longer simple strings)
 	  - disabled by default, can be enabled by configure option --disable-json-deep-context
 	+ CQCount::m_keys is now a pointer, for better perl wrapper integration
-
-
+	+ re-added indexName tracking to CQTokAny (helpful for DiaCollo parsing, doesn't hurt ddc)
+	
 v2.0.37 Wed, 21 Jan 2015 11:02:25 +0100 moocow
 	+ bugfix release
 	+ fixed over- and underflow bugs in CQuerySequenceNode::EvaluateWithoutHits()
