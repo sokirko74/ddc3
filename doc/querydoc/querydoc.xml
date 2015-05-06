@@ -1084,6 +1084,14 @@
 
 	  <!--~~~~~~~~ RULES: count_sort -->
 	  <rule lhs="count_sort" cmt="Sort order for count-queries">
+	    <rhs cmt="... with optional limits">
+	      <n>count_sort_op</n>
+	      <n>count_sort_limits</n>
+	    </rhs>
+	  </rule>
+
+	  <!--~~~~~~~~ RULES: count_sort_op -->
+	  <rule lhs="count_sort_op" cmt="Sort order operation for count-queries">
 	    <rhs cmt="... in ascending order by count-key (default; aliases #ASC_BY_KEY, #ASC_KEY, ...)">
 	      <t>#LESS_BY_KEY</t>
 	    </rhs>
@@ -1095,6 +1103,39 @@
 	    </rhs>
 	    <rhs cmt="... in descending order by count-value (aliases #DESC_COUNT, #DESC_VALUE, ...)">
 	      <t>#GREATER_BY_COUNT</t>
+	    </rhs>
+	  </rule>
+
+	  <!--~~~~~~~~ RULES: count_sort_limits -->
+	  <rule lhs="count_sort_limits" cmt="Optional limits for count-query sorting">
+	    <rhs cmt="... empty"/>
+	    <rhs cmt="... empty with brackets">
+	      <t>[</t>
+	      <t>]</t>
+	    </rhs>
+	    <rhs cmt="... lower-limit only">
+	      <t>[</t>
+	      <n>symbol</n>
+	      <t>]</t>
+	    </rhs>
+	    <rhs cmt="... lower-limit only">
+	      <t>[</t>
+	      <n>symbol</n>
+	      <t>,</t>
+	      <t>]</t>
+	    </rhs>
+	    <rhs cmt="... upper-limit only">
+	      <t>[</t>
+	      <t>,</t>
+	      <n>symbol</n>
+	      <t>]</t>
+	    </rhs>
+	    <rhs cmt="... lower- and upper-limit">
+	      <t>[</t>
+	      <n>symbol</n>
+	      <t>,</t>
+	      <n>symbol</n>
+	      <t>]</t>
 	    </rhs>
 	  </rule>
 

@@ -1884,6 +1884,25 @@
 <td></td>
 <td></td>
 <td class="ruleRHS1">
+<span class="ruleNonterminal"><a href="#rule_count_sort_op">count_sort_op</a></span> <span class="ruleNonterminal"><a href="#rule_count_sort_limits">count_sort_limits</a></span> </td>
+<td class="ruleComment">/* ... with optional limits */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td><b>;</b></td>
+</tr>
+<tr></tr>
+<tr>
+<td><b><a name="rule_count_sort_op">count_sort_op</a></b></td>
+<td>::=</td>
+<td></td>
+<td class="ruleCommentTop">/* Sort order operation for count-queries */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS1">
 <span class="ruleTerminal">#LESS_BY_KEY</span> </td>
 <td class="ruleComment">/* ... in ascending order by count-key (default; aliases #ASC_BY_KEY, #ASC_KEY, ...) */</td>
 </tr>
@@ -1904,6 +1923,54 @@
 <td></td>
 <td class="ruleRHS">| <span class="ruleTerminal">#GREATER_BY_COUNT</span> </td>
 <td class="ruleComment">/* ... in descending order by count-value (aliases #DESC_COUNT, #DESC_VALUE, ...) */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td><b>;</b></td>
+</tr>
+<tr></tr>
+<tr>
+<td><b><a name="rule_count_sort_limits">count_sort_limits</a></b></td>
+<td>::=</td>
+<td></td>
+<td class="ruleCommentTop">/* Optional limits for count-query sorting */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS1"></td>
+<td class="ruleComment">/* ... empty */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleTerminal">[</span> <span class="ruleTerminal">]</span> </td>
+<td class="ruleComment">/* ... empty with brackets */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleTerminal">[</span> <span class="ruleNonterminal"><a href="#rule_symbol">symbol</a></span> <span class="ruleTerminal">]</span> </td>
+<td class="ruleComment">/* ... lower-limit only */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleTerminal">[</span> <span class="ruleNonterminal"><a href="#rule_symbol">symbol</a></span> <span class="ruleTerminal">,</span> <span class="ruleTerminal">]</span> </td>
+<td class="ruleComment">/* ... lower-limit only */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleTerminal">[</span> <span class="ruleTerminal">,</span> <span class="ruleNonterminal"><a href="#rule_symbol">symbol</a></span> <span class="ruleTerminal">]</span> </td>
+<td class="ruleComment">/* ... upper-limit only */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleTerminal">[</span> <span class="ruleNonterminal"><a href="#rule_symbol">symbol</a></span> <span class="ruleTerminal">,</span> <span class="ruleNonterminal"><a href="#rule_symbol">symbol</a></span> <span class="ruleTerminal">]</span> </td>
+<td class="ruleComment">/* ... lower- and upper-limit */</td>
 </tr>
 <tr>
 <td></td>
@@ -3595,7 +3662,7 @@ regex_modifier	[gimsx]
   </body></div>
 <div class="footers">
 <div class="footer_sig">
-<address><a href="mailto:jurish@bbaw.de">jurish@bbaw.de</a></address>Last modified: Thu, 23 Apr 2015 13:34:54 +0200</div>
+<address><a href="mailto:jurish@bbaw.de">jurish@bbaw.de</a></address>Last modified: Wed, 06 May 2015 14:18:54 +0200</div>
 <div class="footer_linkbar"><p class="nopad"><a class="navLink" href="/">Root</a><a class="navLink" href="./">Back</a><span class="navLinkDisabled">Help</span></p></div>
 <p class="dummy"></p>
 </div>

@@ -378,68 +378,81 @@ Comments may appear after each rule in C notation
 
 
 
- count_query   ::=                                           /*-- Top-level count-query root --*/
-                   COUNT ( query_conditions ) count_filters  /* Filters may be empty */
-                 ;
+ count_query       ::=                                           /*-- Top-level count-query root --*/
+                       COUNT ( query_conditions ) count_filters  /* Filters may be empty */
+                     ;
  
- count_filters ::=                                           /*-- List of count-query options --*/
-                                                             /* empty */
-                 | count_filters count_filter                /* non-empty */
-                 ;
+ count_filters     ::=                                           /*-- List of count-query options --*/
+                                                                 /* empty */
+                     | count_filters count_filter                /* non-empty */
+                     ;
  
- count_filter  ::=                                           /*-- Single count-query option --*/
-                   count_by                                  /* histogram bin-key selection */
-                 | count_sample                              /* histogram sample size */
-                 | count_sort                                /* histogram sort order */
-                 ;
+ count_filter      ::=                                           /*-- Single count-query option --*/
+                       count_by                                  /* histogram bin-key selection */
+                     | count_sample                              /* histogram sample size */
+                     | count_sort                                /* histogram sort order */
+                     ;
  
- count_by      ::=                                           /*-- Select count-query histogram keys (metadata tuples) --*/
-                   #BY l_countkeys                           /* SQL-style syntax */
-                 | #BY [ l_countkeys ]                       /* DDC filter-style syntax */
-                 ;
+ count_by          ::=                                           /*-- Select count-query histogram keys (metadata tuples) --*/
+                       #BY l_countkeys                           /* SQL-style syntax */
+                     | #BY [ l_countkeys ]                       /* DDC filter-style syntax */
+                     ;
  
- count_sample  ::=                                           /*-- Select minimum count-query sample size (sub-query limit) --*/
-                   #SAMPLE integer                           /* SQL-style syntax */
-                 | #SAMPLE [ integer ]                       /* DDC filter-style syntax */
-                 ;
+ count_sample      ::=                                           /*-- Select minimum count-query sample size (sub-query limit) --*/
+                       #SAMPLE integer                           /* SQL-style syntax */
+                     | #SAMPLE [ integer ]                       /* DDC filter-style syntax */
+                     ;
  
- count_sort    ::=                                           /*-- Sort order for count-queries --*/
-                   #LESS_BY_KEY                              /* ... in ascending order by count-key (default; aliases #ASC_BY_KEY, #ASC_KEY, ...) */
-                 | #GREATER_BY_KEY                           /* ... in descending order by count-key (aliases #DESC_BY_KEY, #DESC_KEY, ...) */
-                 | #LESS_BY_COUNT                            /* ... in ascending order by count-value (aliases #ASC_COUNT, #ASC_VALUE, ...) */
-                 | #GREATER_BY_COUNT                         /* ... in descending order by count-value (aliases #DESC_COUNT, #DESC_VALUE, ...) */
-                 ;
+ count_sort        ::=                                           /*-- Sort order for count-queries --*/
+                       count_sort_op count_sort_limits           /* ... with optional limits */
+                     ;
  
- l_countkeys   ::=                                           /*-- Tuple of bibliographic metadata fields --*/
-                                                             /* ... empty */
-                 | count_key                                 /* ... singleton */
-                 | l_countkeys , count_key                   /* ... or comma-separated list */
-                 ;
+ count_sort_op     ::=                                           /*-- Sort order operation for count-queries --*/
+                       #LESS_BY_KEY                              /* ... in ascending order by count-key (default; aliases #ASC_BY_KEY, #ASC_KEY, ...) */
+                     | #GREATER_BY_KEY                           /* ... in descending order by count-key (aliases #DESC_BY_KEY, #DESC_KEY, ...) */
+                     | #LESS_BY_COUNT                            /* ... in ascending order by count-value (aliases #ASC_COUNT, #ASC_VALUE, ...) */
+                     | #GREATER_BY_COUNT                         /* ... in descending order by count-value (aliases #DESC_COUNT, #DESC_VALUE, ...) */
+                     ;
  
- count_key     ::=                                           /*-- Histogram bin component --*/
-                   *                                         /* ... constant string '*' (global counts only) */
-                 | @ symbol                                  /* ... constant user-defined string */
-                 | FILEID                                    /* ... subcorpus-local file-id (integer) */
-                 | FILENAME                                  /* ... filename */
-                 | DATE                                      /* ... date string (YYYY-MM-DD) */
-                 | DATE / i_slice                            /* ... date slice, computed as (i_slice*int(year/i_slice)) */
-                 | s_field                                   /* ... bibliographic string-field value (e.g. textClass) */
-                 | s_index ck_matchid ck_offset              /* ... indexed token attribute, relative to some matched token (may be slow) */
-                 | count_key ~ replace_regex                 /* ... on-the-fly regex transformation (can be chained) */
-                 | ( count_key )                             /* ... explicit grouping */
-                 ;
+ count_sort_limits ::=                                           /*-- Optional limits for count-query sorting --*/
+                                                                 /* ... empty */
+                     | [ ]                                       /* ... empty with brackets */
+                     | [ symbol ]                                /* ... lower-limit only */
+                     | [ symbol , ]                              /* ... lower-limit only */
+                     | [ , symbol ]                              /* ... upper-limit only */
+                     | [ symbol , symbol ]                       /* ... lower- and upper-limit */
+                     ;
  
- ck_matchid    ::=                                           /*-- Match-ID back-reference for count-key context token --*/
-                                                             /* ... empty: use first matched token */
-                 | matchid                                   /* ... non-empty: use first token with specified match-ID */
-                 ;
+ l_countkeys       ::=                                           /*-- Tuple of bibliographic metadata fields --*/
+                                                                 /* ... empty */
+                     | count_key                                 /* ... singleton */
+                     | l_countkeys , count_key                   /* ... or comma-separated list */
+                     ;
  
- ck_offset     ::=                                           /*-- Token offset for count-key context token --*/
-                                                             /* ... empty: use selected match token */
-                 | + integer                                 /* ... +N: use Nth right-neighbor of match token (negative for left-neightbors) */
-                 | - integer                                 /* ... -N: use Nth left-neighbor of match token */
-                 | integer                                   /* ... N: alias for +N */
-                 ;
+ count_key         ::=                                           /*-- Histogram bin component --*/
+                       *                                         /* ... constant string '*' (global counts only) */
+                     | @ symbol                                  /* ... constant user-defined string */
+                     | FILEID                                    /* ... subcorpus-local file-id (integer) */
+                     | FILENAME                                  /* ... filename */
+                     | DATE                                      /* ... date string (YYYY-MM-DD) */
+                     | DATE / i_slice                            /* ... date slice, computed as (i_slice*int(year/i_slice)) */
+                     | s_field                                   /* ... bibliographic string-field value (e.g. textClass) */
+                     | s_index ck_matchid ck_offset              /* ... indexed token attribute, relative to some matched token (may be slow) */
+                     | count_key ~ replace_regex                 /* ... on-the-fly regex transformation (can be chained) */
+                     | ( count_key )                             /* ... explicit grouping */
+                     ;
+ 
+ ck_matchid        ::=                                           /*-- Match-ID back-reference for count-key context token --*/
+                                                                 /* ... empty: use first matched token */
+                     | matchid                                   /* ... non-empty: use first token with specified match-ID */
+                     ;
+ 
+ ck_offset         ::=                                           /*-- Token offset for count-key context token --*/
+                                                                 /* ... empty: use selected match token */
+                     | + integer                                 /* ... +N: use Nth right-neighbor of match token (negative for left-neightbors) */
+                     | - integer                                 /* ... -N: use Nth left-neighbor of match token */
+                     | integer                                   /* ... N: alias for +N */
+                     ;
  
 
 
