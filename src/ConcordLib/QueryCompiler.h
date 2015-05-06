@@ -77,6 +77,12 @@ public:
 	//! count()-query sort order
 	HitSortEnum m_qCountSort;
 
+	//! count()-query lower bound
+	string m_qCountLo;
+
+	//! count()-query upper bound
+	string m_qCountHi;
+
 	//--------------------------------------------------------------
 	// temporaries
 

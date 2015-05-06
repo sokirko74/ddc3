@@ -301,19 +301,26 @@ public:
   //! sort-order one of: NoSort, (Less|Greater)ByCount(Key|Value)
   HitSortEnum m_sort;
 
+  //! maximum sort-key to return (empty for none)
+  string m_lo;
+
+  //! minimum sort-key to return (empty for none)
+  string m_hi;
+
   //! list of count-bin metadata key expressions
   CQCountKeyExprList* m_keys;
 
 public:
   //! bison constructor
-  CQCount(CQuery *dtr_, CQCountKeyExprList* keys_, size_t sample_=DDCDefaultCountSampleSize, HitSortEnum sort_=NoSort)
+  CQCount(CQuery *dtr_, CQCountKeyExprList* keys_, size_t sample_=DDCDefaultCountSampleSize, HitSortEnum sort_=NoSort, string lb="", string ub="")
   : CQuery("count"),
     m_dtr(dtr_),
     m_sample(sample_),
     m_sort(sort_),
-    m_keys(keys_)
-  {
-  };
+    m_keys(keys_),
+    m_lo(lb),
+    m_hi(ub)
+  {};
 
   //! Default destructor.
   virtual ~CQCount(void);

@@ -180,6 +180,8 @@ void CQueryCompiler::CleanParser()
 	m_qCountKeys.Clear();
 	m_qCountSample = (size_t)-1;
 	m_qCountSort = NoSort;
+	m_qCountLo.clear();
+	m_qCountHi.clear();
 	m_WordSet.clear();
 	m_MorphItems.clear();
 	m_Expanders.clear();
@@ -204,6 +206,8 @@ void CQueryCompiler::DeleteTree()
 	m_qCountKeys.Clear();
 	m_qCountSample = DDCDefaultCountSampleSize;
 	m_qCountSort = NoSort;
+	m_qCountLo.clear();
+	m_qCountHi.clear();
 	m_pQuery = NULL;
 }
 
@@ -301,10 +305,12 @@ CQuery* CQueryCompiler::SetQuery(CQuery* qp)
 CQCount* CQueryCompiler::PushCountQuery(CQuery* qConditions)
 {
 	this->SetQuery(qConditions);
-	CQCount *qc = new CQCount(qConditions, new CQCountKeyExprList(m_qCountKeys), m_qCountSample, m_qCountSort);
+	CQCount *qc = new CQCount(qConditions, new CQCountKeyExprList(m_qCountKeys), m_qCountSample, m_qCountSort, m_qCountLo, m_qCountHi);
 	m_qCountKeys.m_Exprs.clear();
 	m_qCountSample = DDCDefaultCountSampleSize;
 	m_qCountSort   = NoSort;
+	m_qCountLo.clear();
+	m_qCountHi.clear();
 	return (CQCount*)(this->PushQuery(qc));
 }
 

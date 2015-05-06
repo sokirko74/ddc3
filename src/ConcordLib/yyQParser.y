@@ -93,6 +93,8 @@ int yylex (void*,  CQueryCompiler*);
 %type   <m_pfilt>	count_by
 %type	<m_pfilt>	count_sample
 %type	<m_pfilt>	count_sort
+%type	<m_pfilt>	count_sort_op
+%type	<m_pfilt>	count_sort_limits
 
 %type	<m_pfilt>	qf_subcorpora
 %type	<m_pfilt>	qf_has_field
@@ -331,10 +333,23 @@ count_sample:
 	;
 
 count_sort:
+		count_sort_op count_sort_limits	{ $$=$1; }
+	;
+
+count_sort_op:
 		LESS_BY_KEY			{ $$=NULL; _qc->m_qCountSort = LessByCountKey; }
 	|	GREATER_BY_KEY			{ $$=NULL; _qc->m_qCountSort = GreaterByCountKey; }
 	|	LESS_BY_COUNT			{ $$=NULL; _qc->m_qCountSort = LessByCountValue; }
 	|	GREATER_BY_COUNT		{ $$=NULL; _qc->m_qCountSort = GreaterByCountValue; }
+	;
+
+count_sort_limits:
+		/* empty */			{ $$=NULL; }
+	|	'[' ']'				{ $$=NULL; }
+	|	'[' symbol ']'			{ $$=NULL; _qc->m_qCountLo = *$2; }
+	|	'[' symbol ',' ']'		{ $$=NULL; _qc->m_qCountLo = *$2; }
+	|	'[' ',' symbol ']'		{ $$=NULL; _qc->m_qCountHi = *$3; }
+	|	'[' symbol ',' symbol ']'	{ $$=NULL; _qc->m_qCountLo = *$2; _qc->m_qCountHi = *$4; }
 	;
 
  /*-------------------------------------------------------------

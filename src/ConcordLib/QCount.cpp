@@ -468,6 +468,13 @@ string CQCount::toString()
     sortstr += HitSortEnumStrings[m_sort];
     EngMakeUpper(sortstr);
     qs += sortstr;
+    if (!m_lo.empty() || !m_hi.empty()) {
+      qs.push_back('[');
+      if (!m_lo.empty()) qs += sqString(m_lo);
+      qs.push_back(',');
+      if (!m_hi.empty()) qs += sqString(m_hi);
+      qs.push_back(']');
+    }
   }
   return qs;
 }

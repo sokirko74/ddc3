@@ -1757,11 +1757,45 @@ DDCErrorEnum CConcHolder::GetPeriodCounts(CQuery *CountQueryRoot)
 DDCErrorEnum CConcHolder::ConvertCountsToHits(CQuery *CountQueryRoot, size_t Limit) 
 {
 	CQCount *qCount = (CQCount*)CountQueryRoot;
-	size_t n = qCount->m_sort==NoSort || qCount->m_sort==LessByCountKey ? min(Limit, m_Counts.size()) : m_Counts.size();
+
+	//-- count query: apply bounds
+	switch (qCount->m_sort) {
+
+	case LessByCountKey:
+	case GreaterByCountKey:
+		if (!qCount->m_lo.empty()) {
+			if (qCount->m_lo[0] != ' ') qCount->m_lo.insert(qCount->m_lo.begin(), ' ');
+			m_Counts.erase(m_Counts.begin(), m_Counts.lower_bound(qCount->m_lo));
+		}
+		if (!qCount->m_hi.empty()) {
+			if (qCount->m_hi[0] != ' ') qCount->m_hi.insert(qCount->m_hi.begin(), ' ');
+			m_Counts.erase(m_Counts.upper_bound(qCount->m_hi), m_Counts.end());
+		}
+		break;
+
+	case LessByCountValue:
+	case GreaterByCountValue:
+		{
+			size_t lb = qCount->m_lo.empty() ? 0            : strtoul(qCount->m_lo.c_str(), NULL, 0);
+			size_t ub = qCount->m_hi.empty() ? ((size_t)-1) : strtoul(qCount->m_hi.c_str(), NULL, 0);
+			CCountMap::iterator nxt;
+			for (CCountMap::iterator ci=m_Counts.begin(); ci != m_Counts.end(); ci=nxt) {
+				nxt = ci;
+				++nxt;
+				if (ci->second < lb || ci->second > ub)
+					m_Counts.erase(ci);
+			}
+		}
+		break;
+
+	default:
+		break;
+	}
 
 	//-- count query: setup m_Hits[]
 	// + m_Hits[] for count()-queries encodes element CHit hit.m_Sortkey.s (count-key) and hit.m_Value.m_Count
 	//   attributes; used to transport count()-query results in a backwards-compatible manner.
+	size_t n = qCount->m_sort==NoSort || qCount->m_sort==LessByCountKey ? min(Limit, m_Counts.size()) : m_Counts.size();
 	m_Hits.clear();
 	m_Hits.resize(n);
 	vector<CHit>::iterator hi = m_Hits.begin(); 
