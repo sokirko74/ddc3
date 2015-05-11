@@ -70,6 +70,7 @@ public:
   ///\name API
   //@{
   //! Compile index-dependent query properties (required for evaluation).  Required.
+  //! \li called once per leaf-corpus query by CConcHolder::GetOccurrences() or CConcHolder::GetHits() via CQueryCompiler::Compile()
   virtual bool Compile(CQueryCompiler *compiler);
 
   //! Compile index-dependent options in m_Options.  Optional.
@@ -77,6 +78,7 @@ public:
   virtual bool CompileOptions(CQueryCompiler *compiler=NULL);
 
   //! Wrapper for m_Node->Evaluate()
+  //! \li called once per leaf-corpus "search period" by CConcHolder::GetAllHits() via CQueryCompiler::Evaluate()
   virtual void Evaluate();
 
   //! For sanity checks.  Default just returns false.
