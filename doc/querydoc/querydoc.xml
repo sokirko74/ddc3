@@ -296,6 +296,9 @@
 	    <rhs cmt="Conjunction of a negated condition on a single token (token-set difference)">
 	      <n>qw_without</n>
 	    </rhs>
+	    <rhs cmt="Conjunction of attribute-wise independent key-sets returned by a count()-subquery">
+	      <n>qw_keys</n>
+	    </rhs>
 	    <rhs cmt="Assign explicit highlighting ID (e.g. for batch-queries)">
 	      <n>qw_matchid</n>
 	    </rhs>
@@ -588,6 +591,45 @@
 	      <n>qc_word</n>
 	      <t>WITHOUT</t>
 	      <n>qc_word</n>
+	    </rhs>
+	  </rule>
+
+	  <!--~~~~~~~~ RULES: qw_keys -->
+	  <rule lhs="qw_keys" cmt="Conjunction of attribute-wise independent key-sets returned by a count()-subquery">
+	    <rhs cmt="... using the token attributes specified in subquery #BY clause">
+	      <t>KEYS</t>
+	      <t>(</t>
+	      <n>qwk_countsrc</n>
+	      <t>)</t>
+	    </rhs>
+	    <rhs cmt="... using user-specified target attibutes (modulo '-')">
+	      <n>qwk_indextuple</n>
+	      <t>=</t>
+	      <t>KEYS</t>
+	      <t>(</t>
+	      <n>qwk_countsrc</n>
+	      <t>)</t>
+	    </rhs>
+	  </rule>
+
+	  <!--~~~~~~~~ RULES: qwk_indextuple -->
+	  <rule lhs="qwk_indextuple" cmt="Optional target token-attributes for keys() queries">
+	    <rhs cmt="... are just a list of index names or '-'">
+	      <t>$</t>
+	      <t>(</t>
+	      <n>l_indextuple</n>
+	      <t>)</t>
+	    </rhs>
+	  </rule>
+
+	  <!--~~~~~~~~ RULES: qwk_countsrc -->
+	  <rule lhs="qwk_countsrc" cmt="Generating subquery for keys() queries">
+	    <rhs cmt="... literal count() query (including optional #CLIMIT)">
+	      <n>count_query</n>
+	    </rhs>
+	    <rhs cmt="... implicit count() query (including optional #CLIMIT)">
+	      <n>query_conditions</n>
+	      <n>count_filters</n>
 	    </rhs>
 	  </rule>
 
@@ -1027,6 +1069,7 @@
 	      <t>COUNT</t>
 	      <t>(</t>
 	      <n>query_conditions</n>
+	      <n>count_filters</n>
 	      <t>)</t>
 	      <n>count_filters</n>
 	    </rhs>
@@ -1049,7 +1092,10 @@
 	    <rhs cmt="histogram sample size">
 	      <n>count_sample</n>
 	    </rhs>
-	    <rhs cmt="histogram sort order">
+	    <rhs cmt="histogram bin limit (only used by keys() queries)">
+	      <n>count_limit</n>
+	    </rhs>
+	    <rhs cmt="histogram sort order with optional limits">
 	      <n>count_sort</n>
 	    </rhs>
 	  </rule>
@@ -1076,6 +1122,20 @@
 	    </rhs>
 	    <rhs cmt="DDC filter-style syntax">
 	      <t>#SAMPLE</t>
+	      <t>[</t>
+	      <n>integer</n>
+	      <t>]</t>
+	    </rhs>
+	  </rule>
+
+	  <!--~~~~~~~~ RULES: count_limit -->
+	  <rule lhs="count_limit" cmt="histogram bin limit (only used by keys() queries)">
+	    <rhs cmt="SQL-style syntax">
+	      <t>#CLIMIT</t>
+	      <n>integer</n>
+	    </rhs>
+	    <rhs cmt="DDC filter-style syntax">
+	      <t>#CLIMIT</t>
 	      <t>[</t>
 	      <n>integer</n>
 	      <t>]</t>
@@ -1301,6 +1361,19 @@
 	    </rhs>
 	  </rule>
 
+	  <!--~~~~~~~~ RULES: l_indextuple -->
+	  <rule lhs="l_indextuple" cmt="Target token-attribute tuple for keys() queries">
+	    <rhs cmt="Empty list (uses default indices from count()-subquery #BY clause)"/>
+	    <rhs cmt="Single index-name with optional '$' prefix">
+	      <n>s_indextuple_item</n>
+	    </rhs>
+	    <rhs cmt="Multiple indices are separated by commas">
+	      <n>l_indextuple</n>
+	      <t>,</t>
+	      <n>s_indextuple_item</n>
+	    </rhs>
+	  </rule>
+
 	  <!--~~~~~~~~ RULES: qf_subcorpora -->
 	  <rule lhs="qf_subcorpora" cmt="Set of target subcorpora">
 	    <rhs cmt="... empty subcorpus set"/>
@@ -1331,6 +1404,19 @@
 	    <rhs cmt="Explicit index name">
 	      <t>$</t>
 	      <n>symbol</n>
+	    </rhs>
+	  </rule>
+
+	  <!--~~~~~~~~ RULES: s_indextuple_item -->
+	  <rule lhs="s_index" cmt="Index reference occurring in a keys() index-tuple">
+	    <rhs cmt="$-prefixed index name ">
+	      <n>s_index</n>
+	    </rhs>
+	    <rhs cmt="unprefixed index name">
+	      <n>symbol</n>
+	    </rhs>
+	    <rhs cmt="key positions corresponding to '-' pseudo-index are ignored (e.g. metadata keys)">
+	      <t>-</t>
 	    </rhs>
 	  </rule>
 
@@ -1607,6 +1693,7 @@ regex_modifier	[gimsx]
 (?i:\#rand(om)?)
 (?i:\#by)
 (?i:\#samp(le)?)
+(?i:\#clim(it)?)
 (?i:\#((less|asc)(_by)?_key))
 (?i:\#((greater|de?sc)(_by)?_key))
 (?i:\#((less|asc)(_by)?_(count|val(ue)?)))

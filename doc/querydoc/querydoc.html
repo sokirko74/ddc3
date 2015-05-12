@@ -535,6 +535,12 @@
 <tr>
 <td></td>
 <td></td>
+<td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_qw_keys">qw_keys</a></span> </td>
+<td class="ruleComment">/* Conjunction of attribute-wise independent key-sets returned by a count()-subquery */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
 <td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_qw_matchid">qw_matchid</a></span> </td>
 <td class="ruleComment">/* Assign explicit highlighting ID (e.g. for batch-queries) */</td>
 </tr>
@@ -1043,6 +1049,75 @@
 <td class="ruleRHS1">
 <span class="ruleNonterminal"><a href="#rule_qc_word">qc_word</a></span> <span class="ruleTerminal">WITHOUT</span> <span class="ruleNonterminal"><a href="#rule_qc_word">qc_word</a></span> </td>
 <td class="ruleComment">/* aliases: !WITH, WITH! */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td><b>;</b></td>
+</tr>
+<tr></tr>
+<tr>
+<td><b><a name="rule_qw_keys">qw_keys</a></b></td>
+<td>::=</td>
+<td></td>
+<td class="ruleCommentTop">/* Conjunction of attribute-wise independent key-sets returned by a count()-subquery */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS1">
+<span class="ruleTerminal">KEYS</span> <span class="ruleTerminal">(</span> <span class="ruleNonterminal"><a href="#rule_qwk_countsrc">qwk_countsrc</a></span> <span class="ruleTerminal">)</span> </td>
+<td class="ruleComment">/* ... using the token attributes specified in subquery #BY clause */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_qwk_indextuple">qwk_indextuple</a></span> <span class="ruleTerminal">=</span> <span class="ruleTerminal">KEYS</span> <span class="ruleTerminal">(</span> <span class="ruleNonterminal"><a href="#rule_qwk_countsrc">qwk_countsrc</a></span> <span class="ruleTerminal">)</span> </td>
+<td class="ruleComment">/* ... using user-specified target attibutes (modulo '-') */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td><b>;</b></td>
+</tr>
+<tr></tr>
+<tr>
+<td><b><a name="rule_qwk_indextuple">qwk_indextuple</a></b></td>
+<td>::=</td>
+<td></td>
+<td class="ruleCommentTop">/* Optional target token-attributes for keys() queries */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS1">
+<span class="ruleTerminal">$</span> <span class="ruleTerminal">(</span> <span class="ruleNonterminal"><a href="#rule_l_indextuple">l_indextuple</a></span> <span class="ruleTerminal">)</span> </td>
+<td class="ruleComment">/* ... are just a list of index names or '-' */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td><b>;</b></td>
+</tr>
+<tr></tr>
+<tr>
+<td><b><a name="rule_qwk_countsrc">qwk_countsrc</a></b></td>
+<td>::=</td>
+<td></td>
+<td class="ruleCommentTop">/* Generating subquery for keys() queries */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS1">
+<span class="ruleNonterminal"><a href="#rule_count_query">count_query</a></span> </td>
+<td class="ruleComment">/* ... literal count() query (including optional #CLIMIT) */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_query_conditions">query_conditions</a></span> <span class="ruleNonterminal"><a href="#rule_count_filters">count_filters</a></span> </td>
+<td class="ruleComment">/* ... implicit count() query (including optional #CLIMIT) */</td>
 </tr>
 <tr>
 <td></td>
@@ -1760,7 +1835,7 @@
 <td></td>
 <td></td>
 <td class="ruleRHS1">
-<span class="ruleTerminal">COUNT</span> <span class="ruleTerminal">(</span> <span class="ruleNonterminal"><a href="#rule_query_conditions">query_conditions</a></span> <span class="ruleTerminal">)</span> <span class="ruleNonterminal"><a href="#rule_count_filters">count_filters</a></span> </td>
+<span class="ruleTerminal">COUNT</span> <span class="ruleTerminal">(</span> <span class="ruleNonterminal"><a href="#rule_query_conditions">query_conditions</a></span> <span class="ruleNonterminal"><a href="#rule_count_filters">count_filters</a></span> <span class="ruleTerminal">)</span> <span class="ruleNonterminal"><a href="#rule_count_filters">count_filters</a></span> </td>
 <td class="ruleComment">/* Filters may be empty */</td>
 </tr>
 <tr>
@@ -1815,8 +1890,14 @@
 <tr>
 <td></td>
 <td></td>
+<td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_count_limit">count_limit</a></span> </td>
+<td class="ruleComment">/* histogram bin limit (only used by keys() queries) */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
 <td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_count_sort">count_sort</a></span> </td>
-<td class="ruleComment">/* histogram sort order */</td>
+<td class="ruleComment">/* histogram sort order with optional limits */</td>
 </tr>
 <tr>
 <td></td>
@@ -1866,6 +1947,31 @@
 <td></td>
 <td></td>
 <td class="ruleRHS">| <span class="ruleTerminal">#SAMPLE</span> <span class="ruleTerminal">[</span> <span class="ruleNonterminal"><a href="#rule_integer">integer</a></span> <span class="ruleTerminal">]</span> </td>
+<td class="ruleComment">/* DDC filter-style syntax */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td><b>;</b></td>
+</tr>
+<tr></tr>
+<tr>
+<td><b><a name="rule_count_limit">count_limit</a></b></td>
+<td>::=</td>
+<td></td>
+<td class="ruleCommentTop">/* histogram bin limit (only used by keys() queries) */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS1">
+<span class="ruleTerminal">#CLIMIT</span> <span class="ruleNonterminal"><a href="#rule_integer">integer</a></span> </td>
+<td class="ruleComment">/* SQL-style syntax */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleTerminal">#CLIMIT</span> <span class="ruleTerminal">[</span> <span class="ruleNonterminal"><a href="#rule_integer">integer</a></span> <span class="ruleTerminal">]</span> </td>
 <td class="ruleComment">/* DDC filter-style syntax */</td>
 </tr>
 <tr>
@@ -2286,6 +2392,36 @@
 </tr>
 <tr></tr>
 <tr>
+<td><b><a name="rule_l_indextuple">l_indextuple</a></b></td>
+<td>::=</td>
+<td></td>
+<td class="ruleCommentTop">/* Target token-attribute tuple for keys() queries */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS1"></td>
+<td class="ruleComment">/* Empty list (uses default indices from count()-subquery #BY clause) */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_s_indextuple_item">s_indextuple_item</a></span> </td>
+<td class="ruleComment">/* Single index-name with optional '$' prefix */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_l_indextuple">l_indextuple</a></span> <span class="ruleTerminal">,</span> <span class="ruleNonterminal"><a href="#rule_s_indextuple_item">s_indextuple_item</a></span> </td>
+<td class="ruleComment">/* Multiple indices are separated by commas */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td><b>;</b></td>
+</tr>
+<tr></tr>
+<tr>
 <td><b><a name="rule_qf_subcorpora">qf_subcorpora</a></b></td>
 <td>::=</td>
 <td></td>
@@ -2338,6 +2474,37 @@
 <td></td>
 <td class="ruleRHS">| <span class="ruleTerminal">$</span> <span class="ruleNonterminal"><a href="#rule_symbol">symbol</a></span> </td>
 <td class="ruleComment">/* Explicit index name */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td><b>;</b></td>
+</tr>
+<tr></tr>
+<tr>
+<td><b><a name="rule_s_index">s_index</a></b></td>
+<td>::=</td>
+<td></td>
+<td class="ruleCommentTop">/* Index reference occurring in a keys() index-tuple */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS1">
+<span class="ruleNonterminal"><a href="#rule_s_index">s_index</a></span> </td>
+<td class="ruleComment">/* $-prefixed index name  */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_symbol">symbol</a></span> </td>
+<td class="ruleComment">/* unprefixed index name */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleTerminal">-</span> </td>
+<td class="ruleComment">/* key positions corresponding to '-' pseudo-index are ignored (e.g. metadata keys) */</td>
 </tr>
 <tr>
 <td></td>
@@ -2927,6 +3094,7 @@ regex_modifier	[gimsx]
 (?i:\#rand(om)?)
 (?i:\#by)
 (?i:\#samp(le)?)
+(?i:\#clim(it)?)
 (?i:\#((less|asc)(_by)?_key))
 (?i:\#((greater|de?sc)(_by)?_key))
 (?i:\#((less|asc)(_by)?_(count|val(ue)?)))
@@ -3662,7 +3830,7 @@ regex_modifier	[gimsx]
   </body></div>
 <div class="footers">
 <div class="footer_sig">
-<address><a href="mailto:jurish@bbaw.de">jurish@bbaw.de</a></address>Last modified: Wed, 06 May 2015 14:18:54 +0200</div>
+<address><a href="mailto:jurish@bbaw.de">jurish@bbaw.de</a></address>Last modified: Tue, 12 May 2015 14:28:18 +0200</div>
 <div class="footer_linkbar"><p class="nopad"><a class="navLink" href="/">Root</a><a class="navLink" href="./">Back</a><span class="navLinkDisabled">Help</span></p></div>
 <p class="dummy"></p>
 </div>

@@ -87,7 +87,7 @@
      GREATER_BY_KEY = 305,
      LESS_BY_COUNT = 306,
      GREATER_BY_COUNT = 307,
-     LIMIT = 308,
+     CLIMIT = 308,
      KW_DATE = 309,
      KW_FILEID = 310,
      KW_FILENAME = 311,

@@ -12,8 +12,8 @@ Grammar
 
     6 count_filter: count_by
     7             | count_sample
-    8             | count_sort
-    9             | count_limit
+    8             | count_limit
+    9             | count_sort
 
    10 count_by: BY l_countkeys
    11         | BY '[' l_countkeys ']'
@@ -21,8 +21,8 @@ Grammar
    12 count_sample: SAMPLE integer
    13             | SAMPLE '[' integer ']'
 
-   14 count_limit: LIMIT integer
-   15            | LIMIT '[' integer ']'
+   14 count_limit: CLIMIT integer
+   15            | CLIMIT '[' integer ']'
 
    16 count_sort: count_sort_op count_sort_minmax
 
@@ -293,8 +293,8 @@ Grammar
   222            | l_countkeys ',' count_key
 
   223 l_indextuple: /* empty */
-  224             | s_index_or_symbol
-  225             | l_indextuple ',' s_index_or_symbol
+  224             | s_indextuple_item
+  225             | l_indextuple ',' s_indextuple_item
 
   226 count_key: '*'
   227          | '@' symbol
@@ -320,7 +320,7 @@ Grammar
   243 s_index: '$'
   244        | '$' symbol
 
-  245 s_index_or_symbol: s_index
+  245 s_indextuple_item: s_index
   246                  | symbol
 
   247 s_word: symbol
@@ -456,7 +456,7 @@ LESS_BY_KEY (304) 17
 GREATER_BY_KEY (305) 18
 LESS_BY_COUNT (306) 19
 GREATER_BY_COUNT (307) 20
-LIMIT (308) 14 15
+CLIMIT (308) 14 15
 KW_DATE (309) 77 78 230 231
 KW_FILEID (310) 228
 KW_FILENAME (311) 229 256
@@ -492,9 +492,9 @@ count_by (98)
 count_sample (99)
     on left: 12 13, on right: 7
 count_limit (100)
-    on left: 14 15, on right: 9
+    on left: 14 15, on right: 8
 count_sort (101)
-    on left: 16, on right: 8
+    on left: 16, on right: 9
 count_sort_op (102)
     on left: 17 18 19 20, on right: 16
 count_sort_minmax (103)
@@ -633,7 +633,7 @@ ck_offset (166)
 s_index (167)
     on left: 243 244, on right: 160 162 164 166 168 170 172 174 176
     178 180 182 184 186 188 190 192 196 245
-s_index_or_symbol (168)
+s_indextuple_item (168)
     on left: 245 246, on right: 224 225
 s_word (169)
     on left: 247, on right: 159 160 161 162 206
@@ -1996,7 +1996,7 @@ state 84
 
     l_indextuple       go to state 136
     s_index            go to state 137
-    s_index_or_symbol  go to state 138
+    s_indextuple_item  go to state 138
     symbol             go to state 139
 
 
@@ -3069,7 +3069,7 @@ state 135
 state 136
 
   201 qwk_indextuple: '$' '(' l_indextuple . ')'
-  225 l_indextuple: l_indextuple . ',' s_index_or_symbol
+  225 l_indextuple: l_indextuple . ',' s_indextuple_item
 
     ','  shift, and go to state 227
     ')'  shift, and go to state 228
@@ -3077,23 +3077,23 @@ state 136
 
 state 137
 
-  245 s_index_or_symbol: s_index .
+  245 s_indextuple_item: s_index .
 
-    $default  reduce using rule 245 (s_index_or_symbol)
+    $default  reduce using rule 245 (s_indextuple_item)
 
 
 state 138
 
-  224 l_indextuple: s_index_or_symbol .
+  224 l_indextuple: s_indextuple_item .
 
     $default  reduce using rule 224 (l_indextuple)
 
 
 state 139
 
-  246 s_index_or_symbol: symbol .
+  246 s_indextuple_item: symbol .
 
-    $default  reduce using rule 246 (s_index_or_symbol)
+    $default  reduce using rule 246 (s_indextuple_item)
 
 
 state 140
@@ -3861,7 +3861,7 @@ state 223
     GREATER_BY_KEY    shift, and go to state 279
     LESS_BY_COUNT     shift, and go to state 280
     GREATER_BY_COUNT  shift, and go to state 281
-    LIMIT             shift, and go to state 282
+    CLIMIT            shift, and go to state 282
     ')'               shift, and go to state 283
 
     count_filter   go to state 284
@@ -3883,7 +3883,7 @@ state 224
     GREATER_BY_KEY    shift, and go to state 279
     LESS_BY_COUNT     shift, and go to state 280
     GREATER_BY_COUNT  shift, and go to state 281
-    LIMIT             shift, and go to state 282
+    CLIMIT            shift, and go to state 282
 
     $default  reduce using rule 203 (qwk_countsrc)
 
@@ -3969,7 +3969,7 @@ state 226
 
 state 227
 
-  225 l_indextuple: l_indextuple ',' . s_index_or_symbol
+  225 l_indextuple: l_indextuple ',' . s_indextuple_item
 
     SYMBOL   shift, and go to state 1
     INTEGER  shift, and go to state 4
@@ -3977,7 +3977,7 @@ state 227
     '$'      shift, and go to state 135
 
     s_index            go to state 137
-    s_index_or_symbol  go to state 291
+    s_indextuple_item  go to state 291
     symbol             go to state 139
 
 
@@ -4796,8 +4796,8 @@ state 281
 
 state 282
 
-   14 count_limit: LIMIT . integer
-   15            | LIMIT . '[' integer ']'
+   14 count_limit: CLIMIT . integer
+   15            | CLIMIT . '[' integer ']'
 
     INTEGER  shift, and go to state 126
     '['      shift, and go to state 343
@@ -4838,16 +4838,16 @@ state 286
 
 state 287
 
-    9 count_filter: count_limit .
+    8 count_filter: count_limit .
 
-    $default  reduce using rule 9 (count_filter)
+    $default  reduce using rule 8 (count_filter)
 
 
 state 288
 
-    8 count_filter: count_sort .
+    9 count_filter: count_sort .
 
-    $default  reduce using rule 8 (count_filter)
+    $default  reduce using rule 9 (count_filter)
 
 
 state 289
@@ -4875,7 +4875,7 @@ state 290
 
 state 291
 
-  225 l_indextuple: l_indextuple ',' s_index_or_symbol .
+  225 l_indextuple: l_indextuple ',' s_indextuple_item .
 
     $default  reduce using rule 225 (l_indextuple)
 
@@ -5392,7 +5392,7 @@ state 342
 
 state 343
 
-   15 count_limit: LIMIT '[' . integer ']'
+   15 count_limit: CLIMIT '[' . integer ']'
 
     INTEGER  shift, and go to state 126
 
@@ -5402,7 +5402,7 @@ state 343
 
 state 344
 
-   14 count_limit: LIMIT integer .
+   14 count_limit: CLIMIT integer .
 
     $default  reduce using rule 14 (count_limit)
 
@@ -5418,7 +5418,7 @@ state 345
     GREATER_BY_KEY    shift, and go to state 279
     LESS_BY_COUNT     shift, and go to state 280
     GREATER_BY_COUNT  shift, and go to state 281
-    LIMIT             shift, and go to state 282
+    CLIMIT            shift, and go to state 282
 
     $default  reduce using rule 3 (count_query)
 
@@ -5882,7 +5882,7 @@ state 386
 
 state 387
 
-   15 count_limit: LIMIT '[' integer . ']'
+   15 count_limit: CLIMIT '[' integer . ']'
 
     ']'  shift, and go to state 428
 
@@ -6207,7 +6207,7 @@ state 427
 
 state 428
 
-   15 count_limit: LIMIT '[' integer ']' .
+   15 count_limit: CLIMIT '[' integer ']' .
 
     $default  reduce using rule 15 (count_limit)
 

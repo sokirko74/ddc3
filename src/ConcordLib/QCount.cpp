@@ -937,7 +937,7 @@ string CQKeys::toString()
       qs += m_qCount->m_dtr->toString() + m_qCount->m_dtr->optionsToString();
     qs += m_qCount->countOptionsToString();
     if (m_CountLimit != DDCDefaultCountSampleSize)
-      qs += Format(" #LIMIT %zi", m_CountLimit);
+      qs += Format(" #CLIMIT %zi", m_CountLimit);
   }
   qs.push_back(')');
 

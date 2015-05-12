@@ -129,6 +129,7 @@ Comments may appear after each rule in C notation
                     | qw_listfile                                           /* Disjunction over values (lines) read from a server-side file (command-line only) */
                     | qw_with                                               /* Conjunction of multiple conditions on a single token (token-set intersection) */
                     | qw_without                                            /* Conjunction of a negated condition on a single token (token-set difference) */
+                    | qw_keys                                               /* Conjunction of attribute-wise independent key-sets returned by a count()-subquery */
                     | qw_matchid                                            /* Assign explicit highlighting ID (e.g. for batch-queries) */
                     | ( qc_word )                                           /* Explicit grouping (e.g. for WITH, expanders, etc.) */
                     ;
@@ -231,6 +232,20 @@ Comments may appear after each rule in C notation
  
  qw_without       ::=                                                       /*-- Conjunction of positive and negative conditions on a single token (token-set difference) --*/
                       qc_word WITHOUT qc_word                               /* aliases: !WITH, WITH! */
+                    ;
+ 
+ qw_keys          ::=                                                       /*-- Conjunction of attribute-wise independent key-sets returned by a count()-subquery --*/
+                      KEYS ( qwk_countsrc )                                 /* ... using the token attributes specified in subquery #BY clause */
+                    | qwk_indextuple = KEYS ( qwk_countsrc )                /* ... using user-specified target attibutes (modulo '-') */
+                    ;
+ 
+ qwk_indextuple   ::=                                                       /*-- Optional target token-attributes for keys() queries --*/
+                      $ ( l_indextuple )                                    /* ... are just a list of index names or '-' */
+                    ;
+ 
+ qwk_countsrc     ::=                                                       /*-- Generating subquery for keys() queries --*/
+                      count_query                                           /* ... literal count() query (including optional #CLIMIT) */
+                    | query_conditions count_filters                        /* ... implicit count() query (including optional #CLIMIT) */
                     ;
  
  qw_matchid       ::=                                                       /*-- Assign explicit highlighting ID (incurs a minor performance penalty) --*/
@@ -378,80 +393,86 @@ Comments may appear after each rule in C notation
 
 
 
- count_query       ::=                                           /*-- Top-level count-query root --*/
-                       COUNT ( query_conditions ) count_filters  /* Filters may be empty */
+ count_query       ::=                                                         /*-- Top-level count-query root --*/
+                       COUNT ( query_conditions count_filters ) count_filters  /* Filters may be empty */
                      ;
  
- count_filters     ::=                                           /*-- List of count-query options --*/
-                                                                 /* empty */
-                     | count_filters count_filter                /* non-empty */
+ count_filters     ::=                                                         /*-- List of count-query options --*/
+                                                                               /* empty */
+                     | count_filters count_filter                              /* non-empty */
                      ;
  
- count_filter      ::=                                           /*-- Single count-query option --*/
-                       count_by                                  /* histogram bin-key selection */
-                     | count_sample                              /* histogram sample size */
-                     | count_sort                                /* histogram sort order */
+ count_filter      ::=                                                         /*-- Single count-query option --*/
+                       count_by                                                /* histogram bin-key selection */
+                     | count_sample                                            /* histogram sample size */
+                     | count_limit                                             /* histogram bin limit (only used by keys() queries) */
+                     | count_sort                                              /* histogram sort order with optional limits */
                      ;
  
- count_by          ::=                                           /*-- Select count-query histogram keys (metadata tuples) --*/
-                       #BY l_countkeys                           /* SQL-style syntax */
-                     | #BY [ l_countkeys ]                       /* DDC filter-style syntax */
+ count_by          ::=                                                         /*-- Select count-query histogram keys (metadata tuples) --*/
+                       #BY l_countkeys                                         /* SQL-style syntax */
+                     | #BY [ l_countkeys ]                                     /* DDC filter-style syntax */
                      ;
  
- count_sample      ::=                                           /*-- Select minimum count-query sample size (sub-query limit) --*/
-                       #SAMPLE integer                           /* SQL-style syntax */
-                     | #SAMPLE [ integer ]                       /* DDC filter-style syntax */
+ count_sample      ::=                                                         /*-- Select minimum count-query sample size (sub-query limit) --*/
+                       #SAMPLE integer                                         /* SQL-style syntax */
+                     | #SAMPLE [ integer ]                                     /* DDC filter-style syntax */
                      ;
  
- count_sort        ::=                                           /*-- Sort order for count-queries --*/
-                       count_sort_op count_sort_limits           /* ... with optional limits */
+ count_limit       ::=                                                         /*-- histogram bin limit (only used by keys() queries) --*/
+                       #CLIMIT integer                                         /* SQL-style syntax */
+                     | #CLIMIT [ integer ]                                     /* DDC filter-style syntax */
                      ;
  
- count_sort_op     ::=                                           /*-- Sort order operation for count-queries --*/
-                       #LESS_BY_KEY                              /* ... in ascending order by count-key (default; aliases #ASC_BY_KEY, #ASC_KEY, ...) */
-                     | #GREATER_BY_KEY                           /* ... in descending order by count-key (aliases #DESC_BY_KEY, #DESC_KEY, ...) */
-                     | #LESS_BY_COUNT                            /* ... in ascending order by count-value (aliases #ASC_COUNT, #ASC_VALUE, ...) */
-                     | #GREATER_BY_COUNT                         /* ... in descending order by count-value (aliases #DESC_COUNT, #DESC_VALUE, ...) */
+ count_sort        ::=                                                         /*-- Sort order for count-queries --*/
+                       count_sort_op count_sort_limits                         /* ... with optional limits */
                      ;
  
- count_sort_limits ::=                                           /*-- Optional limits for count-query sorting --*/
-                                                                 /* ... empty */
-                     | [ ]                                       /* ... empty with brackets */
-                     | [ symbol ]                                /* ... lower-limit only */
-                     | [ symbol , ]                              /* ... lower-limit only */
-                     | [ , symbol ]                              /* ... upper-limit only */
-                     | [ symbol , symbol ]                       /* ... lower- and upper-limit */
+ count_sort_op     ::=                                                         /*-- Sort order operation for count-queries --*/
+                       #LESS_BY_KEY                                            /* ... in ascending order by count-key (default; aliases #ASC_BY_KEY, #ASC_KEY, ...) */
+                     | #GREATER_BY_KEY                                         /* ... in descending order by count-key (aliases #DESC_BY_KEY, #DESC_KEY, ...) */
+                     | #LESS_BY_COUNT                                          /* ... in ascending order by count-value (aliases #ASC_COUNT, #ASC_VALUE, ...) */
+                     | #GREATER_BY_COUNT                                       /* ... in descending order by count-value (aliases #DESC_COUNT, #DESC_VALUE, ...) */
                      ;
  
- l_countkeys       ::=                                           /*-- Tuple of bibliographic metadata fields --*/
-                                                                 /* ... empty */
-                     | count_key                                 /* ... singleton */
-                     | l_countkeys , count_key                   /* ... or comma-separated list */
+ count_sort_limits ::=                                                         /*-- Optional limits for count-query sorting --*/
+                                                                               /* ... empty */
+                     | [ ]                                                     /* ... empty with brackets */
+                     | [ symbol ]                                              /* ... lower-limit only */
+                     | [ symbol , ]                                            /* ... lower-limit only */
+                     | [ , symbol ]                                            /* ... upper-limit only */
+                     | [ symbol , symbol ]                                     /* ... lower- and upper-limit */
                      ;
  
- count_key         ::=                                           /*-- Histogram bin component --*/
-                       *                                         /* ... constant string '*' (global counts only) */
-                     | @ symbol                                  /* ... constant user-defined string */
-                     | FILEID                                    /* ... subcorpus-local file-id (integer) */
-                     | FILENAME                                  /* ... filename */
-                     | DATE                                      /* ... date string (YYYY-MM-DD) */
-                     | DATE / i_slice                            /* ... date slice, computed as (i_slice*int(year/i_slice)) */
-                     | s_field                                   /* ... bibliographic string-field value (e.g. textClass) */
-                     | s_index ck_matchid ck_offset              /* ... indexed token attribute, relative to some matched token (may be slow) */
-                     | count_key ~ replace_regex                 /* ... on-the-fly regex transformation (can be chained) */
-                     | ( count_key )                             /* ... explicit grouping */
+ l_countkeys       ::=                                                         /*-- Tuple of bibliographic metadata fields --*/
+                                                                               /* ... empty */
+                     | count_key                                               /* ... singleton */
+                     | l_countkeys , count_key                                 /* ... or comma-separated list */
                      ;
  
- ck_matchid        ::=                                           /*-- Match-ID back-reference for count-key context token --*/
-                                                                 /* ... empty: use first matched token */
-                     | matchid                                   /* ... non-empty: use first token with specified match-ID */
+ count_key         ::=                                                         /*-- Histogram bin component --*/
+                       *                                                       /* ... constant string '*' (global counts only) */
+                     | @ symbol                                                /* ... constant user-defined string */
+                     | FILEID                                                  /* ... subcorpus-local file-id (integer) */
+                     | FILENAME                                                /* ... filename */
+                     | DATE                                                    /* ... date string (YYYY-MM-DD) */
+                     | DATE / i_slice                                          /* ... date slice, computed as (i_slice*int(year/i_slice)) */
+                     | s_field                                                 /* ... bibliographic string-field value (e.g. textClass) */
+                     | s_index ck_matchid ck_offset                            /* ... indexed token attribute, relative to some matched token (may be slow) */
+                     | count_key ~ replace_regex                               /* ... on-the-fly regex transformation (can be chained) */
+                     | ( count_key )                                           /* ... explicit grouping */
                      ;
  
- ck_offset         ::=                                           /*-- Token offset for count-key context token --*/
-                                                                 /* ... empty: use selected match token */
-                     | + integer                                 /* ... +N: use Nth right-neighbor of match token (negative for left-neightbors) */
-                     | - integer                                 /* ... -N: use Nth left-neighbor of match token */
-                     | integer                                   /* ... N: alias for +N */
+ ck_matchid        ::=                                                         /*-- Match-ID back-reference for count-key context token --*/
+                                                                               /* ... empty: use first matched token */
+                     | matchid                                                 /* ... non-empty: use first token with specified match-ID */
+                     ;
+ 
+ ck_offset         ::=                                                         /*-- Token offset for count-key context token --*/
+                                                                               /* ... empty: use selected match token */
+                     | + integer                                               /* ... +N: use Nth right-neighbor of match token (negative for left-neightbors) */
+                     | - integer                                               /* ... -N: use Nth left-neighbor of match token */
+                     | integer                                                 /* ... N: alias for +N */
                      ;
  
 
@@ -461,37 +482,43 @@ Comments may appear after each rule in C notation
 
 
 
- l_set         ::=                              /*-- Set of string values --*/
-                                                /* empty set */
-                 | l_set s_word                 /* ... set elements are separated by whitespace */
-                 | l_set ,                      /* ... or by commas */
+ l_set         ::=                                   /*-- Set of string values --*/
+                                                     /* empty set */
+                 | l_set s_word                      /* ... set elements are separated by whitespace */
+                 | l_set ,                           /* ... or by commas */
                  ;
  
- l_morph       ::=                              /*-- List of morphological properties (should match index) --*/
-                                                /* empty list */
-                 | l_morph s_morphitem          /* ... list elements are separated by whitespace */
-                 | l_morph ,                    /* ... or commas */
-                 | l_morph ;                    /* ... or semicolons (for compatibility) */
+ l_morph       ::=                                   /*-- List of morphological properties (should match index) --*/
+                                                     /* empty list */
+                 | l_morph s_morphitem               /* ... list elements are separated by whitespace */
+                 | l_morph ,                         /* ... or commas */
+                 | l_morph ;                         /* ... or semicolons (for compatibility) */
                  ;
  
- l_phrase      ::=                              /*-- Ordered sequence of single-word conditions with optional proximity constraints --*/
-                   qc_word                      /* Singleton phrase */
-                 | l_phrase qc_word             /* ... phrase elements are separated by whitespace */
-                 | l_phrase #< integer qc_word  /* ... allowing at most N intervening tokens (default='#<0': immediate successor) */
-                 | l_phrase #> integer qc_word  /* ... requiring at least N intervening tokens */
-                 | l_phrase #= integer qc_word  /* ... allowing exactly N intervening tokens */
-                 | l_phrase # integer qc_word   /* ... backwards-compatible #N is an alias for #<N */
+ l_phrase      ::=                                   /*-- Ordered sequence of single-word conditions with optional proximity constraints --*/
+                   qc_word                           /* Singleton phrase */
+                 | l_phrase qc_word                  /* ... phrase elements are separated by whitespace */
+                 | l_phrase #< integer qc_word       /* ... allowing at most N intervening tokens (default='#<0': immediate successor) */
+                 | l_phrase #> integer qc_word       /* ... requiring at least N intervening tokens */
+                 | l_phrase #= integer qc_word       /* ... allowing exactly N intervening tokens */
+                 | l_phrase # integer qc_word        /* ... backwards-compatible #N is an alias for #<N */
                  ;
  
- l_txchain     ::=                              /*-- Term expansion pipeline --*/
-                                                /* Empty pipeline or '|-' uses index-dependent default aka '|INDEX' */
-                 | l_txchain s_expander         /* ... pipeline concatenation '|Expander1 |Expander2 |...' */
+ l_txchain     ::=                                   /*-- Term expansion pipeline --*/
+                                                     /* Empty pipeline or '|-' uses index-dependent default aka '|INDEX' */
+                 | l_txchain s_expander              /* ... pipeline concatenation '|Expander1 |Expander2 |...' */
                  ;
  
- qf_subcorpora ::=                              /*-- Set of target subcorpora --*/
-                                                /* ... empty subcorpus set */
-                 | s_subcorpus                  /* ... singleton subcorpus (symbol) */
-                 | qf_subcorpora , s_subcorpus  /* ... multiple subcorpora are separated by commas */
+ l_indextuple  ::=                                   /*-- Target token-attribute tuple for keys() queries --*/
+                                                     /* Empty list (uses default indices from count()-subquery #BY clause) */
+                 | s_indextuple_item                 /* Single index-name with optional '$' prefix */
+                 | l_indextuple , s_indextuple_item  /* Multiple indices are separated by commas */
+                 ;
+ 
+ qf_subcorpora ::=                                   /*-- Set of target subcorpora --*/
+                                                     /* ... empty subcorpus set */
+                 | s_subcorpus                       /* ... singleton subcorpus (symbol) */
+                 | qf_subcorpora , s_subcorpus       /* ... multiple subcorpora are separated by commas */
                  ;
  
 
@@ -504,6 +531,12 @@ Comments may appear after each rule in C notation
  s_index       ::=                              /*-- Index name (must be defined in .opt file) --*/
                    $                            /* Bare dollar uses query-type default (usually 'Token') */
                  | $ symbol                     /* Explicit index name */
+                 ;
+ 
+ s_index       ::=                              /*-- Index reference occurring in a keys() index-tuple --*/
+                   s_index                      /* $-prefixed index name  */
+                 | symbol                       /* unprefixed index name */
+                 | -                            /* key positions corresponding to '-' pseudo-index are ignored (e.g. metadata keys) */
                  ;
  
  s_word        ::=                              /*-- A single word or string value --*/
@@ -680,6 +713,7 @@ The following macros are defined for the underlying scanner:
  (?i:\#rand(om)?)
  (?i:\#by)
  (?i:\#samp(le)?)
+ (?i:\#clim(it)?)
  (?i:\#((less|asc)(_by)?_key))
  (?i:\#((greater|de?sc)(_by)?_key))
  (?i:\#((less|asc)(_by)?_(count|val(ue)?)))

@@ -182,7 +182,7 @@ int yylex (void*,  CQueryCompiler*);
 // Types: Semantic Sugar (symbols)
 
 %type	<m_str>		s_index
-%type	<m_str>		s_index_or_symbol
+%type	<m_str>		s_indextuple_item
 %type	<m_str>		s_word
 %type	<m_str>		s_prefix
 %type	<m_str>		s_suffix
@@ -264,7 +264,7 @@ int yylex (void*,  CQueryCompiler*);
 %token	<m_str>	GREATER_BY_KEY
 %token	<m_str>	LESS_BY_COUNT
 %token	<m_str>	GREATER_BY_COUNT
-%token	<m_str>	LIMIT
+%token	<m_str>	CLIMIT
 
 %token	<m_str>	KW_DATE
 %token	<m_str>	KW_FILEID
@@ -328,8 +328,8 @@ count_filters:
 count_filter:
 		count_by 			{ $$=$1; }
 	|	count_sample			{ $$=$1; }
-	|	count_sort			{ $$=$1; }
 	|	count_limit			{ $$=$1; }
+	|	count_sort			{ $$=$1; }
 	;
 
 count_by:
@@ -343,8 +343,8 @@ count_sample:
 	;
 
 count_limit:
-		LIMIT integer			{ _qc->m_qCountLimit = $2; }
-	|	LIMIT '[' integer ']'		{ _qc->m_qCountLimit = $3; }
+		CLIMIT integer			{ _qc->m_qCountLimit = $2; }
+	|	CLIMIT '[' integer ']'		{ _qc->m_qCountLimit = $3; }
 	;
 
 count_sort:
@@ -778,8 +778,8 @@ l_countkeys:
 
 l_indextuple:
 		/* empty */					{ $$=NULL; _qc->m_IndexTuple.clear(); }
-	|	s_index_or_symbol				{ $$=NULL; _qc->m_IndexTuple.clear(); _qc->m_IndexTuple.push_back(*$1); }
-	|	l_indextuple ',' s_index_or_symbol		{ $$=NULL; _qc->m_IndexTuple.push_back(*$3); }
+	|	s_indextuple_item				{ $$=NULL; _qc->m_IndexTuple.clear(); _qc->m_IndexTuple.push_back(*$1); }
+	|	l_indextuple ',' s_indextuple_item		{ $$=NULL; _qc->m_IndexTuple.push_back(*$3); }
 	;
 
  /*-------------------------------------------------------------
@@ -823,7 +823,7 @@ s_index:
 	|	'$' symbol	{ $$ = $2; }
 	;
 
-s_index_or_symbol:
+s_indextuple_item:
 		s_index		{ $$ = $1; }
 	|	symbol		{ $$ = $1; }
 	;

@@ -158,11 +158,11 @@ regex_modifier	[gimsx]
 (?i:\#rand(om)?)			{ return RANDOM; }
 (?i:\#by)				{ return BY; }
 (?i:\#samp(le)?)			{ return SAMPLE; }
+(?i:\#clim(it)?)			{ return CLIMIT; }
 (?i:\#((less|asc)(_by)?_key))		{ return LESS_BY_KEY; }
 (?i:\#((greater|de?sc)(_by)?_key))	{ return GREATER_BY_KEY; }
 (?i:\#((less|asc)(_by)?_(count|val(ue)?)))	{ return LESS_BY_COUNT; }
 (?i:\#((greater|de?sc)(_by)?_(count|val(ue)?))) { return GREATER_BY_COUNT; }
-(?i:\#lim(?:it)?)				{ return LIMIT; }
 
 
  /* regexes */
