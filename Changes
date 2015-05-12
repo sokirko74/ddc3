@@ -1,6 +1,6 @@
 ##-*- Mode: Change-Log; coding: utf-8; -*-
 
-v2.0.38-pre Mon, 04 May 2015 15:12:44 +0200 moocow
+v2.0.38-pre Mon, 11 May 2015 11:32:52 +0200 moocow
 	+ CQFContextSort::toString() fix for nontrivial match-ids
 	+ added common/ddcObject.h : common base class ddcObject
 	  - user data void *m_User (for perl wrappers)
@@ -16,6 +16,16 @@ v2.0.38-pre Mon, 04 May 2015 15:12:44 +0200 moocow
 	+ re-added indexName tracking to CQTokAny (helpful for DiaCollo parsing, doesn't hurt ddc)
 	+ added optional lower- and upper-bound arguments to count()-query sort operators #(ASC|DESC)_BY_(KEY|COUNT)
 	  - caveat numerator: these apply on a per-subcorpus basis; could be problematic for sparse counts across many subcorpora
+	+ re-factored count-query evaluation from ConcHolder.(h|cpp) into QCount.(h|cpp)
+	  - removed some redundant CQueryResult fields from CConcHolder (m_SortOrder, m_bSortByString)
+	+ re-factored CConcHolder::GetHits(): added variant for pre-parsed queries
+	+ removed implicit space-separation in CQCountKeyExprList; we already have globalCountKeyDelim=\002, which is ugly but more useful
+	+ fixed bug setting Result.m_AllHitsCount in ConvertCountsToHits()
+	  - we were getting m_AllHitsCount=512 (== Limit == m_pIndexator->m_MaxCachedHitsCount) for subcorpora with more "real" count-hits
+	+ added keys() query type: extract tuples to query from a count()-query
+	  - pretty ugly: it needs to evaluate the count()-query in CQKeys::Compile() in order to generate a proxy query
+	    (in general CQWith-conjunction of CQTokSet queries)
+	  - currently over-generates, since the key attributes are queried independently
 
 v2.0.37 Wed, 21 Jan 2015 11:02:25 +0100 moocow
 	+ bugfix release

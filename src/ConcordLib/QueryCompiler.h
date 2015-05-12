@@ -68,11 +68,20 @@ public:
 	//! query options (adopted into top-level m_pQuery on SetQuery())
 	CQueryOptions m_qOptions;
 
+	//! query limit (anything but 0 (default) overrides CConcHolder arguments)
+	size_t m_Limit;
+
+	//--------------------------------------------------------------
+	// temporaries
+
 	//! count()-query keys
 	CQCountKeyExprList m_qCountKeys;
 
-	//! count()-query sample size
+	//! count()-query sample size (overrides count-query m_dtr->m_Options->m_Limit if set)
 	size_t m_qCountSample;
+
+	//! count()-query result-set size (for keys()-queries)
+	size_t m_qCountLimit;
 
 	//! count()-query sort order
 	HitSortEnum m_qCountSort;
@@ -83,8 +92,8 @@ public:
 	//! count()-query upper bound
 	string m_qCountHi;
 
-	//--------------------------------------------------------------
-	// temporaries
+	//! keys()-query tuple
+	vector<string> m_IndexTuple;
 
 	//! temporary for $i={w1,w2,...,wN} word-set queries
 	set<string> m_WordSet;
@@ -211,6 +220,10 @@ public:
 	//! push a newly allocated CQCount* count-query onto the stack, setting m_CountBy
 	//! Called by bison during the parse.
 	CQCount* PushCountQuery(CQuery *qConditions);
+
+	//! push a newly allocated CQKeys* query onto the stack.
+	//! called by bison during the parse.
+	CQKeys* PushKeysQuery(CQCount *qCount);
 
 	//! set string bounds for current filter (called by bison parser)
 	void SetFilterBounds(const string& lb="", const string& ub="");

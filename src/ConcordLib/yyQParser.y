@@ -92,9 +92,10 @@ int yylex (void*,  CQueryCompiler*);
 %type   <m_pfilt>	count_filter
 %type   <m_pfilt>	count_by
 %type	<m_pfilt>	count_sample
+%type	<m_pfilt>	count_limit
 %type	<m_pfilt>	count_sort
 %type	<m_pfilt>	count_sort_op
-%type	<m_pfilt>	count_sort_limits
+%type	<m_pfilt>	count_sort_minmax
 
 %type	<m_pfilt>	qf_subcorpora
 %type	<m_pfilt>	qf_has_field
@@ -137,6 +138,11 @@ int yylex (void*,  CQueryCompiler*);
 %type	<m_int>		ck_matchid
 %type	<m_int>		ck_offset
 
+%type	<m_pnode>	qw_keys
+%type	<m_pnode>	qwk_indextuple
+%type	<m_pnode>	qwk_countsrc
+%type	<m_pnode>	l_indextuple
+
 //------------------------------------------------------
 // Types: Queries: Single-token queries
 
@@ -176,6 +182,7 @@ int yylex (void*,  CQueryCompiler*);
 // Types: Semantic Sugar (symbols)
 
 %type	<m_str>		s_index
+%type	<m_str>		s_index_or_symbol
 %type	<m_str>		s_word
 %type	<m_str>		s_prefix
 %type	<m_str>		s_suffix
@@ -257,6 +264,7 @@ int yylex (void*,  CQueryCompiler*);
 %token	<m_str>	GREATER_BY_KEY
 %token	<m_str>	LESS_BY_COUNT
 %token	<m_str>	GREATER_BY_COUNT
+%token	<m_str>	LIMIT
 
 %token	<m_str>	KW_DATE
 %token	<m_str>	KW_FILEID
@@ -281,6 +289,7 @@ int yylex (void*,  CQueryCompiler*);
 %nonassoc '!'
 
 %nonassoc	COUNT
+%nonassoc	KEYS
 %nonassoc	NEAR
 %left		','
 %left		WITH WITHOUT
@@ -308,7 +317,7 @@ query:
   * count_query (count_*)
   */
 count_query:
-		COUNT '(' query_conditions ')'	count_filters	{ $$ = _qc->PushCountQuery($3); }
+		COUNT '(' query_conditions count_filters ')' count_filters	{ $$ = _qc->PushCountQuery($3); }
 	;
 
 count_filters:
@@ -320,6 +329,7 @@ count_filter:
 		count_by 			{ $$=$1; }
 	|	count_sample			{ $$=$1; }
 	|	count_sort			{ $$=$1; }
+	|	count_limit			{ $$=$1; }
 	;
 
 count_by:
@@ -332,8 +342,13 @@ count_sample:
 	|	SAMPLE '[' integer ']'		{ $$=NULL; _qc->m_qCountSample = $3; }
 	;
 
+count_limit:
+		LIMIT integer			{ _qc->m_qCountLimit = $2; }
+	|	LIMIT '[' integer ']'		{ _qc->m_qCountLimit = $3; }
+	;
+
 count_sort:
-		count_sort_op count_sort_limits	{ $$=$1; }
+		count_sort_op count_sort_minmax	{ $$=$1; }
 	;
 
 count_sort_op:
@@ -343,9 +358,10 @@ count_sort_op:
 	|	GREATER_BY_COUNT		{ $$=NULL; _qc->m_qCountSort = GreaterByCountValue; }
 	;
 
-count_sort_limits:
+count_sort_minmax:
 		/* empty */			{ $$=NULL; }
 	|	'[' ']'				{ $$=NULL; }
+	|	'[' ',' ']'			{ $$=NULL; }
 	|	'[' symbol ']'			{ $$=NULL; _qc->m_qCountLo = *$2; }
 	|	'[' symbol ',' ']'		{ $$=NULL; _qc->m_qCountLo = *$2; }
 	|	'[' ',' symbol ']'		{ $$=NULL; _qc->m_qCountHi = *$3; }
@@ -373,6 +389,7 @@ q_filters:
 q_flag:	
 		':' qf_subcorpora 	{ $$=NULL; }
 	|	CNTXT integer 		{ $$=NULL; _qc->m_qOptions.m_ContextSentencesCount = (size_t)$2; }
+	|	CNTXT '[' integer ']'	{ $$=NULL; _qc->m_qOptions.m_ContextSentencesCount = (size_t)$3; }
 	|	WITHIN s_breakname	{ $$=NULL; _qc->m_qOptions.m_Within.push_back(*$2); }
 	|	SEPARATE_HITS		{ $$=NULL; _qc->m_qOptions.m_bSeparateHits = 1; }
 	|	NOSEPARATE_HITS		{ $$=NULL; _qc->m_qOptions.m_bSeparateHits = 0; }
@@ -597,6 +614,7 @@ qc_word:
 	|	qw_listfile		{ $$ = $1; }
 	|	qw_with			{ $$ = $1; }
 	|	qw_without		{ $$ = $1; }
+	|	qw_keys			{ $$ = $1; }
  	|	qw_matchid		{ $$ = $1; }
 	|	'(' qc_word ')'		{ $$ = $2; }
 	;
@@ -702,6 +720,20 @@ qw_without:
 		qc_word WITHOUT qc_word		{ $$ = _qc->PushQuery(new CQWithout($1,$3)); }
 	;
 
+qw_keys:
+		KEYS '(' qwk_countsrc ')'			{ $$ = _qc->PushKeysQuery((CQCount*)$3); }
+	|	qwk_indextuple '=' KEYS '(' qwk_countsrc ')'	{ $$ = _qc->PushKeysQuery((CQCount*)$5); }
+	;
+
+qwk_indextuple:
+		'$' '(' l_indextuple ')'			{ $$=NULL; }
+	;
+
+qwk_countsrc:
+		count_query					{ $$ = $1; }
+	|	query_conditions count_filters 			{ $$ = _qc->PushCountQuery($1); }
+	;
+
 qw_matchid:
 		qc_word matchid 		{ $$ = $1; $$->SetMatchId($2); }
 	;
@@ -744,6 +776,12 @@ l_countkeys:
 	|	l_countkeys ',' count_key	{ $$=$1; _qc->m_qCountKeys.PushKey((CQCountKeyExpr*)$3); }
 	;
 
+l_indextuple:
+		/* empty */					{ $$=NULL; _qc->m_IndexTuple.clear(); }
+	|	s_index_or_symbol				{ $$=NULL; _qc->m_IndexTuple.clear(); _qc->m_IndexTuple.push_back(*$1); }
+	|	l_indextuple ',' s_index_or_symbol		{ $$=NULL; _qc->m_IndexTuple.push_back(*$3); }
+	;
+
  /*-------------------------------------------------------------
   * count_key: count-key expressions
   */
@@ -783,6 +821,11 @@ ck_offset:
 s_index:
 		'$'		{ $$ = _qc->newString(); }
 	|	'$' symbol	{ $$ = $2; }
+	;
+
+s_index_or_symbol:
+		s_index		{ $$ = $1; }
+	|	symbol		{ $$ = $1; }
 	;
 
 s_word:		symbol 		{ $$ = $1; };

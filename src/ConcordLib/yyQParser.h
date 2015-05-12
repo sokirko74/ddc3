@@ -87,21 +87,23 @@
      GREATER_BY_KEY = 305,
      LESS_BY_COUNT = 306,
      GREATER_BY_COUNT = 307,
-     KW_DATE = 308,
-     KW_FILEID = 309,
-     KW_FILENAME = 310,
-     OP_CLAUSE_MATCHID = 311,
-     OP_CLAUSE_CONCAT = 312,
-     OP_CLAUSE_BOOL = 313,
-     OP_CLAUSE_BASIC = 314,
-     OP_PHRASE = 315,
-     OP_WORD = 316,
-     OP_BOOL_OR = 317,
-     OP_BOOL_AND = 318,
-     COUNT = 319,
-     NEAR = 320,
-     WITHOUT = 321,
-     WITH = 322
+     LIMIT = 308,
+     KW_DATE = 309,
+     KW_FILEID = 310,
+     KW_FILENAME = 311,
+     OP_CLAUSE_MATCHID = 312,
+     OP_CLAUSE_CONCAT = 313,
+     OP_CLAUSE_BOOL = 314,
+     OP_CLAUSE_BASIC = 315,
+     OP_PHRASE = 316,
+     OP_WORD = 317,
+     OP_BOOL_OR = 318,
+     OP_BOOL_AND = 319,
+     COUNT = 320,
+     KEYS = 321,
+     NEAR = 322,
+     WITHOUT = 323,
+     WITH = 324
    };
 #endif
 
@@ -122,7 +124,7 @@ typedef union YYSTYPE
 
 
 /* Line 2068 of yacc.c  */
-#line 126 "yyQParser.h"
+#line 128 "yyQParser.h"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */

@@ -23,6 +23,31 @@
 #include <ConcHolder.h>
 
 //==============================================================================
+// Sorting utility structures
+
+//==============================================================================
+//! comparison operator for hits on CHit::m_FileNo (for std::sort)
+struct IsLessByFileNo
+{
+	IsLessByFileNo()
+	{};
+
+	bool operator() (const CHit &h1, const CHit &h2) const 
+	{ return h1.m_FileNo < h2.m_FileNo; };
+};
+
+
+//==============================================================================
+//! direct comparison operator for hits on CHit::m_SortKey.i (for std::sort)
+struct HitLessByCountValue {
+	bool operator() (const CHit &a, const CHit &b) const
+	{
+		return a.m_Value.m_Count < b.m_Value.m_Count;
+	};
+};
+
+
+//==============================================================================
 // CQCountKeyExpr
 
 //----------------------------------------------------------------------
@@ -349,7 +374,7 @@ string& CQCountKeyExprList::Evaluate(const CHit &Hit)
   m_Key.clear();
   for (vector<CQCountKeyExpr*>::iterator xi=m_Exprs.begin(); xi!=m_Exprs.end(); xi++) {
     if (xi != m_Exprs.begin()) m_Key.push_back(globalCountKeyDelim);
-    m_Key.push_back(' ');
+    //m_Key.push_back(' ');  //-- this is nice for CConcHolder::GetHitIds() debugging, but ugly everywhere else: lose it!
     m_Key += (*xi)->Evaluate(Hit);
   }
   return m_Key;
@@ -400,6 +425,8 @@ void CQCount::Clear(bool deep)
 {
   ClearNode();
   ClearOptions();
+  m_Counts.clear();
+  m_CountSample = 0;
   if (deep) {
     if (m_dtr) delete m_dtr;
     if (m_keys) delete m_keys;
@@ -442,6 +469,10 @@ bool CQCount::Compile(CQueryCompiler *compiler)
   if (!m_keys->Compile(compiler)) 
     throw CExpc(errParseError,"could not compile key expression(s) `%s' for count-query", m_keys->toString().c_str());
 
+  //-- reset temporaries
+  m_Counts.clear();
+  m_CountSample = 0;
+
   //-- child methods hook in here
   return true;
 }
@@ -451,18 +482,248 @@ void CQCount::Evaluate()
 {
   //-- sanity check(s)
   assert(m_dtr != NULL);
-  m_dtr->Evaluate();
+  assert(m_Compiler != NULL);
+  assert(m_Compiler->m_pHolder != NULL);
+  assert(m_Compiler->m_pHolder->m_pIndexator != NULL);
+}
+
+//--------------------------------------------------------------
+bool CQCount::CanCountUniversal()
+{
+  return (typeid(*m_dtr)==typeid(CQTokAny)
+	  && (!m_dtr->m_Options || m_dtr->m_Options->CanFilterByFile())
+	  && (!m_keys || m_keys->CanCountByFile()));
+}
+
+//--------------------------------------------------------------
+void CQCount::CountUniversal(CQueryResult &Result, size_t Limit)
+{
+  //-- sanity checks
+  this->Evaluate();
+
+  //-- common variables
+  CQuery            *qRoot = m_dtr;
+  CQCountKeyExprList* keys = m_keys;
+  m_CountSample            = 0;
+
+  //-- count(* ...) query: do memory-optimized computation
+  CConcIndexator *ix = m_Compiler->m_pHolder->m_pIndexator;
+  const vector<CTokenNo> &fbreaks = ix->GetFileBreaks();
+  const set<size_t>      &fmasked = ix->m_MaskedFiles; 
+  set<size_t>::const_iterator fmaski = fmasked.begin();
+  DWORD nfiles = ix->GetCorpusFilesCount();
+  CHit hit;
+  string key;
+  size_t n;
+
+  assert(nfiles <= fbreaks.size()); //-- sanity check
+		
+  if (qRoot->m_Options->m_bSeparateHits) {
+    //-- count(* #sep): count tokens
+    CTokenNo fw_begin=0, fw_end;
+    for (DWORD f=0; f<nfiles && m_CountSample < m_sample; ++f, fw_begin=fw_end) {
+      fw_end = fbreaks[f];
+      if (fmaski != fmasked.end() && f == *fmaski) {
+	//-- don't count tokens in masked files
+	++fmaski;
+	continue;
+      }
+      if (ix->m_Bibl.FileMatches(f, qRoot->m_Options->m_Filters)) {
+	hit.m_FileNo   = f;
+	key            = keys->Evaluate(hit);
+	n              = (fw_end - fw_begin);
+	m_Counts[key] += n;
+	m_CountSample += n;
+      }
+    }
+  }
+  else {
+    //-- count(* #join): count selected breaks
+    const CHitBorders::CBreakCollection *sbreaks = ix->GetBreakCollectionByName(qRoot->m_Options->m_HitTypeStr);
+    DWORD    f=0, n=1;
+    CTokenNo fw_end = fbreaks[f];
+    for (vector<CTokenNo>::const_iterator bi=sbreaks->m_BreakOffsets.begin(); bi!=sbreaks->m_BreakOffsets.end() && m_CountSample<m_sample; ++bi,++n) {
+      if (*bi >= fw_end) {
+	//-- new file
+	if (fmaski != fmasked.end() && f == *fmaski) {
+	  ++fmaski;
+	}
+	else if (n>0 && ix->m_Bibl.FileMatches(f, qRoot->m_Options->m_Filters)) {
+	  hit.m_FileNo   = f;
+	  key            = keys->Evaluate(hit);
+	  m_Counts[key] += n;
+	  m_CountSample += n;
+	}
+	do {
+	  ++f;
+	  fw_end = fbreaks[f];
+	} while (*bi >= fw_end);
+	n = 0;
+      }
+    }
+  }
+
+  this->ConvertCountsToHits(Result, Limit);
+}
+
+//--------------------------------------------------------------
+void CQCount::CountLocal(CQueryResult &Result, size_t Limit)
+{
+  //-- sanity checks
+  this->Evaluate();
+
+  //-- common variables
+  //CConcHolder      *holder = (CConcHolder*)m_Compiler->m_pHolder;
+  CQuery            *qRoot = m_dtr;
+  CQCountKeyExprList *keys = m_keys;
+
+  //-- counting guts
+  if (keys->CanCountByFile()) {
+    //-- counting guts: file-level
+    bool isWithinFile = (qRoot->m_Options->m_HitTypeStr == PredefinedFileBreakName);
+    DWORD  f = (DWORD)-1;
+    size_t n = 0;
+    string key;
+
+    //-- ensure m_Hits are sorted by file-id
+    if (qRoot->m_Options && !qRoot->m_Options->m_Filters.empty() && qRoot->m_Options->m_Filters.back().m_FilterType!=NoSort) 
+      sort(Result.m_Hits.begin(), Result.m_Hits.end(), IsLessByFileNo());
+
+    for (vector<CHit>::const_iterator hi=Result.m_Hits.begin(); hi != Result.m_Hits.end() && m_CountSample < m_sample; ++hi, ++n) {
+      if (hi->m_FileNo != f) {
+	//-- next file
+	if (n>0) {
+	  m_Counts[key] += (isWithinFile ? 1 : n);
+	  m_CountSample += (isWithinFile ? 1 : n);
+	}
+	n   = 0;
+	f   = hi->m_FileNo;
+	key = keys->Evaluate(*hi);
+      }
+    }
+    if (n>0) {
+      m_Counts[key] += (isWithinFile ? 1 : n);
+      m_CountSample += (isWithinFile ? 1 : n);
+    }
+  }
+  else {
+    //-- counting guts: token-level
+    for (vector<CHit>::const_iterator hi=Result.m_Hits.begin(); hi != Result.m_Hits.end() && m_CountSample < m_sample; ++hi, ++m_CountSample) {
+      string &key = keys->Evaluate(*hi);
+      ++m_Counts[key];
+    }
+  }
+
+  //-- cleanup period-local count-daughter data
+  Result.m_Hits.clear();
+  Result.m_HighlightOccurs.clear();
+  Result.m_HighlightIds.clear();
+  Result.m_AllHitsCount = 0;
+}
+
+//--------------------------------------------------------------
+void CQCount::ConvertCountsToHits(CQueryResult &Result, size_t Limit)
+{
+  /*
+  assert(m_Compiler != NULL);
+  assert(m_Compiler->m_pHolder != NULL);
+  CConcHolder  *holder = (CConcHolder*)m_Compiler->m_pHolder;
+  */
+
+  //-- count query: apply bounds
+  switch (m_sort) {
+
+  case LessByCountKey:
+  case GreaterByCountKey:
+    if (!m_lo.empty())
+      m_Counts.erase(m_Counts.begin(), m_Counts.lower_bound(m_lo));
+    if (!m_hi.empty())
+      m_Counts.erase(m_Counts.upper_bound(m_hi), m_Counts.end());
+    break;
+
+  case LessByCountValue:
+  case GreaterByCountValue:
+    {
+      size_t lb = m_lo.empty() ? 0            : strtoul(m_lo.c_str(), NULL, 0);
+      size_t ub = m_hi.empty() ? ((size_t)-1) : strtoul(m_hi.c_str(), NULL, 0);
+      CCountMap::iterator nxt;
+      for (CCountMap::iterator ci=m_Counts.begin(); ci != m_Counts.end(); ci=nxt) {
+	nxt = ci;
+	++nxt;
+	if (ci->second < lb || ci->second > ub)
+	  m_Counts.erase(ci);
+      }
+    }
+    break;
+
+  default:
+    break;
+  }
+
+  //-- count query: setup m_Hits[]
+  // + m_Hits[] for count()-queries encodes element CHit hit.m_Sortkey.s (count-key) and hit.m_Value.m_Count
+  //   attributes; used to transport count()-query results in a backwards-compatible manner.
+  size_t n = m_sort==NoSort || m_sort==LessByCountKey ? min(Limit, m_Counts.size()) : m_Counts.size();
+  Result.m_Hits.clear();
+  Result.m_Hits.resize(n);
+  vector<CHit>::iterator hi = Result.m_Hits.begin(); 
+  for (CCountMap::const_iterator ci=m_Counts.begin(); ci != m_Counts.end() && hi != Result.m_Hits.end(); ++ci, ++hi) {
+    hi->m_BreakNo = -1;
+    hi->m_HighlightOccurrenceEnd = 0;
+    hi->m_FileNo  = -1;
+    hi->m_Value.m_Count = ci->second;
+    hi->m_SortKey = ci->first;
+  }
+
+  //-- count query: sort hits 
+  switch (m_sort) {
+  case LessByCountValue:
+    Result.m_SortOrder = hsoAscendingCountValues;
+    stable_sort(Result.m_Hits.begin(), Result.m_Hits.end(), HitLessByCountValue());
+    break;
+  case GreaterByCountValue:
+    Result.m_SortOrder = hsoDescendingCountValues;
+    stable_sort(Result.m_Hits.rbegin(), Result.m_Hits.rend(), HitLessByCountValue());
+    break;
+  case GreaterByCountKey:
+    Result.m_SortOrder = hsoDescendingCountKeys;
+    reverse(Result.m_Hits.begin(), Result.m_Hits.end());
+    break;
+  case LessByCountKey:
+  default:
+    Result.m_SortOrder = hsoAscendingCountKeys;
+    break;
+  }
+
+  //-- count query: trim hits (apply limit)
+  if (Limit < Result.m_Hits.size())
+    Result.m_Hits.resize(Limit);
+	
+
+  //-- count query: setup CQueryResult fields
+  Result.m_HighlightOccurs.clear();
+  Result.m_HighlightIds.clear();
+  Result.m_AllHitsCount  = m_Counts.size();
+  Result.m_bSortByString = 1;
+  Result.m_DebugInfo.clear();
 }
 
 //--------------------------------------------------------------
 string CQCount::toString()
 {
-  string qs("COUNT(" + m_dtr->toString() + m_dtr->optionsToString() + ")");
+  string qs("COUNT(" + m_dtr->toString() + m_dtr->optionsToString() + ")" + this->countOptionsToString());
+  return qs;
+}
+
+//--------------------------------------------------------------
+string CQCount::countOptionsToString()
+{
+  string qs;
   if (m_keys && !m_keys->empty()) {
     qs += " #BY[" + m_keys->toString() + "]";
   }
   if (m_sample != DDCDefaultCountSampleSize)
-    qs += Format(" #SAMPLE[%zi]", m_sample);
+    qs += Format(" #SAMPLE %zi", m_sample);
   if (m_sort != NoSort) {
     string sortstr(" #");
     sortstr += HitSortEnumStrings[m_sort];
@@ -492,6 +753,198 @@ string CQCount::jsonData()
 }
 
 //======================================================================
+// CQKeys
+
+//--------------------------------------------------------------
+CQKeys::~CQKeys()
+{
+  Clear(true);
+}
+
+//--------------------------------------------------------------
+void CQKeys::ClearNode()
+{
+  if (m_qCount) m_qCount->ClearNode();
+  if (m_proxy) m_proxy->ClearNode();
+  m_Node = NULL; //-- if defined at all, it should be == m_proxy->m_Node
+  CQuery::ClearNode();
+}
+
+//--------------------------------------------------------------
+void CQKeys::Clear(bool deep)
+{
+  ClearNode();
+  ClearOptions();
+  if (deep) {
+    if (m_qCount) delete m_qCount;
+    if (m_proxy) {
+      if (m_proxy->m_Options == m_Options)
+	m_proxy->m_Options = NULL;
+      delete m_proxy;
+    }
+  }
+  m_qCount = NULL;
+  m_proxy = NULL;
+  m_dtrs.clear();
+  //m_tuples.clear();
+}
+
+//--------------------------------------------------------------
+ddcObjectList CQKeys::Children() const
+{
+  ddcObjectList kids(CQuery::Children());
+  if (m_qCount) kids.push_back(m_qCount);
+  //if (m_proxy) kids.push_back(m_proxy);
+  return kids;
+}
+
+//--------------------------------------------------------------
+void CQKeys::DisownChildren()
+{
+  CQuery::DisownChildren();
+  m_qCount = NULL;
+  m_proxy = NULL;
+  m_dtrs.clear();
+}
+
+//--------------------------------------------------------------
+bool CQKeys::Compile(CQueryCompiler *compiler)
+{
+  SetCompiler(compiler);
+
+  //-- sanity check(s)
+  if (!m_qCount)
+    throw CExpc(errParseError,"no underlying count-query for keys-query `%s'", this->toString().c_str());
+
+  //-- compile count-subquerx
+  if (!m_qCount->Compile(compiler))
+    throw CExpc(errParseError,"could not compile count-query `%s' for keys-query `%s'", m_qCount->toString().c_str(), this->toString().c_str());
+
+  //-- sanity check: allow only CQCountKeyExprToken keys for count-query
+  vector<CQCountKeyExpr*>& Exprs = m_qCount->m_keys->m_Exprs;
+  for (vector<CQCountKeyExpr*>::const_iterator xi=Exprs.begin(); xi != Exprs.end(); ++xi) {
+    if (typeid(*(*xi)) != typeid(CQCountKeyExprToken))
+      throw CExpc(errParseError, "can't handle non-token count-key expression `%s' in keys-query `%s'", (*xi)->toString().c_str(), this->toString().c_str());
+  }
+
+  //-- set default index-names
+  if (m_IndexNames.empty()) {
+    //-- set default index names
+    m_IndexNames.reserve(Exprs.size());
+    for (vector<CQCountKeyExpr*>::const_iterator xi=Exprs.begin(); xi != Exprs.end(); ++xi) {
+      m_IndexNames.push_back( ((CQCountKeyExprToken*)(*xi))->m_IndexName );
+    }
+  }
+  if (m_IndexNames.empty())
+    throw CExpc(errParseError, "can't handle empty index-tuple in keys-query `%s'", this->toString().c_str());
+
+  //-- create attribute-wise value-set queries
+  m_dtrs.clear();
+  for (vector<string>::const_iterator ixi=m_IndexNames.begin(); ixi != m_IndexNames.end(); ++ixi) {
+    m_dtrs.push_back(new CQTokSet(*ixi));
+  }
+
+  //-- create joint sub-query
+  m_proxy = NULL;
+  for (vector<CQTokSet*>::iterator di=m_dtrs.begin(); di!=m_dtrs.end(); ++di) {
+    if (m_proxy==NULL)
+      m_proxy = *di;
+    else
+      m_proxy = new CQWith(m_proxy, *di);
+  }
+
+  //-- evaluate count subquery using CConcHolder::GetAllHits() (via public CConcHolder::GetHits())
+  //   + this is annoying, but otherwise we're in a double-bind calling Evaluate() from CConcHolder::GetHits() in the period-loop,
+  //     since GetAllHits() does the sorting and filtering and evaluation of count-query daughter node
+  assert(compiler->m_pHolder);
+  CConcHolder *holder = (CConcHolder*)compiler->m_pHolder;
+  DWORD EndHitNo = 0;
+  size_t ResultLimitTmp = holder->m_ResultLimit;
+  holder->m_ResultLimit = m_CountLimit;
+  if (holder->GetHits(m_qCount, EndHitNo) != errNone)
+    throw CExpc(errParseError,"could not evaluate count-query `%s' for keys-query `%s'", m_qCount->toString().c_str(), this->toString().c_str());
+
+  //-- populate attribute-wise value sets
+  //m_tuples.clear();
+  vector<string> hvals;
+  vector<string>::const_iterator vali;
+  vector<CQTokSet*>::iterator dtri;
+  string delims(1,globalCountKeyDelim);
+  for (vector<CHit>::const_iterator hiti=holder->m_Hits.begin(); hiti!=holder->m_Hits.end(); ++hiti) {
+    hvals.clear();
+    stringSplitE(hiti->m_SortKey.s, delims, hvals);
+    //m_tuples.insert(hvals);
+    for (vali=hvals.begin(), dtri=m_dtrs.begin(); vali != hvals.end() && dtri!=m_dtrs.end(); ++vali, ++dtri) {
+      (*dtri)->m_Values.insert(*vali);
+    }
+  }
+
+  //-- restore holder & count-query data
+  holder->ClearQueryResults();
+  holder->m_ResultLimit = ResultLimitTmp;
+  m_qCount->ClearNode();
+
+  //-- setup proxy match-id(s)
+  if (m_MatchId != 0)
+    m_proxy->SetMatchId(m_MatchId);
+
+  //-- compile proxy query
+  if (!m_proxy->Compile(compiler))
+    throw CExpc(errParseError, "could not compile subquery `%s' for keys-query `%s'", m_proxy->toString().c_str(), this->toString().c_str());
+
+  //-- DEBUG
+  //fprintf(stderr, "DEBUG: keys() proxy query = %s\n", (m_proxy->toString() + m_proxy->optionsToString()).c_str());
+
+  //-- setup proxy m_Node
+  m_Node = m_proxy->m_Node;
+  m_proxy->m_Options = m_Options;
+  return true;
+}
+
+//--------------------------------------------------------------
+void CQKeys::Evaluate()
+{
+  assert(m_proxy != NULL);
+  m_proxy->Evaluate();
+  m_Node = m_proxy->m_Node;
+}
+
+//--------------------------------------------------------------
+string CQKeys::toString()
+{
+  string qs;
+  if (!m_IndexNames.empty()) {
+    qs += "$(";
+    for (vector<string>::const_iterator ii=m_IndexNames.begin(); ii != m_IndexNames.end(); ++ii) {
+      if (ii != m_IndexNames.begin()) qs.push_back(',');
+      qs += *ii;
+    }
+    qs += ")=";
+  }
+
+  qs += "KEYS(";
+  if (m_qCount) {
+    if (m_qCount->m_dtr)
+      qs += m_qCount->m_dtr->toString() + m_qCount->m_dtr->optionsToString();
+    qs += m_qCount->countOptionsToString();
+    if (m_CountLimit != DDCDefaultCountSampleSize)
+      qs += Format(" #LIMIT %zi", m_CountLimit);
+  }
+  qs.push_back(')');
+
+  if (m_MatchId != 0)
+    qs += Format(" =%u", m_MatchId);
+
+  return qs;
+}
+
+//--------------------------------------------------------------
+string CQKeys::jsonData()
+{
+  return string("\"Count\":") + m_qCount->toJson();
+}
+
+//======================================================================
 // functions
 
 void GenerateCountString(string &ResultStr, DDCFormatTypeEnum fmt, const string& key, size_t count)
@@ -505,7 +958,7 @@ void GenerateCountString(string &ResultStr, DDCFormatTypeEnum fmt, const string&
     ResultStr += Format("[%zi", count);
     while (keytok()) {
       ResultStr.push_back(',');
-      ResultStr.append(jsonStr(keytok.val()+1));
+      ResultStr.append(jsonStr(keytok.val()));
     }
     ResultStr.push_back(']');
     break;
@@ -514,7 +967,7 @@ void GenerateCountString(string &ResultStr, DDCFormatTypeEnum fmt, const string&
     //-- count strings, html
     ResultStr += Format("<TR><TD>%zi</TD>", count);
     while (keytok()) {
-      ResultStr += "<TD>" + ConvertASCIIToHtmlSymbols(keytok.val()+1) + "</TD>";
+      ResultStr += "<TD>" + ConvertASCIIToHtmlSymbols(keytok.val()) + "</TD>";
     }
     ResultStr += "</TR>\n";
     break;
@@ -527,7 +980,7 @@ void GenerateCountString(string &ResultStr, DDCFormatTypeEnum fmt, const string&
     ResultStr += Format("%zi", count);
     while (keytok()) {
       ResultStr.push_back('\t');
-      ResultStr += keytok.val()+1;
+      ResultStr += keytok.val();
     }
     ResultStr.push_back('\n');
     break;

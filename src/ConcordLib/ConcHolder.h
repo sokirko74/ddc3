@@ -99,18 +99,6 @@ private:
 	//! the format of query result 
 	DDCFormatTypeEnum			m_ResultFormat;
 
-	//! whether the current hit-sorting mode is primarily string-based
-	bool					m_bSortByString;
-
-	//! the current hit-sorting order
-	HitSortOrderEnum			m_SortOrder;
-
-	//! temporary for constructing count-query results
-	CCountMap				m_Counts;
-
-	//! temporary for tracking count-query sample size
-	size_t					m_CountSample;
-
 	//! add a reference to FileNo according to m_ResultFormat
 	void	AddFileReference(const long FileNo);
 	//! add bibliographical information about Hit to m_QueryResultStr
@@ -136,19 +124,6 @@ private:
 
 	//! check if CountQuery is a count(*) query suitable for use with GetUniversalCounts()
 	bool IsUniversalCountQuery(CQuery *QueryRoot) const;
-
-	//! evaluate a count(*) query by populating m_Counts[], memory-optimized.
-	//! implicitly calls ConvertCountsToHits(Limit)
-	DDCErrorEnum GetUniversalCounts(CQuery *CountQueryRoot, size_t Limit);
-
-	//! evaluate a period-local count(*) query by updating m_Counts[] for every element in m_Hits[].
-	//! implicitly clears m_Hits[], m_HighlightOccurs[], m_HighlightIds[], and m_AllHitsCount.
-	DDCErrorEnum GetPeriodCounts(CQuery *CountQueryRoot);
-
-	//! encode count()-query results in m_Counts[] to m_Hits[], using
-	//! m_Hits[] element CHit hit.m_Sortkey.s to transport count-key
-	//! and hit.m_Value.m_Count to transport count results in a backwards-compatible manner.
-	DDCErrorEnum    ConvertCountsToHits(CQuery *CountQueryRoot, size_t Limit);
 
 	//! checks if Query  si already in the cache, and if true, it returns its hit results from the cache
 	bool	TryToGetFromCache(const string &Query,  DWORD& EndHitNo);
@@ -234,7 +209,13 @@ public:
 	DDCErrorEnum	SimpleQuery(const string &Query, DWORD& EndHitNo, DWORD& HitsCount);
 
 	//! GetHits does the same as SimpleQuery does, but without GenerateHitStrings()
-	DDCErrorEnum	GetHits(const string &Query,  DWORD& EndHitNo);
+	DDCErrorEnum	GetHits(const string &QueryStr,  DWORD& EndHitNo);
+
+	//! GetHits() variant for pre-parsed queries, cache key is generated as QueryRoot->toString() + QueryRoot->optionsToString()
+	DDCErrorEnum	GetHits(CQuery *QueryRoot,  DWORD& EndHitNo);
+
+	//! GetHits() guts: pre-parsed QueryRoot and given string cache-key QueryStr
+	DDCErrorEnum	GetHits(CQuery *QueryRoot,  DWORD& EndHitNo, const string &QueryStr);
 
 	//! initializes m_QueryResultStr using current m_Hits and m_HighlightOccurs (for context-queries)
 	DDCErrorEnum	GenerateHitStrings(const int StartHitNo);

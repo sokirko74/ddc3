@@ -294,6 +294,14 @@ extern string timestampUTC(time_t timeval);
 //! moo: convenience wrapper for string-to-vector tokenization using StringTokenizer
 vector<string> stringSplit(const char *s, const char *delims);
 
+//! moo: split a string using std::string() methods only, allowing empty tokens
+//! \li appends token-strings to argument \a tokens
+//! \li \a tokens is not implicitly cleared
+void stringSplitE(const string& s, const string& delims, vector<string>& tokens);
+
+//! moo: stringSplitE() variant returning token-vector
+vector<string> stringSplitE(const string& s, const string& delims);
+
 //! moo: version utilities (see also ddcVersion.cpp)
 #include "ddcVersion.h"
 

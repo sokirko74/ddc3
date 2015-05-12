@@ -64,9 +64,11 @@ CQueryCompiler::CQueryCompiler(const CConcHolder* pHolder)
 {
 	m_pHolder = pHolder;
 	m_pQuery  = NULL;
-	m_qCountSample = 0;
+	m_qCountSample = DDCDefaultCountSampleSize;
+	m_qCountLimit = DDCDefaultCountSampleSize;
 	m_qCountSort = NoSort;
 	m_CurrentNodeIndex = 0;
+	m_Limit = 0;
 }
 
 CQueryCompiler::~CQueryCompiler()
@@ -178,13 +180,16 @@ void CQueryCompiler::CleanParser()
 
 	//-- clear global query flags
 	m_qCountKeys.Clear();
-	m_qCountSample = (size_t)-1;
+	m_qCountSample = DDCDefaultCountSampleSize;
+	m_qCountLimit = DDCDefaultCountSampleSize;
 	m_qCountSort = NoSort;
+	m_Limit = 0;
 	m_qCountLo.clear();
 	m_qCountHi.clear();
 	m_WordSet.clear();
 	m_MorphItems.clear();
 	m_Expanders.clear();
+	m_IndexTuple.clear();
 	m_FilterField.clear();
 	m_FilterLB.clear();
 	m_FilterUB.clear();
@@ -205,7 +210,9 @@ void CQueryCompiler::DeleteTree()
 	m_Queries.clear();
 	m_qCountKeys.Clear();
 	m_qCountSample = DDCDefaultCountSampleSize;
+	m_qCountLimit = DDCDefaultCountSampleSize;
 	m_qCountSort = NoSort;
+	m_Limit = 0;
 	m_qCountLo.clear();
 	m_qCountHi.clear();
 	m_pQuery = NULL;
@@ -312,6 +319,14 @@ CQCount* CQueryCompiler::PushCountQuery(CQuery* qConditions)
 	m_qCountLo.clear();
 	m_qCountHi.clear();
 	return (CQCount*)(this->PushQuery(qc));
+}
+
+CQKeys* CQueryCompiler::PushKeysQuery(CQCount *qCount)
+{
+	CQKeys *qk = new CQKeys(qCount, m_qCountLimit, m_IndexTuple);
+	m_IndexTuple.clear();
+	m_Limit = 0;
+	return (CQKeys*)(this->PushQuery(qk));
 }
 
 

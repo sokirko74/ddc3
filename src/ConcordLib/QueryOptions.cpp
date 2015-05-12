@@ -122,7 +122,7 @@ string CQueryOptions::toString()
     }
   }
   if (m_ContextSentencesCount != 0) {
-    qs += Format(" #CNTXT %u", m_ContextSentencesCount);
+    qs += Format(" #CNTXT %zi", m_ContextSentencesCount);
   }
   if (m_bSeparateHits) {
     qs += " #SEPARATE";

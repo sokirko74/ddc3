@@ -76,7 +76,8 @@ public:
 
   //! Default constructor
   CQueryOptions()
-    : m_ContextSentencesCount(0),
+    : 
+      m_ContextSentencesCount(0),
       m_bEnableBibliography(true),
       m_bDebugRank(false),
       m_bSeparateHits(false),

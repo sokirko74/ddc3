@@ -310,6 +310,12 @@ public:
   //! list of count-bin metadata key expressions
   CQCountKeyExprList* m_keys;
 
+  //! temporary for constructing count-query results
+  CCountMap m_Counts;
+
+  //! temporary for tracking count-query sample size
+  size_t m_CountSample;
+
 public:
   //! bison constructor
   CQCount(CQuery *dtr_, CQCountKeyExprList* keys_, size_t sample_=DDCDefaultCountSampleSize, HitSortEnum sort_=NoSort, string lb="", string ub="")
@@ -319,8 +325,11 @@ public:
     m_sort(sort_),
     m_keys(keys_),
     m_lo(lb),
-    m_hi(ub)
-  {};
+    m_hi(ub),
+    m_CountSample(0)
+  {
+    if (sample_==0) m_sample = DDCDefaultCountSampleSize;
+  };
 
   //! Default destructor.
   virtual ~CQCount(void);
@@ -329,8 +338,29 @@ public:
   //! Compile index-dependent query properties
   virtual bool Compile(CQueryCompiler *compiler);
 
-  //! evaluate query
+  //! evaluate query: top-level (sanity checks only)
   virtual void Evaluate();
+
+  //! evaluation utility: returns true iff this is a count(*)-query; guts for CConcHolder::IsUniversalCountQuery()
+  virtual bool CanCountUniversal();
+
+  //! evaluation guts: populate m_Counts with universal counts; formerly CConcHolder::GetUniversalCounts()
+  //! \li should be called only once per query
+  //! \li stores encoded results in Result
+  //! \li implicitly calls ConvertCountsToHits()
+  virtual void CountUniversal(CQueryResult &Result, size_t Limit);
+
+  //! evaluation guts: extend m_Counts[] with counts for current search period; formerly CConcHolder::GetPeriodCounts()
+  //! \li should be called once per subcorpus search period
+  //! \li manipulates Result (clears local query-data, expected to correspond to m_dtr query for current period)
+  //! \li ConvertCountsToHits() still needs to be called after all search-periods have been counted
+  virtual void CountLocal(CQueryResult &Result, size_t Limit);
+
+  //! encode count()-query results from m_Counts[] to m_Compiler->m_pHolder->m_Hits[], using
+  //! m_Hits[] element CHit hit.m_SortKey.s to transport count-key
+  //! and hit.m_Value.m_Count to transport count results in a backwards-compatible manner.
+  //! \li formerly CConcHolder::ConvertCountsToHits()
+  virtual void ConvertCountsToHits(CQueryResult &Result, size_t Limit);
 
   //! returns true iff this query uses a nontrival match-id operator
   virtual bool HasMatchId() const
@@ -338,11 +368,12 @@ public:
 
   //! \b DEBUG: return a canonical string form for this query
   virtual string toString();
-  virtual string optionsToString() { return ""; };
+  //virtual string optionsToString() { return ""; };
+  virtual string countOptionsToString();
 
   virtual string jsonClass() { return "CQCount"; };
   virtual string jsonData();
-  virtual string optionsToJson() { return "null"; };
+  //virtual string optionsToJson() { return "null"; };
 
   //! wrapper for m_dtr->ClearNode()
   virtual void ClearNode();
@@ -354,6 +385,85 @@ public:
   virtual ddcObjectList Children() const;
   virtual void DisownChildren();
 };
+
+//======================================================================
+/*!
+ \brief
+   keys-query
+*/
+class CQKeys : public CQuery {
+public:
+  //! typedef for target value-tuples
+  typedef set< vector<string> > StringTupleSet;
+  
+public:
+  //! underlying count() query supplying keys
+  CQCount *m_qCount;
+
+  //! limit for m_qCount subquery
+  size_t m_CountLimit;
+
+  //! target index-tuple
+  vector<string> m_IndexNames;
+
+  //! match-id of anchor token (0 for any)
+  BYTE   m_MatchId;
+
+  //! pseudo-private: temporary sub-queries for each CQCountKeyExprToken key-expression in m_qCount->m_keys->m_Exprs
+  vector<CQTokSet*> m_dtrs;
+
+  //! pseudo-private: proxy query for join of independent attributes (WITH)
+  CQuery *m_proxy;
+
+  // pseudo-private: all value tuples
+  //StringTupleSet m_tuples;
+
+public:
+  //! bison constructor
+  CQKeys(CQCount *qCount=NULL, size_t CountLimit=DDCDefaultCountSampleSize)
+    : CQuery("keys"), m_qCount(qCount), m_CountLimit(CountLimit), m_MatchId(0), m_proxy(NULL)
+  {};
+
+  //! bison constructor
+  CQKeys(CQCount *qCount, size_t CountLimit, const vector<string>& IndexNames)
+    : CQuery("keys"), m_qCount(qCount), m_CountLimit(CountLimit), m_IndexNames(IndexNames), m_MatchId(0), m_proxy(NULL)
+  {};
+
+  //! Default destructor.
+  virtual ~CQKeys(void);
+
+public:
+  //! Compile index-dependent query properties
+  virtual bool Compile(CQueryCompiler *compiler);
+
+  //! evaluate query: top-level (sanity checks only)
+  virtual void Evaluate();
+
+  //! returns true iff this query uses a nontrival match-id operator
+  virtual bool HasMatchId() const
+  { return (m_MatchId != 0) || (m_qCount && m_qCount->HasMatchId()); };
+
+  //! Set match-id, returns new value
+  virtual BYTE SetMatchId(BYTE matchId)
+  { return m_MatchId = matchId; };
+
+  //! \b DEBUG: return a canonical string form for this query
+  virtual string toString();
+
+  virtual string jsonClass() { return "CQKeys"; };
+  virtual string jsonData();
+
+  //! clears all daugher nodes
+  virtual void ClearNode();
+
+  //! clear query contents.  if \c deep is true, propagates operation to daughters
+  virtual void Clear(bool deep=true);
+
+  //-- ddcObject API
+  virtual ddcObjectList Children() const;
+  virtual void DisownChildren();
+};
+
 
 //======================================================================
 // functions

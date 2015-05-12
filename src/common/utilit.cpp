@@ -2220,6 +2220,26 @@ vector<string> stringSplit(const char *s, const char *delims)
   return tokens;
 };
 
+void stringSplitE(const string& s, const string& delims, vector<string>& tokens)
+{
+    size_t i,j;
+    for (i=0, j=s.find_first_of(delims,0); i < s.size(); j=s.find_first_of(delims,i)) {
+	if (j==string::npos) {
+	    tokens.push_back(s.substr(i));
+	    break;
+	}
+	tokens.push_back(s.substr(i,j-i));
+	i = j+1;
+    }
+};
+
+vector<string> stringSplitE(const string& s, const string& delims)
+{
+    vector<string> tokens;
+    stringSplitE(s,delims,tokens);
+    return tokens;
+};
+
 
 //-- formerly in Bibliography.cpp
 //#define _MAKEWORD(a, b)      ((WORD)(((BYTE)((a) & 0xff)) | ((WORD)((BYTE)((b) & 0xff))) << 8))
