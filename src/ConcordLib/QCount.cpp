@@ -808,8 +808,8 @@ void CQKeys::DisownChildren()
 }
 
 //--------------------------------------------------------------
-//#define KEYSDEBUG(code) code
-#define KEYSDEBUG(code)
+#define KEYSDEBUG(code) code
+//#define KEYSDEBUG(code)
 
 bool CQKeys::Compile(CQueryCompiler *compiler)
 {
@@ -825,30 +825,32 @@ bool CQKeys::Compile(CQueryCompiler *compiler)
 
   //-- set default index-names
   vector<CQCountKeyExpr*>& Exprs = m_qCount->m_keys->m_Exprs;
+  string ixNone("-");
   if (m_IndexNames.empty()) {
     //-- set default index names
     m_IndexNames.reserve(Exprs.size());
     for (vector<CQCountKeyExpr*>::const_iterator xi=Exprs.begin(); xi != Exprs.end(); ++xi) {
-      if (typeid(*(*xi)) != typeid(CQCountKeyExprToken))
+      if (typeid(*(*xi)) == typeid(CQCountKeyExprToken))
 	m_IndexNames.push_back( ((CQCountKeyExprToken*)(*xi))->m_IndexName );
       else
-	m_IndexNames.push_back("");
+	m_IndexNames.push_back(ixNone);
     }
   }
   if (m_IndexNames.empty())
     throw CExpc(errParseError, "can't handle empty index-tuple in keys-query `%s'", this->toString().c_str());
 
-  KEYSDEBUG(fprintf(stderr, "[DEBUG:keys] %s\n", (this->toString() + this->optionsToString()).c_str()));
-
   //-- create attribute-wise value-set queries
   m_dtrs.clear();
-  string ixNone("-");
-  for (vector<string>::const_iterator ixi=m_IndexNames.begin(); ixi != m_IndexNames.end(); ++ixi) {
-    if (ixi->empty() || (*ixi) == ixNone)
+  for (vector<string>::iterator ixi=m_IndexNames.begin(); ixi != m_IndexNames.end(); ++ixi) {
+    if (ixi->empty())
+      *ixi = ixNone;
+    if ((*ixi) == ixNone)
       m_dtrs.push_back(NULL);
     else
       m_dtrs.push_back(new CQTokSet(*ixi));
   }
+
+  KEYSDEBUG(fprintf(stderr, "[DEBUG:keys] %s\n", (this->toString() + this->optionsToString()).c_str()));
 
   //-- create joint proxy query
   m_proxy = NULL;
