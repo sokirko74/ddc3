@@ -747,8 +747,8 @@ string CQCount::jsonData()
   if (m_keys && !m_keys->empty()) {
     qs += string(",\"Keys\":") + m_keys->toJson();
   }
-  qs += Format(",\"Sample:\":%zi", m_sample);
-  qs += string(",\"Sort:\":") + jsonStr(HitSortEnumNames[m_sort]);
+  qs += Format(",\"Sample\":%zi", m_sample);
+  qs += string(",\"Sort\":") + jsonStr(HitSortEnumNames[m_sort]);
   return qs;
 }
 
@@ -950,7 +950,14 @@ string CQKeys::toString()
 //--------------------------------------------------------------
 string CQKeys::jsonData()
 {
-  return string("\"Count\":") + m_qCount->toJson();
+  string qs("\"IndexNames\":" + jsonArray(m_IndexNames)
+	    + ",\"QCount\":" + m_qCount->toJson()
+	    );
+  if (m_CountLimit != DDCDefaultCountSampleSize)
+    qs += Format(",\"CountLimit\":%zi", m_CountLimit);
+  if (m_MatchId != 0)
+    qs += Format(",\"MatchId\":%u", m_MatchId);
+  return qs;
 }
 
 //======================================================================
