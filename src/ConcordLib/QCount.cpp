@@ -808,6 +808,9 @@ void CQKeys::DisownChildren()
 }
 
 //--------------------------------------------------------------
+//#define KEYSDEBUG(code) code
+#define KEYSDEBUG(code)
+
 bool CQKeys::Compile(CQueryCompiler *compiler)
 {
   SetCompiler(compiler);
@@ -820,38 +823,44 @@ bool CQKeys::Compile(CQueryCompiler *compiler)
   if (!m_qCount->Compile(compiler))
     throw CExpc(errParseError,"could not compile count-query `%s' for keys-query `%s'", m_qCount->toString().c_str(), this->toString().c_str());
 
-  //-- sanity check: allow only CQCountKeyExprToken keys for count-query
-  vector<CQCountKeyExpr*>& Exprs = m_qCount->m_keys->m_Exprs;
-  for (vector<CQCountKeyExpr*>::const_iterator xi=Exprs.begin(); xi != Exprs.end(); ++xi) {
-    if (typeid(*(*xi)) != typeid(CQCountKeyExprToken))
-      throw CExpc(errParseError, "can't handle non-token count-key expression `%s' in keys-query `%s'", (*xi)->toString().c_str(), this->toString().c_str());
-  }
-
   //-- set default index-names
+  vector<CQCountKeyExpr*>& Exprs = m_qCount->m_keys->m_Exprs;
   if (m_IndexNames.empty()) {
     //-- set default index names
     m_IndexNames.reserve(Exprs.size());
     for (vector<CQCountKeyExpr*>::const_iterator xi=Exprs.begin(); xi != Exprs.end(); ++xi) {
-      m_IndexNames.push_back( ((CQCountKeyExprToken*)(*xi))->m_IndexName );
+      if (typeid(*(*xi)) != typeid(CQCountKeyExprToken))
+	m_IndexNames.push_back( ((CQCountKeyExprToken*)(*xi))->m_IndexName );
+      else
+	m_IndexNames.push_back("");
     }
   }
   if (m_IndexNames.empty())
     throw CExpc(errParseError, "can't handle empty index-tuple in keys-query `%s'", this->toString().c_str());
 
+  KEYSDEBUG(fprintf(stderr, "[DEBUG:keys] %s\n", (this->toString() + this->optionsToString()).c_str()));
+
   //-- create attribute-wise value-set queries
   m_dtrs.clear();
+  string ixNone("-");
   for (vector<string>::const_iterator ixi=m_IndexNames.begin(); ixi != m_IndexNames.end(); ++ixi) {
-    m_dtrs.push_back(new CQTokSet(*ixi));
+    if (ixi->empty() || (*ixi) == ixNone)
+      m_dtrs.push_back(NULL);
+    else
+      m_dtrs.push_back(new CQTokSet(*ixi));
   }
 
-  //-- create joint sub-query
+  //-- create joint proxy query
   m_proxy = NULL;
   for (vector<CQTokSet*>::iterator di=m_dtrs.begin(); di!=m_dtrs.end(); ++di) {
+    if (*di == NULL) continue;
     if (m_proxy==NULL)
       m_proxy = *di;
     else
       m_proxy = new CQWith(m_proxy, *di);
   }
+  if (m_proxy == NULL)
+    throw CExpc(errParseError, "no attributes proxied by keys-query `%s'", this->toString().c_str());
 
   //-- evaluate count subquery using CConcHolder::GetAllHits() (via public CConcHolder::GetHits())
   //   + this is annoying, but otherwise we're in a double-bind calling Evaluate() from CConcHolder::GetHits() in the period-loop,
@@ -875,6 +884,7 @@ bool CQKeys::Compile(CQueryCompiler *compiler)
     stringSplitE(hiti->m_SortKey.s, delims, hvals);
     //m_tuples.insert(hvals);
     for (vali=hvals.begin(), dtri=m_dtrs.begin(); vali != hvals.end() && dtri!=m_dtrs.end(); ++vali, ++dtri) {
+      if (*dtri == NULL) continue;
       (*dtri)->m_Values.insert(*vali);
     }
   }
@@ -892,8 +902,7 @@ bool CQKeys::Compile(CQueryCompiler *compiler)
   if (!m_proxy->Compile(compiler))
     throw CExpc(errParseError, "could not compile subquery `%s' for keys-query `%s'", m_proxy->toString().c_str(), this->toString().c_str());
 
-  //-- DEBUG
-  //fprintf(stderr, "DEBUG: keys() proxy query = %s\n", (m_proxy->toString() + m_proxy->optionsToString()).c_str());
+  KEYSDEBUG(fprintf(stderr, "[DEBUG:keys:proxy] %s\n", (m_proxy->toString() + m_proxy->optionsToString()).c_str()));
 
   //-- setup proxy m_Node
   m_Node = m_proxy->m_Node;
