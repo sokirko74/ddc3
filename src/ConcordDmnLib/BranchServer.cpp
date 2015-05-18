@@ -570,6 +570,7 @@ void CDDCBranchServer::GetFirstHitsFromCorpora(const DwordVector& PossibleHosts,
 		Result.m_AllRelevantDocsCount += RelevantDocumentsCount;
 		RelevantDocsDistribution[HostNo] = RelevantDocumentsCount;
 		Result.m_SortOrder = (HitSortOrderEnum)iSort;
+		bool isCountResult = IsCountSort(Result.m_SortOrder);
 
 		HSDEBUG( Format("DEBUG[status:%s]=\"%s\" --> iSort=%d", Host.m_CorpusName.c_str(), S.c_str(), iSort) );
 
@@ -602,7 +603,18 @@ void CDDCBranchServer::GetFirstHitsFromCorpora(const DwordVector& PossibleHosts,
 					return;
 				}
 				else if (nscanned > 2 && strcmp(SortKeyBuf, "<empty>") != 0) {
-					HS.m_SortKeyStr = SortKeyBuf;
+				    if (isCountResult && SortKeyBuf[0]=='\002') {
+					//-- trim bogus leading spaces from sort-keys from subcorpus server <=ddc v2.0.37
+					char *bi=SortKeyBuf, *bj=SortKeyBuf, *end=SortKeyBuf+DDC_SORTKEY_MAXLEN-1;
+					for ( ; bi<end; ++bi) {
+					    *bj++ = *bi;
+					    if (*bi=='\002' && *(bi+1)==' ')
+						++bi;
+					    else if (*bi=='\0')
+						break;
+					}
+				    }
+				    HS.m_SortKeyStr = SortKeyBuf;
 				}
 
 				Result.m_Hits.push_back(HS);

@@ -808,8 +808,8 @@ void CQKeys::DisownChildren()
 }
 
 //--------------------------------------------------------------
-#define KEYSDEBUG(code) code
-//#define KEYSDEBUG(code)
+//#define KEYSDEBUG(code) code
+#define KEYSDEBUG(code)
 
 bool CQKeys::Compile(CQueryCompiler *compiler)
 {

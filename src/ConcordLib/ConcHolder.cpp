@@ -1640,7 +1640,7 @@ string CConcHolder::GetCountIds()  const
 		//-- "HitId    -0"   for ddc >=v2.0.19, context-queries
 		//-- "HitCount -0"   for ddc >=v2.0.23, count-queries
 		const CHit &h = m_Hits[i];
-		Result += Format("\t%zi -0%c ", h.m_Value.m_Count, globalCountKeyDelim);
+		Result += Format("\t%zi -0 ", h.m_Value.m_Count);
 		Result.append(h.m_SortKey.s, 0, DDC_SORTKEY_MAXLEN-1);
 	}
 	return Result;
