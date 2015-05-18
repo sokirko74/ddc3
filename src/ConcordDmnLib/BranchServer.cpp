@@ -570,7 +570,10 @@ void CDDCBranchServer::GetFirstHitsFromCorpora(const DwordVector& PossibleHosts,
 		Result.m_AllRelevantDocsCount += RelevantDocumentsCount;
 		RelevantDocsDistribution[HostNo] = RelevantDocumentsCount;
 		Result.m_SortOrder = (HitSortOrderEnum)iSort;
+#ifdef DDC_COUNT_KEY_COMPAT
+		//-- hack for transition to v2.0.38; see DDC_COUNT_KEY_COMPAT definition in ConcCommon.h
 		bool isCountResult = IsCountSort(Result.m_SortOrder);
+#endif
 
 		HSDEBUG( Format("DEBUG[status:%s]=\"%s\" --> iSort=%d", Host.m_CorpusName.c_str(), S.c_str(), iSort) );
 
@@ -603,8 +606,11 @@ void CDDCBranchServer::GetFirstHitsFromCorpora(const DwordVector& PossibleHosts,
 					return;
 				}
 				else if (nscanned > 2 && strcmp(SortKeyBuf, "<empty>") != 0) {
+#ifdef DDC_COUNT_KEY_COMPAT
+				    //-- hack for transition to v2.0.38; see DDC_COUNT_KEY_COMPAT definition in ConcCommon.h
+				    //   + trim bogus leading spaces from sort-keys from subcorpus server <=ddc v2.0.37
+				    //   + it ought to be safe to leave this code in even after transition
 				    if (isCountResult && SortKeyBuf[0]=='\002') {
-					//-- trim bogus leading spaces from sort-keys from subcorpus server <=ddc v2.0.37
 					char *bi=SortKeyBuf, *bj=SortKeyBuf, *end=SortKeyBuf+DDC_SORTKEY_MAXLEN-1;
 					for ( ; bi<end; ++bi) {
 					    *bj++ = *bi;
@@ -614,6 +620,7 @@ void CDDCBranchServer::GetFirstHitsFromCorpora(const DwordVector& PossibleHosts,
 						break;
 					}
 				    }
+#endif // DDC_COUNT_KEY_COMPAT
 				    HS.m_SortKeyStr = SortKeyBuf;
 				}
 

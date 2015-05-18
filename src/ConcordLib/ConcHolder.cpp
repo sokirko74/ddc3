@@ -1635,13 +1635,31 @@ string CConcHolder::GetHitIds()  const
 string CConcHolder::GetCountIds()  const
 {
 	string Result;
+#ifdef DDC_COUNT_KEY_COMPAT
+	size_t keylen;
+#endif
 	for (size_t i=0; i < m_Hits.size(); i++) {
 		//-- "HitId OrderId" for ddc < v2.0.19
 		//-- "HitId    -0"   for ddc >=v2.0.19, context-queries
 		//-- "HitCount -0"   for ddc >=v2.0.23, count-queries
 		const CHit &h = m_Hits[i];
+#ifdef DDC_COUNT_KEY_COMPAT
+		//-- hack for transition to v2.0.38; see DDC_COUNT_KEY_COMPAT definition in ConcCommon.h
+		Result += Format("\t%zi -0%c ", h.m_Value.m_Count, globalCountKeyDelim);
+		keylen  = 2;
+		for (string::const_iterator si=h.m_SortKey.s.begin(); si != h.m_SortKey.s.end() && keylen < DDC_SORTKEY_MAXLEN; ++si) {
+			Result.push_back(*si);
+			++keylen;
+			if (*si == globalCountKeyDelim) {
+				Result.push_back(' ');
+				++keylen;
+			}
+		}
+#else
+		//-- for ddc >=v2.0.38: omit extraneous spaces from count-key ids
 		Result += Format("\t%zi -0 ", h.m_Value.m_Count);
 		Result.append(h.m_SortKey.s, 0, DDC_SORTKEY_MAXLEN-1);
+#endif // DDC_COUNT_KEY_COMPAT
 	}
 	return Result;
 };

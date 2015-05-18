@@ -42,6 +42,19 @@
 
 #include "../ConcordLib/CCurl.h"
 
+/*
+ * DDC_COUNT_KEY_COMPAT
+ * + include hacks for transition to v2.0.38 ?
+ * + define this to to include leading delimiter and post-delimiter space in CConcHolder::GetCountIds()
+ * + if defined, hit-ids reported e.g. by leaf-server 'get_first_hits' requests will contain
+ *   a leading delimiter (globalCountKeyDelim) and a space (ASCII 0x20) after each delimiter, for
+ *   compatibility with branch-servers <v2.0.38
+ * + the hacks in CConcHolder::GetCountIds() can be removed after all branch-servers have been migrated to >=v2.0.38
+ * + this can be undefined (and the hacks in CDDCBranchServer::GetFirstHitsFromCorpora() removed)
+ *   after all leaf-servers have been migrated to >=v2.0.38
+ */
+#define DDC_COUNT_KEY_COMPAT 1
+
 //! global intialization
 inline void ddcInitGlobal(void) {
   ddcInitLocale();
