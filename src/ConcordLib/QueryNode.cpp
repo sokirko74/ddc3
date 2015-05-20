@@ -1529,11 +1529,13 @@ void CQueryNearNode::Evaluate(bool bSeparateHits)
 CQueryWithNode::CQueryWithNode()
 {
 	m_bAtomic = true;
+	m_MatchId = 0;
 };
 
-bool CQueryWithNode::Create(const CConcHolder*	pHolder, CQueryNode* child1, CQueryNode* child2)
+bool CQueryWithNode::Create(const CConcHolder*	pHolder, CQueryNode* child1, CQueryNode* child2, BYTE matchId)
 {
 	CQueryBinaryOperationNode::Create(pHolder, child1, child2, string(" with ") );
+	m_MatchId = matchId;
 	return true;
 };
 
@@ -1549,15 +1551,15 @@ void CQueryWithNode::EvaluateWithoutHits()
 		SwapOccurrences(*m_pChild2, true);
 		if (m_bUseNodeIndices)
 			m_OccurrenceNodeIndices.assign(m_OccurrenceNodeIndices.size(), child1->m_NodeIndex);
-		if (m_bUseMatchIds && child2->m_MatchId==DefaultMatchId && child1->m_MatchId!=DefaultMatchId)
-			m_OccurrenceMatchIds.assign(m_OccurrenceMatchIds.size(), child1->m_MatchId);
+		if (m_bUseMatchIds)
+			m_OccurrenceMatchIds.assign(m_OccurrenceMatchIds.size(), m_MatchId);
 		return;
 	}
 	else if (child2->IsUniversalWildcard()) {
 		child1->EvaluateWithoutHits();
 		SwapOccurrences(*m_pChild1, true);
-		if (m_bUseMatchIds && child1->m_MatchId==DefaultMatchId && child2->m_MatchId!=DefaultMatchId)
-			m_OccurrenceMatchIds.assign(m_OccurrenceMatchIds.size(), child2->m_MatchId);
+		if (m_bUseMatchIds)
+			m_OccurrenceMatchIds.assign(m_OccurrenceMatchIds.size(), m_MatchId);
 		return;
 	}
 
@@ -1574,7 +1576,7 @@ void CQueryWithNode::EvaluateWithoutHits()
 	if (m_bUseNodeIndices)
 		m_OccurrenceNodeIndices.resize(m_Occurrences.size(), child1->m_NodeIndex);
 	if (m_bUseMatchIds)
-		m_OccurrenceMatchIds.resize(m_Occurrences.size(), child2->m_MatchId!=DefaultMatchId ? child2->m_MatchId : child1->m_MatchId);
+		m_OccurrenceMatchIds.assign(m_Occurrences.size(), m_MatchId);
 
 	m_ChunkLengths.resize(GetOccurrencesSize(), 1);
 };
@@ -1587,9 +1589,10 @@ void CQueryWithNode::Evaluate(bool bSeparateHits)
 
 //======================== CQueryWithoutNode =========================
 
-bool CQueryWithoutNode::Create(const CConcHolder* pHolder, CQueryNode* child1, CQueryNode* child2)
+bool CQueryWithoutNode::Create(const CConcHolder* pHolder, CQueryNode* child1, CQueryNode* child2, BYTE matchId)
 {
 	CQueryBinaryOperationNode::Create(pHolder, child1, child2, string(" without ") );
+	m_MatchId = matchId;
 	return true;
 };
 

@@ -344,12 +344,14 @@ bool CQCountKeyExprList::CanCountByFile() const
 }
 
 //----------------------------------------------------------------------
-bool CQCountKeyExprList::HasMatchId() const
+BYTE CQCountKeyExprList::GetMatchId() const
 {
-  for (vector<CQCountKeyExpr*>::const_iterator xi=m_Exprs.begin(); xi!=m_Exprs.end(); xi++) {
-    if (*xi && (*xi)->HasMatchId()) return true;
+  BYTE matchId = 0;
+  for (vector<CQCountKeyExpr*>::const_reverse_iterator xi=m_Exprs.rbegin(); xi!=m_Exprs.rend(); xi++) {
+    if (*xi && (matchId=(*xi)->GetMatchId()) != 0)
+      break;
   }
-  return false;
+  return matchId;
 }
 
 //----------------------------------------------------------------------
@@ -449,6 +451,15 @@ void CQCount::DisownChildren()
   CQuery::DisownChildren();
   m_dtr = NULL;
   m_keys = NULL;
+}
+
+//--------------------------------------------------------------
+BYTE CQCount::GetMatchId() const
+{
+  BYTE matchId = 0;
+  if (m_keys && (matchId=m_keys->GetMatchId()) != 0) return matchId;
+  if (m_dtr  && (matchId=m_dtr->GetMatchId())  != 0) return matchId;
+  return matchId;
 }
 
 //--------------------------------------------------------------
@@ -918,6 +929,13 @@ void CQKeys::Evaluate()
   assert(m_proxy != NULL);
   m_proxy->Evaluate();
   m_Node = m_proxy->m_Node;
+}
+
+//--------------------------------------------------------------
+BYTE CQKeys::GetMatchId() const
+{
+  if (m_MatchId != 0) return m_MatchId;
+  if (m_qCount) return m_qCount->GetMatchId();
 }
 
 //--------------------------------------------------------------

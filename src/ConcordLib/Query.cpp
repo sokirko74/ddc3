@@ -103,6 +103,12 @@ bool CQuery::Negate(void)
 };
 
 //--------------------------------------------------------------
+BYTE CQuery::GetMatchId() const
+{
+  return 0;
+};
+
+//--------------------------------------------------------------
 BYTE CQuery::SetMatchId(BYTE matchId)
 {
   throw CExpc(errParseError, "attempt to set match-ID for non-token query `%s'", toString().c_str());
@@ -112,7 +118,7 @@ BYTE CQuery::SetMatchId(BYTE matchId)
 //--------------------------------------------------------------
 bool CQuery::HasMatchId() const
 {
-  return false;
+  return this->GetMatchId() != 0;
 };
 
 //--------------------------------------------------------------
@@ -187,18 +193,19 @@ CQBinOp::~CQBinOp()
   Clear(true);
 }
 
+BYTE CQBinOp::GetMatchId() const
+{
+  BYTE matchId = 0;
+  if (!matchId && m_dtr2) matchId = m_dtr2->GetMatchId();
+  if (!matchId && m_dtr1) matchId = m_dtr1->GetMatchId();
+  return matchId;
+}
+
 BYTE CQBinOp::SetMatchId(BYTE matchId)
 {
   if (m_dtr1) m_dtr1->SetMatchId(matchId);
   if (m_dtr2) m_dtr2->SetMatchId(matchId);
   return matchId;
-}
-
-bool CQBinOp::HasMatchId() const
-{
-  return ((m_dtr1 && m_dtr1->HasMatchId())
-	  ||
-	  (m_dtr2 && m_dtr2->HasMatchId()));
 }
 
 void CQBinOp::ClearNode()
@@ -340,6 +347,19 @@ bool CQOr::Compile(CQueryCompiler *compiler)
 //======================================================================
 // CQWith
 
+BYTE CQWith::GetMatchId() const
+{
+  //-- get local matchid
+  if (m_MatchId != 0) return m_MatchId;
+  return CQBinOp::GetMatchId();
+}
+
+BYTE CQWith::SetMatchId(BYTE matchId)
+{
+  //CQBinOp::SetMatchId(matchId);
+  return m_MatchId = matchId;
+}
+
 bool CQWith::Compile(CQueryCompiler *compiler)
 {
   if (!CQBinOp::Compile(compiler)) return false;
@@ -351,11 +371,20 @@ bool CQWith::Compile(CQueryCompiler *compiler)
   //-- create underyling node
   CQueryWithNode* pObj = new CQueryWithNode;
   m_Node = pObj;
-  if ( !pObj->Create(compiler->m_pHolder, m_dtr1->m_Node, m_dtr2->m_Node) )
+  if ( !pObj->Create(compiler->m_pHolder, m_dtr1->m_Node, m_dtr2->m_Node, this->GetMatchId()) )
     throw CExpc(errParseError,"could not compile WITH clause `%s'", this->toString().c_str());
 
   return CQNegatable::Compile(compiler);
 }
+
+string CQWith::toString()
+{
+  string s("");
+  if (m_MatchId != 0)
+    s = Format(" =%u", m_MatchId);
+  return CQBinOp::toString() + s;
+}
+
 
 //======================================================================
 // CQWithout
@@ -371,7 +400,8 @@ bool CQWithout::Compile(CQueryCompiler *compiler)
   //-- create underyling node
   CQueryWithoutNode* pObj = new CQueryWithoutNode;
   m_Node = pObj;
-  if ( !pObj->Create(compiler->m_pHolder, m_dtr1->m_Node, m_dtr2->m_Node) )
+
+  if ( !pObj->Create(compiler->m_pHolder, m_dtr1->m_Node, m_dtr2->m_Node, this->GetMatchId()) )
     throw CExpc(errParseError,"could not compile WITHOUT clause `%s'", this->toString().c_str());
 
   return CQNegatable::Compile(compiler);
@@ -380,15 +410,15 @@ bool CQWithout::Compile(CQueryCompiler *compiler)
 //======================================================================
 // CQToken
 
+BYTE CQToken::GetMatchId() const
+{
+  return m_MatchId;
+}
+
 BYTE CQToken::SetMatchId(BYTE matchId)
 {
   m_MatchId = matchId;
   return m_MatchId;
-}
-
-bool CQToken::HasMatchId() const
-{
-  return m_MatchId != 0;
 }
 
 bool CQToken::Compile(CQueryCompiler *compiler)
@@ -837,19 +867,21 @@ CQNear::~CQNear()
   Clear(true);
 }
 
+BYTE CQNear::GetMatchId() const
+{
+  BYTE matchId = 0;
+  if (!matchId && m_dtr3) matchId = m_dtr3->GetMatchId();
+  if (!matchId && m_dtr2) matchId = m_dtr2->GetMatchId();
+  if (!matchId && m_dtr1) matchId = m_dtr1->GetMatchId();
+  return matchId;
+}
+
 BYTE CQNear::SetMatchId(BYTE matchId)
 {
   if (m_dtr1) m_dtr1->SetMatchId(matchId);
   if (m_dtr2) m_dtr2->SetMatchId(matchId);
   if (m_dtr3) m_dtr3->SetMatchId(matchId);
   return matchId;
-}
-
-bool CQNear::HasMatchId() const
-{
-  return ((m_dtr1 && m_dtr1->HasMatchId())
-	  || (m_dtr2 && m_dtr2->HasMatchId())
-	  || (m_dtr3 && m_dtr3->HasMatchId()));
 }
 
 bool CQNear::Compile(CQueryCompiler *compiler)
@@ -928,21 +960,22 @@ CQSeq::~CQSeq()
   Clear(true);
 }
 
+BYTE CQSeq::GetMatchId() const
+{
+  BYTE matchId = 0;
+  for (vector<CQToken*>::const_reverse_iterator ii=m_Items.rbegin(); ii!=m_Items.rend(); ++ii) {
+    if ((matchId=(*ii)->GetMatchId()) != 0)
+      break;
+  }
+  return matchId;
+}
+
 BYTE CQSeq::SetMatchId(BYTE matchId)
 {
   for (vector<CQToken*>::const_iterator ii=m_Items.begin(); ii!=m_Items.end(); ++ii) {
     (*ii)->SetMatchId(matchId);
   }
   return matchId;
-}
-
-bool CQSeq::HasMatchId() const
-{
-  for (vector<CQToken*>::const_iterator ii=m_Items.begin(); ii!=m_Items.end(); ++ii) {
-    if ((*ii)->HasMatchId())
-      return true;
-  }
-  return false;
 }
 
 ddcObjectList CQSeq::Children() const

@@ -87,10 +87,13 @@ public:
   //! Toggle negation flag, returns new value.  Default throws an exception.
   virtual bool Negate();
 
+  //! Get current match-id (should return a nontrivial match-id if any was used, else 0; default just returns 0)
+  virtual BYTE GetMatchId() const;
+
   //! Set match-id, returns new value.  Default throws an exception.
   virtual BYTE SetMatchId(BYTE matchId);
 
-  //! Returns true iff this query uses a nontrival match-id operator; default just returns false
+  //! Returns true iff this query uses a nontrival match-id operator; default checks (this->GetMatchId() != 0)
   virtual bool HasMatchId() const;
 
   //! Is this query an admissible root of a compiled parse tree (default returns !this->Negated())
@@ -223,11 +226,11 @@ public:
   //! destructor deletes daughters
   virtual ~CQBinOp();
 
+  //! get match id: dtr2 > dtr1
+  virtual BYTE GetMatchId() const;
+
   //! override propagates matchId to daughters
   virtual BYTE SetMatchId(BYTE matchId);
-
-  //! returns true iff this query uses a nontrival match-id operator; override returns true iff at least one daughter does.
-  virtual bool HasMatchId() const;
 
   //! deletes associated daughter nodes (avoiding double-free)
   virtual void ClearNode();
@@ -276,21 +279,37 @@ public:
 //! 'WITH' query
 class CQWith : public CQBinOp {
 public:
-  CQWith(CQuery *dtr1=NULL, CQuery *dtr2=NULL)
-    : CQBinOp(dtr1,dtr2,"WITH")
+  //! match-id for highlighting (TODO: and context-sort reference)
+  //! initialized to 0; anything other than 0 is considered a non-trivial user-specified match-id
+  BYTE m_MatchId;
+
+public:
+  CQWith(CQuery *dtr1=NULL, CQuery *dtr2=NULL, BYTE matchId=0)
+    : CQBinOp(dtr1,dtr2,"WITH"), m_MatchId(matchId)
   {};
 
+  //! get match id: local > dtr2 > dtr1
+  virtual BYTE GetMatchId() const;
+
+  //! set local match-id ONLY
+  virtual BYTE SetMatchId(BYTE matchId);
+
   virtual bool Compile(CQueryCompiler *compiler);
+
+  //-- ddcObject API
   virtual string jsonClass() { return "CQWith"; };
+  virtual string toString();
 };
 
 //------------------------------------------------------------
 //! 'WITHOUT' query
-class CQWithout : public CQBinOp {
+class CQWithout : public CQWith {
 public:
-  CQWithout(CQuery *dtr1=NULL, CQuery *dtr2=NULL)
-    : CQBinOp(dtr1,dtr2,"WITHOUT")
-  {};
+  CQWithout(CQuery *dtr1=NULL, CQuery *dtr2=NULL, BYTE matchId=0)
+    : CQWith(dtr1,dtr2,matchId)
+  {
+    m_OpName = "WITHOUT";
+  };
 
   virtual bool Compile(CQueryCompiler *compiler);
   virtual string jsonClass() { return "CQWithout"; };
@@ -319,11 +338,11 @@ public:
     : CQAtomic(value), m_IndexName(indexName), m_Value(value), m_MatchId(matchId)
   {};
 
+  //! get local match-id
+  virtual BYTE GetMatchId() const;
+
   //! Set match-id, returns new value.  Override sets m_MatchId.
   virtual BYTE SetMatchId(BYTE matchId);
-
-  //! returns true iff this query uses a nontrival match-id operator; override returns true if m_MatchId!=0
-  virtual bool HasMatchId() const;
 
   //! Compile query.  Default implementation just calls CQueryTokenNode::CreateStringPattern(m_IndexName,m_Value)
   virtual bool Compile(CQueryCompiler *compiler);
@@ -722,11 +741,11 @@ public:
   //! "disown" any direct child nodes, preventing their destruction if the current object is deleted
   virtual void DisownChildren();
 
+  //! get match-id: dtr3 > dtr2 > dtr1
+  virtual BYTE GetMatchId() const;
+
   //! Set match-id, returns new value; override propagates matchId to daughers.
   virtual BYTE SetMatchId(BYTE matchId);
-
-  //! Returns true iff this query uses a nontrival match-id operator.
-  virtual bool HasMatchId() const;
 
   //! Compile() method implicitly compiles daughter nodes
   virtual bool Compile(CQueryCompiler *compiler);
@@ -769,11 +788,11 @@ public:
   //! destructor deletes all child nodes in m_Items
   virtual ~CQSeq();
 
+  //! get match-id: later nonzero matchid-items clobber earlier ones
+  virtual BYTE GetMatchId() const;
+
   //! Set match-id, returns new value; override propagates matchId to daughters.
   virtual BYTE SetMatchId(BYTE matchId);
-
-  //! Returns true iff this query uses a nontrival match-id operator.
-  virtual bool HasMatchId() const;
 
   //! ClearNode() clears associated m_Node's pointer vector to avoid double-free
   virtual void ClearNode();

@@ -409,10 +409,13 @@ public:
 class CQueryWithNode : public CQueryBinaryOperationNode
 {
 public:
+	BYTE m_MatchId;
+
+public:
 	CQueryWithNode();
 
 	//! create the node during yacc parsing
-	bool Create(const CConcHolder*	pHolder, CQueryNode* child1, CQueryNode* child2);
+	bool Create(const CConcHolder*	pHolder, CQueryNode* child1, CQueryNode* child2, BYTE matchId=0);
 
 	void EvaluateWithoutHits();
 	void Evaluate(bool bSeparateHits=false);
@@ -429,7 +432,7 @@ public:
 	{};
 
 	//! create the node during yacc parsing
-	bool Create(const CConcHolder*	pHolder, CQueryNode* child1, CQueryNode* child2);
+	bool Create(const CConcHolder*	pHolder, CQueryNode* child1, CQueryNode* child2, BYTE matchId=0);
 
 	void EvaluateWithoutHits();
 };

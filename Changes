@@ -1,6 +1,6 @@
 ##-*- Mode: Change-Log; coding: utf-8; -*-
 
-v2.0.38-pre Mon, 18 May 2015 11:16:53 +0200 moocow
+v2.0.38 Wed, 20 May 2015 10:13:11 +0200 moocow
 	+ CQFContextSort::toString() fix for nontrivial match-ids
 	+ added common/ddcObject.h : common base class ddcObject
 	  - user data void *m_User (for perl wrappers)
@@ -34,6 +34,8 @@ v2.0.38-pre Mon, 18 May 2015 11:16:53 +0200 moocow
 	  - maintains both ((leaf <v2.0.38) + (branch >=v2.0.38)) and ((leaf >=v2.0.38) + (branch <v2.0.38)) are valid server setups
 	  - when all servers are running compatibility hacks (>=v2.0.38), CConcHolder::GetCountIds() hacks can be removed and hit-ids without spaces can be returned
 	  - when all servers are returning non-bogus count-key hit-ids, hacks in CDDCBranchServer::GetFirstHitsFromCorpora() can be removed
+	+ added m_MatchId field to CQWith and CQueryWithNode: WITH-level match-id clobbers daughters
+	  - re-worked match-id handling to use GetMatchId(), SetMatchId()
 
 v2.0.37 Wed, 21 Jan 2015 11:02:25 +0100 moocow
 	+ bugfix release

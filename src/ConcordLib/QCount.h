@@ -228,7 +228,8 @@ public:
     : CQCountKeyExprIndexed("token"), m_IndexName(IndexName), m_MatchId(MatchId), m_Offset(Offset), m_pIndex(NULL)
   {};
   virtual ~CQCountKeyExprToken() {};
-  virtual bool HasMatchId() const { return (m_MatchId != 0); };
+  virtual BYTE GetMatchId() const { return m_MatchId; };
+  virtual BYTE SetMatchId(BYTE matchId) { return m_MatchId != matchId; };
   virtual bool CanCountByFile() const { return false; };
   virtual bool Compile(CQueryCompiler *compiler);
   virtual string& Evaluate(const CHit &Hit);
@@ -270,8 +271,7 @@ public:
   /*! returns true iff all sub-expressions can count by file */
   virtual bool CanCountByFile() const;
 
-  /*! returns true iff any sub-expression uses match-ids */
-  virtual bool HasMatchId() const;
+  virtual BYTE GetMatchId() const;
 
   virtual bool Compile(CQueryCompiler *compiler);
   virtual string& Evaluate(const CHit &Hit);
@@ -335,6 +335,9 @@ public:
   virtual ~CQCount(void);
 
 public:
+  //! get local match-id: keys > dtr
+  virtual BYTE GetMatchId() const;
+
   //! Compile index-dependent query properties
   virtual bool Compile(CQueryCompiler *compiler);
 
@@ -361,10 +364,6 @@ public:
   //! and hit.m_Value.m_Count to transport count results in a backwards-compatible manner.
   //! \li formerly CConcHolder::ConvertCountsToHits()
   virtual void ConvertCountsToHits(CQueryResult &Result, size_t Limit);
-
-  //! returns true iff this query uses a nontrival match-id operator
-  virtual bool HasMatchId() const
-  { return (m_dtr && m_dtr->HasMatchId()) || (m_keys && m_keys->HasMatchId()); };
 
   //! \b DEBUG: return a canonical string form for this query
   virtual string toString();
@@ -439,9 +438,8 @@ public:
   //! evaluate query: top-level (sanity checks only)
   virtual void Evaluate();
 
-  //! returns true iff this query uses a nontrival match-id operator
-  virtual bool HasMatchId() const
-  { return (m_MatchId != 0) || (m_qCount && m_qCount->HasMatchId()); };
+  //! get nontrivial match-id: local > qCount
+  virtual BYTE GetMatchId() const;
 
   //! Set match-id, returns new value
   virtual BYTE SetMatchId(BYTE matchId)
