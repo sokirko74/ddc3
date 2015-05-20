@@ -18,17 +18,15 @@ pkgbin_PROGRAMS = ddc_morph_gen
 ##======================================================================
 ## sources
 
-ddc_morph_gen_SOURCES = \
- ddc_morph_gen.cpp \
- ../common/utilit.cpp ../common/utilit.h
+ddc_morph_gen_SOURCES = ddc_morph_gen.cpp
 
 ddc_morph_gen_LDADD = \
  ../LemmatizerLib/libDDCLemmatizer.la \
  ../MorphWizardLib/libDDCMorphWizard.la \
  ../AgramtabLib/libDDCAgramtab.la \
  ../GraphanLib/libDDCGraphan.la \
- ../StructDictLib/libDDCStructDict.la
-
+ ../StructDictLib/libDDCStructDict.la \
+ ../CommonLib/libDDCCommon.la
 
 ##-----------------------------------------------------------------------
 ## headers

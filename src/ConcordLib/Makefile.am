@@ -53,12 +53,12 @@ libDDCConcord_la_SOURCES = \
  IndexSetForQueryingStage.cpp IndexSetForQueryingStage.h \
  ConvertFromLoadIndexToWorking.cpp \
  LoadingBinaries.cpp \
- ../PCRE/pcre_rml.cpp ../PCRE/pcre_rml.h \
- ../common/MorphXmlToken.cpp ../common/MorphXmlToken.h \
- ../common/DwdsThesaurus.cpp ../common/DwdsThesaurus.h \
  ConcCommon.h \
- ../common/ddcString.cpp ../common/ddcString.h \
- ../common/utf8xx.h ../common/utf8xx.cpp \
+ pcre_rml.cpp ../PCRE/pcre_rml.h \
+ MorphXmlToken.cpp ../common/MorphXmlToken.h \
+ DwdsThesaurus.cpp ../common/DwdsThesaurus.h \
+ ddcString.cpp ../common/ddcString.h \
+ utf8xx.cpp ../common/utf8xx.h \
  ../common/ddcRandom.h \
  ../common/ddcObject.h
 

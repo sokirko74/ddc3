@@ -18,9 +18,7 @@ pkgbin_PROGRAMS = ddc_expand
 ##======================================================================
 ## sources
 
-ddc_expand_SOURCES = \
- ddc_expand.cpp \
- ../common/utilit.cpp ../common/utilit.h
+ddc_expand_SOURCES = ddc_expand.cpp
 
 ddc_expand_LDADD = \
  ../ConcordLib/libDDCConcord.la \
@@ -30,7 +28,8 @@ ddc_expand_LDADD = \
  ../LemmatizerLib/libDDCLemmatizer.la \
  ../AgramtabLib/libDDCAgramtab.la \
  ../RmlTar/libDDCRmlTar.la \
- ../MorphWizardLib/libDDCMorphWizard.la
+ ../MorphWizardLib/libDDCMorphWizard.la \
+ ../CommonLib/libDDCCommon.la
 
 ##-----------------------------------------------------------------------
 ## special rules

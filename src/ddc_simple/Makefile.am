@@ -25,9 +25,7 @@ pkgbin_PROGRAMS = ddc_simple
 ##======================================================================
 ## sources
 
-ddc_simple_SOURCES = \
- ddc_simple.cpp \
- ../common/utilit.cpp ../common/utilit.h
+ddc_simple_SOURCES = ddc_simple.cpp
 
 ddc_simple_LDADD = \
  ../ConcordLib/libDDCConcord.la \
@@ -37,7 +35,8 @@ ddc_simple_LDADD = \
  ../tinyxml/libDDCTinyXml.la \
  ../AgramtabLib/libDDCAgramtab.la \
  ../RmlTar/libDDCRmlTar.la \
- ../MorphWizardLib/libDDCMorphWizard.la
+ ../MorphWizardLib/libDDCMorphWizard.la \
+ ../CommonLib/libDDCCommon.la
 
 ##-----------------------------------------------------------------------
 ## special rules

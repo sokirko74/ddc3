@@ -23,6 +23,7 @@ SUBDIRS = \
 	AgramtabLib \
 	tinyxml \
 	RmlTar \
+	PCRE \
 	MorphWizardLib \
 	ConcordDmnLib \
 	CommonLib \
@@ -89,7 +90,7 @@ DIST_SUBDIRS = $(SUBDIRS)
 ## + this should really be done in the corresponding subdirectories with
 ##   a _HEADERS variable, but that requires a whole mess of autoconf
 ##   directory variables (one for each subdirectory containing headers)
-header_dirs = $(SUBDIRS) PCRE
+header_dirs = $(SUBDIRS)
 
 install-data-local:
 	for d in $(header_dirs) ; do \

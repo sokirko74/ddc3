@@ -23,7 +23,7 @@ lib_LTLIBRARIES = libDDCMorphWizard.la
 
 libDDCMorphWizard_la_SOURCES = \
  wizard.cpp wizard.h \
- ../PCRE/pcre_rml.cpp ../PCRE/pcre_rml.h
+ pcre_rml.cpp ../PCRE/pcre_rml.h
 
 noinst_HEADERS = \
  FormInfo.h \

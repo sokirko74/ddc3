@@ -23,7 +23,8 @@ lib_LTLIBRARIES = libDDCCommon.la
 ## sources
 
 libDDCCommon_la_SOURCES = \
- ../common/utilit.cpp ../common/utilit.h
+ utilit.cpp ../common/utilit.h \
+ string_socket.cpp ../common/string_socket.h
 
 # unix_simple_qparse.h MyFlexLexer.h
 

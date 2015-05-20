@@ -32,8 +32,8 @@ libDDCLemmatizer_la_SOURCES = \
  MorphDict.cpp MorphDict.h \
  MorphDictBuilder.cpp MorphDictBuilder.h \
  Predict.cpp Predict.h \
- ../common/PlmLine.cpp ../common/PlmLine.h \
- ../common/MorhologyHolder.cpp \
+ PlmLine.cpp ../common/PlmLine.h \
+ MorphologyHolder.cpp ../common/MorphologyHolder.h \
  ../common/ddcIconv.h
 
 noinst_HEADERS = \

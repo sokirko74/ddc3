@@ -32,7 +32,7 @@ EXTRA_DIST = \
  imports.h \
  LemWord.cpp \
  LemWord.h \
- MorhologyHolder.cpp \
+ MorphologyHolder.cpp \
  MorphologyHolder.h \
  MorphXmlToken.cpp \
  MorphXmlToken.h \

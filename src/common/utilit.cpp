@@ -17,8 +17,8 @@
 //  You should have received a copy of the GNU Lesser General Public License
 //  along with DDC.  If not, see <http://www.gnu.org/licenses/>.
 //
-#include "utilit.h"
-#include "util_classes.h"
+#include "../common/utilit.h"
+#include "../common/util_classes.h"
 #include "../common/bserialize.h"
 #include "../common/ddcLocale.h"
 #include "../common/DDCInternalError.h"

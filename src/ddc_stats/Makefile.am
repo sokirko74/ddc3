@@ -25,9 +25,7 @@ pkgbin_PROGRAMS = ddc_stats
 ##======================================================================
 ## sources
 
-ddc_stats_SOURCES = \
- ddc_stats.cpp \
- ../common/utilit.cpp ../common/utilit.h
+ddc_stats_SOURCES = ddc_stats.cpp
 
 ddc_stats_LDADD = \
  ../ConcordLib/libDDCConcord.la \
@@ -37,7 +35,8 @@ ddc_stats_LDADD = \
  ../LemmatizerLib/libDDCLemmatizer.la \
  ../AgramtabLib/libDDCAgramtab.la \
  ../RmlTar/libDDCRmlTar.la \
- ../MorphWizardLib/libDDCMorphWizard.la
+ ../MorphWizardLib/libDDCMorphWizard.la \
+ ../CommonLib/libDDCCommon.la
 
 ##-----------------------------------------------------------------------
 ## special rules

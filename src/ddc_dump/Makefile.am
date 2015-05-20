@@ -25,9 +25,7 @@ pkgbin_PROGRAMS = ddc_dump
 ##======================================================================
 ## sources
 
-ddc_dump_SOURCES = \
- ddc_dump.cpp \
- ../common/utilit.cpp ../common/utilit.h
+ddc_dump_SOURCES = ddc_dump.cpp
 
 ddc_dump_LDADD = \
  ../ConcordLib/libDDCConcord.la \
@@ -37,7 +35,8 @@ ddc_dump_LDADD = \
  ../LemmatizerLib/libDDCLemmatizer.la \
  ../AgramtabLib/libDDCAgramtab.la \
  ../RmlTar/libDDCRmlTar.la \
- ../MorphWizardLib/libDDCMorphWizard.la
+ ../MorphWizardLib/libDDCMorphWizard.la \
+ ../CommonLib/libDDCCommon.la
 
 ##-----------------------------------------------------------------------
 ## special rules

@@ -26,8 +26,7 @@ libDDCConcordDmn_la_SOURCES = \
  LeafServer.cpp LeafServer.h \
  BranchServer.cpp BranchServer.h \
  Morphan.cpp Morphan.h \
- Corpora.cpp Corpora.h \
- ../common/string_socket.cpp ../common/string_socket.h
+ Corpora.cpp Corpora.h
 
 noinst_HEADERS = \
  Server.h \

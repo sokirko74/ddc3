@@ -25,9 +25,7 @@ pkgbin_PROGRAMS = ddc_console
 ##======================================================================
 ## sources
 
-ddc_console_SOURCES = \
- ddc_console.cpp \
- ../common/utilit.cpp ../common/utilit.h
+ddc_console_SOURCES = ddc_console.cpp
 
 ddc_console_LDADD = \
  ../ConcordLib/libDDCConcord.la \
@@ -37,7 +35,8 @@ ddc_console_LDADD = \
  ../LemmatizerLib/libDDCLemmatizer.la \
  ../AgramtabLib/libDDCAgramtab.la \
  ../RmlTar/libDDCRmlTar.la \
- ../MorphWizardLib/libDDCMorphWizard.la
+ ../MorphWizardLib/libDDCMorphWizard.la \
+ ../CommonLib/libDDCCommon.la
 
 ##-----------------------------------------------------------------------
 ## special rules

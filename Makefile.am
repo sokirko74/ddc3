@@ -15,7 +15,7 @@ include $(top_srcdir)/m4/pod2x.am
 #-----------------------------------------------------------------------
 
 ## --- automake options
-#AUTOMAKE_OPTIONS = foreign dist-bzip2 dist-zip
+#AUTOMAKE_OPTIONS = foreign dist-bzip2 dist-zip subdir-objects
 AUTOMAKE_OPTIONS = foreign
 
 ## --- recursion subdirectories

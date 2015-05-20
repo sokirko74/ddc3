@@ -25,9 +25,7 @@ pkgbin_PROGRAMS = ddc_index
 ##======================================================================
 ## sources
 
-ddc_index_SOURCES = \
- ddc_index.cpp \
- ../common/utilit.cpp ../common/utilit.h
+ddc_index_SOURCES = ddc_index.cpp
 
 ddc_index_LDADD = \
  ../ConcordLib/libDDCConcord.la \
@@ -37,7 +35,8 @@ ddc_index_LDADD = \
  ../AgramtabLib/libDDCAgramtab.la \
  ../tinyxml/libDDCTinyXml.la \
  ../RmlTar/libDDCRmlTar.la \
- ../MorphWizardLib/libDDCMorphWizard.la
+ ../MorphWizardLib/libDDCMorphWizard.la \
+ ../CommonLib/libDDCCommon.la
 
 ##-----------------------------------------------------------------------
 ## special rules

@@ -27,11 +27,9 @@ pkgbin_PROGRAMS = ddc_search
 
 ddc_search_SOURCES = \
  ddc_search.cpp \
- ../common/cgic.cpp ../common/cgic.h \
- ../common/utilit.cpp ../common/utilit.h \
- ../common/string_socket.cpp ../common/string_socket.h
+ cgic.cpp ../common/cgic.h 
 
-#ddc_search_LDADD =
+ddc_search_LDADD = ../CommonLib/libDDCCommon.la
 
 ##-----------------------------------------------------------------------
 ## special rules

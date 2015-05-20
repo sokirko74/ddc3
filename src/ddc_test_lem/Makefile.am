@@ -18,16 +18,15 @@ pkgbin_PROGRAMS = ddc_test_lem
 ##======================================================================
 ## sources
 
-ddc_test_lem_SOURCES = \
- ddc_test_lem.cpp \
- ../common/utilit.cpp ../common/utilit.h
+ddc_test_lem_SOURCES = ddc_test_lem.cpp
 
 ddc_test_lem_LDADD = \
  ../LemmatizerLib/libDDCLemmatizer.la \
  ../MorphWizardLib/libDDCMorphWizard.la \
  ../AgramtabLib/libDDCAgramtab.la \
  ../GraphanLib/libDDCGraphan.la \
- ../StructDictLib/libDDCStructDict.la
+ ../StructDictLib/libDDCStructDict.la \
+ ../CommonLib/libDDCCommon.la
 
 ##-----------------------------------------------------------------------
 ## headers

@@ -22,7 +22,7 @@ lib_LTLIBRARIES = libDDCGraphan.la
 ## sources
 
 libDDCGraphan_la_SOURCES = \
- ../common/gra_descr.cpp ../common/gra_descr.h \
+ gra_descr.cpp ../common/gra_descr.h \
  C_desc.cpp \
  Consent.cpp Consent.h \
  Cs_hiera.cpp \

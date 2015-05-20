@@ -25,9 +25,7 @@ pkgbin_PROGRAMS = ddc_daemon
 ##======================================================================
 ## sources
 
-ddc_daemon_SOURCES = \
- ddc_daemon.cpp \
- ../common/utilit.cpp ../common/utilit.h
+ddc_daemon_SOURCES = ddc_daemon.cpp
 
 ddc_daemon_LDADD = \
  ../ConcordDmnLib/libDDCConcordDmn.la \
@@ -39,7 +37,8 @@ ddc_daemon_LDADD = \
  ../AgramtabLib/libDDCAgramtab.la \
  ../tinyxml/libDDCTinyXml.la \
  ../RmlTar/libDDCRmlTar.la \
- ../MorphWizardLib/libDDCMorphWizard.la
+ ../MorphWizardLib/libDDCMorphWizard.la \
+ ../CommonLib/libDDCCommon.la
 
 ##-----------------------------------------------------------------------
 ## special rules

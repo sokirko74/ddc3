@@ -20,15 +20,15 @@ pkgbin_PROGRAMS = ddc_file_lem
 
 ddc_file_lem_SOURCES = \
  ddc_file_lem.cpp \
- ../common/MorhologyHolder.cpp \
- ../common/utilit.cpp ../common/utilit.h
+ MorphologyHolder.cpp ../common/MorphologyHolder.h
 
 ddc_file_lem_LDADD = \
  ../LemmatizerLib/libDDCLemmatizer.la \
  ../MorphWizardLib/libDDCMorphWizard.la \
  ../AgramtabLib/libDDCAgramtab.la \
  ../GraphanLib/libDDCGraphan.la \
- ../StructDictLib/libDDCStructDict.la
+ ../StructDictLib/libDDCStructDict.la \
+ ../CommonLib/libDDCCommon.la
 
 ##-----------------------------------------------------------------------
 ## headers

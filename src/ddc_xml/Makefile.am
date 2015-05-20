@@ -25,12 +25,10 @@ pkgbin_PROGRAMS = ddc_xml
 ##======================================================================
 ## sources
 
-ddc_xml_SOURCES = \
- ddc_xml.cpp \
- ../common/string_socket.cpp ../common/string_socket.h \
- ../common/utilit.cpp ../common/utilit.h
+ddc_xml_SOURCES = ddc_xml.cpp
 
-#ddc_xml_LDADD =
+ddc_xml_LDADD = \
+ ../CommonLib/libDDCCommon.la
 
 ##-----------------------------------------------------------------------
 ## special rules

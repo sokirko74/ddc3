@@ -1,6 +1,6 @@
 ##-----------------------------------------------------------------------
 ## preprocessor flags
-AM_CPPFLAGS = -I../common -I$(srcdir)/../common
+AM_CPPFLAGS = -I../common -I$(top_srcdir)/src/common -I../PCRE -I$(top_srcdir)/src/PCRE
 
 ##-----------------------------------------------------------------------
 ## Variables: cleanup
