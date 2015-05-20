@@ -1,6 +1,6 @@
 ##-*- Mode: Change-Log; coding: utf-8; -*-
 
-v2.0.38 Wed, 20 May 2015 10:13:11 +0200 moocow
+v2.0.38 Wed, 20 May 2015 15:22:49 +0200 moocow
 	+ CQFContextSort::toString() fix for nontrivial match-ids
 	+ added common/ddcObject.h : common base class ddcObject
 	  - user data void *m_User (for perl wrappers)
