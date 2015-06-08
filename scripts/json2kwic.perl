@@ -28,7 +28,7 @@ foreach my $hit (@$hits) {
   my $p = ($hit->{meta_}{page_}//0);
   my $pagei = (grep {$hit->{meta_}{indices_}[$_] eq 'page'}   (0..$#{$hit->{meta_}{indices_}}))[0];
   my $texti = ((grep {$hit->{meta_}{indices_}[$_] eq $txtkey} (0..$#{$hit->{meta_}{indices_}}))[0] // 0) +1;
-  $texti    = 1 if (($hit->{ctx_}[1][0][$texti]//'') eq '');
+  $texti    = 1 if (@{$hit->{ctx_}[1]} && ($hit->{ctx_}[1][0][$texti]//'') eq '');
 
   my $targetMatchId = (sort {$a<=>$b} grep {$_} map {$_->[0]} @{$hit->{ctx_}[1]})[0];
   my (@l,@c,@r);
