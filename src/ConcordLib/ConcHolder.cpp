@@ -721,7 +721,7 @@ bool CConcHolder::GenerateOneHitString(DWORD PageNumber, const CHit& Hit, const 
 
 //==============================================================================
 
-#define DEBUG_HIT_JSON 1
+//#define DEBUG_HIT_JSON 1
 //#undef DEBUG_HIT_JSON
 
 bool CConcHolder::GenerateOneHitStringJson(DWORD PageNumber, const CHit& Hit, const vector<COutputToken>& Tokens)
