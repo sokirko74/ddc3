@@ -238,7 +238,7 @@ void CQueryNode::ConvertOccurrencesToHits (bool bSeparateHits)
 		{
 			break_it = lower_bound (break_it, Breaks.end(), Occurrence);
 			assert (break_it != Breaks.end());
-			if (*break_it == m_Occurrences[i])
+			while (*break_it == m_Occurrences[i]) //-- avoid bogus empty breaks (pathological indices)
 				break_it++;
 		}
 		else
@@ -246,7 +246,6 @@ void CQueryNode::ConvertOccurrencesToHits (bool bSeparateHits)
 			// optimization for the very long sequence of m_Occurrences, lower_bound is too slow
 			while(m_Occurrences[i] >= *break_it) break_it++;
 		};
-
 		
 		DWORD BreakNo = break_it - Breaks.begin();
 		if (bTextAreaNo)
@@ -308,7 +307,7 @@ void CQueryNode::ConvertOccurrencesToHitsForPatterns (bool bSeparateHits)
 		{
 			break_it = lower_bound (break_it, Breaks.end(), m_Occurrences[i]);
 			assert (break_it != Breaks.end());
-			if (*break_it == m_Occurrences[i])
+			while (*break_it == m_Occurrences[i])  //-- avoid bogus empty breaks (pathological indices)
 				break_it++; // then Break is the first position of the next break
 		}
 		else

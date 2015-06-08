@@ -1,5 +1,12 @@
 ##-*- Mode: Change-Log; coding: utf-8; -*-
 
+v2.0.39 Mon, 08 Jun 2015 12:15:07 +0200 moocow
+	+ ignore empty breaks in CQueryNode::ConvertOccurrencesToHits() and CQueryNode::ConvertOccurrencesToHitsForPatterns()
+	  - bogus index data containing empty sentences was generating bad "empty" hits
+	  - specifically, c4_chtk for query: @Apfel #sep #has[title,'Anonymus Kalorien']
+	  - alterantive: remove empty breaks from existing index with new scripts/remove_empty_borders.perl
+	  - should fix c4 FCS empty-hit bug
+
 v2.0.38 Wed, 20 May 2015 15:22:49 +0200 moocow
 	+ CQFContextSort::toString() fix for nontrivial match-ids
 	+ added common/ddcObject.h : common base class ddcObject
