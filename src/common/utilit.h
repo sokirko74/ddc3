@@ -103,8 +103,8 @@ typedef unsigned char BYTE;
 //	typedef unsigned short	WORD;
 	typedef uint32_t	DWORD;
 	typedef uint16_t	WORD;
-	typedef long long	QWORD;
-	typedef unsigned int	UINT;
+	typedef uint64_t	QWORD;
+	typedef unsigned int	UINT;  //-- unused
 	const   unsigned int _MAX_PATH = 512;
 #endif
 

@@ -3,7 +3,7 @@ AC_PREREQ(2.5)
 
 dnl Some handy macros
 define([THE_PACKAGE_NAME],    [ddc])
-define([THE_PACKAGE_VERSION], [2.0.39])
+define([THE_PACKAGE_VERSION], [2.0.40-pre1])
 define([THE_PACKAGE_MAINTAINER],  [jurish@bbaw.de])
 AC_INIT(THE_PACKAGE_NAME, THE_PACKAGE_VERSION, THE_PACKAGE_MAINTAINER)
 
@@ -177,6 +177,14 @@ AC_CHECK_HEADERS_ONCE([syslog.h])
 ## headers: for gethostname(), gethostbyname()
 AC_CHECK_HEADERS_ONCE([unistd.h netdb.h])
 ## /headers: gethostname
+##^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+###----------------------------------------------------------------------
+## headers: int types
+AC_TYPE_UINT16_T
+AC_TYPE_UINT32_T
+AC_TYPE_UINT64_T
+## /headers: mtime
 ##^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 ##----------------------------------------------------------------------

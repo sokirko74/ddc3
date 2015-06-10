@@ -1,5 +1,9 @@
 ##-*- Mode: Change-Log; coding: utf-8; -*-
 
+v2.0.40-pre Wed, 10 Jun 2015 13:18:13 +0200 moocow
+	+ added autoconf checks for uint16_t, uint32_t, uint64_t
+	+ changed QWORD typedef to uint64_t: should be more portable
+
 v2.0.39 Mon, 08 Jun 2015 12:15:07 +0200 moocow
 	+ ignore empty breaks in CQueryNode::ConvertOccurrencesToHits() and CQueryNode::ConvertOccurrencesToHitsForPatterns()
 	  - bogus index data containing empty sentences was generating bad "empty" hits
