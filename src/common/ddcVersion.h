@@ -115,7 +115,7 @@ const DDCVersionT DDCVersionMinW(2,0,0);
  *  \li <code>"... Version FORMAT_VERSION ... min-compat FORMAT_VERSION_MIN ..."</code>
  *  \li <code>"... Version FORMAT_VERSION ..."</code>
  *
- *  In the second and third cases, FORMAT_VERSION_MIN is set to FORMAT_VERSION.
+ *  In the second and fourth cases, FORMAT_VERSION_MIN is set to FORMAT_VERSION.
  *  If parse fails, \a version and \a version_min are set to 0 (zero).
  *
  *  \param version on completion contains FORMAT_VERSION parsed from \a s, or 0
