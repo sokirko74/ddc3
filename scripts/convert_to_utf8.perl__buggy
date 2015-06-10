@@ -1,0 +1,198 @@
+#!/usr/bin/perl -w
+
+use Getopt::Long;
+use Encode qw(encode decode encode_utf8 decode_utf8);
+
+##======================================================================
+## Command-line
+my ($help);
+my $encoding = 'cp1252';
+my $packoff = 'Q';
+GetOptions(
+	   'help|h' => \$help,
+	   'encoding|enc|e=s' => \$encoding,
+	   'packoff|po=s' => \$packoff,
+	  );
+
+if (!@ARGV || $help) {
+  print STDERR <<EOF;
+
+Usage: $0 [OPTIONS] CONFILE_OR_OPTFILE_OR_DIRECTORY...
+
+ Options:
+   -help            # this help message
+   -encoding        # source encoding (default: cp1252)
+   -packoff=PACK    # how to pack file offsets (default: Q)
+
+EOF
+  exit($help ? 0 : 1);
+}
+
+##======================================================================
+## subs: packing
+
+## $len = packlen($packas)
+sub packlen {
+  return length(pack($_[0],0));
+}
+
+##======================================================================
+## subs: top-level
+
+##--------------------------------------------------------------
+sub convert_con {
+  my $con = shift;
+  (my $base = $con) =~ s/\.con$//;
+  print STDERR "$0: converting project $con\n";
+  convert_opt($_) foreach (glob("$base.opt"));
+  convert_bibl($_) foreach (glob("$base._bibl"));
+  convert_bibl_strings($_) foreach (glob("$base._bibl_*_strings"));
+  convert_index_strings($_) foreach (grep {$_ =~ /\._[[:alnum:]]+$/ && $_ !~ /\._(?:perdiv|bigrams|pagebreaks$|bibl$|con$|periods$)/} glob("$base._*"));
+}
+
+##--------------------------------------------------------------
+sub convert_opt {
+  my $optfile = shift;
+  return if (!defined($optfile) || !-e $optfile);
+
+  print STDERR "$0: converting options file $optfile\n";
+  my $bufr = slurp($optfile);
+  $$bufr =~ s{^\s*(english|german|russian)\s*$}{#$1}mgi;
+  $$bufr =~ s{^\s*(utf8\s+(?:no|n|false|off|disabled|0))}{#$1}mgi;
+
+  my $has_generic = ($$bufr =~ m{^\s*generic\s*$}mi);
+  my $has_utf8    = ($$bufr =~ m{^\s*utf8\b}mi);
+
+  recode($bufr);
+  $$bufr = (($has_generic ? '' : "Generic\n")
+	    .($has_utf8   ? '' : "Utf8\n")
+	    .$$bufr);
+  flush($bufr,$optfile);
+}
+
+##--------------------------------------------------------------
+## \&CODE = convert_recode($filetype)
+## + call as $bufr = convert_recode($filetype)->($filename);
+sub convert_recode {
+  my $filetype = shift;
+  return sub {
+    my $file = shift;
+    return if (!defined($file) || !-e $file);
+
+    print STDERR "$0: converting $filetype file $file\n";
+    #return;
+
+    my $bufr = slurp($file);
+    recode($bufr);
+    flush($bufr,$file);
+    return $bufr;
+  };
+}
+
+##--------------------------------------------------------------
+*convert_bibl_strings = convert_recode('bibl-strings');
+*convert_index_strings = convert_recode('index-strings');
+
+##--------------------------------------------------------------
+BEGIN { *convert_bibl_idx = \&convert_bibl; }
+sub convert_bibl {
+  (my $bfile = shift) =~ s/_idx$//i;
+  return if (!defined($bfile) || !-e $bfile);
+
+  my $ifile = "${bfile}_idx";
+  print STDERR "$0: converting bibl file $bfile and offset-index $ifile\n";
+
+  ##-- get original sources
+  my $bbufr = slurp($bfile);
+  my $ibufr = slurp($ifile);
+  my @offs0 = unpack("${packoff}*", $$ibufr);
+
+  ##-- convert item-wise, re-computing offsets as we go
+  my $bout = '';
+  my $iout = '';
+  my $off0 = 0;
+  my ($bstr);
+  foreach my $off1 (@offs0) {
+    $bstr = substr($$bbufr,$off0,($off1-$off0));
+    recode(\$bstr);
+    $bout .= $bstr;
+    $iout .= pack($packoff,length($bout));
+    $off0  = $off1;
+  }
+
+  ##-- flush
+  flush(\$bout,$bfile);
+  flush(\$iout,$ifile);
+}
+
+##======================================================================
+## subs: utils
+
+##--------------------------------------------------------------
+## \$buf = recode(\$buf)
+sub recode {
+  my $bufr = shift;
+  if (!utf8::is_utf8($$bufr)) {
+    if (defined(my $utf8 = eval { Encode::decode_utf8($$bufr, Encode::FB_CROAK) })) {
+      $$bufr = $utf8; ##-- already utf8; don't double-encode
+    }
+    elsif (defined($encoding) && $encoding ne 'raw') {
+      $$bufr = decode((ref($enc) ? $enc->name : $encoding),$$bufr);
+    }
+    else {
+      utf8::decode($$bufr); ##-- use perl native encoding
+    }
+  }
+  utf8::encode($$bufr);
+  return $bufr;
+}
+
+##--------------------------------------------------------------
+## \$buf = slurp($file)
+## \$buf = slurp($file,\$buf)
+sub slurp {
+  my ($file,$bufr) = @_;
+  if (!defined($bufr)) {
+    my $buf;
+    $bufr = \$buf;
+  }
+  open(IN,"<$file") or die("$0: slurp(): open failed for '$file': $!");
+  local $/ = undef;
+  $$bufr = <IN>;
+  close(IN) or die("$0: slurp(): close failed for '$file': $!");
+  return $bufr;
+}
+
+##--------------------------------------------------------------
+## \$buf = flush(\$buf,$file)
+sub flush {
+  my ($bufr,$file) = @_;
+  open(OUT,">$file") or die("$0: flush(): open failed for '$file': $!");
+  print OUT $$bufr;
+  close(OUT) or die("$0: flush(): close failed for '$file': $!");
+  return $bufr;
+}
+
+##======================================================================
+## Main
+
+foreach my $arg (@ARGV) {
+  if (-d $arg) {
+    convert_con($_) foreach (glob("$arg/*.con"));
+  } elsif ($arg =~ /\._con$/i) {
+    next;
+  } elsif ($arg =~ /\.con$/i) {
+    convert_con($arg);
+  } elsif ($arg =~ /\.opt$/i) {
+    convert_opt($arg);
+  } elsif ($arg =~ /\._bibl(?:_idx)?$/i) {
+    convert_bibl($arg);
+  } elsif ($arg =~ /\._bibl.*_strings$/) {
+    convert_bibl_strings($arg);
+  } elsif ($arg =~ /\._[^\w]+$/ && $arg !~ /\._perdiv/) {
+    convert_index_strings($arg);
+  } else {
+    warn("$0: WARNING: don't know how to convert argument '$arg' - skipping");
+  }
+}
+print STDERR "$0: done.\n";
