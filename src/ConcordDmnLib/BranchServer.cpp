@@ -603,6 +603,9 @@ void CDDCBranchServer::GetFirstHitsFromCorpora(const DwordVector& PossibleHosts,
 
 				if (nscanned < 2) {
 					Result.m_NetworkError = neProtocolError;
+					Result.m_ErrorStr = Format("could not parse get_first_hits result string #%zi from subcorpus `%s'",
+								   Result.m_Hits.size(),
+								   m_Hosts[HostNo].m_CorpusName.c_str());
 					return;
 				}
 				else if (nscanned > 2 && strcmp(SortKeyBuf, "<empty>") != 0) {
@@ -612,13 +615,14 @@ void CDDCBranchServer::GetFirstHitsFromCorpora(const DwordVector& PossibleHosts,
 				    //   + it ought to be safe to leave this code in even after transition
 				    if (isCountResult && SortKeyBuf[0]=='\002') {
 					char *bi=SortKeyBuf, *bj=SortKeyBuf, *end=SortKeyBuf+DDC_SORTKEY_MAXLEN-1;
-					for ( ; bi<end; ++bi) {
-					    *bj++ = *bi;
+					for ( ; bi<end; ++bi, ++bj) {
+					    *bj = *bi;
 					    if (*bi=='\002' && *(bi+1)==' ')
 						++bi;
 					    else if (*bi=='\0')
 						break;
 					}
+					if (bi==end) *bj = '\0';
 				    }
 #endif // DDC_COUNT_KEY_COMPAT
 				    HS.m_SortKeyStr = SortKeyBuf;
