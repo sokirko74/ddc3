@@ -246,7 +246,8 @@ bool CConcXml::CFreeBiblIndex::ReadFromDisk (string Path,  DWORD FileBreaksSize)
 
 	if (m_ValuesForEachFile.size() != FileBreaksSize)
 	{
-		ErrorMessage (Format("The number of corpus files should be equal to the number of bibliographical records (index name = %s)",m_Name.c_str()));
+		ErrorMessage (Format("The number of corpus files (%zi) should be equal to the number of bibliographical records (%zi; index name = %s)",
+				     FileBreaksSize, m_ValuesForEachFile.size(), m_Name.c_str()));
 		return false;
 	};
 
@@ -610,12 +611,16 @@ bool CConcXml::CFreeBiblStringIndex::RegisterBiblStringItemId(const string& Valu
 {
 	if (m_BuildStringItems.size() >= DWORD_MAX)
 	{
-		fprintf(stderr, "Too many values for bibl field `%s'. Cannot be more than %u\n", m_Name.c_str(), DWORD_MAX);
+		//-- v2.0.40: moo Mon, 07 Dec 2015 11:16:00 +0100 moocow: bail out here rather than creating a corrupt index
+		fprintf(stderr, "Too many values for bibl field `%s'. Cannot be more than %zi\n", m_Name.c_str(), DWORD_MAX);
+		abort();
 		return false;
 	}
 	if (ValueStr.length() > MaxBiblStringLen)
 	{
-		fprintf(stderr, "Bibl item in index %s is too long (%zi chars). Cannot be more than %zi chars\n", m_Name.c_str(), ValueStr.length(), MaxBiblStringLen);
+		//-- v2.0.40: Mon, 07 Dec 2015 11:16:00 +0100 moocow: bail out here rather than creating a corrupt index
+		fprintf(stderr, "Value for bibl field `%s' is too long (%zi bytes > max=%zi bytes)\n", m_Name.c_str(), ValueStr.length(), MaxBiblStringLen);
+		abort(); 
 		return false;
 	}
 
@@ -1181,9 +1186,9 @@ bool CConcXml::LoadBibl(string Path, size_t FileBreaksSize)
 	ReadVector(GetBiblIndexFileName().c_str(), m_EndOffsetsInBiblFile);
 	if (m_EndOffsetsInBiblFile.size() !=  FileBreaksSize)
 	{
-		string s = Format("The number of corpus files should be equal to the number of bibliographical records",m_Path.c_str());
-		s += Format("\nnumber of corpus files = %i",FileBreaksSize);
-		s += Format("\nnumber of bibliographical records = %i",m_EndOffsetsInBiblFile.size());
+		string s = Format("The number of corpus files should be equal to the number of bibliographical records in file `%s'", GetBiblIndexFileName().c_str());
+		s += Format("\nnumber of corpus files = %zi",FileBreaksSize);
+		s += Format("\nnumber of bibliographical records = %zi",m_EndOffsetsInBiblFile.size());
 		ErrorMessage (s);
 		return false;
 	};

@@ -1,6 +1,10 @@
 ##-*- Mode: Change-Log; coding: utf-8; -*-
 
-v2.0.40-pre Wed, 10 Jun 2015 13:18:13 +0200 moocow
+v2.0.40 Mon, 07 Dec 2015 12:11:51 +0100 moocow
+	+ added abort() in CConcXml::CFreeBiblStringIndex::RegisterBiblStringItemId() for too-long bibl values
+	  - max is MaxBiblStringLen bytes (20000, defined in ConcordLib/Bibliography.h)
+	  - we should consider screwing this value down even further (20k seems way too large), or possibly raising it to *.opt level
+	  - current max for d* corpora is sz/server/index/sz03/sz03._bibl_title_strings (6488)
 	+ added autoconf checks for uint16_t, uint32_t, uint64_t
 	+ changed QWORD typedef to uint64_t: should be more portable
 	+ better error reporting in CDDCBranchServer::GetFirstHitsFromCorpora()

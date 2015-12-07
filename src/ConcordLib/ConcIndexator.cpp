@@ -1129,7 +1129,8 @@ bool	CConcIndexator::IndexTable(string FileName, const char* pFileBuffer, 	CToke
 	if (NewCorpusEndTokenNo != StartPageFromHeader.m_StartTokenNo)
 	{
 		// if at least one token is found, then add a bibliographical record
-		m_Bibl.AddIndexItem(Bibliography);
+		if (!m_Bibl.AddIndexItem(Bibliography))
+			return false;
 	};
 	
 	return true;
