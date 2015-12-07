@@ -7,7 +7,7 @@ SUFFIXES = .pod .txt .html .man .1 .5
 
 PODS ?= $(man1_PODS) $(man5_PODS) $(noinst_PODS)
 
-POD_CLEANFILES =
+POD_CLEANFILES = pod2htm*.tmp
 
 ##------------------------------------------------------
 ## pods: pod2text
