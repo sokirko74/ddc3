@@ -353,6 +353,7 @@ int main(int argc, char* argv[])
 
 					}
 					R.ClearQueryCache();
+					R.ClearQuery();
 				}
 			}
 			if (CountOfCycles>1) fputs(" done.\n",stderr);

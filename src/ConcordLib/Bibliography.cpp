@@ -1226,17 +1226,17 @@ CBibliography CConcXml::GetFullBibliographyOfHit(size_t FileNo) const
 
 		if (!FSeek(m_BiblBodyFile,  StartBiblFileOffset, SEEK_SET)) 
 		{
-			delete buffer;
+			delete[] buffer;
 			return  CBibliography();
 		};
 		if ( fread(buffer, 1, BiblLength,  	m_BiblBodyFile) != BiblLength)
 		{
-			delete buffer;
+			delete[] buffer;
 			return  CBibliography();
 		};
 		buffer[BiblLength] = 0;
 		FileContent = buffer;
-		delete buffer;
+		delete[] buffer;
 	};
 	
 	CBibliography B;

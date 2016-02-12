@@ -59,6 +59,10 @@ public:
   ddcObject()
     : m_User(NULL)
   {};
+
+  //! virtual destructor does nothing
+  virtual ~ddcObject()
+  {};
   //@}
 
   //------------------------------------------------------------

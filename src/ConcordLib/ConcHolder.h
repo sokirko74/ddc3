@@ -238,6 +238,9 @@ public:
 	//! clears the query cache
 	void ClearQueryCache();
 
+	//! clears the current parsed query (if any)
+	void ClearQuery();
+
 	//! return the text area to be be searched
 	int GetTextArea() const;
 

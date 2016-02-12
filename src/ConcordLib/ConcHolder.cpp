@@ -2112,6 +2112,11 @@ void CConcHolder::ClearQueryCache()
 	m_Queries.clear();
 };
 
+void CConcHolder::ClearQuery()
+{
+	m_pQueryCompiler->CleanParser();
+};
+
 bool	CConcHolder::HasRankOrderOperator() const
 {
 	for (size_t FilterNo = 0; FilterNo < m_pQueryCompiler->m_pQuery->m_Options->m_Filters.size(); FilterNo++)
