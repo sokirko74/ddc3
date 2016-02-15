@@ -1,5 +1,20 @@
 ##-*- Mode: Change-Log; coding: utf-8; -*-
 
+v2.0.41 Mon, 15 Feb 2016 10:40:21 +0100 moocow
+	+ fixed memory leak introduced in v2.0.38 by ddcObject base class
+	  - forgot (virtual) destructor ~ddcObject(), caused leaks especially for count() queries
+	  - leaks were reported by valgrind in e.g.
+	    at 0x4C29180: operator new(unsigned long) (vg_replace_malloc.c:324)
+	    ...
+	    by 0x440A68: std::set<int, std::less<int>, std::allocator<int> >::insert(int const&) (stl_set.h:502)
+            by 0x443776: std::_Rb_tree<int, int, std::_Identity<int>, std::less<int>, std::allocator<int> >::_M_insert_unique(int const&) (stl_tree.h:1503)
+	    by 0x43798A: CConcXml::CFreeBiblStringIndex::GetFilterValues(CDDCFilterWithBounds&, std::string const&) const (Bibliography.cpp:544)
+	    ...
+	  - when parsing ddc-hist count()-queries such as:
+	    count(effektiv|www #sep  #has[textClass,/^(?:Belletristik|Gebrauchsliteratur|Wissenschaft|Zeitung)\b/]) #by[date/1,textClass~s/:.*//]
+	+ fixed some valgrind-complaints about mismatched new[]/delete()
+	+ suppress log messages for "short" requests (status,vstatus,info,vinfo,version) in "weak" branch server log-mode
+
 v2.0.40 Mon, 07 Dec 2015 12:11:51 +0100 moocow
 	+ added abort() in CConcXml::CFreeBiblStringIndex::RegisterBiblStringItemId() for too-long bibl values
 	  - max is MaxBiblStringLen bytes (20000, defined in ConcordLib/Bibliography.h)

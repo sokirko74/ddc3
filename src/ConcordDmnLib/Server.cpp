@@ -65,13 +65,10 @@ string CDDCServer::ProcessSocketString(const string& SocketInput, SOCKET rConnec
 {
     string Result;
     try {
-	if (m_bLogRequests) {
-	    m_LogFunction(Format("%s recv \"%s\"", m_CorpusName.c_str(), SocketInput.c_str()));
-	}
-
     	//-- moo: check for buffer overflow
 	if (SocketInput.size() > DDC_STATIC_BUFLEN) {
-	    throw CExpc(errParseError, Format("input buffer size exceeded"));
+	    string req(SocketInput.substr(0,DDC_STATIC_BUFLEN-3));
+	    throw CExpc(errParseError, Format("input buffer size %zi exceeded by request \"%s...\"", DDC_STATIC_BUFLEN, req.c_str()));
 	}
 	
 	//-- moo: parse input command
@@ -79,8 +76,11 @@ string CDDCServer::ProcessSocketString(const string& SocketInput, SOCKET rConnec
 	if (eocpos==SocketInput.npos) eocpos=SocketInput.size();
 	string cmd(SocketInput,0,eocpos);
 	//fprintf(stderr, "Server: cmd=(%s)\n", cmd.c_str()); //-- DEBUG
-
 	//Result.reserve(DDC_STATIC_BUFLEN);
+
+	//-- moo: maybe log request
+	if (m_bLogRequests && m_noLogCommands.find(cmd)==m_noLogCommands.end())
+	    m_LogFunction(Format("%s recv \"%s\"", m_CorpusName.c_str(), SocketInput.c_str()));
 
 	//-- moo: command parsing and dispatch
 	if (cmd == "get_first_hits") {

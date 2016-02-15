@@ -252,8 +252,8 @@ int do_start(bool clientMode=false)
 	if (!InitConcordDicts())
 		{
 			concord_daemon_log ("Cannot load Morphology");
-			SocketDeinitialize();
-			return 1;
+			//SocketDeinitialize();
+			//return 1;
 		
 		}
 

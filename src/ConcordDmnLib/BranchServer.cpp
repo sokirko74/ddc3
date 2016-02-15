@@ -80,8 +80,17 @@ CDDCBranchServer::CDDCBranchServer(bool bDoubleMessage, ProtocolDensityEnum pdPr
     : CDDCServer(bDoubleMessage, pdProtocolDensity)
 {
     m_maxReceiveBytes = DDC_STATIC_BUFLEN;
-    m_bLogRequests = true;
-    m_bLogFinish   = (pdProtocolDensity >= pdMediumDensity);
+    m_bLogRequests    = true;
+    if (pdProtocolDensity >= pdMediumDensity) {
+	m_bLogFinish = true;
+    } else {
+	m_bLogFinish = false;
+	m_noLogCommands.insert("version");
+	m_noLogCommands.insert("status");
+	m_noLogCommands.insert("vstatus");
+	m_noLogCommands.insert("info");
+	m_noLogCommands.insert("vinfo");
+    }
 };
 
 //==============================================================================

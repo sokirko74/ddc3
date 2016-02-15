@@ -55,8 +55,11 @@ public:
     /** moo: number of served requests */
     size_t m_nRequests;	
 
-    /* moo: whether to log all requests received in ProcessSocketString() */
+    /* moo: whether to log "normal" requests received in ProcessSocketString() */
     bool m_bLogRequests;
+
+    /* moo: set of request commands NOT to be logged (e.g. "status", "info", etc.) */
+    set<string> m_noLogCommands;
 
     /* moo: FQDN if available, otherwise symbolic hostname as returned by gethostname() */
     string m_FQHostName;
