@@ -34,11 +34,17 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdarg.h>
+
+#if 0
+/* Tue, 23 Feb 2016 14:24:52 +0100
+ * + disable from non-POSIX alloca.h (used by u8_vprintf(), u8_printf())
+ */
 #ifdef WIN32
 #include <malloc.h>
 #else
 #include <alloca.h>
 #endif
+#endif /*-- disable alloca.h dependency --*/
 
 #include "utf8xx.h"
 
@@ -488,6 +494,10 @@ int u8_is_locale_utf8(char *locale)
     return 0;
 }
 
+#if 0
+/* Tue, 23 Feb 2016 14:24:52 +0100
+ * + disable u8_vprintf() and u8_printf() since they rely on alloca() from non-POSIX alloca.h
+ */
 int u8_vprintf(char *fmt, va_list ap)
 {
     int cnt, sz=0;
@@ -521,5 +531,6 @@ int u8_printf(char *fmt, ...)
     va_end(args);
     return cnt;
 }
+#endif /*-- disable alloca()-dependent functions --*/
 
 #endif /* UTF8XX_C_API */

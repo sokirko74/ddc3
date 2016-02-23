@@ -1,5 +1,9 @@
 ##-*- Mode: Change-Log; coding: utf-8; -*-
 
+pending Tue, 23 Feb 2016 14:27:28 +0100 moocow
+	+ disabled non-POSIX alloca.h dependency in src/common/utf8xx.cpp
+	  - only needed by u8_vprintf() and u8_printf(), which we don't use here.
+
 v2.0.41 Mon, 15 Feb 2016 10:40:21 +0100 moocow
 	+ fixed memory leak introduced in v2.0.38 by ddcObject base class
 	  - forgot (virtual) destructor ~ddcObject(), caused leaks especially for count() queries
