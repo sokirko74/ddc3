@@ -70,6 +70,15 @@ describes the format of the F<DIR/FID.tabs> file(s).
 =cut
 
 ########################################################################
+## Description
+=pod
+
+=head1 DESCRIPTION
+
+=cut
+
+
+########################################################################
 ## File Format
 =pod
 
