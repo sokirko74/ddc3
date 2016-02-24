@@ -998,7 +998,7 @@ C<near(*,*,C,N)>can be expected to run efficiently.
 =item B<"... * ...">
 
 Like C<near()>queries, L<phrase queries|/rule_qc_phrase>using the double-quote ("...") operator are optimized 
-advantage of universal wildcard sub-queries if at least one non-wildcard sequence item
+to take advantage of universal wildcard sub-queries if at least one non-wildcard sequence item
 is included in the phrase, e.g. phrases of the forms
 C<"A *">,
 C<"* B">,

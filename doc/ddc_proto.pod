@@ -282,7 +282,7 @@ Since v2.0.23, DEPTH parameter since v2.0.25.
 
 Request that the receiving server immediately clear any in-memory query cache(s).
 If C<DEPTH> is present and non-zero, a receiving branch server
-will send a C<reload> message with paramter C<DEPTH-1> to any subordinate
+will send a C<clear_cache> message with paramter C<DEPTH-1> to any subordinate
 servers on the user's behalf; a C<DEPTH> parameter of -1 requests maximum depth.
 
 Since v2.0.23, DEPTH parameter since v2.0.25.
@@ -299,7 +299,7 @@ Since v2.0.23, DEPTH parameter since v2.0.25.
  expand_terms " \x01" PIPELINE "\x01" TERMS "\x01" TIMEOUT "\x01" CORPUS
 
 Requests online term expansion of the terms C<TERMS>
-by the expansion pipeline C<PIPELINE>, which must be known to the leaf server chosen for expansion (see L<ddc_opt(5)>).
+by the expansion pipeline C<PIPELINE>, which must be known to the leaf server chosen for expansion (see L<ddc_opt/Expand>).
 C<TIMEOUT> is a request timeout in seconds.
 
 For branch servers, if C<CORPUS> is specified, it should be the the name of an immediate subcorpus which should
@@ -583,7 +583,7 @@ Since v1.x, error message strings since v2.0.0, count-queries since v2.0.23.
 Requests verbose hit strings for the current query
 (assumedly the query itself was specified in the previous C<get_first_hits> request).
 Hits are to be formatted in C<FORMAT>, which should be a format known to DDC.
-C<OFFSET> is th offset of the first hit to return, starting from zero,
+C<OFFSET> is the offset of the first hit to return, starting from zero,
 and C<LIMIT> is the maximum number of formatted hits to return.
 
 If an error occurred, the response will be of the form:
@@ -656,8 +656,8 @@ Bryan Jurish E<lt>jurish@bbaw.deE<gt>
 
 =head1 SEE ALSO
 
-ddc_opt(5),
-ddc_query(5),
+L<ddc_opt(5)|ddc_opt>,
+L<ddc_query(5)|ddc_query>,
 ddc_daemon(1),
 ddc_search(1),
 ddc_xml(1)

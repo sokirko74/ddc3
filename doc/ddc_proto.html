@@ -250,7 +250,7 @@
 <pre><code> clear_cache
  clear_cache DEPTH</code></pre>
 
-<p>Request that the receiving server immediately clear any in-memory query cache(s). If <code>DEPTH</code> is present and non-zero, a receiving branch server will send a <code>reload</code> message with paramter <code>DEPTH-1</code> to any subordinate servers on the user&#39;s behalf; a <code>DEPTH</code> parameter of -1 requests maximum depth.</p>
+<p>Request that the receiving server immediately clear any in-memory query cache(s). If <code>DEPTH</code> is present and non-zero, a receiving branch server will send a <code>clear_cache</code> message with paramter <code>DEPTH-1</code> to any subordinate servers on the user&#39;s behalf; a <code>DEPTH</code> parameter of -1 requests maximum depth.</p>
 
 <p>Since v2.0.23, DEPTH parameter since v2.0.25.</p>
 
@@ -259,7 +259,7 @@
 <pre><code> expand_terms &quot; \x01&quot; PIPELINE &quot;\x01&quot; TERMS &quot;\x01&quot; TIMEOUT
  expand_terms &quot; \x01&quot; PIPELINE &quot;\x01&quot; TERMS &quot;\x01&quot; TIMEOUT &quot;\x01&quot; CORPUS</code></pre>
 
-<p>Requests online term expansion of the terms <code>TERMS</code> by the expansion pipeline <code>PIPELINE</code>, which must be known to the leaf server chosen for expansion (see <a href="http://man.he.net/man5/ddc_opt">ddc_opt(5)</a>). <code>TIMEOUT</code> is a request timeout in seconds.</p>
+<p>Requests online term expansion of the terms <code>TERMS</code> by the expansion pipeline <code>PIPELINE</code>, which must be known to the leaf server chosen for expansion (see <a href="./ddc_opt.html#Expand">&quot;Expand&quot; in ddc_opt</a>). <code>TIMEOUT</code> is a request timeout in seconds.</p>
 
 <p>For branch servers, if <code>CORPUS</code> is specified, it should be the the name of an immediate subcorpus which should be queried to perform the expansion. If unspecified, the first registered subcorpus is queried.</p>
 
@@ -460,7 +460,7 @@
 
 <pre><code> get_hit_strings &quot; &quot; FORMAT &quot;\x01&quot; OFFSET &quot; &quot; LIMIT</code></pre>
 
-<p>Requests verbose hit strings for the current query (assumedly the query itself was specified in the previous <code>get_first_hits</code> request). Hits are to be formatted in <code>FORMAT</code>, which should be a format known to DDC. <code>OFFSET</code> is th offset of the first hit to return, starting from zero, and <code>LIMIT</code> is the maximum number of formatted hits to return.</p>
+<p>Requests verbose hit strings for the current query (assumedly the query itself was specified in the previous <code>get_first_hits</code> request). Hits are to be formatted in <code>FORMAT</code>, which should be a format known to DDC. <code>OFFSET</code> is the offset of the first hit to return, starting from zero, and <code>LIMIT</code> is the maximum number of formatted hits to return.</p>
 
 <p>If an error occurred, the response will be of the form:</p>
 
@@ -503,7 +503,7 @@
 
 <h1 id="SEE-ALSO">SEE ALSO</h1>
 
-<p>ddc_opt(5), ddc_query(5), ddc_daemon(1), ddc_search(1), ddc_xml(1)</p>
+<p><a href="./ddc_opt.html">ddc_opt(5)</a>, <a href="./ddc_query.html">ddc_query(5)</a>, ddc_daemon(1), ddc_search(1), ddc_xml(1)</p>
 
 
 </body>

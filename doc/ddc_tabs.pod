@@ -277,7 +277,7 @@ Bryan Jurish E<lt>jurish@bbaw.deE<gt> wrote and maintains the C<ddc_dump> progra
 
 =head1 SEE ALSO
 
-ddc_opt(5),
+L<ddc_opt(5)|ddc_opt>,
 ddc_dump(1)
 
 =cut

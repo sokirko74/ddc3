@@ -318,7 +318,7 @@ Since v2.0.23, \s-1DEPTH\s0 parameter since v2.0.25.
 .PP
 Request that the receiving server immediately clear any in-memory query cache(s).
 If \f(CW\*(C`DEPTH\*(C'\fR is present and non-zero, a receiving branch server
-will send a \f(CW\*(C`reload\*(C'\fR message with paramter \f(CW\*(C`DEPTH\-1\*(C'\fR to any subordinate
+will send a \f(CW\*(C`clear_cache\*(C'\fR message with paramter \f(CW\*(C`DEPTH\-1\*(C'\fR to any subordinate
 servers on the user's behalf; a \f(CW\*(C`DEPTH\*(C'\fR parameter of \-1 requests maximum depth.
 .PP
 Since v2.0.23, \s-1DEPTH\s0 parameter since v2.0.25.
@@ -332,7 +332,7 @@ Since v2.0.23, \s-1DEPTH\s0 parameter since v2.0.25.
 .Ve
 .PP
 Requests online term expansion of the terms \f(CW\*(C`TERMS\*(C'\fR
-by the expansion pipeline \f(CW\*(C`PIPELINE\*(C'\fR, which must be known to the leaf server chosen for expansion (see \fIddc_opt\fR\|(5)).
+by the expansion pipeline \f(CW\*(C`PIPELINE\*(C'\fR, which must be known to the leaf server chosen for expansion (see \*(L"Expand\*(R" in ddc_opt).
 \&\f(CW\*(C`TIMEOUT\*(C'\fR is a request timeout in seconds.
 .PP
 For branch servers, if \f(CW\*(C`CORPUS\*(C'\fR is specified, it should be the the name of an immediate subcorpus which should
@@ -586,7 +586,7 @@ Since v1.x, error message strings since v2.0.0, count-queries since v2.0.23.
 Requests verbose hit strings for the current query
 (assumedly the query itself was specified in the previous \f(CW\*(C`get_first_hits\*(C'\fR request).
 Hits are to be formatted in \f(CW\*(C`FORMAT\*(C'\fR, which should be a format known to \s-1DDC.
-\&\s0\f(CW\*(C`OFFSET\*(C'\fR is th offset of the first hit to return, starting from zero,
+\&\s0\f(CW\*(C`OFFSET\*(C'\fR is the offset of the first hit to return, starting from zero,
 and \f(CW\*(C`LIMIT\*(C'\fR is the maximum number of formatted hits to return.
 .PP
 If an error occurred, the response will be of the form:

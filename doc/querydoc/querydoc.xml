@@ -2009,7 +2009,7 @@ regex_modifier	[gimsx]
 	    <dt>"... * ..."</dt>
 	    <dd>
 	      Like <code>near()</code> queries, <a href="#rule_qc_phrase">phrase queries</a> using the double-quote ("...") operator are optimized 
-	      advantage of universal wildcard sub-queries if at least one non-wildcard sequence item
+	      to take advantage of universal wildcard sub-queries if at least one non-wildcard sequence item
 	      is included in the phrase, e.g. phrases of the forms
 	      <code>"A *"</code>,
 	      <code>"* B"</code>,
