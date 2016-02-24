@@ -531,9 +531,9 @@ number of hits to evaluate.
 
 If an error occurs, the response is of the form:
 
- STATUS 0 0 0 0 "\n" ERROR
+ STATUS " 0 0 0 0\n" ERROR
 
-where C<STATUS> is a non-zero decimal integer error code, and ERROR is a text string describing the error.
+where C<STATUS> is a non-zero decimal integer error code, and C<ERROR> is a text string describing the error.
 
 On success, responses have the form:
 

@@ -531,10 +531,10 @@ number of hits to evaluate.
 If an error occurs, the response is of the form:
 .PP
 .Vb 1
-\& STATUS 0 0 0 0 "\en" ERROR
+\& STATUS " 0 0 0 0\en" ERROR
 .Ve
 .PP
-where \f(CW\*(C`STATUS\*(C'\fR is a non-zero decimal integer error code, and \s-1ERROR\s0 is a text string describing the error.
+where \f(CW\*(C`STATUS\*(C'\fR is a non-zero decimal integer error code, and \f(CW\*(C`ERROR\*(C'\fR is a text string describing the error.
 .PP
 On success, responses have the form:
 .PP
