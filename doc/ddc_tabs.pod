@@ -1,0 +1,276 @@
+=encoding utf8
+
+=cut
+
+########################################################################
+## Header
+
+=pod
+
+=head1 DDC TAB-DUMP FORMAT
+
+This manual page describes the output format produced by the C<ddc_dump>
+program using the C<--full --tabs> (C<-f -t>) option(s).  When running in
+this mode, the C<--output DIR> option specifies the directory C<DIR> to which file(s)
+are to be written.  One output file F<DIR/FID.tabs> is created in the specified directory
+for each document represented in the index, where C<FID> is the logical index-number
+of the corresponding document, starting from zero.  The remainder of this document
+describes the format of the F<DIR/FID.tabs> file(s).
+
+=cut
+
+########################################################################
+## Synopsis
+=pod
+
+=head1 SYNOPSIS
+
+ ##=====================================================================
+ ## File Format
+ 
+ TABDUMP ::= HEADER BODY
+ 
+ ##=====================================================================
+ ## Header Section
+ 
+ HEADER ::= (TOKRANGE | META | PAGE | BREAK | INDEX)*
+ 
+ TOKRANGE    ::= TOKID_BEGIN TOKID_END
+ TOKID_BEGIN ::= "%%$DDC:tokid.begin=" TOKID "\n"
+ TOKID_END   ::= "%%$DDC:tokid.end=" TOKID "\n"
+ 
+ META  ::= "%%$DDC.meta." META_NAME . "=" META_VALUE "\n"
+ 
+ PAGE  ::= "%%$DDC:PAGE=" PAGENO "\n"
+ BREAK ::= "%%$DDC:BREAK." BREAK_NAME "=" TOKID "\n"
+ 
+ INDEX ::= "%%$DDC:index[" INDEX_ID "]=" INDEX_LONG " " INDEX_SHORT "\n"
+ 
+ ##=====================================================================
+ ## Body Section
+ 
+ BODY ::= (TOKEN | BREAK | EOS)*
+ 
+ TOKEN ::= INDEX_VAL ("\t" INDEX_VAL)* "\n"
+ EOS   ::= "\n"
+ 
+ ##=====================================================================
+ ## Lexical Content
+ 
+ TOKID       ::= {integer}   /* running counter of indexed token positions */
+ META_NAME   ::= {string}    /* bibliographic metadata attribute name */
+ META_VALUE  ::= {string}    /* bibliographic metadata attribute value */
+ PAGENO      ::= {integer}   /* internal page counter */
+ BREAK_NAME  ::= {string}    /* short break-names are used */
+ INDEX_ID    ::= {integer}   /* position of indexed attribute-value in token-lines */
+ INDEX_LONG  ::= {string}    /* long token-level index name */
+ INDEX_SHORT ::= {string}    /* short token-level index name */
+ INDEX_VAL   ::= {string}    /* value of indexed attribute */
+
+=cut
+
+########################################################################
+## File Format
+=pod
+
+=head2 File Format
+
+ TABDUMP ::= HEADER BODY
+
+DDC tab-dump files are comprised of a header section
+followed by a body section; see
+L<Header Section> and L<Body Section> for details.
+
+=cut
+
+
+########################################################################
+## Header Section
+=pod
+
+=head2 Header Section
+
+ HEADER ::= (TOKRANGE | META | BREAK | INDEX)*
+
+DDC tab-dump files begin with a simple header section.
+Header data, like all non-token data begins with the string
+C<%%$DDC> to make it easy to identify.
+The header section may contain the following information:
+
+=head3 Token Range
+
+ TOKRANGE    ::= TOKID_BEGIN TOKID_END
+ TOKID_BEGIN ::= "%%$DDC:tokid.begin=" TOKID "\n"
+ TOKID_END   ::= "%%$DDC:tokid.end=" TOKID "\n"
+
+Reports the range of DDC-internal token-IDs covered by the current document.
+
+=head3 Bibliographic Metadata
+
+ META  ::= "%%$DDC.meta." META_NAME . "=" META_VALUE "\n"
+
+Reports the value of the bibliographic metadata attribute C<META_NAME>
+as C<META_VALUE>.
+
+=head3 Initial Page
+
+ PAGE  ::= "%%$DDC:PAGE=" PAGENO "\n"
+
+Reports the position of the first internal page-break in the current document. 
+
+=head3 Initial Break Positions
+
+ BREAK ::= "%%$DDC:BREAK." BREAK_NAME "=" TOKID "\n"
+
+Reports the position of the first "break" of type C<BREAK_NAME> in the current
+document.  C<BREAK_NAME> is the short name of some "break collection"
+declared with the L<"HitBorders"|ddc_opt/HitBorders> option in the project option-file (*.opt).
+
+=head3 Token Index Attribute Positions
+
+ INDEX ::= "%%$DDC:index[" INDEX_ID "]=" INDEX_LONG " " INDEX_SHORT "\n"
+
+Reports that the attributes at position C<INDEX_ID> in TAB-separated token lines
+corresponds to the indexed token attribute with long name
+C<INDEX_LONG> and short name C<INDEX_SHORT>,
+as declared by the L<"Indices"|ddc_opt/Indices> option in the project option-file (*.opt).
+
+=cut
+
+########################################################################
+## Body Section
+=pod
+
+=head2 Body Section
+
+ BODY ::= (TOKEN | PAGE | BREAK | EOS)*
+
+The body section consists of zero or more lines representing the indexed
+document content.  Each body line represents either an indexed token (C<TOKEN>),
+a default hit-boundary (C<EOS>), or an arbitrary document-internal break (C<BREAK>).
+
+=head3 Token
+
+ TOKEN ::= INDEX_VAL ("\t" INDEX_VAL)* "\n"
+
+Tokens are represented as TAB-separated lists of indexed values.
+Position C<INDEX_ID> in the TAB-separated list corresponds to the
+index attribute declared for C<INDEX_ID>
+in some L<token index attribute position|/Token Index Attribute Positions>
+from the L<Header Section|/Header Section>.
+
+=head3 Default Hit-Boundary
+
+ EOS   ::= "\n"
+
+Boundaries of the default break-collection are represented as blank lines.
+
+=head3 Interal Pagebreaks
+
+Document-interal page-breaks are represented as for
+the L<Initial Page|/Initial Page> declaration
+in the L<Header Section|/Header Section>.
+
+=head3 Interal Breaks
+
+Document-interal breaks are represented as for
+L<Initial Break Positions|/Initial Break Positions>
+in the L<Header Section|/Header Section>.
+
+=cut
+
+########################################################################
+## Lexical Content
+=pod
+
+=head2 Lexical Content
+
+ TOKID       ::= {integer}   /* running counter of indexed token positions */
+ META_NAME   ::= {string}    /* bibliographic metadata attribute name */
+ META_VALUE  ::= {string}    /* bibliographic metadata attribute value */
+ PAGENO      ::= {integer}   /* internal page counter */
+ BREAK_NAME  ::= {string}    /* short break-names are used */
+ INDEX_ID    ::= {integer}   /* position of indexed attribute-value in token-lines */
+ INDEX_LONG  ::= {string}    /* long token-level index name */
+ INDEX_SHORT ::= {string}    /* short token-level index name */
+ INDEX_VAL   ::= {string}    /* value of indexed attribute */
+
+Integers are represented in decimal notation,
+dates are represented as  C<YYYY>, C<YYYY-MM>, or C<YYYY-MM-DD>,
+and strings in the L<Header Section|/Header Section> are printed using
+L<JSON|http://json.org/>-style escape sequences.
+Token attribute value strings appear as literals.
+
+=cut
+
+
+########################################################################
+## Example
+=pod
+
+=head1 EXAMPLE
+
+The following is an example file dump produced by C<ddc_dump --full --tabs> for
+a small toy file:
+
+ %%$DDC:tokid.begin=0
+ %%$DDC:tokid.end=11
+ %%$DDC:meta.n_=0
+ %%$DDC:meta.file_=test/tiny.xml
+ %%$DDC:meta.masked_=0
+ %%$DDC:meta.scan_=
+ %%$DDC:meta.orig_=
+ %%$DDC:meta.date_=2016-02-24
+ %%$DDC:meta.page_=-1
+ %%$DDC:meta.author=Jurish, Bryan
+ %%$DDC:meta.collection=tiny
+ %%$DDC:meta.textClass=dummy:test-data
+ %%$DDC:meta.title=DDC test document
+ %%$DDC:PAGE=42
+ %%$DDC:BREAK.s=5
+ %%$DDC:BREAK.p=11
+ %%$DDC:BREAK.file=11
+ %%$DDC:BREAK.textarea=11
+ %%$DDC:index[0]=Token w
+ %%$DDC:index[1]=Pos p
+ %%$DDC:index[2]=Lemma l
+ This	DT	this
+ is	VBZ	be
+ a	DT	a
+ test	NN	test
+ .	SENT	.
+ 
+ %%$DDC:BREAK.s=5
+ This	DT	this
+ is	VBZ	be
+ only	RB	only
+ a	DT	a
+ test	NN	test
+ .	SENT	.
+ 
+
+
+=cut
+
+
+
+########################################################################
+## Footer
+=pod
+
+=head1 ACKNOWLEDGEMENTS
+
+Alexey Sokirko wrote the original DDC.
+
+=head1 AUTHOR
+
+Bryan Jurish E<lt>jurish@bbaw.deE<gt> wrote and maintains the C<ddc_dump> program.
+
+=head1 SEE ALSO
+
+ddc_opt(5),
+ddc_dump(1)
+
+=cut
+
+

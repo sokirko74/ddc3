@@ -13,7 +13,7 @@ include $(top_srcdir)/m4/pod2x.am
 ##-----------------------------------------------------------------------
 ## pods
 
-HTML_PODS = ddc_opt.pod ddc_proto.pod
+HTML_PODS = ddc_opt.pod ddc_proto.pod ddc_tabs.pod
 POD_HTML  = $(HTML_PODS:.pod=.html)
 man5_PODS = $(HTML_PODS) ddc_query.pod
 
@@ -23,7 +23,7 @@ POD2MANFLAGS ?= \
 	--release="$(PACKAGE_VERSION)"
 
 POD2HTMLFLAGS = \
-	 --htmlroot="." --css="pod2x.css"
+	 --podpath="." --htmlroot="." --css="pod2x.css"
 
 ddc_query.html:
 	;
