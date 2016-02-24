@@ -463,15 +463,15 @@ As of v2.0.34, ddc supports user-supplied match-IDs via the \f(CW\*(C`=ID\*(C'\f
 Matched tokens for which an explicit nonzero match-ID was supplied in the query
 encode that \s-1ID\s0 as the first element of the returned token-array.
 .PP
-As of v2.0.23, ddc supports aggregate count-queries by means of the \f(CW\*(C`count()\*(C'\fR operator.
-If the requested \f(CW\*(C`QUERY\*(C'\fR was such a count-query, the query response is slightly different:
-.PP
 Prior to v2.0.38, ddc returned only raw token strings in the the extra-senential context
 arrays hit.ctx_[0] and hit.ctx_[2].  As of v2.0.38, the tokens in these arrays
 may themselves be array-encoded as for hit.ctx_[1], although sentence boundaries in
 the extra-sential context arrays remain unencoded for maximum compatibility.
 This behavior is disabled by default, but can be enabled by specifying the
-\&\-\-enable\-json\-deep\-context option to the \fIconfigure\fR script when compiling ddc.
+\&\f(CW\*(C`\-\-enable\-json\-deep\-context\*(C'\fR option to the \fIconfigure\fR script when compiling ddc.
+.PP
+As of v2.0.23, ddc supports aggregate count-queries by means of the \f(CW\*(C`count()\*(C'\fR operator.
+If the requested \f(CW\*(C`QUERY\*(C'\fR was such a count-query, the query response is slightly different:
 .IP "nhits_" 4
 .IX Item "nhits_"
 indicates the best-guess maximum number of non-zero histogram bins for this query.
