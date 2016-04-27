@@ -46,6 +46,26 @@ struct HitLessByCountValue {
 	};
 };
 
+//==============================================================================
+// Hit size utilities
+
+//----------------------------------------------------------------------
+/** get initial occurrence number of \a Hit */
+static inline DWORD HitOccurrenceStart(const CHit &Hit, const CConcHolder *holder)
+{
+  DWORD hitno = &Hit - &*(holder->m_Hits.begin());
+  return (hitno==0 ? 0 : holder->m_Hits[hitno-1].m_HighlightOccurrenceEnd);
+};
+
+//----------------------------------------------------------------------
+/** get first occurence offset after \a Hit (upper bound) */
+static inline DWORD HitOccurrenceEnd(const CHit &Hit, const CConcHolder *holder)
+{
+  //return Hit.m_HighlightOccurrenceEnd;
+  const vector<CTokenNo> &occurrences = holder->m_HighlightOccurs;
+  return Hit.m_HighlightOccurrenceEnd >= occurrences.size() ? occurrences.size() : Hit.m_HighlightOccurrenceEnd;
+};
+
 
 //==============================================================================
 // CQCountKeyExpr
@@ -61,6 +81,12 @@ bool CQCountKeyExpr::Compile(CQueryCompiler *compiler)
 string& CQCountKeyExpr::Evaluate(const CHit &Hit)
 {
   throw CExpc(errRuntime, Format("abstract method CQCountKeyExpr::Evaluate() called for class %s", typeid(*this).name()));
+};
+
+//----------------------------------------------------------------------
+string& CQCountKeyExpr::EvaluateOccurrence(const CHit &Hit, DWORD occ)
+{
+  return this->Evaluate(Hit);
 };
 
 //==============================================================================
@@ -197,14 +223,16 @@ bool CQCountKeyExprRegex::Compile(CQueryCompiler *compiler)
 //----------------------------------------------------------------------
 string& CQCountKeyExprRegex::Evaluate(const CHit &Hit)
 {
-  if (!m_Src->CanCountByFile() || Hit.m_FileNo != m_CurFile) {
-    m_CurKey = m_Src->Evaluate(Hit);
-    if (isGlobal)
-      m_Regex->GlobalReplace(m_Replacement, &m_CurKey);
-    else
-      m_Regex->Replace(m_Replacement, &m_CurKey);
-    m_CurFile = Hit.m_FileNo;
-  }
+  if (!m_Src->CanCountByFile() || Hit.m_FileNo != m_CurFile)
+    EvaluateRegex(Hit, m_Src->Evaluate(Hit));
+  return m_CurKey;
+}
+
+//----------------------------------------------------------------------
+string& CQCountKeyExprRegex::EvaluateOccurrence(const CHit &Hit, DWORD occ)
+{
+  if (!m_Src->CanCountByFile() || Hit.m_FileNo != m_CurFile)
+    EvaluateRegex(Hit, m_Src->EvaluateOccurrence(Hit,occ));
   return m_CurKey;
 }
 
@@ -246,34 +274,52 @@ bool CQCountKeyExprToken::Compile(CQueryCompiler *compiler)
 //----------------------------------------------------------------------
 string& CQCountKeyExprToken::Evaluate(const CHit &Hit)
 {
+  //-- get context anchor occurrence-index occur_i
+  DWORD occ = HitOccurrenceStart(Hit, m_Compiler->m_pHolder);
+  if (m_MatchId != 0) {
+    const vector<BYTE> &matchids = m_Compiler->m_pHolder->m_HighlightIds; 
+    DWORD occ_end = HitOccurrenceEnd(Hit, m_Compiler->m_pHolder);
+    for ( ; occ < occ_end && matchids[occ] != m_MatchId; ++occ) ;
+    if (occ >= occ_end)
+      occ = (DWORD)-1;
+  }
+
+  //-- dispatch guts to EvaluateOccurrence()
+  try {
+    this->EvaluateOccurrence(Hit, occ);
+  }
+  catch (CQCountKeyBadOccurrence) {
+    //-- break-overflow (EOS etc) or invalid key item: return empty count-key
+    m_CurKey.clear();
+  }
+ 
+  return m_CurKey;
+}
+
+//----------------------------------------------------------------------
+string& CQCountKeyExprToken::EvaluateOccurrence(const CHit &Hit, DWORD occ)
+{
   const CConcHolder *holder = m_Compiler->m_pHolder;
-  const vector<CHit> &hits  = holder->m_Hits;
   const vector<CTokenNo> &occurrences = holder->m_HighlightOccurs;
   const vector<CTokenNo> &breaks = holder->GetBreaks();
   const vector<BYTE>  &matchids = holder->m_HighlightIds;
 
-  //-- get context anchor occurrence-index occur_i
-  DWORD hitno = &Hit - &*hits.begin();
-  DWORD occur_i = (hitno==0 ? 0 : hits[hitno-1].m_HighlightOccurrenceEnd);
-  if (m_MatchId != 0) {
-    DWORD end = Hit.m_HighlightOccurrenceEnd >= occurrences.size() ? occurrences.size() : Hit.m_HighlightOccurrenceEnd;
-    for ( ; occur_i < end && matchids[occur_i] != m_MatchId; occur_i++) ;
-    if (occur_i >= end)
-      occur_i = (DWORD)-1;
-  }
-
+  //-- check for valid occurrence
+  if (occ >= occurrences.size() || (m_MatchId != 0 && matchids[occ] != m_MatchId))
+    throw CQCountKeyBadOccurrence("id-mismatch for occurrence in CQCountKeyExprToken::EvaluateOccurrence()");
+  
   //-- get break limits and token-id
   DWORD StartTokenNo = (Hit.m_BreakNo==0) ?  0 : breaks[Hit.m_BreakNo-1];
   DWORD EndTokenNo   = breaks[Hit.m_BreakNo];
-  CTokenNo tok = (occur_i >= occurrences.size() ? (CTokenNo)-1 : (occurrences[occur_i] + m_Offset));
+  CTokenNo tok       = occurrences[occ] + m_Offset;
   DWORD    key;
 
   if (tok >= StartTokenNo && tok < EndTokenNo && (key=m_pIndex->GetTokenIndexId(tok)) != DWORD_MAX) {
     //-- usual case: within target break and with a valid item id
     m_CurKey = m_pIndex->GetIndexItemStr( m_pIndex->m_Index[key] );
   } else {
-    //-- break-overflow (EOS etc) or invalid key item: treat as empty sort-key
-    m_CurKey.clear();
+    //-- break-overflow (EOS etc) or invalid key item: throw exception
+    throw CQCountKeyBadOccurrence("bad occurrence in CQCountKeyExprToken::EvaluateOccurrence()");
   }
   
   return m_CurKey;
@@ -383,6 +429,17 @@ string& CQCountKeyExprList::Evaluate(const CHit &Hit)
 };
 
 //----------------------------------------------------------------------
+string& CQCountKeyExprList::EvaluateOccurrence(const CHit &Hit, DWORD occ)
+{
+  m_Key.clear();
+  for (vector<CQCountKeyExpr*>::iterator xi=m_Exprs.begin(); xi!=m_Exprs.end(); xi++) {
+    if (xi != m_Exprs.begin()) m_Key.push_back(globalCountKeyDelim);
+    m_Key += (*xi)->EvaluateOccurrence(Hit,occ);
+  }
+  return m_Key;
+};
+
+//----------------------------------------------------------------------
 string CQCountKeyExprList::toString()
 {
   string s("");
@@ -474,6 +531,11 @@ bool CQCount::Compile(CQueryCompiler *compiler)
   //-- compile daughter(s)
   if (!m_dtr->CompileOptions(compiler) || !m_dtr->Compile(compiler))
     throw CExpc(errParseError,"could not compile sub-query `%s' for count-query", m_dtr->toString().c_str());
+
+  //-- adopt appropriate daughter options (for break-counting)
+  if (m_Options && m_dtr->m_Options) {
+    m_Options->m_HitTypeStr = m_dtr->m_Options->m_HitTypeStr;
+  }
 
   //-- compile key expression(s)
   if (!m_keys) m_keys = new CQCountKeyExprList();
@@ -617,11 +679,36 @@ void CQCount::CountLocal(CQueryResult &Result, size_t Limit)
       m_CountSample += (isWithinFile ? 1 : n);
     }
   }
-  else {
+  else if (qRoot->m_Options->m_bSeparateHits) {
     //-- counting guts: token-level
     for (vector<CHit>::const_iterator hi=Result.m_Hits.begin(); hi != Result.m_Hits.end() && m_CountSample < m_sample; ++hi, ++m_CountSample) {
       string &key = keys->Evaluate(*hi);
       ++m_Counts[key];
+    }
+  }
+  else {
+    //-- counting guts: break-level
+    CConcHolder *holder = (CConcHolder*)m_Compiler->m_pHolder;
+    set<string> bkeys;
+
+    for (vector<CHit>::const_iterator hi=Result.m_Hits.begin(); hi != Result.m_Hits.end() && m_CountSample < m_sample; ++hi, ++m_CountSample) {
+      //-- get set of all break keys
+      bkeys.clear();
+      DWORD occ     = HitOccurrenceStart(*hi, holder);
+      DWORD occ_end = HitOccurrenceEnd(*hi, holder);
+      for ( ; occ < occ_end; ++occ) {
+	try {
+	  bkeys.insert( keys->EvaluateOccurrence(*hi,occ) );
+	}
+	catch (CQCountKeyBadOccurrence) {
+	  continue;
+	}
+      }
+
+      //-- increment counts for all instantiated keys
+      for (set<string>::const_iterator bki=bkeys.begin(); bki != bkeys.end(); ++bki) {
+	++m_Counts[*bki];
+      }
     }
   }
 

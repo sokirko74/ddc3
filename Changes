@@ -1,6 +1,12 @@
 ##-*- Mode: Change-Log; coding: utf-8; -*-
 
-pending Tue, 23 Feb 2016 14:27:28 +0100 moocow
+v2.0.42 Wed, 27 Apr 2016 15:20:52 +0200 moocow
+	+ fixed unintuitive results for "count(... #join) #by[$...]" queries (mantis bug #13773)
+	  - example (kern): count(* #in s) #by[$p,date/10] -->  "90	$.	1900"
+	  - problem was that CQCount::CountLocal() only counted each break exactly once (1st token)
+	    which means the above was equivalent to "count($.=0 #in s) #by[...]"
+	  - fix uses new CQCountKeyExpr::EvaluateOccurrence() method to iterate over all match tokens
+	    on a per-break basis, adding at most 1 to counts for each (key,break) pair
 	+ disabled non-POSIX alloca.h dependency in src/common/utf8xx.cpp
 	  - only needed by u8_vprintf() and u8_printf(), which we don't use here.
 	+ documented ddc_dump --full --tabs format in doc/ddc_tabs.pod (-> ddc_tabs(5))

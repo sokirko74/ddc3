@@ -29,6 +29,18 @@
 /** default count()-query sample size */
 const size_t DDCDefaultCountSampleSize = (size_t)-1;
 
+/*! exception type used for aligning count-keys */
+class CQCountKeyBadOccurrence : public invalid_argument
+{
+public:
+  CQCountKeyBadOccurrence(const string& what_arg)
+    : invalid_argument(what_arg)
+  {};
+};
+
+//==============================================================================
+// Hit sizes
+
 //==============================================================================
 // CQCountKeyExpr and subclasses
 
@@ -57,6 +69,13 @@ public:
 
   /** get string key for the hit \a Hit ; default just throws an exception */
   virtual string& Evaluate(const CHit &Hit);
+
+  /** get string key for the occurrence \a occ relative to \a Hit
+   * \li default implementation just calls Evaluate()
+   * \li only meaningful if <code>HitOccurrenceStart(Hit) <= occ < HitOccurrenceEnd(Hit)</code>
+   * \li may throw a CQCountKeyBadOccurrence if \a off in \a Hit doesn't occur or doesn't match the key's selection
+   */
+  virtual string& EvaluateOccurrence(const CHit &Hit, DWORD occ);
 
   /** stringification (default returns m_Label) */
   virtual string toString() { return m_Label; };
@@ -198,7 +217,17 @@ public:
   virtual bool CanCountByFile() const { return m_Src->CanCountByFile(); };
   virtual bool Compile(CQueryCompiler *compiler);
   virtual string& Evaluate(const CHit &Hit);
-
+  virtual string& EvaluateOccurrence(const CHit &Hit, DWORD occ);
+  inline void EvaluateRegex(const CHit &Hit, const string& srcKey)
+  {
+    m_CurKey = srcKey;
+    if (isGlobal)
+      m_Regex->GlobalReplace(m_Replacement, &m_CurKey);
+    else
+      m_Regex->Replace(m_Replacement, &m_CurKey);
+    m_CurFile = Hit.m_FileNo;
+  };
+  
   //-- ddcObject API
   virtual ddcObjectList Children() const;
   virtual string toString();
@@ -233,6 +262,7 @@ public:
   virtual bool CanCountByFile() const { return false; };
   virtual bool Compile(CQueryCompiler *compiler);
   virtual string& Evaluate(const CHit &Hit);
+  virtual string& EvaluateOccurrence(const CHit &Hit, DWORD occ=0);
   virtual string toString();
   virtual string jsonClass() { return "CQCountKeyExprToken"; };
   virtual string jsonData();
@@ -275,6 +305,7 @@ public:
 
   virtual bool Compile(CQueryCompiler *compiler);
   virtual string& Evaluate(const CHit &Hit);
+  virtual string& EvaluateOccurrence(const CHit &Hit, DWORD occ);
 
   //-- ddcObject API
   virtual ddcObjectList Children() const;
