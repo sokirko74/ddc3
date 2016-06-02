@@ -71,7 +71,7 @@
 .\" ========================================================================
 .\"
 .IX Title "DDC_QUERY 5"
-.TH DDC_QUERY 5 "2016-02-24" "2.0.43" "DDC Corpus Indexing System"
+.TH DDC_QUERY 5 "2016-06-02" "2.0.43" "DDC Corpus Indexing System"
 .\" For nroff, turn off justification.  Always turn off hyphenation; it makes
 .\" way too many mistakes in technical documents.
 .if n .ad l
@@ -81,7 +81,7 @@
 .SS "Overview"
 .IX Subsection "Overview"
 This documentation describes the query language accepted by
-\&\s-1DDC\s0 version 2.0.38.  Current sources for \s-1DDC\s0 should be available
+\&\s-1DDC\s0 version 2.0.43.  Current sources for \s-1DDC\s0 should be available
 from
 http://sourceforge.net/projects/ddc\-concordance.
 .PP
@@ -197,6 +197,7 @@ Comments may appear after each rule in C notation
 \&                    | qw_listfile                                           /* Disjunction over values (lines) read from a server\-side file (command\-line only) */
 \&                    | qw_with                                               /* Conjunction of multiple conditions on a single token (token\-set intersection) */
 \&                    | qw_without                                            /* Conjunction of a negated condition on a single token (token\-set difference) */
+\&                    | qw_withor                                             /* Disjunction of independent conditions on a single token (token\-set union) */
 \&                    | qw_keys                                               /* Conjunction of attribute\-wise independent key\-sets returned by a count()\-subquery */
 \&                    | qw_matchid                                            /* Assign explicit highlighting ID (e.g. for batch\-queries) */
 \&                    | ( qc_word )                                           /* Explicit grouping (e.g. for WITH, expanders, etc.) */
@@ -295,11 +296,15 @@ Comments may appear after each rule in C notation
 \&                    ;
 \& 
 \& qw_with          ::=                                                       /*\-\- Conjunction of multiple conditions over a single token (token\-set intersection) \-\-*/
-\&                      qc_word WITH qc_word                                  /* ... note that negated conditions are not admissable here */
+\&                      qc_word WITH qc_word                                  /* alias: &= */
 \&                    ;
 \& 
 \& qw_without       ::=                                                       /*\-\- Conjunction of positive and negative conditions on a single token (token\-set difference) \-\-*/
-\&                      qc_word WITHOUT qc_word                               /* aliases: !WITH, WITH! */
+\&                      qc_word WITHOUT qc_word                               /* aliases: !WITH, WITH!, !=, &!=, &=! */
+\&                    ;
+\& 
+\& qw_withor        ::=                                                       /*\-\- Disjunction of independent conditions on a single token (token\-set union) \-\-*/
+\&                      qc_word WITHOR qc_word                                /* aliases: WOR, ORWITH, |= */
 \&                    ;
 \& 
 \& qw_keys          ::=                                                       /*\-\- Conjunction of attribute\-wise independent key\-sets returned by a count()\-subquery \-\-*/
@@ -334,6 +339,7 @@ Comments may appear after each rule in C notation
 \& q_flag          ::=                                    /*\-\- Global query flags \-\-*/
 \&                     : qf_subcorpora                    /* subcorporus selection */
 \&                   | #CNTXT integer                     /* hit context window (number of sentences; alias: #N) */
+\&                   | #CNTXT [ integer ]                 /* hit context window (bracket notation) */
 \&                   | #WITHIN symbol                     /* hit container type (e.g. \*(Aqfile\*(Aq; alias: #IN) */
 \&                   | #SEPARATE_HITS                     /* return each match as a separate hit (aliases: #SEPARATE, #SEP, #NOJOIN_HITS, #NOJOIN) */
 \&                   | #JOIN_HITS                         /* return at most one hit for each container selected by #WITHIN (default, aliases: #JOIN, #NOSEPARATE_HITS, #NOSEPARATE, #NOSEP) */
@@ -595,7 +601,7 @@ Comments may appear after each rule in C notation
 \& 
 \& s_index       ::=                              /*\-\- Index reference occurring in a keys() index\-tuple \-\-*/
 \&                   s_index                      /* $\-prefixed index name  */
-\&                 | symbol                       /* unprefixed index name */
+\&                 | symbol                       /* index name bareword, without \*(Aq$\*(Aq prefix */
 \&                 | \-                            /* key positions corresponding to \*(Aq\-\*(Aq pseudo\-index are ignored (e.g. metadata keys) */
 \&                 ;
 \& 
@@ -702,15 +708,20 @@ Comments may appear after each rule in C notation
 \&                 ;
 \& 
 \& matchid       ::=                              /*\-\- User\-specified match\-ID or back\-reference \-\-*/
-\&                   = INTEGER                    /* ... valid match\-IDs are in the range (1\-255) */
+\&                   MATCHID                      /* ... valid match\-IDs are in the range (1\-255) */
 \&                 ;
 .Ve
 .SS "Terminal Symbols"
 .IX Subsection "Terminal Symbols"
-\fICommon Definitions\fR
-.IX Subsection "Common Definitions"
+\&\s-1DDC\s0 uses a \fBflex\fR (<https://en.wikipedia.org/wiki/Flex_(lexical_analyser_generator)>)lexical analyzer (\*(L"scanner\*(R") to tokenize input queries into atomic units (symbols, keywords, operators, etc.)
+instantiating the terminal symbols of the query-language grammar given above.
+The scanner operates on the raw input query string, returning input tokens one at a time by selecting
+and returning the longest match for the first regular expression in its rule-set which matches at the
+current input position; i.e. when an input string matches multiple scanner rules, the first rule \*(L"wins\*(R".
+Except where ocurring literally in match rules, whitespace in the input is ignored.
+=head3 Common Definitions
 .PP
-The underlying flex scanner makes use of several regular expression
+The underlying scanner makes use of several regular expression
 \&'macros' using the notation {\s-1MACRO\s0}.
 The following macros are defined for the underlying scanner:
 .PP
@@ -718,10 +729,16 @@ The following macros are defined for the underlying scanner:
 \& ws             [ \et\en\er\ef\ev]
 \& punct          [\e^\e!\e~\e$\e@\e%\e/\e=\e?\e_\e:\e;\e+\e#\e.\e\e\e*\e,\e\*(Aq\e"\e&\e|\e(\e)\e[\e]\e{\e}\e<\e>]
 \& 
-\& symbol_cfirst  [^ \et\er\en\ef\ev\e0\e^\e&\e|\e!\e(\e)\e[\e]\e{\e}\e<\e>\e\*(Aq\e"\e,\e;\e:\e#\e=\e*\e%\e\e\e~\e/\e$\e@\e?\e_\e+\e.]
-\& symbol_crest   [^ \et\er\en\ef\ev\e0\e^\e&\e|\e!\e(\e)\e[\e]\e{\e}\e<\e>\e\*(Aq\e"\e,\e;\e:\e#\e=\e*\e%\e\e\e~\e/]
+\& ssymbol_cfirst [^ \et\er\en\ef\ev\e0\e^\e&\e|\e!\e(\e)\e[\e]\e{\e}\e<\e>\e\*(Aq\e"\e,\e;\e:\e#\e=\e*\e%\e\e\e~\e/\e$\e@\e?\e_\e+\e.0\-9]
+\& ssymbol_crest  [^ \et\er\en\ef\ev\e0\e^\e&\e|\e!\e(\e)\e[\e]\e{\e}\e<\e>\e\*(Aq\e"\e,\e;\e:\e#\e=\e*\e%\e\e\e~\e/]
 \& symbol_cescape  (\e\e.)
-\& symbol_text     ({symbol_cescape}|{symbol_cfirst})(({symbol_cescape}|{symbol_crest})*)
+\& ssymbol_text   ({symbol_cescape}|{ssymbol_cfirst})({symbol_cescape}|{ssymbol_crest})*
+\& 
+\& isymbol_cfirst [0\-9]
+\& isymbol_crest  [^ \et\er\en\ef\ev\e0\e^\e&\e|\e!\e(\e)\e[\e]\e{\e}\e<\e>\e\*(Aq\e"\e,\e;\e:\e#\e=\e*\e%\e\e\e~\e/\e$\e@\e?\e_\e+\e\-\e.]
+\& isymbol_text   {isymbol_cfirst}({symbol_cescape}|{isymbol_crest})*
+\& 
+\& symbol_text     {ssymbol_text}|{isymbol_text}
 \& 
 \& int_boundary   [ \et\en\er\ef\ev\e0\e^\e&\e|\e!\e(\e)\e[\e]\e{\e}\e<\e>\e\*(Aq\e"\e,\e;\e:\e#\e=\e*\e%\e~\e\e\e$\e@\e/\e?\e_\e+\e.]
 \& 
@@ -738,8 +755,9 @@ The following macros are defined for the underlying scanner:
 .PP
 .Vb 10
 \& (?i:near)
-\& (?i:with)
-\& (?i:\e!with|with(out|{ws}*\e!))
+\& (?i:"!="|"&!="|"&="{ws}*\e!|\e!with|with(out|{ws}*\e!))
+\& (?i:"|="|withor|orwith|wor)
+\& (?i:"&="|with)
 \& (?i:count)
 \& (?i:(file|doc)?id)
 \& (?i:(file|doc)_?(name)?)
@@ -788,6 +806,20 @@ are all valid instantiations of the query keyword
 \&\s-1NEAR.\s0
 Query keywords must be escaped if they occur anywhere
 in a literal symbol, e.g. by enclosing the symbol in single quotes.
+.PP
+\fIMatch-IDs\fR
+.IX Subsection "Match-IDs"
+.PP
+.Vb 1
+\& "="[0\-9]+                      /* user\-specified match\-id (valid range: 1\-255) */
+.Ve
+.PP
+The scanner supports user-specified match-IDs for use e.g. by
+context-dependent sort operators.  Match-IDs are decimal integers between 1 and 255,
+introduced by a leading '=' (equals sign).
+If no match-IDs were specified for a query, every matched token of that query is treated as if
+it had been assigned a match-ID of 1.  Otherwise, if at least one match-ID was explicitly
+assigned, any matched tokens without explicit match-IDs are assigned a match-ID of 255.
 .PP
 \fIRegular Expressions\fR
 .IX Subsection "Regular Expressions"
@@ -846,42 +878,56 @@ the query grammar.
 Punctuation operators should be escaped if they occur anywhere in a literal
 symbol, e.g. by enclosing the symbol in single quotes.
 .PP
+\fITruncated Symbols\fR
+.IX Subsection "Truncated Symbols"
+.PP
+.Vb 3
+\& "*"\e\*(Aq{sq_text}\e\*(Aq"*"    /* dual\-truncated quoted string (infix symbol) */
+\&    \e\*(Aq{sq_text}\e\*(Aq"*"    /* right\-truncated quoted string (prefix symbol) */
+\& "*"\e\*(Aq{sq_text}\e\*(Aq       /* left\-truncated quoted string (suffix symbol) */
+\& 
+\& "*"{symbol_text}"*"    /* dual\-truncated bare string (infix symbol) */
+\&    {symbol_text}"*"    /* right\-truncated bare string (prefix symbol) */
+\& "*"{symbol_text}       /* left\-truncated bare string (suffix symbol) */
+.Ve
+.PP
+Truncated symbols (for
+prefix\-,
+suffix\-,
+and
+infix-queries)
+are supported directly by the scanner, in order to distinguish
+these from literal symbols containing an asterisk character (\*(L"*\*(R").
+Literal asterisks must be escaped if they occur anywhere
+in a literal symbol, e.g. by enclosing the symbol in single quotes.
+Note that despite this restriction, the asterisk does \s-1NOT\s0 function as a general
+\&\*(L"wildcard character\*(R" for \s-1DDC\s0 queries.  If you need to match multiple substrings of a single index
+item, use a regular expression instead,
+e.g. \*(L"/^foo.*bar.*baz$/\*(R" for a wildcard condition \*(L"foo*bar*baz\*(R".
+.PP
 \fIIntegers\fR
 .IX Subsection "Integers"
 .PP
 .Vb 2
-\& \e\*(Aq[0\-9]+\e\*(Aq                      /* single\-quoted non\-negative decimal integer */
-\&   [0\-9]+/{int_boundary}         /* bareword non\-negative decimal integer */
+\& \e\*(Aq[\e+\e\-]?[0\-9]+\e\*(Aq               /* single\-quoted decimal integer */
+\&   [\e+\e\-]?[0\-9]+/{int_boundary}  /* bareword decimal integer */
 .Ve
 .PP
-The scanner supports non-negative integers in decimal notation, optionally
-enclosed by single quotes.  It may be necessary to introduce whitespace
-or quotes in order to separate an integer token from surrounding symbols.
+The scanner supports integers in decimal notation, optionally
+enclosed by single quotes and/or prefixed with a sign character.
+It may be necessary to introduce whitespace or quotes in order to
+separate an integer token from surrounding symbols.
 .PP
 \fIDates\fR
 .IX Subsection "Dates"
 .PP
 .Vb 2
-\& \e\*(Aq[0\-9\e\-]+\e\*(Aq                   /* single\-quoted date\-like string */
-\&   [0\-9\e\-]+/{int_boundary}      /* bareword date\-like string */
+\& \e\*(Aq[0\-9\e\-]+\e\*(Aq                        /* single\-quoted date\-like string */
+\&   [0\-9]{4,}[0\-9\e\-]+/{int_boundary}  /* bareword date\-like string */
 .Ve
 .PP
 The scanner supports date-like tokens in a superset of the \s-1ISO 8601\s0 format
 (YYYY-MM-DD), optionally enclosed by single quotes.
-.PP
-\fIMatch-IDs\fR
-.IX Subsection "Match-IDs"
-.PP
-.Vb 1
-\& "="[0\-9]+                      /* user\-specified match\-id (valid range: 1\-255) */
-.Ve
-.PP
-The scanner supports user-specified match-IDs for use e.g. by
-context-dependent sort operators.  Match-IDs are decimal integers between 1 and 255,
-introduced by a leading '=' (equals sign).
-If no match-IDs were specified for a query, every matched token of that query is treated as if
-it had been assigned a match-ID of 1.  Otherwise, if at least one match-ID was explicitly
-assigned, any matched tokens without explicit match-IDs are assigned a match-ID of 255.
 .PP
 \fISymbols and Barewords\fR
 .IX Subsection "Symbols and Barewords"
@@ -918,33 +964,6 @@ and single-quoted symbols:
 \& \euXXXX JSON\-style Unicode escape (UTF\-8); e.g. \eu0043
 \& \ec     Escaped character \*(Aqc\*(Aq; e.g. \e\e
 .Ve
-.PP
-\fITruncated Symbols\fR
-.IX Subsection "Truncated Symbols"
-.PP
-.Vb 3
-\& "*"\e\*(Aq{sq_text}\e\*(Aq"*"    /* dual\-truncated quoted string (infix symbol) */
-\&    \e\*(Aq{sq_text}\e\*(Aq"*"    /* right\-truncated quoted string (prefix symbol) */
-\& "*"\e\*(Aq{sq_text}\e\*(Aq       /* left\-truncated quoted string (suffix symbol) */
-\& 
-\& "*"{symbol_text}"*"    /* dual\-truncated bare string (infix symbol) */
-\&    {symbol_text}"*"    /* right\-truncated bare string (prefix symbol) */
-\& "*"{symbol_text}       /* left\-truncated bare string (suffix symbol) */
-.Ve
-.PP
-Truncated symbols (for
-prefix\-,
-suffix\-,
-and
-infix-queries)
-are supported directly by the scanner, in order to distinguish
-these from literal symbols containing an asterisk character (\*(L"*\*(R").
-Literal asterisks must be escaped if they occur anywhere
-in a literal symbol, e.g. by enclosing the symbol in single quotes.
-Note that despite this restriction, the asterisk does \s-1NOT\s0 function as a general
-\&\*(L"wildcard character\*(R" for \s-1DDC\s0 queries.  If you need to match multiple substrings of a single index
-item, use a regular expression instead,
-e.g. \*(L"/^foo.*bar.*baz$/\*(R" for a wildcard condition \*(L"foo*bar*baz\*(R".
 .PP
 \fITerm Expander Pipelines\fR
 .IX Subsection "Term Expander Pipelines"

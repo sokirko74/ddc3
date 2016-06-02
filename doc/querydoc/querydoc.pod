@@ -5,7 +5,7 @@
 =head2 Overview
 
 This documentation describes the query language accepted by
-DDC version 2.0.38.  Current sources for DDC should be available
+DDC version 2.0.43.  Current sources for DDC should be available
 from
 http://sourceforge.net/projects/ddc-concordance.
 
@@ -129,6 +129,7 @@ Comments may appear after each rule in C notation
                     | qw_listfile                                           /* Disjunction over values (lines) read from a server-side file (command-line only) */
                     | qw_with                                               /* Conjunction of multiple conditions on a single token (token-set intersection) */
                     | qw_without                                            /* Conjunction of a negated condition on a single token (token-set difference) */
+                    | qw_withor                                             /* Disjunction of independent conditions on a single token (token-set union) */
                     | qw_keys                                               /* Conjunction of attribute-wise independent key-sets returned by a count()-subquery */
                     | qw_matchid                                            /* Assign explicit highlighting ID (e.g. for batch-queries) */
                     | ( qc_word )                                           /* Explicit grouping (e.g. for WITH, expanders, etc.) */
@@ -227,11 +228,15 @@ Comments may appear after each rule in C notation
                     ;
  
  qw_with          ::=                                                       /*-- Conjunction of multiple conditions over a single token (token-set intersection) --*/
-                      qc_word WITH qc_word                                  /* ... note that negated conditions are not admissable here */
+                      qc_word WITH qc_word                                  /* alias: &= */
                     ;
  
  qw_without       ::=                                                       /*-- Conjunction of positive and negative conditions on a single token (token-set difference) --*/
-                      qc_word WITHOUT qc_word                               /* aliases: !WITH, WITH! */
+                      qc_word WITHOUT qc_word                               /* aliases: !WITH, WITH!, !=, &!=, &=! */
+                    ;
+ 
+ qw_withor        ::=                                                       /*-- Disjunction of independent conditions on a single token (token-set union) --*/
+                      qc_word WITHOR qc_word                                /* aliases: WOR, ORWITH, |= */
                     ;
  
  qw_keys          ::=                                                       /*-- Conjunction of attribute-wise independent key-sets returned by a count()-subquery --*/
@@ -268,6 +273,7 @@ Comments may appear after each rule in C notation
  q_flag          ::=                                    /*-- Global query flags --*/
                      : qf_subcorpora                    /* subcorporus selection */
                    | #CNTXT integer                     /* hit context window (number of sentences; alias: #N) */
+                   | #CNTXT [ integer ]                 /* hit context window (bracket notation) */
                    | #WITHIN symbol                     /* hit container type (e.g. 'file'; alias: #IN) */
                    | #SEPARATE_HITS                     /* return each match as a separate hit (aliases: #SEPARATE, #SEP, #NOJOIN_HITS, #NOJOIN) */
                    | #JOIN_HITS                         /* return at most one hit for each container selected by #WITHIN (default, aliases: #JOIN, #NOSEPARATE_HITS, #NOSEPARATE, #NOSEP) */
@@ -535,7 +541,7 @@ Comments may appear after each rule in C notation
  
  s_index       ::=                              /*-- Index reference occurring in a keys() index-tuple --*/
                    s_index                      /* $-prefixed index name  */
-                 | symbol                       /* unprefixed index name */
+                 | symbol                       /* index name bareword, without '$' prefix */
                  | -                            /* key positions corresponding to '-' pseudo-index are ignored (e.g. metadata keys) */
                  ;
  
@@ -642,7 +648,7 @@ Comments may appear after each rule in C notation
                  ;
  
  matchid       ::=                              /*-- User-specified match-ID or back-reference --*/
-                   = INTEGER                    /* ... valid match-IDs are in the range (1-255) */
+                   MATCHID                      /* ... valid match-IDs are in the range (1-255) */
                  ;
  
 
@@ -652,9 +658,15 @@ Comments may appear after each rule in C notation
 
 =head2 Terminal Symbols
 
+DDC uses a B<flex> (L<https://en.wikipedia.org/wiki/Flex_(lexical_analyser_generator)>)lexical analyzer ("scanner") to tokenize input queries into atomic units (symbols, keywords, operators, etc.)
+instantiating the terminal symbols of the query-language grammar given L<above|/grammar>.
+The scanner operates on the raw input query string, returning input tokens one at a time by selecting
+and returning the longest match for the first regular expression in its rule-set which matches at the
+current input position; i.e. when an input string matches multiple scanner rules, the first rule "wins".
+Except where ocurring literally in match rules, whitespace in the input is ignored.
 =head3 Common Definitions
 
-The underlying flex scanner makes use of several regular expression
+The underlying scanner makes use of several regular expression
 'macros' using the notation {MACRO}.
 The following macros are defined for the underlying scanner:
 
@@ -662,10 +674,16 @@ The following macros are defined for the underlying scanner:
  ws		[ \t\n\r\f\v]
  punct	        [\^\!\~\$\@\%\/\=\?\_\:\;\+\#\.\\\*\,\'\"\&\|\(\)\[\]\{\}\<\>]
  
- symbol_cfirst	[^ \t\r\n\f\v\0\^\&\|\!\(\)\[\]\{\}\<\>\'\"\,\;\:\#\=\*\%\\\~\/\$\@\?\_\+\.]
- symbol_crest	[^ \t\r\n\f\v\0\^\&\|\!\(\)\[\]\{\}\<\>\'\"\,\;\:\#\=\*\%\\\~\/]
+ ssymbol_cfirst	[^ \t\r\n\f\v\0\^\&\|\!\(\)\[\]\{\}\<\>\'\"\,\;\:\#\=\*\%\\\~\/\$\@\?\_\+\.0-9]
+ ssymbol_crest	[^ \t\r\n\f\v\0\^\&\|\!\(\)\[\]\{\}\<\>\'\"\,\;\:\#\=\*\%\\\~\/]
  symbol_cescape  (\\.)
- symbol_text     ({symbol_cescape}|{symbol_cfirst})(({symbol_cescape}|{symbol_crest})*)
+ ssymbol_text	({symbol_cescape}|{ssymbol_cfirst})({symbol_cescape}|{ssymbol_crest})*
+ 
+ isymbol_cfirst	[0-9]
+ isymbol_crest	[^ \t\r\n\f\v\0\^\&\|\!\(\)\[\]\{\}\<\>\'\"\,\;\:\#\=\*\%\\\~\/\$\@\?\_\+\-\.]
+ isymbol_text	{isymbol_cfirst}({symbol_cescape}|{isymbol_crest})*
+ 
+ symbol_text     {ssymbol_text}|{isymbol_text}
  
  int_boundary	[ \t\n\r\f\v\0\^\&\|\!\(\)\[\]\{\}\<\>\'\"\,\;\:\#\=\*\%\~\\\$\@\/\?\_\+\.]
  
@@ -681,8 +699,9 @@ The following macros are defined for the underlying scanner:
 =head3 Query Keywords
 
  (?i:near)
- (?i:with)
- (?i:\!with|with(out|{ws}*\!))
+ (?i:"!="|"&!="|"&="{ws}*\!|\!with|with(out|{ws}*\!))
+ (?i:"|="|withor|orwith|wor)
+ (?i:"&="|with)
  (?i:count)
  (?i:(file|doc)?id)
  (?i:(file|doc)_?(name)?)
@@ -730,6 +749,20 @@ are all valid instantiations of the query keyword
 NEAR.
 Query keywords must be escaped if they occur anywhere
 in a literal symbol, e.g. by enclosing the symbol in single quotes.
+
+
+
+
+=head3 Match-IDs
+
+ "="[0-9]+			/* user-specified match-id (valid range: 1-255) */
+
+The scanner supports user-specified match-IDs for use e.g. by
+context-dependent sort operators.  Match-IDs are decimal integers between 1 and 255,
+introduced by a leading '=' (equals sign).
+If no match-IDs were specified for a query, every matched token of that query is treated as if
+it had been assigned a match-ID of 1.  Otherwise, if at least one match-ID was explicitly
+assigned, any matched tokens without explicit match-IDs are assigned a match-ID of 255.
 
 
 
@@ -791,39 +824,53 @@ symbol, e.g. by enclosing the symbol in single quotes.
 
 
 
+=head3 Truncated Symbols
+
+ "*"\'{sq_text}\'"*"	/* dual-truncated quoted string (infix symbol) */
+    \'{sq_text}\'"*"	/* right-truncated quoted string (prefix symbol) */
+ "*"\'{sq_text}\'	/* left-truncated quoted string (suffix symbol) */
+ 
+ "*"{symbol_text}"*"	/* dual-truncated bare string (infix symbol) */
+    {symbol_text}"*"	/* right-truncated bare string (prefix symbol) */
+ "*"{symbol_text}	/* left-truncated bare string (suffix symbol) */
+
+Truncated symbols (for
+prefix-,
+suffix-,
+and
+infix-queries)
+are supported directly by the scanner, in order to distinguish
+these from literal symbols containing an asterisk character ("*").
+Literal asterisks must be escaped if they occur anywhere
+in a literal symbol, e.g. by enclosing the symbol in single quotes.
+Note that despite this restriction, the asterisk does NOT function as a general
+"wildcard character" for DDC queries.  If you need to match multiple substrings of a single index
+item, use a regular expression instead,
+e.g. "/^foo.*bar.*baz$/" for a wildcard condition "foo*bar*baz".
+
+
+
+
 =head3 Integers
 
- \'[0-9]+\'                      /* single-quoted non-negative decimal integer */
-   [0-9]+/{int_boundary}         /* bareword non-negative decimal integer */
+ \'[\+\-]?[0-9]+\'               /* single-quoted decimal integer */
+   [\+\-]?[0-9]+/{int_boundary}  /* bareword decimal integer */
 
-The scanner supports non-negative integers in decimal notation, optionally
-enclosed by single quotes.  It may be necessary to introduce whitespace
-or quotes in order to separate an integer token from surrounding symbols.
+The scanner supports integers in decimal notation, optionally
+enclosed by single quotes and/or prefixed with a sign character.
+It may be necessary to introduce whitespace or quotes in order to
+separate an integer token from surrounding symbols.
 
 
 
 
 =head3 Dates
 
- \'[0-9\-]+\'			/* single-quoted date-like string */
-   [0-9\-]+/{int_boundary}	/* bareword date-like string */
+ \'[0-9\-]+\'                        /* single-quoted date-like string */
+   [0-9]{4,}[0-9\-]+/{int_boundary}  /* bareword date-like string */
 
 The scanner supports date-like tokens in a superset of the ISO 8601 format
 (YYYY-MM-DD), optionally enclosed by single quotes.
-
-
-
-
-=head3 Match-IDs
-
- "="[0-9]+			/* user-specified match-id (valid range: 1-255) */
-
-The scanner supports user-specified match-IDs for use e.g. by
-context-dependent sort operators.  Match-IDs are decimal integers between 1 and 255,
-introduced by a leading '=' (equals sign).
-If no match-IDs were specified for a query, every matched token of that query is treated as if
-it had been assigned a match-ID of 1.  Otherwise, if at least one match-ID was explicitly
-assigned, any matched tokens without explicit match-IDs are assigned a match-ID of 255.
 
 
 
@@ -862,33 +909,6 @@ and single-quoted symbols:
  \uXXXX JSON-style Unicode escape (UTF-8); e.g. \u0043
  \c     Escaped character 'c'; e.g. \\                
 
-
-
-
-
-=head3 Truncated Symbols
-
- "*"\'{sq_text}\'"*"	/* dual-truncated quoted string (infix symbol) */
-    \'{sq_text}\'"*"	/* right-truncated quoted string (prefix symbol) */
- "*"\'{sq_text}\'	/* left-truncated quoted string (suffix symbol) */
- 
- "*"{symbol_text}"*"	/* dual-truncated bare string (infix symbol) */
-    {symbol_text}"*"	/* right-truncated bare string (prefix symbol) */
- "*"{symbol_text}	/* left-truncated bare string (suffix symbol) */
-
-Truncated symbols (for
-prefix-,
-suffix-,
-and
-infix-queries)
-are supported directly by the scanner, in order to distinguish
-these from literal symbols containing an asterisk character ("*").
-Literal asterisks must be escaped if they occur anywhere
-in a literal symbol, e.g. by enclosing the symbol in single quotes.
-Note that despite this restriction, the asterisk does NOT function as a general
-"wildcard character" for DDC queries.  If you need to match multiple substrings of a single index
-item, use a regular expression instead,
-e.g. "/^foo.*bar.*baz$/" for a wildcard condition "foo*bar*baz".
 
 
 

@@ -119,7 +119,7 @@ regex_modifier	[gimsx]
 "&&"				{ return OP_BOOL_AND; }
 "||"				{ return OP_BOOL_OR; }
 (?i:near)			{ return NEAR; }
-(?i:"&!="|"!="|"&="{ws}*\!|\!with|with(out|{ws}*\!))   { return WITHOUT; }
+(?i:"!="|"&!="|"&="{ws}*\!|\!with|with(out|{ws}*\!))   { return WITHOUT; }
 (?i:"|="|withor|orwith|wor)   	{ return WITHOR; }
 (?i:"&="|with)			{ return WITH; }
 (?i:count)			{ return COUNT; }

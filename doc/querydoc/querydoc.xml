@@ -296,6 +296,9 @@
 	    <rhs cmt="Conjunction of a negated condition on a single token (token-set difference)">
 	      <n>qw_without</n>
 	    </rhs>
+            <rhs cmt="Disjunction of independent conditions on a single token (token-set union)">
+              <n>qw_withor</n>
+            </rhs>
 	    <rhs cmt="Conjunction of attribute-wise independent key-sets returned by a count()-subquery">
 	      <n>qw_keys</n>
 	    </rhs>
@@ -578,7 +581,7 @@
 
 	  <!--~~~~~~~~ RULES: qw_with -->
 	  <rule lhs="qw_with" cmt="Conjunction of multiple conditions over a single token (token-set intersection)">
-	    <rhs cmt="... note that negated conditions are not admissable here">
+	    <rhs cmt="alias: &amp;=">
 	      <n>qc_word</n>
 	      <t>WITH</t>
 	      <n>qc_word</n>
@@ -587,9 +590,18 @@
 
 	  <!--~~~~~~~~ RULES: qw_without -->
 	  <rule lhs="qw_without" cmt="Conjunction of positive and negative conditions on a single token (token-set difference)">
-	    <rhs cmt="aliases: !WITH, WITH!">
+	    <rhs cmt="aliases: !WITH, WITH!, !=, &amp;!=, &amp;=!">
 	      <n>qc_word</n>
 	      <t>WITHOUT</t>
+	      <n>qc_word</n>
+	    </rhs>
+	  </rule>
+
+	  <!--~~~~~~~~ RULES: qw_withor -->
+	  <rule lhs="qw_withor" cmt="Disjunction of independent conditions on a single token (token-set union)">
+	    <rhs cmt="aliases: WOR, ORWITH, |=">
+	      <n>qc_word</n>
+	      <t>WITHOR</t>
 	      <n>qc_word</n>
 	    </rhs>
 	  </rule>
@@ -1680,8 +1692,9 @@ regex_modifier	[gimsx]
       <subsection name="term_KEYWORD" title="Query Keywords">
 <pre>
 (?i:near)
-(?i:with)
-(?i:\!with|with(out|{ws}*\!))
+(?i:"!="|"&amp;!="|"&amp;="{ws}*\!|\!with|with(out|{ws}*\!))
+(?i:"|="|withor|orwith|wor)
+(?i:"&amp;="|with)
 (?i:count)
 (?i:(file|doc)?id)
 (?i:(file|doc)_?(name)?)
