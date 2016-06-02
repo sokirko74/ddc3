@@ -19,12 +19,18 @@ our %term2str =
     qw(CNTXT WITHIN DEBUG_RANK),
     qw(HAS_FIELD),
     qw(GREATER_BY_RANK LESS_BY_RANK),
-    qw(LESS_BY_LEFT LESS_BY_RIGHT),
-    qw(LESS_BY_SIZE GREATER_BY_SIZE IS_SIZE),
+    qw(LESS_BY_LEFT LESS_BY_RIGHT LESS_BY_MIDDLE),
+    qw(GREATER_BY_LEFT GREATER_BY_RIGHT GREATER_BY_MIDDLE),
+    qw(LESS_BY_SIZE GREATER_BY_SIZE IS_SIZE SIZE),
     qw(LESS_BY_DATE GREATER_BY_DATE IS_DATE),
     qw(LESS_BY GREATER_BY),
+    qw(RANDOM),
    ),
    'FILENAMES_ONLY' => '#FILENAMES',
+   'DOLLAR_DOT' => '$.',
+   STAR_LBRACE => '*{',
+   RBRACE_STAR => '}*',
+   AT_LBRACE => '@{',
 
    ##-- literals
    (map {($_=>$_)}

@@ -1,6 +1,6 @@
 //-*- Mode: C++ -*-
 //  DDC originally by Alexey Sokirko
-//  Changes and modifications 2011-2015 by Bryan Jurish
+//  Changes and modifications 2011-2016 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -298,6 +298,7 @@ public:
 
   //-- ddcObject API
   virtual string jsonClass() { return "CQWith"; };
+  virtual string jsonData();
   virtual string toString();
 };
 
@@ -313,6 +314,20 @@ public:
 
   virtual bool Compile(CQueryCompiler *compiler);
   virtual string jsonClass() { return "CQWithout"; };
+};
+
+//------------------------------------------------------------
+//! 'WITHOR' query
+class CQWithor : public CQWith {
+public:
+  CQWithor(CQuery *dtr1=NULL, CQuery *dtr2=NULL, BYTE matchId=0)
+    : CQWith(dtr1,dtr2,matchId)
+  {
+    m_OpName = "WITHOR";
+  };
+
+  virtual bool Compile(CQueryCompiler *compiler);
+  virtual string jsonClass() { return "CQWithor"; };
 };
 
 

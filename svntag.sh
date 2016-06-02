@@ -1,10 +1,10 @@
 #!/bin/bash
 
-#svnroot=`svnroot.sh .`
-svnroot='svn+ssh://mukau@svn.code.sf.net/p/ddc-concordance/code/ddc/trunk'
+svnroot=`svnroot.sh .`
 svntags="${svnroot%/trunk}/tags";
 tagprefix=$(basename $(readlink -f $(dirname "$0")))
-tagversion=$(grep THE_PACKAGE_VERSION configure.ac | head -n1 | cut -d, -f2 | perl -pe 's{[^0-9\.\-_]}{}g;')
+tagversion=$(grep "define.*THE_PACKAGE_VERSION" $(dirname "$0")/configure.ac | perl -pe 's/^.*?,[\s\[]*([^\s\]\)]+).*$/$1/;')
+
 dummy=""
 
 show_help() {
@@ -58,6 +58,14 @@ while [ $# -gt 0 ] ; do
 	-l|--list)
 	    list_tags
 	    exit $?
+	    ;;
+	-p|--prefix)
+	    tagprefix="$2"
+	    shift;
+	    ;;
+	-v|--version)
+	    tagversion="$2"
+	    shift;
 	    ;;
 	-t|--tag)
 	    set_tag "$2"

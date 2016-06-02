@@ -1,7 +1,7 @@
 //-*- Mode: C++; c-basic-offset: 8; -*-
 //
 //  DDC originally by Alexey Sokirko
-//  Changes and modifications 2011-2015 by Bryan Jurish
+//  Changes and modifications 2011-2016 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -1548,16 +1548,18 @@ void CQueryWithNode::EvaluateWithoutHits()
 	if (child1->IsUniversalWildcard()) {
 		child2->EvaluateWithoutHits();
 		SwapOccurrences(*m_pChild2, true);
+#if 0 /* Thu, 02 Jun 2016 13:17:08 +0200: this looks pretty useless */
 		if (m_bUseNodeIndices)
 			m_OccurrenceNodeIndices.assign(m_OccurrenceNodeIndices.size(), child1->m_NodeIndex);
-		if (m_bUseMatchIds)
+#endif
+		if (m_bUseMatchIds && m_MatchId)
 			m_OccurrenceMatchIds.assign(m_OccurrenceMatchIds.size(), m_MatchId);
 		return;
 	}
 	else if (child2->IsUniversalWildcard()) {
 		child1->EvaluateWithoutHits();
 		SwapOccurrences(*m_pChild1, true);
-		if (m_bUseMatchIds)
+		if (m_bUseMatchIds && m_MatchId)
 			m_OccurrenceMatchIds.assign(m_OccurrenceMatchIds.size(), m_MatchId);
 		return;
 	}
@@ -1565,17 +1567,44 @@ void CQueryWithNode::EvaluateWithoutHits()
 	//-- evaluation guts
 	child1->EvaluateWithoutHits();
 	child2->EvaluateWithoutHits();
-	m_Occurrences.resize( min(child1->GetOccurrencesSize(), child2->GetOccurrencesSize()) );
 
-	vector<CTokenNo>::iterator it = set_intersection(child1->m_Occurrences.begin(), child1->m_Occurrences.end(),
-							 child2->m_Occurrences.begin(), child2->m_Occurrences.end(),
-							 m_Occurrences.begin());
-	m_Occurrences.resize(it - m_Occurrences.begin());
+	if (!m_bUseNodeIndices && !m_bUseMatchIds) {
+		//-- no node-indices or match-ids : just append to m_Occurrences[] and sort appended data
+		m_Occurrences.resize( min(child1->GetOccurrencesSize(), child2->GetOccurrencesSize()) );
+		vector<CTokenNo>::iterator it = set_intersection(child1->m_Occurrences.begin(), child1->m_Occurrences.end(),
+								 child2->m_Occurrences.begin(), child2->m_Occurrences.end(),
+								 m_Occurrences.begin());
+		m_Occurrences.resize(it - m_Occurrences.begin());
+	}
+	else {
+		//-- node-indices and/or match-ids in use: manual intersection via linear scan needed to preserve them
+		size_t i1,i2;
+		ClearAndReserveOccurrences( min(child1->GetOccurrencesSize(), child2->GetOccurrencesSize()) );
+		for (i1=0, i2=0; i1 < child1->GetOccurrencesSize() && i2 < child2->GetOccurrencesSize(); ) {
+			if (child1->m_Occurrences[i1] == child2->m_Occurrences[i2]) {
+				//-- occ1 == occ2: add occ1
+				m_Occurrences.push_back(child1->m_Occurrences[i1]);
+				if (m_bUseNodeIndices)
+					m_OccurrenceNodeIndices.push_back(child1->m_OccurrenceNodeIndices[i1]);
+				if (m_bUseMatchIds)
+					m_OccurrenceMatchIds.push_back(child2->m_OccurrenceMatchIds[i2]!=DefaultMatchId
+								       ? child2->m_OccurrenceMatchIds[i2]
+								       : child1->m_OccurrenceMatchIds[i1]);
+				++i1;
+				++i2;
+			}
+			else if (child1->m_Occurrences[i1] < child2->m_Occurrences[i2])  {
+				++i1;
+			}
+			else if (child1->m_Occurrences[i1] > child2->m_Occurrences[i2])  {
+				++i2;
+			}
+		}
 
-	if (m_bUseNodeIndices)
-		m_OccurrenceNodeIndices.resize(m_Occurrences.size(), child1->m_NodeIndex);
-	if (m_bUseMatchIds)
-		m_OccurrenceMatchIds.assign(m_Occurrences.size(), m_MatchId);
+		//-- clobber match-ids
+		if (m_bUseMatchIds && m_MatchId)
+			m_OccurrenceMatchIds.assign(m_OccurrenceMatchIds.size(), m_MatchId);
+	}
 
 	m_ChunkLengths.resize(GetOccurrencesSize(), 1);
 };
@@ -1598,19 +1627,117 @@ bool CQueryWithoutNode::Create(const CConcHolder* pHolder, CQueryNode* child1, C
 
 void CQueryWithoutNode::EvaluateWithoutHits()
 {
-	((CQueryTokenNode*)m_pChild1)->EvaluateWithoutHits();
-	((CQueryTokenNode*)m_pChild2)->EvaluateWithoutHits();
+	CQueryTokenNode* child1 = (CQueryTokenNode*)m_pChild1;
+	CQueryTokenNode* child2 = (CQueryTokenNode*)m_pChild2;
 
-	m_Occurrences.resize( m_pChild1->GetOccurrencesSize() );
-	vector<CTokenNo>::iterator it = set_difference(m_pChild1->m_Occurrences.begin(), m_pChild1->m_Occurrences.end(),
-						       m_pChild2->m_Occurrences.begin(), m_pChild2->m_Occurrences.end(),
-						       m_Occurrences.begin());
-	m_Occurrences.resize(it - m_Occurrences.begin());
+	child1->EvaluateWithoutHits();
+	child2->EvaluateWithoutHits();
 
-	if (m_bUseNodeIndices)
-		m_OccurrenceNodeIndices.resize(m_Occurrences.size(), ((CQueryTokenNode*)m_pChild1)->m_NodeIndex);
-	if (m_bUseMatchIds)
-		m_OccurrenceMatchIds.resize(m_Occurrences.size(), ((CQueryTokenNode*)m_pChild2)->m_MatchId!=DefaultMatchId ? ((CQueryTokenNode*)m_pChild2)->m_MatchId : ((CQueryTokenNode*)m_pChild1)->m_MatchId);
+	if (!m_bUseNodeIndices && !m_bUseMatchIds) {
+		//-- no node-indices or match-ids : simple set-operation
+		m_Occurrences.resize( child1->GetOccurrencesSize() );
+		vector<CTokenNo>::iterator it = set_difference(child1->m_Occurrences.begin(), child1->m_Occurrences.end(),
+							       child2->m_Occurrences.begin(), child2->m_Occurrences.end(),
+							       m_Occurrences.begin());
+		m_Occurrences.resize(it - m_Occurrences.begin());
+	}
+	else {
+		//-- node-indices and/or match-ids in use: linear scan needed to preserve them
+		size_t i1,i2;
+		ClearAndReserveOccurrences( child1->GetOccurrencesSize() );
+		for (i1=0, i2=0; i1 < child1->GetOccurrencesSize() && i2 < child2->GetOccurrencesSize(); ) {
+			if (child1->m_Occurrences[i1] < child2->m_Occurrences[i2]) {
+				//-- occ1 < occ2: add occ1
+				m_Occurrences.push_back(child1->m_Occurrences[i1]);
+				if (m_bUseNodeIndices)
+					m_OccurrenceNodeIndices.push_back(child1->m_OccurrenceNodeIndices[i1]);
+				if (m_bUseMatchIds)
+					m_OccurrenceMatchIds.push_back(child1->m_OccurrenceMatchIds[i1]);
+				++i1;
+			}
+			else if (child1->m_Occurrences[i1] == child2->m_Occurrences[i2]) {
+				//-- occ1 == occ2: skip both
+				++i1;
+				++i2;
+			}
+			else  {
+				//-- occ1 > occ2: skip occ2
+				++i2;
+			}
+		}
+
+		//-- append final occurrences
+		if (i1 < child1->GetOccurrencesSize())
+			AddOccurrences(*child1, i1, child1->GetOccurrencesSize());
+	       
+		//-- clobber match-ids
+		if (m_bUseMatchIds && m_MatchId)
+			m_OccurrenceMatchIds.assign(m_OccurrenceMatchIds.size(), m_MatchId);
+	}
+
+	m_ChunkLengths.resize(GetOccurrencesSize(), 1);
+};
+
+//======================== CQueryWithorNode =========================
+
+bool CQueryWithorNode::Create(const CConcHolder* pHolder, CQueryNode* child1, CQueryNode* child2, BYTE matchId)
+{
+	CQueryBinaryOperationNode::Create(pHolder, child1, child2, string(" withor ") );
+	m_MatchId = matchId;
+	return true;
+};
+
+
+void CQueryWithorNode::EvaluateWithoutHits()
+{
+	CQueryTokenNode *child1 = (CQueryTokenNode*)m_pChild1;
+	CQueryTokenNode *child2 = (CQueryTokenNode*)m_pChild2;
+	child1->EvaluateWithoutHits();
+	child2->EvaluateWithoutHits();
+
+	if (!m_bUseNodeIndices && !m_bUseMatchIds) {
+		//-- no node-indices or match-ids : just append to m_Occurrences[] and sort appended data
+		m_Occurrences.resize( child1->GetOccurrencesSize() + child2->GetOccurrencesSize() );
+		vector<CTokenNo>::iterator it = set_union(child1->m_Occurrences.begin(), child1->m_Occurrences.end(),
+							  child2->m_Occurrences.begin(), child2->m_Occurrences.end(),
+							  m_Occurrences.begin());
+		m_Occurrences.resize(it - m_Occurrences.begin());
+	} else {
+		//-- node-indices and/or match-ids in use: manual union via linear scan needed to preserve them
+		size_t i1,i2;
+		ClearAndReserveOccurrences( child1->GetOccurrencesSize() + child2->GetOccurrencesSize() );
+		for (i1=0, i2=0; i1 < child1->GetOccurrencesSize() && i2 < child2->GetOccurrencesSize(); ) {
+			if (child1->m_Occurrences[i1] <= child2->m_Occurrences[i2]) {
+				//-- occ1 <= occ2: add occ1
+				m_Occurrences.push_back(child1->m_Occurrences[i1]);
+				if (m_bUseNodeIndices)
+					m_OccurrenceNodeIndices.push_back(child1->m_OccurrenceNodeIndices[i1]);
+				if (m_bUseMatchIds)
+					m_OccurrenceMatchIds.push_back(child1->m_OccurrenceMatchIds[i1]);
+				if (child1->m_Occurrences[i1] == child2->m_Occurrences[i2]) ++i2;
+				++i1;
+			}
+			else {
+				//-- occ1 > occ2: add occ2
+				m_Occurrences.push_back(child2->m_Occurrences[i2]);
+				if (m_bUseNodeIndices)
+					m_OccurrenceNodeIndices.push_back(child2->m_OccurrenceNodeIndices[i2]);
+				if (m_bUseMatchIds)
+					m_OccurrenceMatchIds.push_back(child2->m_OccurrenceMatchIds[i2]);
+				++i2;
+			}
+		}
+
+		//-- append final occurrences
+		if (i1 < child1->GetOccurrencesSize())
+			AddOccurrences(*child1, i1, child1->GetOccurrencesSize());
+		if (i2 < child2->GetOccurrencesSize())
+			AddOccurrences(*child2, i2, child2->GetOccurrencesSize());
+
+		//-- clobber match-ids
+		if (m_bUseMatchIds && m_MatchId)
+			m_OccurrenceMatchIds.assign(m_OccurrenceMatchIds.size(), m_MatchId);
+	}
 
 	m_ChunkLengths.resize(GetOccurrencesSize(), 1);
 };

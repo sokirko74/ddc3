@@ -1,7 +1,7 @@
 //-*- Mode: C++; c-basic-offset: 2; -*-
 //
 //  DDC originally by Alexey Sokirko
-//  Changes and modifications 2011-2015 by Bryan Jurish
+//  Changes and modifications 2011-2016 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -371,7 +371,7 @@ bool CQWith::Compile(CQueryCompiler *compiler)
   //-- create underyling node
   CQueryWithNode* pObj = new CQueryWithNode;
   m_Node = pObj;
-  if ( !pObj->Create(compiler->m_pHolder, m_dtr1->m_Node, m_dtr2->m_Node, this->GetMatchId()) )
+  if ( !pObj->Create(compiler->m_pHolder, m_dtr1->m_Node, m_dtr2->m_Node, m_MatchId) )
     throw CExpc(errParseError,"could not compile WITH clause `%s'", this->toString().c_str());
 
   return CQNegatable::Compile(compiler);
@@ -385,6 +385,11 @@ string CQWith::toString()
   return CQBinOp::toString() + s;
 }
 
+string CQWith::jsonData() {
+  return (CQBinOp::jsonData()
+	  +","+Format("\"MatchId\":%u",m_MatchId)
+	  );
+}
 
 //======================================================================
 // CQWithout
@@ -401,8 +406,29 @@ bool CQWithout::Compile(CQueryCompiler *compiler)
   CQueryWithoutNode* pObj = new CQueryWithoutNode;
   m_Node = pObj;
 
-  if ( !pObj->Create(compiler->m_pHolder, m_dtr1->m_Node, m_dtr2->m_Node, this->GetMatchId()) )
+  if ( !pObj->Create(compiler->m_pHolder, m_dtr1->m_Node, m_dtr2->m_Node, m_MatchId) )
     throw CExpc(errParseError,"could not compile WITHOUT clause `%s'", this->toString().c_str());
+
+  return CQNegatable::Compile(compiler);
+}
+
+//======================================================================
+// CQWithout
+
+bool CQWithor::Compile(CQueryCompiler *compiler)
+{
+  if (!CQBinOp::Compile(compiler)) return false;
+
+  //-- extra sanity checks
+  if (m_dtr1->Negated() || m_dtr2->Negated())
+    throw CExpc(errParseError, "negated sub-queries not supported in WITHOR query `%s'", this->toString().c_str());
+
+  //-- create underyling node
+  CQueryWithorNode* pObj = new CQueryWithorNode;
+  m_Node = pObj;
+
+  if ( !pObj->Create(compiler->m_pHolder, m_dtr1->m_Node, m_dtr2->m_Node, m_MatchId) )
+    throw CExpc(errParseError,"could not compile WITHOR clause `%s'", this->toString().c_str());
 
   return CQNegatable::Compile(compiler);
 }

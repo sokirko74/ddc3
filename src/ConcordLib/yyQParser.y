@@ -168,6 +168,7 @@ int yylex (void*,  CQueryCompiler*);
 %type	<m_pnode>	qw_anchor
 %type	<m_pnode>	qw_with
 %type	<m_pnode>	qw_without
+%type	<m_pnode>	qw_withor
 %type	<m_pnode>	qw_matchid
 
 //------------------------------------------------------
@@ -292,7 +293,7 @@ int yylex (void*,  CQueryCompiler*);
 %nonassoc	KEYS
 %nonassoc	NEAR
 %left		','
-%left		WITH WITHOUT
+%left		WITH WITHOUT WITHOR
 %left   	'='
 %nonassoc 	'<'
 %nonassoc	'$' 
@@ -614,6 +615,7 @@ qc_word:
 	|	qw_listfile		{ $$ = $1; }
 	|	qw_with			{ $$ = $1; }
 	|	qw_without		{ $$ = $1; }
+	|	qw_withor		{ $$ = $1; }
 	|	qw_keys			{ $$ = $1; }
  	|	qw_matchid		{ $$ = $1; }
 	|	'(' qc_word ')'		{ $$ = $2; }
@@ -718,6 +720,10 @@ qw_with:
 
 qw_without:
 		qc_word WITHOUT qc_word		{ $$ = _qc->PushQuery(new CQWithout($1,$3)); }
+	;
+
+qw_withor:
+		qc_word WITHOR qc_word		{ $$ = _qc->PushQuery(new CQWithor($1,$3)); }
 	;
 
 qw_keys:

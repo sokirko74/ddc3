@@ -1,5 +1,18 @@
 ##-*- Mode: Change-Log; coding: utf-8; -*-
 
+v2.0.43 Thu, 02 Jun 2016 14:30:01 +0200 moocow
+	+ fixed mantis bug #14812: allow truncated-symbol searches for integer-symbols
+	  - lexer wart: (19*) was being scanned as ('19' && '*') rather than ('19'*)
+	+ added 'WITHOR' operator
+	+ added lexer aliases &=, |=, != for WITHIN, WITHOR, WITHOUT respectively
+	+ re-worked CQueryWith*Node::EvaluateWithoutHits() to preserve token-wise Match-Ids when in use
+	  - allows us to track matching criteria in combination with WITHOR, e.g.
+	    ( $p=ADJ* &= ($l=/(?:erst|zweit|dritt)e?$/=2 |= $w=/^[0-9]+\.$/=3) #sep )
+	    assigns matchid=2 to $l-conditition matches and matchid=3 to $w-condition matches
+	  - match-id =2 no longer clobbers =1 in WITHOUT queries (X=1 without Y=2)
+	  - match-id handling should be basically compatible for WITH queries
+	+ updated & tidied up querydoc
+
 v2.0.42 Wed, 27 Apr 2016 15:20:52 +0200 moocow
 	+ fixed unintuitive results for "count(... #join) #by[$...]" queries (mantis bug #13773)
 	  - example (kern): count(* #in s) #by[$p,date/10] -->  "90	$.	1900"

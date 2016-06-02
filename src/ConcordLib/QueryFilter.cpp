@@ -149,8 +149,8 @@ string CQFSort::toString(void)
 //--------------------------------------------------------------
 string CQFSort::jsonMinMax()
 {
-  return (string("\"Min\":")+jsonStr(m_arg0)
-	  +",\"Max\":"+jsonStr(m_arg1)
+  return (string("\"Min\":")+jsonStr(m_arg1)
+	  +",\"Max\":"+jsonStr(m_arg2)
 	  );
 };
 

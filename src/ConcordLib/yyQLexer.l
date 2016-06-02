@@ -1,6 +1,6 @@
 /*-*- Mode: Flex; c-basic-offset: 8 -*-*/
 /*
-//  Copyright 2011-2015 by Bryan Jurish
+//  Copyright 2011-2016 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -84,6 +84,7 @@ ssymbol_cfirst	[^ \t\r\n\f\v\0\^\&\|\!\(\)\[\]\{\}\<\>\'\"\,\;\:\#\=\*\%\\\~\/\$
 ssymbol_crest	[^ \t\r\n\f\v\0\^\&\|\!\(\)\[\]\{\}\<\>\'\"\,\;\:\#\=\*\%\\\~\/]
 symbol_cescape (\\.)
 ssymbol_text	({symbol_cescape}|{ssymbol_cfirst})({symbol_cescape}|{ssymbol_crest})*
+
 isymbol_cfirst	[0-9]
 isymbol_crest	[^ \t\r\n\f\v\0\^\&\|\!\(\)\[\]\{\}\<\>\'\"\,\;\:\#\=\*\%\\\~\/\$\@\?\_\+\-\.]
 isymbol_text	{isymbol_cfirst}({symbol_cescape}|{isymbol_crest})*
@@ -118,8 +119,9 @@ regex_modifier	[gimsx]
 "&&"				{ return OP_BOOL_AND; }
 "||"				{ return OP_BOOL_OR; }
 (?i:near)			{ return NEAR; }
-(?i:with)			{ return WITH; }
-(?i:\!with|with(out|{ws}*\!))   { return WITHOUT; }
+(?i:"&!="|"!="|"&="{ws}*\!|\!with|with(out|{ws}*\!))   { return WITHOUT; }
+(?i:"|="|withor|orwith|wor)   	{ return WITHOR; }
+(?i:"&="|with)			{ return WITH; }
 (?i:count)			{ return COUNT; }
 (?i:keys)			{ return KEYS; }
 
@@ -188,15 +190,6 @@ regex_modifier	[gimsx]
 "*{"				{ return STAR_LBRACE; /* prefix-set opener */ }
 "}*"				{ return RBRACE_STAR; /* suffix-set closer */ }
 
-
- /* numeric tokens */
-\'[\+\-]?[0-9]+\'		{ yytext++; yyleng-=2; return INTEGER; }
-[\+\-]?[0-9]+/{int_boundary}	{ return INTEGER; }
-[\+\-]?[0-9]+			{ return INTEGER; }
-
-\'[0-9\-]+\'			 { yytext++; yyleng-=2; return DATE; }
-[0-9]{4,}[0-9\-]+/{int_boundary} { return DATE; }
-
  /* truncated symbols */
 "*"\'{sq_text}\'"*"		{ yytext+=2; yyleng-=4; return INFIX;  /* dual-truncated quoted string (infix symbol) */ }
 \'{sq_text}\'"*"		{ yytext++;  yyleng-=3; return PREFIX; /* right-truncated quoted string (prefix symbol) */ }
@@ -205,6 +198,15 @@ regex_modifier	[gimsx]
 "*"{symbol_text}"*"		{ yytext++; yyleng-=2; return INFIX;  /* dual-truncated bare string (infix symbol) */ }
 {symbol_text}"*"		{           yyleng--; return PREFIX; /* right-truncated bare string (prefix symbol) */ }
 "*"{symbol_text}		{ yytext++; yyleng--; return SUFFIX; /* left-truncated bare string (suffix symbol) */ }
+
+ /* numeric tokens */
+ /* + fix mantis bug #14812: put these AFTER truncated symbols so that e.g. (19*) is paresed as ('19'*) rather than ('19' && *) */
+\'[\+\-]?[0-9]+\'		{ yytext++; yyleng-=2; return INTEGER; }
+[\+\-]?[0-9]+/{int_boundary}	{ return INTEGER; }
+[\+\-]?[0-9]+			{ return INTEGER; }
+
+\'[0-9\-]+\'			 { yytext++; yyleng-=2; return DATE; }
+[0-9]{4,}[0-9\-]+/{int_boundary} { return DATE; }
 
  /* single-term wildcard */
 "*"				{ return '*'; }

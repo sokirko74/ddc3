@@ -439,6 +439,22 @@ public:
 
 //----------------------------------------------------------------------
 /*!
+  \brief CQueryWithorNode: (EXPR1 withor EXPR2) behaves like (EXPR1 || EXPR2) under token-identity
+*/ 
+class CQueryWithorNode : public CQueryWithNode
+{
+public:
+	CQueryWithorNode()
+	{};
+
+	//! create the node during yacc parsing
+	bool Create(const CConcHolder*	pHolder, CQueryNode* child1, CQueryNode* child2, BYTE matchId=0);
+
+	void EvaluateWithoutHits();
+};
+
+//----------------------------------------------------------------------
+/*!
   \brief CQOccurrenceIterator (formerly CQNearEvalItem) is used to iterate over query occurrences;
   used by near() and phrase ("") queries
  */

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <doc>
   <head>
     <title>DDC Query Language Documentation</title>
@@ -11,7 +11,7 @@
     <section name="overview" title="Overview">
       <p>
 	This documentation describes the query language accepted by
-	DDC version 2.0.38.  Current sources for DDC should be available
+	DDC version 2.0.43.  Current sources for DDC should be available
 	from
 	<!--<a href="http://odo.dwds.de/code/viewvc.cgi/ddc/trunk/?root=dev">svn+ssh://odo.dwds.de/home/svn/dev/ddc/trunk</a>.-->
 	<a href="http://sourceforge.net/projects/ddc-concordance">http://sourceforge.net/projects/ddc-concordance</a>.
@@ -671,6 +671,12 @@
 	    <rhs cmt="hit context window (number of sentences; alias: #N)">
 	      <t>#CNTXT</t>
 	      <n>integer</n>
+	    </rhs>
+	    <rhs cmt="hit context window (bracket notation)">
+	      <t>#CNTXT</t>
+	      <t>[</t>
+	      <n>integer</n>
+	      <t>]</t>
 	    </rhs>
 	    <rhs cmt="hit container type (e.g. 'file'; alias: #IN)">
 	      <t>#WITHIN</t>
@@ -1412,7 +1418,7 @@
 	    <rhs cmt="$-prefixed index name ">
 	      <n>s_index</n>
 	    </rhs>
-	    <rhs cmt="unprefixed index name">
+	    <rhs cmt="index name bareword, without '$' prefix">
 	      <n>symbol</n>
 	    </rhs>
 	    <rhs cmt="key positions corresponding to '-' pseudo-index are ignored (e.g. metadata keys)">
@@ -1613,8 +1619,7 @@
 	  <!--~~~~~~~~ RULES: matchid -->
 	  <rule lhs="matchid" cmt="User-specified match-ID or back-reference">
 	    <rhs cmt="... valid match-IDs are in the range (1-255)">
-	      <t>=</t>
-	      <xt>INTEGER</xt>
+	      <xt>MATCHID</xt>
 	    </rhs>
 	  </rule>
 
@@ -1628,11 +1633,19 @@
     <!-- Terminals -->
     <section name="terminals" title="Terminal Symbols">
 
+      DDC uses a <a href="https://en.wikipedia.org/wiki/Flex_(lexical_analyser_generator)"><tt>flex</tt></a>
+      lexical analyzer (&quot;scanner&quot;) to tokenize input queries into atomic units (symbols, keywords, operators, etc.)
+      instantiating the terminal symbols of the query-language grammar given <a href="#grammar">above</a>.
+      The scanner operates on the raw input query string, returning input tokens one at a time by selecting
+      and returning the longest match for the first regular expression in its rule-set which matches at the
+      current input position; i.e. when an input string matches multiple scanner rules, the first rule "wins".
+      Except where ocurring literally in match rules, whitespace in the input is ignored.
+
       <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
       <!-- Terminals: Common -->
       <subsection name="term_common" title="Common Definitions">
 	<p>
-	  The underlying <tt>flex</tt> scanner makes use of several regular expression
+	  The underlying scanner makes use of several regular expression
 	  'macros' using the notation <tt>{<i>MACRO</i>}</tt>.
 	  The following macros are defined for the underlying scanner:
 	</p>
@@ -1640,10 +1653,16 @@
 ws		[ \t\n\r\f\v]
 punct	        [\^\!\~\$\@\%\/\=\?\_\:\;\+\#\.\\\*\,\'\"\&amp;\|\(\)\[\]\{\}\&lt;\&gt;]
 
-symbol_cfirst	[^ \t\r\n\f\v\0\^\&amp;\|\!\(\)\[\]\{\}\&lt;\&gt;\'\"\,\;\:\#\=\*\%\\\~\/\$\@\?\_\+\.]
-symbol_crest	[^ \t\r\n\f\v\0\^\&amp;\|\!\(\)\[\]\{\}\&lt;\&gt;\'\"\,\;\:\#\=\*\%\\\~\/]
+ssymbol_cfirst	[^ \t\r\n\f\v\0\^\&amp;\|\!\(\)\[\]\{\}\&lt;\&gt;\'\"\,\;\:\#\=\*\%\\\~\/\$\@\?\_\+\.0-9]
+ssymbol_crest	[^ \t\r\n\f\v\0\^\&amp;\|\!\(\)\[\]\{\}\&lt;\&gt;\'\"\,\;\:\#\=\*\%\\\~\/]
 symbol_cescape  (\\.)
-symbol_text     ({symbol_cescape}|{symbol_cfirst})(({symbol_cescape}|{symbol_crest})*)
+ssymbol_text	({symbol_cescape}|{ssymbol_cfirst})({symbol_cescape}|{ssymbol_crest})*
+
+isymbol_cfirst	[0-9]
+isymbol_crest	[^ \t\r\n\f\v\0\^\&amp;\|\!\(\)\[\]\{\}\&lt;\&gt;\'\"\,\;\:\#\=\*\%\\\~\/\$\@\?\_\+\-\.]
+isymbol_text	{isymbol_cfirst}({symbol_cescape}|{isymbol_crest})*
+
+symbol_text     {ssymbol_text}|{isymbol_text}
 
 int_boundary	[ \t\n\r\f\v\0\^\&amp;\|\!\(\)\[\]\{\}\&lt;\&gt;\'\"\,\;\:\#\=\*\%\~\\\$\@\/\?\_\+\.]
 
@@ -1717,6 +1736,23 @@ regex_modifier	[gimsx]
       <!--/terminals:keywords-->
 
       <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+      <subsection name="term_MATCHID" title="Match-IDs">
+<pre>
+"="[0-9]+			/* user-specified match-id (valid range: 1-255) */
+</pre>
+	<p>
+	  The scanner supports user-specified match-IDs for use e.g. by
+	  context-dependent sort operators.  Match-IDs are decimal integers between 1 and 255,
+	  introduced by a leading '=' (equals sign).
+	  <!-- Note that no whitespace is allowed between the leading '=' and the subsequent integer ID. -->
+	  If no match-IDs were specified for a query, every matched token of that query is treated as if
+	  it had been assigned a match-ID of 1.  Otherwise, if at least one match-ID was explicitly
+	  assigned, any matched tokens without explicit match-IDs are assigned a match-ID of 255.
+	</p>
+      </subsection>
+      <!--/terminals:match-ids-->
+
+      <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
       <a name="term_REGOPT"/>
       <a name="term_NEG_REGEX"/>
       <a name="term_SEARCH_REPLACE_REGEX"/>
@@ -1783,15 +1819,49 @@ regex_modifier	[gimsx]
       <!--/terminals:punctuation-->
 
       <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
-      <subsection name="term_INTEGER" title="Integers">
+      <a name="term_PREFIX"/>
+      <a name="term_SUFFIX"/>
+      <a name="term_INFIX"/>
+      <subsection name="term_trunc" title="Truncated Symbols">
 <pre>
-\'[0-9]+\'                      /* single-quoted non-negative decimal integer */
-  [0-9]+/{int_boundary}         /* bareword non-negative decimal integer */
+"*"\'{sq_text}\'"*"	/* dual-truncated quoted string (infix symbol) */
+   \'{sq_text}\'"*"	/* right-truncated quoted string (prefix symbol) */
+"*"\'{sq_text}\'	/* left-truncated quoted string (suffix symbol) */
+
+"*"{symbol_text}"*"	/* dual-truncated bare string (infix symbol) */
+   {symbol_text}"*"	/* right-truncated bare string (prefix symbol) */
+"*"{symbol_text}	/* left-truncated bare string (suffix symbol) */
 </pre>
 	<p>
-	  The scanner supports non-negative integers in decimal notation, optionally
-	  enclosed by single quotes.  It may be necessary to introduce whitespace
-	  or quotes in order to separate an integer token from surrounding symbols.
+	  Truncated symbols (for
+	  <a href="#rule_qw_prefix">prefix-</a>,
+	  <a href="#rule_qw_suffix">suffix-</a>,
+	  and
+	  <a href="#rule_qw_infix">infix-</a>queries)
+	  are supported directly by the scanner, in order to distinguish
+	  these from literal <a href="#term_SYMBOL">symbols</a> containing an asterisk character ("<tt>*</tt>").
+	  
+	  Literal asterisks must be <a href="#escapes">escaped</a> if they occur anywhere
+	  in a literal <a href="#term_SYMBOL">symbol</a>, e.g. by enclosing the symbol in single quotes.
+	  Note that despite this restriction, the asterisk does <b>NOT</b> function as a general
+	  "wildcard character" for DDC queries.  If you need to match multiple substrings of a single index
+	  item, use a <a href="#term_REGEX">regular expression</a> instead,
+	  e.g. "<tt>/^foo.*bar.*baz$/</tt>" for a wildcard condition "<tt>foo*bar*baz</tt>".
+	</p>
+      </subsection>
+      <!--/terminals:truncated-->
+
+      <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+      <subsection name="term_INTEGER" title="Integers">
+<pre>
+\'[\+\-]?[0-9]+\'               /* single-quoted decimal integer */
+  [\+\-]?[0-9]+/{int_boundary}  /* bareword decimal integer */
+</pre>
+	<p>
+	  The scanner supports integers in decimal notation, optionally
+	  enclosed by single quotes and/or prefixed with a sign character.
+	  It may be necessary to introduce whitespace or quotes in order to
+	  separate an integer token from surrounding symbols.
 	</p>
       </subsection>
       <!--/terminals:integer-->
@@ -1799,8 +1869,8 @@ regex_modifier	[gimsx]
       <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
       <subsection name="term_DATE" title="Dates">
 <pre>
-\'[0-9\-]+\'			/* single-quoted date-like string */
-  [0-9\-]+/{int_boundary}	/* bareword date-like string */
+\'[0-9\-]+\'                        /* single-quoted date-like string */
+  [0-9]{4,}[0-9\-]+/{int_boundary}  /* bareword date-like string */
 </pre>
 	<p>
 	  The scanner supports date-like tokens in a superset of the ISO 8601 format
@@ -1808,23 +1878,6 @@ regex_modifier	[gimsx]
 	</p>
       </subsection>
       <!--/terminals:date-->
-
-      <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
-      <subsection name="term_MATCHID" title="Match-IDs">
-<pre>
-"="[0-9]+			/* user-specified match-id (valid range: 1-255) */
-</pre>
-	<p>
-	  The scanner supports user-specified match-IDs for use e.g. by
-	  context-dependent sort operators.  Match-IDs are decimal integers between 1 and 255,
-	  introduced by a leading '=' (equals sign).
-	  <!-- Note that no whitespace is allowed between the leading '=' and the subsequent integer ID. -->
-	  If no match-IDs were specified for a query, every matched token of that query is treated as if
-	  it had been assigned a match-ID of 1.  Otherwise, if at least one match-ID was explicitly
-	  assigned, any matched tokens without explicit match-IDs are assigned a match-ID of 255.
-	</p>
-      </subsection>
-      <!--/terminals:match-ids-->
 
       <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
       <subsection name="term_SYMBOL" title="Symbols and Barewords">
@@ -1866,39 +1919,6 @@ regex_modifier	[gimsx]
 
       </subsection>
       <!--/terminals:symbol-->
-
-      <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
-      <a name="term_PREFIX"/>
-      <a name="term_SUFFIX"/>
-      <a name="term_INFIX"/>
-      <subsection name="term_trunc" title="Truncated Symbols">
-<pre>
-"*"\'{sq_text}\'"*"	/* dual-truncated quoted string (infix symbol) */
-   \'{sq_text}\'"*"	/* right-truncated quoted string (prefix symbol) */
-"*"\'{sq_text}\'	/* left-truncated quoted string (suffix symbol) */
-
-"*"{symbol_text}"*"	/* dual-truncated bare string (infix symbol) */
-   {symbol_text}"*"	/* right-truncated bare string (prefix symbol) */
-"*"{symbol_text}	/* left-truncated bare string (suffix symbol) */
-</pre>
-	<p>
-	  Truncated symbols (for
-	  <a href="#rule_qw_prefix">prefix-</a>,
-	  <a href="#rule_qw_suffix">suffix-</a>,
-	  and
-	  <a href="#rule_qw_infix">infix-</a>queries)
-	  are supported directly by the scanner, in order to distinguish
-	  these from literal <a href="#term_SYMBOL">symbols</a> containing an asterisk character ("<tt>*</tt>").
-	  
-	  Literal asterisks must be <a href="#escapes">escaped</a> if they occur anywhere
-	  in a literal <a href="#term_SYMBOL">symbol</a>, e.g. by enclosing the symbol in single quotes.
-	  Note that despite this restriction, the asterisk does <b>NOT</b> function as a general
-	  "wildcard character" for DDC queries.  If you need to match multiple substrings of a single index
-	  item, use a <a href="#term_REGEX">regular expression</a> instead,
-	  e.g. "<tt>/^foo.*bar.*baz$/</tt>" for a wildcard condition "<tt>foo*bar*baz</tt>".
-	</p>
-      </subsection>
-      <!--/terminals:truncated-->
 
       <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
       <subsection name="term_EXPANDER" title="Term Expander Pipelines">
