@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml:stylesheet type="text/xsl" href="http://kirk/DTDs/dwds_belegcorpus.xsl" ?>
+<!DOCTYPE teiCorpus.2 SYSTEM "http://kirk/DTDs/wdgxTEI.dtd">
+<teiCorpus.2>
+  <teiHeader>
+        <fileDesc>
+                <titleStmt>
+                        <title></title>
+                </titleStmt>
+                <publicationStmt>
+                        <p></p>
+                </publicationStmt>
+                <sourceDesc>
+                        <p></p>
+                </sourceDesc>
+        </fileDesc>
+    <encodingDesc>
+    </encodingDesc>
+    <!--<revisionDesc></revisionDesc>-->
+  </teiHeader>
+  <TEI.2>
+    <teiHeader>
+      <fileDesc>
+                <titleStmt>
+                        <title></title>
+                </titleStmt>
+                <publicationStmt>
+                        <p></p>
+                </publicationStmt>
+                <sourceDesc>
+                        <p></p>
+                </sourceDesc>
+        </fileDesc>
+    </teiHeader>
+    <text>
+                <body>
+                        <div0>
+                                <div1 id="B">
+                                                <entry key="##query##">
+                                                    <form>
+                                                                ##keyword##
+                                                    </form>
+                                                        <gramGrp>
+                                                                <lbl></lbl>
+                                                                <pos/>
+                                                                <gen/>
+                                                        </gramGrp>
+                                                        <form type="inflected">
+                                                                <orth/>
+                                                        </form>
+                                                        <sense>
+                                                                <def></def>
+								<eg>
+									<cit>
+            	                                                            <q>##context##</q>
+									    <bibl n="orig">##orig##</bibl>
+									    <bibl n="scan">##scan##</bibl>
+									    <biblFull>
+										<titleStmt><title></title></titleStmt>
+										<publicationStmt>
+										    <date>##date##</date>
+										</publicationStmt>
+										<seriesStmt>
+										    <title></title>
+										    <idno type="page">##page##</idno>
+										</seriesStmt>
+									    </biblFull>
+									</cit>
+								</eg>
+                                                        </sense>
+							<note type="textclass">##textClass##</note>
+                                                </entry>
+                                </div1>
+                        </div0>
+                </body>
+    </text>
+  </TEI.2>
+
+</teiCorpus.2>
