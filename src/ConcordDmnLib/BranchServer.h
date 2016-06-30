@@ -74,7 +74,14 @@ struct CFirstHitsQueryResult  {
     string			m_ErrorStr;
     vector<CHitToSort>  	m_Hits;
     vector<SOCKET>		m_Sockets;
-    
+
+    /** destructor implicitly calls CloseSockets() */
+    ~CFirstHitsQueryResult()
+    {
+	CloseSockets();  //-- fix mantis bug #718?
+    };
+
+    /** check whether this result raised any errors */
     bool HasErrors() const
     {
 	return (m_NetworkError != neSuccess )  || (m_InternalError != errNone);
@@ -97,7 +104,43 @@ struct CQueryStatistics
 
 
 //======================================================================
-/** DDC leaf server node, formerly CDDCCorpusListenHost */
+/** DDC branch server 'run_query' paramter & intermediate result-type */
+class CRunQueryData {
+public:
+    string sQuery; 			///< query string
+    string sResultFormat;		///< result format (string)
+    int StartHitNo;			///< first hit to return
+    int ResultLimit;			///< max number of hits to return
+    int TimeOut;			///< query timeout (seconds)
+    int iInternalError;			///< internal error code
+    int iNetworkError;  		///< network error code
+    DWORD EndHitNo;			///< final hit number returned
+    DWORD HitsCount;			///< total number of hits
+    DWORD RelevantDocsCount;		///<
+    string HitDistrib;			///<
+    string DocDistrib;			///<
+    string HitsKey;			///< key for response body data (json only)
+    string ResponseBody;		///< response body data
+    string *pErrorStr;			///< error string pointer (empty or NULL for success)
+
+public:
+    /** constructor */
+    CRunQueryData(const string & _Query="", const string& _ResultFormat="JSON", int _Start=0, int _Limit=10, int _TimeOut=10, string *_pErrorStr=NULL)
+	: sQuery(_Query), sResultFormat(_ResultFormat), StartHitNo(_Start), ResultLimit(_Limit), TimeOut(_TimeOut),
+	  iInternalError(errNone), iNetworkError(neSuccess), EndHitNo(0), HitsCount(0), RelevantDocsCount(0), HitDistrib(""), DocDistrib(""),
+	  HitsKey("hits_"), ResponseBody(""),
+	  pErrorStr(_pErrorStr)
+    {
+	Trim(sQuery);
+	Trim(sResultFormat);
+    };
+
+    /** populate response string \a Response */
+    void toString(string &Response);
+};
+
+//======================================================================
+/** DDC branch server node, formerly CDDCCorpusListenHost */
 class CDDCBranchServer : public CDDCServer
 {
 public:
@@ -156,7 +199,10 @@ public:
     /** pass request to each subcorpus host and fetch results into a JSON array */
     string  GetSubcorpusJsonArray(const string &request, int timeout = 10);
 
-    /** top-level guts for handle__run_query() */
+    /** new top-level guts for handle__run_query() */
+    void RunDistributed(CRunQueryData &runq);
+    
+    /** backwards-compatible guts for handle__run_query() */
     NetworkErrorsEnum RunDistributed(string Query,
 				     const string& ResultType,
 				     DWORD StartHitNo,

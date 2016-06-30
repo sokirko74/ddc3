@@ -383,7 +383,7 @@ int cgiMain()
 			cgiFormStringNoNewlines("TemplateFile", sTemplateFile, 256);
 			if (strlen (sTemplateFile) == 0)
 			{
-				print_error("Cannot read template file from html");
+			  	print_error(Format("Cannot read template file '%s' from html", sTemplateFile));
 				return 1;
 
 			};

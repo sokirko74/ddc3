@@ -17,6 +17,7 @@ pkgetc_DATA = \
 	$(srcdir)/ddc_local_corpora.cfg \
 	$(srcdir)/ddc_server.cfg \
 	$(srcdir)/ddc_xml_server.cfg \
+	$(srcdir)/ddc_template.xml \
 	$(srcdir)/rml.ini
 
 ##--- maintainerclean: built by maintainer / by hand

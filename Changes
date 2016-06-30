@@ -1,5 +1,12 @@
 ##-*- Mode: Change-Log; coding: utf-8; -*-
 
+v2.0.44 Thu, 30 Jun 2016 14:38:20 +0200 moocow
+	+ fixed mantis bug #718 (fd leak) for unreachable subcorpora
+	  - added call to CloseSockets() from CFirstHitsQueryResult destructor in BranchServer.h
+	  - should be called even if throw/catch triggers destruction
+	+ re-factored CDDCBranchServer::RunDistributed to use new datatype CRunQueryData (defined in BranchServer.h)
+	+ better formatting for errors in JSON mode
+
 v2.0.43 Thu, 02 Jun 2016 14:30:01 +0200 moocow
 	+ fixed mantis bug #14812: allow truncated-symbol searches for integer-symbols
 	  - lexer wart: (19*) was being scanned as ('19' && '*') rather than ('19'*)

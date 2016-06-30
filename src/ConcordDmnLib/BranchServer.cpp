@@ -94,6 +94,44 @@ CDDCBranchServer::CDDCBranchServer(bool bDoubleMessage, ProtocolDensityEnum pdPr
 };
 
 //==============================================================================
+// CRunQueryData
+
+
+void CRunQueryData::toString(string &Response)
+{
+    if (CConcHolder::GetResultFormatByString(sResultFormat) == DDC_ResultJson) {
+	Response = (string("{")
+		    + Format("\"istatus_\":%i", iInternalError)
+		    + Format(",\"nstatus_\":%i", iNetworkError)
+		    
+		    /*-- moo: this formatting works, but doesn't do anything useful (bogus error code 32 for parse error?)*/
+		    /*
+		      + "\"istatus_\":" + jsonStr(Format("%i %s", InternalError, GetDDCErrorString((DDCErrorEnum)InternalError).c_str()))
+		      + ",\"nstatus_\":" + jsonStr(Format("%i %s", iNetworkError, GetNetworkErrorString((NetworkErrorsEnum)iNetworkError).c_str()))
+		    */
+		    + (!pErrorStr || pErrorStr->empty() ? "" : (string(",\"error_\":") + jsonStr(*pErrorStr)))
+
+		    + Format(",\"end_\":%i", EndHitNo)
+		    + Format(",\"nhits_\":%i", HitsCount)
+		    + Format(",\"ndocs_\":%i", RelevantDocsCount)
+		    + ",\"dhits_\":" + jsonStr(HitDistrib)
+		    + ",\"ddocs_\":" + jsonStr(DocDistrib)
+		    + ",\"" + HitsKey + "\":[\n" + ResponseBody
+		    + "\n]}");
+    }
+    else if (!pErrorStr || pErrorStr->empty()) {
+	//-- normal, error-free result
+	Response = ResponseBody + Format("\x01 %i %i %i %i %i", iInternalError, iNetworkError, EndHitNo, HitsCount, RelevantDocsCount);
+    }
+    else {
+	//-- errors
+	Response = Format("\x01 %i %i %i %i %i", iInternalError, iNetworkError, EndHitNo, HitsCount, RelevantDocsCount) + "\n" + *pErrorStr + "\n";
+    }
+}
+
+
+
+//==============================================================================
 // CDDCBranchServer: handlers
 
 //----------------------------------------------------------------------
@@ -105,55 +143,27 @@ CDDCBranchServer::CDDCBranchServer(bool bDoubleMessage, ProtocolDensityEnum pdPr
 //----------------------------------------------------------------------
 void CDDCBranchServer::handle__run_query(string &Result, const char *CorpusName, const char *Query, const char *ResultType, int StartHitNo, int ResultLimit, int TimeOut)
 {
-    int InternalError;
-    int iNetworkError;
-    DWORD EndHitNo, HitsCount, RelevantDocsCount;
-    string strResultType(ResultType);
-    string strQuery(Query);
-    Trim(strResultType);
-    Trim(strQuery);
-    if ( strQuery.empty() )
+    CRunQueryData runq(string(Query), string(ResultType), StartHitNo, ResultLimit, TimeOut, &m_ErrorStr);
+
+    if ( runq.sQuery.empty() )
 	throw CExpc(errParseError, "CDDCBranchServer::handle__run_query(): cannot parse empty query string");
 
-    string ResultString;
-    string HitDistrib;
-    string DocDistrib;
-    string HitsKey;
     m_ErrorStr.clear();
-    iNetworkError = RunDistributed(strQuery, strResultType, StartHitNo, ResultLimit,
-				   InternalError, EndHitNo, HitsCount, TimeOut,
-				   ResultString, RelevantDocsCount, HitDistrib, DocDistrib, HitsKey);
 
-    if (CConcHolder::GetResultFormatByString(strResultType) == DDC_ResultJson) {
-	Result = (string("{")
-		  + Format("\"istatus_\":%i", InternalError)
-		  + Format(",\"nstatus_\":%i", iNetworkError)
-
-		  /*-- moo: this formatting works, but doesn't do anything useful (bogus error code 32 for parse error?)*/
-		  /*
-		    + "\"istatus_\":" + jsonStr(Format("%i %s", InternalError, GetDDCErrorString((DDCErrorEnum)InternalError).c_str()))
-		    + ",\"nstatus_\":" + jsonStr(Format("%i %s", iNetworkError, GetNetworkErrorString((NetworkErrorsEnum)iNetworkError).c_str()))
-		  */
-		  + (m_ErrorStr.empty() ? "" : (string(",\"error_\":") + jsonStr(m_ErrorStr)))
-
-		  + Format(",\"end_\":%i", EndHitNo)
-		  + Format(",\"nhits_\":%i", HitsCount)
-		  + Format(",\"ndocs_\":%i", RelevantDocsCount)
-		  + ",\"dhits_\":" + jsonStr(HitDistrib)
-		  + ",\"ddocs_\":" + jsonStr(DocDistrib)
-		  + ",\"" + HitsKey + "\":[\n" + ResultString
-		  + "\n]}");
+    try {
+	RunDistributed(runq);
     }
-    else if (m_ErrorStr.empty()) {
-	//-- normal, error-free result
-	Result = ResultString + Format("\x01 %i %i %i %i %i", InternalError, iNetworkError, EndHitNo, HitsCount, RelevantDocsCount);
+    catch (exception &e) {
+	if (m_ErrorStr.empty()) m_ErrorStr = Format("Exception: %s", e.what());
     }
-    else {
-	//-- errors
-	Result = Format("\x01 %i %i %i %i %i", InternalError, iNetworkError, EndHitNo, HitsCount, RelevantDocsCount) + "\n" + m_ErrorStr + "\n";
+
+    //-- log errors
+    if (!m_ErrorStr.empty()) {
 	m_LogFunction( Format("CDDCBranchServer::handle__run_query(): ERROR: %s", m_ErrorStr.c_str()) );
     }
 
+    //-- generate response
+    runq.toString(Result);
     m_bExpectMore = false;
 }
 
@@ -283,63 +293,54 @@ void CDDCBranchServer::handle__clear_cache(string &Result, int depth)
 // local methods
 
 //----------------------------------------------------------------------
-NetworkErrorsEnum CDDCBranchServer::RunDistributed(string Query,
-						   const string& ResultType,
-						   DWORD StartHitNo,
-						   DWORD ResultLimit,
-						   int&  InternalError,
-						   DWORD&  EndHitNo,
-						   DWORD&  HitsCount,
-						   int     TimeOut,
-						   string& ResultString,
-						   DWORD&  RelevantDocsCount,
-						   string& HitDistrib,
-						   string& DocDistrib,
-						   string& HitsKey)
+void CDDCBranchServer::RunDistributed(CRunQueryData &runq)
 {
 	DwordVector PossibleHosts;
 	string CleanQuery;
 	// read "possible" hosts (e.g. user-specified hosts from query), using query where these hosts can be specified
 	// PossibleHosts is an index of m_Hosts
-	if (!ReadPossibleHosts(Query, CleanQuery, PossibleHosts))
-		return neSubcorpusNotFound;
+	if (!ReadPossibleHosts(runq.sQuery, CleanQuery, PossibleHosts)) {
+	    runq.iNetworkError = neSubcorpusNotFound;
+	    return;
+	}
 
-	EndHitNo = 0;
-	HitsCount = 0;
-	ResultString = "";
+	runq.EndHitNo = 0;
+	runq.HitsCount = 0;
+	runq.ResponseBody = "";
 
-	DDCFormatTypeEnum ResultTypeE = CConcHolder::GetResultFormatByString(ResultType);
+	DDCFormatTypeEnum ResultTypeE = CConcHolder::GetResultFormatByString(runq.sResultFormat);
 
 	// 
 	time_t start_get_hits, end_get_hits; 
-	if  (TimeOut != -1)
+	if  (runq.TimeOut != -1)
 		time(&start_get_hits);
 	
 
 	CFirstHitsQueryResult FHResult;
 	// reading first StartHiNo+ResultLimit  hits from each host and storing them to Hits
 
-	GetFirstHitsFromCorpora(PossibleHosts, CleanQuery, StartHitNo+ResultLimit, TimeOut, FHResult);
-	HitsCount = FHResult.m_AllHitsCount;
-	RelevantDocsCount = FHResult.m_AllRelevantDocsCount;
-	InternalError = FHResult.m_InternalError;
+	GetFirstHitsFromCorpora(PossibleHosts, CleanQuery, runq.StartHitNo+runq.ResultLimit, runq.TimeOut, FHResult);
+	runq.HitsCount = FHResult.m_AllHitsCount;
+	runq.RelevantDocsCount = FHResult.m_AllRelevantDocsCount;
+	runq.iInternalError = FHResult.m_InternalError;
 	if (FHResult.HasErrors())
 	{
 		FHResult.CloseSockets();
 		swap(m_ErrorStr, FHResult.m_ErrorStr);
 		if (FHResult.m_InternalError != errNone)
-			InternalError = FHResult.m_InternalError;
-		return FHResult.m_NetworkError;
+			runq.iInternalError = FHResult.m_InternalError;
+		runq.iNetworkError = FHResult.m_NetworkError;
+		return;
 	}
 
-	if  (TimeOut != -1)
+	if  (runq.TimeOut != -1)
 	{
 		time(&end_get_hits);
-		TimeOut -= end_get_hits-start_get_hits;
-		if (TimeOut < 0)
+		runq.TimeOut -= end_get_hits-start_get_hits;
+		if (runq.TimeOut < 0)
 		{
 			// if the previous steps took all time we add 10 seconds in order to retrieve at least some results 
-			TimeOut = 10;
+			runq.TimeOut = 10;
 		};
 	};
 
@@ -364,11 +365,11 @@ NetworkErrorsEnum CDDCBranchServer::RunDistributed(string Query,
 	}
 #endif
 
-	if (StartHitNo+ResultLimit < FHResult.m_Hits.size())
-		FHResult.m_Hits.erase(FHResult.m_Hits.begin()+StartHitNo+ResultLimit, FHResult.m_Hits.end());
+	if (runq.StartHitNo+runq.ResultLimit < FHResult.m_Hits.size())
+		FHResult.m_Hits.erase(FHResult.m_Hits.begin()+runq.StartHitNo+runq.ResultLimit, FHResult.m_Hits.end());
 
-	if (StartHitNo < FHResult.m_Hits.size())
-		FHResult.m_Hits.erase(FHResult.m_Hits.begin(), FHResult.m_Hits.begin()+StartHitNo);
+	if (runq.StartHitNo < FHResult.m_Hits.size())
+		FHResult.m_Hits.erase(FHResult.m_Hits.begin(), FHResult.m_Hits.begin()+runq.StartHitNo);
 	else
 		FHResult.m_Hits.clear();
 
@@ -380,28 +381,58 @@ NetworkErrorsEnum CDDCBranchServer::RunDistributed(string Query,
 
 	if (IsCountSort(FHResult.m_SortOrder)) {
 	    //-- count-query can generate strings immediately
-	    GetHitCounts(FHResult, ResultTypeE, ResultString);
-	    HitsCount = FHResult.m_AllHitsCount;
-	    FHResult.m_HitsDistributionStr.insert(FHResult.m_HitsDistributionStr.size()-2, Format("~%d", HitsCount));
-	    HitsKey = "counts_";
+	    GetHitCounts(FHResult, ResultTypeE, runq.ResponseBody);
+	    runq.HitsCount = FHResult.m_AllHitsCount;
+	    FHResult.m_HitsDistributionStr.insert(FHResult.m_HitsDistributionStr.size()-2, Format("~%d", runq.HitsCount));
+	    runq.HitsKey = "counts_";
 	} else {
 	    //-- context-query must retrieve full hit strings
-	    GetHitContexts(FHResult, ResultType, ResultTypeE, PossibleHosts, InternalError, TimeOut, ResultString);
-	    HitsKey = "hits_";
+	    GetHitContexts(FHResult, runq.sResultFormat, ResultTypeE, PossibleHosts, runq.iInternalError, runq.TimeOut, runq.ResponseBody);
+	    runq.HitsKey = "hits_";
 	}
 
-	CConcHolder::DecorateQueryResults(ResultType, ResultString);
+	CConcHolder::DecorateQueryResults(runq.sResultFormat, runq.ResponseBody);
 	if (ResultTypeE == DDC_ResultText) {
 	    // we always write relevant document numbers (RelevantDocsDistributionStr) to output, 
 	    // even though it is not specified in the option file of the coprus threads.
 	    // The problem is, that daemon doesn't know anything about options files of their coprus threads.
-	    ResultString = FHResult.m_HitsDistributionStr + FHResult.m_RelevantDocsDistributionStr + ResultString;
+	    runq.ResponseBody = FHResult.m_HitsDistributionStr + FHResult.m_RelevantDocsDistributionStr + runq.ResponseBody;
 	}
-	HitDistrib = FHResult.m_HitsDistributionStr.substr(21,FHResult.m_HitsDistributionStr.size()-23);
-	DocDistrib = FHResult.m_RelevantDocsDistributionStr.substr(32,FHResult.m_RelevantDocsDistributionStr.size()-34);
-	EndHitNo = StartHitNo + FHResult.m_Hits.size();
+	runq.HitDistrib = FHResult.m_HitsDistributionStr.substr(21,FHResult.m_HitsDistributionStr.size()-23);
+	runq.DocDistrib = FHResult.m_RelevantDocsDistributionStr.substr(32,FHResult.m_RelevantDocsDistributionStr.size()-34);
+	runq.EndHitNo   = runq.StartHitNo + FHResult.m_Hits.size();
 
-	return neSuccess;	
+	runq.iNetworkError = neSuccess;
+}
+
+
+//----------------------------------------------------------------------
+NetworkErrorsEnum CDDCBranchServer::RunDistributed(string Query,
+						   const string& ResultType,
+						   DWORD StartHitNo,
+						   DWORD ResultLimit,
+						   int&  InternalError,
+						   DWORD&  EndHitNo,
+						   DWORD&  HitsCount,
+						   int     TimeOut,
+						   string& ResultString,
+						   DWORD&  RelevantDocsCount,
+						   string& HitDistrib,
+						   string& DocDistrib,
+						   string& HitsKey)
+{
+    CRunQueryData runq(Query, ResultType, StartHitNo, TimeOut, ResultLimit, &m_ErrorStr);
+    RunDistributed(runq);
+
+    InternalError = runq.iInternalError;
+    EndHitNo = runq.EndHitNo;
+    HitsCount = runq.HitsCount;
+    ResultString = runq.ResponseBody;
+    RelevantDocsCount = runq.RelevantDocsCount;
+    HitDistrib = runq.HitDistrib;
+    DocDistrib = runq.DocDistrib;
+    HitsKey = runq.HitsKey;
+    return (NetworkErrorsEnum)runq.iNetworkError;
 }
 
 //----------------------------------------------------------------------
@@ -797,14 +828,14 @@ string CDDCBranchServer::GetSubcorpusJsonArray(const string& request, int timeou
 		try {
 		    SOCKET sock = Host.CreateAndConnectSocket(errorStr);
 		    if (sock == -1 || !errorStr.empty()) {
-			Results[i] = Format("{\"name\":%s,\"error\":\"could not open socket: %s\"}", Host.m_CorpusName.c_str(), jsonStr(errorStr, true, false).c_str());
+			Results[i] = Format("{\"name\":%s,\"error\":\"could not open socket: %s\"}", jsonStr(Host.m_CorpusName).c_str(), jsonStr(errorStr, true, false).c_str());
 			continue;
 		    }
 
 		    //-- send request
 		    if (!SendString(sock, request, errorStr) || !errorStr.empty()) {
 			CloseSocket(sock);
-			Results[i] = Format("{\"name\":%s,\"error\":\"could not send to socket: %s\"}", Host.m_CorpusName.c_str(), jsonStr(errorStr, true, false).c_str());
+			Results[i] = Format("{\"name\":%s,\"error\":\"could not send to socket: %s\"}", jsonStr(Host.m_CorpusName).c_str(), jsonStr(errorStr, true, false).c_str());
 			continue;
 		    }
 
@@ -812,11 +843,11 @@ string CDDCBranchServer::GetSubcorpusJsonArray(const string& request, int timeou
 		    Sockets[i] = sock;
 		}
 		catch (exception &e) {
-		    Results[i] = Format("{\"name\":%s,\"error\":\"error sending to socket: %s\"}", Host.m_CorpusName.c_str(), jsonStr(e.what(), true, false).c_str());
+		    Results[i] = Format("{\"name\":%s,\"error\":\"error sending to socket: %s\"}", jsonStr(Host.m_CorpusName).c_str(), jsonStr(e.what(), true, false).c_str());
 		    continue;
 		}
 		catch (...) {
-		    Results[i] = Format("{\"name\":%s,\"error\":\"error sending to socket\"}", Host.m_CorpusName.c_str());
+		    Results[i] = Format("{\"name\":%s,\"error\":\"error sending to socket\"}", jsonStr(Host.m_CorpusName).c_str());
 		    continue;
 		}
 

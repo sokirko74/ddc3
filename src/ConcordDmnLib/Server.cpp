@@ -61,6 +61,9 @@ CDDCServer::CDDCServer(bool bDoubleMessage, ProtocolDensityEnum pdProtocolDensit
 
 
 //----------------------------------------------------------------------
+//void errorString(
+
+//----------------------------------------------------------------------
 string CDDCServer::ProcessSocketString(const string& SocketInput, SOCKET rConnectedSocket)
 {
     string Result;
