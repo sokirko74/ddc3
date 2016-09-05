@@ -195,16 +195,23 @@ public:
 	virtual ~CQueryBinaryOperationNode();
 
 	//! assign hit occurrences and positions from another node
+	//! \note how does this differ from SwapOccurrences() + m_OccurrenceNodeIndices.assign() + m_OccurrenceMatchIds.assign() + ...
 	void hits_and_positions_assign(const CQueryNode &NodeFrom);
 
+	//! hijack hit occurrences and positions from another node
+	void hits_and_positions_swap(CQueryNode &NodeFrom);
+	
 	//! a modified version of std::union which unites simultaneously  two pairs of vectors
-	void hits_and_positions_union();
+	//! \note now implicitly evalutes child nodes (v2.0.45 2016-09-05 moocow)
+	void hits_and_positions_union(bool bSeparateHits=false);
 
 	//! a modified version of std::intersection which simultaneously  deals  with two pairs of vectors
-	void hits_and_positions_intersection();
+	//! \note now implicitly evalutes child nodes (v2.0.45 2016-09-05 moocow)
+	void hits_and_positions_intersection(bool bSeparateHits=false);
 
 	//! a modified version of std::difference which simultaneously  deals  with two pairs of vectors
-	void hits_and_positions_difference();
+	//! \note now implicitly evalutes child nodes (v2.0.45 2016-09-05 moocow)
+	void hits_and_positions_difference(bool bSeparateHits=false);
 
 	//! get occurrence count by query-node index; used by rank-sort operator.
 	size_t GetNodeFrequencyByNodeIndex(size_t NodeIndex) const;

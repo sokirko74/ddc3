@@ -182,13 +182,13 @@ regex_modifier	[gimsx]
 "#<"				{ return HASH_LESS; /* hash+less: max distance */ }
 "#>"				{ return HASH_GREATER; /* hash+greater: min distance */ }
 "$."				{ return DOLLAR_DOT; /* dollar+dot: anchor operator (position-index in segment) */ }
-[\!\.\,\:\;\$\@\%\^\#\=\~\/]	{ return ((int)yytext[0]); /* single-character punctuation operators */ }
-[\[\]\{\}\(\)\<\>]		{ return ((int)yytext[0]); /* parentheses */ }
-[\"]				{ return ((int)yytext[0]); /* quotes */ }
 ":{"				{ return COLON_LBRACE; /* thesaurus-query opener */ }
 "@{"				{ return AT_LBRACE; /* literal-set opener */ }
 "*{"				{ return STAR_LBRACE; /* prefix-set opener */ }
 "}*"				{ return RBRACE_STAR; /* suffix-set closer */ }
+[\!\.\,\:\;\$\@\%\^\#\=\~\/]	{ return ((int)yytext[0]); /* single-character punctuation operators */ }
+[\[\]\{\}\(\)\<\>]		{ return ((int)yytext[0]); /* parentheses */ }
+[\"]				{ return ((int)yytext[0]); /* quotes */ }
 
  /* truncated symbols */
 "*"\'{sq_text}\'"*"		{ yytext+=2; yyleng-=4; return INFIX;  /* dual-truncated quoted string (infix symbol) */ }

@@ -448,19 +448,19 @@ struct yy_trans_info
 static yyconst flex_int16_t yy_accept[419] =
     {   0,
         0,    0,    0,    0,    0,    0,    0,    0,    0,    0,
-       82,   82,   88,   84,   85,   85,   58,   60,   58,   58,
-       58,   86,   86,   59,   76,   86,   84,   58,   73,   58,
-       86,   58,   84,   84,   84,   84,   84,   84,   84,   86,
-       84,   77,   59,   14,   12,   12,   13,   87,   53,   87,
+       82,   82,   88,   84,   85,   85,   62,   64,   62,   62,
+       62,   86,   86,   63,   76,   86,   84,   62,   73,   62,
+       86,   62,   84,   84,   84,   84,   84,   84,   84,   86,
+       84,   77,   63,   14,   12,   12,   13,   87,   53,   87,
        52,   87,   81,   78,   87,   79,   81,   87,   84,   69,
         0,   85,    0,    4,    0,   55,   54,   56,    0,    0,
         0,    0,    0,    0,    0,    0,    0,    0,    0,   15,
         0,    0,    0,   57,    0,    1,    6,    0,   83,    0,
-        0,    0,    0,   70,    0,   70,    0,   63,   73,   73,
+        0,    0,    0,   70,    0,   70,    0,   60,   73,   73,
 
-        0,   49,    0,   84,   72,   69,   73,   72,   61,   62,
+        0,   49,    0,   84,   72,   69,   73,   72,   58,   59,
        84,   84,   84,   84,   84,   84,   84,   84,   84,   84,
-        0,    5,    2,   64,   12,   53,    0,   52,    0,   51,
+        0,    5,    2,   61,   12,   53,    0,   52,    0,   51,
        81,    0,   78,    0,   80,    0,   81,    0,   81,    0,
        47,    0,    0,    0,   39,    0,    0,    0,    0,    0,
         0,    0,    0,    0,    0,   16,    0,    0,    0,    0,
@@ -1726,37 +1726,37 @@ YY_RULE_SETUP
 case 58:
 YY_RULE_SETUP
 #line 185 "yyQLexer.l"
-{ return ((int)yytext[0]); /* single-character punctuation operators */ }
+{ return COLON_LBRACE; /* thesaurus-query opener */ }
 	YY_BREAK
 case 59:
 YY_RULE_SETUP
 #line 186 "yyQLexer.l"
-{ return ((int)yytext[0]); /* parentheses */ }
+{ return AT_LBRACE; /* literal-set opener */ }
 	YY_BREAK
 case 60:
 YY_RULE_SETUP
 #line 187 "yyQLexer.l"
-{ return ((int)yytext[0]); /* quotes */ }
+{ return STAR_LBRACE; /* prefix-set opener */ }
 	YY_BREAK
 case 61:
 YY_RULE_SETUP
 #line 188 "yyQLexer.l"
-{ return COLON_LBRACE; /* thesaurus-query opener */ }
+{ return RBRACE_STAR; /* suffix-set closer */ }
 	YY_BREAK
 case 62:
 YY_RULE_SETUP
 #line 189 "yyQLexer.l"
-{ return AT_LBRACE; /* literal-set opener */ }
+{ return ((int)yytext[0]); /* single-character punctuation operators */ }
 	YY_BREAK
 case 63:
 YY_RULE_SETUP
 #line 190 "yyQLexer.l"
-{ return STAR_LBRACE; /* prefix-set opener */ }
+{ return ((int)yytext[0]); /* parentheses */ }
 	YY_BREAK
 case 64:
 YY_RULE_SETUP
 #line 191 "yyQLexer.l"
-{ return RBRACE_STAR; /* suffix-set closer */ }
+{ return ((int)yytext[0]); /* quotes */ }
 	YY_BREAK
 /* truncated symbols */
 case 65:

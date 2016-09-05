@@ -258,7 +258,7 @@ public:
   {};
   virtual ~CQCountKeyExprToken() {};
   virtual BYTE GetMatchId() const { return m_MatchId; };
-  virtual BYTE SetMatchId(BYTE matchId) { return m_MatchId != matchId; };
+  virtual BYTE SetMatchId(BYTE matchId) { return m_MatchId = matchId; };
   virtual bool CanCountByFile() const { return false; };
   virtual bool Compile(CQueryCompiler *compiler);
   virtual string& Evaluate(const CHit &Hit);

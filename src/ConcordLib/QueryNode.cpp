@@ -271,7 +271,7 @@ void CQueryNode::ConvertOccurrencesToHits (bool bSeparateHits)
 	};
 
 	if (bTextAreaNo)
-		SwapOccurrences(NewNode);
+		SwapOccurrences(NewNode, true);
 		
 };
 
@@ -351,8 +351,7 @@ void CQueryNode::ConvertOccurrencesToHitsForPatterns (bool bSeparateHits)
 		
 	}
 
-	SwapOccurrences(NewNode);
-	NewNode.m_ChunkLengths.swap(m_ChunkLengths);
+	SwapOccurrences(NewNode, true);
 };
 
 DWORD CQueryNode::GetFirstOccurrenceInHit(DWORD HitNo, BYTE MatchId) const
@@ -455,7 +454,13 @@ void CQueryBinaryOperationNode::hits_and_positions_assign(const CQueryNode& Node
 	m_Hits = NodeFrom.m_Hits;
 }
 
-void CQueryBinaryOperationNode::hits_and_positions_union() 
+void CQueryBinaryOperationNode::hits_and_positions_swap(CQueryNode& NodeFrom)
+{
+	SwapOccurrences(NodeFrom, true);
+	m_Hits.swap(NodeFrom.m_Hits);
+}
+
+void CQueryBinaryOperationNode::hits_and_positions_union(bool bSeparateHits) 
 {	
 	vector<CHit>::const_iterator _First1 = m_pChild1->m_Hits.begin();
 	vector<CHit>::const_iterator _Last1 = m_pChild1->m_Hits.end();
@@ -516,53 +521,82 @@ void CQueryBinaryOperationNode::hits_and_positions_union()
 }
 
 
-void CQueryBinaryOperationNode::hits_and_positions_intersection() 
-{	
-	vector<CHit>::const_iterator _First1 = m_pChild1->m_Hits.begin();
-	vector<CHit>::const_iterator _Last1 = m_pChild1->m_Hits.end();
-	vector<CHit>::const_iterator _First2 = m_pChild2->m_Hits.begin();
-	vector<CHit>::const_iterator _Last2 = m_pChild2->m_Hits.end();
+void CQueryBinaryOperationNode::hits_and_positions_intersection(bool bSeparateHits)
+{
+	//-- wildcard optimization
+	if (m_pChild1->IsUniversalWildcard()) {
+		m_pChild2->Evaluate(bSeparateHits);
+		hits_and_positions_swap(*m_pChild2);
+		return;
+	}
+	if (m_pChild2->IsUniversalWildcard()) {
+		m_pChild1->Evaluate(bSeparateHits);
+		hits_and_positions_swap(*m_pChild1);
+		return;
+	}
+	
+	//-- sub-query evaluation
+	m_pChild1->Evaluate(bSeparateHits);
+	m_pChild2->Evaluate(bSeparateHits);
+
+	//-- search guts
+	vector<CHit>::const_iterator
+		hit1i = m_pChild1->m_Hits.begin(),
+		hit1j = m_pChild1->m_Hits.end(),
+		hit2i = m_pChild2->m_Hits.begin(),
+		hit2j = m_pChild2->m_Hits.end();
+	const vector<CTokenNo>
+		&occs1 = m_pChild1->m_Occurrences,
+		&occs2 = m_pChild2->m_Occurrences;
 	m_Hits.clear();
-	m_Hits.reserve(min(m_pChild1->m_Hits.size(),m_pChild2->m_Hits.size()) );
-	ClearAndReserveOccurrences( min(m_pChild1->GetOccurrencesSize(),m_pChild2->GetOccurrencesSize()));
+	m_Hits.reserve( min(m_pChild1->m_Hits.size(),m_pChild2->m_Hits.size()) );
+	ClearAndReserveOccurrences( min(m_pChild1->GetOccurrencesSize(),m_pChild2->GetOccurrencesSize()) );
 
-	size_t  prev_end1 = 0;
-	size_t  prev_end2 = 0;
-	for (; _First1 != _Last1 && _First2 != _Last2; )
-		if (_First1->m_BreakNo < _First2->m_BreakNo)
-		{
-			prev_end1 = _First1->m_HighlightOccurrenceEnd;
-			_First1++;
+	size_t occ1=0, occ2=0;
+	for ( ; hit1i != hit1j && hit2i != hit2j; ) {
+		if (hit1i->m_BreakNo < hit2i->m_BreakNo) {
+			occ1 = hit1i->m_HighlightOccurrenceEnd;
+			++hit1i;
 		}
-		else 
-		if (_First2->m_BreakNo < _First1->m_BreakNo)
-		{
-			prev_end2 = _First2->m_HighlightOccurrenceEnd;
-			_First2++;
+		else if (hit1i->m_BreakNo > hit2i->m_BreakNo) {
+			occ2 = hit2i->m_HighlightOccurrenceEnd;
+			++hit2i;
 		}
-		else
-		{
+		else if (!bSeparateHits) {
+			//-- found a match (join-mode): join daughters' occurrences
+			AddOccurrences2(*m_pChild1, occ1, hit1i->m_HighlightOccurrenceEnd,
+					*m_pChild2, occ2, hit2i->m_HighlightOccurrenceEnd);
+			CHit H(hit1i->m_BreakNo);
+			H.m_HighlightOccurrenceEnd = GetOccurrencesSize();
+			m_Hits.push_back(H);
 
-			{	// inserting highlight occurrences from the first and the second child
-				AddOccurrences2(*m_pChild1, prev_end1, _First1->m_HighlightOccurrenceEnd,
-						*m_pChild2, prev_end2, _First2->m_HighlightOccurrenceEnd);
-				{
-					CHit  H (_First1->m_BreakNo);
+			occ1 = hit1i->m_HighlightOccurrenceEnd;
+			occ2 = hit2i->m_HighlightOccurrenceEnd;
+			++hit1i;
+			++hit2i;
+		}
+		else {
+			//-- found a match (separate-mode): insert all combinations of daughters' occurrences
+			DWORD brkno = hit1i->m_BreakNo;
+			vector<CHit>::const_iterator resume_hit2i = hit2i;
+			size_t resume_occ2 = occ2;
+			for ( ; hit1i != hit1j && hit1i->m_BreakNo==brkno; ++hit1i) {
+				for (hit2i=resume_hit2i, occ2=resume_occ2; hit2i != hit2j && hit2i->m_BreakNo==brkno; ++hit2i) {
+					AddOccurrences2(*m_pChild1, occ1, hit1i->m_HighlightOccurrenceEnd,
+							*m_pChild2, occ2, hit2i->m_HighlightOccurrenceEnd);
+					CHit H(brkno);
 					H.m_HighlightOccurrenceEnd = GetOccurrencesSize();
 					m_Hits.push_back(H);
+					occ2 = hit2i->m_HighlightOccurrenceEnd;
 				}
-				prev_end1 = _First1->m_HighlightOccurrenceEnd;
-				prev_end2 = _First2->m_HighlightOccurrenceEnd;
+				occ1 = hit1i->m_HighlightOccurrenceEnd;
 			}
 
-
-			_First1++;
-			_First2++;
-		};
-
+		}
+	}
 }
 
-void CQueryBinaryOperationNode::hits_and_positions_difference() 
+void CQueryBinaryOperationNode::hits_and_positions_difference(bool bSeparateHits)
 {	
 	vector<CHit>::const_iterator _First1 = m_pChild1->m_Hits.begin();
 	vector<CHit>::const_iterator _Last1 = m_pChild1->m_Hits.end();
@@ -603,29 +637,48 @@ void CQueryBinaryOperationNode::hits_and_positions_difference()
 
 void CQueryAndOperation::Evaluate(bool bSeparateHits)
 {
-	m_pChild1->Evaluate(bSeparateHits);
-	m_pChild2->Evaluate(bSeparateHits);
+	//-- wildcard optimization
+	if (m_pChild1->IsUniversalWildcard()) {
+		m_pChild2->Evaluate(bSeparateHits);
+		hits_and_positions_assign(*m_pChild2);
+		return;
+	}
+	if (m_pChild2->IsUniversalWildcard()) {
+		m_pChild1->Evaluate(bSeparateHits);
+		hits_and_positions_assign(*m_pChild1);
+		return;
+	}
 
 	if (!m_pChild1->GetNegation() && !m_pChild2->GetNegation()) {
 		// (a && b)
-		hits_and_positions_intersection ();
+		if (m_pChild1->IsUniversalWildcard()) {
+			m_pChild2->Evaluate(bSeparateHits);
+			hits_and_positions_assign(m_pChild2);
+		}
+		else if (m_pChild2->IsUniversalWildcard()) {
+			m_pChild1->Evaluate(bSeparateHits);
+			hits_and_positions_assign(m_pChild1);
+		}
+		else {
+			m_pChild1->Evaluate(bSeparateHits);
+			m_pChild2->Evaluate(bSeparateHits);
+			hits_and_positions_intersection(bSeparateHits);
+		}
 	}
 	else if (m_pChild1->GetNegation() && m_pChild2->GetNegation()) {
 		// (!a && !b) == !(a || b)
-		hits_and_positions_union ();
+		hits_and_positions_union(bSeparateHits);
 		SetNegation(true);
 	}
 	else if (!m_pChild1->GetNegation() && m_pChild2->GetNegation()) {
 		// (a && !b)
-		hits_and_positions_difference ();
+		hits_and_positions_difference(bSeparateHits);
 	}
-	else //(m_pChild1->GetNegation() && !m_pChild2->GetNegation())
-	{
+	else { //(m_pChild1->GetNegation() && !m_pChild2->GetNegation())
 		// (!a && b)
 		swap(m_pChild1, m_pChild2);
-		hits_and_positions_difference();
+		hits_and_positions_difference(bSeparateHits);
 	}
-	
 };
 
 //=============   CQueryOrOperation =====================
@@ -638,27 +691,19 @@ void CQueryOrOperation::Evaluate(bool bSeparateHits)
 	m_pChild1->Evaluate(bSeparateHits);
 	m_pChild2->Evaluate(bSeparateHits);
 
-	
-	
-
-	if (!m_pChild1->GetNegation() && !m_pChild2->GetNegation())
-	{
-		hits_and_positions_union ();
+	if (!m_pChild1->GetNegation() && !m_pChild2->GetNegation()) {
+		// (a || b)
+		hits_and_positions_union(bSeparateHits);
 	}
-	else
-	if (m_pChild1->GetNegation() && m_pChild2->GetNegation())
-	{
-		// !a || !b ==> !(a&&b)
-		hits_and_positions_intersection ();
+	else if (m_pChild1->GetNegation() && m_pChild2->GetNegation()) {
+		// (!a || !b) ==> !(a&&b)
+		hits_and_positions_intersection(bSeparateHits);
 		SetNegation(true);
 	}
-	else
-	if (m_pChild1->GetNegation() != m_pChild2->GetNegation())
-	{
-		assert (false);
-	}
-
-	
+	else if (m_pChild1->GetNegation() != m_pChild2->GetNegation()) {
+		// (a || !b), (!a || b) ==> ERROR
+		assert(false);
+	}	
 };
 
 
@@ -1354,6 +1399,7 @@ void CQueryNearNode::FindOccurrences2()
 	}
 
 	//-- sub-query pseudo-evaluation (bound sub-queries); local result-set allocation
+	//   + also reserve local result-set m_Occurrences[] etc
 	if (bind1) {
 		item1.bind((CQueryTokenNode*)m_pChild1, item2, -MaxDistance, MaxDistance);
 		ClearAndReserveOccurrences(item1.cnt);
@@ -1363,20 +1409,11 @@ void CQueryNearNode::FindOccurrences2()
 		ClearAndReserveOccurrences(item2.cnt);
 	}
 	else {
-		ClearAndReserveOccurrences(min(item1.cnt,item2.cnt)*2);
-	}
-
-	//-- ensure that the sub-query with the smallest result-set is used for the outer search loop
-	if (item2.cnt < item1.cnt)
-		swap(item1, item2);
-
-	//-- reserve local result-set m_Occurrences[] etc
-	if (bind1)
-		ClearAndReserveOccurrences(item1.cnt);
-	else if (bind2)
-		ClearAndReserveOccurrences(item2.cnt);
-	else
+		//-- ensure that the sub-query with the smallest result-set is used for the outer search loop
+		if (item2.cnt < item1.cnt)
+			swap(item1, item2);
 		ClearAndReserveOccurrences(item1.cnt*2);
+	}
 
 	//-- search guts
 	for ( ; item1.valid() && item2.valid(); ++item1 ) {
@@ -1469,12 +1506,19 @@ void CQueryNearNode::FindOccurrences3()
 	}
 
 	//-- ensure that the sub-query with the smallest result-set is used for the outer search loop
-	if (item2.cnt < item1.cnt)
+	//   + bound queries are ok to use here, since they set their 'cnt' property on bind()
+	if (item2.cnt < item1.cnt) {
 		swap(item1, item2);
-	if (item3.cnt < item1.cnt)
+		swap(bind1, bind2);
+	}
+	if (item3.cnt < item1.cnt) {
 		swap(item1, item3);
-	if (item3.cnt < item2.cnt)
+		swap(bind1, bind3);
+	}
+	if (item3.cnt < item2.cnt) {
 		swap(item2, item3);
+		swap(bind2, bind3);
+	}
 
 	//-- search guts
 	for ( ; item1.valid() && item2.valid() && item3.valid(); ++item1 ) {
