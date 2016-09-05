@@ -1,12 +1,13 @@
 ##-*- Mode: Change-Log; coding: utf-8; -*-
 
-v2.0.45 PENDING
+v2.0.45 Mon, 05 Sep 2016 13:25:16 +0200 moocow
 	+ added support for #SEPARATE keyword (bSeparateHits parameter) for Boolean queries in QueryNode.cpp
+	  - fixes mantis bug #654
 	  - CQueryAndOperation::Evaluate(bool bSeparateHits)
-	  - TODO: CQueryOrOperation::Evaluate(bool bSeparateHits)
+	  - CQueryOrOperation::Evaluate(bool bSeparateHits)
   	  - CQueryBinaryOperationNode::hits_and_positions_intersection(bool bSeparateHits)
-	  - TODO: hits_and_positions_union(bool bSeparateHits)
-	  - TODO: hits_and_positions_difference(bool bSeparateHits)
+	  - CQueryBinaryOperationNode::hits_and_positions_union(bool bSeparateHits)
+	  - CQueryBinaryOperationNode::hits_and_positions_difference(bool bSeparateHits)
 	+ added wildcard optimization for Boolean queries in QueryNode.cpp
 	  - for this to work, CQueryBinaryOperationNode::hits_and_positions_intersection() etc.
 	    now expect UN-evaluated daughter query nodes

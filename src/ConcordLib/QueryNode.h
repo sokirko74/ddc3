@@ -194,8 +194,18 @@ public:
 
 	virtual ~CQueryBinaryOperationNode();
 
+	//! push a single hit onto m_Hits[]
+	//! \li expects occurrences to already have been added; sets new hit's m_HighlightOccurrenceEnd=m_Occurrences.size()
+	//! \li for use by hits_and_positions_intersection() etc.
+	inline void pushHit(DWORD BreakNo)
+	{
+		CHit H(BreakNo);
+		H.m_HighlightOccurrenceEnd = m_Occurrences.size();
+		m_Hits.push_back(H);
+	};
+
 	//! assign hit occurrences and positions from another node
-	//! \note how does this differ from SwapOccurrences() + m_OccurrenceNodeIndices.assign() + m_OccurrenceMatchIds.assign() + ...
+	//! \note how does this differ from SwapOccurrences() + m_OccurrenceNodeIndices.assign() + m_OccurrenceMatchIds.assign() + ... ?
 	void hits_and_positions_assign(const CQueryNode &NodeFrom);
 
 	//! hijack hit occurrences and positions from another node

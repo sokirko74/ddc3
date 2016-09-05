@@ -425,7 +425,6 @@ CQueryAndOperation::CQueryAndOperation()
 
 void CQueryBinaryOperationNode::hits_add(const CQueryNode& NodeFrom, vector<CHit>::const_iterator _First) 
 {
-
 	size_t prev_end =  0;
 	if (_First !=  NodeFrom.m_Hits.begin() )
 		prev_end = (_First-1)->m_HighlightOccurrenceEnd;
@@ -461,77 +460,16 @@ void CQueryBinaryOperationNode::hits_and_positions_swap(CQueryNode& NodeFrom)
 }
 
 void CQueryBinaryOperationNode::hits_and_positions_union(bool bSeparateHits) 
-{	
-	vector<CHit>::const_iterator _First1 = m_pChild1->m_Hits.begin();
-	vector<CHit>::const_iterator _Last1 = m_pChild1->m_Hits.end();
-	vector<CHit>::const_iterator _First2 = m_pChild2->m_Hits.begin();
-	vector<CHit>::const_iterator _Last2 = m_pChild2->m_Hits.end();
-	m_Hits.clear();
-	m_Hits.reserve(m_pChild1->m_Hits.size() + m_pChild2->m_Hits.size());
-	ClearAndReserveOccurrences(m_pChild1->GetOccurrencesSize() + m_pChild2->GetOccurrencesSize());
-	
-
-	size_t  prev_end1 = 0;
-	size_t  prev_end2 = 0;
-	for (; _First1 != _Last1 && _First2 != _Last2; ) {
-		if (_First1->m_BreakNo < _First2->m_BreakNo)
-		{
-			AddOccurrences(*m_pChild1, prev_end1, _First1->m_HighlightOccurrenceEnd);
-			prev_end1 = _First1->m_HighlightOccurrenceEnd;
-
-			{
-				CHit  H(_First1->m_BreakNo);
-				H.m_HighlightOccurrenceEnd = GetOccurrencesSize();
-				m_Hits.push_back(H);
-			}
-			_First1++;
-		}
-		else if (_First2->m_BreakNo < _First1->m_BreakNo)
-		{
-			AddOccurrences (*m_pChild2, prev_end2,  _First2->m_HighlightOccurrenceEnd);
-			prev_end2 = _First2->m_HighlightOccurrenceEnd;
-			{
-				CHit  H(_First2->m_BreakNo);
-				H.m_HighlightOccurrenceEnd = GetOccurrencesSize();
-				m_Hits.push_back(H);
-			}
-			_First2++;
-		}
-		else
-		{
-			{	// inserting highlight occurrences from the first and the second child
-				AddOccurrences2(*m_pChild1, prev_end1, _First1->m_HighlightOccurrenceEnd,
-						*m_pChild2, prev_end2, _First2->m_HighlightOccurrenceEnd);
-				{
-					CHit  H(_First1->m_BreakNo);
-					H.m_HighlightOccurrenceEnd = GetOccurrencesSize();
-					m_Hits.push_back(H);
-				}
-				prev_end1 = _First1->m_HighlightOccurrenceEnd;
-				prev_end2 = _First2->m_HighlightOccurrenceEnd;
-			}
-
-			_First1++;
-			_First2++;
-		}
-	}
-
-	hits_add(*m_pChild1, _First1);
-	hits_add(*m_pChild2, _First2);
-}
-
-
-void CQueryBinaryOperationNode::hits_and_positions_intersection(bool bSeparateHits)
 {
-	//-- wildcard optimization
+	//-- wildcard "optimization"
 	if (m_pChild1->IsUniversalWildcard()) {
-		m_pChild2->Evaluate(bSeparateHits);
-		hits_and_positions_swap(*m_pChild2);
+		m_pChild1->Evaluate(bSeparateHits);
+		hits_and_positions_swap(*m_pChild1);
 		return;
 	}
 	if (m_pChild2->IsUniversalWildcard()) {
-		m_pChild1->Evaluate(bSeparateHits);
-		hits_and_positions_swap(*m_pChild1);
+		m_pChild2->Evaluate(bSeparateHits);
+		hits_and_positions_swap(*m_pChild2);
 		return;
 	}
 	
@@ -545,9 +483,86 @@ void CQueryBinaryOperationNode::hits_and_positions_intersection(bool bSeparateHi
 		hit1j = m_pChild1->m_Hits.end(),
 		hit2i = m_pChild2->m_Hits.begin(),
 		hit2j = m_pChild2->m_Hits.end();
-	const vector<CTokenNo>
-		&occs1 = m_pChild1->m_Occurrences,
-		&occs2 = m_pChild2->m_Occurrences;
+	m_Hits.clear();
+	m_Hits.reserve( m_pChild1->m_Hits.size() + m_pChild2->m_Hits.size() );
+	ClearAndReserveOccurrences( m_pChild1->GetOccurrencesSize() + m_pChild2->GetOccurrencesSize() );
+
+	size_t occ1=0, occ2=0;
+	for ( ; hit1i != hit1j && hit2i != hit2j; ) {
+		if (hit1i->m_BreakNo < hit2i->m_BreakNo) {
+			//-- child1 only
+			AddOccurrences(*m_pChild1, occ1, hit1i->m_HighlightOccurrenceEnd);
+			pushHit(hit1i->m_BreakNo);
+			occ1 = hit1i->m_HighlightOccurrenceEnd;
+			++hit1i;
+		}
+		else if (hit1i->m_BreakNo > hit2i->m_BreakNo) {
+			//-- child2 only
+			AddOccurrences(*m_pChild2, occ2, hit2i->m_HighlightOccurrenceEnd);
+			pushHit(hit2i->m_BreakNo);
+			occ2 = hit2i->m_HighlightOccurrenceEnd;
+			++hit2i;
+		}
+		else if (!bSeparateHits) {
+			//-- child1 + child2 (join-mode): join daughters' occurrences
+			AddOccurrences2(*m_pChild1, occ1, hit1i->m_HighlightOccurrenceEnd,
+					*m_pChild2, occ2, hit2i->m_HighlightOccurrenceEnd);
+			pushHit(hit1i->m_BreakNo);
+
+			occ1 = hit1i->m_HighlightOccurrenceEnd;
+			occ2 = hit2i->m_HighlightOccurrenceEnd;
+			++hit1i;
+			++hit2i;
+		}
+		else {
+			//-- child1 + child2 (separate-mode): insert daughter-occurrences independently
+			DWORD brkno = hit1i->m_BreakNo;
+			for ( ; hit1i != hit1j && hit1i->m_BreakNo==brkno; ++hit1i) {
+				AddOccurrences(*m_pChild1, occ1, hit1i->m_HighlightOccurrenceEnd);
+				pushHit(hit1i->m_BreakNo);
+				occ1 = hit1i->m_HighlightOccurrenceEnd;
+			}
+			for ( ; hit2i != hit2j && hit2i->m_BreakNo==brkno; ++hit2i) {
+				AddOccurrences(*m_pChild2, occ2, hit2i->m_HighlightOccurrenceEnd);
+				pushHit(hit2i->m_BreakNo);
+				occ2 = hit2i->m_HighlightOccurrenceEnd;
+			}
+		}
+	}
+
+
+	//-- add trailing un-matchable hits
+	hits_add(*m_pChild1, hit1i);
+	hits_add(*m_pChild2, hit2i);
+}
+
+
+void CQueryBinaryOperationNode::hits_and_positions_intersection(bool bSeparateHits)
+{
+#if 0
+	//-- wildcard optimization: NOT HERE, so we can find e.g. all sentence-collocates with (count(foo && *=2 #sep) #by[$l=2])
+	if (m_pChild1->IsUniversalWildcard()) {
+		m_pChild2->Evaluate(bSeparateHits);
+		hits_and_positions_swap(*m_pChild2);
+		return;
+	}
+	if (m_pChild2->IsUniversalWildcard()) {
+		m_pChild1->Evaluate(bSeparateHits);
+		hits_and_positions_swap(*m_pChild1);
+		return;
+	}
+#endif
+	
+	//-- sub-query evaluation
+	m_pChild1->Evaluate(bSeparateHits);
+	m_pChild2->Evaluate(bSeparateHits);
+
+	//-- search guts
+	vector<CHit>::const_iterator
+		hit1i = m_pChild1->m_Hits.begin(),
+		hit1j = m_pChild1->m_Hits.end(),
+		hit2i = m_pChild2->m_Hits.begin(),
+		hit2j = m_pChild2->m_Hits.end();
 	m_Hits.clear();
 	m_Hits.reserve( min(m_pChild1->m_Hits.size(),m_pChild2->m_Hits.size()) );
 	ClearAndReserveOccurrences( min(m_pChild1->GetOccurrencesSize(),m_pChild2->GetOccurrencesSize()) );
@@ -566,9 +581,7 @@ void CQueryBinaryOperationNode::hits_and_positions_intersection(bool bSeparateHi
 			//-- found a match (join-mode): join daughters' occurrences
 			AddOccurrences2(*m_pChild1, occ1, hit1i->m_HighlightOccurrenceEnd,
 					*m_pChild2, occ2, hit2i->m_HighlightOccurrenceEnd);
-			CHit H(hit1i->m_BreakNo);
-			H.m_HighlightOccurrenceEnd = GetOccurrencesSize();
-			m_Hits.push_back(H);
+			pushHit(hit1i->m_BreakNo);
 
 			occ1 = hit1i->m_HighlightOccurrenceEnd;
 			occ2 = hit2i->m_HighlightOccurrenceEnd;
@@ -584,9 +597,7 @@ void CQueryBinaryOperationNode::hits_and_positions_intersection(bool bSeparateHi
 				for (hit2i=resume_hit2i, occ2=resume_occ2; hit2i != hit2j && hit2i->m_BreakNo==brkno; ++hit2i) {
 					AddOccurrences2(*m_pChild1, occ1, hit1i->m_HighlightOccurrenceEnd,
 							*m_pChild2, occ2, hit2i->m_HighlightOccurrenceEnd);
-					CHit H(brkno);
-					H.m_HighlightOccurrenceEnd = GetOccurrencesSize();
-					m_Hits.push_back(H);
+					pushHit(brkno);
 					occ2 = hit2i->m_HighlightOccurrenceEnd;
 				}
 				occ1 = hit1i->m_HighlightOccurrenceEnd;
@@ -597,73 +608,68 @@ void CQueryBinaryOperationNode::hits_and_positions_intersection(bool bSeparateHi
 }
 
 void CQueryBinaryOperationNode::hits_and_positions_difference(bool bSeparateHits)
-{	
-	vector<CHit>::const_iterator _First1 = m_pChild1->m_Hits.begin();
-	vector<CHit>::const_iterator _Last1 = m_pChild1->m_Hits.end();
-	vector<CHit>::const_iterator _First2 = m_pChild2->m_Hits.begin();
-	vector<CHit>::const_iterator _Last2 = m_pChild2->m_Hits.end();
+{
+	//-- wildcard optimization
+	if (m_pChild2->IsUniversalWildcard()) {
+		// (b && !*) ==> \emptyset
+		ClearAndReserveOccurrences(0);
+		m_Hits.clear();
+		return;
+	}
+	
+	//-- sub-query evaluation
+	m_pChild1->Evaluate(bSeparateHits);
+	m_pChild2->Evaluate(bSeparateHits);
+
+	//-- search guts
+	vector<CHit>::const_iterator
+		hit1i = m_pChild1->m_Hits.begin(),
+		hit1j = m_pChild1->m_Hits.end(),
+		hit2i = m_pChild2->m_Hits.begin(),
+		hit2j = m_pChild2->m_Hits.end();
 	m_Hits.clear();
-	m_Hits.reserve(min(m_pChild1->m_Hits.size(),m_pChild2->m_Hits.size()) );
-	ClearAndReserveOccurrences( min(m_pChild1->GetOccurrencesSize(), m_pChild2->GetOccurrencesSize()) );
+	m_Hits.reserve(m_pChild1->m_Hits.size());
+	ClearAndReserveOccurrences(m_pChild1->GetOccurrencesSize());
 
-	size_t  prev_end1 = 0;
-	for (; _First1 != _Last1 && _First2 != _Last2; )
-		if (_First1->m_BreakNo < _First2->m_BreakNo)
-		{
-			AddOccurrences(*m_pChild1, prev_end1, _First1->m_HighlightOccurrenceEnd);
-			prev_end1 = _First1->m_HighlightOccurrenceEnd;
-
-			{
-				CHit  H (_First1->m_BreakNo);
-				H.m_HighlightOccurrenceEnd = GetOccurrencesSize();
-				m_Hits.push_back(H);
-			}
-			_First1++;
+	size_t occ1=0;
+	for ( ; hit1i != hit1j && hit2i != hit2j; ) {
+		if (hit1i->m_BreakNo < hit2i->m_BreakNo) {
+			//-- hit1 only: insert hit1
+			AddOccurrences(*m_pChild1, occ1, hit1i->m_HighlightOccurrenceEnd);
+			pushHit(hit1i->m_BreakNo);
+			occ1 = hit1i->m_HighlightOccurrenceEnd;
+			++hit1i;
 		}
-		else if (_First2->m_BreakNo < _First1->m_BreakNo)
-		{
-			_First2++;
+		else if (hit1i->m_BreakNo > hit2i->m_BreakNo) {
+			//-- hit2 only: skip hit2
+			++hit2i;
 		}
-		else
-		{
-			prev_end1 = _First1->m_HighlightOccurrenceEnd;
-			_First1++;
-			_First2++;
-		};
+		else if (!bSeparateHits) {
+			//-- hit1 == hit2: skip it (join-mode)
+			occ1 = hit1i->m_HighlightOccurrenceEnd;
+			++hit1i;
+			++hit2i;
+		}
+		else {
+			//-- hit1 == hit2: skip all (separate-mode)
+			DWORD brkno = hit1i->m_BreakNo;
+			for ( ; hit1i != hit1j && hit1i->m_BreakNo==brkno; ++hit1i )
+				occ1 = hit1i->m_HighlightOccurrenceEnd;
+			for ( ; hit2i != hit2j && hit2i->m_BreakNo==brkno; ++hit2i )
+				;
+		}
+	}
 
-	hits_add(*m_pChild1, _First1);
+	//-- add trailing hits from child1
+	hits_add(*m_pChild1, hit1i);	
 }
 
 
 void CQueryAndOperation::Evaluate(bool bSeparateHits)
 {
-	//-- wildcard optimization
-	if (m_pChild1->IsUniversalWildcard()) {
-		m_pChild2->Evaluate(bSeparateHits);
-		hits_and_positions_assign(*m_pChild2);
-		return;
-	}
-	if (m_pChild2->IsUniversalWildcard()) {
-		m_pChild1->Evaluate(bSeparateHits);
-		hits_and_positions_assign(*m_pChild1);
-		return;
-	}
-
 	if (!m_pChild1->GetNegation() && !m_pChild2->GetNegation()) {
 		// (a && b)
-		if (m_pChild1->IsUniversalWildcard()) {
-			m_pChild2->Evaluate(bSeparateHits);
-			hits_and_positions_assign(m_pChild2);
-		}
-		else if (m_pChild2->IsUniversalWildcard()) {
-			m_pChild1->Evaluate(bSeparateHits);
-			hits_and_positions_assign(m_pChild1);
-		}
-		else {
-			m_pChild1->Evaluate(bSeparateHits);
-			m_pChild2->Evaluate(bSeparateHits);
-			hits_and_positions_intersection(bSeparateHits);
-		}
+		hits_and_positions_intersection(bSeparateHits);
 	}
 	else if (m_pChild1->GetNegation() && m_pChild2->GetNegation()) {
 		// (!a && !b) == !(a || b)
@@ -688,9 +694,6 @@ CQueryOrOperation::CQueryOrOperation()
 
 void CQueryOrOperation::Evaluate(bool bSeparateHits)
 {
-	m_pChild1->Evaluate(bSeparateHits);
-	m_pChild2->Evaluate(bSeparateHits);
-
 	if (!m_pChild1->GetNegation() && !m_pChild2->GetNegation()) {
 		// (a || b)
 		hits_and_positions_union(bSeparateHits);
@@ -1333,47 +1336,6 @@ bool CQueryNearNode::Create(const CConcHolder* pHolder, BYTE distance, CQueryNod
 }
 
 //--------------------------------------------------------------
-void CQOccurrenceIterator::bind(CQueryTokenNode *node_, const CQOccurrenceIterator &src, int minOffset, int maxOffset)
-{
-	assert(node_ && node_->m_bAny);
-	operator=(node_);
-
-	cnt = (1+maxOffset-minOffset) * src.cnt;
-	if (minOffset<=0 && maxOffset>=0) cnt -= src.cnt; //-- avoid dups: don't count zero-offsets
-	node->ClearAndReserveOccurrences(cnt);
-
-	CTokenNo last_tok = (CTokenNo)-1;
-	for (vector<CTokenNo>::const_iterator occi=src.node->m_Occurrences.begin(); occi!=src.node->m_Occurrences.end(); ++occi) {
-		for (int off=minOffset; off<=maxOffset; ++off) {
-			CTokenNo tok = *occi + off;
-			if (off==0 || (last_tok != (CTokenNo)-1 && last_tok >= tok)) continue; //-- avoid overlap
-			node->m_Occurrences.push_back(tok);
-			last_tok = tok;
-		}
-	}
-	cnt = node->m_Occurrences.size();
-	node->m_ChunkLengths.resize(cnt,1);
-	if (node->m_bUseNodeIndices) {
-		node->m_OccurrenceNodeIndices.resize(cnt,node_->m_NodeIndex);
-	}
-	if (node->m_bUseMatchIds) {
-		node->m_OccurrenceMatchIds.resize(cnt,node_->m_MatchId);
-	}
-}
-
-//--------------------------------------------------------------
-bool CQOccurrenceIterator::operator==(const CQOccurrenceIterator &b) const
-{
-	CTokenNo i, len=chunksize();
-	if (len != b.chunksize()) return false;
-	for (i=0; i<len; ++i) {
-		if (node->m_Occurrences[cur+i] != b.node->m_Occurrences[b.cur+i])
-			return false;
-	}
-	return true;
-};
-
-//--------------------------------------------------------------
 void CQueryNearNode::FindOccurrences2()
 {
 	CTokenNo MaxDistance = m_Distance+1;
@@ -1784,4 +1746,48 @@ void CQueryWithorNode::EvaluateWithoutHits()
 	}
 
 	m_ChunkLengths.resize(GetOccurrencesSize(), 1);
+};
+
+
+//======================== CQOccurrenceIterator =========================
+
+//--------------------------------------------------------------
+void CQOccurrenceIterator::bind(CQueryTokenNode *node_, const CQOccurrenceIterator &src, int minOffset, int maxOffset)
+{
+	assert(node_ && node_->m_bAny);
+	operator=(node_);
+
+	cnt = (1+maxOffset-minOffset) * src.cnt;
+	if (minOffset<=0 && maxOffset>=0) cnt -= src.cnt; //-- avoid dups: don't count zero-offsets
+	node->ClearAndReserveOccurrences(cnt);
+
+	CTokenNo last_tok = (CTokenNo)-1;
+	for (vector<CTokenNo>::const_iterator occi=src.node->m_Occurrences.begin(); occi!=src.node->m_Occurrences.end(); ++occi) {
+		for (int off=minOffset; off<=maxOffset; ++off) {
+			CTokenNo tok = *occi + off;
+			if (off==0 || (last_tok != (CTokenNo)-1 && last_tok >= tok)) continue; //-- avoid overlap
+			node->m_Occurrences.push_back(tok);
+			last_tok = tok;
+		}
+	}
+	cnt = node->m_Occurrences.size();
+	node->m_ChunkLengths.resize(cnt,1);
+	if (node->m_bUseNodeIndices) {
+		node->m_OccurrenceNodeIndices.resize(cnt,node_->m_NodeIndex);
+	}
+	if (node->m_bUseMatchIds) {
+		node->m_OccurrenceMatchIds.resize(cnt,node_->m_MatchId);
+	}
+}
+
+//--------------------------------------------------------------
+bool CQOccurrenceIterator::operator==(const CQOccurrenceIterator &b) const
+{
+	CTokenNo i, len=chunksize();
+	if (len != b.chunksize()) return false;
+	for (i=0; i<len; ++i) {
+		if (node->m_Occurrences[cur+i] != b.node->m_Occurrences[b.cur+i])
+			return false;
+	}
+	return true;
 };
