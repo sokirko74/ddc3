@@ -127,5 +127,11 @@ else
     reqbody="${req[*]}"
 fi
 
-( echo -n "$reqbody" | perl -ne 'print pack("V", length($_)), $_' ) | nc "$host" "$port" | tail -c +5 | "$postproc"
+## ddc_request_str=$(ddc_request $printf_format ...)
+ddc_request() {
+    local len=$(printf "$@" | wc -c)
+    printf "$(printf "\\%03o" $((len&255)) $((len>>8&255)) $((len>>16&255)) $((len>>24&255)))"
+    printf "$@"
+}
 
+ddc_request "$reqbody" | nc "$host" "$port" | tail -c +5 | "$postproc"
