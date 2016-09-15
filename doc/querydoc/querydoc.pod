@@ -905,7 +905,7 @@ and single-quoted symbols:
  \f     C-style escape (\x0c): form feed              
  \r     C-style escape (\x0d): carriage return        
  \OOO   C-style octal escape (byte); e.g. \101        
- \xXX   C-style hexidecimal escape (byte); e.g. \x42  
+ \xXX   C-style hexadecimal escape (byte); e.g. \x42  
  \uXXXX JSON-style Unicode escape (UTF-8); e.g. \u0043
  \c     Escaped character 'c'; e.g. \\                
 
