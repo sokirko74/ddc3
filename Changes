@@ -1,5 +1,10 @@
 ##-*- Mode: Change-Log; coding: utf-8; -*-
 
+PENDING moocow
+	+ added virtual CHost::Close() method for subclass-specific client-wise post-processing
+	+ clear subcorpus-local intermediate query results in CDDCLeafServer::Close() override
+	  - should prevent memory bloat after failed (expensive) queries
+
 v2.0.45 Mon, 05 Sep 2016 13:25:16 +0200 moocow
 	+ added support for #SEPARATE keyword (bSeparateHits parameter) for Boolean queries in QueryNode.cpp
 	  - fixes mantis bug #654

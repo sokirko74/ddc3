@@ -68,16 +68,7 @@ protected:
 
 	void AnswerByRequest (SOCKET rConnectedSocket, const struct sockaddr_in* client_addr, int TimeOut);
 
-protected:
-	virtual string	ProcessSocketString(const string& S, SOCKET rConnectedSocket);
-
-	//! \li logs and sends an error messaage to the client
-	//! \li \c code should be nonzero to indicate a 'real' error
-	//! \li implicitly closes \c clientSocket if !=-1
-	virtual void	ClientError(int code=-1, const string& msg="", SOCKET clientSocket=-1);
-
 public:
-	
 	string				m_CorpusName;
 	void				(*m_LogFunction)(const string&);
 	
@@ -94,6 +85,21 @@ public:
 	inline const string&	HostName() const { return m_HostAddr; };
 	inline const string&	HostAddr() const { return m_HostAddr; };
 	inline const int	Port() const { return m_Port; };
+
+ public:
+	//! shutdown connected socket and perform any local cleanup methods
+	//! \li default implementation just wraps CloseSocket(rConnectedSocket)
+	//! \returns true on success, false otherwise
+	virtual bool Close(SOCKET& rConnectedSocket);
+
+	//! guts for request handling; override in subclasses
+	virtual string	ProcessSocketString(const string& S, SOCKET rConnectedSocket);
+
+	//! \li logs and sends an error messaage to the client
+	//! \li \c code should be nonzero to indicate a 'real' error
+	//! \li implicitly closes \c clientSocket if !=-1
+	virtual void	ClientError(int code=-1, const string& msg="", SOCKET clientSocket=-1);
+
 };
 
 /* moo / ddc-2.0.0: packet length arguments sent over sockets are ALWAYS 32-bit unsigned integers in little-endian order

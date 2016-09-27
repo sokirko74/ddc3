@@ -45,6 +45,12 @@ public:
 
 public:
     //--------------------------------------------------------------
+    // CHost API: overrides
+    /** close connected socket, implies cleanup of \a m_pHolder intermediate results */
+    virtual bool Close(SOCKET& rConnectedSocket);
+
+public:
+    //--------------------------------------------------------------
     // DDCServer API: request handlers: required
 
     /** request handler: get_first_hits: required (leaf) */

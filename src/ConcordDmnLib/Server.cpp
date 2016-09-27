@@ -38,7 +38,8 @@ CDDCServer::CDDCServer(bool bDoubleMessage, ProtocolDensityEnum pdProtocolDensit
     : CHost(bDoubleMessage, pdProtocolDensity),
       m_tStarted(0),
       m_nRequests(0),
-      m_bLogRequests(false)
+      m_bLogRequests(false),
+      m_clientSocket(-1)
 {
     m_LogFunction = concord_daemon_log;
     m_tStarted = time(NULL);
@@ -67,6 +68,7 @@ CDDCServer::CDDCServer(bool bDoubleMessage, ProtocolDensityEnum pdProtocolDensit
 string CDDCServer::ProcessSocketString(const string& SocketInput, SOCKET rConnectedSocket)
 {
     string Result;
+    m_clientSocket = rConnectedSocket;
     try {
     	//-- moo: check for buffer overflow
 	if (SocketInput.size() > DDC_STATIC_BUFLEN) {
@@ -266,6 +268,7 @@ void CDDCServer::handle__close_socket(string &Result)
 {
     m_bExpectMore = false;
     m_bRespond    = false;
+    this->Close(m_clientSocket);
 }
 
 //----------------------------------------------------------------------

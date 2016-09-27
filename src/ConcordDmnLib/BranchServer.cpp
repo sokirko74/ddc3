@@ -193,23 +193,23 @@ void CDDCBranchServer::handle__expand_terms(string &Result, const string& pipeli
     string ErrorStr;
     int hsock = h->CreateAndConnectSocket(ErrorStr);
     if (!ErrorStr.empty() || hsock==-1) {
-	CloseSocket(hsock);
+	this->Close(hsock);
 	throw CExpc(errOther, "could not connect to subcorpus `%s': %s", h->m_CorpusName.c_str(), ErrorStr.c_str());
     }
 
     string hq = string("expand_terms \x01") + pipeline + "\x01" + terms + "\x01" + Format("%i", timeout);
     if (!SendString(hsock, hq, ErrorStr)) {
-	CloseSocket(hsock);
+	this->Close(hsock);
 	throw CExpc(errOther, "expand_terms faild for subcorpus `%s': %s", h->m_CorpusName.c_str(), ErrorStr.c_str());
     }
 
     //-- read response directly into Result
     if (ReceiveString(hsock, Result, timeout) != neSuccess) {
-	CloseSocket(hsock);
+	this->Close(hsock);
 	throw CExpc(errOther, "expand_terms failed to read a response from subcorpus `%s'", h->m_CorpusName.c_str());
     }
 
-    CloseSocket(hsock);
+    this->Close(hsock);
     m_bExpectMore = false;
 }
 
@@ -715,7 +715,7 @@ NetworkErrorsEnum CDDCBranchServer::GetHitStringsFromOneCorpus(CHost& Host,
 	if (ResultLimit==0) {
 	    //-- vacuous request; just close up the socket to avoid ~40ms turnaround (data from A. Barbaresi, tested kerncorpus@data)
 	    SendString(CorpusSocket, "ddc_close_socket", 16, ErrorStr);
-	    CloseSocket(CorpusSocket);
+	    this->Close(CorpusSocket);
 	    InternalError = errNone;
 	    Result.clear();
 	    return neSuccess;
@@ -728,17 +728,15 @@ NetworkErrorsEnum CDDCBranchServer::GetHitStringsFromOneCorpus(CHost& Host,
 	{
 		ErrorMessage (Format("cannot send a string to socket %s : %s", Host.GetAddressStr().c_str(), ErrorStr.c_str() ));
 
-		if (!CloseSocket(CorpusSocket))
+		if (!this->Close(CorpusSocket))
 			ErrorMessage (Format("cannot close socket %s", Host.GetAddressStr().c_str()));
-		CorpusSocket =-1;
 
 		return neCouldNotSendData;
 	};
 
 	NetworkErrorsEnum Res = ReceiveString(CorpusSocket, S, TimeOut);
-	if (!CloseSocket(CorpusSocket))
+	if (!this->Close(CorpusSocket))
 		ErrorMessage (Format("cannot close socket %s", Host.GetAddressStr().c_str()));
-	CorpusSocket =-1;
 
 	if (Res  != neSuccess)
 	{
@@ -834,7 +832,7 @@ string CDDCBranchServer::GetSubcorpusJsonArray(const string& request, int timeou
 
 		    //-- send request
 		    if (!SendString(sock, request, errorStr) || !errorStr.empty()) {
-			CloseSocket(sock);
+			this->Close(sock);
 			Results[i] = Format("{\"name\":%s,\"error\":\"could not send to socket: %s\"}", jsonStr(Host.m_CorpusName).c_str(), jsonStr(errorStr, true, false).c_str());
 			continue;
 		    }
@@ -872,8 +870,7 @@ string CDDCBranchServer::GetSubcorpusJsonArray(const string& request, int timeou
 		}
 
 		//-- close socket (forgetting this causes an fd-leak resulting in "Could not create socket: Too many open files for HOST:PORT" messages later)
-		CloseSocket(Sockets[i]);
-		Sockets[i] = -1;
+		this->Close(Sockets[i]);
 	}
 
 	//-- build result

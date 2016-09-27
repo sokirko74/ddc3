@@ -64,6 +64,9 @@ public:
     /* moo: FQDN if available, otherwise symbolic hostname as returned by gethostname() */
     string m_FQHostName;
 
+    /* moo: current connected client socket */
+    SOCKET m_clientSocket;
+
 public:
     //--------------------------------------------------------------
     // Constructors etc.

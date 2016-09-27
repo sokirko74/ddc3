@@ -560,8 +560,9 @@ void CHost::AnswerByRequest (SOCKET rConnectedSocket, const struct sockaddr_in* 
 	if (Res != neSuccess)
 	{
 		//ClientError(0, Format("Error [%d]: %s", Res, GetNetworkErrorString(Res).c_str()), rConnectedSocket); //-- doesn't work well...
-		m_LogFunction(Format("Error: Cannot receive string for corpus \"%s\" (error: %s)", m_CorpusName.c_str(), GetNetworkErrorString(Res).c_str()));
+		m_LogFunction(Format("Error: Cannot receive string (error: %s)", GetNetworkErrorString(Res).c_str()));
 		m_bExpectMore = false;
+		this->Close(rConnectedSocket);
 		return;
 	};
 
@@ -584,6 +585,7 @@ void CHost::AnswerByRequest (SOCKET rConnectedSocket, const struct sockaddr_in* 
 	if (m_bRespond && !SendString(rConnectedSocket, Result.c_str(), Result.length(), ErrorStr)) {
 		m_LogFunction(Format("Error! Cannot send string: %s", ErrorStr.c_str()));
 		m_bExpectMore = false;
+		this->Close(rConnectedSocket);
 	}
 	else if (m_bLogFinish || m_pdProtocolDensity == pdHeavyDensity) {
 		const char* src_addr = inet_ntoa(client_addr->sin_addr);
@@ -591,6 +593,9 @@ void CHost::AnswerByRequest (SOCKET rConnectedSocket, const struct sockaddr_in* 
 			m_LogFunction(Format("%s sent back the result to %s (%zd bytes)", m_CorpusName.c_str(), src_addr, Result.size() ));
 		else
 			m_LogFunction(Format("%s no response required for client %s", m_CorpusName.c_str(), src_addr ));
+	}
+	else {
+		this->Close(rConnectedSocket);
 	}
 }
 
@@ -604,11 +609,7 @@ void	CHost::StopAcceptingThread()
 		// which should have a special processing in AnswerByRequest,
 		// but I failed to close a socket correctly, so I would like to do the following:
 		// (even knowing that m_ListenSocket was created in a different thread)
-
-		int l = m_ListenSocket;
-		m_ListenSocket = -1;
-		CloseSocket(l);
-		
+		this->Close(m_ListenSocket);
 	};
 };
 
@@ -628,8 +629,20 @@ void CHost::ClientError(int code, const string& msg, SOCKET clientSocket)
 	if (clientSocket != -1) {
 		string send_error_tmp; //-- ignored here
 		SendString(clientSocket, Format("ERROR (%d): %s", code, msg.c_str()), send_error_tmp);
-		CloseSocket(clientSocket);
+		this->Close(clientSocket);
 	}
+}
+
+bool CHost::Close(SOCKET& rConnectedSocket)
+{
+	if (rConnectedSocket == -1) return true;
+#if 0
+	if (m_pdProtocolDensity  == pdHeavyDensity)
+		m_LogFunction(Format("closing socket descriptor #%i", rConnectedSocket));
+#endif
+	bool rc = CloseSocket(rConnectedSocket);
+	rConnectedSocket = -1;
+	return rc;
 }
 
 void   CHost::RunThread()
@@ -649,8 +662,7 @@ void   CHost::RunThread()
 	int listen_val = listen(m_ListenSocket, 5);
 	if (listen_val == -1) {
 		m_LogFunction ("Could not create the socket queue");
-		CloseSocket(m_ListenSocket);
-		m_ListenSocket = -1;
+		this->Close(m_ListenSocket);
 	}
 
 	m_LogFunction ( Format("CHost on %s:%d waiting for accept", m_HostAddr.c_str(), m_Port) );
@@ -670,8 +682,7 @@ void   CHost::RunThread()
 
 		if (m_ListenSocket == -1)  // the thread  should be stopped
 		{
-			if (rConnectedSocket  != -1) 
-				CloseSocket(rConnectedSocket);
+			this->Close(rConnectedSocket);
 			break;
 		};
 
@@ -693,7 +704,7 @@ void   CHost::RunThread()
 				AnswerByRequest(rConnectedSocket, &client_addr, 30);
 			}
 
-			if (!CloseSocket(rConnectedSocket))
+			if (!this->Close(rConnectedSocket))
 				m_LogFunction ( Format("cannot close socket for %s", m_CorpusName.c_str())  );
 		}
 		catch (CExpc& e) {
@@ -707,9 +718,9 @@ void   CHost::RunThread()
 		}
 
 		if (!strError.empty()) {
-			m_LogFunction( Format("%s: CHost::RunThread(): ERROR: %s", m_CorpusName.c_str(), strError.c_str()) );
+			m_LogFunction( Format("CHost::RunThread(): ERROR: %s", strError.c_str()) );
 			m_LogFunction( Format("closing connected socket for %s", m_CorpusName.c_str()) );
-			if (!CloseSocket(rConnectedSocket))
+			if (!this->Close(rConnectedSocket))
 				m_LogFunction( Format("cannot close connected socket for %s", m_CorpusName.c_str()) );
 		}
 	}
@@ -718,11 +729,8 @@ void   CHost::RunThread()
 	{
 		m_LogFunction(Format("close socket for %s %s", m_CorpusName.c_str(), GetAddressStr().c_str()));
 
-		if (!CloseSocket(m_ListenSocket))
-			m_LogFunction ( Format("cannot close socket for %s", m_CorpusName.c_str())  );
-		else
-			m_ListenSocket = -1;
-
+		if (!this->Close(m_ListenSocket))
+			m_LogFunction ( Format("cannot close listen socket for %s", m_CorpusName.c_str())  );
 	};
 
 };

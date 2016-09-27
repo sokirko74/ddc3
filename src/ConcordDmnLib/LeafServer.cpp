@@ -23,6 +23,19 @@
 
 //==============================================================================
 
+//----------------------------------------------------------------------
+bool CDDCLeafServer::Close(SOCKET& rConnectedSocket)
+{
+    bool rc = CHost::Close(rConnectedSocket);
+    if (m_pHolder) {
+	//-- clear local intermediate query results: don't hog memory after expensive (often failed) queries
+	m_pHolder->ClearQuery();
+	m_pHolder->ClearQueryResults();
+	m_pHolder->m_ShortOccurCaches.clear();
+    }
+    return rc;
+}
+
 
 //==============================================================================
 
