@@ -64,9 +64,6 @@ public:
     /* moo: FQDN if available, otherwise symbolic hostname as returned by gethostname() */
     string m_FQHostName;
 
-    /* moo: current connected client socket */
-    SOCKET m_clientSocket;
-
 public:
     //--------------------------------------------------------------
     // Constructors etc.
@@ -83,7 +80,7 @@ public:
     // string_socket API: socket handlers
 
     /** CHost API function maintains m_nRequests and calls appropriate handle__() methods */
-    virtual string ProcessSocketString(const string& SocketInput, SOCKET rConnectedSocket);
+    virtual string ProcessSocketString(const string& SocketInput, SOCKET& rConnectedSocket);
 
 public:
     //--------------------------------------------------------------
@@ -121,7 +118,7 @@ public:
     virtual void handle__get_paradigm(string &Result, const char *Word, int iLemmatizeOnly, int iLang);
 
     /** request handler: close_socket: optional (leaf|branch) */
-    virtual void handle__close_socket(string &Result);
+    virtual void handle__close_socket(string &Result, SOCKET &rConnectedSocket);
 
     /** request handler: close_socket: optional (leaf|branch) */
     virtual void handle__version(string &Result);

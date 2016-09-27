@@ -104,6 +104,7 @@ const ERROR_STRUCT errlist[] = {
 bool CloseSocket(int l_socket)
 {
 	bool bResult;
+	if (l_socket == -1) return true;
 #ifdef WIN32
 	bResult = closesocket(l_socket) == 0;
 #else
@@ -547,7 +548,7 @@ int	CHost::CreateAndConnectSocket(string& strError) const
 };
 
 
-void CHost::AnswerByRequest (SOCKET rConnectedSocket, const struct sockaddr_in* client_addr, int TimeOut)
+void CHost::AnswerByRequest (SOCKET& rConnectedSocket, const struct sockaddr_in* client_addr, int TimeOut)
 {
 	string S;
 
@@ -585,7 +586,6 @@ void CHost::AnswerByRequest (SOCKET rConnectedSocket, const struct sockaddr_in* 
 	if (m_bRespond && !SendString(rConnectedSocket, Result.c_str(), Result.length(), ErrorStr)) {
 		m_LogFunction(Format("Error! Cannot send string: %s", ErrorStr.c_str()));
 		m_bExpectMore = false;
-		this->Close(rConnectedSocket);
 	}
 	else if (m_bLogFinish || m_pdProtocolDensity == pdHeavyDensity) {
 		const char* src_addr = inet_ntoa(client_addr->sin_addr);
@@ -594,8 +594,10 @@ void CHost::AnswerByRequest (SOCKET rConnectedSocket, const struct sockaddr_in* 
 		else
 			m_LogFunction(Format("%s no response required for client %s", m_CorpusName.c_str(), src_addr ));
 	}
-	else {
-		this->Close(rConnectedSocket);
+
+	if (!m_bExpectMore && !this->Close(rConnectedSocket)) {
+		const char* src_addr = inet_ntoa(client_addr->sin_addr);
+		m_LogFunction(Format("%s failed to close socket for client %s", m_CorpusName.c_str(), src_addr));
 	}
 }
 
@@ -613,7 +615,7 @@ void	CHost::StopAcceptingThread()
 	};
 };
 
-string	CHost::ProcessSocketString(const string& S, SOCKET rConnectedSocket) 
+string	CHost::ProcessSocketString(const string& S, SOCKET& rConnectedSocket) 
 {
 	assert(false);
 	return "";
@@ -622,7 +624,12 @@ string	CHost::ProcessSocketString(const string& S, SOCKET rConnectedSocket)
 //	typedef size_t socklen_t;
 //#endif
 
-void CHost::ClientError(int code, const string& msg, SOCKET clientSocket) 
+void CHost::ClientError(int code, const string& msg)
+{
+	SOCKET dummySocket = -1;
+	this->ClientError(code, msg, dummySocket);
+}
+void CHost::ClientError(int code, const string& msg, SOCKET& clientSocket) 
 {
 	if (code != 0)
 		m_LogFunction( Format("Client error (%d): %s", code, msg.c_str()) );

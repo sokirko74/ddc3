@@ -1,6 +1,6 @@
 ##-*- Mode: Change-Log; coding: utf-8; -*-
 
-PENDING moocow
+v2.0.46 Tue, 27 Sep 2016 16:28:19 +0200 moocow
 	+ added virtual CHost::Close() method for subclass-specific client-wise post-processing
 	+ clear subcorpus-local intermediate query results in CDDCLeafServer::Close() override
 	  - should prevent memory bloat after failed (expensive) queries

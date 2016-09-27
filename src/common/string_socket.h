@@ -66,7 +66,7 @@ protected:
 	ProtocolDensityEnum			m_pdProtocolDensity;
 	uint32_t				m_maxReceiveBytes; ///< maximum receivable packet length (default=0: no limit)
 
-	void AnswerByRequest (SOCKET rConnectedSocket, const struct sockaddr_in* client_addr, int TimeOut);
+	void AnswerByRequest (SOCKET& rConnectedSocket, const struct sockaddr_in* client_addr, int TimeOut);
 
 public:
 	string				m_CorpusName;
@@ -93,12 +93,13 @@ public:
 	virtual bool Close(SOCKET& rConnectedSocket);
 
 	//! guts for request handling; override in subclasses
-	virtual string	ProcessSocketString(const string& S, SOCKET rConnectedSocket);
+	virtual string	ProcessSocketString(const string& S, SOCKET& rConnectedSocket);
 
 	//! \li logs and sends an error messaage to the client
 	//! \li \c code should be nonzero to indicate a 'real' error
-	//! \li implicitly closes \c clientSocket if !=-1
-	virtual void	ClientError(int code=-1, const string& msg="", SOCKET clientSocket=-1);
+	//! \li implicitly closes \c clientSocket if !=-1 (default)
+	virtual void	ClientError(int code=-1, const string& msg="");
+	virtual void	ClientError(int code,    const string& msg, SOCKET& clientSocket);
 
 };
 
