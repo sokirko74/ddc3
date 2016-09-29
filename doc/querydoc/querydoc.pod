@@ -1089,7 +1089,8 @@ B<DTA::CAB> (L<http://odo.dwds.de/~moocow/software/dta-cab/>)-normalized wordfor
 
 Part-of-speech assigned to the source token
 by B<moot> (L<http://www.ling.uni-potsdam.de/~moocow/projects/moot/>)via B<DTA::CAB> (L<http://odo.dwds.de/~moocow/software/dta-cab/>).
-Uses the B<STTS tag-set> (L<http://www.ims.uni-stuttgart.de/projekte/corplex/TagSets/stts-table.html>).
+Uses the
+B<STTS tag-set> (L<http://www.ims.uni-stuttgart.de/forschung/ressourcen/lexika/TagSets/stts-table.html>).
 
 
 
