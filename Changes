@@ -1,6 +1,6 @@
 ##-*- Mode: Change-Log; coding: utf-8; -*-
 
-v2.0.47 PENDING
+v2.0.47 Mon, 31 Oct 2016 16:21:25 +0100 moocow
 	+ fixed json syntax in error-responses for failed CDDCBranchServer (v)status and info requests
 	+ added optional user-supplied TIMEOUT parameter to 'status', 'vstatus', and 'info' requests
 	  - avoid bogus failures for busy servers from external watchdogs
