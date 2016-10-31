@@ -5,7 +5,7 @@
 =head2 Overview
 
 This documentation describes the query language accepted by
-DDC version 2.0.43.  Current sources for DDC should be available
+DDC version 2.0.47.  Current sources for DDC should be available
 from
 http://sourceforge.net/projects/ddc-concordance.
 
@@ -692,7 +692,7 @@ The following macros are defined for the underlying scanner:
  sq_text         ([^\']|{symbol_cescape})*
  
  regex_text      ((\\.)|[^\/\\])*
- regex_modifier	[gimsx]
+ regex_modifier	[dgimsx]
 
 
 
@@ -795,6 +795,16 @@ thus /REGEX/g is a equivalent to /^(?:REGEX)$/.
 When used in search-and-replace operations s/SEARCH/REPLACE/g, the
 "/g" modifier causes all occurrences of the SEARCH pattern
 to be replaced by the REPLACE string.
+As of DDC version 2.0.47, the non-standard regular expression modifier "/d"
+(mnemonic: 'ignore Diacritics') causes both the regular expression
+itself and the index items against which it is matched to be
+converted from the source encoding (currently only UTF-8 is supported) to
+7-bit ASCII before matching. Conversion is performed internally using
+iconv with the target
+encoding "ASCII//TRANSLIT"; which currently maps e.g. the Unicode codepoint
+U+00F6 ("E<0xf6>", LATIN SMALL LETTER O WITH DIAERESIS) is mapped not to a bare
+ASCII "o" (U+006F, LATIN SMALL LETTER O), but to the substring "oe".  Results may
+vary depending on the underlying iconv implementation.
 
 
 

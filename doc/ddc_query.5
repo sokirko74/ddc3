@@ -71,7 +71,7 @@
 .\" ========================================================================
 .\"
 .IX Title "DDC_QUERY 5"
-.TH DDC_QUERY 5 "2016-09-29" "2.0.47" "DDC Corpus Indexing System"
+.TH DDC_QUERY 5 "2016-10-31" "2.0.47" "DDC Corpus Indexing System"
 .\" For nroff, turn off justification.  Always turn off hyphenation; it makes
 .\" way too many mistakes in technical documents.
 .if n .ad l
@@ -81,7 +81,7 @@
 .SS "Overview"
 .IX Subsection "Overview"
 This documentation describes the query language accepted by
-\&\s-1DDC\s0 version 2.0.43.  Current sources for \s-1DDC\s0 should be available
+\&\s-1DDC\s0 version 2.0.47.  Current sources for \s-1DDC\s0 should be available
 from
 http://sourceforge.net/projects/ddc\-concordance.
 .PP
@@ -747,7 +747,7 @@ The following macros are defined for the underlying scanner:
 \& sq_text         ([^\e\*(Aq]|{symbol_cescape})*
 \& 
 \& regex_text      ((\e\e.)|[^\e/\e\e])*
-\& regex_modifier [gimsx]
+\& regex_modifier [dgimsx]
 .Ve
 .PP
 \fIQuery Keywords\fR
@@ -852,6 +852,16 @@ thus /REGEX/g is a equivalent to /^(?:REGEX)$/.
 When used in search-and-replace operations s/SEARCH/REPLACE/g, the
 \&\*(L"/g\*(R" modifier causes all occurrences of the \s-1SEARCH\s0 pattern
 to be replaced by the \s-1REPLACE\s0 string.
+As of \s-1DDC\s0 version 2.0.47, the non-standard regular expression modifier \*(L"/d\*(R"
+(mnemonic: 'ignore Diacritics') causes both the regular expression
+itself and the index items against which it is matched to be
+converted from the source encoding (currently only \s-1UTF\-8\s0 is supported) to
+7\-bit \s-1ASCII\s0 before matching. Conversion is performed internally using
+iconv with the target
+encoding \*(L"\s-1ASCII//TRANSLIT\*(R"\s0; which currently maps e.g. the Unicode codepoint
+U+00F6 (\*(L"ö\*(R", \s-1LATIN SMALL LETTER O WITH DIAERESIS\s0) is mapped not to a bare
+\&\s-1ASCII \s0\*(L"o\*(R" (U+006F, \s-1LATIN SMALL LETTER O\s0), but to the substring \*(L"oe\*(R".  Results may
+vary depending on the underlying iconv implementation.
 .PP
 \fIPunctuation Operators and Special Characters\fR
 .IX Subsection "Punctuation Operators and Special Characters"

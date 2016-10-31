@@ -11,7 +11,7 @@
     <section name="overview" title="Overview">
       <p>
 	This documentation describes the query language accepted by
-	DDC version 2.0.43.  Current sources for DDC should be available
+	DDC version 2.0.47.  Current sources for DDC should be available
 	from
 	<!--<a href="http://odo.dwds.de/code/viewvc.cgi/ddc/trunk/?root=dev">svn+ssh://odo.dwds.de/home/svn/dev/ddc/trunk</a>.-->
 	<a href="http://sourceforge.net/projects/ddc-concordance">http://sourceforge.net/projects/ddc-concordance</a>.
@@ -1683,7 +1683,7 @@ index_name      {symbol_text}
 sq_text         ([^\']|{symbol_cescape})*
 
 regex_text      ((\\.)|[^\/\\])*
-regex_modifier	[gimsx]
+regex_modifier	[dgimsx]
 </pre>
       </subsection>
       <!--/terminals:common-->
@@ -1799,6 +1799,17 @@ regex_modifier	[gimsx]
 	  When used in search-and-replace operations <tt>s/SEARCH/REPLACE/g</tt>, the
 	  "<tt>/g</tt>" modifier causes all occurrences of the <tt>SEARCH</tt> pattern
 	  to be replaced by the <tt>REPLACE</tt> string.
+
+	  As of DDC version 2.0.47, the non-standard regular expression modifier "<tt>/d</tt>"
+	  (mnemonic: 'ignore <b>D</b>iacritics') causes both the regular expression
+	  itself and the index items against which it is matched to be
+	  converted from the source encoding (currently only UTF-8 is supported) to
+	  7-bit ASCII before matching. Conversion is performed internally using
+	  <a href="https://www.gnu.org/software/libiconv/">iconv</a> with the target
+	  encoding "<tt>ASCII//TRANSLIT</tt>"; which currently maps e.g. the Unicode codepoint
+	  U+00F6 ("ö", LATIN SMALL LETTER O WITH DIAERESIS) is mapped not to a bare
+	  ASCII "o" (U+006F, LATIN SMALL LETTER O), but to the substring "oe".  Results may
+	  vary depending on the underlying iconv implementation.
 	</p>
       </subsection>
       <!--/terminals:regex-->
