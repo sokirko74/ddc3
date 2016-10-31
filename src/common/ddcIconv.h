@@ -158,15 +158,13 @@ public:
   //--------------------------------------------------------------  
   /// \name Conversions
   //@{
-  /** Perform selected conversion from \c in to \c out */
-  inline bool convert(const string &in, string &out)
+  /** Perform selected conversion from \c in to \c out (low-level) */
+  inline bool convert(const char *idata, const size_t ilen, string &out)
   {
-    if (empty()) {
-      out = in;
+    if (!idata || !*idata) {
+      out.clear();
       return true;
     }
-    const char *idata = in.data();
-    size_t ilen=in.size();
     size_t itodo=ilen;
 
     PTOP(pthread_mutex_lock(&mut);)
@@ -219,6 +217,16 @@ public:
 
     PTOP(pthread_mutex_unlock(&mut);)
     return true;
+  };
+  
+  /** Perform selected conversion from \c in to \c out */
+  inline bool convert(const string &in, string &out)
+  {
+    if (empty()) {
+      out = in;
+      return true;
+    }
+    return convert(in.data(), in.size(), out);
   };
 
   /** Perform selected conversion from \c in to a (new) string */

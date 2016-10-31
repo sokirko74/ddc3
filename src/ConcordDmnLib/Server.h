@@ -1,6 +1,6 @@
 //-*- Mode: C++; c-basic-offset:4; -*-
 //  DDC originally by Alexey Sokirko
-//  Changes and modifications 2011-2014 by Bryan Jurish
+//  Changes and modifications 2011-2016 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -99,10 +99,10 @@ public:
     virtual void handle__expand_terms(string &Result, const string& pipeline, const string& terms, int timeout, const string &corpus);
 
     /** request handler: status: required (leaf|branch) */
-    virtual void handle__status(string &Result, bool verbose=false);
+    virtual void handle__status(string &Result, int timeout=10, bool verbose=false);
 
     /** request handler: info: required (leaf|branch) */
-    virtual void handle__info(string &Result, bool verbose=false);
+    virtual void handle__info(string &Result, int timeout=10, bool verbose=false);
 
     /** request handler: reload: required (leaf|branch) */
     virtual void handle__reload(string &Result, int depth=0);
@@ -124,10 +124,10 @@ public:
     virtual void handle__version(string &Result);
 
     /** request handler: vstatus: optional (leaf|branch): default wraps handle__status(Result,true) */
-    virtual void handle__vstatus(string &Result);
+    virtual void handle__vstatus(string &Result, int timeout=10);
 
     /** request handler: vinfo: optional (leaf|branch): default wraps handle__info(Result,true) */
-    virtual void handle__vinfo(string &Result);
+    virtual void handle__vinfo(string &Result, int timeout=10);
 
 public:
     //--------------------------------------------------------------

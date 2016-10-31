@@ -1,6 +1,6 @@
 //-*- Mode: C++; c-basic-offset:4; -*-
 //  DDC originally by Alexey Sokirko
-//  Changes and modifications 2011-2015 by Bryan Jurish
+//  Changes and modifications 2011-2016 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -214,7 +214,7 @@ void CDDCBranchServer::handle__expand_terms(string &Result, const string& pipeli
 }
 
 //----------------------------------------------------------------------
-void CDDCBranchServer::handle__status(string &Result, bool verbose)
+void CDDCBranchServer::handle__status(string &Result, int timeout, bool verbose)
 {
     //-- status or vstatus : distributed server status
     double uptime = difftime(time(NULL), m_tStarted);
@@ -222,7 +222,7 @@ void CDDCBranchServer::handle__status(string &Result, bool verbose)
     string subResult;
     if (verbose) {
 	//-- vstatus: get subcorpus status
-	subResult = GetSubcorpusJsonArray("vstatus");
+	subResult = GetSubcorpusJsonArray("vstatus", timeout);
     } else {
 	//-- status: just get subcorpus names
 	for (size_t i=0; i < m_Hosts.size(); ++i) {
@@ -247,7 +247,7 @@ void CDDCBranchServer::handle__status(string &Result, bool verbose)
 }
 
 //----------------------------------------------------------------------
-void CDDCBranchServer::handle__info(string &Result, bool verbose)
+void CDDCBranchServer::handle__info(string &Result, int timeout, bool verbose)
 {
     //-- info : distributed (collected) corpus info
     Result = (string("{\n")
@@ -816,6 +816,7 @@ string CDDCBranchServer::GetSubcorpusJsonArray(const string& request, int timeou
 	vector<SOCKET> Sockets(m_Hosts.size(), -1);
 	size_t i;
 	string errorStr;
+	if (timeout==0) timeout=10; //-- default timeout
 
 	//-- send requests
 	for (i=0; i < m_Hosts.size(); ++i) {
@@ -859,14 +860,14 @@ string CDDCBranchServer::GetSubcorpusJsonArray(const string& request, int timeou
 		//-- read response
 		try {
 		    if (ReceiveString(Sockets[i], Results[i], timeout) != neSuccess) {
-			Results[i] = Format("{\"name\":%s,\"error\":\"failed to read response data from socket\"}", m_Hosts[i].m_CorpusName.c_str());
+			Results[i] = Format("{\"name\":%s,\"error\":\"failed to read response data from socket\"}", jsonStr(m_Hosts[i].m_CorpusName).c_str());
 		    }
 		}
 		catch (exception &e) {
-		    Results[i] = Format("{\"name\":%s,\"error\":\"error reading response data from socket: %s\"}", m_Hosts[i].m_CorpusName.c_str(), jsonStr(e.what(),true,false).c_str());
+		    Results[i] = Format("{\"name\":%s,\"error\":\"error reading response data from socket: %s\"}", jsonStr(m_Hosts[i].m_CorpusName).c_str(), jsonStr(e.what(),true,false).c_str());
 		}
 		catch (...) {
-		    Results[i] = Format("{\"name\":%s,\"error\":\"error reading response data from socket\"}", m_Hosts[i].m_CorpusName.c_str());
+		    Results[i] = Format("{\"name\":%s,\"error\":\"error reading response data from socket\"}", jsonStr(m_Hosts[i].m_CorpusName).c_str());
 		}
 
 		//-- close socket (forgetting this causes an fd-leak resulting in "Could not create socket: Too many open files for HOST:PORT" messages later)

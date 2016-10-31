@@ -96,7 +96,7 @@ index_name      {symbol_text}
 sq_text         ([^\']|{symbol_cescape})*
 
 regex_text      ((\\.)|[^\/\\])*
-regex_modifier	[gimsx]
+regex_modifier	[dgimsx]
 
 /*======================================================================
  * Start States

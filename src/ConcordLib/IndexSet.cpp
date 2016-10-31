@@ -93,22 +93,33 @@ void CStringIndexSet::QueryTokenListWithRightTruncation (const string& WordForm,
 	};
 };
 
-void CStringIndexSet::QueryTokenListUsingRegExp (RML_RE &RegExp, vector<DWORD>& MatchWords, bool negated)	const
+void CStringIndexSet::QueryTokenListUsingRegExp (RML_RE &RegExp, vector<DWORD>& MatchWords, bool negated, bool ignore_diacritics) const
 {
 	size_t Count = m_Index.size();
-	for( size_t i=0; i<Count; i++ )
-	{
-		const char* str =  GetIndexItemStr(m_Index[i]);
-		bool  ismatch = RegExp.PartialMatch(str);
-
-		if ( negated ? (!ismatch) : ismatch )
-		{
-			if (MatchWords.size() > m_pParent->m_MaxRegExpExpansionSize)
-				break;
-
-			MatchWords.push_back( i );
-		};
-	};
+	if (!ignore_diacritics) {
+		//-- honor diacritics (usual case)
+		for( size_t i=0; i<Count; i++ ) {
+			const char* str =  GetIndexItemStr(m_Index[i]);
+			bool  ismatch = RegExp.PartialMatch(str);
+			if ( negated ? (!ismatch) : ismatch ) {
+				if (MatchWords.size() > m_pParent->m_MaxRegExpExpansionSize) break;
+				MatchWords.push_back( i );
+			}
+		}
+	} else {
+		//-- honor diacritics (iconv hack)
+		ddcIconv iconv("UTF-8", "ASCII//TRANSLIT");
+		string tmp;
+		for( size_t i=0; i<Count; i++ ) {
+			const char* str = GetIndexItemStr(m_Index[i]);
+			iconv.convert(str, strlen(str), tmp);
+			bool  ismatch = RegExp.PartialMatch(tmp);
+			if ( negated ? (!ismatch) : ismatch ) {
+				if (MatchWords.size() > m_pParent->m_MaxRegExpExpansionSize) break;
+				MatchWords.push_back( i );
+			}
+		}
+	}
 };
 
 void CStringIndexSet::QueryTokenListUniversal(vector<DWORD>& MatchWords) const

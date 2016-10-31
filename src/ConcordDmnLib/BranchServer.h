@@ -1,6 +1,6 @@
 //-*- Mode: C++; c-basic-offset:4; -*-
 //  DDC originally by Alexey Sokirko
-//  Changes and modifications 2011-2015 by Bryan Jurish
+//  Changes and modifications 2011-2016 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -181,10 +181,10 @@ public:
     virtual void handle__expand_terms(string &Result, const string& pipeline, const string& terms, int timeout, const string &corpus);
 
     /** request handler: status: required (leaf|branch) */
-    virtual void handle__status(string &Result, bool verbose=false);
+    virtual void handle__status(string &Result, int timeout=10, bool verbose=false);
 
     /** request handler: info: required (leaf|branch) */
-    virtual void handle__info(string &Result, bool verbose=false);
+    virtual void handle__info(string &Result, int timeout=10, bool verbose=false);
 
     /** request handler: reload: required (leaf|branch) */
     virtual void handle__reload(string &Result, int depth=0);
@@ -197,7 +197,7 @@ public:
     // local methods
 
     /** pass request to each subcorpus host and fetch results into a JSON array */
-    string  GetSubcorpusJsonArray(const string &request, int timeout = 10);
+    string  GetSubcorpusJsonArray(const string &request, int timeout=10);
 
     /** new top-level guts for handle__run_query() */
     void RunDistributed(CRunQueryData &runq);

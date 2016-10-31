@@ -119,6 +119,7 @@ Since v2.0.18
 =head3 status
 
  status
+ status TIMEOUT
 
 Returns status information on the running server as a JSON object of the form:
 
@@ -139,7 +140,8 @@ Returns status information on the running server as a JSON object of the form:
 Very fast turnaround, since all returned data is known to the distributed server itself,
 and no subcorpora need to be queried.
 
-Since v2.0.18
+Since v2.0.18,
+optional TIMEOUT parameter since v2.0.47.
 
 =cut
 
@@ -149,12 +151,16 @@ Since v2.0.18
 =head3 vstatus
 
  vstatus
+ vstatus TIMEOUT
 
 Like the C<status> command, but the elements of the returned "corpora" list for a branch server
 are the JSON objects returned by the C<status> command to the associated subcorpus servers,
 rather than just subcorpus names.
+If the optional TIMEOUT parameter is specified, it should be an integer value indicating the
+maximum time (in seconds) to wait for subcorpus responses; default=10.
 
-Since v2.0.18.
+Since v2.0.18,
+optional TIMEOUT parameter since v2.0.47.
 
 =cut
 
@@ -165,6 +171,7 @@ Since v2.0.18.
 =head3 info
 
  info
+ info TIMEOUT
 
 Returns information about associated corpora as a JSON object.
 For a leaf server, the returned object is of the form:
@@ -250,8 +257,12 @@ For a branch server, the returned object has the form:
 
 where each object in the "corpora" array is the associated subcorpus server's
 response to an "info" request.
+If the optional TIMEOUT parameter is specified, it should be an integer value indicating the
+maximum time (in seconds) to wait for subcorpus responses; default=10.
 
-Since v2.0.18, user-supplied info since v2.0.34.
+Since v2.0.18,
+user-supplied info since v2.0.34,
+optional TIMEOUT parameter since v2.0.47.
 
 =cut
 

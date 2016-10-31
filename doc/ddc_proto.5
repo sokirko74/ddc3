@@ -71,7 +71,7 @@
 .\" ========================================================================
 .\"
 .IX Title "DDC_PROTO 5"
-.TH DDC_PROTO 5 "2016-06-22" "2.0.46" "DDC Corpus Indexing System"
+.TH DDC_PROTO 5 "2016-10-31" "2.0.47" "DDC Corpus Indexing System"
 .\" For nroff, turn off justification.  Always turn off hyphenation; it makes
 .\" way too many mistakes in technical documents.
 .if n .ad l
@@ -156,8 +156,9 @@ Since v2.0.18
 \fIstatus\fR
 .IX Subsection "status"
 .PP
-.Vb 1
+.Vb 2
 \& status
+\& status TIMEOUT
 .Ve
 .PP
 Returns status information on the running server as a \s-1JSON\s0 object of the form:
@@ -181,26 +182,32 @@ Returns status information on the running server as a \s-1JSON\s0 object of the 
 Very fast turnaround, since all returned data is known to the distributed server itself,
 and no subcorpora need to be queried.
 .PP
-Since v2.0.18
+Since v2.0.18,
+optional \s-1TIMEOUT\s0 parameter since v2.0.47.
 .PP
 \fIvstatus\fR
 .IX Subsection "vstatus"
 .PP
-.Vb 1
+.Vb 2
 \& vstatus
+\& vstatus TIMEOUT
 .Ve
 .PP
 Like the \f(CW\*(C`status\*(C'\fR command, but the elements of the returned \*(L"corpora\*(R" list for a branch server
 are the \s-1JSON\s0 objects returned by the \f(CW\*(C`status\*(C'\fR command to the associated subcorpus servers,
 rather than just subcorpus names.
+If the optional \s-1TIMEOUT\s0 parameter is specified, it should be an integer value indicating the
+maximum time (in seconds) to wait for subcorpus responses; default=10.
 .PP
-Since v2.0.18.
+Since v2.0.18,
+optional \s-1TIMEOUT\s0 parameter since v2.0.47.
 .PP
 \fIinfo\fR
 .IX Subsection "info"
 .PP
-.Vb 1
+.Vb 2
 \& info
+\& info TIMEOUT
 .Ve
 .PP
 Returns information about associated corpora as a \s-1JSON\s0 object.
@@ -290,8 +297,12 @@ For a branch server, the returned object has the form:
 .PP
 where each object in the \*(L"corpora\*(R" array is the associated subcorpus server's
 response to an \*(L"info\*(R" request.
+If the optional \s-1TIMEOUT\s0 parameter is specified, it should be an integer value indicating the
+maximum time (in seconds) to wait for subcorpus responses; default=10.
 .PP
-Since v2.0.18, user-supplied info since v2.0.34.
+Since v2.0.18,
+user-supplied info since v2.0.34,
+optional \s-1TIMEOUT\s0 parameter since v2.0.47.
 .PP
 \fIreload\fR
 .IX Subsection "reload"

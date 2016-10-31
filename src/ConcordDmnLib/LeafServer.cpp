@@ -1,6 +1,6 @@
 //-*- Mode: C++; c-basic-offset:4; -*-
 //  DDC originally by Alexey Sokirko
-//  Changes and modifications 2011-2015 by Bryan Jurish
+//  Changes and modifications 2011-2016 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -104,7 +104,7 @@ void CDDCLeafServer::handle__expand_terms(string &Result, const string& pipeline
 }
 
 //----------------------------------------------------------------------
-void CDDCLeafServer::handle__status(string &Result, bool verbose)
+void CDDCLeafServer::handle__status(string &Result, int timeout, bool verbose)
 {
     double uptime = difftime(time(NULL), m_tStarted);
     Result = (string("{\n\t")
@@ -125,7 +125,7 @@ void CDDCLeafServer::handle__status(string &Result, bool verbose)
 
 //----------------------------------------------------------------------
 #undef DDC_VERBOSE_CORPUS_INFO
-void CDDCLeafServer::handle__info(string &Result, bool verbose)
+void CDDCLeafServer::handle__info(string &Result, int timeout, bool verbose)
 {
 	//-- info : corpus info
 	CConcIndexator *ix = m_pHolder ? m_pHolder->m_pIndexator : NULL;

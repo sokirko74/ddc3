@@ -742,11 +742,32 @@ bool CQueryTokenNode::IsUniversalWildcard() const
 
 bool CQueryTokenNode::BuildRegExp(string RegExpStr, vector<DWORD>& IndexItems, bool negated)
 {
-	RML_RE re(RegExpStr, m_pHolder->m_pIndexator->GetRegexOptions());
-	
 	const CStringIndexSet*  IndexSet =  m_pHolder->m_pIndexator->GetIndexByName(m_IndexName);
 	if (!IndexSet) return false;
-	IndexSet->QueryTokenListUsingRegExp(re, IndexItems, negated);
+
+	//-- check for & dispatch on "ignore diacritics" pseudo-modifier
+	bool ignore_diacritics = false;
+	string restr(RegExpStr);
+	if (restr.size() >= 3 && restr[0]=='(' && restr[1]=='?') {
+		size_t eom  = restr.find_first_of(":)",2);
+		size_t dpos = 2;
+		while (eom != restr.npos) {
+			dpos = restr.find_first_of("d",dpos);
+			if (dpos >= eom) break;
+			ignore_diacritics = true;
+			restr.erase(dpos,1);
+			--eom;
+		}
+		if (ignore_diacritics) {
+			//-- transliterate query regex too!
+			ddcIconv iconv("UTF-8","ASCII//TRANSLIT");
+			string tmp(restr);
+			iconv.convert(tmp,restr);
+		}
+	}
+
+	RML_RE re(restr, m_pHolder->m_pIndexator->GetRegexOptions());
+	IndexSet->QueryTokenListUsingRegExp(re, IndexItems, negated, ignore_diacritics);
 	return true;
 };
 

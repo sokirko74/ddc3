@@ -1,6 +1,6 @@
 //-*- Mode: C++; c-basic-offset:4; -*-
 //  DDC originally by Alexey Sokirko
-//  Changes and modifications 2011-2014 by Bryan Jurish
+//  Changes and modifications 2011-2016 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -183,24 +183,27 @@ string CDDCServer::ProcessSocketString(const string& SocketInput, SOCKET& rConne
 	    this->handle__status(Result);
 	}
 	else if (cmd == "vstatus") {
-	    //-- status : server status (verbose)
-	    this->handle__vstatus(Result);
+	    //-- vstatus [TIMEOUT] : server status (verbose)
+	    int timeout = strtol(SocketInput.substr(eocpos).c_str(),NULL,0);
+	    this->handle__vstatus(Result, timeout);
 	}
 	else if (cmd == "info") {
-	    //-- info : sever info (brief)
-	    this->handle__info(Result);
+	    //-- info [TIMEOUT]: sever info (brief)
+	    int timeout = strtol(SocketInput.substr(eocpos).c_str(),NULL,0);
+	    this->handle__info(Result, timeout);
 	}
 	else if (cmd == "vinfo") {
-	    //-- vinfo : sever info (verbose)
-	    this->handle__vinfo(Result);
+	    //-- vinfo [TIMEOUT]: sever info (verbose)
+	    int timeout = strtol(SocketInput.substr(eocpos).c_str(),NULL,0);
+	    this->handle__vinfo(Result, timeout);
 	}
 	else if (cmd == "reload") {
-	    //-- reload
+	    //-- reload [DEPTH]
 	    int depth = strtol(SocketInput.substr(eocpos).c_str(),NULL,0);
 	    this->handle__reload(Result, depth);
 	}
 	else if (cmd == "clear_cache") {
-	    //-- clear_cache
+	    //-- clear_cache [DEPTH]
 	    int depth = strtol(SocketInput.substr(eocpos).c_str(),NULL,0);
 	    this->handle__clear_cache(Result, depth);
 	}
@@ -276,27 +279,27 @@ void CDDCServer::handle__version(string &Result)
 }
 
 //----------------------------------------------------------------------
-void CDDCServer::handle__status(string &Result, bool verbose)
+void CDDCServer::handle__status(string &Result, int timeout, bool verbose)
 {
     method_not_implemented("handle__status");
 }
 
 //----------------------------------------------------------------------
-void CDDCServer::handle__vstatus(string &Result)
+void CDDCServer::handle__vstatus(string &Result, int timeout)
 {
-    this->handle__status(Result,true);
+    this->handle__status(Result,timeout,true);
 }
 
 //----------------------------------------------------------------------
-void CDDCServer::handle__info(string &Result, bool verbose)
+void CDDCServer::handle__info(string &Result, int timeout, bool verbose)
 {
     method_not_implemented("handle__info()");
 }
 
 //----------------------------------------------------------------------
-void CDDCServer::handle__vinfo(string &Result)
+void CDDCServer::handle__vinfo(string &Result, int timeout)
 {
-    this->handle__info(Result,true);
+    this->handle__info(Result,timeout,true);
 }
 
 //----------------------------------------------------------------------

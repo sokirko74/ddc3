@@ -118,7 +118,8 @@
 
 <h3 id="status">status</h3>
 
-<pre><code> status</code></pre>
+<pre><code> status
+ status TIMEOUT</code></pre>
 
 <p>Returns status information on the running server as a JSON object of the form:</p>
 
@@ -138,19 +139,21 @@
 
 <p>Very fast turnaround, since all returned data is known to the distributed server itself, and no subcorpora need to be queried.</p>
 
-<p>Since v2.0.18</p>
+<p>Since v2.0.18, optional TIMEOUT parameter since v2.0.47.</p>
 
 <h3 id="vstatus">vstatus</h3>
 
-<pre><code> vstatus</code></pre>
+<pre><code> vstatus
+ vstatus TIMEOUT</code></pre>
 
-<p>Like the <code>status</code> command, but the elements of the returned &quot;corpora&quot; list for a branch server are the JSON objects returned by the <code>status</code> command to the associated subcorpus servers, rather than just subcorpus names.</p>
+<p>Like the <code>status</code> command, but the elements of the returned &quot;corpora&quot; list for a branch server are the JSON objects returned by the <code>status</code> command to the associated subcorpus servers, rather than just subcorpus names. If the optional TIMEOUT parameter is specified, it should be an integer value indicating the maximum time (in seconds) to wait for subcorpus responses; default=10.</p>
 
-<p>Since v2.0.18.</p>
+<p>Since v2.0.18, optional TIMEOUT parameter since v2.0.47.</p>
 
 <h3 id="info">info</h3>
 
-<pre><code> info</code></pre>
+<pre><code> info
+ info TIMEOUT</code></pre>
 
 <p>Returns information about associated corpora as a JSON object. For a leaf server, the returned object is of the form:</p>
 
@@ -232,9 +235,9 @@
   ]
  }</code></pre>
 
-<p>where each object in the &quot;corpora&quot; array is the associated subcorpus server&#39;s response to an &quot;info&quot; request.</p>
+<p>where each object in the &quot;corpora&quot; array is the associated subcorpus server&#39;s response to an &quot;info&quot; request. If the optional TIMEOUT parameter is specified, it should be an integer value indicating the maximum time (in seconds) to wait for subcorpus responses; default=10.</p>
 
-<p>Since v2.0.18, user-supplied info since v2.0.34.</p>
+<p>Since v2.0.18, user-supplied info since v2.0.34, optional TIMEOUT parameter since v2.0.47.</p>
 
 <h3 id="reload">reload</h3>
 

@@ -1,5 +1,12 @@
 ##-*- Mode: Change-Log; coding: utf-8; -*-
 
+v2.0.47 PENDING
+	+ fixed json syntax in error-responses for failed CDDCBranchServer (v)status and info requests
+	+ added optional user-supplied TIMEOUT parameter to 'status', 'vstatus', and 'info' requests
+	  - avoid bogus failures for busy servers from external watchdogs
+	+ added "/d" regex modifier ("ignore diacritics"), for CQP-like CLARIN FCS-QL support
+	  - converts via iconv from "UTF-8" to "ASCII//TRANSLIT" internally, so "ö" -> "oe", etc.
+
 v2.0.46 Tue, 27 Sep 2016 16:28:19 +0200 moocow
 	+ added virtual CHost::Close() method for subclass-specific client-wise post-processing
 	+ clear subcorpus-local intermediate query results in CDDCLeafServer::Close() override
