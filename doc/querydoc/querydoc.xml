@@ -1808,9 +1808,9 @@ regex_modifier	[dgimsx]
 	  converted from the source encoding (currently only UTF-8 is supported) to
 	  7-bit ASCII before matching. Conversion is performed internally using
 	  <a href="https://www.gnu.org/software/libiconv/">iconv</a> with the target
-	  encoding "<tt>ASCII//TRANSLIT</tt>"; which currently maps e.g. the Unicode codepoint
-	  U+00F6 ("ö", LATIN SMALL LETTER O WITH DIAERESIS) is mapped not to a bare
-	  ASCII "o" (U+006F, LATIN SMALL LETTER O), but to the substring "oe".  Results may
+	  encoding "<tt>ASCII//TRANSLIT</tt>"; which may map e.g. the Unicode codepoint
+	  U+00F6 ("ö", LATIN SMALL LETTER O WITH DIAERESIS) either to a bare
+	  ASCII "o" (U+006F, LATIN SMALL LETTER O) or to the substring "oe".  Results
 	  vary depending on the underlying iconv implementation.
 	</p>
       </subsection>

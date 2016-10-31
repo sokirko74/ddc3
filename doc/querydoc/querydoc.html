@@ -3217,9 +3217,9 @@ regex_modifier	[dgimsx]
 	  converted from the source encoding (currently only UTF-8 is supported) to
 	  7-bit ASCII before matching. Conversion is performed internally using
 	  <a href="https://www.gnu.org/software/libiconv/">iconv</a> with the target
-	  encoding "<tt>ASCII//TRANSLIT</tt>"; which currently maps e.g. the Unicode codepoint
-	  U+00F6 ("ö", LATIN SMALL LETTER O WITH DIAERESIS) is mapped not to a bare
-	  ASCII "o" (U+006F, LATIN SMALL LETTER O), but to the substring "oe".  Results may
+	  encoding "<tt>ASCII//TRANSLIT</tt>"; which may map e.g. the Unicode codepoint
+	  U+00F6 ("ö", LATIN SMALL LETTER O WITH DIAERESIS) either to a bare
+	  ASCII "o" (U+006F, LATIN SMALL LETTER O) or to the substring "oe".  Results
 	  vary depending on the underlying iconv implementation.
 	</p>
 </div>
@@ -3893,7 +3893,7 @@ regex_modifier	[dgimsx]
   </body></div>
 <div class="footers">
 <div class="footer_sig">
-<address><a href="mailto:jurish@bbaw.de">jurish@bbaw.de</a></address>Last modified: Mon, 31 Oct 2016 16:18:14 +0100</div>
+<address><a href="mailto:jurish@bbaw.de">jurish@bbaw.de</a></address>Last modified: Mon, 31 Oct 2016 16:19:00 +0100</div>
 <div class="footer_linkbar"><p class="nopad"><a class="navLink" href="/">Root</a><a class="navLink" href="./">Back</a><span class="navLinkDisabled">Help</span></p></div>
 <p class="dummy"></p>
 </div>
