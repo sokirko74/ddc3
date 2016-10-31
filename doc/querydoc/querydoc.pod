@@ -785,6 +785,8 @@ In particular, C-style escapes ("\t", "\n", "\0", etc.) and
 Unicode character escapes ("\x{17f}", "\x{364}") may occur
 within regular expressions.  Literal slashes as part of a regular expression
 must be escaped with a backslash ("\/").
+
+
 The regular expression modifier "/g" (mnemonic: 'match Globally')
 has a special meaning when used in DDC regex match expressions: if this modifier is set, only those index
 items are retrieved which match the regular expression in the entirety;
@@ -795,6 +797,8 @@ thus /REGEX/g is a equivalent to /^(?:REGEX)$/.
 When used in search-and-replace operations s/SEARCH/REPLACE/g, the
 "/g" modifier causes all occurrences of the SEARCH pattern
 to be replaced by the REPLACE string.
+
+
 As of DDC version 2.0.47, the non-standard regular expression modifier "/d"
 (mnemonic: 'ignore Diacritics') causes both the regular expression
 itself and the index items against which it is matched to be

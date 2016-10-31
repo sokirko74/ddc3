@@ -842,6 +842,7 @@ In particular, C\-style escapes (\*(L"\et\*(R", \*(L"\en\*(R", \*(L"\e0\*(R", et
 Unicode character escapes (\*(L"\ex{17f}\*(R", \*(L"\ex{364}\*(R") may occur
 within regular expressions.  Literal slashes as part of a regular expression
 must be escaped with a backslash (\*(L"\e/\*(R").
+.PP
 The regular expression modifier \*(L"/g\*(R" (mnemonic: 'match Globally')
 has a special meaning when used in \s-1DDC\s0 regex match expressions: if this modifier is set, only those index
 items are retrieved which match the regular expression in the entirety;
@@ -852,6 +853,7 @@ thus /REGEX/g is a equivalent to /^(?:REGEX)$/.
 When used in search-and-replace operations s/SEARCH/REPLACE/g, the
 \&\*(L"/g\*(R" modifier causes all occurrences of the \s-1SEARCH\s0 pattern
 to be replaced by the \s-1REPLACE\s0 string.
+.PP
 As of \s-1DDC\s0 version 2.0.47, the non-standard regular expression modifier \*(L"/d\*(R"
 (mnemonic: 'ignore Diacritics') causes both the regular expression
 itself and the index items against which it is matched to be
