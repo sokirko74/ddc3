@@ -25,5 +25,7 @@
 extern void LoadDDCServer (ProtocolDensityEnum ProtocolDensity, string ServerConfigFile);
 extern void LoadLocalCorpora(ProtocolDensityEnum ProtocolDensity, string ConfigFile);
 extern void UnloadLocalCorporaAndServer ();
+extern void ShutdownDDCServer();
+extern void ShutdownLocalCorpora();
 
 #endif //__CORPORA_H_

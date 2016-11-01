@@ -43,11 +43,14 @@ public:
     virtual ~CDDCLeafServer()
     {};
 
+    /** close any open socket(s) this server administers, called on termination signal */
+    virtual void Shutdown();
+
 public:
     //--------------------------------------------------------------
     // CHost API: overrides
     /** close connected socket, implies cleanup of \a m_pHolder intermediate results */
-    virtual bool Close(SOCKET& rConnectedSocket);
+    virtual bool Close(SOCKET& rConnectedSocket, bool linger=false, int timeout=5);
 
 public:
     //--------------------------------------------------------------

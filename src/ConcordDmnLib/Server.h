@@ -75,6 +75,13 @@ public:
     virtual ~CDDCServer()
     { StopAcceptingThread(); };
 
+    /** close any open socket(s) this server administers, called on termination signal */
+    virtual void Shutdown()
+    {
+	m_LogFunction(Format("shutting down corpus server %s", m_CorpusName.c_str()));
+	StopAcceptingThread();
+    };
+
 public:
     //--------------------------------------------------------------
     // string_socket API: socket handlers

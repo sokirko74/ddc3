@@ -93,6 +93,17 @@ CDDCBranchServer::CDDCBranchServer(bool bDoubleMessage, ProtocolDensityEnum pdPr
     }
 };
 
+//----------------------------------------------------------------------
+void CDDCBranchServer::Shutdown()
+{
+    m_LogFunction(Format("shutting down branch server %s", m_CorpusName.c_str()));
+    for (int i=0; i < m_Hosts.size(); i++) {
+	m_Hosts[i].StopAcceptingThread();
+    }
+    StopAcceptingThread();
+};
+
+
 //==============================================================================
 // CRunQueryData
 

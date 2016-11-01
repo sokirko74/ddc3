@@ -164,6 +164,9 @@ public:
     virtual ~CDDCBranchServer()
     {};
 
+    /** close any open socket(s) this server administers, called on termination signal */
+    virtual void Shutdown();
+
 public:
     //--------------------------------------------------------------
     // DDCServer API: request handlers: required

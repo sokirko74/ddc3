@@ -21,12 +21,20 @@
 #include "LeafServer.h"
 #include "../common/ddcString.h"
 
+//----------------------------------------------------------------------
+void CDDCLeafServer::Shutdown()
+{
+    m_LogFunction(Format("shutting down leaf server %s", m_CorpusName.c_str()));
+    StopAcceptingThread();
+};
+
+
 //==============================================================================
 
 //----------------------------------------------------------------------
-bool CDDCLeafServer::Close(SOCKET& rConnectedSocket)
+bool CDDCLeafServer::Close(SOCKET& rConnectedSocket, bool linger, int timeout)
 {
-    bool rc = CHost::Close(rConnectedSocket);
+    bool rc = CHost::Close(rConnectedSocket, linger, timeout);
     if (m_pHolder) {
 	//-- clear local intermediate query results: don't hog memory after expensive (often failed) queries
 	m_pHolder->ClearQuery();

@@ -1,5 +1,9 @@
 ##-*- Mode: Change-Log; coding: utf-8; -*-
 
+v2.0.48 PENDING
+	+ fix zombie (TCP TIME_WAIT) sockets on server termination (set SO_LINGER for client sockets)
+	  - also should set SO_LINGER on client side; done in DDC::Concordance v0.30
+
 v2.0.47 Mon, 31 Oct 2016 16:21:25 +0100 moocow
 	+ fixed json syntax in error-responses for failed CDDCBranchServer (v)status and info requests
 	+ added optional user-supplied TIMEOUT parameter to 'status', 'vstatus', and 'info' requests

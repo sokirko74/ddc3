@@ -159,3 +159,14 @@ void UnloadLocalCorporaAndServer ()
 	delete pServer;
 	pServer = 0;
 };
+
+void ShutdownDDCServer() {
+	if (pServer==NULL) return;
+	pServer->Shutdown();
+}
+
+void ShutdownLocalCorpora() {
+	for (int i=0; i < LocalCorpora.size(); i++) {
+		LocalCorpora[i].Shutdown();
+	}
+}

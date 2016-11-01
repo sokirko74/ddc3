@@ -112,9 +112,16 @@ void UnloadData()
 	closelog();
 };
 
+void ShutdownServerSockets() {
+	concord_daemon_log("shutting down server socket(s)");
+	ShutdownDDCServer();
+	ShutdownLocalCorpora();
+};
+
 
 void  termination_handler(int signum)
 {
+	ShutdownServerSockets();
 	UnloadData();
 	concord_daemon_log("Exiting from concordance");
 	exit(1);

@@ -101,13 +101,20 @@ const ERROR_STRUCT errlist[] = {
 };
 
 
-bool CloseSocket(int l_socket)
+bool CloseSocket(int l_socket, bool linger, int timeout)
 {
 	bool bResult;
 	if (l_socket == -1) return true;
 #ifdef WIN32
 	bResult = closesocket(l_socket) == 0;
 #else
+	if (linger) {
+		//-- optionally force SO_LINGER socket option (e.g. timeout=0 for immediate termination via RST; avoid TCP TIME_WAIT)
+		struct linger sock_linger;
+		sock_linger.l_onoff = (linger ? 1 : 0);
+		sock_linger.l_linger = timeout;
+		setsockopt(l_socket, SOL_SOCKET, SO_LINGER, (void*)&sock_linger, sizeof(struct linger));
+	}
 	bResult =  close(l_socket) == 0;
 #endif
 	FDDEBUG(fprintf (stderr, "FDDEBUG: CloseSocket(%u) returned %s\n", (uint)l_socket, (bResult? "true" : "false"));)
@@ -353,17 +360,23 @@ SOCKET create_socket (const char* HostAddr, int Port, bool bBind, string& strErr
 		{
 			int flag = 1; 
 
-			if (setsockopt( l_socket, SOL_SOCKET, SO_REUSEADDR, (const char*)&flag, sizeof(flag) ) != 0)
+			if ( setsockopt(l_socket, SOL_SOCKET, SO_REUSEADDR, (const char*)&flag, sizeof(flag)) != 0 )
 			{
 				cause = Format("Socket Error! Could not set socket option SO_REUSEADDR: %s", strerror(errno));
-				CloseSocket(l_socket);
+				CloseSocket(l_socket, true, 0);
 				l_socket = -1;
 				continue;
 			};
+
 			Res = bind(l_socket, res->ai_addr, res->ai_addrlen);
 		}
-		else
+		else {
+			//-- set SO_LINGER for immediate termination for client sockets
+			struct linger sock_linger = {1,0};
+			setsockopt(l_socket, SOL_SOCKET, SO_LINGER, (void*)&sock_linger, sizeof(struct linger));
+			
 			Res = connect(l_socket, res->ai_addr, res->ai_addrlen);
+		}
 
 		
 
@@ -379,7 +392,7 @@ SOCKET create_socket (const char* HostAddr, int Port, bool bBind, string& strErr
 			}
 			else
 				cause = "Could not connect";
-			CloseSocket(l_socket);
+			CloseSocket(l_socket, true, 0);
 			l_socket = -1;
 			continue;
 		} 
@@ -607,11 +620,13 @@ void	CHost::StopAcceptingThread()
 		return;
 	else
 	{
-		// I have tried to send a special closing message to m_ListenSocket,
+		// I (=AS?) have tried to send a special closing message to m_ListenSocket,
 		// which should have a special processing in AnswerByRequest,
 		// but I failed to close a socket correctly, so I would like to do the following:
 		// (even knowing that m_ListenSocket was created in a different thread)
-		this->Close(m_ListenSocket);
+		//
+		// moo: set SO_LINGER timeout=0: close immediately
+		this->Close(m_ListenSocket, true, 0);
 	};
 };
 
@@ -640,14 +655,14 @@ void CHost::ClientError(int code, const string& msg, SOCKET& clientSocket)
 	}
 }
 
-bool CHost::Close(SOCKET& rConnectedSocket)
+bool CHost::Close(SOCKET& rConnectedSocket, bool linger, int timeout)
 {
 	if (rConnectedSocket == -1) return true;
-#if 0
+#ifdef DDC_DEBUG_FDLEAK
 	if (m_pdProtocolDensity  == pdHeavyDensity)
-		m_LogFunction(Format("closing socket descriptor #%i", rConnectedSocket));
+		m_LogFunction(Format("closing socket descriptor #%i (linger=%s, timeout=%i)", rConnectedSocket, (linger ? "true" : "false"), timeout));
 #endif
-	bool rc = CloseSocket(rConnectedSocket);
+	bool rc = CloseSocket(rConnectedSocket, linger, timeout);
 	rConnectedSocket = -1;
 	return rc;
 }
@@ -736,7 +751,7 @@ void   CHost::RunThread()
 	{
 		m_LogFunction(Format("close socket for %s %s", m_CorpusName.c_str(), GetAddressStr().c_str()));
 
-		if (!this->Close(m_ListenSocket))
+		if (!this->Close(m_ListenSocket, true, 1))
 			m_LogFunction ( Format("cannot close listen socket for %s", m_CorpusName.c_str())  );
 	};
 

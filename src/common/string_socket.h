@@ -88,9 +88,9 @@ public:
 
  public:
 	//! shutdown connected socket and perform any local cleanup methods
-	//! \li default implementation just wraps CloseSocket(rConnectedSocket)
+	//! \li default implementation just wraps CloseSocket(rConnectedSocket,linger,timeout)
 	//! \returns true on success, false otherwise
-	virtual bool Close(SOCKET& rConnectedSocket);
+	virtual bool Close(SOCKET& rConnectedSocket, bool linger=false, int timeout=5);
 
 	//! guts for request handling; override in subclasses
 	virtual string	ProcessSocketString(const string& S, SOCKET& rConnectedSocket);
@@ -114,7 +114,8 @@ extern SOCKET create_socket (const char* HostAddr, int Port, bool bBind, string&
 extern void flush_socket (SOCKET sock);
 extern bool SocketInitialize(bool bReadFromLocalFile);
 extern bool SocketDeinitialize();
-extern bool CloseSocket(int l_socket);
+/** close a socket; if \a linger is true, SO_LINGER option will be set for \a timeout second(s) */
+extern bool CloseSocket(int l_socket, bool linger=false, int timeout=5);
 extern string GetNetworkErrorString(const NetworkErrorsEnum& t);
 extern bool LoadHosts (string Path, vector<CHost>& Hosts);
 
