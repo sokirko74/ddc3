@@ -805,10 +805,11 @@ itself and the index items against which it is matched to be
 converted from the source encoding (currently only UTF-8 is supported) to
 7-bit ASCII before matching. Conversion is performed internally using
 iconv with the target
-encoding "ASCII//TRANSLIT"; which may map e.g. the Unicode codepoint
-U+00F6 ("E<0xf6>", LATIN SMALL LETTER O WITH DIAERESIS) either to a bare
-ASCII "o" (U+006F, LATIN SMALL LETTER O) or to the substring "oe".  Results
-vary depending on the underlying iconv implementation.
+encoding "ASCII//TRANSLIT"; which should map e.g. the Unicode codepoint
+U+00F6 ("E<0xf6>", LATIN SMALL LETTER O WITH DIAERESIS) to a bare ASCII "o" (U+006F, LATIN SMALL LETTER O).
+Results vary depending on the locale settings
+(LC_CTYPE)
+for the running DDC server process.
 
 
 

@@ -71,7 +71,7 @@
 .\" ========================================================================
 .\"
 .IX Title "DDC_QUERY 5"
-.TH DDC_QUERY 5 "2016-10-31" "2.0.48" "DDC Corpus Indexing System"
+.TH DDC_QUERY 5 "2016-11-02" "2.0.48" "DDC Corpus Indexing System"
 .\" For nroff, turn off justification.  Always turn off hyphenation; it makes
 .\" way too many mistakes in technical documents.
 .if n .ad l
@@ -860,10 +860,11 @@ itself and the index items against which it is matched to be
 converted from the source encoding (currently only \s-1UTF\-8\s0 is supported) to
 7\-bit \s-1ASCII\s0 before matching. Conversion is performed internally using
 iconv with the target
-encoding \*(L"\s-1ASCII//TRANSLIT\*(R"\s0; which may map e.g. the Unicode codepoint
-U+00F6 (\*(L"ö\*(R", \s-1LATIN SMALL LETTER O WITH DIAERESIS\s0) either to a bare
-\&\s-1ASCII \s0\*(L"o\*(R" (U+006F, \s-1LATIN SMALL LETTER O\s0) or to the substring \*(L"oe\*(R".  Results
-vary depending on the underlying iconv implementation.
+encoding \*(L"\s-1ASCII//TRANSLIT\*(R"\s0; which should map e.g. the Unicode codepoint
+U+00F6 (\*(L"ö\*(R", \s-1LATIN SMALL LETTER O WITH DIAERESIS\s0) to a bare \s-1ASCII \s0\*(L"o\*(R" (U+006F, \s-1LATIN SMALL LETTER O\s0).
+Results vary depending on the locale settings
+(\s-1LC_CTYPE\s0)
+for the running \s-1DDC\s0 server process.
 .PP
 \fIPunctuation Operators and Special Characters\fR
 .IX Subsection "Punctuation Operators and Special Characters"
