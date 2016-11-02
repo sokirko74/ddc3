@@ -38,8 +38,8 @@ and " " represents a literal space character (ASCII byte with decimal value 32).
  reload DEPTH
  clear_cache DEPTH
  
- expand_terms "\x01" PIPELINE "\x01" TERMS "\x01" TIMEOUT
- expand_terms "\x01" PIPELINE "\x01" TERMS "\x01" TIMEOUT "\x01" CORPUS
+ expand_terms " \x01" PIPELINE "\x01" TERMS "\x01" TIMEOUT
+ expand_terms " \x01" PIPELINE "\x01" TERMS "\x01" TIMEOUT "\x01" CORPUS
  
  get_paradigm " " WORD "\x01" ILEMMATIZE " " ILANG
  
