@@ -132,6 +132,7 @@ Returns status information on the running server as a JSON object of the form:
   "started":"2014-02-17T13:49:59Z",	//-- ISO-8601 timestamp of last server start
   "uptime":1392644999,			//-- server instance uptime in seconds
   "nrequests":21,			//-- number of served requests
+  "memkb":18756,			//-- memory resident set size in kb (>= v2.0.49, linux only)
   "cachesize":42,			//-- size of query cache (leaf servers only)
   "curlcachesize":24,			//-- size of curl cache (leaf servers only)
   "corpora":["corpus1","corpus2",...]	//-- registered subcorpus names (branch servers only)
