@@ -957,6 +957,29 @@ string GetIniFilePath()
   return GetRmlVariable()+"/etc";
 };
 
+//======================================================================
+// moo: get memory statistics using /proc/PID/statm (linux only)
+
+void DDCProcessMemoryStatus::fetch(pid_t pid)
+{
+    clear();
+
+    char filename[64];
+    sprintf(filename, "/proc/%d/statm", pid);
+
+    FILE *f = fopen(filename, "r");
+    if (f==NULL) return;
+
+    fscanf(f,
+	   "%zu %zu %zu %zu %zu %zu %zu",
+	   &size, &resident, &share, &text, &lib, &data, &dt);
+    fclose(f);
+    return;
+}
+
+//======================================================================
+// working with registry 
+
 string GetRegistryString (string RegistryPath)
 {
 	string Result = GetStringInnerFromTheFile(RegistryPath, GetIniFilePath(), GetRmlVariable().c_str());

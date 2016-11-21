@@ -253,6 +253,44 @@ extern string	CreateTempFileName();
 extern bool	MakeDir(const string& txt);
 extern bool     RemoveWithPrint (const string& FileName);
 
+//======================================================================
+// moo: get memory statistics using /proc/PID/statm (linux only)
+
+/** struct for reading /proc/PID/statm; see proc(5) */
+struct DDCProcessMemoryStatus {
+    size_t size;	//< total program size (same as VmSize in /proc/[pid]/status)
+    size_t resident;	//< resident set size (same as VmRSS in /proc/[pid]/status)
+    size_t share;	//< shared pages (i.e., backed by a file)
+    size_t text;	//< text (code)
+    size_t lib;		//< library (unused in Linux 2.6)
+    size_t data;	//< data + stack
+    size_t dt;		//< dirty pages (unused in Linux 2.6)
+
+    DDCProcessMemoryStatus(void)
+	: size(0), resident(0), share(0), text(0), lib(0), data(0), dt(0)
+    {};
+
+    inline void clear(void)
+    {
+	size=0;
+	resident=0;
+	share=0;
+	text=0;
+	lib=0;
+	data=0;
+	dt=0;
+    };
+
+    /** fetch memory statistics for process PID */
+    void fetch(pid_t pid);
+
+    /** fetch memory statistics for current process */
+    inline void fetch(void)
+    { fetch(getpid()); };
+};
+
+
+//======================================================================
 // working with registry 
 extern string	GetRegistryString (string RegistryPath);
 extern string	GetRegistryStringFromLocalIniFile (string RegistryPath);
@@ -266,6 +304,7 @@ extern string	GetIniFilePath();
 extern string	GetRmlVariable();
 extern string   BuildRMLPath (const char* s);
 
+//======================================================================
 // working with strings
 extern char*	rtrim (char* s);
 extern bool	IsSuperEqualChar (BYTE ch1, BYTE ch2, MorphLanguageEnum langua);
@@ -287,6 +326,7 @@ extern void		WinToKOI8 (string& s);
 
 extern DWORD	StringCrc32(const char* szString);
 
+//======================================================================
 //! moo: timestamp stuff
 extern string timestampLocal(time_t timeval);
 extern string timestampUTC(time_t timeval);
@@ -341,8 +381,7 @@ extern bool GetLanguageByString (string s, MorphLanguageEnum& Result);
 extern string GetStringByLanguage (MorphLanguageEnum Langua);
 
 
-
-
+//======================================================================
 /*
 clears also capacity
 */

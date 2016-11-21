@@ -252,6 +252,7 @@ void CDDCBranchServer::handle__status(string &Result, int timeout, bool verbose)
 	      + "\"started\":" + jsonStr(timestampUTC(m_tStarted)) + ",\n"
 	      + "\"uptime\":" + Format("%.0f", uptime) + ",\n"
 	      + "\"nrequests\":" + Format("%zd", m_nRequests) + ",\n"
+	      + "\"memkb\":" + Format("%zd", this->residentMemorySize()) + ",\n"
 	      + "\"corpora\":" + subResult + "}\n"
 	      );
     m_bExpectMore = false;

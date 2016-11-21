@@ -1,5 +1,8 @@
 ##-*- Mode: Change-Log; coding: utf-8; -*-
 
+v2.0.49-PENDING Mon, 21 Nov 2016 09:12:02 +0100 moocow
+	+ added 'memkb' key to server 'vstatus' response (linux only)
+
 v2.0.48 Tue, 01 Nov 2016 14:35:49 +0100 moocow
 	+ fix zombie (TCP TIME_WAIT) sockets on server termination (set SO_LINGER for client sockets)
 	  - also should set SO_LINGER on client side; done in DDC::Concordance v0.30

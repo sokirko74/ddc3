@@ -314,3 +314,12 @@ void CDDCServer::handle__clear_cache(string &Result, int depth)
     method_not_implemented("handle__clear_cache()");
 }
 
+//==============================================================================
+
+//----------------------------------------------------------------------
+size_t CDDCServer::residentMemorySize(void)
+{
+    DDCProcessMemoryStatus pms;
+    pms.fetch();
+    return pms.resident;
+}

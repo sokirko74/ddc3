@@ -124,6 +124,7 @@ void CDDCLeafServer::handle__status(string &Result, int timeout, bool verbose)
 	      + "\"started\":" + jsonStr(timestampUTC(m_tStarted)) + ",\n\t"
 	      + "\"uptime\":" + Format("%.0f", uptime) + ",\n\t"
 	      + "\"nrequests\":" + Format("%zd", m_nRequests) + ",\n\t"
+	      + "\"memkb\":" + Format("%zd", this->residentMemorySize()) + ",\n"
 	      + "\"cachesize\":" + Format("%zd", m_pHolder->CacheSize()) + ",\n\t"
 	      + "\"curlcachesize\":" + Format("%zd", ddcCurlCache.size()) + "\n\t"
 	      + "}"
