@@ -1,6 +1,6 @@
 ##-*- Mode: Change-Log; coding: utf-8; -*-
 
-v2.0.49-PENDING Mon, 21 Nov 2016 09:12:02 +0100 moocow
+v2.0.49 Wed, 23 Nov 2016 10:06:00 +0100 moocow
 	+ added 'memkb' attribute to server 'vstatus' response (linux only)
 
 v2.0.48 Tue, 01 Nov 2016 14:35:49 +0100 moocow
