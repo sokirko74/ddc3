@@ -130,10 +130,10 @@ public:
     /** request handler: close_socket: optional (leaf|branch) */
     virtual void handle__version(string &Result);
 
-    /** request handler: vstatus: optional (leaf|branch): default wraps handle__status(Result,true) */
+    /** request handler: vstatus: optional (leaf|branch): default wraps handle__status(Result,timeout,true) */
     virtual void handle__vstatus(string &Result, int timeout=10);
 
-    /** request handler: vinfo: optional (leaf|branch): default wraps handle__info(Result,true) */
+    /** request handler: vinfo: optional (leaf|branch): default wraps handle__info(Result,timeout,true) */
     virtual void handle__vinfo(string &Result, int timeout=10);
 
 public:

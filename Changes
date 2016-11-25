@@ -1,5 +1,8 @@
 ##-*- Mode: Change-Log; coding: utf-8; -*-
 
+v2.0.50 Fri, 25 Nov 2016 14:51:05 +0100 moocow
+	+ fixed query-compiler bug (mantis #17708); adjacent regexes (/foo/ /bar/) were parsed as (/bar/ /bar/)
+
 v2.0.49 Wed, 23 Nov 2016 10:06:00 +0100 moocow
 	+ added 'memkb' attribute to server 'vstatus' response (linux only)
 

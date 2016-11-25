@@ -1,6 +1,6 @@
 //-*- Mode: C++; c-basic-offset: 8; -*-
 //  DDC originally by Alexey Sokirko
-//  Changes and modifications 2011-2015 by Bryan Jurish
+//  Changes and modifications 2011-2016 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -220,41 +220,41 @@ void concord_daemon_log(const string&  t)
 	FILE * fp = NULL;
 	try {
 		
-		string log_path  = GetRegistryString( "Software\\Dialing\\Logs\\Main" );
 		struct tm today = RmlGetCurrentTime();
 		const char *loglabel = ddc_log_label();
 		char tmpbuf[255];
-
-		/*-- moo (Tue, 10 May 2011 11:00:05 +0200)
-		 * + the old ddc log-file format (e.g. "10May2011.log") is really annoying;
-		 * + changing it to ISO 8601 format (e.g. "2011-05-10.log")
-		 * + also changing annoying upper-case "Logs/" to lower-case "log" here,
-		 *   to be more conventional (and easier on the old carpal tunnels)
-		 */
-		//strftime( tmpbuf, 255,"%d%B%Y", &today );
-		strftime(tmpbuf, 255, "%F", &today);
-		string FileName = log_path + Format("/log/concord/%s.log", tmpbuf);
-
 		strftime( tmpbuf, 255,"%H:%M:%S", &today );
-
-		//-- log to local file LOG_PATH/log/concord/YYYY-MM-DD.log
-		if (concord_daemon_log_files && (fp=fopen (FileName.c_str(), "a"))) {
-			fprintf (fp, "%s (%s) > %s\n", tmpbuf, loglabel, t.c_str());
-			fclose(fp);
-		}
-
+		
 		//-- log to stderr
 		if (concord_daemon_log_stderr) {
 			fprintf(stderr, "%s (%s) > %s\n", tmpbuf, loglabel, t.c_str());
 			fflush(stderr);
 		}
 
-		//-- log to syslog
 #if HAVE_SYSLOG_H
+		//-- log to syslog
 		if (concord_daemon_log_syslog) {
 			syslog(LOG_NOTICE, "(%s) > %s", loglabel, t.c_str());
 		}
 #endif
+
+		//-- log to local file LOG_PATH/log/concord/YYYY-MM-DD.log
+		if (concord_daemon_log_files) {
+			/*-- moo (Tue, 10 May 2011 11:00:05 +0200)
+			 * + the old ddc log-file format (e.g. "10May2011.log") is really annoying;
+			 * + changing it to ISO 8601 format (e.g. "2011-05-10.log")
+			 * + also changing annoying upper-case "Logs/" to lower-case "log" here,
+			 *   to be more conventional (and easier on the old carpal tunnels)
+			 */
+			//strftime( tmpbuf, 255,"%d%B%Y", &today );
+			strftime(tmpbuf, 255, "%F", &today);
+			string log_path = GetRegistryString( "Software\\Dialing\\Logs\\Main" );
+			string FileName = log_path + Format("/log/concord/%s.log", tmpbuf);
+			if ((fp=fopen (FileName.c_str(), "a"))) {
+				fprintf (fp, "%s (%s) > %s\n", tmpbuf, loglabel, t.c_str());
+				fclose(fp);
+			}
+		}
 	}
 
 	catch (...) {

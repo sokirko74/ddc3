@@ -33,6 +33,7 @@
 // DEBUG_PARSER : define this to debug the lexer+parser pair
 #undef DEBUG_PARSER
 #undef DEBUG_LEXER
+#undef DEBUG_COMPILER
 #undef DEBUG_QSTRING
 
 //#define DEBUG_PARSER 1
@@ -239,7 +240,8 @@ int CQueryCompiler::yyqlex(void* valp)
 	case NEG_REGEX:
 	case REGEX_SEARCH:
 		m_RegexPattern = s;
-		((YYSTYPE *)valp)->m_str = &m_RegexPattern;
+		// 2016-11-25: setting valp->m_str=&m_RegexPattern chokes on (/foo/ /bar/) --> (/bar/ /bar/)
+		((YYSTYPE *)valp)->m_str = newString(s);
 		break;
 	case REGOPT:
 		m_RegexModifiers = s;

@@ -553,6 +553,16 @@ bool CHost::ReadFromString (string S)
 	return true;
 };
 
+bool CHost::Init (const string &CorpusName, const string& HostAddr, int Port, const string& LocalPath)
+{
+	m_CorpusName = CorpusName;
+	m_HostAddr   = HostAddr;
+	m_Port       = Port;
+	m_LocalPath  = LocalPath;
+	if (m_HostAddr.empty() || m_Port==-1) return false;
+	return true;
+};
+
 int	CHost::CreateAndConnectSocket(string& strError) const
 {
 	int l_socket = create_socket(m_HostAddr.c_str(), m_Port, false, strError);

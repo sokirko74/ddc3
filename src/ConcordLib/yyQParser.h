@@ -121,7 +121,7 @@ extern int yyqdebug;
 typedef union YYSTYPE YYSTYPE;
 union YYSTYPE
 {
-#line 72 "yyQParser.y" /* yacc.c:1909  */
+#line 74 "yyQParser.y" /* yacc.c:1909  */
 
   std::string*	 	m_str;     /* For returning simple strings  */
   int                   m_int;     /* For returning integers */

@@ -310,6 +310,7 @@ int do_start(bool clientMode=false)
 // MAIN
 int	main(int argc, char	**argv)
 {
+
 	prog = argv[0];
 	sprintf(log_label, "main[pid=%i]", getpid());
 

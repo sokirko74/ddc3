@@ -68,7 +68,7 @@
 
 
 /* Copy the first part of user declarations.  */
-#line 33 "yyQParser.y" /* yacc.c:339  */
+#line 35 "yyQParser.y" /* yacc.c:339  */
 
 /*======================================================================
  * Bison C Header
@@ -215,7 +215,7 @@ extern int yyqdebug;
 typedef union YYSTYPE YYSTYPE;
 union YYSTYPE
 {
-#line 72 "yyQParser.y" /* yacc.c:355  */
+#line 74 "yyQParser.y" /* yacc.c:355  */
 
   std::string*	 	m_str;     /* For returning simple strings  */
   int                   m_int;     /* For returning integers */
@@ -540,34 +540,34 @@ static const yytype_uint8 yytranslate[] =
   /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_uint16 yyrline[] =
 {
-       0,   313,   313,   314,   321,   325,   326,   330,   331,   332,
-     333,   337,   338,   342,   343,   347,   348,   352,   356,   357,
-     358,   359,   363,   364,   365,   366,   367,   368,   369,   376,
-     383,   384,   385,   391,   392,   393,   394,   395,   396,   397,
-     398,   399,   400,   404,   405,   406,   410,   411,   412,   413,
-     414,   415,   416,   420,   421,   422,   423,   424,   425,   426,
-     427,   431,   432,   436,   437,   438,   439,   440,   441,   445,
-     446,   447,   451,   452,   453,   457,   458,   459,   463,   464,
-     465,   466,   474,   475,   476,   477,   478,   479,   483,   484,
-     485,   486,   487,   488,   492,   493,   497,   498,   499,   500,
-     501,   502,   506,   507,   508,   512,   513,   517,   518,   522,
-     523,   524,   525,   532,   533,   534,   535,   539,   540,   548,
-     549,   550,   551,   558,   559,   560,   567,   568,   573,   574,
-     575,   576,   584,   585,   586,   590,   591,   598,   599,   600,
-     601,   602,   603,   604,   605,   606,   607,   608,   609,   610,
-     611,   612,   613,   614,   615,   616,   617,   618,   619,   620,
-     621,   626,   627,   631,   632,   636,   637,   638,   639,   643,
-     644,   648,   649,   653,   654,   658,   659,   663,   664,   668,
-     669,   673,   674,   678,   679,   683,   684,   688,   689,   693,
-     694,   698,   699,   703,   704,   708,   709,   713,   714,   718,
-     722,   726,   730,   731,   735,   739,   740,   744,   752,   753,
-     754,   759,   760,   761,   762,   766,   767,   768,   769,   770,
-     771,   775,   776,   780,   781,   782,   786,   787,   788,   796,
-     797,   798,   799,   800,   801,   802,   803,   804,   805,   808,
-     812,   813,   817,   818,   819,   820,   828,   829,   833,   834,
-     837,   838,   839,   840,   841,   842,   843,   844,   846,   847,
-     853,   854,   855,   858,   861,   862,   863,   865,   867,   868,
-     871,   872,   876,   877,   880,   883,   886,   887,   890
+       0,   315,   315,   316,   323,   327,   328,   332,   333,   334,
+     335,   339,   340,   344,   345,   349,   350,   354,   358,   359,
+     360,   361,   365,   366,   367,   368,   369,   370,   371,   378,
+     385,   386,   387,   393,   394,   395,   396,   397,   398,   399,
+     400,   401,   402,   406,   407,   408,   412,   413,   414,   415,
+     416,   417,   418,   422,   423,   424,   425,   426,   427,   428,
+     429,   433,   434,   438,   439,   440,   441,   442,   443,   447,
+     448,   449,   453,   454,   455,   459,   460,   461,   465,   466,
+     467,   468,   476,   477,   478,   479,   480,   481,   485,   486,
+     487,   488,   489,   490,   494,   495,   499,   500,   501,   502,
+     503,   504,   508,   509,   510,   514,   515,   519,   520,   524,
+     525,   526,   527,   534,   535,   536,   537,   541,   542,   550,
+     551,   552,   553,   560,   561,   562,   569,   570,   575,   576,
+     577,   578,   586,   587,   588,   592,   593,   600,   601,   602,
+     603,   604,   605,   606,   607,   608,   609,   610,   611,   612,
+     613,   614,   615,   616,   617,   618,   619,   620,   621,   622,
+     623,   628,   629,   633,   634,   638,   639,   640,   641,   645,
+     646,   650,   651,   655,   656,   660,   661,   665,   666,   670,
+     671,   675,   676,   680,   681,   685,   686,   690,   691,   695,
+     696,   700,   701,   705,   706,   710,   711,   715,   716,   720,
+     724,   728,   732,   733,   737,   741,   742,   746,   754,   755,
+     756,   761,   762,   763,   764,   768,   769,   770,   771,   772,
+     773,   777,   778,   782,   783,   784,   788,   789,   790,   798,
+     799,   800,   801,   802,   803,   804,   805,   806,   807,   810,
+     814,   815,   819,   820,   821,   822,   830,   831,   835,   836,
+     839,   840,   841,   842,   843,   844,   845,   846,   848,   849,
+     855,   856,   857,   860,   863,   864,   865,   867,   869,   870,
+     873,   874,   878,   879,   882,   885,   888,   889,   892
 };
 #endif
 
@@ -1762,1663 +1762,1663 @@ yyreduce:
   switch (yyn)
     {
         case 2:
-#line 313 "yyQParser.y" /* yacc.c:1646  */
+#line 315 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pnode) = _qc->SetQuery((yyvsp[0].m_pnode)); }
 #line 1768 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 3:
-#line 314 "yyQParser.y" /* yacc.c:1646  */
+#line 316 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pnode) = _qc->SetQuery((yyvsp[0].m_pnode)); }
 #line 1774 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 4:
-#line 321 "yyQParser.y" /* yacc.c:1646  */
+#line 323 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pnode) = _qc->PushCountQuery((yyvsp[-3].m_pnode)); }
 #line 1780 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 5:
-#line 325 "yyQParser.y" /* yacc.c:1646  */
+#line 327 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pfilt)=NULL; }
 #line 1786 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 6:
-#line 326 "yyQParser.y" /* yacc.c:1646  */
+#line 328 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pfilt)=(yyvsp[-1].m_pfilt);   }
 #line 1792 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 7:
-#line 330 "yyQParser.y" /* yacc.c:1646  */
+#line 332 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pfilt)=(yyvsp[0].m_pfilt); }
 #line 1798 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 8:
-#line 331 "yyQParser.y" /* yacc.c:1646  */
+#line 333 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pfilt)=(yyvsp[0].m_pfilt); }
 #line 1804 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 9:
-#line 332 "yyQParser.y" /* yacc.c:1646  */
+#line 334 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pfilt)=(yyvsp[0].m_pfilt); }
 #line 1810 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 10:
-#line 333 "yyQParser.y" /* yacc.c:1646  */
+#line 335 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pfilt)=(yyvsp[0].m_pfilt); }
 #line 1816 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 11:
-#line 337 "yyQParser.y" /* yacc.c:1646  */
+#line 339 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pfilt)=NULL; }
 #line 1822 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 12:
-#line 338 "yyQParser.y" /* yacc.c:1646  */
+#line 340 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pfilt)=NULL; }
 #line 1828 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 13:
-#line 342 "yyQParser.y" /* yacc.c:1646  */
+#line 344 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pfilt)=NULL; _qc->m_qCountSample = (yyvsp[0].m_int); }
 #line 1834 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 14:
-#line 343 "yyQParser.y" /* yacc.c:1646  */
+#line 345 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pfilt)=NULL; _qc->m_qCountSample = (yyvsp[-1].m_int); }
 #line 1840 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 15:
-#line 347 "yyQParser.y" /* yacc.c:1646  */
+#line 349 "yyQParser.y" /* yacc.c:1646  */
     { _qc->m_qCountLimit = (yyvsp[0].m_int); }
 #line 1846 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 16:
-#line 348 "yyQParser.y" /* yacc.c:1646  */
+#line 350 "yyQParser.y" /* yacc.c:1646  */
     { _qc->m_qCountLimit = (yyvsp[-1].m_int); }
 #line 1852 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 17:
-#line 352 "yyQParser.y" /* yacc.c:1646  */
+#line 354 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pfilt)=(yyvsp[-1].m_pfilt); }
 #line 1858 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 18:
-#line 356 "yyQParser.y" /* yacc.c:1646  */
+#line 358 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pfilt)=NULL; _qc->m_qCountSort = LessByCountKey; }
 #line 1864 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 19:
-#line 357 "yyQParser.y" /* yacc.c:1646  */
+#line 359 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pfilt)=NULL; _qc->m_qCountSort = GreaterByCountKey; }
 #line 1870 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 20:
-#line 358 "yyQParser.y" /* yacc.c:1646  */
+#line 360 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pfilt)=NULL; _qc->m_qCountSort = LessByCountValue; }
 #line 1876 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 21:
-#line 359 "yyQParser.y" /* yacc.c:1646  */
+#line 361 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pfilt)=NULL; _qc->m_qCountSort = GreaterByCountValue; }
 #line 1882 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 22:
-#line 363 "yyQParser.y" /* yacc.c:1646  */
+#line 365 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pfilt)=NULL; }
 #line 1888 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 23:
-#line 364 "yyQParser.y" /* yacc.c:1646  */
+#line 366 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pfilt)=NULL; }
 #line 1894 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 24:
-#line 365 "yyQParser.y" /* yacc.c:1646  */
+#line 367 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pfilt)=NULL; }
 #line 1900 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 25:
-#line 366 "yyQParser.y" /* yacc.c:1646  */
+#line 368 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pfilt)=NULL; _qc->m_qCountLo = *(yyvsp[-1].m_str); }
 #line 1906 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 26:
-#line 367 "yyQParser.y" /* yacc.c:1646  */
+#line 369 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pfilt)=NULL; _qc->m_qCountLo = *(yyvsp[-2].m_str); }
 #line 1912 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 27:
-#line 368 "yyQParser.y" /* yacc.c:1646  */
+#line 370 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pfilt)=NULL; _qc->m_qCountHi = *(yyvsp[-1].m_str); }
 #line 1918 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 28:
-#line 369 "yyQParser.y" /* yacc.c:1646  */
+#line 371 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pfilt)=NULL; _qc->m_qCountLo = *(yyvsp[-3].m_str); _qc->m_qCountHi = *(yyvsp[-1].m_str); }
 #line 1924 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 29:
-#line 376 "yyQParser.y" /* yacc.c:1646  */
+#line 378 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pnode) = (yyvsp[-1].m_pnode); }
 #line 1930 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 30:
-#line 383 "yyQParser.y" /* yacc.c:1646  */
+#line 385 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pfilt)=NULL; }
 #line 1936 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 31:
-#line 384 "yyQParser.y" /* yacc.c:1646  */
+#line 386 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pfilt)=NULL; }
 #line 1942 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 32:
-#line 385 "yyQParser.y" /* yacc.c:1646  */
+#line 387 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pfilt)=NULL; _qc->m_qOptions.m_QFilters.push_back((yyvsp[0].m_pfilt)); }
 #line 1948 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 33:
-#line 391 "yyQParser.y" /* yacc.c:1646  */
+#line 393 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pfilt)=NULL; }
 #line 1954 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 34:
-#line 392 "yyQParser.y" /* yacc.c:1646  */
+#line 394 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pfilt)=NULL; _qc->m_qOptions.m_ContextSentencesCount = (size_t)(yyvsp[0].m_int); }
 #line 1960 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 35:
-#line 393 "yyQParser.y" /* yacc.c:1646  */
+#line 395 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pfilt)=NULL; _qc->m_qOptions.m_ContextSentencesCount = (size_t)(yyvsp[-1].m_int); }
 #line 1966 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 36:
-#line 394 "yyQParser.y" /* yacc.c:1646  */
+#line 396 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pfilt)=NULL; _qc->m_qOptions.m_Within.push_back(*(yyvsp[0].m_str)); }
 #line 1972 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 37:
-#line 395 "yyQParser.y" /* yacc.c:1646  */
+#line 397 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pfilt)=NULL; _qc->m_qOptions.m_bSeparateHits = 1; }
 #line 1978 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 38:
-#line 396 "yyQParser.y" /* yacc.c:1646  */
+#line 398 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pfilt)=NULL; _qc->m_qOptions.m_bSeparateHits = 0; }
 #line 1984 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 39:
-#line 397 "yyQParser.y" /* yacc.c:1646  */
+#line 399 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pfilt)=NULL; _qc->m_qOptions.m_bEnableBibliography = false;  }
 #line 1990 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 40:
-#line 398 "yyQParser.y" /* yacc.c:1646  */
+#line 400 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pfilt)=NULL; _qc->m_qOptions.m_bEnableBibliography = true;  }
 #line 1996 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 41:
-#line 399 "yyQParser.y" /* yacc.c:1646  */
+#line 401 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pfilt)=NULL; _qc->m_qOptions.m_bDebugRank = true;  }
 #line 2002 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 42:
-#line 400 "yyQParser.y" /* yacc.c:1646  */
+#line 402 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pfilt)=NULL; _qc->m_qOptions.m_bDebugRank = false;  }
 #line 2008 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 43:
-#line 404 "yyQParser.y" /* yacc.c:1646  */
+#line 406 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pfilt)=NULL; }
 #line 2014 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 44:
-#line 405 "yyQParser.y" /* yacc.c:1646  */
+#line 407 "yyQParser.y" /* yacc.c:1646  */
     { _qc->m_qOptions.m_Subcorpora.push_back(*(yyvsp[0].m_str)); (yyval.m_pfilt) = NULL; }
 #line 2020 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 45:
-#line 406 "yyQParser.y" /* yacc.c:1646  */
+#line 408 "yyQParser.y" /* yacc.c:1646  */
     { _qc->m_qOptions.m_Subcorpora.push_back(*(yyvsp[0].m_str)); (yyval.m_pfilt) = (yyvsp[-2].m_pfilt); }
 #line 2026 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 46:
-#line 410 "yyQParser.y" /* yacc.c:1646  */
+#line 412 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pfilt)=(yyvsp[0].m_pfilt); }
 #line 2032 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 47:
-#line 411 "yyQParser.y" /* yacc.c:1646  */
+#line 413 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pfilt)=(yyvsp[0].m_pfilt); }
 #line 2038 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 48:
-#line 412 "yyQParser.y" /* yacc.c:1646  */
+#line 414 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pfilt)=(yyvsp[0].m_pfilt); }
 #line 2044 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 49:
-#line 413 "yyQParser.y" /* yacc.c:1646  */
+#line 415 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pfilt)=(yyvsp[0].m_pfilt); }
 #line 2050 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 50:
-#line 414 "yyQParser.y" /* yacc.c:1646  */
+#line 416 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pfilt)=(yyvsp[0].m_pfilt); }
 #line 2056 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 51:
-#line 415 "yyQParser.y" /* yacc.c:1646  */
+#line 417 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pfilt)=(yyvsp[0].m_pfilt); }
 #line 2062 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 52:
-#line 416 "yyQParser.y" /* yacc.c:1646  */
+#line 418 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pfilt)=(yyvsp[0].m_pfilt); }
 #line 2068 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 53:
-#line 420 "yyQParser.y" /* yacc.c:1646  */
+#line 422 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pfilt) = new CQFHasFieldValue(*(yyvsp[-3].m_str),*(yyvsp[-1].m_str)); }
 #line 2074 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 54:
-#line 421 "yyQParser.y" /* yacc.c:1646  */
+#line 423 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pfilt) = new CQFHasFieldRegex(*(yyvsp[-3].m_str),*(yyvsp[-1].m_str)); }
 #line 2080 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 55:
-#line 422 "yyQParser.y" /* yacc.c:1646  */
+#line 424 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pfilt) = new CQFHasFieldRegex(*(yyvsp[-3].m_str),*(yyvsp[-1].m_str)); ((CQFHasFieldRegex*)(yyval.m_pfilt))->Negate(); }
 #line 2086 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 56:
-#line 423 "yyQParser.y" /* yacc.c:1646  */
+#line 425 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pfilt) = new CQFHasFieldPrefix(*(yyvsp[-3].m_str),*(yyvsp[-1].m_str)); }
 #line 2092 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 57:
-#line 424 "yyQParser.y" /* yacc.c:1646  */
+#line 426 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pfilt) = new CQFHasFieldSuffix(*(yyvsp[-3].m_str),*(yyvsp[-1].m_str)); }
 #line 2098 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 58:
-#line 425 "yyQParser.y" /* yacc.c:1646  */
+#line 427 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pfilt) = new CQFHasFieldInfix(*(yyvsp[-3].m_str),*(yyvsp[-1].m_str)); }
 #line 2104 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 59:
-#line 426 "yyQParser.y" /* yacc.c:1646  */
+#line 428 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pfilt) = new CQFHasFieldSet(*(yyvsp[-5].m_str),_qc->m_WordSet); }
 #line 2110 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 60:
-#line 427 "yyQParser.y" /* yacc.c:1646  */
+#line 429 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pfilt) = (yyvsp[0].m_pfilt); ((CQFHasFieldValue*)(yyval.m_pfilt))->Negate(); }
 #line 2116 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 61:
-#line 431 "yyQParser.y" /* yacc.c:1646  */
+#line 433 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pfilt) = new CQFRankSort(GreaterByRank); }
 #line 2122 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 62:
-#line 432 "yyQParser.y" /* yacc.c:1646  */
+#line 434 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pfilt) = new CQFRankSort(LessByRank); }
 #line 2128 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 63:
-#line 436 "yyQParser.y" /* yacc.c:1646  */
+#line 438 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pfilt) = _newCFilter(LessByLeftContext,      -1); }
 #line 2134 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 64:
-#line 437 "yyQParser.y" /* yacc.c:1646  */
+#line 439 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pfilt) = _newCFilter(GreaterByLeftContext,   -1); }
 #line 2140 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 65:
-#line 438 "yyQParser.y" /* yacc.c:1646  */
+#line 440 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pfilt) = _newCFilter(LessByRightContext,      1); }
 #line 2146 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 66:
-#line 439 "yyQParser.y" /* yacc.c:1646  */
+#line 441 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pfilt) = _newCFilter(GreaterByRightContext,   1); }
 #line 2152 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 67:
-#line 440 "yyQParser.y" /* yacc.c:1646  */
+#line 442 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pfilt) = _newCFilter(LessByMiddleContext,     0); }
 #line 2158 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 68:
-#line 441 "yyQParser.y" /* yacc.c:1646  */
+#line 443 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pfilt) = _newCFilter(GreaterByMiddleContext,  0); }
 #line 2164 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 69:
-#line 445 "yyQParser.y" /* yacc.c:1646  */
+#line 447 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pfilt) = _newFilter(CQFSizeSort, LessBySize); }
 #line 2170 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 70:
-#line 446 "yyQParser.y" /* yacc.c:1646  */
+#line 448 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pfilt) = _newFilter(CQFSizeSort, GreaterBySize); }
 #line 2176 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 71:
-#line 447 "yyQParser.y" /* yacc.c:1646  */
+#line 449 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pfilt) = new CQFSizeSort(LessBySize, *(yyvsp[-1].m_str), *(yyvsp[-1].m_str)); }
 #line 2182 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 72:
-#line 451 "yyQParser.y" /* yacc.c:1646  */
+#line 453 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pfilt) = _newFilter(CQFDateSort, LessByDate); }
 #line 2188 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 73:
-#line 452 "yyQParser.y" /* yacc.c:1646  */
+#line 454 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pfilt) = _newFilter(CQFDateSort, GreaterByDate); }
 #line 2194 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 74:
-#line 453 "yyQParser.y" /* yacc.c:1646  */
+#line 455 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pfilt) = new CQFDateSort(LessByDate, *(yyvsp[-1].m_str), *(yyvsp[-1].m_str)); }
 #line 2200 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 75:
-#line 457 "yyQParser.y" /* yacc.c:1646  */
+#line 459 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pfilt) = new CQFRandomSort(); }
 #line 2206 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 76:
-#line 458 "yyQParser.y" /* yacc.c:1646  */
+#line 460 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pfilt) = new CQFRandomSort(); }
 #line 2212 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 77:
-#line 459 "yyQParser.y" /* yacc.c:1646  */
+#line 461 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pfilt) = new CQFRandomSort(*(yyvsp[-1].m_str)); }
 #line 2218 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 78:
-#line 463 "yyQParser.y" /* yacc.c:1646  */
+#line 465 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pfilt) = _newFilter(CQFDateSort, LessByDate); }
 #line 2224 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 79:
-#line 464 "yyQParser.y" /* yacc.c:1646  */
+#line 466 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pfilt) = _newFilter(CQFDateSort, GreaterByDate); }
 #line 2230 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 80:
-#line 465 "yyQParser.y" /* yacc.c:1646  */
+#line 467 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pfilt) = _newBFilter(LessByFreeBiblField, *(yyvsp[-2].m_str)); }
 #line 2236 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 81:
-#line 466 "yyQParser.y" /* yacc.c:1646  */
+#line 468 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pfilt) = _newBFilter(GreaterByFreeBiblField, *(yyvsp[-2].m_str)); }
 #line 2242 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 82:
-#line 474 "yyQParser.y" /* yacc.c:1646  */
+#line 476 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pfilt)=NULL; _qc->SetFilterBounds(); }
 #line 2248 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 83:
-#line 475 "yyQParser.y" /* yacc.c:1646  */
+#line 477 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pfilt)=NULL; _qc->SetFilterBounds(); }
 #line 2254 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 84:
-#line 476 "yyQParser.y" /* yacc.c:1646  */
+#line 478 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pfilt)=NULL; _qc->SetFilterBounds(*(yyvsp[-1].m_str)); }
 #line 2260 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 85:
-#line 477 "yyQParser.y" /* yacc.c:1646  */
+#line 479 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pfilt)=NULL; _qc->SetFilterBounds(*(yyvsp[-2].m_str)); }
 #line 2266 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 86:
-#line 478 "yyQParser.y" /* yacc.c:1646  */
+#line 480 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pfilt)=NULL; _qc->SetFilterBounds(*(yyvsp[-3].m_str),*(yyvsp[-1].m_str)); }
 #line 2272 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 87:
-#line 479 "yyQParser.y" /* yacc.c:1646  */
+#line 481 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pfilt)=NULL; _qc->SetFilterBounds(string(""),*(yyvsp[-1].m_str)); }
 #line 2278 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 88:
-#line 483 "yyQParser.y" /* yacc.c:1646  */
+#line 485 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pfilt)=NULL; _qc->SetFilterBounds(); }
 #line 2284 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 89:
-#line 484 "yyQParser.y" /* yacc.c:1646  */
+#line 486 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pfilt)=NULL; _qc->SetFilterBounds(); }
 #line 2290 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 90:
-#line 485 "yyQParser.y" /* yacc.c:1646  */
+#line 487 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pfilt)=NULL; _qc->SetFilterBounds(*(yyvsp[-1].m_str)); }
 #line 2296 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 91:
-#line 486 "yyQParser.y" /* yacc.c:1646  */
+#line 488 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pfilt)=NULL; _qc->SetFilterBounds(*(yyvsp[-2].m_str)); }
 #line 2302 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 92:
-#line 487 "yyQParser.y" /* yacc.c:1646  */
+#line 489 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pfilt)=NULL; _qc->SetFilterBounds(*(yyvsp[-3].m_str),*(yyvsp[-1].m_str)); }
 #line 2308 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 93:
-#line 488 "yyQParser.y" /* yacc.c:1646  */
+#line 490 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pfilt)=NULL; _qc->SetFilterBounds(string(""),*(yyvsp[-1].m_str)); }
 #line 2314 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 94:
-#line 492 "yyQParser.y" /* yacc.c:1646  */
+#line 494 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pfilt)=NULL; _qc->SetFilterBounds(); }
 #line 2320 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 95:
-#line 493 "yyQParser.y" /* yacc.c:1646  */
+#line 495 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pfilt)=(yyvsp[0].m_pfilt); }
 #line 2326 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 96:
-#line 497 "yyQParser.y" /* yacc.c:1646  */
+#line 499 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pfilt)=NULL; _qc->SetFilterBounds(); }
 #line 2332 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 97:
-#line 498 "yyQParser.y" /* yacc.c:1646  */
+#line 500 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pfilt)=NULL; _qc->SetFilterBounds(); }
 #line 2338 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 98:
-#line 499 "yyQParser.y" /* yacc.c:1646  */
+#line 501 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pfilt)=NULL; _qc->SetFilterBounds(*(yyvsp[0].m_str)); }
 #line 2344 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 99:
-#line 500 "yyQParser.y" /* yacc.c:1646  */
+#line 502 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pfilt)=NULL; _qc->SetFilterBounds(*(yyvsp[-1].m_str)); }
 #line 2350 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 100:
-#line 501 "yyQParser.y" /* yacc.c:1646  */
+#line 503 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pfilt)=NULL; _qc->SetFilterBounds(string(""),*(yyvsp[0].m_str)); }
 #line 2356 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 101:
-#line 502 "yyQParser.y" /* yacc.c:1646  */
+#line 504 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pfilt)=NULL; _qc->SetFilterBounds(*(yyvsp[-2].m_str),*(yyvsp[0].m_str)); }
 #line 2362 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 102:
-#line 506 "yyQParser.y" /* yacc.c:1646  */
+#line 508 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_int)=0; _qc->SetFilterKey(); }
 #line 2368 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 103:
-#line 507 "yyQParser.y" /* yacc.c:1646  */
+#line 509 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_int)=0; _qc->SetFilterBounds(); }
 #line 2374 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 104:
-#line 508 "yyQParser.y" /* yacc.c:1646  */
+#line 510 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_int)=0; }
 #line 2380 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 105:
-#line 512 "yyQParser.y" /* yacc.c:1646  */
+#line 514 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_int)=0; _qc->SetFilterKey(*(yyvsp[-2].m_str), (yyvsp[-1].m_int), (yyvsp[0].m_int)); }
 #line 2386 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 106:
-#line 513 "yyQParser.y" /* yacc.c:1646  */
+#line 515 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_int)=0; _qc->SetFilterKey("",  (yyvsp[-1].m_int), (yyvsp[0].m_int)); }
 #line 2392 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 107:
-#line 517 "yyQParser.y" /* yacc.c:1646  */
+#line 519 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_int)=0; }
 #line 2398 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 108:
-#line 518 "yyQParser.y" /* yacc.c:1646  */
+#line 520 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_int)=(yyvsp[0].m_int); }
 #line 2404 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 109:
-#line 522 "yyQParser.y" /* yacc.c:1646  */
+#line 524 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_int)=NOINT; }
 #line 2410 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 110:
-#line 523 "yyQParser.y" /* yacc.c:1646  */
+#line 525 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_int)=(yyvsp[0].m_int); }
 #line 2416 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 111:
-#line 524 "yyQParser.y" /* yacc.c:1646  */
+#line 526 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_int)=(yyvsp[0].m_int); }
 #line 2422 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 112:
-#line 525 "yyQParser.y" /* yacc.c:1646  */
+#line 527 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_int)=-(yyvsp[0].m_int); }
 #line 2428 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 113:
-#line 532 "yyQParser.y" /* yacc.c:1646  */
+#line 534 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pnode) = (yyvsp[0].m_pnode); }
 #line 2434 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 114:
-#line 533 "yyQParser.y" /* yacc.c:1646  */
+#line 535 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pnode) = (yyvsp[0].m_pnode); }
 #line 2440 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 115:
-#line 534 "yyQParser.y" /* yacc.c:1646  */
+#line 536 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pnode) = (yyvsp[0].m_pnode); }
 #line 2446 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 116:
-#line 535 "yyQParser.y" /* yacc.c:1646  */
+#line 537 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pnode) = (yyvsp[0].m_pnode); }
 #line 2452 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 117:
-#line 539 "yyQParser.y" /* yacc.c:1646  */
+#line 541 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pnode) = (yyvsp[-1].m_pnode); (yyval.m_pnode)->SetMatchId((yyvsp[0].m_int)); }
 #line 2458 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 118:
-#line 540 "yyQParser.y" /* yacc.c:1646  */
+#line 542 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pnode) = (yyvsp[-1].m_pnode); }
 #line 2464 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 119:
-#line 548 "yyQParser.y" /* yacc.c:1646  */
+#line 550 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pnode) = _qc->PushQuery(new CQAnd((yyvsp[-2].m_pnode),(yyvsp[0].m_pnode))); }
 #line 2470 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 120:
-#line 549 "yyQParser.y" /* yacc.c:1646  */
+#line 551 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pnode) = _qc->PushQuery(new CQOr((yyvsp[-2].m_pnode),(yyvsp[0].m_pnode))); }
 #line 2476 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 121:
-#line 550 "yyQParser.y" /* yacc.c:1646  */
+#line 552 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pnode) = (yyvsp[0].m_pnode); (yyval.m_pnode)->Negate(); }
 #line 2482 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 122:
-#line 551 "yyQParser.y" /* yacc.c:1646  */
+#line 553 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pnode) = (yyvsp[-1].m_pnode); }
 #line 2488 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 123:
-#line 558 "yyQParser.y" /* yacc.c:1646  */
+#line 560 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pnode) = _qc->PushQuery(new CQAnd((yyvsp[-1].m_pnode),(yyvsp[0].m_pnode))); }
 #line 2494 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 124:
-#line 559 "yyQParser.y" /* yacc.c:1646  */
+#line 561 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pnode) = _qc->PushQuery(new CQAnd((yyvsp[-1].m_pnode),(yyvsp[0].m_pnode))); }
 #line 2500 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 125:
-#line 560 "yyQParser.y" /* yacc.c:1646  */
+#line 562 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pnode) = (yyvsp[-1].m_pnode); }
 #line 2506 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 126:
-#line 567 "yyQParser.y" /* yacc.c:1646  */
+#line 569 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pnode) = (yyvsp[0].m_pnode); }
 #line 2512 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 127:
-#line 568 "yyQParser.y" /* yacc.c:1646  */
+#line 570 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pnode) = (yyvsp[0].m_pnode); }
 #line 2518 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 128:
-#line 573 "yyQParser.y" /* yacc.c:1646  */
+#line 575 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pnode) = _qc->PushQuery(new CQNear((yyvsp[-1].m_int),(yyvsp[-5].m_pnode),(yyvsp[-3].m_pnode))); }
 #line 2524 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 129:
-#line 574 "yyQParser.y" /* yacc.c:1646  */
+#line 576 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pnode) = _qc->PushQuery(new CQNear((yyvsp[-1].m_int),(yyvsp[-7].m_pnode),(yyvsp[-5].m_pnode),(yyvsp[-3].m_pnode))); }
 #line 2530 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 130:
-#line 575 "yyQParser.y" /* yacc.c:1646  */
+#line 577 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pnode) = (yyvsp[-1].m_pnode); (yyval.m_pnode)->SetMatchId((yyvsp[0].m_int)); }
 #line 2536 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 131:
-#line 576 "yyQParser.y" /* yacc.c:1646  */
+#line 578 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pnode) = (yyvsp[-1].m_pnode); }
 #line 2542 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 132:
-#line 584 "yyQParser.y" /* yacc.c:1646  */
+#line 586 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pnode) = (yyvsp[0].m_pnode); }
 #line 2548 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 133:
-#line 585 "yyQParser.y" /* yacc.c:1646  */
+#line 587 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pnode) = (yyvsp[0].m_pnode); }
 #line 2554 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 134:
-#line 586 "yyQParser.y" /* yacc.c:1646  */
+#line 588 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pnode) = (yyvsp[-1].m_pnode); (yyval.m_pnode)->SetMatchId((yyvsp[0].m_int)); }
 #line 2560 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 135:
-#line 590 "yyQParser.y" /* yacc.c:1646  */
+#line 592 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pnode) = (yyvsp[-1].m_pnode); }
 #line 2566 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 136:
-#line 591 "yyQParser.y" /* yacc.c:1646  */
+#line 593 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pnode) = (yyvsp[-1].m_pnode); }
 #line 2572 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 137:
-#line 598 "yyQParser.y" /* yacc.c:1646  */
+#line 600 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pnode) = (yyvsp[0].m_pnode); }
 #line 2578 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 138:
-#line 599 "yyQParser.y" /* yacc.c:1646  */
+#line 601 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pnode) = (yyvsp[0].m_pnode); }
 #line 2584 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 139:
-#line 600 "yyQParser.y" /* yacc.c:1646  */
+#line 602 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pnode) = (yyvsp[0].m_pnode); }
 #line 2590 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 140:
-#line 601 "yyQParser.y" /* yacc.c:1646  */
+#line 603 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pnode) = (yyvsp[0].m_pnode); }
 #line 2596 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 141:
-#line 602 "yyQParser.y" /* yacc.c:1646  */
+#line 604 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pnode) = (yyvsp[0].m_pnode); }
 #line 2602 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 142:
-#line 603 "yyQParser.y" /* yacc.c:1646  */
+#line 605 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pnode) = (yyvsp[0].m_pnode); }
 #line 2608 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 143:
-#line 604 "yyQParser.y" /* yacc.c:1646  */
+#line 606 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pnode) = (yyvsp[0].m_pnode); }
 #line 2614 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 144:
-#line 605 "yyQParser.y" /* yacc.c:1646  */
+#line 607 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pnode) = (yyvsp[0].m_pnode); }
 #line 2620 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 145:
-#line 606 "yyQParser.y" /* yacc.c:1646  */
+#line 608 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pnode) = (yyvsp[0].m_pnode); }
 #line 2626 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 146:
-#line 607 "yyQParser.y" /* yacc.c:1646  */
+#line 609 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pnode) = (yyvsp[0].m_pnode); }
 #line 2632 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 147:
-#line 608 "yyQParser.y" /* yacc.c:1646  */
+#line 610 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pnode) = (yyvsp[0].m_pnode); }
 #line 2638 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 148:
-#line 609 "yyQParser.y" /* yacc.c:1646  */
+#line 611 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pnode) = (yyvsp[0].m_pnode); }
 #line 2644 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 149:
-#line 610 "yyQParser.y" /* yacc.c:1646  */
+#line 612 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pnode) = (yyvsp[0].m_pnode); }
 #line 2650 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 150:
-#line 611 "yyQParser.y" /* yacc.c:1646  */
+#line 613 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pnode) = (yyvsp[0].m_pnode); }
 #line 2656 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 151:
-#line 612 "yyQParser.y" /* yacc.c:1646  */
+#line 614 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pnode) = (yyvsp[0].m_pnode); }
 #line 2662 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 152:
-#line 613 "yyQParser.y" /* yacc.c:1646  */
+#line 615 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pnode) = (yyvsp[0].m_pnode); }
 #line 2668 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 153:
-#line 614 "yyQParser.y" /* yacc.c:1646  */
+#line 616 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pnode) = (yyvsp[0].m_pnode); }
 #line 2674 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 154:
-#line 615 "yyQParser.y" /* yacc.c:1646  */
+#line 617 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pnode) = (yyvsp[0].m_pnode); }
 #line 2680 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 155:
-#line 616 "yyQParser.y" /* yacc.c:1646  */
+#line 618 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pnode) = (yyvsp[0].m_pnode); }
 #line 2686 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 156:
-#line 617 "yyQParser.y" /* yacc.c:1646  */
+#line 619 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pnode) = (yyvsp[0].m_pnode); }
 #line 2692 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 157:
-#line 618 "yyQParser.y" /* yacc.c:1646  */
+#line 620 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pnode) = (yyvsp[0].m_pnode); }
 #line 2698 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 158:
-#line 619 "yyQParser.y" /* yacc.c:1646  */
+#line 621 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pnode) = (yyvsp[0].m_pnode); }
 #line 2704 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 159:
-#line 620 "yyQParser.y" /* yacc.c:1646  */
+#line 622 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pnode) = (yyvsp[0].m_pnode); }
 #line 2710 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 160:
-#line 621 "yyQParser.y" /* yacc.c:1646  */
+#line 623 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pnode) = (yyvsp[-1].m_pnode); }
 #line 2716 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 161:
-#line 626 "yyQParser.y" /* yacc.c:1646  */
+#line 628 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pnode) = _qc->PushQuery(new CQTokInfl("", *(yyvsp[-1].m_str),_qc->m_Expanders)); }
 #line 2722 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 162:
-#line 627 "yyQParser.y" /* yacc.c:1646  */
+#line 629 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pnode) = _qc->PushQuery(new CQTokInfl(*(yyvsp[-3].m_str),*(yyvsp[-1].m_str),_qc->m_Expanders)); }
 #line 2728 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 163:
-#line 631 "yyQParser.y" /* yacc.c:1646  */
+#line 633 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pnode) = _qc->PushQuery(new CQTokExact("",*(yyvsp[0].m_str))); }
 #line 2734 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 164:
-#line 632 "yyQParser.y" /* yacc.c:1646  */
+#line 634 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pnode) = _qc->PushQuery(new CQTokExact(*(yyvsp[-3].m_str),*(yyvsp[0].m_str))); }
 #line 2740 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 165:
-#line 636 "yyQParser.y" /* yacc.c:1646  */
+#line 638 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pnode) = _qc->PushQuery(new CQTokRegex("",*(yyvsp[0].m_str))); }
 #line 2746 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 166:
-#line 637 "yyQParser.y" /* yacc.c:1646  */
+#line 639 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pnode) = _qc->PushQuery(new CQTokRegex(*(yyvsp[-2].m_str),*(yyvsp[0].m_str))); }
 #line 2752 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 167:
-#line 638 "yyQParser.y" /* yacc.c:1646  */
+#line 640 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pnode) = _qc->PushQuery(new CQTokRegex("",*(yyvsp[0].m_str),true)); }
 #line 2758 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 168:
-#line 639 "yyQParser.y" /* yacc.c:1646  */
+#line 641 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pnode) = _qc->PushQuery(new CQTokRegex(*(yyvsp[-2].m_str),*(yyvsp[0].m_str),true)); }
 #line 2764 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 169:
-#line 643 "yyQParser.y" /* yacc.c:1646  */
+#line 645 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pnode) = _qc->PushQuery(new CQTokAny("")); }
 #line 2770 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 170:
-#line 644 "yyQParser.y" /* yacc.c:1646  */
+#line 646 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pnode) = _qc->PushQuery(new CQTokAny(*(yyvsp[-2].m_str))); }
 #line 2776 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 171:
-#line 648 "yyQParser.y" /* yacc.c:1646  */
+#line 650 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pnode) = _qc->PushQuery(new CQTokSet("", "", _qc->m_WordSet)); }
 #line 2782 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 172:
-#line 649 "yyQParser.y" /* yacc.c:1646  */
+#line 651 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pnode) = _qc->PushQuery(new CQTokSet(*(yyvsp[-4].m_str), "", _qc->m_WordSet)); }
 #line 2788 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 173:
-#line 653 "yyQParser.y" /* yacc.c:1646  */
+#line 655 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pnode) = _qc->PushQuery(new CQTokSetInfl("", _qc->m_WordSet, _qc->m_Expanders)); }
 #line 2794 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 174:
-#line 654 "yyQParser.y" /* yacc.c:1646  */
+#line 656 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pnode) = _qc->PushQuery(new CQTokSetInfl(*(yyvsp[-5].m_str), _qc->m_WordSet, _qc->m_Expanders)); }
 #line 2800 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 175:
-#line 658 "yyQParser.y" /* yacc.c:1646  */
+#line 660 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pnode) = _qc->PushQuery(new CQTokPrefix("",*(yyvsp[0].m_str))); }
 #line 2806 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 176:
-#line 659 "yyQParser.y" /* yacc.c:1646  */
+#line 661 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pnode) = _qc->PushQuery(new CQTokPrefix(*(yyvsp[-2].m_str),*(yyvsp[0].m_str))); }
 #line 2812 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 177:
-#line 663 "yyQParser.y" /* yacc.c:1646  */
+#line 665 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pnode) = _qc->PushQuery(new CQTokSuffix("",*(yyvsp[0].m_str))); }
 #line 2818 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 178:
-#line 664 "yyQParser.y" /* yacc.c:1646  */
+#line 666 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pnode) = _qc->PushQuery(new CQTokSuffix(*(yyvsp[-2].m_str),*(yyvsp[0].m_str))); }
 #line 2824 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 179:
-#line 668 "yyQParser.y" /* yacc.c:1646  */
+#line 670 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pnode) = _qc->PushQuery(new CQTokInfix("",*(yyvsp[0].m_str))); }
 #line 2830 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 180:
-#line 669 "yyQParser.y" /* yacc.c:1646  */
+#line 671 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pnode) = _qc->PushQuery(new CQTokInfix(*(yyvsp[-2].m_str),*(yyvsp[0].m_str))); }
 #line 2836 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 181:
-#line 673 "yyQParser.y" /* yacc.c:1646  */
+#line 675 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pnode) = _qc->PushQuery(new CQTokInfixSet("", _qc->m_WordSet)); }
 #line 2842 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 182:
-#line 674 "yyQParser.y" /* yacc.c:1646  */
+#line 676 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pnode) = _qc->PushQuery(new CQTokInfixSet(*(yyvsp[-4].m_str), _qc->m_WordSet)); }
 #line 2848 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 183:
-#line 678 "yyQParser.y" /* yacc.c:1646  */
+#line 680 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pnode) = _qc->PushQuery(new CQTokPrefixSet("", _qc->m_WordSet)); }
 #line 2854 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 184:
-#line 679 "yyQParser.y" /* yacc.c:1646  */
+#line 681 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pnode) = _qc->PushQuery(new CQTokPrefixSet(*(yyvsp[-4].m_str), _qc->m_WordSet)); }
 #line 2860 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 185:
-#line 683 "yyQParser.y" /* yacc.c:1646  */
+#line 685 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pnode) = _qc->PushQuery(new CQTokSuffixSet("", _qc->m_WordSet)); }
 #line 2866 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 186:
-#line 684 "yyQParser.y" /* yacc.c:1646  */
+#line 686 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pnode) = _qc->PushQuery(new CQTokSuffixSet(*(yyvsp[-4].m_str), _qc->m_WordSet)); }
 #line 2872 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 187:
-#line 688 "yyQParser.y" /* yacc.c:1646  */
+#line 690 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pnode) = _qc->PushQuery(new CQTokThes("Thes",*(yyvsp[-1].m_str))); }
 #line 2878 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 188:
-#line 689 "yyQParser.y" /* yacc.c:1646  */
+#line 691 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pnode) = _qc->PushQuery(new CQTokThes(*(yyvsp[-5].m_str),*(yyvsp[-1].m_str))); }
 #line 2884 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 189:
-#line 693 "yyQParser.y" /* yacc.c:1646  */
+#line 695 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pnode) = _qc->PushQuery(new CQTokMorph("MorphPattern",_qc->m_MorphItems)); }
 #line 2890 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 190:
-#line 694 "yyQParser.y" /* yacc.c:1646  */
+#line 696 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pnode) = _qc->PushQuery(new CQTokMorph(*(yyvsp[-4].m_str),_qc->m_MorphItems)); }
 #line 2896 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 191:
-#line 698 "yyQParser.y" /* yacc.c:1646  */
+#line 700 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pnode) = _qc->PushQuery(new CQTokLemma("Lemma",*(yyvsp[0].m_str))); }
 #line 2902 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 192:
-#line 699 "yyQParser.y" /* yacc.c:1646  */
+#line 701 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pnode) = _qc->PushQuery(new CQTokLemma(*(yyvsp[-3].m_str),*(yyvsp[0].m_str))); }
 #line 2908 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 193:
-#line 703 "yyQParser.y" /* yacc.c:1646  */
+#line 705 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pnode) = _qc->PushQuery(new CQTokChunk("",*(yyvsp[0].m_str))); }
 #line 2914 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 194:
-#line 704 "yyQParser.y" /* yacc.c:1646  */
+#line 706 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pnode) = _qc->PushQuery(new CQTokChunk(*(yyvsp[-3].m_str),*(yyvsp[0].m_str))); }
 #line 2920 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 195:
-#line 708 "yyQParser.y" /* yacc.c:1646  */
+#line 710 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pnode) = _qc->PushQuery(new CQTokAnchor( "", *(yyvsp[0].m_str))); }
 #line 2926 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 196:
-#line 709 "yyQParser.y" /* yacc.c:1646  */
+#line 711 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pnode) = _qc->PushQuery(new CQTokAnchor(*(yyvsp[-2].m_str), *(yyvsp[0].m_str))); }
 #line 2932 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 197:
-#line 713 "yyQParser.y" /* yacc.c:1646  */
+#line 715 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pnode) = _qc->PushQuery(new CQTokFile("",*(yyvsp[0].m_str))); }
 #line 2938 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 198:
-#line 714 "yyQParser.y" /* yacc.c:1646  */
+#line 716 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pnode) = _qc->PushQuery(new CQTokFile(*(yyvsp[-3].m_str),*(yyvsp[0].m_str))); }
 #line 2944 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 199:
-#line 718 "yyQParser.y" /* yacc.c:1646  */
+#line 720 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pnode) = _qc->PushQuery(new CQWith((yyvsp[-2].m_pnode),(yyvsp[0].m_pnode))); }
 #line 2950 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 200:
-#line 722 "yyQParser.y" /* yacc.c:1646  */
+#line 724 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pnode) = _qc->PushQuery(new CQWithout((yyvsp[-2].m_pnode),(yyvsp[0].m_pnode))); }
 #line 2956 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 201:
-#line 726 "yyQParser.y" /* yacc.c:1646  */
+#line 728 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pnode) = _qc->PushQuery(new CQWithor((yyvsp[-2].m_pnode),(yyvsp[0].m_pnode))); }
 #line 2962 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 202:
-#line 730 "yyQParser.y" /* yacc.c:1646  */
+#line 732 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pnode) = _qc->PushKeysQuery((CQCount*)(yyvsp[-1].m_pnode)); }
 #line 2968 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 203:
-#line 731 "yyQParser.y" /* yacc.c:1646  */
+#line 733 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pnode) = _qc->PushKeysQuery((CQCount*)(yyvsp[-1].m_pnode)); }
 #line 2974 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 204:
-#line 735 "yyQParser.y" /* yacc.c:1646  */
+#line 737 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pnode)=NULL; }
 #line 2980 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 205:
-#line 739 "yyQParser.y" /* yacc.c:1646  */
+#line 741 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pnode) = (yyvsp[0].m_pnode); }
 #line 2986 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 206:
-#line 740 "yyQParser.y" /* yacc.c:1646  */
+#line 742 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pnode) = _qc->PushCountQuery((yyvsp[-1].m_pnode)); }
 #line 2992 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 207:
-#line 744 "yyQParser.y" /* yacc.c:1646  */
+#line 746 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pnode) = (yyvsp[-1].m_pnode); (yyval.m_pnode)->SetMatchId((yyvsp[0].m_int)); }
 #line 2998 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 208:
-#line 752 "yyQParser.y" /* yacc.c:1646  */
+#line 754 "yyQParser.y" /* yacc.c:1646  */
     { _qc->m_WordSet.clear();     (yyval.m_pnode) = NULL; }
 #line 3004 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 209:
-#line 753 "yyQParser.y" /* yacc.c:1646  */
+#line 755 "yyQParser.y" /* yacc.c:1646  */
     { _qc->m_WordSet.insert(*(yyvsp[0].m_str)); (yyval.m_pnode) = (yyvsp[-1].m_pnode);}
 #line 3010 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 210:
-#line 754 "yyQParser.y" /* yacc.c:1646  */
+#line 756 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pnode) = (yyvsp[-1].m_pnode); }
 #line 3016 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 211:
-#line 759 "yyQParser.y" /* yacc.c:1646  */
+#line 761 "yyQParser.y" /* yacc.c:1646  */
     { _qc->m_MorphItems.clear();        (yyval.m_pnode) = NULL; }
 #line 3022 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 212:
-#line 760 "yyQParser.y" /* yacc.c:1646  */
+#line 762 "yyQParser.y" /* yacc.c:1646  */
     { _qc->m_MorphItems.push_back(*(yyvsp[0].m_str)); (yyval.m_pnode) = (yyvsp[-1].m_pnode);}
 #line 3028 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 213:
-#line 761 "yyQParser.y" /* yacc.c:1646  */
+#line 763 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pnode) = (yyvsp[-1].m_pnode); }
 #line 3034 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 214:
-#line 762 "yyQParser.y" /* yacc.c:1646  */
+#line 764 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pnode) = (yyvsp[-1].m_pnode); }
 #line 3040 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 215:
-#line 766 "yyQParser.y" /* yacc.c:1646  */
+#line 768 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pnode) = _qc->PushQuery(new CQSeq((CQToken*)(yyvsp[0].m_pnode))); }
 #line 3046 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 216:
-#line 767 "yyQParser.y" /* yacc.c:1646  */
+#line 769 "yyQParser.y" /* yacc.c:1646  */
     { ((CQSeq*)(yyvsp[-1].m_pnode))->Append((CQToken*)(yyvsp[0].m_pnode)); (yyval.m_pnode) = (yyvsp[-1].m_pnode); }
 #line 3052 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 217:
-#line 768 "yyQParser.y" /* yacc.c:1646  */
+#line 770 "yyQParser.y" /* yacc.c:1646  */
     { ((CQSeq*)(yyvsp[-3].m_pnode))->Append((CQToken*)(yyvsp[0].m_pnode),(yyvsp[-1].m_int)); (yyval.m_pnode) = (yyvsp[-3].m_pnode); }
 #line 3058 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 218:
-#line 769 "yyQParser.y" /* yacc.c:1646  */
+#line 771 "yyQParser.y" /* yacc.c:1646  */
     { ((CQSeq*)(yyvsp[-3].m_pnode))->Append((CQToken*)(yyvsp[0].m_pnode),(yyvsp[-1].m_int),'<'); (yyval.m_pnode) = (yyvsp[-3].m_pnode); }
 #line 3064 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 219:
-#line 770 "yyQParser.y" /* yacc.c:1646  */
+#line 772 "yyQParser.y" /* yacc.c:1646  */
     { ((CQSeq*)(yyvsp[-3].m_pnode))->Append((CQToken*)(yyvsp[0].m_pnode),(yyvsp[-1].m_int),'>'); (yyval.m_pnode) = (yyvsp[-3].m_pnode); }
 #line 3070 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 220:
-#line 771 "yyQParser.y" /* yacc.c:1646  */
+#line 773 "yyQParser.y" /* yacc.c:1646  */
     { ((CQSeq*)(yyvsp[-3].m_pnode))->Append((CQToken*)(yyvsp[0].m_pnode),(yyvsp[-1].m_int),'='); (yyval.m_pnode) = (yyvsp[-3].m_pnode); }
 #line 3076 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 221:
-#line 775 "yyQParser.y" /* yacc.c:1646  */
+#line 777 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pnode) = NULL; _qc->m_Expanders.clear(); }
 #line 3082 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 222:
-#line 776 "yyQParser.y" /* yacc.c:1646  */
+#line 778 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pnode) = (yyvsp[-1].m_pnode);   _qc->m_Expanders.push_back(*(yyvsp[0].m_str)); }
 #line 3088 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 223:
-#line 780 "yyQParser.y" /* yacc.c:1646  */
+#line 782 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pnode)=NULL; _qc->m_qCountKeys.Clear(); }
 #line 3094 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 224:
-#line 781 "yyQParser.y" /* yacc.c:1646  */
+#line 783 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pnode)=NULL; _qc->m_qCountKeys.Clear(); _qc->m_qCountKeys.PushKey((CQCountKeyExpr*)(yyvsp[0].m_pnode)); }
 #line 3100 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 225:
-#line 782 "yyQParser.y" /* yacc.c:1646  */
+#line 784 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pnode)=(yyvsp[-2].m_pnode); _qc->m_qCountKeys.PushKey((CQCountKeyExpr*)(yyvsp[0].m_pnode)); }
 #line 3106 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 226:
-#line 786 "yyQParser.y" /* yacc.c:1646  */
+#line 788 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pnode)=NULL; _qc->m_IndexTuple.clear(); }
 #line 3112 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 227:
-#line 787 "yyQParser.y" /* yacc.c:1646  */
+#line 789 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pnode)=NULL; _qc->m_IndexTuple.clear(); _qc->m_IndexTuple.push_back(*(yyvsp[0].m_str)); }
 #line 3118 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 228:
-#line 788 "yyQParser.y" /* yacc.c:1646  */
+#line 790 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pnode)=NULL; _qc->m_IndexTuple.push_back(*(yyvsp[0].m_str)); }
 #line 3124 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 229:
-#line 796 "yyQParser.y" /* yacc.c:1646  */
+#line 798 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pnode)=new CQCountKeyExprConstant("*"); }
 #line 3130 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 230:
-#line 797 "yyQParser.y" /* yacc.c:1646  */
+#line 799 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pnode)=new CQCountKeyExprConstant(*(yyvsp[0].m_str)); }
 #line 3136 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 231:
-#line 798 "yyQParser.y" /* yacc.c:1646  */
+#line 800 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pnode)=new CQCountKeyExprFileId(*(yyvsp[0].m_str)); }
 #line 3142 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 232:
-#line 799 "yyQParser.y" /* yacc.c:1646  */
+#line 801 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pnode)=new CQCountKeyExprFileName(*(yyvsp[0].m_str)); }
 #line 3148 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 233:
-#line 800 "yyQParser.y" /* yacc.c:1646  */
+#line 802 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pnode)=new CQCountKeyExprDate(*(yyvsp[0].m_str)); }
 #line 3154 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 234:
-#line 801 "yyQParser.y" /* yacc.c:1646  */
+#line 803 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pnode)=new CQCountKeyExprDateSlice(*(yyvsp[-2].m_str),(yyvsp[0].m_int)); }
 #line 3160 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 235:
-#line 802 "yyQParser.y" /* yacc.c:1646  */
+#line 804 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pnode)=new CQCountKeyExprBibl(*(yyvsp[0].m_str)); }
 #line 3166 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 236:
-#line 803 "yyQParser.y" /* yacc.c:1646  */
+#line 805 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pnode)=new CQCountKeyExprToken(*(yyvsp[-2].m_str),(yyvsp[-1].m_int),(yyvsp[0].m_int)); }
 #line 3172 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 237:
-#line 804 "yyQParser.y" /* yacc.c:1646  */
+#line 806 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pnode)=new CQCountKeyExprRegex((CQCountKeyExpr*)(yyvsp[-2].m_pnode),*(yyvsp[0].m_str),_qc->m_RegexReplacement,_qc->m_RegexModifiers); }
 #line 3178 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 238:
-#line 805 "yyQParser.y" /* yacc.c:1646  */
+#line 807 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_pnode)=(yyvsp[-1].m_pnode); }
 #line 3184 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 239:
-#line 808 "yyQParser.y" /* yacc.c:1646  */
+#line 810 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_str)=(yyvsp[0].m_str); }
 #line 3190 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 240:
-#line 812 "yyQParser.y" /* yacc.c:1646  */
+#line 814 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_int)=0; }
 #line 3196 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 241:
-#line 813 "yyQParser.y" /* yacc.c:1646  */
+#line 815 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_int)=(yyvsp[0].m_int); }
 #line 3202 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 242:
-#line 817 "yyQParser.y" /* yacc.c:1646  */
+#line 819 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_int)=0; }
 #line 3208 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 243:
-#line 818 "yyQParser.y" /* yacc.c:1646  */
+#line 820 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_int)=(yyvsp[0].m_int); }
 #line 3214 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 244:
-#line 819 "yyQParser.y" /* yacc.c:1646  */
+#line 821 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_int)=(yyvsp[0].m_int); }
 #line 3220 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 245:
-#line 820 "yyQParser.y" /* yacc.c:1646  */
+#line 822 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_int)=-(yyvsp[0].m_int); }
 #line 3226 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 246:
-#line 828 "yyQParser.y" /* yacc.c:1646  */
+#line 830 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_str) = _qc->newString(); }
 #line 3232 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 247:
-#line 829 "yyQParser.y" /* yacc.c:1646  */
+#line 831 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_str) = (yyvsp[0].m_str); }
 #line 3238 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 248:
-#line 833 "yyQParser.y" /* yacc.c:1646  */
+#line 835 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_str) = (yyvsp[0].m_str); }
 #line 3244 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 249:
-#line 834 "yyQParser.y" /* yacc.c:1646  */
+#line 836 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_str) = (yyvsp[0].m_str); }
 #line 3250 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 250:
-#line 837 "yyQParser.y" /* yacc.c:1646  */
+#line 839 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_str) = (yyvsp[0].m_str); }
 #line 3256 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 251:
-#line 838 "yyQParser.y" /* yacc.c:1646  */
+#line 840 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_str) = (yyvsp[0].m_str); }
 #line 3262 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 252:
-#line 839 "yyQParser.y" /* yacc.c:1646  */
+#line 841 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_str) = (yyvsp[0].m_str); }
 #line 3268 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 253:
-#line 840 "yyQParser.y" /* yacc.c:1646  */
+#line 842 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_str) = (yyvsp[0].m_str); }
 #line 3274 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 254:
-#line 841 "yyQParser.y" /* yacc.c:1646  */
+#line 843 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_str) = (yyvsp[0].m_str); }
 #line 3280 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 255:
-#line 842 "yyQParser.y" /* yacc.c:1646  */
+#line 844 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_str) = (yyvsp[0].m_str); }
 #line 3286 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 256:
-#line 843 "yyQParser.y" /* yacc.c:1646  */
+#line 845 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_str) = (yyvsp[0].m_str); }
 #line 3292 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 257:
-#line 844 "yyQParser.y" /* yacc.c:1646  */
+#line 846 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_str) = (yyvsp[0].m_str); }
 #line 3298 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 258:
-#line 846 "yyQParser.y" /* yacc.c:1646  */
+#line 848 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_str) = (yyvsp[0].m_str); }
 #line 3304 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 259:
-#line 847 "yyQParser.y" /* yacc.c:1646  */
+#line 849 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_str) = _qc->newString("file"); }
 #line 3310 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 260:
-#line 853 "yyQParser.y" /* yacc.c:1646  */
+#line 855 "yyQParser.y" /* yacc.c:1646  */
     { *(yyvsp[0].m_str) = unescapeCString(*(yyvsp[0].m_str)); (yyval.m_str) = (yyvsp[0].m_str); }
 #line 3316 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 261:
-#line 854 "yyQParser.y" /* yacc.c:1646  */
+#line 856 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_str) = (yyvsp[0].m_str); }
 #line 3322 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 262:
-#line 855 "yyQParser.y" /* yacc.c:1646  */
+#line 857 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_str) = (yyvsp[0].m_str); }
 #line 3328 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 263:
-#line 858 "yyQParser.y" /* yacc.c:1646  */
+#line 860 "yyQParser.y" /* yacc.c:1646  */
     { *(yyvsp[0].m_str) = unescapeCString(*(yyvsp[0].m_str)); (yyval.m_str) = (yyvsp[0].m_str); }
 #line 3334 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 264:
-#line 861 "yyQParser.y" /* yacc.c:1646  */
+#line 863 "yyQParser.y" /* yacc.c:1646  */
     { *(yyvsp[0].m_str) = unescapeCString(*(yyvsp[0].m_str)); (yyval.m_str) = (yyvsp[0].m_str); }
 #line 3340 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 265:
-#line 862 "yyQParser.y" /* yacc.c:1646  */
+#line 864 "yyQParser.y" /* yacc.c:1646  */
     { *(yyvsp[0].m_str) = unescapeCString(*(yyvsp[0].m_str)); (yyval.m_str) = (yyvsp[0].m_str); }
 #line 3346 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 266:
-#line 863 "yyQParser.y" /* yacc.c:1646  */
+#line 865 "yyQParser.y" /* yacc.c:1646  */
     { *(yyvsp[0].m_str) = unescapeCString(*(yyvsp[0].m_str)); (yyval.m_str) = (yyvsp[0].m_str); }
 #line 3352 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 267:
-#line 865 "yyQParser.y" /* yacc.c:1646  */
+#line 867 "yyQParser.y" /* yacc.c:1646  */
     { *(yyvsp[0].m_str) = unescapeCString(*(yyvsp[0].m_str)); (yyval.m_str) = (yyvsp[0].m_str); }
 #line 3358 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 268:
-#line 867 "yyQParser.y" /* yacc.c:1646  */
+#line 869 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_str) = _qc->newRegex(*(yyvsp[0].m_str)); }
 #line 3364 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 269:
-#line 868 "yyQParser.y" /* yacc.c:1646  */
+#line 870 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_str) = _qc->newRegex(*(yyvsp[-1].m_str),*(yyvsp[0].m_str)); }
 #line 3370 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 270:
-#line 871 "yyQParser.y" /* yacc.c:1646  */
+#line 873 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_str) = _qc->newRegex(*(yyvsp[0].m_str)); }
 #line 3376 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 271:
-#line 872 "yyQParser.y" /* yacc.c:1646  */
+#line 874 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_str) = _qc->newRegex(*(yyvsp[-1].m_str),*(yyvsp[0].m_str)); }
 #line 3382 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 272:
-#line 876 "yyQParser.y" /* yacc.c:1646  */
+#line 878 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_str) = _qc->newRegex(*(yyvsp[-1].m_str),"",false); }
 #line 3388 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 273:
-#line 877 "yyQParser.y" /* yacc.c:1646  */
+#line 879 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_str) = _qc->newRegex(*(yyvsp[-2].m_str),*(yyvsp[0].m_str),false); }
 #line 3394 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 274:
-#line 880 "yyQParser.y" /* yacc.c:1646  */
+#line 882 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_str) = (yyvsp[0].m_str); }
 #line 3400 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 275:
-#line 883 "yyQParser.y" /* yacc.c:1646  */
+#line 885 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_int) = atoi((yyvsp[0].m_str)->c_str()); }
 #line 3406 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 276:
-#line 886 "yyQParser.y" /* yacc.c:1646  */
+#line 888 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_str) = (yyvsp[0].m_str); }
 #line 3412 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 277:
-#line 887 "yyQParser.y" /* yacc.c:1646  */
+#line 889 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_str) = (yyvsp[0].m_str); }
 #line 3418 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 278:
-#line 890 "yyQParser.y" /* yacc.c:1646  */
+#line 892 "yyQParser.y" /* yacc.c:1646  */
     { (yyval.m_int) = (yyvsp[0].m_int); }
 #line 3424 "yyQParser.cpp" /* yacc.c:1646  */
     break;
@@ -3652,7 +3652,7 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 894 "yyQParser.y" /* yacc.c:1906  */
+#line 896 "yyQParser.y" /* yacc.c:1906  */
 
 /*======================================================================
  * User C Code

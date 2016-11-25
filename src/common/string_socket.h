@@ -86,6 +86,9 @@ public:
 	inline const string&	HostAddr() const { return m_HostAddr; };
 	inline const int	Port() const { return m_Port; };
 
+	bool Init(const string &CorpusName, const string& HostAddr, int Port, const string& LocalPath="");
+	  
+
  public:
 	//! shutdown connected socket and perform any local cleanup methods
 	//! \li default implementation just wraps CloseSocket(rConnectedSocket,linger,timeout)
