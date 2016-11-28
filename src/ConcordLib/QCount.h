@@ -305,7 +305,14 @@ public:
 
   virtual bool Compile(CQueryCompiler *compiler);
   virtual string& Evaluate(const CHit &Hit);
+
+  /** this doesn't really do what it should: use EvaluateOcurrences() instead */
   virtual string& EvaluateOccurrence(const CHit &Hit, DWORD occ);
+
+  /** count all combinations of  string-keys for the hit \a Hit
+   *  \li used for count() in #JOIN (#NOSEPARATE) mode
+   */
+  virtual void CountOccurrences(const CHit &Hit, CCountMap &Counts);
 
   //-- ddcObject API
   virtual ddcObjectList Children() const;
@@ -415,6 +422,12 @@ public:
   virtual ddcObjectList Children() const;
   virtual void DisownChildren();
 };
+
+
+//======================================================================
+/*!
+ \brief utility struct for iterating over hit occurrences
+*/
 
 //======================================================================
 /*!
