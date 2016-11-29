@@ -622,15 +622,7 @@ bool CConcIndexator::LoadCorpusFiles()
 	char s[1024];
 	if (!fgets(s,1024, fp))
 		return false;
-#if 0
-	//-- old stupid version identity check
-	if (s != DDCFileVersionStr)
-	{
-		ErrorMessage (Format("The index was created by a different version of DDC: %s", m_Path.c_str()));
-		fclose (fp);
-		return false;
-	};
-#else
+
 	//-- new slightly smarter version check
 	try {
 		ddc_format_version_check(s, m_Path.c_str());
@@ -640,7 +632,6 @@ bool CConcIndexator::LoadCorpusFiles()
 		fclose(fp);
 		return false;
 	}
-#endif
 
 	m_CommonFilePrefix = "$init";
 	while (fgets(s,1024,fp))
@@ -2249,25 +2240,22 @@ void CConcIndexator::DumpFileIndexTabs(DWORD FileNo, FILE *f) const
 	fprintf(f, "%s:meta.page_=%ld\n", cmt, (B.m_StartPageInfo==UnknownPageNumber ? -1L : (long int)B.m_StartPageInfo));
 	fputs(m_Bibl.GetFreeHeaderBiblAttributesTabsDump(FileNo,m_Utf8).c_str(), f);
 
-	//-- get initial page-breaks
+	//-- intialize: page-breaks
 	vector<CPageNumber>::const_iterator pb = GetTokenPageBreak(tok_min);
-	if (pb != m_PageBreaks.end())
-		fprintf(f, "%s:PAGE=%u\n", cmt, (uint)pb->m_PageNumber);
 
-	//-- get initial free-breaks
-	vector<vector<CTokenNo>::const_iterator> breakis;
-	size_t defaultBreakNo = 0;
-	breakis.resize(m_Breaks.size());
-	for (size_t brkno=0; brkno < m_Breaks.size(); ++brkno) {
-		const CBreakCollection &breaks = m_Breaks[brkno];
-		breakis[brkno] = lower_bound(breaks.m_BreakOffsets.begin(), breaks.m_BreakOffsets.end(), tok_min);
-		if (breakis[brkno] != breaks.m_BreakOffsets.end())
-			fprintf(f, "%s:BREAK.%s=%u\n", cmt, breaks.m_ShortName.c_str(), (uint)(*breakis[brkno]));
+	//-- initialize: free-breaks
+	vector<size_t> breaknos(m_Breaks.size(), 0);
+	vector<size_t> breakstart(m_Breaks.size(), 0);
+	size_t defaultBreakId = 0;
+	for (size_t brkid=0; brkid < m_Breaks.size(); ++brkid) {
+		const CBreakCollection &breaks = m_Breaks[brkid];
+		breaknos[brkid]   = lower_bound(breaks.m_BreakOffsets.begin(), breaks.m_BreakOffsets.end(), tok_min) - breaks.m_BreakOffsets.begin();
+		breakstart[brkid] = breaknos[brkid]==0 ? 0 : breaks.m_BreakOffsets[breaknos[brkid]-1];
 		if (breaks.m_ShortName==m_DefaultBreakName || breaks.m_LongName==m_DefaultBreakName)
-			defaultBreakNo = brkno;
+			defaultBreakId = brkid;
 	}
 
-	//-- construct: tokens
+	//-- construct tokens & dump index attributes
 	vector<vector<COutputToken> > tokattrs;
 	tokattrs.resize(m_Indices.size());
 	size_t ixno, tixno;
@@ -2289,12 +2277,13 @@ void CConcIndexator::DumpFileIndexTabs(DWORD FileNo, FILE *f) const
 		}
 
 		//-- check for free-breaks
-		for (size_t brkno=0; brkno < m_Breaks.size(); ++brkno) {
-			const CBreakCollection       &breaks = m_Breaks[brkno];
-			vector<CTokenNo>::const_iterator &bi = breakis[brkno];
-			for (; bi != breaks.m_BreakOffsets.end() && *bi <= tokid; ++bi) {
-				if (brkno==defaultBreakNo) fputc('\n',f);
-				fprintf(f, "%s:BREAK.%s=%u\n", cmt, breaks.m_ShortName.c_str(), (uint)(*bi));
+		for (size_t brkid=0; brkid < m_Breaks.size(); ++brkid) {
+			const CBreakCollection &breaks = m_Breaks[brkid];
+			for ( ; breakstart[brkid] <= tokid && breaknos[brkid] < breaks.m_BreakOffsets.size(); ++breaknos[brkid]) {
+				size_t breakno = breaknos[brkid];
+				if (brkid==defaultBreakId && tokid > tok_min) fputc('\n',f);
+				fprintf(f, "%s:BREAK.%s[%zu]=%u\n", cmt, breaks.m_ShortName.c_str(), breakno, (uint)(breaks.m_BreakOffsets[breakno]));
+				breakstart[brkid] = breaks.m_BreakOffsets[breaknos[brkid]];
 			}
 		}
 
