@@ -385,6 +385,9 @@ public:
   //! evaluation utility: returns true iff this is a count(*)-query; guts for CConcHolder::IsUniversalCountQuery()
   virtual bool CanCountUniversal();
 
+  //! evaluation utility: returns true iff this query can count at file-level; wraps m_keys.canCountByFile()
+  virtual bool CanCountByFile() const;
+    
   //! evaluation guts: populate m_Counts with universal counts; formerly CConcHolder::GetUniversalCounts()
   //! \li should be called only once per query
   //! \li stores encoded results in Result

@@ -22,7 +22,8 @@
 #include <QueryCompiler.h>
 #include <ConcHolder.h>
 
-#define DEBUG_NCOUNT 1
+//#define DEBUG_NCOUNT 1
+//#undef DEBUG_NCOUNT
 
 //======================================================================
 // utility class for CQCountKeyExprList::CountOccurrences()
@@ -110,6 +111,17 @@ struct IsLessByFileNo
 
 	bool operator() (const CHit &h1, const CHit &h2) const 
 	{ return h1.m_FileNo < h2.m_FileNo; };
+};
+
+//==============================================================================
+//! comparison operator for hits on CHit::m_BreakNo (for std::sort)
+struct IsLessByBreakNo
+{
+	IsLessByBreakNo()
+	{};
+
+	bool operator() (const CHit &h1, const CHit &h2) const 
+	{ return h1.m_BreakNo < h2.m_BreakNo; };
 };
 
 
@@ -542,16 +554,15 @@ void CQCountKeyExprList::CountOccurrences(const CHit &Hit, CCountMap &Counts)
 
 #if DEBUG_NCOUNT
   occ = HitOccurrenceStart(Hit, (CConcHolder*)m_Compiler->m_pHolder);
-  if (Hit.m_BreakNo==388) {
+  if (Hit.m_BreakNo==7817) {
     const CConcHolder *holder = m_Compiler->m_pHolder;
     const vector<CTokenNo> &occurrences = holder->m_HighlightOccurs;
     const vector<BYTE>  &matchids = holder->m_HighlightIds;
     CStringIndexSet *m_pIndex = m_Compiler->m_pHolder->m_pIndexator->GetIndexByNameOrShortName("Token");
-    fprintf(stderr, "DEBUG/388: occs=[");
+    fprintf(stderr, "DEBUG/7817: occs=[");
     for (DWORD o=occ; o < occ_end; ++o) {
-      fprintf(stderr, " %u=%hhu:\"%s\"",
-	      occurrences[o], matchids[o], m_pIndex->GetIndexItemStr( m_pIndex->m_Index[m_pIndex->GetTokenIndexId(occurrences[o])] )
-	      );
+      CTokenNo ixid = m_pIndex->GetTokenIndexId(occurrences[o]);
+      fprintf(stderr, " %u=%hhu->%u:\"%s\"", occurrences[o], matchids[o], ixid, m_pIndex->GetIndexItemStr(m_pIndex->m_Index[ixid]));
     }
     fprintf(stderr, " ]\n");
   }
@@ -700,6 +711,12 @@ bool CQCount::CanCountUniversal()
 }
 
 //--------------------------------------------------------------
+bool CQCount::CanCountByFile() const
+{
+  return (!m_keys || m_keys->CanCountByFile());
+}
+
+//--------------------------------------------------------------
 void CQCount::CountUniversal(CQueryResult &Result, size_t Limit)
 {
   //-- sanity checks
@@ -782,9 +799,10 @@ void CQCount::CountLocal(CQueryResult &Result, size_t Limit)
   CQCountKeyExprList *keys = m_keys;
 
 #if DEBUG_NCOUNT
-  fprintf(stderr, "DEBUG: CountLocal(): ChunkLengths.size=%zu [%zu ... %zu]; Occs.size=%zu [%zu ... %zu]\n",
+  fprintf(stderr, "DEBUG: CountLocal(): ChunkLengths.size=%zu [%zu ... %zu]; Occs.size=%zu [%zu ... %zu] ; nHits=%zu\n",
 	  qRoot->m_Node->m_ChunkLengths.size(), qRoot->m_Node->m_ChunkLengths[0], *(qRoot->m_Node->m_ChunkLengths.rbegin()),
-	  qRoot->m_Node->m_Occurrences.size(), qRoot->m_Node->m_Occurrences[0], *(qRoot->m_Node->m_Occurrences.rbegin())
+	  qRoot->m_Node->m_Occurrences.size(), qRoot->m_Node->m_Occurrences[0], *(qRoot->m_Node->m_Occurrences.rbegin()),
+	  Result.m_Hits.size()
 	  );
   const CHit &hit0 = Result.m_Hits[0];
   fprintf(stderr, "DEBUG: CountLocal(): Hit[0] = {BreakNo=%u, occ=%u, occ_end=%u, FileNo=%u}\n",
@@ -835,7 +853,7 @@ void CQCount::CountLocal(CQueryResult &Result, size_t Limit)
       m_CountSample += (isWithinFile ? 1 : n);
     }
   }
-  else if (qRoot->m_Options->m_bSeparateHits) {
+  else if (m_Options ? m_Options->m_bSeparateHits : qRoot->m_Options->m_bSeparateHits) {
     //-- counting guts: token-level
     for (vector<CHit>::const_iterator hi=Result.m_Hits.begin(); hi != Result.m_Hits.end() && m_CountSample < m_sample; ++hi, ++m_CountSample) {
       string &key = keys->Evaluate(*hi);
@@ -852,9 +870,93 @@ void CQCount::CountLocal(CQueryResult &Result, size_t Limit)
   }
   else {
     //-- counting guts: break-level
+#if 0
     for (vector<CHit>::const_iterator hi=Result.m_Hits.begin(); hi != Result.m_Hits.end() && m_CountSample < m_sample; ++hi, ++m_CountSample) {
       keys->CountOccurrences(*hi, m_Counts);
     }
+#else
+    //  + this code assumes m_dtr hits are populated with bSeparateHits=true !
+    CConcHolder *holder = (CConcHolder*)m_Compiler->m_pHolder;
+    set<string> bkeys;
+    vector<CHit>::const_iterator hi, hj;
+
+    //-- ensure m_Hits are sorted by break-id
+    //if (qRoot->m_Options && !qRoot->m_Options->m_Filters.empty() && qRoot->m_Options->m_Filters.back().m_FilterType!=NoSort) 
+    //sort(Result.m_Hits.begin(), Result.m_Hits.end(), IsLessByBreakNo());
+    IsLessByBreakNo lessByBreakNo;
+    Result.sortByHit(lessByBreakNo);
+
+    for (hi=Result.m_Hits.begin(); hi != Result.m_Hits.end() && m_CountSample < m_sample; hi=hj, ++m_CountSample) {
+      //-- get set of all break keys
+      for (hj=hi; hj != Result.m_Hits.end() && hj->m_BreakNo==hi->m_BreakNo; ++hj) {
+	try {
+	  bkeys.insert( keys->Evaluate(*hj) );
+	}
+	catch (CQCountKeyBadOccurrence) {
+#if DEBUG_NCOUNT
+	  fprintf(stderr, "DEBUG/BAD: BreakNo=%u\n", hi->m_BreakNo);
+#endif
+	  continue;
+	}
+      }
+
+#if DEBUG_NCOUNT
+      if (hi->m_BreakNo == 7817) {
+	DWORD occ1     = HitOccurrenceStart(*hi, (CConcHolder*)m_Compiler->m_pHolder);
+	DWORD occ1_end = HitOccurrenceEnd(*hi, (CConcHolder*)m_Compiler->m_pHolder);
+	DWORD occ2     = HitOccurrenceStart(*hj, (CConcHolder*)m_Compiler->m_pHolder);
+	DWORD occ2_end = HitOccurrenceEnd(*hj, (CConcHolder*)m_Compiler->m_pHolder);
+	string keystr("");
+	for (set<string>::const_iterator bki=bkeys.begin(); bki != bkeys.end(); ++bki) {
+	  if (!keystr.empty()) keystr.push_back(',');
+	  keystr.append(jsonStr(*bki));
+	}
+	fprintf(stderr, "DEBUG/7817: n=%d, BreakNo=%u : hi@%zu={occ=%u, end=%u} -- hj@%zu={occ=%u, end=%u} -- keys={%s}\n",
+		(hj-hi),
+		hi->m_BreakNo,
+		(hi-Result.m_Hits.begin()), occ1,occ1_end,
+		(hj-Result.m_Hits.begin()), occ2,occ2_end,
+		keystr.c_str()
+		);
+
+	const CConcHolder *holder = m_Compiler->m_pHolder;
+	const vector<CTokenNo> &occurrences = holder->m_HighlightOccurs;
+	const vector<BYTE>  &matchids = holder->m_HighlightIds;
+	CStringIndexSet *m_pIndex = m_Compiler->m_pHolder->m_pIndexator->GetIndexByNameOrShortName("Token");
+	for (vector<CHit>::const_iterator hii=hi; hii != hj; ++hii) {
+	  fprintf(stderr, "DEBUG/HIT#%zu: BreakNo=%u ; occs=[", hii-Result.m_Hits.begin(), hii->m_BreakNo);
+	  DWORD occ     = HitOccurrenceStart(*hii, (CConcHolder*)m_Compiler->m_pHolder);
+	  DWORD occ_end = HitOccurrenceEnd(*hii, (CConcHolder*)m_Compiler->m_pHolder);
+	  for (DWORD o=occ; o < occ_end; ++o) {
+	    CTokenNo ixid = m_pIndex->GetTokenIndexId(occurrences[o]);
+	    fprintf(stderr, " %u=%hhu->%u:\"%s\"", occurrences[o], matchids[o], ixid, m_pIndex->GetIndexItemStr(m_pIndex->m_Index[ixid]));
+	  }
+	  fprintf(stderr, " ]\n");
+	}
+      }
+#endif
+
+      //-- increment counts for all instantiated keys
+      for (set<string>::const_iterator bki=bkeys.begin(); bki != bkeys.end(); ++bki) {
+#if DEBUG_NCOUNT
+	if (*bki == "sein\x02k\xc3\xb6nnen") {
+	  DWORD occ1     = HitOccurrenceStart(*hi, (CConcHolder*)m_Compiler->m_pHolder);
+	  DWORD occ1_end = HitOccurrenceEnd(*hi, (CConcHolder*)m_Compiler->m_pHolder);
+	  DWORD occ2     = HitOccurrenceStart(*hj, (CConcHolder*)m_Compiler->m_pHolder);
+	  DWORD occ2_end = HitOccurrenceEnd(*hj, (CConcHolder*)m_Compiler->m_pHolder);
+	  fprintf(stderr, "DEBUG: sein/können: n=%d, BreakNo=%u : hi@%zu={occ=%u, end=%u} -- hj@%zu={occ=%u, end=%u} -- Count=%zu\n",
+		  (hj-hi),
+		  hi->m_BreakNo,
+		  (hi-Result.m_Hits.begin()), occ1,occ1_end,
+		  (hj-Result.m_Hits.begin()), occ2,occ2_end,
+		  m_Counts[*bki]);
+  	}
+#endif
+	++m_Counts[*bki];
+      }
+      bkeys.clear();
+    }
+#endif
   }
 
   //-- cleanup period-local count-daughter data
@@ -862,6 +964,7 @@ void CQCount::CountLocal(CQueryResult &Result, size_t Limit)
   Result.m_HighlightOccurs.clear();
   Result.m_HighlightIds.clear();
   Result.m_AllHitsCount = 0;
+  Result.m_DebugInfo.clear();
 }
 
 //--------------------------------------------------------------

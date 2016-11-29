@@ -29,14 +29,13 @@ typedef bool (*SaveTriggerType) (const string&,DWORD LParam);
 
 class CQueryCompiler; //-- forward decl
 class CQuery;	      //-- forward decl
-
+struct CQueryResultIndex; //-- forward decl
 
 /*! \brief
 	Class  CQueryResult contains all information about the first m_pIndexator->m_MaxCachedHitsCount hits for 
 	the input query. 	Other hits (beyond  m_pIndexator->m_MaxCachedHitsCount) are not stored but 
 	they can be retrieved on user's demand. 
 */
-
 struct CQueryResult 
 {
 	//! found hits (not more than m_pIndexator->m_MaxCachedHitsCount). 
@@ -62,8 +61,107 @@ struct CQueryResult
 
 	//! clears CQueryResult fields
 	void			ClearQueryResults();
+
+	//! sort all hits by generic index-comparison function
+	//!  \li HitIndexLessThanT must support an operator() (size_t& a, size_t& b)
+	//!  \li prunes result to selected hits
+	template <typename HitIndexLessThanT> void sortByIndex(HitIndexLessThanT& HitIndexLess);
+
+	//! sort hits by generic hit-comparison function
+	//!  \li HitLessThanT must support an operator() (CHit& a, CHit& b)
+	//!  \li prunes result to only selected hits
+	template <typename HitLessThanT> void sortByHit(HitLessThanT& HitLess);
+
+	//! re-sort hits according to ResultIndex, pruning to range begin (inclusive) to end (exclusive) of index
+	//! \li ResultIndex must be an index over the current object
+	//! \li will never map beyond ResultIndex.size()
+	void mapIndex(const CQueryResultIndex& ResultIndex, size_t Begin=0, size_t End=(size_t)-1);
 };
 
+/*!
+ * \brief temporary type for re-sorting CQueryResult hits
+ */
+struct CQueryResultIndex
+{
+	const CQueryResult& m_Result;
+	vector<size_t>*     m_HitIndex;
+	bool		    b_LocalIndex;
+
+	CQueryResultIndex(const CQueryResult& Result)
+		: m_Result(Result), m_HitIndex(NULL), b_LocalIndex(false)
+	{ Reset(); }
+
+	CQueryResultIndex(const CQueryResult& Result, vector<size_t>& HitIndex)
+		: m_Result(Result), m_HitIndex(&HitIndex), b_LocalIndex(false)
+	{};
+
+	~CQueryResultIndex(void)
+	{ if (b_LocalIndex) delete m_HitIndex; };
+
+	//! resets the index
+	void Reset(void)
+	{
+		if (m_HitIndex==NULL) {
+			m_HitIndex = new vector<size_t>(m_Result.m_Hits.size());
+			b_LocalIndex = true;
+		} else {
+			m_HitIndex->resize(m_Result.m_Hits.size());
+		}
+		for (size_t ii=0; ii < m_HitIndex->size(); ++ii) (*m_HitIndex)[ii] = ii;
+	};
+
+	//! wrapper for m_HitIndex->size()
+	inline size_t size(void) const
+	{ return m_HitIndex==NULL ? 0 : m_HitIndex->size(); };
+
+	//! sort hit-index by generic index-comparison function
+	//!  \li HitIndexLessThanT must support an operator() (size_t& a, size_t& b)
+	template <typename HitIndexLessThanT> void sortByIndex(HitIndexLessThanT& HitIndexLess)
+	{ stable_sort(m_HitIndex->begin(), m_HitIndex->end(), HitIndexLess); };
+
+	//! sort hits by generic hit-comparison function
+	//!  \li HitLessThanT must support an operator() (CHit& a, CHit& b)
+	template <typename HitLessThanT> void sortByHit(HitLessThanT& HitLess);
+};
+	
+/*!
+ * \brief template for converting hit-comparison functions to index-comparisons for CQueryResult sorting
+ */
+template <typename HitLessThanT> struct CResultHitLess
+{
+	const CQueryResult& m_Result;
+	HitLessThanT&       m_HitLess;
+	
+	CResultHitLess(const CQueryResult& Result, HitLessThanT& HitLess)
+		: m_Result(Result), m_HitLess(HitLess)
+	{};
+
+	inline bool operator() (size_t i1, size_t i2) const
+	{ return m_HitLess(m_Result.m_Hits[i1], m_Result.m_Hits[i2]); }
+};
+
+//-- hit-sorting: index: by hit: guts
+template <typename HitLessThanT> void CQueryResultIndex::sortByHit(HitLessThanT& HitLess)
+{
+	CResultHitLess<HitLessThanT> ResultLess(m_Result, HitLess);
+	sortByIndex(ResultLess);
+};
+
+//-- hit-sorting: result: by index: guts
+template <typename HitIndexLessThanT> void CQueryResult::sortByIndex(HitIndexLessThanT& HitIndexLess)
+{
+	CQueryResultIndex ResultIndex(*this);
+	ResultIndex.sortByIndex(HitIndexLess);
+	mapIndex(ResultIndex);
+};
+
+//-- hit-sorting: result: by hit: guts
+template <typename HitLessThanT> void CQueryResult::sortByHit(HitLessThanT& HitLess)
+{
+	CQueryResultIndex ResultIndex(*this);
+	ResultIndex.sortByHit(HitLess);
+	mapIndex(ResultIndex);
+};
 
 
 

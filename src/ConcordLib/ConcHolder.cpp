@@ -38,6 +38,55 @@ const time_t TheEndOfTheWorld = 0xffffffff;
 #endif
 
 //==============================================================================
+void CQueryResult::mapIndex(const CQueryResultIndex& ResultIndex, size_t Begin, size_t End)
+{
+	assert( &(ResultIndex.m_Result) == this );
+
+	//-- sanity checks
+	if (End > ResultIndex.size()) End = ResultIndex.size();
+	if (Begin >= End) {
+		m_Hits.clear();
+		m_HighlightOccurs.clear();
+		m_HighlightIds.clear();
+		return;
+	}
+	
+	//-- populate new temporary result structures
+	vector<CHit>		NewHits;
+	vector<CTokenNo>	NewHighlightOccurs;
+	vector<BYTE>		NewHighlightIds;
+	NewHits.reserve(End - Begin);
+	if (NewHits.size() == m_Hits.size()) {
+		//-- full monty: go ahead and reserve everything
+		NewHighlightOccurs.reserve(m_HighlightOccurs.size());
+		NewHighlightIds.reserve(m_HighlightIds.size());
+	}
+		
+	for (size_t ii=Begin; ii < End; ++ii) {
+		size_t HitNo = (*ResultIndex.m_HitIndex)[ii];
+		NewHits.push_back( m_Hits[HitNo] );
+		
+		int occ_begin = (HitNo == 0) ? 0 : m_Hits[HitNo-1].m_HighlightOccurrenceEnd;
+		NewHighlightOccurs.insert(NewHighlightOccurs.end(),
+					  m_HighlightOccurs.begin()+occ_begin,
+					  m_HighlightOccurs.begin()+m_Hits[HitNo].m_HighlightOccurrenceEnd);
+
+		if (!m_HighlightIds.empty())
+			NewHighlightIds.insert(NewHighlightIds.end(),
+					       m_HighlightIds.begin()+occ_begin,
+					       m_HighlightIds.begin()+m_Hits[HitNo].m_HighlightOccurrenceEnd);
+
+		NewHits.back().m_HighlightOccurrenceEnd = NewHighlightOccurs.size();
+	}
+
+	//-- update calling object
+	m_Hits.swap(NewHits);
+	m_HighlightOccurs.swap(NewHighlightOccurs);
+	m_HighlightIds.swap(NewHighlightIds);
+};
+	
+
+//==============================================================================
 //! indirect comparison operator for hits on CHit::m_SortKey.i (for std::sort); replaces IsLessByHitOrderId .
 //! \li true string-based sorting occurs only at distributed server level
 struct IsLessByHitSortKey
@@ -415,6 +464,10 @@ string BuildHtmlHitStrWithHighlighting (const vector<COutputToken>& Tokens, bool
 #undef   JSON_USE_HASH
 #undef   JSON_SHORT_FILENAMES
 //#define DDC_JSON_DEEP_CONTEXT  //-- defined by configure option --(enable|disable)-json-complex-context
+
+//#define DEBUG_HIT_JSON 1
+#undef DEBUG_HIT_JSON
+
 string CConcHolder::BuildJsonContextString (const vector<COutputToken>& Tokens, bool doHighlight) const
 {
     //==================================================
@@ -720,9 +773,6 @@ bool CConcHolder::GenerateOneHitString(DWORD PageNumber, const CHit& Hit, const 
 }
 
 //==============================================================================
-
-#define DEBUG_HIT_JSON 1
-//#undef DEBUG_HIT_JSON
 
 bool CConcHolder::GenerateOneHitStringJson(DWORD PageNumber, const CHit& Hit, const vector<COutputToken>& Tokens)
 {
@@ -1409,6 +1459,11 @@ DDCErrorEnum CConcHolder::GetAllHits(CQuery *QueryRoot, size_t Limit)
 		qRoot  = qCount->m_dtr;
 		qLimit = qCount->m_sample;
 		qCount->m_CountSample = 0;
+
+		//-- count() query: by breaks: acquire subquery hits in #SEPARATE mode!
+		if (!qCount->CanCountByFile() && !qCount->m_Options->m_bSeparateHits) {
+			qRoot->m_Options->m_bSeparateHits = true;
+		}
 	} 
 	CQueryNode    *qNode = qRoot->m_Node;
 	CQueryOptions *qOpts = qRoot->m_Options;
@@ -1551,10 +1606,8 @@ DDCErrorEnum CConcHolder::GetAllHits(CQuery *QueryRoot, size_t Limit)
 		}
 
 
-		if (!m_Hits.empty()) {
-			//-- inexpensive hack to check that m_HighlightOccurrs[] and m_Hits[] are aligned 1:1
-			assert (m_Hits.back().m_HighlightOccurrenceEnd == m_HighlightOccurs.size());
-		}
+		//-- inexpensive hack to check that m_HighlightOccurrs[] and m_Hits[] are aligned 1:1
+		assert (m_Hits.empty() || m_Hits.back().m_HighlightOccurrenceEnd == m_HighlightOccurs.size());
 
 		// compute period-local counts
 		if (qCount != NULL)
@@ -1819,30 +1872,11 @@ DDCErrorEnum CConcHolder::GetHits(CQuery *QueryRoot,  DWORD& EndHitNo, const str
 				;
 			}
 
+
 			SaveToCache(QueryStr, HitsIndex.begin(), HitsIndex.end() );
-			{
-				size_t  End = min (EndHitNo+m_ResultLimit, HitsIndex.size());
-				vector<CHit>		NewHits;
-				vector<CTokenNo>	NewHighlightOccurs;
-				vector<BYTE>		NewHighlightIds;
 
-				for (; EndHitNo < End; EndHitNo++)
-				{
-					size_t HitNo = HitsIndex[EndHitNo];
-
-					NewHits.push_back(m_Hits[ HitNo ]);
-
-					int start_index = (HitNo == 0) ? 0 : m_Hits[HitNo-1].m_HighlightOccurrenceEnd;
-					NewHighlightOccurs.insert(NewHighlightOccurs.end(), m_HighlightOccurs.begin()+start_index, m_HighlightOccurs.begin()+m_Hits[HitNo].m_HighlightOccurrenceEnd);
-					if (!m_HighlightIds.empty())
-						NewHighlightIds.insert(NewHighlightIds.end(), m_HighlightIds.begin()+start_index, m_HighlightIds.begin()+m_Hits[HitNo].m_HighlightOccurrenceEnd);
-
-					NewHits.back().m_HighlightOccurrenceEnd = NewHighlightOccurs.size();
-				};
-				m_Hits.swap(NewHits);
-				m_HighlightOccurs.swap(NewHighlightOccurs);
-				m_HighlightIds.swap(NewHighlightIds);
-			}
+			size_t End = min(EndHitNo+m_ResultLimit, HitsIndex.size());
+			mapIndex(CQueryResultIndex(*this, HitsIndex), EndHitNo, End);
 		}
 		
 	
