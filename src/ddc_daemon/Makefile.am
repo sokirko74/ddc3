@@ -22,8 +22,6 @@ include $(top_srcdir)/m4/common.am
 #bin_PROGRAMS = ${prog_1} ... ${prog_N}
 pkgbin_PROGRAMS = ddc_daemon
 
-EXTRA_PROGRAMS = threadme
-
 ##======================================================================
 ## sources
 
@@ -41,9 +39,6 @@ ddc_daemon_LDADD = \
  ../RmlTar/libDDCRmlTar.la \
  ../MorphWizardLib/libDDCMorphWizard.la \
  ../CommonLib/libDDCCommon.la
-
-threadme_SOURCES = threadme.cpp
-threadme_LDADD = $(ddc_daemon_LDADD)
 
 ##-----------------------------------------------------------------------
 ## special rules
