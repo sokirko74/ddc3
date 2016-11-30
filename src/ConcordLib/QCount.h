@@ -74,6 +74,8 @@ public:
    * \li default implementation just calls Evaluate()
    * \li only meaningful if <code>HitOccurrenceStart(Hit) <= occ < HitOccurrenceEnd(Hit)</code>
    * \li may throw a CQCountKeyBadOccurrence if \a off in \a Hit doesn't occur or doesn't match the key's selection
+   * \li formerly used by count(... #JOIN) queries, but buggy if grouping by multiple match-ids with multiple hits in 1 break.
+   *     Evaluate() sometimes calls this, so we leave it in place.
    */
   virtual string& EvaluateOccurrence(const CHit &Hit, DWORD occ);
 
@@ -308,11 +310,6 @@ public:
 
   /** this doesn't really do what it should: use EvaluateOcurrences() instead */
   virtual string& EvaluateOccurrence(const CHit &Hit, DWORD occ);
-
-  /** count all combinations of  string-keys for the hit \a Hit
-   *  \li used for count() in #JOIN (#NOSEPARATE) mode
-   */
-  virtual void CountOccurrences(const CHit &Hit, CCountMap &Counts);
 
   //-- ddcObject API
   virtual ddcObjectList Children() const;
