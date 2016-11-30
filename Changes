@@ -1,5 +1,8 @@
 ##-*- Mode: Change-Log; coding: utf-8; -*-
 
+v2.0.51 Wed, 30 Nov 2016 13:04:12 +0100 moocow
+	+ fixed n-gram counting bug (mantis #17777) count("$p=V*=1 $p=V*=2" #JOIN) #by[$l=1,$l=2]
+
 v2.0.50 Fri, 25 Nov 2016 14:51:05 +0100 moocow
 	+ fixed query-compiler bug (mantis #17708); adjacent regexes (/foo/ /bar/) were parsed as (/bar/ /bar/)
 
@@ -15,7 +18,7 @@ v2.0.47 Mon, 31 Oct 2016 16:21:25 +0100 moocow
 	+ added optional user-supplied TIMEOUT parameter to 'status', 'vstatus', and 'info' requests
 	  - avoid bogus failures for busy servers from external watchdogs
 	+ added "/d" regex modifier ("ignore diacritics"), for CQP-like CLARIN FCS-QL support
-	  - converts via iconv from "UTF-8" to "ASCII//TRANSLIT" internally, so "ö" -> "oe", etc.
+	  - converts via iconv from "UTF-8" to "ASCII//TRANSLIT" internally, so "ö" -> "oe", etc. under LC_CTYPE=de_DE.*
 
 v2.0.46 Tue, 27 Sep 2016 16:28:19 +0200 moocow
 	+ added virtual CHost::Close() method for subclass-specific client-wise post-processing

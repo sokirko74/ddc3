@@ -70,15 +70,6 @@ public:
   /** get string key for the hit \a Hit ; default just throws an exception */
   virtual string& Evaluate(const CHit &Hit);
 
-  /** get string key for the occurrence \a occ relative to \a Hit
-   * \li default implementation just calls Evaluate()
-   * \li only meaningful if <code>HitOccurrenceStart(Hit) <= occ < HitOccurrenceEnd(Hit)</code>
-   * \li may throw a CQCountKeyBadOccurrence if \a off in \a Hit doesn't occur or doesn't match the key's selection
-   * \li formerly used by count(... #JOIN) queries, but buggy if grouping by multiple match-ids with multiple hits in 1 break.
-   *     Evaluate() sometimes calls this, so we leave it in place.
-   */
-  virtual string& EvaluateOccurrence(const CHit &Hit, DWORD occ);
-
   /** stringification (default returns m_Label) */
   virtual string toString() { return m_Label; };
 
@@ -219,7 +210,6 @@ public:
   virtual bool CanCountByFile() const { return m_Src->CanCountByFile(); };
   virtual bool Compile(CQueryCompiler *compiler);
   virtual string& Evaluate(const CHit &Hit);
-  virtual string& EvaluateOccurrence(const CHit &Hit, DWORD occ);
   inline void EvaluateRegex(const CHit &Hit, const string& srcKey)
   {
     m_CurKey = srcKey;
@@ -264,7 +254,6 @@ public:
   virtual bool CanCountByFile() const { return false; };
   virtual bool Compile(CQueryCompiler *compiler);
   virtual string& Evaluate(const CHit &Hit);
-  virtual string& EvaluateOccurrence(const CHit &Hit, DWORD occ=0);
   virtual string toString();
   virtual string jsonClass() { return "CQCountKeyExprToken"; };
   virtual string jsonData();
@@ -307,9 +296,6 @@ public:
 
   virtual bool Compile(CQueryCompiler *compiler);
   virtual string& Evaluate(const CHit &Hit);
-
-  /** this doesn't really do what it should: use EvaluateOcurrences() instead */
-  virtual string& EvaluateOccurrence(const CHit &Hit, DWORD occ);
 
   //-- ddcObject API
   virtual ddcObjectList Children() const;
