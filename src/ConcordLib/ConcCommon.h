@@ -385,6 +385,10 @@ struct CDDCFilterWithBounds
 		}
 	};
 
+	//! returns true iff this is a trivial-sort filter (i.e. does not change original hit-sort order)
+	inline bool IsTrivialFilter(void) const
+	{ return m_FilterType == NoSort; };
+
 
 	CDDCFilterWithBounds()
 		: m_bSet(false),

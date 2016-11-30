@@ -1,4 +1,4 @@
-/*-*- Mode: C++; c-basic-offset: 8; -*- */
+//*-*- Mode: C++; c-basic-offset: 8; -*- */
 //  DDC originally by Alexey Sokirko
 //  Changes and modifications 2011-2015 by Bryan Jurish
 //
@@ -24,13 +24,23 @@
 #include "ConcIndexator.h"
 #include "ddcRandom.h"
 
+//==============================================================================
+// Typedefs & Forward Declarations
+
 //! save trigger for ConcordPattern application
 typedef bool (*SaveTriggerType) (const string&,DWORD LParam);
 
-class CQueryCompiler; //-- forward decl
-class CQuery;	      //-- forward decl
+//! type for count-query maps
+typedef map<string,size_t> CCountMap;
+
+class  CQueryCompiler;    //-- forward decl
+class  CQuery; 	          //-- forward decl
 struct CQueryResultIndex; //-- forward decl
 
+//==============================================================================
+// Classes & Structs 
+
+//----------------------------------------------------------------------
 /*! \brief
 	Class  CQueryResult contains all information about the first m_pIndexator->m_MaxCachedHitsCount hits for 
 	the input query. 	Other hits (beyond  m_pIndexator->m_MaxCachedHitsCount) are not stored but 
@@ -62,113 +72,123 @@ struct CQueryResult
 	//! clears CQueryResult fields
 	void			ClearQueryResults();
 
-	//! sort all hits by generic index-comparison function
-	//!  \li HitIndexLessThanT must support an operator() (size_t& a, size_t& b)
-	//!  \li prunes result to selected hits
-	template <typename HitIndexLessThanT> void sortByIndex(HitIndexLessThanT& HitIndexLess);
+	//! sort all hits by generic index-comparison function (comparison predicate reference)
+	//! \see CQueryResultIndex<HitIndexLessThanT>::SortByIndex()
+	//! \see CQueryResultIndex<HitIndexLessThanT>::Apply()
+	template <typename HitIndexLessThanT> void SortResultsByIndex(HitIndexLessThanT& HitIndexLess);
 
-	//! sort hits by generic hit-comparison function
-	//!  \li HitLessThanT must support an operator() (CHit& a, CHit& b)
-	//!  \li prunes result to only selected hits
-	template <typename HitLessThanT> void sortByHit(HitLessThanT& HitLess);
+	//! sort hits by generic hit-comparison function (comparison predicate reference)
+	//! \see CQueryResultIndex<HitIndexLessThanT>::SortByHit()
+	//! \see CQueryResultIndex<HitIndexLessThanT>::Apply()
+	template <typename HitLessThanT> void SortResultsByHit(HitLessThanT& HitLess);
 
-	//! re-sort hits according to ResultIndex, pruning to range begin (inclusive) to end (exclusive) of index
-	//! \li ResultIndex must be an index over the current object
-	//! \li will never map beyond ResultIndex.size()
-	void mapIndex(const CQueryResultIndex& ResultIndex, size_t Begin=0, size_t End=(size_t)-1);
+	//! sort all hits by generic index-comparison function (comparison predicate value)
+	//! \see CQueryResultIndex<HitIndexLessThanT>::SortByIndex()
+	//! \see CQueryResultIndex<HitIndexLessThanT>::Apply()
+	template <typename HitIndexLessThanT> inline void SortResultsByIndexP(HitIndexLessThanT HitIndexLess)
+	{ SortResultsByIndex(HitIndexLess); };
+
+	//! sort hits by generic hit-comparison function (comparsion predicate value)
+	//! \see CQueryResultIndex<HitIndexLessThanT>::SortByHit()
+	//! \see CQueryResultIndex<HitIndexLessThanT>::Apply()
+	template <typename HitLessThanT> inline void SortResultsByHitP(HitLessThanT HitLess)
+	{ SortResultsByHit(HitLess); };
 };
 
-/*!
- * \brief temporary type for re-sorting CQueryResult hits
- */
-struct CQueryResultIndex
-{
-	const CQueryResult& m_Result;
-	vector<size_t>*     m_HitIndex;
-	bool		    b_LocalIndex;
-
-	CQueryResultIndex(const CQueryResult& Result)
-		: m_Result(Result), m_HitIndex(NULL), b_LocalIndex(false)
-	{ Reset(); }
-
-	CQueryResultIndex(const CQueryResult& Result, vector<size_t>& HitIndex)
-		: m_Result(Result), m_HitIndex(&HitIndex), b_LocalIndex(false)
-	{};
-
-	~CQueryResultIndex(void)
-	{ if (b_LocalIndex) delete m_HitIndex; };
-
-	//! resets the index
-	void Reset(void)
-	{
-		if (m_HitIndex==NULL) {
-			m_HitIndex = new vector<size_t>(m_Result.m_Hits.size());
-			b_LocalIndex = true;
-		} else {
-			m_HitIndex->resize(m_Result.m_Hits.size());
-		}
-		for (size_t ii=0; ii < m_HitIndex->size(); ++ii) (*m_HitIndex)[ii] = ii;
-	};
-
-	//! wrapper for m_HitIndex->size()
-	inline size_t size(void) const
-	{ return m_HitIndex==NULL ? 0 : m_HitIndex->size(); };
-
-	//! sort hit-index by generic index-comparison function
-	//!  \li HitIndexLessThanT must support an operator() (size_t& a, size_t& b)
-	template <typename HitIndexLessThanT> void sortByIndex(HitIndexLessThanT& HitIndexLess)
-	{ stable_sort(m_HitIndex->begin(), m_HitIndex->end(), HitIndexLess); };
-
-	//! sort hits by generic hit-comparison function
-	//!  \li HitLessThanT must support an operator() (CHit& a, CHit& b)
-	template <typename HitLessThanT> void sortByHit(HitLessThanT& HitLess);
-};
-	
+//----------------------------------------------------------------------	
 /*!
  * \brief template for converting hit-comparison functions to index-comparisons for CQueryResult sorting
  */
 template <typename HitLessThanT> struct CResultHitLess
 {
+	//! result hit-set with respect to which comparisons will be executed
 	const CQueryResult& m_Result;
+
+	//! hit comparison operator
 	HitLessThanT&       m_HitLess;
-	
+
+	//! default constructor
 	CResultHitLess(const CQueryResult& Result, HitLessThanT& HitLess)
 		: m_Result(Result), m_HitLess(HitLess)
 	{};
 
+	//! indirection operator: defer hit-index comparisons to hit-comparisons
 	inline bool operator() (size_t i1, size_t i2) const
 	{ return m_HitLess(m_Result.m_Hits[i1], m_Result.m_Hits[i2]); }
 };
 
-//-- hit-sorting: index: by hit: guts
-template <typename HitLessThanT> void CQueryResultIndex::sortByHit(HitLessThanT& HitLess)
+
+//----------------------------------------------------------------------
+/*!
+ * \brief temporary type for re-sorting CQueryResult hits
+ */
+struct CQueryResultIndex
 {
-	CResultHitLess<HitLessThanT> ResultLess(m_Result, HitLess);
-	sortByIndex(ResultLess);
+	//! result-set containing hits to be indexed/sorted
+	const CQueryResult& m_Result;
+
+	//! hit index: elements are indices into m_Result.m_Hits, sorted in "logical" order
+	vector<size_t>*     m_pHitIndex;
+
+	//! whether m_pHitIndex was created locally (if true, it will be destroyed with this object)
+	bool		    b_LocalIndex;
+
+	//! Default constructor creates new trivial hit index
+	CQueryResultIndex(const CQueryResult& Result)
+		: m_Result(Result), m_pHitIndex(NULL), b_LocalIndex(false)
+	{ Reset(); }
+
+	//! Constructor for an existing hit index pHitIndex (pointer version)
+	//! \li caller is responsible for destroying pHitIndex when it is no longer needed
+	CQueryResultIndex(const CQueryResult& Result, vector<size_t>* HitIndex)
+		: m_Result(Result), m_pHitIndex(HitIndex), b_LocalIndex(false)
+	{};
+
+	//! Constructor for an existing hit index HitIndex (reference version)
+	//! \li caller is responsible for destroying HitIndex when it is no longer needed
+	CQueryResultIndex(const CQueryResult& Result, vector<size_t>& HitIndex)
+		: m_Result(Result), m_pHitIndex(&HitIndex), b_LocalIndex(false)
+	{};
+
+	//! Destructor
+	~CQueryResultIndex(void)
+	{ if (b_LocalIndex) delete m_pHitIndex; };
+
+	//! Resets the hit-index to the trivial sequence sort-order
+	void Reset(void)
+	{
+		if (m_pHitIndex==NULL) {
+			m_pHitIndex = new vector<size_t>(m_Result.m_Hits.size());
+			b_LocalIndex = true;
+		} else {
+			m_pHitIndex->resize(m_Result.m_Hits.size());
+		}
+		for (size_t ii=0; ii < m_pHitIndex->size(); ++ii) (*m_pHitIndex)[ii] = ii;
+	};
+
+	//! Wrapper for m_pHitIndex->size()
+	inline size_t size(void) const
+	{ return m_pHitIndex==NULL ? 0 : m_pHitIndex->size(); };
+
+	//! sort hit-index by generic index-comparison function
+	//!  \li HitIndexLessThanT must support an <code>operator() (size_t& a, size_t& b)</code>
+	//!       returning true iff <code>m_Result.m_Hits[a] < m_Result.m_Hits[b]</code>
+	template <typename HitIndexLessThanT> inline void SortByIndex(HitIndexLessThanT& HitIndexLess)
+	{ stable_sort(m_pHitIndex->begin(), m_pHitIndex->end(), HitIndexLess); };
+
+	//! sort hits by generic hit-comparison function
+	//!  \li HitLessThanT must support an <code>operator() (CHit& a, CHit& b)</code>
+	//!      returning true iff <code>a < b</code>
+	template <typename HitLessThanT> void SortByHit(HitLessThanT& HitLess);
+
+	//! copy selected source hits in index-order from \a m_pResult to \a Dst
+	//! \li clobbers current contents of \a Dst
+	//! \li only hits in index-range \a begin (inclusive) to \a end (exclusive) are copied
+	//! \li \a End defaults to m_HitIndex.size()
+	void Apply(CQueryResult &Dst, size_t Begin=0, size_t End=(size_t)-1);
 };
 
-//-- hit-sorting: result: by index: guts
-template <typename HitIndexLessThanT> void CQueryResult::sortByIndex(HitIndexLessThanT& HitIndexLess)
-{
-	CQueryResultIndex ResultIndex(*this);
-	ResultIndex.sortByIndex(HitIndexLess);
-	mapIndex(ResultIndex);
-};
-
-//-- hit-sorting: result: by hit: guts
-template <typename HitLessThanT> void CQueryResult::sortByHit(HitLessThanT& HitLess)
-{
-	CQueryResultIndex ResultIndex(*this);
-	ResultIndex.sortByHit(HitLess);
-	mapIndex(ResultIndex);
-};
-
-
-
-/*! type for count-query maps */
-typedef map<string,size_t> CCountMap;
-
- 
+//----------------------------------------------------------------------
 /*! Class  CConcHolder is created for querying a corpus. It contains  all user options  for the query process like  m_ResultLimit 
 	(the maximal number of hits, which should be output) or m_QueryResultStr(the string representation of the query result).
 */
@@ -377,6 +397,7 @@ public:
 };
 
 
+//----------------------------------------------------------------------
 /*! \brief Class  CConcordance is a modification of CConcHolder, which automates handling of CConcHolder::m_pIndexator.
 	CConcordance makes  all  necessary initialization steps in the constructor and the deinitialization steps in the destructor.
 */
@@ -394,6 +415,39 @@ public:
 
 	//! Saves the list of  \ref source_file_def "source files" to file *.con 
 	bool SaveProject(string FileName);
+};
+
+
+//==============================================================================
+// header template instantiations
+
+//----------------------------------------------------------------------
+// CQueryResultIndex
+
+//-- hit-sorting: index: by hit: guts
+template <typename HitLessThanT> void CQueryResultIndex::SortByHit(HitLessThanT& HitLess)
+{
+	CResultHitLess<HitLessThanT> ResultLess(m_Result, HitLess);
+	SortByIndex(ResultLess);
+};
+
+//----------------------------------------------------------------------
+// CQueryResult
+
+//-- hit-sorting: result: by index: guts
+template <typename HitIndexLessThanT> void CQueryResult::SortResultsByIndex(HitIndexLessThanT& HitIndexLess)
+{
+	CQueryResultIndex ResultIndex(*this);
+	ResultIndex.SortByIndex(HitIndexLess);
+	ResultIndex.Apply(*this);
+};
+
+//-- hit-sorting: result: by hit: guts
+template <typename HitLessThanT> void CQueryResult::SortResultsByHit(HitLessThanT& HitLess)
+{
+	CQueryResultIndex ResultIndex(*this);
+	ResultIndex.SortByHit(HitLess);
+	ResultIndex.Apply(*this);
 };
 
 

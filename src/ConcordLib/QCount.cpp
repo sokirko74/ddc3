@@ -552,31 +552,10 @@ void CQCountKeyExprList::CountOccurrences(const CHit &Hit, CCountMap &Counts)
     }
   }
 
-#if DEBUG_NCOUNT
-  occ = HitOccurrenceStart(Hit, (CConcHolder*)m_Compiler->m_pHolder);
-  if (Hit.m_BreakNo==7817) {
-    const CConcHolder *holder = m_Compiler->m_pHolder;
-    const vector<CTokenNo> &occurrences = holder->m_HighlightOccurs;
-    const vector<BYTE>  &matchids = holder->m_HighlightIds;
-    CStringIndexSet *m_pIndex = m_Compiler->m_pHolder->m_pIndexator->GetIndexByNameOrShortName("Token");
-    fprintf(stderr, "DEBUG/7817: occs=[");
-    for (DWORD o=occ; o < occ_end; ++o) {
-      CTokenNo ixid = m_pIndex->GetTokenIndexId(occurrences[o]);
-      fprintf(stderr, " %u=%hhu->%u:\"%s\"", occurrences[o], matchids[o], ixid, m_pIndex->GetIndexItemStr(m_pIndex->m_Index[ixid]));
-    }
-    fprintf(stderr, " ]\n");
-  }
-#endif
-
   //-- count all combinations of sub-keys
   string key;
   for (StringSetProductIterator prod(subkeys); prod; ++prod) {
     prod.value(key);    
-#if DEBUG_NCOUNT
-    if (key == "werden\x02werden") {
-      fprintf(stderr, "DEBUG: werden/werden: hit={BreakNo=%u, occ=%u, occ_end=%u, FileNo=%u}; Count=%zd\n", Hit.m_BreakNo, occ, occ_end, Hit.m_FileNo, Counts[key]);
-    }
-#endif
     ++Counts[key];
   }
 };
@@ -812,6 +791,7 @@ void CQCount::CountLocal(CQueryResult &Result, size_t Limit)
 	  hit0.m_FileNo
 	  );
 
+#if 0
   //-- scan for single-occurrence hits
   for (vector<CHit>::const_iterator hi=Result.m_Hits.begin(); hi != Result.m_Hits.end(); ++hi) {
 	DWORD occ     = HitOccurrenceStart(*hi, (CConcHolder*)m_Compiler->m_pHolder);
@@ -822,18 +802,22 @@ void CQCount::CountLocal(CQueryResult &Result, size_t Limit)
 	}
   }
 #endif
+#endif
 
 
   //-- counting guts
   if (keys->CanCountByFile()) {
     //-- counting guts: file-level
+#if DEBUG_NCOUNT
+    fprintf(stderr, "DEBUG: count-by-file\n");
+#endif
     bool isWithinFile = (qRoot->m_Options->m_HitTypeStr == PredefinedFileBreakName);
     DWORD  f = (DWORD)-1;
     size_t n = 0;
     string key;
 
     //-- ensure m_Hits are sorted by file-id
-    if (qRoot->m_Options && !qRoot->m_Options->m_Filters.empty() && qRoot->m_Options->m_Filters.back().m_FilterType!=NoSort) 
+    if (qRoot->m_Options && !qRoot->m_Options->IsTrivialFilter())
       sort(Result.m_Hits.begin(), Result.m_Hits.end(), IsLessByFileNo());
 
     for (vector<CHit>::const_iterator hi=Result.m_Hits.begin(); hi != Result.m_Hits.end() && m_CountSample < m_sample; ++hi, ++n) {
@@ -855,6 +839,9 @@ void CQCount::CountLocal(CQueryResult &Result, size_t Limit)
   }
   else if (m_Options ? m_Options->m_bSeparateHits : qRoot->m_Options->m_bSeparateHits) {
     //-- counting guts: token-level
+#if DEBUG_NCOUNT
+    fprintf(stderr, "DEBUG: count-by-token\n");
+#endif
     for (vector<CHit>::const_iterator hi=Result.m_Hits.begin(); hi != Result.m_Hits.end() && m_CountSample < m_sample; ++hi, ++m_CountSample) {
       string &key = keys->Evaluate(*hi);
 #if DEBUG_NCOUNT
@@ -864,12 +851,15 @@ void CQCount::CountLocal(CQueryResult &Result, size_t Limit)
 	fprintf(stderr, "DEBUG: werden/werden: hit={BreakNo=%u, occ=%u, occ_end=%u, FileNo=%u}; Count=%zd\n",
 		hi->m_BreakNo, occ, occ_end, hi->m_FileNo, m_Counts[key]);
       }
+#endif      
       ++m_Counts[key];
-#endif
     }
   }
   else {
     //-- counting guts: break-level
+#if DEBUG_NCOUNT
+    fprintf(stderr, "DEBUG: count-by-break\n");
+#endif
 #if 0
     for (vector<CHit>::const_iterator hi=Result.m_Hits.begin(); hi != Result.m_Hits.end() && m_CountSample < m_sample; ++hi, ++m_CountSample) {
       keys->CountOccurrences(*hi, m_Counts);
@@ -881,10 +871,8 @@ void CQCount::CountLocal(CQueryResult &Result, size_t Limit)
     vector<CHit>::const_iterator hi, hj;
 
     //-- ensure m_Hits are sorted by break-id
-    //if (qRoot->m_Options && !qRoot->m_Options->m_Filters.empty() && qRoot->m_Options->m_Filters.back().m_FilterType!=NoSort) 
-    //sort(Result.m_Hits.begin(), Result.m_Hits.end(), IsLessByBreakNo());
-    IsLessByBreakNo lessByBreakNo;
-    Result.sortByHit(lessByBreakNo);
+    if (qRoot->m_Options && !qRoot->m_Options->IsTrivialFilter())
+      Result.SortResultsByHitP(IsLessByBreakNo());
 
     for (hi=Result.m_Hits.begin(); hi != Result.m_Hits.end() && m_CountSample < m_sample; hi=hj, ++m_CountSample) {
       //-- get set of all break keys
@@ -900,7 +888,7 @@ void CQCount::CountLocal(CQueryResult &Result, size_t Limit)
 	}
       }
 
-#if DEBUG_NCOUNT
+#if 0 && DEBUG_NCOUNT
       if (hi->m_BreakNo == 7817) {
 	DWORD occ1     = HitOccurrenceStart(*hi, (CConcHolder*)m_Compiler->m_pHolder);
 	DWORD occ1_end = HitOccurrenceEnd(*hi, (CConcHolder*)m_Compiler->m_pHolder);
@@ -938,7 +926,7 @@ void CQCount::CountLocal(CQueryResult &Result, size_t Limit)
 
       //-- increment counts for all instantiated keys
       for (set<string>::const_iterator bki=bkeys.begin(); bki != bkeys.end(); ++bki) {
-#if DEBUG_NCOUNT
+#if 0 && DEBUG_NCOUNT
 	if (*bki == "sein\x02k\xc3\xb6nnen") {
 	  DWORD occ1     = HitOccurrenceStart(*hi, (CConcHolder*)m_Compiler->m_pHolder);
 	  DWORD occ1_end = HitOccurrenceEnd(*hi, (CConcHolder*)m_Compiler->m_pHolder);

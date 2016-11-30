@@ -38,16 +38,17 @@ const time_t TheEndOfTheWorld = 0xffffffff;
 #endif
 
 //==============================================================================
-void CQueryResult::mapIndex(const CQueryResultIndex& ResultIndex, size_t Begin, size_t End)
-{
-	assert( &(ResultIndex.m_Result) == this );
+// CQueryResultIndex
 
+void CQueryResultIndex::Apply(CQueryResult& Dst, size_t Begin, size_t End)
+{
 	//-- sanity checks
-	if (End > ResultIndex.size()) End = ResultIndex.size();
+	End = min(End, size());
 	if (Begin >= End) {
-		m_Hits.clear();
-		m_HighlightOccurs.clear();
-		m_HighlightIds.clear();
+		Dst.m_Hits.clear();
+		Dst.m_HighlightOccurs.clear();
+		Dst.m_HighlightIds.clear();
+		Dst.m_DebugInfo.clear();
 		return;
 	}
 	
@@ -56,35 +57,34 @@ void CQueryResult::mapIndex(const CQueryResultIndex& ResultIndex, size_t Begin, 
 	vector<CTokenNo>	NewHighlightOccurs;
 	vector<BYTE>		NewHighlightIds;
 	NewHits.reserve(End - Begin);
-	if (NewHits.size() == m_Hits.size()) {
+	if (NewHits.size() == m_Result.m_Hits.size()) {
 		//-- full monty: go ahead and reserve everything
-		NewHighlightOccurs.reserve(m_HighlightOccurs.size());
-		NewHighlightIds.reserve(m_HighlightIds.size());
+		NewHighlightOccurs.reserve(m_Result.m_HighlightOccurs.size());
+		NewHighlightIds.reserve(m_Result.m_HighlightIds.size());
 	}
 		
 	for (size_t ii=Begin; ii < End; ++ii) {
-		size_t HitNo = (*ResultIndex.m_HitIndex)[ii];
-		NewHits.push_back( m_Hits[HitNo] );
+		size_t HitNo = (*m_pHitIndex)[ii];
+		NewHits.push_back( m_Result.m_Hits[HitNo] );
 		
-		int occ_begin = (HitNo == 0) ? 0 : m_Hits[HitNo-1].m_HighlightOccurrenceEnd;
+		int occ_begin = (HitNo == 0) ? 0 : m_Result.m_Hits[HitNo-1].m_HighlightOccurrenceEnd;
 		NewHighlightOccurs.insert(NewHighlightOccurs.end(),
-					  m_HighlightOccurs.begin()+occ_begin,
-					  m_HighlightOccurs.begin()+m_Hits[HitNo].m_HighlightOccurrenceEnd);
+					  m_Result.m_HighlightOccurs.begin()+occ_begin,
+					  m_Result.m_HighlightOccurs.begin()+m_Result.m_Hits[HitNo].m_HighlightOccurrenceEnd);
 
-		if (!m_HighlightIds.empty())
+		if (!m_Result.m_HighlightIds.empty())
 			NewHighlightIds.insert(NewHighlightIds.end(),
-					       m_HighlightIds.begin()+occ_begin,
-					       m_HighlightIds.begin()+m_Hits[HitNo].m_HighlightOccurrenceEnd);
+					       m_Result.m_HighlightIds.begin()+occ_begin,
+					       m_Result.m_HighlightIds.begin()+m_Result.m_Hits[HitNo].m_HighlightOccurrenceEnd);
 
 		NewHits.back().m_HighlightOccurrenceEnd = NewHighlightOccurs.size();
 	}
 
-	//-- update calling object
-	m_Hits.swap(NewHits);
-	m_HighlightOccurs.swap(NewHighlightOccurs);
-	m_HighlightIds.swap(NewHighlightIds);
+	//-- update sink object
+	Dst.m_Hits.swap(NewHits);
+	Dst.m_HighlightOccurs.swap(NewHighlightOccurs);
+	Dst.m_HighlightIds.swap(NewHighlightIds);
 };
-	
 
 //==============================================================================
 //! indirect comparison operator for hits on CHit::m_SortKey.i (for std::sort); replaces IsLessByHitOrderId .
@@ -1461,6 +1461,7 @@ DDCErrorEnum CConcHolder::GetAllHits(CQuery *QueryRoot, size_t Limit)
 		qCount->m_CountSample = 0;
 
 		//-- count() query: by breaks: acquire subquery hits in #SEPARATE mode!
+		qCount->m_Options->m_bSeparateHits = qRoot->m_Options->m_bSeparateHits;
 		if (!qCount->CanCountByFile() && !qCount->m_Options->m_bSeparateHits) {
 			qRoot->m_Options->m_bSeparateHits = true;
 		}
@@ -1876,7 +1877,7 @@ DDCErrorEnum CConcHolder::GetHits(CQuery *QueryRoot,  DWORD& EndHitNo, const str
 			SaveToCache(QueryStr, HitsIndex.begin(), HitsIndex.end() );
 
 			size_t End = min(EndHitNo+m_ResultLimit, HitsIndex.size());
-			mapIndex(CQueryResultIndex(*this, HitsIndex), EndHitNo, End);
+			CQueryResultIndex(*this,HitsIndex).Apply(*this, EndHitNo, End);
 		}
 		
 	

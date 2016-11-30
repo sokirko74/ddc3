@@ -1,6 +1,6 @@
 //-*- Mode: C++ -*-
 //  DDC originally by Alexey Sokirko
-//  Changes and modifications 2011-2015 by Bryan Jurish
+//  Changes and modifications 2011-2016 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -104,6 +104,9 @@ public:
 
   //! returns true iff all defined filters are file-based (for optimized count(*) evaluation)
   bool CanFilterByFile() const;
+
+  //! returns true iff all defined filters are trivial (i.e. do not change default hit-sort order)
+  bool IsTrivialFilter() const;
   //@}
 
 public:
