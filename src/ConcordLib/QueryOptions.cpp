@@ -46,6 +46,27 @@ void CQueryOptions::swap(CQueryOptions &o)
 }
 
 //--------------------------------------------------------------
+void CQueryOptions::assign(const CQueryOptions &src)
+{
+  m_ContextSentencesCount = src.m_ContextSentencesCount;
+  m_bEnableBibliography = src.m_bEnableBibliography;
+  m_bDebugRank = src.m_bDebugRank;
+  m_TextAreaNo = src.m_TextAreaNo;
+  m_bSeparateHits = src.m_bSeparateHits;
+
+  m_Within = src.m_Within;
+  m_HitTypeStr = src.m_HitTypeStr;
+  //m_QFilters = src.m_QFilters;
+  m_Filters = src.m_Filters;
+  m_Subcorpora = src.m_Subcorpora;
+
+  m_QFilters.clear();
+  for (CQFilterList::const_iterator fi=src.m_QFilters.begin(); fi != src.m_QFilters.end(); ++fi) {
+    m_QFilters.push_back((*fi)->Clone());
+  }
+};
+
+//--------------------------------------------------------------
 bool CQueryOptions::Compile(CQueryCompiler *compiler)
 {
   assert(compiler!=NULL);

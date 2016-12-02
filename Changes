@@ -1,6 +1,6 @@
 ##-*- Mode: Change-Log; coding: utf-8; -*-
 
-v2.0.52 Fri, 02 Dec 2016 12:52:26 +0100 moocow
+v2.0.52 Fri, 02 Dec 2016 13:39:30 +0100 moocow
 	+ fixed count(keys(...)) bug introduced in v2.0.51 by count-by-breaks hack
 	  - segfaults caused by temporary count-query used by keys()-queries with m_Options==NULL
 

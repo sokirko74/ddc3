@@ -91,13 +91,16 @@ public:
   //! swap options
   void swap(CQueryOptions &x);
 
-  //! assign options (wraps assignment operator)
-  inline void assign(const CQueryOptions &src)
-  { *this = src; };
+  //! assign options (copies filter list)
+  void assign(const CQueryOptions &src);
 
-  //! clone object (wraps copy constructor)
+  //! clone object (wraps new() and assign())
   inline CQueryOptions* Clone(void) const
-  { return new CQueryOptions(*this); };
+  {
+    CQueryOptions *clone = new CQueryOptions();
+    clone->assign(*this);
+    return clone;
+  };
   //@}
 
 public:
