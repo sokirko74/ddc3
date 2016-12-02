@@ -514,6 +514,11 @@ bool CQCount::Compile(CQueryCompiler *compiler)
   if (!m_dtr->CompileOptions(compiler) || !m_dtr->Compile(compiler))
     throw CExpc(errParseError,"could not compile sub-query `%s' for count-query", m_dtr->toString().c_str());
 
+  //-- adopt daughter options if required (copy for count-by-break hack)
+  if (!m_Options && m_dtr->m_Options) {
+    m_Options = m_dtr->m_Options->Clone();
+  }
+
   //-- adopt appropriate daughter options (for break-counting)
   if (m_Options && m_dtr->m_Options) {
     m_Options->m_HitTypeStr = m_dtr->m_Options->m_HitTypeStr;

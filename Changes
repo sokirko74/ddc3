@@ -1,5 +1,9 @@
 ##-*- Mode: Change-Log; coding: utf-8; -*-
 
+v2.0.52 Fri, 02 Dec 2016 12:52:26 +0100 moocow
+	+ fixed count(keys(...)) bug introduced in v2.0.51 by count-by-breaks hack
+	  - segfaults caused by temporary count-query used by keys()-queries with m_Options==NULL
+
 v2.0.51 Wed, 30 Nov 2016 13:04:12 +0100 moocow
 	+ fixed n-gram counting bug (mantis #17777) count("$p=V*=1 $p=V*=2" #JOIN) #by[$l=1,$l=2]
 

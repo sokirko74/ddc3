@@ -90,6 +90,14 @@ public:
 
   //! swap options
   void swap(CQueryOptions &x);
+
+  //! assign options (wraps assignment operator)
+  inline void assign(const CQueryOptions &src)
+  { *this = src; };
+
+  //! clone object (wraps copy constructor)
+  inline CQueryOptions* Clone(void) const
+  { return new CQueryOptions(*this); };
   //@}
 
 public:

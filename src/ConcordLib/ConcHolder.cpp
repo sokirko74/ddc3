@@ -1461,6 +1461,8 @@ DDCErrorEnum CConcHolder::GetAllHits(CQuery *QueryRoot, size_t Limit)
 		qCount->m_CountSample = 0;
 
 		//-- count() query: by breaks: acquire subquery hits in #SEPARATE mode!
+		assert(qCount->m_Options != NULL);
+		assert(qRoot->m_Options != NULL);
 		qCount->m_Options->m_bSeparateHits = qRoot->m_Options->m_bSeparateHits;
 		if (!qCount->CanCountByFile() && !qCount->m_Options->m_bSeparateHits) {
 			qRoot->m_Options->m_bSeparateHits = true;
