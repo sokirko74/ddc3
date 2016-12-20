@@ -20,7 +20,7 @@
 #include "Bibliography.h"
 #include "../tinyxml/xpath_static.h"
 #include "../common/bserialize.h"
-#include "../common/ddcString.h"
+#include "../CommonLib/ddcString.h"
 #include <typeinfo>	//-- for typeid()
 
 const char IntegerTypeStr[] = "integer";
@@ -790,10 +790,9 @@ void CConcXml::FreeBiblIndices()
 
 void CConcXml::FreeBiblExpanders()
 {
-	for (BiblExpanderMap::iterator it = m_BiblExpanders.begin(); it != m_BiblExpanders.end(); it++)
-	{
+	for (BiblExpanderMap::iterator it = m_BiblExpanders.begin(); it != m_BiblExpanders.end(); it++) {
 		if (it->second) delete it->second;
-	};
+	}
 	m_BiblExpanders.clear();
 };
 
@@ -1224,20 +1223,29 @@ CBibliography CConcXml::GetFullBibliographyOfHit(size_t FileNo) const
 		char* buffer = new  char[BiblLength+1];
 		if (!buffer) return CBibliography();
 
-		if (!FSeek(m_BiblBodyFile,  StartBiblFileOffset, SEEK_SET)) 
-		{
-			delete[] buffer;
-			return  CBibliography();
-		};
-		if ( fread(buffer, 1, BiblLength,  	m_BiblBodyFile) != BiblLength)
-		{
-			delete[] buffer;
-			return  CBibliography();
-		};
+		lock();
+		try {
+			if (!FSeek(m_BiblBodyFile, StartBiblFileOffset, SEEK_SET))  {
+				unlock();
+				delete[] buffer;
+				return  CBibliography();
+			}
+			if ( fread(buffer, 1, BiblLength, m_BiblBodyFile) != BiblLength) {
+				unlock();
+				delete[] buffer;
+				return  CBibliography();
+			}
+		}
+		catch (...) {
+			unlock();
+			throw;
+		}
+
+		unlock();
 		buffer[BiblLength] = 0;
 		FileContent = buffer;
 		delete[] buffer;
-	};
+	}
 	
 	CBibliography B;
 	B.ReadFromString(FileContent);

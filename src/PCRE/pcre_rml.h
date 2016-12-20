@@ -21,7 +21,7 @@
 #define _PCRE_RML_H
 
 #include <pcrecpp.h>
-#include "../common/utilit.h"
+#include "../CommonLib/utilit.h"
 #include <iostream>
 
 extern void RmlPcreMakeTables(vector<BYTE>& character_table, MorphLanguageEnum Langua);

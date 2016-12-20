@@ -1,8 +1,9 @@
 //*-*- Mode: C++; c-basic-offset: 8; -*-*/
-//  DDC originally by Alexey Sokirko
-//  Changes and modifications 2011-2015 by Bryan Jurish
 //
-//  This file is part of DDC.
+//  DDC originally by Alexey Sokirko
+//  Changes and modifications 2011-2016 by Bryan Jurish
+//
+//  This file is part of DDC (formerly CConcHolder.cpp)
 // 
 //  DDC is free software: you can redistribute it and/or modify
 //  it under the terms of the GNU Lesser General Public License as published by
@@ -17,13 +18,15 @@
 //  You should have received a copy of the GNU Lesser General Public License
 //  along with DDC.  If not, see <http://www.gnu.org/licenses/>.
 //
+
 #include "StdConc.h"
 #include "ConcCommon.h"
-#include "ConcHolder.h"
+#include "ConcSession.h"
+#include "ConcSessionContext.h"
 #include "QueryCompiler.h"
 #include "Bibliography.h"
 #include "math.h"
-#include "ddcString.h"
+#include "../CommonLib/ddcString.h"
 
 
 //==============================================================================
@@ -36,55 +39,6 @@ const time_t TheEndOfTheWorld = 0xffffffff;
 	static char THIS_FILE[] = __FILE__;
 	#endif
 #endif
-
-//==============================================================================
-// CQueryResultIndex
-
-void CQueryResultIndex::Apply(CQueryResult& Dst, size_t Begin, size_t End)
-{
-	//-- sanity checks
-	End = min(End, size());
-	if (Begin >= End) {
-		Dst.m_Hits.clear();
-		Dst.m_HighlightOccurs.clear();
-		Dst.m_HighlightIds.clear();
-		Dst.m_DebugInfo.clear();
-		return;
-	}
-	
-	//-- populate new temporary result structures
-	vector<CHit>		NewHits;
-	vector<CTokenNo>	NewHighlightOccurs;
-	vector<BYTE>		NewHighlightIds;
-	NewHits.reserve(End - Begin);
-	if (NewHits.size() == m_Result.m_Hits.size()) {
-		//-- full monty: go ahead and reserve everything
-		NewHighlightOccurs.reserve(m_Result.m_HighlightOccurs.size());
-		NewHighlightIds.reserve(m_Result.m_HighlightIds.size());
-	}
-		
-	for (size_t ii=Begin; ii < End; ++ii) {
-		size_t HitNo = (*m_pHitIndex)[ii];
-		NewHits.push_back( m_Result.m_Hits[HitNo] );
-		
-		int occ_begin = (HitNo == 0) ? 0 : m_Result.m_Hits[HitNo-1].m_HighlightOccurrenceEnd;
-		NewHighlightOccurs.insert(NewHighlightOccurs.end(),
-					  m_Result.m_HighlightOccurs.begin()+occ_begin,
-					  m_Result.m_HighlightOccurs.begin()+m_Result.m_Hits[HitNo].m_HighlightOccurrenceEnd);
-
-		if (!m_Result.m_HighlightIds.empty())
-			NewHighlightIds.insert(NewHighlightIds.end(),
-					       m_Result.m_HighlightIds.begin()+occ_begin,
-					       m_Result.m_HighlightIds.begin()+m_Result.m_Hits[HitNo].m_HighlightOccurrenceEnd);
-
-		NewHits.back().m_HighlightOccurrenceEnd = NewHighlightOccurs.size();
-	}
-
-	//-- update sink object
-	Dst.m_Hits.swap(NewHits);
-	Dst.m_HighlightOccurs.swap(NewHighlightOccurs);
-	Dst.m_HighlightIds.swap(NewHighlightIds);
-};
 
 //==============================================================================
 //! indirect comparison operator for hits on CHit::m_SortKey.i (for std::sort); replaces IsLessByHitOrderId .
@@ -198,13 +152,17 @@ void  SpaceStartQuoteMarks (string& s)
 
 };
 
-//======================================================
+//==============================================================================
+// CShortOccurCache
+ 
+//----------------------------------------------------------------------
 void CShortOccurCache::Clear()
 {
 	m_IndexItemNo2Occurrences.clear();
 	m_OccurrencesBody.clear();
 }
 
+//----------------------------------------------------------------------
 size_t CShortOccurCache::AddNewIndexItemNoToCache(const CTokenNo* pStart, const CTokenNo* pEnd )
 {
 	m_IndexItemNo2Occurrences.push_back(CDataReference (m_OccurrencesBody.size(), pEnd-pStart));;
@@ -212,6 +170,7 @@ size_t CShortOccurCache::AddNewIndexItemNoToCache(const CTokenNo* pStart, const 
 	return m_IndexItemNo2Occurrences.size() - 1;
 }
 
+//----------------------------------------------------------------------
 const CTokenNo*	CShortOccurCache::GetOccurrencesFromCache(const int CacheId, DWORD& Length) const
 {
 	const CDataReference& R 	=  m_IndexItemNo2Occurrences[CacheId];
@@ -223,9 +182,20 @@ bool				CShortOccurCache::CouldContainMore() const
 	return m_OccurrencesBody.size()<MaxShortOccurCacheSize;
 }
 
-//======================================================
-CConcHolder::CConcHolder ()
+//==============================================================================
+// CConcSession: constructors etc
+
+//----------------------------------------------------------------------
+CConcSession::CConcSession(CConcSessionContext *SessionContext)
 {
+	if (SessionContext != NULL) {
+		m_pSessionContext = SessionContext;
+		m_bSessionMaster = false;
+	} else {
+		m_pSessionContext = new CConcSessionContext();
+		m_bSessionMaster = true;
+	}
+	m_WorkerId    = 0;
 	m_ResultLimit = 0xffffffff;
 	m_pIndexator = 0;
 	m_pBreaks = 0;
@@ -236,16 +206,91 @@ CConcHolder::CConcHolder ()
 	m_RandomSeed = 0;
 	m_bSortByString  = false;
 	m_SortOrder = hsoNone;
-};
+}
 
-CConcHolder::~CConcHolder()
+//----------------------------------------------------------------------
+CConcSession::~CConcSession()
 {
+	if (m_bSessionMaster)
+		delete m_pSessionContext;
 	delete m_pRandom;
 	delete m_pQueryCompiler;
-};
+}
+
+ //==============================================================================
+// CConcSession: worker-thread and shared-context utilities
 
 
-void CConcHolder::AddFileReference(const long posFile)
+//----------------------------------------------------------------------
+CConcSession* CConcSession::WorkerClone(size_t WorkerId)
+{
+	LockSessionContext();
+	CConcSession *clone = new CConcSession(m_pSessionContext);
+
+	clone->m_WorkerId = WorkerId;
+	//clone->m_pQueryCompiler = m_pQueryCompiler;
+
+	clone->m_pRandom->set_seed(m_pRandom->m_seed);
+	//clone->m_QueryEndTime = m_QueryEndTime;
+	clone->m_pBreaks = m_pBreaks;
+	//clone->m_ResultFormat = m_ResultFormat;
+	clone->m_RandomSeed = m_RandomSeed;
+	//clone->m_ShortOccurCaches = m_ShortOccurCaches;
+	//clone->m_QueryResultStr = m_QueryResultStr;
+	clone->m_pIndexator = m_pIndexator;				//!!!!!!!! hic sunt dracones !!!!!!!
+	//clone->m_ResultLimit = m_ResultLimit;
+	//clone->m_CurrentSearchPeriodNo = m_CurrentSearchPeriodNo;
+	clone->m_AdditionalHitDelimiter = m_AdditionalHitDelimiter;
+	UnlockSessionContext();
+
+#if 0 //-- DEBUG
+	concord_daemon_log(Format("CConcSession::WorkerClone(): this = %0.16p:{Ctx=%0.16p, Random=%0.16p, Index=%0.16p}",
+				  this, this->m_pSessionContext, this->m_pRandom, this->m_pIndexator));
+	concord_daemon_log(Format("CConcSession::WorkerClone(): clone= %0.16p:{Ctx=%0.16p, Random=%0.16p, Index=%0.16p}",
+				  clone, clone->m_pSessionContext, clone->m_pRandom, clone->m_pIndexator));
+#endif
+	
+	return clone;
+}
+
+//----------------------------------------------------------------------
+void CConcSession::WorkerCloneFree()
+{
+	//-- nothing here
+	m_bSessionMaster = false;
+}
+
+//----------------------------------------------------------------------
+int CConcSession::LockSessionContext()
+{
+	return m_pSessionContext ? m_pSessionContext->lock() : 0;
+}
+ 
+//----------------------------------------------------------------------
+int CConcSession::UnlockSessionContext()
+{
+	return m_pSessionContext ? m_pSessionContext->unlock() : 0;
+}
+ 
+//----------------------------------------------------------------------
+void CConcSession::ClearQueryCache() 
+{
+	if (m_pSessionContext)
+		m_pSessionContext->CacheClear();
+}
+
+//----------------------------------------------------------------------
+size_t CConcSession::CacheSize(void) const
+{
+	return m_pSessionContext ? m_pSessionContext->CacheSize() : 0;
+}
+
+
+//==============================================================================
+// CConcSession: API
+
+//----------------------------------------------------------------------
+void CConcSession::AddFileReference(const long posFile)
 {
 
 	if (m_ResultFormat == DDC_ResultHTML)
@@ -266,10 +311,10 @@ void CConcHolder::AddFileReference(const long posFile)
 		// nothing to do!
 	}
 
-};
+}
 
-
-void CConcHolder::ShowBibliographyForTextOrHtml(const CHit& Hit, DWORD PageNumber)
+//----------------------------------------------------------------------
+void CConcSession::ShowBibliographyForTextOrHtml(const CHit& Hit, DWORD PageNumber)
 {
 	// nothing to do for DDC_ResultTable!
 	assert (m_ResultFormat != DDC_ResultTable);
@@ -455,9 +500,11 @@ string BuildHtmlHitStrWithHighlighting (const vector<COutputToken>& Tokens, bool
 	
 
 	return Result;
-};
+}
 
-//-- moo: BuildJsonContextString(): adapted from BuildHtmlHitStrWithHighlighting()
+
+//----------------------------------------------------------------------
+// moo: BuildJsonContextString(): adapted from BuildHtmlHitStrWithHighlighting()
 //   + returns a JSON array of token structures
 //#define  JSON_USE_DDC_SPACING
 #undef   JSON_USE_DDC_SPACING
@@ -468,7 +515,7 @@ string BuildHtmlHitStrWithHighlighting (const vector<COutputToken>& Tokens, bool
 //#define DEBUG_HIT_JSON 1
 #undef DEBUG_HIT_JSON
 
-string CConcHolder::BuildJsonContextString (const vector<COutputToken>& Tokens, bool doHighlight) const
+string CConcSession::BuildJsonContextString (const vector<COutputToken>& Tokens, bool doHighlight) const
 {
     //==================================================
     // create hit string
@@ -546,8 +593,8 @@ string CConcHolder::BuildJsonContextString (const vector<COutputToken>& Tokens, 
 }
 
 
-
-bool CConcHolder::GetContext(int  StartBreakNo, int  EndBreakNo, const DWORD CurrFileNo,  const bool bConvertASCIIToHtmlSymbols, string& Result) const
+//----------------------------------------------------------------------
+bool CConcSession::GetContext(int  StartBreakNo, int  EndBreakNo, const DWORD CurrFileNo,  const bool bConvertASCIIToHtmlSymbols, string& Result) const
 {
 	Result = "";
 	if (m_pQueryCompiler->m_pQuery->m_Options->m_HitTypeStr == PredefinedFileBreakName) return true;
@@ -588,9 +635,10 @@ bool CConcHolder::GetContext(int  StartBreakNo, int  EndBreakNo, const DWORD Cur
 		};
 	};
 	return true;
-};
+}
 
-bool CConcHolder::GetContextJson(int StartBreakNo, int EndBreakNo, const DWORD CurrFileNo, string& js) const
+//----------------------------------------------------------------------
+bool CConcSession::GetContextJson(int StartBreakNo, int EndBreakNo, const DWORD CurrFileNo, string& js) const
 {
     js.clear();
     if (m_pQueryCompiler->m_pQuery->m_Options->m_HitTypeStr == PredefinedFileBreakName)
@@ -612,12 +660,12 @@ bool CConcHolder::GetContextJson(int StartBreakNo, int EndBreakNo, const DWORD C
 	    vector<COutputToken> Tokens;
 
 #ifdef DDC_JSON_DEEP_CONTEXT
-	    //-- complex output tokens; copy+paste+edit from CConcHolder::GenerateHitStrings()
+	    //-- complex output tokens; copy+paste+edit from CConcSession::GenerateHitStrings()
 	    assert (!m_pIndexator->m_IndicesToShow.empty());
 	    for (size_t ixno=0; ixno < m_pIndexator->m_IndicesToShow.size(); ++ixno) {
 		    vector<COutputToken> ixTokens;
 		    if (!GetTokensFromStorageByBreak(m_pIndexator->m_IndicesToShow[ixno], BreakNo, ixTokens)) {
-			    throw CExpc(errOther, Format("CConcHolder::GetContextJson(): could not get index items for IndexNo=%i, BreakNo=%i\n",
+			    throw CExpc(errOther, Format("CConcSession::GetContextJson(): could not get index items for IndexNo=%i, BreakNo=%i\n",
 							 m_pIndexator->m_IndicesToShow[ixno], BreakNo));
 			    return false;
 		    }
@@ -644,10 +692,11 @@ bool CConcHolder::GetContextJson(int StartBreakNo, int EndBreakNo, const DWORD C
 	};
     };
     return true;
-};
+}
 
 
-bool CConcHolder::ShowBibliographyForTable(DWORD PageNumber, const CHit& Hit, const vector<COutputToken>& Tokens)
+//----------------------------------------------------------------------
+bool CConcSession::ShowBibliographyForTable(DWORD PageNumber, const CHit& Hit, const vector<COutputToken>& Tokens)
 {
 	string KeyWords;
 	for (int i=0; i< Tokens.size(); i++)
@@ -690,12 +739,11 @@ bool CConcHolder::ShowBibliographyForTable(DWORD PageNumber, const CHit& Hit, co
 	m_QueryResultStr += globalTableItemsDelim;
 
 	return true;
-};
+}
 
 
-
-
-bool CConcHolder::GenerateOneHitString(DWORD PageNumber, const CHit& Hit, const vector<COutputToken>& Tokens)
+//----------------------------------------------------------------------
+bool CConcSession::GenerateOneHitString(DWORD PageNumber, const CHit& Hit, const vector<COutputToken>& Tokens)
 {
     if (m_ResultFormat == DDC_ResultJson)
 	return GenerateOneHitStringJson(PageNumber, Hit, Tokens);
@@ -772,9 +820,9 @@ bool CConcHolder::GenerateOneHitString(DWORD PageNumber, const CHit& Hit, const 
 
 }
 
-//==============================================================================
 
-bool CConcHolder::GenerateOneHitStringJson(DWORD PageNumber, const CHit& Hit, const vector<COutputToken>& Tokens)
+//----------------------------------------------------------------------
+bool CConcSession::GenerateOneHitStringJson(DWORD PageNumber, const CHit& Hit, const vector<COutputToken>& Tokens)
 {
     bool utf8 = m_pIndexator->m_Utf8;
 	
@@ -783,8 +831,25 @@ bool CConcHolder::GenerateOneHitStringJson(DWORD PageNumber, const CHit& Hit, co
     // + adapted from: ShowBibliographyForTable(PageNumber, Hit, Tokens)
     CBibliography B = m_pIndexator->m_Bibl.GetFullBibliographyOfHit(Hit.m_FileNo);
     string pageStr = (PageNumber == UnknownPageNumber) ? "null" : Format("%u",PageNumber);
-    string hitStr  = (string("{\"meta_\":{")
+    string hitStr  = string("{");
 
+    //==================================================
+    // hit debugging
+#ifdef DEBUG_HIT_JSON
+    hitStr        += (string("\"debug_\":{")
+		      + "\"project_\":" + jsonStr(m_pIndexator->m_Path)
+		      + ",\"worker_\":" + Format("%zu", m_WorkerId)
+		      + ",\"breakno_\":" + Format("%u",  (uint)Hit.m_BreakNo)
+		      + ",\"breakstart_\":" + Format("%u",  (uint)(Hit.m_BreakNo==0 ? 0 : GetBreaks()[Hit.m_BreakNo-1]))		      		      
+		      + ",\"highlight_\":" + Format("%u",(uint)Hit.m_HighlightOccurrenceEnd)
+		      + ",\"fileno_\":" + Format("%u",   (uint)Hit.m_FileNo)
+		      + ",\"key_\":[" + Format("%d", Hit.m_SortKey.i) + "," + jsonStr(Hit.m_SortKey.s, utf8) + "]"
+		      + "},");
+#endif
+    
+    //==================================================
+    // hit metadata
+    hitStr        += (string("\"meta_\":{")
 #if JSON_SHORT_FILENAMES
 		      + "\"file_\":" + jsonStr(m_pIndexator->GetShortFilename(Hit.m_FileNo), utf8)
 #else
@@ -794,13 +859,6 @@ bool CConcHolder::GenerateOneHitStringJson(DWORD PageNumber, const CHit& Hit, co
 		      + ",\"orig_\":" + jsonStr(B.m_OrigBibl, utf8)
 		      + ",\"date_\":" + jsonStr(B.m_DateStr, utf8)
 		      + ",\"page_\":" + pageStr
-#ifdef DEBUG_HIT_JSON
-		      + ",\"breakno_\":" + Format("%u",  (uint)Hit.m_BreakNo)
-		      + ",\"highlight_\":" + Format("%u",(uint)Hit.m_HighlightOccurrenceEnd)
-		      + ",\"fileno_\":" + Format("%u",   (uint)Hit.m_FileNo)
-		      + ",\"breakstart_\":" + Format("%u",  (uint)(Hit.m_BreakNo==0 ? 0 : GetBreaks()[Hit.m_BreakNo-1]))
-		      + ",\"key_\":[" + Format("%d", Hit.m_SortKey.i) + "," + jsonStr(Hit.m_SortKey.s, utf8) + "]"
-#endif
 		      );
     if (m_pQueryCompiler->m_pQuery->m_Options->m_bEnableBibliography && m_pIndexator->OutputBibliographyOfHits()) {
 	hitStr += "," + m_pIndexator->m_Bibl.GetFreeHeaderBiblAttributesJson(Hit.m_FileNo, utf8);
@@ -865,8 +923,8 @@ bool CConcHolder::GenerateOneHitStringJson(DWORD PageNumber, const CHit& Hit, co
 }
 
 
-
-bool CConcHolder::GetTokensFromStorageByBreak(size_t IndexNo, size_t BreakNo, vector<COutputToken>& Tokens) const
+//----------------------------------------------------------------------
+bool CConcSession::GetTokensFromStorageByBreak(size_t IndexNo, size_t BreakNo, vector<COutputToken>& Tokens) const
 {
 	Tokens.clear();
 
@@ -880,10 +938,11 @@ bool CConcHolder::GetTokensFromStorageByBreak(size_t IndexNo, size_t BreakNo, ve
 		return false;
 	};
 	return true;
-};
+}
 
 
-bool CConcHolder::GetFileSnippets(const int HitNo, vector<COutputToken>& ResultTokens)  const
+//----------------------------------------------------------------------
+bool CConcSession::GetFileSnippets(const int HitNo, vector<COutputToken>& ResultTokens)  const
 {
 	const size_t ContextSize = 4;
 	ResultTokens.clear();
@@ -966,19 +1025,21 @@ bool CConcHolder::GetFileSnippets(const int HitNo, vector<COutputToken>& ResultT
 	};
 
 	return true;
-};
+}
 
-DDCErrorEnum CConcHolder::GenerateHitStrings(const int StartHitNo) 
+//----------------------------------------------------------------------
+DDCErrorEnum CConcSession::GenerateHitStrings(const int StartHitNo) 
 {
 	assert(m_pQueryCompiler!=NULL);
-	assert(m_pQueryCompiler->m_pQuery!=NULL);
+	if (m_pQueryCompiler->m_pQuery==NULL)
+		throw CExpc(errRuntime, "CConcSession::GenerateHitStrings(): no compiled query available!");
+
 	if (IsCountSort(m_SortOrder))
 		return GenerateCountStrings(StartHitNo);
 
 	DwordVector PageBreaks;
 
 	m_pIndexator->ConvertHitsToPageBreaks(m_Hits.begin(), m_Hits.end(), GetBreaks(), PageBreaks);
-
 	m_QueryResultStr = "";
 
 	int end = min (m_Hits.size(), StartHitNo + m_ResultLimit);
@@ -998,8 +1059,8 @@ DDCErrorEnum CConcHolder::GenerateHitStrings(const int StartHitNo)
 		else
 		{
 			assert (!m_pIndexator->m_IndicesToShow.empty());
-			if (!GetTokensFromStorageByBreak(m_pIndexator->m_IndicesToShow[0], BreakNo, Tokens)) 
-					return errReadSourceFile;
+			if (!GetTokensFromStorageByBreak(m_pIndexator->m_IndicesToShow[0], BreakNo, Tokens))
+				return errReadSourceFile;
 
 			// next indices add to anchors, starting from the second index ()
 			for (size_t indno=1; indno< m_pIndexator->m_IndicesToShow.size(); indno++)
@@ -1056,13 +1117,14 @@ DDCErrorEnum CConcHolder::GenerateHitStrings(const int StartHitNo)
 		else {
 		    m_QueryResultStr.push_back('\n');
 		}
-		m_QueryResultStr += m_AdditionalHitDelimeter;
+		m_QueryResultStr += m_AdditionalHitDelimiter;
 	};
 
 	return errNone;
-};
+}
 
-DDCErrorEnum CConcHolder::GenerateCountStrings(const int StartHitNo) 
+//----------------------------------------------------------------------
+DDCErrorEnum CConcSession::GenerateCountStrings(const int StartHitNo) 
 {
 	assert(m_pQueryCompiler!=NULL);
 	assert(m_pQueryCompiler->m_pQuery!=NULL);
@@ -1080,19 +1142,21 @@ DDCErrorEnum CConcHolder::GenerateCountStrings(const int StartHitNo)
 			m_QueryResultStr.push_back(EndHitNo < end-1 ? ',' : ']');
 			m_QueryResultStr.push_back('\n');
 		}
-		m_QueryResultStr += m_AdditionalHitDelimeter;
+		m_QueryResultStr += m_AdditionalHitDelimiter;
 	}
 
 	return errNone;
-};
+}
 
-void CConcHolder::DecorateQueryResults(const string& FormatStr, string& QueryResultStr)
+//----------------------------------------------------------------------
+void CConcSession::DecorateQueryResults(const string& FormatStr, string& QueryResultStr)
 {
 	if (GetResultFormatByString(FormatStr) == DDC_ResultHTML)
 		QueryResultStr = "<HTML> <BODY>\n" +  QueryResultStr +  "\n</BODY></HTML>";
-};
+}
 
-void CConcHolder::InitFileReferences(vector<CHit>&	Hits) const
+//----------------------------------------------------------------------
+void CConcSession::InitFileReferences(vector<CHit>&	Hits) const
 {
 	const vector<CTokenNo>& Breaks = GetBreaks();
 	const vector<CTokenNo>& FileBreaks = m_pIndexator->GetFileBreaks();
@@ -1106,8 +1170,9 @@ void CConcHolder::InitFileReferences(vector<CHit>&	Hits) const
 		H.m_FileNo  = it - FileBreaks.begin();
 		H.m_SortKey = H.m_BreakNo;  // no sort 
 	};
-};
+}
 
+//----------------------------------------------------------------------
 struct COccurrenceAndQueryNodeIndex 
 {
 	CTokenNo m_TokenNo;
@@ -1123,6 +1188,7 @@ struct COccurrenceAndQueryNodeIndex
 	}
 };
 
+//----------------------------------------------------------------------
 struct CHitRank 
 {
 	// the begining of the most representative passage 
@@ -1135,6 +1201,7 @@ struct CHitRank
 	vector<double>	m_IDFs;
 };
 
+//----------------------------------------------------------------------
 // OccurrenceAndQueryNodeIndex is the array of all occurrences for this seacrh period.
 //  start_pos is  the starting point in  OccurrenceAndQueryNodeIndex of occurrences for the current hit.
 //  end_pos is  the end point in  OccurrenceAndQueryNodeIndex of occurrences for the current hit.
@@ -1188,7 +1255,8 @@ void GetHitRankLen(vector<COccurrenceAndQueryNodeIndex >& OccurrenceAndQueryNode
 	
 }
 
-void CConcHolder::InitSortByRank(const CQuery *pQuery) const
+//----------------------------------------------------------------------
+void CConcSession::InitSortByRank(const CQuery *pQuery) const
 {
 	const vector<CTokenNo>& Breaks = GetBreaks();
 	vector<CHit>& Hits = pQuery->m_Node->m_Hits;
@@ -1268,7 +1336,8 @@ void CConcHolder::InitSortByRank(const CQuery *pQuery) const
 	}
 }
 
-void CConcHolder::InitSortBySize(const CQuery *pQuery) const
+//----------------------------------------------------------------------
+void CConcSession::InitSortBySize(const CQuery *pQuery) const
 {
 	const vector<CTokenNo>& Breaks = GetBreaks();
 	size_t HitsCount = pQuery->m_Node->m_Hits.size();
@@ -1280,7 +1349,8 @@ void CConcHolder::InitSortBySize(const CQuery *pQuery) const
 	}
 }
 
-void CConcHolder::InitSortByRandom(const CQuery *pQuery) const
+//----------------------------------------------------------------------
+void CConcSession::InitSortByRandom(const CQuery *pQuery) const
 {
 	size_t HitsCount = pQuery->m_Node->m_Hits.size();
 	for (size_t HitNo=0; HitNo< HitsCount; HitNo++)
@@ -1292,7 +1362,8 @@ void CConcHolder::InitSortByRandom(const CQuery *pQuery) const
 	}
 }
 
-void CConcHolder::InitSortByContext(const CQuery *pQuery, const CDDCFilterWithBounds& F) const
+//----------------------------------------------------------------------
+void CConcSession::InitSortByContext(const CQuery *pQuery, const CDDCFilterWithBounds& F) const
 {
 	CStringIndexSet* pIdx = (F.m_AttrName.empty()
 				 ? m_pIndexator->GetTokenIndex()
@@ -1304,7 +1375,7 @@ void CConcHolder::InitSortByContext(const CQuery *pQuery, const CDDCFilterWithBo
 	const vector<BYTE> &occur_ids = qnod->m_OccurrenceMatchIds;
 
 	if (!pIdx)
-		throw CExpc(errOther, Format("CConcHolder::InitSortByContext(): Error: could not find index `%s' for context sort", F.m_AttrName.c_str()));
+		throw CExpc(errOther, Format("CConcSession::InitSortByContext(): Error: could not find index `%s' for context sort", F.m_AttrName.c_str()));
 
 	for (DWORD HitNo=0; HitNo< HitsCount; HitNo++) {
 		CHit& H = Hits[HitNo];
@@ -1377,7 +1448,8 @@ void CConcHolder::InitSortByContext(const CQuery *pQuery, const CDDCFilterWithBo
 }
 
 
-void CConcHolder::InitSortKeyForHits(const CQuery *pQuery, const CDDCFilterWithBounds& Filter)
+//----------------------------------------------------------------------
+void CConcSession::InitSortKeyForHits(const CQuery *pQuery, const CDDCFilterWithBounds& Filter)
 {
 	assert (Filter.m_FilterType != HitSortsCount);
 
@@ -1417,7 +1489,9 @@ void CConcHolder::InitSortKeyForHits(const CQuery *pQuery, const CDDCFilterWithB
 	case GreaterByFreeBiblField:
 	case LessByFreeBiblField:	
 		m_pIndexator->m_Bibl.InitSortByBiblIntegerField(Filter.m_AttrName, pQuery->m_Node->m_Hits);
-		m_bSortByString = (m_pIndexator->m_Bibl.GetBiblFieldTypeId(Filter.m_AttrName) == cfbiString);
+		m_bSortByString = (m_pIndexator->m_Bibl.GetBiblFieldTypeId(Filter.m_AttrName) == cfbiString
+				   ||
+				   m_pIndexator->m_Bibl.GetBiblFieldTypeId(Filter.m_AttrName) == cfbiStringConstant);
 		break;
 
 	case RandomSort:
@@ -1430,14 +1504,15 @@ void CConcHolder::InitSortKeyForHits(const CQuery *pQuery, const CDDCFilterWithB
 //#define DEBUG_HIT_SORT 1
 #undef DEBUG_HIT_SORT
 
-//==============================================================================
-
-DDCErrorEnum CConcHolder::GetAllHits(const string &Query, size_t Limit) 
+//----------------------------------------------------------------------
+DDCErrorEnum CConcSession::GetAllHits(const string &Query, size_t Limit) 
 {
 	return GetAllHits(m_pQueryCompiler->m_pQuery, Limit);
 }
 
-DDCErrorEnum CConcHolder::GetAllHits(CQuery *QueryRoot, size_t Limit) 
+
+//----------------------------------------------------------------------
+DDCErrorEnum CConcSession::GetAllHits(CQuery *QueryRoot, size_t Limit) 
 {
 	assert(QueryRoot != NULL);
 	m_bStoppedByUser = false;
@@ -1576,7 +1651,7 @@ DDCErrorEnum CConcHolder::GetAllHits(CQuery *QueryRoot, size_t Limit)
 		//-- add period-local hits to m_Hits and highlight occurrences
 		// + we ought to merge-sort here e.g. with std::inplace_merge()
 		//   *but* we also need to keep m_HighlightOccurs[] aligned with m_Hits[]
-		// + current solution is full post-retrieval re-sort in calling method CConcHolder::GetHits()
+		// + current solution is full post-retrieval re-sort in calling method CConcSession::GetHits()
 		size_t Count = min(qLimit, PeriodHitsIndex.size());
 		for (size_t i=0; i < Count; i++) {
 			size_t  HitNo = PeriodHitsIndex[i];
@@ -1646,28 +1721,17 @@ DDCErrorEnum CConcHolder::GetAllHits(CQuery *QueryRoot, size_t Limit)
 	//m_pQueryCompiler->DeleteTree();
 
 	return rc;
-};
+}
 
-bool CConcHolder::IsUniversalCountQuery(CQuery *QueryRoot) const
+//----------------------------------------------------------------------
+bool CConcSession::IsUniversalCountQuery(CQuery *QueryRoot) const
 {
 	return (typeid(*QueryRoot) == typeid(CQCount) && ((CQCount*)QueryRoot)->CanCountUniversal());
 }
 
-void	CQueryResult::ClearQueryResults()
-{
-	ClearVector(m_Hits);
-	ClearVector(m_HighlightOccurs);
-	ClearVector(m_HighlightIds);
-	ClearVector(m_DebugInfo);
-	m_AllHitsCount = 0;
-	m_RelevantDocumentCount = 0;
-	m_bSortByString = false;
-	m_SortOrder = hsoNone;
-}
 
-
-
-string CConcHolder::GetHitIds()  const
+//----------------------------------------------------------------------
+string CConcSession::GetHitIds()  const
 {
 	if (IsCountSort(m_SortOrder))
 		return GetCountIds();
@@ -1686,9 +1750,10 @@ string CConcHolder::GetHitIds()  const
 		}
 	}
 	return Result;
-};
+}
 
-string CConcHolder::GetCountIds()  const
+//----------------------------------------------------------------------
+string CConcSession::GetCountIds()  const
 {
 	string Result;
 #ifdef DDC_COUNT_KEY_COMPAT
@@ -1718,122 +1783,38 @@ string CConcHolder::GetCountIds()  const
 #endif // DDC_COUNT_KEY_COMPAT
 	}
 	return Result;
-};
+}
 
-//#define DEBUG_CACHE
-#undef DEBUG_CACHE
-#ifdef DEBUG_CACHE
-# define CACHEDEBUG(code) code
-#else
-# define CACHEDEBUG(code)
-#endif
-
-bool CConcHolder::TryToGetFromCache(const string &Query,  DWORD& EndHitNo)
+//----------------------------------------------------------------------
+bool CConcSession::TryToGetFromCache(const string &Query,  DWORD& EndHitNo)
 {
-	CACHEDEBUG(fprintf(stderr,"TryToGetFromCache() : Query=%s, EndHitNo=%d, CacheSize=%zi\n", jsonStr(Query).c_str(), EndHitNo, m_Queries.size()));
+	return m_pSessionContext ? m_pSessionContext->CacheGet(*this, Query, EndHitNo) : false;
+}
 
-	map<string, CQueryResult>::const_iterator it = m_QueryCache.find(Query);
-	// if the query is not the cache then exit
-	if (it == m_QueryCache.end()) {
-		CACHEDEBUG(fprintf(stderr,"TryToGetFromCache() --> not found\n"));
-		return false;
-	}
-
-	CACHEDEBUG(fprintf(stderr,"TryToGetFromCache() --> found\n"));
-	const CQueryResult& CacheItem = it->second;
-
-	// if one asks hits, which were beyond the storage limits of the cache
-	if (CacheItem.m_AllHitsCount > m_pIndexator->m_MaxCachedHitsCount) {
-		CACHEDEBUG(fprintf(stderr,"TryToGetFromCache() --> nHits=%zd > MaxCachedHitsCount=%zd : must re-evaluate\n", CacheItem.m_AllHitsCount, m_pIndexator->m_MaxCachedHitsCount));
-		if (EndHitNo+m_ResultLimit > m_pIndexator->m_MaxCachedHitsCount) return false;
-	}
-
-	ClearQueryResults();
-	
-	//  copying [EndHitNo...EndHitNo+m_ResultLimit) hits from the cache to  m_Hits,  m_HighlightOccurs,  and m_HighlightIds
-	size_t End  = min (EndHitNo+m_ResultLimit, CacheItem.m_Hits.size());
-	for (; EndHitNo < End; EndHitNo++)
-	{
-		m_Hits.push_back(CacheItem.m_Hits[EndHitNo]);
-		int start = (EndHitNo == 0) ? 0 : CacheItem.m_Hits[EndHitNo-1].m_HighlightOccurrenceEnd;
-		m_HighlightOccurs.insert(m_HighlightOccurs.end(), CacheItem.m_HighlightOccurs.begin()+start, CacheItem.m_HighlightOccurs.begin()+CacheItem.m_Hits[EndHitNo].m_HighlightOccurrenceEnd);
-		if (!CacheItem.m_HighlightIds.empty())
-			m_HighlightIds.insert(m_HighlightIds.end(), CacheItem.m_HighlightIds.begin()+start, CacheItem.m_HighlightIds.begin()+CacheItem.m_Hits[EndHitNo].m_HighlightOccurrenceEnd);
-		m_Hits.back().m_HighlightOccurrenceEnd = m_HighlightOccurs.size();
-	};
-	m_DebugInfo = CacheItem.m_DebugInfo;
-	m_AllHitsCount = CacheItem.m_AllHitsCount;
-	m_RelevantDocumentCount = CacheItem.m_RelevantDocumentCount;
-	m_SortOrder = CacheItem.m_SortOrder;
-	m_bSortByString = CacheItem.m_bSortByString;
-	return true;
-};
-
-// saving results to the cache
-void  CConcHolder::SaveToCache(const string& Query, vector<size_t>::const_iterator start, vector<size_t>::const_iterator end)
+ //----------------------------------------------------------------------
+void  CConcSession::SaveToCache(const string& Query, vector<size_t>::const_iterator start, vector<size_t>::const_iterator end)
 {
-	if (m_pIndexator->m_MaxQueryCacheSize==0) return;
-	CACHEDEBUG(fprintf(stderr,"SaveToCache() : Query=%s, nItems=%zd, CacheSize=%zi\n", jsonStr(Query).c_str(), end-start, m_Queries.size()));
+	if (m_pSessionContext)
+		m_pSessionContext->CacheSet(*this, Query, start,end);
+}
 
-	if (m_QueryCache.find(Query) !=  m_QueryCache.end())
-	{
-		// it can be so that SaveToCache was called but the input query is already in the cache,
-		// because the user now wants some hits after MaxCachedHitsCount 
-		// so TryToGetFromCache has returned false, and now we are here
-		CACHEDEBUG(fprintf(stderr,"SaveToCache() --> already present\n"));
-		return;
-	};
-
-	// if the cache is full, then we should delete the oldest item
-	if (m_Queries.size() >= m_pIndexator->m_MaxQueryCacheSize)
-	{
-		//  erasing  the first item from Query queue and from the Query cache
-		map<string, CQueryResult>::iterator it = m_QueryCache.find(m_Queries.front());
-		assert(it != m_QueryCache.end());
-		CACHEDEBUG(fprintf(stderr,"SaveToCache() --> dropping stale cache-item %s\n", jsonStr(it->first).c_str()));
-		m_QueryCache.erase(it);
-		m_Queries.erase(m_Queries.begin());
-	};
-	m_Queries.push_back(Query);
-	
-	//  creating a new query cache item
-	CQueryResult I;
-	I.m_AllHitsCount = m_AllHitsCount;
-	I.m_RelevantDocumentCount = m_RelevantDocumentCount;
-	I.m_SortOrder = m_SortOrder;
-	I.m_bSortByString = m_bSortByString;
-	size_t End  = min (m_pIndexator->m_MaxCachedHitsCount, (size_t)(end-start));
-	for (size_t i=0; i < End; i++)
-	{
-		size_t HitNo = *start;
-		start++;
-		I.m_Hits.push_back(m_Hits[ HitNo ]);
-		int start_index = (HitNo == 0) ? 0 : m_Hits[HitNo-1].m_HighlightOccurrenceEnd;
-		I.m_HighlightOccurs.insert(I.m_HighlightOccurs.end(), m_HighlightOccurs.begin()+start_index, m_HighlightOccurs.begin()+m_Hits[HitNo].m_HighlightOccurrenceEnd);
-		if (!m_HighlightIds.empty())
-			I.m_HighlightIds.insert(I.m_HighlightIds.end(), m_HighlightIds.begin()+start_index, m_HighlightIds.begin()+m_Hits[HitNo].m_HighlightOccurrenceEnd);
-		I.m_Hits.back().m_HighlightOccurrenceEnd = I.m_HighlightOccurs.size();
-
-	};
-	I.m_DebugInfo = m_DebugInfo;
-	m_QueryCache[Query] = I;
-	assert (m_Queries.size() ==  m_QueryCache.size());
-};
-
-DDCErrorEnum CConcHolder::GetHits(const string &QueryStr,  DWORD& EndHitNo)
+//----------------------------------------------------------------------
+DDCErrorEnum CConcSession::GetHits(const string &QueryStr,  DWORD& EndHitNo)
 {
 	if ( !(m_pQueryCompiler->ParseQuery(QueryStr) && m_pQueryCompiler->Compile()) )
 		return errParseError;
 	return GetHits(m_pQueryCompiler->m_pQuery, EndHitNo, QueryStr);
 }
 
-DDCErrorEnum CConcHolder::GetHits(CQuery *QueryRoot,  DWORD& EndHitNo)
+//----------------------------------------------------------------------
+DDCErrorEnum CConcSession::GetHits(CQuery *QueryRoot,  DWORD& EndHitNo)
 {
 	string QueryStr = QueryRoot ? (QueryRoot->toString() + QueryRoot->optionsToString()) : string();
 	return GetHits(QueryRoot, EndHitNo, QueryStr);
 }
 
-DDCErrorEnum CConcHolder::GetHits(CQuery *QueryRoot,  DWORD& EndHitNo, const string& QueryStr) 
+//----------------------------------------------------------------------
+DDCErrorEnum CConcSession::GetHits(CQuery *QueryRoot,  DWORD& EndHitNo, const string& QueryStr) 
 {
 	ClearQueryResults();
 	if (!QueryRoot)
@@ -1886,19 +1867,27 @@ DDCErrorEnum CConcHolder::GetHits(CQuery *QueryRoot,  DWORD& EndHitNo, const str
 		return errNone;
 
 	}
-	catch (CExpc& C)
-	{
+	catch (CExpc& C) {
 		ErrorMessage (C.m_strCause);
-		concord_daemon_log(C.m_strCause);
-		return (DDCErrorEnum)C.m_ErrorCode;
+		concord_daemon_log(string("Error: ") + C.m_strCause);
+		return (DDCErrorEnum)C.m_ErrorCode==errNone ? errRuntime : (DDCErrorEnum)C.m_ErrorCode;
 	}
-
+	catch (exception& e) {
+		ErrorMessage(e.what());
+		concord_daemon_log(Format("Exception: %s", e.what()));
+		return errRuntime;
+	}
+	catch (...) {
+		ErrorMessage("Unhandled exception");
+		concord_daemon_log(Format("Unhandled Exception"));
+		return errOther;
+	}
 
 };
 
-
+//----------------------------------------------------------------------
 /////////////////////////////////////////////////////////////////////////////
-DDCErrorEnum CConcHolder::SimpleQuery(const string &Query, DWORD& EndHitNo, DWORD& HitsCount) 
+DDCErrorEnum CConcSession::SimpleQuery(const string &Query, DWORD& EndHitNo, DWORD& HitsCount) 
 {
 	DWORD SaveEndHitNo = EndHitNo;
 	try {
@@ -1937,7 +1926,8 @@ DDCErrorEnum CConcHolder::SimpleQuery(const string &Query, DWORD& EndHitNo, DWOR
 };
 
 
-bool CConcHolder::SaveOccurrences(const vector<size_t>& ChunkLengths, int ContextSize, const vector<CTokenNo>& Occurrences,  const vector<CHit>& Hits,  SaveTriggerType SaveTrigger, DWORD LParam)
+ //----------------------------------------------------------------------
+bool CConcSession::SaveOccurrences(const vector<size_t>& ChunkLengths, int ContextSize, const vector<CTokenNo>& Occurrences,  const vector<CHit>& Hits,  SaveTriggerType SaveTrigger, DWORD LParam)
 {
 	if (m_pIndexator->m_Indices.empty()) return false;
 	assert (Hits.size() == ChunkLengths.size());
@@ -2024,7 +2014,8 @@ bool CConcHolder::SaveOccurrences(const vector<size_t>& ChunkLengths, int Contex
 };
 
 
-DDCErrorEnum CConcHolder::GetOccurrences(const string &Query, int ContextSize,  SaveTriggerType SaveTrigger, DWORD LParam) 
+ //----------------------------------------------------------------------
+DDCErrorEnum CConcSession::GetOccurrences(const string &Query, int ContextSize,  SaveTriggerType SaveTrigger, DWORD LParam) 
 {
     try {
 		if ( !(m_pQueryCompiler->ParseQuery(Query) && m_pQueryCompiler->Compile()) )
@@ -2069,7 +2060,8 @@ DDCErrorEnum CConcHolder::GetOccurrences(const string &Query, int ContextSize,  
 	}
 };
 
-DDCFormatTypeEnum CConcHolder::GetResultFormatByString(const string& ResultTypeStr )
+ //----------------------------------------------------------------------
+DDCFormatTypeEnum CConcSession::GetResultFormatByString(const string& ResultTypeStr )
 {
 	string q = ResultTypeStr;
 	EngMakeUpper(q);
@@ -2078,14 +2070,16 @@ DDCFormatTypeEnum CConcHolder::GetResultFormatByString(const string& ResultTypeS
 	else if (q == "DOCIDS") return DDC_ResultDocIds;
 	else if (q == "TABLE") return DDC_ResultTable;
 	else return DDC_ResultText;
-};
+}
 
-void CConcHolder::SetResultFormat(string ResultTypeStr)
+//----------------------------------------------------------------------
+void CConcSession::SetResultFormat(string ResultTypeStr)
 {
 	m_ResultFormat = GetResultFormatByString(ResultTypeStr);
-};
+}
 
-string CConcHolder::GetResultFormatStr() const 
+//----------------------------------------------------------------------
+string CConcSession::GetResultFormatStr() const 
 {
 	switch (m_ResultFormat)  {
 		case DDC_ResultJson: return "json";
@@ -2094,17 +2088,18 @@ string CConcHolder::GetResultFormatStr() const
 		case DDC_ResultDocIds: return "docids";
 		default: return "text";
 	};
-};
+}
 
 
-
-const vector<CTokenNo>&	CConcHolder::GetBreaks	()  const
+//----------------------------------------------------------------------
+const vector<CTokenNo>&	CConcSession::GetBreaks	()  const
 {
 	assert (m_pBreaks != 0);
 	return *m_pBreaks;
-};
+}
 
-void	CConcHolder::SetHitType()
+//----------------------------------------------------------------------
+void	CConcSession::SetHitType()
 {
 	assert(m_pQueryCompiler!=NULL);
 	assert(m_pQueryCompiler->m_pQuery!=NULL);
@@ -2117,21 +2112,22 @@ void	CConcHolder::SetHitType()
 		m_pBreaks = m_pIndexator->GetBreaksByName(BreakName);
 }
 
-
-int	CConcHolder::GetTextArea() const
+//----------------------------------------------------------------------
+int	CConcSession::GetTextArea() const
 {
 	assert(m_pQueryCompiler!=NULL);
 	assert(m_pQueryCompiler->m_pQuery!=NULL);
 	return m_pQueryCompiler->m_pQuery->m_Options->m_TextAreaNo;
 }
 
-
-HitSortOrderEnum CConcHolder::HitSortOrder() const
+//----------------------------------------------------------------------
+HitSortOrderEnum CConcSession::HitSortOrder() const
 {
 	return m_SortOrder;
-};
+}
 
-void CConcHolder::SetTimeOut(int TimeOut) 
+//----------------------------------------------------------------------
+void CConcSession::SetTimeOut(int TimeOut) 
 {
 	if (TimeOut != -1)
 	{
@@ -2141,20 +2137,17 @@ void CConcHolder::SetTimeOut(int TimeOut)
 	}
 	else
 		m_QueryEndTime = TheEndOfTheWorld;
-};
+}
 
-void CConcHolder::ClearQueryCache() 
-{
-	m_QueryCache.clear();
-	m_Queries.clear();
-};
 
-void CConcHolder::ClearQuery()
+//----------------------------------------------------------------------
+void CConcSession::ClearQuery()
 {
 	m_pQueryCompiler->CleanParser();
-};
+}
 
-bool	CConcHolder::HasRankOrderOperator() const
+//----------------------------------------------------------------------
+bool	CConcSession::HasRankOrderOperator() const
 {
 	for (size_t FilterNo = 0; FilterNo < m_pQueryCompiler->m_pQuery->m_Options->m_Filters.size(); FilterNo++)
 	{
@@ -2165,12 +2158,14 @@ bool	CConcHolder::HasRankOrderOperator() const
 	return  false;
 }
 
-bool	CConcHolder::HasMatchIdOperator() const
+//----------------------------------------------------------------------
+bool	CConcSession::HasMatchIdOperator() const
 {
 	return m_pQueryCompiler->m_pQuery->HasMatchId();
 }
 
-string CConcHolder::CanonicalQueryString(const string &Query)
+//----------------------------------------------------------------------
+string CConcSession::CanonicalQueryString(const string &Query)
 {
 	ClearQueryResults();
 	if ( !m_pQueryCompiler || !m_pQueryCompiler->ParseQuery(Query) )
@@ -2178,7 +2173,8 @@ string CConcHolder::CanonicalQueryString(const string &Query)
 	return m_pQueryCompiler->QueryToString();
 }
 
-string CConcHolder::JsonQueryString(const string &Query)
+//----------------------------------------------------------------------
+string CConcSession::JsonQueryString(const string &Query)
 {
 	ClearQueryResults();
 	if ( !m_pQueryCompiler || !m_pQueryCompiler->ParseQuery(Query) )
@@ -2186,27 +2182,31 @@ string CConcHolder::JsonQueryString(const string &Query)
 	return m_pQueryCompiler->QueryToJson();
 }
 
-void CConcHolder::SetRandomSeed(unsigned int seed1) const
+//----------------------------------------------------------------------
+void CConcSession::SetRandomSeed(unsigned int seed1) const
 {
 	m_pRandom->set_seed(m_RandomSeed+seed1);
 }
-
 
 //=============================================================
 //==================  CConcordance ============================
 //=============================================================
 
+//----------------------------------------------------------------------
 CConcordance::CConcordance() 
 {
 	m_pIndexator = new CConcIndexator;
 	m_bOptionsWereModified = false;
 	
 }
+
+//----------------------------------------------------------------------
 CConcordance::~CConcordance() 
 {
 	delete m_pIndexator;
-};
+}
 
+//----------------------------------------------------------------------
 bool	CConcordance::LoadProject(const char* FileName)
 {
 
@@ -2218,6 +2218,7 @@ bool	CConcordance::LoadProject(const char* FileName)
 	return 	true;
 }
 
+//----------------------------------------------------------------------
 bool CConcordance::SaveProject(string FileName)
 {
 	m_pIndexator->SetPath(FileName);

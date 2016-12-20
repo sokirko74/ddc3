@@ -19,7 +19,7 @@
 #ifndef BigramsReader_h
 #define BigramsReader_h
 
-#include "../common/utilit.h"
+#include "../CommonLib/utilit.h"
 
 
 extern string GetConnectedWords(string Word, int MinBigramsFreq, bool bDirectFile);

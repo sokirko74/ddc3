@@ -1,3 +1,5 @@
+//-*- Mode: C++; c-basic-offset: 8; -*-
+//
 //  DDC originally by Alexey Sokirko
 //  Changes and modifications 2011-2015 by Bryan Jurish
 //
@@ -21,6 +23,8 @@
 
 
 #include "../common/bserialize.h"
+#include "../CommonLib/ddcThread.h"
+
 /////////////////////////////////////////////////////////////////////////////
 // Flags for CIndexItem::m_IndexItemOffsetAndFlags
 
@@ -128,7 +132,7 @@ class CItemIndexForLoading;
 /*!	This class is  a part of CStringIndexSet class which is used only during querying.  It contains
 the important serialization primitives.
 */
-class CIndexSetForQueryingStage 
+class CIndexSetForQueryingStage : public ddcLockable
 {
 	//! the main file of  occurrences 
 	FILE*			m_OccursFp;
@@ -192,7 +196,10 @@ public:
 	bool	DestroyIndexSet ();
 	//! reads all occurrences of IndexItemNo (this function can allocate much memory; it should be used carefully)
 	void ReadAllOccurrences (size_t IndexItemNo, vector<CTokenNo>& Occurs) const;
-    
+
+	//! reads \a Count occurences starting at \a FilePosition from \a m_OccursFp into \a OutBuffer
+	//! + ddc-v2.1.0: file-access (m_OccursFp); implicitly locks & unlocks the object
+	void ReadOccurrences (CTokenNo* OutBuffer, file_off_t FilePosition, size_t Count) const;
 };
 
 

@@ -1,4 +1,5 @@
 //-*- Mode: C++; c-basic-offset:4; -*-
+//
 //  DDC originally by Alexey Sokirko
 //  Changes and modifications 2011-2016 by Bryan Jurish
 //
@@ -19,20 +20,41 @@
 //
 
 #include "BranchServer.h"
-#include "../common/ddcString.h"
+#include "../CommonLib/ddcString.h"
+#include "../CommonLib/ddcTime.h"
 #include "../ConcordLib/QueryCompiler.h"
+
+//#define DEBUG_SERVER_THREADS 1
+#undef DEBUG_SERVER_THREADS
 
 //==============================================================================
 // CFirstHitsQueryResult
 
 //----------------------------------------------------------------------
+void CFirstHitsQueryResult::Clear()
+{
+    m_AllHitsCount = 0;
+    m_AllRelevantDocsCount = 0;
+    m_HitsDistributionStr.clear();
+    m_RelevantDocsDistributionStr.clear();
+    m_SortOrder = hsoNone;
+    m_InternalError = errNone;
+    m_NetworkError = neSuccess;
+    ClearVector(m_Hits);
+    m_Sockets.clear();
+}
+
+//----------------------------------------------------------------------
 void CFirstHitsQueryResult::CloseSockets()
 {
     for (size_t j=0; j<m_Sockets.size(); j++) {
-	    if (m_Sockets[j] != -1)
-		CloseSocket(m_Sockets[j]);
-	    m_Sockets[j] = -1;
+	if (m_Sockets[j] != -1) {
+	    string ErrorStr;
+	    SendString(m_Sockets[j], "ddc_close_socket", 16, ErrorStr);
+	    CloseSocket(m_Sockets[j]);
 	}
+	m_Sockets[j] = -1;
+    }
 }
 
 //----------------------------------------------------------------------
@@ -73,15 +95,14 @@ void CFirstHitsQueryResult::CollectCounts()
 }
 
 //==============================================================================
-// CDDCBranchServer
+// CDDCBranchServer: constructors etc
 
 //----------------------------------------------------------------------
-CDDCBranchServer::CDDCBranchServer(bool bDoubleMessage, ProtocolDensityEnum pdProtocolDensity)
-    : CDDCServer(bDoubleMessage, pdProtocolDensity)
+CDDCBranchServer::CDDCBranchServer()
 {
     m_maxReceiveBytes = DDC_STATIC_BUFLEN;
     m_bLogRequests    = true;
-    if (pdProtocolDensity >= pdMediumDensity) {
+    if (ddcLogLevel >= ddcLLDebug) {
 	m_bLogFinish = true;
     } else {
 	m_bLogFinish = false;
@@ -90,27 +111,82 @@ CDDCBranchServer::CDDCBranchServer(bool bDoubleMessage, ProtocolDensityEnum pdPr
 	m_noLogCommands.insert("vstatus");
 	m_noLogCommands.insert("info");
 	m_noLogCommands.insert("vinfo");
+	m_noLogCommands.insert("get_hit_strings");
     }
 };
 
 //----------------------------------------------------------------------
 void CDDCBranchServer::Shutdown()
 {
-    m_LogFunction(Format("shutting down branch server %s", m_CorpusName.c_str()));
+    ddcLogInfo(Format("shutting down branch server %s", m_CorpusName.c_str()));
     for (int i=0; i < m_Hosts.size(); i++) {
 	m_Hosts[i].StopAcceptingThread();
     }
     StopAcceptingThread();
 };
 
+//==============================================================================
+// CDDCBranchServer: client threads
+
+//----------------------------------------------------------------------
+void CDDCBranchServer::WorkerCloneInit(const CDDCServer *Parent, size_t WorkerId)
+{
+    CDDCServer::WorkerCloneInit(Parent,WorkerId);
+
+    CDDCBranchServer *parent = (CDDCBranchServer*)Parent;
+    m_Hosts = parent->m_Hosts;
+}
+
+//----------------------------------------------------------------------
+void CDDCBranchServer::WorkerCloneFree(void)
+{
+    CDDCServer::WorkerCloneFree();
+}
+
 
 //==============================================================================
 // CRunQueryData
 
-
-void CRunQueryData::toString(string &Response)
+//----------------------------------------------------------------------
+void CRunQueryData::Init(const string & _Query, const string& _ResultFormat, int _Start, int _Limit, int _TimeOut, string *_pErrorStr)
 {
-    if (CConcHolder::GetResultFormatByString(sResultFormat) == DDC_ResultJson) {
+    Clear();
+    sQuery = _Query;
+    sResultFormat = _ResultFormat;
+    StartHitNo = _Start;
+    ResultLimit = _Limit;
+    TimeOut = _TimeOut;
+    pErrorStr = _pErrorStr;
+
+    Trim(sQuery);
+    Trim(sResultFormat);
+}
+			 
+//----------------------------------------------------------------------
+void CRunQueryData::Clear()
+{
+    ClearString(sQuery);
+    sResultFormat.clear();
+    StartHitNo = 0;
+    ResultLimit = 10;
+    TimeOut = 10;
+    iInternalError = (int)errNone;
+    iNetworkError  = (int)neSuccess;
+    EndHitNo = 0;
+    HitsCount = 0;
+    RelevantDocsCount = 0;
+    ClearVector(PossibleHosts);
+    HitDistrib.clear();
+    DocDistrib.clear();
+    HitsKey.clear();
+    ClearString(ResponseBody);
+    pErrorStr = NULL;
+}
+
+//----------------------------------------------------------------------
+void CRunQueryData::toString(string &Response, size_t WorkerId)
+{
+    if (CConcSession::GetResultFormatByString(sResultFormat) == DDC_ResultJson) {
 	Response = (string("{")
 		    + Format("\"istatus_\":%i", iInternalError)
 		    + Format(",\"nstatus_\":%i", iNetworkError)
@@ -127,6 +203,9 @@ void CRunQueryData::toString(string &Response)
 		    + Format(",\"ndocs_\":%i", RelevantDocsCount)
 		    + ",\"dhits_\":" + jsonStr(HitDistrib)
 		    + ",\"ddocs_\":" + jsonStr(DocDistrib)
+#if DEBUG_SERVER_THREADS
+		    + ",\"worker_\":" + Format("%zu", WorkerId)
+#endif
 		    + ",\"" + HitsKey + "\":[\n" + ResponseBody
 		    + "\n]}");
     }
@@ -140,29 +219,171 @@ void CRunQueryData::toString(string &Response)
     }
 }
 
+//==============================================================================
+// CDDCLeafServer: CHost API: overrides
+
+//----------------------------------------------------------------------
+bool CDDCBranchServer::Close(SOCKET& rConnectedSocket, bool linger, int timeout)
+{
+    //ddcLogTrace(Format("CDDCBranchServer::Close(): socket=%d:%s, linger=%d, timeout=%d", rConnectedSocket, SocketPeerP(rConnectedSocket).c_str(), (int)linger, timeout));
+    
+    //-- clear local intermediate query results: don't hog memory (or sockets) after expensive (often failed) queries
+    m_FHResult.CloseSockets();
+    m_FHResult.Clear();
+    m_QueryData.Clear();
+
+    return CHost::Close(rConnectedSocket, linger, timeout);
+}
+
+//----------------------------------------------------------------------
+bool CDDCBranchServer::CloseDtr(SOCKET& rConnectedSocket, bool linger, int timeout)
+{
+    if (rConnectedSocket != -1) {
+	string ErrorStr;
+	SendString(rConnectedSocket, "ddc_close_socket", 16, ErrorStr);
+    }
+    return CHost::Close(rConnectedSocket, linger, timeout);
+}
 
 
 //==============================================================================
 // CDDCBranchServer: handlers
 
 //----------------------------------------------------------------------
-//void CDDCBranchServer::handle__get_first_hits(string &Result, const char *Query, int TimeOut, int ResultLimit)
+void CDDCBranchServer::handle__get_first_hits(string &Result, const char *Query, int TimeOut, int ResultLimit)
+{
+    CRunQueryData &runq = m_QueryData;
+    CFirstHitsQueryResult& FHResult = m_FHResult;
+    runq.Init(Query, "", 0, ResultLimit, TimeOut, &m_ErrorStr);
+
+    NetworkErrorsEnum rc = RunGetFirstHits();
+    if (FHResult.m_InternalError != errNone)
+	throw CExpc(FHResult.m_InternalError);
+    else if (rc != neSuccess)
+	throw CExpc(errRuntime, GetNetworkErrorString(rc));
+    
+    //-- adapted from CDDCLeafServer::handle__get_first_hits(), CConcSession::GetHitIds()
+    Result = Format ("%i %i %i %i %i", FHResult.m_InternalError, runq.EndHitNo, FHResult.m_AllHitsCount, FHResult.m_AllRelevantDocsCount, FHResult.m_SortOrder);
+    if (IsCountSort(FHResult.m_SortOrder)) {
+	//-- count-query requires special formatting, but can return immediately
+	for (vector<CHitToSort>::const_iterator hi=FHResult.m_Hits.begin(); hi != FHResult.m_Hits.end(); ++hi) {
+	    Result += Format("\t%zd -0 ", hi->m_HitNo); //-- hi->m_HitNo is really the hit-count
+	    Result += hi->m_SortKeyStr;
+	}
+	m_bExpectMore = false;
+    }
+    else {
+	//-- context query: just return hit keys
+        for (size_t i=0; i < FHResult.m_Hits.size(); ++i) {
+	    Result += Format("\t%zd -0 ", i);
+	    Result += FHResult.m_Hits[i].m_SortKeyStr;
+	}
+	m_bExpectMore = true;
+    }
+
+    return;
+}
 
 //----------------------------------------------------------------------
-//void CDDCBranchServer::handle__get_hit_strings(string &Result, const char *ResultType, int StartHitNo, int ResultLimit)
+void CDDCBranchServer::handle__get_hit_strings(string &Result, const char *ResultType, int StartHitNo, int ResultLimit)
+{
+    CRunQueryData &runq = m_QueryData;
+    CFirstHitsQueryResult& FHResult = m_FHResult;
+
+    //-- sanity check(s)
+    if (FHResult.m_HitsDistributionStr.empty())
+	throw CExpc(errRuntime, "CDDCBranchServer::handle__get_hit_strings(): FHResult is uninitialized!");
+    if (StartHitNo < runq.StartHitNo)
+	throw CExpc(errRuntime, "CDDCBranchServer::handle__get_hit_strings(): requested StartHitNo=%i < cached=%i", StartHitNo, runq.StartHitNo);
+    if (ResultLimit > runq.ResultLimit)
+	throw CExpc(errRuntime, "CDDCBranchServer::handle__get_hit_strings(): requested ResultLimit=%i > cached=%i", ResultLimit, runq.ResultLimit);
+
+    //-- guts
+    runq.sResultFormat = ResultType;
+    runq.StartHitNo    = StartHitNo;
+    runq.ResultLimit   = ResultLimit;
+
+    //-- re-trim FHResult hits (in case get_hit_strings is requesting fewer hits than get_first_hits did)
+    if (runq.StartHitNo+runq.ResultLimit < FHResult.m_Hits.size())
+	FHResult.m_Hits.erase(FHResult.m_Hits.begin()+runq.StartHitNo+runq.ResultLimit, FHResult.m_Hits.end());
+    
+    if (runq.StartHitNo < FHResult.m_Hits.size())
+	FHResult.m_Hits.erase(FHResult.m_Hits.begin(), FHResult.m_Hits.begin()+runq.StartHitNo);
+    else
+	FHResult.m_Hits.clear();
+
+    //-- get full string form of selected hits
+    DDCFormatTypeEnum ResultTypeE = CConcSession::GetResultFormatByString(runq.sResultFormat);
+
+    if (IsCountSort(FHResult.m_SortOrder)) {
+	//-- count-query can generate strings immediately
+	GetHitCounts(FHResult, ResultTypeE, runq.ResponseBody);
+	runq.HitsCount = FHResult.m_AllHitsCount;
+	FHResult.m_HitsDistributionStr.insert(FHResult.m_HitsDistributionStr.size()-2, Format("~%d", runq.HitsCount));
+	runq.HitsKey = "counts_";
+    } else {
+	//-- context-query must retrieve full hit strings
+	GetHitContexts(FHResult, runq.sResultFormat, ResultTypeE, runq.PossibleHosts, runq.iInternalError, runq.TimeOut, runq.ResponseBody);
+	runq.HitsKey = "hits_";
+    }
+
+    //-- check for errors
+    if (runq.iInternalError != (int)errNone)
+	throw CExpc(runq.iInternalError);
+    else if (runq.iNetworkError != (int)neSuccess)
+	throw CExpc(errRuntime, GetNetworkErrorString((NetworkErrorsEnum)runq.iNetworkError));
+
+    //-- format result
+    if (ResultTypeE == DDC_ResultJson) {
+	//-- JSON mode: munge in JSON syntax
+	StringTokenizer tok(runq.ResponseBody.c_str(), "\n");
+	Result.reserve(6+runq.ResponseBody.size()+FHResult.m_Hits.size());
+	Result = "0\x01[";
+	while (tok()) {
+	    string s(tok.val());
+	    size_t p0 = s.find ('{', 0);
+	    size_t p1 = s.rfind('}', s.npos);
+	    if (!s.empty() && p0!=s.npos && p1!=s.npos && p0<p1) {
+		Result += s.substr(p0,p1-p0+1);
+		Result.push_back(',');
+		Result.push_back('\n');
+		Result += CDDCServer::AdditionalHitDelimiter;
+	    }
+	}
+	//-- replace final trailing comma
+	size_t pn = Result.rfind(',', Result.npos);
+	if (pn != Result.npos)
+	    Result[pn] = ']';
+    } else {
+	//-- default: just append response body
+	Result.reserve(4+runq.ResponseBody.size());
+	Result = "0\x01";
+	Result += runq.ResponseBody;
+	Result.push_back('\x01');
+	Result += CDDCServer::AdditionalHitDelimiter;
+    }
+    
+    runq.HitDistrib = FHResult.m_HitsDistributionStr.substr(21,FHResult.m_HitsDistributionStr.size()-23);
+    runq.DocDistrib = FHResult.m_RelevantDocsDistributionStr.substr(32,FHResult.m_RelevantDocsDistributionStr.size()-34);
+    runq.EndHitNo   = runq.StartHitNo + FHResult.m_Hits.size();
+    runq.iNetworkError = neSuccess;
+    
+    m_bExpectMore = false;
+}
 
 //----------------------------------------------------------------------
 void CDDCBranchServer::handle__run_query(string &Result, const char *CorpusName, const char *Query, const char *ResultType, int StartHitNo, int ResultLimit, int TimeOut)
 {
-    CRunQueryData runq(string(Query), string(ResultType), StartHitNo, ResultLimit, TimeOut, &m_ErrorStr);
-
+    CRunQueryData& runq = m_QueryData;
+    runq.Init(Query, ResultType, StartHitNo, ResultLimit, TimeOut, &m_ErrorStr);
+    
     if ( runq.sQuery.empty() )
 	throw CExpc(errParseError, "CDDCBranchServer::handle__run_query(): cannot parse empty query string");
 
     m_ErrorStr.clear();
 
     try {
-	RunDistributed(runq);
+	RunDistributed();
     }
     catch (exception &e) {
 	if (m_ErrorStr.empty()) m_ErrorStr = Format("Exception: %s", e.what());
@@ -170,12 +391,17 @@ void CDDCBranchServer::handle__run_query(string &Result, const char *CorpusName,
 
     //-- log errors
     if (!m_ErrorStr.empty()) {
-	m_LogFunction( Format("CDDCBranchServer::handle__run_query(): ERROR: %s", m_ErrorStr.c_str()) );
+	ddcLogError( Format("CDDCBranchServer::handle__run_query(): ERROR: %s", m_ErrorStr.c_str()) );
+	++m_ServerStats.m_nErrors;
     }
 
     //-- generate response
-    runq.toString(Result);
+    runq.toString(Result, m_WorkerId);
     m_bExpectMore = false;
+
+    //-- cleanup
+    m_QueryData.Clear();
+    m_FHResult.Clear();
 }
 
 
@@ -203,24 +429,24 @@ void CDDCBranchServer::handle__expand_terms(string &Result, const string& pipeli
     assert(h != NULL);
     string ErrorStr;
     int hsock = h->CreateAndConnectSocket(ErrorStr);
-    if (!ErrorStr.empty() || hsock==-1) {
-	this->Close(hsock);
-	throw CExpc(errOther, "could not connect to subcorpus `%s': %s", h->m_CorpusName.c_str(), ErrorStr.c_str());
+    try {
+	if (!ErrorStr.empty() || hsock==-1)
+	    throw CExpc(errOther, "could not connect to subcorpus `%s': %s", h->m_CorpusName.c_str(), ErrorStr.c_str());
+
+	string hq = string("expand_terms \x01") + pipeline + "\x01" + terms + "\x01" + Format("%i", timeout);
+	if (!SendString(hsock, hq, ErrorStr))
+	    throw CExpc(errOther, "expand_terms faild for subcorpus `%s': %s", h->m_CorpusName.c_str(), ErrorStr.c_str());
+
+	//-- read response directly into Result
+	if (ReceiveString(hsock, Result, timeout) != neSuccess)
+	    throw CExpc(errOther, "expand_terms failed to read a response from subcorpus `%s'", h->m_CorpusName.c_str());
+    }
+    catch (...) {
+	this->CloseDtr(hsock);
+	throw;
     }
 
-    string hq = string("expand_terms \x01") + pipeline + "\x01" + terms + "\x01" + Format("%i", timeout);
-    if (!SendString(hsock, hq, ErrorStr)) {
-	this->Close(hsock);
-	throw CExpc(errOther, "expand_terms faild for subcorpus `%s': %s", h->m_CorpusName.c_str(), ErrorStr.c_str());
-    }
-
-    //-- read response directly into Result
-    if (ReceiveString(hsock, Result, timeout) != neSuccess) {
-	this->Close(hsock);
-	throw CExpc(errOther, "expand_terms failed to read a response from subcorpus `%s'", h->m_CorpusName.c_str());
-    }
-
-    this->Close(hsock);
+    this->CloseDtr(hsock);
     m_bExpectMore = false;
 }
 
@@ -251,7 +477,11 @@ void CDDCBranchServer::handle__status(string &Result, int timeout, bool verbose)
 	      + "\"port\":" + Format("%d", m_Port) + ",\n"
 	      + "\"started\":" + jsonStr(timestampUTC(m_tStarted)) + ",\n"
 	      + "\"uptime\":" + Format("%.0f", uptime) + ",\n"
-	      + "\"nrequests\":" + Format("%zd", m_nRequests) + ",\n"
+	      + "\"nrequests\":" + Format("%zd", m_ServerStats.m_nRequests) + ",\n"
+	      + "\"nqueries\":" + Format("%zd", m_ServerStats.m_nQueries) + ",\n"
+	      + "\"nerrors\":" + Format("%zd", m_ServerStats.m_nErrors) + ",\n"
+	      + "\"nslow\":" + Format("%zd", m_ServerStats.m_nSlow) + ",\n"
+	      + "\"nworkers\":" + Format("%zd", m_nWorkers) + ",\n"	      
 	      + "\"memkb\":" + Format("%zd", this->residentMemorySize()) + ",\n"
 	      + "\"corpora\":" + subResult + "}\n"
 	      );
@@ -301,120 +531,69 @@ void CDDCBranchServer::handle__clear_cache(string &Result, int depth)
     m_bExpectMore = false;
 }
 
+//----------------------------------------------------------------------
+void CDDCBranchServer::handle__close_socket(string &Result, SOCKET &rConnectedSocket)
+{
+    m_bRespond = false;
+    this->Close(rConnectedSocket);
+}
+
 //==============================================================================
 // local methods
 
 //----------------------------------------------------------------------
-void CDDCBranchServer::RunDistributed(CRunQueryData &runq)
+void CDDCBranchServer::RunDistributed()
 {
-	DwordVector PossibleHosts;
-	string CleanQuery;
-	// read "possible" hosts (e.g. user-specified hosts from query), using query where these hosts can be specified
-	// PossibleHosts is an index of m_Hosts
-	if (!ReadPossibleHosts(runq.sQuery, CleanQuery, PossibleHosts)) {
-	    runq.iNetworkError = neSubcorpusNotFound;
-	    return;
+    CRunQueryData &runq             = m_QueryData;
+    CFirstHitsQueryResult& FHResult = m_FHResult;
+
+    //-- timeout maintainence
+    DDCTime t0 = DDCTime::Now();
+    
+    //-- get hit sort-keys and trim to selected range
+    NetworkErrorsEnum rc = RunGetFirstHits();
+    if (FHResult.m_InternalError != errNone)
+	throw CExpc(FHResult.m_InternalError);
+    else if (rc != neSuccess)
+	throw CExpc(errRuntime, GetNetworkErrorString(rc));
+    
+    //-- check timeout
+    if  (runq.TimeOut >= 0) {
+	DDCTime t1    = DDCTime::Now();
+	runq.TimeOut -= DDCTime::Now().Elapsed(t0);
+	if (runq.TimeOut < 0) {
+	    // AS: if the previous steps took all time we add 10 seconds in order to retrieve at least some results 
+	    runq.TimeOut = 10;
 	}
+    }
 
-	runq.EndHitNo = 0;
-	runq.HitsCount = 0;
-	runq.ResponseBody = "";
+    //-- get full string form of selected hits
+    DDCFormatTypeEnum ResultTypeE = CConcSession::GetResultFormatByString(runq.sResultFormat);
 
-	DDCFormatTypeEnum ResultTypeE = CConcHolder::GetResultFormatByString(runq.sResultFormat);
-
-	// 
-	time_t start_get_hits, end_get_hits; 
-	if  (runq.TimeOut != -1)
-		time(&start_get_hits);
-	
-
-	CFirstHitsQueryResult FHResult;
-	// reading first StartHiNo+ResultLimit  hits from each host and storing them to Hits
-
-	GetFirstHitsFromCorpora(PossibleHosts, CleanQuery, runq.StartHitNo+runq.ResultLimit, runq.TimeOut, FHResult);
+    if (IsCountSort(FHResult.m_SortOrder)) {
+	//-- count-query can generate strings immediately
+	GetHitCounts(FHResult, ResultTypeE, runq.ResponseBody);
 	runq.HitsCount = FHResult.m_AllHitsCount;
-	runq.RelevantDocsCount = FHResult.m_AllRelevantDocsCount;
-	runq.iInternalError = FHResult.m_InternalError;
-	if (FHResult.HasErrors())
-	{
-		FHResult.CloseSockets();
-		swap(m_ErrorStr, FHResult.m_ErrorStr);
-		if (FHResult.m_InternalError != errNone)
-			runq.iInternalError = FHResult.m_InternalError;
-		runq.iNetworkError = FHResult.m_NetworkError;
-		return;
-	}
+	FHResult.m_HitsDistributionStr.insert(FHResult.m_HitsDistributionStr.size()-2, Format("~%d", runq.HitsCount));
+	runq.HitsKey = "counts_";
+    } else {
+	//-- context-query must retrieve full hit strings
+	GetHitContexts(FHResult, runq.sResultFormat, ResultTypeE, runq.PossibleHosts, runq.iInternalError, runq.TimeOut, runq.ResponseBody);
+	runq.HitsKey = "hits_";
+    }
 
-	if  (runq.TimeOut != -1)
-	{
-		time(&end_get_hits);
-		runq.TimeOut -= end_get_hits-start_get_hits;
-		if (runq.TimeOut < 0)
-		{
-			// if the previous steps took all time we add 10 seconds in order to retrieve at least some results 
-			runq.TimeOut = 10;
-		};
-	};
-
-	// sorting and trimming: we need stable_sort() in order to ensure HitNo order is retained
-	if (FHResult.m_SortOrder < 0) {
-		//-- sort: descending
-		stable_sort (FHResult.m_Hits.rbegin(), FHResult.m_Hits.rend());
-	}
-	else if (FHResult.m_SortOrder > 0) {
-		//-- sort: ascending or counts
-		stable_sort (FHResult.m_Hits.begin(), FHResult.m_Hits.end());
-	}
-
-	// count-query: aggregate by sort-keys
-	if (IsCountSort(FHResult.m_SortOrder)) {
-	    FHResult.CollectCounts();
-	}
-
-#ifdef DEBUG_HIT_SORT
-	for (vector<CHitToSort>::const_iterator hi=FHResult.m_Hits.begin(); hi != FHResult.m_Hits.end(); ++hi) {
-		concord_daemon_log( Format("DEBUG[post-sort:order=%d]: hit[%d] = %s", FHResult.m_SortOrder, hi-FHResult.m_Hits.begin(), hi->debugStr().c_str()) );
-	}
-#endif
-
-	if (runq.StartHitNo+runq.ResultLimit < FHResult.m_Hits.size())
-		FHResult.m_Hits.erase(FHResult.m_Hits.begin()+runq.StartHitNo+runq.ResultLimit, FHResult.m_Hits.end());
-
-	if (runq.StartHitNo < FHResult.m_Hits.size())
-		FHResult.m_Hits.erase(FHResult.m_Hits.begin(), FHResult.m_Hits.begin()+runq.StartHitNo);
-	else
-		FHResult.m_Hits.clear();
-
-#ifdef DEBUG_HIT_SORT
-	for (vector<CHitToSort>::const_iterator hi=FHResult.m_Hits.begin(); hi != FHResult.m_Hits.end(); ++hi) {
-		concord_daemon_log( Format("DEBUG[post-trim]: hit[%d] = %s", hi-FHResult.m_Hits.begin(), hi->debugStr().c_str()) );
-	}
-#endif
-
-	if (IsCountSort(FHResult.m_SortOrder)) {
-	    //-- count-query can generate strings immediately
-	    GetHitCounts(FHResult, ResultTypeE, runq.ResponseBody);
-	    runq.HitsCount = FHResult.m_AllHitsCount;
-	    FHResult.m_HitsDistributionStr.insert(FHResult.m_HitsDistributionStr.size()-2, Format("~%d", runq.HitsCount));
-	    runq.HitsKey = "counts_";
-	} else {
-	    //-- context-query must retrieve full hit strings
-	    GetHitContexts(FHResult, runq.sResultFormat, ResultTypeE, PossibleHosts, runq.iInternalError, runq.TimeOut, runq.ResponseBody);
-	    runq.HitsKey = "hits_";
-	}
-
-	CConcHolder::DecorateQueryResults(runq.sResultFormat, runq.ResponseBody);
-	if (ResultTypeE == DDC_ResultText) {
-	    // we always write relevant document numbers (RelevantDocsDistributionStr) to output, 
-	    // even though it is not specified in the option file of the coprus threads.
-	    // The problem is, that daemon doesn't know anything about options files of their coprus threads.
-	    runq.ResponseBody = FHResult.m_HitsDistributionStr + FHResult.m_RelevantDocsDistributionStr + runq.ResponseBody;
-	}
-	runq.HitDistrib = FHResult.m_HitsDistributionStr.substr(21,FHResult.m_HitsDistributionStr.size()-23);
-	runq.DocDistrib = FHResult.m_RelevantDocsDistributionStr.substr(32,FHResult.m_RelevantDocsDistributionStr.size()-34);
-	runq.EndHitNo   = runq.StartHitNo + FHResult.m_Hits.size();
-
-	runq.iNetworkError = neSuccess;
+    CConcSession::DecorateQueryResults(runq.sResultFormat, runq.ResponseBody);
+    if (ResultTypeE == DDC_ResultText) {
+	// AS: we always write relevant document numbers (RelevantDocsDistributionStr) to output, 
+	//     even though it is not specified in the option file of the corpus threads.
+	//     The problem is, that daemon doesn't know anything about options files of their corpus threads.
+	runq.ResponseBody = FHResult.m_HitsDistributionStr + FHResult.m_RelevantDocsDistributionStr + runq.ResponseBody;
+    }
+    runq.HitDistrib = FHResult.m_HitsDistributionStr.substr(21,FHResult.m_HitsDistributionStr.size()-23);
+    runq.DocDistrib = FHResult.m_RelevantDocsDistributionStr.substr(32,FHResult.m_RelevantDocsDistributionStr.size()-34);
+    runq.EndHitNo   = runq.StartHitNo + FHResult.m_Hits.size();
+    
+    runq.iNetworkError = neSuccess;
 }
 
 
@@ -433,8 +612,10 @@ NetworkErrorsEnum CDDCBranchServer::RunDistributed(string Query,
 						   string& DocDistrib,
 						   string& HitsKey)
 {
-    CRunQueryData runq(Query, ResultType, StartHitNo, TimeOut, ResultLimit, &m_ErrorStr);
-    RunDistributed(runq);
+    CRunQueryData& runq = m_QueryData;
+    runq.Init(Query, ResultType, StartHitNo, ResultLimit, TimeOut, &m_ErrorStr);
+
+    RunDistributed();
 
     InternalError = runq.iInternalError;
     EndHitNo = runq.EndHitNo;
@@ -444,6 +625,77 @@ NetworkErrorsEnum CDDCBranchServer::RunDistributed(string Query,
     HitDistrib = runq.HitDistrib;
     DocDistrib = runq.DocDistrib;
     HitsKey = runq.HitsKey;
+    return (NetworkErrorsEnum)runq.iNetworkError;
+}
+
+//----------------------------------------------------------------------
+NetworkErrorsEnum CDDCBranchServer::RunGetFirstHits()
+{
+    CRunQueryData &runq             = m_QueryData;
+    CFirstHitsQueryResult& FHResult = m_FHResult;
+
+    string CleanQuery;
+    // read "possible" hosts (e.g. user-specified hosts from query), using query where these hosts can be specified
+    // PossibleHosts is an index of m_Hosts
+    if (!ReadPossibleHosts(runq.sQuery, CleanQuery, runq.PossibleHosts)) {
+	runq.iNetworkError = neSubcorpusNotFound;
+	return (NetworkErrorsEnum)runq.iNetworkError;
+    }
+
+    runq.EndHitNo = 0;
+    runq.HitsCount = 0;
+    runq.ResponseBody = "";
+
+    //-- readi first StartHiNo+ResultLimit hits from each host and store them to FHResult.m_Hits
+    GetFirstHitsFromCorpora(runq.PossibleHosts, CleanQuery, runq.StartHitNo+runq.ResultLimit, runq.TimeOut, FHResult);
+    runq.HitsCount = FHResult.m_AllHitsCount;
+    runq.RelevantDocsCount = FHResult.m_AllRelevantDocsCount;
+    runq.iInternalError = FHResult.m_InternalError;
+    if (FHResult.HasErrors()) {
+	FHResult.CloseSockets();
+	swap(m_ErrorStr, FHResult.m_ErrorStr);
+	if (FHResult.m_InternalError != errNone)
+	    runq.iInternalError = FHResult.m_InternalError;
+	runq.iNetworkError      = FHResult.m_NetworkError!=neSuccess ? FHResult.m_NetworkError : neInternalError;
+	return (NetworkErrorsEnum)runq.iNetworkError;
+    }
+
+    //-- sorting and trimming: we need stable_sort() in order to ensure HitNo order is retained
+    if (FHResult.m_SortOrder < 0) {
+	//-- sort: descending
+	stable_sort (FHResult.m_Hits.rbegin(), FHResult.m_Hits.rend());
+    }
+    else if (FHResult.m_SortOrder > 0) {
+	//-- sort: ascending or counts
+	stable_sort (FHResult.m_Hits.begin(), FHResult.m_Hits.end());
+    }
+
+    //-- count-query: aggregate by sort-keys
+    if (IsCountSort(FHResult.m_SortOrder)) {
+	FHResult.CollectCounts();
+    }
+
+#ifdef DEBUG_HIT_SORT
+    for (vector<CHitToSort>::const_iterator hi=FHResult.m_Hits.begin(); hi != FHResult.m_Hits.end(); ++hi) {
+	concord_daemon_log( Format("DEBUG[post-sort:order=%d]: hit[%d] = %s", FHResult.m_SortOrder, hi-FHResult.m_Hits.begin(), hi->debugStr().c_str()) );
+    }
+#endif
+
+    //-- trim to requested hits
+    if (runq.StartHitNo+runq.ResultLimit < FHResult.m_Hits.size())
+	FHResult.m_Hits.erase(FHResult.m_Hits.begin()+runq.StartHitNo+runq.ResultLimit, FHResult.m_Hits.end());
+
+    if (runq.StartHitNo < FHResult.m_Hits.size())
+	FHResult.m_Hits.erase(FHResult.m_Hits.begin(), FHResult.m_Hits.begin()+runq.StartHitNo);
+    else
+	FHResult.m_Hits.clear();
+
+#ifdef DEBUG_HIT_SORT
+    for (vector<CHitToSort>::const_iterator hi=FHResult.m_Hits.begin(); hi != FHResult.m_Hits.end(); ++hi) {
+	concord_daemon_log( Format("DEBUG[post-trim]: hit[%d] = %s", hi-FHResult.m_Hits.begin(), hi->debugStr().c_str()) );
+    }
+#endif
+
     return (NetworkErrorsEnum)runq.iNetworkError;
 }
 
@@ -515,7 +767,7 @@ NetworkErrorsEnum CDDCBranchServer::GetHitContexts(CFirstHitsQueryResult& FHResu
 	}
 
 
-	StringTokenizer tok(S.c_str(), CDDCServer::AdditionalHitDelimeter);
+	StringTokenizer tok(S.c_str(), CDDCServer::AdditionalHitDelimiter);
 	while (tok()) {
 	    Results[HostNo ].push_back(tok.val());
 	    if (ResultTypeE == DDC_ResultJson) {
@@ -726,8 +978,7 @@ NetworkErrorsEnum CDDCBranchServer::GetHitStringsFromOneCorpus(CHost& Host,
 
 	if (ResultLimit==0) {
 	    //-- vacuous request; just close up the socket to avoid ~40ms turnaround (data from A. Barbaresi, tested kerncorpus@data)
-	    SendString(CorpusSocket, "ddc_close_socket", 16, ErrorStr);
-	    this->Close(CorpusSocket);
+	    this->CloseDtr(CorpusSocket);
 	    InternalError = errNone;
 	    Result.clear();
 	    return neSuccess;
@@ -740,14 +991,14 @@ NetworkErrorsEnum CDDCBranchServer::GetHitStringsFromOneCorpus(CHost& Host,
 	{
 		ErrorMessage (Format("cannot send a string to socket %s : %s", Host.GetAddressStr().c_str(), ErrorStr.c_str() ));
 
-		if (!this->Close(CorpusSocket))
+		if (!this->CloseDtr(CorpusSocket))
 			ErrorMessage (Format("cannot close socket %s", Host.GetAddressStr().c_str()));
 
 		return neCouldNotSendData;
 	};
 
 	NetworkErrorsEnum Res = ReceiveString(CorpusSocket, S, TimeOut);
-	if (!this->Close(CorpusSocket))
+	if (!this->CloseDtr(CorpusSocket))
 		ErrorMessage (Format("cannot close socket %s", Host.GetAddressStr().c_str()));
 
 	if (Res  != neSuccess)
@@ -845,7 +1096,7 @@ string CDDCBranchServer::GetSubcorpusJsonArray(const string& request, int timeou
 
 		    //-- send request
 		    if (!SendString(sock, request, errorStr) || !errorStr.empty()) {
-			this->Close(sock);
+			this->CloseDtr(sock);
 			Results[i] = Format("{\"name\":%s,\"error\":\"could not send to socket: %s\"}", jsonStr(Host.m_CorpusName).c_str(), jsonStr(errorStr, true, false).c_str());
 			continue;
 		    }
@@ -883,7 +1134,7 @@ string CDDCBranchServer::GetSubcorpusJsonArray(const string& request, int timeou
 		}
 
 		//-- close socket (forgetting this causes an fd-leak resulting in "Could not create socket: Too many open files for HOST:PORT" messages later)
-		this->Close(Sockets[i]);
+		this->CloseDtr(Sockets[i]);
 	}
 
 	//-- build result

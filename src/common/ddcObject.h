@@ -21,9 +21,9 @@
 #ifndef DDC_OBJECT_H
 #define DDC_OBJECT_H
 
-#include <utilit.h>
+#include "../CommonLib/utilit.h"
+#include "../CommonLib/ddcString.h"
 #include <list>
-#include <ddcString.h>
 
 class ddcObject;                         //-- forward decl
 typedef list<ddcObject*> ddcObjectList;  //-- for child- and descendant-lists

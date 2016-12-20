@@ -21,7 +21,7 @@
 #ifndef __DOMEN_H_
 #define __DOMEN_H_
 
-#include "../common/utilit.h"
+#include "../CommonLib/utilit.h"
 
 #include "StructDictConsts.h"
 

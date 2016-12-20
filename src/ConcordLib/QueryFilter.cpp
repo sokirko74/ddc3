@@ -19,7 +19,7 @@
 
 #include "QueryFilter.h"
 #include "QueryCompiler.h"
-#include "../common/utilit.h"
+#include "../CommonLib/utilit.h"
 
 //======================================================================
 // globals

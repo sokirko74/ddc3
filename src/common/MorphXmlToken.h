@@ -19,7 +19,7 @@
 #ifndef __MorphXMLtoken_h
 #define __MorphXMLtoken_h
 
-#include "../common/utilit.h"
+#include "../CommonLib/utilit.h"
 
 const string XmlPunctType = "pun";
 const string XmlWordType = "w";

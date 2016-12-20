@@ -1,6 +1,6 @@
 //-*- Mode: C++; c-basic-offset:8; -*-
 //  DDC originally by Alexey Sokirko
-//  Changes and modifications 2011-2014 by Bryan Jurish
+//  Changes and modifications 2011-2016 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -41,7 +41,7 @@ CDDCBranchServer* pServer = NULL;
 // global functions
 
 
-void LoadLocalCorpora (ProtocolDensityEnum ProtocolDensity, string ConfigFile)
+void LoadLocalCorpora (string ConfigFile, const CDDCServerOptions& Options)
 {
 	string Error;
 	if (!IsRmlRegistered(Error)) 
@@ -66,13 +66,14 @@ void LoadLocalCorpora (ProtocolDensityEnum ProtocolDensity, string ConfigFile)
 	concord_daemon_log ( Format("  Found %i Hosts ", Hosts.size()) );
 	LocalCorpora.clear();
 
-	try {	
+	try {
+		LocalCorpora.resize(Hosts.size());
 		for (int i = 0; i<Hosts.size(); i++) {
-			CDDCLeafServer H(true, ProtocolDensity);
+			CDDCLeafServer &H = LocalCorpora[i];
 			H.CopyAddressParametersFrom(Hosts[i]);
+			H.SetOptions(Options);
 			if (!H.LoadHolder())
 				throw CExpc(errOther, "LoadHolder() failed for host %d", i);
-			LocalCorpora.push_back(H);
 		}
 		for (int i = 0; i<LocalCorpora.size(); i++) {
 			CDDCLeafServer& H = LocalCorpora[i];
@@ -84,7 +85,7 @@ void LoadLocalCorpora (ProtocolDensityEnum ProtocolDensity, string ConfigFile)
 	catch (...)          { concord_daemon_log( "LoadLocalCorpora(): Exception: unhandled exception" ); throw; }
 };
 
-void LoadDDCServer (ProtocolDensityEnum ProtocolDensity, string ServerConfigFile)
+void LoadDDCServer(string ServerConfigFile, const CDDCServerOptions& Options)
 {
 	string Error;
 	if (!IsRmlRegistered(Error)) 
@@ -101,7 +102,7 @@ void LoadDDCServer (ProtocolDensityEnum ProtocolDensity, string ServerConfigFile
 
 	if (pServer)
 		delete pServer;
-	pServer = new CDDCBranchServer(false, ProtocolDensity);
+	pServer = new CDDCBranchServer();
 	if (!pServer)
 	{
 		concord_daemon_log ( "Error! cannot allocate memory for a server instance");
@@ -113,8 +114,9 @@ void LoadDDCServer (ProtocolDensityEnum ProtocolDensity, string ServerConfigFile
 	
 	if (pServer->m_Hosts.empty())
 	{
+		concord_daemon_log ( Format("Warning: no host entries found in server config file %s", ServerConfigFile.c_str()) );
 		delete pServer;
-		pServer = 0;
+		pServer = NULL;
 		return;
 	};
 	bool bServerIsFound = false;	
@@ -122,7 +124,7 @@ void LoadDDCServer (ProtocolDensityEnum ProtocolDensity, string ServerConfigFile
         if (pServer->m_Hosts[i].m_CorpusName == "server" || pServer->m_Hosts[i].m_CorpusName.find("server:")==0)
 	{
 		pServer->CopyAddressParametersFrom(pServer->m_Hosts[i]);
-		pServer->m_LogFunction = concord_daemon_log;;
+		pServer->SetOptions(Options);
 		pServer->CreateListener();
 		pServer->m_Hosts.erase(pServer->m_Hosts.begin() + i);
 		bServerIsFound = true;
@@ -131,15 +133,14 @@ void LoadDDCServer (ProtocolDensityEnum ProtocolDensity, string ServerConfigFile
 
 	if (!bServerIsFound)
 	{
-		concord_daemon_log ( Format("Error! there is no server socket description in %s!", ServerConfigFile.c_str()));
+		concord_daemon_log ( Format("Error! no branch server entry found in server config file %s!", ServerConfigFile.c_str()));
 		return;
 
 	};
 	if (pServer->m_Hosts.empty())
 	{
-		concord_daemon_log ( Format("Error! there is no ouptut server  sockets in %s!", ServerConfigFile.c_str()));
+		concord_daemon_log ( Format("Error! no subcorpus host entries in server config file %s!", ServerConfigFile.c_str()));
 		return;
-
 	};
 
 };

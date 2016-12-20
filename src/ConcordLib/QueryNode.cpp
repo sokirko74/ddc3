@@ -27,7 +27,7 @@
 #include "Query.h"
 #include "../common/DwdsThesaurus.h"
 #include "../common/util_classes.h"
-#include "../common/utilit.h"
+#include "../CommonLib/utilit.h"
 #include "../PCRE/pcre_rml.h"
 
 extern CDwdsThesaurus* pDwdsThesaurus;
@@ -217,10 +217,9 @@ void CQueryNode::ConvertOccurrencesToHits (bool bSeparateHits)
 	int TextAreasCount = m_pHolder->m_pIndexator->m_Bibl.GetTextAreasCount();
 	int TextAreaNo = m_pHolder->GetTextArea();
 	bool bTextAreaNo =  TextAreaNo != UnknownTextAreaNo;
-	m_Hits.clear();
-	m_Hits.reserve(GetOccurrencesSize());
-
 	int cnt = GetOccurrencesSize();
+	m_Hits.clear();
+	m_Hits.reserve(cnt);
 
 	bool bLongSequence = GetOccurrencesSize()*5 > Breaks.size() ;
 	vector<CTokenNo>::const_iterator break_it = Breaks.begin();

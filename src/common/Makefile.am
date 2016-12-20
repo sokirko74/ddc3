@@ -17,6 +17,7 @@ EXTRA_DIST = \
  ddcConfig.h \
  ddcConfigNoAuto.h \
  DDCInternalError.h \
+ ddcThreadQueue.h \
  DwdsThesaurus.cpp \
  DwdsThesaurus.h \
  file_off64_windows.c \
@@ -44,23 +45,15 @@ EXTRA_DIST = \
  rus_numerals.cpp \
  rus_numerals.h \
  SortWithTempFiles.h \
- string_socket.cpp \
- string_socket.h \
  string_tokenizer.h \
  SyntaxHolder.cpp \
  SyntaxHolder.h \
  util_classes.h \
- utilit.cpp \
- utilit.h \
  \
  common_exe_mak common_lib_mak common_mak \
  \
  ddcConfigAuto.h.in \
- ddcVersion.h ddcVersion.cpp \
  ddcIconv.h \
- ddcString.h ddcString.cpp \
- utf8xx.h utf8xx.cpp \
- ddcLocale.h ddcLocale.cpp \
  ddcRandom.h \
  ddcObject.h
 

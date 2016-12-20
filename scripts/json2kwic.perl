@@ -46,9 +46,10 @@ foreach my $hit (@$hits) {
   }
 
   my $label ="$f:$p";
-  if (defined($hit->{meta_}{breakno_})) {
-    my $tokno = $hit->{meta_}{breakstart_} + @l - @{$hit->{ctx_}[0]};
-    $label .= "[n=$n,f=$hit->{meta_}{fileno_},b=$hit->{meta_}{breakno_},w=$tokno]";
+  my $hinfo = $hit->{debug_} || $hit->{meta_};
+  if (define($hinfo->{breakno_})) {
+    my $tokno = ($hinfo->{breakstart_} // $hinfi->{breakstart_}) + @l - @{$hit->{ctx_}[0]}; ##-- CONTINUE HERE
+    $label .= "[n=$n,f=$hinfo->{fileno_},b=$hinfo->{breakno_},w=$tokno]";
     ++$n;
   }
   push(@hits, [$label, map {join(' ',@$_)} (\@l,\@c,\@r)]);

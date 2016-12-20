@@ -1,4 +1,5 @@
 //-*- Mode: C++; c-basic-offset:4; -*-
+//
 //  DDC originally by Alexey Sokirko
 //  Changes and modifications 2011-2016 by Bryan Jurish
 //
@@ -35,8 +36,8 @@ public:
     // Constructors etc.
 
     /** default constructor */
-    CDDCLeafServer(bool bDoubleMessage=false, ProtocolDensityEnum pdProtocolDensity=pdWeakDensity)
-	: CDDCServer(bDoubleMessage, pdProtocolDensity), m_pHolder(NULL)
+    CDDCLeafServer()
+	: m_pHolder(NULL)
     {};
 
     /** default destructor */
@@ -45,6 +46,20 @@ public:
 
     /** close any open socket(s) this server administers, called on termination signal */
     virtual void Shutdown();
+
+public:
+    //--------------------------------------------------------------
+    // DDCServer API: client threads
+
+    /** create a minimal copy of this object (and any subordinate data) for use by a worker thread */
+    virtual CDDCServer *WorkerClone(void) const
+    { return (CDDCServer*)new CDDCLeafServer(); };
+
+    /** initialize a newly created worker-clone (and any subordinate data) */
+    virtual void WorkerCloneInit(const CDDCServer *Parent, size_t WorkerId);
+
+    /** /** perform local cleanup of a worker clone prior to deletion */
+    virtual void WorkerCloneFree(void);
 
 public:
     //--------------------------------------------------------------

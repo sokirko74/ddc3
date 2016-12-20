@@ -1,5 +1,7 @@
+//-*- Mode: C++; c-basic-offset:8;-*-
+//
 //  DDC originally by Alexey Sokirko
-//  Changes and modifications 2011-2015 by Bryan Jurish
+//  Changes and modifications 2011-2016 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -19,9 +21,33 @@
 #ifndef _string_socket_h
 #define _string_socket_h
 
+#include "../CommonLib/utilit.h"
+#include "../CommonLib/ddcLog.h"
 
+//  include headers for processes and sockets
+#ifdef WIN32
+	#include <winsock2.h>
+	#include <Ws2tcpip.h>
+	#include <process.h>
+#else
+	#include <pthread.h>
+	#include <arpa/inet.h>
+	#include <sys/types.h>
+	#include <sys/socket.h>
+	#include <netinet/in.h>
+	#include <netinet/tcp.h>
+	#include <netdb.h>
+	#include <stdio.h>
+	#include <fcntl.h>
+	#define SOCKET int
+#endif
 
-#include "../common/utilit.h"
+//-- debugging
+//#define DDC_DEBUG_FDLEAK 1
+#undef DDC_DEBUG_FDLEAK
+
+//======================================================================
+// Types
 
 enum NetworkErrorsEnum {
 	neSuccess = 0,
@@ -37,74 +63,19 @@ enum NetworkErrorsEnum {
 	neRequestTooLarge = 10
 };
 
-
-enum ProtocolDensityEnum {
-	pdWeakDensity = 0,
-	pdMediumDensity = 1,
-	pdHeavyDensity = 2,
-};
-
 #define SOCKET int
 #ifdef WIN32
 	struct sockaddr_in;
 #endif
 
+//======================================================================
+// Constants
+
 // default socket chunk size (for recv() loops)
 extern const int ddcSocketChunkSize;
 
-class CHost  
-{
-protected:
-        string					m_HostAddr;	///< string representation of address to bind or connect to
-	int					m_Port;
-	SOCKET					m_ListenSocket;
-	bool					m_bDoubleMessage;
-	bool					m_bExpectMore;	///< moo: whether to expect more requests from current client
-	bool					m_bRespond;     ///< moo: whether current request has a real (possibly empty) response
-	bool					m_bLogFinish;	///< moo: whether to log connection completion
-	string					m_LocalPath;
-	ProtocolDensityEnum			m_pdProtocolDensity;
-	uint32_t				m_maxReceiveBytes; ///< maximum receivable packet length (default=0: no limit)
-
-	void AnswerByRequest (SOCKET& rConnectedSocket, const struct sockaddr_in* client_addr, int TimeOut);
-
-public:
-	string				m_CorpusName;
-	void				(*m_LogFunction)(const string&);
-	
-	CHost(bool bDoubleMessage, ProtocolDensityEnum pdProtocolDensity);
-	bool			ReadFromString (string S);
-	void			CreateListener();
-	void			CopyAddressParametersFrom(const CHost& X);
-	void			StopAcceptingThread();
-	void			RunThread();
-	int			CreateAndConnectSocket(string& strError) const;
-	string			GetAddressStr() const;
-	const string&		GetLocalPathOfIndex() const;
-
-	inline const string&	HostName() const { return m_HostAddr; };
-	inline const string&	HostAddr() const { return m_HostAddr; };
-	inline const int	Port() const { return m_Port; };
-
-	bool Init(const string &CorpusName, const string& HostAddr, int Port, const string& LocalPath="");
-	  
-
- public:
-	//! shutdown connected socket and perform any local cleanup methods
-	//! \li default implementation just wraps CloseSocket(rConnectedSocket,linger,timeout)
-	//! \returns true on success, false otherwise
-	virtual bool Close(SOCKET& rConnectedSocket, bool linger=false, int timeout=5);
-
-	//! guts for request handling; override in subclasses
-	virtual string	ProcessSocketString(const string& S, SOCKET& rConnectedSocket);
-
-	//! \li logs and sends an error messaage to the client
-	//! \li \c code should be nonzero to indicate a 'real' error
-	//! \li implicitly closes \c clientSocket if !=-1 (default)
-	virtual void	ClientError(int code=-1, const string& msg="");
-	virtual void	ClientError(int code,    const string& msg, SOCKET& clientSocket);
-
-};
+//======================================================================
+// Utilities
 
 /* moo / ddc-2.0.0: packet length arguments sent over sockets are ALWAYS 32-bit unsigned integers in little-endian order
  *  + big-endian ("network") order or fixed-width ASCII decimal would make more sense, but would break too much existing client code
@@ -120,9 +91,11 @@ extern bool SocketDeinitialize();
 /** close a socket; if \a linger is true, SO_LINGER option will be set for \a timeout second(s) */
 extern bool CloseSocket(int l_socket, bool linger=false, int timeout=5);
 extern string GetNetworkErrorString(const NetworkErrorsEnum& t);
-extern bool LoadHosts (string Path, vector<CHost>& Hosts);
 
-//-- generic socket utilities (pure-functions, used by ddc_daemon via CHost and ddc_search)
+//-- generic socket protocol utilities (pure-functions, used by ddc_daemon via CHost and ddc_search)
+extern void SocketPeer(SOCKET sock, string& PeerAddr, int& PeerPort);
+extern string SocketPeer(SOCKET sock);
+extern string SocketPeerP(SOCKET sock);
 extern bool SendString (int client_fd, const char* Str, uint32_t StrLen, string& ErrorStr);
 extern bool SendString (int client_fd, const std::string &str, string& ErrorStr);
 extern NetworkErrorsEnum receive_buffer(int client_fd, char* Buffer,int Length, int& have_read, int TimeOut);

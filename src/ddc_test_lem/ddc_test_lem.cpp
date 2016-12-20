@@ -35,7 +35,7 @@
 #include <sys/stat.h>
 #include <locale.h>
 
-#include "../common/utilit.h"
+#include "../CommonLib/utilit.h"
 #include "../AgramtabLib/RusGramTab.h"
 #include "../AgramtabLib/EngGramTab.h"
 #include "../AgramtabLib/GerGramTab.h"

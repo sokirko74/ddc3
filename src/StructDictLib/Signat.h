@@ -22,7 +22,7 @@
 #define __SIGNAT_H_
 
 
-#include "../common/utilit.h"
+#include "../CommonLib/utilit.h"
 
 struct TSignatItem  {
 	BYTE m_DomNo;

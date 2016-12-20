@@ -350,16 +350,18 @@ bool CStringIndexSet::GetTokensFromStorage(const size_t start_offset,  const siz
 	Tokens.resize(count);
 	if (count == 0) return true;
 	file_off_t read_offset =  (QWORD)start_offset*(QWORD)sizeof(DWORD);
-	
-	if (!FSeek (m_StorageFile, read_offset, SEEK_SET)) return false;
+
+	lock();
+	if (!FSeek (m_StorageFile, read_offset, SEEK_SET)) { unlock(); return false; }
 	for (size_t i=0; i < count; i++)
 	{
 		DWORD u;
-		if (fread(&(u),sizeof(u), 1, m_StorageFile) != 1) return false;
-		if (u > m_Index.size()) return false;
+		if (fread(&(u),sizeof(u), 1, m_StorageFile) != 1) { unlock(); return false; }
+		if (u > m_Index.size()) { unlock(); return false; }
 		Tokens[i].m_TokenStr  = GetIndexItemStr(m_Index[u]);
 		Tokens[i].m_Highlight = 0;
 	};
+	unlock();
 	return true;
 };
 
@@ -367,11 +369,14 @@ DWORD CStringIndexSet::GetTokenIndexId(CTokenNo TokenNo) const
 {
 	if (!m_bUseItemStorage) return DWORD_MAX;
 	file_off_t read_offset =  (QWORD)TokenNo*(QWORD)sizeof(DWORD);
-	
-	if (!FSeek(m_StorageFile, read_offset, SEEK_SET)) return DWORD_MAX;
 	DWORD u;
-	if (fread(&(u),sizeof(u), 1, m_StorageFile) != 1) return DWORD_MAX;
-	if (u >= m_Index.size()) return DWORD_MAX;
+	
+	lock();
+	if (!FSeek(m_StorageFile, read_offset, SEEK_SET)) { unlock(); return DWORD_MAX; }
+	if (fread(&(u),sizeof(u), 1, m_StorageFile) != 1) { unlock(); return DWORD_MAX; }
+	if (u >= m_Index.size()) { unlock(); return DWORD_MAX; }
+	unlock();
+
 	return u;
 };
 
@@ -424,17 +429,21 @@ bool CStringIndexSet::DumpStorage() const
 
 void CStringIndexSet::CloseStorageFile()
 {
+	lock();
 	if (m_StorageFile) 
 	{
 		fclose(m_StorageFile);
 		m_StorageFile = 0;
 	};
+	unlock();
 };
 
 bool CStringIndexSet::OpenStorageFile()
 {
 	CloseStorageFile();
+	lock();
 	m_StorageFile = fopen(GetStorageFileName().c_str(), "rb");
+	unlock();
 	return m_StorageFile != 0;
 };
 

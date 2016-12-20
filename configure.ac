@@ -3,7 +3,7 @@ AC_PREREQ(2.5)
 
 dnl Some handy macros
 define([THE_PACKAGE_NAME],    [ddc])
-define([THE_PACKAGE_VERSION], [2.0.52])
+define([THE_PACKAGE_VERSION], [2.1.0-pre2])
 define([THE_PACKAGE_MAINTAINER],  [jurish@bbaw.de])
 AC_INIT(THE_PACKAGE_NAME, THE_PACKAGE_VERSION, THE_PACKAGE_MAINTAINER)
 
@@ -179,6 +179,12 @@ AC_CHECK_HEADERS_ONCE([unistd.h netdb.h])
 ## /headers: gethostname
 ##^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+##----------------------------------------------------------------------
+## headers: time.h
+AC_CHECK_HEADERS_ONCE([time.h])
+## /headers: time.h
+##^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
 ###----------------------------------------------------------------------
 ## headers: int types
 AC_TYPE_UINT16_T
@@ -278,6 +284,15 @@ AC_DEFINE_UNQUOTED(DDC_STATIC_BUFLEN, $ddc_static_buflen, [size in bytes of pote
 ##^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 ##----------------------------------------------------------------------
+## funcs: strerror_r
+AC_CHECK_FUNC(strerror_r)
+if test "$ac_cv_func_strerror_r" = "yes" ; then
+  AC_DEFINE_UNQUOTED(HAVE_STRERROR_R, 1, [Define this if you have a working strerror_r() function])
+fi
+## funcs: strerror_r
+##^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+##----------------------------------------------------------------------
 ## defs: json-deep-context
 AC_ARG_ENABLE([json-deep-context],
 	AC_HELP_STRING([--enable-json-deep-context],
@@ -345,6 +360,32 @@ AC_SUBST(ddc_OFLAGS)
 ##
 ## /debug ?
 ##^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+##----------------------------------------------------------------------
+## defs: hires-clock (after debug)
+AC_ARG_ENABLE([hires-clock],
+	AC_HELP_STRING([--enable-hires-clock],
+		[Enable high-resolution clock? (default=yes)]),
+		[ddc_hires_clock="$enableval"],
+		[ddc_hires_clock="$enable_debug"])
+AC_MSG_CHECKING([whether to enable high-resolution clock])
+test "$ddc_hires_clock" = "yes" || ddc_hires_clock=no
+AC_MSG_RESULT([$ddc_hires_clock])
+
+if test "$ddc_hires_clock" != "no" ; then
+ AC_CHECK_FUNC(clock_gettime,
+	[],
+	[
+	 AC_MSG_WARN([could not find clock_gettime(): high-resolution clock disabled])
+	 ddc_hires_clock=no
+	])
+fi
+if test "$ddc_hires_clock" != "no" ; then
+  AC_DEFINE_UNQUOTED(DDC_USE_HIRES_CLOCK, 1, [Define this to enable high-resolution clock - requires clock_gettime()])
+fi
+## defs: hires-clock
+##^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
 
 ##vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
 ## common flags

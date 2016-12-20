@@ -21,7 +21,7 @@
  #define ROSS_H
 #pragma warning  (disable : 4530)
 
-#include "../common/utilit.h"
+#include "../CommonLib/utilit.h"
 
 #include <time.h>
 

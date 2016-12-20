@@ -25,7 +25,7 @@
 
 #include "../ConcordLib/ConcHolder.h"
 //#include "../ConcordLib/QueryCompiler.h" //-- for debugging ddcObject::Descendants()
-#include "../common/utilit.h"
+#include "../CommonLib/utilit.h"
 extern size_t AllBytesRead;;
 
 #ifdef DETECT_MEMORY_LEAK

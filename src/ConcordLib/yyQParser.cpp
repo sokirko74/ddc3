@@ -75,7 +75,7 @@
  */
 
 #include "QueryCompiler.h"
-#include "../common/ddcString.h"
+#include "../CommonLib/ddcString.h"
 #include <sstream>
 
 #ifndef YYDEBUG

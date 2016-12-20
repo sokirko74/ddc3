@@ -16,8 +16,8 @@
 //  You should have received a copy of the GNU Lesser General Public License
 //  along with DDC.  If not, see <http://www.gnu.org/licenses/>.
 //
-#include "../common/ddcString.h"
-#include "../common/utilit.h"
+#include "ddcString.h"
+#include "utilit.h"
 #include <string.h>
 
 using namespace std;
@@ -343,4 +343,68 @@ string reString(const std::string &re)
 string escapeRegex(const std::string &re)
 {
   return escapeChars(re,".*+?{}()\\");
+}
+
+//======================================================================
+// printf-style formatting
+
+//--------------------------------------------------------------
+string Format( const char* format, ... )
+{
+    va_list arglst;
+    const size_t  SmallBufferSize = DDC_STATIC_BUFLEN;
+    char SmallBuffer[SmallBufferSize];
+
+    va_start( arglst, format );
+    int	OutputLength = 1 + vsnprintf( SmallBuffer, SmallBufferSize, format, arglst) ;
+    va_end( arglst );
+
+    if ((OutputLength == 0) || (OutputLength < SmallBufferSize))
+	return string(SmallBuffer,OutputLength-1);
+
+    char * pBuffer = new char[OutputLength];
+    if (!pBuffer)
+	return string(SmallBuffer,SmallBufferSize);
+    va_start( arglst, format );
+    vsnprintf( pBuffer, OutputLength, format, arglst);
+    va_end( arglst );
+    string Result(pBuffer,OutputLength-1);
+    delete pBuffer;
+    return Result;
+};
+
+
+//--------------------------------------------------------------
+string vFormat( const char* format, va_list& args )
+{
+    const size_t  SmallBufferSize = DDC_STATIC_BUFLEN;
+    char SmallBuffer[SmallBufferSize];
+
+    va_list args1;
+    va_copy(args1, args);
+    int	OutputLength = 1 + vsnprintf( SmallBuffer, SmallBufferSize, format, args);
+    
+    if ((OutputLength == 0) || (OutputLength < SmallBufferSize))
+	return string(SmallBuffer,OutputLength-1);
+
+    char * pBuffer = new char[OutputLength];
+    if (!pBuffer)
+	return string(SmallBuffer,SmallBufferSize);
+    vsnprintf( pBuffer, OutputLength, format, args1);
+    string Result(pBuffer,OutputLength-1);
+    delete pBuffer;
+    return Result;
+}
+
+//======================================================================
+// system errors
+
+char* StrError(int ErrorNo)
+{
+#if HAVE_STRERROR_R
+  char buf[512];
+  return strerror_r(ErrorNo, buf, 512);
+#else
+  return strerror(ErrorNo);
+#endif
 }

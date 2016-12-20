@@ -20,7 +20,7 @@
 //================================
 // ==========   Dialing Lemmatizer (www.aot.ru)
 //================================
-#include "../common/utilit.h"
+#include "../CommonLib/utilit.h"
 #include "../common/MorphologyHolder.h"
 
 

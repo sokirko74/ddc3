@@ -1,4 +1,5 @@
 //-*- Mode: C++; c-basic-offset:8;-*-
+//
 //  DDC originally by Alexey Sokirko
 //  Changes and modifications 2011-2015 by Bryan Jurish
 //
@@ -138,22 +139,22 @@ void DearchiveOccurrences(const DWORD* in_start, const DWORD* in_end,  DWORD* ou
 };
 
 
-void ReadOccurrences (FILE* OccursFp, CTokenNo* OutBuffer, file_off_t FilePosition, size_t Count)
+void CIndexSetForQueryingStage::ReadOccurrences (CTokenNo* OutBuffer, file_off_t FilePosition, size_t Count) const
 {
-	AllBytesRead +=  Count * sizeof(CTokenNo);
-	if (!FSeek(OccursFp, FilePosition, SEEK_SET))
-	{
-		string Error = Format("Fatal error! Cannot seek to offset %i in occurrence file\n", FilePosition);
-		throw CExpc(errReadOccurrenceFile, Error );
-	};
-	
+	lock();
+	try {
+		AllBytesRead +=  Count * sizeof(CTokenNo);
+		if (!FSeek(m_OccursFp, FilePosition, SEEK_SET))
+			throw CExpc(errReadOccurrenceFile, Format("Fatal error! Cannot seek to offset %i in occurrence file\n", FilePosition));
 
-	size_t act_count = fread (OutBuffer, sizeof(CTokenNo), Count, OccursFp);
-	if (act_count != Count)
-	{
-		string Error = Format("Fatal error! Cannot read from offset %i  %i dwords from  occurrence file\n", FilePosition, Count);
-		throw CExpc(errReadOccurrenceFile, Error );
-	};
+		if (fread(OutBuffer, sizeof(CTokenNo), Count, m_OccursFp) != Count)
+			throw CExpc(errReadOccurrenceFile, Format("Fatal error! Cannot read from offset %i  %i dwords from  occurrence file\n", FilePosition, Count));
+	}
+	catch (...) {
+		unlock();
+		throw;
+	}
+	unlock();
 };
 
 
@@ -231,7 +232,7 @@ void  CIndexSetForQueryingStage::AddOccurs (size_t PeriodDevId, const bool bOneO
             DWORD DearchivedSize;
             TempOccurrsBuffer.resize(PeriodSize);
 
-            ReadOccurrences(m_OccursFp, &TempOccurrsBuffer[0], StartOfPeriod*(QWORD)sizeof(CTokenNo), PeriodSize);
+            ReadOccurrences(&TempOccurrsBuffer[0], StartOfPeriod*(QWORD)sizeof(CTokenNo), PeriodSize);
 
             // dearchiving 
             DWORD old_size =  Occurs.size();
@@ -259,12 +260,12 @@ void  CIndexSetForQueryingStage::AddOccurs (size_t PeriodDevId, const bool bOneO
 		    }
 		    else
 		    {
-			    ReadOccurrences (m_OccursFp, &TempOccurrsBuffer[0], (QWORD)StartOccurNo*(QWORD)sizeof(CTokenNo), MaxCountToRead);
+			    ReadOccurrences(&TempOccurrsBuffer[0], (QWORD)StartOccurNo*(QWORD)sizeof(CTokenNo), MaxCountToRead);
 			    pBuffer = &TempOccurrsBuffer[0];
 
 			    //-- moo: this assertion is catching if we query 'sein' (Mon, 06 Jun 2011 14:14:51 +0200)
 			    //   + appears to be a result of old index files from kaskade (64-bit problem ?!)
-			    //   + possibly (?) solved by re-defining typedefs DWORD, WORD in ../common/utilit.h
+			    //   + possibly (?) solved by re-defining typedefs DWORD, WORD in ../CommonLib/utilit.h
 			    //       typedef unsigned int	DWORD --> uint32_t
 			    //	     typedef unsigned short	WORD  --> uint16_t
 			    //fprintf(stderr, "DEBUG: MaxCountToRead=%u, OccurBufferSize=%u\n", MaxCountToRead, OccurBufferSize);

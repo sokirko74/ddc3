@@ -1,6 +1,7 @@
 //-*- Mode: C++ -*-
+//
 //  DDC originally by Alexey Sokirko
-//  Changes and modifications 2011-2015 by Bryan Jurish
+//  Changes and modifications 2011-2016 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -21,7 +22,7 @@
 #ifndef DDC_TERM_EXPANDER_H
 #define DDC_TERM_EXPANDER_H
 
-#include "../common/utilit.h"
+#include "../CommonLib/utilit.h"
 #include "CCurl.h"
 
 //======================================================================
@@ -54,6 +55,13 @@ public:
     : m_Class("None"), m_Label(label), m_Param(param)
   {};
 
+  //! clone constructor, handles sub-object cloning according to \a xlate map */
+  virtual CTermExpander* mapClone(map<CTermExpander*,CTermExpander*>& xlate) const;
+
+  //! clone constructor to create a new expansion object (override this for derived classes) */
+  virtual CTermExpander* clone(map<CTermExpander*,CTermExpander*>& xlate) const
+  { return new CTermExpander(m_Class, m_Label, m_Param); };
+
   //! Default destructor.
   virtual ~CTermExpander(void) {};
 
@@ -84,6 +92,10 @@ public:
     : CTermExpander("Id",label,param)
   {};
   virtual ~TxId(void) {};
+
+  virtual CTermExpander* clone(map<CTermExpander*,CTermExpander*>& xlate) const
+  { return new TxId(m_Label,m_Param); };
+    
   virtual void expand(const set<string>& src, set<string>& dst);
 };
 
@@ -101,6 +113,9 @@ public:
   TxChain(const string &label=string("Chain"), const string& param=string(""))
     : CTermExpander("Chain",label,param)
   {};
+
+  //! clone constructor
+  virtual CTermExpander* clone(map<CTermExpander*,CTermExpander*>& xlate) const;
 
   //! Destructor: sub-expanders are NOT implicitly destroyed!
   virtual ~TxChain(void) {};
@@ -133,6 +148,9 @@ public:
   TxLang(const string& cls=string("Lang"), const string &label=string("Lang"), const string& param=string("Generic"));
   virtual ~TxLang(void) {};
 
+  virtual CTermExpander* clone(map<CTermExpander*,CTermExpander*>& xlate) const
+  { return (CTermExpander*)new TxLang(*this); };
+  
   //virtual void expand(const set<string>& src, set<string>& dst);
 
   //! Set language by enum.  Default just sets m_Lang=lang and m_Param=GetStringByLanguage(lang)
@@ -154,6 +172,9 @@ public:
   {};
   virtual ~TxMorph(void) {};
 
+  virtual CTermExpander* clone(map<CTermExpander*,CTermExpander*>& xlate) const
+  { return (CTermExpander*)new TxMorph(*this); };
+
   //! modified version of GetWordForms() from QueryNode.cpp
   virtual void expand(const set<string>& src, set<string>& dst);
 };
@@ -168,6 +189,9 @@ public:
   {};
   virtual ~TxToLower(void) {};
 
+  virtual CTermExpander* clone(map<CTermExpander*,CTermExpander*>& xlate) const
+  { return (CTermExpander*)new TxToLower(*this); };
+  
   //! wraps RmlMakeLower()
   virtual void expand(const set<string>& src, set<string>& dst);
 };
@@ -182,6 +206,9 @@ public:
   {};
   virtual ~TxToUpper(void) {};
 
+  virtual CTermExpander* clone(map<CTermExpander*,CTermExpander*>& xlate) const
+  { return (CTermExpander*)new TxToUpper(*this); };
+  
   //! wraps RmlMakeUpper()
   virtual void expand(const set<string>& src, set<string>& dst);
 };
@@ -196,6 +223,9 @@ public:
   {};
   virtual ~TxCase(void) {};
 
+  virtual CTermExpander* clone(map<CTermExpander*,CTermExpander*>& xlate) const
+  { return (CTermExpander*)new TxCase(*this); };
+  
   //! modified version of AddFormsWithDifferentRegisters() from QueryNode.cpp
   virtual void expand(const set<string>& src, set<string>& dst);
 };
@@ -217,6 +247,9 @@ public:
   //! Destructor frees m_Curl if non-NULL
   virtual ~TxCurl(void) {};
 
+  //! clone constructor calls default constructor
+  virtual CTermExpander* clone(map<CTermExpander*,CTermExpander*>& xlate) const;
+  
   //--------------------------------------------------------------
   //\name Subclass API
   //@{
@@ -258,6 +291,8 @@ public:
   {};
   virtual ~TxCab(void) {};
 
+  virtual CTermExpander* clone(map<CTermExpander*,CTermExpander*>& xlate) const;
+  
   //! Setup m_Curl object based on object parameters
   //! Default parses space-separated m_Param to set m_UrlBase and m_CCurl->timeout()
   //! \li 1st param: base URL (with trailing query parameter name e.g. "qd=")
@@ -280,6 +315,8 @@ public:
     m_Class = "CabMap";
   };
   virtual ~TxCabMap(void) {};
+
+  virtual CTermExpander* clone(map<CTermExpander*,CTermExpander*>& xlate) const;
 };
 
 
@@ -300,6 +337,9 @@ public:
   //! Default constructor
   TxDispatcher(void)
   {};
+
+  //! clone constructor copies sub-objects
+  TxDispatcher* clone() const;
 
   //! Default destructor: frees all expanders in m_tx
   ~TxDispatcher(void);

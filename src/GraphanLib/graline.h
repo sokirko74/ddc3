@@ -20,7 +20,7 @@
 
 #ifndef  graline_h
 #define graline_h
-#include  "../common/utilit.h"
+#include  "../CommonLib/utilit.h"
 #include  "../common/gra_descr.h"
 
 

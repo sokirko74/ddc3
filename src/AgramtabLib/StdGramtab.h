@@ -20,7 +20,7 @@
 #define stdgramtab_h
 
 
-#include "../common/utilit.h"
+#include "../CommonLib/utilit.h"
 #include "rus_consts.h"
 #include "ger_consts.h"
 #include "eng_consts.h"

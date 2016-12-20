@@ -20,12 +20,23 @@
 
 #include "TermExpander.h"
 #include "ConcCommon.h"
-#include "../common/ddcString.h"
+#include "../CommonLib/ddcString.h"
 #include <stdlib.h>
 #include <wctype.h>
 
 //======================================================================
 // CTermExpander
+
+//--------------------------------------------------------------
+CTermExpander* CTermExpander::mapClone(map<CTermExpander*,CTermExpander*>& xlate) const
+{
+  map<CTermExpander*,CTermExpander*>::const_iterator vali = xlate.find((CTermExpander*)this);
+  if (vali != xlate.end()) return vali->second;
+
+  CTermExpander *that = this->clone(xlate);
+  xlate[(CTermExpander*)this] = that;
+  return that;
+}
 
 //--------------------------------------------------------------
 string CTermExpander::configString(void) const
@@ -56,8 +67,19 @@ void TxId::expand(const set<string>& src, set<string>& dst)
   dst = src;
 }
 
+
 //======================================================================
 // TxChain
+
+//--------------------------------------------------------------
+CTermExpander *TxChain::clone(map<CTermExpander*,CTermExpander*>& xlate) const
+{
+  TxChain *that = new TxChain(m_Label,m_Param);
+  for (TxList::const_iterator li=m_Chain.begin(); li != m_Chain.end(); ++li) {
+    that->m_Chain.push_back( (*li)->mapClone(xlate) );
+  }
+  return that;
+}
 
 //--------------------------------------------------------------
 void TxChain::append(TxList& txl)
@@ -263,18 +285,36 @@ void TxCase::expand(const set<string>& src, set<string>& dst)
 // TxCurl
 
 //--------------------------------------------------------------
+CTermExpander* TxCurl::clone(map<CTermExpander*,CTermExpander*>& xlate) const
+{
+  TxCurl* that = new TxCurl(m_Class, m_Label, m_Param);
+  that->compile();
+  return (CTermExpander*)that;
+}
+
+//--------------------------------------------------------------
 void TxCurl::compile(void)
 {
+  m_CCurl.lock();
   m_CCurl.url("");
   m_CCurl.timeout(5);
   m_CCurl.noSignal(1);
   m_CCurl.failOnError(1);
   m_CCurl.setDefaultDataCallback();
+  m_CCurl.unlock();
 }
 
 
 //======================================================================
 // TxCab
+
+//--------------------------------------------------------------
+CTermExpander* TxCab::clone(map<CTermExpander*,CTermExpander*>& xlate) const
+{
+  TxCab* that = new TxCab(m_Label, m_Param, m_Debug, m_MapMode);
+  that->compile();
+  return (CTermExpander*)that;
+}
 
 //--------------------------------------------------------------
 void TxCab::compile(void)
@@ -283,6 +323,7 @@ void TxCab::compile(void)
   TxCurl::compile();
 
   //-- parse parameters
+  m_CCurl.lock();
   vector<string> params = stringSplit(m_Param.c_str(), " \t\r\n");
   m_UrlBase.clear();
   if (params.size() > 0) {
@@ -304,6 +345,7 @@ void TxCab::compile(void)
   //-- curl flags
   m_CCurl.forbidReuse(1); //-- CAB closes client connections, but CURL is smart enough to re-connect anyway (?)
   m_CCurl.verbose(m_Debug ? 1 : 0); //-- DEBUG
+  m_CCurl.unlock();
 }
 
 //--------------------------------------------------------------
@@ -322,30 +364,62 @@ void TxCab::expand(const set<string>& src, set<string>& dst)
   }
 
   //-- low-level query
-  m_CCurl.url(url);
-  if (!this->perform() || m_CCurl.m_Response.empty()) {
-    //-- query failed: silently do identity expansion
+  m_CCurl.lock();
+  try {
+    m_CCurl.url(url);
+    if (!this->perform() || m_CCurl.m_Response.empty()) {
+      //-- query failed: silently do identity expansion
 #if 0
-    throw CExpc(errRuntime, "TxCab::expand(): ERROR: %s", m_CCurl.m_CurlErr);
+      throw CExpc(errRuntime, "TxCab::expand(): ERROR: %s", m_CCurl.m_CurlErr);
 #else
-    concord_daemon_log(Format("TxCab::expand(%s) failed: %s", m_UrlBase.c_str(), m_CCurl.m_CurlErr));
-    if (m_MapMode) dst = src; //-- fallback to literal search in map mode
-#endif
-    return;
-  }
+      concord_daemon_log(Format("TxCab::expand(%s) failed: %s", m_UrlBase.c_str(), m_CCurl.m_CurlErr));
+      if (m_MapMode) dst = src; //-- fallback to literal search in map mode
+      m_CCurl.unlock();
+      return;
+#endif      
+    }
 
-  //-- parse response
-  StringTokenizer rtok(m_CCurl.m_Response.c_str(), "\t\r\n");
-  while (rtok()) {
-    dst.insert(rtok.val());
+    //-- parse response
+    StringTokenizer rtok(m_CCurl.m_Response.c_str(), "\t\r\n");
+    while (rtok()) {
+      dst.insert(rtok.val());
+    }
+  }
+  catch (...) {
+    m_CCurl.unlock();
+    throw;
   }
 
   //-- all done
+  m_CCurl.unlock();
   return;
 }
 
 //======================================================================
+// TxCabMap
+
+//--------------------------------------------------------------
+CTermExpander* TxCabMap::clone(map<CTermExpander*,CTermExpander*>& xlate) const
+{
+  TxCab* that = new TxCabMap(m_Label, m_Param, m_Debug, m_MapMode);
+  that->compile();
+  return (CTermExpander*)that;
+}
+
+//======================================================================
 // TxDispatcher
+
+//--------------------------------------------------------------
+TxDispatcher* TxDispatcher::clone() const
+{
+  map<CTermExpander*,CTermExpander*> xlate;
+  TxDispatcher *that = new TxDispatcher(*this);
+  
+  for (TxMap::iterator xi=that->m_tx.begin(); xi!=that->m_tx.end(); ++xi) {
+    xi->second = xi->second->mapClone(xlate);
+  }
+  return that;
+}
 
 //--------------------------------------------------------------
 TxDispatcher::~TxDispatcher(void)

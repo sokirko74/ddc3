@@ -18,7 +18,8 @@
 //  along with DDC.  If not, see <http://www.gnu.org/licenses/>.
 //
 
-#include "ddcLocale.h"
+#include "../CommonLib/ddcLocale.h"
+#include "../CommonLib/utilit.h"
 #include <wchar.h>
 #include <wctype.h>
 #include <limits.h>

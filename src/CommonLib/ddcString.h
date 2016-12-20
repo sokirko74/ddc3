@@ -1,5 +1,5 @@
 //  DDC originally by Alexey Sokirko
-//  Changes and modifications 2011-2015 by Bryan Jurish
+//  Changes and modifications 2011-2016 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -21,6 +21,7 @@
 
 #include "ddcConfig.h"
 #include "utf8xx.h"
+#include <stdarg.h>
 #include <stdio.h>
 #include <string>
 
@@ -117,6 +118,27 @@ std::string reString(const std::string &re);
 
 /** escape regex operators .*+?\ etc */
 std::string escapeRegex(const std::string &re);
+//@}
+
+//----------------------------------------------------------------------
+//\name printf-style formatting
+//@{
+
+/** wrapper for vsnprintf() which returns a C++ string */
+std::string Format( const char* format, ... );
+
+/** wrapper for vsnprintf(), va_list version */
+std::string vFormat( const char* format, va_list& args );
+
+//@}
+
+//----------------------------------------------------------------------
+//\name system errors
+//@{
+
+/** wrapper for strerror_r() if available, otherwise wraps strerror() */
+char* StrError(int ErrorNo);
+
 //@}
 
 #endif /* DDC_STRING_H */

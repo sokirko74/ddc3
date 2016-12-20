@@ -17,7 +17,7 @@
 //  along with DDC.  If not, see <http://www.gnu.org/licenses/>.
 //
 // Morphan.cpp : Implementation of CMorphan
-#include "../common/string_socket.h"
+#include "../CommonLib/string_socket.h"
 #include "Morphan.h"
 
 

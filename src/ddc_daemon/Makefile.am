@@ -40,6 +40,7 @@ ddc_daemon_LDADD = \
  ../MorphWizardLib/libDDCMorphWizard.la \
  ../CommonLib/libDDCCommon.la
 
+
 ##-----------------------------------------------------------------------
 ## special rules
 

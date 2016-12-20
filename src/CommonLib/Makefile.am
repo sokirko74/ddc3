@@ -23,10 +23,25 @@ lib_LTLIBRARIES = libDDCCommon.la
 ## sources
 
 libDDCCommon_la_SOURCES = \
- utilit.cpp ../common/utilit.h \
- string_socket.cpp ../common/string_socket.h
+ utilit.cpp utilit.h \
+ string_socket.cpp string_socket.h \
+ CHost.cpp CHost.h \
+ ddcThread.cpp ddcThread.h \
+ ddcLocale.cpp ddcLocale.h \
+ ddcLog.cpp ddcLog.h \
+ ddcVersion.cpp ddcVersion.h \
+ ddcString.cpp ddcString.h \
+ utf8xx.cpp utf8xx.h \
+ ddcTime.cpp ddcTime.h
 
 # unix_simple_qparse.h MyFlexLexer.h
+
+##-----------------------------------------------------------------------
+## debug
+
+#EXTRA_PROGRAMS = timetest
+#timetest_SOURCES = timetest.cpp
+#timetest_LDADD = libDDCCommon.la
 
 ##-----------------------------------------------------------------------
 ## headers

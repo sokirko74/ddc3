@@ -1,4 +1,5 @@
 //-*- Mode: C++; c-basic-offset: 8; -*-
+//
 //  DDC originally by Alexey Sokirko
 //  Changes and modifications 2011-2016 by Bryan Jurish
 //
@@ -29,11 +30,8 @@
 #include "../tinyxml/tinyxml.h"
 #include "../RmlTar/RmlTar.h"
 #include "../GraphanLib/HTMLConv.h"
-#include "../common/ddcString.h"
-
-#ifdef HAVE_SYSLOG_H
-#include <syslog.h>
-#endif
+#include "../CommonLib/ddcString.h"
+#include "../CommonLib/ddcThread.h"
 
 #ifdef DETECT_MEMORY_LEAK
 	#ifdef _DEBUG
@@ -62,6 +60,8 @@ CEngGramTab* engGramTab = 0;
 CRusGramTab*  rusGramTab = 0;
 CGerGramTab*  gerGramTab = 0;
 
+//! global mutex for non-thread-safe curl operations (global init, lru-cached proxy)
+pthread_mutex_t ddcMorphMutex = PTHREAD_MUTEX_INITIALIZER;
 
 template <class  T, class Y>
 void InitMorphologySystem(T*& Lemmatizer, Y*& Gramtab)
@@ -69,28 +69,36 @@ void InitMorphologySystem(T*& Lemmatizer, Y*& Gramtab)
 	Lemmatizer = new T;
 	if (!Lemmatizer)
 		return;
-	string l = GetStringByLanguage(Lemmatizer->GetLanguage());
-	fprintf (stderr, "   dictionary\n");
-	string strError;
-	if (!Lemmatizer->LoadDictionariesRegistry(strError))
-	{
-		ErrorMessage(Format("Cannot load %s  morphological dictionary: %s\n", l.c_str(), strError.c_str()));
-		delete Lemmatizer;
-		Lemmatizer = 0;
 
-	};
+	pthread_mutex_lock(&ddcMorphMutex);
+	try {
+		string l = GetStringByLanguage(Lemmatizer->GetLanguage());
+		fprintf (stderr, "   dictionary\n");
+		string strError;
+		if (!Lemmatizer->LoadDictionariesRegistry(strError)) {
+			ErrorMessage(Format("Cannot load %s  morphological dictionary: %s\n", l.c_str(), strError.c_str()));
+			delete Lemmatizer;
+			Lemmatizer = 0;
+		}
 
-	fprintf (stderr, "   gramtab\n");
-	Gramtab = new Y;
-	if (!Gramtab) return;
-	if (!Gramtab->LoadFromRegistry())
-	{
-   		ErrorMessage(Format("Cannot load %s  gramtab\n", l.c_str()) );
-		delete Gramtab;
-		Gramtab = 0;
+		fprintf (stderr, "   gramtab\n");
+		Gramtab = new Y;
+		if (!Gramtab) {
+			pthread_mutex_unlock(&ddcMorphMutex);
+			return;
+		}
+		if (!Gramtab->LoadFromRegistry()) {
+			ErrorMessage(Format("Cannot load %s  gramtab\n", l.c_str()) );
+			delete Gramtab;
+			Gramtab = 0;
+		}
+	}
+	catch (...) {
+		pthread_mutex_lock(&ddcMorphMutex);
+		throw;
+	}
 
-	};
-
+	pthread_mutex_unlock(&ddcMorphMutex);
 };
 
 
@@ -128,6 +136,7 @@ const CLemmatizer* GetLemmatizerByLanguage (MorphLanguageEnum Langua)
 			}
 			else
 			   return 0;
+
 };
 
 
@@ -211,56 +220,6 @@ void FreeConcordDicts()
 };
 
 
-bool concord_daemon_log_files  = true;
-bool concord_daemon_log_stderr = false;
-bool concord_daemon_log_syslog = false;
-
-void concord_daemon_log(const string&  t)
-{
-	FILE * fp = NULL;
-	try {
-		
-		struct tm today = RmlGetCurrentTime();
-		const char *loglabel = ddc_log_label();
-		char tmpbuf[255];
-		strftime( tmpbuf, 255,"%H:%M:%S", &today );
-		
-		//-- log to stderr
-		if (concord_daemon_log_stderr) {
-			fprintf(stderr, "%s (%s) > %s\n", tmpbuf, loglabel, t.c_str());
-			fflush(stderr);
-		}
-
-#if HAVE_SYSLOG_H
-		//-- log to syslog
-		if (concord_daemon_log_syslog) {
-			syslog(LOG_NOTICE, "(%s) > %s", loglabel, t.c_str());
-		}
-#endif
-
-		//-- log to local file LOG_PATH/log/concord/YYYY-MM-DD.log
-		if (concord_daemon_log_files) {
-			/*-- moo (Tue, 10 May 2011 11:00:05 +0200)
-			 * + the old ddc log-file format (e.g. "10May2011.log") is really annoying;
-			 * + changing it to ISO 8601 format (e.g. "2011-05-10.log")
-			 * + also changing annoying upper-case "Logs/" to lower-case "log" here,
-			 *   to be more conventional (and easier on the old carpal tunnels)
-			 */
-			//strftime( tmpbuf, 255,"%d%B%Y", &today );
-			strftime(tmpbuf, 255, "%F", &today);
-			string log_path = GetRegistryString( "Software\\Dialing\\Logs\\Main" );
-			string FileName = log_path + Format("/log/concord/%s.log", tmpbuf);
-			if ((fp=fopen (FileName.c_str(), "a"))) {
-				fprintf (fp, "%s (%s) > %s\n", tmpbuf, loglabel, t.c_str());
-				fclose(fp);
-			}
-		}
-	}
-
-	catch (...) {
-		if (fp) fclose(fp);
-	};
-}
 
 // Here is the definition of a token
 inline bool IsWord (const CGraphmatFile*	piGraphmat, long GraLine)	 
@@ -2315,7 +2274,7 @@ void CConcIndexator::DumpIndex(const char *dirname, CIndexDumpFormat fmt) const
 		string dumpfile = Format("%s/%d.%s", dirname, fn, file_ext);
 		FILE  *dumpfh   = fopen(dumpfile.c_str(), "wb");
 		if (!dumpfh)
-			throw CExpc(errRuntime, "Error: open failed for dump file '%s': %s", dumpfile.c_str(), strerror(errno));
+			throw CExpc(errRuntime, "Error: open failed for dump file '%s': %s", dumpfile.c_str(), StrError(errno));
 		fprintf(stderr, "dumping %s ~ %s\n", dumpfile.c_str(), m_CorpusFiles[fn].c_str());
 		switch (fmt) {
 		case idfJson: DumpFileIndexJson(fn, dumpfh); break;

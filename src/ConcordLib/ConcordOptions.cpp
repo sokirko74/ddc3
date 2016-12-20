@@ -21,7 +21,7 @@
 #include "StdConc.h"
 #include "../common/util_classes.h"
 #include "../common/DwdsThesaurus.h"
-#include "../common/ddcString.h"
+#include "../CommonLib/ddcString.h"
 #include "ConcIndexator.h"
 
 const int DefaultKwicContextSize = 4;

@@ -1,4 +1,5 @@
 //-*- Mode: C++; c-basic-offset:4; -*-
+//
 //  DDC originally by Alexey Sokirko
 //  Changes and modifications 2011-2016 by Bryan Jurish
 //
@@ -19,17 +20,42 @@
 //
 
 #include "LeafServer.h"
-#include "../common/ddcString.h"
+#include "../CommonLib/ddcString.h"
+
+//==============================================================================
+// CDDCLeafServer: constructors etc
 
 //----------------------------------------------------------------------
 void CDDCLeafServer::Shutdown()
 {
-    m_LogFunction(Format("shutting down leaf server %s", m_CorpusName.c_str()));
+    ddcLogInfo(Format("shutting down leaf server %s", m_CorpusName.c_str()));
     StopAcceptingThread();
 };
 
+//==============================================================================
+// CDDCLeafServer: client threads
+
+//----------------------------------------------------------------------
+void CDDCLeafServer::WorkerCloneInit(const CDDCServer *Parent, size_t WorkerId)
+{
+    CDDCServer::WorkerCloneInit(Parent, WorkerId);
+    
+    //-- work in progress
+    ddcLogWarn("WARNING: client-threading for underlying index is WORK IN PROGRESS: expect chaos!");
+
+    CDDCLeafServer *parent = (CDDCLeafServer*)Parent;
+    m_pHolder = parent->m_pHolder->WorkerClone(WorkerId);
+}
+
+//----------------------------------------------------------------------
+void CDDCLeafServer::WorkerCloneFree(void)
+{
+    m_pHolder->WorkerCloneFree();
+    CDDCServer::WorkerCloneFree();
+}
 
 //==============================================================================
+// CDDCLeafServer: CHost API: overrides
 
 //----------------------------------------------------------------------
 bool CDDCLeafServer::Close(SOCKET& rConnectedSocket, bool linger, int timeout)
@@ -46,6 +72,7 @@ bool CDDCLeafServer::Close(SOCKET& rConnectedSocket, bool linger, int timeout)
 
 
 //==============================================================================
+// CDDCLeafServer: DDCServer API: request handlers
 
 //----------------------------------------------------------------------
 void CDDCLeafServer::handle__get_first_hits(string &Result, const char *Query, int TimeOut, int ResultLimit)
@@ -62,6 +89,8 @@ void CDDCLeafServer::handle__get_first_hits(string &Result, const char *Query, i
 
     if (IsCountSort(m_pHolder->HitSortOrder()))
 	m_bExpectMore = false;
+    else
+	m_bExpectMore = true;
 }
 
 //----------------------------------------------------------------------
@@ -100,7 +129,7 @@ void CDDCLeafServer::handle__expand_terms(string &Result, const string& pipeline
 
     m_pHolder->SetTimeOut(timeout);
     set<string> oterms;
-    TxChain txc = m_pHolder->m_pIndexator->m_Txd.getChain(pipeline);
+    TxChain txc = m_pHolder->GetTxDispatcher()->getChain(pipeline);
     txc.expand(iterms,oterms);
     Result = Format("%i %i\n", errNone, oterms.size());
     for (set<string>::const_iterator oi=oterms.begin(); oi!=oterms.end(); oi++) {
@@ -123,8 +152,12 @@ void CDDCLeafServer::handle__status(string &Result, int timeout, bool verbose)
 	      + "\"port\":" + Format("%d", m_Port) + ",\n\t"
 	      + "\"started\":" + jsonStr(timestampUTC(m_tStarted)) + ",\n\t"
 	      + "\"uptime\":" + Format("%.0f", uptime) + ",\n\t"
-	      + "\"nrequests\":" + Format("%zd", m_nRequests) + ",\n\t"
-	      + "\"memkb\":" + Format("%zd", this->residentMemorySize()) + ",\n"
+	      + "\"nrequests\":" + Format("%zd", m_ServerStats.m_nRequests) + ",\n\t"
+	      + "\"nqueries\":" + Format("%zd", m_ServerStats.m_nQueries) + ",\n\t"
+	      + "\"nerrors\":" + Format("%zd", m_ServerStats.m_nErrors) + ",\n\t"
+	      + "\"nslow\":" + Format("%zd", m_ServerStats.m_nSlow) + ",\n\t"
+	      + "\"nworkers\":" + Format("%zd", m_nWorkers) + ",\n\t"
+	      + "\"memkb\":" + Format("%zd", this->residentMemorySize()) + ",\n\t"
 	      + "\"cachesize\":" + Format("%zd", m_pHolder->CacheSize()) + ",\n\t"
 	      + "\"curlcachesize\":" + Format("%zd", ddcCurlCache.size()) + "\n\t"
 	      + "}"
@@ -275,7 +308,8 @@ void CDDCLeafServer::handle__info(string &Result, int timeout, bool verbose)
 		//-- info.expanders ~ Expand
 		Result += "\"expanders\":[";
 		i=0;
-		for (TxDispatcher::TxMap::const_iterator txi=ix->m_Txd.m_tx.begin(); txi != ix->m_Txd.m_tx.end(); ++i, ++txi) {
+		const TxDispatcher *txd = m_pHolder->GetTxDispatcher();
+		for (TxDispatcher::TxMap::const_iterator txi=txd->m_tx.begin(); txi != txd->m_tx.end(); ++i, ++txi) {
 			const CTermExpander* tx = txi->second;
 			if (i != 0) Result += ", ";
 #if DDC_VERBOSE_CORPUS_INFO
@@ -329,6 +363,7 @@ void CDDCLeafServer::handle__info(string &Result, int timeout, bool verbose)
 //----------------------------------------------------------------------
 void CDDCLeafServer::handle__reload(string &Result, int depth)
 {
+#if 0 /* BROKEN */
     CConcHolder *pHolder = NULL;
     if (!LoadHolder(&pHolder))
 	throw CExpc(errOther, Format("reload failed for %s", GetLocalPathOfIndex().c_str()));
@@ -338,6 +373,9 @@ void CDDCLeafServer::handle__reload(string &Result, int depth)
     }
     m_pHolder = pHolder;
     Result = Format("{%s:1}", jsonStr(m_CorpusName).c_str());
+#else
+    Result = Format("{%s:null,\"error\":\"reload request handler broken\"}", jsonStr(m_CorpusName).c_str());
+#endif
     m_bExpectMore = false;
 }
 
@@ -353,7 +391,7 @@ void CDDCLeafServer::handle__clear_cache(string &Result, int depth)
 }
 
 //==============================================================================
-// local methods
+// CDDCLeafServer: local methods
 
 //----------------------------------------------------------------------
 bool CDDCLeafServer::LoadHolder(CConcHolder **ppHolder) {
@@ -362,7 +400,6 @@ bool CDDCLeafServer::LoadHolder(CConcHolder **ppHolder) {
 
     assert (!*ppHolder);
     *ppHolder = new CConcHolder;
-    m_LogFunction = concord_daemon_log;
 
     (*ppHolder)->m_pIndexator = new CConcIndexator;
     concord_daemon_log ( Format ("Loading corpus indices for %s", GetLocalPathOfIndex().c_str()) );
@@ -374,7 +411,7 @@ bool CDDCLeafServer::LoadHolder(CConcHolder **ppHolder) {
 	return false;
     };
     concord_daemon_log ( "  init graphan " );
-    (*ppHolder)->m_AdditionalHitDelimeter = CDDCServer::AdditionalHitDelimeter;
+    (*ppHolder)->m_AdditionalHitDelimiter = CDDCServer::AdditionalHitDelimiter;
 
     concord_daemon_log(Format("  init random: port=m_RandomSeed=%i", m_Port));
     (*ppHolder)->m_RandomSeed = m_Port;

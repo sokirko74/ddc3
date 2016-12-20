@@ -29,9 +29,6 @@
 // + doesn't work well for "real" utf8 b/c upper-casing works byte-wise (bummer)
 #undef DDC_USE_UTF8
 
-//-- locale definitions (locale.cpp source also included from utilit.cpp)
-#include "ddcLocale.h"
-
 //-- END moo
 #include  <stdio.h>
 
@@ -107,6 +104,11 @@ typedef unsigned char BYTE;
 	typedef unsigned int	UINT;  //-- unused
 	const   unsigned int _MAX_PATH = 512;
 #endif
+
+//-- moo: more utilities
+#include "../CommonLib/ddcLocale.h"
+#include "../CommonLib/ddcVersion.h"
+#include "../CommonLib/ddcString.h"
 
 //-- moo: replace UINT_MAX with DWORD_MAX
 //  + c++ chokes on fixed-width limit macros (UINT32_MAX) unless you #define __STDC_LIMIT_MACROS , which is unportable
@@ -234,6 +236,9 @@ extern string	FileDirectory (const string& FileName);
 //! Returns file part of \a FileName, like basename(3)
 extern string	FileBasename  (const string& FileName);
 
+//! Returns basename \a FileName, removing any trailing extension \a FileExtension
+extern string	FileBasename  (const string& FileName, const string& FileExtension);
+
 //! Wrapper for getcwd(); returns current working directory of current process
 extern string	CurrentDirectory(void);
 
@@ -314,7 +319,6 @@ extern BYTE	force_rus_char (BYTE ch);
 extern bool	force_to_rus (char* dest, const char* sour, size_t len);
 extern char*	IntToStr (int Value, char* Buffer);
 extern string&	IntToStr (int Value, string& oBuffer);
-extern string	Format( const char* format, ... );
 extern string&  TrimLeft (string& str);
 extern string&  TrimRight (string& str);
 extern string&	Trim (string& str);
@@ -341,9 +345,6 @@ void stringSplitE(const string& s, const string& delims, vector<string>& tokens)
 
 //! moo: stringSplitE() variant returning token-vector
 vector<string> stringSplitE(const string& s, const string& delims);
-
-//! moo: version utilities (see also ddcVersion.cpp)
-#include "ddcVersion.h"
 
 //! moo: date-to-int encoding
 extern unsigned int date2int(unsigned int y, unsigned int m=1, unsigned int d=1);
@@ -383,7 +384,7 @@ extern string GetStringByLanguage (MorphLanguageEnum Langua);
 
 //======================================================================
 /*
-clears also capacity
+also clears capacity
 */
 template <class T> 
 void ClearVector(vector<T>& V)
@@ -391,6 +392,16 @@ void ClearVector(vector<T>& V)
 	V.clear();
 	vector<T> dummy (V);
 	V.swap (dummy);
+};
+
+/*
+also clears capacity
+*/
+inline void ClearString(string& S)
+{
+	S.clear();
+	string dummy(S);
+	S.swap (dummy);
 };
 
 

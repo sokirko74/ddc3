@@ -2,6 +2,7 @@
 #define DDC_version_h
 
 #include "ddcConfig.h" /*-- moo --*/
+#include "../CommonLib/utilit.h"
 #include "../common/DDCInternalError.h"
 #include <sstream>
 

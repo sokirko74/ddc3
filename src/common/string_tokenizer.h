@@ -22,7 +22,7 @@
 #ifndef INCL_STRING_TOKENIZER_H
 #define INCL_STRING_TOKENIZER_H
 
-#include "utilit.h"
+#include "../CommonLib/utilit.h"
 /**
 	define TOKENIZER_USES_VECTOR_BOOL 
 	if you want to use vector<bool> in tokenizer.

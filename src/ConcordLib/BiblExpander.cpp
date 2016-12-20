@@ -20,7 +20,7 @@
 
 #include "BiblExpander.h"
 #include "ConcCommon.h"
-#include "../common/ddcString.h"
+#include "../CommonLib/ddcString.h"
 #include <stdlib.h>
 #include <wctype.h>
 
@@ -63,7 +63,6 @@ BxTermWrapper::BxTermWrapper(const string& label, const string& target, const st
 
   m_BxTx = newTermExpander(txclass, label, txparam);
 };
-
 
 //--------------------------------------------------------------
 BxTermWrapper::~BxTermWrapper(void)

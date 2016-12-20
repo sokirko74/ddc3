@@ -96,7 +96,7 @@ public:
 
 	//! this function returns an string(which was indexed by DDC) by an instance of CIndexItem or CItemIndexForLoading
 	template<class T>
-	const char* GetIndexItemStr(const T& W) const 
+	inline const char* GetIndexItemStr(const T& W) const 
 	{
 		return &m_StringBuffer[0] + W.GetIndexItemOffset();
 	};

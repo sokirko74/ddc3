@@ -22,7 +22,7 @@
  #define cortege_h
 
 #include <assert.h>
-#include "../common/utilit.h"
+#include "../CommonLib/utilit.h"
 
 const BYTE ErrUChar	= 254;
 

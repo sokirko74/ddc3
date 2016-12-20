@@ -1,8 +1,8 @@
 // ==========  This file is under LGPL, the GNU Lesser General Public Licence
 // ==========  Copyright (c) by Bryan Jurish
 
-#include "utilit.h"
+#include "../CommonLib/utilit.h"
 #include "json.h"
-#include "ddcString.h"
+#include "../CommonLib/ddcString.h"
 
 

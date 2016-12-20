@@ -16,7 +16,7 @@
 //  You should have received a copy of the GNU Lesser General Public License
 //  along with DDC.  If not, see <http://www.gnu.org/licenses/>.
 //
-#include "../common/utilit.h"
+#include "../CommonLib/utilit.h"
 #include "../StructDictLib/Ross.h"
 #include "../StructDictLib/TempArticle.h"
 

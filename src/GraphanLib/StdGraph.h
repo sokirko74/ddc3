@@ -34,7 +34,7 @@
 #pragma warning (disable  : 4530)
 #pragma warning (disable  : 4786)
 
-#include "../common/utilit.h"
+#include "../CommonLib/utilit.h"
 #include "../common/Graspace.h"
 #include "../common/gra_descr.h"
 

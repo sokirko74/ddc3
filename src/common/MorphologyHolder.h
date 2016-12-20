@@ -19,7 +19,7 @@
 #ifndef MorphologyHolder_H
 #define MorphologyHolder_H
 
-#include "utilit.h"
+#include "../CommonLib/utilit.h"
 #include "../LemmatizerLib/PLMLineCollection.h"
 #include "../GraphanLib/GraphmatFile.h"
 #include "../AgramtabLib/RusGramTab.h"

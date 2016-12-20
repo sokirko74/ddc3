@@ -110,7 +110,7 @@ public:
   {};
 
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  //! clear all cached items
+  //! clear all cached items (no implicit locks)
   void clear()
   {
     m_map.clear();

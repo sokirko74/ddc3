@@ -22,7 +22,7 @@
 
 
 #pragma warning(disable:4786)
-#include "../common/utilit.h"
+#include "../CommonLib/utilit.h"
 #include "MorphAutomat.h"
 
 

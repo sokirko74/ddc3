@@ -1,3 +1,5 @@
+//-*- Mode: C++; c-basic-offset:4; -*-
+//
 //  DDC originally by Alexey Sokirko
 //  Changes and modifications 2011-2014 by Bryan Jurish
 //
@@ -20,10 +22,11 @@
 #ifndef __CORPORA_H_
 #define __CORPORA_H_
 
-#include "../common/string_socket.h"
+#include "../CommonLib/string_socket.h"
+#include "ServerOptions.h"
 
-extern void LoadDDCServer (ProtocolDensityEnum ProtocolDensity, string ServerConfigFile);
-extern void LoadLocalCorpora(ProtocolDensityEnum ProtocolDensity, string ConfigFile);
+extern void LoadDDCServer (string ServerConfigFile, const CDDCServerOptions& Options);
+extern void LoadLocalCorpora(string ConfigFile, const CDDCServerOptions& Options);
 extern void UnloadLocalCorporaAndServer ();
 extern void ShutdownDDCServer();
 extern void ShutdownLocalCorpora();

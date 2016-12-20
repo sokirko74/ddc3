@@ -1,4 +1,5 @@
 //-*- Mode: C++; c-basic-offset:4; -*-
+//
 //  DDC originally by Alexey Sokirko
 //  Changes and modifications 2011-2016 by Bryan Jurish
 //
@@ -19,7 +20,9 @@
 //
 
 #include "Server.h"
+#include "ServerThread.h"
 #include "Morphan.h"
+#include "../CommonLib/ddcTime.h"
 
 #ifdef HAVE_UNISTD_H
 # include <unistd.h>
@@ -30,17 +33,43 @@
 #endif
 
 //==============================================================================
-
-const char *CDDCServer::AdditionalHitDelimeter = "\x01";
+// CDDCServerStats
 
 //----------------------------------------------------------------------
-CDDCServer::CDDCServer(bool bDoubleMessage, ProtocolDensityEnum pdProtocolDensity)
-    : CHost(bDoubleMessage, pdProtocolDensity),
-      m_tStarted(0),
-      m_nRequests(0),
-      m_bLogRequests(false)
+CDDCServerStats& CDDCServerStats::operator+=(const CDDCServerStats& x)
 {
-    m_LogFunction = concord_daemon_log;
+    m_nRequests += x.m_nRequests;
+    m_nQueries  += x.m_nQueries;
+    m_nErrors   += x.m_nErrors;
+    m_nSlow     += x.m_nSlow;
+    return *this;
+}
+
+//----------------------------------------------------------------------
+CDDCServerStats& CDDCServerStats::operator-=(const CDDCServerStats& x)
+{
+    m_nRequests -= x.m_nRequests;
+    m_nQueries  -= x.m_nQueries;
+    m_nErrors   -= x.m_nErrors;
+    m_nSlow     -= x.m_nSlow;
+    return *this;
+}
+
+//==============================================================================
+// CDDCServer
+
+const char *CDDCServer::AdditionalHitDelimiter = "\x01";
+
+//----------------------------------------------------------------------
+CDDCServer::CDDCServer()
+    : m_tStarted(0),
+      m_bLogRequests(false),
+      m_nWorkers(0),
+      m_ThreadQueueSize(DDC_DEFAULT_THREAD_QUEUE_SIZE),
+      m_SlowQueryTimeout(10),
+      m_WorkerId(0),
+      m_ThreadPool(NULL)
+{
     m_tStarted = time(NULL);
 
     //-- attempt to set m_FQHostName
@@ -59,14 +88,96 @@ CDDCServer::CDDCServer(bool bDoubleMessage, ProtocolDensityEnum pdProtocolDensit
 #endif
 };
 
+//----------------------------------------------------------------------
+void CDDCServer::Shutdown(bool quiet)
+{
+    if (m_ThreadPool) {
+	if (!quiet)
+	    ddcLogInfo(Format("shutting down client threads for server %s", m_CorpusName.c_str()));
+	m_ThreadPool->stop();
+    }
+
+    if (!quiet) {
+	if (m_WorkerId)
+	    ddcLogInfo(Format("shutting down worker thread #%zd for server %s", m_WorkerId, m_CorpusName.c_str()));
+	else
+	    ddcLogInfo(Format("shutting down main thread for server %s", m_CorpusName.c_str()));
+    }
+    StopAcceptingThread();
+};
 
 //----------------------------------------------------------------------
-//void errorString(
+void CDDCServer::SetOptions(const CDDCServerOptions &Options)
+{
+    m_SlowQueryTimeout = Options.m_SlowQueryTimeout;
+    m_nWorkers = Options.m_nWorkers;
+    m_ThreadQueueSize = Options.m_ThreadQueueSize;
+};
+
+//----------------------------------------------------------------------
+void CDDCServer::StartClientThreads()
+{
+    if (m_nWorkers == 0) {
+	//-- serial mode
+	if (m_ThreadPool) delete m_ThreadPool;
+	m_ThreadPool = NULL;
+	ddcLogInfo("client threads disabled; running in serial mode");
+    }
+    else {
+	//-- client-thread mode
+	if (!m_ThreadPool)
+	    m_ThreadPool = new CDDCServerThreadPool();
+	m_ThreadPool->start(this, m_nWorkers, m_ThreadQueueSize);
+    }
+}
+
+//----------------------------------------------------------------------
+void CDDCServer::WorkerCloneInit(const CDDCServer *Parent, size_t WorkerId)
+{
+    *this = *Parent;
+
+    //-- local overrides
+    this->m_WorkerId = WorkerId;
+    m_ListenSocket = -1;
+    m_ThreadPool = NULL;
+}
+
+//----------------------------------------------------------------------
+void CDDCServer::WorkerCloneFree()
+{
+}
+
+//----------------------------------------------------------------------
+void CDDCServer::RunThread()
+{
+    this->StartClientThreads();
+    CHost::RunThread();
+};
+
+//----------------------------------------------------------------------
+void CDDCServer::HandleClientConnection(SOCKET& rConnectedSocket)
+{
+    if (UseClientThreads()) {
+	//-- +pthread, client-thread mode
+	m_ThreadPool->m_Queue.add(rConnectedSocket);
+	ddcLogTrace(Format("queued thread-pool item for client %s", SocketPeer(rConnectedSocket).c_str()));
+    }
+    else {
+	//-- +pthread, serial mode or worker
+	CHost::HandleClientConnection(rConnectedSocket);
+    }
+}
 
 //----------------------------------------------------------------------
 string CDDCServer::ProcessSocketString(const string& SocketInput, SOCKET& rConnectedSocket)
 {
     string Result;
+    DDCTime t_started = DDCTime::Now();
+
+    //-- initialize with default values
+    m_bRespond    = true;
+    m_bExpectMore = false;
+
     try {
     	//-- moo: check for buffer overflow
 	if (SocketInput.size() > DDC_STATIC_BUFLEN) {
@@ -78,17 +189,18 @@ string CDDCServer::ProcessSocketString(const string& SocketInput, SOCKET& rConne
 	int eocpos = SocketInput.find_first_of(" \t\r\n\x00\x01\x02");
 	if (eocpos==SocketInput.npos) eocpos=SocketInput.size();
 	string cmd(SocketInput,0,eocpos);
-	//fprintf(stderr, "Server: cmd=(%s)\n", cmd.c_str()); //-- DEBUG
-	//Result.reserve(DDC_STATIC_BUFLEN);
 
 	//-- moo: maybe log request
 	if (m_bLogRequests && m_noLogCommands.find(cmd)==m_noLogCommands.end())
-	    m_LogFunction(Format("%s recv \"%s\"", m_CorpusName.c_str(), SocketInput.c_str()));
+	    ddcLogInfo(Format("%s recv \"%s\"", m_CorpusName.c_str(), SocketInput.c_str()));
+	else if (ddcLogLevel >= ddcLLTrace)
+	    ddcLogInfo(Format("%s recv \"%s\"", m_CorpusName.c_str(), SocketInput.c_str()));
 
 	//-- moo: command parsing and dispatch
 	if (cmd == "get_first_hits") {
 	    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	    // get_first_hits QUERY "\x01" TIMEOUT " " LIMIT  : get keys of first hits (leaf-node only)
+	    ++m_ServerStats.m_nQueries;
 	    try {
 		int	TimeOut, ResultLimit;
 		char sQuery[DDC_STATIC_BUFLEN];
@@ -99,10 +211,12 @@ string CDDCServer::ProcessSocketString(const string& SocketInput, SOCKET& rConne
 		this->handle__get_first_hits(Result, sQuery, TimeOut, ResultLimit);
 	    }
 	    catch (CExpc& e) {
-		Result = Format("%i 0 0 0 0\n%s", e.code(), e.what());
+		Result = Format("%i 0 0 0 0\n%s", (e.code()==errNone ? errOther : e.code()), e.what());
+		++m_ServerStats.m_nErrors;
 	    }
 	    catch (exception& e) {
 		Result = Format("%i 0 0 0 0\n%s", -1, e.what());
+		++m_ServerStats.m_nErrors;
 	    }
 	}
 	else if (cmd == "get_hit_strings") {
@@ -117,15 +231,18 @@ string CDDCServer::ProcessSocketString(const string& SocketInput, SOCKET& rConne
 		this->handle__get_hit_strings(Result, sResultType,StartHitNo,ResultLimit);
 	    }
 	    catch (CExpc& e) {
-		Result = Format("%i\x01%s", e.code(), e.what());
+		Result = Format("%i\x01%s", (e.code()==errNone ? errOther : e.code()), e.what());
+		++m_ServerStats.m_nErrors;
 	    }
 	    catch (exception& e) {
 		Result = Format("%i\x01%s", -1, e.what());
+		++m_ServerStats.m_nErrors;
 	    }
 	}
 	else if (cmd == "run_query") {
 	    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	    // run_query " " CORPUS "\x01" QUERY "\x01" FORMAT "\x01" OFFSET " " LIMIT " " TIMEOUT : user query (branch-node only)
+	    ++m_ServerStats.m_nQueries;
 	    try {
 		int StartHitNo, ResultLimit;
 		int TimeOut;
@@ -141,9 +258,11 @@ string CDDCServer::ProcessSocketString(const string& SocketInput, SOCKET& rConne
 	    }
 	    catch (CExpc &e) {
 		Result = Format("\x01 %i %i %i %i %i\n%s", e.code(), 0, 0, 0, 0, e.what());
+		++m_ServerStats.m_nErrors;
 	    }
 	    catch (exception &e) {
 		Result = Format("\x01 %i %i %i %i %i\n%s", errOther, 0, 0, 0, 0, e.what());
+		++m_ServerStats.m_nErrors;
 	    }
 	}
 	else if (cmd == "expand_terms") {
@@ -213,22 +332,33 @@ string CDDCServer::ProcessSocketString(const string& SocketInput, SOCKET& rConne
 	}
     }
     catch (CExpc &e) {
-	m_LogFunction(Format("CDDCServer[%s]::ProcessSocketString(): Exception[%d]: %s", m_CorpusName.c_str(), e.code(), e.what()));
+	ddcLogError(Format("CDDCServer[%s]::ProcessSocketString(): Exception[%d]: %s", m_CorpusName.c_str(), e.code(), e.what()));
 	if (Result.empty()) Result = Format("%i 0\n%s", e.code(), e.what());
+	++m_ServerStats.m_nErrors;
     }
     catch (exception& e) {
-	m_LogFunction(Format("CDDCServer[%s]::ProcessSocketString(): Exception: %s", m_CorpusName.c_str(), e.what()));
+	ddcLogError(Format("CDDCServer[%s]::ProcessSocketString(): Exception: %s", m_CorpusName.c_str(), e.what()));
 	if (Result.empty()) Result = Format("%i 0\n%s", -1, e.what());
+	++m_ServerStats.m_nErrors;
     }
 
-    ++m_nRequests;
+    //-- check for slow queries
+    if (m_SlowQueryTimeout > 0) {
+	double t_elapsed = DDCTime::Now().Elapsed(t_started);
+	if (t_elapsed > m_SlowQueryTimeout) {
+	    ddcLogWarn(Format("WARNING: slow request (%gs > %gs): %s", t_elapsed, m_SlowQueryTimeout, SocketInput.c_str()));
+	    ++m_ServerStats.m_nSlow;
+	}
+    }
+
+    ++m_ServerStats.m_nRequests;
     return Result;
 }
-
 
 //----------------------------------------------------------------------
 void CDDCServer::handle__get_first_hits(string &Result, const char *Query, int TimeOut, int ResultLimit)
 {
+    m_bExpectMore = true;
     method_not_implemented("handle__get_first_hits()");
 }
 
@@ -261,14 +391,12 @@ void CDDCServer::handle__get_paradigm(string &Result, const char *Word, int iLem
 	    Result += GetParadigm(Word, i, (MorphLanguageEnum)iLang);
 	}
     }
-
 }
 
 //----------------------------------------------------------------------
 void CDDCServer::handle__close_socket(string &Result, SOCKET& rConnectedSocket)
 {
-    m_bExpectMore = false;
-    m_bRespond    = false;
+    m_bRespond = false;
     this->Close(rConnectedSocket);
 }
 

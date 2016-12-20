@@ -21,7 +21,7 @@
 
 class CAgramtab;
 class CSyntaxOpt;
-#include "utilit.h"
+#include "../CommonLib/utilit.h"
 
 class CAncodePattern 
 {

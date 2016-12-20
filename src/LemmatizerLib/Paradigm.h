@@ -20,7 +20,7 @@
 #ifndef __PARADIGM_H_
 #define __PARADIGM_H_
 
-#include  "../common/utilit.h"
+#include  "../CommonLib/utilit.h"
 #include  "MorphAutomat.h"
 
 class CLemmatizer;

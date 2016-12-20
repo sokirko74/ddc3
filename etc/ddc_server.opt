@@ -1,0 +1,11 @@
+##-*- Mode: Shell-Script; coding: utf-8; -*-
+##
+## File: ddc_server.opt
+## Descrption: ddc_daemon server-options file; see ServerOptions.cpp
+
+#LogLevel		trace
+#NumThreads		4
+NumThreads		0
+ThreadQueueSize		256
+#SlowQueryTimeout	5
+SlowQueryTimeout	1

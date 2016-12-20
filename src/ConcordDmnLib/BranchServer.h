@@ -1,4 +1,5 @@
 //-*- Mode: C++; c-basic-offset:4; -*-
+//
 //  DDC originally by Alexey Sokirko
 //  Changes and modifications 2011-2016 by Bryan Jurish
 //
@@ -62,7 +63,11 @@ struct LessByHitNo {
 
 
 //======================================================================
-/** parsed get_first_hits response */
+/** \brief parsed get_first_hits response
+ * \detail
+ * \li somewhat redundant with CRunQueryData
+ * \li can and should probably be merged with CRunQueryData
+ */
 struct CFirstHitsQueryResult  {
     DWORD			m_AllHitsCount;
     DWORD			m_AllRelevantDocsCount; 
@@ -81,8 +86,11 @@ struct CFirstHitsQueryResult  {
 	CloseSockets();  //-- fix mantis bug #718?
     };
 
+    /** clear the object */
+    void Clear();
+
     /** check whether this result raised any errors */
-    bool HasErrors() const
+    inline bool HasErrors() const
     {
 	return (m_NetworkError != neSuccess )  || (m_InternalError != errNone);
     };
@@ -116,7 +124,8 @@ public:
     int iNetworkError;  		///< network error code
     DWORD EndHitNo;			///< final hit number returned
     DWORD HitsCount;			///< total number of hits
-    DWORD RelevantDocsCount;		///<
+    DWORD RelevantDocsCount;		///< ?
+    DwordVector PossibleHosts;		///< indices of selected immediate subcorpora
     string HitDistrib;			///<
     string DocDistrib;			///<
     string HitsKey;			///< key for response body data (json only)
@@ -135,8 +144,14 @@ public:
 	Trim(sResultFormat);
     };
 
+    /** (re-)initialize with parameters */
+    void Init(const string & _Query="", const string& _ResultFormat="JSON", int _Start=0, int _Limit=10, int _TimeOut=10, string *_pErrorStr=NULL);
+
+    /** clear object */
+    void Clear();
+
     /** populate response string \a Response */
-    void toString(string &Response);
+    void toString(string &Response, size_t WorkerId=0);
 };
 
 //======================================================================
@@ -153,12 +168,16 @@ public:
     string				m_QueryResultString;
     string				m_ErrorStr;  //-- subcorpus error
 
+    //-- low-level data
+    CFirstHitsQueryResult 		m_FHResult;  //< first-hits result
+    CRunQueryData			m_QueryData; //< run-query data
+
 public:
     //--------------------------------------------------------------
     // Constructors etc.
 
     /** default constructor */
-    CDDCBranchServer(bool bDoubleMessage=false, ProtocolDensityEnum pdProtocolDensity=pdWeakDensity);
+    CDDCBranchServer();
 
     /** default destructor */
     virtual ~CDDCBranchServer()
@@ -169,13 +188,36 @@ public:
 
 public:
     //--------------------------------------------------------------
+    // DDCServer API: client threads
+
+    /** create a minimal copy of this object (and any subordinate data) for use by a worker thread */
+    virtual CDDCServer *WorkerClone(void) const
+    { return (CDDCServer*)new CDDCBranchServer(); };
+
+    /** initialize a newly created worker-clone (and any subordinate data) */
+    virtual void WorkerCloneInit(const CDDCServer *Parent, size_t WorkerId);
+
+    /** /** perform local cleanup of a worker clone prior to deletion */
+    virtual void WorkerCloneFree(void);
+
+public:
+    //--------------------------------------------------------------
+    // CHost API: overrides
+    /** close connected socket, implies cleanup/close of m_FHResult and m_QueryData */
+    virtual bool Close(SOCKET& rConnectedSocket, bool linger=false, int timeout=5);
+
+    /** close a socket connected to a daugher subcorpus, NO implicit cleanup of m_FHResult and m_QueryData */
+    virtual bool CloseDtr(SOCKET& rConnectedSocket, bool linger=false, int timeout=5);
+
+public:
+    //--------------------------------------------------------------
     // DDCServer API: request handlers: required
 
     /* request handler: get_first_hits: required (leaf) */
-    //virtual void handle__get_first_hits(string &Result, const char *Query, int TimeOut, int ResultLimit);
+    virtual void handle__get_first_hits(string &Result, const char *Query, int TimeOut, int ResultLimit);
 
     /* request handler: get_hit_strings: required (leaf) */
-    //virtual void handle__get_hit_strings(string &Result, const char *ResultType, int StartHitNo, int ResultLimit);
+    virtual void handle__get_hit_strings(string &Result, const char *ResultType, int StartHitNo, int ResultLimit);
 
     /* request handler: run_query: required (branch) */
     virtual void handle__run_query(string &Result, const char *CorpusName, const char *Query, const char *ResultType, int StartHitNo, int ResultLimit, int TimeOut);
@@ -195,6 +237,9 @@ public:
     /** request handler: clear_cache: required (leaf|branch) */
     virtual void handle__clear_cache(string &Result, int depth=0);
 
+    /** request handler: ddc_close_socket: required (leaf|branch) */
+    virtual void handle__close_socket(string &Result, SOCKET &rConnectedSocket);
+
 public:
     //--------------------------------------------------------------
     // local methods
@@ -202,9 +247,15 @@ public:
     /** pass request to each subcorpus host and fetch results into a JSON array */
     string  GetSubcorpusJsonArray(const string &request, int timeout=10);
 
-    /** new top-level guts for handle__run_query() */
-    void RunDistributed(CRunQueryData &runq);
-    
+    /** new top-level guts for handle__run_query(); uses m_FHResult and m_QueryData */
+    void RunDistributed();
+
+    /** new top-level guts for handle__get_first_hits() and handle__run_query() phase 1; uses m_FHResult and m_QueryData */ 
+    NetworkErrorsEnum RunGetFirstHits();
+
+    /** new top-level guts for handle__get_hit_strings() and handle__run_query() phase 2; uses m_FHResult and m_QueryData */
+    NetworkErrorsEnum RunGetHitStrings();
+
     /** backwards-compatible guts for handle__run_query() */
     NetworkErrorsEnum RunDistributed(string Query,
 				     const string& ResultType,
@@ -233,14 +284,14 @@ public:
     /** mid-level guts for handle__run_query() , count-queries only */
     NetworkErrorsEnum GetHitCounts(CFirstHitsQueryResult& FHResult, DDCFormatTypeEnum ResultTypeE, string& ResultString);
 
-    /** guts for handle__run_query() phase 1 */
+    /** old guts for handle__run_query() phase 1 */
     void GetFirstHitsFromCorpora(const DwordVector& PossibleHosts,
 				 const string Query,
 				 const DWORD  ResultLimit,
 				 const int    TimeOut,
 				 CFirstHitsQueryResult& Result);
 
-    /** guts for handle__run_query() phase 2 */
+    /** old guts for handle__run_query() phase 2 */
     NetworkErrorsEnum GetHitStringsFromOneCorpus(CHost& Host,
 						 const string& ResultType,
 						 DWORD StartHitNo,

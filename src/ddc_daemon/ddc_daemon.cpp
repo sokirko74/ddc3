@@ -1,6 +1,7 @@
 //-*- Mode: C++; c-basic-offset: 8; -*-
+//
 //  DDC originally by Alexey Sokirko
-//  Changes and modifications 2011-2014 by Bryan Jurish
+//  Changes and modifications 2011-2016 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -18,7 +19,7 @@
 //  along with DDC.  If not, see <http://www.gnu.org/licenses/>.
 //
 
-#include "../common/utilit.h"
+#include "../CommonLib/utilit.h"
 #include "../ConcordLib/ConcCommon.h"
 #include "../ConcordDmnLib/Corpora.h"
 #include <sys/wait.h>
@@ -40,7 +41,6 @@
 // Globals
 string LockFileName; //-- lock file: stores pid of running server, indicates whether server *should* be running
 string WaitFileName; //-- wait file: created by main process, removed by server when it is ready: absence indicates that the server is really running
-ProtocolDensityEnum ProtocolDensity;
 string CorporaFile;
 string ServerCorporaFile;
 string Action;
@@ -50,6 +50,9 @@ bool   log_syslog=false;
 bool   log_files=true;
 char   log_label[64]; //-- ddc log-label
 
+CDDCServerOptions ServerOptions;
+bool LoadedServerOptions = false;
+
 const char *prog = "ddc_daemon";
 
 void PrintUsage()
@@ -58,13 +61,15 @@ void PrintUsage()
 	printf ("Daemon for working with Dialing-DWDS Concordance\n");
 	printf ("\nUsage: %s ACTION [OPTIONS]\n", prog);
 	printf ("\nOptions:\n"
-		"  --protocol LEVEL      # set log-lvel (weak|medium|heavy)\n"
-		"  --local LOCAL_CFG     # set local corpus config (default=$RML/etc/ddc_local_corpora.cfg)\n"
-		"  --server SERVER_CFG   # set server config (default=$RML/etc/ddc_server.cfg)\n"
-		"  --[no]fork            # do/don't detach from the running terminal (default=--fork)\n"
-		"  --[no]stderr          # do/don't log to stderr (default=--nostderr)\n"
-		"  --[no]syslog          # do/don't log to syslog (default=--nosyslog)\n"
-		"  --[no]logfiles        # do/don't log to local files (default=--logfiles)\n"
+		"  -v, --verbose LEVEL       # set log-verbosity level (none|error|warn|info=weak|debug=medium|trace=heavy)\n"
+		"  -l, --local LOCAL_CFG     # set local corpus config (default=$RML/etc/ddc_local_corpora.cfg)\n"
+		"  -s, --server SERVER_CFG   # set server config (default=$RML/etc/ddc_server.cfg)\n"
+		"  -O, --options SERVER_OPT  # load server options file (default=$RML/etc/ddc_server.opt)\n"
+		"  -t, --threads N           # use N worker threads (default=0: serial mode)\n"
+		"      --[no]fork            # do/don't detach from the running terminal (default=--fork)\n"
+		"      --[no]stderr          # do/don't log to stderr (default=--nostderr)\n"
+		"      --[no]syslog          # do/don't log to syslog (default=--nosyslog)\n"
+		"      --[no]logfiles        # do/don't log to local files (default=--logfiles)\n"
 		);
 	printf ("\nActions:\n");
 	printf ("  start                 # start daemon\n");
@@ -97,7 +102,7 @@ void CreateWaitFile()
 	if (!WaitFileName.empty()) {
 		FILE *fp = fopen(WaitFileName.c_str(), "w");
 		if (fp==NULL)
-			throw( CExpc("could not open wait file `%s': %s", WaitFileName.c_str(), strerror(errno)) );
+			throw( CExpc("could not open wait file `%s': %s", WaitFileName.c_str(), StrError(errno)) );
 		fclose(fp);
 	}
 }
@@ -113,7 +118,7 @@ void UnloadData()
 };
 
 void ShutdownServerSockets() {
-	concord_daemon_log("shutting down server socket(s)");
+	ddcLog("shutting down server socket(s)");
 	ShutdownDDCServer();
 	ShutdownLocalCorpora();
 };
@@ -123,14 +128,14 @@ void  termination_handler(int signum)
 {
 	ShutdownServerSockets();
 	UnloadData();
-	concord_daemon_log("Exiting from concordance");
+	ddcLog("Exiting from concordance");
 	exit(1);
 };
 
 int puke(const std::string& msg) {
 	fputs(msg.c_str(), stdout);
 	fputc('\n', stdout);
-	concord_daemon_log(msg);
+	ddcLog(msg);
 	UnloadData();
 	RemoveLockFile();
 	SocketDeinitialize();
@@ -155,7 +160,7 @@ int do_stop(void)
 
 	fp = fopen(LockFileName.c_str(), "r");
 	if (!fp) {
-		fprintf(stderr, "open failed for lock file `%s': %s\n", LockFileName.c_str(), strerror(errno));
+		fprintf(stderr, "open failed for lock file `%s': %s\n", LockFileName.c_str(), StrError(errno));
 		rc=1;
 		goto stop_clean;
 	}
@@ -165,7 +170,7 @@ int do_stop(void)
 		fprintf (stderr, "ddc_daemon (pid=%d) was stopped\n", pid);
 	}
 	else {
-		fprintf(stderr, "cannot send a SIGTERM to daemon process (pid=%d): %s\n", pid, strerror(errno));
+		fprintf(stderr, "cannot send a SIGTERM to daemon process (pid=%d): %s\n", pid, StrError(errno));
 		rc=1;
 	}
 
@@ -180,24 +185,25 @@ int do_stop(void)
 int do_start(bool clientMode=false)
 {
       try {
-	string startmsg = Format("Starting ddc_daemon v" PACKAGE_VERSION " in %s %s mode",
+      string startmsg = Format("Starting ddc_daemon v" PACKAGE_VERSION " in %s %s mode with log-level `%s'",
 				 (doFork ? "forked" : "unforked"),
-				 (clientMode ? "client" : "server"));
+				 (clientMode ? "client" : "server"),
+				 LogLevelName(ddcLogLevel));
 
 	//-- setup logging options
-	concord_daemon_log_files=log_files;
-	concord_daemon_log_stderr=log_stderr;
+	ddcLogToFiles=log_files;
+	ddcLogToStderr=log_stderr;
 	if (log_syslog) {
 #ifdef HAVE_SYSLOG_H
-		concord_daemon_log_syslog=true;
+		ddcLogToSyslog=true;
 		openlog("ddc_daemon", LOG_PID|LOG_CONS, LOG_DAEMON);
 #else
 		fprintf(stderr, "%s: syslog logging disabled because ddc_daemon wasn't compiled with syslog support\n", prog);
-		concord_daemon_log_syslog = false;
+		ddcLogToSyslog = false;
 #endif
 	}
 
-	concord_daemon_log(startmsg);
+	ddcLogInfo(startmsg);
 	if (!log_stderr) fprintf(stderr, "%s\n", startmsg.c_str());
 	
 	if (clientMode) {
@@ -208,6 +214,15 @@ int do_start(bool clientMode=false)
 		fprintf(stderr, "Daemon lock-file `%s' already exists: is ddc_daemon already running?\n", LockFileName.c_str());
 		return 1;
 	}
+
+	//-- show server options
+	ddcLogInfo( "ServerOptions:" );
+	vector<string> srvOptLines = stringSplitE(ServerOptions.toString(),"\n");
+	for (vector<string>::const_iterator li=srvOptLines.begin(); li!=srvOptLines.end(); ++li) {
+		ddcLogInfo(string("    ")+*li);
+	}
+	ClearVector(srvOptLines);
+	
 
 	if (!clientMode) {		
 		// running as a daemon
@@ -222,12 +237,15 @@ int do_start(bool clientMode=false)
 				CreateWaitFile();
 				int fpid = fork();
 				if (fpid != 0) {
+					//-- parent
 					fprintf(stderr, "spawned server process on pid=%d\n", fpid);
 					exit(0);
 				} else {
+					//-- daemon==child
 					setsid();
 				}
 			} else {
+				//-- daemon==parent
 				fprintf(stderr, "running server in non-forking mode on pid=%d\n", getpid());
 			}
 		}
@@ -242,23 +260,23 @@ int do_start(bool clientMode=false)
 
 
 	//syslog(LOG_ALERT, "Open	lock file `%s'\n", LockFileName.c_str());
-	concord_daemon_log(Format("Open lock file `%s'\n", LockFileName.c_str()));
+	ddcLog(Format("Open lock file `%s'", LockFileName.c_str()));
 	FILE* fp = fopen (LockFileName.c_str(),	"w");
 	if (!fp) {
-		concord_daemon_log(Format("Cannot open lock-file `%s': %s\n",	LockFileName.c_str(), strerror(errno)));
+		ddcLog(Format("Cannot open lock-file `%s': %s",	LockFileName.c_str(), StrError(errno)));
 		return 1;
 	}
 	fprintf(fp, "%i", getpid());
 	fclose (fp);
-	concord_daemon_log (Format("Wrote PID=%i to lock-file `%s'", getpid(), LockFileName.c_str()));
+	ddcLog (Format("Wrote PID=%i to lock-file `%s'", getpid(), LockFileName.c_str()));
 
-	concord_daemon_log ("SocketInitialize");
+	ddcLog ("SocketInitialize");
 	SocketInitialize(false);
 
-	concord_daemon_log ("InitLemmatizers");
+	ddcLog ("InitLemmatizers");
 	if (!InitConcordDicts())
 		{
-			concord_daemon_log ("Cannot load Morphology");
+			ddcLog ("Cannot load Morphology");
 			//SocketDeinitialize();
 			//return 1;
 		
@@ -267,11 +285,11 @@ int do_start(bool clientMode=false)
 	sprintf(log_label, "server-main[pid=%i]", getpid());
 	ddc_thread_init(log_label);
 
-	concord_daemon_log (string("LoadCorpora (CWD=") + CurrentDirectory() + ")");
-	LoadLocalCorpora(ProtocolDensity, CorporaFile);
+	ddcLog (string("LoadCorpora (CWD=") + CurrentDirectory() + ")");
+	LoadLocalCorpora(CorporaFile, ServerOptions);
 
-	concord_daemon_log ("LoadServer");
-	LoadDDCServer(ProtocolDensity, ServerCorporaFile);
+	ddcLog ("LoadServer");
+	LoadDDCServer(ServerCorporaFile, ServerOptions);
 
 	if (signal (SIGTERM, termination_handler) == SIG_IGN)
 		signal (SIGTERM, SIG_IGN);
@@ -339,11 +357,23 @@ int	main(int argc, char	**argv)
 	};
 
 	//-- init globals
-	ProtocolDensity = pdMediumDensity;
 	CorporaFile = GetIniFilePath()+"/ddc_local_corpora.cfg";
 	ServerCorporaFile = GetIniFilePath()+"/ddc_server.cfg";
 	Action = "restart"; //-- default action
 	doFork = true;
+
+	//-- load default server options
+	string ServerOptionsFile = GetIniFilePath()+"/ddc_server.opt";
+	if (FileExists(ServerOptionsFile.c_str())) {
+		try {
+			//fprintf(stderr, "Loading default server-options file '%s'\n", prog, ServerOptionsFile.c_str());
+			ServerOptions.LoadFile(ServerOptionsFile);
+		}
+		catch (exception &e) {
+			fprintf(stderr, "%s: Error loading default server-options file '%s': %s\n", prog, ServerOptionsFile.c_str(), e.what());
+			exit(1);
+		}
+	}
 
 	//-- parse command-line
 	for (size_t i=1; i<argc; i++)
@@ -356,32 +386,41 @@ int	main(int argc, char	**argv)
 		    ) {
 			PrintUsage();
 		}
-		else if (s == "--protocol" || s == "--log") {
+		else if (s == "--verbose" || s=="-v" || s=="--log-level" || s=="--log" || s=="--protocol") {
 			if (i+1 >= argc) 
 				PrintUsage();
+			ddcLogLevel = GetLogLevel(argv[i+1]);
 			i++;
-			s = argv[i];
-			if (s == "weak" || s == "light")
-				ProtocolDensity = pdWeakDensity;
-			else if (s == "medium")
-				ProtocolDensity = pdMediumDensity;
-			else if (s == "heavy")
-				ProtocolDensity = pdHeavyDensity;
-			else
-				PrintUsage();
-
 		}
-		else if (s == "--local") {
+		else if (s == "--local" || s == "-l") {
 			if (i+1 >= argc) 
 				PrintUsage();
 			i++;
 			CorporaFile = argv[i];
 		}
-		else if (s == "--server") {
+		else if (s == "--server" || s == "-s") {
 			if (i+1 >= argc) 
 				PrintUsage();
 			i++;
 			ServerCorporaFile = argv[i];
+		}
+		else if (s == "--options" || s == "-O") {
+			if (i+1 >= argc) 
+				PrintUsage();
+			i++;
+			try {
+				ServerOptions.LoadFile(argv[i]); //-- load in-place
+			}
+			catch (exception &e) {
+				fprintf(stderr, "%s: Error loading server options file '%s': %s\n", prog, argv[i], e.what());
+				exit(1);
+			}
+		}
+		else if (s == "--nthreads" || s == "--threads" || s == "-t") {
+			if (i+1 >= argc)
+				PrintUsage();
+			i++;
+			ServerOptions.m_nWorkers = strtoul(argv[i],NULL,0);
 		}
 		else if (s == "--fork") { doFork = true; }
 		else if (s == "--nofork") { doFork = false; }

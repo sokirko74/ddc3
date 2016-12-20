@@ -21,7 +21,7 @@
 
 #pragma warning(disable:4786)
 #pragma warning(disable:4503)
-#include "../common/utilit.h"
+#include "../CommonLib/utilit.h"
 #include "../AgramtabLib/agramtab_.h"
 #include "FormInfo.h"
 #include "OperationMeter.h"

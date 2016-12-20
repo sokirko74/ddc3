@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "../common/utilit.h"
+#include "../CommonLib/utilit.h"
 
 typedef unsigned char uchar;
 

@@ -56,7 +56,7 @@ CCurlCache ddcCurlCache(ddcCurlCacheCapacity, DDC_IFPTHREADELSE(&ddcCurlMutex,NU
 int ddcCurlInitialized = 0;
 
 void ddcInitCurl(void) {
-  if (ddcCurlInitialized) return;
+  //if (ddcCurlInitialized) return;
   DDC_IFPTHREAD(pthread_mutex_lock(&ddcCurlMutex));
   if (!ddcCurlInitialized) {
     curl_global_init(CURL_GLOBAL_ALL);

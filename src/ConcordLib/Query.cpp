@@ -604,21 +604,21 @@ string CQTokSet::ValueString() {
 
 TxChain& CQTokInfl::GetChain(void)
 {
-  assert(m_Compiler->m_pHolder->m_pIndexator != NULL);
+  assert(m_Compiler->m_pHolder != NULL);
   if (m_Expanders.empty())
     m_Expanders.push_back(string(""));
 
   m_Txc.m_Chain.clear();
   m_Txc.m_Chain.reserve(m_Expanders.size());
-  TxDispatcher &txd = m_Compiler->m_pHolder->m_pIndexator->m_Txd;
+  TxDispatcher *txd = m_Compiler->m_pHolder->GetTxDispatcher();
   CTermExpander *tx;
   for (vector<string>::const_iterator xi=m_Expanders.begin(); xi != m_Expanders.end(); xi++) {
     if (xi->empty()) {
-      tx = txd.get(this->IndexName("Token"));
+      tx = txd->get(this->IndexName("Token"));
       if (tx == NULL) continue; //-- ignore undeclared default expander (identity map)
     }
     else {
-      tx = txd.get(*xi);
+      tx = txd->get(*xi);
       if (tx == NULL)
 	throw CExpc(errParseError, "CQTokInfl::GetChain(): unknown term expander `%s' in query `%s'", xi->c_str(), this->toString().c_str());
     }

@@ -21,7 +21,7 @@
 #ifndef graspace_h
  #define graspace_h
 
-   #include "utilit.h"
+   #include "../CommonLib/utilit.h"
 
    #define   SEOLN        (unsigned char) '«'
    #define   SSpace       (unsigned char) ''

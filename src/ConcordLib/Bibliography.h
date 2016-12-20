@@ -24,6 +24,7 @@
 #include "../ConcordLib/BiblExpander.h"
 #include "../common/util_classes.h"
 #include "../common/MorphXmlToken.h"
+#include "../CommonLib/ddcThread.h"
 #include <list>
 #include "ConcCommon.h"
 #include "../PCRE/pcre_rml.h"
@@ -33,7 +34,7 @@ const int UnknownTextAreaNo = -1;
 /*! CBibliography  contains bibliographical information about one \ref corpus_file_def "corpus file", this information
  is read from xml, xpathes are defined in options file.
 */
-struct CBibliography 
+struct CBibliography
 {
 	//! original bibliography
 	string m_OrigBibl;
@@ -73,7 +74,7 @@ typedef enum {
 */
 const string FreeBiblAttribOptionFieldName = "Bibl";
 const string TextAreaOptionFieldName = "textarea";
-class CConcXml
+class CConcXml : public ddcLockable
 {
 public:
 	//--------------------------------------------------------------

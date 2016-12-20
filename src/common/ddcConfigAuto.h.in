@@ -10,6 +10,9 @@
 /* size in bytes of potentially large static ddc-internal string buffers */
 #undef DDC_STATIC_BUFLEN
 
+/* Define this to enable high-resolution clock - requires clock_gettime() */
+#undef DDC_USE_HIRES_CLOCK
+
 /* Major ddc version */
 #undef DDC_VERSION_MAJOR
 
@@ -58,6 +61,9 @@
 /* Define to 1 if you have the <stdlib.h> header file. */
 #undef HAVE_STDLIB_H
 
+/* Define this if you have a working strerror_r() function */
+#undef HAVE_STRERROR_R
+
 /* Define to 1 if you have the <strings.h> header file. */
 #undef HAVE_STRINGS_H
 
@@ -75,6 +81,9 @@
 
 /* Define to 1 if you have the <sys/types.h> header file. */
 #undef HAVE_SYS_TYPES_H
+
+/* Define to 1 if you have the <time.h> header file. */
+#undef HAVE_TIME_H
 
 /* Define to 1 if you have the <unistd.h> header file. */
 #undef HAVE_UNISTD_H

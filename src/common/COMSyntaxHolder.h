@@ -28,7 +28,7 @@
 #ifndef COMSyntaxHolder
 #define COMSyntaxHolder
 
-#include "utilit.h"
+#include "../CommonLib/utilit.h"
 #include <comdef.h>
 #include <atlbase.h>
 #import "../../bin/Lemmatizer.tlb"

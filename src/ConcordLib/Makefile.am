@@ -38,8 +38,12 @@ libDDCConcord_la_SOURCES = \
  QueryNode.h QueryNode.cpp \
  QueryCompiler.h QueryCompiler.cpp \
  \
+ QueryResult.h QueryResult.cpp \
+ ConcSessionContext.h ConcSessionContext.cpp \
+ ConcSession.h ConcSession.cpp \
+ ConcHolder.h \
+ \
  ConcordAlgorithm.cpp ConcordAlgorithm.h \
- ConcHolder.cpp ConcHolder.h \
  Bibliography.cpp Bibliography.h \
  ConcordUnion.cpp \
  HitBorder.cpp HitBorder.h \
@@ -57,8 +61,6 @@ libDDCConcord_la_SOURCES = \
  pcre_rml.cpp ../PCRE/pcre_rml.h \
  MorphXmlToken.cpp ../common/MorphXmlToken.h \
  DwdsThesaurus.cpp ../common/DwdsThesaurus.h \
- ddcString.cpp ../common/ddcString.h \
- utf8xx.cpp ../common/utf8xx.h \
  ../common/ddcRandom.h \
  ../common/ddcObject.h
 

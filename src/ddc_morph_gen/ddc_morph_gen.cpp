@@ -22,7 +22,7 @@
 #pragma warning(disable:4786)
 #pragma warning(disable:4503)
 
-#include "../common/utilit.h"
+#include "../CommonLib/utilit.h"
 #include "../LemmatizerLib/StdMorph.h"
 #include "../LemmatizerLib/Predict.h"
 #include "../MorphWizardLib/wizard.h"

@@ -21,10 +21,12 @@
 #ifndef DDC_CURL_H
 #define DDC_CURL_H
 
-#include "../common/utilit.h"
-#include "../common/ddcString.h"
+#include "../CommonLib/utilit.h"
+#include "../CommonLib/ddcString.h"
 #include "../common/ddcConfig.h"
+#include "../CommonLib/ddcThread.h"
 #include "LRUCache.h"
+#include <pthread.h>
 
 #ifdef HAVE_LIBCURL
 
@@ -64,7 +66,7 @@ extern void ddcInitCurl(void);
 
 //======================================================================
 //! \brief CCurl: abstract term expander using libcurl
-class CCurl {
+class CCurl : public ddcLockable {
 public:
   //! curl response content handler callback type; should return the number of bytes actually taken care of (== size*n on success)
   typedef size_t (*CurlWriteDataCallback) (char *ptr, size_t size, size_t n, void *userdata);

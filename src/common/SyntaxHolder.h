@@ -19,7 +19,7 @@
 #ifndef SyntaxHolder_H
 #define SyntaxHolder_H
 
-#include "utilit.h"
+#include "../CommonLib/utilit.h"
 #include "MorphologyHolder.h"
 #include "../SynCommonLib/SentencesCollection.h"
 #include "../MAPostLib/PostMorphInterface.h" 

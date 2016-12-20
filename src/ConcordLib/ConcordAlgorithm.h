@@ -19,7 +19,7 @@
 #ifndef __ConcordAlgorithm_H_
 #define __ConcordAlgorithm_H_
 
-#include "../common/utilit.h"
+#include "../CommonLib/utilit.h"
 
 void SortWithLists(vector<DWORD>& V, DwordVector& Borders);
 void ConvertToVariableInteger(const vector<DWORD>& In,vector<DWORD>& Out);

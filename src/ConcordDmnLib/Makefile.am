@@ -22,16 +22,21 @@ lib_LTLIBRARIES = libDDCConcordDmn.la
 ## sources
 
 libDDCConcordDmn_la_SOURCES = \
+ ServerThread.cpp ServerThread.h \
+ ServerOptions.h ServerOptions.cpp \
  Server.cpp Server.h \
  LeafServer.cpp LeafServer.h \
  BranchServer.cpp BranchServer.h \
  Morphan.cpp Morphan.h \
  Corpora.cpp Corpora.h
 
+
 noinst_HEADERS = \
  Server.h \
  Corpora.h \
- Morphan.h
+ Morphan.h \
+ ServerThread.h \
+ ServerOptions.h
 
 ##-----------------------------------------------------------------------
 ## special rules

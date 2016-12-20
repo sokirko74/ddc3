@@ -18,7 +18,7 @@
 // ==========  Copyright by Alexey Sokirko, Bryan Jurish (2011)
 #include "StdMorph.h"
 #include "Lemmatizers.h"
-#include "../common/utilit.h"
+#include "../CommonLib/utilit.h"
 #include "Paradigm.h"
 
 

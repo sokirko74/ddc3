@@ -1,5 +1,5 @@
 //  DDC originally by Alexey Sokirko
-//  Changes and modifications 2011-2014 by Bryan Jurish
+//  Changes and modifications 2011-2016 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -23,7 +23,7 @@
 #include <signal.h>
 #endif 
 
-#include "../common/string_socket.h"
+#include "../CommonLib/CHost.h"
 #include "../common/util_classes.h"
 #include "../common/DDC_common.h"
 

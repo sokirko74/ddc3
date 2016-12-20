@@ -1,0 +1,106 @@
+//-*- Mode: C++; c-basic-offset:4; -*-
+//
+//  DDC originally by Alexey Sokirko
+//  Changes and modifications 2011-2016 by Bryan Jurish
+//
+//  This file is part of DDC.
+// 
+//  DDC is free software: you can redistribute it and/or modify
+//  it under the terms of the GNU Lesser General Public License as published by
+//  the Free Software Foundation, either version 3 of the License, or
+//  (at your option) any later version.
+// 
+//  DDC is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//  GNU Lesser General Public License for more details.
+// 
+//  You should have received a copy of the GNU Lesser General Public License
+//  along with DDC.  If not, see <http://www.gnu.org/licenses/>.
+//
+
+#include "ServerOptions.h"
+#include "../common/string_tokenizer.h"
+#include "../common/ddcThreadQueue.h"
+#include <errno.h>
+#include <string.h>
+
+//==============================================================================
+// CDDCServerOptions
+
+//--------------------------------------------------------------
+CDDCServerOptions::CDDCServerOptions() :
+    m_SlowQueryTimeout(10),
+    m_nWorkers(0),
+    m_ThreadQueueSize(DDC_DEFAULT_THREAD_QUEUE_SIZE)
+{}
+
+//--------------------------------------------------------------
+void CDDCServerOptions::LoadFile(const string& Filename)
+{
+    string buf;
+    if (!LoadFileToString(Filename, buf))
+	throw CExpc( Format("CDDCServerOptions::LoadFile(): failed to load file %s: %s", Filename.c_str(), StrError(errno)) );
+    LoadString(buf,Filename);
+}
+
+//--------------------------------------------------------------
+void CDDCServerOptions::LoadString(const string& Options, const string& srcName)
+{
+    vector<string> lines = stringSplitE(Options, "\n\r");
+    LoadLines(lines,srcName);
+}
+
+//--------------------------------------------------------------
+void CDDCServerOptions::LoadLines(const vector<string>& Lines, const string& srcName)
+{
+    int lineno=1;
+    for (vector<string>::const_iterator li=Lines.begin(); li!=Lines.end(); ++li, ++lineno) {
+	size_t beg = li->find_first_not_of(" \t\r\n");
+	if (beg != string::npos) {
+	    size_t end = li->find_first_of(" \t\r\n", beg);
+	    string opt = end==string::npos ? li->substr(beg) : li->substr(beg,end-beg);
+	    string val = end==string::npos ? "" : li->substr(end);
+	    if (!Set(opt, val, srcName))
+		throw CExpc( Format("CDDCServerOptions::LoadLines(): ignoring unknown server option '%s' at %s line %i", opt.c_str(), srcName.c_str(), lineno) );
+	}
+    }
+}
+
+//--------------------------------------------------------------
+bool CDDCServerOptions::Set(const string& Option, const string& Value, const string& srcName)
+{
+    StringTokenizer fields(Value.c_str(), " \t\r\n");
+    string opt(Option);
+    EngMakeLower(opt);
+
+    if (Option.empty() || Option[0]=='#' || Option.find("//")==0)
+	return true;
+    else if (opt=="numthreads" || opt=="nthreads" || opt=="threads" || opt=="numworkers" || opt=="nworkers" || opt=="workers") {
+	m_nWorkers = strtoul(Value.c_str(),NULL,0);
+    }
+    else if (opt=="threadqueuesize" || opt=="queuesize" || opt=="qsize") {
+	m_ThreadQueueSize = strtoul(Value.c_str(),NULL,0);
+    }
+    else if (opt=="slowquerytimeout" || opt=="slowquerytime") {
+	m_SlowQueryTimeout = strtod(Value.c_str(), NULL);
+    }
+    else if (opt=="include") {
+	string IncFileName = RelativeFileName(srcName, IncFileName);
+	LoadFile(IncFileName);
+    }
+    else
+	return false;
+
+    return true;
+}
+
+//--------------------------------------------------------------
+string CDDCServerOptions::toString() const
+{
+    return (string("")
+	    + "NumThreads " + Format("%zu", m_nWorkers) + "\n"
+	    + "ThreadQueueSize " + Format("%zu", m_ThreadQueueSize) + "\n"
+	    + "SlowQueryTimeout " + Format("%g", m_SlowQueryTimeout) + "\n"
+	    );
+}

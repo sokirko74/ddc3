@@ -20,7 +20,7 @@
 #ifndef morph_statistics_h
 #define morph_statistics_h
 
-#include "../common/utilit.h"
+#include "../CommonLib/utilit.h"
 
 typedef troika<int, int, int>	_homonode_t;		 
 typedef pair<int, int>		_statnode_t; 

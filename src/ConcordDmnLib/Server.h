@@ -1,4 +1,5 @@
 //-*- Mode: C++; c-basic-offset:4; -*-
+//
 //  DDC originally by Alexey Sokirko
 //  Changes and modifications 2011-2016 by Bryan Jurish
 //
@@ -20,8 +21,10 @@
 #ifndef DDC_SERVER_H
 #define DDC_SERVER_H
 
+#include "ServerOptions.h"
+#include "../CommonLib/CHost.h"
 #include "../ConcordLib/ConcHolder.h"
-#include "../common/string_socket.h"
+#include "../common/ddcThreadQueue.h"
 
 #ifdef WIN32
 	#include <process.h>  /* _beginthread, _endthread */
@@ -30,12 +33,63 @@
 
 //#define DEBUG_HIT_SORT
 #ifdef DEBUG_HIT_SORT
-# define HSDEBUG(s) m_LogFunction(s)
+# define HSDEBUG(s) ddcLog(s)
 #else
 # define HSDEBUG(s)
 #endif
 
+//==============================================================================
+/** generic class for tracking server statistics */
+struct CDDCServerStats
+{
+    //--------------------------------------------------------------
+    // Counters
 
+    /** number of served requests */
+    size_t m_nRequests;	
+
+    /** number of serverd QUERY requests (run_query or get_first_hits only) */
+    size_t m_nQueries;
+
+    /** number of errors */
+    size_t m_nErrors;
+
+    /** number of slow requests */
+    size_t m_nSlow;
+
+    //--------------------------------------------------------------
+    // Constructors etc.
+
+    /** default constructor */
+    CDDCServerStats()
+	: m_nRequests(0), m_nQueries(0), m_nErrors(0), m_nSlow(0)
+    {};
+
+    /** copy constructor */
+    CDDCServerStats(const CDDCServerStats& x)
+	: m_nRequests(x.m_nRequests), m_nQueries(x.m_nQueries), m_nErrors(x.m_nErrors), m_nSlow(x.m_nSlow)
+    {};
+
+    //--------------------------------------------------------------
+    // Operators
+
+    /** add counters to calling object */
+    CDDCServerStats& operator+=(const CDDCServerStats& x);
+
+    /** subtract counters from calling object */
+    CDDCServerStats& operator-=(const CDDCServerStats& x);
+
+    /** constructive addition */
+    inline CDDCServerStats operator+(const CDDCServerStats &x) const
+    { return CDDCServerStats(*this) += x; };
+
+    /** constructive subtraction */
+    inline CDDCServerStats operator-(const CDDCServerStats &x) const
+    { return CDDCServerStats(*this) -= x; };
+};
+
+
+//==============================================================================
 /** abstract base class class for DDC server nodes */
 class CDDCServer : public CHost
 {
@@ -43,50 +97,110 @@ public:
     //--------------------------------------------------------------
     // Administrivia
 
-    /** moo: additional hit delimiter; overrides CConcHolder.m_AdditionalHitDelimiter , also used for branch server hit-tokenization; default is "\x01" */
-    static const char *AdditionalHitDelimeter;
+    /** additional hit delimiter; overrides CConcHolder.m_AdditionalHitDelimiter , also used for branch server hit-tokenization; default is "\x01" */
+    static const char *AdditionalHitDelimiter;
 
-    /** moo: maximum number of subcorpora per branch server */
+    /** maximum number of subcorpora per branch server */
     static const size_t MaxSubhostsSize = 256;
 
-    /** moo: timestamp of server initialization */
+    /** timestamp of server initialization */
     time_t m_tStarted;
-	
-    /** moo: number of served requests */
-    size_t m_nRequests;	
 
-    /* moo: whether to log "normal" requests received in ProcessSocketString() */
+    /** track number of requests */
+    CDDCServerStats m_ServerStats;
+	
+    /* whether to log "normal" requests received in ProcessSocketString() */
     bool m_bLogRequests;
 
-    /* moo: set of request commands NOT to be logged (e.g. "status", "info", etc.) */
+    /* set of request commands NOT to be logged (e.g. "status", "info", etc.) */
     set<string> m_noLogCommands;
 
-    /* moo: FQDN if available, otherwise symbolic hostname as returned by gethostname() */
+    /* FQDN if available, otherwise symbolic hostname as returned by gethostname() */
     string m_FQHostName;
+
+    /** number of client-thread workers for thread pool (default=0: serial mode) */
+    size_t m_nWorkers;
+
+    /** maximum number of pending client connections the thread-pool queue (min=1: use tcp queueing only; default=DDC_DEFAULT_THREAD_QUEUE_SIZE) */
+    size_t m_ThreadQueueSize;
+
+    /** upper-bound in seconds for "slow" queries
+     *  \li any query taking longer than this will be logged
+     *  \li set to zero or less to suppress slow-query log messages
+     *  \li default=10
+     */
+    double m_SlowQueryTimeout;
+    
+    /** worker thread-id for worker clones */
+    size_t m_WorkerId;
+
+    /** client-thread pool (requires pthread) */
+    class CDDCServerThreadPool *m_ThreadPool;
 
 public:
     //--------------------------------------------------------------
     // Constructors etc.
 
     /** default constructor */
-    CDDCServer(bool bDoubleMessage=false, ProtocolDensityEnum pdProtocolDensity=pdWeakDensity);
+    CDDCServer();
 
     /** default destructor */
     virtual ~CDDCServer()
-    { StopAcceptingThread(); };
-
+    { this->Shutdown(); };
+    
     /** close any open socket(s) this server administers, called on termination signal */
-    virtual void Shutdown()
-    {
-	m_LogFunction(Format("shutting down corpus server %s", m_CorpusName.c_str()));
-	StopAcceptingThread();
-    };
+    virtual void Shutdown(bool quiet=false);
+
+    /** set server options */
+    virtual void SetOptions(const CDDCServerOptions &Options);
 
 public:
     //--------------------------------------------------------------
-    // string_socket API: socket handlers
+    // DDCServer API: client threads
 
-    /** CHost API function maintains m_nRequests and calls appropriate handle__() methods */
+    /** initialize the client-thread pool (requires pthread support) */
+    virtual void StartClientThreads();
+
+    /** create a minimal (uninitialized) copy of this object (and any subordinate data) for use by a worker thread
+     *  \li WorkerCloneInit() will be called on the returned clone
+     *  \li will be called on parent server to create a thread-local \a m_Server for each worker ::CDDCServerThread 
+     *  \li derived classes should override both this method and WorkerCloneInit()
+     *  \see WorkerCloneInit
+     */
+    virtual CDDCServer* WorkerClone(void) const
+    { return new CDDCServer(); };
+
+    /** initialize a newly created worker-clone (and any subordinate data)
+     *  \li called on newly created worker-clone objects by default WorkerClone() implementation
+     *  \li \b recommended for derived classes
+     *  \param Parent parent server from which settings are to be cloned
+     *  \param WorkerId local id of this worker-clone (== CDDCServerThread.m_ThreadId)
+     */
+    virtual void WorkerCloneInit(const CDDCServer *Parent, size_t WorkerId);
+
+    /** perform local cleanup of a worker clone prior to deletion; default implementation just calls Shutdown() */
+    virtual void WorkerCloneFree(void);
+
+    /** is this server configured and ready to use client threads?
+     *  \li requires pthread support
+     *  \li only meaningful for parent server after StartClientThreads()
+     */
+    inline bool UseClientThreads(void) const
+    { return m_ThreadPool!=NULL; };
+
+public:
+    //--------------------------------------------------------------
+    // CHost API: socket handlers
+
+    /** CHost API: main accept - process - respond loop; called in its own thread
+     *  \li override calls StartClientThreads() before calling inherited method
+     */
+    virtual void RunThread();
+
+    /** CHost API: handle a new client connection (top-level): override */
+    virtual void HandleClientConnection(SOCKET& rConnectedSocket);
+    
+    /** CHost API: maintains m_Stats and calls appropriate handle__() methods */
     virtual string ProcessSocketString(const string& SocketInput, SOCKET& rConnectedSocket);
 
 public:
