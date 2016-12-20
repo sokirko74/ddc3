@@ -110,13 +110,17 @@ option files ("opt-files") used by the DDC corpus indexing system.
 =head1 DESCRIPTION
 
 This section contains descriptions of the various options and flags
-which may occur in a DDC opt-file, insofar as the author is able
+which may occur in a DDC corpus opt-file, insofar as the author is able
 to provide them.  These are for the most part legacy options which
 may or may not be fully functional.  I have not tested (most of)
 these options for functionality.  The reader is strongly advised
 to perform his or her own tests before using any of the options
 described below (but particularly the undocumented ones)
 in a production environment.
+
+Note that server option-files (F<ddc_server.opt>) as read
+by the C<ddc_daemon> program are documented independently;
+see L<ddc_server.opt(5)|ddc_server.opt> for details.
 
 =head2 Sources
 
@@ -939,6 +943,7 @@ Bryan Jurish E<lt>jurish@bbaw.deE<gt>
 
 =head1 SEE ALSO
 
+ddc_server.opt(5),
 ddc_console(1),
 ddc_daemon(1),
 ddc_expand(1),

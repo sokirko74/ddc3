@@ -71,7 +71,7 @@
 .\" ========================================================================
 .\"
 .IX Title "DDC_OPT 5"
-.TH DDC_OPT 5 "2016-02-24" "2.1.0-pre2" "DDC Corpus Indexing System"
+.TH DDC_OPT 5 "2016-12-20" "2.1.0-rc1" "DDC Corpus Indexing System"
 .\" For nroff, turn off justification.  Always turn off hyphenation; it makes
 .\" way too many mistakes in technical documents.
 .if n .ad l
@@ -167,13 +167,17 @@ option files (\*(L"opt-files\*(R") used by the \s-1DDC\s0 corpus indexing system
 .SH "DESCRIPTION"
 .IX Header "DESCRIPTION"
 This section contains descriptions of the various options and flags
-which may occur in a \s-1DDC\s0 opt-file, insofar as the author is able
+which may occur in a \s-1DDC\s0 corpus opt-file, insofar as the author is able
 to provide them.  These are for the most part legacy options which
 may or may not be fully functional.  I have not tested (most of)
 these options for functionality.  The reader is strongly advised
 to perform his or her own tests before using any of the options
 described below (but particularly the undocumented ones)
 in a production environment.
+.PP
+Note that server option-files (\fIddc_server.opt\fR) as read
+by the \f(CW\*(C`ddc_daemon\*(C'\fR program are documented independently;
+see \fIddc_server.opt\fR\|(5) for details.
 .SS "Sources"
 .IX Subsection "Sources"
 \&\s-1DDC\s0 opt-files are parsed and processed by the method
@@ -1036,6 +1040,7 @@ on which much of the information in this manpage is based.
 Bryan Jurish <jurish@bbaw.de>
 .SH "SEE ALSO"
 .IX Header "SEE ALSO"
+\&\fIddc_server.opt\fR\|(5),
 \&\fIddc_console\fR\|(1),
 \&\fIddc_daemon\fR\|(1),
 \&\fIddc_expand\fR\|(1),

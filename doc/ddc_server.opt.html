@@ -1,0 +1,194 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title></title>
+<link rel="stylesheet" href="pod2x.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:root@localhost" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#ddc_server.opt-FILE-SYNTAX">ddc_server.opt FILE SYNTAX</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a>
+    <ul>
+      <li><a href="#Option-Processor-Directives">Option Processor Directives</a>
+        <ul>
+          <li><a href="#comment">#comment</a></li>
+          <li><a href="#comment1">//comment</a></li>
+          <li><a href="#include">include</a></li>
+        </ul>
+      </li>
+      <li><a href="#LoggingOptions">LoggingOptions</a>
+        <ul>
+          <li><a href="#LogLevel">LogLevel</a></li>
+          <li><a href="#SlowQueryTimeout">SlowQueryTimeout</a></li>
+        </ul>
+      </li>
+      <li><a href="#Client-Thread-Options">Client-Thread Options</a>
+        <ul>
+          <li><a href="#NumThreads">NumThreads</a></li>
+          <li><a href="#ThreadQueueSize">ThreadQueueSize</a></li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li><a href="#ACKNOWLEDGEMENTS">ACKNOWLEDGEMENTS</a></li>
+  <li><a href="#AUTHOR">AUTHOR</a></li>
+  <li><a href="#SEE-ALSO">SEE ALSO</a></li>
+</ul>
+
+<h1 id="ddc_server.opt-FILE-SYNTAX">ddc_server.opt FILE SYNTAX</h1>
+
+<p>This manpage describes the syntax of <i>ddc_server.opt</i> server option files (&quot;server-opt files&quot;) used by the DDC corpus indexing system.</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code> ##-------------------------------------------------------------
+ ## Option Processor Directives
+ 
+ #comment
+ //comment
+ include &quot;OPTFILE&quot;
+
+ ##-------------------------------------------------------------
+ ## Logging Options
+ 
+ LogLevel LEVEL
+ SlowQueryTimeout SECONDS
+
+ ##-------------------------------------------------------------
+ ## Client-Thread Options
+ 
+ NumThreads NTHREADS
+ ThreadQueueSize QSIZE</code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>This section contains descriptions of the various options and flags which may occur in a DDC server opt-file as read by the <code>ddc_daemon</code> program versions v2.1.0 and later.</p>
+
+<p>Note that corpus option-files (<i>CORPUS.opt</i>) are documented independently; see <a href="./ddc_opt.html">ddc_opt(5)</a> for details.</p>
+
+<h2 id="Option-Processor-Directives">Option Processor Directives</h2>
+
+<h3 id="comment">#comment</h3>
+
+<h3 id="comment1">//comment</h3>
+
+<p>Comments are lines starting with a literal hash-mark (<code>#</code>) or two adjacent slashes (<code>//</code>). Such lines are ignored by the option processor.</p>
+
+<h3 id="include">include</h3>
+
+<pre><code> include &quot;OPTFILE&quot;</code></pre>
+
+<p>The <code>include</code> directive reads in the contents of an external server-opt file at the current position. If OPTFILE is a relative pathname, it is interpreted relative to the directory containing the file currently being parsed.</p>
+
+<h2 id="LoggingOptions">LoggingOptions</h2>
+
+<p>The following options control the verbosity of server log messages.</p>
+
+<h3 id="LogLevel">LogLevel</h3>
+
+<pre><code> LogLevel LEVEL</code></pre>
+
+<p>Aliases: LogLevel, Log, Verbose</p>
+
+<p>Set the default maximum log-level for server messages to <i>LEVEL</i>, which should be one of the following:</p>
+
+<dl>
+
+<dt id="silent">silent</dt>
+<dd>
+
+<p>Suppress (almost) all log messages. Aliaes: silent, none, no, off.</p>
+
+</dd>
+<dt id="error">error</dt>
+<dd>
+
+<p>Log only error messages. Aliases: error, errors.</p>
+
+</dd>
+<dt id="warning">warning</dt>
+<dd>
+
+<p>Log error and warning messages. Aliases: warn, warning, warnings.</p>
+
+</dd>
+<dt id="info">info</dt>
+<dd>
+
+<p>Log errors, warnings, and basic info messages. Aliases: info, default, weak, light.</p>
+
+</dd>
+<dt id="debug">debug</dt>
+<dd>
+
+<p>Log errors, warning, info, and debugging messages. Aliases: debug, medium.</p>
+
+</dd>
+<dt id="trace">trace</dt>
+<dd>
+
+<p>Log everything we can. Aliases: trace, heavy.</p>
+
+</dd>
+</dl>
+
+<h3 id="SlowQueryTimeout">SlowQueryTimeout</h3>
+
+<pre><code> SlowQueryTimeout SECONDS</code></pre>
+
+<p>Aliases: SlowQueryTime</p>
+
+<p>Default: 10</p>
+
+<p>Log any requests whose processing requires at least <i>SECONDS</i> second(s) as &quot;slow queries&quot;. <i>SECONDS</i> is parsed as a double-precision float, so non-integral numbers can be specified, but will only be meaningful if DDC was compiled with high-resolution clock support -- in this case, your DDC logs should show nanosecond resolution.</p>
+
+<h2 id="Client-Thread-Options">Client-Thread Options</h2>
+
+<p>The following options control the behavior of per-client &quot;worker&quot; threads.</p>
+
+<h3 id="NumThreads">NumThreads</h3>
+
+<pre><code> NumThreads NTHREADS</code></pre>
+
+<p>Aliases: NumThreads, NThreads, Threads, NumWorkers, NWorkers, Workers</p>
+
+<p>Default: 0</p>
+
+<p>Specifies the number of client worker threads to be used. If <i>NTHREADS</i> is zero (the default), no client worker-threads are created and <code>ddc_daemon</code> runs in pure serial mode, as for DDC &lt; v2.1.0. Otherwise, <i>NTHREADS</i> worker threads will be initialized on server startup for each server node (branch- or leaf-server), in addition to the &quot;main&quot; server threads themselves (which are always allocated), and <code>ddc_daemon</code> will be started in &quot;client-thread&quot; mode. In this mode, the &quot;main&quot; server threads are only responsible for accepting incoming client connections and enqueueing them for later processing by a worker thread, so that up to <i>NTHREADS</i> simultaneous client connections can be handled in parallel.</p>
+
+<h3 id="ThreadQueueSize">ThreadQueueSize</h3>
+
+<pre><code> ThreadQueueSize QSIZE</code></pre>
+
+<p>Aliases: ThreadQueueSize, QueueSize, QSize</p>
+
+<p>Default: 256</p>
+
+<p>Specifies the maximum number of pending client connections in the work queue in client-thread mode (see <a href="#NumThreads">&quot;NumThreads&quot;</a>). If all worker threads are occupied and <i>QSIZE</i> additional client connections have been accepted and enqueued for processing, then the main accepting server thread will block until the queue shrinks below <i>QSIZE</i> before enqueueing any new client connection -- this basically just pushes the burden of client-queueing beyond <i>QSIZE</i> to the TCP stack.</p>
+
+<h1 id="ACKNOWLEDGEMENTS">ACKNOWLEDGEMENTS</h1>
+
+<p>Alexey Sokirko wrote the original DDC.</p>
+
+<h1 id="AUTHOR">AUTHOR</h1>
+
+<p>Bryan Jurish &lt;jurish@bbaw.de&gt;</p>
+
+<h1 id="SEE-ALSO">SEE ALSO</h1>
+
+<p>ddc_opt(5), ddc_daemon(1)</p>
+
+
+</body>
+
+</html>
+
+

@@ -1,0 +1,220 @@
+=encoding utf8
+
+=cut
+
+########################################################################
+## Header
+
+=pod
+
+=head1 ddc_server.opt FILE SYNTAX
+
+This manpage describes the syntax of F<ddc_server.opt>
+server option files ("server-opt files") used by the DDC corpus indexing system.
+
+=cut
+
+########################################################################
+## Synopsis
+=pod
+
+=head1 SYNOPSIS
+
+ ##-------------------------------------------------------------
+ ## Option Processor Directives
+ 
+ #comment
+ //comment
+ include "OPTFILE"
+
+ ##-------------------------------------------------------------
+ ## Logging Options
+ 
+ LogLevel LEVEL
+ SlowQueryTimeout SECONDS
+
+ ##-------------------------------------------------------------
+ ## Client-Thread Options
+ 
+ NumThreads NTHREADS
+ ThreadQueueSize QSIZE
+
+=cut
+
+########################################################################
+## Description
+=pod
+
+=head1 DESCRIPTION
+
+This section contains descriptions of the various options and flags
+which may occur in a DDC server opt-file as read by the
+C<ddc_daemon> program versions v2.1.0 and later.
+
+Note that corpus option-files (F<CORPUS.opt>) are documented independently;
+see L<ddc_opt(5)|ddc_opt> for details.
+
+=cut
+
+##==============================================================
+## Option Processor Directives
+=pod
+
+=head2 Option Processor Directives
+
+=head3 #comment
+
+=head3 //comment
+
+Comments are lines starting with a literal hash-mark (C<#>) or two adjacent slashes (C<//>).
+Such lines are ignored by the option processor.
+
+=head3 include
+
+ include "OPTFILE"
+
+The C<include> directive reads in the contents of an external server-opt file at the
+current position.  If OPTFILE is a relative pathname, it is interpreted relative
+to the directory containing the file currently being parsed.
+
+=cut
+
+##==============================================================
+## Logging Options
+=pod
+
+=head2 LoggingOptions
+
+The following options control the verbosity of server log messages.
+
+=head3 LogLevel
+
+ LogLevel LEVEL
+
+Aliases: LogLevel, Log, Verbose
+
+Set the default maximum log-level for server messages to I<LEVEL>,
+which should be one of the following:
+
+=over 4
+
+=item silent
+
+Suppress (almost) all log messages.
+Aliaes: silent, none, no, off.
+
+=item error
+
+Log only error messages.
+Aliases: error, errors.
+
+=item warning
+
+Log error and warning messages.
+Aliases: warn, warning, warnings.
+
+=item info
+
+Log errors, warnings, and basic info messages.
+Aliases: info, default, weak, light.
+
+=item debug
+
+Log errors, warning, info, and debugging messages.
+Aliases: debug, medium.
+
+=item trace
+
+Log everything we can.
+Aliases: trace, heavy.
+
+=back
+
+
+
+=head3 SlowQueryTimeout
+
+ SlowQueryTimeout SECONDS
+
+Aliases: SlowQueryTime
+
+Default: 10
+
+Log any requests whose processing requires at least I<SECONDS> second(s) as "slow queries".
+I<SECONDS> is parsed as a double-precision float, so non-integral numbers can be specified,
+but will only be meaningful if DDC was compiled with high-resolution clock support -- in
+this case, your DDC logs should show nanosecond resolution.
+
+=cut
+
+
+##==============================================================
+## Client-Thread Options
+=pod
+
+=head2 Client-Thread Options
+
+The following options control the behavior of per-client "worker" threads.
+
+=head3 NumThreads
+
+ NumThreads NTHREADS
+
+Aliases: NumThreads, NThreads, Threads, NumWorkers, NWorkers, Workers
+
+Default: 0
+
+Specifies the number of client worker threads to be used.
+If I<NTHREADS> is zero (the default), no client
+worker-threads are created and C<ddc_daemon> runs in pure serial mode,
+as for DDC E<lt> v2.1.0.
+Otherwise,
+I<NTHREADS> worker threads will be initialized on server startup for
+each server node (branch- or leaf-server), in addition to the
+"main" server threads themselves (which are always allocated),
+and C<ddc_daemon> will be started in "client-thread" mode.
+In this mode, the "main" server threads are only responsible
+for accepting incoming client connections and enqueueing them
+for later processing by a worker thread, so that up to
+I<NTHREADS> simultaneous client connections can be handled
+in parallel.
+
+=head3 ThreadQueueSize
+
+ ThreadQueueSize QSIZE
+
+Aliases: ThreadQueueSize, QueueSize, QSize
+
+Default: 256
+
+Specifies the maximum number of pending client connections in the
+work queue in client-thread mode (see L</NumThreads>).
+If all worker threads are occupied
+and I<QSIZE> additional client connections have been accepted and
+enqueued for processing, then the main accepting server thread will block
+until the queue shrinks below I<QSIZE> before enqueueing any new client
+connection -- this basically just pushes the burden of client-queueing
+beyond I<QSIZE> to the TCP stack.
+
+=cut
+
+########################################################################
+## Footer
+=pod
+
+=head1 ACKNOWLEDGEMENTS
+
+Alexey Sokirko wrote the original DDC.
+
+=head1 AUTHOR
+
+Bryan Jurish E<lt>jurish@bbaw.deE<gt>
+
+=head1 SEE ALSO
+
+ddc_opt(5),
+ddc_daemon(1)
+
+=cut
+
+
