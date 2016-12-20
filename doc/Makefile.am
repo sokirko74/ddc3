@@ -13,7 +13,7 @@ include $(top_srcdir)/m4/pod2x.am
 ##-----------------------------------------------------------------------
 ## pods
 
-HTML_PODS = ddc_opt.pod ddc_proto.pod ddc_tabs.pod ddc_server.opt.pod
+HTML_PODS = ddc_opt.pod ddc_proto.pod ddc_tabs.pod ddc_server.opt.pod ddc_cfg.pod
 POD_HTML  = $(HTML_PODS:.pod=.html)
 man5_PODS = $(HTML_PODS) ddc_query.pod
 

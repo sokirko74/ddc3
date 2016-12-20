@@ -1,0 +1,259 @@
+=encoding utf8
+
+=cut
+
+########################################################################
+## Header
+
+=pod
+
+=head1 DDC *.cfg FILE SYNTAX
+
+This manpage describes the syntax of
+the F<ddc_local_corpora.cfg> and F<ddc_server.cfg>
+files ("cfg-files") used by the DDC corpus indexing system.
+
+=cut
+
+##==============================================================
+## Description
+=pod
+
+=head1 DESCRIPTION
+
+Local cfg-files (F<ddc_local_corpora.cfg>) defines the terminal ("leaf") nodes
+of a DDC server dataflow tree which are to be handled by a single server process.
+Server cfg-files (F<ddc_server.cfg>) associate each local leaf node
+with at least one non-terminal ("branch") node, and may also incorporate
+external leaf or branch nodes as "opaque" nodes, as well as define
+"internal" branch nodes for the server dataflow tree.
+Prior to DDC v2.1.0, at most one branch-node could be declared
+in F<ddc_server.cfg>, and all leaf nodes had to be explicitly declared,
+since branch nodes could not be queried as opaque leaf-like nodes.
+
+All DDC cfg-files share a common basic format.
+Files are line-based, containing one server-node record per line.
+Blank lines (containing only whitespace) and comments
+(lines beginning with a hash-mark (C<#>) or double-slash (C<//>)) are ignored.
+Each content line should contain 3 or 4 fields separated by whitespace:
+
+ LABEL  ADDR  PORT  PATH
+
+=cut
+
+##==============================================================
+## Label
+=pod
+
+=head2 Label
+
+The first field specifies a symbolic I<LABEL> for the server node.
+Node labels should be unique within the scope of a single cfg-file.
+
+For server-config files C<ddc_server.cfg>, if I<LABEL> is either
+the string C<server> or begins with the prefix C<server:>,
+the corresponding server-node will be created as a
+branch-node (a C<CDDCBranchServer> object representing a non-terminal node in the server dataflow tree).
+Otherwise, the node is treated as an opaque (terminal) leaf-node.
+
+=cut
+
+##==============================================================
+## Addr
+=pod
+
+=head2 Addr
+
+The second field specifies the address I<ADDR> to be bound by a branch-node
+and/or that to be queried for a leaf-node.  If I<ADDR> is the
+special string C<0.0.0.0>, all available interfaces will be bound for
+a branch-node, while the loopback interface (C<127.0.0.1>) will be queried.
+
+=cut
+
+##==============================================================
+## Port
+=pod
+
+=head2 Port
+
+The third field specifies the TCP port-number I<PORT> to be bound
+by a branch-node and/or to be queried for a leaf-node.
+
+=cut
+
+##==============================================================
+## Path
+=pod
+
+=head2 Path
+
+The meaning fourth and final field I<PATH> differs between F<ddc_local_corpora.cfg> and F<ddc_server.cfg>.
+
+For F<ddc_local_corpora.cfg>, I<PATH> is required, and specifies the local path to the associated
+DDC project file (C<*.con>), relative to the DDC runtime root directory as stored
+in the environment variable C<$RML>
+
+For F<ddc_server.cfg>, I<PATH> is optional.  If non-empty, it specifies
+the L<I<LABEL>|/Label> of the node's parent in the dataflow tree,
+which should be a branch node.  If empty, the most recently declared
+branch-node is used as the parent.
+
+=cut
+
+##==============================================================
+## Examples
+=pod
+
+=head1 EXAMPLES
+
+=cut
+
+##==============================================================
+## Example 1
+=pod
+
+=head2 Example 1: Flat Dataflow
+
+=over 4
+
+=item ddc_local_corpora.cfg
+
+ sub1  0.0.0.0  50001  index/sub1/sub1.con
+ sub2  0.0.0.0  50002  index/sub1/sub2.con
+ sub3  0.0.0.0  50003  index/sub1/sub3.con
+ sub4  0.0.0.0  50004  index/sub1/sub4.con
+
+=item ddc_server.cfg
+
+ server 0.0.0.0   50000
+ sub1   127.0.0.1 50001
+ sub2   127.0.0.1 50002
+ sub3   127.0.0.1 50003
+ sub4   127.0.0.1 50004
+
+=back
+
+This example defines a basic "flat" dataflow tree with exactly 1 branch node ("server"),
+analagous to the dataflow trees supported by DDC E<lt> v2.1.0.
+
+         server
+   _________|_________
+   |     |     |     |
+  sub1  sub2  sub3  sub4
+
+=cut
+
+##==============================================================
+## Example 2
+=pod
+
+=head2 Example 2: External Leaf Nodes / Meta-Server
+
+=over 4
+
+=item ddc_local_corpora.cfg
+
+(empty)
+
+=item ddc_server.cfg
+
+ server 0.0.0.0   60000
+ ext1   127.0.0.1 60001
+ ext2   127.0.0.1 60002
+ ext3   127.0.0.1 60003
+ ext4   127.0.0.1 60004
+
+=back
+
+This example defines a basic "flat" dataflow tree with exactly 1 branch node
+as above, but without any local leaf nodes (sometimes called a "meta-server").
+All leaf nodes are assumed to be handled by external processes.
+
+             server
+   ____________|____________
+   |       |       |       |
+ (ext1)  (ext2)  (ext3)  (ext4)
+
+=cut
+
+##==============================================================
+## Example 3
+=pod
+
+=head2 Example 3: Internal Branch Nodes
+
+=over 4
+
+=item ddc_local_corpora.cfg
+
+ sub1  0.0.0.0  50001  index/sub1/sub1.con
+ sub2  0.0.0.0  50002  index/sub1/sub2.con
+ sub3  0.0.0.0  50003  index/sub1/sub3.con
+ sub4  0.0.0.0  50004  index/sub1/sub4.con
+
+=item ddc_server.cfg
+
+ server:root 0.0.0.0   50000
+
+ server:int1 0.0.0.0   50010 server:root
+ sub1        127.0.0.1 50001 server:int1
+ sub2        127.0.0.1 50002 server:int1
+
+ server:int2 0.0.0.0   50020 server:root
+ sub3        127.0.0.1 50003 server:int2
+ sub4        127.0.0.1 50004 server:int2
+
+=item ddc_server.cfg (alternate)
+
+Server declarations for leaf-nodes can be omitted if they are
+declared within the scope of the associated branch-nodes:
+
+ server:root 0.0.0.0   50000
+
+ server:int1 0.0.0.0   50010 server:root
+ sub1        127.0.0.1 50001
+ sub2        127.0.0.1 50002
+
+ server:int2 0.0.0.0   50020 server:root
+ sub3        127.0.0.1 50003
+ sub4        127.0.0.1 50004
+
+=back
+
+This example defines a binary-branching dataflow tree of depth 2,
+containing 2 internal branch nodes ("server:int1" and "server:int2")
+in addition to the root node ("server:root").  Requires ddc E<gt>= v2.1.0.
+
+         server:root
+       _______|_______
+       |             |
+  server:int1    server:int2
+   ___|___         ___|___
+   |     |         |     |
+  sub1  sub2      sub3  sub4
+
+
+=cut
+
+
+########################################################################
+## Footer
+=pod
+
+=head1 ACKNOWLEDGEMENTS
+
+Alexey Sokirko wrote the original DDC.
+
+=head1 AUTHOR
+
+Bryan Jurish E<lt>jurish@bbaw.deE<gt>
+
+=head1 SEE ALSO
+
+ddc_server.opt(5),
+ddc_daemon(1)
+
+=cut
+
+
