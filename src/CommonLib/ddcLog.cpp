@@ -1,7 +1,7 @@
-//-*- Mode: C++; c-basic-offset:4;-*-
+//-*- Mode: C++; c-basic-offset:8;-*-
 //
 //  DDC originally by Alexey Sokirko
-//  Changes and modifications 2011-2015 by Bryan Jurish
+//  Changes and modifications 2011-2016 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -35,6 +35,7 @@
 //----------------------------------------------------------------------
 // log levels
 
+const DDCLogLevel ddcLLUnknown = -1;
 const DDCLogLevel ddcLLSilent = 0;
 const DDCLogLevel ddcLLError  = 1;
 const DDCLogLevel ddcLLWarn   = 2;
@@ -79,6 +80,8 @@ DDCLogLevel GetLogLevel(const std::string& Name)
 		return ddcLLDebug;
 	else if (s=="trace")
 		return ddcLLTrace;
+	else if (s=="unknown")
+	    	return ddcLLUnknown;
 
 	//-- backwards-compatible log-level names
 	else if (s=="weak" || s=="light")
@@ -97,8 +100,19 @@ DDCLogLevel GetLogLevel(const std::string& Name)
 const char* DDCLogLevelName[6] = { "none", "error", "warning", "info", "debug", "trace" };
 const char* LogLevelName(DDCLogLevel Level)
 {
-	if (Level > ddcLLTrace) return "(unknown)";
+	if      (Level <= ddcLLUnknown) return "unknown";
+	else if (Level >  ddcLLTrace)   return "(undefined)";
 	return DDCLogLevelName[Level];
+}
+
+//----------------------------------------------------------------------
+DDCLogLevel SetLogLevel(DDCLogLevel Level)
+{
+	pthread_mutex_lock(&ddcLogMutex);
+	DDCLogLevel oldLevel = ddcLogLevel;
+	ddcLogLevel = Level;
+	pthread_mutex_unlock(&ddcLogMutex);
+	return oldLevel;
 }
 
 //----------------------------------------------------------------------

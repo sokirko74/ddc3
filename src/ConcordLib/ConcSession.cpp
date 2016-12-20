@@ -2212,7 +2212,7 @@ bool	CConcordance::LoadProject(const char* FileName)
 
 	ClearQueryCache();
 
-	if (!m_pIndexator->LoadProject (FileName))
+	if (!m_pIndexator->LoadProject(FileName))
 		return false;
 	
 	return 	true;

@@ -30,6 +30,7 @@
 
 //--------------------------------------------------------------
 CDDCServerOptions::CDDCServerOptions() :
+    m_LogLevel(ddcLLUnknown),
     m_SlowQueryTimeout(10),
     m_nWorkers(0),
     m_ThreadQueueSize(DDC_DEFAULT_THREAD_QUEUE_SIZE)
@@ -76,6 +77,8 @@ bool CDDCServerOptions::Set(const string& Option, const string& Value, const str
 
     if (Option.empty() || Option[0]=='#' || Option.find("//")==0)
 	return true;
+    else if (opt=="loglevel" || opt=="log" || opt=="verbose")
+	m_LogLevel = GetLogLevel(Value);
     else if (opt=="numthreads" || opt=="nthreads" || opt=="threads" || opt=="numworkers" || opt=="nworkers" || opt=="workers") {
 	m_nWorkers = strtoul(Value.c_str(),NULL,0);
     }
@@ -99,6 +102,7 @@ bool CDDCServerOptions::Set(const string& Option, const string& Value, const str
 string CDDCServerOptions::toString() const
 {
     return (string("")
+	    + "LogLevel " + LogLevelName(m_LogLevel) + "\n"
 	    + "NumThreads " + Format("%zu", m_nWorkers) + "\n"
 	    + "ThreadQueueSize " + Format("%zu", m_ThreadQueueSize) + "\n"
 	    + "SlowQueryTimeout " + Format("%g", m_SlowQueryTimeout) + "\n"

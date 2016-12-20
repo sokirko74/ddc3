@@ -1,7 +1,7 @@
 //-*- Mode: C++; c-basic-offset: 8; -*-
 //
 //  DDC originally by Alexey Sokirko
-//  Changes and modifications 2011-2015 by Bryan Jurish
+//  Changes and modifications 2011-2016 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -134,6 +134,30 @@ bool  CConcIndexator::ReadIndexTypeFromStr (const string& s)
 	return true;
 };
 
+static void EchoOption(const char* format, ...)
+{
+	if (ddcLogLevel >= ddcLLDebug) {
+		va_list arglst;
+		string echoFormat("  ");
+		echoFormat += format;
+		va_start(arglst, format);
+		ddcLog(vFormat(echoFormat.c_str(), arglst));
+		va_end(arglst);
+	}
+}
+
+static void EchoOptionLines(const std::string& Lines)
+{
+	if (ddcLogLevel >= ddcLLDebug) {
+		StringTokenizer tok(Lines.c_str(), "\n\r");
+		string l;
+		while (tok()) {
+			l = "  ";
+			l += tok.val();
+			ddcLog(l);
+		}
+	}
+}
 
 
 bool CConcIndexator::LoadOptionsFromString(string Options)
@@ -160,21 +184,16 @@ bool CConcIndexator::LoadOptionsFromString(string Options)
 			q = fields.get_rest();
 			Trim(q);
 			if ((q.length() < 2) || (q[0] != '\"') || (q[q.length() -1] != '\"'))
-			{
-				fprintf (stderr, "bad syntax in opt-file : %s!\n", s);
-				return false;
-			};
+				throw CExpc("could not parse opt-file directive `%s'", s);
 			string AddOptions;
 
 			//-- moo: interpret relative #include filenames wrt the directory containing the main .con file
 			string IncFileName = q.substr(1,q.length()-2);
 			string IncFileRelative = RelativeFileName(m_Path, IncFileName);
 			if (!LoadFileToString(IncFileRelative, AddOptions))
-			{
-				fprintf (stderr, "cannot load file \"%s\"!\n", IncFileRelative.c_str());
-				return false;
-			};
-			fprintf (stderr, "#include \"%s\"\n", IncFileName.c_str());
+				throw CExpc("failed to load included opt-file `%s'", IncFileRelative.c_str());
+
+			EchoOption("include \"%s\"", IncFileName.c_str());
 			Options = AddOptions+"\n"+lines.get_rest();
 			lines.reinitialize(Options.c_str(), "\n\r");
 		}
@@ -186,64 +205,49 @@ bool CConcIndexator::LoadOptionsFromString(string Options)
 		{
 			q = fields.next_token();
 			if (q.empty() )
-			{
-				fprintf (stderr, "bad syntax in opt-file : %s!\n", s);
-				return false;
-			};
+				throw CExpc("bad syntax opt-file: %s!", s);
 			m_LocalPathPrefix = q;
 		}
 		else if (q == "InternetPathPrefix")
 			{
 				q = fields.next_token();
 				if (q.empty() )
-				{
-					fprintf (stderr, "bad syntax in opt-file : %s!\n", s);
-					return false;
-				};
+					throw CExpc("bad syntax opt-file: %s!", s);
 
 				m_InternetPathPrefix = q;
 			}
 		else if (GetLanguageByString(q, langua))
 			{
-				fprintf (stderr,"%s\n", GetStringByLanguage (langua).c_str());
 				m_Language = langua;
+				EchoOption("%s", GetStringByLanguage(langua).c_str());
 			}
 		else if (q == "CaseInsensitive")
 			{
 				m_bCaseSensitive = !StringToBool(fields.next_token());
-				fprintf (stderr,"CaseInsensitive %s\n", BoolToString(m_bCaseSensitive));
+				EchoOption("CaseInsensitive %s", BoolToString(m_bCaseSensitive));
 			}
 		else if (q == "HtmlHighlighting")
 			{
 				if (!m_HtmlHighlighting.ReadFromString(fields.get_rest()))
-				{
-					fprintf (stderr,"Cannot parse HtmlHighlighting field\n");
-					return false;
-				};
-				fprintf (stderr,"HtmlHighlighting = \"%s\"\n", m_HtmlHighlighting.ToString().c_str());
+					throw CExpc("Cannot parse HtmlHighlighting declaration in opt-file");
+				EchoOption("HtmlHighlighting = \"%s\"\n", m_HtmlHighlighting.ToString().c_str());
 			}
 		else if (q == "TextHighlighting")
 			{
 				if (!m_TextHighlighting.ReadFromString(fields.get_rest()))
-				{
-					fprintf (stderr,"Cannot parse TextHighlighting field\n");
-					return false;
-				};
-				fprintf (stderr,"TextHighlighting = \"%s\"\n", m_TextHighlighting.ToString().c_str());
+					throw CExpc("Cannot parse TextHighlighting declaration in opt-file");
+				EchoOption("TextHighlighting = \"%s\"\n", m_TextHighlighting.ToString().c_str());
 			}
 		else if (q == "TableHighlighting")
 			{
 				if (!m_TableHighlighting.ReadFromString(fields.get_rest()))
-				{
-					fprintf (stderr,"Cannot parse TableHighlighting field\n");
-					return false;
-				};
-				fprintf (stderr,"TableHighlighting = \"%s\"\n", m_TableHighlighting.ToString().c_str());
+					throw CExpc("Cannot parse TableHighlighting declaration in opt-file");
+				EchoOption("TableHighlighting = \"%s\"\n", m_TableHighlighting.ToString().c_str());
 			}
 		else if (q == "ShowNumberOfRelevantDocuments")
 			{
 				m_bShowNumberOfRelevantDocuments = StringToBool(fields.next_token());
-				fprintf (stderr,"ShowNumberOfRelevantDocuments %s\n", BoolToString(m_bShowNumberOfRelevantDocuments));
+				EchoOption("ShowNumberOfRelevantDocuments %s", BoolToString(m_bShowNumberOfRelevantDocuments));
 			}
 		else if (q == FreeBiblAttribOptionFieldName)
 			{
@@ -260,12 +264,12 @@ bool CConcIndexator::LoadOptionsFromString(string Options)
 		else if (q == "QueryOnlyFiles")
 			{
 				m_bQueryOnlyFiles = StringToBool(fields.next_token());
-				fprintf (stderr,"QueryOnlyFiles %s\n", BoolToString(m_bQueryOnlyFiles));
+				EchoOption("QueryOnlyFiles %s", BoolToString(m_bQueryOnlyFiles));
 			}
 		else if (q == "NoContextOperator")
 			{
 				m_bNoContextOperator = StringToBool(fields.next_token());
-				fprintf (stderr,"NoContextOperator %s\n", BoolToString(m_bNoContextOperator));
+				EchoOption("NoContextOperator %s", BoolToString(m_bNoContextOperator));
 			}
 			
 		else if (q == "EmptyLineIsNotSentenceDelim")
@@ -279,14 +283,14 @@ bool CConcIndexator::LoadOptionsFromString(string Options)
 		else if (q == "UseDwdsThesaurus")
 			{
 				m_bUseDwdsThesaurus = StringToBool(fields.next_token());
-				fprintf (stderr,"UseDwdsThesaurus %s\n", BoolToString(m_bUseDwdsThesaurus));
+				EchoOption("UseDwdsThesaurus %s", BoolToString(m_bUseDwdsThesaurus));
 			}
 		else if (q == "MaxRegExpExpansionSize")
 			{
 				q = fields.next_token();
 				if (!q.empty()) {
 					m_MaxRegExpExpansionSize = atoi(q.c_str());
-					fprintf (stderr,"MaxRegExpExpansionSize = %zi\n", m_MaxRegExpExpansionSize);
+					EchoOption("MaxRegExpExpansionSize = %zi", m_MaxRegExpExpansionSize);
 				}
 			}
 		else if (q == "MaxCachedHitsCount")
@@ -294,7 +298,7 @@ bool CConcIndexator::LoadOptionsFromString(string Options)
 				q = fields.next_token();
 				if (!q.empty()) {
 					m_MaxCachedHitsCount = atoi(q.c_str());
-					fprintf(stderr, "MaxCachedHitsCount = %zi\n", m_MaxCachedHitsCount);
+					EchoOption("MaxCachedHitsCount = %zi", m_MaxCachedHitsCount);
 				}
 			}
 		else if (q == "MaxQueryCacheSize")
@@ -302,7 +306,7 @@ bool CConcIndexator::LoadOptionsFromString(string Options)
 				q = fields.next_token();
 				if (!q.empty()) {
 					m_MaxQueryCacheSize = atoi(q.c_str());
-					fprintf(stderr, "MaxQueryCacheSize = %zi\n", m_MaxQueryCacheSize);
+					EchoOption("MaxQueryCacheSize = %zi", m_MaxQueryCacheSize);
 				}
 			}
 		else if (q == "RightKwicContextSize")
@@ -311,7 +315,7 @@ bool CConcIndexator::LoadOptionsFromString(string Options)
 				if (!q.empty()) 
 				{
 					m_RightKwicContextSize = atoi(q.c_str());
-					fprintf (stderr,"RightKwicContextSize = %i\n", m_RightKwicContextSize);
+					EchoOption("RightKwicContextSize = %i", m_RightKwicContextSize);
 				}
 				else
 					return false;
@@ -322,7 +326,7 @@ bool CConcIndexator::LoadOptionsFromString(string Options)
 				if (!q.empty()) 
 				{
 					m_LeftKwicContextSize = atoi(q.c_str());
-					fprintf (stderr,"LeftKwicContextSize = %i\n", m_LeftKwicContextSize);
+					EchoOption("LeftKwicContextSize = %i", m_LeftKwicContextSize);
 				}
 				else
 					return false;
@@ -333,7 +337,7 @@ bool CConcIndexator::LoadOptionsFromString(string Options)
 				if (!q.empty()) 
 				{
 					m_NumberOfKwicLinesInSnippets = atoi(q.c_str());
-					fprintf (stderr,"NumberOfKwicLinesInSnippets = %i\n", m_NumberOfKwicLinesInSnippets);
+					EchoOption("NumberOfKwicLinesInSnippets = %i", m_NumberOfKwicLinesInSnippets);
 				}
 				else
 					return false;
@@ -344,7 +348,7 @@ bool CConcIndexator::LoadOptionsFromString(string Options)
 				if (!q.empty()) 
 				{
 					m_TfIdfRank = atof(q.c_str());
-					fprintf (stderr,"TfIdfRank = %f\n", m_TfIdfRank);
+					EchoOption("TfIdfRank = %f", m_TfIdfRank);
 				}
 				else
 					return false;
@@ -355,7 +359,7 @@ bool CConcIndexator::LoadOptionsFromString(string Options)
 				if (!q.empty()) 
 				{
 					m_PositionRank = atof(q.c_str());
-					fprintf (stderr,"PositionRank = %f\n", m_PositionRank);
+					EchoOption("PositionRank = %f", m_PositionRank);
 				}
 				else
 					return false;
@@ -363,24 +367,18 @@ bool CConcIndexator::LoadOptionsFromString(string Options)
 		else if (q == "InterpDelimiter" || q == "InterpDelimeter")
 			{
 				q = fields.next_token();
-				if (q.empty())  
-				{
-					fprintf (stderr,"InterpDelimiter is not set!\n");
-					return false;
-				}
+				if (q.empty())
+					throw CExpc("Cannot parse InterpDelimiter declaration in opt-file: %s", s);
 				m_InterpDelimiter = unescapeCString(q);
-				fprintf (stderr,"InterpDelimiter = \"%s\"\n", m_InterpDelimiter.c_str());
+				EchoOption("InterpDelimiter = \"%s\"\n", m_InterpDelimiter.c_str());
 			}
 		else if (q == "TokenDelimiter" || q == "TokenDelimeter")
 			{
 				q = fields.next_token();
-				if (q.empty())  
-				{
-					fprintf (stderr,"TokenDelimiter is not set!\n");
-					return false;
-				}
+				if (q.empty())
+					throw CExpc("Cannot parse TokenDelimiter declaration in opt-file: %s", s);
 				m_TokenDelimiter = unescapeCString(q);
-				fprintf (stderr,"TokenDelimiter = \"%s\"\n", m_TokenDelimiter.c_str());
+				EchoOption("TokenDelimiter = \"%s\"\n", m_TokenDelimiter.c_str());
 			}
 		else if (q == "Utf8")
 			{
@@ -389,17 +387,17 @@ bool CConcIndexator::LoadOptionsFromString(string Options)
 		else if (q == "AllowUnsafeQueries")
 			{
 				m_bAllowUnsafeQueries = StringToBool(fields.next_token());
-				fprintf (stderr,"AllowUnsafeQueries %s\n", BoolToString(m_bAllowUnsafeQueries));
+				EchoOption("AllowUnsafeQueries %s", BoolToString(m_bAllowUnsafeQueries));
 			}
 		else if (q == "AllowCountByTokenAttributes")
 			{
 				m_bAllowCountByTokenAttributes = StringToBool(fields.next_token());
-				fprintf (stderr,"AllowCountByTokenAttributes %s\n", BoolToString(m_bAllowCountByTokenAttributes));
+				EchoOption("AllowCountByTokenAttributes %s", BoolToString(m_bAllowCountByTokenAttributes));
 			}
 		else if (q == "LemmaQueryUsesMorphPattern")
 			{
 				m_bLemmaQueryUsesMorphPattern = StringToBool(fields.next_token());
-				fprintf (stderr, "bLemmaQueryUsesMorphPattern %s\n", BoolToString(m_bLemmaQueryUsesMorphPattern));
+				EchoOption("bLemmaQueryUsesMorphPattern %s", BoolToString(m_bLemmaQueryUsesMorphPattern));
 			}
 		else if (q == "IndicesToShow")
 			{
@@ -409,27 +407,19 @@ bool CConcIndexator::LoadOptionsFromString(string Options)
 				while (!q.empty())
 				{
 					if (q == "0") 
-					{
-						fprintf (stderr,"Error! IndicesToShow must start from 1\n");
-						return false;
-					}
+						throw CExpc("minimum index value for IndicesToShow is 1 (one)");
 					int a = atoi(q.c_str());
 					if (!a)
-					{
-						fprintf (stderr,"Error! Bad format of IndicesToShow, it must be a blank separated list of integers (started from 1!)!\n");
-						return false;
-					}
-					for (size_t j=0; j<q.length(); j++)
+						throw CExpc("failed to parse IndicesToShow value - it should be a whitespace-separated list of integers (min=1)");
+					for (size_t j=0; j<q.length(); j++) {
 						if (!isdigit((BYTE)q[j]))
-						{
-							fprintf (stderr,"Error! Bad format of IndicesToShow, it must be a blank separated list of integers (started from 1!)!\n");
-							return false;
-						}
+							throw CExpc("failed to parse IndicesToShow value - it should be a whitespace-separated list of integers (min=1)");
+					}
 
 					m_IndicesToShow.push_back(a-1);
 					q = fields.next_token();
 				}
-				fprintf (stderr,"IndicesToShow is initialized with %zi values\n", m_IndicesToShow.size());
+				EchoOption("IndicesToShow is initialized with %zi values", m_IndicesToShow.size());
 			}
 		else if (q == "NearRank")
 			{
@@ -437,7 +427,7 @@ bool CConcIndexator::LoadOptionsFromString(string Options)
 				if (!q.empty()) 
 				{
 					m_NearRank = atof(q.c_str());
-					fprintf (stderr,"NearRank = %f\n", m_NearRank);
+					EchoOption("NearRank = %f", m_NearRank);
 				}
 				else
 					return false;
@@ -447,21 +437,18 @@ bool CConcIndexator::LoadOptionsFromString(string Options)
 			{
 				q = fields.next_token();
 				if (!ReadIndexTypeFromStr(q)) 
-				{
-					fprintf (stderr,"Unknown value for IndexType\n");
-					return false;
-				}
-				fprintf (stderr,"IndexType %s\n", GetIndexTypeStr());
+					throw CExpc("Unknown value `%s' for IndexType in opt-file", q.c_str());
+				EchoOption("IndexType %s", GetIndexTypeStr());
 			}
 		else if (q == "GutenbergInterface")
 			{
 				m_bGutenbergInterface = StringToBool(fields.next_token());
-				fprintf (stderr,"GutenbergInterface %s\n", BoolToString(m_bGutenbergInterface));
+				EchoOption("GutenbergInterface %s", BoolToString(m_bGutenbergInterface));
 			}
 		else if (q == "DwdsCorpusInterface")
 			{
 				m_bDwdsCorpusInterface = StringToBool(fields.next_token());
-				fprintf (stderr,"DwdsCorpusInterface %s\n", BoolToString(m_bDwdsCorpusInterface));
+				EchoOption("DwdsCorpusInterface %s", BoolToString(m_bDwdsCorpusInterface));
 			}
 		else if (q == "Bigrams")
 			{
@@ -478,37 +465,37 @@ bool CConcIndexator::LoadOptionsFromString(string Options)
 		else if (q == "IndexPunctuation")
 			{
 				m_bIndexPunctuation = StringToBool(fields.next_token());
-				fprintf (stderr,"IndexPunctuation %s\n", BoolToString(m_bIndexPunctuation));
+				EchoOption("IndexPunctuation %s", BoolToString(m_bIndexPunctuation));
 			}
 		else if (q == "ResumeOnIndexErrors")
 			{
 				m_bResumeOnIndexErrors = StringToBool(fields.next_token());
-				fprintf (stderr,"ResumeOnIndexErrors %s\n", BoolToString(m_bResumeOnIndexErrors));
+				EchoOption("ResumeOnIndexErrors %s", BoolToString(m_bResumeOnIndexErrors));
 			}
 		else if (q == "IndexMorphPatterns")
 			{
 				m_bIndexMorphPatterns = StringToBool(fields.next_token());
-				fprintf (stderr,"IndexMorphPatterns %s\n", BoolToString(m_bIndexMorphPatterns));
+				EchoOption("IndexMorphPatterns %s", BoolToString(m_bIndexMorphPatterns));
 			}
 		else if (q == "DisableDefaultQueryLexicalExpansion")
 			{
 				m_bDisableDefaultQueryLexicalExpansion = StringToBool(fields.next_token());
-				fprintf (stderr,"DisableDefaultQueryLexicalExpansion %s\n", BoolToString(m_bDisableDefaultQueryLexicalExpansion));
+				EchoOption("DisableDefaultQueryLexicalExpansion %s", BoolToString(m_bDisableDefaultQueryLexicalExpansion));
 			}
 		else if (q == "ArchiveIndex")
 			{
 				m_bArchiveIndex = StringToBool(fields.next_token());
-				fprintf (stderr,"ArchiveIndex %s\n", BoolToString(m_bArchiveIndex));
+				EchoOption("ArchiveIndex %s", BoolToString(m_bArchiveIndex));
 			}
 		else if (q == "OutputBibliographyOfHits")
 			{
 				m_bOutputBibliographyOfHits = StringToBool(fields.next_token());
-				fprintf (stderr,"OutputBibliographyOfHits %s\n", BoolToString(m_bOutputBibliographyOfHits));
+				EchoOption("OutputBibliographyOfHits %s", BoolToString(m_bOutputBibliographyOfHits));
 			}
 		else if (q == "IndexChunks")
 			{
 				m_bIndexChunks = StringToBool(fields.next_token());
-				fprintf (stderr,"IndexChunks %s\n", BoolToString(m_bIndexChunks));
+				EchoOption("IndexChunks %s", BoolToString(m_bIndexChunks));
 			}
 		else if (q == "UserMaxTokenCountInOnePeriod")
 			{
@@ -518,13 +505,9 @@ bool CConcIndexator::LoadOptionsFromString(string Options)
 					m_bUserMaxTokenCountInOnePeriod = true;
 					m_UserMaxTokenCountInOnePeriod = atoi(q.c_str());
 					
-
-					fprintf (stderr,"UserMaxTokenCountInOnePeriod = %i\n", m_UserMaxTokenCountInOnePeriod);
+					EchoOption("UserMaxTokenCountInOnePeriod = %i", m_UserMaxTokenCountInOnePeriod);
 					if (m_UserMaxTokenCountInOnePeriod == 0)
-					{
-						fprintf (stderr,"ERROR: UserMaxTokenCountInOnePeriod: must be >= 65000, but got `%s'!\n", q.c_str());
-						return false;
-					};
+						throw CExpc("UserMaxTokenCountInOnePeriod must be > 0, but got `%s' (==0)!", q.c_str());
 				};
 				
 			}
@@ -532,23 +515,19 @@ bool CConcIndexator::LoadOptionsFromString(string Options)
 			//-- term expander
 			string tx_spec(fields.get_rest());
 			CTermExpander *tx = m_Txd.addExpander(tx_spec);
-			if (tx==NULL) {
-				fprintf(stderr, "ERROR: could not create term-expander for spec `%s'\n", tx_spec.c_str());
-				return false;
-			}
+			if (tx==NULL)
+				throw CExpc("could not create term-expander for spec `%s'", tx_spec.c_str());
 			tx->compile();
-			fprintf(stderr, "Expand %s\n", tx->configString().c_str());
+			EchoOption("Expand %s", tx->configString().c_str());
 		}
 		else if (q == "ExpandBibl") {
 			//-- bibliographic expander
 			string bx_spec(fields.get_rest());
 			CBiblExpander *bx = m_Bibl.AddBiblExpander(bx_spec);
-			if (bx==NULL) {
-				fprintf(stderr, "ERROR: could not create bibliographic expander for spec `%s'\n", bx_spec.c_str());
-				return false;
-			}
+			if (bx==NULL)
+				throw CExpc("could not create bibliographic expander for spec `%s'", bx_spec.c_str());
 			bx->compile();
-			fprintf(stderr, "ExpandBibl %s\n", bx->configString().c_str());
+			EchoOption("ExpandBibl %s", bx->configString().c_str());
 		}
 		else if (q == "DefaultQueryIndex") {
 			string query_op   = fields.next_token();
@@ -557,7 +536,7 @@ bool CConcIndexator::LoadOptionsFromString(string Options)
 		}
 		else if (q == "DefaultBibl") {
 			m_Bibl.m_DefaultAttrName = fields.next_token();
-			fprintf(stderr, "DefaultBibl %s\n", m_Bibl.m_DefaultAttrName.c_str());
+			EchoOption("DefaultBibl %s", m_Bibl.m_DefaultAttrName.c_str());
 		}
 		else if (q == "ServerInfo") {
 			string info_key = unescapeCString(fields.next_token());
@@ -571,17 +550,12 @@ bool CConcIndexator::LoadOptionsFromString(string Options)
 		}
 		else
 		{
-			fprintf (stderr, "bad syntax in opt-file : %s!\n", q.c_str());
-			return false;
-		};
-	};
-
+			throw CExpc("bad syntax in opt-file : %s!", q.c_str());
+		}
+	}
 
 	if (m_Language == morphUnknown)
-	{
-		ErrorMessage ("There is no language definition in the options file");
-		return false;
-	};
+		throw CExpc("no language definition found in the options file");
 
 	//-- set utf-8 flag
 	if (m_Utf8) {
@@ -593,9 +567,9 @@ bool CConcIndexator::LoadOptionsFromString(string Options)
 			setlocale(LC_CTYPE,LC_CTYPE_UTF8_DEFAULT);
 			lc_ctype = setlocale(LC_CTYPE,NULL);
 		}
-		fprintf (stderr,"Utf8 mode enabled (LC_CTYPE=%s)\n", lc_ctype);
+		EchoOption("Utf8 enabled (LC_CTYPE=%s)", lc_ctype);
 	} else {
-		fprintf (stderr,"Utf8 mode disabled\n");
+		EchoOption("Utf8 disabled");
 	}
 
 	//-- ensure default expanders exist
@@ -612,100 +586,72 @@ bool CConcIndexator::LoadOptionsFromString(string Options)
 	switch (m_IndexType) 
 	{
 		case MorphXML_Index: 	IndicesStr = Format("[Token w %s];[MorphPattern m %s];[Lemma l %s]", 
-									ArchiveType,
-									ArchiveType,
-									ArchiveType);
-								break;
+							    ArchiveType,
+							    ArchiveType,
+							    ArchiveType);
+					break;
 
 		case DWDS_Index:	IndicesStr = Format("[Token w %s];",ArchiveType);
-							if (m_bIndexMorphPatterns)
-								IndicesStr += Format("[MorphPattern m %s];",ArchiveType);
-							if (m_bUseDwdsThesaurus)
-								IndicesStr += Format("[Thes t %s];",ArchiveType);
-							break;
+					if (m_bIndexMorphPatterns)
+						IndicesStr += Format("[MorphPattern m %s];",ArchiveType);
+					if (m_bUseDwdsThesaurus)
+						IndicesStr += Format("[Thes t %s];",ArchiveType);
+					break;
 
-		case Free_Index:	if ( IndicesStr.empty() )
-							{
-								fprintf (stderr, "Error! Cannot find an index definition in the options file.\n");
-								return false;
-							};
-							break;
+		case Free_Index:        if ( IndicesStr.empty() )
+					     throw CExpc("Error! Cannot find an index definition in the options file.");
+					break;
 	};
 
 	if (!RegisterStringIndices(IndicesStr))
-	{
-		fprintf (stderr," Cannot parse index definition: %s\n", IndicesStr.c_str());
-		return false;
-	};
+		throw CExpc("cannot parse index definition `%s'", IndicesStr.c_str());
 
 
 
 
 	if (m_bIndexChunks)
 		if (!RegisterChunkIndex())
-		{
-			fprintf (stderr, "cannot register predefined chunk index!\n");
-			return false;
-		};
+			throw CExpc("cannot register predefined chunk index!");
 
-	fprintf (stderr," indices = %s\n", GetIndicesString().c_str() );
+	EchoOption("indices = %s", GetIndicesString().c_str() );
 	
 	switch (m_IndexType) {
 		case MorphXML_Index:	HitTypesStr = "[s:sentence:default]";
-								break;
+					break;
 
 		case DWDS_Index:	if (!m_bQueryOnlyFiles)
-								HitTypesStr = "[s:sentence:default]";
-							break;
+						HitTypesStr = "[s:sentence:default]";
+					break;
 
 		case Free_Index:	if ( HitTypesStr.empty() )
-							{
-								fprintf (stderr, "Error! Cannot find a hit types definition in the options file.\n");
-								return false;
-							};
-							break;
+						throw CExpc("Error! Cannot find a hit types definition in the options file.");
+					break;
 	};
 
 
 	string ErrorStr;
 	if (!m_Bibl.RegisterFreeBiblAttributes(FreeBiblDescr, ErrorStr))
-	{
-		ErrorMessage( Format("Cannot parse %s\n (%s)", FreeBiblDescr.c_str(), ErrorStr.c_str()) );
-		return false;
-	}
-	fprintf (stderr,"%s", m_Bibl.GetFreeBibiAttributesDescr().c_str());
-
-	if (!m_Bibl.m_DefaultAttrName.empty() && !m_Bibl.IsRegisteredBiblField(m_Bibl.m_DefaultAttrName)) {
-		ErrorMessage(Format("DefaultBibl target field `%s' is undefined", m_Bibl.m_DefaultAttrName.c_str()));
-		return false;
-	}
+		throw CExpc("Cannot parse Bibl declaration `%s' (%s)", FreeBiblDescr.c_str(), ErrorStr.c_str());
+	EchoOptionLines(m_Bibl.GetFreeBibiAttributesDescr());
+	
+	if (!m_Bibl.m_DefaultAttrName.empty() && !m_Bibl.IsRegisteredBiblField(m_Bibl.m_DefaultAttrName))
+		throw CExpc("DefaultBibl target field `%s' is undefined", m_Bibl.m_DefaultAttrName.c_str());
 
 	if (!m_Bibl.RegisterTextAreas(TextAreasDescr, ErrorStr))
-	{
-		ErrorMessage( Format("Cannot parse %s\n (%s)", TextAreasDescr.c_str(), ErrorStr.c_str()));
-		return false;
-	}
-	fprintf (stderr,"%s", m_Bibl.GetTextAreasDescr().c_str());
+		throw CExpc("Cannot parse TextArea declaration `%s' (%s)", TextAreasDescr.c_str(), ErrorStr.c_str());
+	EchoOptionLines(m_Bibl.GetTextAreasDescr());
 
 	if (!RegisterBorderIndices(HitTypesStr.c_str()))
-	{
-		fprintf (stderr," Cannot parse %s\n", HitTypesStr.c_str());
-		return false;
-	};
-	fprintf (stderr," HitBorders = %s\n", GetBorderIndicesString().c_str());
+		throw CExpc("Cannot parse HitBorders declaration %s", HitTypesStr.c_str());
+	EchoOption("HitBorders = %s", GetBorderIndicesString().c_str());
 
 	for(size_t i=0; i < m_IndicesToShow.size(); i++)
 	{
 		if (m_IndicesToShow[i] >= m_Indices.size())
-		{
-			fprintf (stderr,"Error! index %zi specified in IndicesToShow is out of range\n", m_IndicesToShow[i]);
-			return false;
-		}
+			throw CExpc("Error! index %zi specified in IndicesToShow is out of range", m_IndicesToShow[i]);
+
 		if (!m_Indices[m_IndicesToShow[i]]->m_bUseItemStorage)
-		{
-			fprintf (stderr,"Error! index %zi has no storage\n", m_IndicesToShow[i]);
-			return false;
-		}
+			throw CExpc("Error! index %zi in IndicesToShow has no storage class", m_IndicesToShow[i]);
 	}
 
 	//-- propagate regex-related options to m_Bibl
@@ -794,10 +740,7 @@ string CConcIndexator::SaveOptionsToString()  const
 	if (m_PositionRank != 0.3)
 		Result += Format("PositionRank %f\n", m_PositionRank);
 	if (m_InterpDelimiter != "#")
-	{
 		Result += Format("InterpDelimiter  %s\n", m_InterpDelimiter.c_str()  );
-		
-	}
 	if (m_IndicesToShow.size() > 1 || (m_IndicesToShow.size() == 1 &&  m_IndicesToShow[0] != 0))
 	{
 		string s = "IndicesToShow ";

@@ -32,6 +32,9 @@ public:
     //--------------------------------------------------------------
     // logging
 
+    /** default log level (clobbers global ddcLogLevel if anything other than ddcLLUnknown) */
+    DDCLogLevel m_LogLevel;
+
     /** upper-bound in seconds for "slow" queries (default=10); see CDDCServer::m_SlowQueryTimeout */
     double m_SlowQueryTimeout;
    

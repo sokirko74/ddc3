@@ -109,6 +109,8 @@ void CDDCServer::Shutdown(bool quiet)
 //----------------------------------------------------------------------
 void CDDCServer::SetOptions(const CDDCServerOptions &Options)
 {
+    if (Options.m_LogLevel > ddcLLUnknown)
+	SetLogLevel(Options.m_LogLevel);
     m_SlowQueryTimeout = Options.m_SlowQueryTimeout;
     m_nWorkers = Options.m_nWorkers;
     m_ThreadQueueSize = Options.m_ThreadQueueSize;

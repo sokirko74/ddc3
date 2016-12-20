@@ -118,7 +118,7 @@ void UnloadData()
 };
 
 void ShutdownServerSockets() {
-	ddcLog("shutting down server socket(s)");
+	ddcLogInfo("shutting down server socket(s)");
 	ShutdownDDCServer();
 	ShutdownLocalCorpora();
 };
@@ -128,14 +128,14 @@ void  termination_handler(int signum)
 {
 	ShutdownServerSockets();
 	UnloadData();
-	ddcLog("Exiting from concordance");
+	ddcLogInfo("Exiting from concordance");
 	exit(1);
 };
 
 int puke(const std::string& msg) {
 	fputs(msg.c_str(), stdout);
 	fputc('\n', stdout);
-	ddcLog(msg);
+	ddcLogError(msg);
 	UnloadData();
 	RemoveLockFile();
 	SocketDeinitialize();
@@ -185,6 +185,10 @@ int do_stop(void)
 int do_start(bool clientMode=false)
 {
       try {
+      //-- clobber global log-level from server options
+      if (ServerOptions.m_LogLevel > ddcLLUnknown)
+	      SetLogLevel(ServerOptions.m_LogLevel);
+
       string startmsg = Format("Starting ddc_daemon v" PACKAGE_VERSION " in %s %s mode with log-level `%s'",
 				 (doFork ? "forked" : "unforked"),
 				 (clientMode ? "client" : "server"),
@@ -216,13 +220,14 @@ int do_start(bool clientMode=false)
 	}
 
 	//-- show server options
-	ddcLogInfo( "ServerOptions:" );
-	vector<string> srvOptLines = stringSplitE(ServerOptions.toString(),"\n");
-	for (vector<string>::const_iterator li=srvOptLines.begin(); li!=srvOptLines.end(); ++li) {
-		ddcLogInfo(string("    ")+*li);
+	if (ddcLogLevel >= ddcLLInfo) {
+		ddcLog( "ServerOptions:" );
+		vector<string> srvOptLines = stringSplitE(ServerOptions.toString(),"\n");
+		for (vector<string>::const_iterator li=srvOptLines.begin(); li!=srvOptLines.end(); ++li) {
+			ddcLog(string("    ")+*li);
+		}
+		ClearVector(srvOptLines);
 	}
-	ClearVector(srvOptLines);
-	
 
 	if (!clientMode) {		
 		// running as a daemon
@@ -260,23 +265,23 @@ int do_start(bool clientMode=false)
 
 
 	//syslog(LOG_ALERT, "Open	lock file `%s'\n", LockFileName.c_str());
-	ddcLog(Format("Open lock file `%s'", LockFileName.c_str()));
+	ddcLogDebug(Format("Open lock file `%s'", LockFileName.c_str()));
 	FILE* fp = fopen (LockFileName.c_str(),	"w");
 	if (!fp) {
-		ddcLog(Format("Cannot open lock-file `%s': %s",	LockFileName.c_str(), StrError(errno)));
+		ddcLogError(Format("Cannot open lock-file `%s': %s",	LockFileName.c_str(), StrError(errno)));
 		return 1;
 	}
 	fprintf(fp, "%i", getpid());
 	fclose (fp);
-	ddcLog (Format("Wrote PID=%i to lock-file `%s'", getpid(), LockFileName.c_str()));
+	ddcLogDebug(Format("Wrote PID=%i to lock-file `%s'", getpid(), LockFileName.c_str()));
 
-	ddcLog ("SocketInitialize");
+	ddcLogDebug("SocketInitialize");
 	SocketInitialize(false);
 
-	ddcLog ("InitLemmatizers");
+	ddcLogDebug("InitLemmatizers");
 	if (!InitConcordDicts())
 		{
-			ddcLog ("Cannot load Morphology");
+			ddcLogDebug("Cannot load Morphology");
 			//SocketDeinitialize();
 			//return 1;
 		
@@ -285,10 +290,10 @@ int do_start(bool clientMode=false)
 	sprintf(log_label, "server-main[pid=%i]", getpid());
 	ddc_thread_init(log_label);
 
-	ddcLog (string("LoadCorpora (CWD=") + CurrentDirectory() + ")");
+	ddcLogInfo(string("LoadCorpora (CWD=") + CurrentDirectory() + ")");
 	LoadLocalCorpora(CorporaFile, ServerOptions);
 
-	ddcLog ("LoadServer");
+	ddcLogInfo("LoadServer");
 	LoadDDCServer(ServerCorporaFile, ServerOptions);
 
 	//-- moo 2016-12-20: wtf is this?  it looks like a no-op (ignore signal handlers only if they're already ignored)
@@ -390,7 +395,7 @@ int	main(int argc, char	**argv)
 		else if (s == "--verbose" || s=="-v" || s=="--log-level" || s=="--log" || s=="--protocol") {
 			if (i+1 >= argc) 
 				PrintUsage();
-			ddcLogLevel = GetLogLevel(argv[i+1]);
+			SetLogLevel( GetLogLevel(argv[i+1]) );
 			i++;
 		}
 		else if (s == "--local" || s == "-l") {

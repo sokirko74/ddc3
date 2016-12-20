@@ -3,7 +3,7 @@
 ## File: ddc_server.opt
 ## Descrption: ddc_daemon server-options file; see ServerOptions.cpp
 
-#LogLevel		trace
+LogLevel		info
 #NumThreads		4
 NumThreads		0
 ThreadQueueSize		256

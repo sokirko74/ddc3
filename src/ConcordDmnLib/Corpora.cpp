@@ -48,7 +48,7 @@ void LoadLocalCorpora (string ConfigFile, const CDDCServerOptions& Options)
 	string Error;
 	if (!IsRmlRegistered(Error)) 
 	{
-		concord_daemon_log ( Error  );
+		ddcLogError ( Error  );
 		return;
 	};
 	string IniPath = GetIniFilePath();
@@ -59,13 +59,13 @@ void LoadLocalCorpora (string ConfigFile, const CDDCServerOptions& Options)
 				ConfigFile.replace(ii, 4, IniPath);
 	};
 
-	concord_daemon_log ( Format ("Start loading corpora from %s", ConfigFile.c_str()) );
+	ddcLogInfo ( Format ("Start loading local corpora from %s", ConfigFile.c_str()) );
 	vector<CHost> Hosts;
 	if (!LoadHosts(ConfigFile, Hosts))
 		throw CExpc(errOther, "failed to load config file %s", ConfigFile.c_str());
 
 
-	concord_daemon_log ( Format("  Found %i Hosts ", Hosts.size()) );
+	ddcLogInfo ( Format("  Found %i Host(s)", Hosts.size()) );
 	LocalCorpora.clear();
 
 	try {
@@ -82,10 +82,15 @@ void LoadLocalCorpora (string ConfigFile, const CDDCServerOptions& Options)
 			H.CreateListener();
 		}
 	}
-	catch (CExpc     &e) { concord_daemon_log( Format("LoadLocalCorpora(): Exception[%d]: %s", e.code(), e.what()) ); throw; }
-	catch (exception &e) { concord_daemon_log( Format("LoadLocalCorpora(): Exception: %s", e.what()) ); throw; }
-	catch (...)          { concord_daemon_log( "LoadLocalCorpora(): Exception: unhandled exception" ); throw; }
+	catch (CExpc     &e) { ddcLogError( Format("LoadLocalCorpora(): Exception[%d]: %s", e.code(), e.what()) ); throw; }
+	catch (exception &e) { ddcLogError( Format("LoadLocalCorpora(): Exception: %s", e.what()) ); throw; }
+	catch (...)          { ddcLogError( "LoadLocalCorpora(): Exception: unhandled exception" ); throw; }
 };
+
+static inline bool isServerLabel(const string& CorpusName)
+{
+	return (CorpusName=="server" || CorpusName.find("server:")==0);
+}
 
 void LoadDDCServer(string ServerConfigFile, const CDDCServerOptions& Options)
 {
@@ -115,7 +120,7 @@ void LoadDDCServer(string ServerConfigFile, const CDDCServerOptions& Options)
 		BServers[hi->m_CorpusName] = NULL;
 
 		//-- index branch servers
-		if (hi->m_CorpusName=="server" || hi->m_CorpusName.find("server:")==0) {
+		if (isServerLabel(hi->m_CorpusName)) {
 			CDDCBranchServer *bserver = new CDDCBranchServer();
 			if (!bserver)
 				throw CExpc(errOther, "cannot allocate memory for server instance `%s'", hi->m_CorpusName.c_str());
@@ -130,13 +135,22 @@ void LoadDDCServer(string ServerConfigFile, const CDDCServerOptions& Options)
 
 	//-- sanity check: ensure we've found a valid root server
 	if (rootServer==NULL)
-		throw CExpc(errOther, "No root server entry found in server config file `%s'!", ServerConfigFile.c_str());
+		throw CExpc(errOther, "no root server entry found in server config file `%s'!", ServerConfigFile.c_str());
 	
 	//-- map daughter-servers to associated parent branch-server
+	CDDCBranchServer *defaultParent = rootServer;
 	for (vector<CHost>::const_iterator hi=hosts.begin(); hi != hosts.end(); ++hi) {
-		if (hi->m_CorpusName == rootServer->m_CorpusName) continue;
+		CDDCBranchServer *bserver = defaultParent;
 		const string& parentLabel = hi->GetLocalPathOfIndex();
-		CDDCBranchServer *bserver = rootServer;
+
+		//-- update default parent node: most recently declared branch node
+		if (isServerLabel(hi->m_CorpusName)) {
+			defaultParent = BServers[hi->m_CorpusName];
+			if (hi->m_CorpusName == rootServer->m_CorpusName)
+				continue;
+		}
+
+		//-- find requested parent node
 		if (!parentLabel.empty()) {
 			if (BServers.find(parentLabel)==BServers.end())
 				throw CExpc(errOther, "unknown parent label `%s' in server config file `%s'", parentLabel.c_str(), ServerConfigFile.c_str());
@@ -145,6 +159,8 @@ void LoadDDCServer(string ServerConfigFile, const CDDCServerOptions& Options)
 				throw CExpc(errOther, "parent label `%s' for subcorpus `%s' in server config file `%s' is not a branch server!",
 					    parentLabel.c_str(), hi->m_CorpusName.c_str(), ServerConfigFile.c_str());
 		}
+
+		//-- assign subcorpus node to parent
 		ddcLogDebug(Format("LoadDDCServer(): assigning subcorpus node `%s' to parent node `%s'", hi->m_CorpusName.c_str(), bserver->m_CorpusName.c_str()));
 		CHost htmp;
 		htmp.Init(hi->m_CorpusName, hi->HostAddr(), hi->Port());

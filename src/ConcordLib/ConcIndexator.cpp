@@ -73,22 +73,22 @@ void InitMorphologySystem(T*& Lemmatizer, Y*& Gramtab)
 	pthread_mutex_lock(&ddcMorphMutex);
 	try {
 		string l = GetStringByLanguage(Lemmatizer->GetLanguage());
-		fprintf (stderr, "   dictionary\n");
+		ddcLogDebug("   dictionary");
 		string strError;
 		if (!Lemmatizer->LoadDictionariesRegistry(strError)) {
-			ErrorMessage(Format("Cannot load %s  morphological dictionary: %s\n", l.c_str(), strError.c_str()));
+			ddcLogError(Format("Cannot load %s  morphological dictionary: %s", l.c_str(), strError.c_str()));
 			delete Lemmatizer;
 			Lemmatizer = 0;
 		}
 
-		fprintf (stderr, "   gramtab\n");
+		ddcLogDebug("   gramtab");
 		Gramtab = new Y;
 		if (!Gramtab) {
 			pthread_mutex_unlock(&ddcMorphMutex);
 			return;
 		}
 		if (!Gramtab->LoadFromRegistry()) {
-			ErrorMessage(Format("Cannot load %s  gramtab\n", l.c_str()) );
+			ddcLogError(Format("Cannot load %s  gramtab", l.c_str()) );
 			delete Gramtab;
 			Gramtab = 0;
 		}
@@ -182,15 +182,15 @@ bool InitConcordDicts()
 	try
 	{	
 		bRussianMorph = true;
-		fprintf (stderr, "loading Russian morphology\n");
+		ddcLogInfo("loading Russian morphology");
 		InitMorphologySystem(rusLemmatizer, rusGramTab);
 
 		bEnglishMorph = true;
-		fprintf (stderr, "loading English morphology\n");
+		ddcLogInfo("loading English morphology");
 		InitMorphologySystem(engLemmatizer, engGramTab);
 
 		bGermanMorph = true;
-		fprintf (stderr, "loading German morphology\n");
+		ddcLogInfo("loading German morphology");
 		InitMorphologySystem(gerLemmatizer, gerGramTab);
 
 		return true;
@@ -624,19 +624,18 @@ bool CConcIndexator::LoadMaskedFiles()
 	// reading corpus files from *.con file
 	FILE* fp = fopen(GetFileNameForMaskedFiles().c_str(), "rb");
 	if (!fp) return true;
-    char s[1024];
-	while (fgets(s,1024,fp))
-	{
-        string file = s;
-        Trim(file);
-        if (file.empty()) continue;
-        vector<std::string>::const_iterator it = find(m_CorpusFiles.begin(), m_CorpusFiles.end(), file);
-        if (it == m_CorpusFiles.end()) {
-            concord_daemon_log ( Format ("%s in %s is not a corpus file name", file.c_str(), GetFileNameForMaskedFiles().c_str()) );
-            return false;
-        }
+	char s[1024];
+	while (fgets(s,1024,fp)) {
+		string file = s;
+		Trim(file);
+		if (file.empty()) continue;
+		vector<std::string>::const_iterator it = find(m_CorpusFiles.begin(), m_CorpusFiles.end(), file);
+		if (it == m_CorpusFiles.end()) {
+			ddcLogWarn( Format("CConcIndexator::LoadMaskedFiles(): %s in %s is not a corpus file name", file.c_str(), GetFileNameForMaskedFiles().c_str()) );
+			return false;
+		}
 		m_MaskedFiles.insert ( it - m_CorpusFiles.begin());
-	};
+	}
 	fclose(fp);
 	return true;
 };
@@ -661,7 +660,7 @@ bool CConcIndexator::LoadSourceFilesAndOptions(string FileName)
 	}
 	else
         {
-	    concord_daemon_log ( Format ("Warning! Cannot find file %s", PathFile.c_str()) );
+	    ddcLogWarn( Format("CConcIndexator::LoadSourceFilesAndOptions(): Warning: cannot find file %s", PathFile.c_str()) );
 	}
 
 	SetPath(FileName);

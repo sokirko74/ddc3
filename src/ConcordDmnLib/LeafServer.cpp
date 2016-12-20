@@ -399,21 +399,22 @@ bool CDDCLeafServer::LoadHolder(CConcHolder **ppHolder) {
     *ppHolder = new CConcHolder;
 
     (*ppHolder)->m_pIndexator = new CConcIndexator;
-    concord_daemon_log ( Format ("Loading corpus indices for %s", GetLocalPathOfIndex().c_str()) );
-    if (!(*ppHolder)->m_pIndexator->LoadProject(GetLocalPathOfIndex()))  {
-	concord_daemon_log ( Format("Error! Cannot load project %s! ", GetLocalPathOfIndex().c_str()) );
-	delete (*ppHolder)->m_pIndexator;
+    ddcLogInfo( Format ("Loading corpus indices for %s (%s)", GetLocalPathOfIndex().c_str(), m_CorpusName.c_str()) );
+    if (!(*ppHolder)->m_pIndexator->LoadProject(GetLocalPathOfIndex())) {
+	ddcLogError ( Format("Error! Cannot load project %s! ", GetLocalPathOfIndex().c_str()) );
+	    delete (*ppHolder)->m_pIndexator;
 	delete  (*ppHolder);
 	(*ppHolder) = 0;
 	return false;
-    };
-    concord_daemon_log ( "  init graphan " );
+    }
+
+    ddcLogDebug("  init graphan ");
     (*ppHolder)->m_AdditionalHitDelimiter = CDDCServer::AdditionalHitDelimiter;
 
-    concord_daemon_log(Format("  init random: port=m_RandomSeed=%i", m_Port));
+    ddcLogDebug(Format("  init random: port=m_RandomSeed=%i", m_Port));
     (*ppHolder)->m_RandomSeed = m_Port;
     (*ppHolder)->SetRandomSeed();
 
-    concord_daemon_log ( "  ok " );
+    ddcLogDebug(Format("Loaded corpus indices for %s (%s)", GetLocalPathOfIndex().c_str(), m_CorpusName.c_str()));
     return true;
 }

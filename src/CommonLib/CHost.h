@@ -37,7 +37,7 @@ protected:
 	bool					m_bExpectMore;	///< moo: whether to expect more requests from current client
 	bool					m_bRespond;     ///< moo: whether current request has a real (possibly empty) response
 	bool					m_bLogFinish;	///< moo: whether to log connection completion
-	string					m_LocalPath;
+	string					m_LocalPath;	///< path to local project-file (ddc_local_corpora.cfg) or label of parent branch node (ddc_server.cfg)
 	uint32_t				m_maxReceiveBytes; ///< maximum receivable packet length (default=0: no limit)
 
 public:

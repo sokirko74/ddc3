@@ -398,7 +398,7 @@ bool CConcXml::CFreeBiblStringIndex::ReadBiblStringItems (vector<string>&  Set, 
 		Set.push_back(q);
 	};
 
-	fprintf(stderr, "Read %zi items from %s\n", Set.size(), FileName.c_str());
+	ddcLogDebug(Format("read %zi item(s) from %s", Set.size(), FileName.c_str()));
 	fclose (fp);
 	return true;
 };
@@ -1035,7 +1035,7 @@ bool CConcXml::RegisterFreeBiblAttributes(string fields, string& ErrorStr)
 				//   (prior to v2.0.29, multiple bibl fields with the same name caused a fatal error)
 				FreeBiblStringMap::iterator oldi = m_FreeBiblIndices.find(Name);
 				delete oldi->second;
-				ErrorMessage( "WARNING", Format(" multiple definitions for free bibliographic attribute `%s', using most recent\n", Name.c_str()) );
+				ddcLogWarn(Format("Warning: multiple definitions for free bibliographic attribute `%s', using most recent", Name.c_str()));
 			};
 
 			CFreeBiblIndex* pIndex;

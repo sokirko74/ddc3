@@ -37,12 +37,13 @@ enum ProtocolDensityEnum {
 /** typedef for a log-level (formerly ProtocolDensityEnum) */
 typedef int DDCLogLevel;
 
-extern const DDCLogLevel ddcLLSilent; //< log-level: no logging (=0)
-extern const DDCLogLevel ddcLLError;  //< log-level: errors only (=1)
-extern const DDCLogLevel ddcLLWarn;   //< log-level: errors+warnings (=2)
-extern const DDCLogLevel ddcLLInfo;   //< log-level: info messages (=3 ~ pdWeakDensity)
-extern const DDCLogLevel ddcLLDebug;  //< log-level: debug messages (=4 ~ pdMediumDensity)
-extern const DDCLogLevel ddcLLTrace;  //< log-level: trace messages (=5 ~ pdHeavyDensity)
+extern const DDCLogLevel ddcLLUnknown;   //< log-level: undefined (=-1)
+extern const DDCLogLevel ddcLLSilent;    //< log-level: no logging (=0)
+extern const DDCLogLevel ddcLLError;     //< log-level: errors only (=1)
+extern const DDCLogLevel ddcLLWarn;      //< log-level: errors+warnings (=2)
+extern const DDCLogLevel ddcLLInfo;      //< log-level: info messages (=3 ~ pdWeakDensity)
+extern const DDCLogLevel ddcLLDebug;     //< log-level: debug messages (=4 ~ pdMediumDensity)
+extern const DDCLogLevel ddcLLTrace;     //< log-level: trace messages (=5 ~ pdHeavyDensity)
 
 /** typedef alias for unintuitively-named pre-v2.1 log-level enum */
 typedef DDCLogLevel ProtocolDensityEnum;
@@ -84,6 +85,9 @@ DDCLogLevel GetLogLevel(const std::string& Name);
 
 /** convert a log-level to a string */
 extern const char* LogLevelName(DDCLogLevel Level);
+
+/** set global log-level; returns old log-level */
+extern DDCLogLevel SetLogLevel(DDCLogLevel Level);
 
 //! write a single log-message, implicitly appending a newline
 extern void ddcLog(const std::string& msg);
