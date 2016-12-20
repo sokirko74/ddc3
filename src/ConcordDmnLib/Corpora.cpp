@@ -162,9 +162,11 @@ void LoadDDCServer(string ServerConfigFile, const CDDCServerOptions& Options)
 
 		//-- assign subcorpus node to parent
 		ddcLogDebug(Format("LoadDDCServer(): assigning subcorpus node `%s' to parent node `%s'", hi->m_CorpusName.c_str(), bserver->m_CorpusName.c_str()));
-		CHost htmp;
-		htmp.Init(hi->m_CorpusName, hi->HostAddr(), hi->Port());
-		bserver->m_Hosts.push_back(htmp);
+		CHost tmp_host;
+		string tmp_addr = hi->HostAddr();
+		if (tmp_addr == "0.0.0.0") tmp_addr = "127.0.0.1"; //-- connect to localhost for embedded branch servers binding all interfaces
+		tmp_host.Init(hi->m_CorpusName, tmp_addr, hi->Port());
+		bserver->m_Hosts.push_back(tmp_host);
 	}
 
 	//-- sanity check: ensure root server has non-empty daughter-list

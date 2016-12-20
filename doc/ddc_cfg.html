@@ -158,6 +158,22 @@
  sub4        127.0.0.1 50004 server:int2</code></pre>
 
 </dd>
+<dt id="ddc_server.cfg-alternate">ddc_server.cfg (alternate)</dt>
+<dd>
+
+<p>Server declarations for leaf-nodes can be omitted if they are declared within the scope of the associated branch-nodes:</p>
+
+<pre><code> server:root 0.0.0.0   50000
+
+ server:int1 0.0.0.0   50010 server:root
+ sub1        127.0.0.1 50001
+ sub2        127.0.0.1 50002
+
+ server:int2 0.0.0.0   50020 server:root
+ sub3        127.0.0.1 50003
+ sub4        127.0.0.1 50004</code></pre>
+
+</dd>
 </dl>
 
 <p>This example defines a binary-branching dataflow tree of depth 2, containing 2 internal branch nodes (&quot;server:int1&quot; and &quot;server:int2&quot;) in addition to the root node (&quot;server:root&quot;). Requires ddc &gt;= v2.1.0.</p>

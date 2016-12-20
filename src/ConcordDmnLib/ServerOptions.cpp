@@ -103,8 +103,8 @@ string CDDCServerOptions::toString() const
 {
     return (string("")
 	    + "LogLevel " + LogLevelName(m_LogLevel) + "\n"
+	    + "SlowQueryTimeout " + Format("%g", m_SlowQueryTimeout) + "\n"	    	    
 	    + "NumThreads " + Format("%zu", m_nWorkers) + "\n"
 	    + "ThreadQueueSize " + Format("%zu", m_ThreadQueueSize) + "\n"
-	    + "SlowQueryTimeout " + Format("%g", m_SlowQueryTimeout) + "\n"
 	    );
 }
