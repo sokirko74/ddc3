@@ -35,7 +35,9 @@
 // all sockets which are opened by this daemon 
 vector<CDDCLeafServer> LocalCorpora;
 
-CDDCBranchServer* pServer = NULL;
+
+CDDCBranchServer* rootServer = NULL;
+map<string,CDDCBranchServer*> BServers;
 
 //==============================================================================
 // global functions
@@ -88,61 +90,86 @@ void LoadLocalCorpora (string ConfigFile, const CDDCServerOptions& Options)
 void LoadDDCServer(string ServerConfigFile, const CDDCServerOptions& Options)
 {
 	string Error;
-	if (!IsRmlRegistered(Error)) 
-	{
-		concord_daemon_log ( Error  );
-		return;
-	};
+	if (!IsRmlRegistered(Error))
+		throw CExpc(errOther, Error);
+
 	string IniPath = GetIniFilePath();
-	{
-		int ii = ServerConfigFile.find("$RML");
-		if (ii != string::npos)
-				ServerConfigFile.replace(ii, 4, IniPath);
-	};
+	int ii = ServerConfigFile.find("$RML");
+	if (ii != string::npos)
+		ServerConfigFile.replace(ii, 4, IniPath);
 
-	if (pServer)
-		delete pServer;
-	pServer = new CDDCBranchServer();
-	if (!pServer)
-	{
-		concord_daemon_log ( "Error! cannot allocate memory for a server instance");
-		return;
-	};
-
-	if (!LoadHosts(ServerConfigFile, pServer->m_Hosts))
+	//-- load flat host map
+	vector<CHost> hosts;
+	if (!LoadHosts(ServerConfigFile, hosts))
 		throw CExpc(errOther, "failed to load server config file %s", ServerConfigFile.c_str());
-	
-	if (pServer->m_Hosts.empty())
-	{
-		concord_daemon_log ( Format("Warning: no host entries found in server config file %s", ServerConfigFile.c_str()) );
-		delete pServer;
-		pServer = NULL;
-		return;
-	};
-	bool bServerIsFound = false;	
-	for (int i = 0; i<pServer->m_Hosts.size(); i++)
-        if (pServer->m_Hosts[i].m_CorpusName == "server" || pServer->m_Hosts[i].m_CorpusName.find("server:")==0)
-	{
-		pServer->CopyAddressParametersFrom(pServer->m_Hosts[i]);
-		pServer->SetOptions(Options);
-		pServer->CreateListener();
-		pServer->m_Hosts.erase(pServer->m_Hosts.begin() + i);
-		bServerIsFound = true;
-		break;
+
+	//-- find (embedded) branch-server(s), and index them by label
+	for (vector<CHost>::const_iterator hi=hosts.begin(); hi != hosts.end(); ++hi) {
+		//-- check for multiple definitions (including leaf-servers)
+		if (BServers.find(hi->m_CorpusName) != BServers.end()) {
+			ddcLogWarn(Format("Warning: multiple definitions of label '%s' in server config file '%s'",
+					  hi->m_CorpusName.c_str(), ServerConfigFile.c_str()));
+			if (BServers[hi->m_CorpusName] != NULL)
+				delete BServers[hi->m_CorpusName];
+		}
+		BServers[hi->m_CorpusName] = NULL;
+
+		//-- index branch servers
+		if (hi->m_CorpusName=="server" || hi->m_CorpusName.find("server:")==0) {
+			CDDCBranchServer *bserver = new CDDCBranchServer();
+			if (!bserver)
+				throw CExpc(errOther, "cannot allocate memory for server instance `%s'", hi->m_CorpusName.c_str());
+			bserver->CopyAddressParametersFrom(*hi);
+			bserver->SetOptions(Options);
+
+			BServers[hi->m_CorpusName] = bserver;
+			if (rootServer==NULL)
+				rootServer = bserver;
+		}
 	}
 
-	if (!bServerIsFound)
-	{
-		concord_daemon_log ( Format("Error! no branch server entry found in server config file %s!", ServerConfigFile.c_str()));
-		return;
+	//-- sanity check: ensure we've found a valid root server
+	if (rootServer==NULL)
+		throw CExpc(errOther, "No root server entry found in server config file `%s'!", ServerConfigFile.c_str());
+	
+	//-- map daughter-servers to associated parent branch-server
+	for (vector<CHost>::const_iterator hi=hosts.begin(); hi != hosts.end(); ++hi) {
+		if (hi->m_CorpusName == rootServer->m_CorpusName) continue;
+		const string& parentLabel = hi->GetLocalPathOfIndex();
+		CDDCBranchServer *bserver = rootServer;
+		if (!parentLabel.empty()) {
+			if (BServers.find(parentLabel)==BServers.end())
+				throw CExpc(errOther, "unknown parent label `%s' in server config file `%s'", parentLabel.c_str(), ServerConfigFile.c_str());
+			bserver = BServers[parentLabel];
+			if (bserver==NULL)
+				throw CExpc(errOther, "parent label `%s' for subcorpus `%s' in server config file `%s' is not a branch server!",
+					    parentLabel.c_str(), hi->m_CorpusName.c_str(), ServerConfigFile.c_str());
+		}
+		ddcLogDebug(Format("LoadDDCServer(): assigning subcorpus node `%s' to parent node `%s'", hi->m_CorpusName.c_str(), bserver->m_CorpusName.c_str()));
+		CHost htmp;
+		htmp.Init(hi->m_CorpusName, hi->HostAddr(), hi->Port());
+		bserver->m_Hosts.push_back(htmp);
+	}
 
-	};
-	if (pServer->m_Hosts.empty())
-	{
-		concord_daemon_log ( Format("Error! no subcorpus host entries in server config file %s!", ServerConfigFile.c_str()));
-		return;
-	};
+	//-- sanity check: ensure root server has non-empty daughter-list
+	if (rootServer->m_Hosts.empty())
+		throw CExpc(errOther, "no subcorpus host entries for root server `%s' in server config file `%s'",
+			    rootServer->m_CorpusName.c_str(), ServerConfigFile.c_str());
 
+	//-- trim branch-server index (remove leaf-server nodes), and fire up any "proper" branch-servers
+	map<string,CDDCBranchServer*>::iterator bi, bi_nxt;
+	for (bi=BServers.begin(); bi!=BServers.end(); bi=bi_nxt) {
+		bi_nxt = bi;
+		++bi_nxt;
+		if (bi->second==NULL) {
+			BServers.erase(bi);
+		} else if (bi->second != rootServer) {
+			bi->second->CreateListener();
+		}
+	}
+
+	//-- finally, fire up the root server itself
+	rootServer->CreateListener();
 };
 
 
@@ -156,14 +183,24 @@ void UnloadLocalCorporaAndServer ()
 
 	LocalCorpora.clear();
 
-	// stop server
-	delete pServer;
-	pServer = 0;
+	//-- stop sub-corpus branch server(s)
+	for (map<string,CDDCBranchServer*>::iterator bi=BServers.begin(); bi!=BServers.end(); ++bi) {
+		if (bi->second != NULL && bi->second != rootServer)
+			delete bi->second;
+	}
+
+	//-- stop root server
+	if (rootServer != NULL)
+		delete rootServer;
+
+	//-- clear data structures
+	BServers.clear();
+	rootServer = NULL;
 };
 
 void ShutdownDDCServer() {
-	if (pServer==NULL) return;
-	pServer->Shutdown();
+	if (rootServer==NULL) return;
+	rootServer->Shutdown();
 }
 
 void ShutdownLocalCorpora() {

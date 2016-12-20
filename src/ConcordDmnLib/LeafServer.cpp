@@ -39,9 +39,6 @@ void CDDCLeafServer::Shutdown()
 void CDDCLeafServer::WorkerCloneInit(const CDDCServer *Parent, size_t WorkerId)
 {
     CDDCServer::WorkerCloneInit(Parent, WorkerId);
-    
-    //-- work in progress
-    ddcLogWarn("WARNING: client-threading for underlying index is WORK IN PROGRESS: expect chaos!");
 
     CDDCLeafServer *parent = (CDDCLeafServer*)Parent;
     m_pHolder = parent->m_pHolder->WorkerClone(WorkerId);

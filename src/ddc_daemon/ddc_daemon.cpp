@@ -291,6 +291,7 @@ int do_start(bool clientMode=false)
 	ddcLog ("LoadServer");
 	LoadDDCServer(ServerCorporaFile, ServerOptions);
 
+	//-- moo 2016-12-20: wtf is this?  it looks like a no-op (ignore signal handlers only if they're already ignored)
 	if (signal (SIGTERM, termination_handler) == SIG_IGN)
 		signal (SIGTERM, SIG_IGN);
 	if (signal (SIGINT, termination_handler) == SIG_IGN)

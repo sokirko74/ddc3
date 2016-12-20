@@ -411,12 +411,15 @@ bool LoadHosts (string Path, vector<CHost>& Hosts)
 		LineNo++;
 		string Q = buffer;
 		Trim(Q);
+
+		//-- ignore comments and blank lines
 		if (Q.empty()) continue;
-		if (Q[0] == '/') continue;
+		if (Q.find("//")==0) continue;
+		if (Q.find("#")==0)  continue;
 		CHost T;
 		if (!T.ReadFromString(Q)) 
 		{
-			fprintf (stderr, "LoadHosts ERROR: could not read line number %i\n", LineNo);
+			fprintf (stderr, "LoadHosts ERROR: could not parse file %s line number %i: %s\n", Path.c_str(), LineNo, buffer);
 			fclose(fp);
 			return false;
 		};
