@@ -2,7 +2,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-<title></title>
+<title>DDC *.cfg FILE SYNTAX</title>
 <link rel="stylesheet" href="pod2x.css" type="text/css" />
 <meta http-equiv="content-type" content="text/html; charset=utf-8" />
 <link rev="made" href="mailto:root@localhost" />
@@ -11,196 +11,234 @@
 <body>
 
 
+<!-- INDEX BEGIN -->
+<div name="index">
+<p><a name="__index__"></a></p>
 
-<ul id="index">
-  <li><a href="#DDC-.cfg-FILE-SYNTAX">DDC *.cfg FILE SYNTAX</a></li>
-  <li><a href="#DESCRIPTION">DESCRIPTION</a>
-    <ul>
-      <li><a href="#Label">Label</a></li>
-      <li><a href="#Addr">Addr</a></li>
-      <li><a href="#Port">Port</a></li>
-      <li><a href="#Path">Path</a></li>
-    </ul>
-  </li>
-  <li><a href="#EXAMPLES">EXAMPLES</a>
-    <ul>
-      <li><a href="#Example-1:-Flat-Dataflow">Example 1: Flat Dataflow</a></li>
-      <li><a href="#Example-2:-External-Leaf-Nodes-Meta-Server">Example 2: External Leaf Nodes / Meta-Server</a></li>
-      <li><a href="#Example-3:-Internal-Branch-Nodes">Example 3: Internal Branch Nodes</a></li>
-    </ul>
-  </li>
-  <li><a href="#ACKNOWLEDGEMENTS">ACKNOWLEDGEMENTS</a></li>
-  <li><a href="#AUTHOR">AUTHOR</a></li>
-  <li><a href="#SEE-ALSO">SEE ALSO</a></li>
+<ul>
+
+	<li><a href="#ddc___cfg_file_syntax">DDC *.cfg FILE SYNTAX</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<ul>
+
+		<li><a href="#label">Label</a></li>
+		<li><a href="#addr">Addr</a></li>
+		<li><a href="#port">Port</a></li>
+		<li><a href="#path">Path</a></li>
+	</ul>
+
+	<li><a href="#examples">EXAMPLES</a></li>
+	<ul>
+
+		<li><a href="#example_1__flat_dataflow">Example 1: Flat Dataflow</a></li>
+		<li><a href="#example_2__external_leaf_nodes___meta_server">Example 2: External Leaf Nodes / Meta-Server</a></li>
+		<li><a href="#example_3__internal_branch_nodes">Example 3: Internal Branch Nodes</a></li>
+	</ul>
+
+	<li><a href="#acknowledgements">ACKNOWLEDGEMENTS</a></li>
+	<li><a href="#author">AUTHOR</a></li>
+	<li><a href="#see_also">SEE ALSO</a></li>
 </ul>
 
-<h1 id="DDC-.cfg-FILE-SYNTAX">DDC *.cfg FILE SYNTAX</h1>
+<hr name="index" />
+</div>
+<!-- INDEX END -->
 
-<p>This manpage describes the syntax of the <i>ddc_local_corpora.cfg</i> and <i>ddc_server.cfg</i> files (&quot;cfg-files&quot;) used by the DDC corpus indexing system.</p>
-
-<h1 id="DESCRIPTION">DESCRIPTION</h1>
-
-<p>Local cfg-files (<i>ddc_local_corpora.cfg</i>) defines the terminal (&quot;leaf&quot;) nodes of a DDC server dataflow tree which are to be handled by a single server process. Server cfg-files (<i>ddc_server.cfg</i>) associate each local leaf node with at least one non-terminal (&quot;branch&quot;) node, and may also incorporate external leaf or branch nodes as &quot;opaque&quot; nodes, as well as define &quot;internal&quot; branch nodes for the server dataflow tree. Prior to DDC v2.1.0, at most one branch-node could be declared in <i>ddc_server.cfg</i>, and all leaf nodes had to be explicitly declared, since branch nodes could not be queried as opaque leaf-like nodes.</p>
-
-<p>All DDC cfg-files share a common basic format. Files are line-based, containing one server-node record per line. Blank lines (containing only whitespace) and comments (lines beginning with a hash-mark (<code>#</code>) or double-slash (<code>//</code>)) are ignored. Each content line should contain 3 or 4 fields separated by whitespace:</p>
-
-<pre><code> LABEL  ADDR  PORT  PATH</code></pre>
-
-<h2 id="Label">Label</h2>
-
-<p>The first field specifies a symbolic <i>LABEL</i> for the server node. Node labels should be unique within the scope of a single cfg-file.</p>
-
-<p>For server-config files <code>ddc_server.cfg</code>, if <i>LABEL</i> is either the string <code>server</code> or begins with the prefix <code>server:</code>, the corresponding server-node will be created as a branch-node (a <code>CDDCBranchServer</code> object representing a non-terminal node in the server dataflow tree). Otherwise, the node is treated as an opaque (terminal) leaf-node.</p>
-
-<h2 id="Addr">Addr</h2>
-
-<p>The second field specifies the address <i>ADDR</i> to be bound by a branch-node and/or that to be queried for a leaf-node. If <i>ADDR</i> is the special string <code>0.0.0.0</code>, all available interfaces will be bound for a branch-node, while the loopback interface (<code>127.0.0.1</code>) will be queried.</p>
-
-<h2 id="Port">Port</h2>
-
-<p>The third field specifies the TCP port-number <i>PORT</i> to be bound by a branch-node and/or to be queried for a leaf-node.</p>
-
-<h2 id="Path">Path</h2>
-
-<p>The meaning fourth and final field <i>PATH</i> differs between <i>ddc_local_corpora.cfg</i> and <i>ddc_server.cfg</i>.</p>
-
-<p>For <i>ddc_local_corpora.cfg</i>, <i>PATH</i> is required, and specifies the local path to the associated DDC project file (<code>*.con</code>), relative to the DDC runtime root directory as stored in the environment variable <code>$RML</code></p>
-
-<p>For <i>ddc_server.cfg</i>, <i>PATH</i> is optional. If non-empty, it specifies the <a href="#Label"><i>LABEL</i></a> of the node&#39;s parent in the dataflow tree, which should be a branch node. If empty, the most recently declared branch-node is used as the parent.</p>
-
-<h1 id="EXAMPLES">EXAMPLES</h1>
-
-<h2 id="Example-1:-Flat-Dataflow">Example 1: Flat Dataflow</h2>
-
+<p>
+</p>
+<hr />
+<h1><a name="ddc___cfg_file_syntax">DDC *.cfg FILE SYNTAX</a></h1>
+<p>This manpage describes the syntax of
+the <em class="file">ddc_local_corpora.cfg</em> and <em class="file">ddc_server.cfg</em>
+files (&quot;cfg-files&quot;) used by the DDC corpus indexing system.</p>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<p>Local cfg-files (<em class="file">ddc_local_corpora.cfg</em>) defines the terminal (&quot;leaf&quot;) nodes
+of a DDC server dataflow tree which are to be handled by a single server process.
+Server cfg-files (<em class="file">ddc_server.cfg</em>) associate each local leaf node
+with at least one non-terminal (&quot;branch&quot;) node, and may also incorporate
+external leaf or branch nodes as &quot;opaque&quot; nodes, as well as define
+&quot;internal&quot; branch nodes for the server dataflow tree.
+Prior to DDC v2.1.0, at most one branch-node could be declared
+in <em class="file">ddc_server.cfg</em>, and all leaf nodes had to be explicitly declared,
+since branch nodes could not be queried as opaque leaf-like nodes.</p>
+<p>All DDC cfg-files share a common basic format.
+Files are line-based, containing one server-node record per line.
+Blank lines (containing only whitespace) and comments
+(lines beginning with a hash-mark (<code>#</code>) or double-slash (<code>//</code>)) are ignored.
+Each content line should contain 3 or 4 fields separated by whitespace:</p>
+<pre>
+ LABEL  ADDR  PORT  PATH</pre>
+<p>
+</p>
+<h2><a name="label">Label</a></h2>
+<p>The first field specifies a symbolic <em>LABEL</em> for the server node.
+Node labels should be unique within the scope of a single cfg-file.</p>
+<p>For server-config files <a href="#ddc_server_cfg"><code>ddc_server.cfg</code></a>, if <em>LABEL</em> is either
+the string <code>server</code> or begins with the prefix <code>server:</code>,
+the corresponding server-node will be created as a
+branch-node (a <code>CDDCBranchServer</code> object representing a non-terminal node in the server dataflow tree).
+Otherwise, the node is treated as an opaque (terminal) leaf-node.</p>
+<p>
+</p>
+<h2><a name="addr">Addr</a></h2>
+<p>The second field specifies the address <em>ADDR</em> to be bound by a branch-node
+and/or that to be queried for a leaf-node.  If <em>ADDR</em> is the
+special string <code>0.0.0.0</code>, all available interfaces will be bound for
+a branch-node, while the loopback interface (<code>127.0.0.1</code>) will be queried.</p>
+<p>
+</p>
+<h2><a name="port">Port</a></h2>
+<p>The third field specifies the TCP port-number <em>PORT</em> to be bound
+by a branch-node and/or to be queried for a leaf-node.</p>
+<p>
+</p>
+<h2><a name="path">Path</a></h2>
+<p>The meaning fourth and final field <em>PATH</em> differs between <em class="file">ddc_local_corpora.cfg</em> and <em class="file">ddc_server.cfg</em>.</p>
+<p>For <em class="file">ddc_local_corpora.cfg</em>, <em>PATH</em> is required, and specifies the local path to the associated
+DDC project file (<code>*.con</code>), relative to the DDC runtime root directory as stored
+in the environment variable <code>$RML</code></p>
+<p>For <em class="file">ddc_server.cfg</em>, <em>PATH</em> is optional.  If non-empty, it specifies
+the <a href="#label"><em>LABEL</em></a> of the node's parent in the dataflow tree,
+which should be a branch node.  If empty, the most recently declared
+branch-node is used as the parent.</p>
+<p>
+</p>
+<hr />
+<h1><a name="examples">EXAMPLES</a></h1>
+<p>
+</p>
+<h2><a name="example_1__flat_dataflow">Example 1: Flat Dataflow</a></h2>
 <dl>
+<dt><strong><a name="ddc_local_corpora_cfg" class="item">ddc_local_corpora.cfg</a></strong></dt>
 
-<dt id="ddc_local_corpora.cfg">ddc_local_corpora.cfg</dt>
 <dd>
-
-<pre><code> sub1  0.0.0.0  50001  index/sub1/sub1.con
+<pre>
+ sub1  0.0.0.0  50001  index/sub1/sub1.con
  sub2  0.0.0.0  50002  index/sub1/sub2.con
  sub3  0.0.0.0  50003  index/sub1/sub3.con
- sub4  0.0.0.0  50004  index/sub1/sub4.con</code></pre>
-
+ sub4  0.0.0.0  50004  index/sub1/sub4.con</pre>
 </dd>
-<dt id="ddc_server.cfg">ddc_server.cfg</dt>
-<dd>
+<dt><strong><a name="ddc_server_cfg" class="item">ddc_server.cfg</a></strong></dt>
 
-<pre><code> server 0.0.0.0   50000
+<dd>
+<pre>
+ server 0.0.0.0   50000
  sub1   127.0.0.1 50001
  sub2   127.0.0.1 50002
  sub3   127.0.0.1 50003
- sub4   127.0.0.1 50004</code></pre>
-
+ sub4   127.0.0.1 50004</pre>
 </dd>
 </dl>
-
-<p>This example defines a basic &quot;flat&quot; dataflow tree with exactly 1 branch node (&quot;server&quot;), analagous to the dataflow trees supported by DDC &lt; v2.1.0.</p>
-
-<pre><code>         server
+<p>This example defines a basic &quot;flat&quot; dataflow tree with exactly 1 branch node (&quot;server&quot;),
+analagous to the dataflow trees supported by DDC &lt; v2.1.0.</p>
+<pre>
+         server
    _________|_________
    |     |     |     |
-  sub1  sub2  sub3  sub4</code></pre>
-
-<h2 id="Example-2:-External-Leaf-Nodes-Meta-Server">Example 2: External Leaf Nodes / Meta-Server</h2>
-
+  sub1  sub2  sub3  sub4</pre>
+<p>
+</p>
+<h2><a name="example_2__external_leaf_nodes___meta_server">Example 2: External Leaf Nodes / Meta-Server</a></h2>
 <dl>
+<dt><strong><a name="ddc_local_corpora_cfg2" class="item">ddc_local_corpora.cfg</a></strong></dt>
 
-<dt id="ddc_local_corpora.cfg1">ddc_local_corpora.cfg</dt>
 <dd>
-
 <p>(empty)</p>
-
 </dd>
-<dt id="ddc_server.cfg1">ddc_server.cfg</dt>
-<dd>
+<dt><strong><a name="ddc_server_cfg2" class="item">ddc_server.cfg</a></strong></dt>
 
-<pre><code> server 0.0.0.0   60000
+<dd>
+<pre>
+ server 0.0.0.0   60000
  ext1   127.0.0.1 60001
  ext2   127.0.0.1 60002
  ext3   127.0.0.1 60003
- ext4   127.0.0.1 60004</code></pre>
-
+ ext4   127.0.0.1 60004</pre>
 </dd>
 </dl>
-
-<p>This example defines a basic &quot;flat&quot; dataflow tree with exactly 1 branch node as above, but without any local leaf nodes (sometimes called a &quot;meta-server&quot;). All leaf nodes are assumed to be handled by external processes.</p>
-
-<pre><code>             server
+<p>This example defines a basic &quot;flat&quot; dataflow tree with exactly 1 branch node
+as above, but without any local leaf nodes (sometimes called a &quot;meta-server&quot;).
+All leaf nodes are assumed to be handled by external processes.</p>
+<pre>
+             server
    ____________|____________
    |       |       |       |
- (ext1)  (ext2)  (ext3)  (ext4)</code></pre>
-
-<h2 id="Example-3:-Internal-Branch-Nodes">Example 3: Internal Branch Nodes</h2>
-
+ (ext1)  (ext2)  (ext3)  (ext4)</pre>
+<p>
+</p>
+<h2><a name="example_3__internal_branch_nodes">Example 3: Internal Branch Nodes</a></h2>
 <dl>
+<dt><strong><a name="ddc_local_corpora_cfg3" class="item">ddc_local_corpora.cfg</a></strong></dt>
 
-<dt id="ddc_local_corpora.cfg2">ddc_local_corpora.cfg</dt>
 <dd>
-
-<pre><code> sub1  0.0.0.0  50001  index/sub1/sub1.con
+<pre>
+ sub1  0.0.0.0  50001  index/sub1/sub1.con
  sub2  0.0.0.0  50002  index/sub1/sub2.con
  sub3  0.0.0.0  50003  index/sub1/sub3.con
- sub4  0.0.0.0  50004  index/sub1/sub4.con</code></pre>
-
+ sub4  0.0.0.0  50004  index/sub1/sub4.con</pre>
 </dd>
-<dt id="ddc_server.cfg2">ddc_server.cfg</dt>
+<dt><strong><a name="ddc_server_cfg3" class="item">ddc_server.cfg</a></strong></dt>
+
 <dd>
-
-<pre><code> server:root 0.0.0.0   50000
-
+<pre>
+ server:root 0.0.0.0   50000</pre>
+<pre>
  server:int1 0.0.0.0   50010 server:root
  sub1        127.0.0.1 50001 server:int1
- sub2        127.0.0.1 50002 server:int1
-
+ sub2        127.0.0.1 50002 server:int1</pre>
+<pre>
  server:int2 0.0.0.0   50020 server:root
  sub3        127.0.0.1 50003 server:int2
- sub4        127.0.0.1 50004 server:int2</code></pre>
-
+ sub4        127.0.0.1 50004 server:int2</pre>
 </dd>
-<dt id="ddc_server.cfg-alternate">ddc_server.cfg (alternate)</dt>
+<dt><strong><a name="cfg" class="item">ddc_server.cfg (alternate)</a></strong></dt>
+
 <dd>
-
-<p>Server declarations for leaf-nodes can be omitted if they are declared within the scope of the associated branch-nodes:</p>
-
-<pre><code> server:root 0.0.0.0   50000
-
+<p>Server declarations for leaf-nodes can be omitted if they are
+declared within the scope of the associated branch-nodes:</p>
+<pre>
+ server:root 0.0.0.0   50000</pre>
+<pre>
  server:int1 0.0.0.0   50010 server:root
  sub1        127.0.0.1 50001
- sub2        127.0.0.1 50002
-
+ sub2        127.0.0.1 50002</pre>
+<pre>
  server:int2 0.0.0.0   50020 server:root
  sub3        127.0.0.1 50003
- sub4        127.0.0.1 50004</code></pre>
-
+ sub4        127.0.0.1 50004</pre>
 </dd>
 </dl>
-
-<p>This example defines a binary-branching dataflow tree of depth 2, containing 2 internal branch nodes (&quot;server:int1&quot; and &quot;server:int2&quot;) in addition to the root node (&quot;server:root&quot;). Requires ddc &gt;= v2.1.0.</p>
-
-<pre><code>         server:root
+<p>This example defines a binary-branching dataflow tree of depth 2,
+containing 2 internal branch nodes (&quot;server:int1&quot; and &quot;server:int2&quot;)
+in addition to the root node (&quot;server:root&quot;).  Requires ddc &gt;= v2.1.0.</p>
+<pre>
+         server:root
        _______|_______
        |             |
   server:int1    server:int2
    ___|___         ___|___
    |     |         |     |
-  sub1  sub2      sub3  sub4</code></pre>
-
-<h1 id="ACKNOWLEDGEMENTS">ACKNOWLEDGEMENTS</h1>
-
+  sub1  sub2      sub3  sub4</pre>
+<p>
+</p>
+<hr />
+<h1><a name="acknowledgements">ACKNOWLEDGEMENTS</a></h1>
 <p>Alexey Sokirko wrote the original DDC.</p>
-
-<h1 id="AUTHOR">AUTHOR</h1>
-
-<p>Bryan Jurish &lt;jurish@bbaw.de&gt;</p>
-
-<h1 id="SEE-ALSO">SEE ALSO</h1>
-
-<p>ddc_server.opt(5), ddc_daemon(1)</p>
-
+<p>
+</p>
+<hr />
+<h1><a name="author">AUTHOR</a></h1>
+<p>Bryan Jurish &lt;<a href="mailto:jurish@bbaw.de">jurish@bbaw.de</a>&gt;</p>
+<p>
+</p>
+<hr />
+<h1><a name="see_also">SEE ALSO</a></h1>
+<p>ddc_server.opt(5),
+<code>ddc_daemon(1)</code></p>
 
 </body>
 
 </html>
-
-

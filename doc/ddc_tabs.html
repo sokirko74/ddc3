@@ -2,7 +2,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-<title></title>
+<title>DDC TAB-DUMP FORMAT</title>
 <link rel="stylesheet" href="pod2x.css" type="text/css" />
 <meta http-equiv="content-type" content="text/html; charset=utf-8" />
 <link rev="made" href="mailto:root@localhost" />
@@ -11,46 +11,67 @@
 <body>
 
 
+<!-- INDEX BEGIN -->
+<div name="index">
+<p><a name="__index__"></a></p>
 
-<ul id="index">
-  <li><a href="#DDC-TAB-DUMP-FORMAT">DDC TAB-DUMP FORMAT</a></li>
-  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
-  <li><a href="#DESCRIPTION">DESCRIPTION</a>
-    <ul>
-      <li><a href="#File-Format">File Format</a></li>
-      <li><a href="#Header-Section">Header Section</a>
-        <ul>
-          <li><a href="#Token-Range">Token Range</a></li>
-          <li><a href="#Bibliographic-Metadata">Bibliographic Metadata</a></li>
-          <li><a href="#Initial-Page">Initial Page</a></li>
-          <li><a href="#Initial-Break-Positions">Initial Break Positions</a></li>
-          <li><a href="#Token-Index-Attribute-Positions">Token Index Attribute Positions</a></li>
-        </ul>
-      </li>
-      <li><a href="#Body-Section">Body Section</a>
-        <ul>
-          <li><a href="#Token">Token</a></li>
-          <li><a href="#Default-Hit-Boundary">Default Hit-Boundary</a></li>
-          <li><a href="#Interal-Pagebreaks">Interal Pagebreaks</a></li>
-          <li><a href="#Interal-Breaks">Interal Breaks</a></li>
-        </ul>
-      </li>
-      <li><a href="#Lexical-Content">Lexical Content</a></li>
-    </ul>
-  </li>
-  <li><a href="#EXAMPLE">EXAMPLE</a></li>
-  <li><a href="#ACKNOWLEDGEMENTS">ACKNOWLEDGEMENTS</a></li>
-  <li><a href="#AUTHOR">AUTHOR</a></li>
-  <li><a href="#SEE-ALSO">SEE ALSO</a></li>
+<ul>
+
+	<li><a href="#ddc_tab_dump_format">DDC TAB-DUMP FORMAT</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<ul>
+
+		<li><a href="#file_format">File Format</a></li>
+		<li><a href="#header_section">Header Section</a></li>
+		<ul>
+
+			<li><a href="#token_range">Token Range</a></li>
+			<li><a href="#bibliographic_metadata">Bibliographic Metadata</a></li>
+			<li><a href="#initial_page">Initial Page</a></li>
+			<li><a href="#initial_break_positions">Initial Break Positions</a></li>
+			<li><a href="#token_index_attribute_positions">Token Index Attribute Positions</a></li>
+		</ul>
+
+		<li><a href="#body_section">Body Section</a></li>
+		<ul>
+
+			<li><a href="#token">Token</a></li>
+			<li><a href="#default_hit_boundary">Default Hit-Boundary</a></li>
+			<li><a href="#interal_pagebreaks">Interal Pagebreaks</a></li>
+			<li><a href="#interal_breaks">Interal Breaks</a></li>
+		</ul>
+
+		<li><a href="#lexical_content">Lexical Content</a></li>
+	</ul>
+
+	<li><a href="#example">EXAMPLE</a></li>
+	<li><a href="#acknowledgements">ACKNOWLEDGEMENTS</a></li>
+	<li><a href="#author">AUTHOR</a></li>
+	<li><a href="#see_also">SEE ALSO</a></li>
 </ul>
 
-<h1 id="DDC-TAB-DUMP-FORMAT">DDC TAB-DUMP FORMAT</h1>
+<hr name="index" />
+</div>
+<!-- INDEX END -->
 
-<p>This manual page describes the output format produced by the <code>ddc_dump</code> program using the <code>--full --tabs</code> (<code>-f -t</code>) option(s). When running in this mode, the <code>--output DIR</code> option specifies the directory <code>DIR</code> to which file(s) are to be written. One output file <i>DIR/FID.tabs</i> is created in the specified directory for each document represented in the index, where <code>FID</code> is the logical index-number of the corresponding document, starting from zero. The remainder of this document describes the format of the <i>DIR/FID.tabs</i> file(s).</p>
-
-<h1 id="SYNOPSIS">SYNOPSIS</h1>
-
-<pre><code> ##=====================================================================
+<p>
+</p>
+<hr />
+<h1><a name="ddc_tab_dump_format">DDC TAB-DUMP FORMAT</a></h1>
+<p>This manual page describes the output format produced by the <code>ddc_dump</code>
+program using the <code>--full --tabs</code> (<code>-f -t</code>) option(s).  When running in
+this mode, the <code>--output DIR</code> option specifies the directory <code>DIR</code> to which file(s)
+are to be written.  One output file <em class="file">DIR/FID.tabs</em> is created in the specified directory
+for each document represented in the index, where <code>FID</code> is the logical index-number
+of the corresponding document, starting from zero.  The remainder of this document
+describes the format of the <em class="file">DIR/FID.tabs</em> file(s).</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<pre>
+ ##=====================================================================
  ## File Format
  
  TABDUMP ::= HEADER BODY
@@ -90,83 +111,107 @@
  INDEX_ID    ::= {integer}   /* position of indexed attribute-value in token-lines */
  INDEX_LONG  ::= {string}    /* long token-level index name */
  INDEX_SHORT ::= {string}    /* short token-level index name */
- INDEX_VAL   ::= {string}    /* value of indexed attribute */</code></pre>
-
-<h1 id="DESCRIPTION">DESCRIPTION</h1>
-
-<h2 id="File-Format">File Format</h2>
-
-<pre><code> TABDUMP ::= HEADER BODY</code></pre>
-
-<p>DDC tab-dump files are comprised of a header section followed by a body section; see <a href="#Header-Section">&quot;Header Section&quot;</a> and <a href="#Body-Section">&quot;Body Section&quot;</a> for details.</p>
-
-<h2 id="Header-Section">Header Section</h2>
-
-<pre><code> HEADER ::= (TOKRANGE | META | BREAK | INDEX)*</code></pre>
-
-<p>DDC tab-dump files begin with a simple header section. Header data, like all non-token data begins with the string <code>%%$DDC</code> to make it easy to identify. The header section may contain the following information:</p>
-
-<h3 id="Token-Range">Token Range</h3>
-
-<pre><code> TOKRANGE    ::= TOKID_BEGIN TOKID_END
+ INDEX_VAL   ::= {string}    /* value of indexed attribute */</pre>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<p>
+</p>
+<h2><a name="file_format">File Format</a></h2>
+<pre>
+ TABDUMP ::= HEADER BODY</pre>
+<p>DDC tab-dump files are comprised of a header section
+followed by a body section; see
+<a href="#header_section">Header Section</a> and <a href="#body_section">Body Section</a> for details.</p>
+<p>
+</p>
+<h2><a name="header_section">Header Section</a></h2>
+<pre>
+ HEADER ::= (TOKRANGE | META | BREAK | INDEX)*</pre>
+<p>DDC tab-dump files begin with a simple header section.
+Header data, like all non-token data begins with the string
+<code>%%$DDC</code> to make it easy to identify.
+The header section may contain the following information:</p>
+<p>
+</p>
+<h3><a name="token_range">Token Range</a></h3>
+<pre>
+ TOKRANGE    ::= TOKID_BEGIN TOKID_END
  TOKID_BEGIN ::= &quot;%%$DDC:tokid.begin=&quot; TOKID &quot;\n&quot;
- TOKID_END   ::= &quot;%%$DDC:tokid.end=&quot; TOKID &quot;\n&quot;</code></pre>
-
+ TOKID_END   ::= &quot;%%$DDC:tokid.end=&quot; TOKID &quot;\n&quot;</pre>
 <p>Reports the range of DDC-internal token-IDs covered by the current document.</p>
-
-<h3 id="Bibliographic-Metadata">Bibliographic Metadata</h3>
-
-<pre><code> META  ::= &quot;%%$DDC.meta.&quot; META_NAME . &quot;=&quot; META_VALUE &quot;\n&quot;</code></pre>
-
-<p>Reports the value of the bibliographic metadata attribute <code>META_NAME</code> as <code>META_VALUE</code>.</p>
-
-<h3 id="Initial-Page">Initial Page</h3>
-
-<pre><code> PAGE  ::= &quot;%%$DDC:PAGE=&quot; PAGENO &quot;\n&quot;</code></pre>
-
+<p>
+</p>
+<h3><a name="bibliographic_metadata">Bibliographic Metadata</a></h3>
+<pre>
+ META  ::= &quot;%%$DDC.meta.&quot; META_NAME . &quot;=&quot; META_VALUE &quot;\n&quot;</pre>
+<p>Reports the value of the bibliographic metadata attribute <code>META_NAME</code>
+as <code>META_VALUE</code>.</p>
+<p>
+</p>
+<h3><a name="initial_page">Initial Page</a></h3>
+<pre>
+ PAGE  ::= &quot;%%$DDC:PAGE=&quot; PAGENO &quot;\n&quot;</pre>
 <p>Reports the position of the first internal page-break in the current document.</p>
-
-<h3 id="Initial-Break-Positions">Initial Break Positions</h3>
-
-<pre><code> BREAK ::= &quot;%%$DDC:BREAK.&quot; BREAK_NAME &quot;=&quot; TOKID &quot;\n&quot;</code></pre>
-
-<p>Reports the position of the first &quot;break&quot; of type <code>BREAK_NAME</code> in the current document. <code>BREAK_NAME</code> is the short name of some &quot;break collection&quot; declared with the <a href="./ddc_opt.html#HitBorders">&quot;HitBorders&quot;</a> option in the project option-file (*.opt).</p>
-
-<h3 id="Token-Index-Attribute-Positions">Token Index Attribute Positions</h3>
-
-<pre><code> INDEX ::= &quot;%%$DDC:index[&quot; INDEX_ID &quot;]=&quot; INDEX_LONG &quot; &quot; INDEX_SHORT &quot;\n&quot;</code></pre>
-
-<p>Reports that the attributes at position <code>INDEX_ID</code> in TAB-separated token lines corresponds to the indexed token attribute with long name <code>INDEX_LONG</code> and short name <code>INDEX_SHORT</code>, as declared by the <a href="./ddc_opt.html#Indices">&quot;Indices&quot;</a> option in the project option-file (*.opt).</p>
-
-<h2 id="Body-Section">Body Section</h2>
-
-<pre><code> BODY ::= (TOKEN | PAGE | BREAK | EOS)*</code></pre>
-
-<p>The body section consists of zero or more lines representing the indexed document content. Each body line represents either an indexed token (<code>TOKEN</code>), a default hit-boundary (<code>EOS</code>), or an arbitrary document-internal break (<code>BREAK</code>).</p>
-
-<h3 id="Token">Token</h3>
-
-<pre><code> TOKEN ::= INDEX_VAL (&quot;\t&quot; INDEX_VAL)* &quot;\n&quot;</code></pre>
-
-<p>Tokens are represented as TAB-separated lists of indexed values. Position <code>INDEX_ID</code> in the TAB-separated list corresponds to the index attribute declared for <code>INDEX_ID</code> in some <a href="#Token-Index-Attribute-Positions">token index attribute position</a> from the <a href="#Header-Section">Header Section</a>.</p>
-
-<h3 id="Default-Hit-Boundary">Default Hit-Boundary</h3>
-
-<pre><code> EOS   ::= &quot;\n&quot;</code></pre>
-
+<p>
+</p>
+<h3><a name="initial_break_positions">Initial Break Positions</a></h3>
+<pre>
+ BREAK ::= &quot;%%$DDC:BREAK.&quot; BREAK_NAME &quot;=&quot; TOKID &quot;\n&quot;</pre>
+<p>Reports the position of the first &quot;break&quot; of type <code>BREAK_NAME</code> in the current
+document.  <code>BREAK_NAME</code> is the short name of some &quot;break collection&quot;
+declared with the <a href="././ddc_opt.html#hitborders">&quot;HitBorders&quot;</a> option in the project option-file (*.opt).</p>
+<p>
+</p>
+<h3><a name="token_index_attribute_positions">Token Index Attribute Positions</a></h3>
+<pre>
+ INDEX ::= &quot;%%$DDC:index[&quot; INDEX_ID &quot;]=&quot; INDEX_LONG &quot; &quot; INDEX_SHORT &quot;\n&quot;</pre>
+<p>Reports that the attributes at position <code>INDEX_ID</code> in TAB-separated token lines
+corresponds to the indexed token attribute with long name
+<code>INDEX_LONG</code> and short name <code>INDEX_SHORT</code>,
+as declared by the <a href="././ddc_opt.html#indices">&quot;Indices&quot;</a> option in the project option-file (*.opt).</p>
+<p>
+</p>
+<h2><a name="body_section">Body Section</a></h2>
+<pre>
+ BODY ::= (TOKEN | PAGE | BREAK | EOS)*</pre>
+<p>The body section consists of zero or more lines representing the indexed
+document content.  Each body line represents either an indexed token (<code>TOKEN</code>),
+a default hit-boundary (<code>EOS</code>), or an arbitrary document-internal break (<code>BREAK</code>).</p>
+<p>
+</p>
+<h3><a name="token">Token</a></h3>
+<pre>
+ TOKEN ::= INDEX_VAL (&quot;\t&quot; INDEX_VAL)* &quot;\n&quot;</pre>
+<p>Tokens are represented as TAB-separated lists of indexed values.
+Position <code>INDEX_ID</code> in the TAB-separated list corresponds to the
+index attribute declared for <code>INDEX_ID</code>
+in some <a href="#token_index_attribute_positions">token index attribute position</a>
+from the <a href="#header_section">Header Section</a>.</p>
+<p>
+</p>
+<h3><a name="default_hit_boundary">Default Hit-Boundary</a></h3>
+<pre>
+ EOS   ::= &quot;\n&quot;</pre>
 <p>Boundaries of the default break-collection are represented as blank lines.</p>
-
-<h3 id="Interal-Pagebreaks">Interal Pagebreaks</h3>
-
-<p>Document-interal page-breaks are represented as for the <a href="#Initial-Page">Initial Page</a> declaration in the <a href="#Header-Section">Header Section</a>.</p>
-
-<h3 id="Interal-Breaks">Interal Breaks</h3>
-
-<p>Document-interal breaks are represented as for <a href="#Initial-Break-Positions">Initial Break Positions</a> in the <a href="#Header-Section">Header Section</a>.</p>
-
-<h2 id="Lexical-Content">Lexical Content</h2>
-
-<pre><code> TOKID       ::= {integer}   /* running counter of indexed token positions */
+<p>
+</p>
+<h3><a name="interal_pagebreaks">Interal Pagebreaks</a></h3>
+<p>Document-interal page-breaks are represented as for
+the <a href="#initial_page">Initial Page</a> declaration
+in the <a href="#header_section">Header Section</a>.</p>
+<p>
+</p>
+<h3><a name="interal_breaks">Interal Breaks</a></h3>
+<p>Document-interal breaks are represented as for
+<a href="#initial_break_positions">Initial Break Positions</a>
+in the <a href="#header_section">Header Section</a>.</p>
+<p>
+</p>
+<h2><a name="lexical_content">Lexical Content</a></h2>
+<pre>
+ TOKID       ::= {integer}   /* running counter of indexed token positions */
  META_NAME   ::= {string}    /* bibliographic metadata attribute name */
  META_VALUE  ::= {string}    /* bibliographic metadata attribute value */
  PAGENO      ::= {integer}   /* internal page counter */
@@ -174,15 +219,20 @@
  INDEX_ID    ::= {integer}   /* position of indexed attribute-value in token-lines */
  INDEX_LONG  ::= {string}    /* long token-level index name */
  INDEX_SHORT ::= {string}    /* short token-level index name */
- INDEX_VAL   ::= {string}    /* value of indexed attribute */</code></pre>
-
-<p>Integers are represented in decimal notation, dates are represented as <code>YYYY</code>, <code>YYYY-MM</code>, or <code>YYYY-MM-DD</code>, and strings in the <a href="#Header-Section">Header Section</a> are printed using <a href="http://json.org/">JSON</a>-style escape sequences. Token attribute value strings appear as literals.</p>
-
-<h1 id="EXAMPLE">EXAMPLE</h1>
-
-<p>The following is an example file dump produced by <code>ddc_dump --full --tabs</code> for a small toy file:</p>
-
-<pre><code> %%$DDC:tokid.begin=0
+ INDEX_VAL   ::= {string}    /* value of indexed attribute */</pre>
+<p>Integers are represented in decimal notation,
+dates are represented as  <code>YYYY</code>, <code>YYYY-MM</code>, or <code>YYYY-MM-DD</code>,
+and strings in the <a href="#header_section">Header Section</a> are printed using
+<em>JSON</em>-style escape sequences.
+Token attribute value strings appear as literals.</p>
+<p>
+</p>
+<hr />
+<h1><a name="example">EXAMPLE</a></h1>
+<p>The following is an example file dump produced by <code>ddc_dump --full --tabs</code> for
+a small toy file:</p>
+<pre>
+ %%$DDC:tokid.begin=0
  %%$DDC:tokid.end=11
  %%$DDC:meta.n_=0
  %%$DDC:meta.file_=test/tiny.xml
@@ -215,24 +265,24 @@
  only   RB      only
  a      DT      a
  test   NN      test
- .      SENT    .
- </code></pre>
-
-<h1 id="ACKNOWLEDGEMENTS">ACKNOWLEDGEMENTS</h1>
-
+ .      SENT    .</pre>
+<p>
+</p>
+<hr />
+<h1><a name="acknowledgements">ACKNOWLEDGEMENTS</a></h1>
 <p>Alexey Sokirko wrote the original DDC.</p>
-
-<h1 id="AUTHOR">AUTHOR</h1>
-
-<p>Bryan Jurish &lt;jurish@bbaw.de&gt; wrote and maintains the <code>ddc_dump</code> program.</p>
-
-<h1 id="SEE-ALSO">SEE ALSO</h1>
-
-<p><a href="./ddc_opt.html">ddc_opt(5)</a>, ddc_dump(1)</p>
-
+<p>
+</p>
+<hr />
+<h1><a name="author">AUTHOR</a></h1>
+<p>Bryan Jurish &lt;<a href="mailto:jurish@bbaw.de">jurish@bbaw.de</a>&gt; wrote and maintains the <code>ddc_dump</code> program.</p>
+<p>
+</p>
+<hr />
+<h1><a name="see_also">SEE ALSO</a></h1>
+<p><a href="././ddc_opt.html">ddc_opt(5)</a>,
+<code>ddc_dump(1)</code></p>
 
 </body>
 
 </html>
-
-

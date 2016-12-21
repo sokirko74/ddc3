@@ -94,7 +94,7 @@ void InitMorphologySystem(T*& Lemmatizer, Y*& Gramtab)
 		}
 	}
 	catch (...) {
-		pthread_mutex_lock(&ddcMorphMutex);
+		pthread_mutex_unlock(&ddcMorphMutex);
 		throw;
 	}
 
