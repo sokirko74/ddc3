@@ -47,7 +47,7 @@ foreach my $hit (@$hits) {
 
   my $label ="$f:$p";
   my $hinfo = $hit->{debug_} || $hit->{meta_};
-  if (define($hinfo->{breakno_})) {
+  if (defined($hinfo->{breakno_})) {
     my $tokno = ($hinfo->{breakstart_} // $hinfi->{breakstart_}) + @l - @{$hit->{ctx_}[0]}; ##-- CONTINUE HERE
     $label .= "[n=$n,f=$hinfo->{fileno_},b=$hinfo->{breakno_},w=$tokno]";
     ++$n;
