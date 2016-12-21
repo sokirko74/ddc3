@@ -1,5 +1,5 @@
 //-*- Mode: bison; c-basic-offset: 8; -*-*/
-//  Copyright 2011-2015 by Bryan Jurish
+//  Copyright 2011-2016 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -38,7 +38,7 @@
  */
 
 #include "QueryCompiler.h"
-#include "../common/ddcString.h"
+#include "../CommonLib/ddcString.h"
 #include <sstream>
 
 #ifndef YYDEBUG
