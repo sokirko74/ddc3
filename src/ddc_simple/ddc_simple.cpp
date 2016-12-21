@@ -77,7 +77,6 @@ int main(int argc, char* argv[])
 	ddcLogToStderr = true;
 	
 	prog = argv[0];
-
 	{
 		StringVector Args;
 		bool bResultLimitGiven = false;
@@ -173,7 +172,7 @@ int main(int argc, char* argv[])
 		    	if (  (s == "--version") || (s== "-V"))
 			{
 				fprintf (stderr,"%s\n", DDCVersionStr.c_str());	
-				fprintf (stderr,"ddcSimple, command line query processor\n");	
+				fprintf (stderr,"ddc_simple: command line query processor\n");	
 				return 1;
 			}
 			else if (s == "--verbose" || s=="-v" || s=="--log-level" || s=="--log" || s=="--protocol") {

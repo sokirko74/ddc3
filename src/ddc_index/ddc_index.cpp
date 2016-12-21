@@ -1,6 +1,8 @@
+//-*- Mode: C++; c-basic-offset: 8; -*-
+//
 //  Original by Alexey Sokirko.
 //
-//  Modifications sopyright 2011 by Bryan Jurish
+//  Modifications sopyright 2011-2016 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -20,7 +22,7 @@
 // ConcordIndex.cpp : Defines the entry point for the console application.
 //
 
-#include <time.h>
+#include "../CommonLib/ddcTime.h"
 #include "../ConcordLib/ConcCommon.h"
 #include "../ConcordLib/ConcIndexator.h"
 
@@ -28,10 +30,19 @@ const char *prog = "ddc_index";
 void  PrintUsageAndExit()
 {
   printf ("%s\n", DDCVersionStr.c_str());
-  printf ("Usage: %s <ProjectCon> [--only-reindex-morph] [--print-profiler-info] [--skip-initial-file-checking]\n", prog);
-  printf ("NOTE: may generate large temporary files in $TMP or /tmp\n");
+  printf ("Index a DDC project (*.con) file\n");
+  printf ("\nUsage: %s [OPTIONS] PROJECT\n", prog);
+  printf ("\nOptions:\n"
+	  "  -V, --version                      # report program version and exit\n"
+	  "  -v, --verbose LEVEL                # set log-verbosity level (none|error|warn|info=weak|debug=medium|trace=heavy)\n"
+	  "      --only-reindex-morph\n"
+	  "      --print-profiler-info\n"
+	  "      --skip-initial-file-checking\n"
+	  );
+  printf("\nNotes:\n"
+	 "  + may generate large temporary files in $TMP or /tmp\n"
+	 );
   exit(1);
-
 };
 
 
@@ -39,8 +50,14 @@ void  PrintUsageAndExit()
 int main(int argc, char* argv[])
 {
 	ddcInitGlobal();
-	prog = argv[0];
+	ddc_thread_init(prog);
 
+	SetLogLevel(ddcLLDebug);
+	ddcLogToSyslog = false;
+	ddcLogToFiles  = false;
+	ddcLogToStderr = true;
+
+	prog = argv[0];
 	if (argc < 2) 
 		PrintUsageAndExit();
 	CConcIndexatorInvoker S;
@@ -51,28 +68,32 @@ int main(int argc, char* argv[])
 	for (size_t i=1; i < argc; i++)
 	{
 		string s = argv[i];
-		if (s == "--only-reindex-morph")
+		if (  (s == "--version") || (s== "-V")) {
+			fprintf (stderr,"%s\n", DDCVersionStr.c_str());	
+			fprintf (stderr,"ddc_index: create index from a DDC project *.con file\n");	
+			return 1;
+		}
+		else if (s == "--verbose" || s=="-v" || s=="--log-level" || s=="--log" || s=="--protocol") {
+			if (i+1 >= argc) 
+				PrintUsageAndExit();
+			SetLogLevel( GetLogLevel(argv[i+1]) );
+			i++;
+		}
+		else if (s == "--only-reindex-morph")
 		{
-			printf ("--only-reindex-morph\n");
+			ddcLogInfo("--only-reindex-morph");
 			S.m_bOnlyReindexMorphology = true;
 		}
 		else
 			if (s == "--skip-initial-file-checking")
 			{
-				printf ("--skip-initial-file-checking\n");
+				ddcLogInfo("--skip-initial-file-checking");
 				S.m_bSkipInitialFileChecking = true;
-			}
-		else
-		    if (  (s == "--version") || (s== "-v"))
-			{
-			  fprintf (stderr,"%s\n", DDCVersionStr.c_str());
-			  fprintf (stderr,"%s: DDC corpus indexer\n", argv[0]);
-			  return 1;
 			}
 		else
 			if (s == "--print-profiler-info")
 			{
-				printf ("--print-profiler-info\n");
+				ddcLogInfo("--print-profiler-info");
 				S.m_Profiler.m_bTimeSpanHolderEnabled = true;
 			}
 			else
@@ -87,23 +108,19 @@ int main(int argc, char* argv[])
 
 	InitConcordDicts();
 	
-	time_t t1;
-	time(&t1);
-
+	DDCTime t0 = DDCTime::Now();
 	S.m_bStdout = true;
 	
 	if (!S.BuildIndex(ProjectFile ))
 	{
-		printf ("cannot index the project!\n");
+		ddcLogError("cannot index the project!");
 		FreeConcordDicts();
 		return 1;
 	};
 
 
-	time_t t2;
-	time(&t2);
-	long int elapsed = t2-t1;
-	printf ("Seconds = %ld\n", elapsed);
+	double elapsed = DDCTime::Now().Elapsed(t0);
+	ddcLogInfo(Format("Elapsed time = %gs\n", elapsed));
 	FreeConcordDicts();
 	return 0;
 }
