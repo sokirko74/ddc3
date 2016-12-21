@@ -136,9 +136,9 @@ public:
     size_t size() const
     {
         pthread_mutex_lock(&m_mutex);
-        size_t size = m_queue.size();
+        size_t sz = m_queue.size();
         pthread_mutex_unlock(&m_mutex);
-        return size;
+        return sz;
     };
 };
 
