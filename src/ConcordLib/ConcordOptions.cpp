@@ -230,19 +230,19 @@ bool CConcIndexator::LoadOptionsFromString(string Options)
 			{
 				if (!m_HtmlHighlighting.ReadFromString(fields.get_rest()))
 					throw CExpc("Cannot parse HtmlHighlighting declaration in opt-file");
-				EchoOption("HtmlHighlighting = \"%s\"\n", m_HtmlHighlighting.ToString().c_str());
+				EchoOption("HtmlHighlighting = \"%s\"", m_HtmlHighlighting.ToString().c_str());
 			}
 		else if (q == "TextHighlighting")
 			{
 				if (!m_TextHighlighting.ReadFromString(fields.get_rest()))
 					throw CExpc("Cannot parse TextHighlighting declaration in opt-file");
-				EchoOption("TextHighlighting = \"%s\"\n", m_TextHighlighting.ToString().c_str());
+				EchoOption("TextHighlighting = \"%s\"", m_TextHighlighting.ToString().c_str());
 			}
 		else if (q == "TableHighlighting")
 			{
 				if (!m_TableHighlighting.ReadFromString(fields.get_rest()))
 					throw CExpc("Cannot parse TableHighlighting declaration in opt-file");
-				EchoOption("TableHighlighting = \"%s\"\n", m_TableHighlighting.ToString().c_str());
+				EchoOption("TableHighlighting = \"%s\"", m_TableHighlighting.ToString().c_str());
 			}
 		else if (q == "ShowNumberOfRelevantDocuments")
 			{
@@ -370,7 +370,7 @@ bool CConcIndexator::LoadOptionsFromString(string Options)
 				if (q.empty())
 					throw CExpc("Cannot parse InterpDelimiter declaration in opt-file: %s", s);
 				m_InterpDelimiter = unescapeCString(q);
-				EchoOption("InterpDelimiter = \"%s\"\n", m_InterpDelimiter.c_str());
+				EchoOption("InterpDelimiter = \"%s\"", m_InterpDelimiter.c_str());
 			}
 		else if (q == "TokenDelimiter" || q == "TokenDelimeter")
 			{
@@ -378,7 +378,7 @@ bool CConcIndexator::LoadOptionsFromString(string Options)
 				if (q.empty())
 					throw CExpc("Cannot parse TokenDelimiter declaration in opt-file: %s", s);
 				m_TokenDelimiter = unescapeCString(q);
-				EchoOption("TokenDelimiter = \"%s\"\n", m_TokenDelimiter.c_str());
+				EchoOption("TokenDelimiter = \"%s\"", m_TokenDelimiter.c_str());
 			}
 		else if (q == "Utf8")
 			{

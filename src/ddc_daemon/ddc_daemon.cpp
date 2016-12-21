@@ -61,6 +61,7 @@ void PrintUsage()
 	printf ("Daemon for working with Dialing-DWDS Concordance\n");
 	printf ("\nUsage: %s ACTION [OPTIONS]\n", prog);
 	printf ("\nOptions:\n"
+		"  -V, --version             # report program version and exit\n"
 		"  -v, --verbose LEVEL       # set log-verbosity level (none|error|warn|info=weak|debug=medium|trace=heavy)\n"
 		"  -l, --local LOCAL_CFG     # set local corpus config (default=$RML/etc/ddc_local_corpora.cfg)\n"
 		"  -s, --server SERVER_CFG   # set server config (default=$RML/etc/ddc_server.cfg)\n"
@@ -345,7 +346,7 @@ int	main(int argc, char	**argv)
 	if (argc == 2) 	
 	{		
 		string s = argv[1];		
-		if (  (s == "--version") || (s== "-v"))		
+		if (  (s == "--version") || (s== "-V"))		
 		{			
 			printf ("%s\n", DDCVersionStr.c_str());				
 			printf ("%s: Daemon for working with Dialing-DWDS Concordance\n", argv[0]);

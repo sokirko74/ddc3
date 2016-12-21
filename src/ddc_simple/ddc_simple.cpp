@@ -1,7 +1,7 @@
 //-*- Mode: C++; c-basic-offset: 8; -*-
 //
 //  DDC originally by Alexey Sokirko
-//  Changes and modifications 2011-2014 by Bryan Jurish
+//  Changes and modifications 2011-2016 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -52,6 +52,7 @@ void PrintUsageAndExit()
 		 "  -HitCount                             # call GetHits() rather than SimpleQuery()\n"
 		 "  -HitIds                               # call GetHitIds() (simulate subcorpus server)\n"
 		 "  -NoMorphology                         # suppress call to InitConcordDicts()\n"
+ 		 "  -verbose LEVEL                        # set log-verbosity level (none|error|warn|info=weak|debug=medium|trace=heavy)\n"
 		 "\n"
 		 "Where \"-Limit\" gives the maximum count of occurrences to find\n"
 		 "and \"-Start\" indicates the occurence number from which to start\n"
@@ -68,6 +69,13 @@ void PrintUsageAndExit()
 int main(int argc, char* argv[])
 {
 	ddcInitGlobal();
+	ddc_thread_init(prog);
+
+	SetLogLevel(ddcLLInfo);
+	ddcLogToSyslog = false;
+	ddcLogToFiles  = false;
+	ddcLogToStderr = true;
+	
 	prog = argv[0];
 
 	{
@@ -162,11 +170,17 @@ int main(int argc, char* argv[])
 
 			}
 			else
-		    if (  (s == "--version") || (s== "-v"))
+		    	if (  (s == "--version") || (s== "-V"))
 			{
 				fprintf (stderr,"%s\n", DDCVersionStr.c_str());	
 				fprintf (stderr,"ddcSimple, command line query processor\n");	
 				return 1;
+			}
+			else if (s == "--verbose" || s=="-v" || s=="--log-level" || s=="--log" || s=="--protocol") {
+				if (i+1 >= argc) 
+					PrintUsageAndExit();
+				SetLogLevel( GetLogLevel(argv[i+1]) );
+				i++;
 			}
 			else
 				Args.push_back(argv[i]);
