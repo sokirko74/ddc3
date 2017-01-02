@@ -45,6 +45,7 @@ string CorporaFile;
 string ServerCorporaFile;
 string Action;
 bool   doFork;
+bool   gotLogLevel=false;
 bool   log_stderr=false;
 bool   log_syslog=false;
 bool   log_files=true;
@@ -186,7 +187,9 @@ int do_stop(void)
 int do_start(bool clientMode=false)
 {
       try {
-      //-- clobber global log-level from server options
+      //-- clobber global log-level from server options (only if not read from command-line option)
+      if (gotLogLevel)
+	      ServerOptions.m_LogLevel = ddcLogLevel;
       if (ServerOptions.m_LogLevel > ddcLLUnknown)
 	      SetLogLevel(ServerOptions.m_LogLevel);
 
@@ -397,6 +400,7 @@ int	main(int argc, char	**argv)
 			if (i+1 >= argc) 
 				PrintUsage();
 			SetLogLevel( GetLogLevel(argv[i+1]) );
+			gotLogLevel = true;
 			i++;
 		}
 		else if (s == "--local" || s == "-l") {

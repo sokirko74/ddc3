@@ -178,7 +178,7 @@ void CRunQueryData::Clear()
     ClearVector(PossibleHosts);
     HitDistrib.clear();
     DocDistrib.clear();
-    HitsKey.clear();
+    HitsKey = "hits_";
     ClearString(ResponseBody);
     pErrorStr = NULL;
 }

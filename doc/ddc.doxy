@@ -62,6 +62,7 @@ WARN_LOGFILE           = ddc.log
 INPUT                  = \
 			 ../src/ddc_daemon \
 			 \
+			 ../src/CommonLib \			 
 			 ../src/ConcordLib \
 			 ../src/AgramtabLib \
 			 ../src/tinyxml \

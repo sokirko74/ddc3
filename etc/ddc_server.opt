@@ -8,4 +8,4 @@ LogLevel		info
 NumThreads		0
 ThreadQueueSize		256
 #SlowQueryTimeout	5
-SlowQueryTimeout	1
+#SlowQueryTimeout	1

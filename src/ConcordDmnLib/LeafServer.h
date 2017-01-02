@@ -21,7 +21,7 @@
 #ifndef DDC_LEAF_SERVER_H
 #define DDC_LEAF_SERVER_H
 
-#include "../ConcordDmnLib/Server.h"
+#include "../ConcordDmnLib/BranchServer.h"
 
 /** DDC leaf server node, formerly CDDCCorpusListenHost */
 class CDDCLeafServer : public CDDCServer
@@ -78,7 +78,7 @@ public:
     virtual void handle__get_hit_strings(string &Result, const char *ResultType, int StartHitNo, int ResultLimit);
 
     /* request handler: run_query: required (branch) */
-    //virtual void handle__run_query(string &Result, const char *CorpusName, const char *Query, const char *ResultType, int StartHitNo, int ResultLimit, int TimeOut);
+    virtual void handle__run_query(string &Result, const char *CorpusName, const char *Query, const char *ResultType, int StartHitNo, int ResultLimit, int TimeOut);
 
     /** request handler: expand_terms: required (leaf|branch) */
     virtual void handle__expand_terms(string &Result, const string& pipeline, const string& terms, int timeout, const string &corpus);
@@ -98,7 +98,15 @@ public:
 public:
     //--------------------------------------------------------------
     // local methods
+
+    /** (re-)load the underlying index (reload broken!) */
     bool LoadHolder(CConcHolder **ppHolder=NULL);
+
+    /** generate count-query response for run_query handler */
+    void GetHitCounts(CRunQueryData &runq, DDCFormatTypeEnum ResultTypeE);
+
+    /** generate context-query response for run_query handler */
+    void GetHitContexts(CRunQueryData &runq, DDCFormatTypeEnum ResultTypeE);
 };
 
 /** compatibility typedef for ddc < v2.0.23 */

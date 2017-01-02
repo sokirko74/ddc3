@@ -94,6 +94,9 @@ public:
 	//! the result of the query (its format depends  upon m_ResultFormat)
 	string					m_QueryResultStr;
 
+	//! most recent error message (if applicable)
+	string					m_ErrorStr;
+
 	/*! \brief
 	 * m_pIndexator is the main (and the only) pointer to corpus indices and break collections. 
 	 * During the querying this pointer is used as a constant.
@@ -108,7 +111,7 @@ public:
 	//! The index of the current \ref period_def "subcorpora", which is now  being processed
 	size_t					m_CurrentSearchPeriodNo;
 
-	//! a delimeter which should be used between hits in m_QueryResultStr in the distributed model
+	//! a delimiter which should be used between hits in m_QueryResultStr in the distributed model
 	string					m_AdditionalHitDelimiter;
 
 	//@}
@@ -138,6 +141,7 @@ public:
 
 	//! evaluate query on the corpus and initialize slots from CQueryResult, given a pre-parsed query
 	//! \li ddc-2.0.23 version
+	//! \li may populate m_ErrorStr
 	DDCErrorEnum	GetAllHits(CQuery *QueryRoot, size_t Limit);
 
 	//! check if CountQuery is a count(*) query suitable for use with GetUniversalCounts()
@@ -253,10 +257,10 @@ public:
 	DDCErrorEnum	GetHits(CQuery *QueryRoot,  DWORD& EndHitNo, const string &QueryStr);
 
 	//! initializes m_QueryResultStr using current m_Hits and m_HighlightOccurs (for context-queries)
-	DDCErrorEnum	GenerateHitStrings(const int StartHitNo);
+	DDCErrorEnum	GenerateHitStrings(const int StartHitNo, bool UseAdditionalHitDelimiter=true);
 
 	//! initializes m_QueryResultStr using current m_Hits (for count-queries)
-	DDCErrorEnum	GenerateCountStrings(const int StartHitNo);
+	DDCErrorEnum	GenerateCountStrings(const int StartHitNo, bool UseAdditionalHitDelimiter=true);
 
 	//! stores sortk-keys (CHit::m_SortKey) of current m_Hits to a string
 	string GetHitIds()  const;

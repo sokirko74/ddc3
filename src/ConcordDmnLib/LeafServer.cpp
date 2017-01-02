@@ -80,7 +80,8 @@ void CDDCLeafServer::handle__get_first_hits(string &Result, const char *Query, i
 
     DWORD EndHitNo = 0;
     int Error = m_pHolder->GetHits(Query, EndHitNo);
-    if (Error != errNone) throw CExpc(Error); //-- error
+    if (Error != errNone)
+	throw CExpc(Error, m_pHolder->m_ErrorStr.empty() ? GetDDCErrorString((DDCErrorEnum)Error) : m_pHolder->m_ErrorStr); //-- error
     Result  = Format ("%i %i %i %i %i", Error, EndHitNo, m_pHolder->m_AllHitsCount, m_pHolder->m_RelevantDocumentCount, m_pHolder->HitSortOrder());
     Result += m_pHolder->GetHitIds();
 
@@ -98,7 +99,8 @@ void CDDCLeafServer::handle__get_hit_strings(string &Result, const char *ResultT
     m_pHolder->m_ResultLimit = ResultLimit;
 
     int  Error = m_pHolder->GenerateHitStrings(StartHitNo);
-    if (Error != errNone) throw CExpc(Error); //-- error
+    if (Error != errNone)
+	throw CExpc(Error, m_pHolder->m_ErrorStr.empty() ? GetDDCErrorString((DDCErrorEnum)Error) : m_pHolder->m_ErrorStr); //-- error
 
     //-- no error
     if (m_pHolder->m_QueryResultStr.empty()) {
@@ -114,8 +116,55 @@ void CDDCLeafServer::handle__get_hit_strings(string &Result, const char *ResultT
 }
 
 //----------------------------------------------------------------------
-//void CDDCLeafServer::handle__run_query(string &Result, const char *CorpusName, const char *Query, const char *ResultType, int StartHitNo, int ResultLimit, int TimeOut)
-//TODO
+void CDDCLeafServer::handle__run_query(string &Result, const char *CorpusName, const char *Query, const char *ResultType, int StartHitNo, int ResultLimit, int TimeOut)
+{
+    assert(m_pHolder != NULL);
+    m_pHolder->SetTimeOut(TimeOut);
+    m_pHolder->SetResultFormat(ResultType);
+    m_pHolder->m_ResultLimit = StartHitNo+ResultLimit;
+
+    //-- RunQueryData
+    CRunQueryData runq(Query, ResultType, StartHitNo, ResultLimit, TimeOut, &m_pHolder->m_ErrorStr);
+
+    //-- get_first_hits
+    int Error = m_pHolder->GetHits(Query, runq.EndHitNo);
+    if (Error != errNone)
+	throw CExpc(Error, m_pHolder->m_ErrorStr.empty() ? GetDDCErrorString((DDCErrorEnum)Error) : m_pHolder->m_ErrorStr); //-- error
+    runq.HitsCount = m_pHolder->m_AllHitsCount;
+    runq.HitDistrib = Format("=%d", runq.HitsCount);
+    if (IsCountSort(m_pHolder->HitSortOrder()))
+	runq.HitDistrib += Format("~%d", runq.HitsCount);
+    runq.RelevantDocsCount = m_pHolder->m_RelevantDocumentCount;
+    runq.DocDistrib = Format("=%d", runq.RelevantDocsCount);
+
+    //-- get_hit_strings
+    Error = m_pHolder->GenerateHitStrings(StartHitNo, false);
+    if (Error != errNone)
+	throw CExpc(Error, m_pHolder->m_ErrorStr.empty() ? GetDDCErrorString((DDCErrorEnum)Error) : m_pHolder->m_ErrorStr); //-- error
+    if (m_pHolder->m_QueryResultStr.empty()) {
+	if (m_pHolder->GetResultFormatStr() == "html")
+	    if (m_pHolder->m_ResultLimit > 0)
+		m_pHolder->m_QueryResultStr = "no entries found";
+    }
+
+    //-- (re)format
+    runq.EndHitNo = min((size_t)StartHitNo+(size_t)ResultLimit, m_pHolder->m_Hits.size());
+    DDCFormatTypeEnum ResultTypeE = CConcSession::GetResultFormatByString(runq.sResultFormat);
+    if (ResultTypeE == DDC_ResultText) {
+	runq.ResponseBody += (string("Corpora Distribution:") + runq.HitDistrib + ";\n"
+			      + string("Relevant Documents Distribution:") + runq.DocDistrib + ";\n");
+    }
+
+    if (IsCountSort(m_pHolder->HitSortOrder()))
+	GetHitCounts(runq, ResultTypeE);
+    else
+	GetHitContexts(runq, ResultTypeE);
+    m_pHolder->m_QueryResultStr = "";
+
+    runq.toString(Result, m_WorkerId);
+    m_bExpectMore = false;
+}
+
 
 //----------------------------------------------------------------------
 void CDDCLeafServer::handle__expand_terms(string &Result, const string& pipeline, const string& terms, int timeout, const string &corpus)
@@ -418,3 +467,45 @@ bool CDDCLeafServer::LoadHolder(CConcHolder **ppHolder) {
     ddcLogDebug(Format("Loaded corpus indices for %s (%s)", GetLocalPathOfIndex().c_str(), m_CorpusName.c_str()));
     return true;
 }
+
+//----------------------------------------------------------------------
+void CDDCLeafServer::GetHitCounts(CRunQueryData &runq, DDCFormatTypeEnum ResultTypeE)
+{
+    runq.HitsKey = "counts_";
+    string &ResultStr = runq.ResponseBody;
+
+    if (ResultTypeE == DDC_ResultHTML) {
+	ResultStr += "<HTML> <BODY>\n<TABLE>\n";
+    }
+
+    if (ResultTypeE == DDC_ResultJson) {
+	size_t p0 = m_pHolder->m_QueryResultStr.find('[');
+	size_t p1 = m_pHolder->m_QueryResultStr.rfind(']');
+	if (p0 != string::npos && p1 != string::npos && p1 > p0)
+	    ResultStr += m_pHolder->m_QueryResultStr.substr(p0+1, p1-(p0+1));
+    } else {
+	ResultStr += m_pHolder->m_QueryResultStr;
+    }
+
+    if (ResultTypeE == DDC_ResultHTML) {
+	ResultStr += "</TABLE>\n</BODY></HTML>";
+    }
+}
+
+
+//----------------------------------------------------------------------
+void CDDCLeafServer::GetHitContexts(CRunQueryData &runq, DDCFormatTypeEnum ResultTypeE)
+{
+    runq.HitsKey = "hits_";
+    string &ResultStr = runq.ResponseBody;
+    
+    if (ResultTypeE == DDC_ResultJson) {
+	size_t p0 = m_pHolder->m_QueryResultStr.find('[');
+	size_t p1 = m_pHolder->m_QueryResultStr.rfind(']');
+	if (p0 != string::npos && p1 != string::npos && p1 > p0)
+	    ResultStr += m_pHolder->m_QueryResultStr.substr(p0+1, p1-(p0+1));
+    } else {
+	ResultStr += m_pHolder->m_QueryResultStr;
+    }
+}
+

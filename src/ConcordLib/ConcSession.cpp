@@ -237,6 +237,7 @@ CConcSession* CConcSession::WorkerClone(size_t WorkerId)
 	clone->m_RandomSeed = m_RandomSeed;
 	//clone->m_ShortOccurCaches = m_ShortOccurCaches;
 	//clone->m_QueryResultStr = m_QueryResultStr;
+	//clone->m_ErrorStr = m_ErrorStr;	
 	clone->m_pIndexator = m_pIndexator;				//!!!!!!!! hic sunt dracones !!!!!!!
 	//clone->m_ResultLimit = m_ResultLimit;
 	//clone->m_CurrentSearchPeriodNo = m_CurrentSearchPeriodNo;
@@ -1028,19 +1029,20 @@ bool CConcSession::GetFileSnippets(const int HitNo, vector<COutputToken>& Result
 }
 
 //----------------------------------------------------------------------
-DDCErrorEnum CConcSession::GenerateHitStrings(const int StartHitNo) 
+DDCErrorEnum CConcSession::GenerateHitStrings(const int StartHitNo, bool UseAdditionalHitDelimiter) 
 {
 	assert(m_pQueryCompiler!=NULL);
 	if (m_pQueryCompiler->m_pQuery==NULL)
 		throw CExpc(errRuntime, "CConcSession::GenerateHitStrings(): no compiled query available!");
 
 	if (IsCountSort(m_SortOrder))
-		return GenerateCountStrings(StartHitNo);
+		return GenerateCountStrings(StartHitNo, UseAdditionalHitDelimiter);
 
 	DwordVector PageBreaks;
 
 	m_pIndexator->ConvertHitsToPageBreaks(m_Hits.begin(), m_Hits.end(), GetBreaks(), PageBreaks);
 	m_QueryResultStr = "";
+	m_ErrorStr = "";
 
 	int end = min (m_Hits.size(), StartHitNo + m_ResultLimit);
 	for(DWORD EndHitNo = StartHitNo; EndHitNo<end; EndHitNo++ )
@@ -1117,14 +1119,16 @@ DDCErrorEnum CConcSession::GenerateHitStrings(const int StartHitNo)
 		else {
 		    m_QueryResultStr.push_back('\n');
 		}
-		m_QueryResultStr += m_AdditionalHitDelimiter;
+
+		if (UseAdditionalHitDelimiter)
+			m_QueryResultStr += m_AdditionalHitDelimiter;
 	};
 
 	return errNone;
 }
 
 //----------------------------------------------------------------------
-DDCErrorEnum CConcSession::GenerateCountStrings(const int StartHitNo) 
+DDCErrorEnum CConcSession::GenerateCountStrings(const int StartHitNo, bool UseAdditionalHitDelimiter) 
 {
 	assert(m_pQueryCompiler!=NULL);
 	assert(m_pQueryCompiler->m_pQuery!=NULL);
@@ -1132,6 +1136,7 @@ DDCErrorEnum CConcSession::GenerateCountStrings(const int StartHitNo)
 
 	int end = min (m_Hits.size(), StartHitNo + m_ResultLimit);
 	m_QueryResultStr = "";
+	m_ErrorStr = "";
 	
 	if (m_ResultFormat == DDC_ResultJson)
 		m_QueryResultStr.push_back('[');
@@ -1142,7 +1147,9 @@ DDCErrorEnum CConcSession::GenerateCountStrings(const int StartHitNo)
 			m_QueryResultStr.push_back(EndHitNo < end-1 ? ',' : ']');
 			m_QueryResultStr.push_back('\n');
 		}
-		m_QueryResultStr += m_AdditionalHitDelimiter;
+
+		if (UseAdditionalHitDelimiter)
+			m_QueryResultStr += m_AdditionalHitDelimiter;
 	}
 
 	return errNone;
@@ -1517,6 +1524,7 @@ DDCErrorEnum CConcSession::GetAllHits(CQuery *QueryRoot, size_t Limit)
 	assert(QueryRoot != NULL);
 	m_bStoppedByUser = false;
 	m_ShortOccurCaches.clear();
+	m_ErrorStr = "";
 	ClearQueryResults();
 
 	//-- check for count-queries
@@ -1711,7 +1719,7 @@ DDCErrorEnum CConcSession::GetAllHits(CQuery *QueryRoot, size_t Limit)
 	} //  cycle for corpus periods
 
 	// encode count() query results as hits
-	if (qCount != NULL)
+	if (qCount != NULL && rc == errNone)
 		qCount->ConvertCountsToHits(*this, Limit);
 
 	//  we cannot call here CleanParser, because we would use later some slots of  m_pQueryCompiler 
@@ -1817,6 +1825,7 @@ DDCErrorEnum CConcSession::GetHits(CQuery *QueryRoot,  DWORD& EndHitNo)
 DDCErrorEnum CConcSession::GetHits(CQuery *QueryRoot,  DWORD& EndHitNo, const string& QueryStr) 
 {
 	ClearQueryResults();
+	m_ErrorStr = "";
 	if (!QueryRoot)
 		return errParseError;
 
@@ -1868,18 +1877,21 @@ DDCErrorEnum CConcSession::GetHits(CQuery *QueryRoot,  DWORD& EndHitNo, const st
 
 	}
 	catch (CExpc& C) {
-		ErrorMessage (C.m_strCause);
-		concord_daemon_log(string("Error: ") + C.m_strCause);
+		m_ErrorStr = string("Error: ") + C.m_strCause;
+		ErrorMessage(m_ErrorStr);
+		ddcLogError(m_ErrorStr);
 		return (DDCErrorEnum)C.m_ErrorCode==errNone ? errRuntime : (DDCErrorEnum)C.m_ErrorCode;
 	}
 	catch (exception& e) {
-		ErrorMessage(e.what());
-		concord_daemon_log(Format("Exception: %s", e.what()));
+		m_ErrorStr = string("Exception: ") + e.what();
+		ErrorMessage(m_ErrorStr);
+		ddcLogError(m_ErrorStr);
 		return errRuntime;
 	}
 	catch (...) {
-		ErrorMessage("Unhandled exception");
-		concord_daemon_log(Format("Unhandled Exception"));
+		m_ErrorStr = string("Unhandled exception");
+		ErrorMessage(m_ErrorStr);
+		ddcLogError(m_ErrorStr);
 		return errOther;
 	}
 
@@ -1918,8 +1930,9 @@ DDCErrorEnum CConcSession::SimpleQuery(const string &Query, DWORD& EndHitNo, DWO
 	}
 	catch (CExpc& C)
 	{
-		ErrorMessage (C.m_strCause);
-		concord_daemon_log(C.m_strCause);
+		m_ErrorStr = string("Error: ") + C.m_strCause;
+		ErrorMessage (m_ErrorStr);
+		ddcLogError(m_ErrorStr);
 		return (DDCErrorEnum)C.m_ErrorCode;
 	}
 
@@ -2054,8 +2067,9 @@ DDCErrorEnum CConcSession::GetOccurrences(const string &Query, int ContextSize, 
 	}
 	catch (CExpc& C)
 	{
-		ErrorMessage (C.m_strCause);
-		concord_daemon_log(C.m_strCause);
+		m_ErrorStr = string("Error: ") + C.m_strCause;
+		ErrorMessage(m_ErrorStr);
+		ddcLogError(m_ErrorStr);
 		return (DDCErrorEnum)C.m_ErrorCode;
 	}
 };
@@ -2168,8 +2182,11 @@ bool	CConcSession::HasMatchIdOperator() const
 string CConcSession::CanonicalQueryString(const string &Query)
 {
 	ClearQueryResults();
-	if ( !m_pQueryCompiler || !m_pQueryCompiler->ParseQuery(Query) )
+	m_ErrorStr = "";
+	if ( !m_pQueryCompiler || !m_pQueryCompiler->ParseQuery(Query) ) {
+		m_ErrorStr = "parse error";
 		return string("");
+	}
 	return m_pQueryCompiler->QueryToString();
 }
 
@@ -2177,8 +2194,11 @@ string CConcSession::CanonicalQueryString(const string &Query)
 string CConcSession::JsonQueryString(const string &Query)
 {
 	ClearQueryResults();
-	if ( !m_pQueryCompiler || !m_pQueryCompiler->ParseQuery(Query) )
+	m_ErrorStr = "";
+	if ( !m_pQueryCompiler || !m_pQueryCompiler->ParseQuery(Query) ) {
+		m_ErrorStr = "parse error";
 		return string("");
+	}
 	return m_pQueryCompiler->QueryToJson();
 }
 
