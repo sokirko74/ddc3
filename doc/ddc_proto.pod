@@ -381,12 +381,6 @@ with any single index, but functions as an aggregator for one or more subordinat
 Branch servers are prototypically used as the top-level instance for processing user
 queries.  Prior to ddc-v2.1.0, only branch servers supported the following messages.
 
-=begin comment
-
-TODO: implement branch-server message for ddc-2.1.0 leaf servers
-
-=end comment
-
 =cut
 
 ##--------------------------------------------------------------
@@ -521,7 +515,9 @@ are the key strings as requested in the C<QUERY> "#BY"-clause.
 
 =back
 
-Since v1.x, JSON format and error messages since v2.0.0.
+Since v1.x,
+JSON format and error messages since v2.0.0,
+leaf server support since v2.1.0.
 
 =cut
 
@@ -590,7 +586,7 @@ As of v2.0.19, C<ORDERID> is the literal string "-0", and
 C<ORDER_STRING> is the (possibly empty) actual sort key for the hit.
 If C<ORDER_STRING> is the literal string "<empty>", it is treated as an empty string for compatibility reasons.
 C<ORDER_STRING> may also be a string of the form "#XXXXXXXX" representing a 32-bit integer
-sort key in hexidecimal notation (msb order, high bit set for non-negative numbers only, no fill bits).
+sort key in hexadecimal notation (msb order, high bit set for non-negative numbers only, no fill bits).
 
 As of v2.0.23, ddc supports aggregate count-queries (by means of the C<count()> operator)
 in addition to traditional "context" queries.  If the requested C<QUERY> was such a count-query,
