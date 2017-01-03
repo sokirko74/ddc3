@@ -22,7 +22,7 @@
 
 <p>README for package ddc</p>
 
-<p>Last updated for ddc v2.0.15</p>
+<p>Last updated for ddc v2.1.0</p>
 
 <h1 id="DESCRIPTION">DESCRIPTION</h1>
 
@@ -69,13 +69,15 @@
 
 <p>URL: http://curl.haxx.se/</p>
 
-<p>Tested version(s): 7.21.0</p>
+<p>Tested version(s): 7.21.0, 7.38.0</p>
 
 </dd>
 <dt id="GNU-bison-optional">GNU bison (optional)</dt>
 <dd>
 
-<p>Tested version 2.4.1. If you get errors compiling src/ConcordLib/yyQParser.o, try re-extracting the source archive and call</p>
+<p>Tested version(s): 2.4.1, 3.0.2</p>
+
+<p>If you get errors compiling src/ConcordLib/yyQParser.o, try re-extracting the source archive and call</p>
 
 <pre><code> $ touch src/ConcordLib/yyQParser.cpp src/ConcordLib/yyQParser.h</code></pre>
 
@@ -85,7 +87,9 @@
 <dt id="GNU-flex-optional">GNU flex (optional)</dt>
 <dd>
 
-<p>Tested version 2.5.35. If you get errors compiling src/ConcordLib/yyQLexer.o, try re-extracting the source archive and call</p>
+<p>Tested version(s) 2.5.35, 2.5.39.</p>
+
+<p>If you get errors compiling src/ConcordLib/yyQLexer.o, try re-extracting the source archive and call</p>
 
 <pre><code> $ touch src/ConcordLib/yyQLexer.cpp src/ConcordLib/yyQLexer.h</code></pre>
 
@@ -143,6 +147,18 @@
 <p>Enable debugging flags. Only works for GNU C++ compiler.</p>
 
 </dd>
+<dt id="enable-hires-clock">--enable-hires-clock</dt>
+<dd>
+
+<p>Enable high-resolution clock if available. Requires <code>clock_gettime()</code> function. Enabled by default if <code>--enable-debug</code> was specified, otherwise disabled by default.</p>
+
+</dd>
+<dt id="enable-json-deep-context">--enable-json-deep-context</dt>
+<dd>
+
+<p>Enable deep encoding of extra-sentential context tokens in JSON output strings. Disabled by default, since it breaks strict backwards-compatibility.</p>
+
+</dd>
 <dt id="enable-warnings">--enable-warnings</dt>
 <dd>
 
@@ -159,6 +175,18 @@
 <dd>
 
 <p>Force DDC to build without CURL support.</p>
+
+</dd>
+<dt id="with-libiconv-prefix-DIR">--with-libiconv-prefix=DIR</dt>
+<dd>
+
+<p>Search for libiconv in DIR/include and DIR/lib.</p>
+
+</dd>
+<dt id="with-static-buflen-SIZE">--with-static-buflen=SIZE</dt>
+<dd>
+
+<p>Size in bytes of large static internal string buffers (default=4096).</p>
 
 </dd>
 </dl>

@@ -1,5 +1,45 @@
 ##-*- Mode: Change-Log; coding: utf-8; -*-
 
+v2.1.0 Tue, 03 Jan 2017 12:04:49 +0100 moocow
+	* added optional per-client threads for ddc_daemon
+	  - each CDDCServer instance can now pre-spawn user-specified N worker threads (NumThreads)
+	  - new ddcThread.*, ddcThreadQueue.*, ServerThread.*, new class ddcLockable
+	  - added local locks in "unsafe" shared objects: CCurl, CConcXml, CIndexSetForQueryingStage
+	    + wrap dangerous locked index sub-object code in try/catch to avoid deadlocks on weird exceptions (e.g. std::bad_alloc)
+	* refactored old ConcHolder.* into ConcSessionContext.*, ConcSession.*
+	  - ConcSessionContext: shared global data (cache)
+	  - ConcSession: thread-local data (everything else)
+	  - ConcHolder: now just a typedef alias for ConcSession
+	* factored CHost class out of string_socket.(h|cpp)
+	  - moved old CHost::AnswerByRequest() calling context in RunThread() into virtual HandleClientConnection() [for worker-threads]
+	  - moved old CHost::AnswerByRequest() to CHost::HandleClientRequest(): handle a single client request [should be worker-local]
+	  - factored HandleClientRequest() into GetRequest(), SendResponse(), and HandleSocketError()
+	  - report client peer address with CHost errors using new SocketPeer() function [doesn't work for closed sockets of course]
+	* factored out QueryResult, CQueryResultIndex from ConcHolder.h to new QueryResult.h
+	* added mantis feature-request #661: unified server request protocols
+	  - implemented leaf-server commands for branch servers
+	  - implemented branch-server commands for leaf servers
+	  - allow multiple branch servers in a single process, read from a single ddc_server.cfg
+	    + final field of ddc_server.cfg lines (CHost::m_LocalPath) is read as label of parent branch-server
+	    + documented ddc_*.cfg syntax as ddc_cfg(5)
+	* new abstract DDCTime object
+	  - new configure option --enable-hires-clock (enabled by default only if --enable-debug)
+	  - TODO: use this consistently wherever timeouts come into play
+	* re-worked logging framework
+	  - new log-levels ddcLL* (None,Error,Warn,Info,Debug,Trace) a la Log::Log4perl
+	    + backwards-compatible aliases pdWeakDensity etc. should work as expected
+	  - new global log-level ddcLogLevel
+	  - new global log-level-sensitive wrapper macros ddcLogTrace() etc.
+	  - new ddcLog() function replaces concord_daemon_log() [with back-compatible wrapper]
+	  - use global lock for log access
+	  - use log-levels in ConcordOptions.cpp: suppress verbose echo of options at log levels < debug
+	* moved Format(...) into ddcString.(h|cpp)
+	  - new variable-argument version vFormat(format, va_list)
+	* re-factored CommonLib stuff from src/common/ into src/CommonLib/
+	  - eliminate ugly 1-liner CommonLib/*.cpp hacks
+	* added and documented new server-options file $RML/etc/ddc_server.opt
+	  - report active server options in ddc_daemon on server startup
+
 v2.0.52 Fri, 02 Dec 2016 13:39:30 +0100 moocow
 	+ fixed count(keys(...)) bug introduced in v2.0.51 by count-by-breaks hack
 	  - segfaults caused by temporary count-query used by keys()-queries with m_Options==NULL

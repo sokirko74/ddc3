@@ -1,6 +1,6 @@
     README for package ddc
 
-    Last updated for ddc v2.0.15
+    Last updated for ddc v2.1.0
 
 DESCRIPTION
     The ddc package contains core C++ utilities for the DWDS/Dialing
@@ -42,21 +42,23 @@ DEPENDENCIES
 
         URL: http://curl.haxx.se/
 
-        Tested version(s): 7.21.0
+        Tested version(s): 7.21.0, 7.38.0
 
     GNU bison (optional)
-        Tested version 2.4.1. If you get errors compiling
-        src/ConcordLib/yyQParser.o, try re-extracting the source archive and
-        call
+        Tested version(s): 2.4.1, 3.0.2
+
+        If you get errors compiling src/ConcordLib/yyQParser.o, try
+        re-extracting the source archive and call
 
          $ touch src/ConcordLib/yyQParser.cpp src/ConcordLib/yyQParser.h
 
         before re-compiling.
 
     GNU flex (optional)
-        Tested version 2.5.35. If you get errors compiling
-        src/ConcordLib/yyQLexer.o, try re-extracting the source archive and
-        call
+        Tested version(s) 2.5.35, 2.5.39.
+
+        If you get errors compiling src/ConcordLib/yyQLexer.o, try
+        re-extracting the source archive and call
 
          $ touch src/ConcordLib/yyQLexer.cpp src/ConcordLib/yyQLexer.h
 
@@ -106,6 +108,16 @@ BUILD OPTIONS
     --enable-debug
         Enable debugging flags. Only works for GNU C++ compiler.
 
+    --enable-hires-clock
+        Enable high-resolution clock if available. Requires
+        "clock_gettime()" function. Enabled by default if "--enable-debug"
+        was specified, otherwise disabled by default.
+
+    --enable-json-deep-context
+        Enable deep encoding of extra-sentential context tokens in JSON
+        output strings. Disabled by default, since it breaks strict
+        backwards-compatibility.
+
     --enable-warnings
         Enable lots of compiler warnings. Only works for GNU C++ compiler.
 
@@ -114,6 +126,13 @@ BUILD OPTIONS
 
     --without-libcurl
         Force DDC to build without CURL support.
+
+    --with-libiconv-prefix=DIR
+        Search for libiconv in DIR/include and DIR/lib.
+
+    --with-static-buflen=SIZE
+        Size in bytes of large static internal string buffers
+        (default=4096).
 
     See the output of `./configure --help` for details on additional
     supported options.

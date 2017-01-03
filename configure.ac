@@ -3,7 +3,7 @@ AC_PREREQ(2.5)
 
 dnl Some handy macros
 define([THE_PACKAGE_NAME],    [ddc])
-define([THE_PACKAGE_VERSION], [2.1.0-rc3])
+define([THE_PACKAGE_VERSION], [2.1.0])
 define([THE_PACKAGE_MAINTAINER],  [jurish@bbaw.de])
 AC_INIT(THE_PACKAGE_NAME, THE_PACKAGE_VERSION, THE_PACKAGE_MAINTAINER)
 
@@ -365,7 +365,7 @@ AC_SUBST(ddc_OFLAGS)
 ## defs: hires-clock (after debug)
 AC_ARG_ENABLE([hires-clock],
 	AC_HELP_STRING([--enable-hires-clock],
-		[Enable high-resolution clock? (default=yes)]),
+		[Enable high-resolution clock? (default=debug-mode only)]),
 		[ddc_hires_clock="$enableval"],
 		[ddc_hires_clock="$enable_debug"])
 AC_MSG_CHECKING([whether to enable high-resolution clock])
