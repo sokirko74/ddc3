@@ -56,7 +56,7 @@ void* CDDCServerThread::run(void)
     ddc_thread_init(m_Label.c_str());
 
     //-- report
-    ddcLogInfo( Format("starting worker thread #%zd for server %s", m_Server->m_WorkerId, m_Server->m_CorpusName.c_str()) );
+    ddcLogDebug( Format("starting worker thread #%zd for server %s", m_Server->m_WorkerId, m_Server->m_CorpusName.c_str()) );
 
     //-- thread-pool mode (persistent)
     for (;;) {

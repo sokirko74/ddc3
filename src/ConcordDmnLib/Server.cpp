@@ -93,15 +93,15 @@ void CDDCServer::Shutdown(bool quiet)
 {
     if (m_ThreadPool) {
 	if (!quiet)
-	    ddcLogInfo(Format("shutting down client threads for server %s", m_CorpusName.c_str()));
+	    ddcLogInfo(Format("shutting down worker thread(s) for server %s", m_CorpusName.c_str()));
 	m_ThreadPool->stop();
     }
 
     if (!quiet) {
 	if (m_WorkerId)
-	    ddcLogInfo(Format("shutting down worker thread #%zd for server %s", m_WorkerId, m_CorpusName.c_str()));
+	    ddcLogDebug(Format("shutting down worker thread #%zd for server %s", m_WorkerId, m_CorpusName.c_str()));
 	else
-	    ddcLogInfo(Format("shutting down main thread for server %s", m_CorpusName.c_str()));
+	    ddcLogDebug(Format("shutting down main thread for server %s", m_CorpusName.c_str()));
     }
     StopAcceptingThread();
 };
@@ -123,7 +123,7 @@ void CDDCServer::StartClientThreads()
 	//-- serial mode
 	if (m_ThreadPool) delete m_ThreadPool;
 	m_ThreadPool = NULL;
-	ddcLogInfo("client threads disabled; running in serial mode");
+	ddcLogInfo("client-threads disabled; running in serial mode");
     }
     else {
 	//-- client-thread mode
