@@ -1,5 +1,9 @@
 ##-*- Mode: Change-Log; coding: utf-8; -*-
 
+PENDING Wed, 04 Jan 2017 10:56:11 +0100
+	* renamed "#(ASC|DESC)_CONTEXT" -> "#(ASC|DESC)_MIDDLE" in ConcCommon.h HitSortEnumStrings
+	  - CQFContextSort::toString() was returning bogus (unparseable) query strings
+
 v2.1.0 Tue, 03 Jan 2017 12:04:49 +0100 moocow
 	* added optional per-client threads for ddc_daemon
 	  - each CDDCServer instance can now pre-spawn user-specified N worker threads (NumThreads)
