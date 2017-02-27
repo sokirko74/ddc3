@@ -159,14 +159,16 @@ void CDDCServer::RunThread()
 //----------------------------------------------------------------------
 void CDDCServer::HandleClientConnection(SOCKET& rConnectedSocket)
 {
+    m_SessionStats.clear();
     if (UseClientThreads()) {
 	//-- +pthread, client-thread mode
 	m_ThreadPool->m_Queue.add(rConnectedSocket);
 	ddcLogTrace(Format("queued thread-pool item for client %s", SocketPeer(rConnectedSocket).c_str()));
     }
     else {
-	//-- +pthread, serial mode or worker
+	//-- serial mode or worker
 	CHost::HandleClientConnection(rConnectedSocket);
+	m_ServerStats += m_SessionStats;
     }
 }
 
@@ -202,7 +204,7 @@ string CDDCServer::ProcessSocketString(const string& SocketInput, SOCKET& rConne
 	if (cmd == "get_first_hits") {
 	    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	    // get_first_hits QUERY "\x01" TIMEOUT " " LIMIT  : get keys of first hits (leaf-node only)
-	    ++m_ServerStats.m_nQueries;
+	    ++m_SessionStats.m_nQueries;
 	    try {
 		int	TimeOut, ResultLimit;
 		char sQuery[DDC_STATIC_BUFLEN];
@@ -214,11 +216,11 @@ string CDDCServer::ProcessSocketString(const string& SocketInput, SOCKET& rConne
 	    }
 	    catch (CExpc& e) {
 		Result = Format("%i 0 0 0 0\n%s", (e.code()==errNone ? errOther : e.code()), e.what());
-		++m_ServerStats.m_nErrors;
+		++m_SessionStats.m_nErrors;
 	    }
 	    catch (exception& e) {
 		Result = Format("%i 0 0 0 0\n%s", -1, e.what());
-		++m_ServerStats.m_nErrors;
+		++m_SessionStats.m_nErrors;
 	    }
 	}
 	else if (cmd == "get_hit_strings") {
@@ -234,17 +236,17 @@ string CDDCServer::ProcessSocketString(const string& SocketInput, SOCKET& rConne
 	    }
 	    catch (CExpc& e) {
 		Result = Format("%i\x01%s", (e.code()==errNone ? errOther : e.code()), e.what());
-		++m_ServerStats.m_nErrors;
+		++m_SessionStats.m_nErrors;
 	    }
 	    catch (exception& e) {
 		Result = Format("%i\x01%s", -1, e.what());
-		++m_ServerStats.m_nErrors;
+		++m_SessionStats.m_nErrors;
 	    }
 	}
 	else if (cmd == "run_query") {
 	    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	    // run_query " " CORPUS "\x01" QUERY "\x01" FORMAT "\x01" OFFSET " " LIMIT " " TIMEOUT : user query (branch-node only)
-	    ++m_ServerStats.m_nQueries;
+	    ++m_SessionStats.m_nQueries;
 	    try {
 		int StartHitNo, ResultLimit;
 		int TimeOut;
@@ -260,11 +262,11 @@ string CDDCServer::ProcessSocketString(const string& SocketInput, SOCKET& rConne
 	    }
 	    catch (CExpc &e) {
 		Result = Format("\x01 %i %i %i %i %i\n%s", e.code(), 0, 0, 0, 0, e.what());
-		++m_ServerStats.m_nErrors;
+		++m_SessionStats.m_nErrors;
 	    }
 	    catch (exception &e) {
 		Result = Format("\x01 %i %i %i %i %i\n%s", errOther, 0, 0, 0, 0, e.what());
-		++m_ServerStats.m_nErrors;
+		++m_SessionStats.m_nErrors;
 	    }
 	}
 	else if (cmd == "expand_terms") {
@@ -336,12 +338,12 @@ string CDDCServer::ProcessSocketString(const string& SocketInput, SOCKET& rConne
     catch (CExpc &e) {
 	ddcLogError(Format("CDDCServer[%s]::ProcessSocketString(): Exception[%d]: %s", m_CorpusName.c_str(), e.code(), e.what()));
 	if (Result.empty()) Result = Format("%i 0\n%s", e.code(), e.what());
-	++m_ServerStats.m_nErrors;
+	++m_SessionStats.m_nErrors;
     }
     catch (exception& e) {
 	ddcLogError(Format("CDDCServer[%s]::ProcessSocketString(): Exception: %s", m_CorpusName.c_str(), e.what()));
 	if (Result.empty()) Result = Format("%i 0\n%s", -1, e.what());
-	++m_ServerStats.m_nErrors;
+	++m_SessionStats.m_nErrors;
     }
 
     //-- check for slow queries
@@ -349,11 +351,11 @@ string CDDCServer::ProcessSocketString(const string& SocketInput, SOCKET& rConne
 	double t_elapsed = DDCTime::Now().Elapsed(t_started);
 	if (t_elapsed > m_SlowQueryTimeout) {
 	    ddcLogWarn(Format("WARNING: slow request (%gs > %gs): %s", t_elapsed, m_SlowQueryTimeout, SocketInput.c_str()));
-	    ++m_ServerStats.m_nSlow;
+	    ++m_SessionStats.m_nSlow;
 	}
     }
 
-    ++m_ServerStats.m_nRequests;
+    ++m_SessionStats.m_nRequests;
     return Result;
 }
 

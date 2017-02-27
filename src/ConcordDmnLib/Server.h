@@ -70,6 +70,15 @@ struct CDDCServerStats
 	: m_nRequests(x.m_nRequests), m_nQueries(x.m_nQueries), m_nErrors(x.m_nErrors), m_nSlow(x.m_nSlow)
     {};
 
+    /** reset to zero */
+    inline void clear()
+    {
+	m_nRequests = 0;
+	m_nQueries = 0;
+	m_nErrors = 0;
+	m_nSlow = 0;
+    };
+
     //--------------------------------------------------------------
     // Operators
 
@@ -106,9 +115,12 @@ public:
     /** timestamp of server initialization */
     time_t m_tStarted;
 
-    /** track number of requests */
+    /** server-wide administrative statistics (number of requests, etc) */
     CDDCServerStats m_ServerStats;
-	
+
+    /** session-local administrative statistics */
+    CDDCServerStats m_SessionStats;
+
     /* whether to log "normal" requests received in ProcessSocketString() */
     bool m_bLogRequests;
 

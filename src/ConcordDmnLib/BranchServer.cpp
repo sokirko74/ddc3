@@ -392,7 +392,7 @@ void CDDCBranchServer::handle__run_query(string &Result, const char *CorpusName,
     //-- log errors
     if (!m_ErrorStr.empty()) {
 	ddcLogError( Format("CDDCBranchServer::handle__run_query(): ERROR: %s", m_ErrorStr.c_str()) );
-	++m_ServerStats.m_nErrors;
+	++m_SessionStats.m_nErrors;
     }
 
     //-- generate response
