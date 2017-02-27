@@ -3,7 +3,7 @@ AC_PREREQ(2.5)
 
 dnl Some handy macros
 define([THE_PACKAGE_NAME],    [ddc])
-define([THE_PACKAGE_VERSION], [2.1.0])
+define([THE_PACKAGE_VERSION], [2.1.1-pre1])
 define([THE_PACKAGE_MAINTAINER],  [jurish@bbaw.de])
 AC_INIT(THE_PACKAGE_NAME, THE_PACKAGE_VERSION, THE_PACKAGE_MAINTAINER)
 
@@ -372,16 +372,20 @@ AC_MSG_CHECKING([whether to enable high-resolution clock])
 test "$ddc_hires_clock" = "yes" || ddc_hires_clock=no
 AC_MSG_RESULT([$ddc_hires_clock])
 
-if test "$ddc_hires_clock" != "no" ; then
- AC_CHECK_FUNC(clock_gettime,
-	[],
-	[
-	 AC_MSG_WARN([could not find clock_gettime(): high-resolution clock disabled])
-	 ddc_hires_clock=no
-	])
+AC_CHECK_FUNC(clock_gettime,
+	[ac_cv_have_clock_gettime=yes],
+	[ac_cv_have_clock_gettime=no])
+if test "$av_cv_have_clock_gettime" = "yes" ; then
+    AC_DEFINE(HAVE_CLOCK_GETTIME, 1, [Define this if your system has the clock_gettime() function])
+else
+  if test "$ddc_hires_clock" != "no" ; then
+    AC_MSG_WARN([could not find clock_gettime(): high-resolution clock disabled])
+  fi
+  ddc_hires_clock=no
 fi
+
 if test "$ddc_hires_clock" != "no" ; then
-  AC_DEFINE_UNQUOTED(DDC_USE_HIRES_CLOCK, 1, [Define this to enable high-resolution clock - requires clock_gettime()])
+  AC_DEFINE(DDC_USE_HIRES_CLOCK, 1, [Define this to enable high-resolution clock - requires clock_gettime()])
 fi
 ## defs: hires-clock
 ##^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

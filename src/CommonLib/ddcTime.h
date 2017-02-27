@@ -35,63 +35,52 @@ extern const size_t DDCDateBufferSize;
 extern const size_t DDCTimeBufferSize;
 
 //======================================================================
-struct DDCTime
+// DDCTimeUnix : 1-second resolution clock
+struct DDCTimeUnix
 {
     //----------------------------------------------------------------------
     // Data
-#if DDC_USE_HIRES_CLOCK
-    /** time value (high-resolution: 1 nanosecond) */
-    struct timespec m_ts;
-#else
     /** time value (low-resolution: 1 second) */
     time_t m_t;
-#endif
 
     //----------------------------------------------------------------------
     // constructors etc
 
     /** default constructor */
-    DDCTime()
+    DDCTimeUnix()
     {};
 
     /** default destructor */
-    ~DDCTime()
+    virtual ~DDCTimeUnix()
     {};
 
     /** constructor: current time */
-    inline static DDCTime Now()
+    inline static DDCTimeUnix Now()
     {
-	DDCTime t;
+	DDCTimeUnix t;
 	t.Set();
 	return t;
     };
 
     /** set this object to current time */
     inline void Set()
-    {
-#if DDC_USE_HIRES_CLOCK
-	clock_gettime(CLOCK_REALTIME, &m_ts);
-#else
-	time(&m_t);	
-#endif
-    };
+    { time(&m_t); };
 
-    /** assignment operator */
-    inline void Set(const DDCTime& t)
-    { *this = t; };
+    /** assignment operator (from time_t) */
+    inline void Set(const time_t time_)
+    { m_t = time_; };
+
+    /** assignment operator (from DDCTimeUnix object) */
+    inline void Set(const DDCTimeUnix& t)
+    { Set(t.m_t); };
+
 
     //----------------------------------------------------------------------
     // API
 
     /** get low-resultion time_t time */
     inline time_t Time() const
-    {
-#if DDC_USE_HIRES_CLOCK
-	return m_ts.tv_sec;
-#else
-	return m_t;
-#endif
-    };
+    { return m_t; };
 
     /** get (low-resolution) calendar time; adapted from old RmlGetCurrentTime() */
     struct tm CalendarTime() const;
@@ -101,28 +90,120 @@ struct DDCTime
      *  \param DateBuf output buffer of at least DDCDateBufferSize bytes, or NULL
      *  \param TimeBuf output buffer of at least DDCTimeBufferSize bytes, or NULL
      */
-    void DateTime(char* DateBuf, char* TimeBuf) const;
+    virtual void DateTime(char* DateBuf, char* TimeBuf) const;
 
     /** get date string in ISO-8601 format (YYYY-MM-DD) */
     inline std::string DateStr() const
     {
 	char DateBuf[DDCDateBufferSize];
-	DateTime(DateBuf, NULL);
+	this->DateTime(DateBuf, NULL);
 	return std::string(DateBuf);
     };
 
     /** get time string in 24-hour HH:MM:SS format */
-    std::string TimeStr() const
+    inline std::string TimeStr() const
     {
 	char TimeBuf[DDCTimeBufferSize];
-	DateTime(NULL,TimeBuf);
+	this->DateTime(NULL,TimeBuf);
 	return std::string(TimeBuf);
     };
 
     /** get elapsed time since \a t0, double resolution */
-    double Elapsed(const DDCTime& t0) const;
+    double Elapsed(const DDCTimeUnix& t0) const;
 };
 
+//======================================================================
+// DDCTimeHiRes : nanosecond-resolution clock
+#ifdef HAVE_CLOCK_GETTIME
+struct DDCTimeHiRes : public DDCTimeUnix
+{
+    //----------------------------------------------------------------------
+    // Data
+    /** time value (high-resolution: 1 nanosecond) */
+    struct timespec m_ts;
+
+    //----------------------------------------------------------------------
+    // constructors etc
+
+    /** default constructor */
+    DDCTimeHiRes()
+    {};
+
+    /** default destructor */
+    virtual ~DDCTimeHiRes()
+    {};
+
+    /** constructor: current time */
+    inline static DDCTimeHiRes Now()
+    {
+	DDCTimeHiRes t;
+	t.Set();
+	return t;
+    };
+
+    /** set this object to current time */
+    inline void Set()
+    {
+	clock_gettime(CLOCK_REALTIME, &m_ts);
+	DDCTimeUnix::Set(m_ts.tv_sec);
+    };
+
+    /** assignment operator (from time_t) */
+    inline void Set(const time_t time_)
+    {
+	DDCTimeUnix::Set(time_);
+	m_ts.tv_sec  = time_;
+	m_ts.tv_nsec = 0;
+    };
+
+    /** assignment operator (from DDCTimeUnix object) */
+    inline void Set(const DDCTimeUnix& t)
+    { Set(t.m_t); };
+
+    /** assignment operator */
+    inline void Set(const DDCTimeHiRes& t)
+    { *this = t; };
+
+    //----------------------------------------------------------------------
+    // API
+
+    /* inherited: get low-resultion time_t time */
+    //time_t Time() const;
+
+    /* inherited: get (low-resolution) calendar time; adapted from old RmlGetCurrentTime() */
+    //struct tm CalendarTime() const;
+
+    /** get time and date strings in ISO-8601 format (YYYY-MM-DD HH:MM:SS) to char* buffers
+     *  \li either of DateStr or TimeStr may be passed as NULL
+     *  \param DateBuf output buffer of at least DDCDateBufferSize bytes, or NULL
+     *  \param TimeBuf output buffer of at least DDCTimeBufferSize bytes, or NULL
+     */
+    virtual void DateTime(char* DateBuf, char* TimeBuf) const;
+
+    /* inherited: get date string in ISO-8601 format (YYYY-MM-DD) */
+    //inline std::string DateStr() const
+
+    /** get time string in 24-hour HH:MM:SS format */
+    // inline std::string TimeStr() const
+
+    /** get elapsed time since \a t0, double resolution */
+    double Elapsed(const DDCTimeHiRes& t0) const;
+};
+
+#else /* !defined(HAVE_CLOCK_GETTIME) */
+
+/** compatibility typedef; used if clock_gettime() is unavailable */
+typedef struct DDCTimeUnix DDCTimeHiRes;
+
+#endif /* defined(HAVE_CLOCK_GETTIME) */
+
+#ifdef DDC_USE_HIRES_CLOCK
+/** typedef for default time class (either DDCTimeUnix or DDCTimeHiRes) */
+typedef struct DDCTimeHiRes DDCTime;
+#else
+/** typedef for default time class (either DDCTimeUnix or DDCTimeHiRes) */
+typedef struct DDCTimeUnix DDCTime;
+#endif
 
 //======================================================================
 // Functions

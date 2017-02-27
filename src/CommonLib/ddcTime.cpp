@@ -35,10 +35,10 @@ const size_t DDCTimeBufferSize = 16;
 
 
 //======================================================================
-// DDCTime
+// DDCTimeUnix
 
 //----------------------------------------------------------------------
-struct tm DDCTime::CalendarTime() const
+struct tm DDCTimeUnix::CalendarTime() const
 {
     time_t ltime = Time();
 #ifdef	WIN32
@@ -54,25 +54,40 @@ struct tm DDCTime::CalendarTime() const
 }
 
 //----------------------------------------------------------------------
-void DDCTime::DateTime(char* DateBuf, char* TimeBuf) const
+void DDCTimeUnix::DateTime(char* DateBuf, char* TimeBuf) const
 {
-    struct tm tmTime = CalendarTime();
+    struct tm tmTime = this->CalendarTime();
 
     if (DateBuf != NULL)
 	strftime(DateBuf, DDCDateBufferSize, "%F", &tmTime);
 
-    if (TimeBuf != NULL) {
+    if (TimeBuf != NULL)
 	strftime(TimeBuf, DDCTimeBufferSize, "%H:%M:%S", &tmTime);
-#if DDC_USE_HIRES_CLOCK
-	snprintf(&TimeBuf[strlen(TimeBuf)], DDCTimeBufferSize, ".%0.9lu", m_ts.tv_nsec);
-#endif
-    }
 }
 
 //----------------------------------------------------------------------
-double DDCTime::Elapsed(const DDCTime& t0) const
+double DDCTimeUnix::Elapsed(const DDCTimeUnix& t0) const
 {
-#if DDC_USE_HIRES_CLOCK
+    return difftime(m_t, t0.m_t);
+}
+
+
+//======================================================================
+// DDCTimeHiRes
+
+#ifdef HAVE_CLOCK_GETTIME
+
+//----------------------------------------------------------------------
+void DDCTimeHiRes::DateTime(char* DateBuf, char* TimeBuf) const
+{
+    DDCTimeUnix::DateTime(DateBuf,TimeBuf);
+    if (TimeBuf != NULL)
+	snprintf(&TimeBuf[strlen(TimeBuf)], DDCTimeBufferSize, ".%09lu", m_ts.tv_nsec);
+}
+
+//----------------------------------------------------------------------
+double DDCTimeHiRes::Elapsed(const DDCTimeHiRes& t0) const
+{
     /* Perform the carry for the later subtraction by updating Y. */
     time_t  t0_tv_sec   = t0.m_ts.tv_sec;
     long    t0_tv_nsec  = t0.m_ts.tv_nsec;
@@ -93,7 +108,6 @@ double DDCTime::Elapsed(const DDCTime& t0) const
 	elapsed *= -1;
 
     return elapsed;
-#else
-    return difftime(m_t, t0.m_t);
-#endif
 }
+
+#endif /* defined(HAVE_CLOCK_GETTIME) */
