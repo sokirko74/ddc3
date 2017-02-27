@@ -1,7 +1,7 @@
 //-*- Mode: C++; c-basic-offset:4; -*-
 //
 //  DDC originally by Alexey Sokirko
-//  Changes and modifications 2011-2016 by Bryan Jurish
+//  Changes and modifications 2011-2017 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -31,29 +31,6 @@
 #ifdef HAVE_NETDB_H
 # include <netdb.h>
 #endif
-
-//==============================================================================
-// CDDCServerStats
-
-//----------------------------------------------------------------------
-CDDCServerStats& CDDCServerStats::operator+=(const CDDCServerStats& x)
-{
-    m_nRequests += x.m_nRequests;
-    m_nQueries  += x.m_nQueries;
-    m_nErrors   += x.m_nErrors;
-    m_nSlow     += x.m_nSlow;
-    return *this;
-}
-
-//----------------------------------------------------------------------
-CDDCServerStats& CDDCServerStats::operator-=(const CDDCServerStats& x)
-{
-    m_nRequests -= x.m_nRequests;
-    m_nQueries  -= x.m_nQueries;
-    m_nErrors   -= x.m_nErrors;
-    m_nSlow     -= x.m_nSlow;
-    return *this;
-}
 
 //==============================================================================
 // CDDCServer
@@ -176,6 +153,7 @@ void CDDCServer::HandleClientConnection(SOCKET& rConnectedSocket)
 string CDDCServer::ProcessSocketString(const string& SocketInput, SOCKET& rConnectedSocket)
 {
     string Result;
+    bool    isQueryRequest = false;
     DDCTime t_started = DDCTime::Now();
 
     //-- initialize with default values
@@ -205,6 +183,7 @@ string CDDCServer::ProcessSocketString(const string& SocketInput, SOCKET& rConne
 	    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	    // get_first_hits QUERY "\x01" TIMEOUT " " LIMIT  : get keys of first hits (leaf-node only)
 	    ++m_SessionStats.m_nQueries;
+	    isQueryRequest = true;
 	    try {
 		int	TimeOut, ResultLimit;
 		char sQuery[DDC_STATIC_BUFLEN];
@@ -226,6 +205,7 @@ string CDDCServer::ProcessSocketString(const string& SocketInput, SOCKET& rConne
 	else if (cmd == "get_hit_strings") {
 	    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	    // get_hit_strings " " FORMAT "\x01" OFFSET " " LIMIT : get full hit strings (leaf only)
+	    isQueryRequest = true;
 	    try {
 		int StartHitNo, ResultLimit;
 		char sResultType[128];
@@ -247,6 +227,7 @@ string CDDCServer::ProcessSocketString(const string& SocketInput, SOCKET& rConne
 	    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	    // run_query " " CORPUS "\x01" QUERY "\x01" FORMAT "\x01" OFFSET " " LIMIT " " TIMEOUT : user query (branch-node only)
 	    ++m_SessionStats.m_nQueries;
+	    isQueryRequest = true;
 	    try {
 		int StartHitNo, ResultLimit;
 		int TimeOut;
@@ -346,13 +327,14 @@ string CDDCServer::ProcessSocketString(const string& SocketInput, SOCKET& rConne
 	++m_SessionStats.m_nErrors;
     }
 
+    //-- get query time
+    double t_elapsed = DDCTime::Now().Elapsed(t_started);
+    //-- TODO: track average query time: if (isQueryRequest) { ... }
+    
     //-- check for slow queries
-    if (m_SlowQueryTimeout > 0) {
-	double t_elapsed = DDCTime::Now().Elapsed(t_started);
-	if (t_elapsed > m_SlowQueryTimeout) {
-	    ddcLogWarn(Format("WARNING: slow request (%gs > %gs): %s", t_elapsed, m_SlowQueryTimeout, SocketInput.c_str()));
-	    ++m_SessionStats.m_nSlow;
-	}
+    if (m_SlowQueryTimeout > 0 && t_elapsed > m_SlowQueryTimeout) {
+	ddcLogWarn(Format("WARNING: slow request (%gs > %gs): %s", t_elapsed, m_SlowQueryTimeout, SocketInput.c_str()));
+	++m_SessionStats.m_nSlow;
     }
 
     ++m_SessionStats.m_nRequests;

@@ -1,7 +1,7 @@
 //-*- Mode: C++; c-basic-offset:4; -*-
 //
 //  DDC originally by Alexey Sokirko
-//  Changes and modifications 2011-2016 by Bryan Jurish
+//  Changes and modifications 2011-2017 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -22,6 +22,7 @@
 #define DDC_SERVER_H
 
 #include "ServerOptions.h"
+#include "ServerStats.h"
 #include "../CommonLib/CHost.h"
 #include "../ConcordLib/ConcHolder.h"
 #include "../common/ddcThreadQueue.h"
@@ -37,66 +38,6 @@
 #else
 # define HSDEBUG(s)
 #endif
-
-//==============================================================================
-/** generic class for tracking server statistics */
-struct CDDCServerStats
-{
-    //--------------------------------------------------------------
-    // Counters
-
-    /** number of served requests */
-    size_t m_nRequests;	
-
-    /** number of serverd QUERY requests (run_query or get_first_hits only) */
-    size_t m_nQueries;
-
-    /** number of errors */
-    size_t m_nErrors;
-
-    /** number of slow requests */
-    size_t m_nSlow;
-
-    //--------------------------------------------------------------
-    // Constructors etc.
-
-    /** default constructor */
-    CDDCServerStats()
-	: m_nRequests(0), m_nQueries(0), m_nErrors(0), m_nSlow(0)
-    {};
-
-    /** copy constructor */
-    CDDCServerStats(const CDDCServerStats& x)
-	: m_nRequests(x.m_nRequests), m_nQueries(x.m_nQueries), m_nErrors(x.m_nErrors), m_nSlow(x.m_nSlow)
-    {};
-
-    /** reset to zero */
-    inline void clear()
-    {
-	m_nRequests = 0;
-	m_nQueries = 0;
-	m_nErrors = 0;
-	m_nSlow = 0;
-    };
-
-    //--------------------------------------------------------------
-    // Operators
-
-    /** add counters to calling object */
-    CDDCServerStats& operator+=(const CDDCServerStats& x);
-
-    /** subtract counters from calling object */
-    CDDCServerStats& operator-=(const CDDCServerStats& x);
-
-    /** constructive addition */
-    inline CDDCServerStats operator+(const CDDCServerStats &x) const
-    { return CDDCServerStats(*this) += x; };
-
-    /** constructive subtraction */
-    inline CDDCServerStats operator-(const CDDCServerStats &x) const
-    { return CDDCServerStats(*this) -= x; };
-};
-
 
 //==============================================================================
 /** abstract base class class for DDC server nodes */

@@ -24,6 +24,7 @@ lib_LTLIBRARIES = libDDCConcordDmn.la
 libDDCConcordDmn_la_SOURCES = \
  ServerThread.cpp ServerThread.h \
  ServerOptions.h ServerOptions.cpp \
+ ServerStats.h ServerStats.cpp \
  Server.cpp Server.h \
  LeafServer.cpp LeafServer.h \
  BranchServer.cpp BranchServer.h \
