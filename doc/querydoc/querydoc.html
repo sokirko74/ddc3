@@ -67,7 +67,7 @@
 <h2><a name="overview">Overview</a></h2>
 <p>
 	This documentation describes the query language accepted by
-	DDC version 2.0.47.  Current sources for DDC should be available
+	DDC version 2.1.1.  Current sources for DDC should be available
 	from
 	<!--<a href="http://odo.dwds.de/code/viewvc.cgi/ddc/trunk/?root=dev">svn+ssh://odo.dwds.de/home/svn/dev/ddc/trunk</a>.-->
 	<a href="http://sourceforge.net/projects/ddc-concordance">http://sourceforge.net/projects/ddc-concordance</a>.
@@ -3092,7 +3092,8 @@ isymbol_cfirst	[0-9]
 isymbol_crest	[^ \t\r\n\f\v\0\^\&amp;\|\!\(\)\[\]\{\}\&lt;\&gt;\'\"\,\;\:\#\=\*\%\\\~\/\$\@\?\_\+\-\.]
 isymbol_text	{isymbol_cfirst}({symbol_cescape}|{isymbol_crest})*
 
-symbol_text     {ssymbol_text}|{isymbol_text}
+ssuffix_text	([\+\-]{ssymbol_crest}*({ssymbol_cfirst}|{ssymbol_cescape})({ssymbol_crest}|{ssymbol_cescape})*)*
+symbol_text     ({ssymbol_text}|{isymbol_text}){ssuffix_text}*
 
 int_boundary	[ \t\n\r\f\v\0\^\&amp;\|\!\(\)\[\]\{\}\&lt;\&gt;\'\"\,\;\:\#\=\*\%\~\\\$\@\/\?\_\+\.]
 
@@ -3895,7 +3896,7 @@ regex_modifier	[dgimsx]
   </body></div>
 <div class="footers">
 <div class="footer_sig">
-<address><a href="mailto:jurish@bbaw.de">jurish@bbaw.de</a></address>Last modified: Wed, 02 Nov 2016 10:46:10 +0100</div>
+<address><a href="mailto:jurish@bbaw.de">jurish@bbaw.de</a></address>Last modified: Tue, 28 Feb 2017 16:37:21 +0100</div>
 <div class="footer_linkbar"><p class="nopad"><a class="navLink" href="/">Root</a><a class="navLink" href="./">Back</a><span class="navLinkDisabled">Help</span></p></div>
 <p class="dummy"></p>
 </div>

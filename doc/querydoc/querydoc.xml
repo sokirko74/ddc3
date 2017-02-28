@@ -1671,7 +1671,7 @@ symbol_cescape  (\\.)
 ssymbol_text	({symbol_cescape}|{ssymbol_cfirst})({symbol_cescape}|{ssymbol_crest})*
 
 isymbol_cfirst	[0-9]
-isymbol_crest	[^ \t\r\n\f\v\0\^\&\|\!\(\)\[\]\{\}\<\>\'\"\,\;\:\#\=\*\%\\\~\/\$\@\?\_\+\-\.]
+isymbol_crest	[^ \t\r\n\f\v\0\^\&amp;\|\!\(\)\[\]\{\}\&lt;\&gt;\'\"\,\;\:\#\=\*\%\\\~\/\$\@\?\_\+\-\.]
 isymbol_text	{isymbol_cfirst}({symbol_cescape}|{isymbol_crest})*
 
 ssuffix_text	([\+\-]{ssymbol_crest}*({ssymbol_cfirst}|{ssymbol_cescape})({ssymbol_crest}|{ssymbol_cescape})*)*

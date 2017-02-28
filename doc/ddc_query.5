@@ -71,7 +71,7 @@
 .\" ========================================================================
 .\"
 .IX Title "DDC_QUERY 5"
-.TH DDC_QUERY 5 "2016-11-02" "2.1.1-pre1" "DDC Corpus Indexing System"
+.TH DDC_QUERY 5 "2017-02-28" "2.1.1-pre1" "DDC Corpus Indexing System"
 .\" For nroff, turn off justification.  Always turn off hyphenation; it makes
 .\" way too many mistakes in technical documents.
 .if n .ad l
@@ -81,7 +81,7 @@
 .SS "Overview"
 .IX Subsection "Overview"
 This documentation describes the query language accepted by
-\&\s-1DDC\s0 version 2.0.47.  Current sources for \s-1DDC\s0 should be available
+\&\s-1DDC\s0 version 2.1.1.  Current sources for \s-1DDC\s0 should be available
 from
 http://sourceforge.net/projects/ddc\-concordance.
 .PP
@@ -738,7 +738,8 @@ The following macros are defined for the underlying scanner:
 \& isymbol_crest  [^ \et\er\en\ef\ev\e0\e^\e&\e|\e!\e(\e)\e[\e]\e{\e}\e<\e>\e\*(Aq\e"\e,\e;\e:\e#\e=\e*\e%\e\e\e~\e/\e$\e@\e?\e_\e+\e\-\e.]
 \& isymbol_text   {isymbol_cfirst}({symbol_cescape}|{isymbol_crest})*
 \& 
-\& symbol_text     {ssymbol_text}|{isymbol_text}
+\& ssuffix_text   ([\e+\e\-]{ssymbol_crest}*({ssymbol_cfirst}|{ssymbol_cescape})({ssymbol_crest}|{ssymbol_cescape})*)*
+\& symbol_text     ({ssymbol_text}|{isymbol_text}){ssuffix_text}*
 \& 
 \& int_boundary   [ \et\en\er\ef\ev\e0\e^\e&\e|\e!\e(\e)\e[\e]\e{\e}\e<\e>\e\*(Aq\e"\e,\e;\e:\e#\e=\e*\e%\e~\e\e\e$\e@\e/\e?\e_\e+\e.]
 \& 
