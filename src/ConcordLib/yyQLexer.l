@@ -89,7 +89,8 @@ isymbol_cfirst	[0-9]
 isymbol_crest	[^ \t\r\n\f\v\0\^\&\|\!\(\)\[\]\{\}\<\>\'\"\,\;\:\#\=\*\%\\\~\/\$\@\?\_\+\-\.]
 isymbol_text	{isymbol_cfirst}({symbol_cescape}|{isymbol_crest})*
 
-symbol_text     ({ssymbol_text}|{isymbol_text})([\+\-]{ssymbol_crest}*({ssymbol_cfirst}|{symbol_cescape})({ssymbol_crest}|{symbol_cescape}))*
+ssuffix_text	([\+\-]{ssymbol_crest}*({ssymbol_cfirst}|{symbol_cescape})({ssymbol_crest}|{symbol_cescape})*)*
+symbol_text     ({ssymbol_text}|{isymbol_text}){ssuffix_text}*
 
 index_name      {symbol_text}
 
