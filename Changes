@@ -1,14 +1,16 @@
 ##-*- Mode: Change-Log; coding: utf-8; -*-
 
-PENDING Mon, 27 Feb 2017 14:00:03 +0100
-	* split DDCTime into DDCTimeUnix + DDCTimeHiRes
-	  - generic wrapper typedef DDCTime respects DDC_USE_HIRES_CLOCK
+v2.1.1 PENDING Tue, 28 Feb 2017 15:03:01 +0100
+	* added server option "StatsWindow" : moving average window size
+	* added "qtavg" entry to 'status' response: average query time over last $StatsWindow seconds
 	* added CDDCServer::m_SessionStats : track stats for local session
 	  - serial mode: session stats added to server-wide m_ServerStats in CDDCServer::HandleClientConnection()
 	  - client-thrads: session stats added to parent m_ServerStats in CDDCServerThread::run()
-PENDING Wed, 04 Jan 2017 10:56:11 +0100
+	* factored out CDDCServerStats & co. from ddcServer.(h|cpp) to new ddcServerStats.(h|cpp)
+	* split DDCTime into DDCTimeUnix + DDCTimeHiRes
+	  - generic wrapper typedef DDCTime respects DDC_USE_HIRES_CLOCK
 	* renamed "#(ASC|DESC)_CONTEXT" -> "#(ASC|DESC)_MIDDLE" in ConcCommon.h HitSortEnumStrings
-	- CQFContextSort::toString() was returning bogus (unparseable) query strings
+	  - CQFContextSort::toString() was returning bogus (unparseable) query strings
 
 v2.1.0 Tue, 03 Jan 2017 12:04:49 +0100 moocow
 	* added optional per-client threads for ddc_daemon

@@ -28,6 +28,7 @@
         <ul>
           <li><a href="#LogLevel">LogLevel</a></li>
           <li><a href="#SlowQueryTimeout">SlowQueryTimeout</a></li>
+          <li><a href="#StatsWindow">StatsWindow</a></li>
         </ul>
       </li>
       <li><a href="#Client-Thread-Options">Client-Thread Options</a>
@@ -61,6 +62,7 @@
  
  LogLevel LEVEL
  SlowQueryTimeout SECONDS
+ StatsWindow SECONDS
 
  ##-------------------------------------------------------------
  ## Client-Thread Options
@@ -149,6 +151,18 @@
 <p>Default: 10</p>
 
 <p>Log any requests whose processing requires at least <i>SECONDS</i> second(s) as &quot;slow queries&quot;. <i>SECONDS</i> is parsed as a double-precision float, so non-integral numbers can be specified, but will only be meaningful if DDC was compiled with high-resolution clock support -- in this case, your DDC logs should show nanosecond resolution.</p>
+
+<h3 id="StatsWindow">StatsWindow</h3>
+
+<pre><code> StatsWindow SECONDS</code></pre>
+
+<p>Aliases: StatWindow, MovingAverageWindow</p>
+
+<p>Default: 600</p>
+
+<p>Size of the time window for tracking moving average statistics, in seconds. Currently affects only the <code>qtavg</code> property (average query time).</p>
+
+<p>Since v2.1.1.</p>
 
 <h2 id="Client-Thread-Options">Client-Thread Options</h2>
 

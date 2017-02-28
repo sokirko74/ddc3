@@ -1,7 +1,7 @@
 //-*- Mode: C++; c-basic-offset:4; -*-
 //
 //  DDC originally by Alexey Sokirko
-//  Changes and modifications 2011-2016 by Bryan Jurish
+//  Changes and modifications 2011-2017 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -37,6 +37,9 @@ public:
 
     /** upper-bound in seconds for "slow" queries (default=10); see CDDCServer::m_SlowQueryTimeout */
     double m_SlowQueryTimeout;
+
+    /** time window for mocing average query time (seconds, default=600: 10 minutes) */
+    size_t m_StatsWindow;
    
     //--------------------------------------------------------------
     // client threads

@@ -35,7 +35,7 @@ extern const size_t DDCDateBufferSize;
 extern const size_t DDCTimeBufferSize;
 
 //======================================================================
-// DDCTimeUnix : 1-second resolution clock
+// DDCTime : 1-second resolution clock
 struct DDCTimeUnix
 {
     //----------------------------------------------------------------------
@@ -49,6 +49,10 @@ struct DDCTimeUnix
     /** default constructor */
     DDCTimeUnix()
     {};
+
+    /** default constructor given time_t */
+    DDCTimeUnix(const time_t time_)
+    { Set(time_); };
 
     /** default destructor */
     virtual ~DDCTimeUnix()
@@ -129,6 +133,10 @@ struct DDCTimeHiRes : public DDCTimeUnix
     DDCTimeHiRes()
     {};
 
+    /** default constructor given struct timespec */
+    DDCTimeHiRes(const struct timespec &ts_)
+    { Set(ts_); };
+    
     /** default destructor */
     virtual ~DDCTimeHiRes()
     {};
@@ -140,7 +148,7 @@ struct DDCTimeHiRes : public DDCTimeUnix
 	t.Set();
 	return t;
     };
-
+    
     /** set this object to current time */
     inline void Set()
     {
@@ -154,6 +162,13 @@ struct DDCTimeHiRes : public DDCTimeUnix
 	DDCTimeUnix::Set(time_);
 	m_ts.tv_sec  = time_;
 	m_ts.tv_nsec = 0;
+    };
+
+    /** assignment operator (from struct timespec) */
+    inline void Set(const struct timespec &ts_)
+    {
+	m_t  = ts_.tv_sec;
+	m_ts = ts_;
     };
 
     /** assignment operator (from DDCTimeUnix object) */

@@ -469,6 +469,7 @@ void CDDCBranchServer::handle__status(string &Result, int timeout, bool verbose)
 	subResult += "]\n";
     }
 
+    m_ServerStats.m_qTimes.Scrub(); //-- synchronize moving-average query-time window
     Result = (string("{\n")
 	      + "\"name\":" + jsonStr(m_CorpusName) + ",\n"
 	      + "\"version\":" + jsonStr(PACKAGE_VERSION) + ",\n"
@@ -481,7 +482,8 @@ void CDDCBranchServer::handle__status(string &Result, int timeout, bool verbose)
 	      + "\"nqueries\":" + Format("%zd", m_ServerStats.m_nQueries) + ",\n"
 	      + "\"nerrors\":" + Format("%zd", m_ServerStats.m_nErrors) + ",\n"
 	      + "\"nslow\":" + Format("%zd", m_ServerStats.m_nSlow) + ",\n"
-	      + "\"nworkers\":" + Format("%zd", m_nWorkers) + ",\n"	      
+	      + "\"qtavg\":" + Format("%g", m_ServerStats.m_qTimes.tAverage()) + ",\n"
+	      + "\"nworkers\":" + Format("%zd", m_nWorkers) + ",\n"
 	      + "\"memkb\":" + Format("%zd", this->residentMemorySize()) + ",\n"
 	      + "\"corpora\":" + subResult + "}\n"
 	      );

@@ -32,6 +32,7 @@ server option files ("server-opt files") used by the DDC corpus indexing system.
  
  LogLevel LEVEL
  SlowQueryTimeout SECONDS
+ StatsWindow SECONDS
 
  ##-------------------------------------------------------------
  ## Client-Thread Options
@@ -144,6 +145,20 @@ Log any requests whose processing requires at least I<SECONDS> second(s) as "slo
 I<SECONDS> is parsed as a double-precision float, so non-integral numbers can be specified,
 but will only be meaningful if DDC was compiled with high-resolution clock support -- in
 this case, your DDC logs should show nanosecond resolution.
+
+
+=head3 StatsWindow
+
+ StatsWindow SECONDS
+
+Aliases: StatWindow, MovingAverageWindow
+
+Default: 600
+
+Size of the time window for tracking moving average statistics, in seconds.
+Currently affects only the C<qtavg> property (average query time).
+
+Since v2.1.1.
 
 =cut
 

@@ -62,16 +62,16 @@ void* CDDCServerThread::run(void)
     for (;;) {
 	m_Client = m_Parent->m_ThreadPool->m_Queue.remove();
 
-	//-- adopt parent server-stats (so we can report them accurately)
+	//-- adopt parent server-stats so we can report them accurately (moving average window may be out-of-sync)
 	pthread_mutex_lock(&m_Parent->m_ThreadPool->m_mutex);
 	m_Server->m_ServerStats = m_Parent->m_ServerStats;
 	pthread_mutex_unlock(&m_Parent->m_ThreadPool->m_mutex);
-    
+
 	m_Server->HandleClientConnection(m_Client);
 
 	//-- propagate session-stats back to parent
 	pthread_mutex_lock(&m_Parent->m_ThreadPool->m_mutex);
-	m_Parent->m_ServerStats += m_Server->m_SessionStats;
+	m_Parent->m_ServerStats += m_Server->m_SessionStats; 
 	pthread_mutex_unlock(&m_Parent->m_ThreadPool->m_mutex);
     }
     //-- should never be reached

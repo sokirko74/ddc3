@@ -23,6 +23,7 @@
 
 #include "../CommonLib/ddcTime.h"
 #include <set>
+#include <math.h>
 
 //==============================================================================
 /** generic struct representing query timing information (for average query time stats) */
@@ -70,63 +71,77 @@ struct CDDCQueryTime
 struct CDDCQueryTimeAvg
 {
     /** time interval over which to average (seconds) */
-    time_t m_Window;
+    size_t m_Window;
 
     /** guts: underlying set of query times */
     std::set<CDDCQueryTime> m_tset;
 
-    /** running average: current number of queries in m_tset */
-    size_t m_n;
+    /** optimization: current number of entries in m_tset */
+    size_t m_size;
 
-    /** running average: current running average over m_tset */
+    /** optimization: current total elapsed time over all entries in m_tset */
     double m_etotal;
 
     //----------------------------------------------------------------------
     // Constructors etc.
 
-    /** default constructor given optional window size (default=5minutes) */
-    CDDCQueryTimeAvg(time_t window=300)
-	: m_Window(window)
-    { clear(); };
+    /** default constructor given optional window size (default=10 minutes) */
+    CDDCQueryTimeAvg(size_t window=600)
+	: m_Window(window), m_size(0), m_etotal(0)
+    {};
 
     /** clear the buffer */
-    void clear()
+    inline void clear()
     {
 	m_tset.clear();
-	m_n = 0;
+	m_size = 0;
 	m_etotal = 0;
     };
 
     //----------------------------------------------------------------------
     // API
 
+    /** get current set size */
+    inline size_t size() const
+    { return m_size; };
+
     /** get current average query time */
     inline double tAverage() const
-    { return m_etotal / m_n; };
+    { return m_size==0 ? NAN : (m_etotal / m_size); };
 
     /** append statistics for a single query */
     inline void Append(const CDDCQueryTime &qt)
     {
 	m_tset.insert(m_tset.end(), qt);
-	++m_n;
+	++m_size;
 	m_etotal += qt.m_elapsed;
     };
-
+    
     /** append statistics for a single query with current end time */
     inline void Append(double elapsed)
     { Append(CDDCQueryTime(elapsed)); };
 
     /** append all times from a CDDCQueryTimeAvg object */
-    inline void Append(const CDDCQueryTimeAvg &qta)
+    void Append(const CDDCQueryTimeAvg &qta)
     {
 	m_tset.insert(qta.m_tset.begin(), qta.m_tset.end());
-	m_n      += qta.m_n;
+	m_size   += qta.m_size;
 	m_etotal += qta.m_etotal;
     };
 
-    /** scrub stale results (older than window) from m_tset */
-    void Scrub(void);
+    /** append time for a followup query to the most recent entry, or add a new entry if the set is empty */
+    void AppendCurrent(double elapsed);
 
+    /** operator+=() wraps Append() and Scrub() */
+    inline CDDCQueryTimeAvg& operator+=(const CDDCQueryTimeAvg& x)
+    {
+	Append(x);
+	Scrub();
+	return *this;
+    };
+
+    /** remove stale results (older than current time minus window size) from m_tset */
+    void Scrub(void);
 };
 
 
@@ -149,17 +164,20 @@ struct CDDCServerStats
     /** number of slow requests */
     size_t m_nSlow;
 
+    /** average query time over fixed interval */
+    CDDCQueryTimeAvg m_qTimes;
+
     //--------------------------------------------------------------
     // Constructors etc.
 
     /** default constructor */
-    CDDCServerStats()
-	: m_nRequests(0), m_nQueries(0), m_nErrors(0), m_nSlow(0)
+    CDDCServerStats(size_t qTimeWindow=600)
+	: m_nRequests(0), m_nQueries(0), m_nErrors(0), m_nSlow(0), m_qTimes(qTimeWindow)
     {};
 
     /** copy constructor */
     CDDCServerStats(const CDDCServerStats& x)
-	: m_nRequests(x.m_nRequests), m_nQueries(x.m_nQueries), m_nErrors(x.m_nErrors), m_nSlow(x.m_nSlow)
+	: m_nRequests(x.m_nRequests), m_nQueries(x.m_nQueries), m_nErrors(x.m_nErrors), m_nSlow(x.m_nSlow), m_qTimes(x.m_qTimes)
     {};
 
     /** reset to zero */
@@ -169,6 +187,7 @@ struct CDDCServerStats
 	m_nQueries = 0;
 	m_nErrors = 0;
 	m_nSlow = 0;
+	m_qTimes.clear();
     };
 
     //--------------------------------------------------------------
@@ -177,16 +196,9 @@ struct CDDCServerStats
     /** add counters to calling object */
     CDDCServerStats& operator+=(const CDDCServerStats& x);
 
-    /** subtract counters from calling object */
-    CDDCServerStats& operator-=(const CDDCServerStats& x);
-
     /** constructive addition */
     inline CDDCServerStats operator+(const CDDCServerStats &x) const
     { return CDDCServerStats(*this) += x; };
-
-    /** constructive subtraction */
-    inline CDDCServerStats operator-(const CDDCServerStats &x) const
-    { return CDDCServerStats(*this) -= x; };
 };
 
 

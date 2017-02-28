@@ -89,6 +89,7 @@ void CDDCServer::SetOptions(const CDDCServerOptions &Options)
     if (Options.m_LogLevel > ddcLLUnknown)
 	SetLogLevel(Options.m_LogLevel);
     m_SlowQueryTimeout = Options.m_SlowQueryTimeout;
+    m_ServerStats.m_qTimes.m_Window = Options.m_StatsWindow;
     m_nWorkers = Options.m_nWorkers;
     m_ThreadQueueSize = Options.m_ThreadQueueSize;
 };
@@ -153,8 +154,8 @@ void CDDCServer::HandleClientConnection(SOCKET& rConnectedSocket)
 string CDDCServer::ProcessSocketString(const string& SocketInput, SOCKET& rConnectedSocket)
 {
     string Result;
-    bool    isQueryRequest = false;
-    DDCTime t_started = DDCTime::Now();
+    bool isQueryRequest=false, isFollowupRequest=false;
+    DDCTimeHiRes t_started = DDCTimeHiRes::Now();
 
     //-- initialize with default values
     m_bRespond    = true;
@@ -205,7 +206,7 @@ string CDDCServer::ProcessSocketString(const string& SocketInput, SOCKET& rConne
 	else if (cmd == "get_hit_strings") {
 	    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	    // get_hit_strings " " FORMAT "\x01" OFFSET " " LIMIT : get full hit strings (leaf only)
-	    isQueryRequest = true;
+	    isFollowupRequest = true;
 	    try {
 		int StartHitNo, ResultLimit;
 		char sResultType[128];
@@ -328,8 +329,11 @@ string CDDCServer::ProcessSocketString(const string& SocketInput, SOCKET& rConne
     }
 
     //-- get query time
-    double t_elapsed = DDCTime::Now().Elapsed(t_started);
-    //-- TODO: track average query time: if (isQueryRequest) { ... }
+    double t_elapsed = DDCTimeHiRes::Now().Elapsed(t_started);
+    if (isQueryRequest)
+	m_SessionStats.m_qTimes.Append(t_elapsed);
+    else if (isFollowupRequest)
+	m_SessionStats.m_qTimes.AppendCurrent(t_elapsed);
     
     //-- check for slow queries
     if (m_SlowQueryTimeout > 0 && t_elapsed > m_SlowQueryTimeout) {

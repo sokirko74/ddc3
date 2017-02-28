@@ -373,9 +373,9 @@ test "$ddc_hires_clock" = "yes" || ddc_hires_clock=no
 AC_MSG_RESULT([$ddc_hires_clock])
 
 AC_CHECK_FUNC(clock_gettime,
-	[ac_cv_have_clock_gettime=yes],
-	[ac_cv_have_clock_gettime=no])
-if test "$av_cv_have_clock_gettime" = "yes" ; then
+	[ddc_have_clock_gettime=yes],
+	[ddc_have_clock_gettime=no])
+if test "$ddc_have_clock_gettime" = "yes" ; then
     AC_DEFINE(HAVE_CLOCK_GETTIME, 1, [Define this if your system has the clock_gettime() function])
 else
   if test "$ddc_hires_clock" != "no" ; then

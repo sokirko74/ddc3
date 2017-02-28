@@ -71,7 +71,7 @@
 .\" ========================================================================
 .\"
 .IX Title "DDC_SERVER.OPT 5"
-.TH DDC_SERVER.OPT 5 "2016-12-20" "2.1.0-rc3" "DDC Corpus Indexing System"
+.TH DDC_SERVER.OPT 5 "2017-02-28" "2.1.1-pre1" "DDC Corpus Indexing System"
 .\" For nroff, turn off justification.  Always turn off hyphenation; it makes
 .\" way too many mistakes in technical documents.
 .if n .ad l
@@ -95,6 +95,7 @@ server option files (\*(L"server-opt files\*(R") used by the \s-1DDC\s0 corpus i
 \& 
 \& LogLevel LEVEL
 \& SlowQueryTimeout SECONDS
+\& StatsWindow SECONDS
 \&
 \& ##\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
 \& ## Client\-Thread Options
@@ -186,6 +187,22 @@ Log any requests whose processing requires at least \fI\s-1SECONDS\s0\fR second(
 \&\fI\s-1SECONDS\s0\fR is parsed as a double-precision float, so non-integral numbers can be specified,
 but will only be meaningful if \s-1DDC\s0 was compiled with high-resolution clock support \*(-- in
 this case, your \s-1DDC\s0 logs should show nanosecond resolution.
+.PP
+\fIStatsWindow\fR
+.IX Subsection "StatsWindow"
+.PP
+.Vb 1
+\& StatsWindow SECONDS
+.Ve
+.PP
+Aliases: StatWindow, MovingAverageWindow
+.PP
+Default: 600
+.PP
+Size of the time window for tracking moving average statistics, in seconds.
+Currently affects only the \f(CW\*(C`qtavg\*(C'\fR property (average query time).
+.PP
+Since v2.1.1.
 .SS "Client-Thread Options"
 .IX Subsection "Client-Thread Options"
 The following options control the behavior of per-client \*(L"worker\*(R" threads.

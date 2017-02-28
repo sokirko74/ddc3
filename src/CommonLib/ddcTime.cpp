@@ -27,7 +27,7 @@
 
 const size_t DDCDateBufferSize = 16;
 
-#if DDC_USE_HIRES_CLOCK
+#if HAVE_CLOCK_GETTIME
 const size_t DDCTimeBufferSize = 32;
 #else
 const size_t DDCTimeBufferSize = 16;

@@ -132,6 +132,10 @@ Returns status information on the running server as a JSON object of the form:
   "started":"2014-02-17T13:49:59Z",	//-- ISO-8601 timestamp of last server start
   "uptime":1392644999,			//-- server instance uptime in seconds
   "nrequests":21,			//-- number of served requests
+  "nqueries":18,			//-- number of served queries (>= v2.1.0)
+  "nerrors":0,				//-- number of client errors (>= v2.1.0)
+  "nslow":0,				//-- number of slow queries (>= v2.1.0)
+  "qtavg":0.00284271,			//-- average query time over last StatsWindow seconds (>= v2.1.1)
   "memkb":18756,			//-- memory resident set size in kb (>= v2.0.49, linux only)
   "cachesize":42,			//-- size of query cache (leaf servers only)
   "curlcachesize":24,			//-- size of curl cache (leaf servers only)
@@ -282,6 +286,8 @@ servers on the user's behalf; a C<DEPTH> parameter of -1 requests maximum depth.
 
 Since v2.0.23, DEPTH parameter since v2.0.25.
 
+Apparently B<BROKEN> since at least v2.1.0.
+
 =cut
 
 ##--------------------------------------------------------------
@@ -417,7 +423,10 @@ is the maximum number of hits to be retrieved.
 
 =item TIMEOUT
 
-is the maximum number of seconds
+is the maximum number of seconds to spend processing the query before returning an error response.
+Note that since the underlying server(s) only check for timeout conditions once for each iteration
+through the "corpus period" loop, an expensive query can potentially block the server(s) for much longer
+than the specified TIMEOUT before such an error response is actually generated and sent to the client.
 
 =back
 

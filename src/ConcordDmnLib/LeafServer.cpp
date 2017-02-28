@@ -190,6 +190,7 @@ void CDDCLeafServer::handle__expand_terms(string &Result, const string& pipeline
 void CDDCLeafServer::handle__status(string &Result, int timeout, bool verbose)
 {
     double uptime = difftime(time(NULL), m_tStarted);
+    m_ServerStats.m_qTimes.Scrub(); //-- synchronize moving-average query-time window
     Result = (string("{\n\t")
 	      + "\"name\":" + jsonStr(m_CorpusName) + ",\n\t"
 	      + "\"version\":" + jsonStr(PACKAGE_VERSION) + ",\n\t"
@@ -202,6 +203,7 @@ void CDDCLeafServer::handle__status(string &Result, int timeout, bool verbose)
 	      + "\"nqueries\":" + Format("%zd", m_ServerStats.m_nQueries) + ",\n\t"
 	      + "\"nerrors\":" + Format("%zd", m_ServerStats.m_nErrors) + ",\n\t"
 	      + "\"nslow\":" + Format("%zd", m_ServerStats.m_nSlow) + ",\n\t"
+	      + "\"qtavg\":" + Format("%g", m_ServerStats.m_qTimes.tAverage()) + ",\n\t"
 	      + "\"nworkers\":" + Format("%zd", m_nWorkers) + ",\n\t"
 	      + "\"memkb\":" + Format("%zd", this->residentMemorySize()) + ",\n\t"
 	      + "\"cachesize\":" + Format("%zd", m_pHolder->CacheSize()) + ",\n\t"

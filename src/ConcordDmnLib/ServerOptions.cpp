@@ -1,7 +1,7 @@
 //-*- Mode: C++; c-basic-offset:4; -*-
 //
 //  DDC originally by Alexey Sokirko
-//  Changes and modifications 2011-2016 by Bryan Jurish
+//  Changes and modifications 2011-2017 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -32,6 +32,7 @@
 CDDCServerOptions::CDDCServerOptions() :
     m_LogLevel(ddcLLUnknown),
     m_SlowQueryTimeout(10),
+    m_StatsWindow(600),
     m_nWorkers(0),
     m_ThreadQueueSize(DDC_DEFAULT_THREAD_QUEUE_SIZE)
 {}
@@ -79,15 +80,14 @@ bool CDDCServerOptions::Set(const string& Option, const string& Value, const str
 	return true;
     else if (opt=="loglevel" || opt=="log" || opt=="verbose")
 	m_LogLevel = GetLogLevel(Value);
-    else if (opt=="numthreads" || opt=="nthreads" || opt=="threads" || opt=="numworkers" || opt=="nworkers" || opt=="workers") {
-	m_nWorkers = strtoul(Value.c_str(),NULL,0);
-    }
-    else if (opt=="threadqueuesize" || opt=="queuesize" || opt=="qsize") {
-	m_ThreadQueueSize = strtoul(Value.c_str(),NULL,0);
-    }
-    else if (opt=="slowquerytimeout" || opt=="slowquerytime") {
+    else if (opt=="slowquerytimeout" || opt=="slowquerytime")
 	m_SlowQueryTimeout = strtod(Value.c_str(), NULL);
-    }
+    else if (opt=="statswindow" || opt=="statwindow" || opt=="movingaveragewindow")
+	m_StatsWindow = strtoul(Value.c_str(),NULL,0);
+    else if (opt=="numthreads" || opt=="nthreads" || opt=="threads" || opt=="numworkers" || opt=="nworkers" || opt=="workers")
+	m_nWorkers = strtoul(Value.c_str(),NULL,0);
+    else if (opt=="threadqueuesize" || opt=="queuesize" || opt=="qsize")
+	m_ThreadQueueSize = strtoul(Value.c_str(),NULL,0);
     else if (opt=="include") {
 	string IncFileName = RelativeFileName(srcName, IncFileName);
 	LoadFile(IncFileName);
@@ -103,7 +103,8 @@ string CDDCServerOptions::toString() const
 {
     return (string("")
 	    + "LogLevel " + LogLevelName(m_LogLevel) + "\n"
-	    + "SlowQueryTimeout " + Format("%g", m_SlowQueryTimeout) + "\n"	    	    
+	    + "SlowQueryTimeout " + Format("%g", m_SlowQueryTimeout) + "\n"
+	    + "StatsWindow " + Format("%zu", m_StatsWindow) + "\n"
 	    + "NumThreads " + Format("%zu", m_nWorkers) + "\n"
 	    + "ThreadQueueSize " + Format("%zu", m_ThreadQueueSize) + "\n"
 	    );
