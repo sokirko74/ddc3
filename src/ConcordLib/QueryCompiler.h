@@ -1,6 +1,6 @@
 //-*- Mode: C++; c-basic-offset: 8; -*-
 //  DDC originally by Alexey Sokirko
-//  Changes and modifications 2011-2015 by Bryan Jurish
+//  Changes and modifications 2011-2017 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -28,11 +28,12 @@
 #include "QCount.h"	  // v2.0.23+ count-query API
 
 #include "yyQParser.h"
+//#include "yyQLexer.h" //-- included from yyQParser.h (2017-03-01)
 
-//#include "yyQLexer.h"
 #undef yyFlexLexer
 #define yyFlexLexer yyqLexer
 #include "FlexLexer.h"
+
 
 //-- moo: re-working parse-tree API
 #define PARSER_USE_OLD_API
@@ -169,6 +170,12 @@ public:
 
 	//! flex convenience wrapper
 	inline string yystring() const { return string(YYText(),YYLeng()); };
+
+	//! wrapper for protected yyFlexLexer::yy_push_state()
+	void yypushq(int new_state);
+
+	//! wrapper for protected yyFlexLexer::yy_pop_state()
+	void yypopq();
 
 	//! delete parse tree (m_pQuery) if non-NULL; actually wipes all queries in m_Queries and m_qCountKeys
 	void DeleteTree();

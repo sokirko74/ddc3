@@ -1,5 +1,5 @@
 //-*- Mode: bison; c-basic-offset: 8; -*-*/
-//  Copyright 2011-2016 by Bryan Jurish
+//  Copyright 2011-2017 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -36,6 +36,9 @@
 /*======================================================================
  * Bison C Header
  */
+
+#define YY_HEADER_EXPORT_START_CONDITIONS 1 /* export start conditions */
+#include "yyQLexer.h"
 
 #include "QueryCompiler.h"
 #include "../CommonLib/ddcString.h"
@@ -204,6 +207,7 @@ int yylex (void*,  CQueryCompiler*);
 // Types: Preterminals
 
 %type	<m_str>		symbol
+%type	<m_str>		index
 %type	<m_str>		sym_str
 %type	<m_str>		regex
 %type	<m_str>		neg_regex
@@ -217,6 +221,7 @@ int yylex (void*,  CQueryCompiler*);
 // Types: Terminals
 
 %token	<m_str>	SYMBOL
+%token	<m_str>	INDEX
 %token	<m_str>	REGEX
 %token	<m_str>	NEG_REGEX
 %token	<m_str>	REGOPT
@@ -807,7 +812,7 @@ count_key:
 	|	'(' count_key ')'		{ $$=$2; }
 	;
 
-ck_index:	'$' symbol	{ $$=$2; }
+ck_index:	s_index				{ $$=$1; }
 	;
 
 ck_matchid:
@@ -828,12 +833,12 @@ ck_offset:
 
 s_index:
 		'$'		{ $$ = _qc->newString(); }
-	|	'$' symbol	{ $$ = $2; }
+	|	index		{ $$ = $1; }
 	;
 
 s_indextuple_item:
 		s_index		{ $$ = $1; }
-	|	symbol		{ $$ = $1; }
+	|	symbol		{ $$ = $1; /* for default item '-' */ }
 	;
 
 s_word:		symbol 		{ $$ = $1; };
@@ -855,6 +860,9 @@ s_breakname:	symbol		{ $$ = $1; }
 symbol:		SYMBOL	{ *$1 = unescapeCString(*$1); $$ = $1; }
 	|	INTEGER { $$ = $1; }
 	|	DATE    { $$ = $1; }
+	;
+
+index:		INDEX	{ *$1 = unescapeCString(*$1); $$ = $1; }
 	;
 
 sym_str:	SYMBOL	{ *$1 = unescapeCString(*$1); $$ = $1; }
@@ -882,14 +890,15 @@ replace_regex:	REGEX_SEARCH REGEX_REPLACE		{ $$ = _qc->newRegex(*$1,"",false); }
 int_str: 	INTEGER	{ $$ = $1; }
 	;
 
-integer: 	int_str	{ $$ = atoi($1->c_str()); }
+integer: 	int_str	{ $$ = strtol($1->c_str(), NULL, 0); }
 	;
 
 date:		DATE	{ $$ = $1; }
 	|	INTEGER { $$ = $1; }
 	;
 
-matchid:	'=' integer { $$ = $2; }
+matchid:	'=' 	{ _qc->yypushq(Q_MATCHID); }
+		integer	{ _qc->yypopq(); $$ = $3; }
 	;
 
 

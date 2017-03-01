@@ -1,6 +1,6 @@
 //-*- Mode: C++; c-basic-offset: 8; -*-
 //  DDC originally by Alexey Sokirko
-//  Changes and modifications 2011-2015 by Bryan Jurish
+//  Changes and modifications 2011-2017 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -169,6 +169,21 @@ bool CQueryCompiler::ParseQuery(const string &QueryStr)
 	return true;
 }
 
+void CQueryCompiler::yypushq(int new_state)
+{
+#if DEBUG_LEXER
+	fprintf(stderr, "CQueryCompiler::yypushq(%d)\n", new_state);
+#endif
+	yy_push_state(new_state);
+}
+
+void CQueryCompiler::yypopq()
+{
+#if DEBUG_LEXER
+	fprintf(stderr, "CQueryCompiler::yypopq() -> %d\n", yy_top_state());
+#endif
+	yy_pop_state();
+}
 
 void CQueryCompiler::CleanParser()
 {
@@ -252,6 +267,7 @@ int CQueryCompiler::yyqlex(void* valp)
 		((YYSTYPE *)valp)->m_str = &m_RegexReplacement;
 		break;
 	case SYMBOL:
+	case INDEX:
 	case INFIX:
 	case PREFIX:
 	case SUFFIX:

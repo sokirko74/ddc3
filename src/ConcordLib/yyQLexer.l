@@ -1,6 +1,6 @@
 /*-*- Mode: Flex; c-basic-offset: 8 -*-*/
 /*
-//  Copyright 2011-2016 by Bryan Jurish
+//  Copyright 2011-2017 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -39,6 +39,7 @@
 %option header-file="yyQLexer.h"
 %option prefix="yyq"
 %option 8bit
+%option stack
 
 
 %{
@@ -73,30 +74,28 @@
 /*======================================================================
  * Flex Definitions
  */
- 
+
+ /* whitespace */
 ws		[ \t\n\r\f\v]
-punct	        [\^\!\~\$\@\%\/\=\?\_\:\;\+\#\.\\\*\,\'\"\&\|\(\)\[\]\{\}\<\>]
 
-int_boundary	[ \t\n\r\f\v\0\^\&\|\!\(\)\[\]\{\}\<\>\'\"\,\;\:\#\=\*\%\~\\\$\@\/\?\_\+\-\.]
-kw_boundary	[ \t\n\r\f\v\0\^\&\|\!\(\)\[\]\{\}\<\>\'\"\,\;\:\#\=\*\%\~\\\$\@\/\?\_\+\-\.]
+ /* integer boundary characters */
+int_boundary	 [ \t\n\r\f\v\0&|!?^%,:;#*=~(){}<>\[\]\\/\'\".$@_+-]
 
-ssymbol_cfirst	[^ \t\r\n\f\v\0\^\&\|\!\(\)\[\]\{\}\<\>\'\"\,\;\:\#\=\*\%\\\~\/\$\@\?\_\+\.0-9]
-ssymbol_crest	[^ \t\r\n\f\v\0\^\&\|\!\(\)\[\]\{\}\<\>\'\"\,\;\:\#\=\*\%\\\~\/]
-symbol_cescape (\\.)
-ssymbol_text	({symbol_cescape}|{ssymbol_cfirst})({symbol_cescape}|{ssymbol_crest})*
+ /* bareword symbols */
+symbol_cfirst	[^ \t\n\r\f\v\0&|!?^%,:;#*=~(){}<>\[\]\\/\'\".$@_]
+symbol_crest	[^ \t\n\r\f\v\0&|!?^%,:;#*=~(){}<>\[\]\\/\'\"]
+symbol_cescape  (\\.)
+symbol_text	({symbol_cescape}|{symbol_cfirst})({symbol_cescape}|{symbol_crest})*
 
-isymbol_cfirst	[0-9]
-isymbol_crest	[^ \t\r\n\f\v\0\^\&\|\!\(\)\[\]\{\}\<\>\'\"\,\;\:\#\=\*\%\\\~\/\$\@\?\_\+\-\.]
-isymbol_text	{isymbol_cfirst}({symbol_cescape}|{isymbol_crest})*
+ /* bareword index names (underscore and digits ok, but no '.', '-', or '+') */
+index_char	[^ \t\n\r\f\v\0&|!?^%,:;#*=~(){}<>\[\]\\/\'\".$@+-]
+index_name      ({index_char}|{symbol_cescape})+
 
-ssuffix_text	([\+\-]{ssymbol_crest}*({ssymbol_cfirst}|{symbol_cescape})({ssymbol_crest}|{symbol_cescape})*)*
-symbol_text     ({ssymbol_text}|{isymbol_text}){ssuffix_text}*
-
-index_name      {symbol_text}
-
+ /* single-quoted symbols */
 sq_text         ([^\']|{symbol_cescape})*
 
-regex_text      ((\\.)|[^\/\\])*
+ /* regexes */
+regex_text      ((\\.)|[^\\/])*
 regex_modifier	[dgimsx]
 
 /*======================================================================
@@ -111,6 +110,12 @@ regex_modifier	[dgimsx]
 %x Q_REGREP
 %x Q_XPIPE
 
+ /* Q_MATCHID: non-exclusive state for expecting match-IDs
+  * - ignores (hyphenated) bareword symbols
+  * - used for parsing e.g. count(..) #by[$x=1+1] --> count(...) #by[$x =1 + 1])
+  */
+%s Q_MATCHID
+
 /*======================================================================
  * Rules
  */
@@ -120,7 +125,7 @@ regex_modifier	[dgimsx]
 "&&"				{ return OP_BOOL_AND; }
 "||"				{ return OP_BOOL_OR; }
 (?i:near)			{ return NEAR; }
-(?i:"!="|"&!="|"&="{ws}*\!|\!with|with(out|{ws}*\!))   { return WITHOUT; }
+(?i:"!="|"&!="|"&="{ws}*!|!with|with(out|{ws}*!))   { return WITHOUT; }
 (?i:"|="|withor|orwith|wor)   	{ return WITHOR; }
 (?i:"&="|with)			{ return WITH; }
 (?i:count)			{ return COUNT; }
@@ -135,48 +140,48 @@ regex_modifier	[dgimsx]
 <Q_DATE>""/.			{ BEGIN(INITIAL); }
 
  /* query operators */
-(?i:\#(co?n?te?xt?|n))		{ return CNTXT; }
-(?i:\#(with)?in)		{ return WITHIN; }
-(?i:\#(sep(arate)?|nojoin)(_hits)?)	{ return SEPARATE_HITS; }
-(?i:\#(nosep(arate)?|join)(_hits)?)	{ return NOSEPARATE_HITS; }
-(?i:\#has(_field)?)		{ return HAS_FIELD; }
-(?i:\#file(_?)names)		{ return FILENAMES_ONLY; }
-(?i:\#debug_rank)		{ return DEBUG_RANK; }
-(?i:\#(greater|de?sc)(_by)?_rank)	{ return GREATER_BY_RANK; }
-(?i:\#(less|asc)(_by)?_rank)		{ return LESS_BY_RANK; }
-(?i:\#(greater|de?sc)(_by)?_date)	{ return GREATER_BY_DATE; }
-(?i:\#(less|asc)(_by)?_date)		{ return LESS_BY_DATE; }
-(?i:\#(is_|has_)?date)			{ return IS_DATE; }
-(?i:\#(greater|de?sc)(_by)?_size)	{ return GREATER_BY_SIZE; }
-(?i:\#(less|asc)(_by)?_size)		{ return LESS_BY_SIZE; }
-(?i:\#(is_|has_)?size)			{ return IS_SIZE; }
-(?i:\#((less|asc)(_by)?_)?left)		{ return LESS_BY_LEFT; }
-(?i:\#((greater|de?sc)(_by)?_)left)	{ return GREATER_BY_LEFT; }
-(?i:\#((less|asc)(_by)?_)?right)	{ return LESS_BY_RIGHT; }
-(?i:\#((greater|de?sc)(_by)?_)right)	{ return GREATER_BY_RIGHT; }
-(?i:\#((less|asc)(_by)?_)?mid(dle)?)	{ return LESS_BY_MIDDLE; }
-(?i:\#((greater|de?sc)(_by)?_)mid(dle)?) { return GREATER_BY_MIDDLE; }
-(?i:\#(less|asc)(_by)?)			{ return LESS_BY; }
-(?i:\#(greater|de?sc)(_by)?)		{ return GREATER_BY; }
-(?i:\#rand(om)?)			{ return RANDOM; }
-(?i:\#by)				{ return BY; }
-(?i:\#samp(le)?)			{ return SAMPLE; }
-(?i:\#clim(it)?)			{ return CLIMIT; }
-(?i:\#((less|asc)(_by)?_key))		{ return LESS_BY_KEY; }
-(?i:\#((greater|de?sc)(_by)?_key))	{ return GREATER_BY_KEY; }
-(?i:\#((less|asc)(_by)?_(count|val(ue)?)))	{ return LESS_BY_COUNT; }
-(?i:\#((greater|de?sc)(_by)?_(count|val(ue)?))) { return GREATER_BY_COUNT; }
+(?i:#(co?n?te?xt?|n))			{ return CNTXT; }
+(?i:#(with)?in)				{ return WITHIN; }
+(?i:#(sep(arate)?|nojoin)(_hits)?)	{ return SEPARATE_HITS; }
+(?i:#(nosep(arate)?|join)(_hits)?)	{ return NOSEPARATE_HITS; }
+(?i:#has(_field)?)			{ return HAS_FIELD; }
+(?i:#file(_?)names)			{ return FILENAMES_ONLY; }
+(?i:#debug_rank)			{ return DEBUG_RANK; }
+(?i:#(greater|de?sc)(_by)?_rank)	{ return GREATER_BY_RANK; }
+(?i:#(less|asc)(_by)?_rank)		{ return LESS_BY_RANK; }
+(?i:#(greater|de?sc)(_by)?_date)	{ return GREATER_BY_DATE; }
+(?i:#(less|asc)(_by)?_date)		{ return LESS_BY_DATE; }
+(?i:#(is_|has_)?date)			{ return IS_DATE; }
+(?i:#(greater|de?sc)(_by)?_size)	{ return GREATER_BY_SIZE; }
+(?i:#(less|asc)(_by)?_size)		{ return LESS_BY_SIZE; }
+(?i:#(is_|has_)?size)			{ return IS_SIZE; }
+(?i:#((less|asc)(_by)?_)?left)		{ return LESS_BY_LEFT; }
+(?i:#((greater|de?sc)(_by)?_)left)	{ return GREATER_BY_LEFT; }
+(?i:#((less|asc)(_by)?_)?right)		{ return LESS_BY_RIGHT; }
+(?i:#((greater|de?sc)(_by)?_)right)	{ return GREATER_BY_RIGHT; }
+(?i:#((less|asc)(_by)?_)?mid(dle)?)	{ return LESS_BY_MIDDLE; }
+(?i:#((greater|de?sc)(_by)?_)mid(dle)?) { return GREATER_BY_MIDDLE; }
+(?i:#(less|asc)(_by)?)			{ return LESS_BY; }
+(?i:#(greater|de?sc)(_by)?)		{ return GREATER_BY; }
+(?i:#rand(om)?)				{ return RANDOM; }
+(?i:#by)				{ return BY; }
+(?i:#samp(le)?)				{ return SAMPLE; }
+(?i:#clim(it)?)				{ return CLIMIT; }
+(?i:#((less|asc)(_by)?_key))		{ return LESS_BY_KEY; }
+(?i:#((greater|de?sc)(_by)?_key))	{ return GREATER_BY_KEY; }
+(?i:#((less|asc)(_by)?_(count|val(ue)?)))	{ return LESS_BY_COUNT; }
+(?i:#((greater|de?sc)(_by)?_(count|val(ue)?)))	{ return GREATER_BY_COUNT; }
 
 
  /* regexes */
 "!/"{regex_text}"/"/{regex_modifier}		{ yytext+=2; yyleng-=3; BEGIN(Q_REGOPT); return NEG_REGEX; /* negated regex, +modifiers */ }
-"!/"{regex_text}"/"				{ yytext+=2; yyleng-=3;                  return NEG_REGEX; /* negated regex, -modifiers */ }
-"/"{regex_text}"/"/{regex_modifier}		{ yytext++; yyleng-=2; BEGIN(Q_REGOPT);  return REGEX; /* slash-quoted regex with modifiers */ }
-"/"{regex_text}"/"				{ yytext++; yyleng-=2;                   return REGEX; /* slash-quoted regex with no modifiers */ }
+"!/"{regex_text}"/"				{ yytext+=2; yyleng-=3;                          return NEG_REGEX; /* negated regex, -modifiers */ }
+"/"{regex_text}"/"/{regex_modifier}		{ yytext++;  yyleng-=2; BEGIN(Q_REGOPT); return REGEX; /* slash-quoted regex, +modifiers */ }
+"/"{regex_text}"/"				{ yytext++;  yyleng-=2;                          return REGEX; /* slash-quoted regex, -modifiers */ }
 "s/"{regex_text}"/"				{ yytext+=2; yyleng-=3; BEGIN(Q_REGREP); return REGEX_SEARCH;  /* search-replace pattern */ }
 <Q_REGREP>{regex_text}"/"/{regex_modifier}	{            yyleng--;  BEGIN(Q_REGOPT); return REGEX_REPLACE; /* search-replace replacement, +modifiers */ }
-<Q_REGREP>{regex_text}"/"			{            yyleng--;  BEGIN(INITIAL);  return REGEX_REPLACE; /* search-replace replacement, -modifiers */ }
-<Q_REGOPT>{regex_modifier}+			{ BEGIN(INITIAL); return REGOPT; }
+<Q_REGREP>{regex_text}"/"			{            yyleng--;  BEGIN(INITIAL);  	 return REGEX_REPLACE; /* search-replace replacement, -modifiers */ }
+<Q_REGOPT>{regex_modifier}+			{                       BEGIN(INITIAL);          return REGOPT; }
 
  /* punctuation */
 "#="				{ return HASH_EQUAL; /* hash+equal: exact distance */ }
@@ -187,9 +192,9 @@ regex_modifier	[dgimsx]
 "@{"				{ return AT_LBRACE; /* literal-set opener */ }
 "*{"				{ return STAR_LBRACE; /* prefix-set opener */ }
 "}*"				{ return RBRACE_STAR; /* suffix-set closer */ }
-[\!\.\,\:\;\$\@\%\^\#\=\~\/]	{ return ((int)yytext[0]); /* single-character punctuation operators */ }
-[\[\]\{\}\(\)\<\>]		{ return ((int)yytext[0]); /* parentheses */ }
-[\"]				{ return ((int)yytext[0]); /* quotes */ }
+[!.,:;=@%^#~/]			{ return (int)yytext[0]; /* single-character punctuation operators */ }
+[\[\]{}()<>]			{ return (int)yytext[0]; /* parentheses */ }
+[\"]				{ return (int)yytext[0]; /* double-quotes */ }
 
  /* truncated symbols */
 "*"\'{sq_text}\'"*"		{ yytext+=2; yyleng-=4; return INFIX;  /* dual-truncated quoted string (infix symbol) */ }
@@ -202,9 +207,9 @@ regex_modifier	[dgimsx]
 
  /* numeric tokens */
  /* + fix mantis bug #14812: put these AFTER truncated symbols so that e.g. (19*) is paresed as ('19'*) rather than ('19' && *) */
-\'[\+\-]?[0-9]+\'		{ yytext++; yyleng-=2; return INTEGER; }
-[\+\-]?[0-9]+/{int_boundary}	{ return INTEGER; }
-[\+\-]?[0-9]+			{ return INTEGER; }
+\'[+-]?[0-9]+\'			{ yytext++; yyleng-=2; return INTEGER; }
+[+-]?[0-9]+/{int_boundary}	{ return INTEGER; }
+[+-]?[0-9]+			{ return INTEGER; }
 
 \'[0-9\-]+\'			 { yytext++; yyleng-=2; return DATE; }
 [0-9]{4,}[0-9\-]+/{int_boundary} { return DATE; }
@@ -221,13 +226,18 @@ regex_modifier	[dgimsx]
 <Q_XPIPE><<EOF>>		{ yyleng=0;	       BEGIN(INITIAL); return EXPANDER; /* empty term expander label (default) */ }
 <Q_XPIPE>""			{ yyleng=0;	       BEGIN(INITIAL); return EXPANDER; /* empty term expander label (default) */ }
 
- /* symbols */
+ /* index names (special handling to allow count(foo) #by[$w+1] */
+"$"{index_name}			{ yytext++; yyleng--;   return INDEX; /* dollar-prefixed index name */ }
+"$'"{index_name}"'"		{ yytext+=2; yyleng-=3; return INDEX; /* vacuously-quoted index name */ }
+"$"				{ return '$';   		      /* bare dollar */ }
+
+ /* symbols (initial state only) */
 \'{sq_text}\'                   { yytext++; yyleng-=2; return SYMBOL; /* single-quoted symbol */ }
-{symbol_text}			{ return SYMBOL;                      /* bareword symbol */ }
+<INITIAL>{symbol_text}		{ return SYMBOL;                      /* bareword symbol (initial state only; not in Q_MATCHID) */ }
 
  /* misc */
 {ws}+    			{ ; /* whitespace: skip */ }
-.				{ return ((int)yytext[0]); /* any other character (byte) is its own token */ }
+.				{ return (int)yytext[0]; /* any other character (byte) is its own token */ }
 
 %%
 /*======================================================================
