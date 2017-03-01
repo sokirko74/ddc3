@@ -23,7 +23,6 @@
 
 #include "../CommonLib/ddcTime.h"
 #include <set>
-#include <math.h>
 
 //==============================================================================
 /** generic struct representing query timing information (for average query time stats) */
@@ -107,7 +106,7 @@ struct CDDCQueryTimeAvg
 
     /** get current average query time */
     inline double tAverage() const
-    { return m_size==0 ? NAN : (m_etotal / m_size); };
+    { return m_size==0 ? 0 : (m_etotal / m_size); };
 
     /** append statistics for a single query */
     inline void Append(const CDDCQueryTime &qt)
