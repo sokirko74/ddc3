@@ -82,7 +82,7 @@ ws		[ \t\n\r\f\v]
 int_boundary	 [ \t\n\r\f\v\0&|!?^%,:;#*=~(){}<>\[\]\\/\'\".$@_+-]
 
  /* bareword symbols */
-symbol_cfirst	[^ \t\n\r\f\v\0&|!?^%,:;#*=~(){}<>\[\]\\/\'\".$@_]
+symbol_cfirst	[^ \t\n\r\f\v\0&|!?^%,:;#*=~(){}<>\[\]\\/\'\".$@]
 symbol_crest	[^ \t\n\r\f\v\0&|!?^%,:;#*=~(){}<>\[\]\\/\'\"]
 symbol_cescape  (\\.)
 symbol_text	({symbol_cescape}|{symbol_cfirst})({symbol_cescape}|{symbol_crest})*
