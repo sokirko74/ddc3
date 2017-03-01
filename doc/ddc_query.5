@@ -71,7 +71,7 @@
 .\" ========================================================================
 .\"
 .IX Title "DDC_QUERY 5"
-.TH DDC_QUERY 5 "2017-02-28" "2.1.1-pre1" "DDC Corpus Indexing System"
+.TH DDC_QUERY 5 "2017-03-01" "2.1.1-pre1" "DDC Corpus Indexing System"
 .\" For nroff, turn off justification.  Always turn off hyphenation; it makes
 .\" way too many mistakes in technical documents.
 .if n .ad l
@@ -573,7 +573,7 @@ Comments may appear after each rule in C notation
 \&                 ;
 \& 
 \& l_txchain     ::=                                   /*\-\- Term expansion pipeline \-\-*/
-\&                                                     /* Empty pipeline or \*(Aq|\-\*(Aq uses index\-dependent default aka \*(Aq|INDEX\*(Aq */
+\&                                                     /* Empty pipeline or \*(Aq|\-\*(Aq uses index\-dependent default aka \*(Aq|INDEXNAME\*(Aq */
 \&                 | l_txchain s_expander              /* ... pipeline concatenation \*(Aq|Expander1 |Expander2 |...\*(Aq */
 \&                 ;
 \& 
@@ -594,122 +594,122 @@ Comments may appear after each rule in C notation
 .IX Subsection "Preterminals and Aliases"
 .PP
 .Vb 4
-\& s_index       ::=                              /*\-\- Index name (must be defined in .opt file) \-\-*/
-\&                   $                            /* Bare dollar uses query\-type default (usually \*(AqToken\*(Aq) */
-\&                 | $ symbol                     /* Explicit index name */
-\&                 ;
+\& s_index           ::=                              /*\-\- Index name (must be defined in .opt file) \-\-*/
+\&                       $                            /* Bare \*(Aq$\*(Aq uses query\-type default (usually \*(AqToken\*(Aq) */
+\&                     | INDEX                        /* Explicit \*(Aq$\*(Aq\-prefixed index name */
+\&                     ;
 \& 
-\& s_index       ::=                              /*\-\- Index reference occurring in a keys() index\-tuple \-\-*/
-\&                   s_index                      /* $\-prefixed index name  */
-\&                 | symbol                       /* index name bareword, without \*(Aq$\*(Aq prefix */
-\&                 | \-                            /* key positions corresponding to \*(Aq\-\*(Aq pseudo\-index are ignored (e.g. metadata keys) */
-\&                 ;
+\& s_indextuple_item ::=                              /*\-\- Index reference occurring in a keys() index\-tuple \-\-*/
+\&                       s_index                      /* \*(Aq$\*(Aq\-prefixed index name  */
+\&                     | symbol                       /* index name bareword, without \*(Aq$\*(Aq prefix */
+\&                     | \-                            /* key positions corresponding to \*(Aq\-\*(Aq pseudo\-index are ignored (e.g. metadata keys) */
+\&                     ;
 \& 
-\& s_word        ::=                              /*\-\- A single word or string value \-\-*/
-\&                   symbol                       /* ... can be any symbol */
-\&                 ;
+\& s_word            ::=                              /*\-\- A single word or string value \-\-*/
+\&                       symbol                       /* ... can be any symbol */
+\&                     ;
 \& 
-\& s_semclass    ::=                              /*\-\- Semantic class used by :{...} queries \-\-*/
-\&                   symbol                       /* ... can be any symbol */
-\&                 ;
+\& s_semclass        ::=                              /*\-\- Semantic class used by :{...} queries \-\-*/
+\&                       symbol                       /* ... can be any symbol */
+\&                     ;
 \& 
-\& s_lemma       ::=                              /*\-\- Lemma used by %L queries \-\-*/
-\&                   symbol                       /* ... can be any symbol */
-\&                 ;
+\& s_lemma           ::=                              /*\-\- Lemma used by %L queries \-\-*/
+\&                       symbol                       /* ... can be any symbol */
+\&                     ;
 \& 
-\& s_chunk       ::=                              /*\-\- Chunk name used by ^C queries \-\-*/
-\&                   symbol                       /* ... can be any symbol */
-\&                 ;
+\& s_chunk           ::=                              /*\-\- Chunk name used by ^C queries \-\-*/
+\&                       symbol                       /* ... can be any symbol */
+\&                     ;
 \& 
-\& s_break       ::=                              /*\-\- Break collection name used by $. queries \-\-*/
-\&                   symbol                       /* ... can be any symbol (but must be defined in .opt file) */
-\&                 ;
+\& s_break           ::=                              /*\-\- Break collection name used by $. queries \-\-*/
+\&                       symbol                       /* ... can be any symbol (but must be defined in .opt file) */
+\&                     ;
 \& 
-\& s_filename    ::=                              /*\-\- Filename used by <F queries \-\-*/
-\&                   symbol                       /* ... can be any symbol (server\-side filename) */
-\&                 ;
+\& s_filename        ::=                              /*\-\- Filename used by <F queries \-\-*/
+\&                       symbol                       /* ... can be any symbol (server\-side filename) */
+\&                     ;
 \& 
-\& s_morphitem   ::=                              /*\-\- Morphological property used by [...] queries \-\-*/
-\&                   symbol                       /* ... can be any symbol */
-\&                 ;
+\& s_morphitem       ::=                              /*\-\- Morphological property used by [...] queries \-\-*/
+\&                       symbol                       /* ... can be any symbol */
+\&                     ;
 \& 
-\& symbol        ::=                              /*\-\- User\-specified symbol or string \-\-*/
-\&                   SYMBOL                       /* Bareword or single\-quoted string with C\-style escapes */
-\&                 | INTEGER                      /* ... every decimal number is also a valid symbol */
-\&                 | DATE                         /* ... every date\-string is also a valid symbol */
-\&                 ;
+\& symbol            ::=                              /*\-\- User\-specified symbol or string \-\-*/
+\&                       SYMBOL                       /* Bareword or single\-quoted string with C\-style escapes */
+\&                     | INTEGER                      /* ... every decimal number is also a valid symbol */
+\&                     | DATE                         /* ... every date\-string is also a valid symbol */
+\&                     ;
 \& 
-\& sym_str       ::=                              /*\-\- User\-specified string symbol \-\-*/
-\&                   SYMBOL                       /* ... cannot be an integer or date */
-\&                 ;
+\& sym_str           ::=                              /*\-\- User\-specified string symbol \-\-*/
+\&                       SYMBOL                       /* ... cannot be an integer or date */
+\&                     ;
 \& 
-\& s_prefix      ::=                              /*\-\- Prefix condition string \-\-*/
-\&                   PREFIX                       /* ... ends with a literal \*(Aq*\*(Aq */
-\&                 ;
+\& s_prefix          ::=                              /*\-\- Prefix condition string \-\-*/
+\&                       PREFIX                       /* ... ends with a literal \*(Aq*\*(Aq */
+\&                     ;
 \& 
-\& s_suffix      ::=                              /*\-\- Suffix condition string \-\-*/
-\&                   SUFFIX                       /* ... begins with a literal \*(Aq*\*(Aq */
-\&                 ;
+\& s_suffix          ::=                              /*\-\- Suffix condition string \-\-*/
+\&                       SUFFIX                       /* ... begins with a literal \*(Aq*\*(Aq */
+\&                     ;
 \& 
-\& s_infix       ::=                              /*\-\- Infix condition string \-\-*/
-\&                   INFIX                        /* ... begins and ends with literal \*(Aq*\*(Aq */
-\&                 ;
+\& s_infix           ::=                              /*\-\- Infix condition string \-\-*/
+\&                       INFIX                        /* ... begins and ends with literal \*(Aq*\*(Aq */
+\&                     ;
 \& 
-\& s_expander    ::=                              /*\-\- Term expander label \-\-*/
-\&                   EXPANDER                     /* ... begins with a literal \*(Aq|\*(Aq, and may be \*(Aq|\-\*(Aq for an index\-dependent default */
-\&                 ;
+\& s_expander        ::=                              /*\-\- Term expander label \-\-*/
+\&                       EXPANDER                     /* ... begins with a literal \*(Aq|\*(Aq, and may be \*(Aq|\-\*(Aq for an index\-dependent default */
+\&                     ;
 \& 
-\& s_subcorpus   ::=                              /*\-\- Named subcorpus used by :... filter \-\-*/
-\&                   symbol                       /* ... can be any symbol */
-\&                 ;
+\& s_subcorpus       ::=                              /*\-\- Named subcorpus used by :... filter \-\-*/
+\&                       symbol                       /* ... can be any symbol */
+\&                     ;
 \& 
-\& s_field       ::=                              /*\-\- Document metadata field name \-\-*/
-\&                   symbol                       /* ... is just a symbol */
-\&                 ;
+\& s_field           ::=                              /*\-\- Document metadata field name \-\-*/
+\&                       symbol                       /* ... is just a symbol */
+\&                     ;
 \& 
-\& s_fieldval    ::=                              /*\-\- Document metadata field value \-\-*/
-\&                   symbol                       /* ... is just a symbol */
-\&                 ;
+\& s_fieldval        ::=                              /*\-\- Document metadata field value \-\-*/
+\&                       symbol                       /* ... is just a symbol */
+\&                     ;
 \& 
-\& s_xfield      ::=                              /*\-\- Document metadata field name or pseudo\-field \-\-*/
-\&                   symbol                       /* ... is just a symbol */
-\&                 ;
+\& s_xfield          ::=                              /*\-\- Document metadata field name or pseudo\-field \-\-*/
+\&                       symbol                       /* ... is just a symbol */
+\&                     ;
 \& 
-\& regex         ::=                              /*\-\- Regular expressions \-\-*/
-\&                   REGEX                        /* ... are slash\-delimited in perl syntax */
-\&                 | REGEX REGOPT                 /* ... with optional modifiers (gimsx) */
-\&                 ;
+\& regex             ::=                              /*\-\- Regular expressions \-\-*/
+\&                       REGEX                        /* ... are slash\-delimited in perl syntax */
+\&                     | REGEX REGOPT                 /* ... with optional modifiers (gimsx) */
+\&                     ;
 \& 
-\& neg_regex     ::=                              /*\-\- Negated regular expressions \-\-*/
-\&                   NEG_REGEX                    /* ... are slash\-delimited in perl syntax, with leading \*(Aq!\*(Aq */
-\&                 | NEG_REGEX REGOPT             /* ... and with optional modifiers (gimsx) */
-\&                 ;
+\& neg_regex         ::=                              /*\-\- Negated regular expressions \-\-*/
+\&                       NEG_REGEX                    /* ... are slash\-delimited in perl syntax, with leading \*(Aq!\*(Aq */
+\&                     | NEG_REGEX REGOPT             /* ... and with optional modifiers (gimsx) */
+\&                     ;
 \& 
-\& replace_regex ::=                              /*\-\- On\-the\-fly regular expression search\-and\-replace \-\-*/
-\&                   SEARCH_REPLACE_REGEX         /* ... are slash\-delimited in perl syntax: s/SEARCH/REPLACE/ */
-\&                 | SEARCH_REPLACE_REGEX REGOPT  /* ... with optional modifiers (gimsx) */
-\&                 ;
+\& replace_regex     ::=                              /*\-\- On\-the\-fly regular expression search\-and\-replace \-\-*/
+\&                       SEARCH_REPLACE_REGEX         /* ... are slash\-delimited in perl syntax: s/SEARCH/REPLACE/ */
+\&                     | SEARCH_REPLACE_REGEX REGOPT  /* ... with optional modifiers (gimsx) */
+\&                     ;
 \& 
-\& integer       ::=                              /*\-\- Non\-negative decimal integer \-\-*/
-\&                   int_str                      /* ... parsed as an integer */
-\&                 ;
+\& integer           ::=                              /*\-\- Non\-negative decimal integer \-\-*/
+\&                       int_str                      /* ... parsed as an integer */
+\&                     ;
 \& 
-\& int_str       ::=                              /*\-\- Non\-negative decimal integer \-\-*/
-\&                   INTEGER                      /* ... parsed as a string */
-\&                 ;
+\& int_str           ::=                              /*\-\- Non\-negative decimal integer \-\-*/
+\&                       INTEGER                      /* ... parsed as a string */
+\&                     ;
 \& 
-\& i_slice       ::=                              /*\-\- Date interval for histogram bins \-\-*/
-\&                   integer                      /* ... is just an integer (interval size in years) */
-\&                 ;
+\& i_slice           ::=                              /*\-\- Date interval for histogram bins \-\-*/
+\&                       integer                      /* ... is just an integer (interval size in years) */
+\&                     ;
 \& 
-\& date          ::=                              /*\-\- date string \-\-*/
-\&                   DATE                         /* ... e.g. YYYY(\-MM(\-DD)?)? */
-\&                 | INTEGER                      /* ... every valid integer is also a valid date (year part only) */
-\&                 ;
+\& date              ::=                              /*\-\- date string \-\-*/
+\&                       DATE                         /* ... e.g. YYYY(\-MM(\-DD)?)? */
+\&                     | INTEGER                      /* ... every valid integer is also a valid date (year part only) */
+\&                     ;
 \& 
-\& matchid       ::=                              /*\-\- User\-specified match\-ID or back\-reference \-\-*/
-\&                   MATCHID                      /* ... valid match\-IDs are in the range (1\-255) */
-\&                 ;
+\& matchid           ::=                              /*\-\- User\-specified match\-ID or back\-reference \-\-*/
+\&                       MATCHID                      /* ... valid match\-IDs are in the range (1\-255) */
+\&                     ;
 .Ve
 .SS "Terminal Symbols"
 .IX Subsection "Terminal Symbols"
@@ -726,28 +726,27 @@ The underlying scanner makes use of several regular expression
 The following macros are defined for the underlying scanner:
 .PP
 .Vb 2
+\&  /* whitespace */         
 \& ws             [ \et\en\er\ef\ev]
-\& punct          [\e^\e!\e~\e$\e@\e%\e/\e=\e?\e_\e:\e;\e+\e#\e.\e\e\e*\e,\e\*(Aq\e"\e&\e|\e(\e)\e[\e]\e{\e}\e<\e>]
 \& 
-\& ssymbol_cfirst [^ \et\er\en\ef\ev\e0\e^\e&\e|\e!\e(\e)\e[\e]\e{\e}\e<\e>\e\*(Aq\e"\e,\e;\e:\e#\e=\e*\e%\e\e\e~\e/\e$\e@\e?\e_\e+\e.0\-9]
-\& ssymbol_crest  [^ \et\er\en\ef\ev\e0\e^\e&\e|\e!\e(\e)\e[\e]\e{\e}\e<\e>\e\*(Aq\e"\e,\e;\e:\e#\e=\e*\e%\e\e\e~\e/]
+\&  /* integer boundary characters */
+\& int_boundary    [ \et\en\er\ef\ev\e0&|!?^%,:;#*=~(){}<>\e[\e]\e\e/\e\*(Aq\e".$@_+\-]
+\& 
+\&  /* bareword symbols */
+\& symbol_cfirst  [^ \et\en\er\ef\ev\e0&|!?^%,:;#*=~(){}<>\e[\e]\e\e/\e\*(Aq\e".$@_]
+\& symbol_crest   [^ \et\en\er\ef\ev\e0&|!?^%,:;#*=~(){}<>\e[\e]\e\e/\e\*(Aq\e"]
 \& symbol_cescape  (\e\e.)
-\& ssymbol_text   ({symbol_cescape}|{ssymbol_cfirst})({symbol_cescape}|{ssymbol_crest})*
+\& symbol_text    ({symbol_cescape}|{symbol_cfirst})({symbol_cescape}|{symbol_crest})*
 \& 
-\& isymbol_cfirst [0\-9]
-\& isymbol_crest  [^ \et\er\en\ef\ev\e0\e^\e&\e|\e!\e(\e)\e[\e]\e{\e}\e<\e>\e\*(Aq\e"\e,\e;\e:\e#\e=\e*\e%\e\e\e~\e/\e$\e@\e?\e_\e+\e\-\e.]
-\& isymbol_text   {isymbol_cfirst}({symbol_cescape}|{isymbol_crest})*
+\&  /* bareword index names (underscore and digits are ok, but no \*(Aq.\*(Aq, \*(Aq\-\*(Aq, or \*(Aq+\*(Aq) */
+\& index_char     [^ \et\en\er\ef\ev\e0&|!?^%,:;#*=~(){}<>\e[\e]\e\e/\e\*(Aq\e".$@+\-]
+\& index_name      ({index_char}|{symbol_cescape})+
 \& 
-\& ssuffix_text   ([\e+\e\-]{ssymbol_crest}*({ssymbol_cfirst}|{ssymbol_cescape})({ssymbol_crest}|{ssymbol_cescape})*)*
-\& symbol_text     ({ssymbol_text}|{isymbol_text}){ssuffix_text}*
-\& 
-\& int_boundary   [ \et\en\er\ef\ev\e0\e^\e&\e|\e!\e(\e)\e[\e]\e{\e}\e<\e>\e\*(Aq\e"\e,\e;\e:\e#\e=\e*\e%\e~\e\e\e$\e@\e/\e?\e_\e+\e.]
-\& 
-\& index_name      {symbol_text}
-\& 
+\&  /* single\-quoted symbols */
 \& sq_text         ([^\e\*(Aq]|{symbol_cescape})*
 \& 
-\& regex_text      ((\e\e.)|[^\e/\e\e])*
+\&  /* regular expressions */
+\& regex_text      ((\e\e.)|[^\e\e/])*
 \& regex_modifier [dgimsx]
 .Ve
 .PP
@@ -756,44 +755,44 @@ The following macros are defined for the underlying scanner:
 .PP
 .Vb 10
 \& (?i:near)
-\& (?i:"!="|"&!="|"&="{ws}*\e!|\e!with|with(out|{ws}*\e!))
+\& (?i:"!="|"&!="|"&="{ws}*!|!with|with(out|{ws}*!))
 \& (?i:"|="|withor|orwith|wor)
 \& (?i:"&="|with)
 \& (?i:count)
 \& (?i:(file|doc)?id)
 \& (?i:(file|doc)_?(name)?)
 \& (?i:date)
-\& (?i:\e#(co?n?te?xt?|n))
-\& (?i:\e#(with)?in)
-\& (?i:\e#(sep(arate)?|nojoin)(_hits)?)
-\& (?i:\e#(nosep(arate)?|join)(_hits)?)
-\& (?i:\e#has(_field)?)
-\& (?i:\e#file(_?)names)
-\& (?i:\e#debug_rank)
-\& (?i:\e#(greater|de?sc)(_by)?_rank)
-\& (?i:\e#(less|asc)(_by)?_rank)   
-\& (?i:\e#(greater|de?sc)(_by)?_date)
-\& (?i:\e#(less|asc)(_by)?_date)   
-\& (?i:\e#(is_|has_)?date)         
-\& (?i:\e#(greater|de?sc)(_by)?_size)
-\& (?i:\e#(less|asc)(_by)?_size)   
-\& (?i:\e#(is_|has_)?size)         
-\& (?i:\e#((less|asc)(_by)?_)?left)
-\& (?i:\e#((greater|de?sc)(_by)?_)left)
-\& (?i:\e#((less|asc)(_by)?_)?right)
-\& (?i:\e#((greater|de?sc)(_by)?_)right)
-\& (?i:\e#((less|asc)(_by)?_)?mid(dle)?)
-\& (?i:\e#((greater|de?sc)(_by)?_)mid(dle)?)
-\& (?i:\e#(less|asc)(_by)?)
-\& (?i:\e#(greater|de?sc)(_by)?)
-\& (?i:\e#rand(om)?)
-\& (?i:\e#by)
-\& (?i:\e#samp(le)?)
-\& (?i:\e#clim(it)?)
-\& (?i:\e#((less|asc)(_by)?_key))
-\& (?i:\e#((greater|de?sc)(_by)?_key))
-\& (?i:\e#((less|asc)(_by)?_(count|val(ue)?)))
-\& (?i:\e#((greater|de?sc)(_by)?_(count|val(ue)?)))
+\& (?i:#(co?n?te?xt?|n))
+\& (?i:#(with)?in)
+\& (?i:#(sep(arate)?|nojoin)(_hits)?)
+\& (?i:#(nosep(arate)?|join)(_hits)?)
+\& (?i:#has(_field)?)
+\& (?i:#file(_?)names)
+\& (?i:#debug_rank)
+\& (?i:#(greater|de?sc)(_by)?_rank)
+\& (?i:#(less|asc)(_by)?_rank)    
+\& (?i:#(greater|de?sc)(_by)?_date)
+\& (?i:#(less|asc)(_by)?_date)    
+\& (?i:#(is_|has_)?date)          
+\& (?i:#(greater|de?sc)(_by)?_size)
+\& (?i:#(less|asc)(_by)?_size)    
+\& (?i:#(is_|has_)?size)          
+\& (?i:#((less|asc)(_by)?_)?left)
+\& (?i:#((greater|de?sc)(_by)?_)left)
+\& (?i:#((less|asc)(_by)?_)?right)
+\& (?i:#((greater|de?sc)(_by)?_)right)
+\& (?i:#((less|asc)(_by)?_)?mid(dle)?)
+\& (?i:#((greater|de?sc)(_by)?_)mid(dle)?)
+\& (?i:#(less|asc)(_by)?)
+\& (?i:#(greater|de?sc)(_by)?)
+\& (?i:#rand(om)?)
+\& (?i:#by)
+\& (?i:#samp(le)?)
+\& (?i:#clim(it)?)
+\& (?i:#((less|asc)(_by)?_key))
+\& (?i:#((greater|de?sc)(_by)?_key))
+\& (?i:#((less|asc)(_by)?_(count|val(ue)?)))
+\& (?i:#((greater|de?sc)(_by)?_(count|val(ue)?)))
 .Ve
 .PP
 The scanner supports the various reserved words used in
@@ -812,10 +811,10 @@ in a literal symbol, e.g. by enclosing the symbol in single quotes.
 .IX Subsection "Match-IDs"
 .PP
 .Vb 1
-\& "="[0\-9]+                      /* user\-specified match\-id (valid range: 1\-255) */
+\& "="[0\-9]+                           /* user\-specified match\-id (valid range: 1\-255) */
 .Ve
 .PP
-The scanner supports user-specified match-IDs for use e.g. by
+The parser supports user-specified match-IDs for use e.g. by
 context-dependent sort operators.  Match-IDs are decimal integers between 1 and 255,
 introduced by a leading '=' (equals sign).
 If no match-IDs were specified for a query, every matched token of that query is treated as if
@@ -871,20 +870,20 @@ for the running \s-1DDC\s0 server process.
 .IX Subsection "Punctuation Operators and Special Characters"
 .PP
 .Vb 10
-\& "&&"                           /* clause\-level conjunction operator */
-\& "||"                           /* clause\-level disjunction operator */
-\& "#="                           /* exact\-distance hint in phrase queries */
-\& "#<"                           /* max\-distance hint for phrase queries */
-\& "#>"                           /* min\-distance hint for phrase queries */
-\& "$."                           /* anchor pseudo\-index (position\-index in "break collection" segment) */
-\& [\e!\e.\e,\e:\e;\e$\e@\e%\e^\e#\e=\e/\e~]   /* single\-character punctuation operators */
-\& [\e[\e]\e{\e}\e(\e)\e<\e>]             /* parentheses */
-\& [\e"]                           /* double quotes (for pharse queries) */
-\& ":{"                           /* thesaurus\-query opener */
-\& "@{"                           /* literal\-set opener */
-\& "*{"                           /* prefix\- or infix\-set opener */
-\& "}*"                           /* suffix\-set or infix\-set closer */
-\& "*"                            /* universal match wildcard */
+\& "&&"                                /* clause\-level conjunction operator */
+\& "||"                                /* clause\-level disjunction operator */
+\& "#="                                /* exact\-distance hint in phrase queries */
+\& "#<"                                /* max\-distance hint for phrase queries */
+\& "#>"                                /* min\-distance hint for phrase queries */
+\& "$."                                /* anchor pseudo\-index (position\-index in "break collection" segment) */
+\& [!.,:;@%^#=/~]                      /* single\-character punctuation operators */
+\& [\e[\e]{}()<>]                        /* parentheses */
+\& [\e"]                                /* double quotes (for pharse queries) */
+\& ":{"                                /* thesaurus\-query opener */
+\& "@{"                                /* literal\-set opener */
+\& "*{"                                /* prefix\- or infix\-set opener */
+\& "}*"                                /* suffix\-set or infix\-set closer */
+\& "*"                                 /* universal match wildcard */
 .Ve
 .PP
 The scanner supports the various punctuation operators used in
@@ -896,13 +895,13 @@ symbol, e.g. by enclosing the symbol in single quotes.
 .IX Subsection "Truncated Symbols"
 .PP
 .Vb 3
-\& "*"\e\*(Aq{sq_text}\e\*(Aq"*"    /* dual\-truncated quoted string (infix symbol) */
-\&    \e\*(Aq{sq_text}\e\*(Aq"*"    /* right\-truncated quoted string (prefix symbol) */
-\& "*"\e\*(Aq{sq_text}\e\*(Aq       /* left\-truncated quoted string (suffix symbol) */
+\& "*"\e\*(Aq{sq_text}\e\*(Aq"*"                /* dual\-truncated quoted string (infix symbol) */
+\&    \e\*(Aq{sq_text}\e\*(Aq"*"                /* right\-truncated quoted string (prefix symbol) */
+\& "*"\e\*(Aq{sq_text}\e\*(Aq                   /* left\-truncated quoted string (suffix symbol) */
 \& 
-\& "*"{symbol_text}"*"    /* dual\-truncated bare string (infix symbol) */
-\&    {symbol_text}"*"    /* right\-truncated bare string (prefix symbol) */
-\& "*"{symbol_text}       /* left\-truncated bare string (suffix symbol) */
+\& "*"{symbol_text}"*"                /* dual\-truncated bare string (infix symbol) */
+\&    {symbol_text}"*"                /* right\-truncated bare string (prefix symbol) */
+\& "*"{symbol_text}                   /* left\-truncated bare string (suffix symbol) */
 .Ve
 .PP
 Truncated symbols (for
@@ -923,8 +922,8 @@ e.g. \*(L"/^foo.*bar.*baz$/\*(R" for a wildcard condition \*(L"foo*bar*baz\*(R".
 .IX Subsection "Integers"
 .PP
 .Vb 2
-\& \e\*(Aq[\e+\e\-]?[0\-9]+\e\*(Aq               /* single\-quoted decimal integer */
-\&   [\e+\e\-]?[0\-9]+/{int_boundary}  /* bareword decimal integer */
+\& \e\*(Aq[\e+\e\-]?[0\-9]+\e\*(Aq                   /* single\-quoted decimal integer */
+\&   [\e+\e\-]?[0\-9]+/{int_boundary}      /* bareword decimal integer */
 .Ve
 .PP
 The scanner supports integers in decimal notation, optionally
@@ -943,12 +942,30 @@ separate an integer token from surrounding symbols.
 The scanner supports date-like tokens in a superset of the \s-1ISO 8601\s0 format
 (YYYY-MM-DD), optionally enclosed by single quotes.
 .PP
+\fIIndex Names\fR
+.IX Subsection "Index Names"
+.PP
+.Vb 3
+\& "$"{index_name}                     /* dollar\-prefixed index name bareword */
+\& "$\*(Aq"{sq_text}"\*(Aq"                   /* quoted index name */
+\& "$"                                 /* bare dollar symbol (default index) */
+.Ve
+.PP
+As of v2.1.1, the query scanner treats index names specially.
+No whitespace is allowed between the '$' prefix and the index name itself,
+and valid bareword index names are those by the
+{index_name} definition.
+For maximum compatibility, index names should containing only \s-1ASCII\s0 letters, decimal digits,
+and/or underscores.  Index names not fulfilling these criteria
+can nonetheless be specified using backslash-escapes,
+or single quotes.
+.PP
 \fISymbols and Barewords\fR
 .IX Subsection "Symbols and Barewords"
 .PP
 .Vb 2
-\& \e\*(Aq{sq_text}\e\*(Aq                   /* single\-quoted symbol */
-\& {symbol_text}                  /* bareword symbol */
+\& \e\*(Aq{sq_text}\e\*(Aq                       /* single\-quoted symbol */
+\& {symbol_text}                      /* bareword symbol */
 .Ve
 .PP
 Symbols (strings) are the basic building blocks of the \s-1DDC\s0 query language.
@@ -983,9 +1000,9 @@ and single-quoted symbols:
 .IX Subsection "Term Expander Pipelines"
 .PP
 .Vb 3
-\& "|"{ws}*"\-"                    /* alias for default term expander pipeline (index\-dependent) */
-\& "|"{ws}*\e\*(Aq{sq_text}\e\*(Aq          /* quoted term expander label */
-\& "|"{ws}*{symbol_text}          /* bare term expander label */
+\& "|"{ws}*"\-"                        /* alias for default term expander pipeline (index\-dependent) */
+\& "|"{ws}*\e\*(Aq{sq_text}\e\*(Aq              /* quoted term expander label */
+\& "|"{ws}*{symbol_text}              /* bare term expander label */
 .Ve
 .PP
 The scanner supports special rules for user specification of term expansion pipelines
@@ -1013,9 +1030,9 @@ in a literal symbol, e.g. by enclosing the symbol in single quotes.
 .IX Subsection "Other Terminals"
 .PP
 .Vb 3
-\& {ws}+                          /* whitespace: skip */
-\& \e0                             /* null byte: skip */
-\& .                              /* any other character (byte) is its own token */ }
+\& {ws}+                               /* whitespace: skip */
+\& \e0                                  /* null byte: skip */
+\& .                                   /* any other character (byte) is its own token */ }
 .Ve
 .PP
 Whitespace and \s-1NUL\s0 bytes are ignored.
@@ -1203,6 +1220,41 @@ at \fBhttp://194.95.188.28:9098\fR (<http://194.95.188.28:9098>).
 .IX Item "cab"
 Expansion by an external \fB\s-1DTA::CAB\s0\fR (<http://odo.dwds.de/~moocow/software/dta\-cab/>)HTTP server at
 \&\fBhttp://194.95.188.36:9099\fR (<http://194.95.188.36:9099>)using the \*(L"expand\*(R" analyzer method (phonetic and rewrite equivalents).
+.IP "\fBgermanet, gn\-*\fR" 4
+.IX Item "germanet, gn-*"
+Expansion family using the \fBGermaNet\fR (<http://www.sfs.uni\-tuebingen.de/GermaNet/>)thesaurus
+to return a set of lemmata related to its argument lemma(ta).
+Supported relations:
+ gn-syn  /* synonyms (closure) */
+ gn\-syn1 /* synonyms (depth=1) */
+ gn\-syn2 /* synonyms (depth=2) */
+.Sp
+.Vb 3
+\& gn\-isa  /* hyperonyms/superclasses (closure); alias=gn\-sup  */
+\& gn\-isa1 /* hyperonyms/superclasses (depth=1); alias=gn\-sup1 */
+\& gn\-isa2 /* hyperonyms/superclasses (depth=2); alias=gn\-sup2 */
+\& 
+\& gn\-asi  /* hyponyms/subclasses (closure); aliases=gn\-sub,germanet  */
+\& gn\-asi1 /* hyponyms/subclasses (depth=1); alias=gn\-sub1 */
+\& gn\-asi2 /* hyponyms/subclasses (depth=2); alias=gn\-sub2 */
+.Ve
+.IP "\fBopenthesaurus, ot\-*\fR" 4
+.IX Item "openthesaurus, ot-*"
+Expansion family using \fBOpenThesaurus\fR (\*(L"/www.openthesaurus.de/\*(R")to return a set of lemmata related to its argument lemma(ta).
+Supported relations:
+ ot-syn  /* synonyms (closure) */
+ ot\-syn1 /* synonyms (depth=1) */
+ ot\-syn2 /* synonyms (depth=2) */
+.Sp
+.Vb 3
+\& ot\-isa  /* hyperonyms/superclasses (closure); alias=ot\-sup  */
+\& ot\-isa1 /* hyperonyms/superclasses (depth=1); alias=ot\-sup1 */
+\& ot\-isa2 /* hyperonyms/superclasses (depth=2); alias=ot\-sup2 */
+\& 
+\& ot\-asi  /* hyponyms/subclasses (closure); aliases=ot\-sub,openthesaurus  */
+\& ot\-asi1 /* hyponyms/subclasses (depth=1); alias=ot\-sub1 */
+\& ot\-asi2 /* hyponyms/subclasses (depth=2); alias=ot\-sub2 */
+.Ve
 .IP "\fBpho\fR" 4
 .IX Item "pho"
 Expansion by the external \s-1DTA::CAB HTTP\s0 server at

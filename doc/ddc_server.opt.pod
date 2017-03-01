@@ -156,7 +156,7 @@ Aliases: StatWindow, MovingAverageWindow
 Default: 600
 
 Size of the time window for tracking moving average statistics, in seconds.
-Currently affects only the C<qtavg> property (average query time).
+Currently affects only the C<qtavg> status property (average query time).
 
 Since v2.1.1.
 

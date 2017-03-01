@@ -1372,7 +1372,7 @@
 
 	  <!--~~~~~~~~ RULES: l_txchain -->
 	  <rule lhs="l_txchain" cmt="Term expansion pipeline">
-	    <rhs cmt="Empty pipeline or '|-' uses index-dependent default aka '|INDEX'"/>
+	    <rhs cmt="Empty pipeline or '|-' uses index-dependent default aka '|INDEXNAME'"/>
 	    <rhs cmt="... pipeline concatenation '|Expander1 |Expander2 |...'">
 	      <n>l_txchain</n>
 	      <n>s_expander</n>
@@ -1416,18 +1416,17 @@
 
 	  <!--~~~~~~~~ RULES: s_index -->
 	  <rule lhs="s_index" cmt="Index name (must be defined in .opt file)">
-	    <rhs cmt="Bare dollar uses query-type default (usually 'Token')">
+	    <rhs cmt="Bare '$' uses query-type default (usually 'Token')">
 	      <t>$</t>
 	    </rhs>
-	    <rhs cmt="Explicit index name">
-	      <t>$</t>
-	      <n>symbol</n>
+	    <rhs cmt="Explicit '$'-prefixed index name">
+	      <xt>INDEX</xt>
 	    </rhs>
 	  </rule>
 
 	  <!--~~~~~~~~ RULES: s_indextuple_item -->
-	  <rule lhs="s_index" cmt="Index reference occurring in a keys() index-tuple">
-	    <rhs cmt="$-prefixed index name ">
+	  <rule lhs="s_indextuple_item" cmt="Index reference occurring in a keys() index-tuple">
+	    <rhs cmt="'$'-prefixed index name ">
 	      <n>s_index</n>
 	    </rhs>
 	    <rhs cmt="index name bareword, without '$' prefix">
@@ -1662,28 +1661,27 @@
 	  The following macros are defined for the underlying scanner:
 	</p>
 <pre>
+ /* whitespace */	   
 ws		[ \t\n\r\f\v]
-punct	        [\^\!\~\$\@\%\/\=\?\_\:\;\+\#\.\\\*\,\'\"\&amp;\|\(\)\[\]\{\}\&lt;\&gt;]
 
-ssymbol_cfirst	[^ \t\r\n\f\v\0\^\&amp;\|\!\(\)\[\]\{\}\&lt;\&gt;\'\"\,\;\:\#\=\*\%\\\~\/\$\@\?\_\+\.0-9]
-ssymbol_crest	[^ \t\r\n\f\v\0\^\&amp;\|\!\(\)\[\]\{\}\&lt;\&gt;\'\"\,\;\:\#\=\*\%\\\~\/]
+ /* integer boundary characters */
+int_boundary	 [ \t\n\r\f\v\0&amp;|!?^%,:;#*=~(){}&lt;&gt;\[\]\\/\'\".$@_+-]
+
+ /* bareword symbols */
+symbol_cfirst	[^ \t\n\r\f\v\0&amp;|!?^%,:;#*=~(){}&lt;&gt;\[\]\\/\'\".$@_]
+symbol_crest	[^ \t\n\r\f\v\0&amp;|!?^%,:;#*=~(){}&lt;&gt;\[\]\\/\'\"]
 symbol_cescape  (\\.)
-ssymbol_text	({symbol_cescape}|{ssymbol_cfirst})({symbol_cescape}|{ssymbol_crest})*
+symbol_text	({symbol_cescape}|{symbol_cfirst})({symbol_cescape}|{symbol_crest})*
 
-isymbol_cfirst	[0-9]
-isymbol_crest	[^ \t\r\n\f\v\0\^\&amp;\|\!\(\)\[\]\{\}\&lt;\&gt;\'\"\,\;\:\#\=\*\%\\\~\/\$\@\?\_\+\-\.]
-isymbol_text	{isymbol_cfirst}({symbol_cescape}|{isymbol_crest})*
+ /* bareword index names (underscore and digits are ok, but no '.', '-', or '+') */
+index_char	[^ \t\n\r\f\v\0&amp;|!?^%,:;#*=~(){}&lt;&gt;\[\]\\/\'\".$@+-]
+index_name      ({index_char}|{symbol_cescape})+
 
-ssuffix_text	([\+\-]{ssymbol_crest}*({ssymbol_cfirst}|{ssymbol_cescape})({ssymbol_crest}|{ssymbol_cescape})*)*
-symbol_text     ({ssymbol_text}|{isymbol_text}){ssuffix_text}*
-
-int_boundary	[ \t\n\r\f\v\0\^\&amp;\|\!\(\)\[\]\{\}\&lt;\&gt;\'\"\,\;\:\#\=\*\%\~\\\$\@\/\?\_\+\.]
-
-index_name      {symbol_text}
-
+ /* single-quoted symbols */
 sq_text         ([^\']|{symbol_cescape})*
 
-regex_text      ((\\.)|[^\/\\])*
+ /* regular expressions */
+regex_text      ((\\.)|[^\\/])*
 regex_modifier	[dgimsx]
 </pre>
       </subsection>
@@ -1693,44 +1691,44 @@ regex_modifier	[dgimsx]
       <subsection name="term_KEYWORD" title="Query Keywords">
 <pre>
 (?i:near)
-(?i:"!="|"&amp;!="|"&amp;="{ws}*\!|\!with|with(out|{ws}*\!))
+(?i:"!="|"&amp;!="|"&amp;="{ws}*!|!with|with(out|{ws}*!))
 (?i:"|="|withor|orwith|wor)
 (?i:"&amp;="|with)
 (?i:count)
 (?i:(file|doc)?id)
 (?i:(file|doc)_?(name)?)
 (?i:date)
-(?i:\#(co?n?te?xt?|n))
-(?i:\#(with)?in)
-(?i:\#(sep(arate)?|nojoin)(_hits)?)
-(?i:\#(nosep(arate)?|join)(_hits)?)
-(?i:\#has(_field)?)
-(?i:\#file(_?)names)
-(?i:\#debug_rank)
-(?i:\#(greater|de?sc)(_by)?_rank)
-(?i:\#(less|asc)(_by)?_rank)	
-(?i:\#(greater|de?sc)(_by)?_date)
-(?i:\#(less|asc)(_by)?_date)	
-(?i:\#(is_|has_)?date)		
-(?i:\#(greater|de?sc)(_by)?_size)
-(?i:\#(less|asc)(_by)?_size)	
-(?i:\#(is_|has_)?size)		
-(?i:\#((less|asc)(_by)?_)?left)
-(?i:\#((greater|de?sc)(_by)?_)left)
-(?i:\#((less|asc)(_by)?_)?right)
-(?i:\#((greater|de?sc)(_by)?_)right)
-(?i:\#((less|asc)(_by)?_)?mid(dle)?)
-(?i:\#((greater|de?sc)(_by)?_)mid(dle)?)
-(?i:\#(less|asc)(_by)?)
-(?i:\#(greater|de?sc)(_by)?)
-(?i:\#rand(om)?)
-(?i:\#by)
-(?i:\#samp(le)?)
-(?i:\#clim(it)?)
-(?i:\#((less|asc)(_by)?_key))
-(?i:\#((greater|de?sc)(_by)?_key))
-(?i:\#((less|asc)(_by)?_(count|val(ue)?)))
-(?i:\#((greater|de?sc)(_by)?_(count|val(ue)?)))
+(?i:#(co?n?te?xt?|n))
+(?i:#(with)?in)
+(?i:#(sep(arate)?|nojoin)(_hits)?)
+(?i:#(nosep(arate)?|join)(_hits)?)
+(?i:#has(_field)?)
+(?i:#file(_?)names)
+(?i:#debug_rank)
+(?i:#(greater|de?sc)(_by)?_rank)
+(?i:#(less|asc)(_by)?_rank)	
+(?i:#(greater|de?sc)(_by)?_date)
+(?i:#(less|asc)(_by)?_date)	
+(?i:#(is_|has_)?date)		
+(?i:#(greater|de?sc)(_by)?_size)
+(?i:#(less|asc)(_by)?_size)	
+(?i:#(is_|has_)?size)		
+(?i:#((less|asc)(_by)?_)?left)
+(?i:#((greater|de?sc)(_by)?_)left)
+(?i:#((less|asc)(_by)?_)?right)
+(?i:#((greater|de?sc)(_by)?_)right)
+(?i:#((less|asc)(_by)?_)?mid(dle)?)
+(?i:#((greater|de?sc)(_by)?_)mid(dle)?)
+(?i:#(less|asc)(_by)?)
+(?i:#(greater|de?sc)(_by)?)
+(?i:#rand(om)?)
+(?i:#by)
+(?i:#samp(le)?)
+(?i:#clim(it)?)
+(?i:#((less|asc)(_by)?_key))
+(?i:#((greater|de?sc)(_by)?_key))
+(?i:#((less|asc)(_by)?_(count|val(ue)?)))
+(?i:#((greater|de?sc)(_by)?_(count|val(ue)?)))
 </pre>
 	<p>
 	  The scanner supports the various reserved words used in
@@ -1752,10 +1750,10 @@ regex_modifier	[dgimsx]
       <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
       <subsection name="term_MATCHID" title="Match-IDs">
 <pre>
-"="[0-9]+			/* user-specified match-id (valid range: 1-255) */
+"="[0-9]+                           /* user-specified match-id (valid range: 1-255) */
 </pre>
 	<p>
-	  The scanner supports user-specified match-IDs for use e.g. by
+	  The parser supports user-specified match-IDs for use e.g. by
 	  context-dependent sort operators.  Match-IDs are decimal integers between 1 and 255,
 	  introduced by a leading '=' (equals sign).
 	  <!-- Note that no whitespace is allowed between the leading '=' and the subsequent integer ID. -->
@@ -1822,20 +1820,20 @@ regex_modifier	[dgimsx]
       <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
       <subsection name="term_PUNCT" title="Punctuation Operators and Special Characters">
 <pre>
-"&amp;&amp;"				/* clause-level conjunction operator */
-"||"				/* clause-level disjunction operator */
-"#="				/* exact-distance hint in phrase queries */
-"#&lt;"				/* max-distance hint for phrase queries */
-"#&gt;"				/* min-distance hint for phrase queries */
-"$."				/* anchor pseudo-index (position-index in "break collection" segment) */
-[\!\.\,\:\;\$\@\%\^\#\=\/\~]	/* single-character punctuation operators */
-[\[\]\{\}\(\)\&lt;\&gt;]		/* parentheses */
-[\"]				/* double quotes (for pharse queries) */
-":{"				/* thesaurus-query opener */
-"@{"				/* literal-set opener */
-"*{"				/* prefix- or infix-set opener */
-"}*"				/* suffix-set or infix-set closer */
-"*"				/* universal match wildcard */
+"&amp;&amp;"                                /* clause-level conjunction operator */
+"||"                                /* clause-level disjunction operator */
+"#="                                /* exact-distance hint in phrase queries */
+"#&lt;"                                /* max-distance hint for phrase queries */
+"#&gt;"                                /* min-distance hint for phrase queries */
+"$."                                /* anchor pseudo-index (position-index in "break collection" segment) */
+[!.,:;@%^#=/~]                      /* single-character punctuation operators */
+[\[\]{}()&lt;&gt;]                        /* parentheses */
+[\"]                                /* double quotes (for pharse queries) */
+":{"                                /* thesaurus-query opener */
+"@{"                                /* literal-set opener */
+"*{"                                /* prefix- or infix-set opener */
+"}*"                                /* suffix-set or infix-set closer */
+"*"                                 /* universal match wildcard */
 </pre>
 	<p>
 	  The scanner supports the various punctuation operators used in
@@ -1853,13 +1851,13 @@ regex_modifier	[dgimsx]
       <a name="term_INFIX"/>
       <subsection name="term_trunc" title="Truncated Symbols">
 <pre>
-"*"\'{sq_text}\'"*"	/* dual-truncated quoted string (infix symbol) */
-   \'{sq_text}\'"*"	/* right-truncated quoted string (prefix symbol) */
-"*"\'{sq_text}\'	/* left-truncated quoted string (suffix symbol) */
+"*"\'{sq_text}\'"*"	            /* dual-truncated quoted string (infix symbol) */
+   \'{sq_text}\'"*"	            /* right-truncated quoted string (prefix symbol) */
+"*"\'{sq_text}\'	            /* left-truncated quoted string (suffix symbol) */
 
-"*"{symbol_text}"*"	/* dual-truncated bare string (infix symbol) */
-   {symbol_text}"*"	/* right-truncated bare string (prefix symbol) */
-"*"{symbol_text}	/* left-truncated bare string (suffix symbol) */
+"*"{symbol_text}"*"	            /* dual-truncated bare string (infix symbol) */
+   {symbol_text}"*"	            /* right-truncated bare string (prefix symbol) */
+"*"{symbol_text}	            /* left-truncated bare string (suffix symbol) */
 </pre>
 	<p>
 	  Truncated symbols (for
@@ -1883,8 +1881,8 @@ regex_modifier	[dgimsx]
       <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
       <subsection name="term_INTEGER" title="Integers">
 <pre>
-\'[\+\-]?[0-9]+\'               /* single-quoted decimal integer */
-  [\+\-]?[0-9]+/{int_boundary}  /* bareword decimal integer */
+\'[\+\-]?[0-9]+\'                   /* single-quoted decimal integer */
+  [\+\-]?[0-9]+/{int_boundary}      /* bareword decimal integer */
 </pre>
 	<p>
 	  The scanner supports integers in decimal notation, optionally
@@ -1909,10 +1907,30 @@ regex_modifier	[dgimsx]
       <!--/terminals:date-->
 
       <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+      <subsection name="term_INDEX" title="Index Names">
+<pre>
+"$"{index_name}                     /* dollar-prefixed index name bareword */
+"$'"{sq_text}"'"	            /* quoted index name */
+"$"                                 /* bare dollar symbol (default index) */
+</pre>
+	<p>
+	  As of v2.1.1, the query scanner treats index names specially.
+	  No whitespace is allowed between the '$' prefix and the index name itself,
+	  and valid bareword index names are those by the
+	  <a href="#term_commoN"><tt>{index_name}</tt> definition</a>.
+	  For maximum compatibility, index names should containing only ASCII letters, decimal digits,
+	  and/or underscores.  Index names not fulfilling these criteria
+	  can nonetheless be specified using <a href="#escapes">backslash-escapes</a>,
+	  or single quotes.
+	</p>
+      </subsection>
+      <!--/terminals:index-->
+
+      <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
       <subsection name="term_SYMBOL" title="Symbols and Barewords">
 <pre>
-\'{sq_text}\'                   /* single-quoted symbol */
-{symbol_text}			/* bareword symbol */
+\'{sq_text}\'                       /* single-quoted symbol */
+{symbol_text}			    /* bareword symbol */
 </pre>
 	<p>
 	  Symbols (strings) are the basic building blocks of the DDC query language.
@@ -1952,9 +1970,9 @@ regex_modifier	[dgimsx]
       <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
       <subsection name="term_EXPANDER" title="Term Expander Pipelines">
 <pre>
-"|"{ws}*"-"			/* alias for default term expander pipeline (index-dependent) */
-"|"{ws}*\'{sq_text}\'		/* quoted term expander label */
-"|"{ws}*{symbol_text}		/* bare term expander label */
+"|"{ws}*"-"			    /* alias for default term expander pipeline (index-dependent) */
+"|"{ws}*\'{sq_text}\'		    /* quoted term expander label */
+"|"{ws}*{symbol_text}		    /* bare term expander label */
 </pre>
       <p>
 	The scanner supports special rules for user specification of term expansion pipelines
@@ -1986,9 +2004,9 @@ regex_modifier	[dgimsx]
     <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
     <subsection name="term_other" title="Other Terminals">
 <pre>
-{ws}+    			/* whitespace: skip */
-\0				/* null byte: skip */
-.				/* any other character (byte) is its own token */ }
+{ws}+                               /* whitespace: skip */
+\0                                  /* null byte: skip */
+.                                   /* any other character (byte) is its own token */ }
 </pre>
         <p>
 	  Whitespace and NUL bytes are ignored.
@@ -2234,6 +2252,44 @@ regex_modifier	[dgimsx]
 	    Expansion by an external <a href="http://odo.dwds.de/~moocow/software/dta-cab/">DTA::CAB</a> HTTP server at
 	    <a href="http://194.95.188.36:9099">http://194.95.188.36:9099</a>
 	    using the "expand" analyzer method (phonetic and rewrite equivalents).
+	  </dd>
+	  <dt><a name="dta_expand_gn">germanet, gn-*</a></dt>
+	  <dd>
+	    Expansion family using the <a href="http://www.sfs.uni-tuebingen.de/GermaNet/">GermaNet</a> thesaurus
+	    to return a set of lemmata related to its argument lemma(ta).
+	    Supported relations:
+<pre>
+gn-syn  /* synonyms (closure) */
+gn-syn1 /* synonyms (depth=1) */
+gn-syn2 /* synonyms (depth=2) */
+
+gn-isa  /* hyperonyms/superclasses (closure); alias=gn-sup  */
+gn-isa1 /* hyperonyms/superclasses (depth=1); alias=gn-sup1 */
+gn-isa2 /* hyperonyms/superclasses (depth=2); alias=gn-sup2 */
+
+gn-asi  /* hyponyms/subclasses (closure); aliases=gn-sub,germanet  */
+gn-asi1 /* hyponyms/subclasses (depth=1); alias=gn-sub1 */
+gn-asi2 /* hyponyms/subclasses (depth=2); alias=gn-sub2 */
+</pre>
+	  </dd>
+	  <dt><a name="dta_expand_ot">openthesaurus, ot-*</a></dt>
+	  <dd>
+	    Expansion family using <a href="//www.openthesaurus.de/">OpenThesaurus</a>
+	    to return a set of lemmata related to its argument lemma(ta).
+	    Supported relations:
+<pre>
+ot-syn  /* synonyms (closure) */
+ot-syn1 /* synonyms (depth=1) */
+ot-syn2 /* synonyms (depth=2) */
+
+ot-isa  /* hyperonyms/superclasses (closure); alias=ot-sup  */
+ot-isa1 /* hyperonyms/superclasses (depth=1); alias=ot-sup1 */
+ot-isa2 /* hyperonyms/superclasses (depth=2); alias=ot-sup2 */
+
+ot-asi  /* hyponyms/subclasses (closure); aliases=ot-sub,openthesaurus  */
+ot-asi1 /* hyponyms/subclasses (depth=1); alias=ot-sub1 */
+ot-asi2 /* hyponyms/subclasses (depth=2); alias=ot-sub2 */
+</pre>
 	  </dd>
 	  <dt><a name="dta_expand_pho"/>pho</dt>
 	  <dd>

@@ -807,12 +807,9 @@ count_key:
 	|	KW_DATE				{ $$=new CQCountKeyExprDate(*$1); }
 	|	KW_DATE '/' integer		{ $$=new CQCountKeyExprDateSlice(*$1,$3); }
 	|	s_biblname			{ $$=new CQCountKeyExprBibl(*$1); }
-	|	ck_index ck_matchid ck_offset	{ $$=new CQCountKeyExprToken(*$1,$2,$3); }
+	|	s_index ck_matchid ck_offset	{ $$=new CQCountKeyExprToken(*$1,$2,$3); }
  	|	count_key '~' replace_regex	{ $$=new CQCountKeyExprRegex((CQCountKeyExpr*)$1,*$3,_qc->m_RegexReplacement,_qc->m_RegexModifiers); }
 	|	'(' count_key ')'		{ $$=$2; }
-	;
-
-ck_index:	s_index				{ $$=$1; }
 	;
 
 ck_matchid:
@@ -862,7 +859,8 @@ symbol:		SYMBOL	{ *$1 = unescapeCString(*$1); $$ = $1; }
 	|	DATE    { $$ = $1; }
 	;
 
-index:		INDEX	{ *$1 = unescapeCString(*$1); $$ = $1; }
+index:		'$'	{ $$  = _qc->newString(""); }
+	|	INDEX	{ *$1 = unescapeCString(*$1); $$ = $1; }
 	;
 
 sym_str:	SYMBOL	{ *$1 = unescapeCString(*$1); $$ = $1; }

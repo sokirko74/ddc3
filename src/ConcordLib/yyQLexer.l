@@ -227,8 +227,8 @@ regex_modifier	[dgimsx]
 <Q_XPIPE>""			{ yyleng=0;	       BEGIN(INITIAL); return EXPANDER; /* empty term expander label (default) */ }
 
  /* index names (special handling to allow count(foo) #by[$w+1] */
-"$"{index_name}			{ yytext++; yyleng--;   return INDEX; /* dollar-prefixed index name */ }
-"$'"{index_name}"'"		{ yytext+=2; yyleng-=3; return INDEX; /* vacuously-quoted index name */ }
+"$"{index_name}			{ yytext++; yyleng--;   return INDEX; /* dollar-prefixed index name bareword */ }
+"$'"{sq_text}"'"		{ yytext+=2; yyleng-=3; return INDEX; /* dollar-prefixed index name, quoted */ }
 "$"				{ return '$';   		      /* bare dollar */ }
 
  /* symbols (initial state only) */
