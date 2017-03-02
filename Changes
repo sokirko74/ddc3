@@ -1,6 +1,6 @@
 ##-*- Mode: Change-Log; coding: utf-8; -*-
 
-v2.1.1 PENDING Wed, 01 Mar 2017 12:29:43 +0100
+v2.1.1 Thu, 02 Mar 2017 10:25:11 +0100 moocow
 	* lexer/parser tweaks for mantis bug #19051
 	  - (6er)->('6er) vs. (6-er)->('6' && 'er'), also "2+4-Vertrag"
 	  - allowing hypen- and digit-initial symbols wonks up count(...) #by[$w=1-1] , #by[$w-1], etc.
@@ -13,8 +13,8 @@ v2.1.1 PENDING Wed, 01 Mar 2017 12:29:43 +0100
 	  - serial mode: session stats added to server-wide m_ServerStats in CDDCServer::HandleClientConnection()
 	  - client-thrads: session stats added to parent m_ServerStats in CDDCServerThread::run()
 	* factored out CDDCServerStats & co. from ddcServer.(h|cpp) to new ddcServerStats.(h|cpp)
-	* split DDCTime into DDCTimeUnix + DDCTimeHiRes
-	  - generic wrapper typedef DDCTime respects DDC_USE_HIRES_CLOCK
+	* split DDCTime into DDCTimeUnix (1 second resolution) + DDCTimeHiRes (1 nanosecond resolution)
+	  - generic wrapper typedef DDCTime respects config macro DDC_USE_HIRES_CLOCK
 	* renamed "#(ASC|DESC)_CONTEXT" -> "#(ASC|DESC)_MIDDLE" in ConcCommon.h HitSortEnumStrings
 	  - CQFContextSort::toString() was returning bogus (unparseable) query strings
 

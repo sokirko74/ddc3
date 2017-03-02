@@ -108,7 +108,7 @@ int main(int argc, char* argv[])
 
 	InitConcordDicts();
 	
-	DDCTime t0 = DDCTime::Now();
+	DDCTimeHiRes t0 = DDCTimeHiRes::Now();
 	S.m_bStdout = true;
 	
 	if (!S.BuildIndex(ProjectFile ))
@@ -119,7 +119,7 @@ int main(int argc, char* argv[])
 	};
 
 
-	double elapsed = DDCTime::Now().Elapsed(t0);
+	double elapsed = DDCTimeHiRes::Now().Elapsed(t0);
 	ddcLogInfo(Format("Elapsed time = %gs\n", elapsed));
 	FreeConcordDicts();
 	return 0;

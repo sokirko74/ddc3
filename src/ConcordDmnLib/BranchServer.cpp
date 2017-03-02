@@ -550,7 +550,7 @@ void CDDCBranchServer::RunDistributed()
     CFirstHitsQueryResult& FHResult = m_FHResult;
 
     //-- timeout maintainence
-    DDCTime t0 = DDCTime::Now();
+    DDCTimeHiRes t0 = DDCTimeHiRes::Now();
     
     //-- get hit sort-keys and trim to selected range
     NetworkErrorsEnum rc = RunGetFirstHits();
@@ -561,11 +561,13 @@ void CDDCBranchServer::RunDistributed()
     
     //-- check timeout
     if  (runq.TimeOut >= 0) {
-	DDCTime t1    = DDCTime::Now();
-	runq.TimeOut -= DDCTime::Now().Elapsed(t0);
-	if (runq.TimeOut < 0) {
+	double elapsed  = DDCTimeHiRes::Now().Elapsed(t0);
+	if (elapsed >= runq.TimeOut) {
 	    // AS: if the previous steps took all time we add 10 seconds in order to retrieve at least some results 
 	    runq.TimeOut = 10;
+	} else {
+	    // moo: timeout not yet expired; adjust it using clunky integer resolution
+	    runq.TimeOut -= (elapsed+0.5);
 	}
     }
 
