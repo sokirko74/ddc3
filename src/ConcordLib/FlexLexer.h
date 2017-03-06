@@ -145,6 +145,7 @@ protected:
 	int yy_start_stack_depth;
 	int* yy_start_stack;
 
+        void yy_begin( int new_state ); //-- moocow Mon, 06 Mar 2017 13:05:28 +0100: avoid stack ickiness
 	void yy_push_state( int new_state );
 	void yy_pop_state();
 	int yy_top_state();

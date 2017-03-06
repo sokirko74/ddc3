@@ -1,5 +1,12 @@
 ##-*- Mode: Change-Log; coding: utf-8; -*-
 
+v2.1.2 Mon, 06 Mar 2017 13:34:32 +0100 moocow
+	* fix lexer stack hacks from 2.1.1 which can leave lexer in an inconsistent state, e.g.
+	   perl -MDDC::XS -e '$bad=eval { DDC::XS->parse("bad=") }; $good=eval { DDC::XS->parse("good") }; print $good ? $good->toStringFull : "uhoh\n";'
+	* workaround hacks FlexLexer.h to add new yy_begin()
+	* removed dangerous lexer start-condition stack stuff
+	* CQueryCompiler::ParseQuery() now always calls BEGIN(INITIAL) before parsing a new query
+
 v2.1.1 Thu, 02 Mar 2017 10:25:11 +0100 moocow
 	* lexer/parser tweaks for mantis bug #19051
 	  - (6er)->('6er) vs. (6-er)->('6' && 'er'), also "2+4-Vertrag"

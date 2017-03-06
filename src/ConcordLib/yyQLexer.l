@@ -29,6 +29,7 @@
      %option bison-bridge
      %option bison-locations
      %option noyywrap
+     %option stack
    */
 
 %option yylineno
@@ -39,8 +40,6 @@
 %option header-file="yyQLexer.h"
 %option prefix="yyq"
 %option 8bit
-%option stack
-
 
 %{
 /*======================================================================
@@ -244,3 +243,5 @@ regex_modifier	[dgimsx]
  * C Code
  */
 int yyqLexer::yywrap(void) { return 1; }
+
+void yyqLexer::yy_begin(int new_state) { BEGIN(new_state); }

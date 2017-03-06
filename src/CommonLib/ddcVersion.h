@@ -104,6 +104,9 @@ class DDCVersionT {
 /** Current DDC Version as a DDCVersionT */
 const DDCVersionT DDCVersion(DDC_VERSION_MAJOR, DDC_VERSION_MINOR, DDC_VERSION_MICRO);
 
+/** current DDC Version as a string */
+const char* DDCVersionString();
+
 /** Minimum index version this DDC can read */
 const DDCVersionT DDCVersionMinR(2,0,0);
 

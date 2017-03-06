@@ -171,11 +171,8 @@ public:
 	//! flex convenience wrapper
 	inline string yystring() const { return string(YYText(),YYLeng()); };
 
-	//! wrapper for protected yyFlexLexer::yy_push_state()
-	void yypushq(int new_state);
-
-	//! wrapper for protected yyFlexLexer::yy_pop_state()
-	void yypopq();
+	//! wrapper for protected yyFlexLexer::yy_begin()
+	void yybegin(int new_state);
 
 	//! delete parse tree (m_pQuery) if non-NULL; actually wipes all queries in m_Queries and m_qCountKeys
 	void DeleteTree();

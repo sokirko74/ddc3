@@ -1,17 +1,3 @@
-Nonterminals useless in grammar
-
-   ck_index
-
-
-Rules useless in parser due to conflicts
-
-  261 index: '$'
-
-
-State 19 conflicts: 1 reduce/reduce
-State 138 conflicts: 16 reduce/reduce
-
-
 Grammar
 
     0 $accept: query $end
@@ -332,67 +318,66 @@ Grammar
   242          | '+' integer
   243          | '-' integer
 
-  244 s_index: '$'
-  245        | index
+  244 s_index: index
 
-  246 s_indextuple_item: s_index
-  247                  | symbol
+  245 s_indextuple_item: s_index
+  246                  | symbol
 
-  248 s_word: symbol
+  247 s_word: symbol
 
-  249 s_semclass: symbol
+  248 s_semclass: symbol
 
-  250 s_lemma: symbol
+  249 s_lemma: symbol
 
-  251 s_chunk: symbol
+  250 s_chunk: symbol
 
-  252 s_filename: symbol
+  251 s_filename: symbol
 
-  253 s_morphitem: symbol
+  252 s_morphitem: symbol
 
-  254 s_subcorpus: symbol
+  253 s_subcorpus: symbol
 
-  255 s_biblname: symbol
+  254 s_biblname: symbol
 
-  256 s_breakname: symbol
-  257            | KW_FILENAME
+  255 s_breakname: symbol
+  256            | KW_FILENAME
 
-  258 symbol: SYMBOL
-  259       | INTEGER
-  260       | DATE
+  257 symbol: SYMBOL
+  258       | INTEGER
+  259       | DATE
 
-  261 index: '$'
-  262      | INDEX
+  260 index: '$'
+  261      | INDEX
 
-  263 sym_str: SYMBOL
+  262 sym_str: SYMBOL
 
-  264 s_prefix: PREFIX
+  263 s_prefix: PREFIX
 
-  265 s_suffix: SUFFIX
+  264 s_suffix: SUFFIX
 
-  266 s_infix: INFIX
+  265 s_infix: INFIX
 
-  267 s_expander: EXPANDER
+  266 s_expander: EXPANDER
 
-  268 regex: REGEX
-  269      | REGEX REGOPT
+  267 regex: REGEX
+  268      | REGEX REGOPT
 
-  270 neg_regex: NEG_REGEX
-  271          | NEG_REGEX REGOPT
+  269 neg_regex: NEG_REGEX
+  270          | NEG_REGEX REGOPT
 
-  272 replace_regex: REGEX_SEARCH REGEX_REPLACE
-  273              | REGEX_SEARCH REGEX_REPLACE REGOPT
+  271 replace_regex: REGEX_SEARCH REGEX_REPLACE
+  272              | REGEX_SEARCH REGEX_REPLACE REGOPT
 
-  274 int_str: INTEGER
+  273 int_str: INTEGER
 
-  275 integer: int_str
+  274 integer: int_str
 
-  276 date: DATE
-  277     | INTEGER
+  275 date: DATE
+  276     | INTEGER
 
-  278 $@1: %empty
+  277 $@1: %empty
 
-  279 matchid: '=' $@1 integer
+  278 matchid: '=' $@1 integer
 
 
 Terminals, with rules where they appear
@@ -401,7 +386,7 @@ $end (0) 0
 '!' (33) 39 41 59 120
 '"' (34) 134
 '#' (35) 216
-'$' (36) 203 244 261
+'$' (36) 203 260
 '%' (37) 190 191
 '(' (40) 3 117 121 124 127 128 130 135 159 201 202 203 237
 ')' (41) 3 117 121 124 127 128 130 135 159 201 202 203 237
@@ -415,7 +400,7 @@ $end (0) 0
 ';' (59) 213
 '<' (60) 196 197
 '=' (61) 161 163 165 167 169 171 173 175 177 179 181 183 185 187 189
-    191 193 194 195 197 202 279
+    191 193 194 195 197 202 278
 '@' (64) 162 163 229
 '[' (91) 11 13 15 22 23 24 25 26 27 34 52 53 54 55 56 57 58 70 73 75
     76 77 78 79 80 82 83 84 85 86 88 89 90 91 92 102 103 188 189
@@ -426,23 +411,23 @@ $end (0) 0
 '}' (125) 58 170 171 172 173 184 185 186 187
 '~' (126) 236
 error (256)
-SYMBOL (258) 258 263
-INDEX (259) 262
-REGEX (260) 268 269
-NEG_REGEX (261) 270 271
-REGOPT (262) 269 271 273
-REGEX_SEARCH (263) 272 273
-REGEX_REPLACE (264) 272 273
-INTEGER (265) 259 274 277
-DATE (266) 260 276
-PREFIX (267) 264
-SUFFIX (268) 265
-INFIX (269) 266
+SYMBOL (258) 257 262
+INDEX (259) 261
+REGEX (260) 267 268
+NEG_REGEX (261) 269 270
+REGOPT (262) 268 270 272
+REGEX_SEARCH (263) 271 272
+REGEX_REPLACE (264) 271 272
+INTEGER (265) 258 273 276
+DATE (266) 259 275
+PREFIX (267) 263
+SUFFIX (268) 264
+INFIX (269) 265
 AT_LBRACE (270) 170 171
 COLON_LBRACE (271) 186
 STAR_LBRACE (272) 180 181 184 185
 RBRACE_STAR (273) 180 181 182 183
-EXPANDER (274) 267
+EXPANDER (274) 266
 HASH_LESS (275) 217
 HASH_GREATER (276) 218
 HASH_EQUAL (277) 219
@@ -480,7 +465,7 @@ GREATER_BY_COUNT (308) 20
 CLIMIT (309) 14 15
 KW_DATE (310) 77 78 232 233
 KW_FILEID (311) 230
-KW_FILENAME (312) 231 257
+KW_FILENAME (312) 231 256
 OP_CLAUSE_MATCHID (313)
 OP_CLAUSE_CONCAT (314)
 OP_CLAUSE_BOOL (315)
@@ -653,60 +638,60 @@ ck_matchid (167)
 ck_offset (168)
     on left: 240 241 242 243, on right: 235
 s_index (169)
-    on left: 244 245, on right: 161 163 165 167 169 171 173 175 177
-    179 181 183 185 187 189 191 193 197 235 246
+    on left: 244, on right: 161 163 165 167 169 171 173 175 177 179
+    181 183 185 187 189 191 193 197 235 245
 s_indextuple_item (170)
-    on left: 246 247, on right: 226 227
+    on left: 245 246, on right: 226 227
 s_word (171)
-    on left: 248, on right: 160 161 162 163 208
+    on left: 247, on right: 160 161 162 163 208
 s_semclass (172)
-    on left: 249, on right: 186 187
+    on left: 248, on right: 186 187
 s_lemma (173)
-    on left: 250, on right: 190 191
+    on left: 249, on right: 190 191
 s_chunk (174)
-    on left: 251, on right: 192 193
+    on left: 250, on right: 192 193
 s_filename (175)
-    on left: 252, on right: 196 197
+    on left: 251, on right: 196 197
 s_morphitem (176)
-    on left: 253, on right: 211
+    on left: 252, on right: 211
 s_subcorpus (177)
-    on left: 254, on right: 43 44
+    on left: 253, on right: 43 44
 s_biblname (178)
-    on left: 255, on right: 52 53 54 55 56 57 58 79 80 234
+    on left: 254, on right: 52 53 54 55 56 57 58 79 80 234
 s_breakname (179)
-    on left: 256 257, on right: 35
+    on left: 255 256, on right: 35
 symbol (180)
-    on left: 258 259 260, on right: 24 25 26 27 52 97 98 99 100 195
-    229 247 248 249 250 251 252 253 254 255 256
+    on left: 257 258 259, on right: 24 25 26 27 52 97 98 99 100 195
+    229 246 247 248 249 250 251 252 253 254 255
 index (181)
-    on left: 261 262, on right: 245
+    on left: 260 261, on right: 244
 sym_str (182)
-    on left: 263, on right: 104
+    on left: 262, on right: 104
 s_prefix (183)
-    on left: 264, on right: 55 174 175
+    on left: 263, on right: 55 174 175
 s_suffix (184)
-    on left: 265, on right: 56 176 177
+    on left: 264, on right: 56 176 177
 s_infix (185)
-    on left: 266, on right: 57 178 179
+    on left: 265, on right: 57 178 179
 s_expander (186)
-    on left: 267, on right: 221
+    on left: 266, on right: 221
 regex (187)
-    on left: 268 269, on right: 53 164 165
+    on left: 267 268, on right: 53 164 165
 neg_regex (188)
-    on left: 270 271, on right: 54 166 167
+    on left: 269 270, on right: 54 166 167
 replace_regex (189)
-    on left: 272 273, on right: 236
+    on left: 271 272, on right: 236
 int_str (190)
-    on left: 274, on right: 70 76 83 84 85 86 194 195 275
+    on left: 273, on right: 70 76 83 84 85 86 194 195 274
 integer (191)
-    on left: 275, on right: 12 13 14 15 33 34 109 110 111 127 128 216
-    217 218 219 233 241 242 243 279
+    on left: 274, on right: 12 13 14 15 33 34 109 110 111 127 128 216
+    217 218 219 233 241 242 243 278
 date (192)
-    on left: 276 277, on right: 73 89 90 91 92
+    on left: 275 276, on right: 73 89 90 91 92
 matchid (193)
-    on left: 279, on right: 107 116 129 133 206 239
+    on left: 278, on right: 107 116 129 133 206 239
 $@1 (194)
-    on left: 278, on right: 279
+    on left: 277, on right: 278
 
 
 State 0
@@ -790,71 +775,71 @@ State 0
 
 State 1
 
-  258 symbol: SYMBOL .
+  257 symbol: SYMBOL .
 
-    $default  reduce using rule 258 (symbol)
+    $default  reduce using rule 257 (symbol)
 
 
 State 2
 
-  262 index: INDEX .
+  261 index: INDEX .
 
-    $default  reduce using rule 262 (index)
+    $default  reduce using rule 261 (index)
 
 
 State 3
 
-  268 regex: REGEX .
-  269      | REGEX . REGOPT
+  267 regex: REGEX .
+  268      | REGEX . REGOPT
 
     REGOPT  shift, and go to state 73
 
-    $default  reduce using rule 268 (regex)
+    $default  reduce using rule 267 (regex)
 
 
 State 4
 
-  270 neg_regex: NEG_REGEX .
-  271          | NEG_REGEX . REGOPT
+  269 neg_regex: NEG_REGEX .
+  270          | NEG_REGEX . REGOPT
 
     REGOPT  shift, and go to state 74
 
-    $default  reduce using rule 270 (neg_regex)
+    $default  reduce using rule 269 (neg_regex)
 
 
 State 5
 
-  259 symbol: INTEGER .
+  258 symbol: INTEGER .
 
-    $default  reduce using rule 259 (symbol)
+    $default  reduce using rule 258 (symbol)
 
 
 State 6
 
-  260 symbol: DATE .
+  259 symbol: DATE .
 
-    $default  reduce using rule 260 (symbol)
+    $default  reduce using rule 259 (symbol)
 
 
 State 7
 
-  264 s_prefix: PREFIX .
+  263 s_prefix: PREFIX .
 
-    $default  reduce using rule 264 (s_prefix)
+    $default  reduce using rule 263 (s_prefix)
 
 
 State 8
 
-  265 s_suffix: SUFFIX .
+  264 s_suffix: SUFFIX .
 
-    $default  reduce using rule 265 (s_suffix)
+    $default  reduce using rule 264 (s_suffix)
 
 
 State 9
 
-  266 s_infix: INFIX .
+  265 s_infix: INFIX .
 
-    $default  reduce using rule 266 (s_infix)
+    $default  reduce using rule 265 (s_infix)
 
 
 State 10
@@ -1013,14 +998,11 @@ State 18
 State 19
 
   203 qwk_indextuple: '$' . '(' l_indextuple ')'
-  244 s_index: '$' .
-  261 index: '$' .
+  260 index: '$' .
 
     '('  shift, and go to state 87
 
-    '='       reduce using rule 244 (s_index)
-    '='       [reduce using rule 261 (index)]
-    $default  reduce using rule 244 (s_index)
+    $default  reduce using rule 260 (index)
 
 
 State 20
@@ -1680,16 +1662,16 @@ State 65
 
 State 66
 
-  248 s_word: symbol .
+  247 s_word: symbol .
 
-    $default  reduce using rule 248 (s_word)
+    $default  reduce using rule 247 (s_word)
 
 
 State 67
 
-  245 s_index: index .
+  244 s_index: index .
 
-    $default  reduce using rule 245 (s_index)
+    $default  reduce using rule 244 (s_index)
 
 
 State 68
@@ -1729,16 +1711,16 @@ State 72
 
 State 73
 
-  269 regex: REGEX REGOPT .
+  268 regex: REGEX REGOPT .
 
-    $default  reduce using rule 269 (regex)
+    $default  reduce using rule 268 (regex)
 
 
 State 74
 
-  271 neg_regex: NEG_REGEX REGOPT .
+  270 neg_regex: NEG_REGEX REGOPT .
 
-    $default  reduce using rule 271 (neg_regex)
+    $default  reduce using rule 270 (neg_regex)
 
 
 State 75
@@ -1766,9 +1748,9 @@ State 76
 
 State 77
 
-  249 s_semclass: symbol .
+  248 s_semclass: symbol .
 
-    $default  reduce using rule 249 (s_semclass)
+    $default  reduce using rule 248 (s_semclass)
 
 
 State 78
@@ -2051,9 +2033,9 @@ State 85
 
 State 86
 
-  252 s_filename: symbol .
+  251 s_filename: symbol .
 
-    $default  reduce using rule 252 (s_filename)
+    $default  reduce using rule 251 (s_filename)
 
 
 State 87
@@ -2091,9 +2073,9 @@ State 89
 
 State 90
 
-  251 s_chunk: symbol .
+  250 s_chunk: symbol .
 
-    $default  reduce using rule 251 (s_chunk)
+    $default  reduce using rule 250 (s_chunk)
 
 
 State 91
@@ -2105,9 +2087,9 @@ State 91
 
 State 92
 
-  250 s_lemma: symbol .
+  249 s_lemma: symbol .
 
-    $default  reduce using rule 250 (s_lemma)
+    $default  reduce using rule 249 (s_lemma)
 
 
 State 93
@@ -2613,9 +2595,9 @@ State 107
 
 State 108
 
-  279 matchid: '=' . $@1 integer
+  278 matchid: '=' . $@1 integer
 
-    $default  reduce using rule 278 ($@1)
+    $default  reduce using rule 277 ($@1)
 
     $@1  go to state 165
 
@@ -3082,9 +3064,9 @@ State 128
 
 State 129
 
-  274 int_str: INTEGER .
+  273 int_str: INTEGER .
 
-    $default  reduce using rule 274 (int_str)
+    $default  reduce using rule 273 (int_str)
 
 
 State 130
@@ -3216,42 +3198,9 @@ State 137
 
 State 138
 
-  244 s_index: '$' .
-  261 index: '$' .
+  260 index: '$' .
 
-    $end              reduce using rule 244 (s_index)
-    $end              [reduce using rule 261 (index)]
-    INTEGER           reduce using rule 244 (s_index)
-    INTEGER           [reduce using rule 261 (index)]
-    BY                reduce using rule 244 (s_index)
-    BY                [reduce using rule 261 (index)]
-    SAMPLE            reduce using rule 244 (s_index)
-    SAMPLE            [reduce using rule 261 (index)]
-    LESS_BY_KEY       reduce using rule 244 (s_index)
-    LESS_BY_KEY       [reduce using rule 261 (index)]
-    GREATER_BY_KEY    reduce using rule 244 (s_index)
-    GREATER_BY_KEY    [reduce using rule 261 (index)]
-    LESS_BY_COUNT     reduce using rule 244 (s_index)
-    LESS_BY_COUNT     [reduce using rule 261 (index)]
-    GREATER_BY_COUNT  reduce using rule 244 (s_index)
-    GREATER_BY_COUNT  [reduce using rule 261 (index)]
-    CLIMIT            reduce using rule 244 (s_index)
-    CLIMIT            [reduce using rule 261 (index)]
-    ','               reduce using rule 244 (s_index)
-    ','               [reduce using rule 261 (index)]
-    '='               reduce using rule 244 (s_index)
-    '='               [reduce using rule 261 (index)]
-    '~'               reduce using rule 244 (s_index)
-    '~'               [reduce using rule 261 (index)]
-    ')'               reduce using rule 244 (s_index)
-    ')'               [reduce using rule 261 (index)]
-    ']'               reduce using rule 244 (s_index)
-    ']'               [reduce using rule 261 (index)]
-    '+'               reduce using rule 244 (s_index)
-    '+'               [reduce using rule 261 (index)]
-    '-'               reduce using rule 244 (s_index)
-    '-'               [reduce using rule 261 (index)]
-    $default          reduce using rule 244 (s_index)
+    $default  reduce using rule 260 (index)
 
 
 State 139
@@ -3265,9 +3214,9 @@ State 139
 
 State 140
 
-  246 s_indextuple_item: s_index .
+  245 s_indextuple_item: s_index .
 
-    $default  reduce using rule 246 (s_indextuple_item)
+    $default  reduce using rule 245 (s_indextuple_item)
 
 
 State 141
@@ -3279,9 +3228,9 @@ State 141
 
 State 142
 
-  247 s_indextuple_item: symbol .
+  246 s_indextuple_item: symbol .
 
-    $default  reduce using rule 247 (s_indextuple_item)
+    $default  reduce using rule 246 (s_indextuple_item)
 
 
 State 143
@@ -3356,9 +3305,9 @@ State 152
 
 State 153
 
-  253 s_morphitem: symbol .
+  252 s_morphitem: symbol .
 
-    $default  reduce using rule 253 (s_morphitem)
+    $default  reduce using rule 252 (s_morphitem)
 
 
 State 154
@@ -3489,7 +3438,7 @@ State 164
 
 State 165
 
-  279 matchid: '=' $@1 . integer
+  278 matchid: '=' $@1 . integer
 
     INTEGER  shift, and go to state 129
 
@@ -4036,9 +3985,9 @@ State 222
 
 State 223
 
-  267 s_expander: EXPANDER .
+  266 s_expander: EXPANDER .
 
-    $default  reduce using rule 267 (s_expander)
+    $default  reduce using rule 266 (s_expander)
 
 
 State 224
@@ -4212,9 +4161,9 @@ State 232
 
 State 233
 
-  275 integer: int_str .
+  274 integer: int_str .
 
-    $default  reduce using rule 275 (integer)
+    $default  reduce using rule 274 (integer)
 
 
 State 234
@@ -4475,9 +4424,9 @@ State 237
 
 State 238
 
-  279 matchid: '=' $@1 integer .
+  278 matchid: '=' $@1 integer .
 
-    $default  reduce using rule 279 (matchid)
+    $default  reduce using rule 278 (matchid)
 
 
 State 239
@@ -4499,9 +4448,9 @@ State 240
 
 State 241
 
-  257 s_breakname: KW_FILENAME .
+  256 s_breakname: KW_FILENAME .
 
-    $default  reduce using rule 257 (s_breakname)
+    $default  reduce using rule 256 (s_breakname)
 
 
 State 242
@@ -4513,9 +4462,9 @@ State 242
 
 State 243
 
-  256 s_breakname: symbol .
+  255 s_breakname: symbol .
 
-    $default  reduce using rule 256 (s_breakname)
+    $default  reduce using rule 255 (s_breakname)
 
 
 State 244
@@ -4761,9 +4710,9 @@ State 268
 
 State 269
 
-  254 s_subcorpus: symbol .
+  253 s_subcorpus: symbol .
 
-    $default  reduce using rule 254 (s_subcorpus)
+    $default  reduce using rule 253 (s_subcorpus)
 
 
 State 270
@@ -5215,9 +5164,9 @@ State 302
 
 State 303
 
-  255 s_biblname: symbol .
+  254 s_biblname: symbol .
 
-    $default  reduce using rule 255 (s_biblname)
+    $default  reduce using rule 254 (s_biblname)
 
 
 State 304
@@ -5255,16 +5204,16 @@ State 307
 
 State 308
 
-  277 date: INTEGER .
+  276 date: INTEGER .
 
-    $default  reduce using rule 277 (date)
+    $default  reduce using rule 276 (date)
 
 
 State 309
 
-  276 date: DATE .
+  275 date: DATE .
 
-    $default  reduce using rule 276 (date)
+    $default  reduce using rule 275 (date)
 
 
 State 310
@@ -5351,9 +5300,9 @@ State 317
 
 State 318
 
-  263 sym_str: SYMBOL .
+  262 sym_str: SYMBOL .
 
-    $default  reduce using rule 263 (sym_str)
+    $default  reduce using rule 262 (sym_str)
 
 
 State 319
@@ -6159,11 +6108,11 @@ State 393
 
 State 394
 
-  259 symbol: INTEGER .
-  274 int_str: INTEGER .
+  258 symbol: INTEGER .
+  273 int_str: INTEGER .
 
-    ')'       reduce using rule 274 (int_str)
-    $default  reduce using rule 259 (symbol)
+    ')'       reduce using rule 273 (int_str)
+    $default  reduce using rule 258 (symbol)
 
 
 State 395
@@ -6391,8 +6340,8 @@ State 423
 
 State 424
 
-  272 replace_regex: REGEX_SEARCH . REGEX_REPLACE
-  273              | REGEX_SEARCH . REGEX_REPLACE REGOPT
+  271 replace_regex: REGEX_SEARCH . REGEX_REPLACE
+  272              | REGEX_SEARCH . REGEX_REPLACE REGOPT
 
     REGEX_REPLACE  shift, and go to state 449
 
@@ -6598,12 +6547,12 @@ State 448
 
 State 449
 
-  272 replace_regex: REGEX_SEARCH REGEX_REPLACE .
-  273              | REGEX_SEARCH REGEX_REPLACE . REGOPT
+  271 replace_regex: REGEX_SEARCH REGEX_REPLACE .
+  272              | REGEX_SEARCH REGEX_REPLACE . REGOPT
 
     REGOPT  shift, and go to state 458
 
-    $default  reduce using rule 272 (replace_regex)
+    $default  reduce using rule 271 (replace_regex)
 
 
 State 450
@@ -6664,9 +6613,9 @@ State 457
 
 State 458
 
-  273 replace_regex: REGEX_SEARCH REGEX_REPLACE REGOPT .
+  272 replace_regex: REGEX_SEARCH REGEX_REPLACE REGOPT .
 
-    $default  reduce using rule 273 (replace_regex)
+    $default  reduce using rule 272 (replace_regex)
 
 
 State 459

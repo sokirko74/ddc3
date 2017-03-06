@@ -19,6 +19,12 @@
 #include "../CommonLib/utilit.h"
 
 //--------------------------------------------------------------
+const char *DDCVersionString()
+{
+    return PACKAGE_VERSION;
+}
+
+//--------------------------------------------------------------
 void ddc_parse_format_version(const char *s, DDCVersionT &version, DDCVersionT &version_min)
 {
     vector<string> toks = stringSplit(s," \t\r\n");

@@ -139,7 +139,6 @@ int yylex (void*,  CQueryCompiler*);
 
 %type	<m_pnode>	count_query
 %type	<m_pnode>	count_key
-%type	<m_str>		ck_index
 %type	<m_int>		ck_matchid
 %type	<m_int>		ck_offset
 
@@ -828,10 +827,7 @@ ck_offset:
   * s_*: semantic sugar for symbols
   */
 
-s_index:
-		'$'		{ $$ = _qc->newString(); }
-	|	index		{ $$ = $1; }
-	;
+s_index:	index		{ $$ = $1; };
 
 s_indextuple_item:
 		s_index		{ $$ = $1; }
@@ -895,8 +891,8 @@ date:		DATE	{ $$ = $1; }
 	|	INTEGER { $$ = $1; }
 	;
 
-matchid:	'=' 	{ _qc->yypushq(Q_MATCHID); }
-		integer	{ _qc->yypopq(); $$ = $3; }
+matchid:	'=' 	{ _qc->yybegin(Q_MATCHID); }
+		integer	{ _qc->yybegin(INITIAL); $$ = $3; }
 	;
 
 

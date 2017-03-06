@@ -1157,15 +1157,15 @@ static yyconst flex_int32_t yy_rule_can_match_eol[91] =
 
 static yyconst flex_int16_t yy_rule_linenum[90] =
     {   0,
-      125,  126,  127,  128,  129,  130,  131,  132,  135,  136,
-      137,  138,  139,  140,  143,  144,  145,  146,  147,  148,
-      149,  150,  151,  152,  153,  154,  155,  156,  157,  158,
-      159,  160,  161,  162,  163,  164,  165,  166,  167,  168,
-      169,  170,  171,  172,  173,  177,  178,  179,  180,  181,
-      182,  183,  184,  187,  188,  189,  190,  191,  192,  193,
-      194,  195,  196,  197,  200,  201,  202,  204,  205,  206,
-      210,  211,  212,  214,  215,  218,  221,  222,  223,  224,
-      225,  227,  230,  231,  232,  235,  236,  239,  240
+      124,  125,  126,  127,  128,  129,  130,  131,  134,  135,
+      136,  137,  138,  139,  142,  143,  144,  145,  146,  147,
+      148,  149,  150,  151,  152,  153,  154,  155,  156,  157,
+      158,  159,  160,  161,  162,  163,  164,  165,  166,  167,
+      168,  169,  170,  171,  172,  176,  177,  178,  179,  180,
+      181,  182,  183,  186,  187,  188,  189,  190,  191,  192,
+      193,  194,  195,  196,  199,  200,  201,  203,  204,  205,
+      209,  210,  211,  213,  214,  217,  220,  221,  222,  223,
+      224,  226,  229,  230,  231,  234,  235,  238,  239
     } ;
 
 /* The intent behind this definition is that it'll catch
@@ -1204,9 +1204,10 @@ static yyconst flex_int16_t yy_rule_linenum[90] =
 %option bison-bridge
 %option bison-locations
 %option noyywrap
+%option stack
 */
 #define YY_NO_UNISTD_H 1
-#line 46 "yyQLexer.l"
+#line 45 "yyQLexer.l"
 /*======================================================================
  * User C Header
  */
@@ -1259,7 +1260,7 @@ static yyconst flex_int16_t yy_rule_linenum[90] =
 /*======================================================================
  * Rules
  */
-#line 1263 "yyQLexer.cpp"
+#line 1264 "yyQLexer.cpp"
 
 #define INITIAL 0
 #define S_NOID 1
@@ -1462,11 +1463,11 @@ YY_DECL
 
 	{
 /* %% [7.0] user's declarations go here */
-#line 122 "yyQLexer.l"
+#line 121 "yyQLexer.l"
 
 
  /* operators */
-#line 1470 "yyQLexer.cpp"
+#line 1471 "yyQLexer.cpp"
 
 	while ( 1 )		/* loops until end-of-file is reached */
 		{
@@ -1557,70 +1558,70 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 125 "yyQLexer.l"
+#line 124 "yyQLexer.l"
 { return OP_BOOL_AND; }
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 126 "yyQLexer.l"
+#line 125 "yyQLexer.l"
 { return OP_BOOL_OR; }
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 127 "yyQLexer.l"
+#line 126 "yyQLexer.l"
 { return NEAR; }
 	YY_BREAK
 case 4:
 /* rule 4 can match eol */
 YY_RULE_SETUP
-#line 128 "yyQLexer.l"
+#line 127 "yyQLexer.l"
 { return WITHOUT; }
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 129 "yyQLexer.l"
+#line 128 "yyQLexer.l"
 { return WITHOR; }
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 130 "yyQLexer.l"
+#line 129 "yyQLexer.l"
 { return WITH; }
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 131 "yyQLexer.l"
+#line 130 "yyQLexer.l"
 { return COUNT; }
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 132 "yyQLexer.l"
+#line 131 "yyQLexer.l"
 { return KEYS; }
 	YY_BREAK
 /* count-by keywords */
 case 9:
 YY_RULE_SETUP
-#line 135 "yyQLexer.l"
+#line 134 "yyQLexer.l"
 { return KW_FILEID; }
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 136 "yyQLexer.l"
+#line 135 "yyQLexer.l"
 { return KW_FILENAME; }
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 137 "yyQLexer.l"
+#line 136 "yyQLexer.l"
 { BEGIN(Q_DATE); return KW_DATE; }
 	YY_BREAK
 case 12:
 /* rule 12 can match eol */
 YY_RULE_SETUP
-#line 138 "yyQLexer.l"
+#line 137 "yyQLexer.l"
 { ; /* whitespace: skip */ }
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 139 "yyQLexer.l"
+#line 138 "yyQLexer.l"
 { BEGIN(INITIAL); return '/'; }
 	YY_BREAK
 case 14:
@@ -1628,163 +1629,163 @@ case 14:
 (yy_c_buf_p) = yy_cp -= 1;
 YY_DO_BEFORE_ACTION; /* set up yytext again */
 YY_RULE_SETUP
-#line 140 "yyQLexer.l"
+#line 139 "yyQLexer.l"
 { BEGIN(INITIAL); }
 	YY_BREAK
 /* query operators */
 case 15:
 YY_RULE_SETUP
-#line 143 "yyQLexer.l"
+#line 142 "yyQLexer.l"
 { return CNTXT; }
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
-#line 144 "yyQLexer.l"
+#line 143 "yyQLexer.l"
 { return WITHIN; }
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
-#line 145 "yyQLexer.l"
+#line 144 "yyQLexer.l"
 { return SEPARATE_HITS; }
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
-#line 146 "yyQLexer.l"
+#line 145 "yyQLexer.l"
 { return NOSEPARATE_HITS; }
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
-#line 147 "yyQLexer.l"
+#line 146 "yyQLexer.l"
 { return HAS_FIELD; }
 	YY_BREAK
 case 20:
 YY_RULE_SETUP
-#line 148 "yyQLexer.l"
+#line 147 "yyQLexer.l"
 { return FILENAMES_ONLY; }
 	YY_BREAK
 case 21:
 YY_RULE_SETUP
-#line 149 "yyQLexer.l"
+#line 148 "yyQLexer.l"
 { return DEBUG_RANK; }
 	YY_BREAK
 case 22:
 YY_RULE_SETUP
-#line 150 "yyQLexer.l"
+#line 149 "yyQLexer.l"
 { return GREATER_BY_RANK; }
 	YY_BREAK
 case 23:
 YY_RULE_SETUP
-#line 151 "yyQLexer.l"
+#line 150 "yyQLexer.l"
 { return LESS_BY_RANK; }
 	YY_BREAK
 case 24:
 YY_RULE_SETUP
-#line 152 "yyQLexer.l"
+#line 151 "yyQLexer.l"
 { return GREATER_BY_DATE; }
 	YY_BREAK
 case 25:
 YY_RULE_SETUP
-#line 153 "yyQLexer.l"
+#line 152 "yyQLexer.l"
 { return LESS_BY_DATE; }
 	YY_BREAK
 case 26:
 YY_RULE_SETUP
-#line 154 "yyQLexer.l"
+#line 153 "yyQLexer.l"
 { return IS_DATE; }
 	YY_BREAK
 case 27:
 YY_RULE_SETUP
-#line 155 "yyQLexer.l"
+#line 154 "yyQLexer.l"
 { return GREATER_BY_SIZE; }
 	YY_BREAK
 case 28:
 YY_RULE_SETUP
-#line 156 "yyQLexer.l"
+#line 155 "yyQLexer.l"
 { return LESS_BY_SIZE; }
 	YY_BREAK
 case 29:
 YY_RULE_SETUP
-#line 157 "yyQLexer.l"
+#line 156 "yyQLexer.l"
 { return IS_SIZE; }
 	YY_BREAK
 case 30:
 YY_RULE_SETUP
-#line 158 "yyQLexer.l"
+#line 157 "yyQLexer.l"
 { return LESS_BY_LEFT; }
 	YY_BREAK
 case 31:
 YY_RULE_SETUP
-#line 159 "yyQLexer.l"
+#line 158 "yyQLexer.l"
 { return GREATER_BY_LEFT; }
 	YY_BREAK
 case 32:
 YY_RULE_SETUP
-#line 160 "yyQLexer.l"
+#line 159 "yyQLexer.l"
 { return LESS_BY_RIGHT; }
 	YY_BREAK
 case 33:
 YY_RULE_SETUP
-#line 161 "yyQLexer.l"
+#line 160 "yyQLexer.l"
 { return GREATER_BY_RIGHT; }
 	YY_BREAK
 case 34:
 YY_RULE_SETUP
-#line 162 "yyQLexer.l"
+#line 161 "yyQLexer.l"
 { return LESS_BY_MIDDLE; }
 	YY_BREAK
 case 35:
 YY_RULE_SETUP
-#line 163 "yyQLexer.l"
+#line 162 "yyQLexer.l"
 { return GREATER_BY_MIDDLE; }
 	YY_BREAK
 case 36:
 YY_RULE_SETUP
-#line 164 "yyQLexer.l"
+#line 163 "yyQLexer.l"
 { return LESS_BY; }
 	YY_BREAK
 case 37:
 YY_RULE_SETUP
-#line 165 "yyQLexer.l"
+#line 164 "yyQLexer.l"
 { return GREATER_BY; }
 	YY_BREAK
 case 38:
 YY_RULE_SETUP
-#line 166 "yyQLexer.l"
+#line 165 "yyQLexer.l"
 { return RANDOM; }
 	YY_BREAK
 case 39:
 YY_RULE_SETUP
-#line 167 "yyQLexer.l"
+#line 166 "yyQLexer.l"
 { return BY; }
 	YY_BREAK
 case 40:
 YY_RULE_SETUP
-#line 168 "yyQLexer.l"
+#line 167 "yyQLexer.l"
 { return SAMPLE; }
 	YY_BREAK
 case 41:
 YY_RULE_SETUP
-#line 169 "yyQLexer.l"
+#line 168 "yyQLexer.l"
 { return CLIMIT; }
 	YY_BREAK
 case 42:
 YY_RULE_SETUP
-#line 170 "yyQLexer.l"
+#line 169 "yyQLexer.l"
 { return LESS_BY_KEY; }
 	YY_BREAK
 case 43:
 YY_RULE_SETUP
-#line 171 "yyQLexer.l"
+#line 170 "yyQLexer.l"
 { return GREATER_BY_KEY; }
 	YY_BREAK
 case 44:
 YY_RULE_SETUP
-#line 172 "yyQLexer.l"
+#line 171 "yyQLexer.l"
 { return LESS_BY_COUNT; }
 	YY_BREAK
 case 45:
 YY_RULE_SETUP
-#line 173 "yyQLexer.l"
+#line 172 "yyQLexer.l"
 { return GREATER_BY_COUNT; }
 	YY_BREAK
 /* regexes */
@@ -1795,13 +1796,13 @@ YY_LINENO_REWIND_TO(yy_cp - 1);
 (yy_c_buf_p) = yy_cp -= 1;
 YY_DO_BEFORE_ACTION; /* set up yytext again */
 YY_RULE_SETUP
-#line 177 "yyQLexer.l"
+#line 176 "yyQLexer.l"
 { yytext+=2; yyleng-=3; BEGIN(Q_REGOPT); return NEG_REGEX; /* negated regex, +modifiers */ }
 	YY_BREAK
 case 47:
 /* rule 47 can match eol */
 YY_RULE_SETUP
-#line 178 "yyQLexer.l"
+#line 177 "yyQLexer.l"
 { yytext+=2; yyleng-=3;                          return NEG_REGEX; /* negated regex, -modifiers */ }
 	YY_BREAK
 case 48:
@@ -1811,19 +1812,19 @@ YY_LINENO_REWIND_TO(yy_cp - 1);
 (yy_c_buf_p) = yy_cp -= 1;
 YY_DO_BEFORE_ACTION; /* set up yytext again */
 YY_RULE_SETUP
-#line 179 "yyQLexer.l"
+#line 178 "yyQLexer.l"
 { yytext++;  yyleng-=2; BEGIN(Q_REGOPT); return REGEX; /* slash-quoted regex, +modifiers */ }
 	YY_BREAK
 case 49:
 /* rule 49 can match eol */
 YY_RULE_SETUP
-#line 180 "yyQLexer.l"
+#line 179 "yyQLexer.l"
 { yytext++;  yyleng-=2;                          return REGEX; /* slash-quoted regex, -modifiers */ }
 	YY_BREAK
 case 50:
 /* rule 50 can match eol */
 YY_RULE_SETUP
-#line 181 "yyQLexer.l"
+#line 180 "yyQLexer.l"
 { yytext+=2; yyleng-=3; BEGIN(Q_REGREP); return REGEX_SEARCH;  /* search-replace pattern */ }
 	YY_BREAK
 case 51:
@@ -1833,115 +1834,115 @@ YY_LINENO_REWIND_TO(yy_cp - 1);
 (yy_c_buf_p) = yy_cp -= 1;
 YY_DO_BEFORE_ACTION; /* set up yytext again */
 YY_RULE_SETUP
-#line 182 "yyQLexer.l"
+#line 181 "yyQLexer.l"
 {            yyleng--;  BEGIN(Q_REGOPT); return REGEX_REPLACE; /* search-replace replacement, +modifiers */ }
 	YY_BREAK
 case 52:
 /* rule 52 can match eol */
 YY_RULE_SETUP
-#line 183 "yyQLexer.l"
+#line 182 "yyQLexer.l"
 {            yyleng--;  BEGIN(INITIAL);  	 return REGEX_REPLACE; /* search-replace replacement, -modifiers */ }
 	YY_BREAK
 case 53:
 YY_RULE_SETUP
-#line 184 "yyQLexer.l"
+#line 183 "yyQLexer.l"
 {                       BEGIN(INITIAL);          return REGOPT; }
 	YY_BREAK
 /* punctuation */
 case 54:
 YY_RULE_SETUP
-#line 187 "yyQLexer.l"
+#line 186 "yyQLexer.l"
 { return HASH_EQUAL; /* hash+equal: exact distance */ }
 	YY_BREAK
 case 55:
 YY_RULE_SETUP
-#line 188 "yyQLexer.l"
+#line 187 "yyQLexer.l"
 { return HASH_LESS; /* hash+less: max distance */ }
 	YY_BREAK
 case 56:
 YY_RULE_SETUP
-#line 189 "yyQLexer.l"
+#line 188 "yyQLexer.l"
 { return HASH_GREATER; /* hash+greater: min distance */ }
 	YY_BREAK
 case 57:
 YY_RULE_SETUP
-#line 190 "yyQLexer.l"
+#line 189 "yyQLexer.l"
 { return DOLLAR_DOT; /* dollar+dot: anchor operator (position-index in segment) */ }
 	YY_BREAK
 case 58:
 YY_RULE_SETUP
-#line 191 "yyQLexer.l"
+#line 190 "yyQLexer.l"
 { return COLON_LBRACE; /* thesaurus-query opener */ }
 	YY_BREAK
 case 59:
 YY_RULE_SETUP
-#line 192 "yyQLexer.l"
+#line 191 "yyQLexer.l"
 { return AT_LBRACE; /* literal-set opener */ }
 	YY_BREAK
 case 60:
 YY_RULE_SETUP
-#line 193 "yyQLexer.l"
+#line 192 "yyQLexer.l"
 { return STAR_LBRACE; /* prefix-set opener */ }
 	YY_BREAK
 case 61:
 YY_RULE_SETUP
-#line 194 "yyQLexer.l"
+#line 193 "yyQLexer.l"
 { return RBRACE_STAR; /* suffix-set closer */ }
 	YY_BREAK
 case 62:
 YY_RULE_SETUP
-#line 195 "yyQLexer.l"
+#line 194 "yyQLexer.l"
 { return (int)yytext[0]; /* single-character punctuation operators */ }
 	YY_BREAK
 case 63:
 YY_RULE_SETUP
-#line 196 "yyQLexer.l"
+#line 195 "yyQLexer.l"
 { return (int)yytext[0]; /* parentheses */ }
 	YY_BREAK
 case 64:
 YY_RULE_SETUP
-#line 197 "yyQLexer.l"
+#line 196 "yyQLexer.l"
 { return (int)yytext[0]; /* double-quotes */ }
 	YY_BREAK
 /* truncated symbols */
 case 65:
 /* rule 65 can match eol */
 YY_RULE_SETUP
-#line 200 "yyQLexer.l"
+#line 199 "yyQLexer.l"
 { yytext+=2; yyleng-=4; return INFIX;  /* dual-truncated quoted string (infix symbol) */ }
 	YY_BREAK
 case 66:
 /* rule 66 can match eol */
 YY_RULE_SETUP
-#line 201 "yyQLexer.l"
+#line 200 "yyQLexer.l"
 { yytext++;  yyleng-=3; return PREFIX; /* right-truncated quoted string (prefix symbol) */ }
 	YY_BREAK
 case 67:
 /* rule 67 can match eol */
 YY_RULE_SETUP
-#line 202 "yyQLexer.l"
+#line 201 "yyQLexer.l"
 { yytext+=2; yyleng-=3; return SUFFIX; /* left-truncated quoted string (suffix symbol) */ }
 	YY_BREAK
 case 68:
 YY_RULE_SETUP
-#line 204 "yyQLexer.l"
+#line 203 "yyQLexer.l"
 { yytext++; yyleng-=2; return INFIX;  /* dual-truncated bare string (infix symbol) */ }
 	YY_BREAK
 case 69:
 YY_RULE_SETUP
-#line 205 "yyQLexer.l"
+#line 204 "yyQLexer.l"
 {           yyleng--; return PREFIX; /* right-truncated bare string (prefix symbol) */ }
 	YY_BREAK
 case 70:
 YY_RULE_SETUP
-#line 206 "yyQLexer.l"
+#line 205 "yyQLexer.l"
 { yytext++; yyleng--; return SUFFIX; /* left-truncated bare string (suffix symbol) */ }
 	YY_BREAK
 /* numeric tokens */
 /* + fix mantis bug #14812: put these AFTER truncated symbols so that e.g. (19*) is paresed as ('19'*) rather than ('19' && *) */
 case 71:
 YY_RULE_SETUP
-#line 210 "yyQLexer.l"
+#line 209 "yyQLexer.l"
 { yytext++; yyleng-=2; return INTEGER; }
 	YY_BREAK
 case 72:
@@ -1951,17 +1952,17 @@ YY_LINENO_REWIND_TO(yy_cp - 1);
 (yy_c_buf_p) = yy_cp -= 1;
 YY_DO_BEFORE_ACTION; /* set up yytext again */
 YY_RULE_SETUP
-#line 211 "yyQLexer.l"
+#line 210 "yyQLexer.l"
 { return INTEGER; }
 	YY_BREAK
 case 73:
 YY_RULE_SETUP
-#line 212 "yyQLexer.l"
+#line 211 "yyQLexer.l"
 { return INTEGER; }
 	YY_BREAK
 case 74:
 YY_RULE_SETUP
-#line 214 "yyQLexer.l"
+#line 213 "yyQLexer.l"
 { yytext++; yyleng-=2; return DATE; }
 	YY_BREAK
 case 75:
@@ -1971,99 +1972,99 @@ YY_LINENO_REWIND_TO(yy_cp - 1);
 (yy_c_buf_p) = yy_cp -= 1;
 YY_DO_BEFORE_ACTION; /* set up yytext again */
 YY_RULE_SETUP
-#line 215 "yyQLexer.l"
+#line 214 "yyQLexer.l"
 { return DATE; }
 	YY_BREAK
 /* single-term wildcard */
 case 76:
 YY_RULE_SETUP
-#line 218 "yyQLexer.l"
+#line 217 "yyQLexer.l"
 { return '*'; }
 	YY_BREAK
 /* term expander pipelines */
 case 77:
 YY_RULE_SETUP
-#line 221 "yyQLexer.l"
+#line 220 "yyQLexer.l"
 { BEGIN(Q_XPIPE); }
 	YY_BREAK
 case 78:
 /* rule 78 can match eol */
 YY_RULE_SETUP
-#line 222 "yyQLexer.l"
+#line 221 "yyQLexer.l"
 { ; /* whitespace: skip */ }
 	YY_BREAK
 case 79:
 YY_RULE_SETUP
-#line 223 "yyQLexer.l"
+#line 222 "yyQLexer.l"
 { yyleng=0;            BEGIN(INITIAL); return EXPANDER; /* default term expander (alias "-" for "") */ }
 	YY_BREAK
 case 80:
 /* rule 80 can match eol */
 YY_RULE_SETUP
-#line 224 "yyQLexer.l"
+#line 223 "yyQLexer.l"
 { yytext++; yyleng-=2; BEGIN(INITIAL); return EXPANDER; /* quoted term expander label */ }
 	YY_BREAK
 case 81:
 YY_RULE_SETUP
-#line 225 "yyQLexer.l"
+#line 224 "yyQLexer.l"
 {                      BEGIN(INITIAL); return EXPANDER; /* bare term expander label */ }
 	YY_BREAK
 case YY_STATE_EOF(Q_XPIPE):
-#line 226 "yyQLexer.l"
+#line 225 "yyQLexer.l"
 { yyleng=0;	       BEGIN(INITIAL); return EXPANDER; /* empty term expander label (default) */ }
 	YY_BREAK
 case 82:
 YY_RULE_SETUP
-#line 227 "yyQLexer.l"
+#line 226 "yyQLexer.l"
 { yyleng=0;	       BEGIN(INITIAL); return EXPANDER; /* empty term expander label (default) */ }
 	YY_BREAK
 /* index names (special handling to allow count(foo) #by[$w+1] */
 case 83:
 YY_RULE_SETUP
-#line 230 "yyQLexer.l"
+#line 229 "yyQLexer.l"
 { yytext++; yyleng--;   return INDEX; /* dollar-prefixed index name bareword */ }
 	YY_BREAK
 case 84:
 /* rule 84 can match eol */
 YY_RULE_SETUP
-#line 231 "yyQLexer.l"
+#line 230 "yyQLexer.l"
 { yytext+=2; yyleng-=3; return INDEX; /* dollar-prefixed index name, quoted */ }
 	YY_BREAK
 case 85:
 YY_RULE_SETUP
-#line 232 "yyQLexer.l"
+#line 231 "yyQLexer.l"
 { return '$';   		      /* bare dollar */ }
 	YY_BREAK
 /* symbols (initial state only) */
 case 86:
 /* rule 86 can match eol */
 YY_RULE_SETUP
-#line 235 "yyQLexer.l"
+#line 234 "yyQLexer.l"
 { yytext++; yyleng-=2; return SYMBOL; /* single-quoted symbol */ }
 	YY_BREAK
 case 87:
 YY_RULE_SETUP
-#line 236 "yyQLexer.l"
+#line 235 "yyQLexer.l"
 { return SYMBOL;                      /* bareword symbol (initial state only; not in Q_MATCHID) */ }
 	YY_BREAK
 /* misc */
 case 88:
 /* rule 88 can match eol */
 YY_RULE_SETUP
-#line 239 "yyQLexer.l"
+#line 238 "yyQLexer.l"
 { ; /* whitespace: skip */ }
 	YY_BREAK
 case 89:
 YY_RULE_SETUP
-#line 240 "yyQLexer.l"
+#line 239 "yyQLexer.l"
 { return (int)yytext[0]; /* any other character (byte) is its own token */ }
 	YY_BREAK
 case 90:
 YY_RULE_SETUP
-#line 242 "yyQLexer.l"
+#line 241 "yyQLexer.l"
 ECHO;
 	YY_BREAK
-#line 2067 "yyQLexer.cpp"
+#line 2068 "yyQLexer.cpp"
 case YY_STATE_EOF(INITIAL):
 case YY_STATE_EOF(S_NOID):
 case YY_STATE_EOF(Q_DATE):
@@ -3116,11 +3117,13 @@ void yyqfree (void * ptr )
 
 /* %ok-for-header */
 
-#line 241 "yyQLexer.l"
+#line 240 "yyQLexer.l"
 
 
 /*======================================================================
  * C Code
  */
 int yyqLexer::yywrap(void) { return 1; }
+
+void yyqLexer::yy_begin(int new_state) { BEGIN(new_state); }
 

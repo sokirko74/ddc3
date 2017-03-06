@@ -150,6 +150,7 @@ bool CQueryCompiler::ParseQuery(const string &QueryStr)
 	// then right now the parser is in  the last state,  which is not  "INITIAL".
 	//yy_start = 0;
 	//switch_streams((istream*)(&QueryStream), NULL);
+	yybegin(0);
 	yyrestart((istream*)(&QueryStream));
 
 	//-- actual parse
@@ -169,20 +170,12 @@ bool CQueryCompiler::ParseQuery(const string &QueryStr)
 	return true;
 }
 
-void CQueryCompiler::yypushq(int new_state)
+void CQueryCompiler::yybegin(int new_state)
 {
 #if DEBUG_LEXER
-	fprintf(stderr, "CQueryCompiler::yypushq(%d)\n", new_state);
+	fprintf(stderr, "CQueryCompiler::yybegin(%d)\n", new_state);
 #endif
-	yy_push_state(new_state);
-}
-
-void CQueryCompiler::yypopq()
-{
-#if DEBUG_LEXER
-	fprintf(stderr, "CQueryCompiler::yypopq() -> %d\n", yy_top_state());
-#endif
-	yy_pop_state();
+	yy_begin(new_state);
 }
 
 void CQueryCompiler::CleanParser()
