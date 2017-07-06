@@ -1079,16 +1079,16 @@ string CQKeys::jsonData()
 
 void GenerateCountString(string &ResultStr, DDCFormatTypeEnum fmt, const string& key, size_t count)
 {
-  char keysep[2] = {globalCountKeyDelim,'\0'};
-  StringTokenizer keytok(key.c_str(), keysep);
+  string    	  keysep(1,globalCountKeyDelim);
+  StringSplitter  keysplit(key, keysep);
 
   switch (fmt) {
   case DDC_ResultJson:
     //-- count strings, json format "[[COUNT, KEY0, KEY1, ... ], ..., [COUNT, KEY0, KEY1, ...]"
     ResultStr += Format("[%zi", count);
-    while (keytok()) {
+    for (; keysplit; ++keysplit) {
       ResultStr.push_back(',');
-      ResultStr.append(jsonStr(keytok.val()));
+      ResultStr.append(jsonStr(*keysplit));
     }
     ResultStr.push_back(']');
     break;
@@ -1096,8 +1096,8 @@ void GenerateCountString(string &ResultStr, DDCFormatTypeEnum fmt, const string&
   case DDC_ResultHTML:
     //-- count strings, html
     ResultStr += Format("<TR><TD>%zi</TD>", count);
-    while (keytok()) {
-      ResultStr += "<TD>" + ConvertASCIIToHtmlSymbols(keytok.val()) + "</TD>";
+    for (; keysplit; ++keysplit) {
+      ResultStr += "<TD>" + ConvertASCIIToHtmlSymbols(*keysplit) + "</TD>";
     }
     ResultStr += "</TR>\n";
     break;
@@ -1108,9 +1108,9 @@ void GenerateCountString(string &ResultStr, DDCFormatTypeEnum fmt, const string&
   default:
     //-- count strings, text or table
     ResultStr += Format("%zi", count);
-    while (keytok()) {
+    for (; keysplit; ++keysplit) {
       ResultStr.push_back('\t');
-      ResultStr += keytok.val();
+      ResultStr += *keysplit;
     }
     ResultStr.push_back('\n');
     break;

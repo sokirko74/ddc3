@@ -1,3 +1,5 @@
+//-*- Mode: C++ -*-
+//
 //  DDC originally by Alexey Sokirko
 //  Changes and modifications 2011-2016 by Bryan Jurish
 //
@@ -138,6 +140,74 @@ std::string vFormat( const char* format, va_list& args );
 
 /** wrapper for strerror_r() if available, otherwise wraps strerror() */
 char* StrError(int ErrorNo);
+
+//@}
+
+//----------------------------------------------------------------------
+//\name string splitting
+//@{
+
+/** pseudo-replacement for StringTokenizer (from utilit.h) which allows empty tokens
+ * \detail see also stringSplitE() from utilit.cpp
+ */
+
+/** pseudo-replacement for StringTokenizer (from utilit.h) which allows empty tokens
+ * \detail see also stringSplitE() from utilit.cpp
+ */
+class StringSplitter {
+public:
+  const string *srcp;		///< source string (reference)
+  const string *delimp;		///< delimiter characters (reference)
+  size_t begi;			///< start position of current token (string::npos after initilization)
+  size_t endi;			///< end position of current token
+
+public:
+
+  /** constructor; positions at first available token */
+  inline StringSplitter(const string& src, const string& delims)
+    : srcp(&src), delimp(&delims)
+  {
+    begin();
+  };
+
+  /** position iterators to first token */
+  inline void begin()
+  {
+    begi = 0;
+    endi = srcp->find_first_of(*delimp, begi);
+  };
+
+  /** returns true iff the iterators point to a valid token */
+  inline bool valid() const
+  { return begi != std::string::npos; };
+
+  /** cast-to-bool: wrapper for valid() */
+  inline operator bool() const
+  { return valid(); };
+
+  /** get current token substring - should only be called if valid() is true */
+  inline std::string current() const
+  { return endi==std::string::npos ? srcp->substr(begi) : srcp->substr(begi,endi-begi); };
+
+  /** dereference operator wraps current() */
+  inline string operator*() const
+  { return current(); };
+  
+  /** increment to next available token */
+  inline void next()
+  {
+    begi = endi==std::string::npos ? endi : (endi+1);
+    endi = begi==std::string::npos ? begi : srcp->find_first_of(*delimp,begi);
+  };
+
+  /** increment operator wraps next() */
+  inline StringSplitter& operator++()
+  {
+    next();
+    return *this;
+  };
+};
+
 
 //@}
 
