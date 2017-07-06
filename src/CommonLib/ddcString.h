@@ -156,15 +156,15 @@ char* StrError(int ErrorNo);
  */
 class StringSplitter {
 public:
-  const string *srcp;		///< source string (reference)
-  const string *delimp;		///< delimiter characters (reference)
+  const std::string *srcp;	///< source string (reference)
+  const std::string *delimp;	///< delimiter characters (reference)
   size_t begi;			///< start position of current token (string::npos after initilization)
   size_t endi;			///< end position of current token
 
 public:
 
   /** constructor; positions at first available token */
-  inline StringSplitter(const string& src, const string& delims)
+  inline StringSplitter(const std::string& src, const std::string& delims)
     : srcp(&src), delimp(&delims)
   {
     begin();
@@ -190,7 +190,7 @@ public:
   { return endi==std::string::npos ? srcp->substr(begi) : srcp->substr(begi,endi-begi); };
 
   /** dereference operator wraps current() */
-  inline string operator*() const
+  inline std::string operator*() const
   { return current(); };
   
   /** increment to next available token */
