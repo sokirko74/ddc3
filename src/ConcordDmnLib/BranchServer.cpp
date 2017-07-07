@@ -878,10 +878,11 @@ void CDDCBranchServer::GetFirstHitsFromCorpora(const DwordVector& PossibleHosts,
 		Result.m_AllRelevantDocsCount += RelevantDocumentsCount;
 		RelevantDocsDistribution[HostNo] = RelevantDocumentsCount;
 		Result.m_SortOrder = (HitSortOrderEnum)iSort;
-#ifdef DDC_COUNT_KEY_COMPAT
+		//#ifdef DDC_COUNT_KEY_COMPAT
 		//-- hack for transition to v2.0.38; see DDC_COUNT_KEY_COMPAT definition in ConcCommon.h
+		//   + also need for v2.1.4 fixes
 		bool isCountResult = IsCountSort(Result.m_SortOrder);
-#endif
+		//#endif
 
 		HSDEBUG( Format("DEBUG[status:%s]=\"%s\" --> iSort=%d", Host.m_CorpusName.c_str(), S.c_str(), iSort) );
 
@@ -933,7 +934,10 @@ void CDDCBranchServer::GetFirstHitsFromCorpora(const DwordVector& PossibleHosts,
 					if (bi==end) *bj = '\0';
 				    }
 #endif // DDC_COUNT_KEY_COMPAT
-				    HS.m_SortKeyStr = SortKeyBuf;
+				    if (isCountResult && SortKeyBuf[0]=='\002')
+					HS.m_SortKeyStr = &(SortKeyBuf[1]); //-- suppress empty initial sort-key fields for ddc-2.1.4
+				    else
+					HS.m_SortKeyStr = SortKeyBuf;
 				}
 
 				Result.m_Hits.push_back(HS);
