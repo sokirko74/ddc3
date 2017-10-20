@@ -185,50 +185,6 @@ public:
 };
 
 
-/**
-	The Reenterable replacement of strtok().
-
-
-	Usage:		
-
-	char *text = "word, word2;word3"
-	StringTokenizer token(text, " ,;");
-	const char *word;
-	while((word = token())){
-		// handle token here
-	}
-
-
-*/
-class StringTokenizer{
-	char *text_ptr;
-	char *text;
-	int i;
-	string delims;
-	char *_val;
-
-	bool is_delim(char ch) const;
-	void initialize(const char *_text, const char *_delims);
-public:
-	//-------------------------------------------------------
-	StringTokenizer(const char *_text, const char *_delims);
-	~StringTokenizer();
-	const char * operator ()();
-	string next_token ();
-
-	const char * get_rest () const;
-	const char *val() const;
-	int  count() const;
-	bool has_next() const;
-	void reinitialize(const char *_text, const char *_delims);
-
-	//! moo: append all remaining tokens to a string vector (consumes the rest of the source string)
-	void get_tokens(vector<string> &tokens) {
-	  while ( operator()() ) {
-	    tokens.push_back(_val);
-	  }
-	};
-};
-
+/*-- class StringTokenizer moved to ../CommonLib/ddcString.h; moocow 2017-10-20 10:27:56+0200 --*/
 
 #endif

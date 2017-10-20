@@ -147,10 +147,71 @@ char* StrError(int ErrorNo);
 //\name string splitting
 //@{
 
-/** pseudo-replacement for StringTokenizer (from utilit.h) which allows empty tokens
+//--------------------------------------------------------------
+/** old string tokenizer from ../common/util_classes.h, utilit.cpp, rsp. ../common/string_tokenizer.h
  * \detail see also stringSplitE() from utilit.cpp
  */
+/**
 
+	The Reenterable replacement of strtok().
+
+
+	Usage:		
+
+	char *text = "word, word2;word3"
+	StringTokenizer token(text, " ,;");
+	const char *word;
+	while((word = token())){
+		// handle token here
+	}
+*/
+class StringTokenizer {
+  char *text_ptr;
+  char *text;
+  int i;
+
+  //-------------------------------------------------------
+  std::string delims;
+  inline bool is_delim(char ch) const
+  { return delims.find_first_of(ch) != std::string::npos; }
+  
+  char *_val;
+
+public:
+  //-------------------------------------------------------
+  // constructors etc.
+  StringTokenizer(const char *_text, const char *_delims=" \t\r\n");
+  ~StringTokenizer();
+
+  void initialize(const char *_text, const char *_delims=" \t\r\n");
+  void reinitialize(const char *_text, const char *_delims=" \t\r\n");
+  
+  //-------------------------------------------------------
+  // API
+  const char * operator ()();
+  std::string next_token();
+
+  inline const char * get_rest () const
+  { return text; };
+  
+  inline const char *val() const
+  { return _val; };
+  
+  inline int count() const
+  { return i; };
+ 
+  inline bool has_next() const
+  { return (*text) != '\0'; };
+
+  //! moo: append all remaining tokens to a string vector (consumes the rest of the source string)
+  void get_tokens(std::vector<std::string> &tokens);
+
+  //! moo: get all remaining text as a single token, trimming any initial or trailing delimiters
+  const char* get_rest_trim();
+};
+
+
+//--------------------------------------------------------------
 /** pseudo-replacement for StringTokenizer (from utilit.h) which allows empty tokens
  * \detail see also stringSplitE() from utilit.cpp
  */
@@ -207,6 +268,15 @@ public:
     return *this;
   };
 };
+
+//----------------------------------------------------------------------
+//\name string trimming
+//@{
+
+/** constructive variant of Trim() from utilit.(h|cpp): trims leading and trailing whitespace from argument, returns new trimmed string */
+std::string TrimSafe(const std::string &str);
+
+//@}
 
 
 //@}

@@ -181,8 +181,7 @@ bool CConcIndexator::LoadOptionsFromString(string Options)
 		
 		if (q == "#include" || q == "include")
 		{
-			q = fields.get_rest();
-			Trim(q);
+			q = fields.get_rest_trim();
 			if ((q.length() < 2) || (q[0] != '\"') || (q[q.length() -1] != '\"'))
 				throw CExpc("could not parse opt-file directive `%s'", s);
 			string AddOptions;
@@ -456,11 +455,11 @@ bool CConcIndexator::LoadOptionsFromString(string Options)
 			}
 		else if (q == "Indices")
 			{
-				IndicesStr = fields.get_rest();
+				IndicesStr = fields.get_rest_trim();
 			}
 		else if (q == "HitBorders")
 			{
-				HitTypesStr = fields.get_rest();
+				HitTypesStr = fields.get_rest_trim();
 			}
 		else if (q == "IndexPunctuation")
 			{
@@ -513,7 +512,7 @@ bool CConcIndexator::LoadOptionsFromString(string Options)
 			}
  		else if (q == "Expand") {
 			//-- term expander
-			string tx_spec(fields.get_rest());
+			string tx_spec(fields.get_rest_trim());
 			CTermExpander *tx = m_Txd.addExpander(tx_spec);
 			if (tx==NULL)
 				throw CExpc("could not create term-expander for spec `%s'", tx_spec.c_str());
@@ -522,7 +521,7 @@ bool CConcIndexator::LoadOptionsFromString(string Options)
 		}
 		else if (q == "ExpandBibl") {
 			//-- bibliographic expander
-			string bx_spec(fields.get_rest());
+			string bx_spec(fields.get_rest_trim());
 			CBiblExpander *bx = m_Bibl.AddBiblExpander(bx_spec);
 			if (bx==NULL)
 				throw CExpc("could not create bibliographic expander for spec `%s'", bx_spec.c_str());
@@ -540,12 +539,12 @@ bool CConcIndexator::LoadOptionsFromString(string Options)
 		}
 		else if (q == "ServerInfo") {
 			string info_key = unescapeCString(fields.next_token());
-			string info_val = fields.get_rest();
+			string info_val = fields.get_rest_trim();
 			m_ServerInfo[info_key] = make_pair(false,info_val);
 		}
 		else if (q == "ServerInfoFile") {
 			string info_key = unescapeCString(fields.next_token());
-			string info_val = unescapeCString(fields.get_rest());
+			string info_val = unescapeCString(fields.get_rest_trim());
 			m_ServerInfo[info_key] = make_pair(true,info_val);
 		}
 		else

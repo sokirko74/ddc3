@@ -408,3 +408,100 @@ char* StrError(int ErrorNo)
   return strerror(ErrorNo);
 #endif
 }
+
+//======================================================================
+// string tokenization
+
+//--------------------------------------------------------------
+void StringTokenizer::initialize(const char *_text, const char *_delims)
+{
+	delims = _delims;
+	i = -1;
+	size_t leng = strlen(_text);
+	text_ptr = new char[leng+2];
+	text = text_ptr;
+	strcpy(text, _text);
+	text[leng+1] = 0;
+}
+
+void StringTokenizer::reinitialize(const char *_text, const char *_delims)
+{
+	assert (text_ptr);
+	delete[] text_ptr;
+	initialize(_text, _delims);
+}
+
+//--------------------------------------------------------------
+StringTokenizer::StringTokenizer(const char *_text, const char *_delims)
+{
+  initialize(_text, _delims);
+}
+
+//--------------------------------------------------------------
+StringTokenizer::~StringTokenizer()
+{
+  delete[] text_ptr;
+}
+
+//--------------------------------------------------------------
+const char * StringTokenizer::operator()()
+{
+  ++i;
+  // skip delims
+  while(*text && is_delim(*text))
+    text++;
+
+  if(*text == '\0')
+    return NULL;
+
+  char *ret_val = text;
+  while(*text && !is_delim(*text))
+    text++;
+  *text++ = '\0';
+  _val = ret_val;
+
+  if (_val == NULL)
+    throw CExpc ("Exception in StringTokenizer::operator ()");
+  
+  return ret_val;
+}
+
+//--------------------------------------------------------------
+std::string StringTokenizer::next_token ()
+{
+  const char* s = operator()();
+  if (s) 
+    return s;
+  else 
+    return std::string();
+}
+
+//--------------------------------------------------------------
+void StringTokenizer::get_tokens(std::vector<std::string> &tokens)
+{
+  while ( operator()() )
+    tokens.push_back(_val);
+}
+
+//--------------------------------------------------------------
+const char* StringTokenizer::get_rest_trim()
+{
+  char *s = text;
+  while (*s && is_delim(*s)) ++s;
+  int j = strlen(s) - 1;
+  while (j >= 0 && (s[j]=='\0' || is_delim(s[j]))) --j;
+  s[j+1] = '\0';
+  return s;
+}
+
+//======================================================================
+// string trimming
+
+//--------------------------------------------------------------
+std::string TrimSafe(const std::string &str)
+{
+  size_t i = str.find_first_not_of(" \t\r\n");
+  size_t j = str.find_last_not_of(" \t\r\n", i);
+  if (i >= j) return string();
+  return str.substr(i, j-i);
+}

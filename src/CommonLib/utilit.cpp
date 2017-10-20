@@ -1892,7 +1892,6 @@ string& Trim (string& str)
 };
 
 
-
 const string open_brackets = "{[(<";
 const string close_brackets = "}])>";
 const string all_brackets = open_brackets+close_brackets;
@@ -2646,84 +2645,7 @@ DWORD StringCrc32(const char* szString)
 	return ~dwCrc32;
 }
 
-// ====================   StringTokenizer =======================
-
-void StringTokenizer::initialize(const char *_text, const char *_delims)
-{
-	delims = _delims;
-	i = -1;
-	size_t leng = strlen(_text);
-	text_ptr = new char[leng+2];
-	text = text_ptr;
-	strcpy(text, _text);
-	text[leng+1] = 0;
-};
-
-StringTokenizer::StringTokenizer(const char *_text, const char *_delims)
-{
-	initialize(_text, _delims);
-}
-
-StringTokenizer::~StringTokenizer(){
-	delete []text_ptr;
-}
-
-const char * StringTokenizer::get_rest () const 
-{ 
-	return text;	
-};
-const char * StringTokenizer::val() const  
-{
-	return _val;
-}
-int  StringTokenizer::count() const  
-{
-	return i;
-}
-bool StringTokenizer::has_next() const 
-{
-	return (*text) != 0;
-}
-bool StringTokenizer::is_delim(char ch) const
-{
-		return delims.find_first_of(ch) != string::npos;
-}
-
-
-void StringTokenizer::reinitialize(const char *_text, const char *_delims)
-{
-	assert (text_ptr);
-	delete []text_ptr;
-	initialize(_text, _delims);
-}
-
-const char * StringTokenizer::operator ()()
-{
-	++i;
-	// skip delims
-	while(*text && is_delim(*text))
-		text++;
-
-	if(*text == 0)	return 0;
-
-	char *ret_val = text;
-
-	while(*text && !is_delim(*text))
-		text++;
-	*text++ = 0;
-	_val = ret_val;
-	if (_val == 0)
-		throw CExpc ("Exception in StringTokenizer::operator ()");
-	return ret_val;
-}
-string StringTokenizer::next_token ()
-{
-	const char* s = operator()();
-	if (s) 
-		return s;
-	else 
-		return string();
-}
+// ====================   StringTokenizer : now lives in ddcString.cpp !
 
 
 
