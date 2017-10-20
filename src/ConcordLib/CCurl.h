@@ -84,6 +84,9 @@ public:
   //! current timeout (seconds; default=60)
   long m_Timeout;
 
+  //! maximum number of redirects (-1:no limit, 0:none)
+  long m_Redirects;
+
   //! local curl error buffer
   char m_CurlErr[CURL_ERROR_SIZE];
 
@@ -95,7 +98,7 @@ public:
 
 public:
   //! constructor implicitly calls url(url)
-  CCurl(const string &url_=string(""), long timeout_=60);
+  CCurl(const string &url_=string(""), long timeout_=60, long redirects_=10);
 
   //! destructor implicitly frees m_Curl
   ~CCurl(void);
@@ -134,6 +137,14 @@ public:
 
   //! set timeout (seconds)
   void timeout(long seconds);
+
+  //--------
+  //! get maximum number of redirects (-1: no limit)
+  inline long redirects(void)
+  { return m_Redirects; };
+
+  //! set maximum number of redirects (-1: no limit, 0: disabled)
+  void redirects(long redirects_);
 
   //--------
   //! wrap CURLOPT_FORBID_REUSE: if true, a new connection will be established for each perform()

@@ -38,10 +38,18 @@
 #define CURLOPT_VERBOSE -1
 #define CURLOPT_NOSIGNAL -1
 #define CURLOPT_FAILONERR -1
+#define CURLOPT_FOLLOWLOCATION -1
+#define CURLOPT_MAXREDIRS -1
+#define CURLOPT_POSTREDIR -1
+#define CURL_REDIR_POST_ALL -1
 #define curl_easy_setopt(handle,opt,val)
 #define curl_easy_perform(handle) -1
 #define curl_easy_cleanup(handle) -1
 #endif /* HAVE_LIBCURL */
+
+#ifndef CURL_REDIR_POST_ALL
+# define CURL_REDIR_POST_ALL -1L
+#endif
 
 //======================================================================
 // Globals
@@ -70,7 +78,7 @@ void ddcInitCurl(void) {
 // CCurl
 
 //--------------------------------------------------------------
-CCurl::CCurl(const string &url_, long timeout_)
+CCurl::CCurl(const string &url_, long timeout_, long redirects_)
   : m_Curl(NULL)
 {
   ddcInitCurl();
@@ -79,6 +87,7 @@ CCurl::CCurl(const string &url_, long timeout_)
   reset();
   url(url_);
   timeout(timeout_);
+  redirects(redirects_);
 };
 
 //--------------------------------------------------------------
@@ -144,6 +153,15 @@ void CCurl::timeout(long seconds)
 {
   m_Timeout = seconds;
   curl_easy_setopt(m_Curl, CURLOPT_TIMEOUT, seconds);
+}
+
+//--------------------------------------------------------------
+void CCurl::redirects(long redirects_)
+{
+  m_Redirects = redirects_;
+  curl_easy_setopt(m_Curl, CURLOPT_FOLLOWLOCATION, 1);
+  curl_easy_setopt(m_Curl, CURLOPT_MAXREDIRS, m_Redirects);
+  curl_easy_setopt(m_Curl, CURLOPT_POSTREDIR, CURL_REDIR_POST_ALL);
 }
 
 //--------------------------------------------------------------
