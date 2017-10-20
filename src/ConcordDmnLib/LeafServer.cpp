@@ -1,7 +1,7 @@
 //-*- Mode: C++; c-basic-offset:4; -*-
 //
 //  DDC originally by Alexey Sokirko
-//  Changes and modifications 2011-2016 by Bryan Jurish
+//  Changes and modifications 2011-2017 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -280,12 +280,20 @@ void CDDCLeafServer::handle__info(string &Result, int timeout, bool verbose)
 				   + "\"xpath\":" + jsonStr(fbi->m_Xpath) + ", "
 #endif
 				   + "\"visible\":" + (fbi->m_bShowInHeader ? '1' : '0') + ", "
-				   + "\"size\":" + Format("%zd", fbi->size()) //-- bibl[i].size : number of breaks
+				   + "\"size\":" + Format("%zd", fbi->size()) //-- bibl[i].size : number of values (?)
 				   );
 			if (fbtyp==cfbiStringConstant) {
 			    Result += string(", \"value\":") + jsonStr(fbi->GetXpathStr(),ix->m_Utf8);
 			}
 			Result += "}";
+		}
+		const CConcXml::FreeBiblAliasMap& bamap = ix->m_Bibl.GetFreeBiblAliasMap();
+		for (CConcXml::FreeBiblAliasMap::const_iterator bai=bamap.begin(); bai!=bamap.end(); ++bai) {
+		    Result += (string(",\n\t\t{")
+			       + "\"name\":" + jsonStr(bai->first) + ", "
+			       + "\"ref\":" + jsonStr(bai->second)
+			       + "}"
+			       );
 		}
 		Result += "\n\t\t],\n\t";
 		//-- /info.bibl
