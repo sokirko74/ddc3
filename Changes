@@ -10,6 +10,9 @@ v2.1.5 Fri, 20 Oct 2017 09:22:51 +0200 moocow
 	  - fix uses new method StringTokenizer::get_rest_trim()
 	* added support for 32-bit unicode escapes (\UXXXXXXXX)
 	* fix mantis bug #22236: trim leading & trailing whitespace from "Bibl constant" fields
+	* added mantis feature #21495: added "Bibl alias" opt-file syntax & resolution
+	  - tested for #has[], #asc[], count-by[]
+	  - most recent declaration wins (analogous to previous handling for physical "Bibl" fields)
 
 v2.1.4 Fri, 07 Jul 2017 09:12:35 +0200 moocow
 	* suppress bogus initial empty field fix for branch-servers (bug introduced in v2.1.3)

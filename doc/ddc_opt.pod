@@ -656,13 +656,14 @@ XPATH is an X-Path.
 
 =head3 Bibl
 
- Bibl TYPE VISIBILITY NAME VALUE
+ Bibl alias            NAME VALUE
+ Bibl TYPE  VISIBILITY NAME VALUE
 
 (mostly from DDCReadme):
-Each C<Bibl> declaration describes a single bibliographical field (such as date of publication, author, and so on).
-The bibliographical field can be predefined ("orig", "scan", "date", "page", "pagerank") or free (user-defined).
-Predefined bibliographical fields have special processing in DDC, for example, field "scan" is used to build a hit
-header. Free bibliographical fields can contain either integer or string data: for both datatypes, one can use
+Each C<Bibl> declaration describes a single bibliographic field (such as date of publication, author, and so on).
+The bibliographic field can be predefined ("orig", "scan", "date", "page", "pagerank") or free (user-defined).
+Predefined bibliographic fields have special processing in DDC, for example, field "scan" is used to build a hit
+header. Free bibliographic fields can contain either integer or string data: for both datatypes, one can use
 the general filter operator or general order operators (C<#HAS> and C<#LESS_BY> respectively).
 The arguments to free C<Bibl> are:
 
@@ -670,11 +671,13 @@ The arguments to free C<Bibl> are:
 
 =item TYPE
 
-is the type of the bibliographic field; either C<string>, C<integer>, or C<constant>;
+is the type of the bibliographic field; either C<string>, C<integer>, C<constant>, or C<alias>.
 
 =item VISIBILITY
 
-either C<1> or C<0>: if it is "1",  then DDC displays the value of the field for each hit header;
+(only for non-C<alias> metadata fields);
+either C<1> or C<0>: if it is "1",  then DDC displays the value of the field for each hit header.
+For C<alias> fields, the C<VISIBILITY> flag should be omitted.
 
 =item NAME
 
@@ -684,21 +687,24 @@ a symbolic name for this bibliographic field (by convention all lower-case); and
 
 For the C<string> and C<integer> types, C<VALUE> should be an X-Path specification of the location
 of the field data in corpus source documents; for
-the C<constant> type, it should be a literal string indicating the value to be returned.
+the C<constant> type, it should be a literal string indicating the value to be returned,
+and for the C<alias> type, it should be the name of the target bibliographic field (or other alias)
+for which the pseudo-attribute C<NAME> is to serve as an alias.
 
 =back
 
 Note that additions, deletions, and/or changes to C<constant> bibliographic fields do B<not>
 require re-indexing, whereas any changes to non-C<constant> fields B<do>.
 
-As of v2.1.5, leading and trailing whitespace will be implicitly trimmed from C<VALUE> strings for metadata C<constant>s.
+As of v2.1.5, leading and trailing whitespace will be implicitly trimmed from C<VALUE> strings
+for metadata fields of type "C<constant>".
 
 Prior to v2.0.30, multiple definitions of a bibliographic field C<NAME> caused a fatal
 error when loading a corpus project.  As of v2.0.30, a warning is emitted in these cases,
 and the most recent definition is used (later definitions effectively "clobbering" earlier
 ones).
 
-Since v1.x; C<constant> fields since v2.0.27, multiple definition since v2.0.30.
+Since v1.x; C<alias> fields since v2.1.5, C<constant> fields since v2.0.27, multiple definition since v2.0.30.
 
 
 =head3 Bigrams

@@ -66,6 +66,7 @@ typedef enum {
 	cfbiString,
 	cfbiIntegerConstant, //-- unused
 	cfbiStringConstant,
+	cfbiStringAlias,	
 	cfbiOther
 } CFreeBiblIndexTypeId;
 
@@ -242,10 +243,12 @@ public:
 
 	//--------------------------------------------------------------
 	typedef map<string, CFreeBiblIndex*> FreeBiblStringMap;
-	typedef map<string, CBiblExpander*> BiblExpanderMap;
+	typedef map<string, string>          FreeBiblAliasMap;	
+	typedef map<string, CBiblExpander*>  BiblExpanderMap;
 
 private:
 	FreeBiblStringMap	m_FreeBiblIndices;
+	FreeBiblAliasMap	m_FreeBiblAlias;	
 	BiblExpanderMap		m_BiblExpanders;
 
 	vector<file_off_t>		m_EndOffsetsInBiblFile;
@@ -392,6 +395,10 @@ public:
 	{ return m_FreeBiblIndices; };
 
 	//! moo: ugly dangerous hack
+	const  FreeBiblAliasMap& GetFreeBiblAliasMap() const
+	{ return m_FreeBiblAlias; };
+	
+	//! moo: ugly dangerous hack
 	const  BiblExpanderMap& GetBiblExpanderMap() const
 	{ return m_BiblExpanders; };
 
@@ -399,8 +406,8 @@ public:
 	const vector<int>& GetDates() const
 	{ return m_Dates; };
 
-	//! moo: not quite as ugly or dangerous a hack
-	CFreeBiblIndex* GetFreeBiblIndex(const string& FreeBiblAttribName) const;
+	//! moo: not quite as ugly or dangerous a hack (respects aliases)
+	CFreeBiblIndex* GetFreeBiblIndex(const string& FreeBiblAttribNameOrAlias) const;
 
 	//! moo: not quite as ugly or dangerous a hack
 	CBiblExpander*  GetBiblExpander(const string& ExpanderName) const;

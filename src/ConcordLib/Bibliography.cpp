@@ -26,6 +26,7 @@
 const char IntegerTypeStr[] = "integer";
 const char StringTypeStr[]  = "string";
 const char StringConstantTypeStr[]  = "constant";
+const char StringAliasTypeStr[]  = "alias";
 const size_t MaxBiblStringLen = 20000;
 
 string& DeleteEoln (string& s)
@@ -216,27 +217,26 @@ bool CBibliography::ConvertDateToInt(int& Result) const
 //=============================================
 
 CConcXml::CFreeBiblIndex::CFreeBiblIndex()
-{
+{}
 
-}
 CConcXml::CFreeBiblIndex::~CFreeBiblIndex()
-{
-};
+{}
+
 void	CConcXml::CFreeBiblIndex::clear()
 {
 	m_bShowInHeader = false;
 	m_ValuesForEachFile.clear();
-};
+}
 
 string CConcXml::CFreeBiblIndex::GetStringValue(DWORD FileNo ) const 
 {
 	return Format("%i", (int)m_ValuesForEachFile[FileNo]);
-};
+}
 
 int CConcXml::CFreeBiblIndex::GetIntegerValue(DWORD FileNo ) const 
 {
 	return m_ValuesForEachFile[FileNo];
-};
+}
 
 
 
@@ -259,19 +259,19 @@ string  CConcXml::CFreeBiblIndex::GetDescriptionStr () const
 	return Format ("%s %s %i %s %s", 
 			FreeBiblAttribOptionFieldName.c_str(),  this->GetTypeStr().c_str(),
 		       m_bShowInHeader ? 1:0,  m_Name.c_str(),  this->GetXpathStr().c_str());
-};
+}
 
 string  CConcXml::CFreeBiblIndex::GetIndexFileName (string Path) const
 {
 	return MakeFName(Path, string("_bibl_")+m_Name+"_integers");
-};
+}
 
 void CConcXml::CFreeBiblIndex::CreateUnion (string Path, const CFreeBiblIndex* pIndex1, const CFreeBiblIndex* pIndex2) 
 {
 	m_ValuesForEachFile = pIndex1->m_ValuesForEachFile;
 	m_ValuesForEachFile.insert(m_ValuesForEachFile.end(),  pIndex2->m_ValuesForEachFile.begin(), pIndex2->m_ValuesForEachFile.end());
 	WriteVector(GetIndexFileName(Path), m_ValuesForEachFile);
-};
+}
 
 bool CConcXml::CFreeBiblIndex::GetFilterBounds (CDDCFilterWithBounds& Filter, const string &LoValue, const string &HiValue) const
 {
@@ -280,7 +280,7 @@ bool CConcXml::CFreeBiblIndex::GetFilterBounds (CDDCFilterWithBounds& Filter, co
 	Filter.m_KeyHi = HiValue.empty() ? INT_MAX : atoi(HiValue.c_str());
 	Filter.m_BiblIndex = this;
 	return true;
-};
+}
 
 bool CConcXml::CFreeBiblIndex::GetFilterValue (CDDCFilterWithBounds& Filter, const string &Value) const
 {
@@ -289,19 +289,19 @@ bool CConcXml::CFreeBiblIndex::GetFilterValue (CDDCFilterWithBounds& Filter, con
 	Filter.m_KeyHi = Filter.m_KeyLo.i+1;
 	Filter.m_BiblIndex = this;
 	return true;
-};
+}
 
 bool CConcXml::CFreeBiblIndex::GetFilterValues (CDDCFilterWithBounds& Filter, const string &Regex) const
 {
 	throw CExpc(errLogic,"%s::GetFilterValues(): field `%s' doesn't support regular expressions", typeid(*this).name(), m_Name.c_str());
 	return false;
-};
+}
 
 bool CConcXml::CFreeBiblIndex::GetFilterValues (CDDCFilterWithBounds& Filter, const set<string> &Values) const
 {
 	throw CExpc(errLogic,"%s::GetFilterValues(): field `%s' doesn't support set values", typeid(*this).name(), m_Name.c_str());
 	return false;
-};
+}
 
 bool CConcXml::CFreeBiblIndex::FileMatches(DWORD FileNo, const CDDCFilterWithBounds& Filter) const
 {
@@ -317,34 +317,34 @@ bool CConcXml::CFreeBiblIndex::RegisterBiblStringItemId(const string& ValueStr)
 	int u = ValueStr.empty() ? 0 : atoi(ValueStr.c_str());
 	m_ValuesForEachFile.push_back(u);
 	return true;
-};
+}
 
 
 bool CConcXml::CFreeBiblIndex::DeleteBiblFiles (string Path) const 
 {
 	return		remove(GetIndexFileName(Path).c_str()) == 0;
-};
+}
 
 
 bool CConcXml::CFreeBiblIndex::ConvertAndSaveToDiskAfterIndexing (string Path) 
 {
 	return WriteVector(GetIndexFileName(Path), m_ValuesForEachFile);
-};
+}
 
 string CConcXml::CFreeBiblIndex::GetTypeStr() const
 {
 	return IntegerTypeStr;
-};
+}
 
 CFreeBiblIndexTypeId CConcXml::CFreeBiblIndex::GetTypeId() const
 {
 	return cfbiInteger;
-};
+}
 
 const string& CConcXml::CFreeBiblIndex::GetXpathStr() const
 {
 	return m_Xpath;
-};
+}
 
 
 //=============================================
@@ -963,43 +963,45 @@ bool CConcXml::RegisterFreeBiblAttributes(string fields, string& ErrorStr)
 
 		string TypeStr = tok.val() ; 
 		bool   isConstant = false;
+		bool   isAlias    = false;
 		if ((TypeStr == StringTypeStr) || (TypeStr == IntegerTypeStr)) {
 			isConstant = false;
 		} else if (TypeStr == StringConstantTypeStr) {
 			isConstant = true;
+		} else if (TypeStr == StringAliasTypeStr) {
+			isAlias = true;
 		} else {
-			ErrorStr = Format("Error! Bad type \"%s\" in free bibliographical filed type; known types are \"%s\", \"%s\", and \"%s\"", TypeStr.c_str(), IntegerTypeStr, StringTypeStr, StringConstantTypeStr);
+			ErrorStr = Format("Error! Bad type \"%s\" in free bibliographical filed type; known types are \"%s\", \"%s\", \"%s\", and \"%s\"", TypeStr.c_str(), IntegerTypeStr, StringTypeStr, StringConstantTypeStr, StringAliasTypeStr);
 			return false;
 		};
 
-		// reading show in header 
-		if (!tok()) 
-		{
-			ErrorStr = "Error! Bad syntax in free bibliographical attribute description: missing visibility flag";
-			return false;
-		};
 
 		bool bShowInHeader;
-		{
+		if (!isAlias) {
+			//-- reading show in header ("visibility" flag)
+			if (!tok())  {
+				ErrorStr = "Error! Bad syntax in free bibliographical attribute description : missing visibility flag";
+				return false;
+			}
+
 			string ShowInHeaderStr = tok.val();
 			if (ShowInHeaderStr == "0")
 				bShowInHeader = false;
 			else
 				if (ShowInHeaderStr == "1")
 					bShowInHeader = true;
-				else
-				{
-					ErrorStr = "Error! the first column can in a free bibliographical attribute description should be 0 or 1";
+				else {
+					ErrorStr = "Error! the first column in a non-alias free bibliographical attribute description should be 0 or 1 (visibility flag)";
 					return false;	
-				};
-		};
+				}
+		}
 
 		// reading name
 		if (!tok()) 		
 		{
-			ErrorStr = "Error! Bad syntax in free bibliographical attribute description";
+			ErrorStr = "Error! Bad syntax in free bibliographical attribute description: missing attribute name";
 			return false;
-		};
+		}
 
 		string Name = tok.val();
 		string Xpath;
@@ -1010,12 +1012,36 @@ bool CConcXml::RegisterFreeBiblAttributes(string fields, string& ErrorStr)
 		}
 
 		// check xpath (or value for constants)
-		if (!isConstant && !CheckXPath(Xpath, ErrorStr)) {
+		if (!isConstant && !isAlias && !CheckXPath(Xpath, ErrorStr)) {
 			//-- just warn about dodgy-looking XPaths (fatal error prior to v2.0.29)
 			ErrorMessage( "WARNING", ErrorStr + Format(" for free bibliographical attribte `%s'", Name.c_str()) );
 			//return false;
 		}
 
+		//-- check for aliases
+		if (isAlias) {
+			if (Xpath.empty()) {
+				ErrorStr = Format("Error! Bad syntax in free bibliographical alias `%s': missing target attribute name", Name.c_str());
+				return false;
+			}
+			if (m_FreeBiblIndices.find(Name) != m_FreeBiblIndices.end()) {
+				//-- new alias clobbers old physical field
+				FreeBiblStringMap::iterator oldi = m_FreeBiblIndices.find(Name);
+				delete oldi->second;
+				m_FreeBiblIndices.erase(oldi);
+				ddcLogWarn(Format("Warning: bibliographic attribute alias `%s' -> `%s' overrides physical attribute `%s'",
+						  Name.c_str(), Xpath.c_str(), Name.c_str()));
+			}
+			if (m_FreeBiblAlias.find(Name) != m_FreeBiblAlias.end()) {
+				//-- new alias clobbers old alias
+				ddcLogWarn(Format("Warning: multiple definitions for bibliographic alias `%s', using most recent", Name.c_str()));
+			}
+			
+			m_FreeBiblAlias[Name] = Xpath;
+			continue;
+		}
+
+		//-- hacks for built-in fields
 		if (Name == "orig")
 			m_OrigXPath = Xpath;
 		else
@@ -1029,15 +1055,21 @@ bool CConcXml::RegisterFreeBiblAttributes(string fields, string& ErrorStr)
 			m_StartPageXPath = Xpath;
 		else
 		{
-			if ( m_FreeBiblIndices.find(Name) != m_FreeBiblIndices.end() ) 
-			{ 
+			if ( m_FreeBiblIndices.find(Name) != m_FreeBiblIndices.end() )  {
 				//-- just warn about duplicate bibl fields and use the most recent definitition
 				//   (prior to v2.0.29, multiple bibl fields with the same name caused a fatal error)
 				FreeBiblStringMap::iterator oldi = m_FreeBiblIndices.find(Name);
 				delete oldi->second;
+				m_FreeBiblIndices.erase(oldi);
 				ddcLogWarn(Format("Warning: multiple definitions for free bibliographic attribute `%s', using most recent", Name.c_str()));
-			};
-
+			}
+			if ( m_FreeBiblAlias.find(Name) != m_FreeBiblAlias.end() ) {
+				//-- just warn about clobbering an existng alias
+				ddcLogWarn(Format("Warning: physical free bibliographic attribute `%s' overrides alias `%s' -> `%s'",
+						  Name.c_str(), Name.c_str(), m_FreeBiblAlias[Name].c_str()));
+				m_FreeBiblAlias.erase(Name);
+			}
+			
 			CFreeBiblIndex* pIndex;
 			if (TypeStr == StringTypeStr) {
 				pIndex = new CFreeBiblStringIndex;
@@ -1086,7 +1118,11 @@ string CConcXml::GetFreeBibiAttributesDescr() const
 		Result += it->second->GetDescriptionStr();
 		Result += "\n";
 	};
-
+	for (FreeBiblAliasMap::const_iterator it = m_FreeBiblAlias.begin(); it != m_FreeBiblAlias.end(); it++)
+	{
+		Result += Format("Bibl alias %s %s\n", it->first.c_str(), it->second.c_str());
+	};
+	
 	return Result;
 };
 
@@ -1478,34 +1514,23 @@ CBiblExpander* CConcXml::AddBiblExpander(const string &spec)
 
 bool CConcXml::IsRegisteredBiblField(const string& FreeBiblAttribName) const
 {
-	const CFreeBiblIndex* pFreeAttrib = 0;	
-
-	if (!FreeBiblAttribName.empty()) {
-		FreeBiblStringMap::const_iterator it = m_FreeBiblIndices.find(FreeBiblAttribName);
-		if (it != m_FreeBiblIndices.end()) 
-			return true;
-	}
-	return false;
+	return !FreeBiblAttribName.empty() && GetFreeBiblIndex(FreeBiblAttribName) != NULL;
 }
 
 CFreeBiblIndexTypeId CConcXml::GetBiblFieldTypeId(const string& FreeBiblAttribName) const
 {
-	const CFreeBiblIndex* pFreeAttrib = 0;
-	if (!FreeBiblAttribName.empty()) {
-		FreeBiblStringMap::const_iterator bi = m_FreeBiblIndices.find(FreeBiblAttribName);
-		if (bi != m_FreeBiblIndices.end()) 
-			return bi->second->GetTypeId();
-	}
-	return cfbiUnknown;
+	const CFreeBiblIndex *fbi = FreeBiblAttribName.empty() ? NULL : GetFreeBiblIndex(FreeBiblAttribName);
+	if (!fbi) return cfbiUnknown; //-- attribute not found
+	return fbi->GetTypeId();
 }
 
 bool CConcXml::GetFilterBounds(CDDCFilterWithBounds& Filter, const string& LoValue, const string& HiValue) const
 {
 	Filter.clear();
 	//-- filter bounds: require physically indexed bibliographic field
-	FreeBiblStringMap::const_iterator it = m_FreeBiblIndices.find(Filter.m_AttrName);
-	if (it == m_FreeBiblIndices.end()) return false;  //-- attribute not found
-	return it->second->GetFilterBounds(Filter, LoValue, HiValue);
+	const CFreeBiblIndex *fbi = GetFreeBiblIndex(Filter.m_AttrName);
+	if (!fbi) return false; //-- attribute not found
+	return fbi->GetFilterBounds(Filter, LoValue, HiValue);
 }
 
 bool CConcXml::GetFilterValue(CDDCFilterWithBounds& Filter, const string& Value) const
@@ -1522,19 +1547,19 @@ bool CConcXml::GetFilterValue(CDDCFilterWithBounds& Filter, const string& Value)
 		return GetFilterValues(Filter, xvalues);
 	}
 	
-	//-- usual case: physically indexed bibliographic field
-	FreeBiblStringMap::const_iterator it = m_FreeBiblIndices.find(Filter.m_AttrName);
-	if (it == m_FreeBiblIndices.end()) return false; // attribute not found
-	return it->second->GetFilterValue(Filter, Value);
+	//-- usual case: physically indexed bibliographic field or alias
+	const CFreeBiblIndex* fbi = GetFreeBiblIndex(Filter.m_AttrName);
+	if (!fbi) return false; //-- attribute not found
+	return fbi->GetFilterValue(Filter, Value);
 };
 
 //-- initialize CDDCFilterWithBounds for a target regex
 bool CConcXml::GetFilterValues(CDDCFilterWithBounds& Filter, const string &Regex) const
 {
 	Filter.clear();
-	FreeBiblStringMap::const_iterator it = m_FreeBiblIndices.find(Filter.m_AttrName);
-	if (it == m_FreeBiblIndices.end()) return false; // attribute not found
-	return it->second->GetFilterValues(Filter, Regex);;
+	const CFreeBiblIndex* fbi = GetFreeBiblIndex(Filter.m_AttrName);
+	if (!fbi) return false; //-- attribute not found
+	return fbi->GetFilterValues(Filter, Regex);;
 };
 
 //-- initialize CDDCFilterWithBounds for a set of target values
@@ -1553,9 +1578,9 @@ bool CConcXml::GetFilterValues(CDDCFilterWithBounds& Filter, const set<string>& 
 	}
 
 	//-- usual case: physically indexed bibliographic field
-	FreeBiblStringMap::const_iterator it = m_FreeBiblIndices.find(Filter.m_AttrName);
-	if (it == m_FreeBiblIndices.end()) return false; // attribute not found
-	return it->second->GetFilterValues(Filter, Values);;
+	const CFreeBiblIndex* fbi = GetFreeBiblIndex(Filter.m_AttrName);
+	if (!fbi) return false; //-- attribute not found
+	return fbi->GetFilterValues(Filter, Values);;
 };
 
 
@@ -1839,11 +1864,20 @@ int CConcXml::WithinTextArea(const vector<string>& Within) const
 	return UnknownTextAreaNo;
 }
 
-CConcXml::CFreeBiblIndex* CConcXml::GetFreeBiblIndex(const string& FreeBiblAttribName) const
+#define MAX_ALIAS_REDIR 100
+CConcXml::CFreeBiblIndex* CConcXml::GetFreeBiblIndex(const string& FreeBiblAttribNameOrAlias) const
 {
-	FreeBiblStringMap::const_iterator it = m_FreeBiblIndices.find(FreeBiblAttribName);
-	if (it == m_FreeBiblIndices.end()) return NULL; // attribute not found
-	return it->second;
+	string name(FreeBiblAttribNameOrAlias);
+	FreeBiblAliasMap::const_iterator ai=m_FreeBiblAlias.find(name);
+	for (size_t n=0; ai != m_FreeBiblAlias.end(); ++n, ai=m_FreeBiblAlias.find(name)) {
+		if (n >= MAX_ALIAS_REDIR)
+			throw(CExpc(errRuntime, "too many alias redirections (%zi) for metadata label `%s'", n, FreeBiblAttribNameOrAlias.c_str()));
+		name = ai->second;
+	}
+	
+	FreeBiblStringMap::const_iterator bi = m_FreeBiblIndices.find(name);
+	if (bi == m_FreeBiblIndices.end()) return NULL; // attribute not found
+	return bi->second;
 }
 
 CBiblExpander*  CConcXml::GetBiblExpander(const string& ExpanderName) const
