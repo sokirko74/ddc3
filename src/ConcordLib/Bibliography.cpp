@@ -1004,7 +1004,7 @@ bool CConcXml::RegisterFreeBiblAttributes(string fields, string& ErrorStr)
 		string Name = tok.val();
 		string Xpath;
 		if (isConstant) {
-			Xpath = tok.get_rest();
+			Xpath = tok.get_rest_trim(); //-- trim leading & trailing whitespace from constants
 		} else if (tok()) {
 			Xpath = tok.val();
 		}

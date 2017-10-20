@@ -631,6 +631,7 @@ to an associated CDDCLeafServer (see L<ddc_proto>).  KEY is a key string optiona
 containing C escapes, and FILENAME is a filename containing literal JSON code to be returned as the value
 of C<user.KEY> in leaf-server 'info' responses.  FILENAME is interpreted relative to the directory
 containing the project *.con file associated with the leaf server.
+As of v2.1.5, leading and trailing whitespace will be implicitly trimmed from FILENAME.
 
 Since v2.0.34.
 
@@ -689,6 +690,8 @@ the C<constant> type, it should be a literal string indicating the value to be r
 
 Note that additions, deletions, and/or changes to C<constant> bibliographic fields do B<not>
 require re-indexing, whereas any changes to non-C<constant> fields B<do>.
+
+As of v2.1.5, leading and trailing whitespace will be implicitly trimmed from C<VALUE> strings for metadata C<constant>s.
 
 Prior to v2.0.30, multiple definitions of a bibliographic field C<NAME> caused a fatal
 error when loading a corpus project.  As of v2.0.30, a warning is emitted in these cases,

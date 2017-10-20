@@ -1,5 +1,5 @@
 //  DDC originally by Alexey Sokirko
-//  Changes and modifications 2011-2015 by Bryan Jurish
+//  Changes and modifications 2011-2017 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -99,7 +99,7 @@ string unescapeCString(const string &s)
       break;
     }
     case 'u': {
-      //-- json-style unicode escape \uNNNN : interpret as utf8
+      //-- json-style 16-bit unicode escape \uXXXX : interpret as utf8
       if (sj+1 < slen) {
 	const char *ss=s.c_str()+sj+1;
 	int clen;
@@ -111,6 +111,22 @@ string unescapeCString(const string &s)
 	//-- not enough characters in string to parse escape
 	os.push_back('\\');
 	os.push_back('u');
+      }
+      continue;
+    }
+    case 'U': {
+      //-- json-style 32-bit unicode escape \UXXXXXXXX : interpret as utf8
+      if (sj+1 < slen) {
+	const char *ss=s.c_str()+sj+1;
+	int clen;
+	ucs4 ucval;
+	sscanf(ss, "%8x%n", &ucval, &clen);
+	u8_wc_toutf8(os, ucval);
+	sj += clen;
+      } else {
+	//-- not enough characters in string to parse escape
+	os.push_back('\\');
+	os.push_back('U');
       }
       continue;
     }
@@ -190,7 +206,7 @@ string unescapeJsonString(const string &s)
     case 'f': c = '\f'; break; //-- \x0c: form feed
     case 'r': c = '\r'; break; //-- \x0d: carriage return
     case 'u': {
-      //-- json-style unicode escape \uNNNN : interpret as utf8
+      //-- json-style unicode escape \uXXXX : interpret as utf8
       assert(sj+1<slen);
       const char *ss=s.c_str()+sj+1;
       int clen;
@@ -200,6 +216,18 @@ string unescapeJsonString(const string &s)
       sj += clen;
       continue;
     }
+    case 'U': {
+      //-- fcs-style 32-bit unicode escape \UXXXXXXXX : interpret as utf8
+      assert(sj+1<slen);
+      const char *ss=s.c_str()+sj+1;
+      int clen;
+      ucs4 ucval;
+      sscanf(ss, "%8x%n", &ucval, &clen);
+      u8_wc_toutf8(os, ucval);
+      sj += clen;
+      continue;
+    }
+      
     default:
       c = s[sj];
       break;
@@ -287,7 +315,7 @@ string unescapeUtf8String(const string &s)
       break;
     }
     if (s[sj]=='u' && sj+1 < slen) {
-      //-- json-style unicode escape \uNNNN : interpret as utf8
+      //-- json-style 16-bit unicode escape \uXXXX : interpret as utf8
       const char *ss=s.c_str()+sj+1;
       int  clen;
       ucs4 ucval;
@@ -296,6 +324,17 @@ string unescapeUtf8String(const string &s)
       sj += clen;
       continue;
     }
+    if (s[sj]=='U' && sj+1 < slen) {
+      //-- json-style 32-bit unicode escape \UXXXXXXXX : interpret as utf8
+      const char *ss=s.c_str()+sj+1;
+      int  clen;
+      ucs4 ucval;
+      sscanf(ss, "%8x%n", &ucval, &clen);
+      u8_wc_toutf8(os, ucval);
+      sj += clen;
+      continue;
+    }
+   
     else {
       //-- some other backslash escape: leave it and the following character in place
       os.push_back('\\');
