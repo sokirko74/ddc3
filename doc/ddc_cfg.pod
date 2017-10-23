@@ -120,9 +120,9 @@ branch-node is used as the parent.
 =item ddc_local_corpora.cfg
 
  sub1  0.0.0.0  50001  index/sub1/sub1.con
- sub2  0.0.0.0  50002  index/sub1/sub2.con
- sub3  0.0.0.0  50003  index/sub1/sub3.con
- sub4  0.0.0.0  50004  index/sub1/sub4.con
+ sub2  0.0.0.0  50002  index/sub2/sub2.con
+ sub3  0.0.0.0  50003  index/sub3/sub3.con
+ sub4  0.0.0.0  50004  index/sub4/sub4.con
 
 =item ddc_server.cfg
 
