@@ -561,8 +561,8 @@ qc_boolean:
   * qc_concat: query clause: implicit logical conjunction
   */
 qc_concat:
- 	  qc_basic qc_basic	{ $$ = _qc->PushQuery(new CQAnd($1,$2)); };
-	| qc_concat  qc_basic	{ $$ = _qc->PushQuery(new CQAnd($1,$2)); };
+ 	  qc_basic qc_basic	{ $$ = _qc->PushQuery(new CQAndImplicit($1,$2)); };
+	| qc_concat  qc_basic	{ $$ = _qc->PushQuery(new CQAndImplicit($1,$2)); };
 	| '(' qc_concat ')'	{ $$ = $2; }
 	;
 

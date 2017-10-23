@@ -2491,13 +2491,13 @@ yyreduce:
 
   case 123:
 #line 564 "yyQParser.y" /* yacc.c:1646  */
-    { (yyval.m_pnode) = _qc->PushQuery(new CQAnd((yyvsp[-1].m_pnode),(yyvsp[0].m_pnode))); }
+    { (yyval.m_pnode) = _qc->PushQuery(new CQAndImplicit((yyvsp[-1].m_pnode),(yyvsp[0].m_pnode))); }
 #line 2496 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 
   case 124:
 #line 565 "yyQParser.y" /* yacc.c:1646  */
-    { (yyval.m_pnode) = _qc->PushQuery(new CQAnd((yyvsp[-1].m_pnode),(yyvsp[0].m_pnode))); }
+    { (yyval.m_pnode) = _qc->PushQuery(new CQAndImplicit((yyvsp[-1].m_pnode),(yyvsp[0].m_pnode))); }
 #line 2502 "yyQParser.cpp" /* yacc.c:1646  */
     break;
 

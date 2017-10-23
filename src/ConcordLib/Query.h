@@ -263,6 +263,19 @@ public:
 };
 
 //------------------------------------------------------------
+//! logical conjunction (implicit)
+class CQAndImplicit : public CQAnd {
+public:
+  CQAndImplicit(CQuery *dtr1=NULL, CQuery *dtr2=NULL)
+    : CQAnd(dtr1,dtr2)
+  {
+    //m_OpName.clear();
+  };
+
+  virtual string jsonClass() { return "CQAndImplicit"; };
+};
+
+//------------------------------------------------------------
 //! logical disjunction
 class CQOr : public CQBinOp {
 public:
