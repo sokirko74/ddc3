@@ -18,7 +18,8 @@ v2.1.5 Mon, 23 Oct 2017 14:23:34 +0200
   	  - pre-compiled alias resolution via new map <string,CStringIndexSet*> CConcIndexator.m_IndexMap
 	  - index aliases appear in server 'info' response as {"alias":FROM, "ref":TO_FINAL_LONG}
 	* added mantis feature #21602: symbolic index names (long, short, alias) for opt-file IndicesToShow
-	* added mentis feature #18486: new query type CQAndImplicit for implicit conjunction
+	* added mantis feature #18486: new query type CQAndImplicit for implicit conjunction
+	* added mantis feature #20658: dump DefaultQueryIndex registry in server 'info' response (as "opdefault":{ OP:INDEX, ...})
 
 v2.1.4 Fri, 07 Jul 2017 09:12:35 +0200 moocow
 	* suppress bogus initial empty field fix for branch-servers (bug introduced in v2.1.3)

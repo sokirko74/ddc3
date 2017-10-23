@@ -279,6 +279,9 @@ For a leaf server, the returned object is of the form:
 \&  //\-\- query operators: term expanders ("Expand" options)
 \&  "expanders":["Token",...],
 \&  //
+\&  //\-\- default index names by operator ("DefaultQueryIndex" options)
+\&  "opdefault":{ "_":"Lemma", ... },
+\&  //
 \&  //\-\- user\-supplied information ("ServerInfo" and "ServerInfoFile" options)
 \&  "user":{"foo":"bar","baz":["bonk","boffo"]},
 \&  }
@@ -311,7 +314,8 @@ maximum time (in seconds) to wait for subcorpus responses; default=10.
 .PP
 Since v2.0.18,
 user-supplied info since v2.0.34,
-optional \s-1TIMEOUT\s0 parameter since v2.0.47.
+optional \s-1TIMEOUT\s0 parameter since v2.0.47,
+aliases and \*(L"opdefault\*(R" key since v2.1.5.
 .PP
 \fIreload\fR
 .IX Subsection "reload"

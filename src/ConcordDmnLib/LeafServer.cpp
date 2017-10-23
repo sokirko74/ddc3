@@ -395,6 +395,17 @@ void CDDCLeafServer::handle__info(string &Result, int timeout, bool verbose)
 		Result += "],\n\t";
 		//--/info.expanders
 
+		//--info:opdefault
+		Result += "\"opdefault\":{";
+		i=0;
+		for (map<string,string>::const_iterator oii=ix->m_OpDefaultIndexNames.begin(); oii!=ix->m_OpDefaultIndexNames.end(); ++oii, ++i) {
+		    if (i != 0) Result.push_back(',');
+		    Result += string("\n\t\t") + jsonStr(oii->first) + ":" + jsonStr(oii->second);
+		}
+		if (i != 0) Result += "\n\t\t";
+		Result += "},\n\t";
+		//--/info:opdefault
+
 		//-- info.user
 		Result += "\"user\":";
 		if (!ix->m_ServerInfo.empty()) {

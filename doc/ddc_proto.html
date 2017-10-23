@@ -223,6 +223,9 @@
   //-- query operators: term expanders (&quot;Expand&quot; options)
   &quot;expanders&quot;:[&quot;Token&quot;,...],
   //
+  //-- default index names by operator (&quot;DefaultQueryIndex&quot; options)
+  &quot;opdefault&quot;:{ &quot;_&quot;:&quot;Lemma&quot;, ... },
+  //
   //-- user-supplied information (&quot;ServerInfo&quot; and &quot;ServerInfoFile&quot; options)
   &quot;user&quot;:{&quot;foo&quot;:&quot;bar&quot;,&quot;baz&quot;:[&quot;bonk&quot;,&quot;boffo&quot;]},
   }</code></pre>
@@ -247,7 +250,7 @@
 
 <p>where each object in the &quot;corpora&quot; array is the associated subcorpus server&#39;s response to an &quot;info&quot; request. If the optional TIMEOUT parameter is specified, it should be an integer value indicating the maximum time (in seconds) to wait for subcorpus responses; default=10.</p>
 
-<p>Since v2.0.18, user-supplied info since v2.0.34, optional TIMEOUT parameter since v2.0.47.</p>
+<p>Since v2.0.18, user-supplied info since v2.0.34, optional TIMEOUT parameter since v2.0.47, aliases and &quot;opdefault&quot; key since v2.1.5.</p>
 
 <h3 id="reload">reload</h3>
 
