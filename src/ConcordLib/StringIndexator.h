@@ -1,5 +1,7 @@
+//-*- Mode: C++; c-basic-offset: 8; -*-
+//
 //  DDC originally by Alexey Sokirko
-//  Changes and modifications 2011-2015 by Bryan Jurish
+//  Changes and modifications 2011-2017 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -131,10 +133,25 @@ protected:
 	bool	IndexOneToken	(const char* Line, const CTokenNo& TokenNo);
 
 public:
+	//! typedef for index alias maps
+	typedef map<string,string> IndexAliasMap;
+
+	//! typedef for index symbol table
+	typedef map<string,CStringIndexSet*> IndexMap;
+	
+public:
 	//! where all indices are stored
 	string							m_Path;
-	//! the registered indices
+
+	//! the registered indices, by positional index
 	vector<CStringIndexSet*>		m_Indices;
+
+      	//! declared index aliases (FROM -> TO); not really used at runtime
+	IndexAliasMap				m_IndexAlias;
+
+	//! all registered indices, keyed by long-name, short-name, or label (LABEL -> INDEX)
+	IndexMap				m_IndexMap;
+
 	//! the maximal number of index items which can be included in an expansion set of one regular expression
 	size_t							m_MaxRegExpExpansionSize;
 	//! a quick reference to a chunk index, if CConcIndexator::m_bIndexChunks	is on, otherwise null
@@ -144,11 +161,24 @@ public:
 	~CStringIndexator();
 
 	//! read index declarations  from a string and register  them
-	bool RegisterStringIndices(string IndicesStr);
+	bool RegisterStringIndices(const string& IndicesStr);
+
+	//! read index alias declarations from a string and register them; returns true iff all registrations were successful
+	bool RegisterIndexAliases(const string& IndexAliasStr);
+
+	//! register a single index alias (low-level); returns true iff AliasTo resolves to a known index according to m_AliasMap
+	bool RegisterIndexAlias(const string& AliasFrom, const string& AliasTo);
+
+	//! register a single index label or alias (lowest-level); if \a idx is NULL, any existing entry for \a AliasFrom will be deleted
+	void RegisterIndexAlias(const string& AliasFrom, CStringIndexSet* idx);
+
 	//! set  the path to the indices
 	void SetPath(string Path);
-	//! return all registered index declarations
+	//! return all registered index declarations, in opt-file syntax
 	string GetIndicesString() const;
+	//! return all registered index aliases, in opt-file syntax
+	string GetIndexAliasString() const;
+	
 	//! return the number of \ref period_def "corpus periods"
 	size_t	GetSearchPeriodsCount() const;
 	//! get a \ref period_def "corpus period" by an index
@@ -166,16 +196,17 @@ public:
 	bool	AddMemoryLoadIndexToMainLoadIndex();
 	//! store memory load index on the disk
 	bool	SaveMemoryLoadIndex();
-	//! return a pointer to the index by CStringIndexSet::m_Name
+	//! return a pointer to the index by CStringIndexSet::m_Name (linear search)
 	CStringIndexSet*  GetIndexByName(const string& Name);
-	//! return a pointer to the index by CStringIndexSet::m_Name or CStringIndexSet::m_ShortName
+	//! return a pointer to the index by CStringIndexSet::m_Name or CStringIndexSet::m_ShortName (linear search)
 	CStringIndexSet*  GetIndexByNameOrShortName(const string& Name);
+	//! return a pointer to the index by long-name, short-name, or alias (most abstract, uses m_IndexMap)
+	CStringIndexSet*  GetIndexByAlias(const string &Alias);
 	//! return the first index that normally contains tokens themselves
 	CStringIndexSet* GetTokenIndex();
 	//! return the first index that normally contains tokens themselves
 	const CStringIndexSet* GetTokenIndex() const;
 
-	//! 
 };
 
 

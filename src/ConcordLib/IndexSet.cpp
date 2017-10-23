@@ -1,4 +1,5 @@
 //-*- Mode: C++; c-basic-offset: 8;-*-
+//
 //  DDC originally by Alexey Sokirko
 //  Changes and modifications 2011-2015 by Bryan Jurish
 //
@@ -610,3 +611,4 @@ void CStringIndexSet::FindChunkOccurrences (const vector<DWORD>& IndexItems, vec
 	};
 	
 };
+	

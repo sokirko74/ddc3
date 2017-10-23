@@ -1,6 +1,7 @@
 // -*- Mode: C++; c-basic-offset: 8; -*-
+//
 //  DDC originally by Alexey Sokirko
-//  Changes and modifications 2011-2015 by Bryan Jurish
+//  Changes and modifications 2011-2017 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -53,7 +54,7 @@ void  CStringIndexator::ClearStringIndices()
 
 bool CStringIndexator::RegisterChunkIndex()
 {
-	if (GetIndexByName(ChunkIndexName))
+	if (GetIndexByAlias(ChunkIndexName))
 		return false; // no one should use this name 
 
 	m_pChunkIndex = new CStringIndexSet(this);
@@ -72,7 +73,7 @@ const CStringIndexSet* CStringIndexator::GetTokenIndex() const
     return m_Indices[0];
 }
 
-bool CStringIndexator::RegisterStringIndices(string IndicesStr)
+bool CStringIndexator::RegisterStringIndices(const string& IndicesStr)
 {
 	ClearStringIndices();
 	// to be done[name,short,archive]
@@ -123,21 +124,76 @@ bool CStringIndexator::RegisterStringIndices(string IndicesStr)
 					return false;
 				};
 
-
-		if (GetIndexByName(Name))
+		if (GetIndexByAlias(Name))
 		{
+			ErrorMessage("Error: multiple declarations of index name `%s'");
 			ClearStringIndices();
 			assert (false);
-			ErrorMessage ("A duplicate index name is found!");
 			return false;
-		};
+
+		}
+
 		CStringIndexSet* R = new CStringIndexSet (this);
 		R->InitIndexSet(Name, Short, bStorage, bCompressed);
 		m_Indices.push_back(R);
+
+		//-- register alias
+		RegisterIndexAlias(Name,R);
+		RegisterIndexAlias(Short,R);
 	};
 	
 	return true;
 };
+
+bool CStringIndexator::RegisterIndexAliases(const string& IndexAliasStr)
+{
+	bool rc = true;
+	StringTokenizer lines(IndexAliasStr.c_str(),"\n");
+	while (lines()) {
+		string Item = lines.val();
+		Trim(Item);
+		if (Item.empty()) continue;
+		StringTokenizer fields(Item.c_str(), " \t\r\n");
+		string AliasOp   = fields.next_token();
+		string AliasFrom = fields.next_token();
+		string AliasTo   = fields.next_token();
+		if (AliasFrom.empty() || AliasTo.empty()) {
+			ddcLogWarn(Format("Warning: failed to parse index alias declaraction `%s' - skipping", Item.c_str()));
+			continue;
+		}
+		rc = (rc && RegisterIndexAlias(AliasFrom,AliasTo));
+	}
+	return rc;
+}
+
+bool CStringIndexator::RegisterIndexAlias(const string& AliasFrom, const string& AliasTo)
+{
+	CStringIndexSet *idx = GetIndexByAlias(AliasTo);
+	if (idx == NULL)
+		ddcLogWarn(Format("Warning: cannot resolve target label `%s' for index alias `%s' -> `%s'",
+				  AliasTo.c_str(), AliasFrom.c_str(), AliasTo.c_str()));
+	m_IndexAlias[AliasFrom] = AliasTo; //-- remember alias topology, e.g. for GetIndexAliasString()
+	RegisterIndexAlias(AliasFrom, idx);
+	return true;
+}
+
+void CStringIndexator::RegisterIndexAlias(const string& AliasFrom, CStringIndexSet *idx)
+{
+	CStringIndexSet *oldi = GetIndexByAlias(AliasFrom);
+	if (oldi != NULL) {
+		if (idx==NULL) {
+			ddcLogWarn(Format("Warning: deleting index label `%s' (-> `%s')",
+					  AliasFrom.c_str(), oldi->m_Name.c_str()));
+		} else {
+			ddcLogWarn(Format("Warning: overriding old target `%s' for index label `%s' (-> `%s')",
+					  oldi->m_Name.c_str(), AliasFrom.c_str(), idx->m_Name.c_str()));
+		}
+		m_IndexMap.erase(AliasFrom);
+	}
+	if (idx != NULL)
+		m_IndexMap[AliasFrom] = idx;
+}
+
 		
 string CStringIndexator::GetIndicesString() const
 {
@@ -154,6 +210,14 @@ string CStringIndexator::GetIndicesString() const
 	return Result;
 };
 
+
+string CStringIndexator::GetIndexAliasString() const
+{
+	string Result;
+	for (IndexAliasMap::const_iterator ai=m_IndexAlias.begin(); ai != m_IndexAlias.end(); ++ai)
+		Result += string("IndexAlias ") + ai->first + " " + ai->second + "\n";
+	return Result;
+}
 
 
 bool	CStringIndexator::StartIndexing(string Path)
@@ -305,6 +369,14 @@ CStringIndexSet*  CStringIndexator::GetIndexByNameOrShortName(const string& Name
 		return m_Indices[i];
 	};
 	return 0;
+};
+
+CStringIndexSet*  CStringIndexator::GetIndexByAlias(const string& Alias)
+{
+	IndexMap::const_iterator ai = m_IndexMap.find(Alias);
+	if (ai != m_IndexMap.end())
+		return ai->second;
+	return NULL;
 };
 
 

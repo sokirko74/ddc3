@@ -164,9 +164,9 @@ bool CConcIndexator::LoadOptionsFromString(string Options)
 {
 	StringTokenizer lines (Options.c_str(), "\n\r");
 	MorphLanguageEnum langua;
-	string IndicesStr, HitTypesStr, FreeBiblDescr, TextAreasDescr;
+	string IndicesStr, IndexAliasStr, IndexShowStr, HitTypesStr, FreeBiblDescr, TextAreasDescr;
 	m_Language = morphUnknown;
-	m_IndicesToShow.resize(1,0);
+	m_IndicesToShow.resize(1,0); //-- default
 
 	while (lines())
 	{
@@ -400,25 +400,7 @@ bool CConcIndexator::LoadOptionsFromString(string Options)
 			}
 		else if (q == "IndicesToShow")
 			{
-				q = fields.next_token();
-				if (q.empty())  return false;
-				m_IndicesToShow.clear();
-				while (!q.empty())
-				{
-					if (q == "0") 
-						throw CExpc("minimum index value for IndicesToShow is 1 (one)");
-					int a = atoi(q.c_str());
-					if (!a)
-						throw CExpc("failed to parse IndicesToShow value - it should be a whitespace-separated list of integers (min=1)");
-					for (size_t j=0; j<q.length(); j++) {
-						if (!isdigit((BYTE)q[j]))
-							throw CExpc("failed to parse IndicesToShow value - it should be a whitespace-separated list of integers (min=1)");
-					}
-
-					m_IndicesToShow.push_back(a-1);
-					q = fields.next_token();
-				}
-				EchoOption("IndicesToShow is initialized with %zi values", m_IndicesToShow.size());
+				IndexShowStr = fields.get_rest_trim();
 			}
 		else if (q == "NearRank")
 			{
@@ -456,6 +438,11 @@ bool CConcIndexator::LoadOptionsFromString(string Options)
 		else if (q == "Indices")
 			{
 				IndicesStr = fields.get_rest_trim();
+			}
+		else if (q == "IndexAlias")
+			{
+				IndexAliasStr += lines.val();
+				IndexAliasStr.push_back('\n');
 			}
 		else if (q == "HitBorders")
 			{
@@ -604,15 +591,15 @@ bool CConcIndexator::LoadOptionsFromString(string Options)
 
 	if (!RegisterStringIndices(IndicesStr))
 		throw CExpc("cannot parse index definition `%s'", IndicesStr.c_str());
-
-
+	RegisterIndexAliases(IndexAliasStr);
 
 
 	if (m_bIndexChunks)
 		if (!RegisterChunkIndex())
 			throw CExpc("cannot register predefined chunk index!");
 
-	EchoOption("indices = %s", GetIndicesString().c_str() );
+	EchoOption("Indices %s", GetIndicesString().c_str());
+	EchoOptionLines(GetIndexAliasString());
 	
 	switch (m_IndexType) {
 		case MorphXML_Index:	HitTypesStr = "[s:sentence:default]";
@@ -644,15 +631,9 @@ bool CConcIndexator::LoadOptionsFromString(string Options)
 		throw CExpc("Cannot parse HitBorders declaration %s", HitTypesStr.c_str());
 	EchoOption("HitBorders = %s", GetBorderIndicesString().c_str());
 
-	for(size_t i=0; i < m_IndicesToShow.size(); i++)
-	{
-		if (m_IndicesToShow[i] >= m_Indices.size())
-			throw CExpc("Error! index %zi specified in IndicesToShow is out of range", m_IndicesToShow[i]);
-
-		if (!m_Indices[m_IndicesToShow[i]]->m_bUseItemStorage)
-			throw CExpc("Error! index %zi in IndicesToShow has no storage class", m_IndicesToShow[i]);
-	}
-
+	RegisterIndicesToShow(IndexShowStr);
+	EchoOptionLines(GetIndicesToShowStr());
+	
 	//-- propagate regex-related options to m_Bibl
 	m_Bibl.SetRegexOptions(GetRegexOptions());
 
@@ -664,7 +645,7 @@ bool CConcIndexator::LoadOptionsFromString(string Options)
 			++oni;
 			m_OpDefaultIndexNames.erase(tmp);
 		}
-		else if (!GetIndexByNameOrShortName(oni->second)) {
+		else if (!GetIndexByAlias(oni->second)) {
 			map<string,string>::iterator tmp = oni;
 			fprintf(stderr, "WARNING: ignoring unknown default index `%s' for query operator `%s'\n", oni->second.c_str(), oni->first.c_str());
 			++oni;
@@ -740,13 +721,9 @@ string CConcIndexator::SaveOptionsToString()  const
 		Result += Format("PositionRank %f\n", m_PositionRank);
 	if (m_InterpDelimiter != "#")
 		Result += Format("InterpDelimiter  %s\n", m_InterpDelimiter.c_str()  );
-	if (m_IndicesToShow.size() > 1 || (m_IndicesToShow.size() == 1 &&  m_IndicesToShow[0] != 0))
-	{
-		string s = "IndicesToShow ";
-		for(size_t i=0; i <m_IndicesToShow.size(); i++)
-			s += Format("%i ",m_IndicesToShow[i]+1);
-		Result += s+"\n";
-	}
+
+	Result += GetIndicesToShowStr();
+	Result += "\n";
 
 	if (m_RightKwicContextSize != DefaultKwicContextSize)
 		Result += Format("RightKwicContextSize %i\n", m_RightKwicContextSize);
@@ -810,7 +787,8 @@ string CConcIndexator::SaveOptionsToString()  const
 	string IndicesStr = GetIndicesString();
 	if (!IndicesStr.empty())
 		Result += "Indices " + IndicesStr + "\n";
-
+	Result += GetIndexAliasString();
+	
 	IndicesStr = GetBorderIndicesString();
 	if (!IndicesStr.empty())
 		Result += "HitBorders " + IndicesStr + "\n";

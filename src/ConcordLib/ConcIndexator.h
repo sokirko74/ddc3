@@ -285,6 +285,11 @@ public:
 	CConcIndexator();
 	~CConcIndexator();
 
+	//! wrapper for IndicesToShow option; now accepts integer position (min=1), long name, short name, or alias
+	void RegisterIndicesToShow(const string& IndexListStr);
+
+	//! get opt-style string declaration for IndicesToShow (empty if default)
+	string GetIndicesToShowStr(bool Positional=false) const;
 	
 	/*
 	//! return tables of character properties for regular expressions for the current m_Language

@@ -1,7 +1,7 @@
 //*-*- Mode: C++; c-basic-offset: 8; -*-*/
 //
 //  DDC originally by Alexey Sokirko
-//  Changes and modifications 2011-2016 by Bryan Jurish
+//  Changes and modifications 2011-2017 by Bryan Jurish
 //
 //  This file is part of DDC (formerly CConcHolder.cpp)
 // 
@@ -1374,7 +1374,7 @@ void CConcSession::InitSortByContext(const CQuery *pQuery, const CDDCFilterWithB
 {
 	CStringIndexSet* pIdx = (F.m_AttrName.empty()
 				 ? m_pIndexator->GetTokenIndex()
-				 : m_pIndexator->GetIndexByNameOrShortName(F.m_AttrName));
+				 : m_pIndexator->GetIndexByAlias(F.m_AttrName));
 	CQueryNode   *qnod = pQuery->m_Node;
 	vector<CHit>& Hits = qnod->m_Hits;
 	DWORD HitsCount = qnod->m_Hits.size();

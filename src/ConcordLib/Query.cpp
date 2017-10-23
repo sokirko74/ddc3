@@ -1,7 +1,7 @@
 //-*- Mode: C++; c-basic-offset: 2; -*-
 //
 //  DDC originally by Alexey Sokirko
-//  Changes and modifications 2011-2016 by Bryan Jurish
+//  Changes and modifications 2011-2017 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -478,7 +478,7 @@ string CQToken::IndexName(const string& DefaultIndexName)
       name = DefaultIndexName;
     }
   }
-  const CStringIndexSet* pIndexSet = m_Compiler->m_pHolder->m_pIndexator->GetIndexByNameOrShortName(name);
+  const CStringIndexSet* pIndexSet = m_Compiler->m_pHolder->m_pIndexator->GetIndexByAlias(name);
   if (!pIndexSet) return name; //-- default
   return pIndexSet->m_Name;
 }

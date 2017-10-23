@@ -1,5 +1,6 @@
 //-*- Mode: C++; c-basic-offset: 2; -*-
-//  Copyright 2011-2016 by Bryan Jurish
+//
+//  Copyright 2011-2017 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -289,7 +290,7 @@ bool CQFContextSort::Compile(CQueryCompiler *compiler, CQueryOptions *options)
   assert(ix != NULL);
 
   m_Filter.m_AttrName  = m_arg0.empty() ? ix->GetTokenIndex()->m_Name : m_arg0;
-  CStringIndexSet* ixx = ix->GetIndexByNameOrShortName(m_Filter.m_AttrName);
+  CStringIndexSet* ixx = ix->GetIndexByAlias(m_Filter.m_AttrName);
   if (ixx == NULL)
     throw CExpc(errParseError,"Can't find index `%s' for context-sort operator `%s'", m_Filter.m_AttrName.c_str(), toString().c_str());
 

@@ -194,8 +194,10 @@
         {&quot;name&quot;:&quot;date&quot;,&quot;builtin&quot;:1},
         {&quot;name&quot;:&quot;page&quot;,&quot;builtin&quot;:1},
         {&quot;name&quot;:&quot;author&quot;, &quot;visible&quot;:1, &quot;size&quot;:4},
+        {&quot;name&quot;:&quot;title&quot;, &quot;visible&quot;:1, &quot;size&quot;:4},
         //... other bibliographic fields ...
-        {&quot;name&quot;:&quot;title&quot;, &quot;visible&quot;:1, &quot;size&quot;:4}
+        {&quot;alias&quot;:&quot;authors&quot;, &quot;ref&quot;:&quot;author&quot;}
+        //... other bibliographic aliases ...
         ],
   //
   //-- index structure: break collections
@@ -209,8 +211,10 @@
   &quot;indices&quot;:[
         {&quot;shortname&quot;:&quot;w&quot;, &quot;longname&quot;:&quot;Token&quot;, &quot;visible&quot;:1, &quot;bigrams&quot;:2, &quot;size&quot;:9369},
         {&quot;shortname&quot;:&quot;l&quot;, &quot;longname&quot;:&quot;Lemma&quot;, &quot;visible&quot;:1, &quot;size&quot;:5706},
-        //... other token-level indices ...
         {&quot;shortname&quot;:&quot;p&quot;, &quot;longname&quot;:&quot;Pos&quot;, &quot;visible&quot;:1, &quot;size&quot;:53},
+        //... other token-level indices ...
+        {&quot;alias&quot;:&quot;CitationForm&quot;, &quot;ref&quot;:&quot;Lemma&quot;},
+        //... other token-level aliases ...
         ],
   //
   //-- query operators: bibliographic expanders (&quot;ExpandBibl&quot; options)

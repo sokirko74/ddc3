@@ -212,9 +212,10 @@ For a leaf server, the returned object is of the form:
 	{"name":"date","builtin":1},
 	{"name":"page","builtin":1},
 	{"name":"author", "visible":1, "size":4},
-	//... other bibliographic fields ...
 	{"name":"title", "visible":1, "size":4},
-        {"name":"alias", "ref":"target"}
+	//... other bibliographic fields ...
+        {"alias":"authors", "ref":"author"}
+	//... other bibliographic aliases ...
   	],
   //
   //-- index structure: break collections
@@ -228,8 +229,10 @@ For a leaf server, the returned object is of the form:
   "indices":[
 	{"shortname":"w", "longname":"Token", "visible":1, "bigrams":2, "size":9369},
 	{"shortname":"l", "longname":"Lemma", "visible":1, "size":5706},
-	//... other token-level indices ...
 	{"shortname":"p", "longname":"Pos", "visible":1, "size":53},
+	//... other token-level indices ...
+	{"alias":"CitationForm", "ref":"Lemma"},
+	//... other token-level aliases ...
 	],
   //
   //-- query operators: bibliographic expanders ("ExpandBibl" options)

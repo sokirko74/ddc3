@@ -1,7 +1,7 @@
 //-*- Mode: C++; c-basic-offset: 8; -*-
 //
 //  DDC originally by Alexey Sokirko
-//  Changes and modifications 2011-2016 by Bryan Jurish
+//  Changes and modifications 2011-2017 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -1322,13 +1322,13 @@ bool CConcIndexator::CreateMorphIndex()
 		return true;
 
 	fprintf(stderr,"CreateMorphIndex...\n");
-	CStringIndexSet* pMorphIndexSet = GetIndexByName("MorphPattern");
+	CStringIndexSet* pMorphIndexSet = GetIndexByAlias("MorphPattern");
 	if (!pMorphIndexSet )
 	{
 		ErrorMessage ("Cannot find MorphPattern index");
 		return false;
 	};
-	CStringIndexSet* pTokensIndexSet = GetIndexByName("Token");
+	CStringIndexSet* pTokensIndexSet = GetIndexByAlias("Token");
 	if (!pTokensIndexSet )
 	{
 		ErrorMessage ("Cannot find Token index");
@@ -2283,6 +2283,76 @@ void CConcIndexator::DumpIndex(const char *dirname, CIndexDumpFormat fmt) const
 		fclose(dumpfh);
 	}
 }
+
+//----------------------------------------------------------------------
+void CConcIndexator::RegisterIndicesToShow(const string& IndexListStr)
+{
+	StringTokenizer tok(IndexListStr.c_str(), " \t\r\n,;");
+	m_IndicesToShow.clear();
+
+	while (tok()) {
+		string s    = tok.val();
+		size_t ipos = (size_t)-1;
+		if (s.empty()) continue;
+
+		CStringIndexSet *idx = GetIndexByAlias(s);
+		if (idx != NULL) {
+			//-- known alias: convert to position
+			for (size_t i=0; i < m_Indices.size(); ++i) {
+				if (m_Indices[i] == idx) {
+					ipos = i;
+					break;
+				}
+			}
+			assert(ipos >= 0);
+			assert(ipos < m_Indices.size());
+		}
+		else if (s.find_first_not_of("+-0123456789") == string::npos) {
+			//-- decimal integer: convert to size_t
+			ipos = strtoul(s.c_str(),NULL,0);
+			if (ipos < 1)
+				throw CExpc("minimum positional index value for IndicesToShow is 1 (one)");
+			else if (ipos > m_Indices.size()) 
+				throw CExpc(Format("positional index `%zi' in IndicesToShow out of bounds (max=%zi)", ipos, m_Indices.size()));
+			--ipos; //-- convert to zero-based indces
+		}
+		else {
+			//-- unknown: oops
+			throw CExpc(Format("unknown index label `%s' in IndicesToShow", s.c_str()));
+		}
+
+		m_IndicesToShow.push_back(ipos);
+	}
+	
+	//-- sanity check: always show at least 1 index (default=initial index)
+	if (m_IndicesToShow.empty())
+		m_IndicesToShow.push_back(0);
+
+	//-- global sanity checks
+	for (size_t i=0; i < m_IndicesToShow.size(); ++i) {
+		if (!m_Indices[m_IndicesToShow[i]]->m_bUseItemStorage)
+			throw CExpc("index #%zi (%s) in IndicesToShow has no storage class", i, m_Indices[m_IndicesToShow[i]]->m_Name.c_str());
+	}
+}
+
+//----------------------------------------------------------------------
+string CConcIndexator::GetIndicesToShowStr(bool Positional) const
+{
+	if (m_IndicesToShow.size() < 1 || (m_IndicesToShow.size() == 1 && m_IndicesToShow[0] == 0))
+		return string("");
+	string Result("IndicesToShow");
+	for (size_t i=0; i < m_IndicesToShow.size(); ++i) {
+		Result.push_back(' ');
+		if (Positional) {
+			Result += Format("%zi", i);
+		} else {
+			CStringIndexSet* idx = m_Indices[m_IndicesToShow[i]];
+			Result.append(idx->m_Name);
+		}
+	}
+	return Result;
+}
+
 
 // Local Variables:
 // mode: c++

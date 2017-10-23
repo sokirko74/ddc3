@@ -1,7 +1,7 @@
 //-*- Mode: C++; c-basic-offset: 8; -*-
 //
 //  DDC originally by Alexey Sokirko
-//  Changes and modifications 2011-2016 by Bryan Jurish
+//  Changes and modifications 2011-2017 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -741,7 +741,7 @@ bool CQueryTokenNode::IsUniversalWildcard() const
 
 bool CQueryTokenNode::BuildRegExp(string RegExpStr, vector<DWORD>& IndexItems, bool negated)
 {
-	const CStringIndexSet*  IndexSet =  m_pHolder->m_pIndexator->GetIndexByName(m_IndexName);
+	const CStringIndexSet*  IndexSet =  m_pHolder->m_pIndexator->GetIndexByAlias(m_IndexName);
 	if (!IndexSet) return false;
 
 	//-- check for & dispatch on "ignore diacritics" pseudo-modifier
@@ -844,7 +844,7 @@ CStringIndexSet* CQueryTokenNode::GetIndex(const CConcHolder* pHolder, const str
 	{
 		string name = IndexName.empty() ? "Token" : IndexName;
 		
-		pIndexSet = pHolder->m_pIndexator->GetIndexByNameOrShortName(name);
+		pIndexSet = pHolder->m_pIndexator->GetIndexByAlias(name);
 		if (!pIndexSet)
 			throw CExpc(errParseError,"GetIndex(): unknown index `%s'", IndexName.c_str());
 
@@ -1027,7 +1027,7 @@ void CQueryTokenNode::EvaluateWithoutHits()
 {
 	ClearAndReserveOccurrences(5000);
 	if (!m_bChunk && !m_bAnchor && !m_bAny) {
-		const CStringIndexSet* pIndex  = m_pHolder->m_pIndexator->GetIndexByName(m_IndexName);
+		const CStringIndexSet* pIndex  = m_pHolder->m_pIndexator->GetIndexByAlias(m_IndexName);
 		pIndex->FindOccurrences(
 					m_IndexItems, 
 					m_pHolder->m_CurrentSearchPeriodNo, 

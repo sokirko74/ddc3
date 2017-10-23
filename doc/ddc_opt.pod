@@ -63,7 +63,8 @@ option files ("opt-files") used by the DDC corpus indexing system.
  ## Single-valued Options
  
  Indices INDEXLIST
- IndicesToShow INTLIST
+ IndexAlias FROM TO
+ IndicesToShow SHOWLIST
  DefaultBibl NAME
  HitBorders BREAKLIST
  
@@ -375,6 +376,22 @@ is a short name for the index, conventionally in all lower-case and frequently o
 is one of the strings C<archive> or C<normal>.
 If it is C<archive>, the current index is archived, otherwise it is not; and
 
+=head3 IndexAlias
+
+ IndexAlias FROM TO
+
+Defines a new token-level alias C<FROM> for the existing index C<TO>.
+C<TO> may be
+a long index name declared in L<Indices|/Indices>,
+a short index name declared in L<Indices|/Indices>,
+or a valid index alias previously declared by another C<IndexAlias> directive.
+Causes all runtime query operations on the pseudo-index C<FROM> to be evaluated
+with respect to the underlying index C<TO>.
+Useful for facilitating interoperability of heterogeneous corpora.
+
+Since v2.1.5
+
+
 =item STORAGE
 
 is one of the strings C<storage> or C<storage_omit>.
@@ -388,18 +405,41 @@ The L<indices|/indices> option is only supported for the C<Free_Index> L<Index T
 
 =head3 IndicesToShow
 
- IndicesToShow INTLIST
+ IndicesToShow SHOWLIST
 
-(largely from DDCReadme):
 Declares a list of those indices which should be returned in hit responses to user queries.
-C<INTLIST> is a space-separated list of integers, where each integer I<i> is the position of some index declaration in the
-L<Indices|/indices> declaration, counting from 1;
-i.e. for each I<i>, 1 E<lt>= I<i> E<lt>= N_INDICES, where N_INDICES is the number of index declarations by the L<Indices|/indices> option.
-For each output word, this list determines the order of the indices whose values are used to represent this word in an output hit.
+C<SHOWLIST> is a list of index keys, separated by whitespace, commata (',') or semicolons (';').  Each index label
+in C<SHOWLIST> can be either:
+
+=over 4
+
+=item * 
+
+ a long index name declared by L<Indices|/Indices> (since v2.1.5),
+
+=item *
+
+a short index name declared by L<Indices|/Indices> (since v2.1.5),
+
+=item *
+
+an index alias label declared by L<IndexAlias|/IndexAlias> (since v2.1.5),
+or
+
+=item *
+
+the integer position I<i> of the corresponding index declaration in L<Indices|/Indices>, counting from 1;
+i.e. for each I<i>, 1 E<lt>= I<i> E<lt>= N_INDICES, where N_INDICES is the number of index declarations by the L<Indices|/Indices> option.
+
+=back
+
 By default, L<IndicesToShow|/indicestoShow> is C<1>, i.e. words are represented only by the value of the first index
-(normally the text of the token itself). If some index is mentioned  inIndicesToShow, then it must have an index storage built during indexing.
+(normally the text of the token itself). If some index is mentioned in IndicesToShow, then it must have an index storage built during indexing.
+Prior to v2.1.5, B<ONLY> whitespace-separated integer positions were allowed for C<SHOWLIST>.
 
 Only supported for the C<Free_Index> L<Index Type|/indextype>.
+
+Support for long and short index names, aliases, and additional separators since v2.1.5.
 
 
 =head3 DefaultBibl

@@ -58,6 +58,7 @@
       <li><a href="#Single-valued-Options">Single-valued Options</a>
         <ul>
           <li><a href="#Indices">Indices</a></li>
+          <li><a href="#IndexAlias">IndexAlias</a></li>
           <li><a href="#IndicesToShow">IndicesToShow</a></li>
           <li><a href="#DefaultBibl">DefaultBibl</a></li>
           <li><a href="#HitBorders">HitBorders</a></li>
@@ -97,6 +98,7 @@
   <li><a href="#ACKNOWLEDGEMENTS">ACKNOWLEDGEMENTS</a></li>
   <li><a href="#AUTHOR">AUTHOR</a></li>
   <li><a href="#SEE-ALSO">SEE ALSO</a></li>
+  <li><a href="#POD-ERRORS">POD ERRORS</a></li>
 </ul>
 
 <h1 id="DDC-.opt-FILE-SYNTAX">DDC *.opt FILE SYNTAX</h1>
@@ -148,7 +150,8 @@
  ## Single-valued Options
  
  Indices INDEXLIST
- IndicesToShow INTLIST
+ IndexAlias FROM TO
+ IndicesToShow SHOWLIST
  DefaultBibl NAME
  HitBorders BREAKLIST
  
@@ -357,6 +360,18 @@
 <p>is one of the strings <code>archive</code> or <code>normal</code>. If it is <code>archive</code>, the current index is archived, otherwise it is not; and</p>
 
 </dd>
+</dl>
+
+<h3 id="IndexAlias">IndexAlias</h3>
+
+<pre><code> IndexAlias FROM TO</code></pre>
+
+<p>Defines a new token-level alias <code>FROM</code> for the existing index <code>TO</code>. <code>TO</code> may be a long index name declared in <a href="#Indices">Indices</a>, a short index name declared in <a href="#Indices">Indices</a>, or a valid index alias previously declared by another <code>IndexAlias</code> directive. Causes all runtime query operations on the pseudo-index <code>FROM</code> to be evaluated with respect to the underlying index <code>TO</code>. Useful for facilitating interoperability of heterogeneous corpora.</p>
+
+<p>Since v2.1.5</p>
+
+<dl>
+
 <dt id="STORAGE">STORAGE</dt>
 <dd>
 
@@ -369,11 +384,33 @@
 
 <h3 id="IndicesToShow">IndicesToShow</h3>
 
-<pre><code> IndicesToShow INTLIST</code></pre>
+<pre><code> IndicesToShow SHOWLIST</code></pre>
 
-<p>(largely from DDCReadme): Declares a list of those indices which should be returned in hit responses to user queries. <code>INTLIST</code> is a space-separated list of integers, where each integer <i>i</i> is the position of some index declaration in the <a href="#indices">Indices</a> declaration, counting from 1; i.e. for each <i>i</i>, 1 &lt;= <i>i</i> &lt;= N_INDICES, where N_INDICES is the number of index declarations by the <a href="#indices">Indices</a> option. For each output word, this list determines the order of the indices whose values are used to represent this word in an output hit. By default, <a href="#indicestoShow">IndicesToShow</a> is <code>1</code>, i.e. words are represented only by the value of the first index (normally the text of the token itself). If some index is mentioned inIndicesToShow, then it must have an index storage built during indexing.</p>
+<p>Declares a list of those indices which should be returned in hit responses to user queries. <code>SHOWLIST</code> is a list of index keys, separated by whitespace, commata (&#39;,&#39;) or semicolons (&#39;;&#39;). Each index label in <code>SHOWLIST</code> can be either:</p>
+
+<ul>
+
+<li><p></p>
+
+<pre><code> a long index name declared by L&lt;Indices|/Indices&gt; (since v2.1.5),</code></pre>
+
+</li>
+<li><p>a short index name declared by <a href="#Indices">Indices</a> (since v2.1.5),</p>
+
+</li>
+<li><p>an index alias label declared by <a href="#IndexAlias">IndexAlias</a> (since v2.1.5), or</p>
+
+</li>
+<li><p>the integer position <i>i</i> of the corresponding index declaration in <a href="#Indices">Indices</a>, counting from 1; i.e. for each <i>i</i>, 1 &lt;= <i>i</i> &lt;= N_INDICES, where N_INDICES is the number of index declarations by the <a href="#Indices">Indices</a> option.</p>
+
+</li>
+</ul>
+
+<p>By default, <a href="#indicestoShow">IndicesToShow</a> is <code>1</code>, i.e. words are represented only by the value of the first index (normally the text of the token itself). If some index is mentioned in IndicesToShow, then it must have an index storage built during indexing. Prior to v2.1.5, <b>ONLY</b> whitespace-separated integer positions were allowed for <code>SHOWLIST</code>.</p>
 
 <p>Only supported for the <code>Free_Index</code> <a href="#indextype">Index Type</a>.</p>
+
+<p>Support for long and short index names, aliases, and additional separators since v2.1.5.</p>
 
 <h3 id="DefaultBibl">DefaultBibl</h3>
 
@@ -551,7 +588,7 @@
 
 <pre><code> ServerInfoFile KEY FILENAME</code></pre>
 
-<p>Sets an external filename value to be returned in responses to client &#39;info&#39; requests to an associated CDDCLeafServer (see <a href="./ddc_proto.html">ddc_proto</a>). KEY is a key string optionally containing C escapes, and FILENAME is a filename containing literal JSON code to be returned as the value of <code>user.KEY</code> in leaf-server &#39;info&#39; responses. FILENAME is interpreted relative to the directory containing the project *.con file associated with the leaf server.</p>
+<p>Sets an external filename value to be returned in responses to client &#39;info&#39; requests to an associated CDDCLeafServer (see <a href="./ddc_proto.html">ddc_proto</a>). KEY is a key string optionally containing C escapes, and FILENAME is a filename containing literal JSON code to be returned as the value of <code>user.KEY</code> in leaf-server &#39;info&#39; responses. FILENAME is interpreted relative to the directory containing the project *.con file associated with the leaf server. As of v2.1.5, leading and trailing whitespace will be implicitly trimmed from FILENAME.</p>
 
 <p>Since v2.0.34.</p>
 
@@ -567,22 +604,23 @@
 
 <h3 id="Bibl">Bibl</h3>
 
-<pre><code> Bibl TYPE VISIBILITY NAME VALUE</code></pre>
+<pre><code> Bibl alias            NAME VALUE
+ Bibl TYPE  VISIBILITY NAME VALUE</code></pre>
 
-<p>(mostly from DDCReadme): Each <code>Bibl</code> declaration describes a single bibliographical field (such as date of publication, author, and so on). The bibliographical field can be predefined (&quot;orig&quot;, &quot;scan&quot;, &quot;date&quot;, &quot;page&quot;, &quot;pagerank&quot;) or free (user-defined). Predefined bibliographical fields have special processing in DDC, for example, field &quot;scan&quot; is used to build a hit header. Free bibliographical fields can contain either integer or string data: for both datatypes, one can use the general filter operator or general order operators (<code>#HAS</code> and <code>#LESS_BY</code> respectively). The arguments to free <code>Bibl</code> are:</p>
+<p>(mostly from DDCReadme): Each <code>Bibl</code> declaration describes a single bibliographic field (such as date of publication, author, and so on). The bibliographic field can be predefined (&quot;orig&quot;, &quot;scan&quot;, &quot;date&quot;, &quot;page&quot;, &quot;pagerank&quot;) or free (user-defined). Predefined bibliographic fields have special processing in DDC, for example, field &quot;scan&quot; is used to build a hit header. Free bibliographic fields can contain either integer or string data: for both datatypes, one can use the general filter operator or general order operators (<code>#HAS</code> and <code>#LESS_BY</code> respectively). The arguments to free <code>Bibl</code> are:</p>
 
 <dl>
 
 <dt id="TYPE">TYPE</dt>
 <dd>
 
-<p>is the type of the bibliographic field; either <code>string</code>, <code>integer</code>, or <code>constant</code>;</p>
+<p>is the type of the bibliographic field; either <code>string</code>, <code>integer</code>, <code>constant</code>, or <code>alias</code>.</p>
 
 </dd>
 <dt id="VISIBILITY">VISIBILITY</dt>
 <dd>
 
-<p>either <code>1</code> or <code>0</code>: if it is &quot;1&quot;, then DDC displays the value of the field for each hit header;</p>
+<p>(only for non-<code>alias</code> metadata fields); either <code>1</code> or <code>0</code>: if it is &quot;1&quot;, then DDC displays the value of the field for each hit header. For <code>alias</code> fields, the <code>VISIBILITY</code> flag should be omitted.</p>
 
 </dd>
 <dt id="NAME">NAME</dt>
@@ -594,16 +632,18 @@
 <dt id="VALUE">VALUE</dt>
 <dd>
 
-<p>For the <code>string</code> and <code>integer</code> types, <code>VALUE</code> should be an X-Path specification of the location of the field data in corpus source documents; for the <code>constant</code> type, it should be a literal string indicating the value to be returned.</p>
+<p>For the <code>string</code> and <code>integer</code> types, <code>VALUE</code> should be an X-Path specification of the location of the field data in corpus source documents; for the <code>constant</code> type, it should be a literal string indicating the value to be returned, and for the <code>alias</code> type, it should be the name of the target bibliographic field (or other alias) for which the pseudo-attribute <code>NAME</code> is to serve as an alias.</p>
 
 </dd>
 </dl>
 
 <p>Note that additions, deletions, and/or changes to <code>constant</code> bibliographic fields do <b>not</b> require re-indexing, whereas any changes to non-<code>constant</code> fields <b>do</b>.</p>
 
+<p>As of v2.1.5, leading and trailing whitespace will be implicitly trimmed from <code>VALUE</code> strings for metadata fields of type &quot;<code>constant</code>&quot;.</p>
+
 <p>Prior to v2.0.30, multiple definitions of a bibliographic field <code>NAME</code> caused a fatal error when loading a corpus project. As of v2.0.30, a warning is emitted in these cases, and the most recent definition is used (later definitions effectively &quot;clobbering&quot; earlier ones).</p>
 
-<p>Since v1.x; <code>constant</code> fields since v2.0.27, multiple definition since v2.0.30.</p>
+<p>Since v1.x; <code>alias</code> fields since v2.1.5, <code>constant</code> fields since v2.0.27, multiple definition since v2.0.30.</p>
 
 <h3 id="Bigrams">Bigrams</h3>
 
@@ -803,6 +843,26 @@
 <h1 id="SEE-ALSO">SEE ALSO</h1>
 
 <p>ddc_server.opt(5), ddc_console(1), ddc_daemon(1), ddc_expand(1), ddc_file_lem(1), ddc_graphmat_thick(1), ddc_index(1), ddc_morph_gen(1), ddc_search(1), ddc_simple(1), ddc_stats(1), ddc_struct_dict_loader(1), ddc_test_lem(1), ddc_xml(1)</p>
+
+<h1 id="POD-ERRORS">POD ERRORS</h1>
+
+<p>Hey! <b>The above document had some coding errors, which are explained below:</b></p>
+
+<dl>
+
+<dt id="Around-line-379">Around line 379:</dt>
+<dd>
+
+<p>You forgot a &#39;=back&#39; before &#39;=head3&#39;</p>
+
+</dd>
+<dt id="Around-line-395">Around line 395:</dt>
+<dd>
+
+<p>&#39;=item&#39; outside of any &#39;=over&#39;</p>
+
+</dd>
+</dl>
 
 
 </body>

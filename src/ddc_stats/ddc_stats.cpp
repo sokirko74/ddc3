@@ -1,5 +1,6 @@
 //  DDC originally by Alexey Sokirko
-//  Changes and modifications 2011-2014 by Bryan Jurish
+//
+//  Changes and modifications 2011-2017 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -30,7 +31,7 @@ MorphLanguageEnum langua = morphUnknown;
 
 bool DumpFreqOrPositions(const CConcHolder& R, string IndexName, bool bDumpPositions)
 {
-	const CStringIndexSet* SI = R.m_pIndexator->GetIndexByName(IndexName);
+	const CStringIndexSet* SI = R.m_pIndexator->GetIndexByAlias(IndexName);
 	if (!SI)
 	{
 		fprintf(stderr, "Cannot find index name `%s'!\n", IndexName.c_str() );

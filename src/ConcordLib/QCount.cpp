@@ -1,7 +1,7 @@
 //-*- Mode: C++; c-basic-offset: 2; -*-
 //
 //  DDC originally by Alexey Sokirko
-//  Changes and modifications 2011-2015 by Bryan Jurish
+//  Changes and modifications 2011-2017 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -264,7 +264,7 @@ bool CQCountKeyExprToken::Compile(CQueryCompiler *compiler)
   if (m_IndexName.empty())
     m_IndexName = "Token";
 
-  m_pIndex = compiler->m_pHolder->m_pIndexator->GetIndexByNameOrShortName(m_IndexName);
+  m_pIndex = compiler->m_pHolder->m_pIndexator->GetIndexByAlias(m_IndexName);
   if (!m_pIndex)
     throw CExpc(errParseError,"CQCountKeyExprToken::Compile(): unknown index `%s'", m_IndexName.c_str());
 

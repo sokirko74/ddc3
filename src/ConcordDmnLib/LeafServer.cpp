@@ -290,7 +290,7 @@ void CDDCLeafServer::handle__info(string &Result, int timeout, bool verbose)
 		const CConcXml::FreeBiblAliasMap& bamap = ix->m_Bibl.GetFreeBiblAliasMap();
 		for (CConcXml::FreeBiblAliasMap::const_iterator bai=bamap.begin(); bai!=bamap.end(); ++bai) {
 		    Result += (string(",\n\t\t{")
-			       + "\"name\":" + jsonStr(bai->first) + ", "
+			       + "\"alias\":" + jsonStr(bai->first) + ", "
 			       + "\"ref\":" + jsonStr(bai->second)
 			       + "}"
 			       );
@@ -335,6 +335,18 @@ void CDDCLeafServer::handle__info(string &Result, int timeout, bool verbose)
 				   + "}"
 				   );
 		}
+		//---- info.indices: aliases
+		for (CStringIndexator::IndexMap::const_iterator imi=ix->m_IndexMap.begin(); imi != ix->m_IndexMap.end(); ++imi) {
+		    if (imi->second==NULL || imi->first == imi->second->m_Name || imi->first == imi->second->m_ShortName)
+			continue;
+		    if (i != 0) Result += ',';
+		    Result += (string("\n\t\t{")
+			       + "\"alias\":" + jsonStr(imi->first) + ", "
+			       + "\"ref\":" + jsonStr(imi->second->m_Name)
+			       + "}");
+		    ++i;
+		}
+		//---- /info.indices: aliases
 		Result += "\n\t\t],\n\t";
 		//-- /info.indices
 

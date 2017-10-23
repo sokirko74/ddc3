@@ -71,7 +71,7 @@
 .\" ========================================================================
 .\"
 .IX Title "DDC_OPT 5"
-.TH DDC_OPT 5 "2016-12-20" "2.1.3" "DDC Corpus Indexing System"
+.TH DDC_OPT 5 "2017-10-23" "2.1.5" "DDC Corpus Indexing System"
 .\" For nroff, turn off justification.  Always turn off hyphenation; it makes
 .\" way too many mistakes in technical documents.
 .if n .ad l
@@ -126,7 +126,8 @@ option files (\*(L"opt-files\*(R") used by the \s-1DDC\s0 corpus indexing system
 \& ## Single\-valued Options
 \& 
 \& Indices INDEXLIST
-\& IndicesToShow INTLIST
+\& IndexAlias FROM TO
+\& IndicesToShow SHOWLIST
 \& DefaultBibl NAME
 \& HitBorders BREAKLIST
 \& 
@@ -430,6 +431,24 @@ is a short name for the index, conventionally in all lower-case and frequently o
 .IX Item "ARCHIVE"
 is one of the strings \f(CW\*(C`archive\*(C'\fR or \f(CW\*(C`normal\*(C'\fR.
 If it is \f(CW\*(C`archive\*(C'\fR, the current index is archived, otherwise it is not; and
+.PP
+\fIIndexAlias\fR
+.IX Subsection "IndexAlias"
+.PP
+.Vb 1
+\& IndexAlias FROM TO
+.Ve
+.PP
+Defines a new token-level alias \f(CW\*(C`FROM\*(C'\fR for the existing index \f(CW\*(C`TO\*(C'\fR.
+\&\f(CW\*(C`TO\*(C'\fR may be
+a long index name declared in Indices,
+a short index name declared in Indices,
+or a valid index alias previously declared by another \f(CW\*(C`IndexAlias\*(C'\fR directive.
+Causes all runtime query operations on the pseudo-index \f(CW\*(C`FROM\*(C'\fR to be evaluated
+with respect to the underlying index \f(CW\*(C`TO\*(C'\fR.
+Useful for facilitating interoperability of heterogeneous corpora.
+.PP
+Since v2.1.5
 .IP "\s-1STORAGE\s0" 4
 .IX Item "STORAGE"
 is one of the strings \f(CW\*(C`storage\*(C'\fR or \f(CW\*(C`storage_omit\*(C'\fR.
@@ -442,19 +461,34 @@ The indices option is only supported for the \f(CW\*(C`Free_Index\*(C'\fR Index 
 .IX Subsection "IndicesToShow"
 .PP
 .Vb 1
-\& IndicesToShow INTLIST
+\& IndicesToShow SHOWLIST
 .Ve
 .PP
-(largely from DDCReadme):
 Declares a list of those indices which should be returned in hit responses to user queries.
-\&\f(CW\*(C`INTLIST\*(C'\fR is a space-separated list of integers, where each integer \fIi\fR is the position of some index declaration in the
-Indices declaration, counting from 1;
+\&\f(CW\*(C`SHOWLIST\*(C'\fR is a list of index keys, separated by whitespace, commata (',') or semicolons (';').  Each index label
+in \f(CW\*(C`SHOWLIST\*(C'\fR can be either:
+.IP "\(bu" 4
+
+.Sp
+.Vb 1
+\& a long index name declared by L<Indices|/Indices> (since v2.1.5),
+.Ve
+.IP "\(bu" 4
+a short index name declared by Indices (since v2.1.5),
+.IP "\(bu" 4
+an index alias label declared by IndexAlias (since v2.1.5),
+or
+.IP "\(bu" 4
+the integer position \fIi\fR of the corresponding index declaration in Indices, counting from 1;
 i.e. for each \fIi\fR, 1 <= \fIi\fR <= N_INDICES, where N_INDICES is the number of index declarations by the Indices option.
-For each output word, this list determines the order of the indices whose values are used to represent this word in an output hit.
+.PP
 By default, IndicesToShow is \f(CW1\fR, i.e. words are represented only by the value of the first index
-(normally the text of the token itself). If some index is mentioned  inIndicesToShow, then it must have an index storage built during indexing.
+(normally the text of the token itself). If some index is mentioned in IndicesToShow, then it must have an index storage built during indexing.
+Prior to v2.1.5, \fB\s-1ONLY\s0\fR whitespace-separated integer positions were allowed for \f(CW\*(C`SHOWLIST\*(C'\fR.
 .PP
 Only supported for the \f(CW\*(C`Free_Index\*(C'\fR Index Type.
+.PP
+Support for long and short index names, aliases, and additional separators since v2.1.5.
 .PP
 \fIDefaultBibl\fR
 .IX Subsection "DefaultBibl"
@@ -745,6 +779,7 @@ to an associated CDDCLeafServer (see ddc_proto).  \s-1KEY\s0 is a key string opt
 containing C escapes, and \s-1FILENAME\s0 is a filename containing literal \s-1JSON\s0 code to be returned as the value
 of \f(CW\*(C`user.KEY\*(C'\fR in leaf-server 'info' responses.  \s-1FILENAME\s0 is interpreted relative to the directory
 containing the project *.con file associated with the leaf server.
+As of v2.1.5, leading and trailing whitespace will be implicitly trimmed from \s-1FILENAME.\s0
 .PP
 Since v2.0.34.
 .SS "Multi-valued Options"
@@ -766,23 +801,26 @@ Each \f(CW\*(C`textarea\*(C'\fR declaration describes a single text area, where
 \fIBibl\fR
 .IX Subsection "Bibl"
 .PP
-.Vb 1
-\& Bibl TYPE VISIBILITY NAME VALUE
+.Vb 2
+\& Bibl alias            NAME VALUE
+\& Bibl TYPE  VISIBILITY NAME VALUE
 .Ve
 .PP
 (mostly from DDCReadme):
-Each \f(CW\*(C`Bibl\*(C'\fR declaration describes a single bibliographical field (such as date of publication, author, and so on).
-The bibliographical field can be predefined (\*(L"orig\*(R", \*(L"scan\*(R", \*(L"date\*(R", \*(L"page\*(R", \*(L"pagerank\*(R") or free (user-defined).
-Predefined bibliographical fields have special processing in \s-1DDC,\s0 for example, field \*(L"scan\*(R" is used to build a hit
-header. Free bibliographical fields can contain either integer or string data: for both datatypes, one can use
+Each \f(CW\*(C`Bibl\*(C'\fR declaration describes a single bibliographic field (such as date of publication, author, and so on).
+The bibliographic field can be predefined (\*(L"orig\*(R", \*(L"scan\*(R", \*(L"date\*(R", \*(L"page\*(R", \*(L"pagerank\*(R") or free (user-defined).
+Predefined bibliographic fields have special processing in \s-1DDC,\s0 for example, field \*(L"scan\*(R" is used to build a hit
+header. Free bibliographic fields can contain either integer or string data: for both datatypes, one can use
 the general filter operator or general order operators (\f(CW\*(C`#HAS\*(C'\fR and \f(CW\*(C`#LESS_BY\*(C'\fR respectively).
 The arguments to free \f(CW\*(C`Bibl\*(C'\fR are:
 .IP "\s-1TYPE\s0" 4
 .IX Item "TYPE"
-is the type of the bibliographic field; either \f(CW\*(C`string\*(C'\fR, \f(CW\*(C`integer\*(C'\fR, or \f(CW\*(C`constant\*(C'\fR;
+is the type of the bibliographic field; either \f(CW\*(C`string\*(C'\fR, \f(CW\*(C`integer\*(C'\fR, \f(CW\*(C`constant\*(C'\fR, or \f(CW\*(C`alias\*(C'\fR.
 .IP "\s-1VISIBILITY\s0" 4
 .IX Item "VISIBILITY"
-either \f(CW1\fR or \f(CW0\fR: if it is \*(L"1\*(R",  then \s-1DDC\s0 displays the value of the field for each hit header;
+(only for non\-\f(CW\*(C`alias\*(C'\fR metadata fields);
+either \f(CW1\fR or \f(CW0\fR: if it is \*(L"1\*(R",  then \s-1DDC\s0 displays the value of the field for each hit header.
+For \f(CW\*(C`alias\*(C'\fR fields, the \f(CW\*(C`VISIBILITY\*(C'\fR flag should be omitted.
 .IP "\s-1NAME\s0" 4
 .IX Item "NAME"
 a symbolic name for this bibliographic field (by convention all lower-case); and
@@ -790,17 +828,22 @@ a symbolic name for this bibliographic field (by convention all lower-case); and
 .IX Item "VALUE"
 For the \f(CW\*(C`string\*(C'\fR and \f(CW\*(C`integer\*(C'\fR types, \f(CW\*(C`VALUE\*(C'\fR should be an X\-Path specification of the location
 of the field data in corpus source documents; for
-the \f(CW\*(C`constant\*(C'\fR type, it should be a literal string indicating the value to be returned.
+the \f(CW\*(C`constant\*(C'\fR type, it should be a literal string indicating the value to be returned,
+and for the \f(CW\*(C`alias\*(C'\fR type, it should be the name of the target bibliographic field (or other alias)
+for which the pseudo-attribute \f(CW\*(C`NAME\*(C'\fR is to serve as an alias.
 .PP
 Note that additions, deletions, and/or changes to \f(CW\*(C`constant\*(C'\fR bibliographic fields do \fBnot\fR
 require re-indexing, whereas any changes to non\-\f(CW\*(C`constant\*(C'\fR fields \fBdo\fR.
+.PP
+As of v2.1.5, leading and trailing whitespace will be implicitly trimmed from \f(CW\*(C`VALUE\*(C'\fR strings
+for metadata fields of type "\f(CW\*(C`constant\*(C'\fR".
 .PP
 Prior to v2.0.30, multiple definitions of a bibliographic field \f(CW\*(C`NAME\*(C'\fR caused a fatal
 error when loading a corpus project.  As of v2.0.30, a warning is emitted in these cases,
 and the most recent definition is used (later definitions effectively \*(L"clobbering\*(R" earlier
 ones).
 .PP
-Since v1.x; \f(CW\*(C`constant\*(C'\fR fields since v2.0.27, multiple definition since v2.0.30.
+Since v1.x; \f(CW\*(C`alias\*(C'\fR fields since v2.1.5, \f(CW\*(C`constant\*(C'\fR fields since v2.0.27, multiple definition since v2.0.30.
 .PP
 \fIBigrams\fR
 .IX Subsection "Bigrams"
