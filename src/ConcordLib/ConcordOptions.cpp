@@ -438,6 +438,10 @@ bool CConcIndexator::LoadOptionsFromString(string Options)
 		else if (q == "Indices")
 			{
 				IndicesStr = fields.get_rest_trim();
+				if (!IndexAliasStr.empty()) {
+					ddcLogWarn("Warning: `Indices' declaration invalidates all preceeding `IndexAlias' definitions");
+					IndexAliasStr.clear();
+				}
 			}
 		else if (q == "IndexAlias")
 			{
