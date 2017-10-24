@@ -1,6 +1,6 @@
 ##-*- Mode: Change-Log; coding: utf-8; -*-
 
-v2.1.5 Tue, 24 Oct 2017 13:12:48 +0200 moocow
+v2.1.5 Tue, 24 Oct 2017 13:55:16 +0200 moocow
 	* added support for 32-bit unicode escapes (\UXXXXXXXX)
 	* fixed mantis bug #21486: added new CCUrl.m_Redirects option for curl-based expanders; default=10
 	* refactored legacy StringTokenizer class into ddcString.h
