@@ -1,15 +1,16 @@
 ##-*- Mode: Change-Log; coding: utf-8; -*-
 
-v2.1.5 Mon, 23 Oct 2017 14:23:34 +0200
-	* fix mantis bug #21486: added new CCUrl.m_Redirects option for curl-based expanders; default=10
+v2.1.5 Tue, 24 Oct 2017 13:12:48 +0200 moocow
+	* added support for 32-bit unicode escapes (\UXXXXXXXX)
+	* fixed mantis bug #21486: added new CCUrl.m_Redirects option for curl-based expanders; default=10
 	* refactored legacy StringTokenizer class into ddcString.h
  	  - was doubled: common/string_tokenizer.h (inline) and common/util_classes.h with implementations in CommonLib/utilit.cpp
 	  - refactoring used code from utili_classes.h + utilit.cpp
-	* fix mantis bug #19695: trim leading & trailing whitespace for "ServerInfoFile" option
+	* fixed mantis bug #19695: trim leading & trailing whitespace for "ServerInfoFile" option
 	  - also for "include", "Indices", "HitBorders", "Expand", "ExpandBibl", and "ServerInfo" options
 	  - fix uses new method StringTokenizer::get_rest_trim()
-	* added support for 32-bit unicode escapes (\UXXXXXXXX)
-	* fix mantis bug #22236: trim leading & trailing whitespace from "Bibl constant" fields
+	* fixed mantis bug #22251: improved error propagation for "deep" server trees
+	* fixed mantis bug #22236: trim leading & trailing whitespace from "Bibl constant" fields
 	* added mantis feature #21495: added "Bibl alias" opt-file syntax & resolution
 	  - tested for #has[], #asc[], count-by[]
 	  - most recent declaration wins (analogous to previous handling for physical "Bibl" fields)

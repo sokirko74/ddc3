@@ -257,10 +257,7 @@ void CDDCBranchServer::handle__get_first_hits(string &Result, const char *Query,
     runq.Init(Query, "", 0, ResultLimit, TimeOut, &m_ErrorStr);
 
     NetworkErrorsEnum rc = RunGetFirstHits();
-    if (FHResult.m_InternalError != errNone)
-	throw CExpc(FHResult.m_InternalError);
-    else if (rc != neSuccess)
-	throw CExpc(errRuntime, GetNetworkErrorString(rc));
+    CheckFirstHitsResult(rc);
     
     //-- adapted from CDDCLeafServer::handle__get_first_hits(), CConcSession::GetHitIds()
     Result = Format ("%i %i %i %i %i", FHResult.m_InternalError, runq.EndHitNo, FHResult.m_AllHitsCount, FHResult.m_AllRelevantDocsCount, FHResult.m_SortOrder);
@@ -328,10 +325,14 @@ void CDDCBranchServer::handle__get_hit_strings(string &Result, const char *Resul
     }
 
     //-- check for errors
-    if (runq.iInternalError != (int)errNone)
-	throw CExpc(runq.iInternalError);
-    else if (runq.iNetworkError != (int)neSuccess)
+    if (runq.iInternalError != (int)errNone) {
+	if (!m_ErrorStr.empty())
+	    throw CExpc(runq.iInternalError,m_ErrorStr);
+	else
+	    throw CExpc(runq.iInternalError);
+    } else if (runq.iNetworkError != (int)neSuccess) {
 	throw CExpc(errRuntime, GetNetworkErrorString((NetworkErrorsEnum)runq.iNetworkError));
+    }
 
     //-- format result
     if (ResultTypeE == DDC_ResultJson) {
@@ -554,10 +555,7 @@ void CDDCBranchServer::RunDistributed()
     
     //-- get hit sort-keys and trim to selected range
     NetworkErrorsEnum rc = RunGetFirstHits();
-    if (FHResult.m_InternalError != errNone)
-	throw CExpc(FHResult.m_InternalError);
-    else if (rc != neSuccess)
-	throw CExpc(errRuntime, GetNetworkErrorString(rc));
+    CheckFirstHitsResult(rc);
     
     //-- check timeout
     if  (runq.TimeOut >= 0) {
@@ -701,6 +699,27 @@ NetworkErrorsEnum CDDCBranchServer::RunGetFirstHits()
 #endif
 
     return (NetworkErrorsEnum)runq.iNetworkError;
+}
+
+//----------------------------------------------------------------------
+void CDDCBranchServer::CheckFirstHitsResult(NetworkErrorsEnum networkError)
+{
+    CFirstHitsQueryResult& FHResult = m_FHResult;
+
+    if (FHResult.m_InternalError != errNone) {
+	if (!m_ErrorStr.empty())
+	    throw CExpc(FHResult.m_InternalError, m_ErrorStr);
+	else if (!FHResult.m_ErrorStr.empty())
+	    throw CExpc(FHResult.m_InternalError, FHResult.m_ErrorStr);
+	else
+	    throw CExpc(FHResult.m_InternalError);
+    }
+    else if (FHResult.m_NetworkError != neSuccess) {
+	throw CExpc(errRuntime, GetNetworkErrorString(FHResult.m_NetworkError));
+    }
+    else if (networkError != neSuccess) {
+	throw CExpc(errRuntime, GetNetworkErrorString(networkError));
+    }
 }
 
 //----------------------------------------------------------------------
@@ -870,6 +889,7 @@ void CDDCBranchServer::GetFirstHitsFromCorpora(const DwordVector& PossibleHosts,
 		if(sscanf(S.c_str(), "%i %i %i %i %i", &iInternalError, &EndHitNo, &CorpusHitsCount, &RelevantDocumentsCount, &iSort) != 5)
 		{
 			Result.m_NetworkError = neProtocolError;
+			Result.m_ErrorStr     = string("[") + Host.m_CorpusName + "] " + GetNetworkErrorString(Result.m_NetworkError);
 			return;
 		}
 		Result.m_InternalError = (DDCErrorEnum)iInternalError;
@@ -889,10 +909,11 @@ void CDDCBranchServer::GetFirstHitsFromCorpora(const DwordVector& PossibleHosts,
 		if (Result.m_InternalError != errNone) {
 			//-- sub-corpus error: look for error message
 			size_t p = S.find('\n');
+			Result.m_ErrorStr = string("[") + Host.m_CorpusName + "] ";
 			if (p != S.npos) {
-				Result.m_ErrorStr = S.substr(p+1);
+			    Result.m_ErrorStr += S.substr(p+1);
 			} else {
-				Result.m_ErrorStr = "unknown error";
+			    Result.m_ErrorStr += GetDDCErrorString((DDCErrorEnum)Result.m_InternalError);
 			}
 			Result.m_NetworkError = neInternalError;
 			return;

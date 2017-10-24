@@ -253,6 +253,9 @@ public:
     /** new top-level guts for handle__get_first_hits() and handle__run_query() phase 1; uses m_FHResult and m_QueryData */ 
     NetworkErrorsEnum RunGetFirstHits();
 
+    /** error-message propagation for get_first_hits requests; uses m_FHResult and m_ErrorStr; assigns to m_ErrorStr if currently empty */
+    void CheckFirstHitsResult(NetworkErrorsEnum networkError=neSuccess);
+
     /** new top-level guts for handle__get_hit_strings() and handle__run_query() phase 2; uses m_FHResult and m_QueryData */
     NetworkErrorsEnum RunGetHitStrings();
 
