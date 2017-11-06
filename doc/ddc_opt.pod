@@ -415,7 +415,7 @@ in C<SHOWLIST> can be either:
 
 =item * 
 
- a long index name declared by L<Indices|/Indices> (since v2.1.5),
+a long index name declared by L<Indices|/Indices> (since v2.1.5),
 
 =item *
 
