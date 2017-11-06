@@ -1417,17 +1417,14 @@ void CConcXml::InitSortByDate(vector<CHit>&	Hits) const
 	}
 }
 
-void CConcXml::InitSortByBiblIntegerField(string FreeBiblAttribName, vector<CHit>&	Hits) const
+void CConcXml::InitSortByBiblIntegerField(string FreeBiblAttribNameOrAlias, vector<CHit>&	Hits) const
 {
 	const CFreeBiblIndex* pFreeAttrib = 0;	
 
-	if (!FreeBiblAttribName.empty())
-	{
-		FreeBiblStringMap::const_iterator it = m_FreeBiblIndices.find(FreeBiblAttribName);
-		if (it != m_FreeBiblIndices.end()) 
-			pFreeAttrib = it->second;
-	};
-	if (pFreeAttrib == 0) return InitNoSort(Hits);	
+	if (!FreeBiblAttribNameOrAlias.empty())
+		pFreeAttrib = GetFreeBiblIndex(FreeBiblAttribNameOrAlias);
+	if (pFreeAttrib == NULL)
+		return InitNoSort(Hits);	
 	
 	size_t HitsCount = Hits.size();
 	for (size_t HitNo=0; HitNo < HitsCount; HitNo++)
@@ -1512,9 +1509,9 @@ CBiblExpander* CConcXml::AddBiblExpander(const string &spec)
 	return bx;
 };
 
-bool CConcXml::IsRegisteredBiblField(const string& FreeBiblAttribName) const
+bool CConcXml::IsRegisteredBiblField(const string& FreeBiblAttribNameOrAlias) const
 {
-	return !FreeBiblAttribName.empty() && GetFreeBiblIndex(FreeBiblAttribName) != NULL;
+	return !FreeBiblAttribNameOrAlias.empty() && GetFreeBiblIndex(FreeBiblAttribNameOrAlias) != NULL;
 }
 
 CFreeBiblIndexTypeId CConcXml::GetBiblFieldTypeId(const string& FreeBiblAttribName) const

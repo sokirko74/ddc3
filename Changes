@@ -1,5 +1,11 @@
 ##-*- Mode: Change-Log; coding: utf-8; -*-
 
+v2.1.6 Mon, 06 Nov 2017 10:29:53 +0100 moocow
+	* fixed mantis bug #22724: bibl aliases broken
+	  - CQFSort::ResolveAttributeName() retains original alias name in m_Filter.m_AttrName
+	  - evaluation call chain CConcSession::InitSortKeyForHits() -> CConcXml::InitSortByBiblIntegerField()
+	    used CConcXml.m_FreeBiblIndices map directly (physical attributes only --> undefined results via InitNoSort())
+
 v2.1.5 Tue, 24 Oct 2017 13:55:16 +0200 moocow
 	* added support for 32-bit unicode escapes (\UXXXXXXXX)
 	* fixed mantis bug #21486: added new CCUrl.m_Redirects option for curl-based expanders; default=10
