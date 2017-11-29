@@ -485,7 +485,7 @@ void CDDCBranchServer::handle__status(string &Result, int timeout, bool verbose)
 	      + "\"nslow\":" + Format("%zd", m_ServerStats.m_nSlow) + ",\n"
 	      + "\"qtavg\":" + Format("%g", m_ServerStats.m_qTimes.tAverage()) + ",\n"
 	      + "\"nworkers\":" + Format("%zd", m_nWorkers) + ",\n"
-	      + "\"memkb\":" + Format("%zd", this->residentMemorySize()) + ",\n"
+	      + "\"memkb\":" + Format("%zd", this->totalMemorySize()) + ",\n"
 	      + "\"corpora\":" + subResult + "}\n"
 	      );
     m_bExpectMore = false;

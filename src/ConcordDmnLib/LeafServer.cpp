@@ -205,7 +205,7 @@ void CDDCLeafServer::handle__status(string &Result, int timeout, bool verbose)
 	      + "\"nslow\":" + Format("%zd", m_ServerStats.m_nSlow) + ",\n\t"
 	      + "\"qtavg\":" + Format("%g", m_ServerStats.m_qTimes.tAverage()) + ",\n\t"
 	      + "\"nworkers\":" + Format("%zd", m_nWorkers) + ",\n\t"
-	      + "\"memkb\":" + Format("%zd", this->residentMemorySize()) + ",\n\t"
+	      + "\"memkb\":" + Format("%zd", this->totalMemorySize()) + ",\n\t"
 	      + "\"cachesize\":" + Format("%zd", m_pHolder->CacheSize()) + ",\n\t"
 	      + "\"curlcachesize\":" + Format("%zd", ddcCurlCache.size()) + "\n\t"
 	      + "}"

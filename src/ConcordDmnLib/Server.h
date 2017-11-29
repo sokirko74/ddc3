@@ -209,8 +209,11 @@ public:
     inline void method_not_implemented(const char *methodName)
     { throw CExpc(errRuntime, "DDCServer API method %s not implemented for object %s", methodName, typeid(*this).name()); };
     
-    /** get resident memory size of server process in kb using /proc/self/statm */
-    virtual size_t residentMemorySize(void);
+    /** get resident memory size of server process in kb using /proc/self/statm \deprecated prefer totalMemorySize() */
+    virtual size_t residentMemorySize(void) const;
+
+    /** get total memory size of server process in kb using /proc/self/statm */
+    virtual size_t totalMemorySize(void) const;
 };
 
 #endif /* DDC_SERVER_H */

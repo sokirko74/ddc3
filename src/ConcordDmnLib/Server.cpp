@@ -435,9 +435,17 @@ void CDDCServer::handle__clear_cache(string &Result, int depth)
 //==============================================================================
 
 //----------------------------------------------------------------------
-size_t CDDCServer::residentMemorySize(void)
+size_t CDDCServer::residentMemorySize(void) const
 {
     DDCProcessMemoryStatus pms;
     pms.fetch();
-    return pms.resident;
+    return pms.resident * (pms.pagesize/1024);
+}
+
+//----------------------------------------------------------------------
+size_t CDDCServer::totalMemorySize(void) const
+{
+    DDCProcessMemoryStatus pms;
+    pms.fetch();
+    return pms.size * (pms.pagesize/1024);
 }

@@ -374,8 +374,8 @@ public:
 
 	void InitNoSort(vector<CHit>& Hits) const;
 	void InitSortByDate(vector<CHit>& Hits) const;
-	void InitSortByBiblIntegerField(string FreeBiblAttribName, vector<CHit>& Hits) const;
-	bool IsRegisteredBiblField(const string& FreeBiblAttribName) const;
+	void InitSortByBiblIntegerField(string FreeBiblAttribNameOrAlias, vector<CHit>& Hits) const;
+	bool IsRegisteredBiblField(const string& FreeBiblAttribNameOrAlias) const;
 
 	//! get the registered type of a registered bibliographic field as a CFreeBiblIndexTypeId
 	//! \returns m_FreeBiblIndices.find(FreeBiblAttribName).GetTypeId() or \ref cfbiUnknown if not found

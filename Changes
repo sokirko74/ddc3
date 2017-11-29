@@ -1,5 +1,10 @@
 ##-*- Mode: Change-Log; coding: utf-8; -*-
 
+v2.1.7-pre1 Wed, 29 Nov 2017 12:40:28 +0100
+	* fixed memory size reporting in ConcordDmnLib/Server.cpp
+	  - fixed reporting unit: was pages a la /proc/PID/statm; now: kB (1024-byte units)
+	  - formerly reported resident set size (VmRSS), now report total program size (VmSize)
+
 v2.1.6 Mon, 06 Nov 2017 10:29:53 +0100 moocow
 	* fixed mantis bug #22724: bibl aliases broken
 	  - CQFSort::ResolveAttributeName() retains original alias name in m_Filter.m_AttrName

@@ -978,6 +978,7 @@ void DDCProcessMemoryStatus::fetch(pid_t pid)
     FILE *f = fopen(filename, "r");
     if (f==NULL) return;
 
+    pagesize = sysconf(_SC_PAGE_SIZE);
     fscanf(f,
 	   "%zu %zu %zu %zu %zu %zu %zu",
 	   &size, &resident, &share, &text, &lib, &data, &dt);

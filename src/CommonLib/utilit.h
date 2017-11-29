@@ -263,8 +263,9 @@ extern bool     RemoveWithPrint (const string& FileName);
 
 /** struct for reading /proc/PID/statm; see proc(5) */
 struct DDCProcessMemoryStatus {
-    size_t size;	//< total program size (same as VmSize in /proc/[pid]/status)
-    size_t resident;	//< resident set size (same as VmRSS in /proc/[pid]/status)
+    size_t pagesize;    //< system page size, in bytes (from sysconf(_SC_PAGE_SIZE))
+    size_t size;	//< total program size (same as VmSize in /proc/[pid]/status, in pages)
+    size_t resident;	//< resident set size (same as VmRSS in /proc/[pid]/status, in pages)
     size_t share;	//< shared pages (i.e., backed by a file)
     size_t text;	//< text (code)
     size_t lib;		//< library (unused in Linux 2.6)
@@ -277,6 +278,7 @@ struct DDCProcessMemoryStatus {
 
     inline void clear(void)
     {
+	pagesize=0;
 	size=0;
 	resident=0;
 	share=0;
