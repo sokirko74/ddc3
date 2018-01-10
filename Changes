@@ -1,6 +1,6 @@
 ##-*- Mode: Change-Log; coding: utf-8; -*-
 
-v2.1.7-pre1 Wed, 29 Nov 2017 12:40:28 +0100 , Tue, 09 Jan 2018 10:18:53 +0100
+v2.1.7 Wed, 10 Jan 2018 10:33:26 +0100 moocow
 	* fixed memory size reporting in ConcordDmnLib/Server.cpp
 	  - fixed reporting unit: was pages a la /proc/PID/statm; now: kB (1024-byte units)
 	  - formerly reported resident set size (VmRSS), now report total program size (VmSize)
