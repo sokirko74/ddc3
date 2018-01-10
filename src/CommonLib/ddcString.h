@@ -148,24 +148,25 @@ char* StrError(int ErrorNo);
 //@{
 
 //--------------------------------------------------------------
-/** old string tokenizer from ../common/util_classes.h, utilit.cpp, rsp. ../common/string_tokenizer.h
+/**
+ * old string tokenizer from ../common/util_classes.h, utilit.cpp, rsp. ../common/string_tokenizer.h
  * \detail see also stringSplitE() from utilit.cpp
  */
 /**
+   re-entrant replacement of strtok().
 
-	The Reenterable replacement of strtok().
-
-
-	Usage:		
-
-	char *text = "word, word2;word3"
-	StringTokenizer token(text, " ,;");
-	const char *word;
-	while((word = token())){
-		// handle token here
-	}
+   Usage (C-strings):
+   <code>
+     char *text = "word, word2;word3"
+     CStringTokenizer token(text, " ,;");
+     const char *word;
+     while((word = token())){
+       // handle token here
+     }
+  </code>
 */
 class StringTokenizer {
+protected:
   char *text_ptr;
   char *text;
   int i;
@@ -181,11 +182,20 @@ public:
   //-------------------------------------------------------
   // constructors etc.
   StringTokenizer(const char *_text, const char *_delims=" \t\r\n");
+
+  ///! moo: constructor from std::string (implicitly calls c_str() on arguments)
+  StringTokenizer(const std::string& _text, const std::string& _delims)
+  { initialize(_text,_delims); };
+
   ~StringTokenizer();
 
   void initialize(const char *_text, const char *_delims=" \t\r\n");
   void reinitialize(const char *_text, const char *_delims=" \t\r\n");
-  
+
+  ///! moo: initialize from std::string (copies)
+  void initialize(const std::string& _text, const std::string &_delims)
+  { initialize(_text.c_str(), _delims.c_str()); };
+
   //-------------------------------------------------------
   // API
   const char * operator ()();

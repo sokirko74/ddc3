@@ -71,7 +71,7 @@
 .\" ========================================================================
 .\"
 .IX Title "DDC_PROTO 5"
-.TH DDC_PROTO 5 "2017-10-23" "2.1.6" "DDC Corpus Indexing System"
+.TH DDC_PROTO 5 "2018-01-10" "2.1.7-pre1" "DDC Corpus Indexing System"
 .\" For nroff, turn off justification.  Always turn off hyphenation; it makes
 .\" way too many mistakes in technical documents.
 .if n .ad l
@@ -584,9 +584,9 @@ On success, responses have the form:
 .Ve
 .PP
 where \f(CW\*(C`STATUS\*(C'\fR is a decimal integer status, 0 (zero) for success,
-\&\f(CW\*(C`MAXHIT\*(C'\fR is the index of the last hit computed (?? see CConcHolder::GetHits(q, _\|_EndHitNo_\|_)),
-\&\f(CW\*(C`NHITS\*(C'\fR is the number of hits found (?? see CConcHolder::m_AllHitsCount),
-\&\f(CW\*(C`NDOCS\*(C'\fR is the number of relevant documents found (?? see CConcHolder::m_RelevantDocumentCount),
+\&\f(CW\*(C`MAXHIT\*(C'\fR should be the index of the last hit computed (?? but seems in practice usually to be 0 (zero) \*(-- see CConcHolder::GetHits(q, _\|_EndHitNo_\|_)),
+\&\f(CW\*(C`NHITS\*(C'\fR is the total number of hits found (?? see CConcHolder::m_AllHitsCount),
+\&\f(CW\*(C`NDOCS\*(C'\fR is the number of relevant documents found (?? usually 0 (zero); see CConcHolder::m_RelevantDocumentCount),
 \&\f(CW\*(C`SORT\*(C'\fR is a indicates whether and/or how the hits are to be sorted
 (0: no sort, 1: ascending sort, \-1: descending sort),
 and \f(CW\*(C`HITIDS\*(C'\fR is a TAB-separated list of \f(CW\*(C`NHITS\*(C'\fR hit-identification triples (see \fICConcHolder::GetHitIds()\fR),

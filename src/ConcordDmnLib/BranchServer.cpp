@@ -919,8 +919,10 @@ void CDDCBranchServer::GetFirstHitsFromCorpora(const DwordVector& PossibleHosts,
 			return;
 		}
 
-
-		//-- read sort keys for merging sorted results (v2.0.19: always use string-sort for results)
+		//-- reserve space in hit sort-key vector (this actually doesn't seem to help against memory-bloat --moocow 2018-01-10 10:23:29+0100)
+		//Result.m_Hits.reserve( Result.m_Hits.size() + (CorpusHitsCount < ResultLimit ? CorpusHitsCount : ResultLimit) );
+		
+		//-- read sort keys for merging sorted results (v2.0.19: always use string-sort for results)		
 		int f = S.find("\t");
 		if (f != string::npos) {
 			StringTokenizer tok(S.c_str() + f +1,"\t");

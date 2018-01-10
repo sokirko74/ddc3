@@ -1,9 +1,13 @@
 ##-*- Mode: Change-Log; coding: utf-8; -*-
 
-v2.1.7-pre1 Wed, 29 Nov 2017 12:40:28 +0100
+v2.1.7-pre1 Wed, 29 Nov 2017 12:40:28 +0100 , Tue, 09 Jan 2018 10:18:53 +0100
 	* fixed memory size reporting in ConcordDmnLib/Server.cpp
 	  - fixed reporting unit: was pages a la /proc/PID/statm; now: kB (1024-byte units)
 	  - formerly reported resident set size (VmRSS), now report total program size (VmSize)
+	* fixed ClearString() in utilit.h, which wasn't properly clearing target string capacity as advertised
+	  - may contribute to memory bloat in "public" metacorpus server after high-offset result pages (e.g. -start=300000);
+	    but simulation on workstation did NOT reproduce any memory bloat symptoms!
+	  - also altered ClearVector() correspondingly (even though it WAS still operating as advertised)
 
 v2.1.6 Mon, 06 Nov 2017 10:29:53 +0100 moocow
 	* fixed mantis bug #22724: bibl aliases broken

@@ -581,9 +581,9 @@ On success, responses have the form:
  STATUS " " MAXHIT " " NHITS " " NDOCS " " SORT " " HITIDS
 
 where C<STATUS> is a decimal integer status, 0 (zero) for success,
-C<MAXHIT> is the index of the last hit computed (?? see CConcHolder::GetHits(q, __EndHitNo__)),
-C<NHITS> is the number of hits found (?? see CConcHolder::m_AllHitsCount),
-C<NDOCS> is the number of relevant documents found (?? see CConcHolder::m_RelevantDocumentCount),
+C<MAXHIT> should be the index of the last hit computed (?? but seems in practice usually to be 0 (zero) -- see CConcHolder::GetHits(q, __EndHitNo__)),
+C<NHITS> is the total number of hits found (?? see CConcHolder::m_AllHitsCount),
+C<NDOCS> is the number of relevant documents found (?? usually 0 (zero); see CConcHolder::m_RelevantDocumentCount),
 C<SORT> is a indicates whether and/or how the hits are to be sorted
 (0: no sort, 1: ascending sort, -1: descending sort),
 and C<HITIDS> is a TAB-separated list of C<NHITS> hit-identification triples (see CConcHolder::GetHitIds()),

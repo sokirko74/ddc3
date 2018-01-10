@@ -43,6 +43,10 @@ libDDCCommon_la_SOURCES = \
 #timetest_SOURCES = timetest.cpp
 #timetest_LDADD = libDDCCommon.la
 
+#EXTRA_PROGRAMS = toktest
+#toktest_SOURCES = toktest.cc
+#toktest_LDADD = libDDCCommon.la
+
 ##-----------------------------------------------------------------------
 ## headers
 

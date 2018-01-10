@@ -466,7 +466,7 @@
 
 <pre><code> STATUS &quot; &quot; MAXHIT &quot; &quot; NHITS &quot; &quot; NDOCS &quot; &quot; SORT &quot; &quot; HITIDS</code></pre>
 
-<p>where <code>STATUS</code> is a decimal integer status, 0 (zero) for success, <code>MAXHIT</code> is the index of the last hit computed (?? see CConcHolder::GetHits(q, __EndHitNo__)), <code>NHITS</code> is the number of hits found (?? see CConcHolder::m_AllHitsCount), <code>NDOCS</code> is the number of relevant documents found (?? see CConcHolder::m_RelevantDocumentCount), <code>SORT</code> is a indicates whether and/or how the hits are to be sorted (0: no sort, 1: ascending sort, -1: descending sort), and <code>HITIDS</code> is a TAB-separated list of <code>NHITS</code> hit-identification triples (see CConcHolder::GetHitIds()), each element of which has the form:</p>
+<p>where <code>STATUS</code> is a decimal integer status, 0 (zero) for success, <code>MAXHIT</code> should be the index of the last hit computed (?? but seems in practice usually to be 0 (zero) -- see CConcHolder::GetHits(q, __EndHitNo__)), <code>NHITS</code> is the total number of hits found (?? see CConcHolder::m_AllHitsCount), <code>NDOCS</code> is the number of relevant documents found (?? usually 0 (zero); see CConcHolder::m_RelevantDocumentCount), <code>SORT</code> is a indicates whether and/or how the hits are to be sorted (0: no sort, 1: ascending sort, -1: descending sort), and <code>HITIDS</code> is a TAB-separated list of <code>NHITS</code> hit-identification triples (see CConcHolder::GetHitIds()), each element of which has the form:</p>
 
 <pre><code> INDEX &quot; &quot; ORDERID &quot; &quot; ORDER_STRING</code></pre>
 

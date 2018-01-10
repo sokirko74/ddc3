@@ -273,7 +273,7 @@ struct DDCProcessMemoryStatus {
     size_t dt;		//< dirty pages (unused in Linux 2.6)
 
     DDCProcessMemoryStatus(void)
-	: size(0), resident(0), share(0), text(0), lib(0), data(0), dt(0)
+	: pagesize(0), size(0), resident(0), share(0), text(0), lib(0), data(0), dt(0)
     {};
 
     inline void clear(void)
@@ -392,7 +392,10 @@ template <class T>
 void ClearVector(vector<T>& V)
 {
 	V.clear();
-	vector<T> dummy (V);
+	//-- 2018-01-09 moocow
+	// + removing initializer argument for dummy vector too (although this does seem to clear capacity)
+	//vector<T> dummy (V);
+	vector<T> dummy;
 	V.swap (dummy);
 };
 
@@ -402,7 +405,11 @@ also clears capacity
 inline void ClearString(string& S)
 {
 	S.clear();
-	string dummy(S);
+	//-- 2018-01-09 moocow
+	// + initializing dummy(S) does NOT reset S's capacity to zero after the swap() on g++ 4.9.2-10 / debian jessie
+	// + using default "empty-string" constructor for dummy seems to work
+	//string dummy(S);
+	string dummy;
 	S.swap (dummy);
 };
 
