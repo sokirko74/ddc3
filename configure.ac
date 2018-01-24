@@ -395,7 +395,7 @@ fi
 ## common flags
 CPPFLAGS="$CPPFLAGS -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64"
 CFLAGS="$CFLAGS $ddc_OFLAGS"
-CXXFLAGS="$CXXFLAGS $ddc_OFLAGS -ftemplate-depth-35"
+CXXFLAGS="$CXXFLAGS $ddc_OFLAGS -ftemplate-depth-64"
 
 ##-- paranoia: always set PIC ("position independent code") flags
 ##    + use autoconf --with-pic
