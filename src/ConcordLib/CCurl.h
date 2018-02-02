@@ -32,11 +32,14 @@
 
  #include <curl/curl.h>
  typedef CURL* CurlHandle;
+ typedef struct curl_sockaddr struct_curl_sockaddr;
 
 #else /* !HAVE_LIBCURL */
 
  //! dummy typedef for missing libcurl
  typedef void* CurlHandle;
+ typedef int curlsocktype;
+ typedef void struct_curl_sockaddr;
 
  #define CURL_ERROR_SIZE 64
 
@@ -73,6 +76,12 @@ public:
 
   //! curl response header callback type; should return the number of bytes actually taken care of (== size*n on success)
   typedef size_t (*CurlWriteHeaderCallback) (void *ptr, size_t size, size_t n, void *userdata);
+
+  //! curl open socket callback type, should return the socket fd
+  typedef curl_socket_t (*CurlOpenSocketCallback) (void *clientp, curlsocktype purpose, struct_curl_sockaddr *address);
+
+  //! curl socket option callback type
+  typedef int (*CurlSocketOptionCallback) (void *clientp, curl_socket_t curlfd, curlsocktype purpose);
 
 public:
   //! curl handle
@@ -215,6 +224,17 @@ public:
   //--------
   //! default response header callback
   static size_t cbWriteHeader_(void *ptr, size_t size, size_t n, vector<string> *bufvp);
+
+  //--------
+  //! setup UNIX socket callbacks for m_UnixSocketPath (for libcurl < 7.40.0)
+  void setUnixSocketCallbacks(void);
+
+  //! open UNIX socket callback (CURLOPT_UNIX_SOCKET_PATH emulation)
+  static curl_socket_t cbOpenUnixSocket_(void *clientp, curlsocktype purpose, struct_curl_sockaddr *address);
+
+  //! setsockopt wrapper for UNIX sockets (CURLOPT_UNIX_SOCKET_PATH emulation)
+  static int cbUnixSocketOption_(void *clientp, curl_socket_t curlfd, curlsocktype purpose);
+
 };
 
 #endif /* DDC_CURL_H */

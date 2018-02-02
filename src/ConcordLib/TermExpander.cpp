@@ -345,6 +345,7 @@ void TxCab::compile(void)
     m_MapMode = strtol(params[3].c_str(), NULL, 0);
   }
 
+#ifdef DDC_ENABLE_CURL_UNIX_URLS
   if (m_Debug) {
     string unixPath, requestUrl;
     bool useUnixSocket = CCurl::parseUnixSocketUrl(m_UrlBase, unixPath, requestUrl);
@@ -354,6 +355,7 @@ void TxCab::compile(void)
       ddcLogDebug(Format("TxCab::expand[%s]: -> curl request URL: %s", m_Label.c_str(), requestUrl.c_str()));
     }
   }
+#endif
   
   //-- curl flags
   m_CCurl.forbidReuse(1); //-- CAB closes client connections, but CURL is smart enough to re-connect anyway (?)

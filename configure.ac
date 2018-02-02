@@ -261,24 +261,99 @@ fi
 LIBCURL_CHECK_CONFIG(yes,
 	[0.0.0],
 	[
+	 ddc_have_curl=yes
 	 LIBS="$LIBS $LIBCURL"
 	 CPPFLAGS="$CPPFLAGS $LIBCURL_CPPFLAGS"
 	],
 	[
+	 ddc_have_curl=no
 	 AC_MSG_WARN([libcurl not found: CURL support disabled!])
 	])
 
 AC_CHECK_DECL(CURLOPT_UNIX_SOCKET_PATH,
-	[HAVE_CURL_UNIX=yes],
-	[HAVE_CURL_UNIX=no],
+	[ddc_have_curl_unix_support=yes],
+	[ddc_have_curl_unix_support=no],
 	[
 #include <curl/curl.h>
 	])
-if test "$HAVE_CURL_UNIX" = "yes" ; then
-  AC_DEFINE(HAVE_CURL_UNIX, 1, [define this if we have CURLOPT_UNIX_SOCKET_PATH (libcurl >= v7.40.0)])
+if test "$ddc_have_curl" = "yes" -a "$ddc_have_curl_unix_support" = "yes" ; then
+  AC_DEFINE(DDC_HAVE_CURL_UNIX_SUPPORT, 1, [define this if libcurl supports CURLOPT_UNIX_SOCKET_PATH (libcurl >= v7.40.0)])
 fi
 
 ## /libs: curl
+##^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+##----------------------------------------------------------------------
+## unix socket URLs
+AC_ARG_ENABLE([curl-unix-urls],
+	AC_HELP_STRING([--enable-curl-unix-urls],[disable UNIX socket URLs for CCurl]),
+	[ddc_enable_curl_unix_urls="$enableval"],
+	[ddc_enable_curl_unix_urls="yes"])
+
+AC_MSG_CHECKING([whether to enable UNIX socket URL conventions])
+if  test "$ddc_enable_curl_unix_urls" = "no" ; then
+   AC_MSG_RESULT([no])
+else
+   AC_MSG_RESULT([yes])
+   AC_DEFINE([DDC_ENABLE_CURL_UNIX_URLS],1,[Define this to enable UNIX socket URL parsing]) 
+fi
+
+##----------------------------------------------------------------------
+## unix sockets
+
+##--------
+ddc_have_unix_socket_headers="yes"
+AC_CHECK_HEADERS([sys/types.h sys/socket.h sys/un.h],
+			      [],
+			      [ddc_have_unix_socket_headers=no])
+if test "$ddc_have_unix_socket_headers" = "yes" ; then
+  AC_DEFINE([DDC_HAVE_UNIX_SOCKET_HEADERS],1,[Define this if you have the UNIX socket headers sys/types.h, sys/socket.h, sys/un.h])
+fi
+
+##--------
+AC_CHECK_DECL(CURL_SOCKOPT_ALREADY_CONNECTED,
+	[ddc_have_curl_already_connected=yes],
+	[ddc_have_curl_already_connected=no],
+	[
+#include <curl/curl.h>
+	])
+if test "$ddc_have_curl_already_connected" = "yes" ; then
+  AC_DEFINE(DDC_HAVE_CURL_ALREADY_CONNECTED, 1, [define this if libcurl supports CURL_SOCKOPT_ALREADY_CONNECTED (libcurl >= v7.21.5)])
+fi
+
+
+##--------
+AC_ARG_ENABLE([curl-unix-sockets],
+	AC_HELP_STRING([--enable-curl-unix-sockets],[enable local UNIX socket handlers for libcurl (default=guess)]),
+	[ddc_enable_curl_unix_sockets="$enableval"],
+	[ddc_enable_curl_unix_sockets="guess"])
+AC_MSG_CHECKING([whether to enable curl UNIX socket handlers])
+if test "$ddc_enable_curl_unix_sockets" = "no" ; then
+   AC_MSG_RESULT([no])
+elif test "$ddc_enable_curl_unix_sockets" = "yes" ; then
+   AC_MSG_RESULT([yes])
+else
+  ##-- guess
+  if test "$ddc_have_curl" = "no" ; then
+     AC_MSG_RESULT([no (libcurl not available)])
+     ddc_enable_curl_unix_sockets=no
+  elif test "$ddc_have_unix_socket_headers" = "no" ; then
+     AC_MSG_RESULT([no (UNIX socket headers not found)])
+     ddc_enable_curl_unix_sockets=no
+  elif test "$ddc_have_curl_unix" = "yes" ; then
+     AC_MSG_RESULT([no (not needed)])
+     ddc_enable_curl_unix_sockets=no
+  else
+     AC_MSG_RESULT([yes])
+     ddc_enable_curl_unix_sockets=yes
+  fi
+fi
+
+if test "$ddc_enable_curl_unix_sockets" = "yes" ; then
+  AC_DEFINE([DDC_ENABLE_CURL_UNIX_SOCKETS],1,[Define this to enable curl UNIX socket support emulation (libcurl < v7.40.0)])
+fi
+
+## /unix sockets
 ##^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 ##----------------------------------------------------------------------
@@ -307,7 +382,7 @@ fi
 ## defs: json-deep-context
 AC_ARG_ENABLE([json-deep-context],
 	AC_HELP_STRING([--enable-json-deep-context],
-		[Enable deep encoding of extra-sentential context tokens in JSON output strings (default=no)]),
+		[enable deep encoding of extra-sentential context tokens in JSON output strings (default=no)]),
 		[ddc_json_deep_context="$enableval"],
 		[ddc_json_deep_context="no"])
 AC_MSG_CHECKING([whether to enable deep encoding of context tokens in JSON output strings])
@@ -376,7 +451,7 @@ AC_SUBST(ddc_OFLAGS)
 ## defs: hires-clock (after debug)
 AC_ARG_ENABLE([hires-clock],
 	AC_HELP_STRING([--enable-hires-clock],
-		[Enable high-resolution clock? (default=debug-mode only)]),
+		[enable high-resolution clock? (default=debug-mode only)]),
 		[ddc_hires_clock="$enableval"],
 		[ddc_hires_clock="$enable_debug"])
 AC_MSG_CHECKING([whether to enable high-resolution clock])

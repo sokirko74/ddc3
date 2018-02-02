@@ -2,9 +2,9 @@
 
 v2.1.8-wip Fri, 02 Feb 2018 10:58:02 +0100 moocow
 	* added UNIX socket support for CCurl and TxCab classes
-	  - uses CURLOPT_UNIX_SOCKET_PATH (libcurl >= v7.40.0) for now
-	    + TODO: get emulation working in libcurl < v7.40.0
-	  - supported URL formats:
+	  - uses CURLOPT_UNIX_SOCKET_PATH (libcurl >= v7.40.0) by default avaialble
+	  - added application-level support for UNIX sockets for libcurl >= 7.21.0 (--enable-curl-unix-sockets)
+	  - supported URL formats (--enable-curl-curl-unix-urls):
 	    + "http:/path/to/unix/socket//uri/path"        (perl LWP::Protocol::http::SocketUnixAlt style)
 	    + "unix:/path/to/unix/socket|http:///uri/path" (apache mod_proxy style)
 	    + "http+unix:/path/to/unix/socket//uri/path"   (native http+unix scheme, //-separated)

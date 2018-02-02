@@ -43,6 +43,8 @@
 #define CURLOPT_UNIX_SOCKET_PATH -1
 #define CURLOPT_POSTREDIR -1
 #define CURL_REDIR_POST_ALL -1
+#define CURL_SOCKOPT_ALREADY_CONNECTED -1
+#define CURLE_OK -1
 #define curl_easy_setopt(handle,opt,val)
 #define curl_easy_perform(handle) -1
 #define curl_easy_cleanup(handle) -1
@@ -52,8 +54,18 @@
 # define CURL_REDIR_POST_ALL -1L
 #endif
 
-#ifndef HAVE_CURL_UNIX
-# warning no libcurl support for UNIX sockets!
+//-- sanity check for UNIX socket emulation
+#if !defined(DDC_HAVE_CURL_UNIX_SUPPORT) && !defined(DDC_ENABLE_CURL_UNIX_SOCKETS)
+# ifdef DDC_ENABLE_CURL_UNIX_URLS
+#  warning implicit parsing of UNIX URLs disabled (neither DDC_HAVE_CURL_UNIX_SUPPORT nor DDC_ENABLE_CURL_UNIX_SOCKETS are defined)
+# endif
+# undef DDC_ENABLE_CURL_UNIX_URLS
+#endif
+
+#ifdef DDC_HAVE_UNIX_SOCKET_HEADERS
+# include <sys/types.h>
+# include <sys/socket.h>
+# include <sys/un.h>
 #endif
 
 //======================================================================
@@ -148,9 +160,8 @@ bool CCurl::perform_cached(CCurlCache *cache)
 //--------------------------------------------------------------
 bool CCurl::parseUnixSocketUrl(const string& url, string& unixPath, string& requestUrl)
 {
-  size_t i_colon = url.find(':');
   bool rc = false;
-
+  size_t i_colon = url.find(':');
   if (i_colon != string::npos) {
     string scheme = url.substr(0,i_colon);
     
@@ -202,9 +213,13 @@ bool CCurl::parseUnixSocketUrl(const string& url, string& unixPath, string& requ
 void CCurl::url(const string& url)
 {
   m_Url = url;
+#if DDC_ENABLE_CURL_UNIX_URLS
   parseUnixSocketUrl(m_Url, m_UnixSocketPath, m_RequestUrl);
   unixSocketPath(m_UnixSocketPath);
   requestUrl(m_RequestUrl);
+#else
+  requestUrl(m_Url);
+#endif
 }
 
 //--------------------------------------------------------------
@@ -218,14 +233,8 @@ void CCurl::requestUrl(const string& url)
 void CCurl::unixSocketPath(const string& path)
 {
   m_UnixSocketPath = path;
-  if (!path.empty()) {
-#ifdef HAVE_CURL_UNIX
-    curl_easy_setopt(m_Curl, CURLOPT_UNIX_SOCKET_PATH, path.c_str());
-#else
-    //setUnixSocketPathHandlers();
-    throw CExpc(errOther,"unixSocketPath(\"%s\"): no libcurl support for UNIX sockets", path.c_str());
-#endif
-  }
+  if (!path.empty())
+    setUnixSocketCallbacks();
 }
 
 
@@ -259,6 +268,21 @@ void CCurl::verbose(int flag)
 { curl_easy_setopt(m_Curl, CURLOPT_VERBOSE, flag); }
 
 //--------------------------------------------------------------
+void CCurl::setUnixSocketCallbacks(void)
+{
+#if defined(DDC_ENABLE_CURL_UNIX_SOCKETS)
+  curl_easy_setopt(m_Curl, CURLOPT_TCP_NODELAY, 0);  
+  curl_easy_setopt(m_Curl, CURLOPT_OPENSOCKETFUNCTION, (CurlOpenSocketCallback)cbOpenUnixSocket_);
+  curl_easy_setopt(m_Curl, CURLOPT_SOCKOPTFUNCTION, (CurlSocketOptionCallback)cbUnixSocketOption_);
+  curl_easy_setopt(m_Curl, CURLOPT_OPENSOCKETDATA, (void*)this);
+#elif defined(DDC_HAVE_CURL_UNIX_SUPPORT)
+  curl_easy_setopt(m_Curl, CURLOPT_UNIX_SOCKET_PATH, m_UnixSocketPath.c_str());
+#else
+  throw CExpc(errOther, "CCurl::setUnixSocketCallbacks(): UNIX socket handlers disabled");
+#endif
+}
+
+//--------------------------------------------------------------
 void CCurl::setDataCallback(CurlWriteDataCallback handler, void *data)
 {
   curl_easy_setopt(m_Curl, CURLOPT_WRITEFUNCTION, handler);
@@ -290,5 +314,41 @@ size_t CCurl::cbWriteHeader_(void *ptr, size_t size, size_t n, vector<string> *b
   return bufvp->back().size();
 }
 
+//--------------------------------------------------------------
+curl_socket_t CCurl::cbOpenUnixSocket_(void *clientp, curlsocktype purpose, struct_curl_sockaddr *address)
+{
+#ifndef DDC_ENABLE_CURL_UNIX_SOCKETS
+  return -1;
+#else
+  CCurl* ccurl = (CCurl*)clientp;
+  curl_socket_t sockfd;
+  struct sockaddr_un sun;
 
+  sockfd = socket(PF_LOCAL, SOCK_STREAM, 0);
+  if (sockfd < 0) return sockfd; //-- open failed
 
+  memset(&sun,0,sizeof(sun));
+  sun.sun_family = AF_LOCAL;
+  strncpy(sun.sun_path, ccurl->m_UnixSocketPath.c_str(), sizeof(sun.sun_path)-1);
+
+  if (connect(sockfd, (struct sockaddr *)&sun, sizeof(struct sockaddr_un)) < 0) {
+    close(sockfd);
+    return -1;
+  }
+
+  //fprintf(stderr, "DEBUG: CCurl::cbOpenUnixSocket_(): opened %s on fd #%d [addrlen=%zd]\n", ccurl->m_UnixSocketPath.c_str(), sockfd, address->addrlen);
+  
+  return sockfd;
+#endif
+}
+
+//-------------------------------------------------------------- 
+int CCurl::cbUnixSocketOption_(void *clientp, curl_socket_t curlfd, curlsocktype purpose)
+{
+#ifdef DDC_HAVE_CURL_ALREADY_CONNECTED
+  /* This return code was added in libcurl 7.21.5 */
+  return CURL_SOCKOPT_ALREADY_CONNECTED;
+#else
+  return CURLE_OK;
+#endif
+}

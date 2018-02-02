@@ -3,6 +3,25 @@
 /* Define this to enable debugging code */
 #undef DDC_DEBUG_ENABLED
 
+/* Define this to enable curl UNIX socket support emulation (libcurl <
+   v7.40.0) */
+#undef DDC_ENABLE_CURL_UNIX_SOCKETS
+
+/* Define this to enable UNIX socket URL parsing */
+#undef DDC_ENABLE_CURL_UNIX_URLS
+
+/* define this if libcurl supports CURL_SOCKOPT_ALREADY_CONNECTED (libcurl >=
+   v7.21.5) */
+#undef DDC_HAVE_CURL_ALREADY_CONNECTED
+
+/* define this if libcurl supports CURLOPT_UNIX_SOCKET_PATH (libcurl >=
+   v7.40.0) */
+#undef DDC_HAVE_CURL_UNIX_SUPPORT
+
+/* Define this if you have the UNIX socket headers sys/types.h, sys/socket.h,
+   sys/un.h */
+#undef DDC_HAVE_UNIX_SOCKET_HEADERS
+
 /* Enable deep encoding of extra-sentential context tokens in JSON output
    strings? */
 #undef DDC_JSON_DEEP_CONTEXT
@@ -24,9 +43,6 @@
 
 /* Define this if your system has the clock_gettime() function */
 #undef HAVE_CLOCK_GETTIME
-
-/* define this if we have CURLOPT_UNIX_SOCKET_PATH (libcurl >= v7.40.0) */
-#undef HAVE_CURL_UNIX
 
 /* Define to 1 if you have the <dlfcn.h> header file. */
 #undef HAVE_DLFCN_H
@@ -82,11 +98,17 @@
 /* Define to 1 if you have the <sys/resource.h> header file. */
 #undef HAVE_SYS_RESOURCE_H
 
+/* Define to 1 if you have the <sys/socket.h> header file. */
+#undef HAVE_SYS_SOCKET_H
+
 /* Define to 1 if you have the <sys/stat.h> header file. */
 #undef HAVE_SYS_STAT_H
 
 /* Define to 1 if you have the <sys/types.h> header file. */
 #undef HAVE_SYS_TYPES_H
+
+/* Define to 1 if you have the <sys/un.h> header file. */
+#undef HAVE_SYS_UN_H
 
 /* Define to 1 if you have the <time.h> header file. */
 #undef HAVE_TIME_H
