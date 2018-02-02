@@ -52,6 +52,13 @@
 # define CURL_REDIR_POST_ALL -1L
 #endif
 
+#ifdef CURLOPT_UNIX_SOCKET_PATH
+# define DDC_CURL_UNIX_SOCKETS 1
+#else
+# undef DDC_CURL_UNIX_SOCKETS
+# warning CURLOPT_UNIX_SOCKET_PATH is not defined
+#endif
+
 //======================================================================
 // Globals
 
@@ -214,9 +221,15 @@ void CCurl::requestUrl(const string& url)
 void CCurl::unixSocketPath(const string& path)
 {
   m_UnixSocketPath = path;
-  if (!path.empty())
+  if (!path.empty()) {
+#ifdef DDC_CURL_UNIX_SOCKETS
     curl_easy_setopt(m_Curl, CURLOPT_UNIX_SOCKET_PATH, path.c_str());
+#else
+    setUnixSocketPathHandlers();
+#endif
+  }
 }
+
 
 //--------------------------------------------------------------
 void CCurl::timeout(long seconds)

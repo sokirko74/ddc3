@@ -25,6 +25,9 @@
 /* Define this if your system has the clock_gettime() function */
 #undef HAVE_CLOCK_GETTIME
 
+/* define this if we have CURLOPT_UNIX_SOCKET_PATH (libcurl >= v7.40.0) */
+#undef HAVE_CURL_UNIX
+
 /* Define to 1 if you have the <dlfcn.h> header file. */
 #undef HAVE_DLFCN_H
 

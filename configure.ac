@@ -267,6 +267,17 @@ LIBCURL_CHECK_CONFIG(yes,
 	[
 	 AC_MSG_WARN([libcurl not found: CURL support disabled!])
 	])
+
+AC_CHECK_DECL(CURLOPT_UNIX_SOCKET_PATH,
+	[HAVE_CURL_UNIX=yes],
+	[HAVE_CURL_UNIX=no],
+	[
+#include <curl/curl.h>
+	])
+if test "$HAVE_CURL_UNIX" = "yes" ; then
+  AC_DEFINE(HAVE_CURL_UNIX, 1, [define this if we have CURLOPT_UNIX_SOCKET_PATH (libcurl >= v7.40.0)])
+fi
+
 ## /libs: curl
 ##^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
