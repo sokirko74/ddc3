@@ -158,7 +158,7 @@ int main(int argc, char **argv)
 	else if (strcmp(*argv,"-v")==0 || strcmp(*argv,"--verbose")==0) {
 	    ddcLogLevel = GetLogLevel(p);
 	    ddcLogToStderr = (ddcLogLevel!=ddcLLSilent);
-	    fprintf(stderr, "set log level=%s\n", LogLevelName(ddcLogLevel));
+	    //fprintf(stderr, "set log level=%s\n", LogLevelName(ddcLogLevel));
 	    argv++; argc--;
 	}
 	else {

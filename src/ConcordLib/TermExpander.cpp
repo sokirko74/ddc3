@@ -348,9 +348,11 @@ void TxCab::compile(void)
   if (m_Debug) {
     string unixPath, requestUrl;
     bool useUnixSocket = CCurl::parseUnixSocketUrl(m_UrlBase, unixPath, requestUrl);
-    ddcLogDebug(Format("TxCab::expand[%s]: detected UNIX socket URL: %s", m_Label.c_str(), m_UrlBase.c_str()));
-    ddcLogDebug(Format("TxCab::expand[%s]: -> UNIX socket path: %s", m_Label.c_str(), unixPath.c_str()));
-    ddcLogDebug(Format("TxCab::expand[%s]: -> curl request URL: %s", m_Label.c_str(), requestUrl.c_str()));
+    if (useUnixSocket) {
+      ddcLogDebug(Format("TxCab::expand[%s]: detected UNIX socket URL: %s", m_Label.c_str(), m_UrlBase.c_str()));
+      ddcLogDebug(Format("TxCab::expand[%s]: -> UNIX socket path: %s", m_Label.c_str(), unixPath.c_str()));
+      ddcLogDebug(Format("TxCab::expand[%s]: -> curl request URL: %s", m_Label.c_str(), requestUrl.c_str()));
+    }
   }
   
   //-- curl flags
