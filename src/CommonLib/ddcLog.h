@@ -1,7 +1,7 @@
 //-*- Mode: C++; c-basic-offset:4;-*-
 //
 //  DDC originally by Alexey Sokirko
-//  Changes and modifications 2011-2016 by Bryan Jurish
+//  Changes and modifications 2011-2018 by Bryan Jurish
 //
 //  This file is part of DDC (formerly in string_socket.h)
 // 

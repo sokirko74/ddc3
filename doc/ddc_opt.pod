@@ -844,13 +844,26 @@ Parameters:
 
 =item URL
 
-URL of the DTA::CAB HTTP server to be queried with GET request.
+URL of the DTA::CAB HTTP server to be queried with C<GET> request.
 The underlying implementation appends a URL-encoded parameter C<qd=DATA>
 to this URL before requesting data from the server, where I<DATA> is
 a newline-separated list of types to be expanded.
 The data format returned by the server is assumed to be a list
 of expanded types separated by TABs, newlines, and/or carriage returns.
-Empty types in the output are ignored.
+Empty-string types in the output are ignored.
+
+As of ddc v2.1.8, ddc supports HTTP over UNIX domain sockets on the
+local machine by means of specially formatted URLs:
+
+ http:/path/to/socket//request/uri        # perl LWP::Protocol::http::SocketUnixAlt style
+ unix:/path/to/socket|http:///request/uri # apache mod_proxy style
+ http+unix:/path/to/socket//request/uri   # native http+unix scheme, //-separated
+ http+unix:/path/to/socket|/request/uri   # native http+unix scheme, |-separated
+
+... all of these URL formats should cause ddc to query the HTTP server
+listening on the unix socket F</path/to/socket> with a C<GET> request
+for the URI F</request/uri>.
+
 
 =item TIMEOUT
 

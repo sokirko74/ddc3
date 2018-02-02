@@ -1,6 +1,6 @@
 //-*- Mode: C++; c-basic-offset: 4; -*-
 //  DDC originally by Alexey Sokirko
-//  Changes and modifications 2011-2014 by Bryan Jurish
+//  Changes and modifications 2011-2018 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -49,12 +49,14 @@ void PrintUsage()
 	   "  -p PARAM   ##-- set expander parameter string (default='')\n"
 	   "  -f CONFIG  ##-- parse config file (default=none)\n"
 	   "  -w         ##-- if given, INPUT(s) are words to analyze, otherwise files\n"
+	   "  -v LEVEL   ##-- set ddc log level (silent,\n"
 	   "\n"
 	   "Examples:\n"
 	   "  ddcExpand -c Case file.txt\n"
 	   "  ddcExpand -c Case -\n"
 	   "  ddcExpand -c Morph -p German -w sein\n"
 	   "  ddcExpand -c cab -p 'http://localhost:9099/query/?a=expand&fmt=xl' -w sein\n"
+	   "  ddcExpand -c cab -p 'http+unix:/tmp/cab-xlit.sock//query/?a=expand&fmt=xl' -w sein\n"	   
 	   "  ddcExpand -f config.txt\n"
 	   "\n"
 	   "Interactive mode:\n"
@@ -120,6 +122,10 @@ int main(int argc, char **argv)
     //---- command-line params
     prog=*argv;
 
+    //-- debug: logging
+    ddcLogToStderr = true;
+    ddcLogLevel    = ddcLLWarn;
+
     string txfile("");
     string txclass("Id");
     string txlabel("Token");;
@@ -146,7 +152,15 @@ int main(int argc, char **argv)
 	    txfile=p;
 	    argv++; argc--;
 	}
-	else if (strcmp(*argv,"-w")==0) { fileMode=false; }
+	else if (strcmp(*argv,"-w")==0) {
+	    fileMode=false;
+	}
+	else if (strcmp(*argv,"-v")==0 || strcmp(*argv,"--verbose")==0) {
+	    ddcLogLevel = GetLogLevel(p);
+	    ddcLogToStderr = (ddcLogLevel!=ddcLLSilent);
+	    fprintf(stderr, "set log level=%s\n", LogLevelName(ddcLogLevel));
+	    argv++; argc--;
+	}
 	else {
 	    inputs.push_back(string(*argv));
 	}

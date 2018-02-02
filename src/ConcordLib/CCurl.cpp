@@ -1,6 +1,6 @@
 //-*- Mode: C++; c-basic-offset: 2; -*-
 //  DDC originally by Alexey Sokirko
-//  Changes and modifications 2011-2015 by Bryan Jurish
+//  Changes and modifications 2011-2018 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -40,6 +40,7 @@
 #define CURLOPT_FAILONERR -1
 #define CURLOPT_FOLLOWLOCATION -1
 #define CURLOPT_MAXREDIRS -1
+#define CURLOPT_UNIX_SOCKET_PATH -1
 #define CURLOPT_POSTREDIR -1
 #define CURL_REDIR_POST_ALL -1
 #define curl_easy_setopt(handle,opt,val)
@@ -140,12 +141,81 @@ bool CCurl::perform_cached(CCurlCache *cache)
   return (rc==0);
 }
 
+//--------------------------------------------------------------
+bool CCurl::parseUnixSocketUrl(const string& url, string& unixPath, string& requestUrl)
+{
+  size_t i_colon = url.find(':');
+  bool rc = false;
+
+  if (i_colon != string::npos) {
+    string scheme = url.substr(0,i_colon);
+    
+    size_t i_vbar     = url.find('|', i_colon);
+    size_t i_slashes1 = url.find("//",i_colon);
+    size_t i_slashes2 = i_slashes1==string::npos ? i_slashes1 : url.find("//",i_slashes1+2);
+    size_t i_pbegin   = (i_slashes1==i_colon+1 ? i_slashes1+2 : i_colon+1);
+    size_t i_pend     = std::min((i_slashes1==i_colon+1 ? i_slashes2 : i_slashes1), i_vbar);
+
+    if (i_pbegin < url.size() && i_pend < url.size()) {
+      //-- url might have a valid unix socket path
+      unixPath = url.substr(i_pbegin,i_pend-i_pbegin);
+
+      if (scheme.size() >= 5 && scheme.rfind("+unix")==scheme.size()-5) {
+	//-- "http+unix:/path/to/unix/socket//uri/path
+	//-- "http+unix:/path/to/unix/socket|uri/path
+	scheme.erase(scheme.size()-5);
+	requestUrl = scheme + "://" + url.substr(i_pend+1);
+	rc = true;
+      }
+      else if (scheme == "unix") {
+	//-- "unix:/path/to/unix/socket|http:///uri/path"
+	requestUrl = url.substr(i_pend+1);
+	rc = true;
+      }
+      else if ((scheme=="http" || scheme=="https") && i_slashes1 != i_colon+1) {
+	//-- "http:/path/to/unix/socket//uri/path"
+	requestUrl = scheme + "://" + url.substr(i_slashes1+1);
+	rc = true;
+      }
+
+      //-- detect and repair host-less request URLs (otherwise CURL drops leading request path element)
+      size_t i_nohost = requestUrl.find(":///");
+      if (i_nohost != string::npos)
+	requestUrl.insert(i_nohost+3, "localhost");
+
+      //-- sanity check: no empty unix socket path or request url
+      rc = rc && !(unixPath.empty() || requestUrl.empty());
+    }
+  }
+  if (!rc) {
+    unixPath.clear();
+    requestUrl = url;
+  }
+  return rc;
+}
 
 //--------------------------------------------------------------
 void CCurl::url(const string& url)
 {
   m_Url = url;
+  parseUnixSocketUrl(m_Url, m_UnixSocketPath, m_RequestUrl);
+  unixSocketPath(m_UnixSocketPath);
+  requestUrl(m_RequestUrl);
+}
+
+//--------------------------------------------------------------
+void CCurl::requestUrl(const string& url)
+{
+  m_RequestUrl = url;
   curl_easy_setopt(m_Curl, CURLOPT_URL, (url.empty() ? NULL : url.c_str()));
+}
+
+//--------------------------------------------------------------
+void CCurl::unixSocketPath(const string& path)
+{
+  m_UnixSocketPath = path;
+  if (!path.empty())
+    curl_easy_setopt(m_Curl, CURLOPT_UNIX_SOCKET_PATH, path.c_str());
 }
 
 //--------------------------------------------------------------

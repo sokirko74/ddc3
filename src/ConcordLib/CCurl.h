@@ -1,6 +1,6 @@
 //-*- Mode: C++ -*-
 //  DDC originally by Alexey Sokirko
-//  Changes and modifications 2011-2015 by Bryan Jurish
+//  Changes and modifications 2011-2018 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -78,8 +78,14 @@ public:
   //! curl handle
   CurlHandle m_Curl;
 
-  //! current url
+  //! current url (maybe UNIX-socket URL)
   string m_Url;
+
+  //! current request URL (passed to libcurl)
+  string m_RequestUrl;
+
+  //! unix socket path (override)
+  string m_UnixSocketPath;
 
   //! current timeout (seconds; default=60)
   long m_Timeout;
@@ -124,15 +130,42 @@ public:
 
   //--------
   //! get current URL
-  inline const string& url(void)
+  inline const string& url(void) const
   { return m_Url; };
 
-  //! set current URL (sets m_Url and wraps CURLOPT_URL)
+  //! set current URL (sets m_Url, calls requestUrl(URL) and unixSocketPath(PATH)); auto-detects UNIX socket URLs of the form:
+  //!  - "http:/path/to/unix/socket//uri/path"        (perl LWP::Protocol::http::SocketUnixAlt style)
+  //!  - "unix:/path/to/unix/socket|http:///uri/path" (apache mod_proxy style)
+  //!  - "http+unix:/path/to/unix/socket//uri/path"   (native)
+  //!  - "http+unix:/path/to/unix/socket|/uri/path"   (native)
   void url(const string &url);
+
+  //! guts for parsing unix socket URLs, called by url(url)
+  //! \param[in]  url         user-specified URL to parse
+  //! \param[out] unixPath    parsed unix socket path (empty on failure)
+  //! \param[out] requestUrl  parsed request URL (empty on failure)
+  //! \returns true iff a unix socket URL was detected, in which case unixPath is empty and requestUrl==url
+  static bool parseUnixSocketUrl(const string& url, string& unixPath, string& requestUrl);
+  
+  //--------
+  //! get low-level curl request URL
+  inline const string& requestUrl(void) const
+  { return m_RequestUrl; };
+
+  //! set low-level curl request URL (wraps CURLOPT_URL)
+  void requestUrl(const string& url);
+
+  //--------
+  //! get low-level unix socket path
+  inline const string& unixSocketPath(void) const
+  { return m_UnixSocketPath; };
+
+  //! set unix socket path (m_UnixSocketPath); calls setUnixSocketPath()
+  void unixSocketPath(const string& path);
 
   //--------
   //! get current timeout (seconds)
-  inline long timeout(void)
+  inline long timeout(void) const
   { return m_Timeout; };
 
   //! set timeout (seconds)

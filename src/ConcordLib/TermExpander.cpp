@@ -1,6 +1,6 @@
 //-*- Mode: C++; c-basic-offset: 2; -*-
 //  DDC originally by Alexey Sokirko
-//  Changes and modifications 2011-2015 by Bryan Jurish
+//  Changes and modifications 2011-2018 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -23,6 +23,7 @@
 #include "../CommonLib/ddcString.h"
 #include <stdlib.h>
 #include <wctype.h>
+#include <algorithm> //-- for std::min
 
 //======================================================================
 // CTermExpander
@@ -297,6 +298,8 @@ void TxCurl::compile(void)
 {
   m_CCurl.lock();
   m_CCurl.url("");
+  m_CCurl.requestUrl("");
+  m_CCurl.unixSocketPath("");
   m_CCurl.timeout(5);
   m_CCurl.noSignal(1);
   m_CCurl.failOnError(1);
@@ -342,6 +345,14 @@ void TxCab::compile(void)
     m_MapMode = strtol(params[3].c_str(), NULL, 0);
   }
 
+  if (m_Debug) {
+    string unixPath, requestUrl;
+    bool useUnixSocket = CCurl::parseUnixSocketUrl(m_UrlBase, unixPath, requestUrl);
+    ddcLogDebug(Format("TxCab::expand[%s]: detected UNIX socket URL: %s", m_Label.c_str(), m_UrlBase.c_str()));
+    ddcLogDebug(Format("TxCab::expand[%s]: -> UNIX socket path: %s", m_Label.c_str(), unixPath.c_str()));
+    ddcLogDebug(Format("TxCab::expand[%s]: -> curl request URL: %s", m_Label.c_str(), requestUrl.c_str()));
+  }
+  
   //-- curl flags
   m_CCurl.forbidReuse(1); //-- CAB closes client connections, but CURL is smart enough to re-connect anyway (?)
   m_CCurl.verbose(m_Debug ? 1 : 0); //-- DEBUG
@@ -367,6 +378,7 @@ void TxCab::expand(const set<string>& src, set<string>& dst)
   m_CCurl.lock();
   try {
     m_CCurl.url(url);
+    
     if (!this->perform() || m_CCurl.m_Response.empty()) {
       //-- query failed: silently do identity expansion
 #if 0
