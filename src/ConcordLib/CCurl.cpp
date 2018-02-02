@@ -52,11 +52,8 @@
 # define CURL_REDIR_POST_ALL -1L
 #endif
 
-#ifdef CURLOPT_UNIX_SOCKET_PATH
-# define DDC_CURL_UNIX_SOCKETS 1
-#else
-# undef DDC_CURL_UNIX_SOCKETS
-# warning CURLOPT_UNIX_SOCKET_PATH is not defined
+#ifndef HAVE_CURL_UNIX
+# warning no libcurl support for UNIX sockets!
 #endif
 
 //======================================================================
@@ -222,10 +219,11 @@ void CCurl::unixSocketPath(const string& path)
 {
   m_UnixSocketPath = path;
   if (!path.empty()) {
-#ifdef DDC_CURL_UNIX_SOCKETS
+#ifdef HAVE_CURL_UNIX
     curl_easy_setopt(m_Curl, CURLOPT_UNIX_SOCKET_PATH, path.c_str());
 #else
-    setUnixSocketPathHandlers();
+    //setUnixSocketPathHandlers();
+    throw CExpc(errOther,"unixSocketPath(\"%s\"): no libcurl support for UNIX sockets", path.c_str());
 #endif
   }
 }
