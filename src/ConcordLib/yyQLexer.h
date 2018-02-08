@@ -14,8 +14,8 @@
 
 #define FLEX_SCANNER
 #define YY_FLEX_MAJOR_VERSION 2
-#define YY_FLEX_MINOR_VERSION 5
-#define YY_FLEX_SUBMINOR_VERSION 39
+#define YY_FLEX_MINOR_VERSION 6
+#define YY_FLEX_SUBMINOR_VERSION 1
 #if YY_FLEX_SUBMINOR_VERSION > 0
 #define FLEX_BETA
 #endif
@@ -115,7 +115,7 @@ typedef unsigned int flex_uint32_t;
 
 /* %if-c++-only */
 /* begin standard C++ headers. */
-#include <iostream> 
+#include <iostream>
 #include <errno.h>
 #include <cstdlib>
 #include <cstdio>
@@ -123,25 +123,13 @@ typedef unsigned int flex_uint32_t;
 /* end standard C++ headers. */
 /* %endif */
 
-#ifdef __cplusplus
-
-/* The "const" storage-class-modifier is valid. */
-#define YY_USE_CONST
-
-#else	/* ! __cplusplus */
-
-/* C99 requires __STDC__ to be defined as 1. */
-#if defined (__STDC__)
-
-#define YY_USE_CONST
-
-#endif	/* defined (__STDC__) */
-#endif	/* ! __cplusplus */
-
-#ifdef YY_USE_CONST
+/* TODO: this is always defined, so inline it */
 #define yyconst const
+
+#if defined(__GNUC__) && __GNUC__ >= 3
+#define yynoreturn __attribute__((__noreturn__))
 #else
-#define yyconst
+#define yynoreturn
 #endif
 
 /* %not-for-header */
@@ -179,7 +167,7 @@ typedef size_t yy_size_t;
 #endif
 
 /* %if-not-reentrant */
-extern yy_size_t yyleng;
+extern int yyleng;
 /* %endif */
 
 /* %if-c-only */
@@ -195,7 +183,7 @@ struct yy_buffer_state
 /* %endif */
 
 /* %if-c++-only */
-	std::istream* yy_input_file;
+	std::streambuf* yy_input_file;
 /* %endif */
 
 	char *yy_ch_buf;		/* input buffer */
@@ -204,12 +192,12 @@ struct yy_buffer_state
 	/* Size of input buffer in bytes, not including room for EOB
 	 * characters.
 	 */
-	yy_size_t yy_buf_size;
+	int yy_buf_size;
 
 	/* Number of characters read into yy_ch_buf, not including EOB
 	 * characters.
 	 */
-	yy_size_t yy_n_chars;
+	int yy_n_chars;
 
 	/* Whether we "own" the buffer - i.e., we know we created it,
 	 * and can realloc() it to grow it, and should free() it to
@@ -232,7 +220,7 @@ struct yy_buffer_state
 
     int yy_bs_lineno; /**< The line count. */
     int yy_bs_column; /**< The column count. */
-    
+
 	/* Whether to try to fill the input buffer when we reach the
 	 * end of it.
 	 */
@@ -393,9 +381,9 @@ static int yy_flex_strlen (yyconst char * );
 #undef YY_DECL
 #endif
 
-#line 240 "yyQLexer.l"
+#line 241 "yyQLexer.l"
 
 
-#line 400 "yyQLexer.h"
+#line 388 "yyQLexer.h"
 #undef yyqIN_HEADER
 #endif /* yyqHEADER_H */

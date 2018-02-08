@@ -13,6 +13,7 @@ v2.1.8-wip Fri, 02 Feb 2018 15:06:55 +0100 moocow
 	  - VmRSS is now once again returned as 'memkb' key (but really in kB)
 	  - VmSize and other data are parsed from /proc/PID/status (rather than /proc/PID/statm as before)
 	  - detailed memory usage is now returned in status 'vmstatus' key
+	* fixes for flex v2.6.1
 
 v2.1.7 Wed, 10 Jan 2018 10:33:26 +0100 moocow
 	* changed memory size reporting in ConcordDmnLib/Server.cpp
