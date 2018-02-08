@@ -16,7 +16,8 @@
 //  along with DDC.  If not, see <http://www.gnu.org/licenses/>.
 //
 // ==========  Dialing Syntax Analysis (www.aot.ru)
-// ==========  Copyright by Alexey Sokirko, Bryan Jurish (2011)
+// ==========  Copyright by Alexey Sokirko
+// Changes and modifications 2011-2018 by Bryan Jurish
 
 #ifndef utilit_h
 #define utilit_h
@@ -261,33 +262,35 @@ extern bool     RemoveWithPrint (const string& FileName);
 //======================================================================
 // moo: get memory statistics using /proc/PID/statm (linux only)
 
-/** struct for reading /proc/PID/statm; see proc(5) */
-struct DDCProcessMemoryStatus {
-    size_t pagesize;    //< system page size, in bytes (from sysconf(_SC_PAGE_SIZE))
-    size_t size;	//< total program size (same as VmSize in /proc/[pid]/status, in pages)
-    size_t resident;	//< resident set size (same as VmRSS in /proc/[pid]/status, in pages)
-    size_t share;	//< shared pages (i.e., backed by a file)
-    size_t text;	//< text (code)
-    size_t lib;		//< library (unused in Linux 2.6)
-    size_t data;	//< data + stack
-    size_t dt;		//< dirty pages (unused in Linux 2.6)
+/** struct for reading /proc/PID/status; see proc(5) */
+struct DDCProcessMemoryStatus
+{
+    size_t VmPeak;	//< Peak virtual memory size.
+    size_t VmSize;	//< Virtual memory size.
+    size_t VmLck;	//< Locked memory size (see mlock(3)).
+    size_t VmPin;	//< Pinned memory size (since Linux 3.2).  These are pages that can't be moved because something needs to directly access physical memory.
+    size_t VmHWM;	//< Peak resident set size ("high water mark").
+    size_t VmRSS;	//< Resident set size.  Note that the value here is the sum of RssAnon, RssFile, and RssShmem.
+    size_t VmData;	//< Size of data segment.
+    size_t VmStk;	//< Size of stack segment.
+    size_t VmExe;	//< Size of text (code) segment.
+    size_t VmLib;	//< Shared library code size.
+    size_t VmPTE;	//< Page table entries size (since Linux 2.6.10).
+    size_t VmPMD;	//< Size of second-level page tables (since Linux 4.0).
+    size_t VmSwap;	//< Swapped-out virtual memory size by anonymous private pages; shmem swap usage is not included (since Linux 2.6.34).
 
+    /** default constructor (no implicit fetch) */
     DDCProcessMemoryStatus(void)
-	: pagesize(0), size(0), resident(0), share(0), text(0), lib(0), data(0), dt(0)
+	: VmSize(0), VmLck(0), VmPin(0), VmHWM(0), VmRSS(0), VmData(0), VmStk(0), VmExe(0), VmLib(0), VmPTE(0), VmPMD(0), VmSwap(0)
     {};
 
-    inline void clear(void)
-    {
-	pagesize=0;
-	size=0;
-	resident=0;
-	share=0;
-	text=0;
-	lib=0;
-	data=0;
-	dt=0;
-    };
+    /** constructor given pid implicitly fetches data */
+    DDCProcessMemoryStatus(pid_t pid)
+    { fetch(pid); };
 
+    inline void clear(void)
+    { memset(this, 0, sizeof(DDCProcessMemoryStatus)); };
+  
     /** fetch memory statistics for process PID */
     void fetch(pid_t pid);
 

@@ -1,7 +1,7 @@
 //-*- Mode: C++; c-basic-offset:4; -*-
 //
 //  DDC originally by Alexey Sokirko
-//  Changes and modifications 2011-2016 by Bryan Jurish
+//  Changes and modifications 2011-2018 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -456,6 +456,7 @@ void CDDCBranchServer::handle__status(string &Result, int timeout, bool verbose)
 {
     //-- status or vstatus : distributed server status
     double uptime = difftime(time(NULL), m_tStarted);
+    DDCProcessMemoryStatus pms(getpid());
 
     string subResult;
     if (verbose) {
@@ -485,7 +486,9 @@ void CDDCBranchServer::handle__status(string &Result, int timeout, bool verbose)
 	      + "\"nslow\":" + Format("%zd", m_ServerStats.m_nSlow) + ",\n"
 	      + "\"qtavg\":" + Format("%g", m_ServerStats.m_qTimes.tAverage()) + ",\n"
 	      + "\"nworkers\":" + Format("%zd", m_nWorkers) + ",\n"
-	      + "\"memkb\":" + Format("%zd", this->totalMemorySize()) + ",\n"
+	      + "\"memkb\":" + Format("%zd", pms.VmRSS) + ",\n" //-- compat	      
+	      + "\"vmem\":" + Format("{\"peak\":%zd,\"size\":%zd,\"hwm\":%zd,\"rss\":%zd,\"data\":%zd,\"stk\":%zd,\"exe\":%zd,\"lib\":%zd,\"swap\":%zd}",
+				     pms.VmPeak, pms.VmSize, pms.VmHWM, pms.VmRSS, pms.VmData, pms.VmStk, pms.VmExe, pms.VmLib, pms.VmSwap) + ",\n"
 	      + "\"corpora\":" + subResult + "}\n"
 	      );
     m_bExpectMore = false;

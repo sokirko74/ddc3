@@ -1,6 +1,6 @@
 ##-*- Mode: Change-Log; coding: utf-8; -*-
 
-v2.1.8-wip Fri, 02 Feb 2018 10:58:02 +0100 moocow
+v2.1.8-wip Fri, 02 Feb 2018 15:06:55 +0100 moocow
 	* added UNIX socket support for CCurl and TxCab classes
 	  - uses CURLOPT_UNIX_SOCKET_PATH (libcurl >= v7.40.0) by default avaialble
 	  - added application-level support for UNIX sockets for libcurl >= 7.21.0 (--enable-curl-unix-sockets)
@@ -9,9 +9,13 @@ v2.1.8-wip Fri, 02 Feb 2018 10:58:02 +0100 moocow
 	    + "unix:/path/to/unix/socket|http:///uri/path" (apache mod_proxy style)
 	    + "http+unix:/path/to/unix/socket//uri/path"   (native http+unix scheme, //-separated)
 	    + "http+unix:/path/to/unix/socket|/uri/path"   (native http+unix scheme, |-separated)
+	* changed server 'status' memory reporting again
+	  - VmRSS is now once again returned as 'memkb' key (but really in kB)
+	  - VmSize and other data are parsed from /proc/PID/status (rather than /proc/PID/statm as before)
+	  - detailed memory usage is now returned in status 'vmstatus' key
 
 v2.1.7 Wed, 10 Jan 2018 10:33:26 +0100 moocow
-	* fixed memory size reporting in ConcordDmnLib/Server.cpp
+	* changed memory size reporting in ConcordDmnLib/Server.cpp
 	  - fixed reporting unit: was pages a la /proc/PID/statm; now: kB (1024-byte units)
 	  - formerly reported resident set size (VmRSS), now report total program size (VmSize)
 	* fixed ClearString() in utilit.h, which wasn't properly clearing target string capacity as advertised

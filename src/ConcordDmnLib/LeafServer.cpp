@@ -1,7 +1,7 @@
 //-*- Mode: C++; c-basic-offset:4; -*-
 //
 //  DDC originally by Alexey Sokirko
-//  Changes and modifications 2011-2017 by Bryan Jurish
+//  Changes and modifications 2011-2018 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -190,6 +190,8 @@ void CDDCLeafServer::handle__expand_terms(string &Result, const string& pipeline
 void CDDCLeafServer::handle__status(string &Result, int timeout, bool verbose)
 {
     double uptime = difftime(time(NULL), m_tStarted);
+    DDCProcessMemoryStatus pms(getpid());
+
     m_ServerStats.m_qTimes.Scrub(); //-- synchronize moving-average query-time window
     Result = (string("{\n\t")
 	      + "\"name\":" + jsonStr(m_CorpusName) + ",\n\t"
@@ -205,7 +207,9 @@ void CDDCLeafServer::handle__status(string &Result, int timeout, bool verbose)
 	      + "\"nslow\":" + Format("%zd", m_ServerStats.m_nSlow) + ",\n\t"
 	      + "\"qtavg\":" + Format("%g", m_ServerStats.m_qTimes.tAverage()) + ",\n\t"
 	      + "\"nworkers\":" + Format("%zd", m_nWorkers) + ",\n\t"
-	      + "\"memkb\":" + Format("%zd", this->totalMemorySize()) + ",\n\t"
+	      + "\"memkb\":" + Format("%zd", pms.VmRSS) + ",\n\t" //-- compat
+	      + "\"vmem\":" + Format("{\"peak\":%zd,\"size\":%zd,\"hwm\":%zd,\"rss\":%zd,\"data\":%zd,\"stk\":%zd,\"exe\":%zd,\"lib\":%zd,\"swap\":%zd}",
+				     pms.VmPeak, pms.VmSize, pms.VmHWM, pms.VmRSS, pms.VmData, pms.VmStk, pms.VmExe, pms.VmLib, pms.VmSwap) + ",\n\t"
 	      + "\"cachesize\":" + Format("%zd", m_pHolder->CacheSize()) + ",\n\t"
 	      + "\"curlcachesize\":" + Format("%zd", ddcCurlCache.size()) + "\n\t"
 	      + "}"

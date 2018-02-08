@@ -1,6 +1,6 @@
 //-*- Mode: C++; c-basic-offset: 8; coding: raw-text; -*-
 //  DDC originally by Alexey Sokirko
-//  Changes and modifications 2011-2016 by Bryan Jurish
+//  Changes and modifications 2011-2018 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -966,25 +966,42 @@ string GetIniFilePath()
 };
 
 //======================================================================
-// moo: get memory statistics using /proc/PID/statm (linux only)
+// moo: get memory statistics using /proc/PID/status (linux only)
 
 void DDCProcessMemoryStatus::fetch(pid_t pid)
 {
     clear();
-
+    
     char filename[64];
-    sprintf(filename, "/proc/%d/statm", pid);
-
+    sprintf(filename, "/proc/%d/status", pid);
+    
     FILE *f = fopen(filename, "r");
     if (f==NULL) return;
 
-    pagesize = sysconf(_SC_PAGE_SIZE);
-    fscanf(f,
-	   "%zu %zu %zu %zu %zu %zu %zu",
-	   &size, &resident, &share, &text, &lib, &data, &dt);
+    char buf[512];
+    char *sep;
+    while (fgets(buf, 512, f)) {
+	if ( !(sep = strchr(buf, ':')) ) continue;
+	*sep++ = '\0';
+	if      (strcmp(buf,"VmPeak")==0) VmPeak = strtoul(sep,NULL,0);
+	else if (strcmp(buf,"VmSize")==0) VmSize = strtoul(sep,NULL,0);
+	else if (strcmp(buf,"VmLck")==0) VmLck = strtoul(sep,NULL,0);
+	else if (strcmp(buf,"VmPin")==0) VmPin = strtoul(sep,NULL,0);
+	else if (strcmp(buf,"VmHWM")==0) VmHWM = strtoul(sep,NULL,0);
+	else if (strcmp(buf,"VmRSS")==0) VmRSS = strtoul(sep,NULL,0);
+	else if (strcmp(buf,"VmData")==0) VmData = strtoul(sep,NULL,0);
+	else if (strcmp(buf,"VmStk")==0) VmStk = strtoul(sep,NULL,0);
+	else if (strcmp(buf,"VmExe")==0) VmExe = strtoul(sep,NULL,0);
+	else if (strcmp(buf,"VmLib")==0) VmLib = strtoul(sep,NULL,0);
+	else if (strcmp(buf,"VmPTE")==0) VmPTE = strtoul(sep,NULL,0);
+	else if (strcmp(buf,"VmPMD")==0) VmPMD = strtoul(sep,NULL,0);
+	else if (strcmp(buf,"VmSwap")==0) VmSwap = strtoul(sep,NULL,0);
+    }
+
     fclose(f);
     return;
 }
+
 
 //======================================================================
 // working with registry 
