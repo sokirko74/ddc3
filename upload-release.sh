@@ -9,5 +9,7 @@ Usage: $0 FILE(s)...
 Uploads FILE(s) to $DSTURL
 
 EOF
+    exit 0
+fi
 
 exec rsync -tzv "$@" "$DSTURL"
