@@ -340,7 +340,7 @@ else
   elif test "$ddc_have_unix_socket_headers" = "no" ; then
      AC_MSG_RESULT([no (UNIX socket headers not found)])
      ddc_enable_curl_unix_sockets=no
-  elif test "$ddc_have_curl_unix" = "yes" ; then
+  elif test "$ddc_have_curl_unix_support" = "yes" ; then
      AC_MSG_RESULT([no (not needed)])
      ddc_enable_curl_unix_sockets=no
   else
