@@ -1,7 +1,7 @@
 //-*- Mode: C++; c-basic-offset:4; -*-
 //
 //  DDC originally by Alexey Sokirko
-//  Changes and modifications 2011-2017 by Bryan Jurish
+//  Changes and modifications 2011-2018 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -22,6 +22,7 @@
 #include "ServerOptions.h"
 #include "../common/string_tokenizer.h"
 #include "../common/ddcThreadQueue.h"
+#include "BranchNavCache.h"
 #include <errno.h>
 #include <string.h>
 
@@ -34,7 +35,8 @@ CDDCServerOptions::CDDCServerOptions() :
     m_SlowQueryTimeout(10),
     m_StatsWindow(600),
     m_nWorkers(0),
-    m_ThreadQueueSize(DDC_DEFAULT_THREAD_QUEUE_SIZE)
+    m_ThreadQueueSize(DDC_DEFAULT_THREAD_QUEUE_SIZE),
+    m_NavCacheSize(DDC_DEFAULT_NAV_CACHE_CAPACITY)
 {}
 
 //--------------------------------------------------------------
@@ -88,6 +90,8 @@ bool CDDCServerOptions::Set(const string& Option, const string& Value, const str
 	m_nWorkers = strtoul(Value.c_str(),NULL,0);
     else if (opt=="threadqueuesize" || opt=="queuesize" || opt=="qsize")
 	m_ThreadQueueSize = strtoul(Value.c_str(),NULL,0);
+    else if (opt=="navcachesize" || opt=="navcache")
+	m_NavCacheSize = strtoul(Value.c_str(),NULL,0);
     else if (opt=="include") {
 	string IncFileName = RelativeFileName(srcName, IncFileName);
 	LoadFile(IncFileName);
@@ -107,5 +111,6 @@ string CDDCServerOptions::toString() const
 	    + "StatsWindow " + Format("%zu", m_StatsWindow) + "\n"
 	    + "NumThreads " + Format("%zu", m_nWorkers) + "\n"
 	    + "ThreadQueueSize " + Format("%zu", m_ThreadQueueSize) + "\n"
+	    + "NavCacheSize " + Format("%zu", m_NavCacheSize) + "\n"
 	    );
 }

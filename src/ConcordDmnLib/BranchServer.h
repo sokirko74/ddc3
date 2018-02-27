@@ -22,6 +22,7 @@
 #define DDC_BRANCH_SERVER_H
 
 #include "../ConcordDmnLib/Server.h"
+#include "../ConcordDmnLib/BranchNavCache.h"
 
 //======================================================================
 /** single hit data in get_first_hits responses */
@@ -171,28 +172,35 @@ public:
     //-- low-level data
     CFirstHitsQueryResult 		m_FHResult;  //< first-hits result
     CRunQueryData			m_QueryData; //< run-query data
+    BranchNavCache			*m_pNavCache; //< navigation cache (shared over multiple worker threads)
 
 public:
     //--------------------------------------------------------------
     // Constructors etc.
 
-    /** default constructor */
-    CDDCBranchServer();
+    /** default constructor
+     * \param master true (default) iff this is to be a "master" object (i.e. not a worker clone)
+     */
+    CDDCBranchServer(bool master=true);
 
     /** default destructor */
-    virtual ~CDDCBranchServer()
-    {};
+    virtual ~CDDCBranchServer();
 
     /** close any open socket(s) this server administers, called on termination signal */
     virtual void Shutdown();
+
+    /** set server options (override handles option m_NavCacheSize) */
+    virtual void SetOptions(const CDDCServerOptions &Options);
 
 public:
     //--------------------------------------------------------------
     // DDCServer API: client threads
 
-    /** create a minimal copy of this object (and any subordinate data) for use by a worker thread */
+    /** create a minimal copy of this object (and any subordinate data) for use by a worker thread
+     *  \li override creates a CDDCBranchServer as non-master
+     */
     virtual CDDCServer *WorkerClone(void) const
-    { return (CDDCServer*)new CDDCBranchServer(); };
+    { return (CDDCServer*)new CDDCBranchServer(false); };
 
     /** initialize a newly created worker-clone (and any subordinate data) */
     virtual void WorkerCloneInit(const CDDCServer *Parent, size_t WorkerId);

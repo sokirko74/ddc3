@@ -179,13 +179,29 @@ public:
   //------------------------------------------------------------
   // public methods: lookup (no implicit locking; use must call lock() and unlock() if and when appropriate)
 
-  //! find cached item; returns end() if not found, does NOT update the MRU-list
+  //! find cached item; returns end() if not found, does NOT update the MRU-list (non-const)
   inline iterator find(const KeyT &key)
   { return m_map.find(key); };
 
-  //! find cached item; returns end() if not found; does NOT update the MRU-list
+  //! find lower bound for cache key; does NOT update the MRU-list (non-const)
+  inline iterator lower_bound(const KeyT &key)
+  { return m_map.lower_bound(key); };
+
+  //! find upper bound for cache key; does NOT update the MRU-list (non-const)
+  inline iterator upper_bound(const KeyT &key)
+  { return m_map.upper_bound(key); };
+  
+  //! find cached item; returns end() if not found; does NOT update the MRU-list (const version)
   inline const_iterator find(const KeyT &key) const
   { return m_map.find(key); };
+
+  //! find lower bound for cache key; does NOT update the MRU-list (const version)
+  inline const_iterator lower_bound(const KeyT &key) const
+  { return m_map.lower_bound(key); };
+
+  //! find upper bound for cache key; does NOT update the MRU-list (const version)
+  inline const_iterator upper_bound(const KeyT &key) const
+  { return m_map.upper_bound(key); };
 
   //! get cached item, promoting it to MRU position if already exists; return end() if key is not found
   inline iterator get(const KeyT &key)

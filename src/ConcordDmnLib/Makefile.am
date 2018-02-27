@@ -28,16 +28,21 @@ libDDCConcordDmn_la_SOURCES = \
  Server.cpp Server.h \
  LeafServer.cpp LeafServer.h \
  BranchServer.cpp BranchServer.h \
+ BranchNavCache.h \
  Morphan.cpp Morphan.h \
  Corpora.cpp Corpora.h
 
 
 noinst_HEADERS = \
- Server.h \
+ BranchServer.h \
+ BranchNavCache.h \
  Corpora.h \
+ LeafServer.h \
  Morphan.h \
- ServerThread.h \
- ServerOptions.h
+ Server.h \
+ ServerOptions.h \
+ ServerStats.h \
+ ServerThread.h
 
 ##-----------------------------------------------------------------------
 ## special rules

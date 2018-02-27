@@ -1,7 +1,7 @@
 //-*- Mode: C++; c-basic-offset:4; -*-
 //
 //  DDC originally by Alexey Sokirko
-//  Changes and modifications 2011-2017 by Bryan Jurish
+//  Changes and modifications 2011-2018 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -49,6 +49,12 @@ public:
 
     /** maximum number of pending client connections the thread-pool queue (min=1: use tcp queueing only; default=DDC_DEFAULT_THREAD_QUEUE_SIZE) */
     size_t m_ThreadQueueSize;
+
+    //--------------------------------------------------------------
+    // navigation cache (branch servers only)
+
+    /** size of navigation offset cache */
+    size_t m_NavCacheSize;
 
 public:
     //--------------------------------------------------------------

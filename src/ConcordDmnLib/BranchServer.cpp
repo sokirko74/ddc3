@@ -98,7 +98,7 @@ void CFirstHitsQueryResult::CollectCounts()
 // CDDCBranchServer: constructors etc
 
 //----------------------------------------------------------------------
-CDDCBranchServer::CDDCBranchServer()
+CDDCBranchServer::CDDCBranchServer(bool master)
 {
     m_maxReceiveBytes = DDC_STATIC_BUFLEN;
     m_bLogRequests    = true;
@@ -111,7 +111,31 @@ CDDCBranchServer::CDDCBranchServer()
 	m_noLogCommands.insert("vstatus");
 	m_noLogCommands.insert("info");
 	m_noLogCommands.insert("vinfo");
+	m_noLogCommands.insert("get_first_hits");
 	m_noLogCommands.insert("get_hit_strings");
+    }
+
+    //-- initialize navigation cache (master only; capacity will typically be overridden by server options)
+    if (master) {
+	m_pNavCache = new BranchNavCache(DDC_DEFAULT_NAV_CACHE_CAPACITY);
+    } else {
+	m_pNavCache = NULL;
+    }
+};
+
+//----------------------------------------------------------------------
+CDDCBranchServer::~CDDCBranchServer()
+{
+    if (m_pNavCache) delete m_pNavCache;
+};
+
+//----------------------------------------------------------------------
+void CDDCBranchServer::SetOptions(const CDDCServerOptions &Options)
+{
+    CDDCServer::SetOptions(Options);
+    if (m_pNavCache) {
+	ddcLogInfo(Format("setting branch navigation cache capacity = %zd", Options.m_NavCacheSize));
+	m_pNavCache->m_Cache.reserve(Options.m_NavCacheSize);
     }
 };
 
@@ -135,11 +159,13 @@ void CDDCBranchServer::WorkerCloneInit(const CDDCServer *Parent, size_t WorkerId
 
     CDDCBranchServer *parent = (CDDCBranchServer*)Parent;
     m_Hosts = parent->m_Hosts;
+    m_pNavCache = parent->m_pNavCache;
 }
 
 //----------------------------------------------------------------------
 void CDDCBranchServer::WorkerCloneFree(void)
 {
+    m_pNavCache = NULL;
     CDDCServer::WorkerCloneFree();
 }
 
@@ -651,7 +677,8 @@ NetworkErrorsEnum CDDCBranchServer::RunGetFirstHits()
     runq.HitsCount = 0;
     runq.ResponseBody = "";
 
-    //-- readi first StartHiNo+ResultLimit hits from each host and store them to FHResult.m_Hits
+    //-- read first StartHitNo+ResultLimit hits from each host and store them to FHResult.m_Hits
+    //-- TODO: use NavCache!
     GetFirstHitsFromCorpora(runq.PossibleHosts, CleanQuery, runq.StartHitNo+runq.ResultLimit, runq.TimeOut, FHResult);
     runq.HitsCount = FHResult.m_AllHitsCount;
     runq.RelevantDocsCount = FHResult.m_AllRelevantDocsCount;
@@ -694,6 +721,8 @@ NetworkErrorsEnum CDDCBranchServer::RunGetFirstHits()
 	FHResult.m_Hits.erase(FHResult.m_Hits.begin(), FHResult.m_Hits.begin()+runq.StartHitNo);
     else
 	FHResult.m_Hits.clear();
+
+    //-- TODO: update NavCache (non-count() queries only?)
 
 #ifdef DEBUG_HIT_SORT
     for (vector<CHitToSort>::const_iterator hi=FHResult.m_Hits.begin(); hi != FHResult.m_Hits.end(); ++hi) {
@@ -861,6 +890,7 @@ void CDDCBranchServer::GetFirstHitsFromCorpora(const DwordVector& PossibleHosts,
 			Result.m_NetworkError = neCouldNotOpenSocket;
 			return;
 		};
+		//-- TODO: use NavCache!
 		string S = Format ("get_first_hits %s\x01%i %i", Query.c_str(), TimeOut,  ResultLimit);
 		string ErrorStr;
 		if (!SendString(Result.m_Sockets[i], S.c_str(), S.length(), ErrorStr)) 
