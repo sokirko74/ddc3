@@ -578,10 +578,10 @@ where C<STATUS> is a non-zero decimal integer error code, and C<ERROR> is a text
 
 On success, responses have the form:
 
- STATUS " " MAXHIT " " NHITS " " NDOCS " " SORT " " HITIDS
+ STATUS " " HITUB " " NHITS " " NDOCS " " SORT " " HITIDS
 
 where C<STATUS> is a decimal integer status, 0 (zero) for success,
-C<MAXHIT> should be the index of the last hit computed (?? but seems in practice usually to be 0 (zero) -- see CConcHolder::GetHits(q, __EndHitNo__)),
+C<HITUB> should be the index of the last hit returned + 1 (see CConcSession::GetHits(q, __EndHitNo__)),
 C<NHITS> is the total number of hits found (?? see CConcHolder::m_AllHitsCount),
 C<NDOCS> is the number of relevant documents found (?? usually 0 (zero); see CConcHolder::m_RelevantDocumentCount),
 C<SORT> is a indicates whether and/or how the hits are to be sorted
