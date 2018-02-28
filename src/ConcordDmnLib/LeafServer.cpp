@@ -72,13 +72,16 @@ bool CDDCLeafServer::Close(SOCKET& rConnectedSocket, bool linger, int timeout)
 // CDDCLeafServer: DDCServer API: request handlers
 
 //----------------------------------------------------------------------
-void CDDCLeafServer::handle__get_first_hits(string &Result, const char *Query, int TimeOut, int ResultLimit)
+void CDDCLeafServer::handle__get_first_hits(string &Result, const char *Query, int TimeOut, int StartHitNo, int ResultLimit, const char *MinKey)
 {
     assert(m_pHolder != NULL);
     m_pHolder->SetTimeOut(TimeOut);
     m_pHolder->m_ResultLimit = ResultLimit;
 
-    DWORD EndHitNo = 0;
+    ddcLogTrace(Format("CDDCLeafServer::handle__get_first_hits(TimeOut=%d, StartHitNo=%d, ResultLimit=%d, minKey=\"%s\")",
+		       TimeOut,StartHitNo,ResultLimit,(MinKey ? MinKey : "(null)")));
+
+    DWORD EndHitNo = StartHitNo;
     int Error = m_pHolder->GetHits(Query, EndHitNo);
     if (Error != errNone)
 	throw CExpc(Error, m_pHolder->m_ErrorStr.empty() ? GetDDCErrorString((DDCErrorEnum)Error) : m_pHolder->m_ErrorStr); //-- error

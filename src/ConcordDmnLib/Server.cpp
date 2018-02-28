@@ -1,7 +1,7 @@
 //-*- Mode: C++; c-basic-offset:4; -*-
 //
 //  DDC originally by Alexey Sokirko
-//  Changes and modifications 2011-2017 by Bryan Jurish
+//  Changes and modifications 2011-2018 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -39,7 +39,8 @@ const char *CDDCServer::AdditionalHitDelimiter = "\x01";
 
 //----------------------------------------------------------------------
 CDDCServer::CDDCServer()
-    : m_tStarted(0),
+    : m_VersionCompat(DDCVersionT::current()),
+      m_tStarted(0),
       m_bLogRequests(false),
       m_nWorkers(0),
       m_ThreadQueueSize(DDC_DEFAULT_THREAD_QUEUE_SIZE),
@@ -88,10 +89,18 @@ void CDDCServer::SetOptions(const CDDCServerOptions &Options)
 {
     if (Options.m_LogLevel > ddcLLUnknown)
 	SetLogLevel(Options.m_LogLevel);
+    m_VersionCompat = Options.m_VersionCompat;
     m_SlowQueryTimeout = Options.m_SlowQueryTimeout;
     m_ServerStats.m_qTimes.m_Window = Options.m_StatsWindow;
     m_nWorkers = Options.m_nWorkers;
     m_ThreadQueueSize = Options.m_ThreadQueueSize;
+
+    if (m_VersionCompat > DDCVersionT::current()) {
+	ddcLogWarn(Format("WARNING: requested VersionCompat (%s) is newer than current DDC (%s)", m_VersionCompat.str().c_str(), DDCVersionString()));
+    }
+    else if (m_VersionCompat < DDCVersionT::current()) {
+	ddcLogInfo(Format("enabling compatibility mode ~ v%s", m_VersionCompat.str().c_str()));
+    }
 };
 
 //----------------------------------------------------------------------
@@ -182,17 +191,37 @@ string CDDCServer::ProcessSocketString(const string& SocketInput, SOCKET& rConne
 	//-- moo: command parsing and dispatch
 	if (cmd == "get_first_hits") {
 	    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-	    // get_first_hits QUERY "\x01" TIMEOUT " " LIMIT  : get keys of first hits (leaf-node only)
+	    // get_first_hits QUERY "\x01" TIMEOUT " " LIMIT                          : get keys of hits [0,LIMIT)           (<  v2.1.9)
+	    // get_first_hits QUERY "\x01" TIMEOUT " " START " " LIMIT  (" " MINKEY)? : get keys of hits [START,START+LIMIT) (>= v2.1.9)
 	    ++m_SessionStats.m_nQueries;
 	    isQueryRequest = true;
 	    try {
-		int	TimeOut, ResultLimit;
-		char sQuery[DDC_STATIC_BUFLEN];
+		int  Arg2,Arg3,Arg4;
+		int  TimeOut, StartHitNo, ResultLimit;
+		char sQuery[DDC_STATIC_BUFLEN], sMinKey[DDC_SORTKEY_MAXLEN];
 		const char* SocketInputStr = SocketInput.c_str();
-		int nItems = sscanf (SocketInputStr, "get_first_hits %[^\x01]\x01 %i %i", sQuery, &TimeOut, &ResultLimit);
-		if (nItems != 3)
+
+		int nItems = sscanf(SocketInputStr, "get_first_hits %[^\x01]\x01 %i %i %i %[^\t\r\n]", sQuery, &Arg2, &Arg3, &Arg4, sMinKey);
+		if (nItems == 3) {
+		    //-- 1st form (3 arguments)
+		    TimeOut     = Arg2;
+		    StartHitNo  = 0;
+		    ResultLimit = Arg3;
+		    sMinKey[0]  = '\0';
+		}
+		else if (nItems > 3 && m_VersionCompat >= DDCVersionT(2,1,9)) {
+		    //-- 2nd form (4-5 arguments)
+		    TimeOut     = Arg2;
+		    StartHitNo  = Arg3;
+		    ResultLimit = Arg4;
+		    if (nItems < 5) sMinKey[0]  = '\0';
+		}
+		else {
+		    //-- unparseable
 		    throw CExpc(errParseError, "CDDCServer::ProcessSocketString(): cannot parse `get_first_hits' request");
-		this->handle__get_first_hits(Result, sQuery, TimeOut, ResultLimit);
+		}
+
+		this->handle__get_first_hits(Result, sQuery, TimeOut, StartHitNo, ResultLimit, sMinKey);
 	    }
 	    catch (CExpc& e) {
 		Result = Format("%i 0 0 0 0\n%s", (e.code()==errNone ? errOther : e.code()), e.what());
@@ -205,7 +234,7 @@ string CDDCServer::ProcessSocketString(const string& SocketInput, SOCKET& rConne
 	}
 	else if (cmd == "get_hit_strings") {
 	    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-	    // get_hit_strings " " FORMAT "\x01" OFFSET " " LIMIT : get full hit strings (leaf only)
+	    // get_hit_strings " " FORMAT "\x01" OFFSET " " LIMIT : get full hit strings
 	    isFollowupRequest = true;
 	    try {
 		int StartHitNo, ResultLimit;
@@ -226,7 +255,7 @@ string CDDCServer::ProcessSocketString(const string& SocketInput, SOCKET& rConne
 	}
 	else if (cmd == "run_query") {
 	    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-	    // run_query " " CORPUS "\x01" QUERY "\x01" FORMAT "\x01" OFFSET " " LIMIT " " TIMEOUT : user query (branch-node only)
+	    // run_query " " CORPUS "\x01" QUERY "\x01" FORMAT "\x01" OFFSET " " LIMIT " " TIMEOUT : user query
 	    ++m_SessionStats.m_nQueries;
 	    isQueryRequest = true;
 	    try {
@@ -346,7 +375,7 @@ string CDDCServer::ProcessSocketString(const string& SocketInput, SOCKET& rConne
 }
 
 //----------------------------------------------------------------------
-void CDDCServer::handle__get_first_hits(string &Result, const char *Query, int TimeOut, int ResultLimit)
+void CDDCServer::handle__get_first_hits(string &Result, const char *Query, int StartHitNo, int TimeOut, int ResultLimit, const char *MinKey)
 {
     m_bExpectMore = true;
     method_not_implemented("handle__get_first_hits()");

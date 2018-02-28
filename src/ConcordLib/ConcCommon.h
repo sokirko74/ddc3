@@ -53,7 +53,8 @@
  * + this can be undefined (and the hacks in CDDCBranchServer::GetFirstHitsFromCorpora() removed)
  *   after all leaf-servers have been migrated to >=v2.0.38
  */
-#define DDC_COUNT_KEY_COMPAT 1
+//#define DDC_COUNT_KEY_COMPAT 1
+#undef DDC_COUNT_KEY_COMPAT
 
 //! global intialization
 inline void ddcInitGlobal(void) {

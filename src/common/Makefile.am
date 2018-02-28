@@ -15,7 +15,6 @@ EXTRA_DIST = \
  DDC_common.h \
  ddcConfigAuto.h \
  ddcConfig.h \
- ddcConfigNoAuto.h \
  DDCInternalError.h \
  ddcThreadQueue.h \
  DwdsThesaurus.cpp \
@@ -58,3 +57,15 @@ EXTRA_DIST = \
  ddcObject.h
 
 # process_flex.sed process_yacc.sed
+
+
+##-- extra sources
+BUILT_SOURCES = \
+	 ddcConfigNoAuto.h
+
+##-- extra rules
+ddcConfigNoAuto.h: ddcConfigAuto.h
+	echo "/* src/common/ddcConfigNoAuto.h. Generated from ddcConfigAuto.h by make */" > $@
+	sed 's/^#define \([^ ]*\).*$$/#undef \1/;' ddcConfigAuto.h >> $@
+
+

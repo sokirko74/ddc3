@@ -47,6 +47,10 @@ libDDCCommon_la_SOURCES = \
 #toktest_SOURCES = toktest.cc
 #toktest_LDADD = libDDCCommon.la
 
+#EXTRA_PROGRAMS = vertest
+#vertest_SOURCES = vertest.cc
+#vertest_LDADD = libDDCCommon.la
+
 ##-----------------------------------------------------------------------
 ## headers
 

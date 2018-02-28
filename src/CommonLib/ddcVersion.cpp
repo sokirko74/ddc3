@@ -15,7 +15,7 @@
 //  You should have received a copy of the GNU Lesser General Public License
 //  along with DDC.  If not, see <http://www.gnu.org/licenses/>.
 
-#include "../CommonLib/ddcVersion.h"
+#include "ddcVersion.h"
 #include "../CommonLib/utilit.h"
 
 //--------------------------------------------------------------

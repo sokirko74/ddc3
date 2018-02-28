@@ -1,7 +1,8 @@
+/*-*- Mode: C++ -*-*/
 #ifndef DDC_version_h
 #define DDC_version_h
 
-#include "ddcConfig.h" /*-- moo --*/
+#include "../common/ddcConfig.h" /*-- moo --*/
 #include "../CommonLib/utilit.h"
 #include "../common/DDCInternalError.h"
 #include <sstream>
@@ -26,8 +27,15 @@ class DDCVersionT {
     : v_major(v.v_major), v_minor(v.v_minor), v_micro(v.v_micro)
   {};
 
+  DDCVersionT(const std::string& s)
+  { fromString(s); };
+
+  //! return version of current DDC library (for use in initializers)
+  inline static DDCVersionT current()
+  { return DDCVersionT(DDC_VERSION_MAJOR, DDC_VERSION_MINOR, DDC_VERSION_MICRO); };
+
   //--------------------------------------------------------------
-  void clear(void)
+  inline void clear(void)
   {
     v_major=0;
     v_minor=0;
@@ -35,19 +43,19 @@ class DDCVersionT {
   };
 
   //--------------------------------------------------------------
-  bool empty(void)
+  inline bool empty(void)
   {
     return v_major==0 && v_minor==0 && v_micro==0;
   };
 
   //--------------------------------------------------------------
-  bool operator==(const DDCVersionT x) const
+  inline bool operator==(const DDCVersionT x) const
   {
     return (v_major==x.v_major && v_minor==x.v_minor && v_micro==x.v_micro);
   };
 
   //--------------------------------------------------------------
-  bool operator<(const DDCVersionT x) const
+  inline bool operator<(const DDCVersionT x) const
   {
     return (v_major < x.v_major
 	    || (v_major == x.v_major && (v_minor < x.v_minor
@@ -55,20 +63,28 @@ class DDCVersionT {
   };
 
   //--------------------------------------------------------------
-  bool operator<=(const DDCVersionT x) const
+  inline bool operator<=(const DDCVersionT x) const
   {
-    return (*this < x || *this==x);
+    return (*this==x || *this < x);
   };
 
   //--------------------------------------------------------------
-  friend std::ostream& operator<< (std::ostream &out, DDCVersionT v)
+  inline bool operator>(const DDCVersionT x) const
+  { return x < *this; };
+
+  //--------------------------------------------------------------
+  inline bool operator>=(const DDCVersionT x) const
+  { return x <= *this; };
+
+  //--------------------------------------------------------------
+  inline friend std::ostream& operator<< (std::ostream &out, DDCVersionT v)
   {
     out << v.v_major << "." << v.v_minor << "." << v.v_micro;
     return out;
   };
 
   //--------------------------------------------------------------
-  friend std::istream& operator>> (std::istream &in, DDCVersionT &v)
+  inline friend std::istream& operator>> (std::istream &in, DDCVersionT &v)
   {
     in >> v.v_major;
     if (in.peek() == '.') { in.get(); in >> v.v_minor; }
@@ -77,7 +93,7 @@ class DDCVersionT {
   };
 
   //--------------------------------------------------------------
-  void toString(std::string &s) const
+  inline void toString(std::string &s) const
   {
     ostringstream os;
     os << *this;
@@ -85,7 +101,7 @@ class DDCVersionT {
   };
  
   //--------------------------------------------------------------
-  std::string str(void) const
+  inline std::string str(void) const
   {
     std::string s;
     toString(s);
@@ -93,7 +109,7 @@ class DDCVersionT {
   };
 
   //--------------------------------------------------------------
-  void fromString(const std::string &s)
+  inline void fromString(const std::string &s)
   {
     istringstream is(s);
     clear();
@@ -101,7 +117,7 @@ class DDCVersionT {
   };
 };
 
-/** Current DDC Version as a DDCVersionT */
+/** returns current DDC Version as a DDCVersionT (caveat: not useable in global initializers!) */
 const DDCVersionT DDCVersion(DDC_VERSION_MAJOR, DDC_VERSION_MINOR, DDC_VERSION_MICRO);
 
 /** current DDC Version as a string */

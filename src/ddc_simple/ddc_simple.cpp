@@ -1,7 +1,7 @@
 //-*- Mode: C++; c-basic-offset: 8; -*-
 //
 //  DDC originally by Alexey Sokirko
-//  Changes and modifications 2011-2016 by Bryan Jurish
+//  Changes and modifications 2011-2018 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -46,6 +46,7 @@ void PrintUsageAndExit()
 		 "Options:\n"
 		 "  -Start FROM                           # alias -From; default=0\n"
 		 "  -Limit LIMIT                          # default=10\n"
+		 "  -MinKey KEY                           # implicit key-based pruning\n"
 		 "  -ResultFormat TXT|HTML|TABLE|JSON     # default=TXT\n"
 		 "  -ProfileRun NITERS                    # none by default\n"
 		 "  -PrintProfile                         # print profile results\n"
@@ -81,6 +82,7 @@ int main(int argc, char* argv[])
 		StringVector Args;
 		bool bResultLimitGiven = false;
 		int ResultLimit  = -1;
+		string ResultMinKey = "";
 		bool bPrintProfile = false;
 		bool bOnlyGetHitsCount = false;
 		bool bOnlyGetHitIds = false;
@@ -107,6 +109,14 @@ int main(int argc, char* argv[])
 
 				bResultLimitGiven = true;
 				ResultLimit = atoi(argv[i+1]);
+				i++;
+			}
+			else if (s_lo == "-minkey")
+			{
+				if (i+1 >= argc)
+					PrintUsageAndExit();
+
+				ResultMinKey = argv[i+1];
 				i++;
 			}
                         else
@@ -234,6 +244,7 @@ int main(int argc, char* argv[])
 			if (bResultLimitGiven)
 				R.m_ResultLimit = ResultLimit;
 
+			R.m_ResultMinKey = ResultMinKey;
 			fprintf  (stderr, "Finding at least %zi occurrences\n", R.m_ResultLimit);
 
                         if (ResultFormat=="GUESS")
@@ -333,7 +344,8 @@ int main(int argc, char* argv[])
 								return -1;
 							}
 							else {
-								fprintf (stderr, "Number of found docs : %zi\n", R.m_AllHitsCount);
+								fprintf (stderr, "Number of hits found : %zi\n", R.m_AllHitsCount);
+								fprintf (stderr, "Next available hit   : %i\n", EndHitNo);
 							}
 
 							if (bOnlyGetHitIds) {
@@ -379,6 +391,12 @@ int main(int argc, char* argv[])
 			fprintf (stderr, "Seconds = %.3f\n", elapsed);
 			fprintf (stderr, "Queries/Sec = %.3f\n", q_sec);
 			fprintf (stderr, "HitsCount = %i\n", HitsCount);
+
+			DDCProcessMemoryStatus mstat(getpid());
+			fprintf(stderr, "Memory Usage (kB) = VmPeak:%zd , VmSize:%zd , VmHWM:%zd , VmRSS:%zd , VmSwap:%zd\n",
+				mstat.VmPeak, mstat.VmSize, mstat.VmHWM, mstat.VmRSS, mstat.VmSwap);
+
+
 			fprintf (OutFile, "%s", R.m_QueryResultStr.c_str());
 			if (OutFile != stdout) fclose(OutFile);
 

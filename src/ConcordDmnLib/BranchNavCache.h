@@ -26,7 +26,7 @@
 #include "../CommonLib/ddcThread.h"
 
 /** default BranchNavCache capacity */
-#define DDC_DEFAULT_NAV_CACHE_CAPACITY 1024
+#define DDC_DEFAULT_NAV_CACHE_CAPACITY 512
 
 //======================================================================
 //! cache sort keys and subcorpus-wise offsets for faster "paging" through hits
@@ -120,6 +120,36 @@ public:
 
   //------------------------------------------------------------
   // API
+
+  //----------------------------------------------------
+  //! wraps lock(); m_Cache.size(); unlock()
+  inline size_t size() const
+  {
+    size_t sz=0;
+    lock();
+    try {
+      sz = m_Cache.size();
+      unlock();
+    } catch (...) {
+      unlock();
+      throw;
+    }
+    return sz;
+  };
+
+  //----------------------------------------------------
+  //! wraps lock(); m_Cache.clear(); unlock()
+  inline void clear()
+  {
+    lock();
+    try {
+      m_Cache.clear();
+      unlock();
+    } catch (...) {
+      unlock();
+      throw;
+    }
+  };
 
   //----------------------------------------------------
   //! get lower bound for key \a key = (QueryStr,HitNo)

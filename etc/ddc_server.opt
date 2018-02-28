@@ -6,8 +6,8 @@
 
 LogLevel		info
 #NumThreads		4
-NumThreads		2
-#NumThreads		0
+#NumThreads		2
+NumThreads		0
 ThreadQueueSize		256
 
 #SlowQueryTimeout	5
@@ -16,3 +16,6 @@ ThreadQueueSize		256
 StatsWindow		10
 
 NavCacheSize		3
+
+#VersionCompat		2.0.0
+

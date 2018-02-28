@@ -45,6 +45,14 @@ noinst_HEADERS = \
  ServerThread.h
 
 ##-----------------------------------------------------------------------
+## debug
+
+#EXTRA_PROGRAMS = vertest
+#vertest_SOURCES = vertest.cc
+#vertest_LDADD = libDDCConcordDmn.la ../ConcordLib/libDDCConcord.la ../CommonLib/libDDCCommon.la
+##vertest_LDADD = libDDCConcordDmn.la
+
+##-----------------------------------------------------------------------
 ## special rules
 
 

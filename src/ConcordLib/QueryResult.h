@@ -67,7 +67,7 @@ struct CQueryResult
 	mutable vector<BYTE>	m_DebugInfo;
 
 	//! clears CQueryResult fields
-	void			ClearQueryResults();
+	void ClearQueryResults();
 
 	//! sort all hits by generic index-comparison function (comparison predicate reference)
 	//! \see CQueryResultIndex<HitIndexLessThanT>::SortByIndex()

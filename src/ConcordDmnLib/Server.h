@@ -53,6 +53,9 @@ public:
     /** maximum number of subcorpora per branch server */
     static const size_t MaxSubhostsSize = 256;
 
+    /** compatibility mode */
+    DDCVersionT m_VersionCompat;
+
     /** timestamp of server initialization */
     time_t m_tStarted;
 
@@ -83,7 +86,7 @@ public:
      *  \li default=10
      */
     double m_SlowQueryTimeout;
-    
+
     /** worker thread-id for worker clones */
     size_t m_WorkerId;
 
@@ -161,7 +164,7 @@ public:
     // DDCServer API: request handlers: required
 
     /** request handler: get_first_hits: required (leaf) */
-    virtual void handle__get_first_hits(string &Result, const char *Query, int TimeOut, int ResultLimit);
+    virtual void handle__get_first_hits(string &Result, const char *Query, int TimeOut, int StartHitNo, int ResultLimit, const char *MinKey=NULL);
 
     /** request handler: get_hit_strings: required (leaf) */
     virtual void handle__get_hit_strings(string &Result, const char *ResultType, int StartHitNo, int ResultLimit);

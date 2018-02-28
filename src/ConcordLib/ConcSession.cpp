@@ -1,7 +1,7 @@
 //*-*- Mode: C++; c-basic-offset: 8; -*-*/
 //
 //  DDC originally by Alexey Sokirko
-//  Changes and modifications 2011-2017 by Bryan Jurish
+//  Changes and modifications 2011-2018 by Bryan Jurish
 //
 //  This file is part of DDC (formerly CConcHolder.cpp)
 // 
@@ -39,6 +39,42 @@ const time_t TheEndOfTheWorld = 0xffffffff;
 	static char THIS_FILE[] = __FILE__;
 	#endif
 #endif
+
+//==============================================================================
+//#define DEBUG_HIT_SORT 1
+#undef DEBUG_HIT_SORT
+
+#if DEBUG_HIT_SORT
+# define HIT_SORT_DEBUG(x) x
+#else
+# define HIT_SORT_DEBUG(x)
+#endif
+
+static void dumpHits(const std::string& Label, const vector<CHit>& Hits)
+{
+	for (size_t hi=0; hi < Hits.size(); hi++) {
+		const CHit &h=Hits[hi];
+		fprintf(stderr,
+			"%s[%zd] = {m_BreakNo=%u, m_HighlightOccurrenceEnd=%u, m_SortKey={%d,%s}, m_FileNo=%u, m_DebugRankNo=%u}\n",
+			Label.c_str(), hi,
+			h.m_BreakNo, h.m_HighlightOccurrenceEnd, h.m_SortKey.i, jsonStr(h.m_SortKey.s).c_str(), h.m_FileNo, h.m_Value.m_DebugRankNo
+			);
+	}
+}
+
+static void dumpHitIndex(const std::string& IndexLabel, const vector<size_t>& HitIndex, const std::string& Label, const vector<CHit>& Hits)
+{
+	for (size_t hii=0; hii < HitIndex.size(); hii++) {
+		size_t hi = HitIndex[hii];
+		const CHit &h=Hits[hi];
+		fprintf(stderr,
+			"%s[%zd] = %s[%zd] = {m_BreakNo=%u, m_HighlightOccurrenceEnd=%u, m_SortKey={%d,%s}, m_FileNo=%u, m_DebugRankNo=%u}\n",
+			IndexLabel.c_str(), hii,
+			Label.c_str(), hi,
+			h.m_BreakNo, h.m_HighlightOccurrenceEnd, h.m_SortKey.i, jsonStr(h.m_SortKey.s).c_str(), h.m_FileNo, h.m_Value.m_DebugRankNo
+			);
+	}
+}
 
 //==============================================================================
 //! indirect comparison operator for hits on CHit::m_SortKey.i (for std::sort); replaces IsLessByHitOrderId .
@@ -196,7 +232,9 @@ CConcSession::CConcSession(CConcSessionContext *SessionContext)
 		m_bSessionMaster = true;
 	}
 	m_WorkerId    = 0;
-	m_ResultLimit = 0xffffffff;
+	m_ResultOffset = 0;
+	m_ResultLimit = SIZE_MAX;
+	m_ResultMinKey = "";
 	m_pIndexator = 0;
 	m_pBreaks = 0;
 	m_ResultFormat = DDC_ResultText;
@@ -239,7 +277,9 @@ CConcSession* CConcSession::WorkerClone(size_t WorkerId)
 	//clone->m_QueryResultStr = m_QueryResultStr;
 	//clone->m_ErrorStr = m_ErrorStr;	
 	clone->m_pIndexator = m_pIndexator;				//!!!!!!!! hic sunt dracones !!!!!!!
+	//clone->m_ResultOffset = m_ResultOffset;
 	//clone->m_ResultLimit = m_ResultLimit;
+	//clone->m_ResultMinKey = m_ResultMinKey;
 	//clone->m_CurrentSearchPeriodNo = m_CurrentSearchPeriodNo;
 	clone->m_AdditionalHitDelimiter = m_AdditionalHitDelimiter;
 	UnlockSessionContext();
@@ -1044,18 +1084,19 @@ DDCErrorEnum CConcSession::GenerateHitStrings(const int StartHitNo, bool UseAddi
 	m_QueryResultStr = "";
 	m_ErrorStr = "";
 
-	int end = min (m_Hits.size(), StartHitNo + m_ResultLimit);
-	for(DWORD EndHitNo = StartHitNo; EndHitNo<end; EndHitNo++ )
+	int beg = StartHitNo - m_ResultOffset;
+	int end = min (m_Hits.size(), StartHitNo - m_ResultOffset + m_ResultLimit);
+	for(DWORD HitNo=beg; HitNo<end; HitNo++ )
 	{
-		const int BreakNo = m_Hits[EndHitNo].m_BreakNo;
+		const int BreakNo = m_Hits[HitNo].m_BreakNo;
 
-		if (m_ResultFormat == DDC_ResultJson && EndHitNo==StartHitNo)
+		if (m_ResultFormat == DDC_ResultJson && HitNo==beg)
 			m_QueryResultStr.push_back('[');
 
 		vector<COutputToken> Tokens;
 		if (m_pQueryCompiler->m_pQuery->m_Options->m_HitTypeStr == PredefinedFileBreakName)
 		{
-			if (!GetFileSnippets(EndHitNo, Tokens))
+			if (!GetFileSnippets(HitNo, Tokens))
 				return errReadSourceFile;
 		}
 		else
@@ -1089,8 +1130,8 @@ DDCErrorEnum CConcSession::GenerateHitStrings(const int StartHitNo, bool UseAddi
 			}
 
 
-			size_t start_occ = (EndHitNo == 0) ? 0 : m_Hits[EndHitNo-1].m_HighlightOccurrenceEnd;
-			size_t end_occ   = m_Hits[EndHitNo].m_HighlightOccurrenceEnd;
+			size_t start_occ = (HitNo == 0) ? 0 : m_Hits[HitNo-1].m_HighlightOccurrenceEnd;
+			size_t end_occ   = m_Hits[HitNo].m_HighlightOccurrenceEnd;
 			vector<CTokenNo>::const_iterator start = m_HighlightOccurs.begin() + start_occ;
 			vector<CTokenNo>::const_iterator end   = m_HighlightOccurs.begin() + end_occ;
 			const DWORD StartHitTokenNo = (BreakNo == 0) ? 0 : GetBreaks()[BreakNo-1];
@@ -1104,16 +1145,16 @@ DDCErrorEnum CConcSession::GenerateHitStrings(const int StartHitNo, bool UseAddi
 			}
 		}
 
-		const DWORD& PageNumber = m_pIndexator->GetPageNumber(PageBreaks[EndHitNo]);
+		const DWORD& PageNumber = m_pIndexator->GetPageNumber(PageBreaks[HitNo]);
 		
-		if (!GenerateOneHitString(PageNumber, m_Hits[EndHitNo], Tokens))
+		if (!GenerateOneHitString(PageNumber, m_Hits[HitNo], Tokens))
 			return errReadSourceFile;
 
 		if (m_ResultFormat==DDC_ResultHTML) {
 		    m_QueryResultStr += "<BR>";
 		}
 		else if (m_ResultFormat==DDC_ResultJson) {
-		    m_QueryResultStr.push_back(EndHitNo < end-1 ? ',' : ']');
+		    m_QueryResultStr.push_back(HitNo < end-1 ? ',' : ']');
 		    m_QueryResultStr.push_back('\n');
 		}
 		else {
@@ -1133,18 +1174,24 @@ DDCErrorEnum CConcSession::GenerateCountStrings(const int StartHitNo, bool UseAd
 	assert(m_pQueryCompiler!=NULL);
 	assert(m_pQueryCompiler->m_pQuery!=NULL);
 
-
-	int end = min (m_Hits.size(), StartHitNo + m_ResultLimit);
 	m_QueryResultStr = "";
 	m_ErrorStr = "";
 	
 	if (m_ResultFormat == DDC_ResultJson)
 		m_QueryResultStr.push_back('[');
 
-	for (DWORD EndHitNo = StartHitNo; EndHitNo<end; EndHitNo++ ) {
-		GenerateCountString(m_QueryResultStr, m_ResultFormat, m_Hits[EndHitNo]);
+	int beg = StartHitNo - m_ResultOffset;
+	int end = min (m_Hits.size(), StartHitNo - m_ResultOffset + m_ResultLimit);
+
+	HIT_SORT_DEBUG(
+	  ddcLogDebug(Format("GenerateCountStrings() called: StartHitNo=%zd ; ResultOffset=%zd ; nHits=%zd ; end=%zd", StartHitNo, m_ResultOffset, m_Hits.size(), end));
+	  dumpHits("DEBUG[generateCountStrings]: m_Hits", m_Hits);
+        );
+
+	for (DWORD HitNo=beg; HitNo<end; HitNo++ ) {
+		GenerateCountString(m_QueryResultStr, m_ResultFormat, m_Hits[HitNo]);
 		if (m_ResultFormat == DDC_ResultJson) {
-			m_QueryResultStr.push_back(EndHitNo < end-1 ? ',' : ']');
+			m_QueryResultStr.push_back(HitNo < end-1 ? ',' : ']');
 			m_QueryResultStr.push_back('\n');
 		}
 
@@ -1508,23 +1555,20 @@ void CConcSession::InitSortKeyForHits(const CQuery *pQuery, const CDDCFilterWith
 }
 
 //==============================================================================
-//#define DEBUG_HIT_SORT 1
-#undef DEBUG_HIT_SORT
 
 //----------------------------------------------------------------------
-DDCErrorEnum CConcSession::GetAllHits(const string &Query, size_t Limit) 
+DDCErrorEnum CConcSession::GetAllHits(const string &Query, size_t Start, size_t Limit) 
 {
-	return GetAllHits(m_pQueryCompiler->m_pQuery, Limit);
+	return GetAllHits(m_pQueryCompiler->m_pQuery, Start, Limit);
 }
 
 
 //----------------------------------------------------------------------
-DDCErrorEnum CConcSession::GetAllHits(CQuery *QueryRoot, size_t Limit) 
+DDCErrorEnum CConcSession::GetAllHits(CQuery *QueryRoot, size_t Start, size_t Limit) 
 {
 	assert(QueryRoot != NULL);
 	m_bStoppedByUser = false;
 	m_ShortOccurCaches.clear();
-	m_ErrorStr = "";
 	ClearQueryResults();
 
 	//-- check for count-queries
@@ -1617,11 +1661,7 @@ DDCErrorEnum CConcSession::GetAllHits(CQuery *QueryRoot, size_t Limit)
 				F.m_KeyLo.i, jsonStr(F.m_KeyLo.s).c_str(),
 				F.m_KeyHi.i, jsonStr(F.m_KeyHi.s).c_str(),
 				hits_start, hits_end);
-			for (size_t phi=0; phi < PeriodHitsIndex.size(); phi++) {
-				const CHit &h=qHits[ PeriodHitsIndex[phi] ];
-				fprintf(stderr, "DEBUG: periodHits[%zd] = qHits[%zd] = {m_BreakNo=%u, m_HighlightOccurrenceEnd=%u, m_SortKey={%d,%s}, m_FileNo=%u}\n",
-					phi, PeriodHitsIndex[phi], h.m_BreakNo, h.m_HighlightOccurrenceEnd, h.m_SortKey.i, jsonStr(h.m_SortKey.s).c_str(), h.m_FileNo);
-			}
+			dumpHitIndex("DEBUG: periodHits", PeriodHitsIndex, "qHits", qHits);
 #endif //-- DEBUG
 
 			if (hits_end < hits_start) hits_start = hits_end;
@@ -1654,12 +1694,57 @@ DDCErrorEnum CConcSession::GetAllHits(CQuery *QueryRoot, size_t Limit)
 			}
 		}
 
+		//-- keep track of total number of hits we've processed
 		m_AllHitsCount += PeriodHitsIndex.size();
+
+		//-- mybe trim *front* of period-local hits (non-count queries only)
+		if (!qCount && !m_ResultMinKey.empty()) {
+			if (m_SortOrder == hsoNone) {
+				//-- trim front: corpus order
+				size_t minOffset = hex2int(m_ResultMinKey);
+				if (minOffset > m_ResultOffset) {
+					size_t nTrim = min(minOffset-m_ResultOffset, PeriodHitsIndex.size());
+					PeriodHitsIndex.erase(PeriodHitsIndex.begin(), PeriodHitsIndex.begin()+nTrim);
+					m_ResultOffset += nTrim;
+				}
+			}
+			else {
+				//-- trim front: non-trivial sort key
+				CHitSortKey key;
+				/*-- m_bSortByString is wrong here, since my_lower_bound always uses INTEGER comparisons (hit.m_SortKey.i)
+				 *   : in order to do this right, we need to:
+				 *     1) remember the last filter we used (CDDCFilterWithBounds, probably can just use qFilters.back() or similar)
+				 *     2) convert the (global) string-key back to a (local) integer-key 
+				 *        - using the filter-dependent integer scheme a la InitSortKeyForHits
+				 *     3) search using the extracted integer-key
+				 *   : we might be able to use the "raw" strings a la m_bSortByString if we
+				 *     - duplicated my_lower_bound() using string comparisons
+				 *     - this is probably NOT a good idea because I believe we tried that for context-sorting, and it was painfully slow!
+				 */
+				if (m_bSortByString) key = m_ResultMinKey;
+				else                 key = hex2int(m_ResultMinKey);
+
+				size_t key_lb;
+				if (m_SortOrder > 0) {
+					//-- ascending sort 
+					key_lb = my_lower_bound(PeriodHitsIndex.begin(), PeriodHitsIndex.end(), key, qHits) - PeriodHitsIndex.begin();
+				}
+				else if (m_SortOrder < 0) {
+					//-- descending sort
+					key_lb = my_lower_bound(PeriodHitsIndex.rbegin(), PeriodHitsIndex.rend(), key, qHits) - PeriodHitsIndex.rbegin();
+					key_lb = PeriodHitsIndex.size()-key_lb;
+				}
+
+				m_ResultOffset += key_lb;
+				PeriodHitsIndex.erase(PeriodHitsIndex.begin(), PeriodHitsIndex.begin()+key_lb);
+			}
+		}
 
 		//-- add period-local hits to m_Hits and highlight occurrences
 		// + we ought to merge-sort here e.g. with std::inplace_merge()
 		//   *but* we also need to keep m_HighlightOccurs[] aligned with m_Hits[]
 		// + current solution is full post-retrieval re-sort in calling method CConcSession::GetHits()
+		// + a native post-retrieval k-way merge with a min-heap would be even better, but would be a PITA
 		size_t Count = min(qLimit, PeriodHitsIndex.size());
 		for (size_t i=0; i < Count; i++) {
 			size_t  HitNo = PeriodHitsIndex[i];
@@ -1747,7 +1832,7 @@ string CConcSession::GetHitIds()  const
 	string Result;
 	for (size_t i=0; i < m_Hits.size(); i++) {
 		const CHit &h = m_Hits[i];
-		Result += Format("\t%i -0 ", i); //-- HitId, OrderId (for ddc < v2.0.19)
+		Result += Format("\t%i -0 ", i+m_ResultOffset); //-- HitId, OrderId (for ddc < v2.0.19)
 		if (m_bSortByString) {
 			//-- string-based sort
 			Result.append(h.m_SortKey.s, 0, DDC_SORTKEY_MAXLEN-1);
@@ -1767,16 +1852,15 @@ string CConcSession::GetCountIds()  const
 #ifdef DDC_COUNT_KEY_COMPAT
 	size_t keylen;
 #endif
-	for (size_t i=0; i < m_Hits.size(); i++) {
+	for (vector<CHit>::const_iterator hi=m_Hits.begin(); hi!=m_Hits.end(); ++hi) {
 		//-- "HitId OrderId" for ddc < v2.0.19
 		//-- "HitId    -0"   for ddc >=v2.0.19, context-queries
 		//-- "HitCount -0"   for ddc >=v2.0.23, count-queries
-		const CHit &h = m_Hits[i];
 #ifdef DDC_COUNT_KEY_COMPAT
 		//-- hack for transition to v2.0.38; see DDC_COUNT_KEY_COMPAT definition in ConcCommon.h
-		Result += Format("\t%zi -0%c ", h.m_Value.m_Count, globalCountKeyDelim);
+		Result += Format("\t%zi -0%c ", hi->m_Value.m_Count, globalCountKeyDelim);
 		keylen  = 2;
-		for (string::const_iterator si=h.m_SortKey.s.begin(); si != h.m_SortKey.s.end() && keylen < DDC_SORTKEY_MAXLEN; ++si) {
+		for (string::const_iterator si=hi->m_SortKey.s.begin(); si != hi->m_SortKey.s.end() && keylen < DDC_SORTKEY_MAXLEN; ++si) {
 			Result.push_back(*si);
 			++keylen;
 			if (*si == globalCountKeyDelim) {
@@ -1786,8 +1870,8 @@ string CConcSession::GetCountIds()  const
 		}
 #else
 		//-- for ddc >=v2.0.38: omit extraneous spaces from count-key ids
-		Result += Format("\t%zi -0 ", h.m_Value.m_Count);
-		Result.append(h.m_SortKey.s, 0, DDC_SORTKEY_MAXLEN-1);
+		Result += Format("\t%zi -0 ", hi->m_Value.m_Count);
+		Result.append(hi->m_SortKey.s, 0, DDC_SORTKEY_MAXLEN-1);
 #endif // DDC_COUNT_KEY_COMPAT
 	}
 	return Result;
@@ -1807,7 +1891,7 @@ void  CConcSession::SaveToCache(const string& Query, vector<size_t>::const_itera
 }
 
 //----------------------------------------------------------------------
-DDCErrorEnum CConcSession::GetHits(const string &QueryStr,  DWORD& EndHitNo)
+DDCErrorEnum CConcSession::GetHits(const string &QueryStr, DWORD& EndHitNo)
 {
 	if ( !(m_pQueryCompiler->ParseQuery(QueryStr) && m_pQueryCompiler->Compile()) )
 		return errParseError;
@@ -1815,17 +1899,16 @@ DDCErrorEnum CConcSession::GetHits(const string &QueryStr,  DWORD& EndHitNo)
 }
 
 //----------------------------------------------------------------------
-DDCErrorEnum CConcSession::GetHits(CQuery *QueryRoot,  DWORD& EndHitNo)
+DDCErrorEnum CConcSession::GetHits(CQuery *QueryRoot, DWORD& EndHitNo)
 {
 	string QueryStr = QueryRoot ? (QueryRoot->toString() + QueryRoot->optionsToString()) : string();
 	return GetHits(QueryRoot, EndHitNo, QueryStr);
 }
 
 //----------------------------------------------------------------------
-DDCErrorEnum CConcSession::GetHits(CQuery *QueryRoot,  DWORD& EndHitNo, const string& QueryStr) 
+DDCErrorEnum CConcSession::GetHits(CQuery *QueryRoot, DWORD& EndHitNo, const string& QueryStr) 
 {
 	ClearQueryResults();
-	m_ErrorStr = "";
 	if (!QueryRoot)
 		return errParseError;
 
@@ -1834,8 +1917,9 @@ DDCErrorEnum CConcSession::GetHits(CQuery *QueryRoot,  DWORD& EndHitNo, const st
 	try {
 		if ( !TryToGetFromCache(QueryStr, EndHitNo) )
 		{
-			// a new query occurs
-			DDCErrorEnum result = GetAllHits(QueryRoot, max(EndHitNo+m_ResultLimit, m_pIndexator->m_MaxCachedHitsCount) );
+			//-- new query, or re-evaluation required
+			size_t   StartHitNo = EndHitNo; //-- EndHitNo as input parameter
+			DDCErrorEnum result = GetAllHits(QueryRoot, StartHitNo, max(EndHitNo+m_ResultLimit, m_pIndexator->m_MaxCachedHitsCount) );
 			if (result != errNone) 
 				return result;
 
@@ -1844,14 +1928,7 @@ DDCErrorEnum CConcSession::GetHits(CQuery *QueryRoot,  DWORD& EndHitNo, const st
 			for (size_t i=0; i < m_Hits.size(); i++)
 				HitsIndex.push_back(i);
 
-#if DEBUG_HIT_SORT //-- DEBUG
-			for (size_t hi=0; hi < m_Hits.size(); hi++) {
-				const CHit &h=m_Hits[hi];
-				fprintf(stderr, "DEBUG[pre-sort;order=%d]: m_Hits[%u] = {m_BreakNo=%u, m_HighlightOccurrenceEnd=%u, m_SortKey={%d,%s}, m_FileNo=%u, m_DebugRankNo=%u}\n",
-					m_SortOrder,
-					hi, h.m_BreakNo, h.m_HighlightOccurrenceEnd, h.m_SortKey.i, jsonStr(h.m_SortKey.s).c_str(), h.m_FileNo, h.m_Value.m_DebugRankNo);
-			}
-#endif //-- DEBUG
+			HIT_SORT_DEBUG( dumpHits(Format("DEBUG[pre-sort;order=%d]: m_Hits",m_SortOrder), m_Hits) );
 
 			//-- re-sort hits here, since they might be drawn from different corpus periods
 			if (m_SortOrder > 0) {
@@ -1863,13 +1940,30 @@ DDCErrorEnum CConcSession::GetHits(CQuery *QueryRoot,  DWORD& EndHitNo, const st
 			} else {
 				//-- no sort
 				;
+			}	
+			//HIT_SORT_DEBUG( dumpHitIndex("DEBUG[post-sort]: HitsIndex", HitsIndex, "m_Hits", m_Hits) );
+
+			if (m_ResultOffset == 0) {
+				//-- only cache results starting at offset 0
+				SaveToCache(QueryStr, HitsIndex.begin(), HitsIndex.end() );
 			}
 
+			//-- sanity check
+			if (StartHitNo < m_ResultOffset)
+				throw CExpc(errRuntime, "GetHits(): requested StartHitNo=%zd but key-pruning trimmed %zd", StartHitNo, m_ResultOffset);
 
-			SaveToCache(QueryStr, HitsIndex.begin(), HitsIndex.end() );
+			//-- trim front of HitsIndex for non-trivial StartHitNo (only for non-count() queries)
+			if (StartHitNo > 0) {
+				m_ResultOffset = min(StartHitNo,HitsIndex.size());
+				HitsIndex.erase(HitsIndex.begin(), HitsIndex.begin()+m_ResultOffset);
+			}
+			//HIT_SORT_DEBUG( dumpHitIndex(Format("DEBUG[post-trim;offset=%zd]: HitsIndex", m_ResultOffset), HitsIndex, "m_Hits", m_Hits) );
 
-			size_t End = min(EndHitNo+m_ResultLimit, HitsIndex.size());
-			CQueryResultIndex(*this,HitsIndex).Apply(*this, EndHitNo, End);
+			size_t End = min((StartHitNo-m_ResultOffset+m_ResultLimit), HitsIndex.size());
+			CQueryResultIndex(*this,HitsIndex).Apply(*this, (StartHitNo-m_ResultOffset), End);
+
+			EndHitNo = m_ResultOffset + End; //-- update EndHitNo as output parameter
+			//HIT_SORT_DEBUG( dumpHits(Format("DEBUG[GetHits/3]: m_Hits", m_ResultOffset), m_Hits) );
 		}
 		
 	
@@ -1901,15 +1995,16 @@ DDCErrorEnum CConcSession::GetHits(CQuery *QueryRoot,  DWORD& EndHitNo, const st
 /////////////////////////////////////////////////////////////////////////////
 DDCErrorEnum CConcSession::SimpleQuery(const string &Query, DWORD& EndHitNo, DWORD& HitsCount) 
 {
-	DWORD SaveEndHitNo = EndHitNo;
+	DWORD StartHitNo = EndHitNo;
 	try {
 		DDCErrorEnum result = GetHits(Query, EndHitNo);
 		if (result != errNone)
 			return result;
 
 		HitsCount = m_AllHitsCount;
+		//HIT_SORT_DEBUG( dumpHits("DEBUG[SimpleQuery:pre-generate] m_Hits", m_Hits) );
 
-		result = GenerateHitStrings (0);
+		result = GenerateHitStrings (StartHitNo);
 		if (result != errNone)
 			return result;
 
@@ -1918,9 +2013,9 @@ DDCErrorEnum CConcSession::SimpleQuery(const string &Query, DWORD& EndHitNo, DWO
 		if (m_ResultFormat == DDC_ResultHTML)
 		{
 			if (m_pIndexator->m_bShowNumberOfRelevantDocuments)
-				m_QueryResultStr = 	Format("Occurrences %i - %i of %i in %i document(s)<br>", SaveEndHitNo+1, EndHitNo, HitsCount, m_RelevantDocumentCount) + m_QueryResultStr;
+				m_QueryResultStr = 	Format("Occurrences %i - %i of %i in %i document(s)<br>", StartHitNo+1, EndHitNo, HitsCount, m_RelevantDocumentCount) + m_QueryResultStr;
 			else
-				m_QueryResultStr = 	Format("Occurrences %i - %i of %i<br>", SaveEndHitNo+1, EndHitNo, HitsCount) + m_QueryResultStr;
+				m_QueryResultStr = 	Format("Occurrences %i - %i of %i<br>", StartHitNo+1, EndHitNo, HitsCount) + m_QueryResultStr;
 		};
 
 		DecorateQueryResults(GetResultFormatStr(), m_QueryResultStr);
@@ -2135,6 +2230,14 @@ int	CConcSession::GetTextArea() const
 }
 
 //----------------------------------------------------------------------
+void CConcSession::ClearQueryResults()
+{
+	CQueryResult::ClearQueryResults();
+	ClearString(m_ErrorStr);
+	m_ResultOffset = 0;
+}
+
+//----------------------------------------------------------------------
 HitSortOrderEnum CConcSession::HitSortOrder() const
 {
 	return m_SortOrder;
@@ -2182,7 +2285,6 @@ bool	CConcSession::HasMatchIdOperator() const
 string CConcSession::CanonicalQueryString(const string &Query)
 {
 	ClearQueryResults();
-	m_ErrorStr = "";
 	if ( !m_pQueryCompiler || !m_pQueryCompiler->ParseQuery(Query) ) {
 		m_ErrorStr = "parse error";
 		return string("");
@@ -2194,7 +2296,6 @@ string CConcSession::CanonicalQueryString(const string &Query)
 string CConcSession::JsonQueryString(const string &Query)
 {
 	ClearQueryResults();
-	m_ErrorStr = "";
 	if ( !m_pQueryCompiler || !m_pQueryCompiler->ParseQuery(Query) ) {
 		m_ErrorStr = "parse error";
 		return string("");

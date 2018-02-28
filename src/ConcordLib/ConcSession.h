@@ -1,7 +1,7 @@
 //*-*- Mode: C++; c-basic-offset: 8; -*- */
 //
 //  DDC originally by Alexey Sokirko
-//  Changes and modifications 2011-2016 by Bryan Jurish
+//  Changes and modifications 2011-2018 by Bryan Jurish
 //
 //  This file is part of DDC (formerly ConcHolder.h)
 // 
@@ -104,9 +104,20 @@ public:
 	*/
 	CConcIndexator*				m_pIndexator;		
 
-	//! the maximal number of hits, which should be output to m_HtmlResult and to m_PlainResult.
+	//! actual logical offset (starting from zero) of the first returnable hit in m_Hits[] (~ StartHitNo)
+	//! \li maintained by DDC (requested StartHitNo is passed in as EndHitNo rsp. StartHitNo rsp. Start)
+	//! \li this is actually the number of computed hits which have been trimmed off the front of m_Hits[]
+	//! \li alternate formulation: m_ResultOffset is the logical offset (original index) of m_Hits[0]
+	size_t					m_ResultOffset;
+
+	//! the maximal number of hits to be returned by the current query operation
+	//! \li assumed to be set explicitly by user
 	size_t					m_ResultLimit;
-	
+
+	//! minimum final sort-key of hits to be retrieved by GetAllHits()
+	//! \li applied independently for each corpus period to save memory
+	//! \li assumed to be set explicitly by user
+	string                                  m_ResultMinKey;
 
 	//! The index of the current \ref period_def "subcorpora", which is now  being processed
 	size_t					m_CurrentSearchPeriodNo;
@@ -137,12 +148,14 @@ public:
 
 	//! evaluate query on the corpus and initialize slots from CQueryResult
 	//! \li backwards-compatible version assuming Query was already have been parsed
-	DDCErrorEnum GetAllHits(const string &Query, size_t Limit);
+	DDCErrorEnum GetAllHits(const string &Query, size_t Start, size_t Limit);
 
 	//! evaluate query on the corpus and initialize slots from CQueryResult, given a pre-parsed query
-	//! \li ddc-2.0.23 version
+	//! \li CQuery* version added in ddc-2.0.23
+	//! \li Start parameter added in ddc-2.1.9
 	//! \li may populate m_ErrorStr
-	DDCErrorEnum	GetAllHits(CQuery *QueryRoot, size_t Limit);
+	//! \li may modify m_ResultOffset
+	DDCErrorEnum	GetAllHits(CQuery *QueryRoot, size_t Start, size_t Limit);
 
 	//! check if CountQuery is a count(*) query suitable for use with GetUniversalCounts()
 	bool IsUniversalCountQuery(CQuery *QueryRoot) const;
@@ -244,28 +257,42 @@ public:
 		The function saves  hits  [EndHitNo, EndHitNo+1,... EndHitNo+s] to result strings.
 		After this it makes EndHitNo equal to s+1.
 		The function returns errNone, if there is no parse error in the  given query.
+
+		(moo) put simply:
+		- as an INPUT parameter, EndHitNo is the offset of the FIRST hit to return
+		- as an OUTPUT parameter, EndHitNo is the offset of the offset of the first hit NOT returned (= upper bound; last hit returned + 1)
 	*/
 	DDCErrorEnum	SimpleQuery(const string &Query, DWORD& EndHitNo, DWORD& HitsCount);
 
 	//! GetHits does the same as SimpleQuery does, but without GenerateHitStrings()
-	DDCErrorEnum	GetHits(const string &QueryStr,  DWORD& EndHitNo);
+	//! \li see SimpleQuery() for semantics of EndHitNo
+	DDCErrorEnum	GetHits(const string &QueryStr, DWORD& EndHitNo);
 
 	//! GetHits() variant for pre-parsed queries, cache key is generated as QueryRoot->toString() + QueryRoot->optionsToString()
+	//! \li see SimpleQuery() for semantics of EndHitNo
 	DDCErrorEnum	GetHits(CQuery *QueryRoot,  DWORD& EndHitNo);
 
 	//! GetHits() guts: pre-parsed QueryRoot and given string cache-key QueryStr
+	//! \li see SimpleQuery() for semantics of EndHitNo
+	//! \li may set m_ResultOffset and trim m_Hits[] accordingly (ddc >= v2.1.9)
 	DDCErrorEnum	GetHits(CQuery *QueryRoot,  DWORD& EndHitNo, const string &QueryStr);
 
 	//! initializes m_QueryResultStr using current m_Hits and m_HighlightOccurs (for context-queries)
+	//! \li respects m_ResultOffset (generates strings for m_Hits[StartHitNo-m_ResultOffset .. StartHitNo-m_ResultOffset+m_ResultLimit-1])
+	//! \param StartHitNo logical offset of 1st hit
 	DDCErrorEnum	GenerateHitStrings(const int StartHitNo, bool UseAdditionalHitDelimiter=true);
 
 	//! initializes m_QueryResultStr using current m_Hits (for count-queries)
+	//! \li respects m_ResultOffset (generates strings for m_Hits[StartHitNo-m_ResultOffset .. StartHitNo-m_ResultOffset+m_ResultLimit-1])
+	//! \param StartHitNo logical offset of 1st count-hit
 	DDCErrorEnum	GenerateCountStrings(const int StartHitNo, bool UseAdditionalHitDelimiter=true);
 
-	//! stores sortk-keys (CHit::m_SortKey) of current m_Hits to a string
+	//! stores sort-keys (CHit::m_SortKey) of current m_Hits to a string
+	//! \li adds m_ResultOffset to reported (logical) hit offsets
 	string GetHitIds()  const;
 
-	//! GetHidIds() variant for count-queries
+	//! GetHidIds() variant for count-queries; returns count-IDs of all hits in m_Hits[]
+	//! \li m_ResultOffset is not relevant here, since hit offsets are not reported
 	string GetCountIds()  const;
 
 	//! get logical hit sort order; replaces HitsShouldBeSorted()
@@ -279,6 +306,9 @@ public:
 
 	//! return the text area to be be searched
 	int GetTextArea() const;
+
+	//! clears CQueryResult fields, also m_ErrorStr and m_ResultOffset
+	void ClearQueryResults();
 
 	//! converts a string to a FormatTypeEnum
 	static DDCFormatTypeEnum GetResultFormatByString(const string& ResultTypeStr );

@@ -36,7 +36,8 @@ CDDCServerOptions::CDDCServerOptions() :
     m_StatsWindow(600),
     m_nWorkers(0),
     m_ThreadQueueSize(DDC_DEFAULT_THREAD_QUEUE_SIZE),
-    m_NavCacheSize(DDC_DEFAULT_NAV_CACHE_CAPACITY)
+    m_NavCacheSize(DDC_DEFAULT_NAV_CACHE_CAPACITY),
+    m_VersionCompat(DDCVersionT::current())
 {}
 
 //--------------------------------------------------------------
@@ -92,6 +93,8 @@ bool CDDCServerOptions::Set(const string& Option, const string& Value, const str
 	m_ThreadQueueSize = strtoul(Value.c_str(),NULL,0);
     else if (opt=="navcachesize" || opt=="navcache")
 	m_NavCacheSize = strtoul(Value.c_str(),NULL,0);
+    else if (opt=="compatversion" || opt=="versioncompat" || opt=="compatibility" || opt=="compat")
+	m_VersionCompat.fromString(Value);
     else if (opt=="include") {
 	string IncFileName = RelativeFileName(srcName, IncFileName);
 	LoadFile(IncFileName);
@@ -112,5 +115,6 @@ string CDDCServerOptions::toString() const
 	    + "NumThreads " + Format("%zu", m_nWorkers) + "\n"
 	    + "ThreadQueueSize " + Format("%zu", m_ThreadQueueSize) + "\n"
 	    + "NavCacheSize " + Format("%zu", m_NavCacheSize) + "\n"
+	    + "VersionCompat " + m_VersionCompat.str().c_str() + "\n"
 	    );
 }

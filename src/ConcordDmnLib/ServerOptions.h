@@ -18,6 +18,7 @@
 //  You should have received a copy of the GNU Lesser General Public License
 //  along with DDC.  If not, see <http://www.gnu.org/licenses/>.
 //
+#include "../CommonLib/ddcVersion.h"
 #ifndef DDC_SERVER_OPTIONS_H
 #define DDC_SERVER_OPTIONS_H
 
@@ -51,10 +52,13 @@ public:
     size_t m_ThreadQueueSize;
 
     //--------------------------------------------------------------
-    // navigation cache (branch servers only)
+    // misc
 
-    /** size of navigation offset cache */
+    /** size of navigation offset cache (branch servers only) */
     size_t m_NavCacheSize;
+
+    /** server compatibility mode */
+    DDCVersionT m_VersionCompat;
 
 public:
     //--------------------------------------------------------------

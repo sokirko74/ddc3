@@ -276,11 +276,11 @@ bool CDDCBranchServer::CloseDtr(SOCKET& rConnectedSocket, bool linger, int timeo
 // CDDCBranchServer: handlers
 
 //----------------------------------------------------------------------
-void CDDCBranchServer::handle__get_first_hits(string &Result, const char *Query, int TimeOut, int ResultLimit)
+void CDDCBranchServer::handle__get_first_hits(string &Result, const char *Query, int TimeOut, int StartHitNo, int ResultLimit, const char *MinKey)
 {
     CRunQueryData &runq = m_QueryData;
     CFirstHitsQueryResult& FHResult = m_FHResult;
-    runq.Init(Query, "", 0, ResultLimit, TimeOut, &m_ErrorStr);
+    runq.Init(Query, "", 0, ResultLimit, TimeOut, &m_ErrorStr); //-- we may need the NavCache to initialize here!
 
     NetworkErrorsEnum rc = RunGetFirstHits();
     CheckFirstHitsResult(rc);
@@ -298,7 +298,7 @@ void CDDCBranchServer::handle__get_first_hits(string &Result, const char *Query,
     else {
 	//-- context query: just return hit keys
         for (size_t i=0; i < FHResult.m_Hits.size(); ++i) {
-	    Result += Format("\t%zd -0 ", i);
+	    Result += Format("\t%zd -0 ", i); //-- v2.1.9: HOW TO DETERMINE REAL HIT OFFSET HERE (+/- navCache?)
 	    Result += FHResult.m_Hits[i].m_SortKeyStr;
 	}
 	m_bExpectMore = true;
@@ -512,6 +512,7 @@ void CDDCBranchServer::handle__status(string &Result, int timeout, bool verbose)
 	      + "\"nslow\":" + Format("%zd", m_ServerStats.m_nSlow) + ",\n"
 	      + "\"qtavg\":" + Format("%g", m_ServerStats.m_qTimes.tAverage()) + ",\n"
 	      + "\"nworkers\":" + Format("%zd", m_nWorkers) + ",\n"
+	      + "\"navcachesize\":" + Format("%zd", (m_pNavCache ? m_pNavCache->size() : 0)) + ",\n"	      
 	      + "\"memkb\":" + Format("%zd", pms.VmRSS) + ",\n" //-- compat	      
 	      + "\"vmem\":" + Format("{\"peak\":%zd,\"size\":%zd,\"hwm\":%zd,\"rss\":%zd,\"data\":%zd,\"stk\":%zd,\"exe\":%zd,\"lib\":%zd,\"swap\":%zd}",
 				     pms.VmPeak, pms.VmSize, pms.VmHWM, pms.VmRSS, pms.VmData, pms.VmStk, pms.VmExe, pms.VmLib, pms.VmSwap) + ",\n"
@@ -552,6 +553,8 @@ void CDDCBranchServer::handle__clear_cache(string &Result, int depth)
     ddcCurlCache.lock();
     ddcCurlCache.clear();
     ddcCurlCache.unlock();
+
+    if (m_pNavCache) m_pNavCache->clear();
 
     Result = string("{") + jsonStr(m_CorpusName) + ":";
     if (depth != 0) {

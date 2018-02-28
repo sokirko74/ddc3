@@ -1,7 +1,7 @@
 //-*- Mode: C++; c-basic-offset: 8; -*-
 //
 //  DDC originally by Alexey Sokirko
-//  Changes and modifications 2011-2016 by Bryan Jurish
+//  Changes and modifications 2011-2018 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -193,10 +193,13 @@ int do_start(bool clientMode=false)
       if (ServerOptions.m_LogLevel > ddcLLUnknown)
 	      SetLogLevel(ServerOptions.m_LogLevel);
 
-      string startmsg = Format("Starting ddc_daemon v" PACKAGE_VERSION " in %s %s mode with log-level `%s'",
-				 (doFork ? "forked" : "unforked"),
-				 (clientMode ? "client" : "server"),
-				 LogLevelName(ddcLogLevel));
+      string startmsg = Format("Starting ddc_daemon v" PACKAGE_VERSION " in %s %s mode with log-level `%s'%s",
+			       (doFork ? "forked" : "unforked"),
+			       (clientMode ? "client" : "server"),
+			       LogLevelName(ddcLogLevel),
+			       (ServerOptions.m_VersionCompat==DDCVersionT::current() ? ""
+				: (string(" (compatibility ~ ")+ServerOptions.m_VersionCompat.str()+")").c_str())
+			       );
 
 	//-- setup logging options
 	ddcLogToFiles=log_files;
