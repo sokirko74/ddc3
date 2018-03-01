@@ -142,6 +142,10 @@ public:
 		//! for server info
 		virtual size_t size(void) const
 		{ return 0; };
+
+		//! for key-based pruning (v2.1.9): map a single value-string to its value-id
+		//! \li default implementation just calls hex2int(Value)
+		virtual DWORD   GetIntegerLowerBound(const string& Value) const;
 	};
 
 	//--------------------------------------------------------------    
@@ -208,6 +212,9 @@ public:
 		//! for server info
 		virtual size_t size(void) const
 		{ return m_Values.size(); };
+
+		//! for key-based pruning (v2.1.9): map a single value-string to its value-id
+		virtual DWORD   GetIntegerLowerBound(const string& Value) const;
 	};
 
 	//--------------------------------------------------------------

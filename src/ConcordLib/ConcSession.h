@@ -185,6 +185,15 @@ public:
 	void	InitSortBySize(const CQuery *pQuery) const;
 	void	InitSortByRandom(const CQuery *pQuery) const;
 	void    InitSortByContext(const CQuery *pQuery, const CDDCFilterWithBounds& Filter) const;
+
+	//! initialize a CHitSortKey integer lower-bound for its string key with respect to \a Filter
+	//! \li basically the inverse of InitSortKeyForHits()
+	//! \li used for m_ResultMinKey-based pruning
+	//! \param Key (input/output)
+	//!   \li on input, Key.s is a key-string as reported by GetHitIds()
+	//!   \li on return on return, Key.i is a lower bound for \a Key.s with respect to \a Filter
+	//! \param Filter (input) filter with respect to which key is to be initialized
+	void SortKeyLB(CHitSortKey &key, const CDDCFilterWithBounds& Filter);
 	//@}
 
 public:

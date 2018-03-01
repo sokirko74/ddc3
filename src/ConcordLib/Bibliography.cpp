@@ -346,6 +346,10 @@ const string& CConcXml::CFreeBiblIndex::GetXpathStr() const
 	return m_Xpath;
 }
 
+DWORD CConcXml::CFreeBiblIndex::GetIntegerLowerBound(const string& Value) const
+{
+	return Value.empty() ? 0 : hex2int(Value);
+}
 
 //=============================================
 
@@ -502,6 +506,18 @@ bool CConcXml::CFreeBiblStringIndex::GetFilterBounds (CDDCFilterWithBounds& Filt
 	}
 
 	return true;
+}
+
+DWORD CConcXml::CFreeBiblStringIndex::GetIntegerLowerBound(const string& Value) const
+{
+	if (Value.empty())
+		return INT_MIN;
+
+	vector<string>::const_iterator ilo = lower_bound(m_Values.begin(), m_Values.end(), Value);
+	if ( ilo != m_Values.end() )
+		return ilo-m_Values.begin();
+	else
+		return INT_MAX;
 }
 
 bool CConcXml::CFreeBiblStringIndex::GetFilterValue (CDDCFilterWithBounds& Filter, const string &Value) const
@@ -699,6 +715,7 @@ bool CConcXml::CFreeBiblStringIndex::ConvertAndSaveToDiskAfterIndexing (string m
 
 	return true;
 };
+
 
 //=============================================
 

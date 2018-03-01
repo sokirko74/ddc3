@@ -77,6 +77,16 @@ static void dumpHitIndex(const std::string& IndexLabel, const vector<size_t>& Hi
 }
 
 //==============================================================================
+#define DEBUG_HIT_TRIM 1
+//#undef DEBUG_HIT_TRIM
+
+#if DEBUG_HIT_TRIM
+# define HIT_TRIM_DEBUG(x) x
+#else
+# define HIT_TRIM_DEBUG(x)
+#endif
+
+//==============================================================================
 //! indirect comparison operator for hits on CHit::m_SortKey.i (for std::sort); replaces IsLessByHitOrderId .
 //! \li true string-based sorting occurs only at distributed server level
 struct IsLessByHitSortKey
@@ -109,6 +119,29 @@ IndexIterator my_lower_bound(IndexIterator First, IndexIterator Last, const CHit
 		size_t Step = Count / 2;
 		std::advance(Mid, Step);
 		if (Base[*Mid].m_SortKey.i < Key.i) //-- use integer comparisons only here!
+		{
+			First = ++Mid;
+			Count -= Step + 1;
+		}
+		else
+			Count = Step;
+	}
+	return First;
+}
+
+//==============================================================================
+template <class IndexIterator>
+IndexIterator my_upper_bound(IndexIterator First, IndexIterator Last, const CHitSortKey& Key, const vector<CHit>& Base)
+{	
+	size_t Count =  Last-First;
+	
+	while (Count > 0)
+	{	
+		// divide and conquer, find half that contains answer
+		IndexIterator Mid = First;
+		size_t Step = Count / 2;
+		std::advance(Mid, Step);
+		if (Base[*Mid].m_SortKey.i <= Key.i) //-- use integer comparisons only here!
 		{
 			First = ++Mid;
 			Count -= Step + 1;
@@ -1554,6 +1587,46 @@ void CConcSession::InitSortKeyForHits(const CQuery *pQuery, const CDDCFilterWith
 	};
 }
 
+//----------------------------------------------------------------------
+void CConcSession::SortKeyLB(CHitSortKey &Key, const CDDCFilterWithBounds& Filter)
+{
+	Key.i = INT_MIN;
+
+	//-- guts
+	switch (Filter.m_FilterType)
+	{
+	case LessByMiddleContext:
+	case GreaterByMiddleContext:
+	case LessByLeftContext:
+	case GreaterByLeftContext:
+	case LessByRightContext:
+	case GreaterByRightContext:
+		//-- TODO
+		throw CExpc(errRuntime, "sort-key pruning for context-queries not yet implemented");
+		//InitSortByContext(pQuery,Filter);
+		break;
+
+	case NoSort: // NoSort is used for filtering, must be ascending (but shouldn't happen here)
+	case GreaterByFreeBiblField:
+	case LessByFreeBiblField:
+		if (Filter.m_BiblIndex == NULL) {
+			//-- should never happen
+			ddcLogWarn(Format("WARNING: Filter.m_BiblIndex undefined: cannot get value-ID for key `%s' via filter %s[%s]",
+					  Key.s.c_str(),
+					  HitSortEnumStrings[Filter.m_FilterType],
+					  Filter.m_AttrName.c_str()));
+		} else {
+			Key.i = ((CConcXml::CFreeBiblIndex*)Filter.m_BiblIndex)->GetIntegerLowerBound(Key.s);
+		}
+		break;
+
+	default:
+		Key.i = hex2int(Key.s);
+		break;
+	};
+}
+
+
 //==============================================================================
 
 //----------------------------------------------------------------------
@@ -1603,7 +1676,8 @@ DDCErrorEnum CConcSession::GetAllHits(CQuery *QueryRoot, size_t Start, size_t Li
 	size_t CountOfPeriods = m_pIndexator->GetSearchPeriodsCount(); 
 	time_t last_time;
 	DDCErrorEnum rc = errNone;
-
+	CHitSortKey minKey(INT_MIN,m_ResultMinKey);
+	
 	if (m_QueryEndTime != TheEndOfTheWorld)
 			time(&last_time);
 
@@ -1670,24 +1744,24 @@ DDCErrorEnum CConcSession::GetAllHits(CQuery *QueryRoot, size_t Start, size_t Li
 
 			if (F.m_bSet) {
 				// we have to intersect F.m_SatisfiedValues with qHits using integer sort-key m_CHit::m_SortKey.i
-				vector<size_t>::const_iterator hits_start = PeriodHitsIndex.begin();
-				vector<size_t>::const_iterator hits_end = PeriodHitsIndex.end();
-				set<int>::const_iterator val_start = F.m_SatisfiedValues.begin();
-				set<int>::const_iterator val_end = F.m_SatisfiedValues.end();
+				vector<size_t>::const_iterator hits_start_i = PeriodHitsIndex.begin();
+				vector<size_t>::const_iterator hits_end_i = PeriodHitsIndex.end();
+				set<int>::const_iterator val_start_i = F.m_SatisfiedValues.begin();
+				set<int>::const_iterator val_end_i = F.m_SatisfiedValues.end();
 				vector<size_t> NewHitsIndex;
 
 				assert( F.SortOrder() >= 0 ); //-- parallel traversal intersection only works for ascending sort!
-				while (hits_start != hits_end && val_start != val_end) {
-					int i1 = qHits[*hits_start].m_SortKey.i;
-					int i2 = *val_start;
+				while (hits_start_i != hits_end_i && val_start_i != val_end_i) {
+					int i1 = qHits[*hits_start_i].m_SortKey.i;
+					int i2 = *val_start_i;
 							
 					if (i1 < i2)
-						hits_start++;
+						hits_start_i++;
 					else if (i2 < i1)
-						val_start++;
+						val_start_i++;
 					else {
-						NewHitsIndex.push_back(*hits_start);
-						hits_start++;
+						NewHitsIndex.push_back(*hits_start_i);
+						hits_start_i++;
 					}
 				}
 				NewHitsIndex.swap(PeriodHitsIndex);
@@ -1697,46 +1771,39 @@ DDCErrorEnum CConcSession::GetAllHits(CQuery *QueryRoot, size_t Start, size_t Li
 		//-- keep track of total number of hits we've processed
 		m_AllHitsCount += PeriodHitsIndex.size();
 
-		//-- mybe trim *front* of period-local hits (non-count queries only)
-		if (!qCount && !m_ResultMinKey.empty()) {
-			if (m_SortOrder == hsoNone) {
-				//-- trim front: corpus order
-				size_t minOffset = hex2int(m_ResultMinKey);
-				if (minOffset > m_ResultOffset) {
-					size_t nTrim = min(minOffset-m_ResultOffset, PeriodHitsIndex.size());
-					PeriodHitsIndex.erase(PeriodHitsIndex.begin(), PeriodHitsIndex.begin()+nTrim);
-					m_ResultOffset += nTrim;
-				}
+		//-- trim-front: trimming from *front* of period-local hits (v2.1.9: save memory for high-offset result pages)
+		//   + non-count queries only
+		//   + only meaningful for Start > 0
+		if (!qCount && Start > 0) {
+			if (m_SortOrder==hsoNone && Start > m_ResultOffset) {
+				//-- trim-front: offset-based (no sort operators)
+				size_t trim_n = min(Start-m_ResultOffset, PeriodHitsIndex.size());
+				PeriodHitsIndex.erase(PeriodHitsIndex.begin(), PeriodHitsIndex.begin()+trim_n);
+				m_ResultOffset += trim_n;
+				HIT_TRIM_DEBUG(ddcLogDebug(Format("TRIM-FRONT[period=%zd/%zd,ResultOffset=%zd,Start=%zd]: trimmed %zd/%zd initial hit(s)",
+								  m_CurrentSearchPeriodNo,CountOfPeriods, m_ResultOffset,Start, trim_n, trim_n+PeriodHitsIndex.size()))
+					       );
 			}
-			else {
-				//-- trim front: non-trivial sort key
-				CHitSortKey key;
-				/*-- m_bSortByString is wrong here, since my_lower_bound always uses INTEGER comparisons (hit.m_SortKey.i)
-				 *   : in order to do this right, we need to:
-				 *     1) remember the last filter we used (CDDCFilterWithBounds, probably can just use qFilters.back() or similar)
-				 *     2) convert the (global) string-key back to a (local) integer-key 
-				 *        - using the filter-dependent integer scheme a la InitSortKeyForHits
-				 *     3) search using the extracted integer-key
-				 *   : we might be able to use the "raw" strings a la m_bSortByString if we
-				 *     - duplicated my_lower_bound() using string comparisons
-				 *     - this is probably NOT a good idea because I believe we tried that for context-sorting, and it was painfully slow!
-				 */
-				if (m_bSortByString) key = m_ResultMinKey;
-				else                 key = hex2int(m_ResultMinKey);
-
-				size_t key_lb;
+			else if (m_SortOrder!=hsoNone && !m_ResultMinKey.empty() && !qOpts->m_Filters.empty()) {
+				//-- trim-front: sortkey-based (nontrivial sort operators)
+				SortKeyLB(minKey, qOpts->m_Filters.back());
+				size_t trim_n;
 				if (m_SortOrder > 0) {
-					//-- ascending sort 
-					key_lb = my_lower_bound(PeriodHitsIndex.begin(), PeriodHitsIndex.end(), key, qHits) - PeriodHitsIndex.begin();
+					//-- ascending sort
+					trim_n = my_lower_bound(PeriodHitsIndex.begin(), PeriodHitsIndex.end(), minKey, qHits) - PeriodHitsIndex.begin();
 				}
 				else if (m_SortOrder < 0) {
-					//-- descending sort
-					key_lb = my_lower_bound(PeriodHitsIndex.rbegin(), PeriodHitsIndex.rend(), key, qHits) - PeriodHitsIndex.rbegin();
-					key_lb = PeriodHitsIndex.size()-key_lb;
+					//-- descending sortt
+					trim_n = my_upper_bound(PeriodHitsIndex.rbegin(), PeriodHitsIndex.rend(), minKey, qHits) - PeriodHitsIndex.rbegin();
+					trim_n = PeriodHitsIndex.size() - trim_n;
 				}
 
-				m_ResultOffset += key_lb;
-				PeriodHitsIndex.erase(PeriodHitsIndex.begin(), PeriodHitsIndex.begin()+key_lb);
+				m_ResultOffset += trim_n;
+				PeriodHitsIndex.erase(PeriodHitsIndex.begin(), PeriodHitsIndex.begin()+trim_n); 
+				HIT_TRIM_DEBUG(ddcLogDebug(Format("TRIM-FRONT[period=%zd/%zd,ResultOffset=%zd,minKey=%d=`%s']: trimmed %zd/%zd hit(s)",
+								  m_CurrentSearchPeriodNo, CountOfPeriods, m_ResultOffset, minKey.i, minKey.s.c_str(),
+								  trim_n, (trim_n+PeriodHitsIndex.size())))
+					       );
 			}
 		}
 
@@ -1944,18 +2011,23 @@ DDCErrorEnum CConcSession::GetHits(CQuery *QueryRoot, DWORD& EndHitNo, const str
 			//HIT_SORT_DEBUG( dumpHitIndex("DEBUG[post-sort]: HitsIndex", HitsIndex, "m_Hits", m_Hits) );
 
 			if (m_ResultOffset == 0) {
-				//-- only cache results starting at offset 0
+				//-- only cache results starting at offset 0 (i.e. not if we did any key-based pruning)
 				SaveToCache(QueryStr, HitsIndex.begin(), HitsIndex.end() );
 			}
 
 			//-- sanity check
 			if (StartHitNo < m_ResultOffset)
-				throw CExpc(errRuntime, "GetHits(): requested StartHitNo=%zd but key-pruning trimmed %zd", StartHitNo, m_ResultOffset);
+				throw CExpc(errRuntime, "StartHitNo=%zd not available (pre-pruning trimmed m_ResultOffset=%zd)", StartHitNo, m_ResultOffset);
 
-			//-- trim front of HitsIndex for non-trivial StartHitNo (only for non-count() queries)
-			if (StartHitNo > 0) {
-				m_ResultOffset = min(StartHitNo,HitsIndex.size());
-				HitsIndex.erase(HitsIndex.begin(), HitsIndex.begin()+m_ResultOffset);
+			//-- trim front of HitsIndex for non-trivial StartHitNo (this probably won't really help much except for bandwidth)
+			if (StartHitNo > m_ResultOffset) {
+				size_t nTrim = min(StartHitNo-m_ResultOffset, HitsIndex.size());
+				HitsIndex.erase(HitsIndex.begin(), HitsIndex.begin()+nTrim);
+				m_ResultOffset += nTrim;
+				HIT_TRIM_DEBUG(ddcLogDebug(Format("TRIM-FRONT[final,ResultOffset=%zd,StartHitNo=%zd]: trimmed %zd/%zd initial hit(s)",
+								  m_ResultOffset, StartHitNo, nTrim, nTrim+HitsIndex.size()))
+					       );
+
 			}
 			//HIT_SORT_DEBUG( dumpHitIndex(Format("DEBUG[post-trim;offset=%zd]: HitsIndex", m_ResultOffset), HitsIndex, "m_Hits", m_Hits) );
 
