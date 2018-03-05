@@ -1600,15 +1600,20 @@ void CConcSession::SortKeyLB(CHitSortKey &Key, const CDDCFilterWithBounds& Filte
 	case LessByLeftContext:
 	case GreaterByLeftContext:
 	case LessByRightContext:
-	case GreaterByRightContext:
-		//-- TODO
-		throw CExpc(errRuntime, "sort-key pruning for context-queries not yet implemented");
-		//InitSortByContext(pQuery,Filter);
+	case GreaterByRightContext: {
+		CStringIndexSet* pIdx = (Filter.m_AttrName.empty()
+					 ? m_pIndexator->GetTokenIndex()
+					 : m_pIndexator->GetIndexByAlias(Filter.m_AttrName));
+		if (!pIdx)
+			throw CExpc(errOther, Format("CConcSession::SortKeyLB(): could not find index `%s' for context-key pruning", Filter.m_AttrName.c_str()));
+
+		Key.i = pIdx->GetTypeIndexIdLowerBound(Key.s);
 		break;
+	}
 
 	case NoSort: // NoSort is used for filtering, must be ascending (but shouldn't happen here)
 	case GreaterByFreeBiblField:
-	case LessByFreeBiblField:
+	case LessByFreeBiblField: {
 		if (Filter.m_BiblIndex == NULL) {
 			//-- should never happen
 			ddcLogWarn(Format("WARNING: Filter.m_BiblIndex undefined: cannot get value-ID for key `%s' via filter %s[%s]",
@@ -1619,6 +1624,7 @@ void CConcSession::SortKeyLB(CHitSortKey &Key, const CDDCFilterWithBounds& Filte
 			Key.i = ((CConcXml::CFreeBiblIndex*)Filter.m_BiblIndex)->GetIntegerLowerBound(Key.s);
 		}
 		break;
+	}
 
 	default:
 		Key.i = hex2int(Key.s);
@@ -1774,45 +1780,61 @@ DDCErrorEnum CConcSession::GetAllHits(CQuery *QueryRoot, size_t Start, size_t Li
 		//-- trim-front: trimming from *front* of period-local hits (v2.1.9: save memory for high-offset result pages)
 		//   + non-count queries only
 		//   + only meaningful for Start > 0
+		size_t TrimFrontOffset = 0; //-- for trim-front, period-local
 		if (!qCount && Start > 0) {
 			if (m_SortOrder==hsoNone && Start > m_ResultOffset) {
 				//-- trim-front: offset-based (no sort operators)
-				size_t trim_n = min(Start-m_ResultOffset, PeriodHitsIndex.size());
-				PeriodHitsIndex.erase(PeriodHitsIndex.begin(), PeriodHitsIndex.begin()+trim_n);
-				m_ResultOffset += trim_n;
+				TrimFrontOffset = min(Start-m_ResultOffset, PeriodHitsIndex.size());
+				PeriodHitsIndex.erase(PeriodHitsIndex.begin(), PeriodHitsIndex.begin()+TrimFrontOffset);
+				m_ResultOffset += TrimFrontOffset;
 				HIT_TRIM_DEBUG(ddcLogDebug(Format("TRIM-FRONT[period=%zd/%zd,ResultOffset=%zd,Start=%zd]: trimmed %zd/%zd initial hit(s)",
-								  m_CurrentSearchPeriodNo,CountOfPeriods, m_ResultOffset,Start, trim_n, trim_n+PeriodHitsIndex.size()))
+								  m_CurrentSearchPeriodNo,CountOfPeriods, m_ResultOffset,Start,
+								  TrimFrontOffset, TrimFrontOffset+PeriodHitsIndex.size()))
 					       );
 			}
 			else if (m_SortOrder!=hsoNone && !m_ResultMinKey.empty() && !qOpts->m_Filters.empty()) {
 				//-- trim-front: sortkey-based (nontrivial sort operators)
 				SortKeyLB(minKey, qOpts->m_Filters.back());
-				size_t trim_n;
 				if (m_SortOrder > 0) {
 					//-- ascending sort
-					trim_n = my_lower_bound(PeriodHitsIndex.begin(), PeriodHitsIndex.end(), minKey, qHits) - PeriodHitsIndex.begin();
+					TrimFrontOffset = my_lower_bound(PeriodHitsIndex.begin(), PeriodHitsIndex.end(), minKey, qHits) - PeriodHitsIndex.begin();
 				}
 				else if (m_SortOrder < 0) {
 					//-- descending sortt
-					trim_n = my_upper_bound(PeriodHitsIndex.rbegin(), PeriodHitsIndex.rend(), minKey, qHits) - PeriodHitsIndex.rbegin();
-					trim_n = PeriodHitsIndex.size() - trim_n;
+					TrimFrontOffset = my_upper_bound(PeriodHitsIndex.rbegin(), PeriodHitsIndex.rend(), minKey, qHits) - PeriodHitsIndex.rbegin();
+					TrimFrontOffset = PeriodHitsIndex.size() - TrimFrontOffset;
 				}
 
-				m_ResultOffset += trim_n;
-				PeriodHitsIndex.erase(PeriodHitsIndex.begin(), PeriodHitsIndex.begin()+trim_n); 
+				m_ResultOffset += TrimFrontOffset;
+				PeriodHitsIndex.erase(PeriodHitsIndex.begin(), PeriodHitsIndex.begin()+TrimFrontOffset); 
 				HIT_TRIM_DEBUG(ddcLogDebug(Format("TRIM-FRONT[period=%zd/%zd,ResultOffset=%zd,minKey=%d=`%s']: trimmed %zd/%zd hit(s)",
-								  m_CurrentSearchPeriodNo, CountOfPeriods, m_ResultOffset, minKey.i, minKey.s.c_str(),
-								  trim_n, (trim_n+PeriodHitsIndex.size())))
+								  m_CurrentSearchPeriodNo,CountOfPeriods, m_ResultOffset, minKey.i, minKey.s.c_str(),
+								  TrimFrontOffset, (TrimFrontOffset+PeriodHitsIndex.size())))
 					       );
 			}
 		}
 
+		//-- trim-back: trimming from *back* of period-local hits (v2.1.9: save more memory for high-offset result pages)
+		// + we add at most PeriodLimit hits to the global m_Hits[] array per corpus-period ("trim-back")
+		size_t PeriodLimit;
+		if (m_SortOrder==hsoNone) {
+			//-- trim-back: offset-based (no sort operators: we can consider all hits already computed by previous period-iterations)
+			PeriodLimit = qLimit - min(qLimit,m_ResultOffset+m_Hits.size());
+		} else {
+			//-- trim-back: nontrivial sort (use m_ResultOffset to ignore all and only front-trimmed hits: we know they're all < ResultMinKey)
+			PeriodLimit = qLimit - min(qLimit,m_ResultOffset);
+		}
+		
 		//-- add period-local hits to m_Hits and highlight occurrences
 		// + we ought to merge-sort here e.g. with std::inplace_merge()
 		//   *but* we also need to keep m_HighlightOccurs[] aligned with m_Hits[]
 		// + current solution is full post-retrieval re-sort in calling method CConcSession::GetHits()
 		// + a native post-retrieval k-way merge with a min-heap would be even better, but would be a PITA
-		size_t Count = min(qLimit, PeriodHitsIndex.size());
+		size_t Count = min(PeriodLimit, PeriodHitsIndex.size());
+		HIT_TRIM_DEBUG( ddcLogDebug(Format("TRIM-BACK[period=%zd/%zd,qLimit=%zd,ResultOffset=%zd,TrimFrontOffset=%zd,PeriodLimit=%zd,Count=%zd]: trimming %zd/%zd final hit(s)",
+						   m_CurrentSearchPeriodNo,CountOfPeriods, qLimit,m_ResultOffset, TrimFrontOffset,PeriodLimit,Count,
+						   PeriodHitsIndex.size()-Count, PeriodHitsIndex.size()
+						   )));
 		for (size_t i=0; i < Count; i++) {
 			size_t  HitNo = PeriodHitsIndex[i];
 			const CHit &H = qHits[ HitNo ];
@@ -1982,11 +2004,10 @@ DDCErrorEnum CConcSession::GetHits(CQuery *QueryRoot, DWORD& EndHitNo, const str
 	SetHitType();
 
 	try {
-		if ( !TryToGetFromCache(QueryStr, EndHitNo) )
-		{
-			//-- new query, or re-evaluation required
-			size_t   StartHitNo = EndHitNo; //-- EndHitNo as input parameter
-			DDCErrorEnum result = GetAllHits(QueryRoot, StartHitNo, max(EndHitNo+m_ResultLimit, m_pIndexator->m_MaxCachedHitsCount) );
+		size_t   StartHitNo = EndHitNo; //-- EndHitNo as input parameter
+		if ( !TryToGetFromCache(QueryStr, EndHitNo) ) {
+			//-- new query, cache-miss, or re-evaluation required (e.g. high-offset page request)
+			DDCErrorEnum result = GetAllHits(QueryRoot, StartHitNo, max(StartHitNo+m_ResultLimit, m_pIndexator->m_MaxCachedHitsCount) );
 			if (result != errNone) 
 				return result;
 
@@ -2017,7 +2038,7 @@ DDCErrorEnum CConcSession::GetHits(CQuery *QueryRoot, DWORD& EndHitNo, const str
 
 			//-- sanity check
 			if (StartHitNo < m_ResultOffset)
-				throw CExpc(errRuntime, "StartHitNo=%zd not available (pre-pruning trimmed m_ResultOffset=%zd)", StartHitNo, m_ResultOffset);
+				throw CExpc(errRuntime, "StartHitNo=%zd not available (pre-pruning overtrimmed m_ResultOffset=%zd)", StartHitNo, m_ResultOffset);
 
 			//-- trim front of HitsIndex for non-trivial StartHitNo (this probably won't really help much except for bandwidth)
 			if (StartHitNo > m_ResultOffset) {

@@ -214,11 +214,11 @@ public:
 
   //! promote an existing item to the most-recently-used position
   void promote(const_iterator &it)
-  { m_list.splice(m_list.begin(), m_list, it->second); };
+  { if (it->second != m_list.begin()) m_list.splice(m_list.begin(), m_list, it->second); };
 
   //! promote an existing item to the most-recently-used position
   void promote(iterator &it)
-  { m_list.splice(m_list.begin(), m_list, it->second); };
+  { if (it->second != m_list.begin()) m_list.splice(m_list.begin(), m_list, it->second); };
 
   //! insert a new cache item, or promote an existing item if present.
   //! implicitly calls clean().
@@ -227,7 +227,7 @@ public:
   {
     iterator mapi = get(key);
     if (mapi != m_map.end()) {
-      //-- update existing item
+      //-- update existing item (it's already been promoted by get() if it exists)
       mapi->second->second = val;
       return mapi;
     }

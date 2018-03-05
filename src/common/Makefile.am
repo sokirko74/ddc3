@@ -65,7 +65,5 @@ BUILT_SOURCES = \
 
 ##-- extra rules
 ddcConfigNoAuto.h: ddcConfigAuto.h
-	echo "/* src/common/ddcConfigNoAuto.h. Generated from ddcConfigAuto.h by make */" > $@
-	sed 's/^#define \([^ ]*\).*$$/#undef \1/;' ddcConfigAuto.h >> $@
-
-
+	echo "/* src/common/ddcConfigNoAuto.h. Generated from ddcConfigAuto.h by make */" >ddcConfigNoAuto.h
+	sed 's/^#define \([^ ]*\).*$$/#undef \1/;' ddcConfigAuto.h >>ddcConfigNoAuto.h

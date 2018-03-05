@@ -122,6 +122,13 @@ public:
 	//! \li \returns integer \a ItemId such that <code>CIndexItem TokenItem = m_Index[ItemId]</code> is the indexed attribute for token number \a TokenNo,
 	//!     or \a DWORD_MAX if an error occurs (e.g. no such token)
 	DWORD   GetTokenIndexId(CTokenNo TokenNo) const;
+
+	//! gets index-local item-id (lower bound) of string type \a ValueStr
+	//! \li basically a pared-down version of QueryTokenList(string& WordForm)
+	//! \li really just a wrapper for std::lower_bound(m_Index.begin(), m_Index.end(), ValueStr.c_str(), LessIndexString1<CIndexItem>(&m_StringBuffer))
+	//! \returns lower-bound item-id for \a ValueStr
+	DWORD   GetTypeIndexIdLowerBound(const string& ValueStr) const;
+	
 	//! populate bounds for context-sort operator
 	bool	GetContextBounds(CDDCFilterWithBounds &Filter, const string& LoValue, const string& HiValue) const;
 	//! find all occurrences of index items  in \ref period_def "subcorpora" PeriodNo, using cache pCaches

@@ -19,19 +19,6 @@ include $(top_srcdir)/m4/lexyacc.am
 #lib_LTLIBRARIES = ${lib_1}.la ... ${lib_N}.la
 lib_LTLIBRARIES = libDDCConcord.la
 
-EXTRA_PROGRAMS = pctest
-pctest_SOURCES = pctest.cc
-pctest_LDADD   = \
- ./libDDCConcord.la \
- ../tinyxml/libDDCTinyXml.la \
- ../GraphanLib/libDDCGraphan.la \
- ../StructDictLib/libDDCStructDict.la \
- ../LemmatizerLib/libDDCLemmatizer.la \
- ../AgramtabLib/libDDCAgramtab.la \
- ../RmlTar/libDDCRmlTar.la \
- ../MorphWizardLib/libDDCMorphWizard.la \
- ../CommonLib/libDDCCommon.la
-
 ##======================================================================
 ## sources
 

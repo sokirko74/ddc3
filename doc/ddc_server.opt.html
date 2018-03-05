@@ -24,7 +24,7 @@
           <li><a href="#include">include</a></li>
         </ul>
       </li>
-      <li><a href="#LoggingOptions">LoggingOptions</a>
+      <li><a href="#Logging-Options">Logging Options</a>
         <ul>
           <li><a href="#LogLevel">LogLevel</a></li>
           <li><a href="#SlowQueryTimeout">SlowQueryTimeout</a></li>
@@ -35,6 +35,12 @@
         <ul>
           <li><a href="#NumThreads">NumThreads</a></li>
           <li><a href="#ThreadQueueSize">ThreadQueueSize</a></li>
+        </ul>
+      </li>
+      <li><a href="#Other-Options">Other Options</a>
+        <ul>
+          <li><a href="#NavCacheSize">NavCacheSize</a></li>
+          <li><a href="#VersionCompat">VersionCompat</a></li>
         </ul>
       </li>
     </ul>
@@ -68,11 +74,17 @@
  ## Client-Thread Options
  
  NumThreads NTHREADS
- ThreadQueueSize QSIZE</code></pre>
+ ThreadQueueSize QSIZE
+
+ ##-------------------------------------------------------------
+ ## Other Options
+ 
+ NavCacheSize SIZE
+ VersionCompat VERSION</code></pre>
 
 <h1 id="DESCRIPTION">DESCRIPTION</h1>
 
-<p>This section contains descriptions of the various options and flags which may occur in a DDC server opt-file as read by the <code>ddc_daemon</code> program versions v2.1.0 and later.</p>
+<p>This section contains descriptions of the various options and flags which may occur in a DDC server opt-file as read by the <code>ddc_daemon</code> program versions v2.1.0 and later. Except where otherwise noted, options are supported DDC versions v2.1.0 and later.</p>
 
 <p>Note that corpus option-files (<i>CORPUS.opt</i>) are documented independently; see <a href="./ddc_opt.html">ddc_opt(5)</a> for details.</p>
 
@@ -90,7 +102,7 @@
 
 <p>The <code>include</code> directive reads in the contents of an external server-opt file at the current position. If OPTFILE is a relative pathname, it is interpreted relative to the directory containing the file currently being parsed.</p>
 
-<h2 id="LoggingOptions">LoggingOptions</h2>
+<h2 id="Logging-Options">Logging Options</h2>
 
 <p>The following options control the verbosity of server log messages.</p>
 
@@ -188,6 +200,42 @@
 
 <p>Specifies the maximum number of pending client connections in the work queue in client-thread mode (see <a href="#NumThreads">&quot;NumThreads&quot;</a>). If all worker threads are occupied and <i>QSIZE</i> additional client connections have been accepted and enqueued for processing, then the main accepting server thread will block until the queue shrinks below <i>QSIZE</i> before enqueueing any new client connection -- this basically just pushes the burden of client-queueing beyond <i>QSIZE</i> to the TCP stack.</p>
 
+<h2 id="Other-Options">Other Options</h2>
+
+<p>The following additional options are supported.</p>
+
+<h3 id="NavCacheSize">NavCacheSize</h3>
+
+<pre><code> NavCacheSize SIZE</code></pre>
+
+<p>Aliases: NavCacheSize, NavCacheCapacity</p>
+
+<p>Set the default branch-server navigation hint cache capacity to <code>SIZE</code> (default=512). Introduced in ddc v2.1.9, the navigation hint cache is an LRU cache used by <code>CDDCBranchServer</code> nodes to minimize bandwidth requirements and memory consumption for sequential requests through all hits for a single query string, typically with monotonically increasing offsets and result-sets of constant size.</p>
+
+<p>Since ddc v2.1.9.</p>
+
+<h3 id="VersionCompat">VersionCompat</h3>
+
+<pre><code> VersionCompat VERSION</code></pre>
+
+<p>Aliases: VersionCompat, CompatVersion, Compatibility, Compat</p>
+
+<p>Simulate the behavior of a server running DDC version <code>VERSION</code>. In particular, a branch server with running in version <code>VERSION</code> compatibility mode should <b>NOT</b> send any requests to its immediate daughter corpora which cannot be handled by DDC version <code>VERSION</code>. By default, <code>VERSION</code> is the version of DDC used by the running server process.</p>
+
+<p>Useful values:</p>
+
+<dl>
+
+<dt id="VERSION-2.1.8"><code>VERSION</code> &lt;= 2.1.8</dt>
+<dd>
+
+<p>Prevents server from using or accepting the 4- and 5-argument forms of <code>get_first_hits</code> requests (see <a href="./ddc_proto.html">ddc_proto(5)</a>).</p>
+
+</dd>
+</dl>
+
+<p>Since v2.1.9.</p>
+
 <h1 id="ACKNOWLEDGEMENTS">ACKNOWLEDGEMENTS</h1>
 
 <p>Alexey Sokirko wrote the original DDC.</p>
@@ -198,7 +246,7 @@
 
 <h1 id="SEE-ALSO">SEE ALSO</h1>
 
-<p>ddc_opt(5), ddc_daemon(1)</p>
+<p>ddc_opt(5), ddc_proto(5), ddc_daemon(1)</p>
 
 
 </body>

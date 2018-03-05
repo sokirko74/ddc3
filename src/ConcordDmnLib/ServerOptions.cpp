@@ -91,7 +91,7 @@ bool CDDCServerOptions::Set(const string& Option, const string& Value, const str
 	m_nWorkers = strtoul(Value.c_str(),NULL,0);
     else if (opt=="threadqueuesize" || opt=="queuesize" || opt=="qsize")
 	m_ThreadQueueSize = strtoul(Value.c_str(),NULL,0);
-    else if (opt=="navcachesize" || opt=="navcache")
+    else if (opt=="navcachesize" || opt=="navcachecapacity")
 	m_NavCacheSize = strtoul(Value.c_str(),NULL,0);
     else if (opt=="compatversion" || opt=="versioncompat" || opt=="compatibility" || opt=="compat")
 	m_VersionCompat.fromString(Value);

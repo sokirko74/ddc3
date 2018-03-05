@@ -44,6 +44,7 @@ bool CConcSessionContext::CacheGet(CConcHolder& Holder, const string &Query, DWO
 {
 	lock();
 	try {
+		size_t StartHitNo = EndHitNo; //-- EndHitNo as input parameter
 		CACHEDEBUG(concord_daemon_log(Format("CConcSessionContext::CacheGet() : Query=%s, End=%d, CacheSize=%zi", jsonStr(Query).c_str(), EndHitNo, m_Queries.size())));
 
 		map<string, CQueryResult>::const_iterator it = m_QueryCache.find(Query);
@@ -66,8 +67,8 @@ bool CConcSessionContext::CacheGet(CConcHolder& Holder, const string &Query, DWO
 		
 		Holder.ClearQueryResults();
 	
-		// copy [EndHitNo...EndHitNo+Holder.m_ResultLimit) hits from the cache to Holder fields m_Hits, m_HighlightOccurs, and m_HighlightIds
-		size_t End = min (EndHitNo+Holder.m_ResultLimit, CacheItem.m_Hits.size());
+		// copy [StartHitNo...StartHitNo+Holder.m_ResultLimit) hits from the cache to Session (aka "Holder") fields m_Hits, m_HighlightOccurs, and m_HighlightIds
+		size_t End = min (StartHitNo+Holder.m_ResultLimit, CacheItem.m_Hits.size());
 		for (; EndHitNo < End; EndHitNo++) {
 			Holder.m_Hits.push_back(CacheItem.m_Hits[EndHitNo]);
 			int start = (EndHitNo == 0) ? 0 : CacheItem.m_Hits[EndHitNo-1].m_HighlightOccurrenceEnd;
@@ -89,6 +90,9 @@ bool CConcSessionContext::CacheGet(CConcHolder& Holder, const string &Query, DWO
 		Holder.m_RelevantDocumentCount = CacheItem.m_RelevantDocumentCount;
 		Holder.m_SortOrder = CacheItem.m_SortOrder;
 		Holder.m_bSortByString = CacheItem.m_bSortByString;
+
+		//-- update logical result offset (trim-front for cache hits)
+		Holder.m_ResultOffset = StartHitNo;
 	}
 	catch (...) {
 		unlock();

@@ -56,7 +56,12 @@ string CStringIndexSet::GetName() const
 
 
 
-
+DWORD CStringIndexSet::GetTypeIndexIdLowerBound(const string& ValueStr)	const
+{
+	LessIndexString1<CIndexItem> Less(&m_StringBuffer);
+	vector<CIndexItem>::const_iterator it = lower_bound(m_Index.begin(), m_Index.end(), ValueStr.c_str(), Less);
+	return it - m_Index.begin();
+};
 
 void CStringIndexSet::QueryTokenList (const string& WordForm, vector<DWORD>& MatchWords)	const
 {

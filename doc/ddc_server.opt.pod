@@ -40,6 +40,12 @@ server option files ("server-opt files") used by the DDC corpus indexing system.
  NumThreads NTHREADS
  ThreadQueueSize QSIZE
 
+ ##-------------------------------------------------------------
+ ## Other Options
+ 
+ NavCacheSize SIZE
+ VersionCompat VERSION
+
 =cut
 
 ########################################################################
@@ -51,6 +57,7 @@ server option files ("server-opt files") used by the DDC corpus indexing system.
 This section contains descriptions of the various options and flags
 which may occur in a DDC server opt-file as read by the
 C<ddc_daemon> program versions v2.1.0 and later.
+Except where otherwise noted, options are supported DDC versions v2.1.0 and later.
 
 Note that corpus option-files (F<CORPUS.opt>) are documented independently;
 see L<ddc_opt(5)|ddc_opt> for details.
@@ -84,7 +91,7 @@ to the directory containing the file currently being parsed.
 ## Logging Options
 =pod
 
-=head2 LoggingOptions
+=head2 Logging Options
 
 The following options control the verbosity of server log messages.
 
@@ -213,6 +220,60 @@ beyond I<QSIZE> to the TCP stack.
 
 =cut
 
+##==============================================================
+## Other Options
+=pod
+
+=head2 Other Options
+
+The following additional options are supported.
+
+=head3 NavCacheSize
+
+ NavCacheSize SIZE
+
+Aliases: NavCacheSize, NavCacheCapacity
+
+Set the default branch-server navigation hint cache capacity to C<SIZE>
+(default=512).
+Introduced in ddc v2.1.9, the navigation hint cache is an LRU cache used
+by C<CDDCBranchServer> nodes to minimize bandwidth requirements and
+memory consumption for sequential requests through all hits for a single
+query string, typically with monotonically increasing offsets and
+result-sets of constant size.
+
+Since ddc v2.1.9.
+
+=head3 VersionCompat
+
+ VersionCompat VERSION
+
+Aliases: VersionCompat, CompatVersion, Compatibility, Compat
+
+Simulate the behavior of a server running DDC version C<VERSION>.
+In particular, a branch server with running in version C<VERSION>
+compatibility mode should B<NOT> send any requests to its immediate
+daughter corpora which cannot be handled by DDC version C<VERSION>.
+By default, C<VERSION> is the version of DDC used by the running
+server process.
+
+Useful values:
+
+=over 4
+
+=item C<VERSION> E<lt>= 2.1.8
+
+Prevents server from using or accepting the
+4- and 5-argument forms of C<get_first_hits> requests
+(see L<ddc_proto(5)|ddc_proto>).
+
+=back
+
+
+Since v2.1.9.
+
+=cut
+
 ########################################################################
 ## Footer
 =pod
@@ -228,6 +289,7 @@ Bryan Jurish E<lt>jurish@bbaw.deE<gt>
 =head1 SEE ALSO
 
 ddc_opt(5),
+ddc_proto(5),
 ddc_daemon(1)
 
 =cut

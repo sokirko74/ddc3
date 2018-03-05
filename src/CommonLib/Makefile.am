@@ -39,14 +39,6 @@ libDDCCommon_la_SOURCES = \
 ##-----------------------------------------------------------------------
 ## debug
 
-#EXTRA_PROGRAMS = timetest
-#timetest_SOURCES = timetest.cpp
-#timetest_LDADD = libDDCCommon.la
-
-#EXTRA_PROGRAMS = toktest
-#toktest_SOURCES = toktest.cc
-#toktest_LDADD = libDDCCommon.la
-
 #EXTRA_PROGRAMS = vertest
 #vertest_SOURCES = vertest.cc
 #vertest_LDADD = libDDCCommon.la

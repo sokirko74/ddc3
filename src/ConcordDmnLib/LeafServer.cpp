@@ -77,9 +77,7 @@ void CDDCLeafServer::handle__get_first_hits(string &Result, const char *Query, i
     assert(m_pHolder != NULL);
     m_pHolder->SetTimeOut(TimeOut);
     m_pHolder->m_ResultLimit = ResultLimit;
-
-    ddcLogTrace(Format("CDDCLeafServer::handle__get_first_hits(TimeOut=%d, StartHitNo=%d, ResultLimit=%d, minKey=\"%s\")",
-		       TimeOut,StartHitNo,ResultLimit,(MinKey ? MinKey : "(null)")));
+    m_pHolder->m_ResultMinKey = MinKey ? MinKey : "";
 
     DWORD EndHitNo = StartHitNo;
     int Error = m_pHolder->GetHits(Query, EndHitNo);

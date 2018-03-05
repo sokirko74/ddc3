@@ -24,76 +24,108 @@
 #include "../ConcordLib/ConcCommon.h"
 #include "../ConcordLib/LRUCache.h"
 #include "../CommonLib/ddcThread.h"
+#include <numeric> //-- for std::accumulate
 
+//======================================================================
 /** default BranchNavCache capacity */
 #define DDC_DEFAULT_NAV_CACHE_CAPACITY 512
 
 //======================================================================
-//! cache sort keys and subcorpus-wise offsets for faster "paging" through hits
+//! navigation hint-key for branch server get_first_hits() "paging" 
+struct BranchNavKey {
+  string m_QueryStr;    ///< original query string
+  size_t m_HitNo;       ///< maximum logical (branch-level) hit number covered
+
+  //! default constructor
+  BranchNavKey(const string& qstr="", const size_t hitno=0)
+    : m_QueryStr(qstr), m_HitNo(hitno)
+  {};
+
+  //! comparison operator, for use with map<>
+  //! \li wraps <code>m_QueryStr < X.m_QueryStr || m_HitNo > X.m_HitNo</code>
+  //! \li m_HitNo comparison is reversed so we can use map<>::lower_bound()
+  inline bool operator< (const BranchNavKey &X) const
+  { return m_QueryStr < X.m_QueryStr || m_HitNo > X.m_HitNo; };
+
+  //! assignment operator
+  inline BranchNavKey& operator= (const BranchNavKey &X)
+  {
+    m_QueryStr = X.m_QueryStr;
+    m_HitNo    = X.m_HitNo;
+    return *this;
+  };
+
+  //! debug: stringification
+  string toString() const
+  { return Format("{\"QueryStr\":%s,\"HitNo\":%zd}", jsonStr(m_QueryStr).c_str(), m_HitNo); };
+   
+};
+
+//======================================================================
+//! navigation hint for branch server get_first_hits() "paging" 
+struct BranchNavHint {
+  string         m_SortKey;  ///< maximum sort key from any subcorpus in branch result-set
+  vector<size_t> m_Offsets;  ///< maximum offset for each subcorpus in branch result-set
+
+  //! default constructor
+  //! \param nOffsets length of m_MinOffsets (number of subcorpora)
+  BranchNavHint(size_t nOffsets=0)
+    : m_Offsets(nOffsets,0)
+  {};
+
+  //! constructor given sort key and number of subocpora
+  BranchNavHint(const string& SortKey, size_t nOffsets=0)
+    : m_SortKey(SortKey), m_Offsets(nOffsets,0)
+  {};
+
+  //! constructor given sort key and offsets
+  BranchNavHint(const string& SortKey, const vector<size_t>& Offsets)
+    : m_SortKey(SortKey), m_Offsets(Offsets)
+  {};
+
+  //! clear the hint
+  inline void clear(size_t nOffsets=0)
+  {
+    m_SortKey.clear();
+    m_Offsets.assign(nOffsets,0);
+  };
+
+  //! assignment operator
+  inline BranchNavHint& operator= (const BranchNavHint &X)
+  {
+    m_SortKey = X.m_SortKey;
+    m_Offsets = X.m_Offsets;
+    return *this;
+  };
+
+  //! return total number of gobbled offsets (sum over m_Offsets)
+  inline size_t OffsetTotal() const
+  { return std::accumulate(m_Offsets.begin(), m_Offsets.end(), 0); };
+
+  //! debug: stringification
+  string toString() const
+  {
+    string s = Format("{\"SortKey\":%s, \"Offsets\":[", jsonStr(m_SortKey).c_str());
+    for (vector<size_t>::const_iterator oi=m_Offsets.begin(); oi!=m_Offsets.end(); ++oi) {
+      if (oi != m_Offsets.begin()) s.push_back(',');
+      s += Format("%zd", *oi);
+    }
+    s += "]}";
+    return s;
+  };
+
+};
+
+
+//======================================================================
+//! LRU cache for faster "paging" through daughter hits for a branch server
 class BranchNavCache : public ddcLockable
 {
 public:
   //------------------------------------------------------------
   // public typedefs
-
-  //----------------------------------------------------
-  //! paging cache: key
-  struct KeyT {
-    string m_QueryStr;    ///< original query string
-    size_t m_HitNo;       ///< maximum hit number
-
-    //! default constructor
-    KeyT(const string& qstr="", const size_t hitno=0)
-      : m_QueryStr(qstr), m_HitNo(hitno)
-    {};
-
-    //! comparison operator, for use with map<>
-    //! \li wraps <code>m_QueryStr < X.m_QueryStr || m_HitNo > X.m_HitNo</code>
-    //! \li m_HitNo comparison is reversed so we can use map<>::lower_bound()
-    inline bool operator< (const KeyT &X) const
-    { return m_QueryStr < X.m_QueryStr || m_HitNo > X.m_HitNo; };
-
-    //! assignment operator
-    inline KeyT& operator= (const KeyT &X)
-    {
-      m_QueryStr = X.m_QueryStr;
-      m_HitNo    = X.m_HitNo;
-      return *this;
-    };
-  };
-
-  //----------------------------------------------------
-  //! paging cache: value
-  struct ValT
-  {
-    string         m_MinSortKey;  ///< minimum sort key
-    vector<size_t> m_MinOffsets;  ///< minimum offsets per subcorpus
-
-    //! default constructor
-    //! \param nOffsets length of m_MinOffsets (number of subcorpora)
-    ValT(size_t nOffsets=0)
-      : m_MinOffsets(nOffsets,0)
-    {};
-
-    //! constructor given sort key and number of subocpora
-    ValT(const string& minKey, size_t nOffsets=0)
-      : m_MinSortKey(minKey), m_MinOffsets(nOffsets,0)
-    {};
-
-
-    //! constructor given sort key and offsets
-    ValT(const string& minKey, const vector<size_t>& minOffsets)
-      : m_MinSortKey(minKey), m_MinOffsets(minOffsets)
-    {};  
-
-    //! assignment operator
-    inline ValT& operator= (const ValT &X)
-    {
-      m_MinSortKey = X.m_MinSortKey;
-      m_MinOffsets = X.m_MinOffsets;
-      return *this;
-    };
-  };
+  typedef BranchNavKey  KeyT; ///< navigation cache key type
+  typedef BranchNavHint ValT; ///< navigation cache value type
 
   //----------------------------------------------------
   //! typedef for underlying LRU cache object
@@ -153,18 +185,24 @@ public:
 
   //----------------------------------------------------
   //! get lower bound for key \a key = (QueryStr,HitNo)
-  //! \returns copy of lower bound for key if \a QueryStr matches, otherwise a default \a ValT for \a nSubs
+  //! \returns true iff a match was found in cache, false otherwise
+  //! \li copies lower-bound cached hint for key if \a QueryStr matches, otherwise clears hint
   //! \li if a valid match is found, it is promoted to MRU position
   //! \li wraps operation in lock() + unlock()
-  ValT lower_bound(const KeyT& key, size_t nSubs=0)
+  //! \param val (output) hint to be extracted (data copied from cache)
+  //! \param key (input) key to search for
+  //! \param nSubs (input) number of subcorpora
+  bool lower_bound(ValT& val, const KeyT& key, size_t nSubs=0)
   {
-    ValT val(nSubs);
+    bool found = false;
+    val.clear(nSubs);
     
     lock();
     try {
       CacheT::const_iterator ci = m_Cache.lower_bound(key);
       if (ci != m_Cache.end() && ci->first.m_QueryStr == key.m_QueryStr) {
-	val = ci->second->second;
+	val   = ci->second->second;
+	found = true;
 	m_Cache.promote(ci);
       }
     } catch (...) {
@@ -174,6 +212,16 @@ public:
 
     //-- all done
     unlock();
+    return found;
+  };
+
+  //----------------------------------------------------
+  //! get lower bound for key \a key = (QueryStr,HitNo)
+  //! \returns copy of lower-bound cached hint for key if \a QueryStr matches, otherwise an empty hint for nSubs
+  inline ValT lower_bound(const KeyT& key, size_t nSubs=0)
+  {
+    ValT val(nSubs);
+    lower_bound(val, key, nSubs);
     return val;
   };
 
@@ -200,10 +248,30 @@ public:
   inline ValT lower_bound(const string& QueryStr, size_t HitNo)
   { return lower_bound(KeyT(QueryStr,HitNo)); };
 
-  //! wrapper for insert(KeyT(QueryStr, HitNo), ValT(MinSortKey,MinOffsets))
-  inline void insert(const string& QueryStr, size_t HitNo, const string& MinSortKey, const vector<size_t> MinOffsets)
-  { insert(KeyT(QueryStr,HitNo), ValT(MinSortKey,MinOffsets)); };
+  //! wrapper for insert(KeyT(QueryStr, HitNo), ValT(SortKey,Offsets))
+  inline void insert(const string& QueryStr, size_t HitNo, const string& SortKey, const vector<size_t>& Offsets)
+  { insert(KeyT(QueryStr,HitNo), ValT(SortKey,Offsets)); };
 
+  //------------------------------------------------------------
+  // debugging
+  //! debug: stringification
+  string toString() const
+  {
+    string s = (string("{\n")
+		+ Format(" \"size\":%zd,\n", m_Cache.size())
+		+ Format(" \"capacity\":%zd,\n", m_Cache.capacity())
+		+ " \"data\":[");
+    for (CacheT::ListT::const_iterator li=m_Cache.m_list.begin(); li != m_Cache.m_list.end(); ++li) {
+      if (li != m_Cache.m_list.begin()) s.push_back(',');
+      s += "\n  {\"key\":";
+      s += li->first.toString();
+      s += ", \"val\":";
+      s += li->second.toString();
+      s += "}";
+    }
+    s += "\n ]}";
+    return s;
+  };
 };
 
 

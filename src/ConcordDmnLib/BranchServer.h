@@ -80,7 +80,9 @@ struct CFirstHitsQueryResult  {
     string			m_ErrorStr;
     vector<CHitToSort>  	m_Hits;
     vector<SOCKET>		m_Sockets;
-
+    BranchNavHint		m_NavHint;		//< navigation cache hint
+    size_t                      m_Offset;            	//< logical offset of m_Hits[0] (sum over number of front-trimmed hits for all subcorpora)    
+    
     /** destructor implicitly calls CloseSockets() */
     ~CFirstHitsQueryResult()
     {
@@ -101,6 +103,9 @@ struct CFirstHitsQueryResult  {
 
     /** collect counts by sort-key, only makes sense if m_SortOrder==hsoCounts ; also modifies m_AllHitsCount */
     void CollectCounts();
+
+    /** update navigation hint based on m_Hits[] */
+    void UpdateNavHint();
 };
 
 //======================================================================

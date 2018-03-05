@@ -54,6 +54,9 @@ and " " represents a literal space character (ASCII byte with decimal value 32).
  ## Leaf-Server Messages
  
  get_first_hits " " QUERY "\x01 " TIMEOUT " " LIMIT
+ get_first_hits " " QUERY "\x01 " TIMEOUT " " START " " LIMIT
+ get_first_hits " " QUERY "\x01 " TIMEOUT " " START " " LIMIT " " MINKEY
+ 
  get_hit_strings " " FORMAT "\x01" OFFSET " " LIMIT
  
 
@@ -565,10 +568,20 @@ for details.
 =head3 get_first_hits
 
  get_first_hits " " QUERY "\x01" TIMEOUT " " LIMIT
+ get_first_hits " " QUERY "\x01" TIMEOUT " " START " " LIMIT
+ get_first_hits " " QUERY "\x01" TIMEOUT " " START " " LIMIT " " MINKEY
 
-Requests subcorpus-local evaluation of the user query C<QUERY>.
-C<TIMEOUT> is an operation timeout in seconds, and C<LIMIT> is the maximum
-number of hits to evaluate.
+Requests subcorpus-local evaluation of the user query C<QUERY>,
+returning IDs for up to C<LIMIT> hits, beginning at C<START>.
+C<TIMEOUT> is an operation timeout in seconds,
+C<START> is the logical offset (a.k.a. C<INDEX>) of the first hit to retrieve (by default 0),
+C<LIMIT> is the maximum number of hit-IDs to retrieve,
+and C<MINKEY> is a primary sort key lower bound hint (a.k.a. C<ORDER_STRING>)
+(by default the empty string).  In other words:
+"get the IDs for hits [START,START+LIMIT), ignoring any with a primary sort key less than MINKEY,
+and try not to take longer than TIMEOUT when doing so".
+DDC E<lt>= v2.1.8 only supports the 3-argument form of C<get_first_hits> requests
+(no C<START> or C<MINKEY> parameters are allowed).
 
 If an error occurs, the response is of the form:
 
@@ -610,10 +623,16 @@ in addition to traditional "context" queries.  If the requested C<QUERY> was suc
 then C<ORDER_STRING> is a "\x02"-separated list of count-key components, and C<INDEX> is the
 total count of the associated histogram bin.
 
+As of v2.1.9, the C<get_first_hits> request supports 4- and 5-argument forms
+including the C<START> and C<MINKEY> parameters in order to minimize bandwidth
+requirements for branchE<lt>-E<gt>leaf communications and memory consumption
+in physical subcorpora themselves for high-offset result sets.
+
 Since v1.x,
 error message strings since v2.0.0,
 count-queries since v2.0.23,
-branch-server support since v2.1.0.
+branch-server support since v2.1.0,
+4- and 5-argument forms since v2.1.9.
 
 =cut
 

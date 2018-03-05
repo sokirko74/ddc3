@@ -1,4 +1,4 @@
-//-*- Mode: C++; c-basic-offset:4; -*-
+//-*- Mode: C++; c-basic-offset:8; -*-
 //
 //  DDC originally by Alexey Sokirko
 //  Changes and modifications 2011-2018 by Bryan Jurish
@@ -24,8 +24,20 @@
 #include "../CommonLib/ddcTime.h"
 #include "../ConcordLib/QueryCompiler.h"
 
+//==============================================================================
+// debugging
+
 //#define DEBUG_SERVER_THREADS 1
 #undef DEBUG_SERVER_THREADS
+
+#define DEBUG_NAVCACHE 1
+//#undef DEBUG_NAVCACHE
+
+#ifdef DEBUG_NAVCACHE
+# define NAVCACHE_DEBUG(x) x
+#else
+# define NAVCACHE_DEBUG(x)
+#endif
 
 //==============================================================================
 // CFirstHitsQueryResult
@@ -42,6 +54,8 @@ void CFirstHitsQueryResult::Clear()
     m_NetworkError = neSuccess;
     ClearVector(m_Hits);
     m_Sockets.clear();
+    m_NavHint.clear(m_NavHint.m_Offsets.size());
+    m_Offset = 0;
 }
 
 //----------------------------------------------------------------------
@@ -91,6 +105,29 @@ void CFirstHitsQueryResult::CollectCounts()
     case hsoAscendingCountKeys:
     default:
 	break;
+    }
+}
+
+//----------------------------------------------------------------------
+void CFirstHitsQueryResult::UpdateNavHint()
+{
+    //-- ssanity check
+    if (m_Hits.size() == 0) return;
+
+    //-- update: sort key
+    BranchNavHint& hint=m_NavHint;
+    if (m_SortOrder != hsoNone)
+	hint.m_SortKey = m_Hits.back().m_SortKeyStr;
+
+    //-- update: per-subcorpus offsets
+    size_t          nSubs=hint.m_Offsets.size(), nSeenSubs=0;
+    vector<bool> seenSubs(nSubs, false);
+    for (vector<CHitToSort>::const_reverse_iterator hi=m_Hits.rbegin(); nSeenSubs < nSubs && hi != m_Hits.rend(); ++hi) {
+	if (seenSubs[hi->m_HostNo]) continue;
+
+	hint.m_Offsets[hi->m_HostNo] = hi->m_HitNo+1;
+	seenSubs[hi->m_HostNo]       = true;
+	++nSeenSubs;
     }
 }
 
@@ -512,10 +549,13 @@ void CDDCBranchServer::handle__status(string &Result, int timeout, bool verbose)
 	      + "\"nslow\":" + Format("%zd", m_ServerStats.m_nSlow) + ",\n"
 	      + "\"qtavg\":" + Format("%g", m_ServerStats.m_qTimes.tAverage()) + ",\n"
 	      + "\"nworkers\":" + Format("%zd", m_nWorkers) + ",\n"
-	      + "\"navcachesize\":" + Format("%zd", (m_pNavCache ? m_pNavCache->size() : 0)) + ",\n"	      
+	      + "\"navcachesize\":" + Format("%zd", (m_pNavCache ? m_pNavCache->size() : 0)) + ",\n"
 	      + "\"memkb\":" + Format("%zd", pms.VmRSS) + ",\n" //-- compat	      
 	      + "\"vmem\":" + Format("{\"peak\":%zd,\"size\":%zd,\"hwm\":%zd,\"rss\":%zd,\"data\":%zd,\"stk\":%zd,\"exe\":%zd,\"lib\":%zd,\"swap\":%zd}",
 				     pms.VmPeak, pms.VmSize, pms.VmHWM, pms.VmRSS, pms.VmData, pms.VmStk, pms.VmExe, pms.VmLib, pms.VmSwap) + ",\n"
+#ifdef DEBUG_NAVCACHE
+	      + "\"navcache\":" + (m_pNavCache ? m_pNavCache->toString() : "null") + ",\n"
+#endif
 	      + "\"corpora\":" + subResult + "}\n"
 	      );
     m_bExpectMore = false;
@@ -680,8 +720,17 @@ NetworkErrorsEnum CDDCBranchServer::RunGetFirstHits()
     runq.HitsCount = 0;
     runq.ResponseBody = "";
 
+    //-- try to grab navigation hint from cache (on failure, hint.M_SortKey=="" && hint.m_Offsets[i]==0 for all i)
+    FHResult.Clear();
+    BranchNavKey NavKey(CleanQuery,runq.StartHitNo);
+    if (m_pNavCache) {
+	m_pNavCache->lower_bound(FHResult.m_NavHint, NavKey, m_Hosts.size());
+    } else {
+	FHResult.m_NavHint.clear(m_Hosts.size());
+    }
+    NAVCACHE_DEBUG(ddcLogDebug(Format("initialized NavHint=%s", FHResult.m_NavHint.toString().c_str())));
+
     //-- read first StartHitNo+ResultLimit hits from each host and store them to FHResult.m_Hits
-    //-- TODO: use NavCache!
     GetFirstHitsFromCorpora(runq.PossibleHosts, CleanQuery, runq.StartHitNo+runq.ResultLimit, runq.TimeOut, FHResult);
     runq.HitsCount = FHResult.m_AllHitsCount;
     runq.RelevantDocsCount = FHResult.m_AllRelevantDocsCount;
@@ -696,13 +745,15 @@ NetworkErrorsEnum CDDCBranchServer::RunGetFirstHits()
     }
 
     //-- sorting and trimming: we need stable_sort() in order to ensure HitNo order is retained
-    if (FHResult.m_SortOrder < 0) {
-	//-- sort: descending
-	stable_sort (FHResult.m_Hits.rbegin(), FHResult.m_Hits.rend());
-    }
-    else if (FHResult.m_SortOrder > 0) {
-	//-- sort: ascending or counts
-	stable_sort (FHResult.m_Hits.begin(), FHResult.m_Hits.end());
+    if (runq.PossibleHosts.size() > 1) {
+	    if (FHResult.m_SortOrder < 0) {
+		    //-- sort: descending
+		    stable_sort (FHResult.m_Hits.rbegin(), FHResult.m_Hits.rend());
+	    }
+	    else if (FHResult.m_SortOrder > 0) {
+		    //-- sort: ascending or counts
+		    stable_sort (FHResult.m_Hits.begin(), FHResult.m_Hits.end());
+	    }
     }
 
     //-- count-query: aggregate by sort-keys
@@ -716,16 +767,35 @@ NetworkErrorsEnum CDDCBranchServer::RunGetFirstHits()
     }
 #endif
 
-    //-- trim to requested hits
-    if (runq.StartHitNo+runq.ResultLimit < FHResult.m_Hits.size())
-	FHResult.m_Hits.erase(FHResult.m_Hits.begin()+runq.StartHitNo+runq.ResultLimit, FHResult.m_Hits.end());
+    
+    //-- sanity check
+    if (FHResult.m_Offset > runq.StartHitNo)
+	throw CExpc("navigation cache error: daughters over-pruned (FHResult.Offset=%zd > StartHitNo=%i)", FHResult.m_Offset, runq.StartHitNo);
 
-    if (runq.StartHitNo < FHResult.m_Hits.size())
-	FHResult.m_Hits.erase(FHResult.m_Hits.begin(), FHResult.m_Hits.begin()+runq.StartHitNo);
-    else
+    //-- trim to requested hits: back
+    if (runq.StartHitNo+runq.ResultLimit < FHResult.m_Offset+FHResult.m_Hits.size())
+	FHResult.m_Hits.erase(FHResult.m_Hits.begin()+runq.StartHitNo+runq.ResultLimit-FHResult.m_Offset, FHResult.m_Hits.end());
+
+    //-- trim to requested hits: front
+    if (runq.StartHitNo < FHResult.m_Offset+FHResult.m_Hits.size()) {
+	FHResult.m_Hits.erase(FHResult.m_Hits.begin(), FHResult.m_Hits.begin()+runq.StartHitNo-FHResult.m_Offset);
+        FHResult.m_Offset += (runq.StartHitNo - FHResult.m_Offset);
+    }
+    else {
 	FHResult.m_Hits.clear();
+    }
 
-    //-- TODO: update NavCache (non-count() queries only?)
+    //-- update navigation cache if available (non-count() queries only?)
+    if (m_pNavCache && !FHResult.m_Hits.empty() && !IsCountSort(FHResult.m_SortOrder)) {
+	FHResult.UpdateNavHint();
+	NavKey.m_HitNo = FHResult.m_Offset + FHResult.m_Hits.size();
+	m_pNavCache->insert(NavKey, FHResult.m_NavHint);
+	NAVCACHE_DEBUG(
+		       ddcLogDebug(Format("NAVCACHE: FHR.Offset=%zd ; FHR.nHits=%zd", FHResult.m_Offset, FHResult.m_Hits.size()));
+		       ddcLogDebug(Format("NAVCACHE: updated Key=%s => Hint=%s", NavKey.toString().c_str(), FHResult.m_NavHint.toString().c_str()));
+		       ddcLogDebug(string("NAVCACHE: cache=") + m_pNavCache->toString());
+		       );
+    }
 
 #ifdef DEBUG_HIT_SORT
     for (vector<CHitToSort>::const_iterator hi=FHResult.m_Hits.begin(); hi != FHResult.m_Hits.end(); ++hi) {
@@ -881,7 +951,12 @@ void CDDCBranchServer::GetFirstHitsFromCorpora(const DwordVector& PossibleHosts,
 	Result.m_InternalError = errNone;
 	Result.m_SortOrder = hsoNone;
 	Result.m_ErrorStr = "";
-	
+
+	//-- nav-caching
+	bool compat_ge_v2_1_9 = (m_VersionCompat >= DDCVersionT(2,1,9)); //-- can we use v2.1.9 get_first_hits syntax?
+	const BranchNavHint& Hint = Result.m_NavHint;
+	size_t HintOffset         = Hint.OffsetTotal();
+
 	for (int i=0; i<PossibleHosts.size(); i++)	
 	{
 		BYTE HostNo = PossibleHosts[i];
@@ -893,10 +968,21 @@ void CDDCBranchServer::GetFirstHitsFromCorpora(const DwordVector& PossibleHosts,
 			Result.m_NetworkError = neCouldNotOpenSocket;
 			return;
 		};
-		//-- TODO: use NavCache!
-		string S = Format ("get_first_hits %s\x01%i %i", Query.c_str(), TimeOut,  ResultLimit);
+
+		string Req;
+		if (compat_ge_v2_1_9) {
+		    //-- compat >= v2.1.9: use NavCache hints for get_first_hits requests to daughter subcorpora
+		    size_t StartHitNo  = HostNo < Hint.m_Offsets.size() ? Hint.m_Offsets[HostNo] : 0;
+		    size_t CorpusLimit = ResultLimit - min((size_t)ResultLimit,max(StartHitNo,HintOffset));
+		    Req = Format("get_first_hits %s\x01%i %zi %zi %s",
+				 Query.c_str(), TimeOut, StartHitNo, CorpusLimit, Hint.m_SortKey.c_str());
+		} else {
+		    //-- compat <= v2.1.8: use old get_first_hits syntax (highway-painting algorithm)
+		    Req = Format ("get_first_hits %s\x01%i %i", Query.c_str(), TimeOut,  ResultLimit);
+		}
+		    
 		string ErrorStr;
-		if (!SendString(Result.m_Sockets[i], S.c_str(), S.length(), ErrorStr)) 
+		if (!SendString(Result.m_Sockets[i], Req.c_str(), Req.length(), ErrorStr)) 
 		{
 			ErrorMessage (Format("cannot send a string to socket %s : %s", Host.GetAddressStr().c_str(), ErrorStr.c_str() ));
 			Result.m_NetworkError = neCouldNotSendData;
@@ -960,6 +1046,7 @@ void CDDCBranchServer::GetFirstHitsFromCorpora(const DwordVector& PossibleHosts,
 		
 		//-- read sort keys for merging sorted results (v2.0.19: always use string-sort for results)		
 		int f = S.find("\t");
+		size_t subcorpusHitOffset = Result.m_Hits.size();
 		if (f != string::npos) {
 			StringTokenizer tok(S.c_str() + f +1,"\t");
 			char SortKeyBuf[ DDC_SORTKEY_MAXLEN ];
@@ -1000,8 +1087,17 @@ void CDDCBranchServer::GetFirstHitsFromCorpora(const DwordVector& PossibleHosts,
 				}
 
 				Result.m_Hits.push_back(HS);
-				HSDEBUG( Format("DEBUG[<%s]: hit = %s", Host.m_CorpusName.c_str(), Result.m_Hits.back().debugStr().c_str()) ); //-- debug
+				HSDEBUG( Format("DEBUG[<%s]: hit = %s", Host.m_CorpusName.c_str(), Result.m_Hits.back().debugStr().c_str()) );
 			}
+		}
+
+		//-- update logical result offset
+		if (!isCountResult) {
+			Result.m_Offset += (subcorpusHitOffset < Result.m_Hits.size()
+					    ? Result.m_Hits[subcorpusHitOffset].m_HitNo
+					    : CorpusHitsCount);
+			NAVCACHE_DEBUG( ddcLogDebug(Format("DEBUG[<%s]: nHostHits=%zd; Result.Offset=%zd",
+							   Host.m_CorpusName.c_str(), Result.m_Hits.size()-subcorpusHitOffset, Result.m_Offset)) );
 		}
 	}
 
@@ -1213,3 +1309,4 @@ string CDDCBranchServer::GetSubcorpusJsonArray(const string& request, int timeou
 	Result += "\n]";
 	return Result;
 }
+
