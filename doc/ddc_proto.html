@@ -92,6 +92,9 @@
  ## Leaf-Server Messages
  
  get_first_hits &quot; &quot; QUERY &quot;\x01 &quot; TIMEOUT &quot; &quot; LIMIT
+ get_first_hits &quot; &quot; QUERY &quot;\x01 &quot; TIMEOUT &quot; &quot; START &quot; &quot; LIMIT
+ get_first_hits &quot; &quot; QUERY &quot;\x01 &quot; TIMEOUT &quot; &quot; START &quot; &quot; LIMIT &quot; &quot; MINKEY
+ 
  get_hit_strings &quot; &quot; FORMAT &quot;\x01&quot; OFFSET &quot; &quot; LIMIT
  </code></pre>
 
@@ -452,9 +455,11 @@
 
 <h3 id="get_first_hits">get_first_hits</h3>
 
-<pre><code> get_first_hits &quot; &quot; QUERY &quot;\x01&quot; TIMEOUT &quot; &quot; LIMIT</code></pre>
+<pre><code> get_first_hits &quot; &quot; QUERY &quot;\x01&quot; TIMEOUT &quot; &quot; LIMIT
+ get_first_hits &quot; &quot; QUERY &quot;\x01&quot; TIMEOUT &quot; &quot; START &quot; &quot; LIMIT
+ get_first_hits &quot; &quot; QUERY &quot;\x01&quot; TIMEOUT &quot; &quot; START &quot; &quot; LIMIT &quot; &quot; MINKEY</code></pre>
 
-<p>Requests subcorpus-local evaluation of the user query <code>QUERY</code>. <code>TIMEOUT</code> is an operation timeout in seconds, and <code>LIMIT</code> is the maximum number of hits to evaluate.</p>
+<p>Requests subcorpus-local evaluation of the user query <code>QUERY</code>, returning IDs for up to <code>LIMIT</code> hits, beginning at <code>START</code>. <code>TIMEOUT</code> is an operation timeout in seconds, <code>START</code> is the logical offset (a.k.a. <code>INDEX</code>) of the first hit to retrieve (by default 0), <code>LIMIT</code> is the maximum number of hit-IDs to retrieve, and <code>MINKEY</code> is a primary sort key lower bound hint (a.k.a. <code>ORDER_STRING</code>) (by default the empty string). In other words: &quot;get the IDs for hits [START,START+LIMIT), ignoring any with a primary sort key less than MINKEY, and try not to take longer than TIMEOUT when doing so&quot;. DDC &lt;= v2.1.8 only supports the 3-argument form of <code>get_first_hits</code> requests (no <code>START</code> or <code>MINKEY</code> parameters are allowed).</p>
 
 <p>If an error occurs, the response is of the form:</p>
 
@@ -476,7 +481,9 @@
 
 <p>As of v2.0.23, ddc supports aggregate count-queries (by means of the <code>count()</code> operator) in addition to traditional &quot;context&quot; queries. If the requested <code>QUERY</code> was such a count-query, then <code>ORDER_STRING</code> is a &quot;\x02&quot;-separated list of count-key components, and <code>INDEX</code> is the total count of the associated histogram bin.</p>
 
-<p>Since v1.x, error message strings since v2.0.0, count-queries since v2.0.23, branch-server support since v2.1.0.</p>
+<p>As of v2.1.9, the <code>get_first_hits</code> request supports 4- and 5-argument forms including the <code>START</code> and <code>MINKEY</code> parameters in order to minimize bandwidth requirements for branch&lt;-&gt;leaf communications and memory consumption in physical subcorpora themselves for high-offset result sets.</p>
+
+<p>Since v1.x, error message strings since v2.0.0, count-queries since v2.0.23, branch-server support since v2.1.0, 4- and 5-argument forms since v2.1.9.</p>
 
 <h3 id="get_hit_strings">get_hit_strings</h3>
 

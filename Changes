@@ -1,6 +1,7 @@
 ##-*- Mode: Change-Log; coding: utf-8; -*-
 
 v2.1.9-pre1 Mon, 05 Mar 2018 11:29:54 +0100 moocow
+	* IndexSet.cpp lookup routines now throw an exception if MaxRegexpExpansionSize is exceeded
 	* navigation cache, bandwidth & memory optimizations (mantis bugs #662 and #24816)
 	  - added ConcordDmnLib/BranchNavCache.h
 	    + branch-server navigation cache for high-offset result-set "paging"
@@ -8,8 +9,6 @@ v2.1.9-pre1 Mon, 05 Mar 2018 11:29:54 +0100 moocow
 	    + will probably NOT help much with "slow paging" scenario (user takes nap, makes coffee, etc.)
 	      ~ idea for future improvement: send generic full-depth "hints" in server responses, accept in requests,
 		and let client take care of hint-passing (e.g. via JavaScript, www server session cache, etc.)
-	      + future improvement: send generic full-depth "hints" in server responses,
-		let client take care of hint-passing (e.g. via JavaScript, www server user session cache, etc.)
 	  - added 4- and 5-argument forms for "get_first_hits" requests
 	    + set via branch-server navigation cache
 	    + used by leaf corpora for memory & bandwith optimization

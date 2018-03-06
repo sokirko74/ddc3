@@ -172,7 +172,7 @@ typedef QWORD file_off_t;
 class CExpc : public runtime_error
 {
 public:
-    //! internal error code
+    //! internal error code (see ../common/DDCInternalError.h)
     int m_ErrorCode; 
 
     //! symbolic error message (should also be returned by what() method)

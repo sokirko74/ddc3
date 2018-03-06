@@ -77,8 +77,8 @@ static void dumpHitIndex(const std::string& IndexLabel, const vector<size_t>& Hi
 }
 
 //==============================================================================
-#define DEBUG_HIT_TRIM 1
-//#undef DEBUG_HIT_TRIM
+//#define DEBUG_HIT_TRIM 1
+#undef DEBUG_HIT_TRIM
 
 #if DEBUG_HIT_TRIM
 # define HIT_TRIM_DEBUG(x) x

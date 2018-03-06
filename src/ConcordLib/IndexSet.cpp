@@ -1,7 +1,7 @@
 //-*- Mode: C++; c-basic-offset: 8;-*-
 //
 //  DDC originally by Alexey Sokirko
-//  Changes and modifications 2011-2015 by Bryan Jurish
+//  Changes and modifications 2011-2018 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -70,7 +70,7 @@ void CStringIndexSet::QueryTokenList (const string& WordForm, vector<DWORD>& Mat
 	vector<CIndexItem>::const_iterator it = lower_bound (m_Index.begin(), m_Index.end(), WordForm.c_str(), Less);
 	
 	if (MatchWords.size() > m_pParent->m_MaxRegExpExpansionSize)
-			return;
+		throw CExpc("too many expansions for query word `%s' (MaxRegExpExpansionSize=%zd)", WordForm.c_str(), m_pParent->m_MaxRegExpExpansionSize);
 
 	if (   
 				( it != m_Index.end() )
@@ -91,7 +91,7 @@ void CStringIndexSet::QueryTokenListWithRightTruncation (const string& WordForm,
 			)
 	{
 		if (MatchWords.size() > m_pParent->m_MaxRegExpExpansionSize)
-			break;
+			throw CExpc("too many expansions for query prefix `%s' (MaxRegExpExpansionSize=%zd)", WordForm.c_str(), m_pParent->m_MaxRegExpExpansionSize);
 
 		MatchWords.push_back( it -  m_Index.begin() );
 
@@ -108,7 +108,9 @@ void CStringIndexSet::QueryTokenListUsingRegExp (RML_RE &RegExp, vector<DWORD>& 
 			const char* str =  GetIndexItemStr(m_Index[i]);
 			bool  ismatch = RegExp.PartialMatch(str);
 			if ( negated ? (!ismatch) : ismatch ) {
-				if (MatchWords.size() > m_pParent->m_MaxRegExpExpansionSize) break;
+				if (MatchWords.size() > m_pParent->m_MaxRegExpExpansionSize)
+					throw CExpc("too many expansions for regex /%s/ (MaxRegExpExpansionSize=%zd)",
+						    RegExp.pattern().c_str(), m_pParent->m_MaxRegExpExpansionSize);
 				MatchWords.push_back( i );
 			}
 		}
@@ -121,7 +123,9 @@ void CStringIndexSet::QueryTokenListUsingRegExp (RML_RE &RegExp, vector<DWORD>& 
 			iconv.convert(str, strlen(str), tmp);
 			bool  ismatch = RegExp.PartialMatch(tmp);
 			if ( negated ? (!ismatch) : ismatch ) {
-				if (MatchWords.size() > m_pParent->m_MaxRegExpExpansionSize) break;
+				if (MatchWords.size() > m_pParent->m_MaxRegExpExpansionSize)
+					throw CExpc("too many expansions for regex /%s/d (MaxRegExpExpansionSize=%zd)",
+						    RegExp.pattern().c_str(), m_pParent->m_MaxRegExpExpansionSize);
 				MatchWords.push_back( i );
 			}
 		}
