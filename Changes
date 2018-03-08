@@ -1,6 +1,6 @@
 ##-*- Mode: Change-Log; coding: utf-8; -*-
 
-v2.1.9 Thu, 08 Mar 2018 15:28:09 +0100 moocow
+v2.1.9 Thu, 08 Mar 2018 15:51:33 +0100 moocow
 	* IndexSet.cpp lookup routines now throw an exception if MaxRegexpExpansionSize is exceeded
 	  - misleading old behavior just considered only the first MaxRegexpExpansionSize expansions
 	  - there is still no way to get non-fatal warnings passed through to the user via ddc_daemon protocol

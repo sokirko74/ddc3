@@ -67,3 +67,21 @@ BUILT_SOURCES = \
 ddcConfigNoAuto.h: ddcConfigAuto.h
 	echo "/* src/common/ddcConfigNoAuto.h. Generated from ddcConfigAuto.h by make */" >ddcConfigNoAuto.h
 	sed 's/^#define \([^ ]*\).*$$/#undef \1/;' ddcConfigAuto.h >>ddcConfigNoAuto.h
+
+##-----------------------------------------------------------------------
+## Variables: cleanup
+##-----------------------------------------------------------------------
+
+## --- mostlyclean: built by 'make' & commonly rebuilt
+#MOSTLYCLEANFILES =
+
+## --- clean:  built by 'make'
+#CLEANFILES =
+
+
+## --- distclean: built by 'configure'
+DISTCLEANFILES = \
+	ddcConfigNoAuto.h
+
+## -- maintainerclean: built by maintainer / by hand
+#MAINTAINERCLEANFILES =
