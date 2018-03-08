@@ -67,7 +67,7 @@
 .\" ========================================================================
 .\"
 .IX Title "DDC_PROTO 5"
-.TH DDC_PROTO 5 "2018-03-02" "2.1.9" "DDC Corpus Indexing System"
+.TH DDC_PROTO 5 "2018-03-08" "2.1.9-pre2" "DDC Corpus Indexing System"
 .\" For nroff, turn off justification.  Always turn off hyphenation; it makes
 .\" way too many mistakes in technical documents.
 .if n .ad l
@@ -108,13 +108,13 @@ and \*(L" \*(R" represents a literal space character (\s-1ASCII\s0 byte with dec
 \& ## Branch\-Server Messages
 \& 
 \& run_query " " CORPUS "\ex01" QUERY "\ex01" FORMAT "\ex01" OFFSET " " LIMIT " " TIMEOUT
+\& run_query " " CORPUS "\ex01" QUERY "\ex01" FORMAT "\ex01" OFFSET " " LIMIT " " TIMEOUT " " HINT
 \&
 \& ##=====================================================================
 \& ## Leaf\-Server Messages
 \& 
 \& get_first_hits " " QUERY "\ex01 " TIMEOUT " " LIMIT
-\& get_first_hits " " QUERY "\ex01 " TIMEOUT " " START " " LIMIT
-\& get_first_hits " " QUERY "\ex01 " TIMEOUT " " START " " LIMIT " " MINKEY
+\& get_first_hits " " QUERY "\ex01 " TIMEOUT " " LIMIT " " HINT
 \& 
 \& get_hit_strings " " FORMAT "\ex01" OFFSET " " LIMIT
 .Ve
@@ -164,8 +164,9 @@ Returns status information on the running server as a \s-1JSON\s0 object of the 
 .PP
 .Vb 10
 \& {
-\&  "name":"server",                      //\-\- distributed server name
-\&  "version":"2.0.18\-pre1",              //\-\- distributed server version
+\&  "name":"server",                      //\-\- server name
+\&  "version":"2.1.9",                    //\-\- server DDC version
+\&  "compat":"2.1.8",                     //\-\- server compatibility version (>= v2.1.9)
 \&  "hostname":"www.dwds.de",             //\-\- distributed server hostname if available (>= v2.0.35)
 \&  "hostaddr":"127.0.0.1",               //\-\- distributed server socket hostname or address ("host" for ddc < v2.0.35)
 \&  "port":50011,                         //\-\- distributed server socket port
@@ -176,14 +177,27 @@ Returns status information on the running server as a \s-1JSON\s0 object of the 
 \&  "nerrors":0,                          //\-\- number of client errors (>= v2.1.0)
 \&  "nslow":0,                            //\-\- number of slow queries (>= v2.1.0)
 \&  "qtavg":0.00284271,                   //\-\- average query time over last StatsWindow seconds (>= v2.1.1)
-\&  "memkb":18756,                        //\-\- memory resident set size in kb (>= v2.0.49, linux only)
+\&  "nworkers":4,                         //\-\- number of client worker\-threads (>= v2.1.0)
+\&  "memkb":68152,                        //\-\- memory resident set size in kb (>= v2.0.49, linux only)
+\&  "vmem":{                              //\-\- virtual memory statistics from /proc/[PID]/status in kb (see proc(5), >= v2.1.8)
+\&          "peak":527788,                //   \- VmPeak: peak virtual memory size (address space)
+\&          "size":527788,                //   \- VmSize: virtual memory size (address space)
+\&          "hwm":68152,                  //   \- VmHWM: peak resident set size ("high water mark")
+\&          "rss":68152,                  //   \- VmRSS: resident set size
+\&          "data":101416,                //   \- VmData: size of data segment
+\&          "stk":132,                    //   \- VmStk: size of stack segment
+\&          "exe":3160,                   //   \- VmExe: size of text (program) segment
+\&          "lib":13492,                  //   \- VmLib: shared library code size
+\&          "swap":0                      //   \- VmSwap: swapped\-out virtual memory size, not including shmem
+\&         },
+\&  "navcachesize":512,                   //\-\- size of navigation hint cache (branch servers only, >= v2.1.9)
 \&  "cachesize":42,                       //\-\- size of query cache (leaf servers only)
 \&  "curlcachesize":24,                   //\-\- size of curl cache (leaf servers only)
 \&  "corpora":["corpus1","corpus2",...]   //\-\- registered subcorpus names (branch servers only)
 \& }
 .Ve
 .PP
-Very fast turnaround, since all returned data is known to the distributed server itself,
+Very fast turnaround, since all returned data is known to the server itself,
 and no subcorpora need to be queried.
 .PP
 Since v2.0.18,
@@ -221,7 +235,7 @@ For a leaf server, the returned object is of the form:
 \& {
 \&  //\-\- basic information
 \&  "name":"corpus1",                     //\-\- subcorpus name
-\&  "version":"2.0.18\-pre1",              //\-\- subcorpus server version
+\&  "version":"2.1.8",                    //\-\- subcorpus server version
 \&  "project":"corpus1",                  //\-\- project basename
 \&  "indexed":"2014\-02\-17T13:49:56Z",     //\-\- index timestamp (mtime of PROJECT._con)
 \&  "nfiles":4,                           //\-\- number of successfully indexed files
@@ -241,6 +255,9 @@ For a leaf server, the returned object is of the form:
 \&  "indexPunctuation":1,
 \&  "indexMorphPatterns":0,
 \&  "indexChunks":0,
+\&  //
+\&  //\-\- index structure: corpus blocks ("periods")
+\&  "periods":[100567,267265,323559],
 \&  //
 \&  //\-\- index structure: bibliographic metadata
 \&  "bibl":[
@@ -291,7 +308,7 @@ For a branch server, the returned object has the form:
 .Vb 10
 \& {
 \&  "name":"server",
-\&  "version":"2.0.18\-pre1",
+\&  "version":"2.1.9",
 \&  "corpora":[
 \&        {
 \&         "name":"corpus1",
@@ -312,9 +329,10 @@ If the optional \s-1TIMEOUT\s0 parameter is specified, it should be an integer v
 maximum time (in seconds) to wait for subcorpus responses; default=10.
 .PP
 Since v2.0.18,
+\&\*(L"periods\*(R" attribute since v2.0.033,
 user-supplied info since v2.0.34,
 optional \s-1TIMEOUT\s0 parameter since v2.0.47,
-aliases and \*(L"opdefault\*(R" key since v2.1.5.
+aliases and \*(L"opdefault\*(R" attribute since v2.1.5.
 .PP
 \fIreload\fR
 .IX Subsection "reload"
@@ -420,8 +438,9 @@ queries.  Prior to ddc\-v2.1.0, only branch servers supported the following mess
 \fIrun_query\fR
 .IX Subsection "run_query"
 .PP
-.Vb 1
+.Vb 2
 \& run_query " " CORPUS "\ex01" QUERY "\ex01" FORMAT "\ex01" OFFSET " " LIMIT " " TIMEOUT
+\& run_query " " CORPUS "\ex01" QUERY "\ex01" FORMAT "\ex01" OFFSET " " LIMIT " " TIMEOUT " " HINT
 .Ve
 .PP
 Top-level user query request.
@@ -447,21 +466,55 @@ is the maximum number of seconds to spend processing the query before returning 
 Note that since the underlying server(s) only check for timeout conditions once for each iteration
 through the \*(L"corpus period\*(R" loop, an expensive query can potentially block the server(s) for much longer
 than the specified \s-1TIMEOUT\s0 before such an error response is actually generated and sent to the client.
+.IP "\s-1HINT\s0" 4
+.IX Item "HINT"
+As of \s-1DDC\s0 v2.1.9,
+the optional \f(CW\*(C`HINT\*(C'\fR parameter may be passed to specify a lower bound navigation hint for bandwidth
+and memory optimization of non-count queries.  If specified, \f(CW\*(C`HINT\*(C'\fR is composed of
+a nested offset hint (\f(CW\*(C`HINT_OFFSETS\*(C'\fR)
+followed by a single space, followed by a primary sort-key lower bound (\f(CW\*(C`HINT_SORTKEY\*(C'\fR).
+The nested offset hint encodes the logical offset of the requested hint with respect to
+both the current server node (\f(CW\*(C`OFFSET\*(C'\fR) and any descendants (\f(CW\*(C`DTR_OFFSETS\*(C'\fR).
+.Sp
+.Vb 5
+\& HINT         ::= HINT_OFFSETS (" " SORTKEY)
+\& HINT_OFFSETS ::= OFFSET DTR_OFFSETS?
+\& DTR_OFFSETS  ::= "(" HINT_OFFSETS ("+" HINT_OFFSETS)* ")"
+\& OFFSET       ::= <unsigned integer>
+\& SORTKEY      ::= <string>
+.Ve
+.Sp
+The \f(CW\*(C`HINT\*(C'\fR parameter is ignored for count-queries.
+.Sp
+For context queries,
+each \f(CW\*(C`OFFSET\*(C'\fR should be the sum of the first level of \f(CW\*(C`DTR_OFFSETS\*(C'\fR,
+and
+\&\f(CW\*(C`OFFSET\*(C'\fR must be less than or equal to \f(CW\*(C`START\*(C'\fR,
+otherwise an exception may be thrown.
+If \f(CW\*(C`QUERY\*(C'\fR contains a non-trivial sort operation
+and \f(CW\*(C`HINT\*(C'\fR contains a non-empty \f(CW\*(C`SORTKEY\*(C'\fR component,
+only hits equal to or following \f(CW\*(C`SORTKEY\*(C'\fR in the requested
+primary sort order will be returned.
+If a \f(CW\*(C`SORTKEY\*(C'\fR was supplied which is inconsistent with
+the requested \f(CW\*(C`OFFSET\*(C'\fR or \f(CW\*(C`START\*(C'\fR, an exception will be thrown.
+.Sp
+Since v2.1.9, older \s-1DDC\s0 versions do not accept a \f(CW\*(C`HINT\*(C'\fR parameter.
 .PP
 Server response depends on \s-1FORMAT. \s0 In \f(CW\*(C`JSON\*(C'\fR mode, the response data
 for a traditional context-query is a \s-1JSON\s0 object of the form:
 .PP
 .Vb 10
 \& {
-\&   "istatus_" : 0,              //\-\- rsp. istatus_internal status code, 0:success
-\&   "nstatus_" : 0,              //\-\- network status code, 0:success
-\&   "error_" : null,             //\-\- error string, null:no error
-\&   "nhits_" : 31,               //\-\- total number of hits
-\&   "dhits_" : "17+4+10=31",     //\-\- distribution of hits over subcorpora
-\&   "ndocs_" : 0,                //\-\- (?) number of documents containing hits (?)
-\&   "ddocs_" : "0+0+0=0",        //\-\- (?) distribution of hit\-documents over subcorpora (?)
-\&   "end_" : 2,                  //\-\- index of last returned hit
-\&   "hits_" : [                  //\-\- list of hits
+\&   "istatus_" : 0,                //\-\- rsp. istatus_internal status code, 0:success
+\&   "nstatus_" : 0,                //\-\- network status code, 0:success
+\&   "error_" : null,               //\-\- error string, null:no error
+\&   "nhits_" : 31,                 //\-\- total number of hits
+\&   "dhits_" : "17+4+10=31",       //\-\- distribution of hits over subcorpora
+\&   "ndocs_" : 0,                  //\-\- (?) number of documents containing hits (?)
+\&   "ddocs_" : "0+0+0=0",          //\-\- (?) distribution of hit\-documents over subcorpora (?)
+\&   "end_" : 10,                   //\-\- corpus\-local offset of next available hit
+\&   "hint_": "10(4(0+4)+1+5) foo", //\-\- navigation hint for next available hit
+\&   "hits_" : [                    //\-\- list of hits
 \&     {                                                  //\-\- each hit is an object
 \&       "meta_" : {                                      //\-\- hit.meta_: bibliographic metadata
 \&            "file_" : "busch_max_1865.xml",             //\-\- indexed filename
@@ -539,10 +592,19 @@ as a \s-1JSON\s0 array
 .Sp
 where \f(CW\*(C`COUNT\*(C'\fR is the total count for the bin in question and \f(CW\*(C`KEY(s)...\*(C'\fR
 are the key strings as requested in the \f(CW\*(C`QUERY\*(C'\fR \*(L"#BY\*(R"\-clause.
+.IP "hint_" 4
+.IX Item "hint_"
+is a navigation hint appropriate for fetching the next available hit
+from this corpus when passed as the \f(CW\*(C`HINT\*(C'\fR parameter to a subsequent
+\&\f(CW\*(C`run_query\*(C'\fR or \f(CW\*(C`get_first_hits\*(C'\fR request.
+See \s-1HINT\s0 for details.
+.Sp
+Since v2.1.9.
 .PP
 Since v1.x,
 \&\s-1JSON\s0 format and error messages since v2.0.0,
-leaf server support since v2.1.0.
+leaf server support since v2.1.0,
+navigation hint support since v2.1.9.
 .SS "Leaf Server Messages"
 .IX Subsection "Leaf Server Messages"
 This section describes the messages accepted by \s-1DDC \s0\*(L"leaf\*(R" servers,
@@ -560,23 +622,26 @@ for details.
 \fIget_first_hits\fR
 .IX Subsection "get_first_hits"
 .PP
-.Vb 3
+.Vb 2
 \& get_first_hits " " QUERY "\ex01" TIMEOUT " " LIMIT
-\& get_first_hits " " QUERY "\ex01" TIMEOUT " " START " " LIMIT
-\& get_first_hits " " QUERY "\ex01" TIMEOUT " " START " " LIMIT " " MINKEY
+\& get_first_hits " " QUERY "\ex01" TIMEOUT " " LIMIT " " HINT
 .Ve
 .PP
 Requests subcorpus-local evaluation of the user query \f(CW\*(C`QUERY\*(C'\fR,
-returning IDs for up to \f(CW\*(C`LIMIT\*(C'\fR hits, beginning at \f(CW\*(C`START\*(C'\fR.
+returning IDs for up to \f(CW\*(C`LIMIT\*(C'\fR hits.
 \&\f(CW\*(C`TIMEOUT\*(C'\fR is an operation timeout in seconds,
-\&\f(CW\*(C`START\*(C'\fR is the logical offset (a.k.a. \f(CW\*(C`INDEX\*(C'\fR) of the first hit to retrieve (by default 0),
-\&\f(CW\*(C`LIMIT\*(C'\fR is the maximum number of hit-IDs to retrieve,
-and \f(CW\*(C`MINKEY\*(C'\fR is a primary sort key lower bound hint (a.k.a. \f(CW\*(C`ORDER_STRING\*(C'\fR)
-(by default the empty string).  In other words:
-\&\*(L"get the IDs for hits [\s-1START,START+LIMIT\s0), ignoring any with a primary sort key less than \s-1MINKEY,\s0
+and \f(CW\*(C`LIMIT\*(C'\fR is the maximum number of hit-IDs to retrieve.
+.PP
+As of \s-1DDC\s0 v2.1.9,
+the optional \f(CW\*(C`HINT\*(C'\fR parameter may be passed to specify a navigation hint for bandwidth
+and memory optimization.
+If specified, \f(CW\*(C`HINT\*(C'\fR takes the form of the
+run_query parameter of the same name,
+and causes only hits with logical offset greater than or equal to
+the hint's local \f(CW\*(C`OFFSET\*(C'\fR component to be returned.
+In other words:
+\&\*(L"get the IDs for hits [\s-1OFFSET,OFFSET+LIMIT\s0), ignoring any with a primary sort key preceding \s-1SORTKEY,\s0
 and try not to take longer than \s-1TIMEOUT\s0 when doing so\*(R".
-\&\s-1DDC\s0 <= v2.1.8 only supports the 3\-argument form of \f(CW\*(C`get_first_hits\*(C'\fR requests
-(no \f(CW\*(C`START\*(C'\fR or \f(CW\*(C`MINKEY\*(C'\fR parameters are allowed).
 .PP
 If an error occurs, the response is of the form:
 .PP
@@ -594,8 +659,8 @@ On success, responses have the form:
 .PP
 where \f(CW\*(C`STATUS\*(C'\fR is a decimal integer status, 0 (zero) for success,
 \&\f(CW\*(C`HITUB\*(C'\fR should be the index of the last hit returned + 1 (see CConcSession::GetHits(q, _\|_EndHitNo_\|_)),
-\&\f(CW\*(C`NHITS\*(C'\fR is the total number of hits found (?? see CConcHolder::m_AllHitsCount),
-\&\f(CW\*(C`NDOCS\*(C'\fR is the number of relevant documents found (?? usually 0 (zero); see CConcHolder::m_RelevantDocumentCount),
+\&\f(CW\*(C`NHITS\*(C'\fR is the total number of hits found (see CConcHolder::m_AllHitsCount),
+\&\f(CW\*(C`NDOCS\*(C'\fR is the number of relevant documents found (usually 0 (zero); see CConcHolder::m_RelevantDocumentCount),
 \&\f(CW\*(C`SORT\*(C'\fR is a indicates whether and/or how the hits are to be sorted
 (0: no sort, 1: ascending sort, \-1: descending sort),
 and \f(CW\*(C`HITIDS\*(C'\fR is a TAB-separated list of \f(CW\*(C`NHITS\*(C'\fR hit-identification triples (see \fICConcHolder::GetHitIds()\fR),
@@ -624,16 +689,11 @@ in addition to traditional \*(L"context\*(R" queries.  If the requested \f(CW\*(
 then \f(CW\*(C`ORDER_STRING\*(C'\fR is a \*(L"\ex02\*(R"\-separated list of count-key components, and \f(CW\*(C`INDEX\*(C'\fR is the
 total count of the associated histogram bin.
 .PP
-As of v2.1.9, the \f(CW\*(C`get_first_hits\*(C'\fR request supports 4\- and 5\-argument forms
-including the \f(CW\*(C`START\*(C'\fR and \f(CW\*(C`MINKEY\*(C'\fR parameters in order to minimize bandwidth
-requirements for branch<\->leaf communications and memory consumption
-in physical subcorpora themselves for high-offset result sets.
-.PP
 Since v1.x,
 error message strings since v2.0.0,
 count-queries since v2.0.23,
 branch-server support since v2.1.0,
-4\- and 5\-argument forms since v2.1.9.
+navigation hint support since v2.1.9.
 .PP
 \fIget_hit_strings\fR
 .IX Subsection "get_hit_strings"
@@ -660,7 +720,7 @@ and \f(CW\*(C`ERROR\*(C'\fR is a text string describing the error.
 On success, the response is of the form:
 .PP
 .Vb 1
-\& STATUS "\ex01" HIT_STRINGS "\ex01"
+\& STATUS (" " HINT_OFFSETS "\en")? "\ex01" HIT_STRINGS "\ex01"
 .Ve
 .PP
 where \f(CW\*(C`STATUS\*(C'\fR is a decimal integer zero (\*(L"0\*(R")
@@ -671,10 +731,15 @@ the final character of all non-final hits is a \*(L",\*(R" character, and the fi
 of the final hit is a \*(L"]\*(R" character, so hits can be parsed as raw \s-1JSON\s0 data by removing
 the initial \f(CW\*(C`STATUS\*(C'\fR code and all \*(L"\ex01\*(R" characters from \f(CW\*(C`HIT_STRINGS\*(C'\fR before parsing.
 .PP
+As of \s-1DDC\s0 v2.1.9, the response includes a nested \f(CW\*(C`HINT_OFFSETS\*(C'\fR component
+suitable for retrieval of the next available hit;
+see \s-1HINT\s0 for details.
+.PP
 An example response in \s-1JSON\s0 format is:
 .PP
-.Vb 6
-\& 0\ex01[{"meta_":{"file_":"dannhauer_catechismus05_1654.xml",...},"ctx_":[[],[...],[]]},
+.Vb 7
+\& 0 10(4(0+4)+1+5)
+\& \ex01[{"meta_":{"file_":"dannhauer_catechismus05_1654.xml",...},"ctx_":[[],[...],[]]},
 \& \ex01{"meta_":{"file_":"frentzel_schauplatz_1744.xml",...},"ctx_":[[],[...],[]]},
 \& ...
 \& \ex01{"meta_":{"file_":"busch_max_1865.xml",...},"ctx_":[[],[...],[]]},
@@ -684,7 +749,8 @@ An example response in \s-1JSON\s0 format is:
 .PP
 Since v1.x,
 \&\s-1JSON\s0 format and error messages since v2.0.0,
-branch-server support since v2.1.0.
+branch-server support since v2.1.0,
+hint offsets in responses since v2.1.9.
 .SS "Error Messages"
 .IX Subsection "Error Messages"
 This section describes some common error messages which may be returned by a ddc server.

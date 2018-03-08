@@ -22,7 +22,6 @@
 #define DDC_BRANCH_SERVER_H
 
 #include "../ConcordDmnLib/Server.h"
-#include "../ConcordDmnLib/BranchNavCache.h"
 
 //======================================================================
 /** single hit data in get_first_hits responses */
@@ -80,8 +79,7 @@ struct CFirstHitsQueryResult  {
     string			m_ErrorStr;
     vector<CHitToSort>  	m_Hits;
     vector<SOCKET>		m_Sockets;
-    BranchNavHint		m_NavHint;		//< navigation cache hint
-    size_t                      m_Offset;            	//< logical offset of m_Hits[0] (sum over number of front-trimmed hits for all subcorpora)    
+    size_t                      m_Offset;            	//< logical offset of m_Hits[0] (sum over number of front-trimmed hits for all subcorpora)
     
     /** destructor implicitly calls CloseSockets() */
     ~CFirstHitsQueryResult()
@@ -103,9 +101,6 @@ struct CFirstHitsQueryResult  {
 
     /** collect counts by sort-key, only makes sense if m_SortOrder==hsoCounts ; also modifies m_AllHitsCount */
     void CollectCounts();
-
-    /** update navigation hint based on m_Hits[] */
-    void UpdateNavHint();
 };
 
 //======================================================================
@@ -137,7 +132,9 @@ public:
     string HitsKey;			///< key for response body data (json only)
     string ResponseBody;		///< response body data
     string *pErrorStr;			///< error string pointer (empty or NULL for success)
-
+    NavHintKey navKey;			///< navigation hint key
+    NavHint    navHint;               	///< user- or cache-supplied navigation hint
+   
 public:
     /** constructor */
     CRunQueryData(const string & _Query="", const string& _ResultFormat="JSON", int _Start=0, int _Limit=10, int _TimeOut=10, string *_pErrorStr=NULL)
@@ -151,13 +148,13 @@ public:
     };
 
     /** (re-)initialize with parameters */
-    void Init(const string & _Query="", const string& _ResultFormat="JSON", int _Start=0, int _Limit=10, int _TimeOut=10, string *_pErrorStr=NULL);
+    void Init(const string & _Query="", const string& _ResultFormat="JSON", int _Start=0, int _Limit=10, int _TimeOut=10, string *_pErrorStr=NULL, const NavHint& _Hint=NavHint());
 
     /** clear object */
     void Clear();
 
     /** populate response string \a Response */
-    void toString(string &Response, size_t WorkerId=0);
+    void toString(string &Response, size_t WorkerId=0, const DDCVersionT& vCompat=DDCVersion);
 };
 
 //======================================================================
@@ -175,10 +172,10 @@ public:
     string				m_ErrorStr;  //-- subcorpus error
 
     //-- low-level data
-    CFirstHitsQueryResult 		m_FHResult;  //< first-hits result
-    CRunQueryData			m_QueryData; //< run-query data
-    BranchNavCache			*m_pNavCache; //< navigation cache (shared over multiple worker threads)
-
+    CFirstHitsQueryResult 		m_FHResult;   //< first-hits result
+    CRunQueryData			m_QueryData;  //< run-query data
+    NavHintCache			*m_pNavCache; //< navigation hint cache (shared over multiple worker threads)
+    
 public:
     //--------------------------------------------------------------
     // Constructors etc.
@@ -227,13 +224,13 @@ public:
     // DDCServer API: request handlers: required
 
     /* request handler: get_first_hits: required (leaf) */
-    virtual void handle__get_first_hits(string &Result, const char *Query, int TimeOut, int StartHitNo, int ResultLimit, const char *MinKey=NULL);
+    virtual void handle__get_first_hits(string &Result, const char *Query, int TimeOut, int ResultLimit, const NavHint& Hint);
 
     /* request handler: get_hit_strings: required (leaf) */
     virtual void handle__get_hit_strings(string &Result, const char *ResultType, int StartHitNo, int ResultLimit);
 
     /* request handler: run_query: required (branch) */
-    virtual void handle__run_query(string &Result, const char *CorpusName, const char *Query, const char *ResultType, int StartHitNo, int ResultLimit, int TimeOut);
+    virtual void handle__run_query(string &Result, const char *CorpusName, const char *Query, const char *ResultType, int StartHitNo, int ResultLimit, int TimeOut, const NavHint& Hint);
 
     /** request handler: expand_terms: required (leaf|branch) */
     virtual void handle__expand_terms(string &Result, const string& pipeline, const string& terms, int timeout, const string &corpus);
@@ -287,7 +284,9 @@ public:
 				     string& DocDistrib,
 				     string& HitsKey);
 
-    /** mid-level guts for handle__run_query() , context-queries only */
+    /** mid-level guts for handle__run_query() , context-queries only
+     *  \li updates runq.m_navKey and runq.m_navHint to point to the next available hit
+     */
     NetworkErrorsEnum GetHitContexts(CFirstHitsQueryResult& FHResult,
 				     const string& ResultType,
 				     DDCFormatTypeEnum ResultTypeE,
@@ -303,6 +302,7 @@ public:
     /** old guts for handle__run_query() phase 1 */
     void GetFirstHitsFromCorpora(const DwordVector& PossibleHosts,
 				 const string Query,
+				 const DWORD  StartHitNo,
 				 const DWORD  ResultLimit,
 				 const int    TimeOut,
 				 CFirstHitsQueryResult& Result);
@@ -315,7 +315,8 @@ public:
 						 int   TimeOut,
 						 SOCKET& CorpusSocket,
 						 int&    InternalError,
-						 string& Result);
+						 string& Result,
+						 string& ResultHint);
 
     /** heuristically extract user-specified subcorpora from ":CORPORA" clause of InputQuery, called by RunDistributed()
      * \li returns false only when a network error occurs

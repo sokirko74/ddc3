@@ -46,7 +46,7 @@ void PrintUsageAndExit()
 		 "Options:\n"
 		 "  -Start FROM                           # alias -From; default=0\n"
 		 "  -Limit LIMIT                          # default=10\n"
-		 "  -MinKey KEY                           # implicit key-based pruning\n"
+		 "  -Hint MINKEY                          # use navigation hint sort-key MINKEY\n"
 		 "  -ResultFormat TXT|HTML|TABLE|JSON     # default=TXT\n"
 		 "  -ProfileRun NITERS                    # none by default\n"
 		 "  -PrintProfile                         # print profile results\n"
@@ -111,7 +111,7 @@ int main(int argc, char* argv[])
 				ResultLimit = atoi(argv[i+1]);
 				i++;
 			}
-			else if (s_lo == "-minkey")
+			else if (s_lo == "-minkey" || s_lo == "-hint")
 			{
 				if (i+1 >= argc)
 					PrintUsageAndExit();

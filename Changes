@@ -1,35 +1,42 @@
 ##-*- Mode: Change-Log; coding: utf-8; -*-
 
-v2.1.9-pre1 Mon, 05 Mar 2018 11:29:54 +0100 moocow
+v2.1.9 Thu, 08 Mar 2018 15:28:09 +0100 moocow
 	* IndexSet.cpp lookup routines now throw an exception if MaxRegexpExpansionSize is exceeded
-	* navigation cache, bandwidth & memory optimizations (mantis bugs #662 and #24816)
-	  - added ConcordDmnLib/BranchNavCache.h
-	    + branch-server navigation cache for high-offset result-set "paging"
-	    + incorporated into BranchServer, CFirstHitsQueryResult (FHResult)
-	    + will probably NOT help much with "slow paging" scenario (user takes nap, makes coffee, etc.)
-	      ~ idea for future improvement: send generic full-depth "hints" in server responses, accept in requests,
-		and let client take care of hint-passing (e.g. via JavaScript, www server session cache, etc.)
-	  - added 4- and 5-argument forms for "get_first_hits" requests
-	    + set via branch-server navigation cache
-	    + used by leaf corpora for memory & bandwith optimization
-	    + not used by count queries
-	  - added result-set front-trimming in CConcSession::GetHits()/3
+	  - misleading old behavior just considered only the first MaxRegexpExpansionSize expansions
+	  - there is still no way to get non-fatal warnings passed through to the user via ddc_daemon protocol
+	* added support for full-depth "navigation hints" in ConcordLib/NavHint.(cpp|h)
+	  - NavHint: encodes local offset, all direct or indirect subcorpus offsets, and sort-key lower bound
+	  - NavHintKey: key for NavHintCache (query string + logical hit offset lower bound)
+	  - NavHintCache: lockable LRUCache<NavHintKey,NavHint>
+	* bandwidth & memory optimizations (mantis bugs #662 and #24816)
+	  - leaf: added result-set front-trimming in CConcSession::GetHits()/3
 	    + track number of trimmed hits in CConcSession::m_ResultOffset
-	  - added period-wise result-set front-trimming in CConcSession::GetAllHits()/3
+	  - leaf: added period-wise result-set front-trimming in CConcSession::GetAllHits()/3
 	    + not for count queries
-	    + use new CConcSession::m_ResultMinKey as a lower-bound "hint" in the presence of a non-trivial sort operator
+	    + use new CConcSession::m_ResultMinKey as a lower-bound hint in the presence of a non-trivial sort operator
 	    + added CConcSession::SortKeyLB() to backtranslate from string sort-keys to integers
 	    + added cruft template my_upper_bound() in CConcSession.cpp for trimming over descending sorts
-	  - improved period-wise back-trimming in CConcSession::GetAllHits()/3
+	  - leaf: improved period-wise back-trimming in CConcSession::GetAllHits()/3
 	    + use new CConcSession::m_ResultOffset and maybe even m_Hits.size() if applicable
+	  - branch: added shared NavHintCache (LRU, default size=512)
+	    + not for count queries
+	    + track lower-bound hints for high-offset "paging" (assuming basically linear progression)
+	  - request protocol: added optional HINT (NavHint) parameter to 'get_first_hits' and 'run_query' requests
+	    + not used by count queries
+	    + branch servers prefer user-supplied HINT if specified, otherwise attempts to use new server m_pNavCache
+	  - response protocol: added HINT component to 'get_hit_strings' and 'run_query' JSON output
+	    + propagate nested subcorpus offsets to ancestor branches, for cache maintainence and optional user hinting
 	* re-worked ddcConfigNoAuto.h generation a la gfsm (safer)
-	* added "get_first_hits" to branch-server m_noLogCommands for log-level < debug
+	* added "get_first_hits", "ddc_close_socket" to branch-server m_noLogCommands for log-level < debug
 	  - should greatly reduce log verbosity for "deep" branching server-trees
 	* disabled DDC_COUNT_KEY_COMPAT hacks introduced for ddc v2.0.38 transition (2015-05-20)
 	* update EndHitNo as output parameter in CConcSession::GetAllHits
 	  - fixes protocol bug "get_first_hits always returns HITUB=0"
 	  - needed for correct NavCache maintainence
-	* added server options NavCacheSize, VersionCompat
+	* added server option VersionCompat
+	  - really "transmission compatibility": influences messages *sent* by server to clients, daughters
+          - required e.g. for dwds c4 corpus, whose daughters would choke on HINTs
+	* added server option NavCacheSize
 
 v2.1.8 Fri, 02 Feb 2018 15:06:55 +0100 moocow
 	* added UNIX socket support for CCurl and TxCab classes
@@ -43,7 +50,7 @@ v2.1.8 Fri, 02 Feb 2018 15:06:55 +0100 moocow
 	* changed server 'status' memory reporting again
 	  - VmRSS is now once again returned as 'memkb' key (but really in kB)
 	  - VmSize and other data are parsed from /proc/PID/status (rather than /proc/PID/statm as before)
-	  - detailed memory usage is now returned in status 'vmstatus' key
+	  - detailed memory usage is now returned in status 'vmem' key
 	* fixes for flex v2.6.1
 
 v2.1.7 Wed, 10 Jan 2018 10:33:26 +0100 moocow

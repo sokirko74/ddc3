@@ -41,6 +41,16 @@ const time_t TheEndOfTheWorld = 0xffffffff;
 #endif
 
 //==============================================================================
+//#define DEBUG_HIT_TRIM 1
+#undef DEBUG_HIT_TRIM
+
+#if DEBUG_HIT_TRIM
+# define HIT_TRIM_DEBUG(x) x
+#else
+# define HIT_TRIM_DEBUG(x)
+#endif
+
+//==============================================================================
 //#define DEBUG_HIT_SORT 1
 #undef DEBUG_HIT_SORT
 
@@ -75,16 +85,6 @@ static void dumpHitIndex(const std::string& IndexLabel, const vector<size_t>& Hi
 			);
 	}
 }
-
-//==============================================================================
-//#define DEBUG_HIT_TRIM 1
-#undef DEBUG_HIT_TRIM
-
-#if DEBUG_HIT_TRIM
-# define HIT_TRIM_DEBUG(x) x
-#else
-# define HIT_TRIM_DEBUG(x)
-#endif
 
 //==============================================================================
 //! indirect comparison operator for hits on CHit::m_SortKey.i (for std::sort); replaces IsLessByHitOrderId .
@@ -1117,8 +1117,11 @@ DDCErrorEnum CConcSession::GenerateHitStrings(const int StartHitNo, bool UseAddi
 	m_QueryResultStr = "";
 	m_ErrorStr = "";
 
-	int beg = StartHitNo - m_ResultOffset;
-	int end = min (m_Hits.size(), StartHitNo - m_ResultOffset + m_ResultLimit);
+	if (StartHitNo < m_ResultOffset)
+		throw CExpc("GenerateHitStrings(): m_ResultOffset=%zd exceeds requested StartHitNo=%d", StartHitNo, m_ResultOffset);
+
+	int beg = StartHitNo                - m_ResultOffset;
+	int end = GetOffsetHint(StartHitNo) - m_ResultOffset;
 	for(DWORD HitNo=beg; HitNo<end; HitNo++ )
 	{
 		const int BreakNo = m_Hits[HitNo].m_BreakNo;
@@ -1777,6 +1780,18 @@ DDCErrorEnum CConcSession::GetAllHits(CQuery *QueryRoot, size_t Start, size_t Li
 		//-- keep track of total number of hits we've processed
 		m_AllHitsCount += PeriodHitsIndex.size();
 
+		//-- calculate m_RelevantDocumentCount if required
+		if (m_pIndexator->m_bShowNumberOfRelevantDocuments) {
+			size_t Count = PeriodHitsIndex.size();
+			for (size_t i=0; i <Count; i++) {
+				DWORD FileNo = qHits[ PeriodHitsIndex[i] ].m_FileNo;
+				if (!bFilesUses[ FileNo ]) {
+					bFilesUses[ FileNo ] = true;
+					m_RelevantDocumentCount++;
+				}
+			}
+		}
+		
 		//-- trim-front: trimming from *front* of period-local hits (v2.1.9: save memory for high-offset result pages)
 		//   + non-count queries only
 		//   + only meaningful for Start > 0
@@ -1806,8 +1821,8 @@ DDCErrorEnum CConcSession::GetAllHits(CQuery *QueryRoot, size_t Start, size_t Li
 				}
 
 				m_ResultOffset += TrimFrontOffset;
-				PeriodHitsIndex.erase(PeriodHitsIndex.begin(), PeriodHitsIndex.begin()+TrimFrontOffset); 
-				HIT_TRIM_DEBUG(ddcLogDebug(Format("TRIM-FRONT[period=%zd/%zd,ResultOffset=%zd,minKey=%d=`%s']: trimmed %zd/%zd hit(s)",
+				PeriodHitsIndex.erase(PeriodHitsIndex.begin(), PeriodHitsIndex.begin()+TrimFrontOffset);
+				HIT_TRIM_DEBUG(ddcLogDebug(Format("TRIM-FRONT[period=%zd/%zd,ResultOffset=%zd,minKey=%d=`%s']: trimmed %zd/%zd initial hit(s)",
 								  m_CurrentSearchPeriodNo,CountOfPeriods, m_ResultOffset, minKey.i, minKey.s.c_str(),
 								  TrimFrontOffset, (TrimFrontOffset+PeriodHitsIndex.size())))
 					       );
@@ -1818,7 +1833,7 @@ DDCErrorEnum CConcSession::GetAllHits(CQuery *QueryRoot, size_t Start, size_t Li
 		// + we add at most PeriodLimit hits to the global m_Hits[] array per corpus-period ("trim-back")
 		size_t PeriodLimit;
 		if (m_SortOrder==hsoNone) {
-			//-- trim-back: offset-based (no sort operators: we can consider all hits already computed by previous period-iterations)
+			//-- trim-back: offset-based (no sort operators: we can consider all hits already computed by this or previous period-iterations)
 			PeriodLimit = qLimit - min(qLimit,m_ResultOffset+m_Hits.size());
 		} else {
 			//-- trim-back: nontrivial sort (use m_ResultOffset to ignore all and only front-trimmed hits: we know they're all < ResultMinKey)
@@ -1830,12 +1845,12 @@ DDCErrorEnum CConcSession::GetAllHits(CQuery *QueryRoot, size_t Start, size_t Li
 		//   *but* we also need to keep m_HighlightOccurs[] aligned with m_Hits[]
 		// + current solution is full post-retrieval re-sort in calling method CConcSession::GetHits()
 		// + a native post-retrieval k-way merge with a min-heap would be even better, but would be a PITA
-		size_t Count = min(PeriodLimit, PeriodHitsIndex.size());
-		HIT_TRIM_DEBUG( ddcLogDebug(Format("TRIM-BACK[period=%zd/%zd,qLimit=%zd,ResultOffset=%zd,TrimFrontOffset=%zd,PeriodLimit=%zd,Count=%zd]: trimming %zd/%zd final hit(s)",
-						   m_CurrentSearchPeriodNo,CountOfPeriods, qLimit,m_ResultOffset, TrimFrontOffset,PeriodLimit,Count,
-						   PeriodHitsIndex.size()-Count, PeriodHitsIndex.size()
-						   )));
-		for (size_t i=0; i < Count; i++) {
+		size_t PeriodCount = min(PeriodLimit, PeriodHitsIndex.size());
+		HIT_TRIM_DEBUG( ddcLogDebug(Format("TRIM-BACK[period=%zd/%zd,qLimit=%zd,ResultOffset=%zd,TrimFrontOffset=%zd,PeriodLimit=%zd,PeriodCount=%zd]: trimming %zd/%zd final hit(s)",
+						  m_CurrentSearchPeriodNo,CountOfPeriods, qLimit,m_ResultOffset, TrimFrontOffset,PeriodLimit,PeriodCount,
+						  PeriodHitsIndex.size()-PeriodCount, PeriodHitsIndex.size()
+						  )));
+		for (size_t i=0; i < PeriodCount; i++) {
 			size_t  HitNo = PeriodHitsIndex[i];
 			const CHit &H = qHits[ HitNo ];
 				
@@ -1851,18 +1866,6 @@ DDCErrorEnum CConcSession::GetAllHits(CQuery *QueryRoot, size_t Start, size_t Li
 						      );
 			m_Hits.push_back(H);
 			m_Hits.back().m_HighlightOccurrenceEnd = m_HighlightOccurs.size();
-		}
-
-		// calculate m_RelevantDocumentCount if it is necessary
-		if (m_pIndexator->m_bShowNumberOfRelevantDocuments) {
-			size_t Count = PeriodHitsIndex.size();
-			for (size_t i=0; i <Count; i++) {
-				DWORD FileNo = qHits[ PeriodHitsIndex[i] ].m_FileNo;
-				if (!bFilesUses[ FileNo ]) {
-					bFilesUses[ FileNo ] = true;
-					m_RelevantDocumentCount++;
-				}
-			}
 		}
 
 
@@ -1911,6 +1914,28 @@ bool CConcSession::IsUniversalCountQuery(CQuery *QueryRoot) const
 	return (typeid(*QueryRoot) == typeid(CQCount) && ((CQCount*)QueryRoot)->CanCountUniversal());
 }
 
+//----------------------------------------------------------------------
+size_t CConcSession::GetOffsetHint(const size_t StartHitNo) const
+{
+	return min(m_ResultOffset+m_Hits.size(), StartHitNo+m_ResultLimit);
+}
+
+//----------------------------------------------------------------------
+string CConcSession::GetSortKeyHint(const size_t StartHitNo) const
+{
+	if (IsCountSort(m_SortOrder))
+		return string();
+
+	size_t HitNo = GetOffsetHint(StartHitNo);
+	HitNo       -= min(HitNo,m_ResultOffset);
+	if (HitNo==0)
+		return m_ResultMinKey; //-- we don't have any hits; propagate the last requested hint-key
+
+	if (m_bSortByString)
+		return m_Hits[HitNo-1].m_SortKey.s;
+	else
+		return int2hex(m_Hits[HitNo-1].m_SortKey.i);
+}
 
 //----------------------------------------------------------------------
 string CConcSession::GetHitIds()  const

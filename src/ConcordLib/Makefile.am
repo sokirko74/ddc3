@@ -19,10 +19,18 @@ include $(top_srcdir)/m4/lexyacc.am
 #lib_LTLIBRARIES = ${lib_1}.la ... ${lib_N}.la
 lib_LTLIBRARIES = libDDCConcord.la
 
+##-----------------------------------------------------------------------
+## debug
+
+#EXTRA_PROGRAMS = hintme
+#hintme_SOURCES = hintme.cc
+#hintme_LDADD = libDDCConcord.la ../CommonLib/libDDCCommon.la
+
 ##======================================================================
 ## sources
 
 libDDCConcord_la_SOURCES = \
+ NavHint.h NavHint.cpp \
  LRUCache.h \
  CCurl.cpp CCurl.h \
  TermExpander.cpp TermExpander.h \

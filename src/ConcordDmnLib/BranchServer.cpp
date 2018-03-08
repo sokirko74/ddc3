@@ -1,4 +1,4 @@
-//-*- Mode: C++; c-basic-offset:8; -*-
+//-*- Mode: C++; c-basic-offset:4; -*-
 //
 //  DDC originally by Alexey Sokirko
 //  Changes and modifications 2011-2018 by Bryan Jurish
@@ -30,14 +30,7 @@
 //#define DEBUG_SERVER_THREADS 1
 #undef DEBUG_SERVER_THREADS
 
-//#define DEBUG_NAVCACHE 1
-#undef DEBUG_NAVCACHE
-
-#ifdef DEBUG_NAVCACHE
-# define NAVCACHE_DEBUG(x) x
-#else
-# define NAVCACHE_DEBUG(x)
-#endif
+#define DEEP_HINTS 1
 
 //==============================================================================
 // CFirstHitsQueryResult
@@ -54,7 +47,6 @@ void CFirstHitsQueryResult::Clear()
     m_NetworkError = neSuccess;
     ClearVector(m_Hits);
     m_Sockets.clear();
-    m_NavHint.clear(m_NavHint.m_Offsets.size());
     m_Offset = 0;
 }
 
@@ -109,16 +101,18 @@ void CFirstHitsQueryResult::CollectCounts()
 }
 
 //----------------------------------------------------------------------
-void CFirstHitsQueryResult::UpdateNavHint()
+#if 0
+void CFirstHitsQueryResult::UpdateNavHintKey()
 {
     //-- ssanity check
     if (m_Hits.size() == 0) return;
 
     //-- update: sort key
-    BranchNavHint& hint=m_NavHint;
+    NavHint& hint = m_NavHint;
     if (m_SortOrder != hsoNone)
 	hint.m_SortKey = m_Hits.back().m_SortKeyStr;
 
+#ifndef DEEP_HINTS
     //-- update: per-subcorpus offsets
     size_t          nSubs=hint.m_Offsets.size(), nSeenSubs=0;
     vector<bool> seenSubs(nSubs, false);
@@ -129,7 +123,9 @@ void CFirstHitsQueryResult::UpdateNavHint()
 	seenSubs[hi->m_HostNo]       = true;
 	++nSeenSubs;
     }
+#endif
 }
+#endif //-- if 0
 
 //==============================================================================
 // CDDCBranchServer: constructors etc
@@ -150,11 +146,12 @@ CDDCBranchServer::CDDCBranchServer(bool master)
 	m_noLogCommands.insert("vinfo");
 	m_noLogCommands.insert("get_first_hits");
 	m_noLogCommands.insert("get_hit_strings");
+	m_noLogCommands.insert("ddc_close_socket");
     }
 
     //-- initialize navigation cache (master only; capacity will typically be overridden by server options)
     if (master) {
-	m_pNavCache = new BranchNavCache(DDC_DEFAULT_NAV_CACHE_CAPACITY);
+	m_pNavCache = new NavHintCache(DDC_DEFAULT_NAV_HINT_CACHE_CAPACITY);
     } else {
 	m_pNavCache = NULL;
     }
@@ -211,7 +208,7 @@ void CDDCBranchServer::WorkerCloneFree(void)
 // CRunQueryData
 
 //----------------------------------------------------------------------
-void CRunQueryData::Init(const string & _Query, const string& _ResultFormat, int _Start, int _Limit, int _TimeOut, string *_pErrorStr)
+void CRunQueryData::Init(const string & _Query, const string& _ResultFormat, int _Start, int _Limit, int _TimeOut, string *_pErrorStr, const NavHint& _Hint)
 {
     Clear();
     sQuery = _Query;
@@ -223,6 +220,9 @@ void CRunQueryData::Init(const string & _Query, const string& _ResultFormat, int
 
     Trim(sQuery);
     Trim(sResultFormat);
+
+    navKey.assign(sQuery,StartHitNo);
+    navHint = _Hint;
 }
 			 
 //----------------------------------------------------------------------
@@ -244,16 +244,17 @@ void CRunQueryData::Clear()
     HitsKey = "hits_";
     ClearString(ResponseBody);
     pErrorStr = NULL;
+    navKey.clear();
+    navHint.clear();
 }
 
 //----------------------------------------------------------------------
-void CRunQueryData::toString(string &Response, size_t WorkerId)
+void CRunQueryData::toString(string &Response, size_t WorkerId, const DDCVersionT& vCompat)
 {
     if (CConcSession::GetResultFormatByString(sResultFormat) == DDC_ResultJson) {
 	Response = (string("{")
 		    + Format("\"istatus_\":%i", iInternalError)
 		    + Format(",\"nstatus_\":%i", iNetworkError)
-		    
 		    /*-- moo: this formatting works, but doesn't do anything useful (bogus error code 32 for parse error?)*/
 		    /*
 		      + "\"istatus_\":" + jsonStr(Format("%i %s", InternalError, GetDDCErrorString((DDCErrorEnum)InternalError).c_str()))
@@ -269,6 +270,9 @@ void CRunQueryData::toString(string &Response, size_t WorkerId)
 #if DEBUG_SERVER_THREADS
 		    + ",\"worker_\":" + Format("%zu", WorkerId)
 #endif
+		    + (vCompat >= DDCVersionT(2,1,9)
+		       ? (string(",\"hint_\":") + jsonStr(navHint.toString()))
+		       : "")
 		    + ",\"" + HitsKey + "\":[\n" + ResponseBody
 		    + "\n]}");
     }
@@ -313,21 +317,23 @@ bool CDDCBranchServer::CloseDtr(SOCKET& rConnectedSocket, bool linger, int timeo
 // CDDCBranchServer: handlers
 
 //----------------------------------------------------------------------
-void CDDCBranchServer::handle__get_first_hits(string &Result, const char *Query, int TimeOut, int StartHitNo, int ResultLimit, const char *MinKey)
+void CDDCBranchServer::handle__get_first_hits(string &Result, const char *Query, int TimeOut, int ResultLimit, const NavHint& Hint)
 {
     CRunQueryData &runq = m_QueryData;
     CFirstHitsQueryResult& FHResult = m_FHResult;
-    runq.Init(Query, "", 0, ResultLimit, TimeOut, &m_ErrorStr); //-- we may need the NavCache to initialize here!
+    runq.Init(Query, "", Hint.m_Offset, ResultLimit, TimeOut, &m_ErrorStr, Hint);
 
     NetworkErrorsEnum rc = RunGetFirstHits();
     CheckFirstHitsResult(rc);
     
     //-- adapted from CDDCLeafServer::handle__get_first_hits(), CConcSession::GetHitIds()
     Result = Format ("%i %i %i %i %i", FHResult.m_InternalError, runq.EndHitNo, FHResult.m_AllHitsCount, FHResult.m_AllRelevantDocsCount, FHResult.m_SortOrder);
+    char buf[32];
     if (IsCountSort(FHResult.m_SortOrder)) {
 	//-- count-query requires special formatting, but can return immediately
 	for (vector<CHitToSort>::const_iterator hi=FHResult.m_Hits.begin(); hi != FHResult.m_Hits.end(); ++hi) {
-	    Result += Format("\t%zd -0 ", hi->m_HitNo); //-- hi->m_HitNo is really the hit-count
+	    sprintf(buf, "\t$zd -0 ", hi->m_HitNo); //-- hi->m_HitNo is really the hit-count
+	    Result += buf;
 	    Result += hi->m_SortKeyStr;
 	}
 	m_bExpectMore = false;
@@ -335,7 +341,8 @@ void CDDCBranchServer::handle__get_first_hits(string &Result, const char *Query,
     else {
 	//-- context query: just return hit keys
         for (size_t i=0; i < FHResult.m_Hits.size(); ++i) {
-	    Result += Format("\t%zd -0 ", i); //-- v2.1.9: HOW TO DETERMINE REAL HIT OFFSET HERE (+/- navCache?)
+	    sprintf(buf, "\t%zd -0 ", i+FHResult.m_Offset);
+	    Result += buf;
 	    Result += FHResult.m_Hits[i].m_SortKeyStr;
 	}
 	m_bExpectMore = true;
@@ -364,13 +371,17 @@ void CDDCBranchServer::handle__get_hit_strings(string &Result, const char *Resul
     runq.ResultLimit   = ResultLimit;
 
     //-- re-trim FHResult hits (in case get_hit_strings is requesting fewer hits than get_first_hits did)
-    if (runq.StartHitNo+runq.ResultLimit < FHResult.m_Hits.size())
-	FHResult.m_Hits.erase(FHResult.m_Hits.begin()+runq.StartHitNo+runq.ResultLimit, FHResult.m_Hits.end());
+    if (runq.StartHitNo+runq.ResultLimit < FHResult.m_Offset+FHResult.m_Hits.size())
+	FHResult.m_Hits.erase(FHResult.m_Hits.begin()+runq.StartHitNo+runq.ResultLimit-FHResult.m_Offset, FHResult.m_Hits.end());
     
-    if (runq.StartHitNo < FHResult.m_Hits.size())
-	FHResult.m_Hits.erase(FHResult.m_Hits.begin(), FHResult.m_Hits.begin()+runq.StartHitNo);
-    else
+    if (runq.StartHitNo < FHResult.m_Offset+FHResult.m_Hits.size()) {
+	FHResult.m_Hits.erase(FHResult.m_Hits.begin(), FHResult.m_Hits.begin()+runq.StartHitNo-FHResult.m_Offset);
+	FHResult.m_Offset = runq.StartHitNo;
+    }
+    else {
 	FHResult.m_Hits.clear();
+	FHResult.m_Offset = FHResult.m_AllHitsCount;
+    }
 
     //-- get full string form of selected hits
     DDCFormatTypeEnum ResultTypeE = CConcSession::GetResultFormatByString(runq.sResultFormat);
@@ -381,6 +392,7 @@ void CDDCBranchServer::handle__get_hit_strings(string &Result, const char *Resul
 	runq.HitsCount = FHResult.m_AllHitsCount;
 	FHResult.m_HitsDistributionStr.insert(FHResult.m_HitsDistributionStr.size()-2, Format("~%d", runq.HitsCount));
 	runq.HitsKey = "counts_";
+	runq.navHint.clear();
     } else {
 	//-- context-query must retrieve full hit strings
 	GetHitContexts(FHResult, runq.sResultFormat, ResultTypeE, runq.PossibleHosts, runq.iInternalError, runq.TimeOut, runq.ResponseBody);
@@ -402,7 +414,16 @@ void CDDCBranchServer::handle__get_hit_strings(string &Result, const char *Resul
 	//-- JSON mode: munge in JSON syntax
 	StringTokenizer tok(runq.ResponseBody.c_str(), "\n");
 	Result.reserve(6+runq.ResponseBody.size()+FHResult.m_Hits.size());
-	Result = "0\x01[";
+
+	Result = "0";
+	if (m_VersionCompat >= DDCVersionT(2,1,9)) {
+	    //-- compat >= v2.1.9: include local offset hint
+	    Result.push_back(' ');
+	    Result += runq.navHint.toString(false);
+	    Result.push_back('\n');
+	}
+	Result += "\x01[";
+
 	while (tok()) {
 	    string s(tok.val());
 	    size_t p0 = s.find ('{', 0);
@@ -431,15 +452,25 @@ void CDDCBranchServer::handle__get_hit_strings(string &Result, const char *Resul
     runq.DocDistrib = FHResult.m_RelevantDocsDistributionStr.substr(32,FHResult.m_RelevantDocsDistributionStr.size()-34);
     runq.EndHitNo   = runq.StartHitNo + FHResult.m_Hits.size();
     runq.iNetworkError = neSuccess;
+
+    //-- update nav cache
+    if (m_pNavCache && !IsCountSort(FHResult.m_SortOrder)) {
+	m_pNavCache->insert(runq.navKey, runq.navHint);
+	NAVCACHE_DEBUG(
+		       ddcLogDebug(Format("NAVCACHE: FHR.Offset=%zd ; FHR.nHits=%zd", FHResult.m_Offset, FHResult.m_Hits.size()));
+		       ddcLogDebug(Format("NAVCACHE: updated Key=%s => Hint=%s", runq.navKey.toJson().c_str(), runq.navHint.toJson().c_str()));
+		       ddcLogDebug(string("NAVCACHE: cache=") + m_pNavCache->toJson());
+		      );
+    }
     
     m_bExpectMore = false;
 }
 
 //----------------------------------------------------------------------
-void CDDCBranchServer::handle__run_query(string &Result, const char *CorpusName, const char *Query, const char *ResultType, int StartHitNo, int ResultLimit, int TimeOut)
+void CDDCBranchServer::handle__run_query(string &Result, const char *CorpusName, const char *Query, const char *ResultType, int StartHitNo, int ResultLimit, int TimeOut, const NavHint &Hint)
 {
     CRunQueryData& runq = m_QueryData;
-    runq.Init(Query, ResultType, StartHitNo, ResultLimit, TimeOut, &m_ErrorStr);
+    runq.Init(Query, ResultType, StartHitNo, ResultLimit, TimeOut, &m_ErrorStr, Hint);
     
     if ( runq.sQuery.empty() )
 	throw CExpc(errParseError, "CDDCBranchServer::handle__run_query(): cannot parse empty query string");
@@ -538,6 +569,7 @@ void CDDCBranchServer::handle__status(string &Result, int timeout, bool verbose)
     Result = (string("{\n")
 	      + "\"name\":" + jsonStr(m_CorpusName) + ",\n"
 	      + "\"version\":" + jsonStr(PACKAGE_VERSION) + ",\n"
+	      + "\"compat\":" + jsonStr(m_VersionCompat.str()).c_str() + ",\n"
 	      + "\"hostname\":" + jsonStr(m_FQHostName) + ",\n"
 	      + "\"hostaddr\":" + jsonStr(m_HostAddr) + ",\n"
 	      + "\"port\":" + Format("%d", m_Port) + ",\n"
@@ -554,7 +586,7 @@ void CDDCBranchServer::handle__status(string &Result, int timeout, bool verbose)
 	      + "\"vmem\":" + Format("{\"peak\":%zd,\"size\":%zd,\"hwm\":%zd,\"rss\":%zd,\"data\":%zd,\"stk\":%zd,\"exe\":%zd,\"lib\":%zd,\"swap\":%zd}",
 				     pms.VmPeak, pms.VmSize, pms.VmHWM, pms.VmRSS, pms.VmData, pms.VmStk, pms.VmExe, pms.VmLib, pms.VmSwap) + ",\n"
 #ifdef DEBUG_NAVCACHE
-	      + "\"navcache\":" + (m_pNavCache ? m_pNavCache->toString() : "null") + ",\n"
+	      + "\"navcache\":" + (m_pNavCache ? m_pNavCache->toJson() : "null") + ",\n"
 #endif
 	      + "\"corpora\":" + subResult + "}\n"
 	      );
@@ -626,7 +658,7 @@ void CDDCBranchServer::RunDistributed()
     DDCTimeHiRes t0 = DDCTimeHiRes::Now();
     
     //-- get hit sort-keys and trim to selected range
-    NetworkErrorsEnum rc = RunGetFirstHits();
+    NetworkErrorsEnum rc = RunGetFirstHits(); //-- runq.navHint should already have been initialized
     CheckFirstHitsResult(rc);
     
     //-- check timeout
@@ -650,6 +682,7 @@ void CDDCBranchServer::RunDistributed()
 	runq.HitsCount = FHResult.m_AllHitsCount;
 	FHResult.m_HitsDistributionStr.insert(FHResult.m_HitsDistributionStr.size()-2, Format("~%d", runq.HitsCount));
 	runq.HitsKey = "counts_";
+	runq.navHint.clear();
     } else {
 	//-- context-query must retrieve full hit strings
 	GetHitContexts(FHResult, runq.sResultFormat, ResultTypeE, runq.PossibleHosts, runq.iInternalError, runq.TimeOut, runq.ResponseBody);
@@ -666,7 +699,17 @@ void CDDCBranchServer::RunDistributed()
     runq.HitDistrib = FHResult.m_HitsDistributionStr.substr(21,FHResult.m_HitsDistributionStr.size()-23);
     runq.DocDistrib = FHResult.m_RelevantDocsDistributionStr.substr(32,FHResult.m_RelevantDocsDistributionStr.size()-34);
     runq.EndHitNo   = runq.StartHitNo + FHResult.m_Hits.size();
-    
+
+    //-- update nav cache
+    if (m_pNavCache && !IsCountSort(FHResult.m_SortOrder)) {
+	m_pNavCache->insert(runq.navKey, runq.navHint);
+	NAVCACHE_DEBUG(
+		       ddcLogDebug(Format("NAVCACHE: FHR.Offset=%zd ; FHR.nHits=%zd", FHResult.m_Offset, FHResult.m_Hits.size()));
+		       ddcLogDebug(Format("NAVCACHE: updated Key=%s => Hint=%s", runq.navKey.toJson().c_str(), runq.navHint.toJson().c_str()));
+		       ddcLogDebug(string("NAVCACHE: cache=") + m_pNavCache->toJson());
+		      );
+    }
+
     runq.iNetworkError = neSuccess;
 }
 
@@ -719,19 +762,16 @@ NetworkErrorsEnum CDDCBranchServer::RunGetFirstHits()
     runq.EndHitNo = 0;
     runq.HitsCount = 0;
     runq.ResponseBody = "";
-
-    //-- try to grab navigation hint from cache (on failure, hint.M_SortKey=="" && hint.m_Offsets[i]==0 for all i)
     FHResult.Clear();
-    BranchNavKey NavKey(CleanQuery,runq.StartHitNo);
-    if (m_pNavCache) {
-	m_pNavCache->lower_bound(FHResult.m_NavHint, NavKey, m_Hosts.size());
-    } else {
-	FHResult.m_NavHint.clear(m_Hosts.size());
+
+    //-- get cached navigation hint if available and not supplied by user
+    if (runq.navHint.empty() && m_pNavCache) {
+	m_pNavCache->lower_bound(runq.navHint, runq.navKey);	//-- navigation hint: from cache
     }
-    NAVCACHE_DEBUG(ddcLogDebug(Format("initialized NavHint=%s", FHResult.m_NavHint.toString().c_str())));
+    NAVCACHE_DEBUG(ddcLogDebug(Format("initialized runq.navHint=%s", runq.navHint.toJson().c_str())));
 
     //-- read first StartHitNo+ResultLimit hits from each host and store them to FHResult.m_Hits
-    GetFirstHitsFromCorpora(runq.PossibleHosts, CleanQuery, runq.StartHitNo+runq.ResultLimit, runq.TimeOut, FHResult);
+    GetFirstHitsFromCorpora(runq.PossibleHosts, CleanQuery, runq.StartHitNo, runq.ResultLimit, runq.TimeOut, FHResult);
     runq.HitsCount = FHResult.m_AllHitsCount;
     runq.RelevantDocsCount = FHResult.m_AllRelevantDocsCount;
     runq.iInternalError = FHResult.m_InternalError;
@@ -783,18 +823,7 @@ NetworkErrorsEnum CDDCBranchServer::RunGetFirstHits()
     }
     else {
 	FHResult.m_Hits.clear();
-    }
-
-    //-- update navigation cache if available (non-count() queries only?)
-    if (m_pNavCache && !FHResult.m_Hits.empty() && !IsCountSort(FHResult.m_SortOrder)) {
-	FHResult.UpdateNavHint();
-	NavKey.m_HitNo = FHResult.m_Offset + FHResult.m_Hits.size();
-	m_pNavCache->insert(NavKey, FHResult.m_NavHint);
-	NAVCACHE_DEBUG(
-		       ddcLogDebug(Format("NAVCACHE: FHR.Offset=%zd ; FHR.nHits=%zd", FHResult.m_Offset, FHResult.m_Hits.size()));
-		       ddcLogDebug(Format("NAVCACHE: updated Key=%s => Hint=%s", NavKey.toString().c_str(), FHResult.m_NavHint.toString().c_str()));
-		       ddcLogDebug(string("NAVCACHE: cache=") + m_pNavCache->toString());
-		       );
+	FHResult.m_Offset = FHResult.m_AllHitsCount;
     }
 
 #ifdef DEBUG_HIT_SORT
@@ -803,6 +832,9 @@ NetworkErrorsEnum CDDCBranchServer::RunGetFirstHits()
     }
 #endif
 
+    //-- update runq.EndHitNo for get_first_hits requests
+    runq.EndHitNo = runq.StartHitNo + FHResult.m_Hits.size();
+    
     return (NetworkErrorsEnum)runq.iNetworkError;
 }
 
@@ -867,6 +899,14 @@ NetworkErrorsEnum CDDCBranchServer::GetHitContexts(CFirstHitsQueryResult& FHResu
     for (size_t i=0; i < FHResult.m_Hits.size(); i++)
 	SortedHits[FHResult.m_Hits[i].m_HostNo].push_back(i);
 
+    // navHint caching
+    CRunQueryData &runq   = m_QueryData;
+    runq.navKey.m_HitNo   = min(FHResult.m_Offset+FHResult.m_Hits.size(), (size_t)FHResult.m_AllHitsCount);
+    runq.navHint.m_Offset = runq.navKey.m_HitNo;
+    runq.navHint.m_DtrHints.resize(m_Hosts.size());
+    if (FHResult.m_Hits.size() > 0)
+	runq.navHint.m_SortKey = FHResult.m_Hits.back().m_SortKeyStr;
+    NAVCACHE_DEBUG( ddcLogDebug(Format("GetHitContexts(): FHR.Off=%zd + FHR.size=%zd --> navKey.HitNo=%zd", FHResult.m_Offset, FHResult.m_Hits.size(), runq.navKey.m_HitNo)) );
 
     // get strings from the hosts:
     //   Results[HostNo] - contains all hit strings in the right order
@@ -875,13 +915,15 @@ NetworkErrorsEnum CDDCBranchServer::GetHitContexts(CFirstHitsQueryResult& FHResu
 	BYTE HostNo = PossibleHosts[i]; 
 
 	const vector<int>&  V = SortedHits[HostNo];
-	string S;
+	string S, dtrHint;
 	size_t FirstHitNo = (V.empty()) ? 0 : FHResult.m_Hits[V[0]].m_HitNo;
 	InternalError = errNone;
 	NetworkErrorsEnum Res = GetHitStringsFromOneCorpus
-	    (m_Hosts[HostNo], ResultType, FirstHitNo, V.size(), TimeOut,FHResult.m_Sockets[i], InternalError, S);
+	    (m_Hosts[HostNo], ResultType, FirstHitNo, V.size(), TimeOut,FHResult.m_Sockets[i], InternalError, S, dtrHint);
 
-
+	NAVCACHE_DEBUG(ddcLogDebug(Format("GetHitContexts[host=%d]: Hint=`%s'", HostNo, dtrHint.c_str())));
+	if (!dtrHint.empty()) runq.navHint.m_DtrHints[HostNo].swap(dtrHint);
+	    
 	if (FHResult.HasErrors()) {
 	    FHResult.CloseSockets();
 	    m_ErrorStr = FHResult.m_ErrorStr;
@@ -917,7 +959,7 @@ NetworkErrorsEnum CDDCBranchServer::GetHitContexts(CFirstHitsQueryResult& FHResu
 	    };
     };
 
-    // create m_QueryResultStr
+    //-- populate ResultString
     for (size_t i=0; i < FHResult.m_Hits.size(); i++) {
 	BYTE HostNo = FHResult.m_Hits[i].m_HostNo;
 	const vector<int>&  V = SortedHits[HostNo];
@@ -940,10 +982,13 @@ NetworkErrorsEnum CDDCBranchServer::GetHitContexts(CFirstHitsQueryResult& FHResu
 //----------------------------------------------------------------------
 void CDDCBranchServer::GetFirstHitsFromCorpora(const DwordVector& PossibleHosts,
 					       const string Query,
+					       const DWORD  StartHitNo,
 					       const DWORD  ResultLimit,
 					       const int    TimeOut,
 					       CFirstHitsQueryResult& Result)
 {
+    	CRunQueryData &runq = m_QueryData; //-- for navigation hints
+	
 	Result.m_Sockets.resize(PossibleHosts.size(),-1);
 	Result.m_AllHitsCount = 0;
 	Result.m_AllRelevantDocsCount = 0;
@@ -952,10 +997,13 @@ void CDDCBranchServer::GetFirstHitsFromCorpora(const DwordVector& PossibleHosts,
 	Result.m_SortOrder = hsoNone;
 	Result.m_ErrorStr = "";
 
-	//-- nav-caching
+	//-- nav-hints
 	bool compat_ge_v2_1_9 = (m_VersionCompat >= DDCVersionT(2,1,9)); //-- can we use v2.1.9 get_first_hits syntax?
-	const BranchNavHint& Hint = Result.m_NavHint;
-	size_t HintOffset         = Hint.OffsetTotal();
+	const NavHint& Hint   = runq.navHint;
+	size_t HintOffset     = Hint.OffsetTotal();
+	if (StartHitNo < HintOffset)
+	    throw CExpc("bizarre hint OffsetTotal=%zd exceeds requested StartHitNo=%d", HintOffset, StartHitNo);
+	NAVCACHE_DEBUG(ddcLogDebug(Format("-> got HintOffset=%zd", HintOffset)));
 
 	for (int i=0; i<PossibleHosts.size(); i++)	
 	{
@@ -969,16 +1017,19 @@ void CDDCBranchServer::GetFirstHitsFromCorpora(const DwordVector& PossibleHosts,
 			return;
 		};
 
+		const char *dtrHintStr = Hint.DtrHint(HostNo);
 		string Req;
 		if (compat_ge_v2_1_9) {
 		    //-- compat >= v2.1.9: use NavCache hints for get_first_hits requests to daughter subcorpora
-		    size_t StartHitNo  = HostNo < Hint.m_Offsets.size() ? Hint.m_Offsets[HostNo] : 0;
-		    size_t CorpusLimit = ResultLimit - min((size_t)ResultLimit,max(StartHitNo,HintOffset));
-		    Req = Format("get_first_hits %s\x01%i %zi %zi %s",
-				 Query.c_str(), TimeOut, StartHitNo, CorpusLimit, Hint.m_SortKey.c_str());
+		    char *dtrHintTail;
+		    size_t dtrStart = strtoul(dtrHintStr,&dtrHintTail,0);
+		    size_t dtrLimit = StartHitNo + ResultLimit - HintOffset;
+		    //size_t dtrLimit = ResultLimit + (StartHitNo-min((size_t)StartHitNo,dtrStart));
+		    //size_t dtrLimit = ResultLimit - min((size_t)ResultLimit,max(dtrStart,HintOffset));
+		    Req = Format("get_first_hits %s\x01%i %zi %zd%s %s", Query.c_str(), TimeOut, dtrLimit, dtrStart,dtrHintTail, Hint.m_SortKey.c_str());
 		} else {
-		    //-- compat <= v2.1.8: use old get_first_hits syntax (highway-painting algorithm)
-		    Req = Format ("get_first_hits %s\x01%i %i", Query.c_str(), TimeOut,  ResultLimit);
+		    //-- compat <  v2.1.9: use old get_first_hits syntax (highway-painting algorithm)
+		    Req = Format ("get_first_hits %s\x01%i %i", Query.c_str(), TimeOut,  StartHitNo+ResultLimit);
 		}
 		    
 		string ErrorStr;
@@ -1091,7 +1142,7 @@ void CDDCBranchServer::GetFirstHitsFromCorpora(const DwordVector& PossibleHosts,
 			}
 		}
 
-		//-- update logical result offset
+		//-- update logical result offset of m_Hits[]
 		if (!isCountResult) {
 			Result.m_Offset += (subcorpusHitOffset < Result.m_Hits.size()
 					    ? Result.m_Hits[subcorpusHitOffset].m_HitNo
@@ -1133,7 +1184,8 @@ NetworkErrorsEnum CDDCBranchServer::GetHitStringsFromOneCorpus(CHost& Host,
 							       int   TimeOut,
 							       SOCKET& CorpusSocket,
 							       int&    InternalError,
-							       string& Result)
+							       string& Result,
+							       string& ResultHint)
 {
 	string ErrorStr;
 	if (CorpusSocket == -1)
@@ -1170,21 +1222,29 @@ NetworkErrorsEnum CDDCBranchServer::GetHitStringsFromOneCorpus(CHost& Host,
 		return Res;
 	};
 
-	//InternalError EndHitNo Result	
-	int z = S.find('\x01');
-	if ( (z == -1) || (z == 0) ) 
+	//InternalError OffsetHint? Result	
+	size_t dataPos = S.find('\x01');
+	if ( (dataPos == string::npos) || (dataPos == 0) ) 
 	{
 		return neProtocolError;
 	};
 
-	Result = S.substr(z+1);
-	S.erase(z, S.length() - z);
-	int iInternalError;
-	if(sscanf(S.c_str(), "%i", &iInternalError) != 1)
+	Result = S.substr(dataPos+1);
+	S.erase(dataPos, S.length() - dataPos);
+	int iInternalError, hintPos;
+	if(sscanf(S.c_str(), "%i%n", &iInternalError, &hintPos) != 1)
 	{
 		return neProtocolError;
 	};
 	InternalError = (DDCErrorEnum)iInternalError;
+
+	//-- parse hint
+	ResultHint.clear();
+	if (hintPos < dataPos) {
+	    NavHint dtrHint(S.substr(hintPos,dataPos-hintPos));
+	    ResultHint = dtrHint.toString(false);
+	}
+	
 
 	return neSuccess;
 }

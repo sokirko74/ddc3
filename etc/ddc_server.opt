@@ -15,7 +15,7 @@ ThreadQueueSize		256
 
 StatsWindow		10
 
-#NavCacheSize		3
+NavCacheSize		3
 
 # compat <= v2.1.8: disable navcache hints for 'get_first_hits' requests sent by server (4- and 5-argument forms of 'get_first_hits')
 #VersionCompat		2.1.8

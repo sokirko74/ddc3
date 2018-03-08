@@ -23,6 +23,7 @@
 
 #include "ConcIndexator.h"
 #include "QueryResult.h"
+#include "NavHint.h"
 #include "ddcRandom.h"
 
 //==============================================================================
@@ -295,6 +296,12 @@ public:
 	//! \li respects m_ResultOffset (generates strings for m_Hits[StartHitNo-m_ResultOffset .. StartHitNo-m_ResultOffset+m_ResultLimit-1])
 	//! \param StartHitNo logical offset of 1st count-hit
 	DDCErrorEnum	GenerateCountStrings(const int StartHitNo, bool UseAdditionalHitDelimiter=true);
+
+	//! get offset-hint appropriate for next page (after GenerateHitStrings()); used by CDDCLeafServer
+	size_t GetOffsetHint(const size_t StartHitNo) const;
+
+	//! get sortkey-hint appropriate for next page (after GenerateHitStrings()); used by CDDCLeafServer
+	string GetSortKeyHint(const size_t StartHitNo) const;
 
 	//! stores sort-keys (CHit::m_SortKey) of current m_Hits to a string
 	//! \li adds m_ResultOffset to reported (logical) hit offsets

@@ -28,14 +28,12 @@ libDDCConcordDmn_la_SOURCES = \
  Server.cpp Server.h \
  LeafServer.cpp LeafServer.h \
  BranchServer.cpp BranchServer.h \
- BranchNavCache.h \
  Morphan.cpp Morphan.h \
  Corpora.cpp Corpora.h
 
 
 noinst_HEADERS = \
  BranchServer.h \
- BranchNavCache.h \
  Corpora.h \
  LeafServer.h \
  Morphan.h \
@@ -47,10 +45,10 @@ noinst_HEADERS = \
 ##-----------------------------------------------------------------------
 ## debug
 
-#EXTRA_PROGRAMS = vertest
-#vertest_SOURCES = vertest.cc
-#vertest_LDADD = libDDCConcordDmn.la ../ConcordLib/libDDCConcord.la ../CommonLib/libDDCCommon.la
-##vertest_LDADD = libDDCConcordDmn.la
+#EXTRA_PROGRAMS = hintme
+#hintme_SOURCES = hintme.cc
+#hintme_LDADD = libDDCConcordDmn.la ../ConcordLib/libDDCConcord.la ../CommonLib/libDDCCommon.la
+##hintme_LDADD = libDDCConcordDmn.la
 
 ##-----------------------------------------------------------------------
 ## special rules

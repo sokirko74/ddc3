@@ -72,20 +72,24 @@ bool CDDCLeafServer::Close(SOCKET& rConnectedSocket, bool linger, int timeout)
 // CDDCLeafServer: DDCServer API: request handlers
 
 //----------------------------------------------------------------------
-void CDDCLeafServer::handle__get_first_hits(string &Result, const char *Query, int TimeOut, int StartHitNo, int ResultLimit, const char *MinKey)
+void CDDCLeafServer::handle__get_first_hits(string &Result, const char *Query, int TimeOut, int ResultLimit, const NavHint& Hint)
 {
     assert(m_pHolder != NULL);
     m_pHolder->SetTimeOut(TimeOut);
-    m_pHolder->m_ResultLimit = ResultLimit;
-    m_pHolder->m_ResultMinKey = MinKey ? MinKey : "";
+    m_pHolder->m_ResultLimit  = ResultLimit;
+    m_pHolder->m_ResultMinKey = Hint.m_SortKey;
 
-    DWORD EndHitNo = StartHitNo;
-    int Error = m_pHolder->GetHits(Query, EndHitNo);
+    NAVCACHE_DEBUG( ddcLogDebug(Format("DEBUG: get_first_hits: got Hint=%s", Hint.toJson().c_str())) );
+
+    DWORD EndHitNo = Hint.m_Offset;
+    int Error      = m_pHolder->GetHits(Query, EndHitNo);
     if (Error != errNone)
 	throw CExpc(Error, m_pHolder->m_ErrorStr.empty() ? GetDDCErrorString((DDCErrorEnum)Error) : m_pHolder->m_ErrorStr); //-- error
     Result  = Format ("%i %i %i %i %i", Error, EndHitNo, m_pHolder->m_AllHitsCount, m_pHolder->m_RelevantDocumentCount, m_pHolder->HitSortOrder());
     Result += m_pHolder->GetHitIds();
 
+    NAVCACHE_DEBUG( ddcLogTrace(Format("get_first_hits[HintOffset=%d]: %s", Hint.m_Offset, Result.c_str())) );
+    
     if (IsCountSort(m_pHolder->HitSortOrder()))
 	m_bExpectMore = false;
     else
@@ -109,7 +113,15 @@ void CDDCLeafServer::handle__get_hit_strings(string &Result, const char *ResultT
 	    if (m_pHolder->m_ResultLimit > 0)
 		m_pHolder->m_QueryResultStr = "no entries found";
     }
-    Result = Format ("%i\x01", Error);
+    if (m_VersionCompat < DDCVersionT(2,1,9)) {
+	//-- compat <  v2.1.9: suppress local offset hint
+	Result = Format("%i", Error);
+    } else {
+	//-- compat >= v2.1.9: include local offset hint
+	Result = Format("%i %zd\n", Error, m_pHolder->GetOffsetHint(StartHitNo));
+    }
+    Result.push_back('\x01');
+    
     Result += m_pHolder->m_QueryResultStr;
     m_pHolder->m_QueryResultStr= "";
 
@@ -117,16 +129,22 @@ void CDDCLeafServer::handle__get_hit_strings(string &Result, const char *ResultT
 }
 
 //----------------------------------------------------------------------
-void CDDCLeafServer::handle__run_query(string &Result, const char *CorpusName, const char *Query, const char *ResultType, int StartHitNo, int ResultLimit, int TimeOut)
+void CDDCLeafServer::handle__run_query(string &Result, const char *CorpusName, const char *Query, const char *ResultType, int StartHitNo, int ResultLimit, int TimeOut, const NavHint& Hint)
 {
     assert(m_pHolder != NULL);
     m_pHolder->SetTimeOut(TimeOut);
     m_pHolder->SetResultFormat(ResultType);
-    m_pHolder->m_ResultLimit = StartHitNo+ResultLimit;
+    m_pHolder->m_ResultLimit = ResultLimit;
+    m_pHolder->m_ResultMinKey = Hint.m_SortKey;
+
+    NAVCACHE_DEBUG( ddcLogDebug(Format("DEBUG: run_query[Start=%d,Limit=%d]: got Hint=%s", StartHitNo, ResultLimit, Hint.toJson().c_str())) );
 
     //-- RunQueryData
     CRunQueryData runq(Query, ResultType, StartHitNo, ResultLimit, TimeOut, &m_pHolder->m_ErrorStr);
-
+    runq.navHint.update(Hint.m_SortKey, min((size_t)StartHitNo, Hint.m_Offset), 0);
+    runq.EndHitNo = StartHitNo;
+    NAVCACHE_DEBUG( ddcLogDebug(Format("DEBUG: run_query[Start=%d,Limit=%d]: init Hint=%s", StartHitNo, ResultLimit, runq.navHint.toJson().c_str())) );
+    
     //-- get_first_hits
     int Error = m_pHolder->GetHits(Query, runq.EndHitNo);
     if (Error != errNone)
@@ -156,13 +174,17 @@ void CDDCLeafServer::handle__run_query(string &Result, const char *CorpusName, c
 			      + string("Relevant Documents Distribution:") + runq.DocDistrib + ";\n");
     }
 
-    if (IsCountSort(m_pHolder->HitSortOrder()))
+    if (IsCountSort(m_pHolder->HitSortOrder())) {
 	GetHitCounts(runq, ResultTypeE);
-    else
+	runq.navHint.clear();
+    } else {
 	GetHitContexts(runq, ResultTypeE);
+	runq.navHint.update(m_pHolder->GetSortKeyHint(StartHitNo), m_pHolder->GetOffsetHint(StartHitNo), 0);
+    }
     m_pHolder->m_QueryResultStr = "";
 
-    runq.toString(Result, m_WorkerId);
+    NAVCACHE_DEBUG( ddcLogDebug(Format("DEBUG: run_query[Start=%d,Limit=%d]: final Hint=%s", StartHitNo, ResultLimit, runq.navHint.toJson().c_str())) );
+    runq.toString(Result, m_WorkerId, m_VersionCompat);
     m_bExpectMore = false;
 }
 
@@ -197,6 +219,7 @@ void CDDCLeafServer::handle__status(string &Result, int timeout, bool verbose)
     Result = (string("{\n\t")
 	      + "\"name\":" + jsonStr(m_CorpusName) + ",\n\t"
 	      + "\"version\":" + jsonStr(PACKAGE_VERSION) + ",\n\t"
+	      + "\"compat\":" + jsonStr(m_VersionCompat.str()).c_str() + ",\n\t"
 	      + "\"hostname\":" + jsonStr(m_FQHostName) + ",\n\t"
 	      + "\"hostaddr\":" + jsonStr(m_HostAddr) + ",\n\t"
 	      + "\"port\":" + Format("%d", m_Port) + ",\n\t"

@@ -191,37 +191,24 @@ string CDDCServer::ProcessSocketString(const string& SocketInput, SOCKET& rConne
 	//-- moo: command parsing and dispatch
 	if (cmd == "get_first_hits") {
 	    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-	    // get_first_hits QUERY "\x01" TIMEOUT " " LIMIT                          : get keys of hits [0,LIMIT)           (<  v2.1.9)
-	    // get_first_hits QUERY "\x01" TIMEOUT " " START " " LIMIT  (" " MINKEY)? : get keys of hits [START,START+LIMIT) (>= v2.1.9)
+	    // get_first_hits QUERY "\x01" TIMEOUT " " LIMIT              : get keys of hits [0,LIMIT)             (<  v2.1.9)
+	    // get_first_hits QUERY "\x01" TIMEOUT " " LIMIT  (" " HINT)? : get keys of hits [OFFSET,OFFSET+LIMIT) (>= v2.1.9)
+	    //                                                              where HINT = OFFSET ("(" DTR_OFFSETS ")")? (" " MINKEY)?
 	    ++m_SessionStats.m_nQueries;
 	    isQueryRequest = true;
 	    try {
-		int  Arg2,Arg3,Arg4;
-		int  TimeOut, StartHitNo, ResultLimit;
-		char sQuery[DDC_STATIC_BUFLEN], sMinKey[DDC_SORTKEY_MAXLEN];
+		int TimeOut, ResultLimit, HintPos;
+		char sQuery[DDC_STATIC_BUFLEN];
 		const char* SocketInputStr = SocketInput.c_str();
 
-		int nItems = sscanf(SocketInputStr, "get_first_hits %[^\x01]\x01 %i %i %i %[^\t\r\n]", sQuery, &Arg2, &Arg3, &Arg4, sMinKey);
-		if (nItems == 3) {
-		    //-- 1st form (3 arguments)
-		    TimeOut     = Arg2;
-		    StartHitNo  = 0;
-		    ResultLimit = Arg3;
-		    sMinKey[0]  = '\0';
-		}
-		else if (nItems > 3 && m_VersionCompat >= DDCVersionT(2,1,9)) {
-		    //-- 2nd form (4-5 arguments)
-		    TimeOut     = Arg2;
-		    StartHitNo  = Arg3;
-		    ResultLimit = Arg4;
-		    if (nItems < 5) sMinKey[0]  = '\0';
-		}
-		else {
+		//-- parse mandatory arguments (QUERY, TIMEOUT, LIMIT)
+		int nItems = sscanf(SocketInputStr, "get_first_hits %[^\x01]\x01 %i %i%n", sQuery, &TimeOut, &ResultLimit, &HintPos);
+		if (nItems != 3) {
 		    //-- unparseable
 		    throw CExpc(errParseError, "CDDCServer::ProcessSocketString(): cannot parse `get_first_hits' request");
 		}
 
-		this->handle__get_first_hits(Result, sQuery, TimeOut, StartHitNo, ResultLimit, sMinKey);
+		this->handle__get_first_hits(Result, sQuery, TimeOut, ResultLimit, NavHint(SocketInputStr+HintPos));
 	    }
 	    catch (CExpc& e) {
 		Result = Format("%i 0 0 0 0\n%s", (e.code()==errNone ? errOther : e.code()), e.what());
@@ -255,21 +242,22 @@ string CDDCServer::ProcessSocketString(const string& SocketInput, SOCKET& rConne
 	}
 	else if (cmd == "run_query") {
 	    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-	    // run_query " " CORPUS "\x01" QUERY "\x01" FORMAT "\x01" OFFSET " " LIMIT " " TIMEOUT : user query
+	    // run_query " " CORPUS "\x01" QUERY "\x01" FORMAT "\x01" START " " LIMIT " " TIMEOUT             : full query           (<  v2.1.9)
+	    // run_query " " CORPUS "\x01" QUERY "\x01" FORMAT "\x01" START " " LIMIT " " TIMEOUT (" " HINT)? : full query with hint (>= v2.1.9)
 	    ++m_SessionStats.m_nQueries;
 	    isQueryRequest = true;
 	    try {
-		int StartHitNo, ResultLimit;
-		int TimeOut;
+		int StartHitNo, ResultLimit, TimeOut, HintPos;
 		char sQuery[DDC_STATIC_BUFLEN];
 		char sCorpusName[DDC_STATIC_BUFLEN]; //-- unused?
 		char sResultType[DDC_STATIC_BUFLEN];
-		int nItems = sscanf(SocketInput.c_str(), 
-					"run_query %[^\x01]\x01%[^\x01]\x01%[^\x01]\x01%i %i %i", 
-					sCorpusName, sQuery, sResultType, &StartHitNo, &ResultLimit, &TimeOut);
+		const char* SocketInputStr = SocketInput.c_str();
+		int nItems = sscanf(SocketInputStr,
+				    "run_query %[^\x01]\x01%[^\x01]\x01%[^\x01]\x01%i %i %i%n",
+				    sCorpusName, sQuery, sResultType, &StartHitNo, &ResultLimit, &TimeOut, &HintPos);
 		if (nItems != 6)
 		    throw CExpc(errParseError, "cannot parse `run_query` request");
-		this->handle__run_query(Result, sCorpusName,sQuery,sResultType,StartHitNo,ResultLimit,TimeOut);
+		this->handle__run_query(Result, sCorpusName,sQuery,sResultType,StartHitNo,ResultLimit,TimeOut, NavHint(SocketInputStr+HintPos));
 	    }
 	    catch (CExpc &e) {
 		Result = Format("\x01 %i %i %i %i %i\n%s", e.code(), 0, 0, 0, 0, e.what());
@@ -375,10 +363,16 @@ string CDDCServer::ProcessSocketString(const string& SocketInput, SOCKET& rConne
 }
 
 //----------------------------------------------------------------------
-void CDDCServer::handle__get_first_hits(string &Result, const char *Query, int StartHitNo, int TimeOut, int ResultLimit, const char *MinKey)
+void CDDCServer::handle__get_first_hits(string &Result, const char *Query, int TimeOut, int ResultLimit, const NavHint& Hint)
 {
     m_bExpectMore = true;
     method_not_implemented("handle__get_first_hits()");
+}
+
+//----------------------------------------------------------------------
+void CDDCServer::handle__get_first_hits(string &Result, const char *Query, int TimeOut, int ResultLimit)
+{
+    this->handle__get_first_hits(Result,Query,TimeOut,ResultLimit,NavHint());
 }
 
 //----------------------------------------------------------------------
@@ -388,9 +382,15 @@ void CDDCServer::handle__get_hit_strings(string &Result, const char *ResultType,
 }
 
 //----------------------------------------------------------------------
-void CDDCServer::handle__run_query(string &Result, const char *CorpusName, const char *Query, const char *ResultType, int StartHitNo, int ResultLimit, int TimeOut)
+void CDDCServer::handle__run_query(string &Result, const char *CorpusName, const char *Query, const char *ResultType, int StartHitNo, int ResultLimit, int TimeOut, const NavHint& Hint)
 {
     method_not_implemented("handle__run_query()");
+}
+
+//----------------------------------------------------------------------
+void CDDCServer::handle__run_query(string &Result, const char *CorpusName, const char *Query, const char *ResultType, int StartHitNo, int ResultLimit, int TimeOut)
+{
+    this->handle__run_query(Result,CorpusName,Query,ResultType,StartHitNo,ResultLimit,TimeOut,NavHint());
 }
 
 //----------------------------------------------------------------------

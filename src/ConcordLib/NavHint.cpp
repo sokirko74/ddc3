@@ -1,0 +1,164 @@
+//-*- Mode: C++; c-basic-offset:2; -*-
+//
+//  DDC originally by Alexey Sokirko
+//  Changes and modifications 2018 by Bryan Jurish
+//
+//  This file is part of DDC.
+// 
+//  DDC is free software: you can redistribute it and/or modify
+//  it under the terms of the GNU Lesser General Public License as published by
+//  the Free Software Foundation, either version 3 of the License, or
+//  (at your option) any later version.
+// 
+//  DDC is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//  GNU Lesser General Public License for more details.
+// 
+//  You should have received a copy of the GNU Lesser General Public License
+//  along with DDC.  If not, see <http://www.gnu.org/licenses/>.
+//
+
+#include "NavHint.h"
+
+//======================================================================
+// NavHintKey
+
+//======================================================================
+// NavHint
+
+
+//--------------------------------------------------------------
+size_t NavHint::OffsetTotal() const
+{
+  size_t total=0, tmp;
+  for (vector<string>::const_iterator di=m_DtrHints.begin(); di != m_DtrHints.end(); ++di) {
+    if (sscanf(di->c_str(),"%zd",&tmp)==1)
+      total += tmp;
+  }
+  return total;
+}
+
+//--------------------------------------------------------------
+string NavHint::toString(bool includeSortKey) const
+{
+  string s;
+  char buf[32];
+  sprintf(buf,"%zd",m_Offset);
+  s += buf;
+  if (m_DtrHints.size() > 0) {
+    s.push_back('(');
+    for (vector<string>::const_iterator di=m_DtrHints.begin(); di!=m_DtrHints.end(); ++di) {
+      if (di != m_DtrHints.begin()) s.push_back('+');
+      s += *di;
+    }
+    s.push_back(')');
+  }
+  if (includeSortKey && !m_SortKey.empty()) {
+    s.push_back(' ');
+    s += m_SortKey;
+  }
+  return s;
+};
+
+//--------------------------------------------------------------
+void NavHint::fromString(const string& Str)
+{
+  clear();
+  const char *sp  = Str.c_str();
+  const char *end = strchr(sp, '\n');
+  char *tail;
+
+  m_Offset = strtoul(sp,&tail,0);
+  sp = tail;
+  if (end==NULL) end = sp+Str.size();
+  if (sp < end && *sp == '(') {
+    //-- parse daughter-hints
+    size_t ddepth=1;
+    const char *dstart=++sp, *dend;
+    for (dend=dstart; ddepth > 0 && dend < end; ++dend) {
+      switch (*dend) {
+      case '(': ++ddepth; break;
+      case ')': --ddepth; break;
+      case '+':
+	{
+	  if (ddepth<=1) {
+	    m_DtrHints.push_back(string(dstart,dend-dstart));
+	    dstart = dend+1;
+	  }
+	}
+	break;
+      default: break;
+      }
+    }
+    if (ddepth==0 && *(dend-1)==')')
+      m_DtrHints.push_back(string(dstart,dend-dstart-1));
+    sp = dend;
+  }
+  if (sp < end) {
+    //-- parse sort-key
+    if (*sp == ' ') ++sp;
+    m_SortKey = sp;
+  }
+};
+
+//--------------------------------------------------------------
+string NavHint::toJson() const
+{
+  string s = Format("{\"SortKey\":%s, \"Offset\":%zd, \"DtrHints\":[", jsonStr(m_SortKey).c_str(), m_Offset);
+  for (vector<string>::const_iterator di=m_DtrHints.begin(); di!=m_DtrHints.end(); ++di) {
+    if (di != m_DtrHints.begin()) s.push_back(',');
+    s += jsonStr(*di);
+  }
+  s += "]}";
+  return s;
+};
+
+
+//======================================================================
+// NavHintCache
+
+//--------------------------------------------------------------
+bool NavHintCache::lower_bound(ValT& val, const KeyT& key, size_t nDtrs)
+{
+  bool found = false;
+  val.clear(nDtrs);
+    
+  lock();
+  try {
+    CacheT::const_iterator ci = m_Cache.lower_bound(key);
+    if (ci != m_Cache.end() && ci->first.m_QueryStr == key.m_QueryStr) {
+      val   = ci->second->second;
+      found = true;
+      m_Cache.promote(ci);
+    }
+  } catch (...) {
+    unlock();
+    throw;
+  }
+
+  //-- all done
+  unlock();
+  return found;
+};
+
+
+//--------------------------------------------------------------
+string NavHintCache::toJson() const
+{
+  string s = (string("{\n")
+	      + Format(" \"size\":%zd,\n", m_Cache.size())
+	      + Format(" \"capacity\":%zd,\n", m_Cache.capacity())
+	      + " \"data\":[");
+  for (CacheT::ListT::const_iterator li=m_Cache.m_list.begin(); li != m_Cache.m_list.end(); ++li) {
+    if (li != m_Cache.m_list.begin()) s.push_back(',');
+    s += "\n  {\"key\":";
+    s += li->first.toJson();
+    s += ", \"val\":";
+    s += li->second.toJson();
+    s += "}";
+  }
+  s += "\n ]}";
+  return s;
+};
+

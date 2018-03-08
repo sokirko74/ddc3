@@ -1,7 +1,7 @@
 //-*- Mode: C++; c-basic-offset:4; -*-
 //
 //  DDC originally by Alexey Sokirko
-//  Changes and modifications 2011-2017 by Bryan Jurish
+//  Changes and modifications 2011-2018 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -164,13 +164,13 @@ public:
     // DDCServer API: request handlers: required
 
     /** request handler: get_first_hits: required (leaf) */
-    virtual void handle__get_first_hits(string &Result, const char *Query, int TimeOut, int StartHitNo, int ResultLimit, const char *MinKey=NULL);
+    virtual void handle__get_first_hits(string &Result, const char *Query, int TimeOut, int ResultLimit, const NavHint& Hint);
 
     /** request handler: get_hit_strings: required (leaf) */
     virtual void handle__get_hit_strings(string &Result, const char *ResultType, int StartHitNo, int ResultLimit);
 
     /** request handler: run_query: required (branch) */
-    virtual void handle__run_query(string &Result, const char *CorpusName, const char *Query, const char *ResultType, int StartHitNo, int ResultLimit, int TimeOut);
+    virtual void handle__run_query(string &Result, const char *CorpusName, const char *Query, const char *ResultType, int StartHitNo, int ResultLimit, int TimeOut, const NavHint& Hint);
 
     /** request handler: expand_terms: required (leaf|branch) */
     virtual void handle__expand_terms(string &Result, const string& pipeline, const string& terms, int timeout, const string &corpus);
@@ -190,6 +190,12 @@ public:
 public:
     //--------------------------------------------------------------
     // DDCServer API: request handlers: optional
+
+    /** request handler: get_first_hits, 3-argument form (no hint) */
+    virtual void handle__get_first_hits(string &Result, const char *Query, int TimeOut, int ResultLimit);
+
+    /** request handler: get_first_hits, 7-argument form (no hint) */
+    virtual void handle__run_query(string &Result, const char *CorpusName, const char *Query, const char *ResultType, int StartHitNo, int ResultLimit, int TimeOut);
 
     /** request handler: get_paradigm: optional (leaf|branch) */
     virtual void handle__get_paradigm(string &Result, const char *Word, int iLemmatizeOnly, int iLang);

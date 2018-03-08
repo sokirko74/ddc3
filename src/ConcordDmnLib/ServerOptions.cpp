@@ -22,7 +22,7 @@
 #include "ServerOptions.h"
 #include "../common/string_tokenizer.h"
 #include "../common/ddcThreadQueue.h"
-#include "BranchNavCache.h"
+#include "../ConcordLib/NavHint.h"
 #include <errno.h>
 #include <string.h>
 
@@ -36,7 +36,7 @@ CDDCServerOptions::CDDCServerOptions() :
     m_StatsWindow(600),
     m_nWorkers(0),
     m_ThreadQueueSize(DDC_DEFAULT_THREAD_QUEUE_SIZE),
-    m_NavCacheSize(DDC_DEFAULT_NAV_CACHE_CAPACITY),
+    m_NavCacheSize(DDC_DEFAULT_NAV_HINT_CACHE_CAPACITY),
     m_VersionCompat(DDCVersionT::current())
 {}
 
