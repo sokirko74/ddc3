@@ -263,9 +263,10 @@ Useful values:
 
 =item C<VERSION> E<lt>= 2.1.8
 
-Prevents server from using or accepting the
-4- and 5-argument forms of C<get_first_hits> requests
-(see L<ddc_proto(5)|ddc_proto>).
+Prevents server from sending navigation hints
+in generated C<get_first_hits> requests, or returning
+them in C<get_hit_strings> responses.
+See L<ddc_proto(5)|ddc_proto> for details.
 
 =back
 
