@@ -332,7 +332,7 @@ void CDDCBranchServer::handle__get_first_hits(string &Result, const char *Query,
     if (IsCountSort(FHResult.m_SortOrder)) {
 	//-- count-query requires special formatting, but can return immediately
 	for (vector<CHitToSort>::const_iterator hi=FHResult.m_Hits.begin(); hi != FHResult.m_Hits.end(); ++hi) {
-	    sprintf(buf, "\t$zd -0 ", hi->m_HitNo); //-- hi->m_HitNo is really the hit-count
+	    sprintf(buf, "\t%zd -0 ", hi->m_HitNo); //-- hi->m_HitNo is really the hit-count
 	    Result += buf;
 	    Result += hi->m_SortKeyStr;
 	}
@@ -1073,7 +1073,7 @@ void CDDCBranchServer::GetFirstHitsFromCorpora(const DwordVector& PossibleHosts,
 		Result.m_SortOrder = (HitSortOrderEnum)iSort;
 		//#ifdef DDC_COUNT_KEY_COMPAT
 		//-- hack for transition to v2.0.38; see DDC_COUNT_KEY_COMPAT definition in ConcCommon.h
-		//   + also need for v2.1.4 fixes
+		//   + also needed for v2.1.4 fixes
 		bool isCountResult = IsCountSort(Result.m_SortOrder);
 		//#endif
 
