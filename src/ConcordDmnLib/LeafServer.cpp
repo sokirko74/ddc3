@@ -72,7 +72,7 @@ bool CDDCLeafServer::Close(SOCKET& rConnectedSocket, bool linger, int timeout)
 // CDDCLeafServer: DDCServer API: request handlers
 
 //----------------------------------------------------------------------
-void CDDCLeafServer::handle__get_first_hits(string &Result, const char *Query, int TimeOut, int ResultLimit, const NavHint& Hint)
+void CDDCLeafServer::handle__get_first_hits(string &Result, const char *Query, int TimeOut, size_t ResultLimit, const NavHint& Hint)
 {
     assert(m_pHolder != NULL);
     m_pHolder->SetTimeOut(TimeOut);
@@ -97,7 +97,7 @@ void CDDCLeafServer::handle__get_first_hits(string &Result, const char *Query, i
 }
 
 //----------------------------------------------------------------------
-void CDDCLeafServer::handle__get_hit_strings(string &Result, const char *ResultType, int StartHitNo, int ResultLimit)
+void CDDCLeafServer::handle__get_hit_strings(string &Result, const char *ResultType, size_t StartHitNo, size_t ResultLimit)
 {
     assert(m_pHolder != NULL);
     m_pHolder->SetResultFormat(ResultType);
@@ -129,7 +129,7 @@ void CDDCLeafServer::handle__get_hit_strings(string &Result, const char *ResultT
 }
 
 //----------------------------------------------------------------------
-void CDDCLeafServer::handle__run_query(string &Result, const char *CorpusName, const char *Query, const char *ResultType, int StartHitNo, int ResultLimit, int TimeOut, const NavHint& Hint)
+void CDDCLeafServer::handle__run_query(string &Result, const char *CorpusName, const char *Query, const char *ResultType, size_t StartHitNo, size_t ResultLimit, int TimeOut, const NavHint& Hint)
 {
     assert(m_pHolder != NULL);
     m_pHolder->SetTimeOut(TimeOut);
@@ -146,7 +146,9 @@ void CDDCLeafServer::handle__run_query(string &Result, const char *CorpusName, c
     NAVCACHE_DEBUG( ddcLogDebug(Format("DEBUG: run_query[Start=%d,Limit=%d]: init Hint=%s", StartHitNo, ResultLimit, runq.navHint.toJson().c_str())) );
     
     //-- get_first_hits
-    int Error = m_pHolder->GetHits(Query, runq.EndHitNo);
+    DWORD EndHitNo = runq.EndHitNo;
+    int Error = m_pHolder->GetHits(Query, EndHitNo);
+    runq.EndHitNo = EndHitNo;
     if (Error != errNone)
 	throw CExpc(Error, m_pHolder->m_ErrorStr.empty() ? GetDDCErrorString((DDCErrorEnum)Error) : m_pHolder->m_ErrorStr); //-- error
     runq.HitsCount = m_pHolder->m_AllHitsCount;

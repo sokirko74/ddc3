@@ -69,8 +69,8 @@ struct LessByHitNo {
  * \li can and should probably be merged with CRunQueryData
  */
 struct CFirstHitsQueryResult  {
-    DWORD			m_AllHitsCount;
-    DWORD			m_AllRelevantDocsCount; 
+    size_t			m_AllHitsCount;
+    size_t			m_AllRelevantDocsCount; 
     string			m_HitsDistributionStr;
     string			m_RelevantDocsDistributionStr;
     int				m_InternalError;
@@ -78,6 +78,7 @@ struct CFirstHitsQueryResult  {
     NetworkErrorsEnum		m_NetworkError;
     string			m_ErrorStr;
     vector<CHitToSort>  	m_Hits;
+    vector<size_t>		m_DtrEnds;		//< EndHitNo components scanned from each immediate daughter subcorpus
     vector<SOCKET>		m_Sockets;
     size_t                      m_Offset;            	//< logical offset of m_Hits[0] (sum over number of front-trimmed hits for all subcorpora)
     
@@ -101,6 +102,27 @@ struct CFirstHitsQueryResult  {
 
     /** collect counts by sort-key, only makes sense if m_SortOrder==hsoCounts ; also modifies m_AllHitsCount */
     void CollectCounts();
+
+    /** convert a logical branch-level hit offset to a physical index in m_Hits[] (no boundary-checking, underflow possible) */
+    inline size_t PhysicalOffset(size_t LogicalHitNo) const
+    { return LogicalHitNo - m_Offset; };
+
+    /** convert a physical offset in m_Hits[] to a logical branch-level hit offset (no boundary-checking, no underflow) */
+    inline size_t LogicalOffset(size_t PhysicalHitNo) const
+    { return PhysicalHitNo + m_Offset; };
+
+    /** returns the logical upper bound hit offset for LogicalHitNo, with boundary-checking */
+    inline size_t LogicalMax(size_t LogicalHitNo) const
+    { return min(LogicalHitNo, LogicalOffset(m_Hits.size())); };
+
+    /** returns the physical upper bound hit offset LogicalHitNo, with boundary-checking */
+    inline size_t PhysicalMax(size_t LogicalHitNo) const
+    { return PhysicalOffset(LogicalMax(LogicalHitNo)); };
+
+    /** returns the number of items in m_Hits[] logical range [StartHitNo,StartHitNo+ResultLimit), with boundary-checking */
+    inline size_t LogicalSize(size_t StartHitNo, size_t ResultLimit) const
+    { return LogicalMax(StartHitNo+ResultLimit) - LogicalMax(StartHitNo); };
+
 };
 
 //======================================================================
@@ -118,17 +140,17 @@ class CRunQueryData {
 public:
     string sQuery; 			///< query string
     string sResultFormat;		///< result format (string)
-    int StartHitNo;			///< first hit to return
-    int ResultLimit;			///< max number of hits to return
+    size_t StartHitNo;			///< first hit to return
+    size_t ResultLimit;			///< max number of hits to return
     int TimeOut;			///< query timeout (seconds)
     int iInternalError;			///< internal error code
     int iNetworkError;  		///< network error code
-    DWORD EndHitNo;			///< final hit number returned
-    DWORD HitsCount;			///< total number of hits
-    DWORD RelevantDocsCount;		///< ?
+    size_t EndHitNo;			///< final hit number returned
+    size_t HitsCount;			///< total number of hits
+    size_t RelevantDocsCount;		///< ?
     DwordVector PossibleHosts;		///< indices of selected immediate subcorpora
-    string HitDistrib;			///<
-    string DocDistrib;			///<
+    string HitDistrib;			///< ?
+    string DocDistrib;			///< ?
     string HitsKey;			///< key for response body data (json only)
     string ResponseBody;		///< response body data
     string *pErrorStr;			///< error string pointer (empty or NULL for success)
@@ -137,7 +159,7 @@ public:
    
 public:
     /** constructor */
-    CRunQueryData(const string & _Query="", const string& _ResultFormat="JSON", int _Start=0, int _Limit=10, int _TimeOut=10, string *_pErrorStr=NULL)
+    CRunQueryData(const string & _Query="", const string& _ResultFormat="JSON", size_t _Start=0, size_t _Limit=10, int _TimeOut=10, string *_pErrorStr=NULL)
 	: sQuery(_Query), sResultFormat(_ResultFormat), StartHitNo(_Start), ResultLimit(_Limit), TimeOut(_TimeOut),
 	  iInternalError(errNone), iNetworkError(neSuccess), EndHitNo(0), HitsCount(0), RelevantDocsCount(0), HitDistrib(""), DocDistrib(""),
 	  HitsKey("hits_"), ResponseBody(""),
@@ -148,13 +170,14 @@ public:
     };
 
     /** (re-)initialize with parameters */
-    void Init(const string & _Query="", const string& _ResultFormat="JSON", int _Start=0, int _Limit=10, int _TimeOut=10, string *_pErrorStr=NULL, const NavHint& _Hint=NavHint());
+    void Init(const string & _Query="", const string& _ResultFormat="JSON", size_t _Start=0, size_t _Limit=10, int _TimeOut=10, string *_pErrorStr=NULL, const NavHint& _Hint=NavHint());
 
     /** clear object */
     void Clear();
 
     /** populate response string \a Response */
     void toString(string &Response, size_t WorkerId=0, const DDCVersionT& vCompat=DDCVersion);
+
 };
 
 //======================================================================
@@ -224,13 +247,13 @@ public:
     // DDCServer API: request handlers: required
 
     /* request handler: get_first_hits: required (leaf) */
-    virtual void handle__get_first_hits(string &Result, const char *Query, int TimeOut, int ResultLimit, const NavHint& Hint);
+    virtual void handle__get_first_hits(string &Result, const char *Query, int TimeOut, size_t ResultLimit, const NavHint& Hint);
 
     /* request handler: get_hit_strings: required (leaf) */
-    virtual void handle__get_hit_strings(string &Result, const char *ResultType, int StartHitNo, int ResultLimit);
+    virtual void handle__get_hit_strings(string &Result, const char *ResultType, size_t StartHitNo, size_t ResultLimit);
 
     /* request handler: run_query: required (branch) */
-    virtual void handle__run_query(string &Result, const char *CorpusName, const char *Query, const char *ResultType, int StartHitNo, int ResultLimit, int TimeOut, const NavHint& Hint);
+    virtual void handle__run_query(string &Result, const char *CorpusName, const char *Query, const char *ResultType, size_t StartHitNo, size_t ResultLimit, int TimeOut, const NavHint& Hint);
 
     /** request handler: expand_terms: required (leaf|branch) */
     virtual void handle__expand_terms(string &Result, const string& pipeline, const string& terms, int timeout, const string &corpus);
@@ -272,17 +295,17 @@ public:
     /** backwards-compatible guts for handle__run_query() */
     NetworkErrorsEnum RunDistributed(string Query,
 				     const string& ResultType,
-				     DWORD StartHitNo,
-				     DWORD ResultLimit,
-				     int&  iInternalError,
-				     DWORD&  EndHitNo,
-				     DWORD&  HitsCount,
-				     int     TimeOut,
-				     string& ResultString,
-				     DWORD&  RelevantDocsCount,
-				     string& HitDistrib,
-				     string& DocDistrib,
-				     string& HitsKey);
+				     size_t   StartHitNo,
+				     size_t   ResultLimit,
+				     int&     iInternalError,
+				     size_t&  EndHitNo,
+				     size_t&  HitsCount,
+				     int      TimeOut,
+				     string&  ResultString,
+				     size_t&  RelevantDocsCount,
+				     string&  HitDistrib,
+				     string&  DocDistrib,
+				     string&  HitsKey);
 
     /** mid-level guts for handle__run_query() , context-queries only
      *  \li updates runq.m_navKey and runq.m_navHint to point to the next available hit
@@ -291,7 +314,7 @@ public:
 				     const string& ResultType,
 				     DDCFormatTypeEnum ResultTypeE,
 				     DwordVector& PossibleHosts,
-				     int&  InternalError,
+				     int&    InternalError,
 				     int     TimeOut,
 				     string& ResultString
 				     );
@@ -301,17 +324,17 @@ public:
 
     /** old guts for handle__run_query() phase 1 */
     void GetFirstHitsFromCorpora(const DwordVector& PossibleHosts,
-				 const string Query,
-				 const DWORD  StartHitNo,
-				 const DWORD  ResultLimit,
-				 const int    TimeOut,
+				 const string  Query,
+				 const size_t  StartHitNo,
+				 const size_t  ResultLimit,
+				 const int     TimeOut,
 				 CFirstHitsQueryResult& Result);
 
     /** old guts for handle__run_query() phase 2 */
     NetworkErrorsEnum GetHitStringsFromOneCorpus(CHost& Host,
 						 const string& ResultType,
-						 DWORD StartHitNo,
-						 DWORD ResultLimit,
+						 size_t StartHitNo,
+						 size_t ResultLimit,
 						 int   TimeOut,
 						 SOCKET& CorpusSocket,
 						 int&    InternalError,

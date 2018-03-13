@@ -72,13 +72,13 @@ public:
     // DDCServer API: request handlers: required
 
     /** request handler: get_first_hits: required (leaf) */
-    virtual void handle__get_first_hits(string &Result, const char *Query, int TimeOut, int ResultLimit, const NavHint& Hint);
+    virtual void handle__get_first_hits(string &Result, const char *Query, int TimeOut, size_t ResultLimit, const NavHint& Hint);
 
     /** request handler: get_hit_strings: required (leaf) */
-    virtual void handle__get_hit_strings(string &Result, const char *ResultType, int StartHitNo, int ResultLimit);
+    virtual void handle__get_hit_strings(string &Result, const char *ResultType, size_t StartHitNo, size_t ResultLimit);
 
     /* request handler: run_query: required (branch) */
-    virtual void handle__run_query(string &Result, const char *CorpusName, const char *Query, const char *ResultType, int StartHitNo, int ResultLimit, int TimeOut, const NavHint& Hint);
+    virtual void handle__run_query(string &Result, const char *CorpusName, const char *Query, const char *ResultType, size_t StartHitNo, size_t ResultLimit, int TimeOut, const NavHint& Hint);
 
     /** request handler: expand_terms: required (leaf|branch) */
     virtual void handle__expand_terms(string &Result, const string& pipeline, const string& terms, int timeout, const string &corpus);

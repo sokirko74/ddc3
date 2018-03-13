@@ -178,7 +178,7 @@ string CDDCServer::ProcessSocketString(const string& SocketInput, SOCKET& rConne
 	}
 	
 	//-- moo: parse input command
-	int eocpos = SocketInput.find_first_of(" \t\r\n\x00\x01\x02");
+	size_t eocpos = SocketInput.find_first_of(" \t\r\n\x00\x01\x02");
 	if (eocpos==SocketInput.npos) eocpos=SocketInput.size();
 	string cmd(SocketInput,0,eocpos);
 
@@ -197,12 +197,13 @@ string CDDCServer::ProcessSocketString(const string& SocketInput, SOCKET& rConne
 	    ++m_SessionStats.m_nQueries;
 	    isQueryRequest = true;
 	    try {
-		int TimeOut, ResultLimit, HintPos;
+		int TimeOut, HintPos;
+		size_t ResultLimit;
 		char sQuery[DDC_STATIC_BUFLEN];
 		const char* SocketInputStr = SocketInput.c_str();
 
 		//-- parse mandatory arguments (QUERY, TIMEOUT, LIMIT)
-		int nItems = sscanf(SocketInputStr, "get_first_hits %[^\x01]\x01 %i %i%n", sQuery, &TimeOut, &ResultLimit, &HintPos);
+		int nItems = sscanf(SocketInputStr, "get_first_hits %[^\x01]\x01 %i %zi%n", sQuery, &TimeOut, &ResultLimit, &HintPos);
 		if (nItems != 3) {
 		    //-- unparseable
 		    throw CExpc(errParseError, "CDDCServer::ProcessSocketString(): cannot parse `get_first_hits' request");
@@ -224,9 +225,9 @@ string CDDCServer::ProcessSocketString(const string& SocketInput, SOCKET& rConne
 	    // get_hit_strings " " FORMAT "\x01" OFFSET " " LIMIT : get full hit strings
 	    isFollowupRequest = true;
 	    try {
-		int StartHitNo, ResultLimit;
+		size_t StartHitNo, ResultLimit;
 		char sResultType[128];
-		int nItems = sscanf(SocketInput.c_str(), "get_hit_strings %[^\x01]\x01%i %i", sResultType, &StartHitNo, &ResultLimit);
+		int nItems = sscanf(SocketInput.c_str(), "get_hit_strings %[^\x01]\x01%zi %zi", sResultType, &StartHitNo, &ResultLimit);
 		if (nItems != 3)
 		    throw CExpc(errParseError, "CDDCServer::ProcessSocketString(): cannot parse `get_hit_strings' request");
 		this->handle__get_hit_strings(Result, sResultType,StartHitNo,ResultLimit);
@@ -247,13 +248,14 @@ string CDDCServer::ProcessSocketString(const string& SocketInput, SOCKET& rConne
 	    ++m_SessionStats.m_nQueries;
 	    isQueryRequest = true;
 	    try {
-		int StartHitNo, ResultLimit, TimeOut, HintPos;
+		size_t StartHitNo, ResultLimit;
+		int TimeOut, HintPos;
 		char sQuery[DDC_STATIC_BUFLEN];
 		char sCorpusName[DDC_STATIC_BUFLEN]; //-- unused?
 		char sResultType[DDC_STATIC_BUFLEN];
 		const char* SocketInputStr = SocketInput.c_str();
 		int nItems = sscanf(SocketInputStr,
-				    "run_query %[^\x01]\x01%[^\x01]\x01%[^\x01]\x01%i %i %i%n",
+				    "run_query %[^\x01]\x01%[^\x01]\x01%[^\x01]\x01%zi %zi %i%n",
 				    sCorpusName, sQuery, sResultType, &StartHitNo, &ResultLimit, &TimeOut, &HintPos);
 		if (nItems != 6)
 		    throw CExpc(errParseError, "cannot parse `run_query` request");
@@ -363,32 +365,32 @@ string CDDCServer::ProcessSocketString(const string& SocketInput, SOCKET& rConne
 }
 
 //----------------------------------------------------------------------
-void CDDCServer::handle__get_first_hits(string &Result, const char *Query, int TimeOut, int ResultLimit, const NavHint& Hint)
+void CDDCServer::handle__get_first_hits(string &Result, const char *Query, int TimeOut, size_t ResultLimit, const NavHint& Hint)
 {
     m_bExpectMore = true;
     method_not_implemented("handle__get_first_hits()");
 }
 
 //----------------------------------------------------------------------
-void CDDCServer::handle__get_first_hits(string &Result, const char *Query, int TimeOut, int ResultLimit)
+void CDDCServer::handle__get_first_hits(string &Result, const char *Query, int TimeOut, size_t ResultLimit)
 {
     this->handle__get_first_hits(Result,Query,TimeOut,ResultLimit,NavHint());
 }
 
 //----------------------------------------------------------------------
-void CDDCServer::handle__get_hit_strings(string &Result, const char *ResultType, int StartHitNo, int ResultLimit)
+void CDDCServer::handle__get_hit_strings(string &Result, const char *ResultType, size_t StartHitNo, size_t ResultLimit)
 {
     method_not_implemented("handle__get_hit_strings()");
 }
 
 //----------------------------------------------------------------------
-void CDDCServer::handle__run_query(string &Result, const char *CorpusName, const char *Query, const char *ResultType, int StartHitNo, int ResultLimit, int TimeOut, const NavHint& Hint)
+void CDDCServer::handle__run_query(string &Result, const char *CorpusName, const char *Query, const char *ResultType, size_t StartHitNo, size_t ResultLimit, int TimeOut, const NavHint& Hint)
 {
     method_not_implemented("handle__run_query()");
 }
 
 //----------------------------------------------------------------------
-void CDDCServer::handle__run_query(string &Result, const char *CorpusName, const char *Query, const char *ResultType, int StartHitNo, int ResultLimit, int TimeOut)
+void CDDCServer::handle__run_query(string &Result, const char *CorpusName, const char *Query, const char *ResultType, size_t StartHitNo, size_t ResultLimit, int TimeOut)
 {
     this->handle__run_query(Result,CorpusName,Query,ResultType,StartHitNo,ResultLimit,TimeOut,NavHint());
 }

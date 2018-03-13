@@ -46,6 +46,7 @@ void CFirstHitsQueryResult::Clear()
     m_InternalError = errNone;
     m_NetworkError = neSuccess;
     ClearVector(m_Hits);
+    m_DtrEnds.clear();
     m_Sockets.clear();
     m_Offset = 0;
 }
@@ -100,32 +101,6 @@ void CFirstHitsQueryResult::CollectCounts()
     }
 }
 
-//----------------------------------------------------------------------
-#if 0
-void CFirstHitsQueryResult::UpdateNavHintKey()
-{
-    //-- ssanity check
-    if (m_Hits.size() == 0) return;
-
-    //-- update: sort key
-    NavHint& hint = m_NavHint;
-    if (m_SortOrder != hsoNone)
-	hint.m_SortKey = m_Hits.back().m_SortKeyStr;
-
-#ifndef DEEP_HINTS
-    //-- update: per-subcorpus offsets
-    size_t          nSubs=hint.m_Offsets.size(), nSeenSubs=0;
-    vector<bool> seenSubs(nSubs, false);
-    for (vector<CHitToSort>::const_reverse_iterator hi=m_Hits.rbegin(); nSeenSubs < nSubs && hi != m_Hits.rend(); ++hi) {
-	if (seenSubs[hi->m_HostNo]) continue;
-
-	hint.m_Offsets[hi->m_HostNo] = hi->m_HitNo+1;
-	seenSubs[hi->m_HostNo]       = true;
-	++nSeenSubs;
-    }
-#endif
-}
-#endif //-- if 0
 
 //==============================================================================
 // CDDCBranchServer: constructors etc
@@ -177,7 +152,7 @@ void CDDCBranchServer::SetOptions(const CDDCServerOptions &Options)
 void CDDCBranchServer::Shutdown()
 {
     ddcLogInfo(Format("shutting down branch server %s", m_CorpusName.c_str()));
-    for (int i=0; i < m_Hosts.size(); i++) {
+    for (size_t i=0; i < m_Hosts.size(); i++) {
 	m_Hosts[i].StopAcceptingThread();
     }
     StopAcceptingThread();
@@ -208,7 +183,7 @@ void CDDCBranchServer::WorkerCloneFree(void)
 // CRunQueryData
 
 //----------------------------------------------------------------------
-void CRunQueryData::Init(const string & _Query, const string& _ResultFormat, int _Start, int _Limit, int _TimeOut, string *_pErrorStr, const NavHint& _Hint)
+void CRunQueryData::Init(const string & _Query, const string& _ResultFormat, size_t _Start, size_t _Limit, int _TimeOut, string *_pErrorStr, const NavHint& _Hint)
 {
     Clear();
     sQuery = _Query;
@@ -317,7 +292,7 @@ bool CDDCBranchServer::CloseDtr(SOCKET& rConnectedSocket, bool linger, int timeo
 // CDDCBranchServer: handlers
 
 //----------------------------------------------------------------------
-void CDDCBranchServer::handle__get_first_hits(string &Result, const char *Query, int TimeOut, int ResultLimit, const NavHint& Hint)
+void CDDCBranchServer::handle__get_first_hits(string &Result, const char *Query, int TimeOut, size_t ResultLimit, const NavHint& Hint)
 {
     CRunQueryData &runq = m_QueryData;
     CFirstHitsQueryResult& FHResult = m_FHResult;
@@ -327,23 +302,28 @@ void CDDCBranchServer::handle__get_first_hits(string &Result, const char *Query,
     CheckFirstHitsResult(rc);
     
     //-- adapted from CDDCLeafServer::handle__get_first_hits(), CConcSession::GetHitIds()
-    Result = Format ("%i %i %i %i %i", FHResult.m_InternalError, runq.EndHitNo, FHResult.m_AllHitsCount, FHResult.m_AllRelevantDocsCount, FHResult.m_SortOrder);
+    Result = Format ("%i %zi %zi %zi %i", FHResult.m_InternalError, runq.EndHitNo, FHResult.m_AllHitsCount, FHResult.m_AllRelevantDocsCount, FHResult.m_SortOrder);
     char buf[32];
+    size_t beg = FHResult.PhysicalOffset(runq.StartHitNo);
+    size_t end = FHResult.PhysicalMax(runq.StartHitNo+runq.ResultLimit);
+
     if (IsCountSort(FHResult.m_SortOrder)) {
-	//-- count-query requires special formatting, but can return immediately
-	for (vector<CHitToSort>::const_iterator hi=FHResult.m_Hits.begin(); hi != FHResult.m_Hits.end(); ++hi) {
-	    sprintf(buf, "\t%zd -0 ", hi->m_HitNo); //-- hi->m_HitNo is really the hit-count
+	//-- count-query requires special formatting, but can return immediately (respecting m_Offset)
+	for (size_t phi=beg; phi < end; ++phi) {
+	    const CHitToSort &h = FHResult.m_Hits[phi];
+	    sprintf(buf, "\t%zd -0 ", h.m_HitNo); //-- hi->m_HitNo is really the hit-count
 	    Result += buf;
-	    Result += hi->m_SortKeyStr;
+	    Result += h.m_SortKeyStr;
 	}
 	m_bExpectMore = false;
     }
     else {
-	//-- context query: just return hit keys
-        for (size_t i=0; i < FHResult.m_Hits.size(); ++i) {
-	    sprintf(buf, "\t%zd -0 ", i+FHResult.m_Offset);
+	//-- context query: just return hit keys (respecting m_Offset)
+        for (size_t phi=beg; phi < end; ++phi) {
+	    const CHitToSort &h = FHResult.m_Hits[phi];
+	    sprintf(buf, "\t%zd -0 ", FHResult.LogicalOffset(phi));
 	    Result += buf;
-	    Result += FHResult.m_Hits[i].m_SortKeyStr;
+	    Result += FHResult.m_Hits[phi].m_SortKeyStr;
 	}
 	m_bExpectMore = true;
     }
@@ -352,7 +332,7 @@ void CDDCBranchServer::handle__get_first_hits(string &Result, const char *Query,
 }
 
 //----------------------------------------------------------------------
-void CDDCBranchServer::handle__get_hit_strings(string &Result, const char *ResultType, int StartHitNo, int ResultLimit)
+void CDDCBranchServer::handle__get_hit_strings(string &Result, const char *ResultType, size_t StartHitNo, size_t ResultLimit)
 {
     CRunQueryData &runq = m_QueryData;
     CFirstHitsQueryResult& FHResult = m_FHResult;
@@ -361,27 +341,23 @@ void CDDCBranchServer::handle__get_hit_strings(string &Result, const char *Resul
     if (FHResult.m_HitsDistributionStr.empty())
 	throw CExpc(errRuntime, "CDDCBranchServer::handle__get_hit_strings(): FHResult is uninitialized!");
     if (StartHitNo < runq.StartHitNo)
-	throw CExpc(errRuntime, "CDDCBranchServer::handle__get_hit_strings(): requested StartHitNo=%i < cached=%i", StartHitNo, runq.StartHitNo);
+	throw CExpc(errRuntime, "CDDCBranchServer::handle__get_hit_strings(): requested StartHitNo=%zi < cached=%zi", StartHitNo, runq.StartHitNo);
     if (ResultLimit > runq.ResultLimit)
-	throw CExpc(errRuntime, "CDDCBranchServer::handle__get_hit_strings(): requested ResultLimit=%i > cached=%i", ResultLimit, runq.ResultLimit);
+	throw CExpc(errRuntime, "CDDCBranchServer::handle__get_hit_strings(): requested ResultLimit=%zd > cached=%zi", ResultLimit, runq.ResultLimit);
+    if (StartHitNo > runq.StartHitNo+runq.ResultLimit) {
+	//-- oops: someone a start-offset beyond what we can legitimately return: massage it (as LeafServer does)
+	StartHitNo = runq.StartHitNo+runq.ResultLimit;
+    }
+    if (StartHitNo+ResultLimit > runq.StartHitNo+runq.ResultLimit) {
+	//-- oops: someone requested more hits than we can legitimately return: massage it (as LeafServer does)
+	ResultLimit  = runq.StartHitNo+runq.ResultLimit - StartHitNo;
+    }
+    ddcLogTrace(Format("get_hit_strings: req={Start=%zd,Limit=%zd} ; runq={Start=%zd,Limit=%zd}", StartHitNo,ResultLimit, runq.StartHitNo,runq.ResultLimit));
 
     //-- guts
     runq.sResultFormat = ResultType;
     runq.StartHitNo    = StartHitNo;
     runq.ResultLimit   = ResultLimit;
-
-    //-- re-trim FHResult hits (in case get_hit_strings is requesting fewer hits than get_first_hits did)
-    if (runq.StartHitNo+runq.ResultLimit < FHResult.m_Offset+FHResult.m_Hits.size())
-	FHResult.m_Hits.erase(FHResult.m_Hits.begin()+runq.StartHitNo+runq.ResultLimit-FHResult.m_Offset, FHResult.m_Hits.end());
-    
-    if (runq.StartHitNo < FHResult.m_Offset+FHResult.m_Hits.size()) {
-	FHResult.m_Hits.erase(FHResult.m_Hits.begin(), FHResult.m_Hits.begin()+runq.StartHitNo-FHResult.m_Offset);
-	FHResult.m_Offset = runq.StartHitNo;
-    }
-    else {
-	FHResult.m_Hits.clear();
-	FHResult.m_Offset = FHResult.m_AllHitsCount;
-    }
 
     //-- get full string form of selected hits
     DDCFormatTypeEnum ResultTypeE = CConcSession::GetResultFormatByString(runq.sResultFormat);
@@ -413,7 +389,7 @@ void CDDCBranchServer::handle__get_hit_strings(string &Result, const char *Resul
     if (ResultTypeE == DDC_ResultJson) {
 	//-- JSON mode: munge in JSON syntax
 	StringTokenizer tok(runq.ResponseBody.c_str(), "\n");
-	Result.reserve(6+runq.ResponseBody.size()+FHResult.m_Hits.size());
+	Result.reserve(6+runq.ResponseBody.size()+FHResult.LogicalSize(runq.StartHitNo, runq.ResultLimit));
 
 	Result = "0";
 	if (m_VersionCompat >= DDCVersionT(2,1,9)) {
@@ -450,7 +426,7 @@ void CDDCBranchServer::handle__get_hit_strings(string &Result, const char *Resul
     
     runq.HitDistrib = FHResult.m_HitsDistributionStr.substr(21,FHResult.m_HitsDistributionStr.size()-23);
     runq.DocDistrib = FHResult.m_RelevantDocsDistributionStr.substr(32,FHResult.m_RelevantDocsDistributionStr.size()-34);
-    runq.EndHitNo   = runq.StartHitNo + FHResult.m_Hits.size();
+    runq.EndHitNo   = FHResult.LogicalMax(runq.StartHitNo + runq.ResultLimit);
     runq.iNetworkError = neSuccess;
 
     //-- update nav cache
@@ -467,7 +443,7 @@ void CDDCBranchServer::handle__get_hit_strings(string &Result, const char *Resul
 }
 
 //----------------------------------------------------------------------
-void CDDCBranchServer::handle__run_query(string &Result, const char *CorpusName, const char *Query, const char *ResultType, int StartHitNo, int ResultLimit, int TimeOut, const NavHint &Hint)
+void CDDCBranchServer::handle__run_query(string &Result, const char *CorpusName, const char *Query, const char *ResultType, size_t StartHitNo, size_t ResultLimit, int TimeOut, const NavHint &Hint)
 {
     CRunQueryData& runq = m_QueryData;
     runq.Init(Query, ResultType, StartHitNo, ResultLimit, TimeOut, &m_ErrorStr, Hint);
@@ -698,7 +674,7 @@ void CDDCBranchServer::RunDistributed()
     }
     runq.HitDistrib = FHResult.m_HitsDistributionStr.substr(21,FHResult.m_HitsDistributionStr.size()-23);
     runq.DocDistrib = FHResult.m_RelevantDocsDistributionStr.substr(32,FHResult.m_RelevantDocsDistributionStr.size()-34);
-    runq.EndHitNo   = runq.StartHitNo + FHResult.m_Hits.size();
+    runq.EndHitNo   = FHResult.LogicalMax(runq.StartHitNo + runq.ResultLimit);
 
     //-- update nav cache
     if (m_pNavCache && !IsCountSort(FHResult.m_SortOrder)) {
@@ -717,14 +693,14 @@ void CDDCBranchServer::RunDistributed()
 //----------------------------------------------------------------------
 NetworkErrorsEnum CDDCBranchServer::RunDistributed(string Query,
 						   const string& ResultType,
-						   DWORD StartHitNo,
-						   DWORD ResultLimit,
+						   size_t StartHitNo,
+						   size_t ResultLimit,
 						   int&  InternalError,
-						   DWORD&  EndHitNo,
-						   DWORD&  HitsCount,
+						   size_t&  EndHitNo,
+						   size_t&  HitsCount,
 						   int     TimeOut,
 						   string& ResultString,
-						   DWORD&  RelevantDocsCount,
+						   size_t&  RelevantDocsCount,
 						   string& HitDistrib,
 						   string& DocDistrib,
 						   string& HitsKey)
@@ -786,54 +762,39 @@ NetworkErrorsEnum CDDCBranchServer::RunGetFirstHits()
 
     //-- sorting and trimming: we need stable_sort() in order to ensure HitNo order is retained
     if (runq.PossibleHosts.size() > 1) {
-	    if (FHResult.m_SortOrder < 0) {
-		    //-- sort: descending
-		    stable_sort (FHResult.m_Hits.rbegin(), FHResult.m_Hits.rend());
-	    }
-	    else if (FHResult.m_SortOrder > 0) {
-		    //-- sort: ascending or counts
-		    stable_sort (FHResult.m_Hits.begin(), FHResult.m_Hits.end());
-	    }
+	if (FHResult.m_SortOrder < 0) {
+	    //-- sort: descending
+	    stable_sort (FHResult.m_Hits.rbegin(), FHResult.m_Hits.rend());
+	}
+	else if (FHResult.m_SortOrder > 0) {
+	    //-- sort: ascending or counts
+	    stable_sort (FHResult.m_Hits.begin(), FHResult.m_Hits.end());
+	}
     }
 
-    //-- count-query: aggregate by sort-keys
+    //-- count-query: aggregate by sort-keys (pre-trim)
     if (IsCountSort(FHResult.m_SortOrder)) {
 	FHResult.CollectCounts();
     }
 
-#ifdef DEBUG_HIT_SORT
-    for (vector<CHitToSort>::const_iterator hi=FHResult.m_Hits.begin(); hi != FHResult.m_Hits.end(); ++hi) {
-	concord_daemon_log( Format("DEBUG[post-sort:order=%d]: hit[%d] = %s", FHResult.m_SortOrder, hi-FHResult.m_Hits.begin(), hi->debugStr().c_str()) );
-    }
-#endif
-
+    HIT_SORT_DEBUG(
+       for (vector<CHitToSort>::const_iterator hi=FHResult.m_Hits.begin(); hi != FHResult.m_Hits.end(); ++hi) {
+	   concord_daemon_log( Format("DEBUG[post-sort:order=%d]: hit[%d] = %s", FHResult.m_SortOrder, hi-FHResult.m_Hits.begin(), hi->debugStr().c_str()) );
+       });
     
     //-- sanity check
     if (FHResult.m_Offset > runq.StartHitNo)
 	throw CExpc("navigation cache error: daughters over-pruned (FHResult.Offset=%zd > StartHitNo=%i)", FHResult.m_Offset, runq.StartHitNo);
 
-    //-- trim to requested hits: back
-    if (runq.StartHitNo+runq.ResultLimit < FHResult.m_Offset+FHResult.m_Hits.size())
-	FHResult.m_Hits.erase(FHResult.m_Hits.begin()+runq.StartHitNo+runq.ResultLimit-FHResult.m_Offset, FHResult.m_Hits.end());
-
-    //-- trim to requested hits: front
-    if (runq.StartHitNo < FHResult.m_Offset+FHResult.m_Hits.size()) {
-	FHResult.m_Hits.erase(FHResult.m_Hits.begin(), FHResult.m_Hits.begin()+runq.StartHitNo-FHResult.m_Offset);
-        FHResult.m_Offset += (runq.StartHitNo - FHResult.m_Offset);
-    }
-    else {
-	FHResult.m_Hits.clear();
-	FHResult.m_Offset = FHResult.m_AllHitsCount;
-    }
-
 #ifdef DEBUG_HIT_SORT
-    for (vector<CHitToSort>::const_iterator hi=FHResult.m_Hits.begin(); hi != FHResult.m_Hits.end(); ++hi) {
-	concord_daemon_log( Format("DEBUG[post-trim]: hit[%d] = %s", hi-FHResult.m_Hits.begin(), hi->debugStr().c_str()) );
+    for (size_t physi=FHResult.PhysicalOffset(runq.StartHitNo); physi < FHResult.PhysicalMax(runq.StartHitNo+runq.ResultLimit); ++physi) {
+	const CHitToSort &h = FHResult.m_Hits[physi];
+	concord_daemon_log( Format("DEBUG[pseudo-trim]: hit[%zd~%zd] = %s", physi,FHResult.LogicalOffset(physi), h.debugStr().c_str()) );
     }
 #endif
 
     //-- update runq.EndHitNo for get_first_hits requests
-    runq.EndHitNo = runq.StartHitNo + FHResult.m_Hits.size();
+    runq.EndHitNo = FHResult.LogicalMax(runq.StartHitNo+runq.ResultLimit);
     
     return (NetworkErrorsEnum)runq.iNetworkError;
 }
@@ -866,8 +827,12 @@ NetworkErrorsEnum CDDCBranchServer::GetHitCounts(CFirstHitsQueryResult& FHResult
 	ResultString += "<TABLE>\n";
     }
 
-    for (vector<CHitToSort>::const_iterator hi=FHResult.m_Hits.begin(); hi != FHResult.m_Hits.end(); hi++) {
-	GenerateCountString(ResultString, ResultTypeE, hi->m_SortKeyStr, hi->m_HitNo);
+    const CRunQueryData& runq = m_QueryData;
+    size_t beg = FHResult.PhysicalOffset(runq.StartHitNo);
+    size_t end = FHResult.PhysicalMax(runq.StartHitNo+runq.ResultLimit);
+    for (size_t phi=beg; phi < end; ++phi) {
+	const CHitToSort &h = FHResult.m_Hits[phi];
+	GenerateCountString(ResultString, ResultTypeE, h.m_SortKeyStr, h.m_HitNo);
 	if (ResultTypeE == DDC_ResultJson) {
 	    ResultString += ",\n";
 	}
@@ -894,29 +859,59 @@ NetworkErrorsEnum CDDCBranchServer::GetHitContexts(CFirstHitsQueryResult& FHResu
 						   string& ResultString
 						   )
 {
-    // create map from HostNo to  Hits, SortedHits[i] contains all reference to hits from host i in the right order
-    vector<int> SortedHits[MaxSubhostsSize];
-    for (size_t i=0; i < FHResult.m_Hits.size(); i++)
+    CRunQueryData &runq   = m_QueryData;
+    
+    // create map from HostNo to  Hits, SortedHits[i] contains all physical offsets of hits to return from host i in the correct order
+    vector< vector<size_t> > SortedHits(m_Hosts.size());
+    size_t beg = FHResult.PhysicalOffset(runq.StartHitNo);
+    size_t end = FHResult.PhysicalMax(runq.StartHitNo+runq.ResultLimit);
+    for (size_t i=beg; i < end; ++i)
 	SortedHits[FHResult.m_Hits[i].m_HostNo].push_back(i);
 
+    //-- hint-scan: scan for correct get_hit_strings offsets
+    vector<size_t> FirstOffsets(m_Hosts.size(),SIZE_MAX);
+    size_t nFirstOffsets = 0;
+    //-- hint-scan: branch-level result set (easy answer)
+    for (size_t i=0; i < PossibleHosts.size(); i++) {
+	if (SortedHits[i].empty()) continue;
+	FirstOffsets[i] = FHResult.m_Hits[SortedHits[i][0]].m_HitNo;
+	++nFirstOffsets;
+    }
+    //-- hint-scan: back-trimmed hits
+    if (nFirstOffsets < PossibleHosts.size()) {
+	for (size_t phi=end; phi < FHResult.m_Hits.size(); ++phi) {
+	    const CHitToSort &h = FHResult.m_Hits[phi];
+	    if (FirstOffsets[h.m_HostNo] != SIZE_MAX) continue;
+	    FirstOffsets[h.m_HostNo] = h.m_HitNo;
+	    if (++nFirstOffsets >= PossibleHosts.size()) break;
+	}
+    }
+    //-- hint-scan: other (front-trimmed or no-hits)
+    if (nFirstOffsets < PossibleHosts.size()) {
+	for (size_t i=0; i < PossibleHosts.size(); i++) {
+	    if (FirstOffsets[i] != SIZE_MAX) continue;
+	    FirstOffsets[i] = FHResult.m_DtrEnds[i];
+	}
+    }
+   
+
     // navHint caching
-    CRunQueryData &runq   = m_QueryData;
-    runq.navKey.m_HitNo   = min(FHResult.m_Offset+FHResult.m_Hits.size(), (size_t)FHResult.m_AllHitsCount);
+    runq.navKey.m_HitNo   = min(FHResult.LogicalOffset(end), FHResult.m_AllHitsCount);
     runq.navHint.m_Offset = runq.navKey.m_HitNo;
-    runq.navHint.m_DtrHints.resize(m_Hosts.size());
-    if (FHResult.m_Hits.size() > 0)
-	runq.navHint.m_SortKey = FHResult.m_Hits.back().m_SortKeyStr;
-    NAVCACHE_DEBUG( ddcLogDebug(Format("GetHitContexts(): FHR.Off=%zd + FHR.size=%zd --> navKey.HitNo=%zd", FHResult.m_Offset, FHResult.m_Hits.size(), runq.navKey.m_HitNo)) );
+    runq.navHint.m_DtrHints.assign(m_Hosts.size(), "");
+    if (beg < end)
+	runq.navHint.m_SortKey = FHResult.m_Hits[end-1].m_SortKeyStr;
+    NAVCACHE_DEBUG( ddcLogDebug(Format("GetHitContexts(): FHR.LEnd=%zd FHR.Count=%zd --> navKey.HitNo=%zd", FHResult.LogicalOffset(end), FHResult.m_AllHitsCount, runq.navKey.m_HitNo)) );
 
     // get strings from the hosts:
     //   Results[HostNo] - contains all hit strings in the right order
-    vector<string> Results[MaxSubhostsSize];
-    for (int i=0; i<PossibleHosts.size(); i++)	{
+    vector<vector<string> > Results(m_Hosts.size());
+    for (size_t i=0; i<PossibleHosts.size(); i++) {
 	BYTE HostNo = PossibleHosts[i]; 
 
-	const vector<int>&  V = SortedHits[HostNo];
+	const vector<size_t>&  V = SortedHits[HostNo];
 	string S, dtrHint;
-	size_t FirstHitNo = (V.empty()) ? 0 : FHResult.m_Hits[V[0]].m_HitNo;
+	size_t FirstHitNo = (V.empty()) ? FirstOffsets[HostNo] : FHResult.m_Hits[V[0]].m_HitNo;
 	InternalError = errNone;
 	NetworkErrorsEnum Res = GetHitStringsFromOneCorpus
 	    (m_Hosts[HostNo], ResultType, FirstHitNo, V.size(), TimeOut,FHResult.m_Sockets[i], InternalError, S, dtrHint);
@@ -960,9 +955,9 @@ NetworkErrorsEnum CDDCBranchServer::GetHitContexts(CFirstHitsQueryResult& FHResu
     };
 
     //-- populate ResultString
-    for (size_t i=0; i < FHResult.m_Hits.size(); i++) {
+    for (size_t i=beg; i < end; i++) {
 	BYTE HostNo = FHResult.m_Hits[i].m_HostNo;
-	const vector<int>&  V = SortedHits[HostNo];
+	const vector<size_t>&  V = SortedHits[HostNo];
 	if (V.empty()) continue;
 	ResultString += Results[ HostNo ][ FHResult.m_Hits[i].m_HitNo - FHResult.m_Hits[V[0]].m_HitNo ];
 	if (ResultTypeE == DDC_ResultJson) {
@@ -982,8 +977,8 @@ NetworkErrorsEnum CDDCBranchServer::GetHitContexts(CFirstHitsQueryResult& FHResu
 //----------------------------------------------------------------------
 void CDDCBranchServer::GetFirstHitsFromCorpora(const DwordVector& PossibleHosts,
 					       const string Query,
-					       const DWORD  StartHitNo,
-					       const DWORD  ResultLimit,
+					       const size_t  StartHitNo,
+					       const size_t  ResultLimit,
 					       const int    TimeOut,
 					       CFirstHitsQueryResult& Result)
 {
@@ -1005,7 +1000,7 @@ void CDDCBranchServer::GetFirstHitsFromCorpora(const DwordVector& PossibleHosts,
 	    throw CExpc("bizarre hint OffsetTotal=%zd exceeds requested StartHitNo=%d", HintOffset, StartHitNo);
 	NAVCACHE_DEBUG(ddcLogDebug(Format("-> got HintOffset=%zd", HintOffset)));
 
-	for (int i=0; i<PossibleHosts.size(); i++)	
+	for (size_t i=0; i<PossibleHosts.size(); i++)	
 	{
 		BYTE HostNo = PossibleHosts[i];
 		CHost& Host = m_Hosts[HostNo];
@@ -1041,9 +1036,10 @@ void CDDCBranchServer::GetFirstHitsFromCorpora(const DwordVector& PossibleHosts,
 		};
 	};
 
+	Result.m_DtrEnds.assign(m_Hosts.size(), 0);
 	vector<size_t>  HitsDistribution(m_Hosts.size(), 0);
 	vector<size_t>  RelevantDocsDistribution(m_Hosts.size(), 0);
-	for (int i=0; i<PossibleHosts.size(); i++)	
+	for (size_t i=0; i<PossibleHosts.size(); i++)	
 	{
 		BYTE HostNo = PossibleHosts[i];
 		CHost& Host = m_Hosts[HostNo];
@@ -1056,10 +1052,10 @@ void CDDCBranchServer::GetFirstHitsFromCorpora(const DwordVector& PossibleHosts,
 			return;
 		};
 
-		DWORD  CorpusHitsCount,RelevantDocumentsCount, EndHitNo;
+		size_t  CorpusHitsCount,RelevantDocumentsCount, EndHitNo;
 		int iInternalError, iSort;
 
-		if(sscanf(S.c_str(), "%i %i %i %i %i", &iInternalError, &EndHitNo, &CorpusHitsCount, &RelevantDocumentsCount, &iSort) != 5)
+		if(sscanf(S.c_str(), "%i %zi %zi %zi %i", &iInternalError, &EndHitNo, &CorpusHitsCount, &RelevantDocumentsCount, &iSort) != 5)
 		{
 			Result.m_NetworkError = neProtocolError;
 			Result.m_ErrorStr     = string("[") + Host.m_CorpusName + "] " + GetNetworkErrorString(Result.m_NetworkError);
@@ -1071,6 +1067,7 @@ void CDDCBranchServer::GetFirstHitsFromCorpora(const DwordVector& PossibleHosts,
 		Result.m_AllRelevantDocsCount += RelevantDocumentsCount;
 		RelevantDocsDistribution[HostNo] = RelevantDocumentsCount;
 		Result.m_SortOrder = (HitSortOrderEnum)iSort;
+		Result.m_DtrEnds[HostNo] = EndHitNo;
 		//#ifdef DDC_COUNT_KEY_COMPAT
 		//-- hack for transition to v2.0.38; see DDC_COUNT_KEY_COMPAT definition in ConcCommon.h
 		//   + also needed for v2.1.4 fixes
@@ -1096,7 +1093,7 @@ void CDDCBranchServer::GetFirstHitsFromCorpora(const DwordVector& PossibleHosts,
 		//Result.m_Hits.reserve( Result.m_Hits.size() + (CorpusHitsCount < ResultLimit ? CorpusHitsCount : ResultLimit) );
 		
 		//-- read sort keys for merging sorted results (v2.0.19: always use string-sort for results)		
-		int f = S.find("\t");
+		size_t f = S.find("\t");
 		size_t subcorpusHitOffset = Result.m_Hits.size();
 		if (f != string::npos) {
 			StringTokenizer tok(S.c_str() + f +1,"\t");
@@ -1159,12 +1156,12 @@ void CDDCBranchServer::GetFirstHitsFromCorpora(const DwordVector& PossibleHosts,
 	for (size_t i=0; i< HitsDistribution.size();  i++)
 	{
 		Result.m_HitsDistributionStr += Format("%i",HitsDistribution[i]);
-		Result.m_RelevantDocsDistributionStr += Format("%i",RelevantDocsDistribution[i]);
+		Result.m_RelevantDocsDistributionStr += Format("%zi",RelevantDocsDistribution[i]);
 
 		if (i+1 == HitsDistribution.size())
 		{
-			Result.m_HitsDistributionStr += Format("=%i;\n",Result.m_AllHitsCount);
-			Result.m_RelevantDocsDistributionStr += Format("=%i;\n",Result.m_AllRelevantDocsCount);
+			Result.m_HitsDistributionStr += Format("=%zi;\n",Result.m_AllHitsCount);
+			Result.m_RelevantDocsDistributionStr += Format("=%zi;\n",Result.m_AllRelevantDocsCount);
 		}
 		else
 		{
@@ -1179,8 +1176,8 @@ void CDDCBranchServer::GetFirstHitsFromCorpora(const DwordVector& PossibleHosts,
 //----------------------------------------------------------------------
 NetworkErrorsEnum CDDCBranchServer::GetHitStringsFromOneCorpus(CHost& Host,
 							       const string& ResultType,
-							       DWORD StartHitNo,
-							       DWORD ResultLimit,
+							       size_t StartHitNo,
+							       size_t ResultLimit,
 							       int   TimeOut,
 							       SOCKET& CorpusSocket,
 							       int&    InternalError,
@@ -1191,16 +1188,26 @@ NetworkErrorsEnum CDDCBranchServer::GetHitStringsFromOneCorpus(CHost& Host,
 	if (CorpusSocket == -1)
 		return neNetworkError;
 
+#if 0
+	//-- check for vacuous request
+	//   OLD (v2.0.31, 2014-10-01)
+	//     + just close up the socket to avoid ~40ms turnaround (data from A. Barbaresi, tested kerncorpus@data)
+	//   UPDATE (v2.1.10, 2018-03-13)
+	//     + unable to reproduce any noticeable turnaround delay using bz, bz_pp, or bz_meta on kira
+	//     + allowing vacuous 'get_hit_strings' requests was in fact often faster than without (but only by ca. 1ms in fs-cached case)
+	//     + dominant factor for query time is fs-cache presence of get_hit_strings *results* (doesn't apply to empty get_hit_strings requests)
+	//       : +fscache @ ca. 10 ms/q ; -fscache @ 430 ms/q
+	//     + for v2.1.10, we need 'get_hit_strings' even for "empty" daughter result-sets in order to update navHints
 	if (ResultLimit==0) {
-	    //-- vacuous request; just close up the socket to avoid ~40ms turnaround (data from A. Barbaresi, tested kerncorpus@data)
 	    this->CloseDtr(CorpusSocket);
 	    InternalError = errNone;
 	    Result.clear();
 	    return neSuccess;
 	}
+#endif
 
 	//Query\x01StartHitNo ResultLimit bGetText
-	string S = Format ("get_hit_strings %s\x01%i %i",  ResultType.c_str(), StartHitNo,  ResultLimit);
+	string S = Format ("get_hit_strings %s\x01%zi %zi",  ResultType.c_str(), StartHitNo,  ResultLimit);
 
 	if (!SendString(CorpusSocket, S.c_str(), S.length(), ErrorStr)) 
 	{
@@ -1229,7 +1236,11 @@ NetworkErrorsEnum CDDCBranchServer::GetHitStringsFromOneCorpus(CHost& Host,
 		return neProtocolError;
 	};
 
-	Result = S.substr(dataPos+1);
+	if (ResultLimit > 0)
+	    Result.assign(S, dataPos, string::npos);
+	else
+	    Result.clear();
+
 	S.erase(dataPos, S.length() - dataPos);
 	int iInternalError, hintPos;
 	if(sscanf(S.c_str(), "%i%n", &iInternalError, &hintPos) != 1)
@@ -1241,8 +1252,8 @@ NetworkErrorsEnum CDDCBranchServer::GetHitStringsFromOneCorpus(CHost& Host,
 	//-- parse hint
 	ResultHint.clear();
 	if (hintPos < dataPos) {
-	    NavHint dtrHint(S.substr(hintPos,dataPos-hintPos));
-	    ResultHint = dtrHint.toString(false);
+	    ResultHint.assign(S, hintPos, dataPos-hintPos);
+	    Trim(ResultHint);
 	}
 	
 

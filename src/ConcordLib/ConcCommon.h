@@ -181,6 +181,9 @@ enum HitSortOrderEnum {
 	hsoDescendingCountValues =  5
 };
 
+inline bool IsNullSort(HitSortOrderEnum e)
+{ return e==hsoNone; }
+
 inline bool IsCountSort(HitSortOrderEnum e)
 { return e >= hsoAscendingCountKeys && e <= hsoDescendingCountValues; }
 
