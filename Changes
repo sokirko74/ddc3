@@ -1,6 +1,6 @@
 ##-*- Mode: Change-Log; coding: utf-8; -*-
 
-v2.1.10-rc1 Wed, 14 Mar 2018 13:13:20 +0100 moocow
+v2.1.10 Wed, 14 Mar 2018 14:43:26 +0100 moocow
 	* fixed catastrophic typo causing bogus count-query results from branch server
 	* fixed inconsistent navigation hint generation if all hits were trimmed (requires 'vacuous' get_hit_strings requests)
 	* disabled "vacuous get_hit_strings request" check introduced in v2.0.31
