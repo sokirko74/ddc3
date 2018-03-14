@@ -307,6 +307,9 @@ public:
 				     string&  DocDistrib,
 				     string&  HitsKey);
 
+    /** mid-level: update the navigation cache from runq.navHint, runq.navKey if applicable */
+    void UpdateNavCache();
+
     /** mid-level guts for handle__run_query() , context-queries only
      *  \li updates runq.m_navKey and runq.m_navHint to point to the next available hit
      */

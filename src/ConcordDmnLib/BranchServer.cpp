@@ -352,7 +352,6 @@ void CDDCBranchServer::handle__get_hit_strings(string &Result, const char *Resul
 	//-- oops: someone requested more hits than we can legitimately return: massage it (as LeafServer does)
 	ResultLimit  = runq.StartHitNo+runq.ResultLimit - StartHitNo;
     }
-    ddcLogTrace(Format("get_hit_strings: req={Start=%zd,Limit=%zd} ; runq={Start=%zd,Limit=%zd}", StartHitNo,ResultLimit, runq.StartHitNo,runq.ResultLimit));
 
     //-- guts
     runq.sResultFormat = ResultType;
@@ -429,16 +428,7 @@ void CDDCBranchServer::handle__get_hit_strings(string &Result, const char *Resul
     runq.EndHitNo   = FHResult.LogicalMax(runq.StartHitNo + runq.ResultLimit);
     runq.iNetworkError = neSuccess;
 
-    //-- update nav cache
-    if (m_pNavCache && !IsCountSort(FHResult.m_SortOrder)) {
-	m_pNavCache->insert(runq.navKey, runq.navHint);
-	NAVCACHE_DEBUG(
-		       ddcLogDebug(Format("NAVCACHE: FHR.Offset=%zd ; FHR.nHits=%zd", FHResult.m_Offset, FHResult.m_Hits.size()));
-		       ddcLogDebug(Format("NAVCACHE: updated Key=%s => Hint=%s", runq.navKey.toJson().c_str(), runq.navHint.toJson().c_str()));
-		       ddcLogDebug(string("NAVCACHE: cache=") + m_pNavCache->toJson());
-		      );
-    }
-    
+    UpdateNavCache();
     m_bExpectMore = false;
 }
 
@@ -676,16 +666,7 @@ void CDDCBranchServer::RunDistributed()
     runq.DocDistrib = FHResult.m_RelevantDocsDistributionStr.substr(32,FHResult.m_RelevantDocsDistributionStr.size()-34);
     runq.EndHitNo   = FHResult.LogicalMax(runq.StartHitNo + runq.ResultLimit);
 
-    //-- update nav cache
-    if (m_pNavCache && !IsCountSort(FHResult.m_SortOrder)) {
-	m_pNavCache->insert(runq.navKey, runq.navHint);
-	NAVCACHE_DEBUG(
-		       ddcLogDebug(Format("NAVCACHE: FHR.Offset=%zd ; FHR.nHits=%zd", FHResult.m_Offset, FHResult.m_Hits.size()));
-		       ddcLogDebug(Format("NAVCACHE: updated Key=%s => Hint=%s", runq.navKey.toJson().c_str(), runq.navHint.toJson().c_str()));
-		       ddcLogDebug(string("NAVCACHE: cache=") + m_pNavCache->toJson());
-		      );
-    }
-
+    UpdateNavCache();
     runq.iNetworkError = neSuccess;
 }
 
@@ -847,6 +828,23 @@ NetworkErrorsEnum CDDCBranchServer::GetHitCounts(CFirstHitsQueryResult& FHResult
 
     FHResult.CloseSockets();
     return neSuccess;
+}
+
+//----------------------------------------------------------------------
+void CDDCBranchServer::UpdateNavCache()
+{
+    CRunQueryData &runq = m_QueryData;
+    CFirstHitsQueryResult& FHResult = m_FHResult;
+
+    //-- update nav cache
+    if (m_pNavCache && !IsCountSort(FHResult.m_SortOrder) && runq.PossibleHosts.size()==m_Hosts.size()) {
+	m_pNavCache->insert(runq.navKey, runq.navHint);
+	NAVCACHE_DEBUG(
+		       //ddcLogDebug(Format("NAVCACHE: FHR.Offset=%zd ; FHR.nHits=%zd", FHResult.m_Offset, FHResult.m_Hits.size()));
+		       ddcLogDebug(Format("NAVCACHE: updated Key=%s => Hint=%s", runq.navKey.toJson().c_str(), runq.navHint.toJson().c_str()));
+		       ddcLogDebug(string("NAVCACHE: cache=") + m_pNavCache->toJson());
+		      );
+    }
 }
 
 //----------------------------------------------------------------------

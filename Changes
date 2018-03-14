@@ -1,16 +1,17 @@
 ##-*- Mode: Change-Log; coding: utf-8; -*-
 
-v2.1.10-pre1 Mon, 12 Mar 2018 13:50:13 +0100 moocow
+v2.1.10-rc1 Wed, 14 Mar 2018 13:13:20 +0100 moocow
 	* fixed catastrophic typo causing bogus count-query results from branch server
+	* fixed inconsistent navigation hint generation if all hits were trimmed (requires 'vacuous' get_hit_strings requests)
 	* disabled "vacuous get_hit_strings request" check introduced in v2.0.31
 	  - unable to reproduce any noticeable turnaround delay using bz, bz_pp, or bz_meta on kira
 	  - allowing vacuous 'get_hit_strings' requests was in fact often faster than without (but only by ca. 1ms in fs-cached case)
 	  - dominant factor for query time is fs-cache presence of get_hit_strings *results* (doesn't apply to empty get_hit_strings requests)
 	    + fscache @ ca. 10 ms/q ; -fscache @ 430 ms/q
-	  - for v2.1.10, we need get_hit_strings even for "empty" daughter result-sets in order to update navHint
+	  - for v2.1.10, we need get_hit_strings even for "empty" daughter result-sets in order to update navigation hints
 	* disabled trimming of CFirstHitsQueryResult::m_Hits[] in BranchServer.cpp
-	  - we're paying for the memory anyways, and we need all retrieved hits for consistent navHints in some cases
-	* fixed inconsistent navigation hint generation if all hits were trimmed (requires 'vacuous' get_hit_strings requests)
+	  - we're paying for the memory anyways, and we need all retrieved hits in FHResult for consistent hints (in some cases)
+	* refactored navigation cache insertion into new method CDDCBranchServer::UpdateNavCache()
 
 v2.1.9 Thu, 08 Mar 2018 15:51:33 +0100 moocow
 	* IndexSet.cpp lookup routines now throw an exception if MaxRegexpExpansionSize is exceeded
