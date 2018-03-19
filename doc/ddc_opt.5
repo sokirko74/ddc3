@@ -67,7 +67,7 @@
 .\" ========================================================================
 .\"
 .IX Title "DDC_OPT 5"
-.TH DDC_OPT 5 "2018-03-08" "2.1.10" "DDC Corpus Indexing System"
+.TH DDC_OPT 5 "2018-03-19" "2.1.10" "DDC Corpus Indexing System"
 .\" For nroff, turn off justification.  Always turn off hyphenation; it makes
 .\" way too many mistakes in technical documents.
 .if n .ad l
@@ -427,6 +427,13 @@ is a short name for the index, conventionally in all lower-case and frequently o
 .IX Item "ARCHIVE"
 is one of the strings \f(CW\*(C`archive\*(C'\fR or \f(CW\*(C`normal\*(C'\fR.
 If it is \f(CW\*(C`archive\*(C'\fR, the current index is archived, otherwise it is not; and
+.IP "\s-1STORAGE\s0" 4
+.IX Item "STORAGE"
+is one of the strings \f(CW\*(C`storage\*(C'\fR or \f(CW\*(C`storage_omit\*(C'\fR.
+If it is \f(CW\*(C`storage\*(C'\fR, then the index is supplied with a storage during indexing, otherwise storage is not built.
+By default the first index is build with a storage (if it is not manually prohibited), other indices are built without storages.
+.PP
+The indices option is only supported for the \f(CW\*(C`Free_Index\*(C'\fR Index Type.
 .PP
 \fIIndexAlias\fR
 .IX Subsection "IndexAlias"
@@ -445,13 +452,6 @@ with respect to the underlying index \f(CW\*(C`TO\*(C'\fR.
 Useful for facilitating interoperability of heterogeneous corpora.
 .PP
 Since v2.1.5
-.IP "\s-1STORAGE\s0" 4
-.IX Item "STORAGE"
-is one of the strings \f(CW\*(C`storage\*(C'\fR or \f(CW\*(C`storage_omit\*(C'\fR.
-If it is \f(CW\*(C`storage\*(C'\fR, then the index is supplied with a storage during indexing, otherwise storage is not built.
-By default the first index is build with a storage (if it is not manually prohibited), other indices are built without storages.
-.PP
-The indices option is only supported for the \f(CW\*(C`Free_Index\*(C'\fR Index Type.
 .PP
 \fIIndicesToShow\fR
 .IX Subsection "IndicesToShow"

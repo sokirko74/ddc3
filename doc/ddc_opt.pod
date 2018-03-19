@@ -376,6 +376,17 @@ is a short name for the index, conventionally in all lower-case and frequently o
 is one of the strings C<archive> or C<normal>.
 If it is C<archive>, the current index is archived, otherwise it is not; and
 
+=item STORAGE
+
+is one of the strings C<storage> or C<storage_omit>.
+If it is C<storage>, then the index is supplied with a storage during indexing, otherwise storage is not built.
+By default the first index is build with a storage (if it is not manually prohibited), other indices are built without storages.
+
+=back
+
+The L<indices|/indices> option is only supported for the C<Free_Index> L<Index Type|/indextype>.
+
+
 =head3 IndexAlias
 
  IndexAlias FROM TO
@@ -390,18 +401,6 @@ with respect to the underlying index C<TO>.
 Useful for facilitating interoperability of heterogeneous corpora.
 
 Since v2.1.5
-
-
-=item STORAGE
-
-is one of the strings C<storage> or C<storage_omit>.
-If it is C<storage>, then the index is supplied with a storage during indexing, otherwise storage is not built.
-By default the first index is build with a storage (if it is not manually prohibited), other indices are built without storages.
-
-=back
-
-The L<indices|/indices> option is only supported for the C<Free_Index> L<Index Type|/indextype>.
-
 
 =head3 IndicesToShow
 

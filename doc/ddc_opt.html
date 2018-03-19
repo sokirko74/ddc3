@@ -98,7 +98,6 @@
   <li><a href="#ACKNOWLEDGEMENTS">ACKNOWLEDGEMENTS</a></li>
   <li><a href="#AUTHOR">AUTHOR</a></li>
   <li><a href="#SEE-ALSO">SEE ALSO</a></li>
-  <li><a href="#POD-ERRORS">POD ERRORS</a></li>
 </ul>
 
 <h1 id="DDC-.opt-FILE-SYNTAX">DDC *.opt FILE SYNTAX</h1>
@@ -360,18 +359,6 @@
 <p>is one of the strings <code>archive</code> or <code>normal</code>. If it is <code>archive</code>, the current index is archived, otherwise it is not; and</p>
 
 </dd>
-</dl>
-
-<h3 id="IndexAlias">IndexAlias</h3>
-
-<pre><code> IndexAlias FROM TO</code></pre>
-
-<p>Defines a new token-level alias <code>FROM</code> for the existing index <code>TO</code>. <code>TO</code> may be a long index name declared in <a href="#Indices">Indices</a>, a short index name declared in <a href="#Indices">Indices</a>, or a valid index alias previously declared by another <code>IndexAlias</code> directive. Causes all runtime query operations on the pseudo-index <code>FROM</code> to be evaluated with respect to the underlying index <code>TO</code>. Useful for facilitating interoperability of heterogeneous corpora.</p>
-
-<p>Since v2.1.5</p>
-
-<dl>
-
 <dt id="STORAGE">STORAGE</dt>
 <dd>
 
@@ -381,6 +368,14 @@
 </dl>
 
 <p>The <a href="#indices">indices</a> option is only supported for the <code>Free_Index</code> <a href="#indextype">Index Type</a>.</p>
+
+<h3 id="IndexAlias">IndexAlias</h3>
+
+<pre><code> IndexAlias FROM TO</code></pre>
+
+<p>Defines a new token-level alias <code>FROM</code> for the existing index <code>TO</code>. <code>TO</code> may be a long index name declared in <a href="#Indices">Indices</a>, a short index name declared in <a href="#Indices">Indices</a>, or a valid index alias previously declared by another <code>IndexAlias</code> directive. Causes all runtime query operations on the pseudo-index <code>FROM</code> to be evaluated with respect to the underlying index <code>TO</code>. Useful for facilitating interoperability of heterogeneous corpora.</p>
+
+<p>Since v2.1.5</p>
 
 <h3 id="IndicesToShow">IndicesToShow</h3>
 
@@ -850,26 +845,6 @@
 <h1 id="SEE-ALSO">SEE ALSO</h1>
 
 <p>ddc_server.opt(5), ddc_console(1), ddc_daemon(1), ddc_expand(1), ddc_file_lem(1), ddc_graphmat_thick(1), ddc_index(1), ddc_morph_gen(1), ddc_search(1), ddc_simple(1), ddc_stats(1), ddc_struct_dict_loader(1), ddc_test_lem(1), ddc_xml(1)</p>
-
-<h1 id="POD-ERRORS">POD ERRORS</h1>
-
-<p>Hey! <b>The above document had some coding errors, which are explained below:</b></p>
-
-<dl>
-
-<dt id="Around-line-379">Around line 379:</dt>
-<dd>
-
-<p>You forgot a &#39;=back&#39; before &#39;=head3&#39;</p>
-
-</dd>
-<dt id="Around-line-395">Around line 395:</dt>
-<dd>
-
-<p>&#39;=item&#39; outside of any &#39;=over&#39;</p>
-
-</dd>
-</dl>
 
 
 </body>
