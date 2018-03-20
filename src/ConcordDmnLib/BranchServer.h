@@ -192,12 +192,13 @@ public:
     map<string, CQueryStatistics>	m_QueryToStatis; //-- unused?
     vector<CHost>			m_Hosts;	
     string				m_QueryResultString;
-    string				m_ErrorStr;  //-- subcorpus error
+    string				m_ErrorStr;  	//-- subcorpus error
 
     //-- low-level data
     CFirstHitsQueryResult 		m_FHResult;   //< first-hits result
     CRunQueryData			m_QueryData;  //< run-query data
     NavHintCache			*m_pNavCache; //< navigation hint cache (shared over multiple worker threads)
+    size_t				m_NavCacheStep;	//-- minimum offset increment for update of navigation hint cache
     
 public:
     //--------------------------------------------------------------

@@ -138,10 +138,10 @@ string NavHint::toJson() const
 // NavHintCache
 
 //--------------------------------------------------------------
-bool NavHintCache::lower_bound(ValT& val, const KeyT& key, size_t nDtrs)
+bool NavHintCache::lower_bound(ValT& val, const KeyT& key, bool doPromote)
 {
   bool found = false;
-  val.clear(nDtrs);
+  val.clear();
     
   lock();
   try {
@@ -151,7 +151,7 @@ bool NavHintCache::lower_bound(ValT& val, const KeyT& key, size_t nDtrs)
       NAVCACHE_TRACE(ddcLogTrace(Format("NavCache::lower_bound(\"%s\") found %s", escapeCString(key.toString()).c_str()), jsonStr(ci->second->second).c_str()));
       val   = ci->second->second;
       found = true;
-      m_Cache.promote(ci);
+      if (doPromote) m_Cache.promote(ci);
     }
   } catch (...) {
     unlock();

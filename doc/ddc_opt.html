@@ -215,7 +215,7 @@
 
 <h2 id="Required-Declarations">Required Declarations</h2>
 
-<p>Each DDC option file requires two obligatory declarations <a href="#lang">Lang</a> and <a href="#indextype">IndexType</a>, which should occur as the first two options in an opt-file (although they may be defined by an external file loaded with the <a href="#include">include</a> directive).</p>
+<p>Each DDC option file requires two obligatory declarations <a href="#LANG">LANG</a> and <a href="#IndexType">IndexType</a>, which should occur as the first two options in an opt-file (although they may be defined by an external file loaded with the <a href="#include">include</a> directive).</p>
 
 <h3 id="IndexType">IndexType</h3>
 
@@ -243,13 +243,13 @@
 
 <p>If specified and true, DDC will not include the <code>infl</code> term expander to the default expansion pipeline for the <code>Token</code> index.</p>
 
-<p>Note that a term expansion explicitly defined with an <a href="#expand">Expand</a> clause for the <code>Token</code> index will override the effects of this option.</p>
+<p>Note that a term expansion explicitly defined with an <a href="#Expand">Expand</a> clause for the <code>Token</code> index will override the effects of this option.</p>
 
 <h3 id="CaseInsensitive">CaseInsensitive</h3>
 
 <p>If specified and true, DDC will not add the <code>case</code> term expander to the default expansion pipeline for the <code>Token</code> index.</p>
 
-<p>Note that a term expansion explicitly defined with an <a href="#expand">Expand</a> clause for the <code>Token</code> index will override the effects of this option.</p>
+<p>Note that a term expansion explicitly defined with an <a href="#Expand">Expand</a> clause for the <code>Token</code> index will override the effects of this option.</p>
 
 <h3 id="ShowNumberOfRelevantDocuments">ShowNumberOfRelevantDocuments</h3>
 
@@ -257,7 +257,7 @@
 
 <h3 id="QueryOnlyFiles">QueryOnlyFiles</h3>
 
-<p>(from DDCReadme): If set, DDC doesn&#39;t create a sentence break collection. Only meaningful for <code>DWDS_Index</code> or <code>MorphXML_Index</code> <a href="#indextype">Index Types</a>.</p>
+<p>(from DDCReadme): If set, DDC doesn&#39;t create a sentence break collection. Only meaningful for <code>DWDS_Index</code> or <code>MorphXML_Index</code> <a href="#IndexType">Index Types</a>.</p>
 
 <h3 id="NoContextOperator">NoContextOperator</h3>
 
@@ -281,33 +281,33 @@
 
 <h3 id="IndexChunks">IndexChunks</h3>
 
-<p>(from DDCReadme): If set, enables indexing and querying using &#39;chunks&#39;, otherwise chunks are ignored. Only meaningful for the <code>Free_Index</code> <a href="#indextype">Index Type</a>.</p>
+<p>(from DDCReadme): If set, enables indexing and querying using &#39;chunks&#39;, otherwise chunks are ignored. Only meaningful for the <code>Free_Index</code> <a href="#IndexType">Index Type</a>.</p>
 
 <p>NOTE: seems to control implicit creation of a <code>Chunk</code> index.</p>
 
 <h3 id="IndexMorphPatterns">IndexMorphPatterns</h3>
 
-<p>(from DDCReadme): If set, DDC creates a <code>MorphPattern</code> index. Only meaningful for the <code>DWDS_Index</code> <a href="#indextype">Index Type</a>.</p>
+<p>(from DDCReadme): If set, DDC creates a <code>MorphPattern</code> index. Only meaningful for the <code>DWDS_Index</code> <a href="#IndexType">Index Type</a>.</p>
 
 <h3 id="IndexPunctuation">IndexPunctuation</h3>
 
-<p>(from DDCReadme): Index punctuation marks only if set. Only meaningful for the <code>DWDS_Index</code> <a href="#indextype">Index Type</a>.</p>
+<p>(from DDCReadme): Index punctuation marks only if set. Only meaningful for the <code>DWDS_Index</code> <a href="#IndexType">Index Type</a>.</p>
 
 <h3 id="UseDwdsThesaurus">UseDwdsThesaurus</h3>
 
-<p>(from DDCReadme): Enable creation and use of the <code>Thes</code> thesaurus index if set. Only meaningful for the <code>DWDS_Index</code> <a href="#indextype">Index Type</a>.</p>
+<p>(from DDCReadme): Enable creation and use of the <code>Thes</code> thesaurus index if set. Only meaningful for the <code>DWDS_Index</code> <a href="#IndexType">Index Type</a>.</p>
 
 <h3 id="UseParagraphTagToDivide">UseParagraphTagToDivide</h3>
 
-<p>(from DDCReadme): If set, the tokenizer seeks <code>&lt;/p&gt;</code> in the input texts in order to divide the text into paragraphs. Only meaningful for the <code>DWDS_Index</code> <a href="#indextype">Index Type</a>.</p>
+<p>(from DDCReadme): If set, the tokenizer seeks <code>&lt;/p&gt;</code> in the input texts in order to divide the text into paragraphs. Only meaningful for the <code>DWDS_Index</code> <a href="#IndexType">Index Type</a>.</p>
 
 <h3 id="EmptyLineIsNotSentenceDelim">EmptyLineIsNotSentenceDelim</h3>
 
-<p>(from DDCReadme): If set, an empty line in the input texts is not interpreted as an end of sentence. Only meaningful for the <code>DWDS_Index</code> <a href="#indextype">Index Type</a>.</p>
+<p>(from DDCReadme): If set, an empty line in the input texts is not interpreted as an end of sentence. Only meaningful for the <code>DWDS_Index</code> <a href="#IndexType">Index Type</a>.</p>
 
 <h3 id="DontUseIndention">DontUseIndention</h3>
 
-<p>(from DDCReadme): If set, DDC doesn&rsquo;t use indention (sic; assumedly &quot;indentation&quot; is meant) to find paragraph breaks. Only meaningful for the <code>DWDS_Index</code> <a href="#indextype">Index Type</a>.</p>
+<p>(from DDCReadme): If set, DDC doesn&rsquo;t use indention (sic; assumedly &quot;indentation&quot; is meant) to find paragraph breaks. Only meaningful for the <code>DWDS_Index</code> <a href="#IndexType">Index Type</a>.</p>
 
 <h3 id="ArchiveIndex">ArchiveIndex</h3>
 
@@ -367,7 +367,7 @@
 </dd>
 </dl>
 
-<p>The <a href="#indices">indices</a> option is only supported for the <code>Free_Index</code> <a href="#indextype">Index Type</a>.</p>
+<p>The <a href="#Indices">Indices</a> option is only supported for the <code>Free_Index</code> <a href="#IndexType">Index Type</a>.</p>
 
 <h3 id="IndexAlias">IndexAlias</h3>
 
@@ -399,9 +399,9 @@
 </li>
 </ul>
 
-<p>By default, <a href="#indicestoShow">IndicesToShow</a> is <code>1</code>, i.e. words are represented only by the value of the first index (normally the text of the token itself). If some index is mentioned in IndicesToShow, then it must have an index storage built during indexing. Prior to v2.1.5, <b>ONLY</b> whitespace-separated integer positions were allowed for <code>SHOWLIST</code>.</p>
+<p>By default, <a href="#IndicesToShow">IndicesToShow</a> is <code>1</code>, i.e. words are represented only by the value of the first index (normally the text of the token itself). If some index is mentioned in IndicesToShow, then it must have an index storage built during indexing. Prior to v2.1.5, <b>ONLY</b> whitespace-separated integer positions were allowed for <code>SHOWLIST</code>.</p>
 
-<p>Only supported for the <code>Free_Index</code> <a href="#indextype">Index Type</a>.</p>
+<p>Only supported for the <code>Free_Index</code> <a href="#IndexType">IndexType</a>.</p>
 
 <p>Support for long and short index names, aliases, and additional separators since v2.1.5.</p>
 
@@ -409,7 +409,7 @@
 
 <pre><code> DefaultBibl NAME</code></pre>
 
-<p><code>NAME</code> is the name of a fallback bibliographic field to be queried if no literal match is found for a runtime (user) filter. <code>NAME</code> must be the name of a bibliographic metadata attribute as defined by the <a href="#bibl">Bibl</a> option. This option can be used in conjunction with a <code>constant</code> bibliographic metadata attribute to provide a default value for unknown bibliographic metadata attributes, e.g. to facilitate interoperability between multiple heterogeneous corpora without the need for re-indexing or explicit definition of <a href="#bibl">Bibl</a> constant fields. If omitted or set to the empty string (the default), query filters on an undefined bibliographic attribute will raise a runtime error.</p>
+<p><code>NAME</code> is the name of a fallback bibliographic field to be queried if no literal match is found for a runtime (user) filter. <code>NAME</code> must be the name of a bibliographic metadata attribute as defined by the <a href="#Bibl">Bibl</a> option. This option can be used in conjunction with a <code>constant</code> bibliographic metadata attribute to provide a default value for unknown bibliographic metadata attributes, e.g. to facilitate interoperability between multiple heterogeneous corpora without the need for re-indexing or explicit definition of <a href="#Bibl">Bibl</a> constant fields. If omitted or set to the empty string (the default), query filters on an undefined bibliographic attribute will raise a runtime error.</p>
 
 <p><b>CAVEAT</b>: You should think <b>carefully</b> before using this feature, since it will suppress error and/or warning messages due to typographical errors for &quot;real&quot; attribute fields.</p>
 
@@ -443,7 +443,7 @@
 </dd>
 </dl>
 
-<p>The <a href="#hitborders">HitBorders</a> option is only supported for the <code>Free_Index</code> <a href="#indextype">Index Type</a>.</p>
+<p>The <a href="#HitBorders">HitBorders</a> option is only supported for the <code>Free_Index</code> <a href="#IndexType">Index Type</a>.</p>
 
 <h3 id="HtmlHighlighting">HtmlHighlighting</h3>
 
@@ -459,7 +459,7 @@
 
 <pre><code> TextHighlighting TAGS</code></pre>
 
-<p>Set highlighting strings to use for identifying matched tokens in hits returned in text format. <code>TAGS</code> is string as described under <a href="#htmlhighlighting">HtmlHighlighting</a>.</p>
+<p>Set highlighting strings to use for identifying matched tokens in hits returned in text format. <code>TAGS</code> is string as described under <a href="#HtmlHighlighting">HtmlHighlighting</a>.</p>
 
 <p>Default is:</p>
 
@@ -469,7 +469,7 @@
 
 <pre><code> TableHighlighting TAGS</code></pre>
 
-<p>Set highlighting strings to use for identifying matched tokens in hits returned in table format. <code>TAGS</code> is string as described under <a href="#htmlhighlighting">HtmlHighlighting</a>.</p>
+<p>Set highlighting strings to use for identifying matched tokens in hits returned in table format. <code>TAGS</code> is string as described under <a href="#HtmlHighlighting">HtmlHighlighting</a>.</p>
 
 <p>Default is:</p>
 
@@ -543,13 +543,13 @@
 
 <pre><code> LocalPathPrefix STRING</code></pre>
 
-<p>(from DDCReadme): The common prefix of each corpus filename that should be replaced by the value of <a href="#internetpathprefix">InternetPathPrefix</a> when DDC outputs file names.</p>
+<p>(from DDCReadme): The common prefix of each corpus filename that should be replaced by the value of <a href="#InternetPathPrefix">InternetPathPrefix</a> when DDC outputs file names.</p>
 
 <h3 id="InternetPathPrefix">InternetPathPrefix</h3>
 
 <pre><code> InternetPathPrefix STRING</code></pre>
 
-<p>Replaces the value of <a href="#localpathprefix">LocalPathPrefix</a> in corpus filenames if and when they occur in DDC output.</p>
+<p>Replaces the value of <a href="#LocalPathPrefix">LocalPathPrefix</a> in corpus filenames if and when they occur in DDC output.</p>
 
 <h3 id="TfIdfRank">TfIdfRank</h3>
 
@@ -652,7 +652,7 @@
 
 <p>Declares a named term expander which can be used to expand index queries using either the explicit pipeline notation (<code>|LABEL|...</code>), or implicit expansion heuristics on a per-index basis. Conceptually, each expander in a pipeline operates on the set of terms returned by the previous expander in the pipeline, and the set returned by the final expander in the pipeline represents that set of index values which qualify as &quot;matches&quot; to the term queried.</p>
 
-<p><i>LABEL</i> is a label string used to identify the expander in user-specified pipelines. If <i>LABEL</i> is also the <i>LONGNAME</i> of an index field declared in <a href="#indices">Indices</a>, then the corresponding expander is used implicitly if no explicit pipeline is specified or if the default pipeline <code>|-</code> is used.</p>
+<p><i>LABEL</i> is a label string used to identify the expander in user-specified pipelines. If <i>LABEL</i> is also the <i>LONGNAME</i> of an index field declared in <a href="#Indices">Indices</a>, then the corresponding expander is used implicitly if no explicit pipeline is specified or if the default pipeline <code>|-</code> is used.</p>
 
 <p><i>CLASS</i> is a string representing the expansion function to use, and <i>PARAM...</i> are additional parameters to the expansion function. Currently supported expander classes are:</p>
 
@@ -672,7 +672,7 @@
 
 <pre><code>  Expand LABEL Case LANG</code></pre>
 
-<p>Letter-case expander (upper- vs. lower-case). Parameters: <code>LANG</code>, a language string as accepted by the <a href="#lang">LANG</a> declaration. In particular, the &quot;language&quot; <code>Generic</code> can be used to specify that the C99 locale settings should be used to provide upper/lower-case mappings on wide character strings: in this case, you must ensure that the <i>LC_CTYPE</i> enviornment variable for the DDC process is set appropriately for the corpus and runtime query data.</p>
+<p>Letter-case expander (upper- vs. lower-case). Parameters: <code>LANG</code>, a language string as accepted by the <a href="#LANG">LANG</a> declaration. In particular, the &quot;language&quot; <code>Generic</code> can be used to specify that the C99 locale settings should be used to provide upper/lower-case mappings on wide character strings: in this case, you must ensure that the <i>LC_CTYPE</i> enviornment variable for the DDC process is set appropriately for the corpus and runtime query data.</p>
 
 <p>Note that not all letter-case variants are created by this expander (&quot;McTaggart problem&quot;).</p>
 
@@ -682,7 +682,7 @@
 
 <pre><code>  Expand LABEL ToLower LANG</code></pre>
 
-<p>Forces all terms to lower-case. Parameters: <code>LANG</code>, a language string as accepted by the <a href="#lang">LANG</a> declaration, or <code>Generic</code> to use the C99 locale settings.</p>
+<p>Forces all terms to lower-case. Parameters: <code>LANG</code>, a language string as accepted by the <a href="#LANG">LANG</a> declaration, or <code>Generic</code> to use the C99 locale settings.</p>
 
 </dd>
 <dt id="ToUpper">ToUpper</dt>
@@ -690,7 +690,7 @@
 
 <pre><code>  Expand LABEL ToUpper LANG</code></pre>
 
-<p>Forces all terms to upper-case. Parameters: <code>LANG</code>, a language string as accepted by the <a href="#lang">LANG</a> declaration, or <code>Generic</code> to use the C99 locale settings.</p>
+<p>Forces all terms to upper-case. Parameters: <code>LANG</code>, a language string as accepted by the <a href="#LANG">LANG</a> declaration, or <code>Generic</code> to use the C99 locale settings.</p>
 
 </dd>
 <dt id="Infl">Infl</dt>
@@ -699,7 +699,7 @@
 <pre><code> Expand LABEL Infl LANG
  Expand LABEL Morph LANG</code></pre>
 
-<p>Inflectional variant expander using built-in morphology tables. Parameters: <code>LANG</code>, a language string as accepted by the <a href="#lang">LANG</a> declaration.</p>
+<p>Inflectional variant expander using built-in morphology tables. Parameters: <code>LANG</code>, a language string as accepted by the <a href="#LANG">LANG</a> declaration.</p>
 
 </dd>
 <dt id="Cab">Cab</dt>
@@ -752,7 +752,7 @@
 
 <pre><code> Expand LABEL CabMap URL TIMEOUT DEBUG MAPMODE</code></pre>
 
-<p>Wrapper for the <a href="#cab">Cab</a> class with a default <i>MAPMODE</i>=1.</p>
+<p>Wrapper for the <a href="#Cab">Cab</a> class with a default <i>MAPMODE</i>=1.</p>
 
 </dd>
 <dt id="Chain">Chain</dt>
@@ -784,7 +784,7 @@
 <dt id="case">case</dt>
 <dd>
 
-<p>Defined as <code>Expand case LANG</code> unless the <a href="#utf8">Utf8</a> flag was set, in which case the default <i>case</i> expander is defined as <code>Expand case Generic</code>.</p>
+<p>Defined as <code>Expand case LANG</code> unless the <a href="#Utf8">Utf8</a> flag was set, in which case the default <i>case</i> expander is defined as <code>Expand case Generic</code>.</p>
 
 </dd>
 <dt id="infl">infl</dt>
@@ -796,7 +796,7 @@
 <dt id="Token">Token</dt>
 <dd>
 
-<p>Default expansion chain for the <i>Token</i> index. Usually defined as <code>Expand Token Chain infl case</code>, but note that the <code>case</code> component will be omitted from the default chain unless the legacy <a href="#caseinsensitive">CaseInsensitive</a> flag is set, and the <code>infl</code> component will be omitted if the legacy <a href="#disabledefaultquerylexicalexpansion">DisableDefaultQueryLexicalExpansion</a> option is set.</p>
+<p>Default expansion chain for the <i>Token</i> index. Usually defined as <code>Expand Token Chain infl case</code>, but note that the <code>case</code> component will be omitted from the default chain unless the legacy <a href="#CaseInsensitive">CaseInsensitive</a> flag is set, and the <code>infl</code> component will be omitted if the legacy <a href="#DisableDefaultQueryLexicalExpansion">DisableDefaultQueryLexicalExpansion</a> option is set.</p>
 
 </dd>
 </dl>
@@ -805,11 +805,11 @@
 
 <pre><code> ExpandBibl LABEL TARGET CLASS PARAM...</code></pre>
 
-<p>Declares a named bibliographic expander which can be used in place of a physically indexed bibliographic fields (as declared with the <a href="#bibl">Bibl</a> option) in #HAS_FIELD queries.</p>
+<p>Declares a named bibliographic expander which can be used in place of a physically indexed bibliographic fields (as declared with the <a href="#Bibl">Bibl</a> option) in #HAS_FIELD queries.</p>
 
-<p><i>LABEL</i> is a label string used to identify the expander in user-specified pipelines. <i>TARGET</i> is the unique <i>NAME</i> associated with a physically indexed bibliographic field used for the underlying query. If <i>LABEL</i> is also the <i>NAME</i> of a physically indexed bibliographic field declared with <a href="#bibl">Bibl</a>, then the pseudo-field declared with <code>ExpandBibl</code> has precedence when evaluating user queries.</p>
+<p><i>LABEL</i> is a label string used to identify the expander in user-specified pipelines. <i>TARGET</i> is the unique <i>NAME</i> associated with a physically indexed bibliographic field used for the underlying query. If <i>LABEL</i> is also the <i>NAME</i> of a physically indexed bibliographic field declared with <a href="#Bibl">Bibl</a>, then the pseudo-field declared with <code>ExpandBibl</code> has precedence when evaluating user queries.</p>
 
-<p><i>CLASS</i> is a string representing the expansion function to use, and <i>PARAM...</i> are additional parameters to the expansion function. Currently (ddc v2.0.5), all <i>CLASS</i>es supported by the <a href="#expand">Expand</a> option are also supported by <code>ExpandBibl</code>, except for the <code>Chain|/chain</code> class.</p>
+<p><i>CLASS</i> is a string representing the expansion function to use, and <i>PARAM...</i> are additional parameters to the expansion function. Currently (ddc v2.0.5), all <i>CLASS</i>es supported by the <a href="#Expand">Expand</a> option are also supported by <code>ExpandBibl</code>, except for the <code>Chain|/chain</code> class.</p>
 
 <p>No bibliographic expanders are defined by default.</p>
 

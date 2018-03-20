@@ -273,6 +273,8 @@ string CDDCServer::ProcessSocketString(const string& SocketInput, SOCKET& rConne
 	else if (cmd == "expand_terms") {
 	    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	    // expand_terms "\x01" PIPELINE "\x01" TERMS "\x01" TIMEOUT ["\x01" CORPUS] : term expansion (leaf|branch)
+	    ++m_SessionStats.m_nQueries;
+	    isQueryRequest = true;
 	    vector<string> qv = stringSplit(SocketInput.c_str(), "\x01");
 	    if (qv.size() < 4)
 		throw CExpc(errParseError, "could not parse `expand_terms' request");

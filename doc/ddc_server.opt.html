@@ -37,9 +37,14 @@
           <li><a href="#ThreadQueueSize">ThreadQueueSize</a></li>
         </ul>
       </li>
-      <li><a href="#Other-Options">Other Options</a>
+      <li><a href="#Navigation-Cache-Options">Navigation Cache Options</a>
         <ul>
           <li><a href="#NavCacheSize">NavCacheSize</a></li>
+          <li><a href="#NavCacheStep">NavCacheStep</a></li>
+        </ul>
+      </li>
+      <li><a href="#Compatibility-Options">Compatibility Options</a>
+        <ul>
           <li><a href="#VersionCompat">VersionCompat</a></li>
         </ul>
       </li>
@@ -77,9 +82,14 @@
  ThreadQueueSize QSIZE
 
  ##-------------------------------------------------------------
- ## Other Options
+ ## Navigation Cache Options
  
  NavCacheSize SIZE
+ NavCacheStep STEP
+
+ ##-------------------------------------------------------------
+ ## Compatibility Options
+ 
  VersionCompat VERSION</code></pre>
 
 <h1 id="DESCRIPTION">DESCRIPTION</h1>
@@ -200,9 +210,9 @@
 
 <p>Specifies the maximum number of pending client connections in the work queue in client-thread mode (see <a href="#NumThreads">&quot;NumThreads&quot;</a>). If all worker threads are occupied and <i>QSIZE</i> additional client connections have been accepted and enqueued for processing, then the main accepting server thread will block until the queue shrinks below <i>QSIZE</i> before enqueueing any new client connection -- this basically just pushes the burden of client-queueing beyond <i>QSIZE</i> to the TCP stack.</p>
 
-<h2 id="Other-Options">Other Options</h2>
+<h2 id="Navigation-Cache-Options">Navigation Cache Options</h2>
 
-<p>The following additional options are supported.</p>
+<p>The following options control the behavior of the branch server navigation hint cache. Introduced in ddc v2.1.9, the navigation hint cache is an LRU cache used by <code>CDDCBranchServer</code> nodes to minimize bandwidth requirements and memory consumption for sequential requests through all hits for a single query string, typically with monotonically increasing offsets and result-sets of constant size.</p>
 
 <h3 id="NavCacheSize">NavCacheSize</h3>
 
@@ -210,9 +220,23 @@
 
 <p>Aliases: NavCacheSize, NavCacheCapacity</p>
 
-<p>Set the default branch-server navigation hint cache capacity to <code>SIZE</code> (default=512). Introduced in ddc v2.1.9, the navigation hint cache is an LRU cache used by <code>CDDCBranchServer</code> nodes to minimize bandwidth requirements and memory consumption for sequential requests through all hits for a single query string, typically with monotonically increasing offsets and result-sets of constant size.</p>
+<p>Set the default branch-server navigation hint cache capacity to <code>SIZE</code> (default=1024).</p>
 
 <p>Since ddc v2.1.9.</p>
+
+<h3 id="NavCacheStep">NavCacheStep</h3>
+
+<pre><code> NavCacheStep STEP</code></pre>
+
+<p>Aliases: NavCacheStep, NavCacheStepSize</p>
+
+<p>Set the minimum offset increment for branch server navigation cache updates to <code>STEP</code> (default=1000). If <code>STEP</code> is zero, a branch server&#39;s navigation hint cache will be updated for each page of hits retrieved. Otherwise, the cache will only be updated with a new entry if the difference between the candidate entry&#39;s offset and the maximum offset already cached for the associated query is greater than or equal to <code>STEP</code>. Setting <code>STEP</code> to a value greater than the default initial page size (usually 10) should serve to minimize cache turnover and increase the life expectancy of &quot;real&quot; hit-paging operations without the heavy performance penalties of ddc &lt;= v2.1.8.</p>
+
+<p>Since ddc v2.1.11.</p>
+
+<h2 id="Compatibility-Options">Compatibility Options</h2>
+
+<p>The following compatibility options are supported:</p>
 
 <h3 id="VersionCompat">VersionCompat</h3>
 

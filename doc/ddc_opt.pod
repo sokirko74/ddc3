@@ -169,7 +169,7 @@ may change in the future.
 
 =head2 Required Declarations
 
-Each DDC option file requires two obligatory declarations L<Lang|/lang> and L<IndexType|/indextype>, which
+Each DDC option file requires two obligatory declarations L<LANG|/LANG> and L<IndexType|/IndexType>, which
 should occur as the first two options in an opt-file (although they
 may be defined by an external file loaded with the L<include|/include> directive).
 
@@ -219,7 +219,7 @@ if you choose to use this option.
 If specified and true, DDC will not include the C<infl> term expander to the default expansion
 pipeline for the C<Token> index.
 
-Note that a term expansion explicitly defined with an L<Expand|/expand> clause for
+Note that a term expansion explicitly defined with an L<Expand|/Expand> clause for
 the C<Token> index will override the effects of this option.
 
 =head3 CaseInsensitive
@@ -227,7 +227,7 @@ the C<Token> index will override the effects of this option.
 If specified and true, DDC will not add the C<case> term expander to the default expansion
 pipeline for the C<Token> index.
 
-Note that a term expansion explicitly defined with an L<Expand|/expand> clause for
+Note that a term expansion explicitly defined with an L<Expand|/Expand> clause for
 the C<Token> index will override the effects of this option.
 
 =head3 ShowNumberOfRelevantDocuments
@@ -239,7 +239,7 @@ If set, DDC calculates the number of relevant documents, otherwise the member th
 
 (from DDCReadme):
 If set, DDC doesn't create a sentence break collection.
-Only meaningful for C<DWDS_Index> or C<MorphXML_Index> L<Index Types|/indextype>.
+Only meaningful for C<DWDS_Index> or C<MorphXML_Index> L<Index Types|/IndexType>.
 
 =head3 NoContextOperator
 
@@ -277,7 +277,7 @@ Since ddc v2.0.20.
 
 (from DDCReadme):
 If set, enables indexing and querying using 'chunks', otherwise chunks are ignored.
-Only meaningful for the C<Free_Index> L<Index Type|/indextype>.
+Only meaningful for the C<Free_Index> L<Index Type|/IndexType>.
 
 NOTE: seems to control implicit creation of a C<Chunk> index.
 
@@ -285,38 +285,38 @@ NOTE: seems to control implicit creation of a C<Chunk> index.
 
 (from DDCReadme):
 If set, DDC creates a C<MorphPattern> index.
-Only meaningful for the C<DWDS_Index> L<Index Type|/indextype>.
+Only meaningful for the C<DWDS_Index> L<Index Type|/IndexType>.
 
 =head3 IndexPunctuation
 
 (from DDCReadme):
 Index punctuation marks only if set.
-Only meaningful for the C<DWDS_Index> L<Index Type|/indextype>.
+Only meaningful for the C<DWDS_Index> L<Index Type|/IndexType>.
 
 =head3 UseDwdsThesaurus
 
 (from DDCReadme):
 Enable creation and use of the C<Thes> thesaurus index if set.
-Only meaningful for the C<DWDS_Index> L<Index Type|/indextype>.
+Only meaningful for the C<DWDS_Index> L<Index Type|/IndexType>.
 
 =head3 UseParagraphTagToDivide
 
 (from DDCReadme):
 If set, the tokenizer seeks C<E<lt>/pE<gt>> in the input 
 texts in order to  divide the text into paragraphs.
-Only meaningful for the C<DWDS_Index> L<Index Type|/indextype>.
+Only meaningful for the C<DWDS_Index> L<Index Type|/IndexType>.
 
 =head3 EmptyLineIsNotSentenceDelim
 
 (from DDCReadme):
 If set, an empty line in the input texts is not interpreted as an end of sentence.
-Only meaningful for the C<DWDS_Index> L<Index Type|/indextype>.
+Only meaningful for the C<DWDS_Index> L<Index Type|/IndexType>.
 
 =head3 DontUseIndention
 
 (from DDCReadme):
 If set, DDC  doesn’t use indention (sic; assumedly "indentation" is meant) to find paragraph breaks.
-Only meaningful for the C<DWDS_Index> L<Index Type|/indextype>.
+Only meaningful for the C<DWDS_Index> L<Index Type|/IndexType>.
 
 =head3 ArchiveIndex
 
@@ -384,7 +384,7 @@ By default the first index is build with a storage (if it is not manually prohib
 
 =back
 
-The L<indices|/indices> option is only supported for the C<Free_Index> L<Index Type|/indextype>.
+The L<Indices|/Indices> option is only supported for the C<Free_Index> L<Index Type|/IndexType>.
 
 
 =head3 IndexAlias
@@ -432,11 +432,11 @@ i.e. for each I<i>, 1 E<lt>= I<i> E<lt>= N_INDICES, where N_INDICES is the numbe
 
 =back
 
-By default, L<IndicesToShow|/indicestoShow> is C<1>, i.e. words are represented only by the value of the first index
+By default, L<IndicesToShow|/IndicesToShow> is C<1>, i.e. words are represented only by the value of the first index
 (normally the text of the token itself). If some index is mentioned in IndicesToShow, then it must have an index storage built during indexing.
 Prior to v2.1.5, B<ONLY> whitespace-separated integer positions were allowed for C<SHOWLIST>.
 
-Only supported for the C<Free_Index> L<Index Type|/indextype>.
+Only supported for the C<Free_Index> L<IndexType|/IndexType>.
 
 Support for long and short index names, aliases, and additional separators since v2.1.5.
 
@@ -447,11 +447,11 @@ Support for long and short index names, aliases, and additional separators since
 
 C<NAME> is the name of a fallback bibliographic field to be queried if no literal match is found for a runtime
 (user) filter.  C<NAME> must be the name of a bibliographic metadata attribute as defined by the
-L<Bibl|/bibl> option.
+L<Bibl|/Bibl> option.
 This option can be used in conjunction with a C<constant> bibliographic metadata attribute
 to provide a default value for unknown bibliographic metadata attributes, e.g. to facilitate interoperability
 between multiple heterogeneous corpora without the need for re-indexing or explicit definition of
-L<Bibl|/bibl> constant fields.
+L<Bibl|/Bibl> constant fields.
 If omitted or set to the empty string (the default), query filters on an undefined bibliographic
 attribute will raise a runtime error.
 
@@ -487,7 +487,7 @@ break collection specification (e.g. using the C<#WITHIN> query operator).
 
 =back
 
-The L<HitBorders|/hitborders> option is only supported for the C<Free_Index> L<Index Type|/indextype>.
+The L<HitBorders|/HitBorders> option is only supported for the C<Free_Index> L<Index Type|/IndexType>.
 
 
 =head3 HtmlHighlighting
@@ -510,7 +510,7 @@ Default is:
  TextHighlighting TAGS
 
 Set highlighting strings to use for identifying matched tokens in hits returned in text format.
-C<TAGS> is string as described under L<HtmlHighlighting|/htmlhighlighting>.
+C<TAGS> is string as described under L<HtmlHighlighting|/HtmlHighlighting>.
 
 Default is:
 
@@ -521,7 +521,7 @@ Default is:
  TableHighlighting TAGS
 
 Set highlighting strings to use for identifying matched tokens in hits returned in table format.
-C<TAGS> is string as described under L<HtmlHighlighting|/htmlhighlighting>.
+C<TAGS> is string as described under L<HtmlHighlighting|/HtmlHighlighting>.
 
 Default is:
 
@@ -621,13 +621,13 @@ Default if unspecified is hard-coded as 5000000.
 
 (from DDCReadme):
 The common prefix of each corpus filename that should be replaced by
-the value of L<InternetPathPrefix|/internetpathprefix> when DDC outputs file names.
+the value of L<InternetPathPrefix|/InternetPathPrefix> when DDC outputs file names.
 
 =head3 InternetPathPrefix
 
  InternetPathPrefix STRING
 
-Replaces the value of L<LocalPathPrefix|/localpathprefix> in corpus filenames
+Replaces the value of L<LocalPathPrefix|/LocalPathPrefix> in corpus filenames
 if and when they occur in DDC output.
 
 =head3 TfIdfRank
@@ -773,7 +773,7 @@ in the pipeline represents that set of index values which qualify as "matches" t
 
 I<LABEL> is a label string
 used to identify the expander in user-specified pipelines.
-If I<LABEL> is also the I<LONGNAME> of an index field declared in L<Indices|/indices>,
+If I<LABEL> is also the I<LONGNAME> of an index field declared in L<Indices|/Indices>,
 then the corresponding expander is used implicitly if no explicit pipeline is
 specified or if the default pipeline C<|-> is used.
 
@@ -796,7 +796,7 @@ Identity expander (no-op).  Parameters: none.
 
 Letter-case expander (upper- vs. lower-case).
 Parameters: C<LANG>, a language string as accepted by the
-L<LANG|/lang> declaration.  In particular, the
+L<LANG|/LANG> declaration.  In particular, the
 "language" C<Generic> can be used to specify that
 the C99 locale settings should be used to provide
 upper/lower-case mappings on wide character strings:
@@ -813,7 +813,7 @@ by this expander ("McTaggart problem").
 
 Forces all terms to lower-case.
 Parameters: C<LANG>, a language string as accepted by the
-L<LANG|/lang> declaration, or C<Generic> to use the C99 locale settings.
+L<LANG|/LANG> declaration, or C<Generic> to use the C99 locale settings.
 
 =item ToUpper
 
@@ -821,7 +821,7 @@ L<LANG|/lang> declaration, or C<Generic> to use the C99 locale settings.
 
 Forces all terms to upper-case.
 Parameters: C<LANG>, a language string as accepted by the
-L<LANG|/lang> declaration, or C<Generic> to use the C99 locale settings.
+L<LANG|/LANG> declaration, or C<Generic> to use the C99 locale settings.
 
 =item Infl
 
@@ -830,7 +830,7 @@ L<LANG|/lang> declaration, or C<Generic> to use the C99 locale settings.
 
 Inflectional variant expander using built-in morphology
 tables.  Parameters: C<LANG>, a language string as
-accepted by the L<LANG|/lang> declaration.
+accepted by the L<LANG|/LANG> declaration.
 
 =item Cab
 
@@ -890,7 +890,7 @@ terms explicitly included in the server's response are included in the output se
 
  Expand LABEL CabMap URL TIMEOUT DEBUG MAPMODE
 
-Wrapper for the L<Cab|/cab> class with a default I<MAPMODE>=1.
+Wrapper for the L<Cab|/Cab> class with a default I<MAPMODE>=1.
 
 =item Chain
 
@@ -920,7 +920,7 @@ Defined as C<Expand null Id>
 
 =item case
 
-Defined as C<Expand case LANG> unless the L<Utf8|/utf8> flag was set,
+Defined as C<Expand case LANG> unless the L<Utf8|/Utf8> flag was set,
 in which case the default I<case> expander is defined as C<Expand case Generic>.
 
 =item infl
@@ -932,9 +932,9 @@ Defined as C<Expand infl LANG>.
 Default expansion chain for the I<Token> index.
 Usually defined as C<Expand Token Chain infl case>,
 but note that the C<case> component will be omitted from
-the default chain unless the legacy L<CaseInsensitive|/caseinsensitive> flag is set,
+the default chain unless the legacy L<CaseInsensitive|/CaseInsensitive> flag is set,
 and the C<infl> component will be omitted if
-the legacy L<DisableDefaultQueryLexicalExpansion|/disabledefaultquerylexicalexpansion>
+the legacy L<DisableDefaultQueryLexicalExpansion|/DisableDefaultQueryLexicalExpansion>
 option is set.
 
 =back
@@ -945,18 +945,18 @@ option is set.
  ExpandBibl LABEL TARGET CLASS PARAM...
 
 Declares a named bibliographic expander which can be used in place of a
-physically indexed bibliographic fields (as declared with the L<Bibl|/bibl> option)
+physically indexed bibliographic fields (as declared with the L<Bibl|/Bibl> option)
 in #HAS_FIELD queries.
 
 I<LABEL> is a label string
 used to identify the expander in user-specified pipelines.
 I<TARGET> is the unique I<NAME> associated with a physically indexed bibliographic field used for the underlying query.
-If I<LABEL> is also the I<NAME> of a physically indexed bibliographic field declared with L<Bibl|/bibl>,
+If I<LABEL> is also the I<NAME> of a physically indexed bibliographic field declared with L<Bibl|/Bibl>,
 then the pseudo-field declared with C<ExpandBibl> has precedence when evaluating user queries.
 
 I<CLASS> is a string representing the expansion function to use, and
 I<PARAM...> are additional parameters to the expansion function.
-Currently (ddc v2.0.5), all I<CLASS>es supported by the L<Expand|/expand> option are also supported
+Currently (ddc v2.0.5), all I<CLASS>es supported by the L<Expand|/Expand> option are also supported
 by C<ExpandBibl>, except for the C<Chain|/chain> class.
 
 No bibliographic expanders are defined by default.

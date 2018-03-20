@@ -130,6 +130,7 @@ CDDCBranchServer::CDDCBranchServer(bool master)
     } else {
 	m_pNavCache = NULL;
     }
+    m_NavCacheStep = DDC_DEFAULT_NAV_HINT_CACHE_STEP;
 };
 
 //----------------------------------------------------------------------
@@ -146,6 +147,7 @@ void CDDCBranchServer::SetOptions(const CDDCServerOptions &Options)
 	ddcLogInfo(Format("setting branch navigation cache capacity = %zd", Options.m_NavCacheSize));
 	m_pNavCache->reserve(Options.m_NavCacheSize);
     }
+    m_NavCacheStep = Options.m_NavCacheStep;
 };
 
 //----------------------------------------------------------------------
@@ -369,7 +371,7 @@ void CDDCBranchServer::handle__get_hit_strings(string &Result, const char *Resul
 	runq.HitsKey = "counts_";
 	runq.navHint.clear();
     } else {
-	//-- context-query must retrieve full hit strings
+	//-- context-query must retrieve full hit strings (side-effect: updates runq.navKey, runq.navHint)
 	GetHitContexts(FHResult, runq.sResultFormat, ResultTypeE, runq.PossibleHosts, runq.iInternalError, runq.TimeOut, runq.ResponseBody);
 	runq.HitsKey = "hits_";
     }
@@ -392,7 +394,7 @@ void CDDCBranchServer::handle__get_hit_strings(string &Result, const char *Resul
 
 	Result = "0";
 	if (m_VersionCompat >= DDCVersionT(2,1,9)) {
-	    //-- compat >= v2.1.9: include local offset hint
+	    //-- compat >= v2.1.9: include local offset hint for next page
 	    Result.push_back(' ');
 	    Result += runq.navHint.toString(false);
 	    Result.push_back('\n');
@@ -548,6 +550,7 @@ void CDDCBranchServer::handle__status(string &Result, int timeout, bool verbose)
 	      + "\"qtavg\":" + Format("%g", m_ServerStats.m_qTimes.tAverage()) + ",\n"
 	      + "\"nworkers\":" + Format("%zd", m_nWorkers) + ",\n"
 	      + "\"navcachesize\":" + Format("%zd", (m_pNavCache ? m_pNavCache->size() : 0)) + ",\n"
+	      + "\"navcachestep\":" + Format("%zd", m_NavCacheStep) + ",\n"
 	      + "\"memkb\":" + Format("%zd", pms.VmRSS) + ",\n" //-- compat	      
 	      + "\"vmem\":" + Format("{\"peak\":%zd,\"size\":%zd,\"hwm\":%zd,\"rss\":%zd,\"data\":%zd,\"stk\":%zd,\"exe\":%zd,\"lib\":%zd,\"swap\":%zd}",
 				     pms.VmPeak, pms.VmSize, pms.VmHWM, pms.VmRSS, pms.VmData, pms.VmStk, pms.VmExe, pms.VmLib, pms.VmSwap) + ",\n"
@@ -650,7 +653,7 @@ void CDDCBranchServer::RunDistributed()
 	runq.HitsKey = "counts_";
 	runq.navHint.clear();
     } else {
-	//-- context-query must retrieve full hit strings
+	//-- context-query must retrieve full hit strings (and update runq.navKey, runq.navHint)
 	GetHitContexts(FHResult, runq.sResultFormat, ResultTypeE, runq.PossibleHosts, runq.iInternalError, runq.TimeOut, runq.ResponseBody);
 	runq.HitsKey = "hits_";
     }
@@ -723,7 +726,7 @@ NetworkErrorsEnum CDDCBranchServer::RunGetFirstHits()
 
     //-- get cached navigation hint if available and not supplied by user
     if (runq.navHint.empty() && m_pNavCache) {
-	m_pNavCache->lower_bound(runq.navHint, runq.navKey);	//-- navigation hint: from cache
+	m_pNavCache->lower_bound(runq.navHint, runq.navKey, false);	//-- navigation hint: from cache (NOT auto-promoted here)
     }
     NAVCACHE_DEBUG(ddcLogDebug(Format("initialized runq.navHint=%s", runq.navHint.toJson().c_str())));
 
@@ -838,13 +841,21 @@ void CDDCBranchServer::UpdateNavCache()
 
     //-- update nav cache
     if (m_pNavCache && !IsCountSort(FHResult.m_SortOrder) && runq.PossibleHosts.size()==m_Hosts.size()) {
-	m_pNavCache->insert(runq.navKey, runq.navHint);
-	NAVCACHE_DEBUG(
-		       //ddcLogDebug(Format("NAVCACHE: FHR.Offset=%zd ; FHR.nHits=%zd", FHResult.m_Offset, FHResult.m_Hits.size()));
-		       ddcLogDebug(Format("NAVCACHE: updated Key=%s => Hint=%s", runq.navKey.toJson().c_str(), runq.navHint.toJson().c_str()));
-		       ddcLogDebug(string("NAVCACHE: cache=") + m_pNavCache->toJson());
-		      );
+
+	//-- minimize cache turnover: check for cached hint within m_NavCacheStep range
+	//   (if we've got one close enough, we don't need to insert a new hint)
+	NavHint cacheHint(m_Hosts.size());
+	m_pNavCache->lower_bound(cacheHint, runq.navKey, true);
+	if ((runq.navHint.m_Offset - cacheHint.m_Offset) >= m_NavCacheStep) {
+	    //-- no cached hint, or the offset increment exceeds m_NavCacheStep: really update the cache
+	    m_pNavCache->insert(runq.navKey, runq.navHint);
+	}
     }
+    NAVCACHE_DEBUG(
+		   //ddcLogDebug(Format("NAVCACHE: FHR.Offset=%zd ; FHR.nHits=%zd", FHResult.m_Offset, FHResult.m_Hits.size()));
+		   ddcLogDebug(Format("NAVCACHE: update Key=%s => Hint=%s", runq.navKey.toJson().c_str(), runq.navHint.toJson().c_str()));
+		   ddcLogDebug(string("NAVCACHE: cache=") + m_pNavCache->toJson());
+		   );
 }
 
 //----------------------------------------------------------------------

@@ -32,20 +32,20 @@
 #define DDC_DEFAULT_NAV_HINT_CACHE_CAPACITY 1024
 
 /** default NavHintCache step size (used by ServerOptions, BranchServer) */
-#define DDC_DEFAULT_NAV_HINT_CACHE_STEP 1024
+#define DDC_DEFAULT_NAV_HINT_CACHE_STEP 1000
 
+//------------------------------------------------------
 //#define DEBUG_NAVCACHE 1
 #undef DEBUG_NAVCACHE
-
 #ifdef DEBUG_NAVCACHE
 # define NAVCACHE_DEBUG(x) x
 #else
 # define NAVCACHE_DEBUG(x)
 #endif
 
+//------------------------------------------------------
 //#define TRACE_NAVCACHE 1
 #undef TRACE_NAVCACHE
-
 #ifdef TRACE_NAVCACHE
 # define NAVCACHE_TRACE(x) x
 #else
@@ -293,20 +293,20 @@ public:
   //! get lower bound for key \a key = (QueryStr,HitNo)
   //! \returns true iff a match was found in cache, false otherwise
   //! \li copies lower-bound cached hint for key if \a QueryStr matches, otherwise clears hint
-  //! \li if a valid match is found, it is promoted to MRU position
+  //! \li if a valid match is found, it is promoted to MRU position iff \a doPromote is true
   //! \li wraps operation in lock() + unlock()
-  //! \param val (output) hint to be extracted (data copied from cache)
+  //! \param val (output) hint to be extracted (data copied from cache if found, otherwise an empty hint)
   //! \param key (input) key to search for
-  //! \param nDtrs (input) number of immediate daughter subcorpora
-  bool lower_bound(ValT& val, const KeyT& key, size_t nDtrs=0);
+  //! \param doPromote (input) whether to implicitly promote match to MRU position
+  bool lower_bound(ValT& val, const KeyT& key, bool doPromote=true);
 
   //----------------------------------------------------
   //! get lower bound for key \a key = (QueryStr,HitNo)
   //! \returns copy of lower-bound cached hint for key if \a QueryStr matches, otherwise an empty hint for nSubs
-  inline ValT lower_bound(const KeyT& key, size_t nSubs=0)
+  inline ValT lower_bound(const KeyT& key, bool doPromote=true)
   {
-    ValT val(nSubs);
-    lower_bound(val, key, nSubs);
+    ValT val;
+    lower_bound(val, key, doPromote);
     return val;
   };
 

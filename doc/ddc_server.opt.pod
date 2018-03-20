@@ -41,9 +41,14 @@ server option files ("server-opt files") used by the DDC corpus indexing system.
  ThreadQueueSize QSIZE
 
  ##-------------------------------------------------------------
- ## Other Options
+ ## Navigation Cache Options
  
  NavCacheSize SIZE
+ NavCacheStep STEP
+
+ ##-------------------------------------------------------------
+ ## Compatibility Options
+ 
  VersionCompat VERSION
 
 =cut
@@ -221,12 +226,17 @@ beyond I<QSIZE> to the TCP stack.
 =cut
 
 ##==============================================================
-## Other Options
+## Navigation Cache Options
 =pod
 
-=head2 Other Options
+=head2 Navigation Cache Options
 
-The following additional options are supported.
+The following options control the behavior of the branch server navigation hint cache.
+Introduced in ddc v2.1.9, the navigation hint cache is an LRU cache used
+by C<CDDCBranchServer> nodes to minimize bandwidth requirements and
+memory consumption for sequential requests through all hits for a single
+query string, typically with monotonically increasing offsets and
+result-sets of constant size.
 
 =head3 NavCacheSize
 
@@ -235,14 +245,37 @@ The following additional options are supported.
 Aliases: NavCacheSize, NavCacheCapacity
 
 Set the default branch-server navigation hint cache capacity to C<SIZE>
-(default=512).
-Introduced in ddc v2.1.9, the navigation hint cache is an LRU cache used
-by C<CDDCBranchServer> nodes to minimize bandwidth requirements and
-memory consumption for sequential requests through all hits for a single
-query string, typically with monotonically increasing offsets and
-result-sets of constant size.
+(default=1024).
 
 Since ddc v2.1.9.
+
+=head3 NavCacheStep
+
+ NavCacheStep STEP
+
+Aliases: NavCacheStep, NavCacheStepSize
+
+Set the minimum offset increment for branch server navigation cache updates to C<STEP>
+(default=1000).
+If C<STEP> is zero, a branch server's navigation hint cache will be updated for each page of hits retrieved.
+Otherwise, the cache will only be updated with a new entry if the
+difference between the candidate entry's offset and the maximum offset already
+cached for the associated query is greater than or equal to C<STEP>.
+Setting C<STEP> to a value greater than the default initial page size (usually 10)
+should serve to minimize cache turnover and increase the life expectancy of "real"
+hit-paging operations without the heavy performance penalties of ddc E<lt>= v2.1.8.
+
+Since ddc v2.1.11.
+
+=cut
+
+##==============================================================
+## Compatibility Options
+=pod
+
+=head2 Compatibility Options
+
+The following compatibility options are supported:
 
 =head3 VersionCompat
 

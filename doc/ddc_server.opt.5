@@ -67,7 +67,7 @@
 .\" ========================================================================
 .\"
 .IX Title "DDC_SERVER.OPT 5"
-.TH DDC_SERVER.OPT 5 "2018-03-09" "2.1.11-rc1" "DDC Corpus Indexing System"
+.TH DDC_SERVER.OPT 5 "2018-03-20" "2.1.11-rc1" "DDC Corpus Indexing System"
 .\" For nroff, turn off justification.  Always turn off hyphenation; it makes
 .\" way too many mistakes in technical documents.
 .if n .ad l
@@ -100,9 +100,14 @@ server option files (\*(L"server-opt files\*(R") used by the \s-1DDC\s0 corpus i
 \& ThreadQueueSize QSIZE
 \&
 \& ##\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
-\& ## Other Options
+\& ## Navigation Cache Options
 \& 
 \& NavCacheSize SIZE
+\& NavCacheStep STEP
+\&
+\& ##\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
+\& ## Compatibility Options
+\& 
 \& VersionCompat VERSION
 .Ve
 .SH "DESCRIPTION"
@@ -255,9 +260,14 @@ enqueued for processing, then the main accepting server thread will block
 until the queue shrinks below \fI\s-1QSIZE\s0\fR before enqueueing any new client
 connection \*(-- this basically just pushes the burden of client-queueing
 beyond \fI\s-1QSIZE\s0\fR to the \s-1TCP\s0 stack.
-.SS "Other Options"
-.IX Subsection "Other Options"
-The following additional options are supported.
+.SS "Navigation Cache Options"
+.IX Subsection "Navigation Cache Options"
+The following options control the behavior of the branch server navigation hint cache.
+Introduced in ddc v2.1.9, the navigation hint cache is an \s-1LRU\s0 cache used
+by \f(CW\*(C`CDDCBranchServer\*(C'\fR nodes to minimize bandwidth requirements and
+memory consumption for sequential requests through all hits for a single
+query string, typically with monotonically increasing offsets and
+result-sets of constant size.
 .PP
 \fINavCacheSize\fR
 .IX Subsection "NavCacheSize"
@@ -269,14 +279,33 @@ The following additional options are supported.
 Aliases: NavCacheSize, NavCacheCapacity
 .PP
 Set the default branch-server navigation hint cache capacity to \f(CW\*(C`SIZE\*(C'\fR
-(default=512).
-Introduced in ddc v2.1.9, the navigation hint cache is an \s-1LRU\s0 cache used
-by \f(CW\*(C`CDDCBranchServer\*(C'\fR nodes to minimize bandwidth requirements and
-memory consumption for sequential requests through all hits for a single
-query string, typically with monotonically increasing offsets and
-result-sets of constant size.
+(default=1024).
 .PP
 Since ddc v2.1.9.
+.PP
+\fINavCacheStep\fR
+.IX Subsection "NavCacheStep"
+.PP
+.Vb 1
+\& NavCacheStep STEP
+.Ve
+.PP
+Aliases: NavCacheStep, NavCacheStepSize
+.PP
+Set the minimum offset increment for branch server navigation cache updates to \f(CW\*(C`STEP\*(C'\fR
+(default=1000).
+If \f(CW\*(C`STEP\*(C'\fR is zero, a branch server's navigation hint cache will be updated for each page of hits retrieved.
+Otherwise, the cache will only be updated with a new entry if the
+difference between the candidate entry's offset and the maximum offset already
+cached for the associated query is greater than or equal to \f(CW\*(C`STEP\*(C'\fR.
+Setting \f(CW\*(C`STEP\*(C'\fR to a value greater than the default initial page size (usually 10)
+should serve to minimize cache turnover and increase the life expectancy of \*(L"real\*(R"
+hit-paging operations without the heavy performance penalties of ddc <= v2.1.8.
+.PP
+Since ddc v2.1.11.
+.SS "Compatibility Options"
+.IX Subsection "Compatibility Options"
+The following compatibility options are supported:
 .PP
 \fIVersionCompat\fR
 .IX Subsection "VersionCompat"

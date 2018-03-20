@@ -67,7 +67,7 @@
 .\" ========================================================================
 .\"
 .IX Title "DDC_OPT 5"
-.TH DDC_OPT 5 "2018-03-19" "2.1.11-rc1" "DDC Corpus Indexing System"
+.TH DDC_OPT 5 "2018-03-20" "2.1.11-rc1" "DDC Corpus Indexing System"
 .\" For nroff, turn off justification.  Always turn off hyphenation; it makes
 .\" way too many mistakes in technical documents.
 .if n .ad l
@@ -211,7 +211,7 @@ is also supported, is \fB\s-1NOT\s0\fR a comment, and \fB\s-1WILL\s0\fR be evalu
 may change in the future.
 .SS "Required Declarations"
 .IX Subsection "Required Declarations"
-Each \s-1DDC\s0 option file requires two obligatory declarations Lang and IndexType, which
+Each \s-1DDC\s0 option file requires two obligatory declarations \s-1LANG\s0 and IndexType, which
 should occur as the first two options in an opt-file (although they
 may be defined by an external file loaded with the include directive).
 .PP
@@ -433,7 +433,7 @@ is one of the strings \f(CW\*(C`storage\*(C'\fR or \f(CW\*(C`storage_omit\*(C'\f
 If it is \f(CW\*(C`storage\*(C'\fR, then the index is supplied with a storage during indexing, otherwise storage is not built.
 By default the first index is build with a storage (if it is not manually prohibited), other indices are built without storages.
 .PP
-The indices option is only supported for the \f(CW\*(C`Free_Index\*(C'\fR Index Type.
+The Indices option is only supported for the \f(CW\*(C`Free_Index\*(C'\fR Index Type.
 .PP
 \fIIndexAlias\fR
 .IX Subsection "IndexAlias"
@@ -478,7 +478,7 @@ By default, IndicesToShow is \f(CW1\fR, i.e. words are represented only by the v
 (normally the text of the token itself). If some index is mentioned in IndicesToShow, then it must have an index storage built during indexing.
 Prior to v2.1.5, \fB\s-1ONLY\s0\fR whitespace-separated integer positions were allowed for \f(CW\*(C`SHOWLIST\*(C'\fR.
 .PP
-Only supported for the \f(CW\*(C`Free_Index\*(C'\fR Index Type.
+Only supported for the \f(CW\*(C`Free_Index\*(C'\fR IndexType.
 .PP
 Support for long and short index names, aliases, and additional separators since v2.1.5.
 .PP
