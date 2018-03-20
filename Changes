@@ -1,6 +1,6 @@
 ##-*- Mode: Change-Log; coding: utf-8; -*-
 
-v2.1.11-rc1 Tue, 20 Mar 2018 12:35:29 +0100 moocow
+v2.1.11 Tue, 20 Mar 2018 13:10:10 +0100 moocow
 	* fixed catastrophic error in NavHintKey::operator<() leading to cache inconsistency and random server crashes
 	* added server option NavCacheStep: minimum offset increment for navigation cache update
 	* CDDCServer now counts 'expand_terms' requests as 'queries' for statistics tracking
