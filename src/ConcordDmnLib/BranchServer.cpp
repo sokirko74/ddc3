@@ -144,7 +144,7 @@ void CDDCBranchServer::SetOptions(const CDDCServerOptions &Options)
     CDDCServer::SetOptions(Options);
     if (m_pNavCache) {
 	ddcLogInfo(Format("setting branch navigation cache capacity = %zd", Options.m_NavCacheSize));
-	m_pNavCache->m_Cache.reserve(Options.m_NavCacheSize);
+	m_pNavCache->reserve(Options.m_NavCacheSize);
     }
 };
 

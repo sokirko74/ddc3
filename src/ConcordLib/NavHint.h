@@ -27,8 +27,12 @@
 #include <numeric> //-- for std::accumulate
 
 //======================================================================
+
 /** default NavHintCache capacity */
-#define DDC_DEFAULT_NAV_HINT_CACHE_CAPACITY 512
+#define DDC_DEFAULT_NAV_HINT_CACHE_CAPACITY 1024
+
+/** default NavHintCache step size (used by ServerOptions, BranchServer) */
+#define DDC_DEFAULT_NAV_HINT_CACHE_STEP 1024
 
 //#define DEBUG_NAVCACHE 1
 #undef DEBUG_NAVCACHE
@@ -37,6 +41,15 @@
 # define NAVCACHE_DEBUG(x) x
 #else
 # define NAVCACHE_DEBUG(x)
+#endif
+
+//#define TRACE_NAVCACHE 1
+#undef TRACE_NAVCACHE
+
+#ifdef TRACE_NAVCACHE
+# define NAVCACHE_TRACE(x) x
+#else
+# define NAVCACHE_TRACE(x)
 #endif
 
 //======================================================================
@@ -56,12 +69,20 @@ struct NavHintKey {
     ClearString(m_QueryStr);
     m_HitNo = 0;
   };
-  
+
   //! comparison operator, for use with map<>
   //! \li wraps <code>m_QueryStr < X.m_QueryStr || m_HitNo > X.m_HitNo</code>
   //! \li m_HitNo comparison is reversed so we can use map<>::lower_bound()
   inline bool operator< (const NavHintKey &X) const
-  { return m_QueryStr < X.m_QueryStr || m_HitNo > X.m_HitNo; };
+  {
+    return (m_QueryStr < X.m_QueryStr ? true			//-- QueryStr is primary sort-key
+	    : (m_QueryStr==X.m_QueryStr ? (m_HitNo > X.m_HitNo)	//-- ... only compare HitNo if QueryStr matches (otherwise map<> chokes)
+	       : false));					//-- ... QueryStr>X.QueryStr
+  };
+
+  //! equality operator (for debugging)
+  inline bool operator== (const NavHintKey &X) const
+  { return m_HitNo == X.m_HitNo && m_QueryStr == X.m_QueryStr; };
 
   //! verbose assignment
   inline void assign(const string& qstr, const size_t hitno=0)
@@ -80,10 +101,12 @@ struct NavHintKey {
   //! debug: native stringification
   inline string toString() const
   { return Format("%zd %s", m_HitNo, m_QueryStr.c_str()); };
+
+  //! debug: native decoding from string
+  void fromString(const char *s);
   
   //! debug: JSON stringification
-  inline string toJson() const
-  { return Format("{\"QueryStr\":%s,\"HitNo\":%zd}", jsonStr(m_QueryStr).c_str(), m_HitNo); };
+  string toJson() const;
 };
 
 
@@ -223,6 +246,19 @@ public:
   //------------------------------------------------------------
   // API
 
+  //! wraps lock(); m_Cache.reserve(capacity_); unlock()
+  inline void reserve(size_t capacity_)
+  {
+    lock();
+    try {
+      m_Cache.reserve(capacity_);
+    } catch (...) {
+      unlock();
+      throw;
+    }
+    unlock();
+  };
+  
   //----------------------------------------------------
   //! wraps lock(); m_Cache.size(); unlock()
   inline size_t size() const
@@ -231,11 +267,11 @@ public:
     lock();
     try {
       sz = m_Cache.size();
-      unlock();
     } catch (...) {
       unlock();
       throw;
     }
+    unlock();
     return sz;
   };
 
@@ -246,11 +282,11 @@ public:
     lock();
     try {
       m_Cache.clear();
-      unlock();
     } catch (...) {
       unlock();
       throw;
     }
+    unlock();
   };
 
   //----------------------------------------------------
@@ -282,6 +318,7 @@ public:
   {
     lock();
     try {
+      NAVCACHE_TRACE(ddcLogTrace(Format("NavCache::insert(\"%s\",\"%s\")", escapeCString(key.toString()).c_str(), escapeCString(val.toString()).c_str())));
       m_Cache.insert(key,val);
     } catch (...) {
       unlock();

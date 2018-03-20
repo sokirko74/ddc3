@@ -34,7 +34,6 @@
 # define DDC_IFPTHREADELSE(x,y) y
 #endif
 
-
 //======================================================================
 // Globals
 
@@ -221,22 +220,25 @@ public:
   { if (it->second != m_list.begin()) m_list.splice(m_list.begin(), m_list, it->second); };
 
   //! insert a new cache item, or promote an existing item if present.
-  //! implicitly calls clean().
-  //! \returns iterator pointing to the new item in MRU position
-  iterator insert(const KeyT &key, const ValT &val)
+  //! \li implicitly calls clean().
+  //! \li prior to v2.1.11 returned an iterator to the newly inserted item
+  //! \li as of v2.1.11, no iterator is returned, since it might be invalid if capacity==0
+  void insert(const KeyT &key, const ValT &val)
   {
     iterator mapi = get(key);
     if (mapi != m_map.end()) {
       //-- update existing item (it's already been promoted by get() if it exists)
       mapi->second->second = val;
-      return mapi;
     }
-    //-- insert new item
-    m_list.push_front(std::make_pair(key,val));
-    std::pair<iterator,bool> inserted = m_map.insert(std::make_pair(key, m_list.begin()));
-    ++m_size;
-    clean();
-    return inserted.first;
+    else if (m_capacity > 0) {
+      //-- insert new item (only if we're not just going to delete it again)
+      m_list.push_front(std::make_pair(key,val));
+      m_map.insert(std::make_pair(key, m_list.begin()));
+      ++m_size;
+      clean();
+    }
+    //-- sanity check: FAILS for NavHintCache on v2.1.10 due to bogus NavHintKey::operator<()
+    //assert(m_size==m_list.size() && m_size==m_map.size());
   };
 
 };

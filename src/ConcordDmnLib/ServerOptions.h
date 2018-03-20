@@ -52,10 +52,16 @@ public:
     size_t m_ThreadQueueSize;
 
     //--------------------------------------------------------------
-    // misc
+    // navigation cache
 
-    /** size of navigation offset cache (branch servers only) */
+    /** size of navigation hint cache (branch servers only) */
     size_t m_NavCacheSize;
+
+    /** minimum logical offset increment for navigation hint cache (branch servers only) */
+    size_t m_NavCacheStep;
+
+    //--------------------------------------------------------------
+    // compatibility
 
     /** server compatibility mode */
     DDCVersionT m_VersionCompat;

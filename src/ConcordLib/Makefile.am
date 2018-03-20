@@ -22,9 +22,9 @@ lib_LTLIBRARIES = libDDCConcord.la
 ##-----------------------------------------------------------------------
 ## debug
 
-#EXTRA_PROGRAMS = hintme
-#hintme_SOURCES = hintme.cc
-#hintme_LDADD = libDDCConcord.la ../CommonLib/libDDCCommon.la
+#EXTRA_PROGRAMS = navme
+#navme_SOURCES = navme.cc
+#navme_LDADD = libDDCConcord.la ../CommonLib/libDDCCommon.la
 
 ##======================================================================
 ## sources
