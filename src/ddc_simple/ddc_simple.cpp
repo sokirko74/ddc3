@@ -185,7 +185,7 @@ int main(int argc, char* argv[])
 				fprintf (stderr,"ddc_simple: command line query processor\n");	
 				return 1;
 			}
-			else if (s == "--verbose" || s=="-v" || s=="--log-level" || s=="--log" || s=="--protocol") {
+			else if (s == "--verbose" || s == "-verbose" || s=="-v" || s=="--log-level" || s=="--log" || s=="--protocol") {
 				if (i+1 >= argc) 
 					PrintUsageAndExit();
 				SetLogLevel( GetLogLevel(argv[i+1]) );

@@ -115,8 +115,8 @@ bool	CIndexSetForQueryingStage::LoadIndexSet(bool bLoadHeaderOfOccurrences)
 	#endif
 
     
-    if (bLoadHeaderOfOccurrences)
-	    ReadVector(GetOccHdrFileName().c_str(), m_Index);
+	if (bLoadHeaderOfOccurrences)
+		ReadVector(GetOccHdrFileName().c_str(), m_Index);
 
 	if (!LoadPeriodDevision()) return false;
 	return true;

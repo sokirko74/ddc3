@@ -29,7 +29,7 @@
 	Member m_pCurrOccurs is a pointer to the vector of occurrences of an indexed string.
 	We use here pointers because  we are going to create vector<CItemIndexForLoading>, and pointers can help us to avoid copying all occurrences each time when 
 	an item is inserted to vector<CItemIndexForLoading>. 
-	Member m_IndexItemOffset is  an reference to CIndexSetForLoadingStage::m_StringBuffer
+	Member m_IndexItemOffset is  an reference to CIndexSetForLoadingStage::m_StringBuffer rsp. CIndexSetForQueryingStage::mm_StringBuffer
 */
 class CItemIndexForLoading
 { 
@@ -109,7 +109,7 @@ In fact these three indices contain information about one and the same index set
 		- an input load index is used for one \ref corpus_file_def "corpus file" or a sequence of short corpus files;  \n
 	After having indexed one chunk of the input corpus DDC unites  the input index  with the memory index and clears the input index. 
 	When the memory index is large enough DDC unites it also with the main index and clears the memory index.
-	CIndexSetForLoadingStage holds a buffer, which contains all indexed strings delimited by "\\0" (m_StringBuffer). 
+	CIndexSetForLoadingStage holds a buffer, which contains all indexed strings delimited by "\\0" (m_StringBuffer, mm_StringBuffer). 
 */
 class CIndexSetForLoadingStage
 {
@@ -156,8 +156,8 @@ public:
 	//! if true, then the program creates and uses a \ref storage_def "storage" for this index
 	bool		m_bUseItemStorage;
 
-	//! a buffer for storing index strings 
-	vector<char>	m_StringBuffer;
+	//! a buffer for storing index strings (compile-time, !mmap)
+	vector<char>	   m_StringBuffer;
 
 
 	CIndexSetForLoadingStage ();

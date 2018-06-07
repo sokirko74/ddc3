@@ -98,7 +98,10 @@ public:
 	template<class T>
 	inline const char* GetIndexItemStr(const T& W) const 
 	{
-		return &m_StringBuffer[0] + W.GetIndexItemOffset();
+		return (mm_StringBuffer
+			? mm_StringBuffer.m_data //-- mmap mode
+			: &m_StringBuffer[0])    //-- resident mode
+			+ W.GetIndexItemOffset();
 	};
 
 	CStringIndexSet(const CStringIndexator* pParent);
@@ -123,9 +126,20 @@ public:
 	//!     or \a DWORD_MAX if an error occurs (e.g. no such token)
 	DWORD   GetTokenIndexId(CTokenNo TokenNo) const;
 
-	//! gets index-local item-id (lower bound) of string type \a ValueStr
-	//! \li basically a pared-down version of QueryTokenList(string& WordForm)
+	//! gets local m_Index iterator (lower-bound) for type \a ValueStr
+	//! \li guts for  QueryTokenList(string& WordForm)
 	//! \li really just a wrapper for std::lower_bound(m_Index.begin(), m_Index.end(), ValueStr.c_str(), LessIndexString1<CIndexItem>(&m_StringBuffer))
+	//! \returns lower-bound iterator for \a ValueStr
+	vector<CIndexItem>::const_iterator GetTypeIndexIdLowerBoundIter(const string& ValueStr) const;
+
+	//! gets local m_Index iterator (upper bound) for string type \a ValueStr
+	//! \li guts for  QueryTokenList(string& WordForm)
+	//! \li really just a wrapper for std::upper_bound(m_Index.begin(), m_Index.end(), ValueStr.c_str(), LessIndexString1<CIndexItem>(&m_StringBuffer))
+	//! \returns upper-bound iterator for \a ValueStr
+	vector<CIndexItem>::const_iterator GetTypeIndexIdUpperBoundIter(const string& ValueStr) const;
+	
+	//! gets index-local item-id (lower bound) of string type \a ValueStr
+	//! \li wrapper for GetTypeIndexIdLowerBoundIter(), returns item-id rather than iterator
 	//! \returns lower-bound item-id for \a ValueStr
 	DWORD   GetTypeIndexIdLowerBound(const string& ValueStr) const;
 	

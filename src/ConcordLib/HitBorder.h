@@ -35,7 +35,7 @@
 */
 
 
-/*! CPageBreak is a structure that holds a page number and the index of token, from which this page starts
+/*! CPageNumber is a structure that holds a page number and the index of token, from which this page starts
 */
 struct CPageNumber  {
 	//! the starting position (in tokens) of the beginning of the page

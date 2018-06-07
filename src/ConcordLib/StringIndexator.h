@@ -117,11 +117,11 @@ class CStringIndexator {
 protected:
 	
 	//! \ref period_def "search periods" of the corpus  
-    vector<CTokenNo>	m_SearchPeriods;
+	vector<CTokenNo>	m_SearchPeriods;
 
 	//! register chunk index (chunks:NP, VP etc)	
 	bool	RegisterChunkIndex();
-    //! return the file name for \ref period_def "search periods"
+	//! return the file name for \ref period_def "search periods"
 	string	GetSearchPeriodsFileName() const;
 	//! call DestroyIndexSet for all registered indices
 	bool	DestroyIndices();
@@ -141,7 +141,10 @@ public:
 	
 public:
 	//! where all indices are stored
-	string							m_Path;
+	string					m_Path;
+
+	//! whether to directly mmap() index file data (default=false)
+	bool					m_bMemoryMap;
 
 	//! the registered indices, by positional index
 	vector<CStringIndexSet*>		m_Indices;
@@ -153,9 +156,10 @@ public:
 	IndexMap				m_IndexMap;
 
 	//! the maximal number of index items which can be included in an expansion set of one regular expression
-	size_t							m_MaxRegExpExpansionSize;
+	size_t					m_MaxRegExpExpansionSize;
+
 	//! a quick reference to a chunk index, if CConcIndexator::m_bIndexChunks	is on, otherwise null
-	CStringIndexSet*				m_pChunkIndex;
+	CStringIndexSet*			m_pChunkIndex;
 
 	CStringIndexator();
 	~CStringIndexator();

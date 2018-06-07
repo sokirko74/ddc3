@@ -30,6 +30,7 @@
 CStringIndexator::CStringIndexator()
 {
 	m_Path = "#empty_path";
+	m_bMemoryMap = false;
 	m_MaxRegExpExpansionSize = 1000000;
 	m_pChunkIndex = NULL;
 };

@@ -1,7 +1,7 @@
 //-*- Mode: C++; c-basic-offset: 8; -*-
 //
 //  DDC originally by Alexey Sokirko
-//  Changes and modifications 2011-2017 by Bryan Jurish
+//  Changes and modifications 2011-2018 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -96,6 +96,7 @@ void CConcIndexator::InitDefaultOptions()
 	m_Utf8 = false;
 	m_bAllowUnsafeQueries = false;
 	m_bAllowCountByTokenAttributes = true;
+	m_bMemoryMap = false;
 	m_bLemmaQueryUsesMorphPattern = true;
 	m_Timestamp = 0;
 	m_MaxCachedHitsCount = 512;
@@ -392,6 +393,11 @@ bool CConcIndexator::LoadOptionsFromString(string Options)
 			{
 				m_bAllowCountByTokenAttributes = StringToBool(fields.next_token());
 				EchoOption("AllowCountByTokenAttributes %s", BoolToString(m_bAllowCountByTokenAttributes));
+			}
+		else if (q == "MemoryMap")
+			{
+				m_bMemoryMap = StringToBool(fields.next_token());
+				EchoOption("MemoryMap %s", BoolToString(m_bMemoryMap));
 			}
 		else if (q == "LemmaQueryUsesMorphPattern")
 			{
@@ -767,6 +773,9 @@ string CConcIndexator::SaveOptionsToString()  const
 	if (m_bAllowCountByTokenAttributes)
 		Result += "AllowCountByTokenAttributes\n";
 
+	if (m_bMemoryMap)
+		Result += "MemoryMap\n";
+	
 	if (!m_Bibl.m_DefaultAttrName.empty())
 		Result += Format("DefaultBibl %s\n", m_Bibl.m_DefaultAttrName.c_str());
 

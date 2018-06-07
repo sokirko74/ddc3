@@ -56,45 +56,59 @@ string CStringIndexSet::GetName() const
 
 
 
+vector<CIndexItem>::const_iterator CStringIndexSet::GetTypeIndexIdLowerBoundIter(const string& ValueStr) const
+{
+	if (mm_StringBuffer) {
+		//-- mmap mode
+		LessIndexString1<CIndexItem,char*> Less(&mm_StringBuffer.m_data);
+		return lower_bound (m_Index.begin(), m_Index.end(), ValueStr.c_str(), Less);
+	} else {
+		//-- resident memory mode
+		LessIndexString1<CIndexItem> Less(&m_StringBuffer);
+		return lower_bound (m_Index.begin(), m_Index.end(), ValueStr.c_str(), Less);
+	}
+};
+
+vector<CIndexItem>::const_iterator CStringIndexSet::GetTypeIndexIdUpperBoundIter(const string& ValueStr) const
+{
+	if (mm_StringBuffer) {
+		//-- mmap mode
+		LessIndexString1<CIndexItem,char*> Less(&mm_StringBuffer.m_data);
+		return upper_bound (m_Index.begin(), m_Index.end(), ValueStr.c_str(), Less);
+	} else {
+		//-- resident memory mode
+		LessIndexString1<CIndexItem> Less(&m_StringBuffer);
+		return upper_bound (m_Index.begin(), m_Index.end(), ValueStr.c_str(), Less);
+	}
+};
+
 DWORD CStringIndexSet::GetTypeIndexIdLowerBound(const string& ValueStr)	const
 {
-	LessIndexString1<CIndexItem> Less(&m_StringBuffer);
-	vector<CIndexItem>::const_iterator it = lower_bound(m_Index.begin(), m_Index.end(), ValueStr.c_str(), Less);
-	return it - m_Index.begin();
+	return GetTypeIndexIdLowerBoundIter(ValueStr) - m_Index.begin();
 };
 
 void CStringIndexSet::QueryTokenList (const string& WordForm, vector<DWORD>& MatchWords)	const
 {
-	LessIndexString1<CIndexItem> Less(&m_StringBuffer);
+	vector<CIndexItem>::const_iterator it = GetTypeIndexIdLowerBoundIter(WordForm);
 
-	vector<CIndexItem>::const_iterator it = lower_bound (m_Index.begin(), m_Index.end(), WordForm.c_str(), Less);
-	
 	if (MatchWords.size() > m_pParent->m_MaxRegExpExpansionSize)
 		throw CExpc("too many expansions for query word `%s' (MaxRegExpExpansionSize=%zd)", WordForm.c_str(), m_pParent->m_MaxRegExpExpansionSize);
 
-	if (   
-				( it != m_Index.end() )
-			&&	( !strcmp(GetIndexItemStr(*it),WordForm.c_str())   )
-		)
+	if ( (it != m_Index.end()) && (!strcmp(GetIndexItemStr(*it),WordForm.c_str())) )
 		MatchWords.push_back( it -  m_Index.begin() );
 };
 
 
 void CStringIndexSet::QueryTokenListWithRightTruncation (const string& WordForm, vector<DWORD>& MatchWords)	const
 {
-	LessIndexString1<CIndexItem> Less(&m_StringBuffer);
 	int len =  WordForm.length();
-	vector<CIndexItem>::const_iterator it = lower_bound (m_Index.begin(), m_Index.end(), WordForm.c_str(), Less);
+	vector<CIndexItem>::const_iterator it = GetTypeIndexIdLowerBoundIter(WordForm);
 
-	while ( 		( it != m_Index.end() )
-			&&	( !strncmp(GetIndexItemStr(*it),WordForm.c_str(), len)   )
-			)
-	{
+	while ( (it != m_Index.end()) && (!strncmp(GetIndexItemStr(*it),WordForm.c_str(), len)) ) {
 		if (MatchWords.size() > m_pParent->m_MaxRegExpExpansionSize)
 			throw CExpc("too many expansions for query prefix `%s' (MaxRegExpExpansionSize=%zd)", WordForm.c_str(), m_pParent->m_MaxRegExpExpansionSize);
 
 		MatchWords.push_back( it -  m_Index.begin() );
-
 		it++;
 	};
 };
@@ -145,7 +159,16 @@ void CStringIndexSet::QueryTokenListUniversal(vector<DWORD>& MatchWords) const
 bool	CStringIndexSet::ReadFromTheDisk()
 {
 	LoadIndexSet();
-	ReadVector(GetFileNameForInfos().c_str(), m_StringBuffer);
+
+	if (m_pParent->m_bMemoryMap) {
+		//-- mmap mode
+		ClearVector(m_StringBuffer);
+		mm_StringBuffer.open(GetFileNameForInfos(), O_RDONLY);
+	} else {
+		//-- resident mode
+		ReadVector(GetFileNameForInfos().c_str(), m_StringBuffer);
+		mm_StringBuffer.close();
+	}
 
 	if (m_bUseItemStorage)
 		if (!OpenStorageFile())
@@ -159,6 +182,8 @@ bool	CStringIndexSet::DestroyIndexSet()
 	if (!CIndexSetForQueryingStage::DestroyIndexSet ()) return false;
 
 	ClearVector(m_StringBuffer);
+	mm_StringBuffer.close();
+
 	if (FileExists(GetStorageFileName().c_str()))
 	{
 		CloseStorageFile();
@@ -395,12 +420,10 @@ bool CStringIndexSet::GetContextBounds(CDDCFilterWithBounds &Filter, const strin
 	Filter.clear();
 	Filter.m_bSet = false;
 
-	LessIndexString1<CIndexItem> Less(&m_StringBuffer);
-
 	//-- lower bound, based on CConcXml::CFreeBiblStringIndex::GetFilterBounds() from Bibliography.cpp
 	Filter.m_KeyLo.assign(INT_MIN,LoValue);
 	if (!LoValue.empty()) {
-		vector<CIndexItem>::const_iterator ilo = lower_bound(m_Index.begin(), m_Index.end(), LoValue.c_str(), Less);
+		vector<CIndexItem>::const_iterator ilo = GetTypeIndexIdLowerBoundIter(LoValue);
 		if ( ilo != m_Index.end() )
 			Filter.m_KeyLo.i = ilo-m_Index.begin();
 		else
@@ -410,7 +433,7 @@ bool CStringIndexSet::GetContextBounds(CDDCFilterWithBounds &Filter, const strin
 	//-- upper bound
 	Filter.m_KeyHi.assign(INT_MAX,HiValue);
 	if (!HiValue.empty()) {
-		vector<CIndexItem>::const_iterator ihi = upper_bound(m_Index.begin(), m_Index.end(), HiValue.c_str(), Less);
+		vector<CIndexItem>::const_iterator ihi = GetTypeIndexIdUpperBoundIter(HiValue);
 		if ( ihi != m_Index.end() )
 			Filter.m_KeyHi.i = ihi-m_Index.begin();
 		else

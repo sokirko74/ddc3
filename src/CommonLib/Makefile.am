@@ -32,7 +32,8 @@ libDDCCommon_la_SOURCES = \
  ddcVersion.cpp ddcVersion.h \
  ddcString.cpp ddcString.h \
  utf8xx.cpp utf8xx.h \
- ddcTime.cpp ddcTime.h
+ ddcTime.cpp ddcTime.h \
+ ddcFileMap.h
 
 # unix_simple_qparse.h MyFlexLexer.h
 

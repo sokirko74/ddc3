@@ -276,7 +276,7 @@ with one of each of these files.
 \& \- growth: O(NTypes)
 \& \- format: raw strings (types), NUL\-terminated, in compile\-time document order
 \& \- used by:
-\&   \- CIndexSetForLoadingStage::m_StringBuffer //\-\- loaded on startup
+\&   \- vector<char> CIndexSetForLoadingStage::m_StringBuffer;
 \& \- loaded by:
 \&   \- CStringIndexSet::ReadFromTheDisk() ///\-\- IndexSet.cpp:150; populates m_StringBuffer via ReadVector()
 \& \- doc (StringIndexator.h #index_set_def):

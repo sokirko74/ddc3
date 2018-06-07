@@ -25,14 +25,14 @@
 //! This less operator provides quite "normal" less and equal operators for stings. The only 
 //! difference is that the first compared item is obtained not by a pointer, but by an offset to 
 //! LessIndexString1::m_pBuffer.
-template <class IndexType>
+template <class IndexType, typename VectorType=vector<char> >
 	class LessIndexString1 : public binary_function<bool, const IndexType&, const char&> 
 	{
-		const vector<char>* m_pBuffer;
+		const VectorType* m_pBuffer;
 
 	public:
 
-		LessIndexString1(const vector<char>* pBuffer)
+		LessIndexString1(const VectorType* pBuffer)
 		{
 			m_pBuffer = pBuffer;
 		}  
