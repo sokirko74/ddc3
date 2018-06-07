@@ -40,7 +40,7 @@
 
 <h1 id="DESCRIPTION">DESCRIPTION</h1>
 
-<p>Local cfg-files (<i>ddc_local_corpora.cfg</i>) defines the terminal (&quot;leaf&quot;) nodes of a DDC server dataflow tree which are to be handled by a single server process. Server cfg-files (<i>ddc_server.cfg</i>) associate each local leaf node with at least one non-terminal (&quot;branch&quot;) node, and may also incorporate external leaf or branch nodes as &quot;opaque&quot; nodes, as well as define &quot;internal&quot; branch nodes for the server dataflow tree. Prior to DDC v2.1.0, at most one branch-node could be declared in <i>ddc_server.cfg</i>, and all leaf nodes had to be explicitly declared, since branch nodes could not be queried as opaque leaf-like nodes.</p>
+<p>Local cfg-files (<i>ddc_local_corpora.cfg</i>) define the terminal (&quot;leaf&quot;) nodes of a DDC server dataflow tree which are to be handled by a single server process. Server cfg-files (<i>ddc_server.cfg</i>) associate each local leaf node with at least one non-terminal (&quot;branch&quot;) node, and may also incorporate external leaf or branch nodes as &quot;opaque&quot; nodes, as well as define &quot;internal&quot; branch nodes for the server dataflow tree. Prior to DDC v2.1.0, at most one branch-node could be declared in <i>ddc_server.cfg</i>, and all leaf nodes had to be explicitly declared, since branch nodes could not be queried as opaque leaf-like nodes.</p>
 
 <p>All DDC cfg-files share a common basic format. Files are line-based, containing one server-node record per line. Blank lines (containing only whitespace) and comments (lines beginning with a hash-mark (<code>#</code>) or double-slash (<code>//</code>)) are ignored. Each content line should contain 3 or 4 fields separated by whitespace:</p>
 
@@ -62,9 +62,9 @@
 
 <h2 id="Path">Path</h2>
 
-<p>The meaning fourth and final field <i>PATH</i> differs between <i>ddc_local_corpora.cfg</i> and <i>ddc_server.cfg</i>.</p>
+<p>The meaning of the fourth and final field <i>PATH</i> differs between <i>ddc_local_corpora.cfg</i> and <i>ddc_server.cfg</i>.</p>
 
-<p>For <i>ddc_local_corpora.cfg</i>, <i>PATH</i> is required, and specifies the local path to the associated DDC project file (<code>*.con</code>), relative to the DDC runtime root directory as stored in the environment variable <code>$RML</code></p>
+<p>For <i>ddc_local_corpora.cfg</i>, <i>PATH</i> is required, and specifies the local path to the associated DDC project file (<code>*.con</code>), relative to the DDC runtime root directory as stored in the environment variable <code>$RML</code>.</p>
 
 <p>For <i>ddc_server.cfg</i>, <i>PATH</i> is optional. If non-empty, it specifies the <a href="#Label"><i>LABEL</i></a> of the node&#39;s parent in the dataflow tree, which should be a branch node. If empty, the most recently declared branch-node is used as the parent.</p>
 

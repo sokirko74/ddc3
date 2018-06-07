@@ -67,7 +67,7 @@
 .\" ========================================================================
 .\"
 .IX Title "DDC_CFG 5"
-.TH DDC_CFG 5 "2018-03-08" "2.1.11-rc1" "DDC Corpus Indexing System"
+.TH DDC_CFG 5 "2018-06-07" "2.1.12-pre1" "DDC Corpus Indexing System"
 .\" For nroff, turn off justification.  Always turn off hyphenation; it makes
 .\" way too many mistakes in technical documents.
 .if n .ad l
@@ -79,7 +79,7 @@ the \fIddc_local_corpora.cfg\fR and \fIddc_server.cfg\fR
 files (\*(L"cfg-files\*(R") used by the \s-1DDC\s0 corpus indexing system.
 .SH "DESCRIPTION"
 .IX Header "DESCRIPTION"
-Local cfg-files (\fIddc_local_corpora.cfg\fR) defines the terminal (\*(L"leaf\*(R") nodes
+Local cfg-files (\fIddc_local_corpora.cfg\fR) define the terminal (\*(L"leaf\*(R") nodes
 of a \s-1DDC\s0 server dataflow tree which are to be handled by a single server process.
 Server cfg-files (\fIddc_server.cfg\fR) associate each local leaf node
 with at least one non-terminal (\*(L"branch\*(R") node, and may also incorporate
@@ -120,11 +120,11 @@ The third field specifies the \s-1TCP\s0 port-number \fI\s-1PORT\s0\fR to be bou
 by a branch-node and/or to be queried for a leaf-node.
 .SS "Path"
 .IX Subsection "Path"
-The meaning fourth and final field \fI\s-1PATH\s0\fR differs between \fIddc_local_corpora.cfg\fR and \fIddc_server.cfg\fR.
+The meaning of the fourth and final field \fI\s-1PATH\s0\fR differs between \fIddc_local_corpora.cfg\fR and \fIddc_server.cfg\fR.
 .PP
 For \fIddc_local_corpora.cfg\fR, \fI\s-1PATH\s0\fR is required, and specifies the local path to the associated
 \&\s-1DDC\s0 project file (\f(CW\*(C`*.con\*(C'\fR), relative to the \s-1DDC\s0 runtime root directory as stored
-in the environment variable \f(CW$RML\fR
+in the environment variable \f(CW$RML\fR.
 .PP
 For \fIddc_server.cfg\fR, \fI\s-1PATH\s0\fR is optional.  If non-empty, it specifies
 the \fI\s-1LABEL\s0\fR of the node's parent in the dataflow tree,

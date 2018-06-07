@@ -21,7 +21,7 @@ files ("cfg-files") used by the DDC corpus indexing system.
 
 =head1 DESCRIPTION
 
-Local cfg-files (F<ddc_local_corpora.cfg>) defines the terminal ("leaf") nodes
+Local cfg-files (F<ddc_local_corpora.cfg>) define the terminal ("leaf") nodes
 of a DDC server dataflow tree which are to be handled by a single server process.
 Server cfg-files (F<ddc_server.cfg>) associate each local leaf node
 with at least one non-terminal ("branch") node, and may also incorporate
@@ -88,11 +88,11 @@ by a branch-node and/or to be queried for a leaf-node.
 
 =head2 Path
 
-The meaning fourth and final field I<PATH> differs between F<ddc_local_corpora.cfg> and F<ddc_server.cfg>.
+The meaning of the fourth and final field I<PATH> differs between F<ddc_local_corpora.cfg> and F<ddc_server.cfg>.
 
 For F<ddc_local_corpora.cfg>, I<PATH> is required, and specifies the local path to the associated
 DDC project file (C<*.con>), relative to the DDC runtime root directory as stored
-in the environment variable C<$RML>
+in the environment variable C<$RML>.
 
 For F<ddc_server.cfg>, I<PATH> is optional.  If non-empty, it specifies
 the L<I<LABEL>|/Label> of the node's parent in the dataflow tree,
