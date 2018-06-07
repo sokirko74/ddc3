@@ -508,7 +508,7 @@ Document-ID to attribute lookup table for I<DOCATTR>.
 Support for the C<date> metadata field is hard-coded into the DDC library itself, so this
 file gets its own naming conventions.
 
-=head2 CORPUS._bibl
+=head3 CORPUS._bibl
 
  - resident: no
  - popularity: high
