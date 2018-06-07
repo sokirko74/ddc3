@@ -410,7 +410,7 @@ public:
 	{ return m_BiblExpanders; };
 
 	//! moo: ugly dangerous hack
-	const vector<int>& GetDates() const
+	const vector<DWORD>& GetDates() const
 	{ return m_Dates; };
 
 	//! moo: not quite as ugly or dangerous a hack (respects aliases)

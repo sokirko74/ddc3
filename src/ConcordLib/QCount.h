@@ -145,11 +145,11 @@ public:
 class CQCountKeyExprDate : public CQCountKeyExprIndexed
 {
 public:
-  const vector<int> *m_pDates;
-  unsigned int       m_year;
-  unsigned int       m_month;
-  unsigned int       m_day;
-  char               buf[16];
+  const vector<DWORD> *m_pDates;
+  unsigned int         m_year;
+  unsigned int         m_month;
+  unsigned int         m_day;
+  char                 buf[16];
 
 public:
   CQCountKeyExprDate(const string &label="date") : CQCountKeyExprIndexed(label), m_pDates(NULL) {};
