@@ -381,7 +381,7 @@ Inverted index for (non-hapax) I<TOKATTR> value-types, indexed by type-id.
    #+END_SRC
 
 Values for I<TOKATTR> indexed by logical token-ID.
-Only available if the L<C"STORAGE">|ddc_opt/STORAGE> option
+Only available if the L<C<STORAGE>|ddc_opt/STORAGE> option
 was set for I<TOKATTR> at compile-time.
 
 =cut

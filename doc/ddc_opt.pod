@@ -380,7 +380,11 @@ If it is C<archive>, the current index is archived, otherwise it is not; and
 
 is one of the strings C<storage> or C<storage_omit>.
 If it is C<storage>, then the index is supplied with a storage during indexing, otherwise storage is not built.
-By default the first index is build with a storage (if it is not manually prohibited), other indices are built without storages.
+By default the first index is built with a storage (if it is not "manually prohibited" (whatever that means)),
+other indices are built without storages.
+If you want your DDC index to B<display> values of this attribute for tokens matching a user query,
+you should set this to C<storage>.  If you're only interested in B<querying> this attribute,
+you can safely set it to C<storage_omit>.
 
 =back
 

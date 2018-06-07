@@ -67,7 +67,7 @@
 .\" ========================================================================
 .\"
 .IX Title "DDC_OPT 5"
-.TH DDC_OPT 5 "2018-03-20" "2.1.11-rc1" "DDC Corpus Indexing System"
+.TH DDC_OPT 5 "2018-06-07" "2.1.12-pre1" "DDC Corpus Indexing System"
 .\" For nroff, turn off justification.  Always turn off hyphenation; it makes
 .\" way too many mistakes in technical documents.
 .if n .ad l
@@ -431,7 +431,11 @@ If it is \f(CW\*(C`archive\*(C'\fR, the current index is archived, otherwise it 
 .IX Item "STORAGE"
 is one of the strings \f(CW\*(C`storage\*(C'\fR or \f(CW\*(C`storage_omit\*(C'\fR.
 If it is \f(CW\*(C`storage\*(C'\fR, then the index is supplied with a storage during indexing, otherwise storage is not built.
-By default the first index is build with a storage (if it is not manually prohibited), other indices are built without storages.
+By default the first index is built with a storage (if it is not \*(L"manually prohibited\*(R" (whatever that means)),
+other indices are built without storages.
+If you want your \s-1DDC\s0 index to \fBdisplay\fR values of this attribute for tokens matching a user query,
+you should set this to \f(CW\*(C`storage\*(C'\fR.  If you're only interested in \fBquerying\fR this attribute,
+you can safely set it to \f(CW\*(C`storage_omit\*(C'\fR.
 .PP
 The Indices option is only supported for the \f(CW\*(C`Free_Index\*(C'\fR Index Type.
 .PP
