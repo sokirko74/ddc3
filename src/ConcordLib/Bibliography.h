@@ -259,7 +259,7 @@ private:
 	BiblExpanderMap		m_BiblExpanders;
 
 	vector<file_off_t>		m_EndOffsetsInBiblFile;
-	vector<int>				m_Dates;
+	vector<DWORD>				m_Dates;
 	// File of Bibliographical references
 	FILE*   				m_BiblBodyFile;
 	string					m_Path;

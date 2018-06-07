@@ -1469,7 +1469,7 @@ bool CConcXml::FileMatches(DWORD FileNo, const vector<CDDCFilterWithBounds>& Fil
 		}
 		else if (!fbi && (fi->m_FilterType==LessByDate || fi->m_FilterType==GreaterByDate)) {
 			//-- date filter is tested manually...
-			int fdate = m_Dates[FileNo];
+			DWORD fdate = m_Dates[FileNo];
 			if (fdate < fi->m_KeyLo.i || fdate > fi->m_KeyHi.i)
 				return false;
 		}
