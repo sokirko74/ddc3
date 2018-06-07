@@ -577,7 +577,12 @@ This section describes the DDC index files associated with a single "break colle
 Each break collection I<BREAK> for each physical index I<CORPUS> may be associated
 with one or more of these files:
 
-*** CORPUS._BREAK_border
+=cut
+
+##------------------------------------------------------
+=pod
+
+=head3 CORPUS._BREAK_border
 
  - resident: yes
  - popularity: high (hit boundaries)

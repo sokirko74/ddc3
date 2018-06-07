@@ -3,6 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
 <title></title>
+<link rel="stylesheet" href="pod2x.css" type="text/css" />
 <meta http-equiv="content-type" content="text/html; charset=utf-8" />
 <link rev="made" href="mailto:root@localhost" />
 </head>
@@ -48,6 +49,7 @@
       </li>
       <li><a href="#Break-Level-Files">Break-Level Files</a>
         <ul>
+          <li><a href="#CORPUS._BREAK_border">CORPUS._BREAK_border</a></li>
           <li><a href="#CORPUS._pagebreaks">CORPUS._pagebreaks</a></li>
         </ul>
       </li>
@@ -119,7 +121,7 @@
      + via CConcIndexator::LoadOptionsFromString()
  - doc: see ddc_opt(5)</code></pre>
 
-<p>Index options, see <a>ddc_opt(5)</a> for details.</p>
+<p>Index options, see <a href="./ddc_opt.html">ddc_opt(5)</a> for details.</p>
 
 <h3 id="CORPUS.con">CORPUS.con</h3>
 
@@ -177,7 +179,7 @@
      (class CBiblIndex) and full bibliographical information (class CBibliography).
    #+END_SRC</code></pre>
 
-<p>List of corpus source files written by <a>ddc_index(1)</a> and loaded at runtime. The initial header-line is used for version compatibility checks, and the file&#39;s modification time is used to initialize the index timestamp returned by the server <a><code>info</code></a> command.</p>
+<p>List of corpus source files written by <a>ddc_index(1)</a> and loaded at runtime. The initial header-line is used for version compatibility checks, and the file&#39;s modification time is used to initialize the index timestamp returned by the server <a href="./ddc_proto.html#info"><code>info</code></a> command.</p>
 
 <h3 id="CORPUS._masked">CORPUS._masked</h3>
 
@@ -489,7 +491,7 @@
 
 <p>This section describes the DDC index files associated with a single &quot;break collection&quot;. Each break collection <i>BREAK</i> for each physical index <i>CORPUS</i> may be associated with one or more of these files:</p>
 
-<p>*** CORPUS._BREAK_border</p>
+<h3 id="CORPUS._BREAK_border">CORPUS._BREAK_border</h3>
 
 <pre><code> - resident: yes
  - popularity: high (hit boundaries)
