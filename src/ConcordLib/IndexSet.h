@@ -94,13 +94,13 @@ public:
 	//! a short name of the index set,  for example "m", "w", "t", "c"
 	string	m_ShortName;
 
-	//! this function returns an string(which was indexed by DDC) by an instance of CIndexItem or CItemIndexForLoading
+	//! this function returns a string(which was indexed by DDC) by an instance of CIndexItem or CItemIndexForLoading
 	template<class T>
 	inline const char* GetIndexItemStr(const T& W) const 
 	{
-		return (mm_StringBuffer
-			? mm_StringBuffer.m_data //-- mmap mode
-			: &m_StringBuffer[0])    //-- resident mode
+		return (m_vStringBuffer
+			? m_vStringBuffer.m_data //-- runtime
+			: &m_StringBuffer[0])    //-- compile-time
 			+ W.GetIndexItemOffset();
 	};
 

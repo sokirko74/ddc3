@@ -33,7 +33,7 @@ libDDCCommon_la_SOURCES = \
  ddcString.cpp ddcString.h \
  utf8xx.cpp utf8xx.h \
  ddcTime.cpp ddcTime.h \
- ddcFileMap.h
+ ddcMMap.h
 
 # unix_simple_qparse.h MyFlexLexer.h
 

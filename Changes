@@ -4,7 +4,8 @@ v2.1.12-pre1 WIP
 	* fixed type of CConcXml::m_Dates (was: vector<int>, new: vector<DWORD>) - should improve portability
 	* added doc/ddc_files.pod (-> manpage ddc_files(5)): low-level index file formats
 	* started work on using mmap() for runtime index access
-	  - added template class ddcFileMap<T> in src/CommonLib/ddcFileMap.h
+	  - added template class ddcMMap<T> in src/CommonLib/ddcMMap.h    : basic mmap() support
+	  - added template class ddcVecFile<T> in src/CommonLib/ddcMMap.h : high-level wrapper for slurp or mmap
 	  - added opt-file option "MemoryMap" (Boolean)
 	  - added CIndexSetForQueryingStage.mm_StringBuffer (~ CIndexSetForLoadingStage.m_StringBuffer)
 

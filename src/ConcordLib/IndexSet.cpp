@@ -58,28 +58,14 @@ string CStringIndexSet::GetName() const
 
 vector<CIndexItem>::const_iterator CStringIndexSet::GetTypeIndexIdLowerBoundIter(const string& ValueStr) const
 {
-	if (mm_StringBuffer) {
-		//-- mmap mode
-		LessIndexString1<CIndexItem,char*> Less(&mm_StringBuffer.m_data);
-		return lower_bound (m_Index.begin(), m_Index.end(), ValueStr.c_str(), Less);
-	} else {
-		//-- resident memory mode
-		LessIndexString1<CIndexItem> Less(&m_StringBuffer);
-		return lower_bound (m_Index.begin(), m_Index.end(), ValueStr.c_str(), Less);
-	}
+	LessIndexString1<CIndexItem,char*> Less(&m_vStringBuffer.m_data);
+	return lower_bound (m_Index.begin(), m_Index.end(), ValueStr.c_str(), Less);
 };
 
 vector<CIndexItem>::const_iterator CStringIndexSet::GetTypeIndexIdUpperBoundIter(const string& ValueStr) const
 {
-	if (mm_StringBuffer) {
-		//-- mmap mode
-		LessIndexString1<CIndexItem,char*> Less(&mm_StringBuffer.m_data);
-		return upper_bound (m_Index.begin(), m_Index.end(), ValueStr.c_str(), Less);
-	} else {
-		//-- resident memory mode
-		LessIndexString1<CIndexItem> Less(&m_StringBuffer);
-		return upper_bound (m_Index.begin(), m_Index.end(), ValueStr.c_str(), Less);
-	}
+	LessIndexString1<CIndexItem,char*> Less(&m_vStringBuffer.m_data);
+	return upper_bound (m_Index.begin(), m_Index.end(), ValueStr.c_str(), Less);
 };
 
 DWORD CStringIndexSet::GetTypeIndexIdLowerBound(const string& ValueStr)	const
@@ -160,15 +146,8 @@ bool	CStringIndexSet::ReadFromTheDisk()
 {
 	LoadIndexSet();
 
-	if (m_pParent->m_bMemoryMap) {
-		//-- mmap mode
-		ClearVector(m_StringBuffer);
-		mm_StringBuffer.open(GetFileNameForInfos(), O_RDONLY);
-	} else {
-		//-- resident mode
-		ReadVector(GetFileNameForInfos().c_str(), m_StringBuffer);
-		mm_StringBuffer.close();
-	}
+	ClearVector(m_StringBuffer);
+	m_vStringBuffer.open(GetFileNameForInfos(), m_pParent->m_bMemoryMap);
 
 	if (m_bUseItemStorage)
 		if (!OpenStorageFile())
@@ -182,7 +161,7 @@ bool	CStringIndexSet::DestroyIndexSet()
 	if (!CIndexSetForQueryingStage::DestroyIndexSet ()) return false;
 
 	ClearVector(m_StringBuffer);
-	mm_StringBuffer.close();
+	m_vStringBuffer.close();
 
 	if (FileExists(GetStorageFileName().c_str()))
 	{

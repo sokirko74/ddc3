@@ -24,7 +24,7 @@
 
 #include "../common/bserialize.h"
 #include "../CommonLib/ddcThread.h"
-#include "../CommonLib/ddcFileMap.h"
+#include "../CommonLib/ddcMMap.h"
 
 /////////////////////////////////////////////////////////////////////////////
 // Flags for CIndexItem::m_IndexItemOffsetAndFlags
@@ -175,7 +175,7 @@ protected:
 
 public:
 	//! mmap version of CIndexSetForQueryingStage::m_StringBuffer (used if m_pParent->m_bMemoryMap is set)
-	ddcFileMap<char>   mm_StringBuffer;
+	ddcVecFile<char> m_vStringBuffer;
 	
 	//! the main index(from strings to the ordered list of their occurrences) 
 	vector<CIndexItem>				m_Index;

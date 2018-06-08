@@ -1,0 +1,278 @@
+//-*- Mode: C++; c-basic-offset:4;-*-
+//
+//  Copyright 2018 by Bryan Jurish
+//
+//  This file is part of DDC.
+//  DDC originally by Alexey Sokirko
+// 
+//  DDC is free software: you can redistribute it and/or modify
+//  it under the terms of the GNU Lesser General Public License as published by
+//  the Free Software Foundation, either version 3 of the License, or
+//  (at your option) any later version.
+// 
+//  DDC is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//  GNU Lesser General Public License for more details.
+// 
+//  You should have received a copy of the GNU Lesser General Public License
+//  along with DDC.  If not, see <http://www.gnu.org/licenses/>.
+//
+#ifndef DDC_MMAP_H
+#define DDC_MMAP_H
+
+#ifdef HAVE_CONFIG_H
+#include "../common/ddcConfig.h"
+#endif
+#include "../common/bserialize.h"
+#include "../CommonLib/utilit.h"
+#include "../CommonLib/ddcLog.h"
+
+#include <string>
+#include <stdexcept>
+
+#include <fcntl.h>
+#include <unistd.h>
+#include <errno.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdint.h>
+#include <sys/stat.h> /* fstat */
+#include <sys/mman.h> /* mmap */
+
+//======================================================================
+// ddcMMap
+/// convenience wrapper for mapping entire files into virtual memory using mmap()
+template<typename T=char>
+struct ddcMMap
+{
+    std::string  m_file;    ///< underlying filename
+    size_t       m_nbytes;  ///< number of bytes mapped
+    T           *m_data;    ///< file data
+
+    //----------------------------------------------------------
+    // constructors etc.
+
+    /// default constructor
+    ddcMMap()
+	: m_nbytes(0), m_data(NULL)
+    {};
+
+    ddcMMap(const std::string& filename, int mode=O_RDONLY)
+	: m_nbytes(0), m_data(NULL)
+    { open(filename,mode); };
+
+    /// default destructor calls close()
+    ~ddcMMap()
+    { close(); };
+
+    //----------------------------------------------------------
+    // accessors
+
+    /// returns the name of the currently mapped file, if any
+    inline const std::string& filename() const
+    { return m_file; };
+
+    /// returns number of bytes mapped, or 0
+    inline size_t nbytes() const
+    { return m_nbytes; };
+
+    /// returns a pointer to the mmap()ed file data, or NULL
+    inline T* data() const
+    { return m_data; };
+
+    //----------------------------------------------------------
+    // high-level properties
+
+    /// returns the number of objects of type T mapped, or 0
+    inline size_t size() const
+    { return m_nbytes / sizeof(T); };
+    
+    /// STL-esque wrapper for (nbytes()==0)
+    inline bool empty() const
+    { return m_nbytes==0; };
+
+    /// returns true iff m_data is non-NULL
+    inline bool opened() const
+    { return m_data != NULL; };
+
+    //----------------------------------------------------------
+    // typecast operators
+
+    /// implicit typecast to bool
+    inline operator bool() const
+    { return opened(); };
+    
+    /// implicit typecast to T*
+    inline operator T*() const
+    { return m_data; };
+
+    //----------------------------------------------------------
+    // guts
+
+    /// map a named file \a filename
+    ddcMMap& open(const std::string& filename, int mode=O_RDONLY)
+    {
+	if (opened()) close();
+	ddcLogTrace("ddcMMap::open("+filename+")");
+	m_file = filename;
+
+	//-- open the file (temporarily)
+	int mmfd = ::open(filename.c_str(), mode);
+	if (mmfd == -1)
+	    throw std::invalid_argument(Format("ddcMMap::open(): open failed for '%s': %s", filename.c_str(), strerror(errno)));
+
+	//-- get total file size
+	struct stat statbuf;
+	if (fstat(mmfd, &statbuf) != 0)
+	    throw std::runtime_error(Format("ddcMMap::open(): fstat() failed for file '%s': %s", filename.c_str(), strerror(errno)));
+	m_nbytes = statbuf.st_size;
+
+	//-- get mmap protection flags
+	int mmprot = 0;
+	switch (mode) {
+	case O_RDONLY: mmprot = PROT_READ; break;
+	case O_WRONLY: mmprot = PROT_WRITE; break;
+	case O_RDWR:   mmprot = (PROT_READ|PROT_WRITE); break;
+	default:
+	    throw std::invalid_argument(Format("ddcMMap::open(): unknown open mode '%d'",mode));
+	}
+
+	//-- underlying mmap call
+	m_data = (T*)mmap(NULL, m_nbytes, mmprot, MAP_SHARED, mmfd, 0);
+	if (m_data == MAP_FAILED)
+	    throw std::runtime_error(Format("ddcMMap::open(): mmap() failed for file '%s': %s", filename.c_str(), strerror(errno)));
+
+	//-- we can now safely close the fd
+	if (::close(mmfd) != 0)
+	    throw std::runtime_error(Format("ddcMMap::open(): close() failed for file '%s': %s", filename.c_str(), strerror(errno)));
+	
+	return *this;
+    };
+
+    /// unmap current file (if any)
+    void close()
+    {
+	if (m_data != NULL) {
+	    ddcLogTrace("ddcMMap::close("+m_file+")");
+	    if (munmap(m_data, m_nbytes) != 0)
+		throw std::runtime_error(Format("ddcMMap::close(): munmap() failed for file '%s': %s", m_file.c_str(), strerror(errno)));
+	}
+	ClearString(m_file);
+	m_data = NULL;
+	m_nbytes = 0;
+    };
+    
+};
+
+//======================================================================
+// ddcVecFile<T>
+//  + slurp or map an array of <T> to memory
+//  + uses either and ReadVecto(...,vector<T>) ("slurp") or ddcMMap<T> ("mmap")
+template<typename T>
+struct ddcVecFile
+{
+    string     m_file;     ///< data source filename
+    ddcMMap<T> m_map;      ///< data (mmap)
+    vector<T>  m_vec;      ///< data (slurp)
+    T         *m_data;     ///< data (pointer to m_mmap or m_vec data)
+    
+    //----------------------------------------------------------
+    // constructors etc.
+
+    /// default constructor
+    ddcVecFile()
+	: m_data(NULL)
+    {};
+
+    /// construct and open
+    ddcVecFile(const std::string& filename, bool useMMap=false)
+	: m_data(NULL)
+    { open(filename,useMMap); };
+
+    /// default destructor calls close()
+    ~ddcVecFile()
+    { close(); };
+
+    //----------------------------------------------------------
+    // accessors
+
+    /// returns the name of the currently mapped file, if any
+    inline const std::string& filename() const
+    { return m_file; };
+
+    /// returns a pointer to the mmap()ed file data, or NULL
+    inline T* data() const
+    { return m_data; };
+
+    //----------------------------------------------------------
+    // high-level properties
+
+    /// returns the number of objects of type T in this vector, or 0
+    inline size_t size() const
+    { return m_map ? m_map.size() : m_vec.size(); };
+    
+    /// STL-esque wrapper for (nbytes()==0)
+    inline bool empty() const
+    { return m_map ? m_map.empty() : m_vec.empty(); };
+
+    /// returns true iff m_data is non-NULL
+    inline bool opened() const 
+    { return m_map ? m_map.opened() : !m_file.empty(); };
+
+    //----------------------------------------------------------
+    // typecast operators
+
+    /// implicit typecast to bool
+    inline operator bool() const
+    { return opened(); };
+    
+    /// implicit typecast to T*
+    inline operator T*() const
+    { return m_data; };
+
+    //----------------------------------------------------------
+    // STL-esque iterators
+    /// returns true iff m_data is non-NULL
+
+    typedef T*       iterator;
+    typedef const T* const_iterator;
+
+    inline iterator begin() const { return m_data; };
+    inline iterator end()   const { return m_data+size(); };
+    
+    //----------------------------------------------------------
+    // guts
+
+    /// map a named file \a filename
+    ddcVecFile& open(const std::string& filename, bool useMMap=false)
+    {
+	if (opened()) close();
+	m_file = filename;
+	if (useMMap) {
+	    //-- mmap mode
+	    ddcLogTrace("ddcVecFile::open("+m_file+") [mmap]");
+	    m_map.open(filename, O_RDONLY);
+	    m_data = m_map.m_data;
+	} else {
+	    //-- vector mode
+	    ddcLogTrace("ddcVecFile::open("+m_file+") [slurp]");
+	    ReadVector(filename, m_vec);
+	    m_data = &(m_vec[0]);
+	}
+	return *this;
+    };
+
+    /// unmap current file (if any)
+    void close()
+    {
+	m_map.close();
+	ClearVector(m_vec);
+	ClearString(m_file);
+	m_data = NULL;
+    };
+
+};
+
+	
+#endif /* DDC_MMAP_H */
