@@ -21,6 +21,7 @@
 
 
 #include "DDCLessOperators.h"
+#include "../CommonLib/ddcMMap.h"
 
 
 //!	CItemIndexForLoading holds all occurrences of one index item (token, morph. pattern...) on the index stage 
@@ -114,9 +115,10 @@ In fact these three indices contain information about one and the same index set
 class CIndexSetForLoadingStage
 {
 	//!  a less operator for two buffer pointers  
-	LessIndexString2< CItemIndexForLoading> m_LoadLess2;
+        LessIndexString2<CItemIndexForLoading> m_LoadLess2;
+
 	//!  a less operator for a buffer pointer  and a const char*
-	LessIndexString1< CItemIndexForLoading> m_LoadLess1;
+	LessIndexString1<CItemIndexForLoading> m_LoadLess1;
 
 
 	//! a temporary file, where the memory index set is stored
@@ -156,8 +158,9 @@ public:
 	//! if true, then the program creates and uses a \ref storage_def "storage" for this index
 	bool		m_bUseItemStorage;
 
-	//! a buffer for storing index strings (compile-time, !mmap)
-	vector<char>	   m_StringBuffer;
+	//! a buffer for storing index strings (compile-time)
+	//vector<char>	   m_StringBuffer;
+	ddcVecFile<char>   m_StringBuffer;
 
 
 	CIndexSetForLoadingStage ();

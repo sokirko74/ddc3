@@ -98,8 +98,11 @@ bool CStringIndexSet::WriteToFile(bool bAfterLoading)
 
 	DeleteTempFiles();
 
-	if (!WriteVector(GetOccHdrFileName().c_str(), m_Index)) return false;
-	if (!WriteVector(GetFileNameForInfos().c_str(), m_StringBuffer)) return false;
+	m_Index.ensureVec();
+	if (!WriteVector(GetOccHdrFileName().c_str(), m_Index.m_vec)) return false;
+
+	m_StringBuffer.ensureVec();
+	if (!WriteVector(GetFileNameForInfos().c_str(), m_StringBuffer.m_vec)) return false;
 
 	return true;
 };

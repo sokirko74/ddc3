@@ -175,10 +175,11 @@ protected:
 
 public:
 	//! mmap version of CIndexSetForQueryingStage::m_StringBuffer (used if m_pParent->m_bMemoryMap is set)
-	ddcVecFile<char> m_vStringBuffer;
+	//ddcVecFile<char> m_vStringBuffer;
 	
 	//! the main index(from strings to the ordered list of their occurrences) 
-	vector<CIndexItem>				m_Index;
+	//vector<CIndexItem>				m_Index;
+	ddcVecFile<CIndexItem>				m_Index;
 
 	//! all corpus \ref perdiv_def "period divisions" for the long occurrence lists
 	PeriodsDivisionMap			m_EndPeriodOffsets;

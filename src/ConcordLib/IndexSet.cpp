@@ -56,15 +56,15 @@ string CStringIndexSet::GetName() const
 
 
 
-vector<CIndexItem>::const_iterator CStringIndexSet::GetTypeIndexIdLowerBoundIter(const string& ValueStr) const
+ddcVecFile<CIndexItem>::const_iterator CStringIndexSet::GetTypeIndexIdLowerBoundIter(const string& ValueStr) const
 {
-	LessIndexString1<CIndexItem,char*> Less(&m_vStringBuffer.m_data);
+	LessIndexString1<CIndexItem,char*> Less(&m_StringBuffer.m_data);
 	return lower_bound (m_Index.begin(), m_Index.end(), ValueStr.c_str(), Less);
 };
 
-vector<CIndexItem>::const_iterator CStringIndexSet::GetTypeIndexIdUpperBoundIter(const string& ValueStr) const
+ddcVecFile<CIndexItem>::const_iterator CStringIndexSet::GetTypeIndexIdUpperBoundIter(const string& ValueStr) const
 {
-	LessIndexString1<CIndexItem,char*> Less(&m_vStringBuffer.m_data);
+	LessIndexString1<CIndexItem,char*> Less(&m_StringBuffer.m_data);
 	return upper_bound (m_Index.begin(), m_Index.end(), ValueStr.c_str(), Less);
 };
 
@@ -75,7 +75,7 @@ DWORD CStringIndexSet::GetTypeIndexIdLowerBound(const string& ValueStr)	const
 
 void CStringIndexSet::QueryTokenList (const string& WordForm, vector<DWORD>& MatchWords)	const
 {
-	vector<CIndexItem>::const_iterator it = GetTypeIndexIdLowerBoundIter(WordForm);
+	ddcVecFile<CIndexItem>::const_iterator it = GetTypeIndexIdLowerBoundIter(WordForm);
 
 	if (MatchWords.size() > m_pParent->m_MaxRegExpExpansionSize)
 		throw CExpc("too many expansions for query word `%s' (MaxRegExpExpansionSize=%zd)", WordForm.c_str(), m_pParent->m_MaxRegExpExpansionSize);
@@ -88,7 +88,7 @@ void CStringIndexSet::QueryTokenList (const string& WordForm, vector<DWORD>& Mat
 void CStringIndexSet::QueryTokenListWithRightTruncation (const string& WordForm, vector<DWORD>& MatchWords)	const
 {
 	int len =  WordForm.length();
-	vector<CIndexItem>::const_iterator it = GetTypeIndexIdLowerBoundIter(WordForm);
+	ddcVecFile<CIndexItem>::const_iterator it = GetTypeIndexIdLowerBoundIter(WordForm);
 
 	while ( (it != m_Index.end()) && (!strncmp(GetIndexItemStr(*it),WordForm.c_str(), len)) ) {
 		if (MatchWords.size() > m_pParent->m_MaxRegExpExpansionSize)
@@ -145,9 +145,7 @@ void CStringIndexSet::QueryTokenListUniversal(vector<DWORD>& MatchWords) const
 bool	CStringIndexSet::ReadFromTheDisk()
 {
 	LoadIndexSet();
-
-	ClearVector(m_StringBuffer);
-	m_vStringBuffer.open(GetFileNameForInfos(), m_pParent->m_bMemoryMap);
+	m_StringBuffer.open(GetFileNameForInfos(), m_pParent->m_bMemoryMap);
 
 	if (m_bUseItemStorage)
 		if (!OpenStorageFile())
@@ -160,8 +158,7 @@ bool	CStringIndexSet::DestroyIndexSet()
 {
 	if (!CIndexSetForQueryingStage::DestroyIndexSet ()) return false;
 
-	ClearVector(m_StringBuffer);
-	m_vStringBuffer.close();
+	m_StringBuffer.close();
 
 	if (FileExists(GetStorageFileName().c_str()))
 	{
@@ -241,10 +238,11 @@ void	CStringIndexSet::UnionIndexSet(const CStringIndexSet& First, const CStringI
 
     if (First.m_Index.empty() && Second.m_Index.empty()) return;
 
-	LessIndexString2<CIndexItem> Pred (&First.m_StringBuffer,&Second.m_StringBuffer);
+        LessIndexString2<CIndexItem,char*> Pred (&First.m_StringBuffer.m_data,&Second.m_StringBuffer.m_data);
+
 	m_Index.clear();
-	vector<CIndexItem>::const_iterator i1 = First.m_Index.begin();
-	vector<CIndexItem>::const_iterator i2 = Second.m_Index.begin();
+	ddcVecFile<CIndexItem>::const_iterator i1 = First.m_Index.begin();
+	ddcVecFile<CIndexItem>::const_iterator i2 = Second.m_Index.begin();
 
 
 	FILE* res_fp = fopen(GetOccursFileName().c_str(), "wb");
@@ -402,7 +400,7 @@ bool CStringIndexSet::GetContextBounds(CDDCFilterWithBounds &Filter, const strin
 	//-- lower bound, based on CConcXml::CFreeBiblStringIndex::GetFilterBounds() from Bibliography.cpp
 	Filter.m_KeyLo.assign(INT_MIN,LoValue);
 	if (!LoValue.empty()) {
-		vector<CIndexItem>::const_iterator ilo = GetTypeIndexIdLowerBoundIter(LoValue);
+		ddcVecFile<CIndexItem>::const_iterator ilo = GetTypeIndexIdLowerBoundIter(LoValue);
 		if ( ilo != m_Index.end() )
 			Filter.m_KeyLo.i = ilo-m_Index.begin();
 		else
@@ -412,7 +410,7 @@ bool CStringIndexSet::GetContextBounds(CDDCFilterWithBounds &Filter, const strin
 	//-- upper bound
 	Filter.m_KeyHi.assign(INT_MAX,HiValue);
 	if (!HiValue.empty()) {
-		vector<CIndexItem>::const_iterator ihi = GetTypeIndexIdUpperBoundIter(HiValue);
+		ddcVecFile<CIndexItem>::const_iterator ihi = GetTypeIndexIdUpperBoundIter(HiValue);
 		if ( ihi != m_Index.end() )
 			Filter.m_KeyHi.i = ihi-m_Index.begin();
 		else
@@ -472,9 +470,12 @@ bool	CStringIndexSet::ConvertTempStorageToPersistent()
 	
 
 	map<DWORD,DWORD> BufferOffset2TokenNo;
-    assert (!m_Index.empty());
-  	for (size_t i=0; i < m_Index.size(); i++)
-		BufferOffset2TokenNo[m_Index[i].GetIndexItemOffset()] = i;
+
+	m_Index.ensureVec();
+	assert (!m_Index.empty());
+
+  	for (size_t i=0; i < m_Index.m_vec.size(); i++)
+		BufferOffset2TokenNo[m_Index.m_vec[i].GetIndexItemOffset()] = i;
 
 	
 	

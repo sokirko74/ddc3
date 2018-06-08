@@ -141,7 +141,7 @@ void CItemIndexForLoading::WriteToTemporalFile (FILE* fp) const
 //==========================================================
 
 CIndexSetForLoadingStage::CIndexSetForLoadingStage ():
-m_LoadLess2(&m_StringBuffer), m_LoadLess1(&m_StringBuffer)
+  m_LoadLess2(&m_StringBuffer.m_vec), m_LoadLess1(&m_StringBuffer.m_vec)
 {
 	m_bUseItemStorage= false;
 	m_TempStorageFile = 0;

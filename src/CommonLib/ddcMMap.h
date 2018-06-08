@@ -114,7 +114,7 @@ struct ddcMMap
     ddcMMap& open(const std::string& filename, int mode=O_RDONLY)
     {
 	if (opened()) close();
-	ddcLogTrace("ddcMMap::open("+filename+")");
+	//ddcLogTrace("ddcMMap::open("+filename+")");
 	m_file = filename;
 
 	//-- open the file (temporarily)
@@ -154,7 +154,7 @@ struct ddcMMap
     void close()
     {
 	if (m_data != NULL) {
-	    ddcLogTrace("ddcMMap::close("+m_file+")");
+	    //ddcLogTrace("ddcMMap::close("+m_file+")");
 	    if (munmap(m_data, m_nbytes) != 0)
 		throw std::runtime_error(Format("ddcMMap::close(): munmap() failed for file '%s': %s", m_file.c_str(), strerror(errno)));
 	}
@@ -194,6 +194,10 @@ struct ddcVecFile
     ~ddcVecFile()
     { close(); };
 
+    /// clear() method wraps close()
+    inline void clear()
+    { close(); };
+
     //----------------------------------------------------------
     // accessors
 
@@ -221,7 +225,7 @@ struct ddcVecFile
     { return m_map ? m_map.opened() : !m_file.empty(); };
 
     //----------------------------------------------------------
-    // typecast operators
+    // typecasts and operators
 
     /// implicit typecast to bool
     inline operator bool() const
@@ -231,6 +235,20 @@ struct ddcVecFile
     inline operator T*() const
     { return m_data; };
 
+    /// indexing operator
+    inline T& operator[](size_t idx) const
+    { return m_data[idx]; };
+
+    //----------------------------------------------------------
+    // high-level manipulation
+
+    /// used by indexing routines
+    inline void push_back(const T& value)
+    {
+	ensureVec();
+	m_vec.push_back(value);
+    };
+  
     //----------------------------------------------------------
     // STL-esque iterators
     /// returns true iff m_data is non-NULL
@@ -251,12 +269,12 @@ struct ddcVecFile
 	m_file = filename;
 	if (useMMap) {
 	    //-- mmap mode
-	    ddcLogTrace("ddcVecFile::open("+m_file+") [mmap]");
+	    ddcLogTrace("ddcVecFile[mmap]::open("+m_file+")");
 	    m_map.open(filename, O_RDONLY);
 	    m_data = m_map.m_data;
 	} else {
 	    //-- vector mode
-	    ddcLogTrace("ddcVecFile::open("+m_file+") [slurp]");
+	    ddcLogTrace("ddcVecFile[slurp]::open("+m_file+")");
 	    ReadVector(filename, m_vec);
 	    m_data = &(m_vec[0]);
 	}
@@ -270,6 +288,19 @@ struct ddcVecFile
 	ClearVector(m_vec);
 	ClearString(m_file);
 	m_data = NULL;
+    };
+
+
+    /// force vector-implementation
+    void ensureVec()
+    {
+	if (m_map) {
+	    ClearVector(m_vec);
+	    m_vec.reserve(size());
+	    m_vec.insert(m_vec.begin(), m_map.m_data, m_map.m_data+m_map.size());
+	    m_map.close();
+	    m_data = &(m_vec[0]);
+	}
     };
 
 };

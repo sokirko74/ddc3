@@ -98,10 +98,7 @@ public:
 	template<class T>
 	inline const char* GetIndexItemStr(const T& W) const 
 	{
-		return (m_vStringBuffer
-			? m_vStringBuffer.m_data //-- runtime
-			: &m_StringBuffer[0])    //-- compile-time
-			+ W.GetIndexItemOffset();
+		return m_StringBuffer.m_data + W.GetIndexItemOffset();
 	};
 
 	CStringIndexSet(const CStringIndexator* pParent);
@@ -130,13 +127,13 @@ public:
 	//! \li guts for  QueryTokenList(string& WordForm)
 	//! \li really just a wrapper for std::lower_bound(m_Index.begin(), m_Index.end(), ValueStr.c_str(), LessIndexString1<CIndexItem>(&m_StringBuffer))
 	//! \returns lower-bound iterator for \a ValueStr
-	vector<CIndexItem>::const_iterator GetTypeIndexIdLowerBoundIter(const string& ValueStr) const;
+	ddcVecFile<CIndexItem>::const_iterator GetTypeIndexIdLowerBoundIter(const string& ValueStr) const;
 
 	//! gets local m_Index iterator (upper bound) for string type \a ValueStr
 	//! \li guts for  QueryTokenList(string& WordForm)
 	//! \li really just a wrapper for std::upper_bound(m_Index.begin(), m_Index.end(), ValueStr.c_str(), LessIndexString1<CIndexItem>(&m_StringBuffer))
 	//! \returns upper-bound iterator for \a ValueStr
-	vector<CIndexItem>::const_iterator GetTypeIndexIdUpperBoundIter(const string& ValueStr) const;
+	ddcVecFile<CIndexItem>::const_iterator GetTypeIndexIdUpperBoundIter(const string& ValueStr) const;
 	
 	//! gets index-local item-id (lower bound) of string type \a ValueStr
 	//! \li wrapper for GetTypeIndexIdLowerBoundIter(), returns item-id rather than iterator

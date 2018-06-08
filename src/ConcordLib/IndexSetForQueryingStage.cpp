@@ -76,7 +76,7 @@ void CIndexSetForQueryingStage::AssertHasPath() const
 bool CIndexSetForQueryingStage::DestroyIndexSet( )
 {	
 	AssertHasPath();
-	ClearVector(m_Index);
+	m_Index.clear();
 	m_EndPeriodOffsets.clear();
 
 	CloseOccursFile();
@@ -116,7 +116,7 @@ bool	CIndexSetForQueryingStage::LoadIndexSet(bool bLoadHeaderOfOccurrences)
 
     
 	if (bLoadHeaderOfOccurrences)
-		ReadVector(GetOccHdrFileName().c_str(), m_Index);
+		m_Index.open(GetOccHdrFileName(), m_pParent->m_bMemoryMap);
 
 	if (!LoadPeriodDevision()) return false;
 	return true;

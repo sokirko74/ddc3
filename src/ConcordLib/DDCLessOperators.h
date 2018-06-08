@@ -69,14 +69,14 @@ template <class IndexType, typename VectorType=vector<char> >
 //! This less operator provides quite "normal" less and greater operators for stings. The only 
 //! difference is that the compared items are obtained not by a pointer, but by an offset to 
 //! LessIndexString2::m_pBuffer1 and  LessIndexString2::m_pBuffer2 accordingly.
-template <class IndexType>
+template <class IndexType, typename VectorType=vector<char> >
 	class LessIndexString2 : public binary_function<bool, const IndexType&, const IndexType&>
 	{
-		const vector<char>* m_pBuffer1;
-		const vector<char>* m_pBuffer2;
+		const VectorType* m_pBuffer1;
+		const VectorType* m_pBuffer2;
 	public:  
 
-		LessIndexString2(const vector<char>* pBuffer1, const vector<char>* pBuffer2 = 0) 
+		LessIndexString2(const VectorType* pBuffer1, const VectorType* pBuffer2 = 0) 
 		{
 			m_pBuffer1 = pBuffer1;
 			m_pBuffer2 = (pBuffer2 != 0) ? pBuffer2 : pBuffer1;
