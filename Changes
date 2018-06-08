@@ -4,11 +4,13 @@ v2.1.12-pre1 WIP
 	* fixed type of CConcXml::m_Dates (was: vector<int>, new: vector<DWORD>) - should improve portability
 	* added doc/ddc_files.pod (-> manpage ddc_files(5)): low-level index file formats
 	* started work on using mmap() for runtime index access
-	  - added template class ddcMMap<T> in src/CommonLib/ddcMMap.h    : basic mmap() support
-	  - added template class ddcVecFile<T> in src/CommonLib/ddcMMap.h : high-level wrapper for slurp or mmap
+	  - added template struct ddcMMap<T> in src/CommonLib/ddcMMap.h    : basic mmap() support
+	  - added template struct ddcVecFile<T> in src/CommonLib/ddcMMap.h : high-level wrapper for slurp or mmap
+	    + includes auto-demotion to slurp-mode for more or less transparent compile-time use
+	  - added template structs ddcVec2dFile<T>, ddcMapFile<T> in src/CommonLib/ddcMMap.h : for '_perdivToken' & similar
 	  - added opt-file option "MemoryMap" (Boolean)
 	  - updated CIndexSetForLoadingStage::m_StringBuffer (vector<char> -> ddcVecFile<char>)
-	  - updated CIndexSetForQueryingStage::m_Index (vector<CIndexItem> -> ddcVecFile<CIndexItem>)
+          - updated CIndexSetForQueryingStage::m_Index (vector<CIndexItem> -> ddcVecFile<CIndexItem>)
 
 v2.1.11 Tue, 20 Mar 2018 13:10:10 +0100 moocow
 	* fixed catastrophic error in NavHintKey::operator<() leading to cache inconsistency and random server crashes

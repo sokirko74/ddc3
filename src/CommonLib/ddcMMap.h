@@ -30,6 +30,7 @@
 
 #include <string>
 #include <stdexcept>
+#include <algorithm>
 
 #include <fcntl.h>
 #include <unistd.h>
@@ -42,7 +43,7 @@
 
 //======================================================================
 // ddcMMap
-/// convenience wrapper for mapping entire files into virtual memory using mmap()
+/** convenience wrapper for mapping entire files into virtual memory using mmap() */
 template<typename T=char>
 struct ddcMMap
 {
@@ -167,8 +168,9 @@ struct ddcMMap
 
 //======================================================================
 // ddcVecFile<T>
-//  + slurp or map an array of <T> to memory
-//  + uses either and ReadVecto(...,vector<T>) ("slurp") or ddcMMap<T> ("mmap")
+/** slurp or map an array of <T> to memory.
+ *  uses either and ReadVector(...,vector<T>) ("slurp") or ddcMMap<T> ("mmap")
+ */
 template<typename T>
 struct ddcVecFile
 {
@@ -303,6 +305,230 @@ struct ddcVecFile
 	}
     };
 
+};
+
+//======================================================================
+// ddcVec2dFile<T>
+/**
+ * slurp or map an array-of-arrays of <T> to memory
+ * uses either and ReadVector(...,vector<T>) ("slurp") or ddcMMap<T> ("mmap")
+ */
+template<typename T>
+struct ddcVec2dFile : public ddcVecFile<T>
+{
+    //----------------------------------------------------------
+    // typedefs
+    typedef ddcVecFile<T>               VecFileT;
+    typedef typename VecFileT::iterator row_iterator;
+
+    //----------------------------------------------------------
+    // data
+    size_t m_ncols;  ///< number of "columns" in the file
+
+    //----------------------------------------------------------
+    // constructors etc.
+    ddcVec2dFile()
+	: m_ncols(0)
+    {};
+
+    ddcVec2dFile(const std::string& filename, size_t ncols, bool useMMap=false)
+	: m_ncols(ncols)
+    { open(filename,ncols,useMMap); };
+
+    ~ddcVec2dFile()
+    { close(); };
+
+    inline void clear()
+    { close(); };
+
+    //----------------------------------------------------------
+    // access
+
+    /// size() wraps nrows
+    inline size_t nelts() const
+    { return VecFileT::size(); };
+
+    inline size_t nrows() const
+    { return nelts() / m_ncols; };
+
+    inline size_t ncols() const
+    { return m_ncols; };
+   
+    /// size() wraps nrows
+    inline size_t size() const
+    { return nrows(); };
+
+    /// indexing operator
+    inline T* operator[](size_t rowi) const
+    { return &VecFileT::m_data[rowi*m_ncols]; };
+
+    /// 2d indexing operator
+    inline T& at(size_t rowi, size_t coli) const
+    { return VecFileT::m_data[rowi*m_ncols + coli]; };
+    
+    //----------------------------------------------------------
+    // iterators
+    template <typename IT>
+    struct iteratorT
+    {
+	typedef IT        value_type;
+	typedef ptrdiff_t difference_type;
+	typedef IT*       pointer;
+	typedef IT&       reference;
+	typedef std::random_access_iterator_tag iterator_category;
+
+	const ddcVec2dFile<T>* m_obj;
+	IT*                    m_cur;
+
+	iteratorT(const ddcVec2dFile<T> *obj, IT *cur)
+	    : m_obj(obj), m_cur(cur)
+	{};
+	iteratorT(const iteratorT& i)
+	    : m_obj(i.m_obj), m_cur(i.m_cur)
+	{};
+
+	//-- utils
+	inline IT*    beg_() const { return m_obj->VecFileT::begin(); };
+	inline IT*    end_() const { return m_obj->VecFileT::end(); };
+	inline size_t ncols_() const { return m_obj->m_ncols; };
+	inline ptrdiff_t pos_() const { return m_cur - beg_(); };
+	inline ptrdiff_t rowi_() const { return pos_() / ncols_(); };
+	inline ptrdiff_t coli_() const { return pos_() % ncols_(); };
+
+        inline row_iterator rowbegin() const { return beg_() + rowi_()*ncols_(); };
+        inline row_iterator rowend  () const { return rowbegin() + ncols_(); };
+
+	//-- api
+	iteratorT& operator=(const iteratorT& i)
+	{ m_obj=i.m_obj; m_cur=i.m_cur; return *this; };
+
+	inline iteratorT& operator++() { m_cur = min(m_cur+ncols_(), end_()); return *this; };
+	inline iteratorT& operator--() { m_cur = max(m_cur-ncols_(), beg_()); return *this; };
+
+	inline iteratorT& operator++(int) { iteratorT i(*this); ++i; return i; };
+	inline iteratorT& operator--(int) { iteratorT i(*this); --i; return i; };
+
+	inline IT& operator*() const { return *m_cur; };
+	inline IT* operator->() const { return m_cur; };
+
+	inline bool operator==(const iteratorT& i) { return m_cur == i.m_cur; };
+	inline bool operator!=(const iteratorT& i) { return m_cur != i.m_cur; };
+	inline bool operator< (const iteratorT& i) { return m_cur < i.m_cur; };
+	inline bool operator> (const iteratorT& i) { return m_cur > i.m_cur; };
+	inline bool operator<=(const iteratorT& i) { return m_cur <= i.m_cur; };
+	inline bool operator>=(const iteratorT& i) { return m_cur >= i.m_cur; };
+
+	inline iteratorT& operator+=(size_t n) { m_cur = min(m_cur+n*ncols_(), end_()); return *this; };
+	inline iteratorT& operator-=(size_t n) { m_cur = max(m_cur-n*ncols_(), beg_()); return *this; };
+
+	inline iteratorT  operator+(size_t n)  { iteratorT i(*this); i += n; return i; };
+	inline iteratorT  operator-(size_t n)  { iteratorT i(*this); i -= n; return i; };
+
+	inline ptrdiff_t operator-(const iteratorT& i) { return (m_cur - i.m_cur) / ncols_(); };
+    };
+
+    typedef iteratorT<      T> iterator;
+    typedef iteratorT<const T> const_iterator;
+
+    inline iterator begin() const { return iterator(this, VecFileT::begin()); };
+    inline iterator end()   const { return iterator(this, VecFileT::end()); };
+
+    inline row_iterator rowbegin(size_t rowi) const { return VecFileT::begin() + rowi*m_ncols; };
+    inline row_iterator rowend  (size_t rowi) const { return rowbegin(0) + m_ncols; };
+
+    //----------------------------------------------------------
+    // guts
+    ddcVec2dFile& open(const std::string& filename, size_t ncols, bool useMMap=false)
+    {
+	VecFileT::open(filename,useMMap);
+	assert(ncols > 0);
+	assert((VecFileT::size() % ncols) == 0);
+	m_ncols = ncols;
+	return *this;
+    };
+
+    inline void close()
+    {
+	VecFileT::close();
+	m_ncols = 0;
+    };
+};
+
+//======================================================================
+// ddcVecMapFile<T>
+/**
+ * wrapper for ddcVec2dFile assuming single-object keys, data sorted in ascending order by key
+ */
+template<typename T>
+struct ddcVecMapFile : public ddcVec2dFile<T>
+{
+    //----------------------------------------------------------
+    // typedefs
+    typedef          ddcVec2dFile<T>             Vec2dFileT;
+    typedef typename Vec2dFileT::iterator        iterator;
+    typedef typename Vec2dFileT::const_iterator  const_iterator;
+    
+    typedef          ddcVecFile<T>               VecFileT;
+    typedef typename VecFileT::iterator          row_iterator;
+
+    //----------------------------------------------------------
+    // constructors etc.
+    ddcVecMapFile()
+    {};
+
+    ddcVecMapFile(const std::string& filename, size_t ncols, bool useMMap=false)
+    { open(filename,ncols,useMMap); };
+
+    ~ddcVecMapFile()
+    { close(); };
+
+    inline void clear()
+    { close(); };
+
+    //----------------------------------------------------------
+    // iterators
+
+    inline iterator begin() const { return Vec2dFileT::begin(); };
+    inline iterator end()   const { return Vec2dFileT::end(); };
+
+    inline row_iterator rowbegin(size_t rowi) const { return Vec2dFileT::rowbegin(rowi); };
+    inline row_iterator rowend  (size_t rowi) const { return Vec2dFileT::rowend(rowi); };
+    
+    //----------------------------------------------------------
+    // searching
+
+    struct KeyLessDebug
+    {
+	bool operator()(const T& a, const T& b) const
+	{
+	    fprintf(stderr, "\n COMPARE(%d,%d)", a,b);
+	    return (a < b);
+	};
+    };
+    
+    /// simulate map::find()
+    inline iterator find(const T& key) const
+    {
+	//KeyLessDebug less;
+	iterator lb = lower_bound(begin(), end(), key);
+	if (lb != end() && *lb==key) return lb;
+	return end();
+    };
+
+    /// indexing operator gets values for key
+    inline row_iterator operator[](size_t key) const
+    { return find(key).rowbegin() + 1; };
+
+    //----------------------------------------------------------
+    // guts
+    ddcVecMapFile& open(const std::string& filename, size_t ncols, bool useMMap=false)
+    {
+	Vec2dFileT::open(filename,ncols,useMMap);
+	return *this;
+    };
+
+    inline void close()
+    { Vec2dFileT::close(); };
 };
 
 	
