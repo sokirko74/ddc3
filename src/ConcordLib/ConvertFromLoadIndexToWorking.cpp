@@ -49,7 +49,7 @@ bool	CStringIndexSet::ConvertLoadIndexToWorkingIndex ()
 	};
 	assert(	m_Index.empty() );
 	m_Index.clear();
-    m_EndPeriodOffsets.clear();
+	m_EndPeriodOffsets.clear();
 	const CTokenNo EndTokenNo = m_pParent->GetSearchPeriod(m_pParent->GetSearchPeriodsCount() - 1);
 	
 	CItemIndexForLoading M;

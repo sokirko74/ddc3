@@ -27,6 +27,17 @@
 #include "../CommonLib/ddcMMap.h"
 
 /////////////////////////////////////////////////////////////////////////////
+// PeriodsDivisionMap : type for mappping an index item no to its \ref perdiv_def "period division"
+
+//!  a type for mappping an index item no to its \ref perdiv_def "period division"
+//typedef map<DWORD, vector<DWORD> > PeriodsDivisionMap__OLD
+typedef ddcVMapFile<DWORD,DWORD>   PeriodsDivisionMapT;
+typedef PeriodsDivisionMapT::MapT  PeriodsDivisionMapR;  ///< low-level resident std::map<> implementation in PeriodsDivisionMap::m_map
+typedef PeriodsDivisionMapT::VMapT PeriodsDivisionMapV;  ///< low-level virtual mmap()-based implementation in PeriodsDivisionMap::m_mmap
+
+
+
+/////////////////////////////////////////////////////////////////////////////
 // Flags for CIndexItem::m_IndexItemOffsetAndFlags
 
 const DWORD TheOnlyOccurIsInEndOccurNo = 1<<31;
@@ -139,10 +150,11 @@ class CIndexSetForQueryingStage : public ddcLockable
 	FILE*			m_OccursFp;
 	
 	
-	//!		close m_OccursFp
+	//! close m_OccursFp
 	void	CloseOccursFile();
-	//!		load all \ref perdiv_def "period divisions" to m_EndPeriodOffsets
-	bool	LoadPeriodDevision();
+
+	//! load all \ref perdiv_def "period divisions" to m_EndPeriodOffsets
+	bool	LoadPeriodDivision();
 	
 
 protected:
@@ -158,7 +170,7 @@ protected:
 	
 	
 	//!  return the name  of file for occurrences \ref perdiv_def "period division"
-	string	GetPeriodsDevisionFileName () const;
+	string	GetPeriodsDivisionFileName () const;
 	//!  return the name  of file for CIndexSetForLoadingStage::m_StringBuffer
 	string	GetFileNameForInfos() const;
 	//! return the size of the file for occurrences
@@ -178,11 +190,10 @@ public:
 	//ddcVecFile<char> m_vStringBuffer;
 	
 	//! the main index(from strings to the ordered list of their occurrences) 
-	//vector<CIndexItem>				m_Index;
-	ddcVecFile<CIndexItem>				m_Index;
+	ddcVecFile<CIndexItem>		m_Index;
 
 	//! all corpus \ref perdiv_def "period divisions" for the long occurrence lists
-	PeriodsDivisionMap			m_EndPeriodOffsets;
+	PeriodsDivisionMapT		m_EndPeriodOffsets;
 
 	//! a pointer to the collection of indices, which contains a reference to this index
 	const CStringIndexator*		m_pParent;

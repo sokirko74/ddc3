@@ -90,8 +90,8 @@ bool CIndexSetForQueryingStage::DestroyIndexSet( )
 		if (remove (GetOccursFileName().c_str() ))
 			return false;
 
-	if (FileExists(GetPeriodsDevisionFileName().c_str() ) )
-		if (remove (GetPeriodsDevisionFileName().c_str()))
+	if (FileExists(GetPeriodsDivisionFileName().c_str() ) )
+		if (remove (GetPeriodsDivisionFileName().c_str()))
 			return false;
 
 	if (FileExists(GetFileNameForInfos().c_str()))
@@ -118,7 +118,7 @@ bool	CIndexSetForQueryingStage::LoadIndexSet(bool bLoadHeaderOfOccurrences)
 	if (bLoadHeaderOfOccurrences)
 		m_Index.open(GetOccHdrFileName(), m_pParent->m_bMemoryMap);
 
-	if (!LoadPeriodDevision()) return false;
+	if (!LoadPeriodDivision()) return false;
 	return true;
 }
 
@@ -214,15 +214,16 @@ void  CIndexSetForQueryingStage::AddOccurs (size_t PeriodDevId, const bool bOneO
 	else
 	
     {
-        PeriodsDivisionMap::const_iterator per_dev_it = m_EndPeriodOffsets.find(PeriodDevId);
+        PeriodsDivisionMapT::const_iterator per_dev_it = m_EndPeriodOffsets.find(PeriodDevId);
         if (per_dev_it != m_EndPeriodOffsets.end())
         {
-	  //fprintf(stderr, "DEBUG: AddOccurs(): per_dev_it != m_EndPeriodOffsets.end()\n");
+	    //fprintf(stderr, "DEBUG: AddOccurs(): per_dev_it != m_EndPeriodOffsets.end()\n");
             
-            const vector<DWORD>& Periods = per_dev_it->second;
-
+	    //const vector<DWORD>& Periods = per_dev_it->second;
 	    //-- moo: this assertion catches if we redefine & manually re-calculate search-period size WITHOUT re-indexing (Thu, 13 Nov 2015 09:57:03 +0100)
-            assert (Periods.size() == m_pParent->GetSearchPeriodsCount());
+            //assert (Periods.size() == m_pParent->GetSearchPeriodsCount());
+
+            const DWORD *Periods = per_dev_it->vals();
             const QWORD StartOfPeriod  = (PeriodNo == 0) ? StartOccurNo      : (QWORD)StartOccurNo + Periods[PeriodNo - 1];
             const QWORD PeriodSize     = (PeriodNo == 0) ? Periods[PeriodNo] : Periods[PeriodNo]   - Periods[PeriodNo - 1];
             
@@ -244,7 +245,7 @@ void  CIndexSetForQueryingStage::AddOccurs (size_t PeriodDevId, const bool bOneO
 
         }
 
-        else //  if no period devision of this token, then read all occurrences from all periods
+        else //  if no period division of this token, then read all occurrences from all periods
 	    {
 	      //fprintf(stderr, "DEBUG: AddOccurs(): per_dev_it == m_EndPeriodOffsets.end()\n");
 		    
@@ -336,7 +337,7 @@ string CIndexSetForQueryingStage::GetOccursFileName() const
 	AssertHasPath();
 	return MakeFName(m_pParent->m_Path,"_occurs_")  + GetName();
 };
-string	CIndexSetForQueryingStage::GetPeriodsDevisionFileName () const
+string	CIndexSetForQueryingStage::GetPeriodsDivisionFileName () const
 {
 	AssertHasPath();
 	return  MakeFName(m_pParent->m_Path,"_perdiv") + GetName();
@@ -479,13 +480,13 @@ bool	CIndexSetForQueryingStage::BuildPeriodsDivisionAndCompress (const DWORD Per
 
 	assert (EndOffsets.size() == m_pParent->GetSearchPeriodsCount());
 
-    if ( m_EndPeriodOffsets.find (PerDivId) != m_EndPeriodOffsets.end() )
-    {
-        fprintf (stderr, "token id %i fo period division is not unique, index name = %s\n", PerDivId, GetName().c_str() );
-        return false;
-    }
+	m_EndPeriodOffsets.ensureMap();
+	if ( m_EndPeriodOffsets.m_map.find (PerDivId) != m_EndPeriodOffsets.m_map.end() ) {
+		fprintf (stderr, "token id %i fo period division is not unique, index name = %s\n", PerDivId, GetName().c_str() );
+		return false;
+	}
 
-	m_EndPeriodOffsets[PerDivId] = EndOffsets;
+	m_EndPeriodOffsets.m_map[PerDivId] = EndOffsets;
 
 
 	// writing back to IndexItem archived version of occurrences
@@ -537,11 +538,12 @@ bool	CIndexSetForQueryingStage::AddOneIndexItem (CItemIndexForLoading& M, FILE* 
 
 bool	CIndexSetForQueryingStage::WritePeriodsDivision ()
 {
-	string FName = GetPeriodsDevisionFileName();
+	string FName = GetPeriodsDivisionFileName();
 	FILE * fp = fopen (FName.c_str(), "wb");
 	if (!fp) return false;
 	size_t count = 0;
-	for (PeriodsDivisionMap::const_iterator it = m_EndPeriodOffsets.begin(); it != m_EndPeriodOffsets.end();it++)
+	m_EndPeriodOffsets.ensureMap();
+	for (PeriodsDivisionMapR::const_iterator it = m_EndPeriodOffsets.m_map.begin(); it != m_EndPeriodOffsets.m_map.end();it++)
 	{
 		DWORD t = it->first;
 		if (fwrite(&t,sizeof(t),1, fp) != 1)
@@ -563,45 +565,23 @@ bool	CIndexSetForQueryingStage::WritePeriodsDivision ()
 
 };
 
-bool	CIndexSetForQueryingStage::LoadPeriodDevision()
+bool	CIndexSetForQueryingStage::LoadPeriodDivision()
 {
-	m_EndPeriodOffsets.clear();
-
-	size_t CountOfPeriods = m_pParent->GetSearchPeriodsCount();
-	string FName = GetPeriodsDevisionFileName();
-	file_off_t FSize = FileSize(FName.c_str());
-	FILE * fp = fopen (FName.c_str(), "rb");
-	if (!fp) return false;
 	try {
-		int count =  (FSize/(CountOfPeriods+1)) / sizeof(DWORD); // "+1" is for the first IndexItemOffset
-		vector<DWORD> EndOffsets;
-		for (int i = 0; i < count; i++)
-		{
-			DWORD t;
-			if (fread(&t,sizeof(t), 1, fp) != 1) return false;
-			EndOffsets.clear();
-			ReadVectorInner(fp, EndOffsets, CountOfPeriods);
-			if (EndOffsets.empty())
-			{
-				fprintf (stderr, "Cannot read period devision for IndexItemOffset = %i\n", t);
-				return false;
-			};
-			m_EndPeriodOffsets[t] = EndOffsets;
-		};
-		fclose(fp);
-		//printf("From file  %s %i vectors were read ", FName.c_str(), count);
-		return true;
+		m_EndPeriodOffsets.open(GetPeriodsDivisionFileName(), m_pParent->GetSearchPeriodsCount(), m_pParent->m_bMemoryMap);
 	}
-	catch (CExpc c)
-	{
-		fprintf (stderr, "Exception %s in CIndexSetForQueryingStage::LoadPeriodDevision\n",c.m_strCause.c_str());
+	catch (CExpc &e) {
+		fprintf (stderr, "Exception[%d] %s in CIndexSetForQueryingStage::LoadPeriodDivision: %s\n", e.code(), e.what());
 		return false;
 	}
-	catch (...)
-	{
-		fprintf (stderr, "Exception in CIndexSetForQueryingStage::LoadPeriodDevision\n");
+	catch (exception &e) {
+		fprintf (stderr, "Exception in CIndexSetForQueryingStage::LoadPeriodDivision(): %s\n", e.what());
 		return false;
 	}
-
+	catch (...) {
+		fprintf (stderr, "Exception in CIndexSetForQueryingStage::LoadPeriodDivision(): (unhandled exception)\n");
+		return false;
+	}
+	return true;
 };
 

@@ -447,9 +447,6 @@ enum DDCFormatTypeEnum {
 	DDC_ResultJson
 };
 
-//!  a type for mappping an index item no to its \ref perdiv_def "period division"
-typedef map<DWORD, vector<DWORD> > PeriodsDivisionMap;
-
 //!  a type for index string to its occurrences
 typedef map<string,CShortOccurCache> CShortOccurCacheMap;
 

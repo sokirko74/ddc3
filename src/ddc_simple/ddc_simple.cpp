@@ -323,7 +323,7 @@ int main(int argc, char* argv[])
 						    }
 #endif
 					    }
-					    catch (exception &e) {
+					    catch (exception &e){ 
 						    fprintf(stderr, "Exception: %s\n", e.what());
 					    }
 					}
