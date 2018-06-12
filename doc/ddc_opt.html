@@ -33,6 +33,7 @@
       <li><a href="#Boolean-Flags-and-Switches">Boolean Flags and Switches</a>
         <ul>
           <li><a href="#Utf8">Utf8</a></li>
+          <li><a href="#MemoryMap">MemoryMap</a></li>
           <li><a href="#DisableDefaultQueryLexicalExpansion">DisableDefaultQueryLexicalExpansion</a></li>
           <li><a href="#CaseInsensitive">CaseInsensitive</a></li>
           <li><a href="#ShowNumberOfRelevantDocuments">ShowNumberOfRelevantDocuments</a></li>
@@ -122,6 +123,7 @@
  ## Boolean Flags and Switches
  
  Utf8
+ MemoryMap
  CaseInsensitive
  DisableDefaultQueryLexicalExpansion
  ShowNumberOfRelevantDocuments
@@ -238,6 +240,12 @@
 <h3 id="Utf8">Utf8</h3>
 
 <p>If specified true, DDC expects all corpus data and external queries to be encoded in UTF-8. This uses both iconv and C99 locales internally, so you should ensure that your LC_CTYPE variable has a UTF-8 encoding (e.g. <i>export LC_CTYPE=&quot;en_US.UTF-8&quot;</i> in the parent shell.) if you choose to use this option.</p>
+
+<h3 id="MemoryMap">MemoryMap</h3>
+
+<p>If specified true, DDC will attempt to map runtime index data from the filesystem into virtual memory on startup If unspecified or false, DDC will fall back to the pre-v2.1.12 behavior of loading runtime index data into resident memory on startup, which tends to be both slow and resource-hungry. Use of the MemoryMap option requires a working mmap() system call and compile-time support in the underlying DDC library.</p>
+
+<p>Since ddc v2.1.12.</p>
 
 <h3 id="DisableDefaultQueryLexicalExpansion">DisableDefaultQueryLexicalExpansion</h3>
 

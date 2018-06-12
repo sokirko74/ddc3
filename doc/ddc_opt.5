@@ -67,7 +67,7 @@
 .\" ========================================================================
 .\"
 .IX Title "DDC_OPT 5"
-.TH DDC_OPT 5 "2018-06-07" "2.1.12-pre1" "DDC Corpus Indexing System"
+.TH DDC_OPT 5 "2018-06-12" "2.1.12-pre1" "DDC Corpus Indexing System"
 .\" For nroff, turn off justification.  Always turn off hyphenation; it makes
 .\" way too many mistakes in technical documents.
 .if n .ad l
@@ -95,6 +95,7 @@ option files (\*(L"opt-files\*(R") used by the \s-1DDC\s0 corpus indexing system
 \& ## Boolean Flags and Switches
 \& 
 \& Utf8
+\& MemoryMap
 \& CaseInsensitive
 \& DisableDefaultQueryLexicalExpansion
 \& ShowNumberOfRelevantDocuments
@@ -252,6 +253,16 @@ If specified true, \s-1DDC\s0 expects all corpus data and external queries to be
 This uses both iconv and C99 locales internally, so you should ensure that your
 \&\s-1LC_CTYPE\s0 variable has a \s-1UTF\-8\s0 encoding (e.g. \fIexport LC_CTYPE=\*(L"en_US.UTF\-8\*(R"\fR in the parent shell.)
 if you choose to use this option.
+.PP
+\fIMemoryMap\fR
+.IX Subsection "MemoryMap"
+.PP
+If specified true, \s-1DDC\s0 will attempt to map runtime index data from the filesystem into virtual memory on startup
+If unspecified or false, \s-1DDC\s0 will fall back to the pre\-v2.1.12 behavior of loading runtime index data into
+resident memory on startup, which tends to be both slow and resource-hungry.
+Use of the MemoryMap option requires a working \fImmap()\fR system call and compile-time support in the underlying \s-1DDC\s0 library.
+.PP
+Since ddc v2.1.12.
 .PP
 \fIDisableDefaultQueryLexicalExpansion\fR
 .IX Subsection "DisableDefaultQueryLexicalExpansion"

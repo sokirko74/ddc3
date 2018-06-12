@@ -36,6 +36,7 @@ option files ("opt-files") used by the DDC corpus indexing system.
  ## Boolean Flags and Switches
  
  Utf8
+ MemoryMap
  CaseInsensitive
  DisableDefaultQueryLexicalExpansion
  ShowNumberOfRelevantDocuments
@@ -213,6 +214,15 @@ If specified true, DDC expects all corpus data and external queries to be encode
 This uses both iconv and C99 locales internally, so you should ensure that your
 LC_CTYPE variable has a UTF-8 encoding (e.g. I<export LC_CTYPE="en_US.UTF-8"> in the parent shell.)
 if you choose to use this option.
+
+=head3 MemoryMap
+
+If specified true, DDC will attempt to map runtime index data from the filesystem into virtual memory on startup
+If unspecified or false, DDC will fall back to the pre-v2.1.12 behavior of loading runtime index data into
+resident memory on startup, which tends to be both slow and resource-hungry.
+Use of the MemoryMap option requires a working mmap() system call and compile-time support in the underlying DDC library.
+
+Since ddc v2.1.12.
 
 =head3 DisableDefaultQueryLexicalExpansion
 

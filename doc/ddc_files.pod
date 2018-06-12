@@ -40,6 +40,11 @@ B<resident>: whether the file data is read into resident memory on startup.
 
 =item *
 
+B<mmap>: whether the L<C<MemoryMap>|ddc_opt/MemoryMap> option provides
+virtual memory-mapping support for files of this type.
+
+=item *
+
 B<popularity>: how often the file data is accessed often in the course of a persistent server's lifetime,
 
 =item *
@@ -92,7 +97,8 @@ these files.
 =head3 CORPUS.opt
 
  - resident: yes
- - popularity: heavy
+ - mmap: no
+ - popularity: high
  - size: tiny
  - growth: O(1)
  - format:
@@ -115,6 +121,7 @@ Index options, see L<ddc_opt(5)|ddc_opt> for details.
 =head3 CORPUS.con
 
  - resident: no
+ - mmap: no
  - popularity: compile-time only
  - size: ?
  - growth: O(NDocs)
@@ -147,10 +154,12 @@ List of corpus source files as passed to L<ddc_index(1)|ddc_index>.
 =head3 CORPUS._con
 
  - resident: yes
- - popularity: heavy
- - size: ?
+ - mmap: no
+ - popularity: high
+ - size: small
  - growth: O(NDocs)
  - format:
+   - header + file-list
    - single header line (version information), e.g.
      #+BEGIN_SRC
        Dialing DWDS Concordance (DDC), Version 2.0.45 / min-compat 2.0.0
@@ -184,10 +193,10 @@ time is used to initialize the index timestamp returned by the server L<C<info>|
 
 =head3 CORPUS._masked
 
- - optional
  - resident: yes
- - popularity: ?
- - size: ?
+ - mmap: no
+ - popularity: optional (high if present)
+ - size: typically tiny if present at all
  - growth: O(NMasked)
  - format:
    - 1 filename per line (as for *.con)
@@ -206,9 +215,46 @@ Optional list of corpus files for which hits are to be suppressed (simulated del
 ##------------------------------------------------------
 =pod
 
+=head3 CORPUS._periods
+
+ - resident: yes
+ - mmap: no
+ - popularity: high
+ - size: tiny
+ - growth: O(NTokens)
+ - format:
+   - vector<CTokenNo> [size=NPeriods]
+   - CTokenNo -> DWORD -> uint32_t
+   - token-IDs of period end-offsets, indexed by logical period-ID
+   - typically less than 100 bytes long, never yet observed to be more than 300 bytes long (longest = ibk_web_2016b14._periods at 228 bytes)
+ - accessor: CStringIndexator::GetSearchPeriodsFileName()
+ - used by:
+   - vector<CTokenNo> CStringIndexator::m_SearchPeriods;
+ - loaded by: (none)
+   - CStringIndexator::ReadIndicesFromTheDisk()
+     + populatesCStringIndexator::m_SearchPeriods via ReadVector()
+ - doc (StringIndexator.h #period_def)
+   #+BEGIN_SRC
+     A "corpus period",  "internal subcorpus" or a "search period" is a \ref break_def "break", which is introduced to restrict 
+     the memory usage.  Corpus period always  coincides with a file break. The size of one 
+     corpus period is 5000000 by default and can be determined manualy using field "UserMaxTokenCountInOnePeriod"
+     in the options file.  While evaluating a query DDC deals only with one corpus period at a time, so 
+     DDC applies the input query to each corpus period, and then concatenates the results.  
+     Corpus periods  are also used in storing \ref perdiv_def "period divisions"
+   #+END_SRC
+
+Error log written at compile-time; may be missing or empty.
+
+=cut
+
+
+##------------------------------------------------------
+=pod
+
 =head3 CORPUS._error_log
 
  - resident: no
+ - mmap: no
  - popularity: compile-time only
  - size: ?
  - growth: O(?)
@@ -230,6 +276,7 @@ Error log written at compile-time; may be missing or empty.
 =head3 CORPUS._time_statistics
 
  - resident: no
+ - mmap: no
  - popularity: compile-time only
  - size: ?
  - growth: O(?)
@@ -264,14 +311,15 @@ with one of each of these files.
 =head3 CORPUS._TOKATTR
 
  - resident: yes
+ - mmap: yes
  - popularity: high
  - size: medium
  - growth: O(NTypes)
  - format: raw strings (types), NUL-terminated, in compile-time document order
  - used by:
-   - vector<char> CIndexSetForLoadingStage::m_StringBuffer;
+   - ddcVecFile<char> CIndexSetForLoadingStage::m_StringBuffer;
  - loaded by:
-   - CStringIndexSet::ReadFromTheDisk() ///-- IndexSet.cpp:150; populates m_StringBuffer via ReadVector()
+   - CStringIndexSet::ReadFromTheDisk()
  - doc (StringIndexator.h #index_set_def):
    #+BEGIN_SRC
 	An index set consists of the list of strings (which are also called "index items") and corresponding 
@@ -284,7 +332,7 @@ with one of each of these files.
 	special file (see CIndexSetForQueryingStage::GetFileNameForInfos() ).
    #+END_SRC
 
-Distinct string values (types) for I<TOKATTR>.
+Buffer holding all distinct string values (types) for I<TOKATTR>, NUL-terminated, in compile-time document order.
 
 =cut
 
@@ -294,17 +342,18 @@ Distinct string values (types) for I<TOKATTR>.
 =head3 CORPUS._occ_hdr_TOKATTR
 
  - resident: yes
+ - mmap: yes
  - popularity: high
  - size: medium
  - growth: O(NTypes)
  - format: vector<CIndexItem>
    - {DWORD m_IndexItemOffsetAndFlags; DWORD m_EndOccurOffset;} [size=NTypes]
  - used by:
-   - vector<CIndexItem> CIndexSetForQueryingStage::m_Index
+   - ddcVecFile<CIndexItem> CIndexSetForQueryingStage::m_Index
      + used by CIndexItem::GetEndOccurOffset()
      + used by CIndexSetForQueryingStage::GetStartOccurNo(size_t IndexNo)
  - loaded by:
-   - CIndexSetForQueryingStage::LoadIndexSet() //-- populates m_Index via ReadVector()
+   - CIndexSetForQueryingStage::LoadIndexSet()
 
 Flags and byte-offsets in F<I<CORPUS>._I<TOKATTR>> for I<TOKATTR> value-types, indexed by type-id.
 
@@ -316,6 +365,7 @@ Flags and byte-offsets in F<I<CORPUS>._I<TOKATTR>> for I<TOKATTR> value-types, i
 =head3 CORPUS._occurs_TOKATTR
 
  - resident: no
+ - mmap: no
  - popularity: high
  - size: large
  - growth: O(NTokens)
@@ -360,6 +410,7 @@ Inverted index for (non-hapax) I<TOKATTR> value-types, indexed by type-id.
 =head3 CORPUS._storage_TOKATTR
 
  - resident: no
+ - mmap: no
  - popularity: high
  - size: large
  - growth: O(NTokens)
@@ -392,7 +443,8 @@ was set for I<TOKATTR> at compile-time.
 =head3 CORPUS._perdivTOKATTR
 
  - resident: yes
- - popularity: ?
+ - mmap: yes
+ - popularity: low (only used for VHF types)
  - size: small
  - growth: O(NTypes)
  - format:
@@ -401,12 +453,12 @@ was set for I<TOKATTR> at compile-time.
    - size=((size(File)/(m_pParent->GetSearchPeriodsCount()+1)) / sizeof(DWORD)) * m_pParent->GetSearchPeriodsCount()
          = ((size(File)/(m_pParent->GetSearchPeriodsCount()+1)) / sizeof(DWORD)) * m_pParent->GetSearchPeriodsCount()
  - used by:
-   - PeriodsDivisionMap m_EndPeriodOffsets;
+   - PeriodsDivisionMapT CIndexSetForQueryingStage::m_EndPeriodOffsets;
      + ConcCommon.h: typedef map<DWORD, vector<DWORD> > PeriodsDivisionMap;
-   - CIndexSetForQueryingStage::AddOccurs (size_t PeriodDevId, const bool bOneOccurrence, const size_t StartOccurNo, const size_t EndOccurNo, vector<CTokenNo>& Occurs,  size_t PeriodNo, COccurrBuffer& TempOccurrsBuffer, CShortOccurCache* pCacheByIndexSet, int& CacheId) const
-     + as called from CStringIndexSet::FindOccurrences(), PeriodDevId is used as the key (==IndexItemId), and the associated period boundaries are the value
+   - CIndexSetForQueryingStage::AddOccurs (size_t PeriodDivId, const bool bOneOccurrence, const size_t StartOccurNo, const size_t EndOccurNo, vector<CTokenNo>& Occurs,  size_t PeriodNo, COccurrBuffer& TempOccurrsBuffer, CShortOccurCache* pCacheByIndexSet, int& CacheId) const
+     + as called from CStringIndexSet::FindOccurrences(), PeriodDivId is used as the key (==IndexItemId), and the associated period boundaries are the value
  - loaded by:
-   - CIndexSetForQueryingStage::LoadPeriodDevision()
+   - CIndexSetForQueryingStage::LoadPeriodDivision()
  - doc (StringIndexator.h #perdiv_dev)
    #+BEGIN_SRC
       Period division for long occurrence lists 
@@ -418,8 +470,8 @@ was set for I<TOKATTR> at compile-time.
       are written in CIndexSetForQueryingStage::m_EndPeriodOffsets .
    #+END_SRC
 
-Misspelled and painfully complex indirection level for splitting up index entries by "corpus search periods";
-probably really only useful for ultra-high-frequency items, which can make things explode anyways, so apparently
+Painfully complex indirection level for splitting up index entries by "corpus search periods";
+probably really only useful for very-high-frequency items, which can easily make other things explode anyways, so likely
 not even all too useful for those.
 
 =cut
@@ -442,6 +494,7 @@ with one or more of these files:
 =head3 CORPUS._bibl_DOCATTR_strings
 
  - resident: yes
+ - mmap: no
  - popularity: high
  - size: small to medium (comparable to _Lemma (types) for ibk_web_2016b)
  - growth: O(NValueTypes)
@@ -450,17 +503,70 @@ with one or more of these files:
    - lines sorted lexicographically, line number is logical key of value-id (offset in CFreeBiblStringIndex::m_Values)
  - accessor: CConcXml::CFreeBiblStringIndex::GetStringFileName (string Path)
  - used by:
-   - vector<string> CConcXml::CFreeBiblStringIndex::m_Values;
+   - ddcStringEnum<> CConcXml::CFreeBiblStringIndex::m_ValuesE;
+ - loaded by:
+   - CConcXml::CFreeBiblStringIndex::ReadBiblStringItems (vector<string>&  Set, string FileName) const
+     + via CConcXml::CFreeBiblStringIndex::ReadFromDisk (string Path, DWORD FileBreaksSize)
+
+Value types for I<DOCATTR> as used by DDC E<lt>= v2.1.11.
+As of DDC v2.1.12, the relevant data is stored in a pair of mmap()-friendly files
+F<CORPUS._bibl_DOCATTR_strings_values> and F<CORPUS._bibl_DOCATTR_strings_idx>, which see.
+
+=cut
+
+##------------------------------------------------------
+=pod
+
+=head3 CORPUS._bibl_DOCATTR_strings_values
+
+ - resident: yes
+ - mmap: yes
+ - popularity: high
+ - size: small to medium (comparable to _Lemma (types) for ibk_web_2016b)
+ - growth: O(NValueTypes)
+ - format: raw strings (types), NUL-terminated, in lexicographically sorted order
+   - record number is logical key of value-id (offset in CFreeBiblStringIndex::m_ValuesE)
+ - accessor: CConcXml::CFreeBiblStringIndex::GetStringFileName (string Path) + "_values"
+ - used by:
+   - ddcStringEnum<> CConcXml::CFreeBiblStringIndex::m_ValuesE;
  - loaded by:
    - CConcXml::CFreeBiblStringIndex::ReadBiblStringItems (vector<string>&  Set, string FileName) const
      + via CConcXml::CFreeBiblStringIndex::ReadFromDisk (string Path, DWORD FileBreaksSize) 
-     + populates vector<string> CFreeBiblStringIndex::m_Values (1 item/line)
-     + additional size-checking on bibl-field length
 
-Value types for I<DOCATTR>.
-Requires auxiliary offset index for efficient file-based use (mmap).
+mmap()-friendly value types for I<DOCATTR> as used by DDC E<gt>= v2.1.12.
+Together with 
+F<CORPUS._bibl_DOCATTR_strings_idx>,
+replaces F<CORPUS._bibl_DOCATTR_strings>.
 
 =cut
+
+##------------------------------------------------------
+=pod
+
+=head3 CORPUS._bibl_DOCATTR_strings_idx
+
+ - resident: yes
+ - mmap: yes
+ - popularity: high
+ - size: small
+ - growth: O(NValueTypes)
+ - format: 
+   - vector<DWORD> [size=NValueTypes]
+   - byte-offsets of string values in CORPUS._bibl_DOCATTR_strings_values, indexed by logical ID
+ - accessor: CConcXml::CFreeBiblStringIndex::GetStringFileName (string Path) + "_idx"
+ - used by:
+   - ddcStringEnum<> CConcXml::CFreeBiblStringIndex::m_ValuesE;
+ - loaded by:
+   - CConcXml::CFreeBiblStringIndex::ReadBiblStringItems (vector<string>&  Set, string FileName) const
+     + via CConcXml::CFreeBiblStringIndex::ReadFromDisk (string Path, DWORD FileBreaksSize)
+
+mmap()-friendly item offsets for I<DOCATTR> as used by DDC E<gt>= v2.1.12.
+Together with 
+F<CORPUS._bibl_DOCATTR_strings_values>,
+replaces F<CORPUS._bibl_DOCATTR_strings>.
+
+=cut
+
 
 ##------------------------------------------------------
 =pod
@@ -468,6 +574,7 @@ Requires auxiliary offset index for efficient file-based use (mmap).
 =head3 CORPUS._bibl_DOCATTR_integers
 
  - resident: yes
+ - mmap: yes
  - popularity: high
  - size: small
  - growth: O(NDocs)
@@ -476,10 +583,9 @@ Requires auxiliary offset index for efficient file-based use (mmap).
    - 1 value-type id (or literal value for integer fields) for each doc, indexed by doc-id
  - accessor: CConcXml::CFreeBiblIndex::GetIndexFileName (string Path)
  - used by:
-   - vector<DWORD> CConcXml::CFreeBiblIndex::m_ValuesForEachFile;
+   - ddcVecFile<DWORD> CConcXml::CFreeBiblIndex::m_ValuesForEachFile;
  - loaded by:
-   - CConcXml::CFreeBiblIndex::ReadFromDisk (string Path,  DWORD FileBreaksSize) 
-     + populates m_ValuesForEachFile via ReadVector()
+   - CConcXml::CFreeBiblIndex::ReadFromDisk (string Path,  DWORD FileBreaksSize)
 
 Document-ID to attribute lookup table for I<DOCATTR>.
 
@@ -491,6 +597,7 @@ Document-ID to attribute lookup table for I<DOCATTR>.
 =head3 CORPUS._bibl_date
 
  - resident: yes
+ - mmap: yes
  - popularity: high
  - size: small
  - growth: O(NDocs)
@@ -499,11 +606,9 @@ Document-ID to attribute lookup table for I<DOCATTR>.
    - 1 ddc-encoded date for each doc, indexed by doc-id
  - accessor: CConcXml::GetBiblDateIndexFileName()
  - used by:
-   - vector<DWORD> CConcXml::m_Dates;
-     + really really bad: this should be some portable type (DWORD?) instead! --> fixed
+   - ddcVecFile<DWORD> CConcXml::m_Dates;
  - loaded by:
    - CConcXml::LoadBibl(string Path, size_t FileBreaksSize)
-     + populates m_Dates via ReadVector(GetBiblDateIndexFileName().c_str(), m_Dates);
 
 Support for the C<date> metadata field is hard-coded into the DDC library itself, so this
 file gets its own naming conventions.
@@ -511,6 +616,7 @@ file gets its own naming conventions.
 =head3 CORPUS._bibl
 
  - resident: no
+ - mmap: no
  - popularity: high
  - size: small-medium
  - growth: O(NDocs)
@@ -548,6 +654,7 @@ String values for built-in DDC metadata fields (read-only, no runtime query supp
 =head3 CORPUS._bibl_idx
 
  - resident: yes
+ - mmap: yes
  - popularity: high
  - size: small
  - growth: O(NDocs)
@@ -556,11 +663,10 @@ String values for built-in DDC metadata fields (read-only, no runtime query supp
    - pseudo-XML for doc-id DOC lives at bytes B with (m_EndOffsetsInBiblFile[DOC-1] <= B < m_EndOffsetsInBiblFile[DOC])
    - special case for DOC==0 --> bytes B (0 <= B < m_EndOffsetsInBiblFile[DOC=0])
  - accessor: CConcXml::GetBiblIndexFileName()
- - used by: 
-   - vector<file_off_t> CConcXml::m_EndOffsetsInBiblFile; //-- file_off_t --> QWORD --> uint64_t
+ - used by:
+   - ddcVecFile<file_off_t> CConcXml::m_EndOffsetsInBiblFile; //-- file_off_t --> QWORD --> uint64_t
  - loaded by:
    - CConcXml::LoadBibl(string Path, size_t FileBreaksSize)
-     + populates m_EndOffsetsInBiblFile via ReadVector(GetBiblIndexFileName().c_str(), m_EndOffsetsInBiblFile);
  - doc: (undocumented)
 
 Document-ID to built-in metadata lookup table (byte offsets).
@@ -585,20 +691,21 @@ with one or more of these files:
 =head3 CORPUS._BREAK_border
 
  - resident: yes
+ - mmap: yes
  - popularity: high (hit boundaries)
- - size: ?
+ - size: medium
  - growth: O(NBreaks) ~ O(NTokens)
  - format:
-   - vector<CTokenNo> BreakOffsets [size=NBreaks] 
+   - vector<CTokenNo> BreakOffsets [size=NBreaks]
    - break number BRKI covers tokens TOKI with (BreakOffsets[BRKI-1] <= TOKI < BreakOffsets[BRKI])
    - special case for BRKI==0 --> tokens (0 <= TOKI < BreakOffsets[BRKI])
  - accessor: CHitBorders::CBreakCollection::GetBreakFileName(string Path);
- - used by: 
-   - vector<CTokenNo> CHitBorders::CBreakCollection::m_BreakOffsets [size=NBreaks]
+ - used by:
+   - ddcBreakVector CHitBorders::CBreakCollection::m_BreakOffsets [size=NBreaks]
+     + ddcBreakVector -> ddcVecFile<CTokenNo> (convenience typedef)
      + CTokenNo -> DWORD -> uint32_t
  - loaded by:
    - CHitBorders::CBreakCollection::ReadFromDisk(string Path)
-     + poulates m_BreakOffsets via ReadVector(FileName.c_str(), m_BreakOffsets);
  - doc (HitBorder.h #break_def)
    #+BEGIN_SRC
     A "break" is a border between two adjacent sentences, paragraphs, files or other text chunks.
@@ -618,19 +725,19 @@ with one or more of these files:
 =head3 CORPUS._pagebreaks
 
  - resident: yes
- - popularity: ?
- - size: ?
+ - mmap: yes
+ - popularity: high
+ - size: small to medium
  - growth: O(NPages) ~ O(NTokens)
  - format:
    - vector<CPageNumber> [size=NPages]
      + CPageNumber = struct {CTokenNo m_StartTokenNo; DWORD m_PageNumber;}
      + CTokenNo -> DWORD -> uint32_t
  - accessor: CHitBorders::GetPageBreaksFileName(string Path)
- - used by: 
-   - vector<CPageNumber> CHitBorders::m_PageBreaks;
+ - used by:
+   - ddcVecFile<CPageNumber> CHitBorders::m_PageBreaks;
  - loaded by:
    - CHitBorders::LoadHitBorders(string Path)
-     + populates m_PageBreaks via ReadVector(GetPageBreaksFileName(Path).c_str(), m_PageBreaks);
  - doc (HitBorder.h #pb_def, #CPageNumber)
    #+BEGIN_SRC
       A "page break" is a \ref break_def break, which additionally  contains an integer page number
