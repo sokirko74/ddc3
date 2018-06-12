@@ -1,7 +1,7 @@
 // //-*- Mode: C++; c-basic-offset: 8; -*-
 //
 //  DDC originally by Alexey Sokirko
-//  Changes and modifications 2011-2017 by Bryan Jurish
+//  Changes and modifications 2011-2018 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -25,10 +25,13 @@
 #include "../common/util_classes.h"
 #include "../common/MorphXmlToken.h"
 #include "../CommonLib/ddcThread.h"
+#include "../CommonLib/ddcMMap.h"
 #include "../CommonLib/ddcStringEnum.h"
 #include <list>
 #include "ConcCommon.h"
 #include "../PCRE/pcre_rml.h"
+
+typedef ddcVecFile<DWORD> ddcDateVector;
 
 
 const int UnknownTextAreaNo = -1;
@@ -90,8 +93,9 @@ public:
 
 		//! the XPath to this information (from  options file)
 		string m_Xpath;
+
 		//! integer references to m_Values for each corpus file
-		vector<DWORD> m_ValuesForEachFile;
+		ddcVecFile<DWORD> m_ValuesForEachFile;
 
 		//! should DDC show this field for each header?
 		bool m_bShowInHeader;
@@ -261,7 +265,10 @@ private:
 	BiblExpanderMap		m_BiblExpanders;
 
 	vector<file_off_t>		m_EndOffsetsInBiblFile;
-	vector<DWORD>				m_Dates;
+
+	//vector<DWORD>				m_Dates;
+	ddcDateVector                           m_Dates;
+	
 	// File of Bibliographical references
 	FILE*   				m_BiblBodyFile;
 	string					m_Path;
@@ -414,7 +421,7 @@ public:
 	{ return m_BiblExpanders; };
 
 	//! moo: ugly dangerous hack
-	const vector<DWORD>& GetDates() const
+	const ddcDateVector& GetDates() const
 	{ return m_Dates; };
 
 	//! moo: not quite as ugly or dangerous a hack (respects aliases)

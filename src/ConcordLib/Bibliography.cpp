@@ -1,6 +1,7 @@
 /*-*- Mode: C++; c-basic-offset: 8; -*-*/
+//
 //  DDC originally by Alexey Sokirko
-//  Changes and modifications 2011-2017 by Bryan Jurish
+//  Changes and modifications 2011-2018 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -242,7 +243,8 @@ int CConcXml::CFreeBiblIndex::GetIntegerValue(DWORD FileNo ) const
 
 bool CConcXml::CFreeBiblIndex::ReadFromDisk (string Path,  DWORD FileBreaksSize, bool useMMap) 
 {
-	ReadVector(GetIndexFileName(Path), m_ValuesForEachFile);
+	m_ValuesForEachFile.open(GetIndexFileName(Path), useMMap);
+	
 
 	if (m_ValuesForEachFile.size() != FileBreaksSize)
 	{
@@ -268,9 +270,10 @@ string  CConcXml::CFreeBiblIndex::GetIndexFileName (string Path) const
 
 void CConcXml::CFreeBiblIndex::CreateUnion (string Path, const CFreeBiblIndex* pIndex1, const CFreeBiblIndex* pIndex2) 
 {
-	m_ValuesForEachFile = pIndex1->m_ValuesForEachFile;
-	m_ValuesForEachFile.insert(m_ValuesForEachFile.end(),  pIndex2->m_ValuesForEachFile.begin(), pIndex2->m_ValuesForEachFile.end());
-	WriteVector(GetIndexFileName(Path), m_ValuesForEachFile);
+	m_ValuesForEachFile.clear();
+	m_ValuesForEachFile.m_vec.insert(m_ValuesForEachFile.m_vec.end(), pIndex1->m_ValuesForEachFile.begin(), pIndex1->m_ValuesForEachFile.end());
+	m_ValuesForEachFile.m_vec.insert(m_ValuesForEachFile.m_vec.end(), pIndex2->m_ValuesForEachFile.begin(), pIndex2->m_ValuesForEachFile.end());
+	WriteVector(GetIndexFileName(Path), m_ValuesForEachFile.m_vec);
 }
 
 bool CConcXml::CFreeBiblIndex::GetFilterBounds (CDDCFilterWithBounds& Filter, const string &LoValue, const string &HiValue) const
@@ -328,7 +331,8 @@ bool CConcXml::CFreeBiblIndex::DeleteBiblFiles (string Path) const
 
 bool CConcXml::CFreeBiblIndex::ConvertAndSaveToDiskAfterIndexing (string Path) 
 {
-	return WriteVector(GetIndexFileName(Path), m_ValuesForEachFile);
+	m_ValuesForEachFile.ensureVec();
+	return WriteVector(GetIndexFileName(Path), m_ValuesForEachFile.m_vec);
 }
 
 string CConcXml::CFreeBiblIndex::GetTypeStr() const
@@ -472,11 +476,11 @@ void CConcXml::CFreeBiblStringIndex::CreateUnion (string Path, const CFreeBiblIn
 	size_t Count = I1.m_ValuesForEachFile.size();
 	size_t i = 0;
 	for (; i < Count; i++)
-		m_ValuesForEachFile.push_back( Old2New1[I1.m_ValuesForEachFile[i]] );
+		m_ValuesForEachFile.m_vec.push_back( Old2New1[I1.m_ValuesForEachFile[i]] );
 
 	Count += I2.m_ValuesForEachFile.size();
 	for (; i < Count; i++)
-		m_ValuesForEachFile.push_back( Old2New2[I2.m_ValuesForEachFile[i-I2.m_ValuesForEachFile.size()]] );
+		m_ValuesForEachFile.m_vec.push_back( Old2New2[I2.m_ValuesForEachFile[i-I2.m_ValuesForEachFile.size()]] );
 
 	WriteBiblStringItems(m_ValuesE.m_strings, GetStringFileName(Path));
 	CFreeBiblIndex::ConvertAndSaveToDiskAfterIndexing(Path);
@@ -672,8 +676,9 @@ bool CConcXml::CFreeBiblStringIndex::ConvertAndSaveToDiskAfterIndexing (string m
 		for (size_t i=0; i < Old.size(); i++)
 			Old2New[Old[i]] = i;
 
+		m_ValuesForEachFile.ensureVec();
 		for (size_t i=0; i< m_ValuesForEachFile.size(); i++)
-			m_ValuesForEachFile[i] =  Old2New[m_ValuesForEachFile[i]];
+			m_ValuesForEachFile.m_vec[i] =  Old2New[m_ValuesForEachFile.m_vec[i]];
 	}
 
 	//-- save data (v2.1.12)
@@ -880,7 +885,7 @@ bool CConcXml::AddIndexItem(const CBibliography& Bibliography)
 	{
 		int Date;
 		Bibliography.ConvertDateToInt(Date);
-		m_Dates.push_back(Date);
+		m_Dates.m_vec.push_back(Date);
 	};
 
 	
@@ -1208,7 +1213,8 @@ bool CConcXml::FinalSaveBibliography()
 	{
 		string DatesFName = GetBiblDateIndexFileName();
 		remove(DatesFName.c_str());
-		if (!WriteVector(DatesFName, m_Dates))
+		m_Dates.ensureVec();
+		if (!WriteVector(DatesFName, m_Dates.m_vec))
 			return false;
 		if (!FileExists(DatesFName.c_str()) )
 		{
@@ -1257,7 +1263,7 @@ bool CConcXml::LoadBibl(string Path, size_t FileBreaksSize, bool useMMap)
 	};
 	assert (m_EndOffsetsInBiblFile.size() == FileBreaksSize);
 
-	ReadVector(GetBiblDateIndexFileName().c_str(), m_Dates);
+	m_Dates.open(GetBiblDateIndexFileName(), useMMap);
 	if (m_Dates.size() !=  FileBreaksSize)
 	{
 		ErrorMessage (Format ("Corrupt bibliograpical index file for dates (%s)", GetBiblDateIndexFileName().c_str()));
@@ -1378,9 +1384,10 @@ bool CConcXml::UniteBibliography(const CConcXml& B1, const CConcXml& B2)
 
 	printf ("Uniting dates\n");
 	{
-		m_Dates = B1.m_Dates;
-		m_Dates.insert(m_Dates.end(), B2.m_Dates.begin(), B2.m_Dates.end());
-		if (!WriteVector(GetBiblDateIndexFileName().c_str(), m_Dates))
+		m_Dates.clear();
+		m_Dates.m_vec.insert(m_Dates.m_vec.end(), B2.m_Dates.begin(), B2.m_Dates.end());
+		m_Dates.m_vec.insert(m_Dates.m_vec.end(), B2.m_Dates.begin(), B2.m_Dates.end());
+		if (!WriteVector(GetBiblDateIndexFileName().c_str(), m_Dates.m_vec))
 			return false;
 	};
 

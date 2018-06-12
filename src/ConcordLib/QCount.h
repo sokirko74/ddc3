@@ -1,6 +1,6 @@
 //-*- Mode: C++ -*-
 //  DDC originally by Alexey Sokirko
-//  Changes and modifications 2011-2015 by Bryan Jurish
+//  Changes and modifications 2011-2018 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -145,7 +145,7 @@ public:
 class CQCountKeyExprDate : public CQCountKeyExprIndexed
 {
 public:
-  const vector<DWORD> *m_pDates;
+  const ddcDateVector *m_pDates;
   unsigned int         m_year;
   unsigned int         m_month;
   unsigned int         m_day;

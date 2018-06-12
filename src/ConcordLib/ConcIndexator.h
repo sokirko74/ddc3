@@ -1,4 +1,24 @@
 //-*- Mode: C++; c-basic-offset: 8; -*-
+
+//  DDC originally by Alexey Sokirko
+//  Changes and modifications 2011-2018 by Bryan Jurish
+//
+//  This file is part of DDC.
+// 
+//  DDC is free software: you can redistribute it and/or modify
+//  it under the terms of the GNU Lesser General Public License as published by
+//  the Free Software Foundation, either version 3 of the License, or
+//  (at your option) any later version.
+// 
+//  DDC is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//  GNU Lesser General Public License for more details.
+// 
+//  You should have received a copy of the GNU Lesser General Public License
+//  along with DDC.  If not, see <http://www.gnu.org/licenses/>.
+//
+
 /*! \mainpage Dialing DDWS Concordance  (DDC)
 	DDC is a tool for linguists to search for a particular construction 
 	in a given corpus.  A corpus is defined by a list \ref source_file_def "source files",
