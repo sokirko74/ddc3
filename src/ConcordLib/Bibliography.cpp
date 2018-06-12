@@ -880,7 +880,7 @@ bool CConcXml::AddIndexItem(const CBibliography& Bibliography)
 					return false;
 	}
 
-	m_EndOffsetsInBiblFile.push_back(m_BiblBodyFileSize);
+	m_EndOffsetsInBiblFile.m_vec.push_back(m_BiblBodyFileSize);
 
 	{
 		int Date;
@@ -1202,7 +1202,8 @@ bool CConcXml::FinalSaveBibliography()
 		return false;
 	};
 
-	if (!WriteVector(BiblIndexFileName, m_EndOffsetsInBiblFile))
+	m_EndOffsetsInBiblFile.ensureVec();
+	if (!WriteVector(BiblIndexFileName, m_EndOffsetsInBiblFile.m_vec))
 		return false;
 	if (!FileExists(BiblIndexFileName.c_str()) )
 	{
@@ -1252,7 +1253,7 @@ bool CConcXml::LoadBibl(string Path, size_t FileBreaksSize, bool useMMap)
 	if (m_BiblBodyFile) fclose (m_BiblBodyFile);
 	m_BiblBodyFile = fopen(GetBiblFileName().c_str(), "rb");
 
-	ReadVector(GetBiblIndexFileName().c_str(), m_EndOffsetsInBiblFile);
+	m_EndOffsetsInBiblFile.open(GetBiblIndexFileName(), useMMap);
 	if (m_EndOffsetsInBiblFile.size() !=  FileBreaksSize)
 	{
 		string s = Format("The number of corpus files should be equal to the number of bibliographical records in file `%s'", GetBiblIndexFileName().c_str());
@@ -1261,7 +1262,6 @@ bool CConcXml::LoadBibl(string Path, size_t FileBreaksSize, bool useMMap)
 		ErrorMessage (s);
 		return false;
 	};
-	assert (m_EndOffsetsInBiblFile.size() == FileBreaksSize);
 
 	m_Dates.open(GetBiblDateIndexFileName(), useMMap);
 	if (m_Dates.size() !=  FileBreaksSize)
@@ -1371,14 +1371,15 @@ bool CConcXml::UniteBibliography(const CConcXml& B1, const CConcXml& B2)
 	
 	printf ("Uniting bibliographical integer indices\n");
 	{
-		m_EndOffsetsInBiblFile = B1.m_EndOffsetsInBiblFile;
-		m_EndOffsetsInBiblFile.insert(m_EndOffsetsInBiblFile.end(), B2.m_EndOffsetsInBiblFile.begin(),B2.m_EndOffsetsInBiblFile.end());
+		m_EndOffsetsInBiblFile.clear();
+		m_EndOffsetsInBiblFile.m_vec.insert(m_EndOffsetsInBiblFile.m_vec.end(), B1.m_EndOffsetsInBiblFile.begin(),B1.m_EndOffsetsInBiblFile.end());
+		m_EndOffsetsInBiblFile.m_vec.insert(m_EndOffsetsInBiblFile.m_vec.end(), B2.m_EndOffsetsInBiblFile.begin(),B2.m_EndOffsetsInBiblFile.end());
 		file_off_t BiblOffset = FileSize(B1.GetBiblFileName().c_str());
-		for (size_t i = B1.m_EndOffsetsInBiblFile.size(); i < m_EndOffsetsInBiblFile.size(); i++)
-			m_EndOffsetsInBiblFile[i] += BiblOffset;
+		for (size_t i = B1.m_EndOffsetsInBiblFile.size(); i < m_EndOffsetsInBiblFile.m_vec.size(); i++)
+			m_EndOffsetsInBiblFile.m_vec[i] += BiblOffset;
 
-		if (!m_EndOffsetsInBiblFile.empty())
-			if (!WriteVector(GetBiblIndexFileName().c_str(), m_EndOffsetsInBiblFile))
+		if (!m_EndOffsetsInBiblFile.m_vec.empty())
+			if (!WriteVector(GetBiblIndexFileName().c_str(), m_EndOffsetsInBiblFile.m_vec))
 				return false;
 	}
 

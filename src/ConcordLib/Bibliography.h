@@ -264,9 +264,7 @@ private:
 	FreeBiblAliasMap	m_FreeBiblAlias;	
 	BiblExpanderMap		m_BiblExpanders;
 
-	vector<file_off_t>		m_EndOffsetsInBiblFile;
-
-	//vector<DWORD>				m_Dates;
+	ddcVecFile<file_off_t>                  m_EndOffsetsInBiblFile;
 	ddcDateVector                           m_Dates;
 	
 	// File of Bibliographical references

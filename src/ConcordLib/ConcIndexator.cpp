@@ -1,7 +1,7 @@
 //-*- Mode: C++; c-basic-offset: 8; -*-
 //
 //  DDC originally by Alexey Sokirko
-//  Changes and modifications 2011-2017 by Bryan Jurish
+//  Changes and modifications 2011-2018 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -1965,7 +1965,7 @@ bool CConcIndexator::LoadProject(string FileName)
 	if ( !LoadMaskedFiles() ) return false;
 	
 	AssertHasPath();
-	LoadHitBorders(m_Path);
+	LoadHitBorders(m_Path, m_bMemoryMap);
 	ReadIndicesFromTheDisk();
 
 	if (GetFileBreaks().size() !=  m_CorpusFiles.size()) {
@@ -2144,8 +2144,8 @@ void CConcIndexator::DumpFileIndexJson(DWORD FileNo, FILE *f) const
 
 	//-- dump: page-breaks
 	fputs("\t\"pages\":\{\n", f);
-	vector<CPageNumber>::const_iterator pb0 = GetTokenPageBreak(tok_min);
-	for (vector<CPageNumber>::const_iterator pbi = pb0; pbi != m_PageBreaks.end() && pbi->m_StartTokenNo < tok_max; pbi++) {
+	ddcVecFile<CPageNumber>::const_iterator pb0 = GetTokenPageBreak(tok_min);
+	for (ddcVecFile<CPageNumber>::const_iterator pbi = pb0; pbi != m_PageBreaks.end() && pbi->m_StartTokenNo < tok_max; pbi++) {
 			if (pbi != pb0) fputc(',',f);
 			fprintf(f,"\"%u\":%u", pbi->m_StartTokenNo, pbi->m_PageNumber);
 	}
@@ -2199,7 +2199,7 @@ void CConcIndexator::DumpFileIndexTabs(DWORD FileNo, FILE *f) const
 	fputs(m_Bibl.GetFreeHeaderBiblAttributesTabsDump(FileNo,m_Utf8).c_str(), f);
 
 	//-- intialize: page-breaks
-	vector<CPageNumber>::const_iterator pb = GetTokenPageBreak(tok_min);
+	ddcVecFile<CPageNumber>::const_iterator pb = GetTokenPageBreak(tok_min);
 
 	//-- initialize: free-breaks
 	vector<size_t> breaknos(m_Breaks.size(), 0);

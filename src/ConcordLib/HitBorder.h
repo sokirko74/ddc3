@@ -1,5 +1,7 @@
+//-*- Mode: C++; c-basic-offset: 8; -*-
+//
 //  DDC originally by Alexey Sokirko
-//  Changes and modifications 2011-2015 by Bryan Jurish
+//  Changes and modifications 2011-2018 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -18,6 +20,8 @@
 //
 #ifndef HitBorder_h
 #define HitBorder_h
+
+#include "../CommonLib/ddcMMap.h"
 
 /*! \page break_def Corpus break definition 
   A "break" is a border between two adjacent sentences, paragraphs, files or other text chunks.
@@ -72,7 +76,7 @@ class CHitBorders
 		CBreakCollection (const string& ShortName, const string& LongName);
 		//! returns the file name for a break collection 
 		string			GetBreakFileName(string Path) const;
-		void			ReadFromDisk(string Path);	
+	  	void			ReadFromDisk(string Path, bool useMMap=false);
 		bool			ClearAll(string Path);
 		void			CloseFileForIndexing();
 	};
@@ -91,8 +95,10 @@ class CHitBorders
 	int							m_FileBreakCollectionNo;
 	//! The name of the default break collection (written in the options file)
 	string						m_DefaultBreakName;
+
 	//!  page number collection
-	vector<CPageNumber>			m_PageBreaks;
+	ddcVecFile<CPageNumber>			m_PageBreaks;
+	
 
 	//! returns the file name for page breaks
 	string	GetPageBreaksFileName(string Path) const;
@@ -153,11 +159,12 @@ protected:
 	//!creates empty elements of m_Breaks by its string descriptions
 	bool						RegisterBorderIndices(const char* IndicesStr);
 	//!load break collections from the disk
-	bool						LoadHitBorders(string Path);
+	bool						LoadHitBorders(string Path, bool useMMap=false);
 	//! converts hits to page breaks, which contains this breaks 
 	void						ConvertHitsToPageBreaks (vector<CHit>::const_iterator hits_begin, vector<CHit>::const_iterator hits_end, const vector<CTokenNo>& Breaks, DwordVector& PageBreaks)	const;
+
 	//! get page break for a given token number as an interator into m_PageBreaks
-	vector<CPageNumber>::const_iterator GetTokenPageBreak(CTokenNo tok) const;
+	ddcVecFile<CPageNumber>::const_iterator GetTokenPageBreak(CTokenNo tok) const;
 
 	//! adds one break to a collection identified by a short name (during indexing)
 	bool						AddBreakByName(const string& ShortName, const CTokenNo& B);

@@ -1,6 +1,7 @@
 //-*- Mode: C++; c-basic-offset: 8; -*-
+//
 //  DDC originally by Alexey Sokirko
-//  Changes and modifications 2011-2015 by Bryan Jurish
+//  Changes and modifications 2011-2018 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -56,7 +57,7 @@ string CHitBorders::CBreakCollection::GetBreakFileName(string Path) const
 	return MakeFName(Path,Format("_%s_border", m_ShortName.c_str()));
 };
 
-void CHitBorders::CBreakCollection::ReadFromDisk(string Path)
+void CHitBorders::CBreakCollection::ReadFromDisk(string Path, bool useMMap)
 {
 	string FileName = GetBreakFileName(Path);
 	ReadVector(FileName.c_str(), m_BreakOffsets);
@@ -190,30 +191,29 @@ bool	CHitBorders::BordersEndIndexing(string Path)
 	for (size_t i=0; i <  m_Breaks.size(); i++)
 		m_Breaks[i].CloseFileForIndexing();
 
-	if (!WriteVector(GetPageBreaksFileName(Path), m_PageBreaks))
+	m_PageBreaks.ensureVec();
+	if (!WriteVector(GetPageBreaksFileName(Path), m_PageBreaks.m_vec))
 		return false;
 
 	return true;
 };
 
-bool	CHitBorders::LoadHitBorders(string Path)
+bool	CHitBorders::LoadHitBorders(string Path, bool useMMap)
 {
-	m_PageBreaks.clear();
-	ReadVector(GetPageBreaksFileName(Path).c_str(), m_PageBreaks);
+	m_PageBreaks.open(GetPageBreaksFileName(Path), useMMap);
 
 	for (size_t i=0; i <  m_Breaks.size(); i++)
-		m_Breaks[i].ReadFromDisk(Path);
+		m_Breaks[i].ReadFromDisk(Path, useMMap);
 
 	return true;
 };
 
 bool	CHitBorders::RemoveHitBordersFileAndClear(string Path)
 {
+	m_PageBreaks.clear();
 	if (FileExists(GetPageBreaksFileName(Path).c_str()))
 		if (remove(GetPageBreaksFileName(Path).c_str() ))
 			return false;
-
-	m_PageBreaks.clear();
 
 	for (size_t i=0; i <  m_Breaks.size(); i++)
 		m_Breaks[i].ClearAll(Path);
@@ -255,13 +255,14 @@ bool CHitBorders::AddBreakByName(const string& ShortName, const CTokenNo& B)
 
 void CHitBorders::AddPageBreak(const CPageNumber& P)
 {
-	if	(		!m_PageBreaks.empty()
+	m_PageBreaks.ensureVec();
+	if	(		!m_PageBreaks.m_vec.empty()
 			&&	(P.m_PageNumber != UnknownPageNumber)
-			&&	(P.m_StartTokenNo == m_PageBreaks.back().m_StartTokenNo)
+			&&	(P.m_StartTokenNo == m_PageBreaks.m_vec.back().m_StartTokenNo)
 		)
-		m_PageBreaks.back() = P;
+		m_PageBreaks.m_vec.back() = P;
 	else
-		m_PageBreaks.push_back(P);
+		m_PageBreaks.m_vec.push_back(P);
 
 };
 
@@ -295,7 +296,8 @@ void CHitBorders::ConvertHitsToPageBreaks (
 {
 	PageBreaks.resize( hits_end - hits_begin );
 
-	vector<CPageNumber>::const_iterator start_it = m_PageBreaks.begin();
+	ddcVecFile<CPageNumber>::const_iterator start_it = m_PageBreaks.begin();
+	ddcVecFile<CPageNumber>::const_iterator end_it   = m_PageBreaks.end();
 	DwordVector::iterator PageBreakIt = PageBreaks.begin();
 	
 	for (vector<CHit>::const_iterator hit_it = hits_begin;  hit_it != hits_end; hit_it++, PageBreakIt++)
@@ -303,14 +305,14 @@ void CHitBorders::ConvertHitsToPageBreaks (
 
 		// StartTokenNo  is the start token number of hit Breaks[hits[i]].m_EndTokenNo
 		CTokenNo StartTokenNo = 0;
-
 		if (hit_it->m_BreakNo > 0)
 		{
 			StartTokenNo = Breaks[hit_it->m_BreakNo - 1];
 		};
 		
 		// it is the page which is the next to the page that contains the hit; it can be  m_PageBreaks.end()
-		vector<CPageNumber>::const_iterator it = lower_bound (start_it, m_PageBreaks.end(), StartTokenNo, LessPageBreak());
+		//vector<CPageNumber>::const_iterator it = lower_bound (start_it, m_PageBreaks.end(), StartTokenNo, LessPageBreak());
+		ddcVecFile<CPageNumber>::const_iterator it = lower_bound (start_it, end_it, StartTokenNo, LessPageBreak());
 
 		// for each file there should be at least one page break (the first one)	
 		*PageBreakIt = (it - m_PageBreaks.begin()) - 1;
@@ -318,7 +320,7 @@ void CHitBorders::ConvertHitsToPageBreaks (
 		if	(			(it != m_PageBreaks.end())
 					&&	(it->m_StartTokenNo ==  StartTokenNo)
 			)
-		(*PageBreakIt)++;
+			(*PageBreakIt)++;
 		
 		// start_it = it; uncomment it if hits are sorted
 	};
@@ -327,7 +329,7 @@ void CHitBorders::ConvertHitsToPageBreaks (
 
 
 // for each hit calculate a page number, at which it starts. (a hit can divided by a page break)
-vector<CPageNumber>::const_iterator CHitBorders::GetTokenPageBreak(CTokenNo tok) const
+ddcVecFile<CPageNumber>::const_iterator CHitBorders::GetTokenPageBreak(CTokenNo tok) const
 {
 	return lower_bound(m_PageBreaks.begin(), m_PageBreaks.end(), tok, LessPageBreak());
 }
@@ -472,13 +474,14 @@ bool CHitBorders::UniteBorders(const CHitBorders& H1, const CHitBorders& H2, con
 	};
 
 	{	//uniting page \ref break_def "breaks"
-		m_PageBreaks = H1.m_PageBreaks;
-		m_PageBreaks.insert(m_PageBreaks.end(), H2.m_PageBreaks.begin(),H2.m_PageBreaks.end());
+		m_PageBreaks.clear();
+		m_PageBreaks.m_vec.insert(m_PageBreaks.m_vec.end(), H1.m_PageBreaks.begin(),H1.m_PageBreaks.end());
+		m_PageBreaks.m_vec.insert(m_PageBreaks.m_vec.end(), H2.m_PageBreaks.begin(),H2.m_PageBreaks.end());
 		
 		for (size_t  i = H1.m_PageBreaks.size(); i < m_PageBreaks.size(); i++)
-			m_PageBreaks[i].m_StartTokenNo += EndTokenNo1;
+			m_PageBreaks.m_vec[i].m_StartTokenNo += EndTokenNo1;
 
-		if (!WriteVector(GetPageBreaksFileName(Path).c_str(), m_PageBreaks))
+		if (!WriteVector(GetPageBreaksFileName(Path).c_str(), m_PageBreaks.m_vec))
 			return false;
 	};
 
