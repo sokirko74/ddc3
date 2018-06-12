@@ -26,9 +26,15 @@
 //======================================================================
 // ddcMMap
 /** convenience wrapper for integer->string mappings */
-template <typename OffT=DWORD>
+template <typename OffT_=DWORD>
 class ddcStringEnum
 {
+public:
+    //----------------------------------------------------------
+    // typedefs
+    typedef OffT_  OffT; ///< typedef for offset values
+    typedef DWORD  IdT;  ///< typedef for integer IDs
+
 public:
     //----------------------------------------------------------
     // data
@@ -54,6 +60,10 @@ public:
 
     /// default destructor calls close()
     ~ddcStringEnum()
+    { close(); };
+
+    /// clear() method wraps close()
+    inline void clear()
     { close(); };
 
 public:
@@ -84,18 +94,102 @@ public:
     inline const char* operator[](size_t idx) const
     { return m_offsets ? (m_cdata.m_data+m_offsets.m_data[idx]) : m_strings[idx].c_str(); };
 
+    //----------------------------------------------------------
+    // read/write access (auto-demote)
+
+    /// simulate vector::push_back(): used by indexing routines
+    inline void push_back(const string& value)
+    {
+	ensureVec();
+	m_strings.push_back(value);
+    };
+
+    /// populate \a v with an equivalent vector-implementation (for compile-time compatibility)
+    void to_vector(vector<string>& v) const
+    {
+	ClearVector(v);
+	v.reserve(size());
+	if (m_offsets) {
+	    for (const OffT* oi=m_offsets.begin(); oi != m_offsets.end(); ++oi)
+		v.push_back( m_cdata.m_data + *oi );
+	} else {
+	    v = m_strings;
+	}
+    };
+    
+    /// force vector-implementation
+    inline void ensureVec()
+    {
+	if (m_offsets) {
+	    ddcLogWarn(Format("WARNING: ddcStringEnum(\"%s\") demoting to std::vector<> implementation", m_cdata.filename().c_str()));
+	    to_vector(m_strings);
+	    m_offsets.close();
+	    m_cdata.close();
+	}
+    };
+
 public:
     //----------------------------------------------------------
-    // TODO: search
+    // search
 
-    static const DWORD NOKEY = DWORD_MAX;
+    /// constant returned by string-to-id search methods indicating no match was found
+    static const IdT NO_ID = DWORD_MAX;
 
-    DWORD lower_bound(const string& str)
-    { throw runtime_error("not yet implemented"); };
+    /// comparison helper struct for string-to-id search
+    struct IdKeyLess {
+	const char *m_buf;
 
-    DWORD upper_bound(const string& str)
-    { throw runtime_error("not yet implemented"); };
+	IdKeyLess(const char *buf)
+	    : m_buf(buf)
+	{};
+	IdKeyLess(const ddcStringEnum& se)
+	    : m_buf(se.m_cdata.m_data)
+	{};
 
+	
+	inline bool operator()(const OffT off, const string& key)
+	{ return (m_buf+off) < key; };
+	inline bool operator()(const string& key, const OffT off)
+	{ return key < (m_buf+off); };
+    };
+
+    /// returns id of lower-bound for \a key, or NO_ID if not found
+    IdT lower_bound(const string& key) const
+    {
+	if (m_offsets) {
+	    //-- ddc-v2.1.12 version
+	    typename ddcVecFile<OffT>::const_iterator lb = std::lower_bound(m_offsets.begin(), m_offsets.end(), key, IdKeyLess(*this));
+	    if (lb != m_offsets.end()) return (lb - m_offsets.begin());
+	} else {
+	    //-- backwards-compatible implementation using m_strings
+	    vector<string>::const_iterator lb = std::lower_bound(m_strings.begin(), m_strings.end(), key);
+	    if (lb != m_strings.end()) return (lb - m_strings.begin());
+	}
+	return NO_ID;
+    };
+
+    /// returns id of upper-bound for \a key, or NO_ID if not found
+    inline IdT upper_bound(const string& key) const
+    {
+	if (m_offsets) {
+	    //-- ddc-v2.1.12 version
+	    typename ddcVecFile<OffT>::const_iterator ub = std::upper_bound(m_offsets.begin(), m_offsets.end(), key, IdKeyLess(*this));
+	    if (ub != m_offsets.end()) return (ub - m_offsets.begin());
+	} else {
+	    //-- backwards-compatible implementation using m_strings
+	    vector<string>::const_iterator ub = std::upper_bound(m_strings.begin(), m_strings.end(), key);
+	    if (ub != m_strings.end()) return (ub - m_strings.begin());
+	}
+	return NO_ID;
+    };
+
+    /// returns id of \a key, or NO_ID if not found
+    inline IdT find(const string& key) const
+    {
+	IdT lbid = lower_bound(key);
+	return (lbid != NO_ID && operator[](lbid) == key) ? lbid : NO_ID;
+    };
+    
 public:
     //----------------------------------------------------------
     // guts

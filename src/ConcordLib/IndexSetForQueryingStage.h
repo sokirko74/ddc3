@@ -31,9 +31,9 @@
 
 //!  a type for mappping an index item no to its \ref perdiv_def "period division"
 //typedef map<DWORD, vector<DWORD> > PeriodsDivisionMap__OLD
-typedef ddcVMapFile<DWORD,DWORD>   PeriodsDivisionMapT;
-typedef PeriodsDivisionMapT::MapT  PeriodsDivisionMapR;  ///< low-level resident std::map<> implementation in PeriodsDivisionMap::m_map
-typedef PeriodsDivisionMapT::VMapT PeriodsDivisionMapV;  ///< low-level virtual mmap()-based implementation in PeriodsDivisionMap::m_mmap
+typedef ddcMapFile<DWORD,DWORD>       PeriodsDivisionMapT;
+typedef PeriodsDivisionMapT::MapT     PeriodsDivisionMapR;  ///< low-level resident std::map<> implementation in PeriodsDivisionMap::m_map
+typedef PeriodsDivisionMapT::RecFileT PeriodsDivisionMapV;  ///< low-level virtual mmap()-based implementation in PeriodsDivisionMap::m_rfile
 
 
 

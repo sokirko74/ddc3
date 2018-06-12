@@ -10,10 +10,16 @@ v2.1.12-pre1 WIP
 	  - added opt-file option "MemoryMap" (Boolean)
 	  - updated CIndexSetForLoadingStage::m_StringBuffer (vector<char> -> ddcVecFile<char>)
           - updated CIndexSetForQueryingStage::m_Index (vector<CIndexItem> -> ddcVecFile<CIndexItem>)
-	  - added class ddcVMMap for mmap() access to fixed-width record-based files (without explicit type)
-          - added template class ddcVMapFile<KeyT,ValT> for simulating map<KeyT,ValT> with an mmap()ed file
+	  - added class ddcRecFile for mmap()-able access to fixed-width record-based files (without explicit type)
+          - added template class ddcMapFile<KeyT,ValT> for simulating fixed-width map<KeyT,ValT> with an mmap()ed file
 	    + for '_perdivToken' & similar
 	  - fixed misspellings "*Devision*" -> "*Division*"
+	  - added CommonLib/ddcStringEnum.h with template class ddcStringEnum<OffT=DWORD> for mmap()-able string<->integer mappings
+	  - updated CConcXml::CFreeBiblStringIndex::m_Values (now m_ValuesE) to use new ddcStringEnum<> with mmap support
+	    + file format changed: newline-separated "*._bibl_NAME_strings" is now 2 files
+	      ~ "*._bibl_NAME_strings_values": NUL-separated values
+	      ~ "*._bibl_NAME_strings_idx"   : start offsets in *._bibl_NAME_strings_values indexed by logical ID
+	    + compatibility hack: old "\n"-sparated "*._bibl_NAME_strings" files can still be read in slurp-mode, but produce a warning
 
 v2.1.11 Tue, 20 Mar 2018 13:10:10 +0100 moocow
 	* fixed catastrophic error in NavHintKey::operator<() leading to cache inconsistency and random server crashes

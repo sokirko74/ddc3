@@ -187,161 +187,6 @@ public:
     inline iterator end()   const { return m_data+size(); };
 };
 
-//======================================================================
-// ddcVMMap
-/** convenience wrapper for mapping fixed-width record-based files as char* */
-class ddcVMMap : public ddcMMap<char>
-{
-public:
-    //----------------------------------------------------------
-    // typedefs
-    typedef ddcMMap<char> MMapT;
-
-public:
-    //----------------------------------------------------------
-    // data
-    size_t   m_recsize;  ///< number of bytes per record
-
-public:
-    //----------------------------------------------------------
-    // constructors etc.
-
-    /// default constructor
-    ddcVMMap()
-	: m_recsize(0)
-    {};
-
-    ddcVMMap(const std::string& filename, size_t recsize, int mode=O_RDONLY)
-	: m_recsize(0)
-    { open(filename,recsize,mode); };
-
-    /// default destructor calls close()
-    ~ddcVMMap()
-    { close(); };
-
-public:
-    //----------------------------------------------------------
-    // accessors
-
-    /// returns the size of a single record in bytes
-    inline size_t recsize() const
-    { return m_recsize; };
-
-public:
-    //----------------------------------------------------------
-    // high-level properties
-
-    /// override returns the number of records mapped
-    inline size_t size() const
-    { return MMapT::size() / recsize(); };
-
-    /// STL-esque wrapper for (size()==0)
-    inline bool empty() const
-    { return size() == 0; };
-
-public:
-    //----------------------------------------------------------
-    // typecast operators
-
-    /// implicit typecast to bool
-    inline operator bool() const
-    { return opened(); };
-    
-    /// indexing operator (gets start of row)
-    inline void* operator[](size_t idx) const
-    { return (void*) (m_data + idx*m_recsize); };
-
-public:
-    //----------------------------------------------------------
-    // guts
-
-    /// map a named file \a filename
-    ddcVMMap& open(const std::string& filename, size_t recsize, int mode=O_RDONLY)
-    {
-	MMapT::open(filename,mode);
-	assert( (ddcMMap<char>::nbytes() % recsize) == 0);
-	m_recsize = recsize;
-	return *this;
-    };
-
-    /// unmap current file (if any)
-    void close()
-    {
-	MMapT::close();
-	m_recsize = 0;
-    };
-
-    //----------------------------------------------------------
-    // iterators
-    template <typename IT>
-    struct iteratorT
-    {
-	typedef IT        value_type;
-	typedef ptrdiff_t difference_type;
-	typedef IT*       pointer;
-	typedef IT&       reference;
-	typedef std::random_access_iterator_tag iterator_category;
-
-	const ddcVMMap* m_obj;
-	IT*             m_cur;
-
-	iteratorT(const ddcVMMap *obj, IT *cur)
-	    : m_obj(obj), m_cur(cur)
-	{};
-
-	template <typename srcIteratorT> //-- for implicit const/non-const conversions
-	iteratorT(const srcIteratorT& i)
-	    : m_obj(i.m_obj), m_cur(i.m_cur)
-	{};
-
-	//-- utils
-	inline IT*       beg_() const { return m_obj->MMapT::begin(); };
-	inline IT*       end_() const { return m_obj->MMapT::end(); };
-	inline size_t    recsize_() const { return m_obj->m_recsize; };
-
-	//-- api
-	iteratorT& operator=(const iteratorT& i)
-	{ m_obj=i.m_obj; m_cur=i.m_cur; return *this; };
-
-	inline iteratorT& operator++() { m_cur = min(m_cur+recsize_(), end_()); return *this; };
-	inline iteratorT& operator--() { m_cur = max(m_cur-recsize_(), beg_()); return *this; };
-
-	inline iteratorT& operator++(int) { iteratorT i(*this); ++i; return i; };
-	inline iteratorT& operator--(int) { iteratorT i(*this); --i; return i; };
-
-	inline IT& operator*() const { return *m_cur; };
-	inline IT* operator->() const { return m_cur; };
-
-	//-- generic pointer-dereference
-	template <typename PtrT>
-	inline operator PtrT*() const { return (PtrT*)(m_cur); };
-
-	inline bool operator==(const iteratorT& i) { return m_cur == i.m_cur; };
-	inline bool operator!=(const iteratorT& i) { return m_cur != i.m_cur; };
-	inline bool operator< (const iteratorT& i) { return m_cur < i.m_cur; };
-	inline bool operator> (const iteratorT& i) { return m_cur > i.m_cur; };
-	inline bool operator<=(const iteratorT& i) { return m_cur <= i.m_cur; };
-	inline bool operator>=(const iteratorT& i) { return m_cur >= i.m_cur; };
-
-	inline iteratorT& operator+=(size_t n) { m_cur = min(m_cur+n*recsize_(), end_()); return *this; };
-	inline iteratorT& operator-=(size_t n) { m_cur = max(m_cur-n*recsize_(), beg_()); return *this; };
-
-	inline iteratorT  operator+(size_t n)  { iteratorT i(*this); i += n; return i; };
-	inline iteratorT  operator-(size_t n)  { iteratorT i(*this); i -= n; return i; };
-
-	inline ptrdiff_t operator-(const iteratorT& i) { return (m_cur - i.m_cur) / recsize_(); };
-    };
-
-    typedef iteratorT<char>       iterator;
-    typedef iteratorT<const char> const_iterator;
-
-    inline iterator begin() { return iterator(this, MMapT::begin()); };
-    inline iterator end()   { return iterator(this, MMapT::end()); };
-
-    inline const_iterator begin() const { return const_iterator(this, MMapT::begin()); };
-    inline const_iterator end()   const { return const_iterator(this, MMapT::end()); };
-};
-
 
 //======================================================================
 // ddcVecFile<T>
@@ -352,6 +197,12 @@ template<typename T>
 class ddcVecFile
 {
 public:
+    typedef ddcMMap<T>  MMapT;
+    typedef vector<T>   VecT;
+    typedef T           EltT;
+    
+public:
+    string     m_file;      ///< filename (if any)
     ddcMMap<T> m_mmap;      ///< data (mmap)
     vector<T>  m_vec;       ///< data (slurp)
     T         *m_data;      ///< data (pointer to m_mmap or m_vec data)
@@ -380,6 +231,10 @@ public:
     //----------------------------------------------------------
     // accessors & high-level properties
 
+    /// returns filename of last open(), or NULL
+    inline const string& filename() const
+    { return m_file; };
+    
     /// returns a pointer to the mmap()ed file data, or NULL
     inline T* data() const
     { return m_data; };
@@ -448,6 +303,7 @@ public:
 	    ReadVector(filename, m_vec);
 	    m_data = &(m_vec[0]);
 	}
+	m_file = filename;
 	return *this;
     };
 
@@ -464,6 +320,7 @@ public:
     void ensureVec()
     {
 	if (m_mmap) {
+	    ddcLogWarn(Format("WARNING: ddcVecFile(\"%s\") demoting to std::vector<> implementation", filename().c_str()));
 	    ClearVector(m_vec);
 	    m_vec.reserve(size());
 	    m_vec.insert(m_vec.begin(), m_mmap.m_data, m_mmap.m_data+m_mmap.size());
@@ -474,17 +331,187 @@ public:
 
 };
 
-
 //======================================================================
-// ddcVMapFile<KeyT,ValT>
-/** slurp or mmap a map<KeyT,ValT> to memory; records should be stored as {KeyT,ValT[]} and sorted in ascending order by key */
-template<typename KeyT, typename ValT>
-class ddcVMapFile
+// ddcRecFile
+/** convenience wrapper for mapping arbitrary fixed-width record-based files as char* */
+class ddcRecFile : public ddcVecFile<char>
 {
 public:
     //----------------------------------------------------------
     // typedefs
-    typedef ddcVMMap                    VMapT;
+    typedef ddcVecFile<char> VecFileT;
+    typedef VecFileT::MMapT  MMapT;
+    typedef VecFileT::VecT   VecT;
+
+public:
+    //----------------------------------------------------------
+    // data
+    size_t   m_recsize;  ///< number of bytes per record
+
+public:
+    //----------------------------------------------------------
+    // constructors etc.
+
+    /// default constructor
+    ddcRecFile()
+	: m_recsize(0)
+    {};
+
+    ddcRecFile(const std::string& filename, size_t recsize, bool useMMap=false)
+	: m_recsize(0)
+    { open(filename,recsize,useMMap); };
+
+    /// default destructor calls close()
+    ~ddcRecFile()
+    { close(); };
+
+public:
+    //----------------------------------------------------------
+    // accessors
+
+    /// returns the size of a single record in bytes
+    inline size_t recsize() const
+    { return m_recsize; };
+
+public:
+    //----------------------------------------------------------
+    // high-level properties
+
+    /// override returns the number of records mapped
+    inline size_t size() const
+    { return VecFileT::size() / recsize(); };
+
+    /// STL-esque wrapper for (size()==0)
+    inline bool empty() const
+    { return size() == 0; };
+
+public:
+    //----------------------------------------------------------
+    // typecast operators
+
+    /// implicit typecast to bool
+    inline operator bool() const
+    { return opened(); };
+    
+    /// indexing operator (gets start of row)
+    inline void* operator[](size_t idx) const
+    { return (void*) (m_data + idx*m_recsize); };
+
+public:
+    //----------------------------------------------------------
+    // guts
+
+    /// map a named file \a filename
+    ddcRecFile& open(const std::string& filename, size_t recsize, bool useMMap=false)
+    {
+	VecFileT::open(filename,useMMap);
+	if ( (VecFileT::size() % recsize) != 0)
+	    throw invalid_argument(Format("ddcRecFile::open(): error opening '%s': file size (%zd) is not a multiple of record size (%zd)",
+					  filename.c_str(), VecFileT::size(), recsize));
+	m_recsize = recsize;
+	return *this;
+    };
+
+    /// unmap current file (if any)
+    void close()
+    {
+	VecFileT::close();
+	m_recsize = 0;
+    };
+
+    //----------------------------------------------------------
+    // iterators
+    template <typename ET>
+    struct iteratorT
+    {
+	typedef ET        value_type;
+	typedef ptrdiff_t difference_type;
+	typedef ET*       pointer;
+	typedef ET&       reference;
+	typedef std::random_access_iterator_tag iterator_category;
+
+	const ddcRecFile* m_obj;
+	ET*                m_cur;
+
+	iteratorT(const ddcRecFile *obj, ET *cur)
+	    : m_obj(obj), m_cur(cur)
+	{};
+
+	template <typename srcIteratorT> //-- for implicit const/non-const conversions
+	iteratorT(const srcIteratorT& i)
+	    : m_obj(i.m_obj), m_cur(i.m_cur)
+	{};
+
+	//-- utils
+	inline ET*       beg_() const { return m_obj->VecFileT::begin(); };
+	inline ET*       end_() const { return m_obj->VecFileT::end(); };
+	inline size_t    recsize_() const { return m_obj->m_recsize; };
+
+	//-- utils for (key,val) pair files
+	template <typename KeyT=int>
+	inline const KeyT& key() const
+	{ return *( (const KeyT*)m_cur ); };
+
+	template <typename KeyT=int, typename ValT=int>
+	inline const ValT* val() const
+	{ return (const ValT*)( ((const char*)m_cur) + sizeof(KeyT) ); };
+
+	//-- api
+	iteratorT& operator=(const iteratorT& i)
+	{ m_obj=i.m_obj; m_cur=i.m_cur; return *this; };
+
+	inline iteratorT& operator++() { m_cur = min(m_cur+recsize_(), end_()); return *this; };
+	inline iteratorT& operator--() { m_cur = max(m_cur-recsize_(), beg_()); return *this; };
+
+	inline iteratorT& operator++(int) { iteratorT i(*this); ++i; return i; };
+	inline iteratorT& operator--(int) { iteratorT i(*this); --i; return i; };
+
+	inline ET& operator*() const { return *m_cur; };
+	inline ET* operator->() const { return m_cur; };
+
+	//-- generic pointer-dereference
+	template <typename PtrT>
+	inline operator PtrT*() const { return (PtrT*)(m_cur); };
+
+	inline bool operator==(const iteratorT& i) { return m_cur == i.m_cur; };
+	inline bool operator!=(const iteratorT& i) { return m_cur != i.m_cur; };
+	inline bool operator< (const iteratorT& i) { return m_cur <  i.m_cur; };
+	inline bool operator> (const iteratorT& i) { return m_cur >  i.m_cur; };
+	inline bool operator<=(const iteratorT& i) { return m_cur <= i.m_cur; };
+	inline bool operator>=(const iteratorT& i) { return m_cur >= i.m_cur; };
+
+	inline iteratorT& operator+=(size_t n) { m_cur = min(m_cur+n*recsize_(), end_()); return *this; };
+	inline iteratorT& operator-=(size_t n) { m_cur = max(m_cur-n*recsize_(), beg_()); return *this; };
+
+	inline iteratorT  operator+(size_t n)  { iteratorT i(*this); i += n; return i; };
+	inline iteratorT  operator-(size_t n)  { iteratorT i(*this); i -= n; return i; };
+
+	inline ptrdiff_t operator-(const iteratorT& i) { return (m_cur - i.m_cur) / recsize_(); };
+    };
+
+    typedef iteratorT<char>       iterator;
+    typedef iteratorT<const char> const_iterator;
+
+    inline iterator begin() { return iterator(this, VecFileT::begin()); };
+    inline iterator end()   { return iterator(this, VecFileT::end()); };
+
+    inline const_iterator begin() const { return const_iterator(this, VecFileT::begin()); };
+    inline const_iterator end()   const { return const_iterator(this, VecFileT::end()); };
+};
+
+
+//======================================================================
+// ddcMapFile<KeyT,ValT>
+/** simulate map<KeyT,ValT> using mmap, slurp, or demote.
+ *  records should be stored as {KeyT,ValT[]} and sorted in ascending order by key
+ */
+template<typename KeyT, typename ValT>
+class ddcMapFile
+{
+public:
+    //----------------------------------------------------------
+    // typedefs
+    typedef ddcRecFile                  RecFileT;
     typedef vector<ValT>                VecT;
     typedef map<KeyT,VecT>              MapT;
 
@@ -492,68 +519,29 @@ public:
     typedef VecT	      	        mapped_type;
     typedef pair<KeyT,VecT>             value_type;
 
-    struct RecordT {
-	const KeyT*  m_key;
-	ValT*        m_vals;
-
-	RecordT()
-	    : m_key(NULL), m_vals(NULL)
-	{};
-	
-	RecordT(const KeyT& key_, ValT* vals_=NULL)
-	{ assign(key_,vals_); };
-
-	~RecordT()
-	{};
-
-	inline RecordT& assign(const KeyT& key_, ValT* vals_)
-	{ m_key = &key_; m_vals = vals_; return *this; };
-
-	inline RecordT& assign(const char *data)
-	{ return assign( *((const KeyT*)data),  (ValT*)(data+sizeof(KeyT)) ); };
-
-	inline RecordT& assign(const typename MapT::iterator& mapi)
-	{ return assign(mapi->first, &(mapi->second[0])); };
-
-	inline RecordT& assign(const typename MapT::const_iterator& mapi)
-	{ return assign(mapi->first, (ValT*)&(mapi->second[0])); };
-
-	inline bool operator<(const KeyT& key) const
-	{ return *m_key < key; };
-
-	inline const KeyT& key() const
-	{ return *m_key; };
-
-	inline const ValT* vals() const
-	{ return m_vals; };
-
-	inline ValT* vals()
-	{ return m_vals; };
-    };
+public:
+    //----------------------------------------------------------
+    // "private" data
+    RecFileT m_rfile;           ///< data (read-only: mmap or slurp)
+    MapT     m_map;             ///< data (read/write: demoted)
+    size_t   m_vsize;           ///< number of elements per value-vector (constant)
 
 public:
     //----------------------------------------------------------
-    // data
-    VMapT    m_vmap;            ///< data (mmap)
-    MapT     m_map;             ///< data (slurp)
-    size_t   m_vsize;           ///< number of elements per value-vector
-
-public:
-    //----------------------------------------------------------
-    // constrcutors etc
+    // constructors etc
 
     // default constructor
-    ddcVMapFile()
+    ddcMapFile()
 	: m_vsize(0)
     {};
 
     /// construct and open
-    ddcVMapFile(const std::string& filename, size_t vsize_, bool useMMap=false)
+    ddcMapFile(const std::string& filename, size_t vsize_, bool useMMap=false)
 	: m_vsize(0)
     { open(filename,vsize_,useMMap); };
 
     /// default destructor calls close()
-    ~ddcVMapFile()
+    ~ddcMapFile()
     { close(); };
   
     /// clear() method wraps close()
@@ -574,7 +562,7 @@ public:
     
     /// returns the number of records in this object
     inline size_t size() const
-    { return m_vmap ? m_vmap.size() : m_map.size(); };
+    { return m_rfile ? m_rfile.size() : m_map.size(); };
 
     /// STL-esque wrapper
     inline bool empty() const
@@ -582,7 +570,7 @@ public:
 
     /// returns true iff object is opened (or non-empty)
     inline bool opened() const 
-    { return m_vmap ? m_vmap.opened() : !m_map.empty(); };
+    { return m_rfile ? m_rfile.opened() : !m_map.empty(); };
 
     //----------------------------------------------------------
     // typecasts and operators
@@ -598,167 +586,88 @@ public:
 	return m_map[key];
     };
 
+
 public:
     //----------------------------------------------------------
-    // iterators : n/a
-    template<typename MMapIT, typename MapIT>
-    struct iteratorT
-    {
-	//-- typedefs
-	typedef RecordT             value_type;
-	typedef ptrdiff_t           difference_type;
-	typedef value_type*         pointer;
-	typedef value_type&         reference;
-	typedef std::bidirectional_iterator_tag iterator_category;
+    // STL-esque iterators (read-only mode)
 
-	//--- data
-	const ddcVMapFile<KeyT,ValT>* m_obj;
-	MMapIT                          m_vmi;
-	MapIT                           m_mi;
-	RecordT                         m_rec;
+    typedef RecFileT::iterator       iterator;
+    typedef RecFileT::const_iterator const_iterator;
 
-	//-- constructors etc
-	iteratorT(const ddcVMapFile<KeyT,ValT> *obj, MMapIT mmi, const MapIT& mi)
-	    : m_obj(obj), m_vmi(mmi), m_mi(mi)
-	{};
+    inline iterator begin() { return m_rfile.begin(); };
+    inline iterator end()   { return m_rfile.end(); };
 
-	template <typename srcIteratorT> //-- for implicit const/non-const conversions
-	iteratorT(const srcIteratorT& i)
-	    : m_obj(i.m_obj), m_vmi(i.m_vmi), m_mi(i.m_mi)
-	{};
-	
-	~iteratorT()
-	{};
+    inline const_iterator begin() const { return m_rfile.begin(); };
+    inline const_iterator end()   const { return m_rfile.end(); };
 
-	//-- utilities
-	inline void update_()
-	{ if (m_obj->m_vmap) m_rec.assign(m_vmi); else m_rec.assign(m_mi); };
+    template<typename IterT>
+    inline const KeyT& key(const IterT& it) const
+    { return it.key<KeyT>(); };
 
-	template <typename srcIteratorT>
-	inline iteratorT& operator=(const srcIteratorT& i)
-	{ m_obj=i.m_obj; m_vmi=i.m_vmi; m_mi=i.m_mi; return *this; };
-
-	inline iteratorT& operator++() { if (m_obj->m_vmap) ++m_vmi; else ++m_mi; return *this; };
-	inline iteratorT& operator--() { if (m_obj->m_vmap) --m_vmi; else --m_mi; return *this; };
-
-	inline iteratorT& operator++(int) { iteratorT i(*this); ++i; return i; };
-	inline iteratorT& operator--(int) { iteratorT i(*this); --i; return i; };
-
-	inline reference operator*()  { update_(); return  m_rec; };
-	inline pointer   operator->() { update_(); return &m_rec; };
-
-	inline bool operator==(const iteratorT& i) { return m_obj->m_vmap ? (m_vmi == i.m_vmi) : (m_mi == i.m_mi); };
-	inline bool operator!=(const iteratorT& i) { return m_obj->m_vmap ? (m_vmi != i.m_vmi) : (m_mi != i.m_mi); };
-	inline bool operator< (const iteratorT& i) { return m_obj->m_vmap ? (m_vmi <  i.m_vmi) : (m_mi <  i.m_mi); };
-	inline bool operator> (const iteratorT& i) { return m_obj->m_vmap ? (m_vmi >  i.m_vmi) : (m_mi >  i.m_mi); };
-	inline bool operator<=(const iteratorT& i) { return m_obj->m_vmap ? (m_vmi <= i.m_vmi) : (m_mi <= i.m_mi); };
-	inline bool operator>=(const iteratorT& i) { return m_obj->m_vmap ? (m_vmi >= i.m_vmi) : (m_mi >= i.m_mi); };
-
-	inline iteratorT& operator+=(size_t n) { if (m_obj->m_vmap) m_vmi += n; else m_mi += n; return *this; };
-	inline iteratorT& operator-=(size_t n) { if (m_obj->m_vmap) m_vmi -= n; else m_mi -= n; return *this; };
-
-	inline iteratorT  operator+(size_t n)  { iteratorT i(*this); i += n; return i; };
-	inline iteratorT  operator-(size_t n)  { iteratorT i(*this); i -= n; return i; };
-
-	inline ptrdiff_t operator-(const iteratorT& i) { return m_obj->m_vmap ? (m_vmi - i.m_vmi) : (m_mi - i.m_mi); };
-    };
-
-    typedef iteratorT< typename VMapT::iterator,       typename MapT::iterator >       iterator;
-    typedef iteratorT< typename VMapT::const_iterator, typename MapT::const_iterator > const_iterator;
-
-    inline iterator begin() { return iterator(this, m_vmap.begin(), m_map.begin()); };
-    inline iterator end()   { return iterator(this, m_vmap.end(),   m_map.end()); };
-
-    inline const_iterator begin() const { return const_iterator(this, m_vmap.begin(), m_map.begin()); };
-    inline const_iterator end()   const { return const_iterator(this, m_vmap.end(),   m_map.end()); };
+    template<typename IterT>
+    inline const ValT* val(const IterT& it) const
+    { return it.val<KeyT,ValT>(); };
 
 public:
     //----------------------------------------------------------
     // searching
 
     struct KeyLess {
-	inline bool operator()(const RecordT &rec, const KeyT& key)
+	inline bool operator()(const char& ref, const KeyT& key)
 	{
-	    //fprintf(stderr, "COMPARE(%d, %d)\n", rec.key(), key);
-	    return rec.key() < key;
+	    const KeyT& refkey = *((const KeyT*)(&ref));
+	    //fprintf(stderr, "COMPARE(%d, %d)\n", refkey, key);
+	    return refkey < key;
 	};
     };
 
     
-    /// simulate std::map::find()
-    inline const_iterator find(const KeyT& key) const
+    /// simulate std::map::find(), returns NULL on error
+    inline const ValT* find(const KeyT& key_) const
     {
-	if (m_vmap) {
-	    const_iterator lb = lower_bound(begin(), end(), key, KeyLess());
-	    return (lb != end() && lb->key() == key) ? lb : end();
+	if (m_rfile) {
+	    const_iterator lb = lower_bound(begin(), end(), key_, KeyLess());
+	    return (lb != end() && key(lb) == key_) ? val(lb) : NULL;
 	} else {
-	    typename MapT::const_iterator lb = m_map.find(key);
-	    return const_iterator(this, m_vmap.end(), lb);
+	    typename MapT::const_iterator lb = m_map.find(key_);
+	    return (lb != m_map.end() && lb->first == key_) ? &(lb->second[0]) : NULL;
 	}
     };
-
     
 public:
     //----------------------------------------------------------
     // guts
-    ddcVMapFile& open(const std::string& filename, size_t vsize, bool useMMap=false)
+    ddcMapFile& open(const std::string& filename, size_t vsize, bool useMMap=false)
     {
-      if (opened()) close();
-      m_vsize = vsize;
-      if (useMMap) {
-	//-- mmap mode
-	ddcLogTrace("ddcVMapFile[mmap]::open("+filename+")");
-	m_vmap.open(filename, sizeof(KeyT)+vsize*sizeof(ValT), O_RDONLY);
-      } else {
-	//-- slurp mode, adapted from CIndexSetForQueryingStage::LoadPeriodDevision()
-	ddcLogTrace("ddcVMapFile[slurp]::open("+filename+")");
-	FILE *fp = fopen(filename.c_str(), "rb");
-	if (!fp)
-	  throw invalid_argument(Format("ddcVMapFile::open(): open failed for '%s': %s",filename.c_str(),strerror(errno)));
-
-	size_t fsize = FileSize(filename.c_str());
-	size_t nrecs = fsize / recsize();
-	assert((fsize % recsize()) == 0);
-
-	for (size_t i=0; i < nrecs; ++i) {
-	  KeyT key;
-	  if (fread(&key,sizeof(KeyT),1,fp) != 1)
-	    throw runtime_error(Format("ddcVMapFile::open(): failed to read key from %s: %s",filename.c_str(),strerror(errno)));
-	  typename MapT::iterator it = m_map.insert(make_pair(key,VecT())).first;
-	  it->second.reserve(m_vsize);
-	  ReadVectorInner(fp, it->second, m_vsize);
-	  if (it->second.size() != m_vsize)
-	    throw runtime_error(Format("ddcVMapFile::open(): failed to read values from %s: %s",filename.c_str(),strerror(errno)));
-	}
-	fclose(fp);
-      }
-      return *this;
+	if (opened()) close();
+	m_vsize = vsize;
+	m_rfile.open(filename, recsize(), useMMap);
+	return *this;
     };
 
     inline void close()
     {
-      m_vmap.close();
-      m_map.clear();
-      m_vsize = 0;
+	m_rfile.close();
+	m_map.clear();
+	m_vsize = 0;
     };
 
     /// force map-implementation
     void ensureMap()
     {
-	if (m_vmap) {
-	  m_map.clear();
-	  for (const_iterator i=begin(); i != end(); ++i) {
-	    const KeyT &key  = i->key();
-	    const ValT *vals = i->vals();
-	    typename MapT::iterator it = m_map.insert(make_pair(key,VecT())).first;
-	    it->second.reserve(m_vsize);
-	    it->second.assign(vals, vals+m_vsize);
-	  }
-	  m_vmap.close();
+	if (m_rfile) {
+	    ddcLogWarn(Format("WARNING: ddcMapFile(\"%s\") demoting to std::map<> implementation", m_rfile.filename().c_str()));
+	    m_map.clear();
+	    for (const_iterator i=begin(); i != end(); ++i) {
+		const KeyT& key_ = key(i);
+		const ValT *val_ = val(i);
+		typename MapT::iterator it = m_map.insert(make_pair(key_,VecT())).first;
+		it->second.reserve(m_vsize);
+		it->second.assign(val_, val_+m_vsize);
+	    }
+	    m_rfile.close();
 	}
     };
 };
-
-
 
 #endif /* DDC_MMAP_H */

@@ -240,7 +240,7 @@ int CConcXml::CFreeBiblIndex::GetIntegerValue(DWORD FileNo ) const
 
 
 
-bool CConcXml::CFreeBiblIndex::ReadFromDisk (string Path,  DWORD FileBreaksSize) 
+bool CConcXml::CFreeBiblIndex::ReadFromDisk (string Path,  DWORD FileBreaksSize, bool useMMap) 
 {
 	ReadVector(GetIndexFileName(Path), m_ValuesForEachFile);
 
@@ -365,12 +365,12 @@ void	CConcXml::CFreeBiblStringIndex::clear()
 {
 	CFreeBiblIndex::clear();
 	m_BuildStringItems.clear();
-	m_Values.clear();
+	m_ValuesE.clear();
 };
 
 string CConcXml::CFreeBiblStringIndex::GetStringValue(DWORD FileNo ) const 
 {
-	return m_Values[m_ValuesForEachFile[FileNo]];
+	return m_ValuesE[m_ValuesForEachFile[FileNo]];
 };
 
 string  CConcXml::CFreeBiblStringIndex::GetStringFileName (string Path) const 
@@ -384,41 +384,36 @@ bool CConcXml::CFreeBiblStringIndex::DeleteBiblFiles (string Path) const
 			&&	CFreeBiblIndex::DeleteBiblFiles(Path);
 };
 
-bool CConcXml::CFreeBiblStringIndex::ReadBiblStringItems (vector<string>&  Set, string FileName) const
+bool CConcXml::CFreeBiblStringIndex::ReadBiblStringItems (string FileName, bool useMMap)
 {
-	Set.clear();
-
-	FILE * fp = fopen(FileName.c_str(), "rb");
-	if (!fp) 
-	{
-		fprintf(stderr, "Warning:Cannot read file %s\n", FileName.c_str());
-		return false;
-	};
-	char buffer[MaxBiblStringLen+1];
-	while (fgets(buffer, MaxBiblStringLen, fp))
-	{
-		string q = buffer;
-		Trim(q);
-		Set.push_back(q);
-	};
-
-	ddcLogDebug(Format("read %zi item(s) from %s", Set.size(), FileName.c_str()));
-	fclose (fp);
+	m_ValuesE.open(FileName+"_values", FileName+"_idx", FileName, useMMap);
 	return true;
 };
 
 bool CConcXml::CFreeBiblStringIndex::WriteBiblStringItems (const vector<string>&  Set, string FileName) const
 {
-	FILE * fp = fopen(FileName.c_str(), "wb");
-	if (!fp) 
-	{
-		fprintf(stderr, "Warning:Cannot write file %s\n", FileName.c_str());
+	string ValuesFile = FileName + "_values";
+	FILE *vfp = fopen(ValuesFile.c_str(), "wb");
+	if (!vfp)  {
+		ddcLogError(Format("CConcXml::CFreeBiblStringIndex::WriteBiblStringItems(): open failed for '%s': %s",ValuesFile.c_str(), strerror(errno)));
 		return false;
-	};
-	for (size_t i=0; i< Set.size(); i++)
-		fprintf(fp, "%s\n",Set[i].c_str());
+	}
 
-	fclose (fp);
+	string IndexFile  = FileName + "_idx";
+	FILE *ifp = fopen(IndexFile.c_str(), "wb");
+	if (!ifp)  {
+		ddcLogError(Format("CConcXml::CFreeBiblStringIndex::WriteBiblStringItems(): open failed for '%s': %s",IndexFile.c_str(), strerror(errno)));
+		return false;
+	}
+
+	for (size_t i=0; i< Set.size(); i++) {
+		ddcStringEnum<>::OffT pos = ftell(vfp);
+		fwrite(&pos, sizeof(ddcStringEnum<>::OffT), 1, ifp);
+		fwrite(Set[i].c_str(), 1, Set[i].size()+1, vfp);
+	}
+
+	fclose(ifp);
+	fclose(vfp);
 	return true;
 };
 
@@ -433,38 +428,46 @@ CFreeBiblIndexTypeId CConcXml::CFreeBiblStringIndex::GetTypeId() const
 };
 
 
-bool CConcXml::CFreeBiblStringIndex::ReadFromDisk (string Path, DWORD FileBreaksSize) 
+bool CConcXml::CFreeBiblStringIndex::ReadFromDisk (string Path, DWORD FileBreaksSize, bool useMMap) 
 {
-	if (!ReadBiblStringItems(m_Values, GetStringFileName(Path)))
-			return false;
-	return CFreeBiblIndex::ReadFromDisk(Path, FileBreaksSize);
+	if (!ReadBiblStringItems(GetStringFileName(Path), useMMap))
+		return false;
+	return CFreeBiblIndex::ReadFromDisk(Path, FileBreaksSize, useMMap);
 }
 
 void CConcXml::CFreeBiblStringIndex::CreateUnionOfBiblStrings (const vector<string>&  _X1, const vector<string>&  _X2,   
 						  vector<DWORD>& Transfer1, vector<DWORD>& Transfer2)
 {
-	m_Values.resize(_X1.size()  + _X2.size());
+	m_ValuesE.ensureVec();
+	m_ValuesE.m_strings.resize(_X1.size()  + _X2.size());
 
-	vector<string>::iterator it = set_union(_X1.begin(),_X1.end(), _X2.begin(),_X2.end(), m_Values.begin());
-	m_Values.resize(it - m_Values.begin());
+	vector<string>::iterator it = set_union(_X1.begin(),_X1.end(), _X2.begin(),_X2.end(), m_ValuesE.m_strings.begin());
+	m_ValuesE.m_strings.resize(it - m_ValuesE.m_strings.begin());
 
 	Transfer1.clear();
 	for (size_t i=0; i< _X1.size(); i++)
-		Transfer1.push_back( lower_bound(m_Values.begin(), m_Values.end(), _X1[i]) - m_Values.begin() );
+		Transfer1.push_back( lower_bound(m_ValuesE.m_strings.begin(), m_ValuesE.m_strings.end(), _X1[i]) - m_ValuesE.m_strings.begin() );
 
 	Transfer2.clear();
 	for (size_t i=0; i< _X2.size(); i++)
-		Transfer2.push_back( lower_bound(m_Values.begin(), m_Values.end(), _X2[i]) - m_Values.begin() );
+		Transfer2.push_back( lower_bound(m_ValuesE.m_strings.begin(), m_ValuesE.m_strings.end(), _X2[i]) - m_ValuesE.m_strings.begin() );
 };
 
 void CConcXml::CFreeBiblStringIndex::CreateUnion (string Path, const CFreeBiblIndex* pIndex1, const CFreeBiblIndex* pIndex2 ) 
 {
 	const CFreeBiblStringIndex& I1 = *(const CFreeBiblStringIndex*)pIndex1;
 	const CFreeBiblStringIndex& I2 = *(const CFreeBiblStringIndex*)pIndex2;
+
 	m_ValuesForEachFile.clear();
-	m_Values.clear();
+	m_ValuesE.clear();
+	m_ValuesE.ensureVec();
+
+	vector<string> Values1, Values2;
+	I1.m_ValuesE.to_vector(Values1);
+	I2.m_ValuesE.to_vector(Values2);
+	
 	vector<DWORD> Old2New1, Old2New2;
-	CreateUnionOfBiblStrings(I1.m_Values, I2.m_Values, Old2New1, Old2New2);
+	CreateUnionOfBiblStrings(Values1, Values2, Old2New1, Old2New2);
 
 	size_t Count = I1.m_ValuesForEachFile.size();
 	size_t i = 0;
@@ -475,7 +478,7 @@ void CConcXml::CFreeBiblStringIndex::CreateUnion (string Path, const CFreeBiblIn
 	for (; i < Count; i++)
 		m_ValuesForEachFile.push_back( Old2New2[I2.m_ValuesForEachFile[i-I2.m_ValuesForEachFile.size()]] );
 
-	WriteBiblStringItems(m_Values, GetStringFileName(Path));
+	WriteBiblStringItems(m_ValuesE.m_strings, GetStringFileName(Path));
 	CFreeBiblIndex::ConvertAndSaveToDiskAfterIndexing(Path);
 };
 
@@ -488,21 +491,15 @@ bool CConcXml::CFreeBiblStringIndex::GetFilterBounds (CDDCFilterWithBounds& Filt
 	//-- lower bound
 	Filter.m_KeyLo.assign(INT_MIN,LoValue);
 	if (!LoValue.empty()) {
-		vector<string>::const_iterator ilo = lower_bound(m_Values.begin(), m_Values.end(), LoValue);
-		if ( ilo != m_Values.end() )
-			Filter.m_KeyLo.i = ilo-m_Values.begin();
-		else
-			Filter.m_KeyLo.i = INT_MAX;
+		DWORD ilo = m_ValuesE.lower_bound(LoValue);
+		Filter.m_KeyLo.i = (ilo != m_ValuesE.NO_ID ? ilo : INT_MAX);
 	}
 
 	//-- upper bound
 	Filter.m_KeyHi.assign(INT_MAX,HiValue);
 	if (!HiValue.empty()) {
-		vector<string>::const_iterator ihi = upper_bound(m_Values.begin(), m_Values.end(), HiValue);
-		if ( ihi != m_Values.end() )
-			Filter.m_KeyHi.i = ihi-m_Values.begin();
-		else
-			Filter.m_KeyHi.i = m_Values.size();
+		DWORD ihi = m_ValuesE.upper_bound(HiValue);
+		Filter.m_KeyHi.i = (ihi != m_ValuesE.NO_ID ? ihi : m_ValuesE.size());
 	}
 
 	return true;
@@ -513,11 +510,8 @@ DWORD CConcXml::CFreeBiblStringIndex::GetIntegerLowerBound(const string& Value) 
 	if (Value.empty())
 		return INT_MIN;
 
-	vector<string>::const_iterator ilo = lower_bound(m_Values.begin(), m_Values.end(), Value);
-	if ( ilo != m_Values.end() )
-		return ilo-m_Values.begin();
-	else
-		return INT_MAX;
+	DWORD ilo = m_ValuesE.lower_bound(Value);
+	return (ilo != m_ValuesE.NO_ID ? ilo : INT_MAX);
 }
 
 bool CConcXml::CFreeBiblStringIndex::GetFilterValue (CDDCFilterWithBounds& Filter, const string &Value) const
@@ -533,13 +527,13 @@ bool CConcXml::CFreeBiblStringIndex::GetFilterValue (CDDCFilterWithBounds& Filte
 	}
 
 	//-- positive filter condition (literal)
-	vector<string>::const_iterator it = lower_bound(m_Values.begin(), m_Values.end(), Value);
-	if ( it == m_Values.end() || *it  != Value ) {
+	DWORD id = m_ValuesE.find(Value);
+	if ( id == m_ValuesE.NO_ID ){
 		Filter.m_KeyLo = 0;
 		Filter.m_KeyHi = 0;
 	}
 	else {
-		Filter.m_KeyLo.assign(it-m_Values.begin(),    Value);
+		Filter.m_KeyLo.assign(id,                 Value);
 		Filter.m_KeyHi.assign(Filter.m_KeyLo.i+1, Value);
 	}
 	
@@ -549,13 +543,13 @@ bool CConcXml::CFreeBiblStringIndex::GetFilterValue (CDDCFilterWithBounds& Filte
 bool CConcXml::CFreeBiblStringIndex::GetFilterValues (CDDCFilterWithBounds& Filter, const string &Regex) const
 {
 	RML_RE re(Regex, *m_pRegexOpts);
-	size_t Count = m_Values.size();
+	size_t Count = m_ValuesE.size();
 
 	//-- regex condition: positive or negative
 	Filter.m_bSet  = true;
 	Filter.m_BiblIndex = this;
 	for (size_t i=0; i<Count; i++) {
-		bool isMatch = re.PartialMatch(m_Values[i]);
+		bool isMatch = re.PartialMatch(m_ValuesE[i]);
 		if (Filter.m_bNegated ? (!isMatch) : isMatch)
 			Filter.m_SatisfiedValues.insert(i);
 	}
@@ -567,10 +561,10 @@ bool CConcXml::CFreeBiblStringIndex::GetFilterValues (CDDCFilterWithBounds& Filt
 	}
 	else {
 		Filter.m_KeyLo.i = *Filter.m_SatisfiedValues.begin();
-		Filter.m_KeyLo.s = m_Values[Filter.m_KeyLo.i];
+		Filter.m_KeyLo.s = m_ValuesE[Filter.m_KeyLo.i];
 
 		Filter.m_KeyHi.i = *Filter.m_SatisfiedValues.rbegin();
-		Filter.m_KeyHi.s = m_Values[Filter.m_KeyHi.i];
+		Filter.m_KeyHi.s = m_ValuesE[Filter.m_KeyHi.i];
 		Filter.m_KeyHi.i++;
 	}
 
@@ -584,22 +578,17 @@ bool CConcXml::CFreeBiblStringIndex::GetFilterValues (CDDCFilterWithBounds& Filt
 
 	if (!Filter.m_bNegated) {
 		//-- set-valued condition: positive: iterate over argument values (assume |Values| << |m_Values|)
-		vector<string>::const_iterator i0 = m_Values.begin();
-
 		for (set<string>::const_iterator vali=Values.begin(); vali != Values.end(); ++vali) {
-			vector<string>::const_iterator it = lower_bound(i0, m_Values.end(), *vali);
-			bool isMatch = (it != m_Values.end()) && (*it == *vali);
-			if ( (it != m_Values.end()) && (*it == *vali) ) {
-				Filter.m_SatisfiedValues.insert(it - m_Values.begin());
-				i0 = it;
-			}
+			DWORD it = m_ValuesE.find(*vali);
+			if (it != m_ValuesE.NO_ID)
+				Filter.m_SatisfiedValues.insert(it);
 		}
 	}
 	else {
-		//-- set-valued condition: negative: iterate over indexed values
-		size_t Count = m_Values.size();
+		//-- set-valued condition: negative: iterate over indexed values (expensive)
+		size_t Count = m_ValuesE.size();
 		for (size_t i=0; i < Count; i++) {
-			set<string>::const_iterator vali = Values.find(m_Values[i]);
+			set<string>::const_iterator vali = Values.find(m_ValuesE[i]);
 			if (vali == Values.end())
 				Filter.m_SatisfiedValues.insert(i);
 		}
@@ -612,10 +601,10 @@ bool CConcXml::CFreeBiblStringIndex::GetFilterValues (CDDCFilterWithBounds& Filt
 	}
 	else {
 		Filter.m_KeyLo.i = *Filter.m_SatisfiedValues.begin();
-		Filter.m_KeyLo.s = m_Values[Filter.m_KeyLo.i];
+		Filter.m_KeyLo.s = m_ValuesE[Filter.m_KeyLo.i];
 
 		Filter.m_KeyHi.i = *Filter.m_SatisfiedValues.rbegin();
-		Filter.m_KeyHi.s = m_Values[Filter.m_KeyHi.i];
+		Filter.m_KeyHi.s = m_ValuesE[Filter.m_KeyHi.i];
 		Filter.m_KeyHi.i++;
 	}
 
@@ -687,33 +676,51 @@ bool CConcXml::CFreeBiblStringIndex::ConvertAndSaveToDiskAfterIndexing (string m
 			m_ValuesForEachFile[i] =  Old2New[m_ValuesForEachFile[i]];
 	}
 
-	{	// saving
-		string StringFileName =  GetStringFileName(m_Path);
-		FILE * fp = fopen(StringFileName.c_str(), "wb");
-		if (!fp) 
-		{
-			fprintf(stderr, "Cannot write to %s\n", StringFileName.c_str());
-			return false;
-		};
-		const list<CStringItem>&  Set = m_BuildStringItems;
-		fprintf(stderr, "Writing %zi items  to %s\n", Set.size(), StringFileName.c_str());
-		
-		for (list<CStringItem>::const_iterator it = Set.begin(); it != Set.end(); it++)
-		{
-			const string& I = it->m_BiblString;
-			if (fprintf (fp,"%s\n",I.c_str()) < 0)
-			{
-				fclose (fp);
-				fprintf(stderr, "Cannot add new item  to %s\n", StringFileName.c_str());
-				return false;
-			};;
-		};
-		fclose (fp);
+	//-- save data (v2.1.12)
+	string StringFileName = GetStringFileName(m_Path);
+	string ValuesFile     = StringFileName + "_values";
+	string IndexFile      = StringFileName + "_idx";
+	
+	FILE *vfp = fopen(ValuesFile.c_str(), "wb");
+	if (!vfp)  {
+		ddcLogError(Format("CConcXml::CFreeBiblStringIndex::ConvertAndSaveToDiskAfterIndexing(): open failed for '%s': %s",ValuesFile.c_str(), strerror(errno)));
+		return false;
+	}
+	FILE *ifp = fopen(IndexFile.c_str(), "wb");
+	if (!ifp)  {
+		ddcLogError(Format("CConcXml::CFreeBiblStringIndex::ConvertAndSaveToDiskAfterIndexing(): open failed for '%s': %s",IndexFile.c_str(), strerror(errno)));
+		return false;
+	}
 
+	const list<CStringItem>&  Set = m_BuildStringItems;
+	fprintf(stderr, "Writing %zi items  to %s_*\n", Set.size(), StringFileName.c_str());
+
+	bool rc = true;
+	try {
+		for (list<CStringItem>::const_iterator it = Set.begin(); it != Set.end(); it++) {
+			const string& I           = it->m_BiblString;
+			ddcStringEnum<>::OffT pos = ftell(vfp);
+			
+			if (fwrite(&pos, sizeof(ddcStringEnum<>::OffT), 1, ifp) != 1)
+				throw runtime_error("failed to write offset data");
+			if (fwrite(I.c_str(), 1, I.size()+1, vfp) != I.size()+1)
+				throw runtime_error("failed to write string data");
+		}
 		CFreeBiblIndex::ConvertAndSaveToDiskAfterIndexing(m_Path);
-	};
+		rc = true;
+	}
+	catch (exception &e) {
+		fprintf(stderr, "CConcXml::CFreeBiblStringIndex::ConvertAndSaveToDiskAfterIndexing(): Exception: %s\n", e.what());
+		rc = false;
+	}
+	catch (...) {
+		fprintf(stderr, "CConcXml::CFreeBiblStringIndex::ConvertAndSaveToDiskAfterIndexing(): Exception: (unhandled exception)\n");
+		rc = false;
+	}
 
-	return true;
+	fclose(vfp);
+	fclose(ifp);
+	return rc;
 };
 
 
@@ -721,7 +728,6 @@ bool CConcXml::CFreeBiblStringIndex::ConvertAndSaveToDiskAfterIndexing (string m
 
 CConcXml::CFreeBiblStringConstant::CFreeBiblStringConstant(const string &value)
 {
-	m_Values.reserve(1);
 	setValue(value);
 };
 
@@ -733,13 +739,15 @@ void CConcXml::CFreeBiblStringConstant::setValue(const string& value)
 {
 	clear();
 	m_Value = value;
-	m_Values.push_back(m_Value);
+	m_ValuesE.ensureVec();
+	m_ValuesE.m_strings.reserve(1);
+	m_ValuesE.m_strings.push_back(m_Value);
 }
 
 void CConcXml::CFreeBiblStringConstant::clear()
 {
 	CFreeBiblStringIndex::clear();
-	m_Value.clear();
+	ClearString(m_Value);
 };
 
 string CConcXml::CFreeBiblStringConstant::GetTypeStr() const
@@ -768,7 +776,7 @@ int CConcXml::CFreeBiblStringConstant::GetIntegerValue(DWORD FileNo ) const
 	return 0;
 };
 
-bool CConcXml::CFreeBiblStringConstant::ReadFromDisk(string Path, DWORD FileBreaksSize) 
+bool CConcXml::CFreeBiblStringConstant::ReadFromDisk(string Path, DWORD FileBreaksSize, bool useMMap) 
 {
 	return true;
 };
@@ -784,6 +792,7 @@ CConcXml::CConcXml()
 {
 	m_BiblBodyFile = 0;
 	m_RegexOpts = RML_RE::Options(pcrecpp::UTF8(), NULL); //-- default
+	m_bMemoryMap = false;
 };
 
 CConcXml::~CConcXml()
@@ -1228,9 +1237,11 @@ string CConcXml::GetBiblFileName() const
 };
 
 
-bool CConcXml::LoadBibl(string Path, size_t FileBreaksSize)
+bool CConcXml::LoadBibl(string Path, size_t FileBreaksSize, bool useMMap)
 {
 	SetPath(Path);
+	m_bMemoryMap = useMMap;
+
 	// reading Bibliographical files if they exist
 	if (m_BiblBodyFile) fclose (m_BiblBodyFile);
 	m_BiblBodyFile = fopen(GetBiblFileName().c_str(), "rb");
@@ -1254,7 +1265,7 @@ bool CConcXml::LoadBibl(string Path, size_t FileBreaksSize)
 	};
 
 	for (FreeBiblStringMap::iterator bibl_it = m_FreeBiblIndices.begin(); bibl_it != m_FreeBiblIndices.end(); bibl_it++)
-		if (!bibl_it->second->ReadFromDisk(m_Path, FileBreaksSize))
+		if (!bibl_it->second->ReadFromDisk(m_Path, FileBreaksSize, useMMap))
 			return false;
 
 	return true;

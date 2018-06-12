@@ -214,16 +214,17 @@ void  CIndexSetForQueryingStage::AddOccurs (size_t PeriodDevId, const bool bOneO
 	else
 	
     {
-        PeriodsDivisionMapT::const_iterator per_dev_it = m_EndPeriodOffsets.find(PeriodDevId);
-        if (per_dev_it != m_EndPeriodOffsets.end())
+	const DWORD *Periods = m_EndPeriodOffsets.find(PeriodDevId);
+        if (Periods != NULL)
         {
 	    //fprintf(stderr, "DEBUG: AddOccurs(): per_dev_it != m_EndPeriodOffsets.end()\n");
             
 	    //const vector<DWORD>& Periods = per_dev_it->second;
 	    //-- moo: this assertion catches if we redefine & manually re-calculate search-period size WITHOUT re-indexing (Thu, 13 Nov 2015 09:57:03 +0100)
+	    //   + UPDATE 2018-06-12 10:02:56+0200: we check this anymore here using mmap()-savvy implementation,
+	    //     but consistency with m_pParent->GetSearchPeriodsCount() should be checked at load-time by ddcRecFile::open()
             //assert (Periods.size() == m_pParent->GetSearchPeriodsCount());
 
-            const DWORD *Periods = per_dev_it->vals();
             const QWORD StartOfPeriod  = (PeriodNo == 0) ? StartOccurNo      : (QWORD)StartOccurNo + Periods[PeriodNo - 1];
             const QWORD PeriodSize     = (PeriodNo == 0) ? Periods[PeriodNo] : Periods[PeriodNo]   - Periods[PeriodNo - 1];
             
@@ -584,4 +585,3 @@ bool	CIndexSetForQueryingStage::LoadPeriodDivision()
 	}
 	return true;
 };
-

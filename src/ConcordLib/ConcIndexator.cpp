@@ -1973,7 +1973,7 @@ bool CConcIndexator::LoadProject(string FileName)
 		return false;
 	}
 	
-	if (!m_Bibl.LoadBibl(FileName, GetFileBreaks().size())) {
+	if (!m_Bibl.LoadBibl(FileName, GetFileBreaks().size(), m_bMemoryMap)) {
 		return false;
 	}
 

@@ -25,6 +25,7 @@
 #include "../common/util_classes.h"
 #include "../common/MorphXmlToken.h"
 #include "../CommonLib/ddcThread.h"
+#include "../CommonLib/ddcStringEnum.h"
 #include <list>
 #include "ConcCommon.h"
 #include "../PCRE/pcre_rml.h"
@@ -106,7 +107,7 @@ public:
 
 		virtual void	clear();
 		virtual string	GetStringValue(DWORD FileNo ) const;
-		virtual bool	ReadFromDisk (string Path, DWORD FileBreaksSize);
+		virtual bool	ReadFromDisk (string Path, DWORD FileBreaksSize, bool useMMap=false);
 		virtual void	CreateUnion (string Path, const CFreeBiblIndex* pIndex1, const CFreeBiblIndex* pIndex2);
 		virtual bool	RegisterBiblStringItemId(const string& Value);
 		virtual bool	DeleteBiblFiles (string Path) const;
@@ -169,11 +170,12 @@ public:
 		//! a list  that is used during building  this  bibl-index
 		list<CStringItem >		m_BuildStringItems;
 		//! a set of all possible string values for this index
-		vector<string>			m_Values;
+		//vector<string>		m_Values;
+		ddcStringEnum<>			m_ValuesE;
 
 		void	CreateUnionOfBiblStrings (const vector<string>&  _X1, const vector<string>&  _X2, vector<DWORD>& Transfer1, vector<DWORD>& Transfer2);
 		string	GetStringFileName (string Path) const;
-		bool	ReadBiblStringItems (vector<string>&  Set, string FileName) const;
+		bool	ReadBiblStringItems (string FileName, bool useMMap=false);
 		bool	WriteBiblStringItems (const vector<string>&  Set, string FileName) const;
 
 
@@ -187,7 +189,7 @@ public:
 		void	CreateUnion (string Path, const CFreeBiblIndex* pIndex1, const CFreeBiblIndex* pIndex2);
 		bool	RegisterBiblStringItemId(const string& Value);
 		bool	DeleteBiblFiles (string Path) const;
-		virtual bool ReadFromDisk (string Path, DWORD FileBreaksSize);
+		virtual bool ReadFromDisk (string Path, DWORD FileBreaksSize, bool useMMap=false);
 		virtual bool ConvertAndSaveToDiskAfterIndexing(string Path);
 
 		//! initialize CDDCFilterWithBounds for a literal target or regex value (default treats Value as integer string and sets range)
@@ -211,7 +213,7 @@ public:
 
 		//! for server info
 		virtual size_t size(void) const
-		{ return m_Values.size(); };
+		{ return m_ValuesE.size(); };
 
 		//! for key-based pruning (v2.1.9): map a single value-string to its value-id
 		virtual DWORD   GetIntegerLowerBound(const string& Value) const;
@@ -231,7 +233,7 @@ public:
 		virtual const string& GetXpathStr() const;
 		virtual string GetStringValue(DWORD FileNo) const;
 		virtual int GetIntegerValue(DWORD FileNo) const;
-		virtual bool ReadFromDisk (string Path, DWORD FileBreaksSize);
+		virtual bool ReadFromDisk (string Path, DWORD FileBreaksSize, bool useMMap=false);
 		virtual bool ConvertAndSaveToDiskAfterIndexing(string Path);
 	public:
 		//-- set constant value
@@ -293,6 +295,8 @@ public:
 	 */
 	string m_DefaultAttrName;
 
+	/** whether to mmap resident data (default=false) */
+	bool m_bMemoryMap;
 		
 public:
 	CConcXml();
@@ -321,7 +325,7 @@ public:
 	//! return full text area  description
 	string GetTextAreasDescr() const;
 	void SetPath(string ProjectFileName);
-	bool LoadBibl(string Path, size_t FileBreaksSize);
+	bool LoadBibl(string Path, size_t FileBreaksSize, bool useMMap=false);
 	//! returns the bibliographical record
 	CBibliography GetFullBibliographyOfHit(size_t FileNo) const;
 	//! Check bibliographical references
