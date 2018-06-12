@@ -76,7 +76,7 @@ public:
 	time_t				m_QueryEndTime;
 
 	//! a pointer to the current hits collection
-	const vector<CTokenNo>*		m_pBreaks;
+	const ddcBreakVector*	m_pBreaks;
 
 	//! the format of query result 
 	DDCFormatTypeEnum		m_ResultFormat;
@@ -242,7 +242,7 @@ public:
 	//@{
 	
 	//! GetBreaks returns  the vector of current \ref break_def "breaks" (by m_pBreaks). 
-	const vector<CTokenNo>&	GetBreaks	()  const;
+	const ddcBreakVector& GetBreaks() const;
 
 	//! return the current format of hit
 	DDCFormatTypeEnum	GetResultFormat() const { return m_ResultFormat; };

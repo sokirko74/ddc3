@@ -276,7 +276,7 @@ string& CQCountKeyExprToken::Evaluate(const CHit &Hit)
 {
   const CConcHolder *holder = m_Compiler->m_pHolder;
   const vector<CTokenNo> &occurrences = holder->m_HighlightOccurs;
-  const vector<CTokenNo> &breaks = holder->GetBreaks();
+  const ddcBreakVector &breaks = holder->GetBreaks();
   const vector<BYTE>  &matchids = holder->m_HighlightIds;
 
   //-- get context anchor occurrence-index occur_i
@@ -574,7 +574,7 @@ void CQCount::CountUniversal(CQueryResult &Result, size_t Limit)
 
   //-- count(* ...) query: do memory-optimized computation
   CConcIndexator *ix = m_Compiler->m_pHolder->m_pIndexator;
-  const vector<CTokenNo> &fbreaks = ix->GetFileBreaks();
+  const ddcBreakVector &fbreaks = ix->GetFileBreaks();
   const set<size_t>      &fmasked = ix->m_MaskedFiles; 
   set<size_t>::const_iterator fmaski = fmasked.begin();
   DWORD nfiles = ix->GetCorpusFilesCount();
@@ -608,7 +608,7 @@ void CQCount::CountUniversal(CQueryResult &Result, size_t Limit)
     const CHitBorders::CBreakCollection *sbreaks = ix->GetBreakCollectionByName(qRoot->m_Options->m_HitTypeStr);
     DWORD    f=0, n=1;
     CTokenNo fw_end = fbreaks[f];
-    for (vector<CTokenNo>::const_iterator bi=sbreaks->m_BreakOffsets.begin(); bi!=sbreaks->m_BreakOffsets.end() && m_CountSample<m_sample; ++bi,++n) {
+    for (ddcBreakVector::const_iterator bi=sbreaks->m_BreakOffsets.begin(); bi!=sbreaks->m_BreakOffsets.end() && m_CountSample<m_sample; ++bi,++n) {
       if (*bi >= fw_end) {
 	//-- new file
 	if (fmaski != fmasked.end() && f == *fmaski) {

@@ -2041,7 +2041,7 @@ bool CConcIndexator::GetOccurrencesByPosition(const string& BreakName, int ancho
 
 	CTokenNo PeriodBegin = (searchPeriodNo == 0) ? 0 : GetSearchPeriod(searchPeriodNo-1);
 	CTokenNo PeriodEnd   = GetSearchPeriod(searchPeriodNo);
-	vector<CTokenNo>::const_iterator bi = lower_bound(bcol->m_BreakOffsets.begin(), bcol->m_BreakOffsets.end(), PeriodBegin);
+	ddcBreakVector::const_iterator bi = lower_bound(bcol->m_BreakOffsets.begin(), bcol->m_BreakOffsets.end(), PeriodBegin);
 
 	occurrences.clear();
 	CTokenNo b0=0, i;
@@ -2133,8 +2133,8 @@ void CConcIndexator::DumpFileIndexJson(DWORD FileNo, FILE *f) const
 	for (vector<CBreakCollection>::const_iterator brki=m_Breaks.begin(); brki!=m_Breaks.end(); brki++) {
 		if (brki != m_Breaks.begin()) fputs(",\n", f);
 		fprintf(f, "\t\t\{\"shortname\":%s,\"longname\":%s,\"offsets\":\[\n", jsonStr(brki->m_ShortName,m_Utf8).c_str(), jsonStr(brki->m_LongName,m_Utf8).c_str());
-		vector<CTokenNo>::const_iterator off0 = lower_bound(brki->m_BreakOffsets.begin(), brki->m_BreakOffsets.end(), tok_min);
-		for (vector<CTokenNo>::const_iterator offi=off0; offi != brki->m_BreakOffsets.end() && *offi < tok_max; offi++) {
+		ddcBreakVector::const_iterator off0 = lower_bound(brki->m_BreakOffsets.begin(), brki->m_BreakOffsets.end(), tok_min);
+		for (ddcBreakVector::const_iterator offi=off0; offi != brki->m_BreakOffsets.end() && *offi < tok_max; offi++) {
 			if (offi != off0) fputc(',',f);
 			fprintf(f,"%u", *offi);
 		}

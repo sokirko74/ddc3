@@ -682,7 +682,7 @@ bool CConcSession::GetContext(int  StartBreakNo, int  EndBreakNo, const DWORD Cu
 	Result = "    ";
 	const DWORD FileStartTokenNo =  m_pIndexator->GetFileStartTokenNo(CurrFileNo);
 	const DWORD FileEndTokenNo =  m_pIndexator->GetFileBreaks()[CurrFileNo];
-	const vector<CTokenNo>& Breaks = GetBreaks();
+	const ddcBreakVector& Breaks = GetBreaks();
 	for  (int BreakNo = StartBreakNo; BreakNo < EndBreakNo; BreakNo++)
 	{
 		if (BreakNo < 0) continue;
@@ -723,7 +723,7 @@ bool CConcSession::GetContextJson(int StartBreakNo, int EndBreakNo, const DWORD 
 
     const DWORD FileStartTokenNo =  m_pIndexator->GetFileStartTokenNo(CurrFileNo);
     const DWORD FileEndTokenNo =  m_pIndexator->GetFileBreaks()[CurrFileNo];
-    const vector<CTokenNo>& Breaks = GetBreaks();
+    const ddcBreakVector& Breaks = GetBreaks();
     for  (int BreakNo = StartBreakNo; BreakNo < EndBreakNo; BreakNo++) {
 	if (BreakNo < 0) continue;
 	if (BreakNo >= Breaks.size()) continue;
@@ -1248,14 +1248,14 @@ void CConcSession::DecorateQueryResults(const string& FormatStr, string& QueryRe
 //----------------------------------------------------------------------
 void CConcSession::InitFileReferences(vector<CHit>&	Hits) const
 {
-	const vector<CTokenNo>& Breaks = GetBreaks();
-	const vector<CTokenNo>& FileBreaks = m_pIndexator->GetFileBreaks();
+	const ddcBreakVector& Breaks = GetBreaks();
+	const ddcBreakVector& FileBreaks = m_pIndexator->GetFileBreaks();
 	size_t HitsCount = Hits.size();
 	for (size_t HitNo=0; HitNo< HitsCount; HitNo++)
 	{
 		CHit&  H = Hits[HitNo];
 		const CTokenNo& Break = Breaks[H.m_BreakNo];
-		vector<CTokenNo>::const_iterator it = lower_bound (FileBreaks.begin(), FileBreaks.end(), Break);
+		ddcBreakVector::const_iterator it = lower_bound (FileBreaks.begin(), FileBreaks.end(), Break);
 		assert (it <  FileBreaks.end());
 		H.m_FileNo  = it - FileBreaks.begin();
 		H.m_SortKey = H.m_BreakNo;  // no sort 
@@ -1348,7 +1348,7 @@ void GetHitRankLen(vector<COccurrenceAndQueryNodeIndex >& OccurrenceAndQueryNode
 //----------------------------------------------------------------------
 void CConcSession::InitSortByRank(const CQuery *pQuery) const
 {
-	const vector<CTokenNo>& Breaks = GetBreaks();
+	const ddcBreakVector& Breaks = GetBreaks();
 	vector<CHit>& Hits = pQuery->m_Node->m_Hits;
 	const bool bShowDebugRank = pQuery->m_Options->m_bDebugRank;
 	size_t HitsCount = Hits.size();
@@ -1429,7 +1429,7 @@ void CConcSession::InitSortByRank(const CQuery *pQuery) const
 //----------------------------------------------------------------------
 void CConcSession::InitSortBySize(const CQuery *pQuery) const
 {
-	const vector<CTokenNo>& Breaks = GetBreaks();
+	const ddcBreakVector& Breaks = GetBreaks();
 	size_t HitsCount = pQuery->m_Node->m_Hits.size();
 	for (size_t HitNo=0; HitNo< HitsCount; HitNo++)
 	{
@@ -1461,7 +1461,7 @@ void CConcSession::InitSortByContext(const CQuery *pQuery, const CDDCFilterWithB
 	CQueryNode   *qnod = pQuery->m_Node;
 	vector<CHit>& Hits = qnod->m_Hits;
 	DWORD HitsCount = qnod->m_Hits.size();
-	const vector<CTokenNo>& Breaks = GetBreaks();
+	const ddcBreakVector& Breaks = GetBreaks();
 	const vector<BYTE> &occur_ids = qnod->m_OccurrenceMatchIds;
 
 	if (!pIdx)
@@ -2319,7 +2319,7 @@ string CConcSession::GetResultFormatStr() const
 
 
 //----------------------------------------------------------------------
-const vector<CTokenNo>&	CConcSession::GetBreaks	()  const
+const ddcBreakVector& CConcSession::GetBreaks()  const
 {
 	assert (m_pBreaks != 0);
 	return *m_pBreaks;

@@ -59,8 +59,7 @@ string CHitBorders::CBreakCollection::GetBreakFileName(string Path) const
 
 void CHitBorders::CBreakCollection::ReadFromDisk(string Path, bool useMMap)
 {
-	string FileName = GetBreakFileName(Path);
-	ReadVector(FileName.c_str(), m_BreakOffsets);
+	m_BreakOffsets.open(GetBreakFileName(Path), useMMap);
 }
 
 bool CHitBorders::CBreakCollection::ClearAll(string Path)
@@ -85,7 +84,7 @@ CHitBorders::CHitBorders()
 	m_FileBreakCollectionNo = -1;	
 };
 
-const vector<CTokenNo>* CHitBorders::GetBreaksByName(const string& ShortName) const
+const ddcBreakVector* CHitBorders::GetBreaksByName(const string& ShortName) const
 {
 	map<string,int>::const_iterator it = m_ShortName2BreakCollection.find(ShortName);
 	if (it == m_ShortName2BreakCollection.end())
@@ -120,7 +119,7 @@ string CHitBorders::GetShortNameByName(const string& BreakName) const
 };
 
 
-const vector<CTokenNo>&  CHitBorders::GetFileBreaks() const
+const ddcBreakVector&  CHitBorders::GetFileBreaks() const
 {
 	return m_Breaks[m_FileBreakCollectionNo].m_BreakOffsets;
 };
@@ -129,10 +128,10 @@ CTokenNo	CHitBorders::GetCorpusEndTokenNo() const
 {
 	if (m_FileBreakCollectionNo==-1)
 		return 0;
-	const vector<CTokenNo>& FileBreaks = GetFileBreaks();
+	const ddcBreakVector& FileBreaks = GetFileBreaks();
 	if (FileBreaks.empty()) 
 		return 0;
-	return FileBreaks.back();
+	return FileBreaks[FileBreaks.size()-1];
 };
 
 CTokenNo CHitBorders::GetFileStartTokenNo(size_t i) const
@@ -142,7 +141,7 @@ CTokenNo CHitBorders::GetFileStartTokenNo(size_t i) const
 	if (m_FileBreakCollectionNo==-1)
 		return 0;
 
-	const vector<CTokenNo>& FileBreaks = GetFileBreaks();
+	const ddcBreakVector& FileBreaks = GetFileBreaks();
 	if (FileBreaks.empty()) 
 		return 0;
 
@@ -291,7 +290,7 @@ struct LessPageBreak {
 void CHitBorders::ConvertHitsToPageBreaks (
 			vector<CHit>::const_iterator hits_begin, 
 			vector<CHit>::const_iterator hits_end, 
-			const vector<CTokenNo>& Breaks, 
+			const ddcBreakVector& Breaks, 
 			DwordVector& PageBreaks)	const
 {
 	PageBreaks.resize( hits_end - hits_begin );
@@ -409,14 +408,15 @@ bool CHitBorders::RegisterBorderIndices(const char* IndicesStr)
 };
 
 
-bool	UnionBreaks	(const vector<CTokenNo>& V1, 
-					const vector<CTokenNo>& V2, 
-					DWORD EndTokenNo1,
-					vector<CTokenNo>& Result)
+bool	UnionBreaks	(const ddcBreakVector& V1, 
+			 const ddcBreakVector& V2, 
+			 DWORD EndTokenNo1,
+			 vector<CTokenNo>& Result)
 {
 	if (V1.empty() != V2.empty()) return false;
 	if (V1.empty()) return false;
-	Result = V1;
+	Result.clear();
+	Result.insert(Result.end(), V1.begin(),V1.end());
 	Result.insert(Result.end(), V2.begin(),V2.end());
 	
 	// adding delta to index
@@ -446,7 +446,7 @@ bool CHitBorders::UniteBorders(const CHitBorders& H1, const CHitBorders& H2, con
 	for (size_t i=0; i < H1.m_Breaks.size(); i++)
 	{
 		string ShortName = H1.m_Breaks[i].m_ShortName;
-		const vector<CTokenNo>* Breaks2 = H2.GetBreaksByName(ShortName);
+		const ddcBreakVector* Breaks2 = H2.GetBreaksByName(ShortName);
 		if (Breaks2 == 0)
 		{
 			fprintf (stderr, "cannot find \"%s\" break collection in the second index\n", ShortName.c_str() );
@@ -455,13 +455,14 @@ bool CHitBorders::UniteBorders(const CHitBorders& H1, const CHitBorders& H2, con
 
 		RegisterBreak(ShortName,  H1.m_Breaks[i].m_LongName);
 		
+
 		CBreakCollection& Result = m_Breaks.back();
-		
-		if (!UnionBreaks(H1.m_Breaks[i].m_BreakOffsets, *Breaks2, EndTokenNo1, Result.m_BreakOffsets))
+		Result.m_BreakOffsets.ensureVec();
+		if (!UnionBreaks(H1.m_Breaks[i].m_BreakOffsets, *Breaks2, EndTokenNo1, Result.m_BreakOffsets.m_vec))
 			return false;
 
 		string FileName = Result.GetBreakFileName(Path);
-		if (!WriteVector(FileName.c_str(), Result.m_BreakOffsets))
+		if (!WriteVector(FileName.c_str(), Result.m_BreakOffsets.m_vec))
 			return false;
 		if (PredefinedFileBreakName == Result.m_ShortName)
 			m_FileBreakCollectionNo = m_Breaks.size() - 1;

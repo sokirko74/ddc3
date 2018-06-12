@@ -213,7 +213,7 @@ void CQueryNode::SetHolder(const CConcHolder*	pHolder)
 
 void CQueryNode::ConvertOccurrencesToHits (bool bSeparateHits)
 {
-	const vector<CTokenNo>& Breaks = m_pHolder->GetBreaks();
+	const ddcBreakVector& Breaks = m_pHolder->GetBreaks();
 	int TextAreasCount = m_pHolder->m_pIndexator->m_Bibl.GetTextAreasCount();
 	int TextAreaNo = m_pHolder->GetTextArea();
 	bool bTextAreaNo =  TextAreaNo != UnknownTextAreaNo;
@@ -222,7 +222,7 @@ void CQueryNode::ConvertOccurrencesToHits (bool bSeparateHits)
 	m_Hits.reserve(cnt);
 
 	bool bLongSequence = GetOccurrencesSize()*5 > Breaks.size() ;
-	vector<CTokenNo>::const_iterator break_it = Breaks.begin();
+	ddcBreakVector::const_iterator break_it = Breaks.begin();
 
 	CQueryNode NewNode(m_bUseNodeIndices, m_bUseMatchIds);
 	if (bTextAreaNo)
@@ -235,7 +235,7 @@ void CQueryNode::ConvertOccurrencesToHits (bool bSeparateHits)
 
 		if (!bLongSequence)
 		{
-			break_it = lower_bound (break_it, Breaks.end(), Occurrence);
+			break_it = lower_bound (break_it, (ddcBreakVector::const_iterator)Breaks.end(), Occurrence);
 			assert (break_it != Breaks.end());
 			while (*break_it == m_Occurrences[i]) //-- avoid bogus empty breaks (pathological indices)
 				break_it++;
@@ -277,7 +277,7 @@ void CQueryNode::ConvertOccurrencesToHits (bool bSeparateHits)
 
 void CQueryNode::ConvertOccurrencesToHitsForPatterns (bool bSeparateHits)	
 {
-	const vector<CTokenNo>& Breaks = m_pHolder->GetBreaks();
+	const ddcBreakVector& Breaks = m_pHolder->GetBreaks();
 	m_Hits.clear();
 	int TextAreasCount = m_pHolder->m_pIndexator->m_Bibl.GetTextAreasCount();
 	int TextAreaNo = m_pHolder->GetTextArea();
@@ -293,7 +293,7 @@ void CQueryNode::ConvertOccurrencesToHitsForPatterns (bool bSeparateHits)
 	size_t InputStarter = 0;
 	size_t NewOccurrencesCount = 0;
 
-	vector<CTokenNo>::const_iterator break_it=Breaks.begin();
+	ddcBreakVector::const_iterator break_it=Breaks.begin();
 	bool bLongSequence = m_ChunkLengths.size()*5 > Breaks.size() ;
 	
 	size_t ChunkNo = 0;
@@ -304,7 +304,7 @@ void CQueryNode::ConvertOccurrencesToHitsForPatterns (bool bSeparateHits)
 
 		if (!bLongSequence)
 		{
-			break_it = lower_bound (break_it, Breaks.end(), m_Occurrences[i]);
+			break_it = lower_bound (break_it, (ddcBreakVector::const_iterator)Breaks.end(), m_Occurrences[i]);
 			assert (break_it != Breaks.end());
 			while (*break_it == m_Occurrences[i])  //-- avoid bogus empty breaks (pathological indices)
 				break_it++; // then Break is the first position of the next break

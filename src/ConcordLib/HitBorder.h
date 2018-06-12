@@ -39,6 +39,9 @@
 */
 
 
+/** typedef for user-defined break-vectors */
+typedef ddcVecFile<CTokenNo> ddcBreakVector;
+
 /*! CPageNumber is a structure that holds a page number and the index of token, from which this page starts
 */
 struct CPageNumber  {
@@ -70,8 +73,9 @@ class CHitBorders
 
 		//! a file for temporally storing \ref break_def "breaks" during indexing
 		mutable FILE*		m_FileForIndexing;
-		//! the breaks themselves 
-		vector<CTokenNo>	m_BreakOffsets;
+
+	  	//! the breaks themselves 
+		ddcBreakVector	m_BreakOffsets;
 
 		CBreakCollection (const string& ShortName, const string& LongName);
 		//! returns the file name for a break collection 
@@ -145,11 +149,11 @@ protected:
 	string WithinBreakName(const vector<string>& Within) const;
 
 	//!returns a break collection by a short name
-	const vector<CTokenNo>*		GetBreaksByName(const string& ShortName) const;
+	const ddcBreakVector*			GetBreaksByName(const string& ShortName) const;
 	//!returns the value of the last file \ref break_def "break" (which should be equal to the last value of any break collection)
 	CTokenNo					GetCorpusEndTokenNo() const;
 	//!quick reference to file \ref break_def "breaks"
-	const vector<CTokenNo>&		GetFileBreaks() const;
+	const ddcBreakVector&			GetFileBreaks() const;
 	//!returns the start position of \ref corpus_file_def "corpus file" <i>FileNo</i>
 	CTokenNo					GetFileStartTokenNo(size_t FileNo) const;
 	//!returns m_PageBreaks[No].m_PageNumber (see CPageNumber)
@@ -161,7 +165,7 @@ protected:
 	//!load break collections from the disk
 	bool						LoadHitBorders(string Path, bool useMMap=false);
 	//! converts hits to page breaks, which contains this breaks 
-	void						ConvertHitsToPageBreaks (vector<CHit>::const_iterator hits_begin, vector<CHit>::const_iterator hits_end, const vector<CTokenNo>& Breaks, DwordVector& PageBreaks)	const;
+	void						ConvertHitsToPageBreaks (vector<CHit>::const_iterator hits_begin, vector<CHit>::const_iterator hits_end, const ddcBreakVector& Breaks, DwordVector& PageBreaks)	const;
 
 	//! get page break for a given token number as an interator into m_PageBreaks
 	ddcVecFile<CPageNumber>::const_iterator GetTokenPageBreak(CTokenNo tok) const;
