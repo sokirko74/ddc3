@@ -38,8 +38,14 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
+
+#if HAVE_SYS_STAT_H
 #include <sys/stat.h> /* fstat */
+#endif
+
+#if HAVE_SYS_MMAN_H
 #include <sys/mman.h> /* mmap */
+#endif
 
 //======================================================================
 // ddcMMap
@@ -141,6 +147,7 @@ public:
 	    throw std::runtime_error(Format("ddcMMap::open(): fstat() failed for file '%s': %s", filename.c_str(), strerror(errno)));
 	m_nbytes = statbuf.st_size;
 
+#if DDC_ENABLE_MMAP	
 	//-- get mmap protection flags
 	int mmprot = 0;
 	switch (mode) {
@@ -150,16 +157,28 @@ public:
 	default:
 	    throw std::invalid_argument(Format("ddcMMap::open(): unknown open mode '%d'",mode));
 	}
-
+	
 	//-- underlying mmap call
 	m_data = (T*)mmap(NULL, m_nbytes, mmprot, MAP_SHARED, mmfd, 0);
 	if (m_data == MAP_FAILED)
 	    throw std::runtime_error(Format("ddcMMap::open(): mmap() failed for file '%s': %s", filename.c_str(), strerror(errno)));
 
+#else // !DDC_HAVE_MMAP
+
+	ddcLogWarn("ddcMMap::open(): Warning: mmap support unavailable, loading into resident memory");
+
+	m_data = (T*)malloc(m_nbytes);
+	if (m_data == NULL)
+	    throw std::runtime_error(Format("ddcMap::open(): failed to allocate memory for file '%s'", filename.c_str()));
+	if (read(mmfd, m_data, m_nbytes) != m_nbytes)
+	    throw std::runtime_error(Format("ddcMap::open(): failed read data for file '%s'", filename.c_str()));
+
+#endif // DDC_HAVE_MMAP
+	
 	//-- we can now safely close the fd
 	if (::close(mmfd) != 0)
 	    throw std::runtime_error(Format("ddcMMap::open(): close() failed for file '%s': %s", filename.c_str(), strerror(errno)));
-	
+
 	return *this;
     };
 
@@ -168,8 +187,12 @@ public:
     {
 	if (m_data != NULL) {
 	    //ddcLogTrace("ddcMMap::close("+m_file+")");
+#if DDC_ENABLE_MMAP
 	    if (munmap(m_data, m_nbytes) != 0)
 		throw std::runtime_error(Format("ddcMMap::close(): munmap() failed for file '%s': %s", m_file.c_str(), strerror(errno)));
+#else
+	    free(m_data);
+#endif
 	}
 	ClearString(m_file);
 	m_data = NULL;

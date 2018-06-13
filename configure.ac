@@ -357,6 +357,47 @@ fi
 ##^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 ##----------------------------------------------------------------------
+## mmap
+
+##--------
+AC_CHECK_HEADERS([sys/stat.h sys/mman.h], [ddc_have_mmap_headers=yes], [ddc_have_mmap_headers=no])
+AC_CHECK_FUNCS([mmap],[ddc_have_mmap="yes"],[ddc_have_mmap="no"])
+
+##--------
+AC_ARG_ENABLE([mmap],
+	AC_HELP_STRING([--enable-mmap],[enable mmap virtual memory support (default=guess)]),
+	[ddc_enable_mmap="$enableval"],
+	[ddc_enable_mmap="guess"])
+AC_MSG_CHECKING([whether to enable mmap virtual memory support])
+if test "$ddc_enable_mmap" = "no" ; then
+   AC_MSG_RESULT([no])
+elif test "$ddc_enable_mmap" = "yes" ; then  
+   AC_MSG_RESULT([yes])
+   if test "$ddc_have_mmap_headers" = "no" -o "$ddc_have_mmap" = "no" ; then
+     AC_MSG_FAILURE([cannot enable mmap because your system does not seem to support it!])
+   fi
+else
+  ##-- guess
+  if test "$ddc_have_mmap_headers" = "no" ; then
+     AC_MSG_RESULT([no (mmap headers not found)])
+     ddc_enable_mmap=no
+  elif test "$ddc_have_mmap" = "no" ; then
+     AC_MSG_RESULT([no (mmap function not found)])
+     ddc_enable_mmap=no
+  else
+     AC_MSG_RESULT([yes])
+     ddc_enable_mmap=yes
+  fi
+fi
+
+if test "$ddc_enable_mmap" = "yes" ; then
+  AC_DEFINE([DDC_ENABLE_MMAP],1,[Define this to enable mmap virtual memory support])
+fi
+
+## /mmap
+##^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+##----------------------------------------------------------------------
 ## defs: static buffer length(s)?
 AC_ARG_WITH([static-buflen],
 	AC_HELP_STRING([--with-static-buflen=SIZE],

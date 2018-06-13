@@ -397,6 +397,12 @@ bool CConcIndexator::LoadOptionsFromString(string Options)
 		else if (q == "MemoryMap")
 			{
 				m_bMemoryMap = StringToBool(fields.next_token());
+#ifndef DDC_ENABLE_MMAP
+				if (m_bMemoryMap) {
+					ddcLogWarn("Warning: MemoryMap option set to a true value, but mmap support is unavailable: ignoring option");
+					m_bMemoryMap = false;
+				}
+#endif
 				EchoOption("MemoryMap %s", BoolToString(m_bMemoryMap));
 			}
 		else if (q == "LemmaQueryUsesMorphPattern")

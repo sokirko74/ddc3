@@ -127,7 +127,7 @@ const char* DDCVersionString();
 const DDCVersionT DDCVersionMinR(2,0,0);
 
 /** Minimum DDC version which can read files written by us */
-const DDCVersionT DDCVersionMinW(2,0,0);
+const DDCVersionT DDCVersionMinW(2,1,12);
 
 /** parse a file version string of one of the following forms:
  *  \li <code>"... Format FORMAT_VERSION ... min-compat FORMAT_VERSION_MIN ..."</code>
