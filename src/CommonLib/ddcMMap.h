@@ -147,33 +147,35 @@ public:
 	    throw std::runtime_error(Format("ddcMMap::open(): fstat() failed for file '%s': %s", filename.c_str(), strerror(errno)));
 	m_nbytes = statbuf.st_size;
 
+	if (m_nbytes > 0) {
 #if DDC_ENABLE_MMAP	
-	//-- get mmap protection flags
-	int mmprot = 0;
-	switch (mode) {
-	case O_RDONLY: mmprot = PROT_READ; break;
-	case O_WRONLY: mmprot = PROT_WRITE; break;
-	case O_RDWR:   mmprot = (PROT_READ|PROT_WRITE); break;
-	default:
-	    throw std::invalid_argument(Format("ddcMMap::open(): unknown open mode '%d'",mode));
-	}
+	    //-- get mmap protection flags
+	    int mmprot = 0;
+	    switch (mode) {
+	    case O_RDONLY: mmprot = PROT_READ; break;
+	    case O_WRONLY: mmprot = PROT_WRITE; break;
+	    case O_RDWR:   mmprot = (PROT_READ|PROT_WRITE); break;
+	    default:
+		throw std::invalid_argument(Format("ddcMMap::open(): unknown open mode '%d'",mode));
+	    }
 	
-	//-- underlying mmap call
-	m_data = (T*)mmap(NULL, m_nbytes, mmprot, MAP_SHARED, mmfd, 0);
-	if (m_data == MAP_FAILED)
-	    throw std::runtime_error(Format("ddcMMap::open(): mmap() failed for file '%s': %s", filename.c_str(), strerror(errno)));
-
+	    //-- underlying mmap call
+	    m_data = (T*)mmap(NULL, m_nbytes, mmprot, MAP_SHARED, mmfd, 0);
+	    if (m_data == MAP_FAILED)
+		throw std::runtime_error(Format("ddcMMap::open(): mmap() failed for file '%s': %s", filename.c_str(), strerror(errno)));
+	    
 #else // !DDC_HAVE_MMAP
 
-	ddcLogWarn("ddcMMap::open(): Warning: mmap support unavailable, loading into resident memory");
-
-	m_data = (T*)malloc(m_nbytes);
-	if (m_data == NULL)
-	    throw std::runtime_error(Format("ddcMap::open(): failed to allocate memory for file '%s'", filename.c_str()));
-	if (read(mmfd, m_data, m_nbytes) != m_nbytes)
-	    throw std::runtime_error(Format("ddcMap::open(): failed read data for file '%s'", filename.c_str()));
+	    ddcLogWarn("ddcMMap::open(): Warning: mmap support unavailable, loading into resident memory");
+	    
+	    m_data = (T*)malloc(m_nbytes);
+	    if (m_data == NULL)
+		throw std::runtime_error(Format("ddcMap::open(): failed to allocate memory for file '%s'", filename.c_str()));
+	    if (read(mmfd, m_data, m_nbytes) != m_nbytes)
+		throw std::runtime_error(Format("ddcMap::open(): failed read data for file '%s'", filename.c_str()));
 
 #endif // DDC_HAVE_MMAP
+	}
 	
 	//-- we can now safely close the fd
 	if (::close(mmfd) != 0)
