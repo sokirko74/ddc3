@@ -21,6 +21,7 @@ v2.1.12-pre1 WIP
 	      ~ "*._bibl_NAME_strings_values": NUL-separated values
 	      ~ "*._bibl_NAME_strings_idx"   : start offsets in *._bibl_NAME_strings_values indexed by logical ID
 	    + compatibility hack: old "\n"-sparated "*._bibl_NAME_strings" files can still be read in slurp-mode, but produce a warning
+	    + updated constant DDCVersionMinW (min-compat value written by ddc_index; was:2.0.0, now:2.1.12)
 	  - updated CConcXml::CFreeBiblStringIndex::m_ValuesForEachFile (vector<DWORD> -> ddcVecFile<DWORD>)
           - updated CConcXml::m_Dates (vector<DWORD> -> ddcVecFile<DWORD>)
 	  - updated CHitBorders::m_PageBreaks (vector<CPageNumber> -> ddcVecFile<CPageNumber>)
