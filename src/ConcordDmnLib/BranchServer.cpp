@@ -1,4 +1,4 @@
-//-*- Mode: C++; c-basic-offset:4; -*-
+//-*- Mode: C++; c-basic-offset:8; -*-
 //
 //  DDC originally by Alexey Sokirko
 //  Changes and modifications 2011-2018 by Bryan Jurish
@@ -1149,10 +1149,11 @@ void CDDCBranchServer::GetFirstHitsFromCorpora(const DwordVector& PossibleHosts,
 		}
 
 		//-- update logical result offset of m_Hits[]
-		if (!isCountResult) {
-			Result.m_Offset += (subcorpusHitOffset < Result.m_Hits.size()
-					    ? Result.m_Hits[subcorpusHitOffset].m_HitNo
-					    : CorpusHitsCount);
+		//   + 2018-06-13: only for ResultLimit>0 (mantis bug #27397)
+		if (!isCountResult && ResultLimit>0) {
+			Result.m_Offset += (subcorpusHitOffset < Result.m_Hits.size()    //-- we added at least 1 hit from this subcorpus
+					    ? Result.m_Hits[subcorpusHitOffset].m_HitNo  //   : logical subcorpus-offset of 1st hit returned by this subcorpus
+					    : CorpusHitsCount);                          //   : we added no hits from this corpus
 			NAVCACHE_DEBUG( ddcLogDebug(Format("DEBUG[<%s]: nHostHits=%zd; Result.Offset=%zd",
 							   Host.m_CorpusName.c_str(), Result.m_Hits.size()-subcorpusHitOffset, Result.m_Offset)) );
 		}

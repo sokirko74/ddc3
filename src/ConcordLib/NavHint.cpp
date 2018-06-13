@@ -148,7 +148,7 @@ bool NavHintCache::lower_bound(ValT& val, const KeyT& key, bool doPromote)
     NAVCACHE_TRACE(ddcLogTrace(Format("NavCache::lower_bound(\"%s\")", escapeCString(key.toString()).c_str())));
     CacheT::const_iterator ci = m_Cache.lower_bound(key);
     if (ci != m_Cache.end() && ci->first.m_QueryStr == key.m_QueryStr) {
-      NAVCACHE_TRACE(ddcLogTrace(Format("NavCache::lower_bound(\"%s\") found %s", escapeCString(key.toString()).c_str()), jsonStr(ci->second->second).c_str()));
+      NAVCACHE_TRACE(ddcLogTrace(Format("NavCache::lower_bound(\"%s\") found %s", escapeCString(key.toString()).c_str(), ci->second->second.toJson().c_str())));
       val   = ci->second->second;
       found = true;
       if (doPromote) m_Cache.promote(ci);
