@@ -3,7 +3,7 @@
 /* src/common/ddcConfigAuto.h.in.  Generated from configure.ac by autoheader.  */
 
 /* Define this to enable debugging code */
-/* #undef DDC_DEBUG_ENABLED */
+#undef DDC_DEBUG_ENABLED
 
 /* Define this to enable curl UNIX socket support emulation (libcurl <
    v7.40.0) */
@@ -35,7 +35,7 @@
 #undef DDC_STATIC_BUFLEN
 
 /* Define this to enable high-resolution clock - requires clock_gettime() */
-/* #undef DDC_USE_HIRES_CLOCK */
+#undef DDC_USE_HIRES_CLOCK
 
 /* Major ddc version */
 #undef DDC_VERSION_MAJOR

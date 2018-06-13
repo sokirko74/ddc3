@@ -572,7 +572,7 @@ bool	CIndexSetForQueryingStage::LoadPeriodDivision()
 		m_EndPeriodOffsets.open(GetPeriodsDivisionFileName(), m_pParent->GetSearchPeriodsCount(), m_pParent->m_bMemoryMap);
 	}
 	catch (CExpc &e) {
-		fprintf (stderr, "Exception[%d] %s in CIndexSetForQueryingStage::LoadPeriodDivision: %s\n", e.code(), e.what());
+		fprintf (stderr, "Exception[%d] in CIndexSetForQueryingStage::LoadPeriodDivision(): %s\n", e.code(), e.what());
 		return false;
 	}
 	catch (exception &e) {

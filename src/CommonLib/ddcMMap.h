@@ -471,11 +471,11 @@ public:
 	inline size_t    recsize_() const { return m_obj->m_recsize; };
 
 	//-- utils for (key,val) pair files
-	template <typename KeyT=int>
+	template <typename KeyT>
 	inline const KeyT& key() const
 	{ return *( (const KeyT*)m_cur ); };
 
-	template <typename KeyT=int, typename ValT=int>
+	template <typename KeyT, typename ValT>
 	inline const ValT* val() const
 	{ return (const ValT*)( ((const char*)m_cur) + sizeof(KeyT) ); };
 

@@ -621,7 +621,7 @@ bool CConcXml::CFreeBiblStringIndex::RegisterBiblStringItemId(const string& Valu
 	if (m_BuildStringItems.size() >= DWORD_MAX)
 	{
 		//-- v2.0.40: moo Mon, 07 Dec 2015 11:16:00 +0100 moocow: bail out here rather than creating a corrupt index
-		fprintf(stderr, "Too many values for bibl field `%s'. Cannot be more than %zi\n", m_Name.c_str(), DWORD_MAX);
+		fprintf(stderr, "Too many values for bibl field `%s'. Cannot be more than %u\n", m_Name.c_str(), DWORD_MAX);
 		abort();
 		return false;
 	}

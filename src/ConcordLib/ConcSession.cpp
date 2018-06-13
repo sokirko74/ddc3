@@ -65,7 +65,7 @@ static void dumpHits(const std::string& Label, const vector<CHit>& Hits)
 	for (size_t hi=0; hi < Hits.size(); hi++) {
 		const CHit &h=Hits[hi];
 		fprintf(stderr,
-			"%s[%zd] = {m_BreakNo=%u, m_HighlightOccurrenceEnd=%u, m_SortKey={%d,%s}, m_FileNo=%u, m_DebugRankNo=%u}\n",
+			"%s[%zd] = {m_BreakNo=%u, m_HighlightOccurrenceEnd=%u, m_SortKey={%d,%s}, m_FileNo=%u, m_DebugRankNo=%zu}\n",
 			Label.c_str(), hi,
 			h.m_BreakNo, h.m_HighlightOccurrenceEnd, h.m_SortKey.i, jsonStr(h.m_SortKey.s).c_str(), h.m_FileNo, h.m_Value.m_DebugRankNo
 			);
@@ -78,7 +78,7 @@ static void dumpHitIndex(const std::string& IndexLabel, const vector<size_t>& Hi
 		size_t hi = HitIndex[hii];
 		const CHit &h=Hits[hi];
 		fprintf(stderr,
-			"%s[%zd] = %s[%zd] = {m_BreakNo=%u, m_HighlightOccurrenceEnd=%u, m_SortKey={%d,%s}, m_FileNo=%u, m_DebugRankNo=%u}\n",
+			"%s[%zd] = %s[%zd] = {m_BreakNo=%u, m_HighlightOccurrenceEnd=%u, m_SortKey={%d,%s}, m_FileNo=%u, m_DebugRankNo=%zu}\n",
 			IndexLabel.c_str(), hii,
 			Label.c_str(), hi,
 			h.m_BreakNo, h.m_HighlightOccurrenceEnd, h.m_SortKey.i, jsonStr(h.m_SortKey.s).c_str(), h.m_FileNo, h.m_Value.m_DebugRankNo
