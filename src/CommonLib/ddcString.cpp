@@ -1,5 +1,5 @@
 //  DDC originally by Alexey Sokirko
-//  Changes and modifications 2011-2017 by Bryan Jurish
+//  Changes and modifications 2011-2018 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -544,3 +544,19 @@ std::string TrimSafe(const std::string &str)
   if (i >= j) return string();
   return str.substr(i, j-i);
 }
+
+//======================================================================
+// string <-> bool
+
+bool StringToBool(const std::string &s, bool onempty)
+{
+	if (s.empty()) return onempty;
+	string ls = stolower(s);
+	return (ls!="no" && ls!="n" && ls!="false" && ls!="off" && ls!="disabled" && ls!="0");
+}
+
+const char *BoolToString(bool b)
+{
+  return b ? "true" : "false";
+}
+

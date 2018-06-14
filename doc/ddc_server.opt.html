@@ -31,10 +31,11 @@
           <li><a href="#StatsWindow">StatsWindow</a></li>
         </ul>
       </li>
-      <li><a href="#Client-Thread-Options">Client-Thread Options</a>
+      <li><a href="#Client-Thread-and-Parallelization-Options">Client-Thread and Parallelization Options</a>
         <ul>
           <li><a href="#NumThreads">NumThreads</a></li>
           <li><a href="#ThreadQueueSize">ThreadQueueSize</a></li>
+          <li><a href="#HitStringsParallel">HitStringsParallel</a></li>
         </ul>
       </li>
       <li><a href="#Navigation-Cache-Options">Navigation Cache Options</a>
@@ -76,10 +77,11 @@
  StatsWindow SECONDS
 
  ##-------------------------------------------------------------
- ## Client-Thread Options
+ ## Client-Thread and Parallelization Options
  
  NumThreads NTHREADS
  ThreadQueueSize QSIZE
+ HitStringsParallel BOOL
 
  ##-------------------------------------------------------------
  ## Navigation Cache Options
@@ -186,7 +188,7 @@
 
 <p>Since v2.1.1.</p>
 
-<h2 id="Client-Thread-Options">Client-Thread Options</h2>
+<h2 id="Client-Thread-and-Parallelization-Options">Client-Thread and Parallelization Options</h2>
 
 <p>The following options control the behavior of per-client &quot;worker&quot; threads.</p>
 
@@ -209,6 +211,16 @@
 <p>Default: 256</p>
 
 <p>Specifies the maximum number of pending client connections in the work queue in client-thread mode (see <a href="#NumThreads">&quot;NumThreads&quot;</a>). If all worker threads are occupied and <i>QSIZE</i> additional client connections have been accepted and enqueued for processing, then the main accepting server thread will block until the queue shrinks below <i>QSIZE</i> before enqueueing any new client connection -- this basically just pushes the burden of client-queueing beyond <i>QSIZE</i> to the TCP stack.</p>
+
+<h3 id="HitStringsParallel">HitStringsParallel</h3>
+
+<pre><code> HitStringsParallel BOOL</code></pre>
+
+<p>Aliases: HitStringsParallel ParallelHitStrings</p>
+
+<p>Default: false</p>
+
+<p>If specified and true, branch servers created by this process will send <a href="./ddc_proto.html#get_hit_stings"><code>get_hit_strings</code></a> requests to their immediate daughters in parallel. If the daughters need to fetch hit data from secondary storage (i.e. if you don&#39;t have excessive amounts RAM), enabling this option is likely to actually slow things down unless your secondary storage device supports ultra-low-latency random access reads, in which case it might help. The parameter <code>BOOL</code> is any string recoginized as a Boolean value; see <a href="./ddc_opt.html#Boolean-Flags-and-Switches">&quot;Boolean Flags and Switches&quot; in ddc_opt</a> for details.</p>
 
 <h2 id="Navigation-Cache-Options">Navigation Cache Options</h2>
 

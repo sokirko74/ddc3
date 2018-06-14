@@ -131,6 +131,8 @@ CDDCBranchServer::CDDCBranchServer(bool master)
 	m_pNavCache = NULL;
     }
     m_NavCacheStep = DDC_DEFAULT_NAV_HINT_CACHE_STEP;
+
+    m_bHitStringsParallel = false;
 };
 
 //----------------------------------------------------------------------
@@ -148,6 +150,7 @@ void CDDCBranchServer::SetOptions(const CDDCServerOptions &Options)
 	m_pNavCache->reserve(Options.m_NavCacheSize);
     }
     m_NavCacheStep = Options.m_NavCacheStep;
+    m_bHitStringsParallel = Options.m_bHitStringsParallel;
 };
 
 //----------------------------------------------------------------------
@@ -859,6 +862,29 @@ void CDDCBranchServer::UpdateNavCache()
 }
 
 //----------------------------------------------------------------------
+NetworkErrorsEnum CDDCBranchServer::SendGetHitStringsRequest(BYTE PossibleHostNo, const vector< vector<size_t> >& SortedHits, const vector<size_t>& FirstOffsets, const string& ResultType)
+{
+	BYTE HostNo              = m_QueryData.PossibleHosts[PossibleHostNo];
+	SOCKET&     CorpusSocket = m_FHResult.m_Sockets[PossibleHostNo];
+	const vector<size_t>& V  = SortedHits[HostNo];
+	size_t FirstHitNo        = (V.empty()) ? FirstOffsets[HostNo] : m_FHResult.m_Hits[V[0]].m_HitNo;
+	string ErrorStr;
+
+	if (CorpusSocket == -1)
+		return neNetworkError;
+
+	string Req = Format ("get_hit_strings %s\x01%zi %zi",  ResultType.c_str(), FirstHitNo,  V.size());
+	if (!SendString(CorpusSocket, Req, ErrorStr))  {
+	    ErrorMessage(Format("cannot send a string to socket %s : %s", m_Hosts[HostNo].GetAddressStr().c_str(), ErrorStr.c_str() ));
+	    if (!this->CloseDtr(CorpusSocket))
+		ErrorMessage (Format("cannot close socket %s", m_Hosts[HostNo].GetAddressStr().c_str()));
+
+	    return neCouldNotSendData;
+	}
+	return neSuccess;
+};
+
+//----------------------------------------------------------------------
 NetworkErrorsEnum CDDCBranchServer::GetHitContexts(CFirstHitsQueryResult& FHResult,
 						   const string& ResultType,
 						   DDCFormatTypeEnum ResultTypeE,
@@ -912,18 +938,34 @@ NetworkErrorsEnum CDDCBranchServer::GetHitContexts(CFirstHitsQueryResult& FHResu
 	runq.navHint.m_SortKey = FHResult.m_Hits[end-1].m_SortKeyStr;
     NAVCACHE_DEBUG( ddcLogDebug(Format("GetHitContexts(): FHR.LEnd=%zd FHR.Count=%zd --> navKey.HitNo=%zd", FHResult.LogicalOffset(end), FHResult.m_AllHitsCount, runq.navKey.m_HitNo)) );
 
-    // get strings from the hosts:
+    // get strings from the hosts: paralell mode
+    if (m_bHitStringsParallel) {
+	    NetworkErrorsEnum reqrc;
+	    for (size_t i=0; i < PossibleHosts.size(); ++i) {
+		    if ((reqrc=SendGetHitStringsRequest(i, SortedHits, FirstOffsets, ResultType)) != neSuccess)
+			    return reqrc;
+	    }
+    }
+
+    //-- get_hit_strings: serial mode / read responses
     //   Results[HostNo] - contains all hit strings in the right order
     vector<vector<string> > Results(m_Hosts.size());
     for (size_t i=0; i<PossibleHosts.size(); i++) {
 	BYTE HostNo = PossibleHosts[i]; 
-
 	const vector<size_t>&  V = SortedHits[HostNo];
+
+	if (!m_bHitStringsParallel) {
+		//-- serial mode: send request
+		NetworkErrorsEnum reqrc = SendGetHitStringsRequest(i, SortedHits, FirstOffsets, ResultType);
+		if (reqrc != neSuccess) return reqrc;
+	}
+	
 	string S, dtrHint;
 	size_t FirstHitNo = (V.empty()) ? FirstOffsets[HostNo] : FHResult.m_Hits[V[0]].m_HitNo;
 	InternalError = errNone;
 	NetworkErrorsEnum Res = GetHitStringsFromOneCorpus
 	    (m_Hosts[HostNo], ResultType, FirstHitNo, V.size(), TimeOut,FHResult.m_Sockets[i], InternalError, S, dtrHint);
+	//-- should we be checking for (Res != neSuccess) here?
 
 	NAVCACHE_DEBUG(ddcLogDebug(Format("GetHitContexts[host=%d]: Hint=`%s'", HostNo, dtrHint.c_str())));
 	if (!dtrHint.empty()) runq.navHint.m_DtrHints[HostNo].swap(dtrHint);
@@ -982,6 +1024,7 @@ NetworkErrorsEnum CDDCBranchServer::GetHitContexts(CFirstHitsQueryResult& FHResu
 
     return neSuccess;	
 }
+
 
 //----------------------------------------------------------------------
 void CDDCBranchServer::GetFirstHitsFromCorpora(const DwordVector& PossibleHosts,
@@ -1198,37 +1241,7 @@ NetworkErrorsEnum CDDCBranchServer::GetHitStringsFromOneCorpus(CHost& Host,
 	if (CorpusSocket == -1)
 		return neNetworkError;
 
-#if 0
-	//-- check for vacuous request
-	//   OLD (v2.0.31, 2014-10-01)
-	//     + just close up the socket to avoid ~40ms turnaround (data from A. Barbaresi, tested kerncorpus@data)
-	//   UPDATE (v2.1.10, 2018-03-13)
-	//     + unable to reproduce any noticeable turnaround delay using bz, bz_pp, or bz_meta on kira
-	//     + allowing vacuous 'get_hit_strings' requests was in fact often faster than without (but only by ca. 1ms in fs-cached case)
-	//     + dominant factor for query time is fs-cache presence of get_hit_strings *results* (doesn't apply to empty get_hit_strings requests)
-	//       : +fscache @ ca. 10 ms/q ; -fscache @ 430 ms/q
-	//     + for v2.1.10, we need 'get_hit_strings' even for "empty" daughter result-sets in order to update navHints
-	if (ResultLimit==0) {
-	    this->CloseDtr(CorpusSocket);
-	    InternalError = errNone;
-	    Result.clear();
-	    return neSuccess;
-	}
-#endif
-
-	//Query\x01StartHitNo ResultLimit bGetText
-	string S = Format ("get_hit_strings %s\x01%zi %zi",  ResultType.c_str(), StartHitNo,  ResultLimit);
-
-	if (!SendString(CorpusSocket, S.c_str(), S.length(), ErrorStr)) 
-	{
-		ErrorMessage (Format("cannot send a string to socket %s : %s", Host.GetAddressStr().c_str(), ErrorStr.c_str() ));
-
-		if (!this->CloseDtr(CorpusSocket))
-			ErrorMessage (Format("cannot close socket %s", Host.GetAddressStr().c_str()));
-
-		return neCouldNotSendData;
-	};
-
+	string S;
 	NetworkErrorsEnum Res = ReceiveString(CorpusSocket, S, TimeOut);
 	if (!this->CloseDtr(CorpusSocket))
 		ErrorMessage (Format("cannot close socket %s", Host.GetAddressStr().c_str()));

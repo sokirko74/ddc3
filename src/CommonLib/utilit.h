@@ -562,8 +562,6 @@ T& GerEngRusMakeUpperTemplate (T& word, MorphLanguageEnum Langua, size_t Len )
 
 
 
-
-
 //  QWORD mask
 #define _QM(X) (((QWORD)1)<<X)
 

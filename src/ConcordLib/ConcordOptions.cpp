@@ -29,20 +29,6 @@ const int DefaultKwicContextSize = 4;
 // LC_CTYPE_UTF8_DEFAULT : default LC_CTYPE to use for Utf8 mode if no utf8 locale is detected
 const char *LC_CTYPE_UTF8_DEFAULT = "en_US.UTF-8";
 
-//-- option-parsing utility for boolean options
-bool StringToBool(const string &s, bool onempty=true)
-{
-	if (s.empty()) return onempty;
-	string ls = stolower(s);
-	return (ls!="no" && ls!="n" && ls!="false" && ls!="off" && ls!="disabled" && ls!="0");
-}
-
-//-- boolean value reporting
-const char *BoolToString(bool b)
-{
-	return b ? "true" : "false";
-}
-
 void CConcIndexator::InitDefaultOptions()
 {
    	m_Path = "#empty_path";

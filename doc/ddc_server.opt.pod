@@ -35,10 +35,11 @@ server option files ("server-opt files") used by the DDC corpus indexing system.
  StatsWindow SECONDS
 
  ##-------------------------------------------------------------
- ## Client-Thread Options
+ ## Client-Thread and Parallelization Options
  
  NumThreads NTHREADS
  ThreadQueueSize QSIZE
+ HitStringsParallel BOOL
 
  ##-------------------------------------------------------------
  ## Navigation Cache Options
@@ -176,10 +177,10 @@ Since v2.1.1.
 
 
 ##==============================================================
-## Client-Thread Options
+## Client-Thread and Parallelization Options
 =pod
 
-=head2 Client-Thread Options
+=head2 Client-Thread and Parallelization Options
 
 The following options control the behavior of per-client "worker" threads.
 
@@ -222,6 +223,23 @@ enqueued for processing, then the main accepting server thread will block
 until the queue shrinks below I<QSIZE> before enqueueing any new client
 connection -- this basically just pushes the burden of client-queueing
 beyond I<QSIZE> to the TCP stack.
+
+=head3 HitStringsParallel
+
+ HitStringsParallel BOOL
+
+Aliases: HitStringsParallel ParallelHitStrings
+
+Default: false
+
+If specified and true, branch servers created by this process will send
+L<C<get_hit_strings>|ddc_proto/get_hit_stings> requests to their immediate
+daughters in parallel.  If the daughters need to fetch hit data from secondary
+storage (i.e. if you don't have excessive amounts RAM), enabling this option
+is likely to actually slow things down unless your secondary storage device
+supports ultra-low-latency random access reads, in which case it might help.
+The parameter C<BOOL> is any string recoginized as a Boolean value;
+see L<ddc_opt/"Boolean Flags and Switches"> for details.
 
 =cut
 

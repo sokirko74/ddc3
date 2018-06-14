@@ -199,7 +199,9 @@ public:
     CRunQueryData			m_QueryData;  //< run-query data
     NavHintCache			*m_pNavCache; //< navigation hint cache (shared over multiple worker threads)
     size_t				m_NavCacheStep;	//-- minimum offset increment for update of navigation hint cache
-    
+
+    bool m_bHitStringsParallel; ///< send get_hit_strings requests in parallel?
+
 public:
     //--------------------------------------------------------------
     // Constructors etc.
@@ -334,6 +336,12 @@ public:
 				 const int     TimeOut,
 				 CFirstHitsQueryResult& Result);
 
+    /** send a single get_hit_strings request (used by both parallel and serial modes) */
+    NetworkErrorsEnum SendGetHitStringsRequest(BYTE PossibleHostNo,
+					       const vector< vector<size_t> >& SortedHits,
+					       const vector<size_t>& FirstOffsets,
+					       const string& ResultType);
+    
     /** old guts for handle__run_query() phase 2 */
     NetworkErrorsEnum GetHitStringsFromOneCorpus(CHost& Host,
 						 const string& ResultType,

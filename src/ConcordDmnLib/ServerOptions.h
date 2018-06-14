@@ -43,13 +43,16 @@ public:
     size_t m_StatsWindow;
    
     //--------------------------------------------------------------
-    // client threads
+    // client threads & parallelization
 
     /** number of client-thread workers for thread pool (default=0: serial mode) */
     size_t m_nWorkers;
 
     /** maximum number of pending client connections the thread-pool queue (min=1: use tcp queueing only; default=DDC_DEFAULT_THREAD_QUEUE_SIZE) */
     size_t m_ThreadQueueSize;
+
+    /** should branch server send "get_hit_strings" requests in parallel? (default=false) */
+    bool m_bHitStringsParallel;
 
     //--------------------------------------------------------------
     // navigation cache

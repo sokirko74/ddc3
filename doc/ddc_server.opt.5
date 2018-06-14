@@ -67,7 +67,7 @@
 .\" ========================================================================
 .\"
 .IX Title "DDC_SERVER.OPT 5"
-.TH DDC_SERVER.OPT 5 "2018-03-20" "2.1.12-rc1" "DDC Corpus Indexing System"
+.TH DDC_SERVER.OPT 5 "2018-06-14" "2.1.12-rc1" "DDC Corpus Indexing System"
 .\" For nroff, turn off justification.  Always turn off hyphenation; it makes
 .\" way too many mistakes in technical documents.
 .if n .ad l
@@ -94,10 +94,11 @@ server option files (\*(L"server-opt files\*(R") used by the \s-1DDC\s0 corpus i
 \& StatsWindow SECONDS
 \&
 \& ##\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
-\& ## Client\-Thread Options
+\& ## Client\-Thread and Parallelization Options
 \& 
 \& NumThreads NTHREADS
 \& ThreadQueueSize QSIZE
+\& HitStringsParallel BOOL
 \&
 \& ##\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
 \& ## Navigation Cache Options
@@ -211,8 +212,8 @@ Size of the time window for tracking moving average statistics, in seconds.
 Currently affects only the \f(CW\*(C`qtavg\*(C'\fR status property (average query time).
 .PP
 Since v2.1.1.
-.SS "Client-Thread Options"
-.IX Subsection "Client-Thread Options"
+.SS "Client-Thread and Parallelization Options"
+.IX Subsection "Client-Thread and Parallelization Options"
 The following options control the behavior of per-client \*(L"worker\*(R" threads.
 .PP
 \fINumThreads\fR
@@ -260,6 +261,26 @@ enqueued for processing, then the main accepting server thread will block
 until the queue shrinks below \fI\s-1QSIZE\s0\fR before enqueueing any new client
 connection \*(-- this basically just pushes the burden of client-queueing
 beyond \fI\s-1QSIZE\s0\fR to the \s-1TCP\s0 stack.
+.PP
+\fIHitStringsParallel\fR
+.IX Subsection "HitStringsParallel"
+.PP
+.Vb 1
+\& HitStringsParallel BOOL
+.Ve
+.PP
+Aliases: HitStringsParallel ParallelHitStrings
+.PP
+Default: false
+.PP
+If specified and true, branch servers created by this process will send
+\&\f(CW\*(C`get_hit_strings\*(C'\fR requests to their immediate
+daughters in parallel.  If the daughters need to fetch hit data from secondary
+storage (i.e. if you don't have excessive amounts \s-1RAM\s0), enabling this option
+is likely to actually slow things down unless your secondary storage device
+supports ultra-low-latency random access reads, in which case it might help.
+The parameter \f(CW\*(C`BOOL\*(C'\fR is any string recoginized as a Boolean value;
+see \*(L"Boolean Flags and Switches\*(R" in ddc_opt for details.
 .SS "Navigation Cache Options"
 .IX Subsection "Navigation Cache Options"
 The following options control the behavior of the branch server navigation hint cache.

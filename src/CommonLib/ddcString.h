@@ -1,7 +1,7 @@
 //-*- Mode: C++ -*-
 //
 //  DDC originally by Alexey Sokirko
-//  Changes and modifications 2011-2017 by Bryan Jurish
+//  Changes and modifications 2011-2018 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -288,7 +288,17 @@ std::string TrimSafe(const std::string &str);
 
 //@}
 
+//----------------------------------------------------------------------
+//\name bool parsing
+//@{
+
+/** option-parsing utility for boolean options */
+bool StringToBool(const std::string &s, bool onempty=true);
+
+/** boolean value reporting for options */
+const char *BoolToString(bool b);
 
 //@}
+
 
 #endif /* DDC_STRING_H */

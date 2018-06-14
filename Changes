@@ -6,6 +6,8 @@ v2.1.12-rc1 Thu, 14 Jun 2018 14:54:32 +0200 moocow
 	* fixed variable & method-name misspellings "*Devision*" -> "*Division*"
 	* fixed bogus "daughters over-pruned" error from branch-servers for ResultLimit==0 (mantis bug #27397)
 	* consolidated ClearVector(), ClearString() into a single clear-and-swap template ClearContainer()
+	* added HitStringsParallel server.opt option -> send 'get_hit_strings' requests to daughters in parallel
+	  - should help if we have hit data in page cache or very fast random access secondary storage
 	* first stab at using mmap() for runtime index access
 	  - added template class ddcMMap<T> in src/CommonLib/ddcMMap.h    : basic mmap() support
 	  - added template class ddcVecFile<T> in src/CommonLib/ddcMMap.h : high-level wrapper for slurp or mmap
