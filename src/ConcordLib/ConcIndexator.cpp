@@ -698,7 +698,7 @@ bool	CConcIndexator::DestroyIndex()
 	if (FileExists(GetFileNameForMaskedFiles().c_str()))
 		if (remove(GetFileNameForMaskedFiles().c_str()))
 			return false;
-    m_MaskedFiles.clear();
+	m_MaskedFiles.clear();
 
 	return true;
 

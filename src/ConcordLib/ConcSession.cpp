@@ -227,8 +227,8 @@ void  SpaceStartQuoteMarks (string& s)
 //----------------------------------------------------------------------
 void CShortOccurCache::Clear()
 {
-	m_IndexItemNo2Occurrences.clear();
-	m_OccurrencesBody.clear();
+	ClearContainer(m_IndexItemNo2Occurrences);
+	ClearContainer(m_OccurrencesBody);
 }
 
 //----------------------------------------------------------------------

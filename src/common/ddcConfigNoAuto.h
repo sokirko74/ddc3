@@ -67,6 +67,12 @@
 /* Define to 1 if you have a functional curl library. */
 #undef HAVE_LIBCURL
 
+/* Define to 1 if you have the <malloc.h> header file. */
+#undef HAVE_MALLOC_H
+
+/* Define to 1 if you have the `malloc_trim' function. */
+#undef HAVE_MALLOC_TRIM
+
 /* Define to 1 if you have the <memory.h> header file. */
 #undef HAVE_MEMORY_H
 

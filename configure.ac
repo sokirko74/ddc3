@@ -3,7 +3,7 @@ AC_PREREQ(2.5)
 
 dnl Some handy macros
 define([THE_PACKAGE_NAME],    [ddc])
-define([THE_PACKAGE_VERSION], [2.1.12-pre1])
+define([THE_PACKAGE_VERSION], [2.1.12-rc1])
 define([THE_PACKAGE_MAINTAINER],  [jurish@bbaw.de])
 AC_INIT(THE_PACKAGE_NAME, THE_PACKAGE_VERSION, THE_PACKAGE_MAINTAINER)
 
@@ -159,6 +159,13 @@ fi
 ## headers: for mtime
 AC_CHECK_HEADERS_ONCE([sys/types.h sys/stat.h])
 ## /headers: mtime
+##^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+##----------------------------------------------------------------------
+## headers: for malloc_trim
+AC_CHECK_HEADERS_ONCE([malloc.h])
+AC_CHECK_FUNCS([malloc_trim])
+## /headers: malloc_trim
 ##^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 ##----------------------------------------------------------------------

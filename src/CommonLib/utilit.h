@@ -64,6 +64,9 @@
 #include  "map"
 #include "time.h"
 
+#ifdef HAVE_MALLOC_H
+# include <malloc.h>
+#endif
 
 #ifndef __GNUC__
 #pragma warning (disable : 4018)
@@ -388,34 +391,34 @@ extern string GetStringByLanguage (MorphLanguageEnum Langua);
 
 
 //======================================================================
-/*
-also clears capacity
-*/
+
+//-- agressive heap trimming
+inline void TrimHeap()
+{
+#if HAVE_MALLOC_TRIM
+    malloc_trim(0);
+#endif
+};
+
+
+/* generic STL clear-and-swap , should free up memory better than STL clear() */
+template <class ContainerT>
+void ClearContainer(ContainerT& C)
+{
+    C.clear();
+    ContainerT tmp;
+    tmp.swap(C);
+    //TrimHeap();
+}
+
+/* also clears capacity */
 template <class T> 
-void ClearVector(vector<T>& V)
-{
-	V.clear();
-	//-- 2018-01-09 moocow
-	// + removing initializer argument for dummy vector too (although this does seem to clear capacity)
-	//vector<T> dummy (V);
-	vector<T> dummy;
-	V.swap (dummy);
-};
+inline void ClearVector(vector<T>& V)
+{ ClearContainer(V); };
 
-/*
-also clears capacity
-*/
+/* also clears capacity */
 inline void ClearString(string& S)
-{
-	S.clear();
-	//-- 2018-01-09 moocow
-	// + initializing dummy(S) does NOT reset S's capacity to zero after the swap() on g++ 4.9.2-10 / debian jessie
-	// + using default "empty-string" constructor for dummy seems to work
-	//string dummy(S);
-	string dummy;
-	S.swap (dummy);
-};
-
+{ ClearContainer(S); };
 
 
 // ============     Brackets =========================

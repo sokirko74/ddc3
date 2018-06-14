@@ -171,8 +171,9 @@ void CConcSessionContext::CacheSet(CConcHolder& Holder, const string& Query, vec
 void CConcSessionContext::CacheClear()
 {
 	lock();
-	m_QueryCache.clear();
-	m_Queries.clear();
+	ClearContainer(m_QueryCache);
+	ClearContainer(m_Queries);
+	TrimHeap(); //-- global heap-trimming
 	unlock();
 }
 
