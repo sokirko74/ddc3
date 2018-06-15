@@ -67,7 +67,7 @@
 .\" ========================================================================
 .\"
 .IX Title "DDC_PROTO 5"
-.TH DDC_PROTO 5 "2018-06-15" "2.1.12-rc1" "DDC Corpus Indexing System"
+.TH DDC_PROTO 5 "2018-06-15" "2.1.12-rc2" "DDC Corpus Indexing System"
 .\" For nroff, turn off justification.  Always turn off hyphenation; it makes
 .\" way too many mistakes in technical documents.
 .if n .ad l
@@ -178,6 +178,7 @@ Returns status information on the running server as a \s-1JSON\s0 object of the 
 \&  "nslow":0,                            //\-\- number of slow queries (>= v2.1.0)
 \&  "qtavg":0.00284271,                   //\-\- average query time over last StatsWindow seconds (>= v2.1.1)
 \&  "nworkers":4,                         //\-\- number of client worker\-threads (>= v2.1.0)
+\&  "hitstrings":"parallel",              //\-\- hit\-retrieval mode ("serial" or "parallel", branch only, >= v2.1.12)
 \&  "memkb":68152,                        //\-\- memory resident set size in kb (>= v2.0.49, linux only)
 \&  "vmem":{                              //\-\- virtual memory statistics from /proc/[PID]/status in kb (see proc(5), >= v2.1.8)
 \&          "peak":527788,                //   \- VmPeak: peak virtual memory size (address space)
@@ -191,6 +192,7 @@ Returns status information on the running server as a \s-1JSON\s0 object of the 
 \&          "swap":0                      //   \- VmSwap: swapped\-out virtual memory size, not including shmem
 \&         },
 \&  "navcachesize":512,                   //\-\- size of navigation hint cache (branch servers only, >= v2.1.9)
+\&  "navcachestep":1000,                  //\-\- navigation hint cache step\-size (branch only, >= v2.1.11)
 \&  "cachesize":42,                       //\-\- size of query cache (leaf servers only)
 \&  "curlcachesize":24,                   //\-\- size of curl cache (leaf servers only)
 \&  "corpora":["corpus1","corpus2",...]   //\-\- registered subcorpus names (branch servers only)
@@ -246,6 +248,7 @@ For a leaf server, the returned object is of the form:
 \&  //\-\- global index options (see ddc_opt(5))
 \&  "lang":"German",
 \&  "utf8":1,
+\&  "mmap":1,
 \&  "caseSensitive":1,
 \&  "contextOperator":1,
 \&  "dwdsThesaurus":0,
@@ -361,7 +364,7 @@ Apparently \fB\s-1BROKEN\s0\fR since at least v2.1.0.
 .PP
 Request that the receiving server immediately clear any in-memory query cache(s).
 If \f(CW\*(C`DEPTH\*(C'\fR is present and non-zero, a receiving branch server
-will send a \f(CW\*(C`clear_cache\*(C'\fR message with paramter \f(CW\*(C`DEPTH\-1\*(C'\fR to any subordinate
+will send a \f(CW\*(C`clear_cache\*(C'\fR message with parameter \f(CW\*(C`DEPTH\-1\*(C'\fR to any subordinate
 servers on the user's behalf; a \f(CW\*(C`DEPTH\*(C'\fR parameter of \-1 requests maximum depth.
 .PP
 Since v2.0.23, \s-1DEPTH\s0 parameter since v2.0.25.
@@ -389,7 +392,7 @@ Response data is of the form
 .PP
 where \f(CW\*(C`STATUS\*(C'\fR is a decimal integer indicating the operation status (0 indicates success).
 \&\f(CW\*(C`NTERMS\*(C'\fR is the number of expanded terms being returned in the \f(CW\*(C`DATA\*(C'\fR portion,
-and \f(CW\*(C`DATA\*(C'\fR is either an error message (just in case \s-1STATUS\s0 is non-zero) or a list of expanded terms
+and \f(CW\*(C`DATA\*(C'\fR is either an error message (just in case \f(CW\*(C`STATUS\*(C'\fR is non-zero) or a list of expanded terms
 separated by TABs, newlines, and/or carriage returns (\s-1ASCII\s0 0x09, 0x0a, 0x0d).
 .PP
 Since v2.0.0
@@ -404,7 +407,7 @@ Since v2.0.0
 Request morphological analysis of the word \f(CW\*(C`WORD\*(C'\fR using legacy built-in language-specific heuristics.
 \&\f(CW\*(C`ILEMMATIZE\*(C'\fR is a boolean integer; if true, only lemmatization is performed.
 \&\f(CW\*(C`ILANG\*(C'\fR is an integer indicating the built-in language rule-set to use; it should
-be a valid MorphLanguageEnum value as defined in ${\s-1DDC_SRC\s0}/src/common/utilit.h ;
+be a valid \f(CW\*(C`MorphLanguageEnum\*(C'\fR value as defined in \fI${\s-1DDC_SRC\s0}/src/CommonLib/utilit.h\fR ;
 currently recognized values are (0:unknown, 1:Russian, 2:English, 3:German, 4:Generic, 5:URL, 6:Digits).
 .PP
 Response is an \s-1HTML\s0 fragment.
@@ -424,12 +427,13 @@ annoying complaints unless each subcorpus socket gets exactly 2 messages per use
 .PP
 Since v2.0.0
 .PP
-\&\fB\s-1OBSOLETE\s0\fR since v2.0.23.
+More or less obsolete since v2.0.23; may still be used to cleanup stale connections
+in exception handlers.
 .SS "Branch-Server Messages"
 .IX Subsection "Branch-Server Messages"
 This section describes the messages accepted by \s-1DDC \s0\*(L"branch\*(R" servers,
 also known as \*(L"distributed\*(R" or \*(L"nonterminal\*(R" servers.  A branch server is not associated directly
-with any single index, but functions as an aggregator for one or more subordinate
+with any phyiscal index, but functions as an aggregator for one or more (possibly indirect) subordinate
 (\*(L"leaf\*(R") servers.
 .PP
 Branch servers are prototypically used as the top-level instance for processing user
@@ -547,10 +551,10 @@ As of v2.0.34, ddc supports user-supplied match-IDs via the \f(CW\*(C`=ID\*(C'\f
 Matched tokens for which an explicit nonzero match-ID was supplied in the query
 encode that \s-1ID\s0 as the first element of the returned token-array.
 .PP
-Prior to v2.0.38, ddc returned only raw token strings in the the extra-senential context
+Prior to v2.0.38, ddc returned only raw token strings in the the extra-sentential context
 arrays hit.ctx_[0] and hit.ctx_[2].  As of v2.0.38, the tokens in these arrays
 may themselves be array-encoded as for hit.ctx_[1], although sentence boundaries in
-the extra-sential context arrays remain unencoded for maximum compatibility.
+the extra-sentential context arrays remain unencoded for maximum compatibility.
 This behavior is disabled by default, but can be enabled by specifying the
 \&\f(CW\*(C`\-\-enable\-json\-deep\-context\*(C'\fR option to the \fIconfigure\fR script when compiling ddc.
 .PP
@@ -592,14 +596,6 @@ as a \s-1JSON\s0 array
 .Sp
 where \f(CW\*(C`COUNT\*(C'\fR is the total count for the bin in question and \f(CW\*(C`KEY(s)...\*(C'\fR
 are the key strings as requested in the \f(CW\*(C`QUERY\*(C'\fR \*(L"#BY\*(R"\-clause.
-.IP "hint_" 4
-.IX Item "hint_"
-is a navigation hint appropriate for fetching the next available hit
-from this corpus when passed as the \f(CW\*(C`HINT\*(C'\fR parameter to a subsequent
-\&\f(CW\*(C`run_query\*(C'\fR or \f(CW\*(C`get_first_hits\*(C'\fR request.
-See \s-1HINT\s0 for details.
-.Sp
-Since v2.1.9.
 .PP
 Since v1.x,
 \&\s-1JSON\s0 format and error messages since v2.0.0,

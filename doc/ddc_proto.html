@@ -142,6 +142,7 @@
   &quot;nslow&quot;:0,                            //-- number of slow queries (&gt;= v2.1.0)
   &quot;qtavg&quot;:0.00284271,                   //-- average query time over last StatsWindow seconds (&gt;= v2.1.1)
   &quot;nworkers&quot;:4,                         //-- number of client worker-threads (&gt;= v2.1.0)
+  &quot;hitstrings&quot;:&quot;parallel&quot;,              //-- hit-retrieval mode (&quot;serial&quot; or &quot;parallel&quot;, branch only, &gt;= v2.1.12)
   &quot;memkb&quot;:68152,                        //-- memory resident set size in kb (&gt;= v2.0.49, linux only)
   &quot;vmem&quot;:{                              //-- virtual memory statistics from /proc/[PID]/status in kb (see proc(5), &gt;= v2.1.8)
           &quot;peak&quot;:527788,                //   - VmPeak: peak virtual memory size (address space)
@@ -155,6 +156,7 @@
           &quot;swap&quot;:0                      //   - VmSwap: swapped-out virtual memory size, not including shmem
          },
   &quot;navcachesize&quot;:512,                   //-- size of navigation hint cache (branch servers only, &gt;= v2.1.9)
+  &quot;navcachestep&quot;:1000,                  //-- navigation hint cache step-size (branch only, &gt;= v2.1.11)
   &quot;cachesize&quot;:42,                       //-- size of query cache (leaf servers only)
   &quot;curlcachesize&quot;:24,                   //-- size of curl cache (leaf servers only)
   &quot;corpora&quot;:[&quot;corpus1&quot;,&quot;corpus2&quot;,...]   //-- registered subcorpus names (branch servers only)
@@ -194,6 +196,7 @@
   //-- global index options (see ddc_opt(5))
   &quot;lang&quot;:&quot;German&quot;,
   &quot;utf8&quot;:1,
+  &quot;mmap&quot;:1,
   &quot;caseSensitive&quot;:1,
   &quot;contextOperator&quot;:1,
   &quot;dwdsThesaurus&quot;:0,
@@ -288,7 +291,7 @@
 <pre><code> clear_cache
  clear_cache DEPTH</code></pre>
 
-<p>Request that the receiving server immediately clear any in-memory query cache(s). If <code>DEPTH</code> is present and non-zero, a receiving branch server will send a <code>clear_cache</code> message with paramter <code>DEPTH-1</code> to any subordinate servers on the user&#39;s behalf; a <code>DEPTH</code> parameter of -1 requests maximum depth.</p>
+<p>Request that the receiving server immediately clear any in-memory query cache(s). If <code>DEPTH</code> is present and non-zero, a receiving branch server will send a <code>clear_cache</code> message with parameter <code>DEPTH-1</code> to any subordinate servers on the user&#39;s behalf; a <code>DEPTH</code> parameter of -1 requests maximum depth.</p>
 
 <p>Since v2.0.23, DEPTH parameter since v2.0.25.</p>
 
@@ -305,7 +308,7 @@
 
 <pre><code> STATUS &quot; &quot; NTERMS &quot;\n&quot; DATA</code></pre>
 
-<p>where <code>STATUS</code> is a decimal integer indicating the operation status (0 indicates success). <code>NTERMS</code> is the number of expanded terms being returned in the <code>DATA</code> portion, and <code>DATA</code> is either an error message (just in case STATUS is non-zero) or a list of expanded terms separated by TABs, newlines, and/or carriage returns (ASCII 0x09, 0x0a, 0x0d).</p>
+<p>where <code>STATUS</code> is a decimal integer indicating the operation status (0 indicates success). <code>NTERMS</code> is the number of expanded terms being returned in the <code>DATA</code> portion, and <code>DATA</code> is either an error message (just in case <code>STATUS</code> is non-zero) or a list of expanded terms separated by TABs, newlines, and/or carriage returns (ASCII 0x09, 0x0a, 0x0d).</p>
 
 <p>Since v2.0.0</p>
 
@@ -313,7 +316,7 @@
 
 <pre><code> get_paradigm &quot; &quot; WORD &quot;\x01&quot; ILEMMATIZE &quot; &quot; ILANG</code></pre>
 
-<p>Request morphological analysis of the word <code>WORD</code> using legacy built-in language-specific heuristics. <code>ILEMMATIZE</code> is a boolean integer; if true, only lemmatization is performed. <code>ILANG</code> is an integer indicating the built-in language rule-set to use; it should be a valid MorphLanguageEnum value as defined in ${DDC_SRC}/src/common/utilit.h ; currently recognized values are (0:unknown, 1:Russian, 2:English, 3:German, 4:Generic, 5:URL, 6:Digits).</p>
+<p>Request morphological analysis of the word <code>WORD</code> using legacy built-in language-specific heuristics. <code>ILEMMATIZE</code> is a boolean integer; if true, only lemmatization is performed. <code>ILANG</code> is an integer indicating the built-in language rule-set to use; it should be a valid <code>MorphLanguageEnum</code> value as defined in <i>${DDC_SRC}/src/CommonLib/utilit.h</i> ; currently recognized values are (0:unknown, 1:Russian, 2:English, 3:German, 4:Generic, 5:URL, 6:Digits).</p>
 
 <p>Response is an HTML fragment.</p>
 
@@ -327,11 +330,11 @@
 
 <p>Since v2.0.0</p>
 
-<p><b>OBSOLETE</b> since v2.0.23.</p>
+<p>More or less obsolete since v2.0.23; may still be used to cleanup stale connections in exception handlers.</p>
 
 <h2 id="Branch-Server-Messages">Branch-Server Messages</h2>
 
-<p>This section describes the messages accepted by DDC &quot;branch&quot; servers, also known as &quot;distributed&quot; or &quot;nonterminal&quot; servers. A branch server is not associated directly with any single index, but functions as an aggregator for one or more subordinate (&quot;leaf&quot;) servers.</p>
+<p>This section describes the messages accepted by DDC &quot;branch&quot; servers, also known as &quot;distributed&quot; or &quot;nonterminal&quot; servers. A branch server is not associated directly with any phyiscal index, but functions as an aggregator for one or more (possibly indirect) subordinate (&quot;leaf&quot;) servers.</p>
 
 <p>Branch servers are prototypically used as the top-level instance for processing user queries. Prior to ddc-v2.1.0, only branch servers supported the following messages.</p>
 
@@ -442,7 +445,7 @@
 
 <p>As of v2.0.34, ddc supports user-supplied match-IDs via the <code>=ID</code> query operator. Matched tokens for which an explicit nonzero match-ID was supplied in the query encode that ID as the first element of the returned token-array.</p>
 
-<p>Prior to v2.0.38, ddc returned only raw token strings in the the extra-senential context arrays hit.ctx_[0] and hit.ctx_[2]. As of v2.0.38, the tokens in these arrays may themselves be array-encoded as for hit.ctx_[1], although sentence boundaries in the extra-sential context arrays remain unencoded for maximum compatibility. This behavior is disabled by default, but can be enabled by specifying the <code>--enable-json-deep-context</code> option to the <i>configure</i> script when compiling ddc.</p>
+<p>Prior to v2.0.38, ddc returned only raw token strings in the the extra-sentential context arrays hit.ctx_[0] and hit.ctx_[2]. As of v2.0.38, the tokens in these arrays may themselves be array-encoded as for hit.ctx_[1], although sentence boundaries in the extra-sentential context arrays remain unencoded for maximum compatibility. This behavior is disabled by default, but can be enabled by specifying the <code>--enable-json-deep-context</code> option to the <i>configure</i> script when compiling ddc.</p>
 
 <p>As of v2.0.23, ddc supports aggregate count-queries by means of the <code>count()</code> operator. If the requested <code>QUERY</code> was such a count-query, the query response is slightly different:</p>
 
@@ -478,14 +481,6 @@
 <pre><code> [ COUNT, KEY(s)... ]</code></pre>
 
 <p>where <code>COUNT</code> is the total count for the bin in question and <code>KEY(s)...</code> are the key strings as requested in the <code>QUERY</code> &quot;#BY&quot;-clause.</p>
-
-</dd>
-<dt id="hint_">hint_</dt>
-<dd>
-
-<p>is a navigation hint appropriate for fetching the next available hit from this corpus when passed as the <code>HINT</code> parameter to a subsequent <code>run_query</code> or <code>get_first_hits</code> request. See <a href="#HINT">HINT</a> for details.</p>
-
-<p>Since v2.1.9.</p>
 
 </dd>
 </dl>

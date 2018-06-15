@@ -1,6 +1,6 @@
 ###-*- Mode: Change-Log; coding: utf-8; -*-
 
-v2.1.12-rc2 WIP
+v2.1.12-rc2 Fri, 15 Jun 2018 15:46:51 +0200 moocow
 	* added doc/ddc_files.pod (-> manpage ddc_files(5)): low-level index file formats
 	* fixed type of CConcXml::m_Dates (was: vector<int>, new: vector<DWORD>) - should improve portability
 	* fixed variable & method-name misspellings "*Devision*" -> "*Division*"
