@@ -540,9 +540,9 @@ const char* StringTokenizer::get_rest_trim()
 std::string TrimSafe(const std::string &str)
 {
   size_t i = str.find_first_not_of(" \t\r\n");
-  size_t j = str.find_last_not_of(" \t\r\n", i);
+  size_t j = str.find_last_not_of(" \t\r\n");
   if (i >= j) return string();
-  return str.substr(i, j-i);
+  return str.substr(i, j-i+1);
 }
 
 //======================================================================

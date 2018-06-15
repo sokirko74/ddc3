@@ -1,6 +1,6 @@
 ###-*- Mode: Change-Log; coding: utf-8; -*-
 
-v2.1.12-rc1 Thu, 14 Jun 2018 14:54:32 +0200 moocow
+v2.1.12-rc2 WIP
 	* added doc/ddc_files.pod (-> manpage ddc_files(5)): low-level index file formats
 	* fixed type of CConcXml::m_Dates (was: vector<int>, new: vector<DWORD>) - should improve portability
 	* fixed variable & method-name misspellings "*Devision*" -> "*Division*"
@@ -8,6 +8,7 @@ v2.1.12-rc1 Thu, 14 Jun 2018 14:54:32 +0200 moocow
 	* consolidated ClearVector(), ClearString() into a single clear-and-swap template ClearContainer()
 	* added HitStringsParallel server.opt option -> send 'get_hit_strings' requests to daughters in parallel
 	  - should help if we have hit data in page cache or very fast random access secondary storage
+	* fixed broken "include" directive in ddc_server.opt (-> updated TrimSafe() method in ddcString.cpp)
 	* first stab at using mmap() for runtime index access
 	  - added template class ddcMMap<T> in src/CommonLib/ddcMMap.h    : basic mmap() support
 	  - added template class ddcVecFile<T> in src/CommonLib/ddcMMap.h : high-level wrapper for slurp or mmap

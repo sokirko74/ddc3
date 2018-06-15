@@ -102,8 +102,12 @@ bool CDDCServerOptions::Set(const string& Option, const string& Value, const str
     else if (opt=="compatversion" || opt=="versioncompat" || opt=="compatibility" || opt=="compat")
 	m_VersionCompat.fromString(Value);
     else if (opt=="include") {
-	string IncFileName = RelativeFileName(srcName, IncFileName);
-	LoadFile(IncFileName);
+	string Arg = TrimSafe(Value);
+	if (Arg.size() > 2 && Arg[0]=='"' && Arg[Arg.size()-1]=='"') {
+	    Arg.erase(0,1);
+	    Arg.erase(Arg.size()-1,1);
+	}
+	LoadFile( RelativeFileName(srcName, unescapeCString(Arg)) );
     }
     else
 	return false;
