@@ -38,6 +38,8 @@ v2.1.12-rc2 WIP
 	  - <1% slowdown for v2.1.12+mmap versus v2.1.11 on 2nd pass (index data present in page cache)
 	  - major memory hog is however NOT the index data itself after a few hundred queries
 	    + looks like RSS is being eaten (but not leaked) by something else
+	* added 'mmap' info-response field for leaf servers (-> corpus opt-file MemoryMap option)
+	* added 'hitstrings' info-response field for branch servers (-> server opt-file HitStringsParallel option)
 
 v2.1.11 Tue, 20 Mar 2018 13:10:10 +0100 moocow
 	* fixed catastrophic error in NavHintKey::operator<() leading to cache inconsistency and random server crashes

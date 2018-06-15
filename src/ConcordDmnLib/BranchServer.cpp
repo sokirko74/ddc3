@@ -552,6 +552,7 @@ void CDDCBranchServer::handle__status(string &Result, int timeout, bool verbose)
 	      + "\"nslow\":" + Format("%zd", m_ServerStats.m_nSlow) + ",\n"
 	      + "\"qtavg\":" + Format("%g", m_ServerStats.m_qTimes.tAverage()) + ",\n"
 	      + "\"nworkers\":" + Format("%zd", m_nWorkers) + ",\n"
+	      + "\"hitstrings\":\"" + (m_bHitStringsParallel ? "parallel" : "serial") + "\",\n"
 	      + "\"navcachesize\":" + Format("%zd", (m_pNavCache ? m_pNavCache->size() : 0)) + ",\n"
 	      + "\"navcachestep\":" + Format("%zd", m_NavCacheStep) + ",\n"
 	      + "\"memkb\":" + Format("%zd", pms.VmRSS) + ",\n" //-- compat	      

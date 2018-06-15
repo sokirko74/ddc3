@@ -272,6 +272,7 @@ void CDDCLeafServer::handle__info(string &Result, int timeout, bool verbose)
 			   //-- options
 			   + "\"lang\":" + jsonStr(GetStringByLanguage(ix->m_Language)) + ",\n\t"
 			   + "\"utf8\":" + (ix->m_Utf8 ? '1' : '0') + ",\n\t"
+			   + "\"mmap\":" + (ix->m_bMemoryMap ? '1' : '0') + ",\n\t"
 			   + "\"caseSensitive\":" + (ix->m_bCaseSensitive ? '1' : '0') + ",\n\t"
 			   + "\"contextOperator\":" + (ix->HasContextOperator() ? '1' : '0') + ",\n\t"
 			   + "\"dwdsThesaurus\":" + (ix->UseDwdsThesaurus() ? '1' : '0') + ",\n\t"
