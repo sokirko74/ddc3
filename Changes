@@ -9,6 +9,7 @@ v2.1.12-rc2 Fri, 15 Jun 2018 15:46:51 +0200 moocow
 	* added HitStringsParallel server.opt option -> send 'get_hit_strings' requests to daughters in parallel
 	  - should help if we have hit data in page cache or very fast random access secondary storage
 	* fixed broken "include" directive in ddc_server.opt (-> updated TrimSafe() method in ddcString.cpp)
+	* ConcSession::ClearQueryResults() now swaps-and-clears m_QueryResultStr too (try to avoid rss bloat for persistent servers)
 	* first stab at using mmap() for runtime index access
 	  - added template class ddcMMap<T> in src/CommonLib/ddcMMap.h    : basic mmap() support
 	  - added template class ddcVecFile<T> in src/CommonLib/ddcMMap.h : high-level wrapper for slurp or mmap

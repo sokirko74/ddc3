@@ -1650,7 +1650,7 @@ DDCErrorEnum CConcSession::GetAllHits(CQuery *QueryRoot, size_t Start, size_t Li
 {
 	assert(QueryRoot != NULL);
 	m_bStoppedByUser = false;
-	m_ShortOccurCaches.clear();
+	ClearContainer(m_ShortOccurCaches);
 	ClearQueryResults();
 
 	//-- check for count-queries
@@ -2351,6 +2351,7 @@ int	CConcSession::GetTextArea() const
 void CConcSession::ClearQueryResults()
 {
 	CQueryResult::ClearQueryResults();
+	ClearString(m_QueryResultStr);
 	ClearString(m_ErrorStr);
 	m_ResultOffset = 0;
 }
