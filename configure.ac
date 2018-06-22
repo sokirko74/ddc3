@@ -3,7 +3,7 @@ AC_PREREQ(2.5)
 
 dnl Some handy macros
 define([THE_PACKAGE_NAME],    [ddc])
-define([THE_PACKAGE_VERSION], [2.1.12])
+define([THE_PACKAGE_VERSION], [2.1.13-pre1])
 define([THE_PACKAGE_MAINTAINER],  [jurish@bbaw.de])
 AC_INIT(THE_PACKAGE_NAME, THE_PACKAGE_VERSION, THE_PACKAGE_MAINTAINER)
 
@@ -201,6 +201,42 @@ AC_TYPE_UINT64_T
 ##^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 ##----------------------------------------------------------------------
+## libs: jemalloc
+
+AC_CHECK_LIB(jemalloc, mallocx,
+	[ddc_have_jemalloc="yes"],
+	[ddc_have_jemalloc="no"])
+
+##--------
+AC_ARG_ENABLE([jemalloc],
+	AC_HELP_STRING([--enable-jemalloc],[enable jemalloc allocator (default=if avavilable)]),
+	[ddc_enable_jemalloc="$enableval"],
+	[ddc_enable_jemalloc="auto"])
+AC_MSG_CHECKING([whether to enable jemalloc allocator])
+if test "$ddc_enable_jemalloc" = "no" ; then
+   AC_MSG_RESULT([no])
+elif test "$ddc_enable_jemalloc" = "yes" ; then  
+   AC_MSG_RESULT([yes])
+   if test "$ddc_have_jemalloc" = "no" ; then
+     AC_MSG_FAILURE([cannot enable jemalloc because your system does not seem to support it!])
+   fi
+elif test "$ddc_have_jemalloc" = "no" ; then
+   AC_MSG_RESULT([no (libjemalloc not found)])
+   ddc_enable_jemalloc=no
+else
+   AC_MSG_RESULT([yes])
+   ddc_enable_jemalloc=yes
+fi
+
+if test "$ddc_enable_jemalloc" = "yes" ; then
+  LIBS="-ljemalloc $LIBS"
+fi
+
+## /libs:jemalloc
+##^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+
+##----------------------------------------------------------------------
 ## libs: pthread
 AC_SEARCH_LIBS(pthread_create, [pthread])
 if test "$ac_cv_search_pthread_create" = "no" ; then
@@ -258,7 +294,7 @@ AM_ICONV
 if test "$am_cv_func_iconv" != "yes"; then
   AC_MSG_ERROR([could not find working libiconv: ensure that CPPFLAGS, LDFLAGS, and LIBS are set to use to libiconv])
 else
-  LIBS="$LIBS $LIBICONV"
+  LIBS="$LIBICONV $LIBS"
 fi
 ## /libs: iconv
 ##^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -269,7 +305,7 @@ LIBCURL_CHECK_CONFIG(yes,
 	[0.0.0],
 	[
 	 ddc_have_curl=yes
-	 LIBS="$LIBS $LIBCURL"
+	 LIBS="$LIBCURL $LIBS"
 	 CPPFLAGS="$CPPFLAGS $LIBCURL_CPPFLAGS"
 	],
 	[
