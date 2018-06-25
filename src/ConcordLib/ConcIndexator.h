@@ -383,7 +383,10 @@ public:
 	//! load list of \ref corpus_file_def "corpus files" (*.con)
 	bool	LoadCorpusFiles();
 
-    //! load list of masked (deleted)\ref corpus_file_def 
+	//! compute common prefix of corpus files in m_CorpusFiles (TODO: use this method to assign m_CommonFilePrefix)
+	string GetCommonFilePrefix() const;
+
+	//! load list of masked (deleted)\ref corpus_file_def 
 	bool	LoadMaskedFiles();
     
 	//! saves options to option file (*.opt)

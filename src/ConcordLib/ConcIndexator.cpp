@@ -567,8 +567,21 @@ bool CConcIndexator::SaveCorpusFileList() const
 }
 
 
-
-
+string CConcIndexator::GetCommonFilePrefix() const
+{
+	string CommonFilePrefix = "";
+	for (size_t fi=0; fi < m_CorpusFiles.size(); ++fi) {
+		string f = m_CorpusFiles[fi];
+		if (i==0) {
+			CommonFilePrefix = f;
+		} else {
+			int i=0;
+			for (; i<min(f.length(), CommonFilePrefix.length()) && f[i]==CommonFilePrefix[i]; ++i) ;
+			CommonFilePrefix.erase(i);
+		}
+	}
+	return CommonFilePrefix;
+};
 
 
 bool CConcIndexator::LoadCorpusFiles()
