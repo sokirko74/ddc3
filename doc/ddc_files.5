@@ -67,7 +67,7 @@
 .\" ========================================================================
 .\"
 .IX Title "DDC_FILES 5"
-.TH DDC_FILES 5 "2018-06-12" "2.1.13-pre1" "DDC Corpus Indexing System"
+.TH DDC_FILES 5 "2018-06-25" "2.1.13-pre1" "DDC Corpus Indexing System"
 .\" For nroff, turn off justification.  Always turn off hyphenation; it makes
 .\" way too many mistakes in technical documents.
 .if n .ad l
@@ -90,10 +90,12 @@ one of these levels.
 .PP
 Each file type described below is characterized with the following attributes:
 .IP "\(bu" 4
+\&\fBversion\fR: \s-1DDC\s0 version(s) using this file.
+.IP "\(bu" 4
 \&\fBresident\fR: whether the file data is read into resident memory on startup.
 .IP "\(bu" 4
-\&\fBmmap\fR: whether the \f(CW\*(C`MemoryMap\*(C'\fR option provides
-virtual memory-mapping support for files of this type.
+\&\fBmmap\fR: whether the \f(CW\*(C`MemoryMap\*(C'\fR option introduced in
+\&\s-1DDC\s0 v2.1.12 provides virtual memory-mapping support for files of this type.
 .IP "\(bu" 4
 \&\fBpopularity\fR: how often the file data is accessed often in the course of a persistent server's lifetime,
 .IP "\(bu" 4
@@ -120,6 +122,7 @@ these files.
 .IX Subsection "CORPUS.opt"
 .PP
 .Vb 10
+\& \- version: >= v2.0.0
 \& \- resident: yes
 \& \- mmap: no
 \& \- popularity: high
@@ -142,6 +145,7 @@ Index options, see \fIddc_opt\fR\|(5) for details.
 .IX Subsection "CORPUS.con"
 .PP
 .Vb 10
+\& \- version: >= v2.0.0
 \& \- resident: no
 \& \- mmap: no
 \& \- popularity: compile\-time only
@@ -173,6 +177,7 @@ List of corpus source files as passed to \fIddc_index\fR\|(1).
 .IX Subsection "CORPUS._con"
 .PP
 .Vb 10
+\& \- version: >= v2.0.0
 \& \- resident: yes
 \& \- mmap: no
 \& \- popularity: high
@@ -211,6 +216,7 @@ time is used to initialize the index timestamp returned by the server \f(CW\*(C`
 .IX Subsection "CORPUS._masked"
 .PP
 .Vb 10
+\& \- version: >= v2.0.0
 \& \- resident: yes
 \& \- mmap: no
 \& \- popularity: optional (high if present)
@@ -233,6 +239,7 @@ Optional list of corpus files for which hits are to be suppressed (simulated del
 .IX Subsection "CORPUS._periods"
 .PP
 .Vb 10
+\& \- version: >= v2.0.0
 \& \- resident: yes
 \& \- mmap: no
 \& \- popularity: high
@@ -265,7 +272,8 @@ Error log written at compile-time; may be missing or empty.
 \fI\s-1CORPUS\s0._error_log\fR
 .IX Subsection "CORPUS._error_log"
 .PP
-.Vb 12
+.Vb 10
+\& \- version: >= v2.0.0
 \& \- resident: no
 \& \- mmap: no
 \& \- popularity: compile\-time only
@@ -286,6 +294,7 @@ Error log written at compile-time; may be missing or empty.
 .IX Subsection "CORPUS._time_statistics"
 .PP
 .Vb 10
+\& \- version: >= v2.0.0
 \& \- resident: no
 \& \- mmap: no
 \& \- popularity: compile\-time only
@@ -312,6 +321,7 @@ with one of each of these files.
 .IX Subsection "CORPUS._TOKATTR"
 .PP
 .Vb 10
+\& \- version: >= v2.0.0
 \& \- resident: yes
 \& \- mmap: yes
 \& \- popularity: high
@@ -341,6 +351,7 @@ Buffer holding all distinct string values (types) for \fI\s-1TOKATTR\s0\fR, NUL-
 .IX Subsection "CORPUS._occ_hdr_TOKATTR"
 .PP
 .Vb 10
+\& \- version: >= v2.0.0
 \& \- resident: yes
 \& \- mmap: yes
 \& \- popularity: high
@@ -362,6 +373,7 @@ Flags and byte-offsets in \fI\fI\s-1CORPUS\s0\fI._\fI\s-1TOKATTR\s0\fI\fR for \f
 .IX Subsection "CORPUS._occurs_TOKATTR"
 .PP
 .Vb 10
+\& \- version: >= v2.0.0
 \& \- resident: no
 \& \- mmap: no
 \& \- popularity: high
@@ -405,6 +417,7 @@ Inverted index for (non-hapax) \fI\s-1TOKATTR\s0\fR value-types, indexed by type
 .IX Subsection "CORPUS._storage_TOKATTR"
 .PP
 .Vb 10
+\& \- version: >= v2.0.0
 \& \- resident: no
 \& \- mmap: no
 \& \- popularity: high
@@ -436,6 +449,7 @@ was set for \fI\s-1TOKATTR\s0\fR at compile-time.
 .IX Subsection "CORPUS._perdivTOKATTR"
 .PP
 .Vb 10
+\& \- version: >= v2.0.0
 \& \- resident: yes
 \& \- mmap: yes
 \& \- popularity: low (only used for VHF types)
@@ -478,6 +492,7 @@ with one or more of these files:
 .IX Subsection "CORPUS._bibl_DOCATTR_strings"
 .PP
 .Vb 10
+\& \- version: <= v2.1.11 (compatibility fallback >= v2.1.12)
 \& \- resident: yes
 \& \- mmap: no
 \& \- popularity: high
@@ -502,6 +517,7 @@ As of \s-1DDC\s0 v2.1.12, the relevant data is stored in a pair of \fImmap()\fR\
 .IX Subsection "CORPUS._bibl_DOCATTR_strings_values"
 .PP
 .Vb 10
+\& \- version: >= v2.1.12
 \& \- resident: yes
 \& \- mmap: yes
 \& \- popularity: high
@@ -526,6 +542,7 @@ replaces \fI\s-1CORPUS\s0._bibl_DOCATTR_strings\fR.
 .IX Subsection "CORPUS._bibl_DOCATTR_strings_idx"
 .PP
 .Vb 10
+\& \- version: >= v2.1.12
 \& \- resident: yes
 \& \- mmap: yes
 \& \- popularity: high
@@ -551,6 +568,7 @@ replaces \fI\s-1CORPUS\s0._bibl_DOCATTR_strings\fR.
 .IX Subsection "CORPUS._bibl_DOCATTR_integers"
 .PP
 .Vb 10
+\& \- version: >= v2.0.0
 \& \- resident: yes
 \& \- mmap: yes
 \& \- popularity: high
@@ -572,6 +590,7 @@ Document-ID to attribute lookup table for \fI\s-1DOCATTR\s0\fR.
 .IX Subsection "CORPUS._bibl_date"
 .PP
 .Vb 10
+\& \- version: >= v2.0.0
 \& \- resident: yes
 \& \- mmap: yes
 \& \- popularity: high
@@ -594,6 +613,7 @@ file gets its own naming conventions.
 .IX Subsection "CORPUS._bibl"
 .PP
 .Vb 10
+\& \- version: >= v2.0.0
 \& \- resident: no
 \& \- mmap: no
 \& \- popularity: high
@@ -630,6 +650,7 @@ String values for built-in \s-1DDC\s0 metadata fields (read-only, no runtime que
 .IX Subsection "CORPUS._bibl_idx"
 .PP
 .Vb 10
+\& \- version: >= v2.0.0
 \& \- resident: yes
 \& \- mmap: yes
 \& \- popularity: high
@@ -658,6 +679,7 @@ with one or more of these files:
 .IX Subsection "CORPUS._BREAK_border"
 .PP
 .Vb 10
+\& \- version: >= v2.0.0
 \& \- resident: yes
 \& \- mmap: yes
 \& \- popularity: high (hit boundaries)
@@ -690,6 +712,7 @@ with one or more of these files:
 .IX Subsection "CORPUS._pagebreaks"
 .PP
 .Vb 10
+\& \- version: >= v2.0.0
 \& \- resident: yes
 \& \- mmap: yes
 \& \- popularity: high
@@ -724,4 +747,5 @@ Bryan Jurish <jurish@bbaw.de>
 .SH "SEE ALSO"
 .IX Header "SEE ALSO"
 \&\fIddc_opt\fR\|(5),
+\&\fIddc_server.opt\fR\|(5),
 \&\fIddc_cfg\fR\|(5)

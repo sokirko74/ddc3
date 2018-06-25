@@ -296,10 +296,11 @@ If the optional TIMEOUT parameter is specified, it should be an integer value in
 maximum time (in seconds) to wait for subcorpus responses; default=10.
 
 Since v2.0.18,
-"periods" attribute since v2.0.033,
+"periods" attribute since v2.0.33,
 user-supplied info since v2.0.34,
 optional TIMEOUT parameter since v2.0.47,
-aliases and "opdefault" attribute since v2.1.5.
+aliases and "opdefault" attribute since v2.1.5,
+"mmap" attribute since v2.1.12.
 
 =cut
 

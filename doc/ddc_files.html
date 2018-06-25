@@ -72,10 +72,13 @@
 
 <ul>
 
+<li><p><b>version</b>: DDC version(s) using this file.</p>
+
+</li>
 <li><p><b>resident</b>: whether the file data is read into resident memory on startup.</p>
 
 </li>
-<li><p><b>mmap</b>: whether the <a href="./ddc_opt.html#MemoryMap"><code>MemoryMap</code></a> option provides virtual memory-mapping support for files of this type.</p>
+<li><p><b>mmap</b>: whether the <a href="./ddc_opt.html#MemoryMap"><code>MemoryMap</code></a> option introduced in DDC v2.1.12 provides virtual memory-mapping support for files of this type.</p>
 
 </li>
 <li><p><b>popularity</b>: how often the file data is accessed often in the course of a persistent server&#39;s lifetime,</p>
@@ -110,7 +113,8 @@
 
 <h3 id="CORPUS.opt">CORPUS.opt</h3>
 
-<pre><code> - resident: yes
+<pre><code> - version: &gt;= v2.0.0
+ - resident: yes
  - mmap: no
  - popularity: high
  - size: tiny
@@ -129,7 +133,8 @@
 
 <h3 id="CORPUS.con">CORPUS.con</h3>
 
-<pre><code> - resident: no
+<pre><code> - version: &gt;= v2.0.0
+ - resident: no
  - mmap: no
  - popularity: compile-time only
  - size: ?
@@ -157,7 +162,8 @@
 
 <h3 id="CORPUS._con">CORPUS._con</h3>
 
-<pre><code> - resident: yes
+<pre><code> - version: &gt;= v2.0.0
+ - resident: yes
  - mmap: no
  - popularity: high
  - size: small
@@ -190,7 +196,8 @@
 
 <h3 id="CORPUS._masked">CORPUS._masked</h3>
 
-<pre><code> - resident: yes
+<pre><code> - version: &gt;= v2.0.0
+ - resident: yes
  - mmap: no
  - popularity: optional (high if present)
  - size: typically tiny if present at all
@@ -209,7 +216,8 @@
 
 <h3 id="CORPUS._periods">CORPUS._periods</h3>
 
-<pre><code> - resident: yes
+<pre><code> - version: &gt;= v2.0.0
+ - resident: yes
  - mmap: no
  - popularity: high
  - size: tiny
@@ -239,7 +247,8 @@
 
 <h3 id="CORPUS._error_log">CORPUS._error_log</h3>
 
-<pre><code> - resident: no
+<pre><code> - version: &gt;= v2.0.0
+ - resident: no
  - mmap: no
  - popularity: compile-time only
  - size: ?
@@ -256,7 +265,8 @@
 
 <h3 id="CORPUS._time_statistics">CORPUS._time_statistics</h3>
 
-<pre><code> - resident: no
+<pre><code> - version: &gt;= v2.0.0
+ - resident: no
  - mmap: no
  - popularity: compile-time only
  - size: ?
@@ -278,7 +288,8 @@
 
 <h3 id="CORPUS._TOKATTR">CORPUS._TOKATTR</h3>
 
-<pre><code> - resident: yes
+<pre><code> - version: &gt;= v2.0.0
+ - resident: yes
  - mmap: yes
  - popularity: high
  - size: medium
@@ -304,7 +315,8 @@
 
 <h3 id="CORPUS._occ_hdr_TOKATTR">CORPUS._occ_hdr_TOKATTR</h3>
 
-<pre><code> - resident: yes
+<pre><code> - version: &gt;= v2.0.0
+ - resident: yes
  - mmap: yes
  - popularity: high
  - size: medium
@@ -322,7 +334,8 @@
 
 <h3 id="CORPUS._occurs_TOKATTR">CORPUS._occurs_TOKATTR</h3>
 
-<pre><code> - resident: no
+<pre><code> - version: &gt;= v2.0.0
+ - resident: no
  - mmap: no
  - popularity: high
  - size: large
@@ -362,7 +375,8 @@
 
 <h3 id="CORPUS._storage_TOKATTR">CORPUS._storage_TOKATTR</h3>
 
-<pre><code> - resident: no
+<pre><code> - version: &gt;= v2.0.0
+ - resident: no
  - mmap: no
  - popularity: high
  - size: large
@@ -388,7 +402,8 @@
 
 <h3 id="CORPUS._perdivTOKATTR">CORPUS._perdivTOKATTR</h3>
 
-<pre><code> - resident: yes
+<pre><code> - version: &gt;= v2.0.0
+ - resident: yes
  - mmap: yes
  - popularity: low (only used for VHF types)
  - size: small
@@ -424,7 +439,8 @@
 
 <h3 id="CORPUS._bibl_DOCATTR_strings">CORPUS._bibl_DOCATTR_strings</h3>
 
-<pre><code> - resident: yes
+<pre><code> - version: &lt;= v2.1.11 (compatibility fallback &gt;= v2.1.12)
+ - resident: yes
  - mmap: no
  - popularity: high
  - size: small to medium (comparable to _Lemma (types) for ibk_web_2016b)
@@ -443,7 +459,8 @@
 
 <h3 id="CORPUS._bibl_DOCATTR_strings_values">CORPUS._bibl_DOCATTR_strings_values</h3>
 
-<pre><code> - resident: yes
+<pre><code> - version: &gt;= v2.1.12
+ - resident: yes
  - mmap: yes
  - popularity: high
  - size: small to medium (comparable to _Lemma (types) for ibk_web_2016b)
@@ -461,7 +478,8 @@
 
 <h3 id="CORPUS._bibl_DOCATTR_strings_idx">CORPUS._bibl_DOCATTR_strings_idx</h3>
 
-<pre><code> - resident: yes
+<pre><code> - version: &gt;= v2.1.12
+ - resident: yes
  - mmap: yes
  - popularity: high
  - size: small
@@ -480,7 +498,8 @@
 
 <h3 id="CORPUS._bibl_DOCATTR_integers">CORPUS._bibl_DOCATTR_integers</h3>
 
-<pre><code> - resident: yes
+<pre><code> - version: &gt;= v2.0.0
+ - resident: yes
  - mmap: yes
  - popularity: high
  - size: small
@@ -498,7 +517,8 @@
 
 <h3 id="CORPUS._bibl_date">CORPUS._bibl_date</h3>
 
-<pre><code> - resident: yes
+<pre><code> - version: &gt;= v2.0.0
+ - resident: yes
  - mmap: yes
  - popularity: high
  - size: small
@@ -516,7 +536,8 @@
 
 <h3 id="CORPUS._bibl">CORPUS._bibl</h3>
 
-<pre><code> - resident: no
+<pre><code> - version: &gt;= v2.0.0
+ - resident: no
  - mmap: no
  - popularity: high
  - size: small-medium
@@ -549,7 +570,8 @@
 
 <h3 id="CORPUS._bibl_idx">CORPUS._bibl_idx</h3>
 
-<pre><code> - resident: yes
+<pre><code> - version: &gt;= v2.0.0
+ - resident: yes
  - mmap: yes
  - popularity: high
  - size: small
@@ -573,7 +595,8 @@
 
 <h3 id="CORPUS._BREAK_border">CORPUS._BREAK_border</h3>
 
-<pre><code> - resident: yes
+<pre><code> - version: &gt;= v2.0.0
+ - resident: yes
  - mmap: yes
  - popularity: high (hit boundaries)
  - size: medium
@@ -602,7 +625,8 @@
 
 <h3 id="CORPUS._pagebreaks">CORPUS._pagebreaks</h3>
 
-<pre><code> - resident: yes
+<pre><code> - version: &gt;= v2.0.0
+ - resident: yes
  - mmap: yes
  - popularity: high
  - size: small to medium
@@ -636,7 +660,7 @@
 
 <h1 id="SEE-ALSO">SEE ALSO</h1>
 
-<p>ddc_opt(5), ddc_cfg(5)</p>
+<p>ddc_opt(5), ddc_server.opt(5), ddc_cfg(5)</p>
 
 
 </body>

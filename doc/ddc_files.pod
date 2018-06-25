@@ -36,12 +36,16 @@ Each file type described below is characterized with the following attributes:
 
 =item *
 
+B<version>: DDC version(s) using this file.
+
+=item *
+
 B<resident>: whether the file data is read into resident memory on startup.
 
 =item *
 
-B<mmap>: whether the L<C<MemoryMap>|ddc_opt/MemoryMap> option provides
-virtual memory-mapping support for files of this type.
+B<mmap>: whether the L<C<MemoryMap>|ddc_opt/MemoryMap> option introduced in
+DDC v2.1.12 provides virtual memory-mapping support for files of this type.
 
 =item *
 
@@ -96,6 +100,7 @@ these files.
 
 =head3 CORPUS.opt
 
+ - version: >= v2.0.0
  - resident: yes
  - mmap: no
  - popularity: high
@@ -120,6 +125,7 @@ Index options, see L<ddc_opt(5)|ddc_opt> for details.
 
 =head3 CORPUS.con
 
+ - version: >= v2.0.0
  - resident: no
  - mmap: no
  - popularity: compile-time only
@@ -153,6 +159,7 @@ List of corpus source files as passed to L<ddc_index(1)|ddc_index>.
 
 =head3 CORPUS._con
 
+ - version: >= v2.0.0
  - resident: yes
  - mmap: no
  - popularity: high
@@ -193,6 +200,7 @@ time is used to initialize the index timestamp returned by the server L<C<info>|
 
 =head3 CORPUS._masked
 
+ - version: >= v2.0.0
  - resident: yes
  - mmap: no
  - popularity: optional (high if present)
@@ -217,6 +225,7 @@ Optional list of corpus files for which hits are to be suppressed (simulated del
 
 =head3 CORPUS._periods
 
+ - version: >= v2.0.0
  - resident: yes
  - mmap: no
  - popularity: high
@@ -253,6 +262,7 @@ Error log written at compile-time; may be missing or empty.
 
 =head3 CORPUS._error_log
 
+ - version: >= v2.0.0
  - resident: no
  - mmap: no
  - popularity: compile-time only
@@ -275,6 +285,7 @@ Error log written at compile-time; may be missing or empty.
 
 =head3 CORPUS._time_statistics
 
+ - version: >= v2.0.0
  - resident: no
  - mmap: no
  - popularity: compile-time only
@@ -310,6 +321,7 @@ with one of each of these files.
 
 =head3 CORPUS._TOKATTR
 
+ - version: >= v2.0.0
  - resident: yes
  - mmap: yes
  - popularity: high
@@ -341,6 +353,7 @@ Buffer holding all distinct string values (types) for I<TOKATTR>, NUL-terminated
 
 =head3 CORPUS._occ_hdr_TOKATTR
 
+ - version: >= v2.0.0
  - resident: yes
  - mmap: yes
  - popularity: high
@@ -364,6 +377,7 @@ Flags and byte-offsets in F<I<CORPUS>._I<TOKATTR>> for I<TOKATTR> value-types, i
 
 =head3 CORPUS._occurs_TOKATTR
 
+ - version: >= v2.0.0
  - resident: no
  - mmap: no
  - popularity: high
@@ -409,6 +423,7 @@ Inverted index for (non-hapax) I<TOKATTR> value-types, indexed by type-id.
 
 =head3 CORPUS._storage_TOKATTR
 
+ - version: >= v2.0.0
  - resident: no
  - mmap: no
  - popularity: high
@@ -442,6 +457,7 @@ was set for I<TOKATTR> at compile-time.
 
 =head3 CORPUS._perdivTOKATTR
 
+ - version: >= v2.0.0
  - resident: yes
  - mmap: yes
  - popularity: low (only used for VHF types)
@@ -493,6 +509,7 @@ with one or more of these files:
 
 =head3 CORPUS._bibl_DOCATTR_strings
 
+ - version: <= v2.1.11 (compatibility fallback >= v2.1.12)
  - resident: yes
  - mmap: no
  - popularity: high
@@ -519,6 +536,7 @@ F<CORPUS._bibl_DOCATTR_strings_values> and F<CORPUS._bibl_DOCATTR_strings_idx>, 
 
 =head3 CORPUS._bibl_DOCATTR_strings_values
 
+ - version: >= v2.1.12
  - resident: yes
  - mmap: yes
  - popularity: high
@@ -545,6 +563,7 @@ replaces F<CORPUS._bibl_DOCATTR_strings>.
 
 =head3 CORPUS._bibl_DOCATTR_strings_idx
 
+ - version: >= v2.1.12
  - resident: yes
  - mmap: yes
  - popularity: high
@@ -573,6 +592,7 @@ replaces F<CORPUS._bibl_DOCATTR_strings>.
 
 =head3 CORPUS._bibl_DOCATTR_integers
 
+ - version: >= v2.0.0
  - resident: yes
  - mmap: yes
  - popularity: high
@@ -596,6 +616,7 @@ Document-ID to attribute lookup table for I<DOCATTR>.
 
 =head3 CORPUS._bibl_date
 
+ - version: >= v2.0.0
  - resident: yes
  - mmap: yes
  - popularity: high
@@ -615,6 +636,7 @@ file gets its own naming conventions.
 
 =head3 CORPUS._bibl
 
+ - version: >= v2.0.0
  - resident: no
  - mmap: no
  - popularity: high
@@ -653,6 +675,7 @@ String values for built-in DDC metadata fields (read-only, no runtime query supp
 
 =head3 CORPUS._bibl_idx
 
+ - version: >= v2.0.0
  - resident: yes
  - mmap: yes
  - popularity: high
@@ -690,6 +713,7 @@ with one or more of these files:
 
 =head3 CORPUS._BREAK_border
 
+ - version: >= v2.0.0
  - resident: yes
  - mmap: yes
  - popularity: high (hit boundaries)
@@ -724,6 +748,7 @@ with one or more of these files:
 
 =head3 CORPUS._pagebreaks
 
+ - version: >= v2.0.0
  - resident: yes
  - mmap: yes
  - popularity: high
@@ -766,4 +791,5 @@ Bryan Jurish E<lt>jurish@bbaw.deE<gt>
 =head1 SEE ALSO
 
 ddc_opt(5),
+ddc_server.opt(5),
 ddc_cfg(5)
