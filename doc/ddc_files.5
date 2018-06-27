@@ -67,7 +67,7 @@
 .\" ========================================================================
 .\"
 .IX Title "DDC_FILES 5"
-.TH DDC_FILES 5 "2018-06-25" "2.1.13-pre1" "DDC Corpus Indexing System"
+.TH DDC_FILES 5 "2018-06-27" "2.1.13-rc1" "DDC Corpus Indexing System"
 .\" For nroff, turn off justification.  Always turn off hyphenation; it makes
 .\" way too many mistakes in technical documents.
 .if n .ad l
@@ -177,22 +177,22 @@ List of corpus source files as passed to \fIddc_index\fR\|(1).
 .IX Subsection "CORPUS._con"
 .PP
 .Vb 10
-\& \- version: >= v2.0.0
+\& \- version: <= v2.1.12
 \& \- resident: yes
 \& \- mmap: no
 \& \- popularity: high
 \& \- size: small
 \& \- growth: O(NDocs)
 \& \- format:
-\&   \- header + file\-list
-\&   \- single header line (version information), e.g.
+\&   \- version header line
 \&     #+BEGIN_SRC
 \&       Dialing DWDS Concordance (DDC), Version 2.0.45 / min\-compat 2.0.0
 \&     #+END_SRC
-\&   \- remainder is a file\-list as for CORPUS.con
+\&   \- for ddc <= v2.1.12, remainder of file is a file\-list as for CORPUS.con
+\&   \- for ddc >= v2.1.13, any remaining file content is ignored
 \& \- accessor: CConcIndexator::GetFileNameForCorpusFileNames()
 \& \- used by:
-\&   \- vector<string> CConcIndexator::m_CorpusFiles;
+\&   \- ddcCorpusList<> CConcIndexator::m_CorpusFiles; //\-\- formerly vector<string>
 \& \- loaded by:
 \&   \- CConcIndexator::LoadCorpusFiles()
 \& \- doc (StringIndexator.h #corpus_file_def)
@@ -208,9 +208,90 @@ List of corpus source files as passed to \fIddc_index\fR\|(1).
 \&   #+END_SRC
 .Ve
 .PP
-List of corpus source files written by \fIddc_index\fR\|(1) and loaded at runtime.
-The initial header-line is used for version compatibility checks, and the file's modification
-time is used to initialize the index timestamp returned by the server \f(CW\*(C`info\*(C'\fR command.
+For \s-1DDC \s0> v2.1.13 this file is a dummy stub containing only a version information header,
+used for compatibility checks. This file's modification
+time is also used to initialize the index timestamp returned by the server \f(CW\*(C`info\*(C'\fR command.
+.PP
+In \s-1DDC\s0 versions prior to v2.1.13, the \fI\s-1CORPUS\s0._con\fR file also included a list of newline-separated corpus
+filenames as for \fI\s-1CORPUS\s0.con\fR, which were loaded into memory at runtime.
+As of v2.1.13, the runtime corpus file-list is stored in \fImmap()\fR\-friendlier format in
+\&\fI\s-1CORPUS\s0._con_files\fR and \fI\s-1CORPUS\s0._con_idx\fR, which see.
+For compatibility reasons, \s-1DDC\s0 v2.1.13 will fall back to loading its corpus-list from this file
+if \fI\s-1CORPUS\s0._con_files\fR and/or \fI\s-1CORPUS\s0._con_idx\fR are unvavailble.
+.PP
+\fI\s-1CORPUS\s0._con_files\fR
+.IX Subsection "CORPUS._con_files"
+.PP
+.Vb 10
+\& \- version: >= v2.1.13
+\& \- resident: yes
+\& \- mmap: yes
+\& \- popularity: high
+\& \- size: small
+\& \- growth: O(NDocs)
+\& \- format:
+\&   \- file list, "\en"\-separated, 1 filename per line in corpus order
+\&   \- byte offsets in *._con_files are stored in *._con_idx
+\& \- accessor: CConcIndexator::GetFileNameForCorpusFileNames() + "_files"
+\& \- used by:
+\&   \- ddcCorpusList<> CConcIndexator::m_CorpusFiles;
+\& \- loaded by:
+\&   \- CConcIndexator::LoadCorpusFiles()
+\& \- doc: see CORPUS._con
+.Ve
+.PP
+List of corpus source files written by \fIddc_index\fR\|(1) and loaded or \fImmap()\fRed at runtime;
+see \fI\s-1CORPUS\s0._con\fR.
+.PP
+\fI\s-1CORPUS\s0._con_idx\fR
+.IX Subsection "CORPUS._con_idx"
+.PP
+.Vb 10
+\& \- version: >= v2.1.13
+\& \- resident: yes
+\& \- mmap: yes
+\& \- popularity: high
+\& \- size: small
+\& \- growth: O(NDocs)
+\& \- format:
+\&   \- vector<DWORD> [size=NDocs]
+\&   \- DWORD \-> uint32_t
+\&   \- byte offsets in CORPUS._con_files of indexed files, in corpus order
+\& \- accessor: CConcIndexator::GetFileNameForCorpusFileNames() + "_files"
+\& \- used by:
+\&   \- ddcCorpusList<> CConcIndexator::m_CorpusFiles;
+\& \- loaded by:
+\&   \- CConcIndexator::LoadCorpusFiles()
+\& \- doc: see CORPUS._con, CORPUS._con_files
+.Ve
+.PP
+Item-wise byte offsets of corpus source filenames in \fI\s-1CORPUS\s0._con_files\fR written by \fIddc_index\fR\|(1)
+and loaded or \fImmap()\fRed at runtime; see \fI\s-1CORPUS\s0._con\fR and \fI\s-1CORPUS\s0._con_files\fR.
+.PP
+\fI\s-1CORPUS\s0._con_prefix\fR
+.IX Subsection "CORPUS._con_prefix"
+.PP
+.Vb 10
+\& \- version: >= v2.1.13
+\& \- resident: yes
+\& \- mmap: no
+\& \- popularity: unknown
+\& \- size: miniscule
+\& \- growth: O(1)
+\& \- format:
+\&   \- string: longest common string prefix of all filenames in CORPUS._con_files
+\& \- accessor: none
+\& \- used by:
+\&   \- string CConcIndexator::m_CommonFilePrefix;
+\& \- loaded by:
+\&   \- CConcIndexator::LoadCorpusFiles()
+\& \- doc: see CORPUS._con
+.Ve
+.PP
+Longest common string prefix of all filenames in \fI\s-1CORPUS\s0._con_files\fR.
+Prior to v2.1.13, this value was computed at corpus startup, which can get irritatingly expensive
+for huge corpora.  For compatibility reasons, \s-1DDC \s0>= v2.1.13 will fall back to the old
+behavior if this file is unavailable.
 .PP
 \fI\s-1CORPUS\s0._masked\fR
 .IX Subsection "CORPUS._masked"
@@ -234,6 +315,7 @@ time is used to initialize the index timestamp returned by the server \f(CW\*(C`
 .Ve
 .PP
 Optional list of corpus files for which hits are to be suppressed (simulated deletion).
+Should be kept very small to minimize startup overhead O(NMasked*NFiles).
 .PP
 \fI\s-1CORPUS\s0._periods\fR
 .IX Subsection "CORPUS._periods"

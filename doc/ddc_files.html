@@ -21,6 +21,9 @@
           <li><a href="#CORPUS.opt">CORPUS.opt</a></li>
           <li><a href="#CORPUS.con">CORPUS.con</a></li>
           <li><a href="#CORPUS._con">CORPUS._con</a></li>
+          <li><a href="#CORPUS._con_files">CORPUS._con_files</a></li>
+          <li><a href="#CORPUS._con_idx">CORPUS._con_idx</a></li>
+          <li><a href="#CORPUS._con_prefix">CORPUS._con_prefix</a></li>
           <li><a href="#CORPUS._masked">CORPUS._masked</a></li>
           <li><a href="#CORPUS._periods">CORPUS._periods</a></li>
           <li><a href="#CORPUS._error_log">CORPUS._error_log</a></li>
@@ -162,22 +165,22 @@
 
 <h3 id="CORPUS._con">CORPUS._con</h3>
 
-<pre><code> - version: &gt;= v2.0.0
+<pre><code> - version: &lt;= v2.1.12
  - resident: yes
  - mmap: no
  - popularity: high
  - size: small
  - growth: O(NDocs)
  - format:
-   - header + file-list
-   - single header line (version information), e.g.
+   - version header line
      #+BEGIN_SRC
        Dialing DWDS Concordance (DDC), Version 2.0.45 / min-compat 2.0.0
      #+END_SRC
-   - remainder is a file-list as for CORPUS.con
+   - for ddc &lt;= v2.1.12, remainder of file is a file-list as for CORPUS.con
+   - for ddc &gt;= v2.1.13, any remaining file content is ignored
  - accessor: CConcIndexator::GetFileNameForCorpusFileNames()
  - used by:
-   - vector&lt;string&gt; CConcIndexator::m_CorpusFiles;
+   - ddcCorpusList&lt;&gt; CConcIndexator::m_CorpusFiles; //-- formerly vector&lt;string&gt;
  - loaded by:
    - CConcIndexator::LoadCorpusFiles()
  - doc (StringIndexator.h #corpus_file_def)
@@ -192,7 +195,69 @@
      (class CBiblIndex) and full bibliographical information (class CBibliography).
    #+END_SRC</code></pre>
 
-<p>List of corpus source files written by <a>ddc_index(1)</a> and loaded at runtime. The initial header-line is used for version compatibility checks, and the file&#39;s modification time is used to initialize the index timestamp returned by the server <a href="./ddc_proto.html#info"><code>info</code></a> command.</p>
+<p>For DDC &gt; v2.1.13 this file is a dummy stub containing only a version information header, used for compatibility checks. This file&#39;s modification time is also used to initialize the index timestamp returned by the server <a href="./ddc_proto.html#info"><code>info</code></a> command.</p>
+
+<p>In DDC versions prior to v2.1.13, the <i>CORPUS._con</i> file also included a list of newline-separated corpus filenames as for <i>CORPUS.con</i>, which were loaded into memory at runtime. As of v2.1.13, the runtime corpus file-list is stored in mmap()-friendlier format in <i>CORPUS._con_files</i> and <i>CORPUS._con_idx</i>, which see. For compatibility reasons, DDC v2.1.13 will fall back to loading its corpus-list from this file if <i>CORPUS._con_files</i> and/or <i>CORPUS._con_idx</i> are unvavailble.</p>
+
+<h3 id="CORPUS._con_files">CORPUS._con_files</h3>
+
+<pre><code> - version: &gt;= v2.1.13
+ - resident: yes
+ - mmap: yes
+ - popularity: high
+ - size: small
+ - growth: O(NDocs)
+ - format:
+   - file list, &quot;\n&quot;-separated, 1 filename per line in corpus order
+   - byte offsets in *._con_files are stored in *._con_idx
+ - accessor: CConcIndexator::GetFileNameForCorpusFileNames() + &quot;_files&quot;
+ - used by:
+   - ddcCorpusList&lt;&gt; CConcIndexator::m_CorpusFiles;
+ - loaded by:
+   - CConcIndexator::LoadCorpusFiles()
+ - doc: see CORPUS._con</code></pre>
+
+<p>List of corpus source files written by <a>ddc_index(1)</a> and loaded or mmap()ed at runtime; see <a><i>CORPUS._con</i></a>.</p>
+
+<h3 id="CORPUS._con_idx">CORPUS._con_idx</h3>
+
+<pre><code> - version: &gt;= v2.1.13
+ - resident: yes
+ - mmap: yes
+ - popularity: high
+ - size: small
+ - growth: O(NDocs)
+ - format:
+   - vector&lt;DWORD&gt; [size=NDocs]
+   - DWORD -&gt; uint32_t
+   - byte offsets in CORPUS._con_files of indexed files, in corpus order
+ - accessor: CConcIndexator::GetFileNameForCorpusFileNames() + &quot;_files&quot;
+ - used by:
+   - ddcCorpusList&lt;&gt; CConcIndexator::m_CorpusFiles;
+ - loaded by:
+   - CConcIndexator::LoadCorpusFiles()
+ - doc: see CORPUS._con, CORPUS._con_files</code></pre>
+
+<p>Item-wise byte offsets of corpus source filenames in <i>CORPUS._con_files</i> written by <a>ddc_index(1)</a> and loaded or mmap()ed at runtime; see <a><i>CORPUS._con</i></a> and <a><i>CORPUS._con_files</i></a>.</p>
+
+<h3 id="CORPUS._con_prefix">CORPUS._con_prefix</h3>
+
+<pre><code> - version: &gt;= v2.1.13
+ - resident: yes
+ - mmap: no
+ - popularity: unknown
+ - size: miniscule
+ - growth: O(1)
+ - format:
+   - string: longest common string prefix of all filenames in CORPUS._con_files
+ - accessor: none
+ - used by:
+   - string CConcIndexator::m_CommonFilePrefix;
+ - loaded by:
+   - CConcIndexator::LoadCorpusFiles()
+ - doc: see CORPUS._con</code></pre>
+
+<p>Longest common string prefix of all filenames in <i>CORPUS._con_files</i>. Prior to v2.1.13, this value was computed at corpus startup, which can get irritatingly expensive for huge corpora. For compatibility reasons, DDC &gt;= v2.1.13 will fall back to the old behavior if this file is unavailable.</p>
 
 <h3 id="CORPUS._masked">CORPUS._masked</h3>
 
@@ -212,7 +277,7 @@
    - CConcIndexator::LoadMaskedFiles()
  - doc: (none)</code></pre>
 
-<p>Optional list of corpus files for which hits are to be suppressed (simulated deletion).</p>
+<p>Optional list of corpus files for which hits are to be suppressed (simulated deletion). Should be kept very small to minimize startup overhead O(NMasked*NFiles).</p>
 
 <h3 id="CORPUS._periods">CORPUS._periods</h3>
 
