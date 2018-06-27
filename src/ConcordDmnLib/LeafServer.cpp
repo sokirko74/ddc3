@@ -234,8 +234,8 @@ void CDDCLeafServer::handle__status(string &Result, int timeout, bool verbose)
 	      + "\"qtavg\":" + Format("%g", m_ServerStats.m_qTimes.tAverage()) + ",\n\t"
 	      + "\"nworkers\":" + Format("%zd", m_nWorkers) + ",\n\t"
 	      + "\"memkb\":" + Format("%zd", pms.VmRSS) + ",\n\t" //-- compat
-	      + "\"vmem\":" + Format("{\"peak\":%zd,\"size\":%zd,\"hwm\":%zd,\"rss\":%zd,\"data\":%zd,\"stk\":%zd,\"exe\":%zd,\"lib\":%zd,\"swap\":%zd}",
-				     pms.VmPeak, pms.VmSize, pms.VmHWM, pms.VmRSS, pms.VmData, pms.VmStk, pms.VmExe, pms.VmLib, pms.VmSwap) + ",\n\t"
+	      + "\"vmem\":" + Format("{\"peak\":%zd,\"size\":%zd,\"hwm\":%zd,\"rss\":%zd,\"data\":%zd,\"stk\":%zd,\"exe\":%zd,\"lib\":%zd,\"swap\":%zd,\"file\":%zd,\"anon\":%zd}",
+				     pms.VmPeak, pms.VmSize, pms.VmHWM, pms.VmRSS, pms.VmData, pms.VmStk, pms.VmExe, pms.VmLib, pms.VmSwap, pms.RssFile, pms.RssAnon) + ",\n\t"
 	      + "\"cachesize\":" + Format("%zd", m_pHolder->CacheSize()) + ",\n\t"
 	      + "\"curlcachesize\":" + Format("%zd", ddcCurlCache.size()) + "\n\t"
 	      + "}"

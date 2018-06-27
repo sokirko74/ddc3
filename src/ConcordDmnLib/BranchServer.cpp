@@ -556,8 +556,8 @@ void CDDCBranchServer::handle__status(string &Result, int timeout, bool verbose)
 	      + "\"navcachesize\":" + Format("%zd", (m_pNavCache ? m_pNavCache->size() : 0)) + ",\n"
 	      + "\"navcachestep\":" + Format("%zd", m_NavCacheStep) + ",\n"
 	      + "\"memkb\":" + Format("%zd", pms.VmRSS) + ",\n" //-- compat	      
-	      + "\"vmem\":" + Format("{\"peak\":%zd,\"size\":%zd,\"hwm\":%zd,\"rss\":%zd,\"data\":%zd,\"stk\":%zd,\"exe\":%zd,\"lib\":%zd,\"swap\":%zd}",
-				     pms.VmPeak, pms.VmSize, pms.VmHWM, pms.VmRSS, pms.VmData, pms.VmStk, pms.VmExe, pms.VmLib, pms.VmSwap) + ",\n"
+	      + "\"vmem\":" + Format("{\"peak\":%zd,\"size\":%zd,\"hwm\":%zd,\"rss\":%zd,\"data\":%zd,\"stk\":%zd,\"exe\":%zd,\"lib\":%zd,\"swap\":%zd,\"file\":%zd,\"anon\":%zd}",
+				     pms.VmPeak, pms.VmSize, pms.VmHWM, pms.VmRSS, pms.VmData, pms.VmStk, pms.VmExe, pms.VmLib, pms.VmSwap, pms.RssFile, pms.RssAnon) + ",\n"
 #ifdef DEBUG_NAVCACHE
 	      + "\"navcache\":" + (m_pNavCache ? m_pNavCache->toJson() : "null") + ",\n"
 #endif

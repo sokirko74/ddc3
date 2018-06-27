@@ -34,7 +34,8 @@ libDDCCommon_la_SOURCES = \
  utf8xx.cpp utf8xx.h \
  ddcTime.cpp ddcTime.h \
  ddcMMap.h \
- ddcStringEnum.h
+ ddcStringEnum.h \
+ ddcCorpusList.h
 
 # unix_simple_qparse.h MyFlexLexer.h
 
@@ -45,12 +46,15 @@ libDDCCommon_la_SOURCES = \
 #vertest_SOURCES = vertest.cc
 #vertest_LDADD = libDDCCommon.la
 
-EXTRA_PROGRAMS = pdttest setest
+EXTRA_PROGRAMS = pdttest setest cltest
 pdttest_SOURCES = pdttest.cc
 pdttest_LDADD = libDDCCommon.la
 
 setest_SOURCES = setest.cc
 setest_LDADD = libDDCCommon.la
+
+cltest_SOURCES = cltest.cc
+cltest_LDADD = libDDCCommon.la
 
 ##-----------------------------------------------------------------------
 ## headers

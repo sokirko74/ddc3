@@ -996,6 +996,8 @@ void DDCProcessMemoryStatus::fetch(pid_t pid)
 	else if (strcmp(buf,"VmPTE")==0) VmPTE = strtoul(sep,NULL,0);
 	else if (strcmp(buf,"VmPMD")==0) VmPMD = strtoul(sep,NULL,0);
 	else if (strcmp(buf,"VmSwap")==0) VmSwap = strtoul(sep,NULL,0);
+	else if (strcmp(buf,"RssFile")==0) RssFile = strtoul(sep,NULL,0);
+	else if (strcmp(buf,"RssAnon")==0) RssAnon = strtoul(sep,NULL,0);
     }
 
     fclose(f);

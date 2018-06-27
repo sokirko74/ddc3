@@ -214,6 +214,9 @@ public:
 
 // working with files
 extern bool		FileExists (const char *FName);
+inline bool		FileExists (const string& FName)
+{ return FileExists(FName.c_str()); };
+
 extern file_off_t	FileSize (const char *filename);
 extern time_t		FileMTime (const char *filename);
 extern bool		FSeek(FILE* fp, file_off_t pos, int origin);
@@ -281,10 +284,12 @@ struct DDCProcessMemoryStatus
     size_t VmPTE;	//< Page table entries size (since Linux 2.6.10).
     size_t VmPMD;	//< Size of second-level page tables (since Linux 4.0).
     size_t VmSwap;	//< Swapped-out virtual memory size by anonymous private pages; shmem swap usage is not included (since Linux 2.6.34).
+    size_t RssFile;     //< Size of resident file mappings.  (since Linux 4.5).
+    size_t RssAnon;	//< Size of resident file mappings.  (since Linux 4.5).
 
     /** default constructor (no implicit fetch) */
     DDCProcessMemoryStatus(void)
-	: VmSize(0), VmLck(0), VmPin(0), VmHWM(0), VmRSS(0), VmData(0), VmStk(0), VmExe(0), VmLib(0), VmPTE(0), VmPMD(0), VmSwap(0)
+	: VmSize(0), VmLck(0), VmPin(0), VmHWM(0), VmRSS(0), VmData(0), VmStk(0), VmExe(0), VmLib(0), VmPTE(0), VmPMD(0), VmSwap(0), RssFile(0), RssAnon(0)
     {};
 
     /** constructor given pid implicitly fetches data */

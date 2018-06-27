@@ -22,10 +22,11 @@
 #define DDC_STRING_ENUM_H
 
 #include "../CommonLib/ddcMMap.h"
+#include <limits>
 
 //======================================================================
-// ddcMMap
-/** convenience wrapper for integer->string mappings */
+// ddcStringEnum
+/** convenience wrapper for integer<->string mappings */
 template <typename OffT_=DWORD>
 class ddcStringEnum
 {
@@ -39,10 +40,10 @@ public:
     //----------------------------------------------------------
     // data
     ddcVecFile<char>  m_cdata;    ///< underlying character data
-    ddcVecFile<OffT>  m_offsets;  ///< offsets in m_cdata[] of NUL-terminated item strings
+    ddcVecFile<OffT>  m_offsets;  ///< offsets in m_cdata[] of NUL-terminated item strings; associated strings must be sorted in lexicographic order
     vector<string>    m_strings;  ///< backwards-compatible vector<string> implementation, for read/write access
 
-    size_t            m_bufsize;  ///< buffer size for fallback (default is old value for MaxBiblStringLen from Bibliography.cpp)
+    size_t            m_bufsize;  ///< buffer size for fallback loading (default=20000: old value for MaxBiblStringLen from Bibliography.cpp)
 
 public:
     //----------------------------------------------------------
@@ -133,7 +134,7 @@ public:
     // search
 
     /// constant returned by string-to-id search methods indicating no match was found
-    static const IdT NO_ID = DWORD_MAX;
+    static const IdT NO_ID = std::numeric_limits<OffT>::max();
 
     /// comparison helper struct for string-to-id search
     struct IdKeyLess {
@@ -183,7 +184,7 @@ public:
 	return NO_ID;
     };
 
-    /// returns id of \a key, or NO_ID if not found
+    /// returns id of \a key, or NO_ID if not found; wraps lower_bound()
     inline IdT find(const string& key) const
     {
 	IdT lbid = lower_bound(key);
@@ -209,7 +210,7 @@ public:
 	    openCompat(fallbackFile);
 	    ddcLogDebug(Format("ddcStringEnum[compat]::open(): read %zi item(s) from %s", size(), fallbackFile.c_str()));
 	} else {
-	    throw invalid_argument("ddcStrtringEnum::open(\""+cdataFile+"\",\""+offsetsFile+"\",\""+fallbackFile+"\"): no file(s) found!");
+	    throw invalid_argument("ddcStringEnum::open(\""+cdataFile+"\",\""+offsetsFile+"\",\""+fallbackFile+"\"): no file(s) found!");
 	}
 	return *this;
     };

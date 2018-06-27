@@ -30,8 +30,10 @@ bool	CConcIndexator::CreateAsUnion(const CConcIndexator&  _X1, const CConcIndexa
 	    // ============
 	    printf ("calculating corpus files\n");
 
-	    m_CorpusFiles = _X1.m_CorpusFiles;
-	    m_CorpusFiles.insert(m_CorpusFiles.end(), _X2.m_CorpusFiles.begin(),_X2.m_CorpusFiles.end());
+	    vector<string> tmp;
+	    m_CorpusFiles.clear();
+	    _X1.m_CorpusFiles.append_vector(m_CorpusFiles.m_strings);
+	    _X2.m_CorpusFiles.append_vector(m_CorpusFiles.m_strings);
 
 	    DeleteAllSourceFiles();
 	    AddSourceFilesFrom(_X1);

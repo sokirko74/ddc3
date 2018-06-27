@@ -555,14 +555,42 @@ vector<string> CConcIndexator::GetTokenFields(const COutputToken &tok)
 
 bool CConcIndexator::SaveCorpusFileList() const
 {
-	FILE* fp = fopen(GetFileNameForCorpusFileNames().c_str(), "wb");
-	if (!fp) return false;
-	std::string vmin_str=DDCVersionMinW.str();
-	fprintf(fp, "%s / min-compat %s\n", DDCVersionStr.c_str(), vmin_str.c_str()); // should be with /n
+	string ConFile = GetFileNameForCorpusFileNames();
+	FILE* cfp = fopen(ConFile.c_str(), "wb");
+	if (!cfp) return false;
+
+	string ListFile = ConFile + "_files";
+	FILE *lfp = fopen(ListFile.c_str(), "wb");
+	if (!lfp) return false;
+
+	string OffsetsFile = ConFile + "_idx";
+	FILE *ofp = fopen(OffsetsFile.c_str(), "wb");
+	if (!ofp) return false;
+
+	string PrefixFile = ConFile + "_prefix";
+	FILE *pfp = fopen(PrefixFile.c_str(), "wb");
+	if (!pfp) return false;
+
+	//-- *._con (v2.1.13): VERSION_INFO "\n"
+	std::string vmin_str = DDCVersionMinW.str();
+	fprintf(cfp, "%s / min-compat %s\n%s\n", DDCVersionStr.c_str(), vmin_str.c_str());
+	fclose(cfp);
+
+	//-- *._con_prefix (v2.1.13)
+	std::string prefix_str = GetCommonFilePrefix();
+	fprintf(pfp, "%s\n", prefix_str.c_str());
+	fclose(pfp);
+
+	//-- *._con_files, *._con_idx (v2.1.13)
 	size_t cnt = m_CorpusFiles.size();
-	for (long i=0;i< cnt; i++)
-		fprintf(fp, "%s\n",m_CorpusFiles[i].c_str());
-	fclose(fp);
+	for (ddcCorpusList<>::IdT i=0; i< cnt; i++) {
+		ddcCorpusList<>::OffT pos = ftell(lfp);
+		fwrite(&pos, sizeof(ddcCorpusList<>::OffT), 1, ofp);
+		fprintf(lfp, "%s\n",m_CorpusFiles[i].c_str());
+	}
+	fclose(ofp);
+	fclose(lfp);
+
 	return true;
 }
 
@@ -572,7 +600,7 @@ string CConcIndexator::GetCommonFilePrefix() const
 	string CommonFilePrefix = "";
 	for (size_t fi=0; fi < m_CorpusFiles.size(); ++fi) {
 		string f = m_CorpusFiles[fi];
-		if (i==0) {
+		if (fi==0) {
 			CommonFilePrefix = f;
 		} else {
 			int i=0;
@@ -587,47 +615,32 @@ string CConcIndexator::GetCommonFilePrefix() const
 bool CConcIndexator::LoadCorpusFiles()
 {
 	m_CorpusFiles.clear();
-	string CorpusFilenamesFile = GetFileNameForCorpusFileNames();
-	// reading corpus files from *.con file
-	FILE* fp = fopen(CorpusFilenamesFile.c_str(), "rb");
-	if (!fp) return false;
-	char s[1024];
-	if (!fgets(s,1024, fp))
-		return false;
+	string ConFile = GetFileNameForCorpusFileNames();
 
-	//-- new slightly smarter version check
+	//-- open raw corpus-file list
 	try {
-		ddc_format_version_check(s, m_Path.c_str());
+		m_CorpusFiles.open(ConFile, ConFile+"_files", ConFile+"_idx", m_bMemoryMap);
+		ddc_format_version_check(m_CorpusFiles.VersionString().c_str(), ConFile.c_str());
 	}
 	catch (CExpc &e) {
 		ErrorMessage (Format("Exception[%d]: %s", e.code(), e.what()));
-		fclose(fp);
+		return false;
+	}
+	catch (exception &e) {
+		ErrorMessage (Format("Exception: %s", e.what()));
 		return false;
 	}
 
-	m_CommonFilePrefix = "$init";
-	while (fgets(s,1024,fp))
-	{
-			string q = s;
-			Trim(q);
-			if (q.empty()) continue;
-			if (m_CommonFilePrefix == "$init")
-				m_CommonFilePrefix = q;
-			else
-			{
-				int i = 0;
-				for (; i<min(q.length(), m_CommonFilePrefix.length()); i++)
-					if (q[i] != m_CommonFilePrefix[i])
-						break;
-				m_CommonFilePrefix.erase(i);
-			};
+	//-- get shared filename prefix (*._con_prefix)
+	string PrefixFile = ConFile+"_prefix";
+	if (FileExists(PrefixFile)) {
+		LoadFileToString(PrefixFile, m_CommonFilePrefix, true);
+	} else {
+		ddcLogWarn("WARNING: CConcIndexator::LoadCorpusFiles(): shared prefix file '"+PrefixFile+"' not found: please upgrade your index!");
+		m_CommonFilePrefix = GetCommonFilePrefix();
+	}
 
-
-			m_CorpusFiles.push_back(q);
-	};
-	fclose(fp);
-
-	UpdateTimestamp(CorpusFilenamesFile.c_str());
+	UpdateTimestamp(ConFile.c_str());
 	return true;
 };
 
@@ -642,12 +655,12 @@ bool CConcIndexator::LoadMaskedFiles()
 		string file = s;
 		Trim(file);
 		if (file.empty()) continue;
-		vector<std::string>::const_iterator it = find(m_CorpusFiles.begin(), m_CorpusFiles.end(), file);
-		if (it == m_CorpusFiles.end()) {
+		ddcCorpusList<>::IdT fileid = m_CorpusFiles.find(file);
+		if (fileid == m_CorpusFiles.NO_ID) {
 			ddcLogWarn( Format("CConcIndexator::LoadMaskedFiles(): %s in %s is not a corpus file name", file.c_str(), GetFileNameForMaskedFiles().c_str()) );
 			return false;
 		}
-		m_MaskedFiles.insert ( it - m_CorpusFiles.begin());
+		m_MaskedFiles.insert(fileid);
 	}
 	fclose(fp);
 	return true;
@@ -1313,15 +1326,18 @@ string CConcIndexator::GetShortFilename(size_t posFile) const
 
 string CConcIndexator::GetHtmlReference(size_t posFile) const 
 {
+	string CorpusFileName = m_CorpusFiles[posFile];
+	string ShortFileName  = CorpusFileName.substr(0, m_LocalPathPrefix.length());
 	string InterfaceFileName, HtmlRefFileName;
-	if (m_CorpusFiles[posFile].substr(0, m_LocalPathPrefix.length()) == m_LocalPathPrefix)
+	
+	if (ShortFileName == m_LocalPathPrefix)
 	{
-		InterfaceFileName = m_CorpusFiles[posFile].substr(m_LocalPathPrefix.length());
+		InterfaceFileName = ShortFileName;
 		HtmlRefFileName = "http://"+m_InternetPathPrefix + InterfaceFileName;
 	}
 	else
 	{
-		HtmlRefFileName = InterfaceFileName = m_CorpusFiles[posFile];
+		HtmlRefFileName = InterfaceFileName = CorpusFileName;
 	};
 
 	return Format("<a href=\"%s\">%s</a>", HtmlRefFileName.c_str(),InterfaceFileName.c_str());

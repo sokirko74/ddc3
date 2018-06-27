@@ -39,6 +39,7 @@
 #include "../ConcordLib/StringIndexator.h"
 #include "../ConcordLib/HitBorder.h"
 #include "../ConcordLib/TermExpander.h"
+#include "../CommonLib/ddcCorpusList.h"
 
 
 struct CHighlightTags 
@@ -219,8 +220,10 @@ public:
 	bool							m_bArchiveIndex;
 	//! if true, CConcIndexatorInvoker skips source documents with errors 
 	bool						    m_bResumeOnIndexErrors;
+
 	//! \ref corpus_file_def "Corpus files"
-	vector<string>					    m_CorpusFiles;
+	ddcCorpusList<>					    m_CorpusFiles;
+
 	//! masked (deleted corpus files)
 	set<size_t>					    m_MaskedFiles;
 	//!  a member which holds a index for bibliographical information

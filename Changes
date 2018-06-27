@@ -1,6 +1,17 @@
 ###-*- Mode: Change-Log; coding: utf-8; -*-
 
-v2.1.12-rc2 Fri, 15 Jun 2018 15:46:51 +0200 moocow
+v2.1.13 Wed, 27 Jun 2018 13:32:57 +0200 moocow
+	* added --enable-jemalloc configure option (default=if available)
+	  - tests on data.dwds.de, www.dwds.de with jemalloc via LD_PRELOAD showed *much* more stable, less greedy RAM behavior than with default glibc malloc
+	  - see mantis bug #28558
+	* teased apart *._con file format for mmap()-friendliness; new format breakdown:
+	  - *._con (version header)
+	  - *._con_files (file list, "\n"-separated)
+	  - *._con_idx (byte offsets in *._con_files)
+	  - *._con_prefix (common string prefix, formerly computed at startup time)
+	* added RssFile and RssAnon reporting to server 'vmem' status attribute (requires linux kernel >= v4.5)
+
+v2.1.12 Fri, 15 Jun 2018 15:46:51 +0200 moocow
 	* added doc/ddc_files.pod (-> manpage ddc_files(5)): low-level index file formats
 	* fixed type of CConcXml::m_Dates (was: vector<int>, new: vector<DWORD>) - should improve portability
 	* fixed variable & method-name misspellings "*Devision*" -> "*Division*"
