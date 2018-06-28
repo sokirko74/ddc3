@@ -46,16 +46,6 @@ libDDCCommon_la_SOURCES = \
 #vertest_SOURCES = vertest.cc
 #vertest_LDADD = libDDCCommon.la
 
-EXTRA_PROGRAMS = pdttest setest cltest
-pdttest_SOURCES = pdttest.cc
-pdttest_LDADD = libDDCCommon.la
-
-setest_SOURCES = setest.cc
-setest_LDADD = libDDCCommon.la
-
-cltest_SOURCES = cltest.cc
-cltest_LDADD = libDDCCommon.la
-
 ##-----------------------------------------------------------------------
 ## headers
 
