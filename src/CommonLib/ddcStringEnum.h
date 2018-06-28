@@ -133,8 +133,14 @@ public:
     //----------------------------------------------------------
     // search
 
+
     /// constant returned by string-to-id search methods indicating no match was found
-    static const IdT NO_ID = std::numeric_limits<OffT>::max();
+    //-- numeric_limits<>::max():
+    // + g++ 5.4.0 (ubuntu 16.04.3 / kira) chokes on initialization via std::numeric_limits<IdT>::max() with:
+    //   "error: a function call cannot appear in a constant-expression"
+    // + we don't have IdT parameterized yet anyway (it's all 32-bit at this point), so we can just use DWORD_MAX
+    //static const IdT NO_ID = std::numeric_limits<IdT>::max();
+    static const IdT NO_ID = DWORD_MAX;
 
     /// comparison helper struct for string-to-id search
     struct IdKeyLess {

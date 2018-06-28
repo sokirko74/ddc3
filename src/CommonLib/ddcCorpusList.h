@@ -161,7 +161,9 @@ public:
     // search
 
     /// constant returned by string-to-id search methods indicating no match was found
-    static const IdT NO_ID = std::numeric_limits<IdT>::max();
+    //-- re numeric_limits<>::max(): see NO_ID comments in ddcStringEnum.h
+    //static const IdT NO_ID = std::numeric_limits<IdT>::max();
+    static const IdT NO_ID = DWORD_MAX;
 
     /// returns id of \a key, or NO_ID if not found (linear search)
     inline IdT find(const string& key) const
