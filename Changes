@@ -1,5 +1,8 @@
 ###-*- Mode: Change-Log; coding: utf-8; -*-
 
+v2.1.14 WIP moocow
+	* fixed segfaults during ddc_index caused by bogus extra "%s" in CConcIndexator::SaveCorpusFileList()
+
 v2.1.13 Thu, 28 Jun 2018 08:45:47 +0200 moocow
 	* added --enable-jemalloc configure option (default=if available)
 	  - tests on data.dwds.de, www.dwds.de with jemalloc via LD_PRELOAD showed *much* more stable, less greedy RAM behavior than with default glibc malloc

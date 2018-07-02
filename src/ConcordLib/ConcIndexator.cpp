@@ -573,7 +573,7 @@ bool CConcIndexator::SaveCorpusFileList() const
 
 	//-- *._con (v2.1.13): VERSION_INFO "\n"
 	std::string vmin_str = DDCVersionMinW.str();
-	fprintf(cfp, "%s / min-compat %s\n%s\n", DDCVersionStr.c_str(), vmin_str.c_str());
+	fprintf(cfp, "%s / min-compat %s\n", DDCVersionStr.c_str(), vmin_str.c_str());
 	fclose(cfp);
 
 	//-- *._con_prefix (v2.1.13)
