@@ -67,7 +67,7 @@
 .\" ========================================================================
 .\"
 .IX Title "DDC_SERVER.OPT 5"
-.TH DDC_SERVER.OPT 5 "2018-06-14" "2.1.13" "DDC Corpus Indexing System"
+.TH DDC_SERVER.OPT 5 "2018-07-06" "2.1.14" "DDC Corpus Indexing System"
 .\" For nroff, turn off justification.  Always turn off hyphenation; it makes
 .\" way too many mistakes in technical documents.
 .if n .ad l
@@ -116,7 +116,7 @@ server option files (\*(L"server-opt files\*(R") used by the \s-1DDC\s0 corpus i
 This section contains descriptions of the various options and flags
 which may occur in a \s-1DDC\s0 server opt-file as read by the
 \&\f(CW\*(C`ddc_daemon\*(C'\fR program versions v2.1.0 and later.
-Except where otherwise noted, options are supported \s-1DDC\s0 versions v2.1.0 and later.
+Except where otherwise noted, options are supported by \s-1DDC\s0 versions v2.1.0 and later.
 .PP
 Note that corpus option-files (\fI\s-1CORPUS\s0.opt\fR) are documented independently;
 see \fIddc_opt\fR\|(5) for details.
@@ -281,6 +281,8 @@ is likely to actually slow things down unless your secondary storage device
 supports ultra-low-latency random access reads, in which case it might help.
 The parameter \f(CW\*(C`BOOL\*(C'\fR is any string recoginized as a Boolean value;
 see \*(L"Boolean Flags and Switches\*(R" in ddc_opt for details.
+.PP
+Since v2.1.12.
 .SS "Navigation Cache Options"
 .IX Subsection "Navigation Cache Options"
 The following options control the behavior of the branch server navigation hint cache.
@@ -302,7 +304,7 @@ Aliases: NavCacheSize, NavCacheCapacity
 Set the default branch-server navigation hint cache capacity to \f(CW\*(C`SIZE\*(C'\fR
 (default=1024).
 .PP
-Since ddc v2.1.9.
+Since v2.1.9.
 .PP
 \fINavCacheStep\fR
 .IX Subsection "NavCacheStep"
@@ -323,7 +325,7 @@ Setting \f(CW\*(C`STEP\*(C'\fR to a value greater than the default initial page 
 should serve to minimize cache turnover and increase the life expectancy of \*(L"real\*(R"
 hit-paging operations without the heavy performance penalties of ddc <= v2.1.8.
 .PP
-Since ddc v2.1.11.
+Since v2.1.11.
 .SS "Compatibility Options"
 .IX Subsection "Compatibility Options"
 The following compatibility options are supported:

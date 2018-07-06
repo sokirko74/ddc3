@@ -63,7 +63,7 @@ server option files ("server-opt files") used by the DDC corpus indexing system.
 This section contains descriptions of the various options and flags
 which may occur in a DDC server opt-file as read by the
 C<ddc_daemon> program versions v2.1.0 and later.
-Except where otherwise noted, options are supported DDC versions v2.1.0 and later.
+Except where otherwise noted, options are supported by DDC versions v2.1.0 and later.
 
 Note that corpus option-files (F<CORPUS.opt>) are documented independently;
 see L<ddc_opt(5)|ddc_opt> for details.
@@ -241,6 +241,8 @@ supports ultra-low-latency random access reads, in which case it might help.
 The parameter C<BOOL> is any string recoginized as a Boolean value;
 see L<ddc_opt/"Boolean Flags and Switches"> for details.
 
+Since v2.1.12.
+
 =cut
 
 ##==============================================================
@@ -265,7 +267,7 @@ Aliases: NavCacheSize, NavCacheCapacity
 Set the default branch-server navigation hint cache capacity to C<SIZE>
 (default=1024).
 
-Since ddc v2.1.9.
+Since v2.1.9.
 
 =head3 NavCacheStep
 
@@ -283,7 +285,7 @@ Setting C<STEP> to a value greater than the default initial page size (usually 1
 should serve to minimize cache turnover and increase the life expectancy of "real"
 hit-paging operations without the heavy performance penalties of ddc E<lt>= v2.1.8.
 
-Since ddc v2.1.11.
+Since v2.1.11.
 
 =cut
 
