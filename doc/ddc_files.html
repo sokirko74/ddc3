@@ -496,7 +496,7 @@
       are written in CIndexSetForQueryingStage::m_EndPeriodOffsets .
    #+END_SRC</code></pre>
 
-<p>Painfully complex indirection level for splitting up index entries by &quot;corpus search periods&quot;; probably really only useful for very-high-frequency items, which can easily make other things explode anyways, so likely not even all too useful for those.</p>
+<p>Painfully complex indirection level for splitting up index entries by &quot;corpus search periods&quot;; probably really only useful for very-high-frequency items, which can easily make other things explode anyways, so likely not even all too useful for those. Note also that unlike other token-attribute index files, there is <b>no</b> underscore between <code>perdiv</code> and the token attribute name <i>TOKATTR</i> in this filename. Thus was it in the beginning, and thus it has remained.</p>
 
 <h2 id="Document-Level-Files">Document-Level Files</h2>
 

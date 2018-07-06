@@ -578,7 +578,9 @@ was set for I<TOKATTR> at compile-time.
 
 Painfully complex indirection level for splitting up index entries by "corpus search periods";
 probably really only useful for very-high-frequency items, which can easily make other things explode anyways, so likely
-not even all too useful for those.
+not even all too useful for those.  Note also that unlike other token-attribute index files,
+there is B<no> underscore between C<perdiv> and the token attribute name I<TOKATTR> in this filename.
+Thus was it in the beginning, and thus it has remained.
 
 =cut
 

@@ -565,7 +565,9 @@ was set for \fI\s-1TOKATTR\s0\fR at compile-time.
 .PP
 Painfully complex indirection level for splitting up index entries by \*(L"corpus search periods\*(R";
 probably really only useful for very-high-frequency items, which can easily make other things explode anyways, so likely
-not even all too useful for those.
+not even all too useful for those.  Note also that unlike other token-attribute index files,
+there is \fBno\fR underscore between \f(CW\*(C`perdiv\*(C'\fR and the token attribute name \fI\s-1TOKATTR\s0\fR in this filename.
+Thus was it in the beginning, and thus it has remained.
 .SS "Document-Level Files"
 .IX Subsection "Document-Level Files"
 This section describes the \s-1DDC\s0 index files associated with a single document attribute.
