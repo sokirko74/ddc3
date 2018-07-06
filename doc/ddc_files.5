@@ -67,7 +67,7 @@
 .\" ========================================================================
 .\"
 .IX Title "DDC_FILES 5"
-.TH DDC_FILES 5 "2018-06-27" "2.1.14" "DDC Corpus Indexing System"
+.TH DDC_FILES 5 "2018-07-06" "2.1.14" "DDC Corpus Indexing System"
 .\" For nroff, turn off justification.  Always turn off hyphenation; it makes
 .\" way too many mistakes in technical documents.
 .if n .ad l
@@ -349,7 +349,9 @@ Should be kept very small to minimize startup overhead O(NMasked*NFiles).
 \&   #+END_SRC
 .Ve
 .PP
-Error log written at compile-time; may be missing or empty.
+Token offsets of corpus \*(L"period\*(R" boundaries; see \f(CW\*(C`UserMaxTokenCountInOnePeriod\*(C'\fR.
+Due to its expected small size, this file is always loaded into anonymous resident memory rather than \f(CW\*(C`mmap()\*(C'\fRed,
+because the latter would always allocate at least one entire page (typically 4KB) of memory.
 .PP
 \fI\s-1CORPUS\s0._error_log\fR
 .IX Subsection "CORPUS._error_log"

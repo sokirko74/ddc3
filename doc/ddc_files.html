@@ -217,7 +217,7 @@
    - CConcIndexator::LoadCorpusFiles()
  - doc: see CORPUS._con</code></pre>
 
-<p>List of corpus source files written by <a>ddc_index(1)</a> and loaded or mmap()ed at runtime; see <a><i>CORPUS._con</i></a>.</p>
+<p>List of corpus source files written by <a>ddc_index(1)</a> and loaded or mmap()ed at runtime; see <a href="#CORPUS._con"><i>CORPUS._con</i></a>.</p>
 
 <h3 id="CORPUS._con_idx">CORPUS._con_idx</h3>
 
@@ -238,7 +238,7 @@
    - CConcIndexator::LoadCorpusFiles()
  - doc: see CORPUS._con, CORPUS._con_files</code></pre>
 
-<p>Item-wise byte offsets of corpus source filenames in <i>CORPUS._con_files</i> written by <a>ddc_index(1)</a> and loaded or mmap()ed at runtime; see <a><i>CORPUS._con</i></a> and <a><i>CORPUS._con_files</i></a>.</p>
+<p>Item-wise byte offsets of corpus source filenames in <i>CORPUS._con_files</i> written by <a>ddc_index(1)</a> and loaded or mmap()ed at runtime; see <a href="#CORPUS._con"><i>CORPUS._con</i></a> and <a href="#CORPUS._con_files"><i>CORPUS._con_files</i></a>.</p>
 
 <h3 id="CORPUS._con_prefix">CORPUS._con_prefix</h3>
 
@@ -308,7 +308,7 @@
      Corpus periods  are also used in storing \ref perdiv_def &quot;period divisions&quot;
    #+END_SRC</code></pre>
 
-<p>Error log written at compile-time; may be missing or empty.</p>
+<p>Token offsets of corpus &quot;period&quot; boundaries; see <a href="./ddc_opt.html#UserMaxTokenCountInOnePeriod"><code>UserMaxTokenCountInOnePeriod</code></a>. Due to its expected small size, this file is always loaded into anonymous resident memory rather than <code>mmap()</code>ed, because the latter would always allocate at least one entire page (typically 4KB) of memory.</p>
 
 <h3 id="CORPUS._error_log">CORPUS._error_log</h3>
 

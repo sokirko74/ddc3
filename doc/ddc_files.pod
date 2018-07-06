@@ -224,7 +224,7 @@ if F<CORPUS._con_files> and/or F<CORPUS._con_idx> are unvavailble.
  - doc: see CORPUS._con
 
 List of corpus source files written by L<ddc_index(1)|ddc_index> and loaded or mmap()ed at runtime;
-see L<F<CORPUS._con>>.
+see L<F<CORPUS._con>|/"CORPUS._con">.
 
 =cut
 
@@ -251,7 +251,7 @@ see L<F<CORPUS._con>>.
  - doc: see CORPUS._con, CORPUS._con_files
 
 Item-wise byte offsets of corpus source filenames in F<CORPUS._con_files> written by L<ddc_index(1)|ddc_index>
-and loaded or mmap()ed at runtime; see L<F<CORPUS._con>> and L<F<CORPUS._con_files>>.
+and loaded or mmap()ed at runtime; see L<F<CORPUS._con>|/"CORPUS._con"> and L<F<CORPUS._con_files>|/"CORPUS._con_files">.
 
 =cut
 
@@ -340,7 +340,9 @@ Should be kept very small to minimize startup overhead O(NMasked*NFiles).
      Corpus periods  are also used in storing \ref perdiv_def "period divisions"
    #+END_SRC
 
-Error log written at compile-time; may be missing or empty.
+Token offsets of corpus "period" boundaries; see L<C<UserMaxTokenCountInOnePeriod>|ddc_opt/UserMaxTokenCountInOnePeriod>.
+Due to its expected small size, this file is always loaded into anonymous resident memory rather than C<mmap()>ed,
+because the latter would always allocate at least one entire page (typically 4KB) of memory.
 
 =cut
 
