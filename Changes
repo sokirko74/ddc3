@@ -1,7 +1,12 @@
 ###-*- Mode: Change-Log; coding: utf-8; -*-
 
 WIP moocow
+	* 2018-08-15 IndexSetForQueryingStage.h: removed EndOfSentenceForBigrams flag from CIndexItem::m_IndexItemOffsetAndFlags
+	  - looks as if CIndexItem::m_IndexItemOffsetAndFlags is really only flags, and not offset at all
+	  - offset is actually read from preceding non-hapax m_EndOccurOffset by CIndexSetForQueryingStage::GetStartOccurNo()
+	  - for large vocabularies, there's some potential optimization here (assuming indices are consistent on-disk)
 	* 2018-07-03 updated DDCVersionMinW=v2.1.13 (min-compat version written by ddc_index) for *._con format changes
+
 
 v2.1.14 Mon, 02 Jul 2018 11:03:42 +0200 moocow
 	* fixed segfaults during ddc_index caused by bogus extra "%s" in CConcIndexator::SaveCorpusFileList()

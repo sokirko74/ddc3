@@ -41,8 +41,10 @@ typedef PeriodsDivisionMapT::RecFileT PeriodsDivisionMapV;  ///< low-level virtu
 // Flags for CIndexItem::m_IndexItemOffsetAndFlags
 
 const DWORD TheOnlyOccurIsInEndOccurNo = 1<<31;
-const DWORD EndOfSentenceForBigrams = 1<<30;
-const DWORD AllFlags = TheOnlyOccurIsInEndOccurNo  | EndOfSentenceForBigrams;
+/*-- 2018-08-15: EndOfSentenceForBigrams flag is obsolete --*/
+//const DWORD EndOfSentenceForBigrams = 1<<30;
+//const DWORD AllFlags = TheOnlyOccurIsInEndOccurNo  | EndOfSentenceForBigrams;
+const DWORD AllFlags = TheOnlyOccurIsInEndOccurNo;
 
 /*!
 	CIndexItem contains basic information about one index item. In the strict sense one index item
