@@ -530,7 +530,10 @@ void CConcXml::CFreeBiblStringIndex::CreateUnion(const string& Path, const vecto
 	//-- populate m_ValuesE and build translation tables
 	m_ValuesE.clear();
 	m_ValuesE.ensureVec();
-	vector< map<DWORD,DWORD> > xlateId(sIndices.size());
+	vector< vector<DWORD> > xlateId(sIndices.size());
+	for (size_t i=0; i < sIndices.size(); ++i) {
+		if (sIndices[i] != NULL) xlateId[i].resize(sIndices[i]->m_ValuesE.size());
+	}
 	for (set<string>::const_iterator si=values.begin(); si!=values.end(); ++si) {
 		m_ValuesE.m_strings.push_back(*si);
 		for (size_t i=0; i < sIndices.size(); ++i) {

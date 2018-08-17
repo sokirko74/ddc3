@@ -224,6 +224,21 @@ bool	CStringIndexSet::SaveOnePartOfUnionTokenStorage(FILE * out_fp, const map<DW
 	return true;
 };
 
+bool	CStringIndexSet::SaveOnePartOfUnionTokenStorage(FILE * out_fp, const vector<DWORD>& Old2New) const
+{
+	DWORD Old;
+	FSeek(m_StorageFile, 0, SEEK_SET);
+
+	while (fread(&Old, sizeof(DWORD), 1, m_StorageFile) == 1)
+	{
+		if (Old >= Old2New.size())
+			return false;
+		if (fwrite(&(Old2New[Old]), sizeof(DWORD), 1, out_fp) != 1) 
+			return false;
+	};
+	return true;
+};
+
 bool	CStringIndexSet::CreateUnionTokenStorage(
 	const CStringIndexSet& First, 
 	const CStringIndexSet& Second,
@@ -245,7 +260,7 @@ bool	CStringIndexSet::CreateUnionTokenStorage(
 	return OpenStorageFile();
 };
 
-bool	CStringIndexSet::CreateUnionTokenStorages(const vector<CStringIndexSet*>& IndexSets, const vector<size_t>& TokenCounts, const vector< map<DWORD,DWORD> >& xlateItemId)
+bool	CStringIndexSet::CreateUnionTokenStorages(const vector<CStringIndexSet*>& IndexSets, const vector<size_t>& TokenCounts, const vector< vector<DWORD> >& xlateItemId)
 {
 	assert(IndexSets.size()==xlateItemId.size());
 	CloseStorageFile();
@@ -433,7 +448,10 @@ void	CStringIndexSet::UnionIndexSets(const vector<CStringIndexSet*>& IndexSets, 
 		throw CExpc ("CStringIndexSet::UnionIndexSets(): cannot initialize occurrences buffer");
 	size_t CurrPositionInResFile = 0;
 
-	vector< map<DWORD,DWORD> > xlateItemId(IndexSets.size());
+	vector< vector<DWORD> > xlateItemId(IndexSets.size());
+	for (size_t i=0; i < IndexSets.size(); ++i) {
+		if (IndexSets[i] != NULL) xlateItemId[i].resize(IndexSets[i]->m_Index.size());
+	}
 	vector<CTokenNo> occurs;
 	DWORD outId = 0;
 	for (set<string>::const_iterator si=ItemStrings.begin(); si!=ItemStrings.end(); ++si, ++outId) {

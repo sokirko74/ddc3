@@ -76,9 +76,10 @@ class CStringIndexSet  :	public CIndexSetForLoadingStage, public CIndexSetForQue
 	//!	make concatenation of two storages (old)
 	bool	CreateUnionTokenStorage(const CStringIndexSet& I1, const CStringIndexSet& I2, const map<DWORD, DWORD>& First2Result, const map<DWORD, DWORD>& Second2Result);
 	//!	make concatenation of multiple storages (new)
-	bool	CreateUnionTokenStorages(const vector<CStringIndexSet*>& IndexSets, const vector<size_t>& TokenCounts, const vector< map<DWORD,DWORD> >& xlateItemId);
+	bool	CreateUnionTokenStorages(const vector<CStringIndexSet*>& IndexSets, const vector<size_t>& TokenCounts, const vector< vector<DWORD> >& xlateItemId);
 	//!	save one part of token storage to the common file (called from CreateUnionTokenStorage)
 	bool	SaveOnePartOfUnionTokenStorage(FILE * res_fp, const map<DWORD, DWORD>& Old2New) const;
+	bool	SaveOnePartOfUnionTokenStorage(FILE * res_fp, const vector<DWORD>& Old2New) const;
 	//!     open \ref storage_def "storage" file
 	bool	OpenStorageFile();
 	//!     close \ref storage_def "storage" file

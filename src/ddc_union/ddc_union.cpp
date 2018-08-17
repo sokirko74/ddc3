@@ -23,6 +23,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include "../ConcordLib/ConcSession.h"
+#include "../CommonLib/ddcTime.h"
 using namespace std;
 
 //======================================================================
@@ -116,6 +117,9 @@ int main(int argc, char* argv[])
 
  
   try {
+    //-- timer
+    DDCTime t0 = DDCTime::Now();
+    
     //-- ensure output directory
     MakeDirP(FileDirectory(outfilename));
 
@@ -135,11 +139,20 @@ int main(int argc, char* argv[])
 	throw CExpc("failed to load options from '"+optfile_out+"'");
     }
     Ix.CreateAsUnion(infilenames, inheritOptions);
+
+    //-- all done
+    ddcLogInfo("Created project "+outfilename);
+    ddcLogInfo(Format("+ Total time elapsed = %f second(s)", DDCTime::Now().Elapsed(t0)));
+    DDCProcessMemoryStatus mstat(getpid());
+    ddcLogInfo(Format("+ Memory Usage (kB) = VmPeak:%zd , VmSize:%zd , VmHWM:%zd , VmRSS:%zd , VmSwap:%zd\n",
+		      mstat.VmPeak, mstat.VmSize, mstat.VmHWM, mstat.VmRSS, mstat.VmSwap));
   }
   catch (exception &e) {
     fprintf(stderr, "%s: Exception: %s\n", prog, e.what());
     exit(-1);
   }
+
+
 
   //-- cleanup
   return 0;

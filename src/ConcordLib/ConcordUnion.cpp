@@ -246,7 +246,8 @@ bool CConcIndexator::CreateAsUnion(const vector<CConcIndexator>& X, bool inherit
 
   //---------------------------------------
   // what now?
-  throw CExpc(logname+": so far so good -- what now?");
+  //throw CExpc(logname+": so far so good -- what now?");
+  return true;
 }
 
 
