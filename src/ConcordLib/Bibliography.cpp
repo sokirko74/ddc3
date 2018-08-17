@@ -865,6 +865,27 @@ bool CConcXml::CFreeBiblStringConstant::ConvertAndSaveToDiskAfterIndexing(string
 	return true;
 };
 
+void CConcXml::CFreeBiblStringConstant::CreateUnion(const string& Path, const vector<const CFreeBiblIndex*>& Indices, const vector<size_t>& FileCounts)
+{
+	size_t i=0;
+	bool gotValue = !m_Value.empty();
+	for ( ; i < Indices.size(); ++i) {
+		if (Indices[i] == NULL) continue;
+		if (Indices[i]->GetTypeId() != cfbiStringConstant) {
+			ddcLogWarn("CConcXml::CFreeBiblStringConstant::CreateUnion(): Warning: cannot merge variable field into bibl constant "+m_Name);
+			continue;
+		}
+		CFreeBiblStringConstant* cfb = (CFreeBiblStringConstant*)Indices[i];
+		if (!gotValue) {
+			setValue(cfb->m_Value);
+			gotValue = true;
+		}
+		else if (cfb->m_Value != m_Value) {
+			ddcLogWarn("CConcXml::CFreeBiblStringConstant::CreateUnion(): Warning: cannot merge distinct constants \""+m_Value+"\" != \""+cfb->m_Value+"\" for attribute "+m_Name);
+		}
+	}
+};
+
 
 //=============================================
 CConcXml::CConcXml()

@@ -142,7 +142,7 @@ int main(int argc, char* argv[])
 
     //-- all done
     ddcLogInfo("Created project "+outfilename);
-    ddcLogInfo(Format("+ Total time elapsed = %f second(s)", DDCTime::Now().Elapsed(t0)));
+    ddcLogInfo(Format("+ Total time elapsed = %.3f second(s)", DDCTime::Now().Elapsed(t0)));
     DDCProcessMemoryStatus mstat(getpid());
     ddcLogInfo(Format("+ Memory Usage (kB) = VmPeak:%zd , VmSize:%zd , VmHWM:%zd , VmRSS:%zd , VmSwap:%zd\n",
 		      mstat.VmPeak, mstat.VmSize, mstat.VmHWM, mstat.VmRSS, mstat.VmSwap));

@@ -242,6 +242,7 @@ public:
 		virtual int GetIntegerValue(DWORD FileNo) const;
 		virtual bool ReadFromDisk (string Path, DWORD FileBreaksSize, bool useMMap=false);
 		virtual bool ConvertAndSaveToDiskAfterIndexing(string Path);
+		virtual void CreateUnion (const string& Path, const vector<const CFreeBiblIndex*>& Indices, const vector<size_t>& FileCounts);
 	public:
 		//-- set constant value
 		void setValue(const string& value);
