@@ -434,6 +434,7 @@ TxDispatcher* TxDispatcher::clone() const
   for (TxMap::iterator xi=that->m_tx.begin(); xi!=that->m_tx.end(); ++xi) {
     xi->second = xi->second->mapClone(xlate);
   }
+  that->m_txlist = m_txlist;
   return that;
 }
 
@@ -453,6 +454,7 @@ void TxDispatcher::clear(bool doDelete)
     }
   }
   m_tx.clear();
+  m_txlist.clear();
 }
 
 //--------------------------------------------------------------
@@ -511,8 +513,10 @@ void TxDispatcher::compile(void)
 string TxDispatcher::configString(const string &prefix) const
 {
   string out;
-  for (TxMap::const_iterator txi=m_tx.begin(); txi != m_tx.end(); txi++) {
-    out += prefix + txi->second->configString();
+  for (list<string>::const_iterator li=m_txlist.begin(); li != m_txlist.end(); ++li) {
+    const CTermExpander *tx = get(*li);
+    assert(tx != NULL);
+    out += prefix + tx->configString();
     if (out[out.size()-1] != '\n') out.push_back('\n');
   }
   return out;
@@ -524,6 +528,7 @@ void TxDispatcher::insert(const string &label, CTermExpander *tx)
   remove(label);
   tx->m_Label = label;
   m_tx[label] = tx;
+  m_txlist.push_back(label);
 }
 
 //--------------------------------------------------------------
@@ -540,13 +545,14 @@ void TxDispatcher::remove(const string &label)
   if (mi != m_tx.end()) {
     if (mi->second != NULL) delete mi->second;
     m_tx.erase(mi);
+    m_txlist.remove(label);
   }
 }
 
 //--------------------------------------------------------------
-CTermExpander *TxDispatcher::get(const string &label)
+CTermExpander *TxDispatcher::get(const string &label) const
 {
-  TxMap::iterator mi = m_tx.find(label);
+  TxMap::const_iterator mi = m_tx.find(label);
   if (mi == m_tx.end()) return NULL;
   return mi->second;
 }

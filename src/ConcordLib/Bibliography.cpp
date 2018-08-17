@@ -276,6 +276,22 @@ void CConcXml::CFreeBiblIndex::CreateUnion (string Path, const CFreeBiblIndex* p
 	WriteVector(GetIndexFileName(Path), m_ValuesForEachFile.m_vec);
 }
 
+void CConcXml::CFreeBiblIndex::CreateUnion (const string& Path, const vector<const CFreeBiblIndex*>& Indices, const vector<size_t>& FileCounts)
+{
+	m_ValuesForEachFile.clear();
+	m_ValuesForEachFile.ensureVec();
+	for (size_t i=0; i < Indices.size(); ++i) {
+		if (Indices[i] != NULL) {
+			m_ValuesForEachFile.m_vec.insert(m_ValuesForEachFile.m_vec.end(), Indices[i]->m_ValuesForEachFile.begin(), Indices[i]->m_ValuesForEachFile.end());
+		} else {
+			m_ValuesForEachFile.m_vec.resize(m_ValuesForEachFile.m_vec.size()+FileCounts[i], 0);
+		}
+	}
+	m_ValuesForEachFile.ensureData();
+	m_ValuesForEachFile.save(GetIndexFileName(Path));
+}
+
+
 bool CConcXml::CFreeBiblIndex::GetFilterBounds (CDDCFilterWithBounds& Filter, const string &LoValue, const string &HiValue) const
 {
 	Filter.m_bSet = false;
@@ -486,6 +502,61 @@ void CConcXml::CFreeBiblStringIndex::CreateUnion (string Path, const CFreeBiblIn
 	CFreeBiblIndex::ConvertAndSaveToDiskAfterIndexing(Path);
 };
 
+void CConcXml::CFreeBiblStringIndex::CreateUnion(const string& Path, const vector<const CFreeBiblIndex*>& Indices, const vector<size_t>& FileCounts)
+{
+	assert(Indices.size()==FileCounts.size());
+	
+	//-- cast arguments to CFreeBiblStringIndex
+	vector<const CFreeBiblStringIndex*> sIndices(Indices.size());
+	for (size_t i=0; i < Indices.size(); ++i) {
+		sIndices[i] = (const CFreeBiblStringIndex*)Indices[i];
+	}
+	
+	//-- get set of all values (expensive)
+	set<string> values;
+	string s;
+	for (size_t i=0; i < sIndices.size(); ++i) {
+		if (sIndices[i]==NULL) {
+			if (values.find("") == values.end()) values.insert("");
+			continue;
+		}
+		for (size_t j=0; j < sIndices[i]->m_ValuesE.size(); ++j) {
+			s = sIndices[i]->m_ValuesE[j];
+			if (values.find(s) == values.end()) values.insert(s);
+		}
+	}
+	ddcLogDebug(Format("found %zd value type(s) for attribute %s", values.size(), m_Name.c_str()));
+
+	//-- populate m_ValuesE and build translation tables
+	m_ValuesE.clear();
+	m_ValuesE.ensureVec();
+	vector< map<DWORD,DWORD> > xlateId(sIndices.size());
+	for (set<string>::const_iterator si=values.begin(); si!=values.end(); ++si) {
+		m_ValuesE.m_strings.push_back(*si);
+		for (size_t i=0; i < sIndices.size(); ++i) {
+			if (sIndices[i]==NULL) continue;
+			DWORD oldId = sIndices[i]->m_ValuesE.find(*si);
+			if (oldId != sIndices[i]->m_ValuesE.NO_ID)
+				xlateId[i][oldId] = m_ValuesE.m_strings.size()-1;
+		}
+	}
+	WriteBiblStringItems(m_ValuesE.m_strings, GetStringFileName(Path));
+	//CFreeBiblIndex::ConvertAndSaveToDiskAfterIndexing(Path);
+
+	//-- write integers by file (a la CConcXml::CFreeBiblIndex::CreateUnion)
+	m_ValuesForEachFile.clear();
+	m_ValuesForEachFile.ensureVec();
+	size_t voff = 0;
+	for (size_t i=0; i < sIndices.size(); ++i) {
+		m_ValuesForEachFile.m_vec.resize(voff+FileCounts[i], 0);
+		if (sIndices[i] == NULL) continue;
+		for (size_t j=0; j < sIndices[i]->m_ValuesForEachFile.size(); ++j)
+			m_ValuesForEachFile.m_vec[voff+j] = xlateId[i][ sIndices[i]->m_ValuesForEachFile[j] ];
+		voff += FileCounts[i];
+	}
+	m_ValuesForEachFile.ensureData();
+	m_ValuesForEachFile.save(GetIndexFileName(Path));
+};
 
 bool CConcXml::CFreeBiblStringIndex::GetFilterBounds (CDDCFilterWithBounds& Filter, const string &LoValue, const string &HiValue) const
 {
@@ -1364,7 +1435,7 @@ bool  CConcXml::CheckBibl(size_t FileBreaksNumber) const
 
 
 
-
+//-- old
 bool CConcXml::UniteBibliography(const CConcXml& B1, const CConcXml& B2)
 {
 
@@ -1432,6 +1503,75 @@ bool CConcXml::UniteBibliography(const CConcXml& B1, const CConcXml& B2)
 		AddFile(GetBiblFileName().c_str(),B2.GetBiblFileName().c_str());
 	return true;
 };
+
+bool CConcXml::UnionBibliographies(const vector<const CConcXml*>& Bibls)
+{
+	string logname("CConcXml::UnionBibliographies()");
+
+	//-- populate: m_EndOffsetsInBiblFile (*._bibl_idx)
+	ddcLogInfo(logname+": populating "+GetBiblIndexFileName());
+	m_EndOffsetsInBiblFile.clear();
+	m_EndOffsetsInBiblFile.ensureVec();
+	file_off_t boffset = 0;
+	size_t     eobfi   = 0;
+	for (size_t bi=0; bi < Bibls.size(); ++bi) {
+		m_EndOffsetsInBiblFile.m_vec.insert(m_EndOffsetsInBiblFile.m_vec.end(), Bibls[bi]->m_EndOffsetsInBiblFile.begin(), Bibls[bi]->m_EndOffsetsInBiblFile.end());
+		for ( ; eobfi < m_EndOffsetsInBiblFile.m_vec.size(); ++eobfi)
+			m_EndOffsetsInBiblFile.m_vec[eobfi] += boffset;
+		if (!m_EndOffsetsInBiblFile.m_vec.empty())
+			boffset = m_EndOffsetsInBiblFile.m_vec.back();
+	}
+	m_EndOffsetsInBiblFile.ensureData();
+	m_EndOffsetsInBiblFile.save(GetBiblIndexFileName());
+
+	//-- populate: bibl file (*._bibl)
+	ddcLogInfo(logname+": populating "+GetBiblFileName());
+	if (FileExists(GetBiblFileName())) remove(GetBiblFileName().c_str());
+	for (size_t bi=0; bi < Bibls.size(); ++bi) {
+		if (FileExists(Bibls[bi]->GetBiblFileName()))
+			AddFile(GetBiblFileName().c_str(), Bibls[bi]->GetBiblFileName().c_str() );
+	}
+
+	//-- sanity check: *._bibl <-> *._bibl_idx
+	if (FileExists(GetBiblFileName()) && FileSize(GetBiblFileName()) != boffset)
+		throw CExpc(Format("%s: Error: bibl index size mismatch (%s : %zd != %zd : %s)",
+				   logname.c_str(),
+				   GetBiblIndexFileName().c_str(),boffset,
+				   GetBiblFileName().c_str(),FileSize(GetBiblFileName())));
+
+	//-- populate: *._bibl_date
+	ddcLogInfo(logname+": populating "+GetBiblDateIndexFileName());
+	m_Dates.clear();
+	m_Dates.ensureVec();
+	for (size_t bi=0; bi < Bibls.size(); ++bi) {
+		m_Dates.m_vec.insert(m_Dates.m_vec.end(), Bibls[bi]->m_Dates.begin(), Bibls[bi]->m_Dates.end());
+	}
+	m_Dates.save(GetBiblDateIndexFileName());
+
+	//-- populate: free bibl attributes
+	//-- step 1: get number of files
+	vector<size_t> FileCounts(Bibls.size());
+	for (size_t bi=0; bi < Bibls.size(); ++bi)
+		FileCounts[bi] = Bibls[bi]->m_Dates.size();
+	for (FreeBiblStringMap::iterator fbi=m_FreeBiblIndices.begin(); fbi!=m_FreeBiblIndices.end(); ++fbi) {
+		const string&  name = fbi->first;
+		CFreeBiblIndex *fbx = fbi->second;
+		ddcLogInfo(logname+": populating free bibl index "+name);
+
+		//-- get sub-indices
+		vector<const CFreeBiblIndex*> bixs(Bibls.size());
+		for (size_t bi=0; bi < Bibls.size(); ++bi) {
+			bixs[bi] = Bibls[bi]->GetFreeBiblIndex(name);
+			if (bixs[bi] == NULL)
+				ddcLogWarn(logname+": Warning: no free bibl index '"+name+"' in sub-project '"+Bibls[bi]->m_Path+"' - using default values");
+		}
+		fbx->CreateUnion(m_Path, bixs, FileCounts);
+	}
+	
+	
+	return true;
+};
+
 
 void CConcXml::InitNoSort(vector<CHit>&	Hits) const
 {

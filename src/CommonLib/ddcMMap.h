@@ -350,8 +350,38 @@ public:
 	    m_vec.reserve(size());
 	    m_vec.insert(m_vec.begin(), m_mmap.m_data, m_mmap.m_data+m_mmap.size());
 	    m_mmap.close();
-	    m_data = &(m_vec[0]);
+	    m_data = &(m_vec[0]); //-- always update this
 	}
+    };
+
+    /// ensure data is a valid pointer
+    inline void ensureData() {
+	m_data = m_mmap ? m_mmap.m_data : &(m_vec[0]);
+    };
+
+    /// dump data to a FILE*
+    void save(FILE* fp) const
+    { save(fp,Format("<FILE=%p>",fp)); };
+
+    /// dump to a named file
+    void save(const string& FileName) const
+    {
+	FILE *fp = fopen(FileName.c_str(),"wb");
+	if (!fp)
+	    throw CExpc("ddcVecFile<>::save(): open failed for file "+FileName);
+	save(fp,FileName);
+	if (fclose(fp) != 0)
+	    throw CExpc("ddcVecFile<>::save(): close failed for file "+FileName);
+    };
+
+    /// dump data to a FILE* with a symbolic name
+    void save(FILE *fp, const string& name) const
+    {
+	if (!fp)
+	    throw CExpc("ddcVecFile<>::save(): invalid file pointer for "+name);
+	const T* datap = m_mmap ? m_mmap.m_data : &(m_vec[0]);
+	if (fwrite(datap, sizeof(T), size(), fp) != size())
+	    throw CExpc("ddcVecFile<>::save(): failed to write data to "+name);
     };
 
 };

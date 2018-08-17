@@ -189,8 +189,10 @@ class CConcIndexator : public CStringIndexator, public CHitBorders, public CSour
 
 	//! saves options to a string 
 	string SaveOptionsToString()  const;
+
 	//! loads options from a string 
 	bool	LoadOptionsFromString(string Options);
+	
 	//!  graphematical definition of a token for DWDSIndex
 	bool	IsDWDSToken (const CGraphmatFile*	piGraphmat, long GraLine)	 const;
 	//! checks if X has the same option 
@@ -392,6 +394,9 @@ public:
 	//! load list of masked (deleted)\ref corpus_file_def 
 	bool	LoadMaskedFiles();
     
+	//! loads options from a named file (calls LoadOptionsFromString())
+	bool   LoadOptionsFromFile(const string& OptFile);
+
 	//! saves options to option file (*.opt)
 	bool	SaveOptions(string FileName) const;
 
@@ -435,8 +440,14 @@ public:
 	bool	IndexOneFile(CGraphmatFile* piGraphmat, string FileName, const char* pFileBuffer, const CDwdsThesaurus* pDwdsThesaurus,  CTokenNo& CorpusEndTokenNo,string& strError);
 	//! finds all \ref period_def "subcorpora"
 	void	CalculateSearchPeriods	(DWORD MaxTokenCountInOnePeriod);
-	//! creates new concordance as unionof two concordances
+
+	//! creates new concordance as union of two concordances (old)
 	bool	CreateAsUnion(const CConcIndexator&  _X1, const CConcIndexator&  _X2);
+	//! creates new concordance as union of one or more concordances (new)
+	bool	CreateAsUnion(const vector<CConcIndexator>& X, bool inheritOptions=true);
+	//! creates new concordance as union of one or more concordances (new, filename-based)
+	bool	CreateAsUnion(const vector<string>& Xfiles, bool inheritOptions=true);
+
 	//! creates morphology index
 	bool	CreateMorphIndex();
 	//! returns the size of one \ref period_def "subcorpus"

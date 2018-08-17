@@ -84,6 +84,19 @@ CHitBorders::CHitBorders()
 	m_FileBreakCollectionNo = -1;	
 };
 
+void CHitBorders::CBreakCollection::AppendBreaks(const ddcBreakVector& From, CTokenNo Offset)
+{
+	size_t start = m_BreakOffsets.size();
+	m_BreakOffsets.ensureVec();
+	m_BreakOffsets.m_vec.insert(m_BreakOffsets.m_vec.end(), From.begin(), From.end());
+	m_BreakOffsets.ensureData();
+	for (size_t i=start; i < m_BreakOffsets.size(); ++i)
+		m_BreakOffsets[i] += Offset;
+};
+
+void CHitBorders::CBreakCollection::SaveToFile(const string& FileName)
+{ m_BreakOffsets.save(FileName); };
+
 const ddcBreakVector* CHitBorders::GetBreaksByName(const string& ShortName) const
 {
 	map<string,int>::const_iterator it = m_ShortName2BreakCollection.find(ShortName);
@@ -190,9 +203,7 @@ bool	CHitBorders::BordersEndIndexing(string Path)
 	for (size_t i=0; i <  m_Breaks.size(); i++)
 		m_Breaks[i].CloseFileForIndexing();
 
-	m_PageBreaks.ensureVec();
-	if (!WriteVector(GetPageBreaksFileName(Path), m_PageBreaks.m_vec))
-		return false;
+	SavePageBreaks(Path);
 
 	return true;
 };
@@ -333,6 +344,14 @@ ddcVecFile<CPageNumber>::const_iterator CHitBorders::GetTokenPageBreak(CTokenNo 
 	return lower_bound(m_PageBreaks.begin(), m_PageBreaks.end(), tok, LessPageBreak());
 }
 
+bool CHitBorders::EnsureRegisteredBreak(string ShortName, string LongName)
+{
+	const CBreakCollection *blong=GetBreakCollectionByName(LongName), *bshort=GetBreakCollectionByName(ShortName);
+	if (blong==NULL || blong!=bshort)
+		return RegisterBreak(ShortName, LongName);
+	return true;
+}
+
 bool CHitBorders::RegisterBreak(string ShortName, string LongName)
 {
 	CBreakCollection T (ShortName, LongName);
@@ -391,7 +410,7 @@ bool CHitBorders::RegisterBorderIndices(const char* IndicesStr)
 	};
 
 	// register file break collection
-	if (!RegisterBreak(PredefinedFileBreakName, PredefinedFileBreakName))
+	if (!EnsureRegisteredBreak(PredefinedFileBreakName, PredefinedFileBreakName))
 			return false;
 	m_FileBreakCollectionNo = m_Breaks.size() - 1;
 	
@@ -401,7 +420,7 @@ bool CHitBorders::RegisterBorderIndices(const char* IndicesStr)
 		m_DefaultBreakName = m_Breaks[0].m_ShortName;
 
 	// register text area collection
-	if (!RegisterBreak(PredefinedTextAreaBreakName, PredefinedTextAreaBreakName))
+	if (!EnsureRegisteredBreak(PredefinedTextAreaBreakName, PredefinedTextAreaBreakName))
 			return false;
 	
 	return !m_Breaks.empty();
@@ -462,8 +481,7 @@ bool CHitBorders::UniteBorders(const CHitBorders& H1, const CHitBorders& H2, con
 			return false;
 
 		string FileName = Result.GetBreakFileName(Path);
-		if (!WriteVector(FileName.c_str(), Result.m_BreakOffsets.m_vec))
-			return false;
+		Result.SaveToFile(FileName);
 		if (PredefinedFileBreakName == Result.m_ShortName)
 			m_FileBreakCollectionNo = m_Breaks.size() - 1;
 	};
@@ -482,13 +500,17 @@ bool CHitBorders::UniteBorders(const CHitBorders& H1, const CHitBorders& H2, con
 		for (size_t  i = H1.m_PageBreaks.size(); i < m_PageBreaks.size(); i++)
 			m_PageBreaks.m_vec[i].m_StartTokenNo += EndTokenNo1;
 
-		if (!WriteVector(GetPageBreaksFileName(Path).c_str(), m_PageBreaks.m_vec))
-			return false;
+		SavePageBreaks(Path);
 	};
 
 	m_DefaultBreakName = H1.m_DefaultBreakName;
 
 	return true;
+};
+
+void CHitBorders::SavePageBreaks(const string& ProjectPath)
+{
+	m_PageBreaks.save( GetPageBreaksFileName(ProjectPath) );
 };
 
 // order breaks by short names

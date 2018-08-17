@@ -1,6 +1,11 @@
 ###-*- Mode: Change-Log; coding: utf-8; -*-
 
-WIP moocow
+v2.1.15-pre1 WIP moocow
+	* 2018-08-17 added new command-line utility ddc_union
+	  - based loosely on old ConcordUnion.cpp code (and the code it calls)
+	  - ConcordUnion.cpp & friends supported only binary union operations, and no option-modification (e.g. MaxTokenCountInOnePeriod)
+	  - new code supports n-ary union including option update and target attribute selection (via -O option)
+	  - old code was apparently never called (and was broken in some places), and should probably go away now
 	* 2018-08-15 IndexSetForQueryingStage.h: removed EndOfSentenceForBigrams flag from CIndexItem::m_IndexItemOffsetAndFlags
 	  - looks as if CIndexItem::m_IndexItemOffsetAndFlags is really only flags, and not offset at all
 	  - offset is actually read from preceding non-hapax m_EndOccurOffset by CIndexSetForQueryingStage::GetStartOccurNo()

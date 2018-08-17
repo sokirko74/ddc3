@@ -42,6 +42,9 @@
 # include <sys/stat.h>
 #endif
 
+//-- for opendir(), IsDirectory
+#include <dirent.h>
+
 //-- suppress gcc warnings of the form "ignoring return value of `fread', declared with attribute warn_unused_result [-Wunused-result]"
 #pragma GCC diagnostic ignored "-Wunused-result"
 
@@ -356,6 +359,17 @@ time_t FileMTime (const char *filename)
 #else
     return 0;
 #endif
+}
+
+bool IsDirectory (const char *DirName)
+{
+    DIR* dir = opendir(DirName);
+    if (dir != NULL) {
+     closedir(dir);
+     return true;
+    }
+    //(errno != ENOTDIR);
+    return false;
 }
 
 
@@ -2725,13 +2739,24 @@ string ConvertASCIIToHtmlSymbols(const string& txt)
 }
 
 
-bool  MakeDir(const string& txt)
+bool  MakeDir(const string& DirName)
 {
 	#ifdef WIN32
-		return _mkdir(txt.c_str()) != -1;
+		return _mkdir(DirName.c_str()) != -1;
 	#else
-		return mkdir(txt.c_str(), 0777) != -1;
+		return mkdir(DirName.c_str(), 0777) != -1;
 	#endif
+};
+
+bool  MakeDirP(const string& DirName)
+{
+	if (IsDirectory(DirName))
+		return true;
+	if (!MakeDirP(FileDirectory(DirName)))
+		return false;
+	if (!MakeDir(DirName))
+		throw CExpc(Format("MakeDirP(): failed to create directory '%s': %s", DirName.c_str(), strerror(errno)));
+	return true;
 };
 
 

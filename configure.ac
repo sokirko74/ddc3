@@ -3,7 +3,7 @@ AC_PREREQ(2.5)
 
 dnl Some handy macros
 define([THE_PACKAGE_NAME],    [ddc])
-define([THE_PACKAGE_VERSION], [2.1.14])
+define([THE_PACKAGE_VERSION], [2.1.15-pre1])
 define([THE_PACKAGE_MAINTAINER],  [jurish@bbaw.de])
 AC_INIT(THE_PACKAGE_NAME, THE_PACKAGE_VERSION, THE_PACKAGE_MAINTAINER)
 
@@ -790,6 +790,7 @@ AC_CONFIG_FILES(src/PCRE/Makefile)
 AC_CONFIG_FILES(src/MorphWizardLib/Makefile)
 AC_CONFIG_FILES(src/ConcordDmnLib/Makefile)
 AC_CONFIG_FILES(src/ddc_index/Makefile)
+AC_CONFIG_FILES(src/ddc_union/Makefile)
 AC_CONFIG_FILES(src/ddc_dump/Makefile)
 AC_CONFIG_FILES(src/ddc_simple/Makefile)
 AC_CONFIG_FILES(src/ddc_console/Makefile)

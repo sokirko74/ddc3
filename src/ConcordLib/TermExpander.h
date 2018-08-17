@@ -330,6 +330,9 @@ public:
   //! maps expander labels to expanders (label keys are case-sensitive!)
   TxMap m_tx;
 
+  //! list of defined expander names in definition order (for config-string generation)
+  list<string> m_txlist;
+
 public:
   //--------------------------------------------------------------
   //\name Constructors etc.
@@ -391,7 +394,7 @@ public:
   void remove(const string &label);
 
   //! lookup the expander for \a label; returns NULL if no such expander exists
-  CTermExpander *get(const string &label);
+  CTermExpander *get(const string &label) const;
 
   //! extended lookup for an expansion chain; throws CExpc on unknown label
   TxChain getChain(const vector<string> &labels);

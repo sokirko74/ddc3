@@ -85,6 +85,7 @@ public:
 	//--------------------------------------------------------------
 	class CFreeBiblIndex 
 	{
+	protected:
 		string	GetIndexFileName (string Path) const;
 
 		public:
@@ -113,6 +114,7 @@ public:
 		virtual string	GetStringValue(DWORD FileNo ) const;
 		virtual bool	ReadFromDisk (string Path, DWORD FileBreaksSize, bool useMMap=false);
 		virtual void	CreateUnion (string Path, const CFreeBiblIndex* pIndex1, const CFreeBiblIndex* pIndex2);
+		virtual void	CreateUnion (const string& Path, const vector<const CFreeBiblIndex*>& Indices, const vector<size_t>& FileCounts);
 		virtual bool	RegisterBiblStringItemId(const string& Value);
 		virtual bool	DeleteBiblFiles (string Path) const;
 		virtual bool	ConvertAndSaveToDiskAfterIndexing (string Path);
@@ -190,7 +192,8 @@ public:
 		virtual string GetTypeStr() const;
 		virtual CFreeBiblIndexTypeId GetTypeId() const;
 		virtual string GetStringValue(DWORD FileNo ) const;
-		void	CreateUnion (string Path, const CFreeBiblIndex* pIndex1, const CFreeBiblIndex* pIndex2);
+		virtual void CreateUnion (string Path, const CFreeBiblIndex* pIndex1, const CFreeBiblIndex* pIndex2);
+		virtual void CreateUnion (const string& Path, const vector<const CFreeBiblIndex*>& Indices, const vector<size_t>& FileCounts);
 		bool	RegisterBiblStringItemId(const string& Value);
 		bool	DeleteBiblFiles (string Path) const;
 		virtual bool ReadFromDisk (string Path, DWORD FileBreaksSize, bool useMMap=false);
@@ -335,7 +338,12 @@ public:
 	CBibliography GetFullBibliographyOfHit(size_t FileNo) const;
 	//! Check bibliographical references
 	bool			CheckBibl(size_t FileBreaksNumber) const;
+
+	//! union of 2 identically structured bibliographies (old)
 	bool			UniteBibliography(const CConcXml& B1, const CConcXml& B2);
+
+	//! union of multiple (heterogeneous) bibliographies (new)
+	bool UnionBibliographies(const vector<const CConcXml*>& Bibls);
 
 	//! initialize a CDDCFilterWithBounds object for sorting by bibliographical information, given bound(s)
 	//! \param Filter filter to initialize

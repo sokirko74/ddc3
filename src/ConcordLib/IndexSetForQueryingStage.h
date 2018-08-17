@@ -1,7 +1,7 @@
 //-*- Mode: C++; c-basic-offset: 8; -*-
 //
 //  DDC originally by Alexey Sokirko
-//  Changes and modifications 2011-2015 by Bryan Jurish
+//  Changes and modifications 2011-2018 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -188,9 +188,6 @@ protected:
 
 
 public:
-	//! mmap version of CIndexSetForQueryingStage::m_StringBuffer (used if m_pParent->m_bMemoryMap is set)
-	//ddcVecFile<char> m_vStringBuffer;
-	
 	//! the main index(from strings to the ordered list of their occurrences) 
 	ddcVecFile<CIndexItem>		m_Index;
 

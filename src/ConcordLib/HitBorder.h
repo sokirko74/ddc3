@@ -83,6 +83,12 @@ class CHitBorders
 	  	void			ReadFromDisk(string Path, bool useMMap=false);
 		bool			ClearAll(string Path);
 		void			CloseFileForIndexing();
+
+		//! for new union: append breaks
+		void AppendBreaks(const ddcBreakVector& From, CTokenNo Offset=0);
+
+		//! for new union: save to file
+		void SaveToFile(const string& FileName);
 	};
 
  protected:
@@ -121,7 +127,11 @@ protected:
 	void	AddPageBreak(const CPageNumber& P);
 	//!    creates union of H1 and H2 for all m_Breaks and for m_PageBreaks
 	bool	UniteBorders(const CHitBorders& H1, const CHitBorders& H2, const DWORD EndTokenNo1, const string& Path);
+	//!    save page break file
+	void   SavePageBreaks(const string& ProjectPath);
+
 	bool	RegisterBreak(string ShortName, string LongName);
+	bool	EnsureRegisteredBreak(string ShortName, string LongName);
     string	GetBreakCollectionShortName(size_t i) const;
     int	    GetBreakCollectionIndexByName(string ShortName ) const;
     bool	AddBreakByIndex(DWORD BreakCollectionNo, const CTokenNo& B);

@@ -22,6 +22,16 @@
 #include "IndexSet.h"
 #include "ConcIndexator.h"
 
+//#define DDC_DEBUG_UNION 1
+
+#ifdef DDC_DEBUG_UNION
+# define udebug(msg) ddcLogDebug(x)
+# define utrace(msg) ddcLogTrace(x)
+#else
+# define udebug(msg)
+# define utrace(msg)
+#endif
+
 //==============================================
 //================== CStringIndexSet ==========
 //===============================================
@@ -72,6 +82,14 @@ DWORD CStringIndexSet::GetTypeIndexIdLowerBound(const string& ValueStr)	const
 {
 	return GetTypeIndexIdLowerBoundIter(ValueStr) - m_Index.begin();
 };
+
+DWORD CStringIndexSet::GetTypeIndexId(const string& ValueStr)	const
+{
+	ddcVecFile<CIndexItem>::const_iterator it = GetTypeIndexIdLowerBoundIter(ValueStr);
+	if (it != m_Index.end() && (!strcmp(GetIndexItemStr(*it),ValueStr.c_str())))
+		return it - m_Index.begin();
+	return DWORD_MAX;
+}
 
 void CStringIndexSet::QueryTokenList (const string& WordForm, vector<DWORD>& MatchWords)	const
 {
@@ -198,7 +216,7 @@ bool	CStringIndexSet::SaveOnePartOfUnionTokenStorage(FILE * out_fp, const map<DW
 		{
 			return false;
 		}
-		if (fwrite(&(it->second), 4, 1, out_fp) != 1) 
+		if (fwrite(&(it->second), sizeof(DWORD), 1, out_fp) != 1) 
 		{
 			return false;
 		};
@@ -227,6 +245,30 @@ bool	CStringIndexSet::CreateUnionTokenStorage(
 	return OpenStorageFile();
 };
 
+bool	CStringIndexSet::CreateUnionTokenStorages(const vector<CStringIndexSet*>& IndexSets, const vector<size_t>& TokenCounts, const vector< map<DWORD,DWORD> >& xlateItemId)
+{
+	assert(IndexSets.size()==xlateItemId.size());
+	CloseStorageFile();
+
+	FILE * out_fp = fopen(GetStorageFileName().c_str(), "wb");
+	if (!out_fp) return false;
+	for (size_t ixi=0; ixi < IndexSets.size(); ++ixi) {
+		if (IndexSets[ixi]==NULL || !IndexSets[ixi]->m_bUseItemStorage) {
+			//-- dummy storage
+			DWORD tmp = 0;
+			for (size_t n=0; n < TokenCounts[ixi]; ++n)
+				fwrite(&tmp, sizeof(DWORD), 1, out_fp);
+		}
+		else {
+			//-- real storage
+			IndexSets[ixi]->SaveOnePartOfUnionTokenStorage(out_fp, xlateItemId[ixi]);
+		}
+	}			
+	fclose (out_fp);
+
+	return OpenStorageFile();
+};
+
 
 
 
@@ -234,7 +276,7 @@ bool	CStringIndexSet::CreateUnionTokenStorage(
 void	CStringIndexSet::UnionIndexSet(const CStringIndexSet& First, const CStringIndexSet& Second, const CTokenNo EndToken1, const CTokenNo EndToken2)
 {
     if ( (QWORD)EndToken1 + (QWORD)EndToken2 > (QWORD)CIndexItem::GetMaximalNumberOfRunningTokens() )
-        throw CExpc("The number of running rokens of the result index cannot be more than %u\n", CIndexItem::GetMaximalNumberOfRunningTokens());
+        throw CExpc("The number of runningr tokens of the result index cannot be more than %u\n", CIndexItem::GetMaximalNumberOfRunningTokens());
 
     if (First.m_Index.empty() && Second.m_Index.empty()) return;
 
@@ -354,6 +396,93 @@ void	CStringIndexSet::UnionIndexSet(const CStringIndexSet& First, const CStringI
 
 
 };
+
+void	CStringIndexSet::UnionIndexSets(const vector<CStringIndexSet*>& IndexSets, const vector<size_t>& TokenCounts)
+{
+	assert(IndexSets.size()==TokenCounts.size());
+	m_Index.clear();
+	m_StringBuffer.ensureVec();
+
+	//-- phase 1: get list of all string values (expensive)
+	set<string> ItemStrings;
+	string s;
+	for (size_t i=0; i < IndexSets.size(); ++i) {
+		if (IndexSets[i]==NULL || (m_bUseItemStorage && !IndexSets[i]->m_bUseItemStorage)) {
+			//-- force include empty string (it will get item-id 0)
+			ItemStrings.insert("");
+			if (IndexSets[i]==NULL) continue;
+		}
+		for (size_t ItemId=0; ItemId < IndexSets[i]->m_Index.size(); ++ItemId) {
+			s = IndexSets[i]->GetIndexItemStr(IndexSets[i]->m_Index[ItemId]);
+			if (ItemStrings.find(s) == ItemStrings.end())
+				ItemStrings.insert(s);
+		}
+	}
+	if (ItemStrings.size() >= DWORD_MAX)
+		throw CExpc("CStringIndexSet::UnionIndexSets(): Error: vocabulary size (%zd) too large for index %s %s (max=%zd)",
+			    ItemStrings.size(), m_Name.c_str(), m_ShortName.c_str(), (size_t)DWORD_MAX-1);
+	ddcLogDebug(Format("found %zd value type(s) for attribute %s", ItemStrings.size(), m_Name.c_str()));
+
+	//-- phase 2: adopt occurrences
+	FILE *res_fp = fopen(GetOccursFileName().c_str(), "wb");
+	if (!res_fp)
+		throw CExpc("CStringIndexSet::UnionIndexSets(): cannot open occurrences file %s", GetOccursFileName().c_str());
+
+	CItemIndexForLoading M;
+	if (!M.InitOccurs()) 
+		throw CExpc ("CStringIndexSet::UnionIndexSets(): cannot initialize occurrences buffer");
+	size_t CurrPositionInResFile = 0;
+
+	vector< map<DWORD,DWORD> > xlateItemId(IndexSets.size());
+	vector<CTokenNo> occurs;
+	DWORD outId = 0;
+	for (set<string>::const_iterator si=ItemStrings.begin(); si!=ItemStrings.end(); ++si, ++outId) {
+		M.SetIndexItemOffset(m_StringBuffer.m_vec.size());
+		M.GetOccurs()->clear();
+		AddItemStrToBuffer(si->c_str(), si->size());
+		//m_StringBuffer.ensureData();
+		utrace(Format("adding type %zd=\"%s\"", M.GetIndexItemOffset(), si->c_str()));
+
+		size_t offset = 0;
+		for (size_t ixi=0; ixi < IndexSets.size(); ++ixi) {
+			DWORD ixId = (IndexSets[ixi] != NULL ? IndexSets[ixi]->GetTypeIndexId(*si) : DWORD_MAX);
+			if (ixId != DWORD_MAX) {
+				//-- type is present in sub-index: adopt occurrences
+				xlateItemId[ixi][ixId] = outId;
+				IndexSets[ixi]->ReadAllOccurrences(ixId, occurs);
+				for (vector<CTokenNo>::iterator occi=occurs.begin(); occi<occurs.end(); ++occi)
+					*occi += offset;
+				M.GetOccurs()->insert(M.GetOccurs()->end(), occurs.begin(), occurs.end());
+				utrace(Format("-> found %zd occurrences from %s", occurs.size(), IndexSets[ixi]->GetOccursFileName().c_str()));
+			}
+			offset += TokenCounts[ixi];
+		}
+		//-- format the occurrences accordingly
+		utrace(Format("-> found %zd total occurrences", M.GetOccurs()->size()));
+		if (!AddOneIndexItem(M, res_fp, CurrPositionInResFile, offset))
+			throw CExpc("CStringIndexSet::UnionIndexSets(): Error: failed to add index item for string '"+*si+"'");
+	}
+
+	//-- cleanup
+	M.FreeOccurs();
+	ItemStrings.clear();
+	fclose(res_fp);
+
+	//-- store string buffer (this is done by FinalSaveAllIndices)
+	//m_StringBuffer.save(GetFileNameForInfos());
+
+	//-- store index
+	//m_Index.save(GetOccHdrFileName());
+
+	//-- store "period division" map
+	if (!WritePeriodsDivision())
+		throw CExpc("CStringIndexSet::UnionIndexSets(): Error: failed to write period division");
+
+	//-- merge storage files
+	if (m_bUseItemStorage && !CreateUnionTokenStorages(IndexSets,TokenCounts,xlateItemId))
+		throw CExpc("CStringIndexSet::UnionIndexSets(): Error: cannot merge item storage files");
+};
+
 
 bool CStringIndexSet::GetTokensFromStorage(const size_t start_offset,  const size_t end_offset, vector<COutputToken>& Tokens) const
 {

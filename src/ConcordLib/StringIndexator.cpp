@@ -202,10 +202,11 @@ string CStringIndexator::GetIndicesString() const
 	for (size_t i=0; i < m_Indices.size(); i++)
 	{
 		if (m_Indices[i]->m_Name != ChunkIndexName) 
-			Result += Format("[%s %s %s];", 
-					m_Indices[i]->m_Name.c_str(),
-					m_Indices[i]->m_ShortName.c_str(),
-					m_Indices[i]->m_bCompressOccurrences ? "archive" : "normal");
+			Result += Format("[%s %s %s %s];", 
+					 m_Indices[i]->m_Name.c_str(),
+					 m_Indices[i]->m_ShortName.c_str(),
+					 (m_Indices[i]->m_bCompressOccurrences ? "archive" : "normal"),
+					 (m_Indices[i]->m_bUseItemStorage ? "storage" : "storage_omit"));
 	};
 	Trim(Result);
 	return Result;
@@ -372,7 +373,7 @@ CStringIndexSet*  CStringIndexator::GetIndexByNameOrShortName(const string& Name
 	return 0;
 };
 
-CStringIndexSet*  CStringIndexator::GetIndexByAlias(const string& Alias)
+CStringIndexSet*  CStringIndexator::GetIndexByAlias(const string& Alias) const
 {
 	IndexMap::const_iterator ai = m_IndexMap.find(Alias);
 	if (ai != m_IndexMap.end())

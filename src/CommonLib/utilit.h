@@ -121,18 +121,20 @@ typedef unsigned char BYTE;
   # define DWORD_MAX (0xffffffff)
 #endif
 
+#ifndef QWORD_MAX
+ #ifdef WIN32
+   #define QWORD_MAX  0xffffffffffffffff
+ #else
+   #define QWORD_MAX  0xffffffffffffffffULL
+ #endif
+#endif
+
 typedef vector<string> StringVector;
 typedef set<string> StringSet;
 typedef vector<DWORD> DwordVector;
 
 inline QWORD GetMaxQWORD ()
-{
-	#ifdef WIN32
-		return  0xffffffffffffffff;
-	#else
-		return  0xffffffffffffffffULL;
-	#endif
-};
+{ return QWORD_MAX; }
 
 const BYTE   cHyphenChar   = (BYTE) '-';
 const BYTE   cPeriodChar   = (BYTE) '.';
@@ -217,7 +219,14 @@ extern bool		FileExists (const char *FName);
 inline bool		FileExists (const string& FName)
 { return FileExists(FName.c_str()); };
 
+extern bool		IsDirectory(const char* DirName);
+inline bool		IsDirectory(const string& DirName)
+{ return IsDirectory(DirName.c_str()); };
+
 extern file_off_t	FileSize (const char *filename);
+inline file_off_t       FileSize (const string& filename)
+{ return FileSize(filename.c_str()); };
+
 extern time_t		FileMTime (const char *filename);
 extern bool		FSeek(FILE* fp, file_off_t pos, int origin);
 extern file_off_t	FTell(FILE* fp);
@@ -262,7 +271,8 @@ extern void	AddFile(const char* MainFile, const char* ToAdd);
 extern bool     RmlMoveFile(const char *oldpath, const char *newpath);
 extern bool     RmlCopyFile(const char *oldpath, const char *newpath);
 extern string	CreateTempFileName();
-extern bool	MakeDir(const string& txt);
+extern bool	MakeDir(const string& DirName);
+extern bool	MakeDirP(const string& DirName);
 extern bool     RemoveWithPrint (const string& FileName);
 
 //======================================================================

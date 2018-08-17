@@ -205,7 +205,7 @@ public:
 	//! return a pointer to the index by CStringIndexSet::m_Name or CStringIndexSet::m_ShortName (linear search)
 	CStringIndexSet*  GetIndexByNameOrShortName(const string& Name);
 	//! return a pointer to the index by long-name, short-name, or alias (most abstract, uses m_IndexMap)
-	CStringIndexSet*  GetIndexByAlias(const string &Alias);
+	CStringIndexSet*  GetIndexByAlias(const string &Alias) const;
 	//! return the first index that normally contains tokens themselves
 	CStringIndexSet* GetTokenIndex();
 	//! return the first index that normally contains tokens themselves

@@ -561,7 +561,7 @@ bool	CIndexSetForQueryingStage::WritePeriodsDivision ()
 		count++;
 	};
 	fclose(fp);
-	printf ("To file %s %zi vectors were written \n", FName.c_str(), count);
+	ddcLogDebug(Format("wrote %zi vectors to file %s", count, FName.c_str()));
 	return true;
 
 };

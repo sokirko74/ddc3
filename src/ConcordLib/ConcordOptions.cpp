@@ -146,6 +146,11 @@ static void EchoOptionLines(const std::string& Lines)
 	}
 }
 
+bool CConcIndexator::LoadOptionsFromFile(const string& OptFile)
+{
+	string AllOptions;
+	return (LoadFileToString(OptFile,AllOptions) && LoadOptionsFromString(AllOptions));
+}
 
 bool CConcIndexator::LoadOptionsFromString(string Options)
 {
@@ -724,9 +729,6 @@ string CConcIndexator::SaveOptionsToString()  const
 	if (m_InterpDelimiter != "#")
 		Result += Format("InterpDelimiter  %s\n", m_InterpDelimiter.c_str()  );
 
-	Result += GetIndicesToShowStr();
-	Result += "\n";
-
 	if (m_RightKwicContextSize != DefaultKwicContextSize)
 		Result += Format("RightKwicContextSize %i\n", m_RightKwicContextSize);
 
@@ -780,7 +782,6 @@ string CConcIndexator::SaveOptionsToString()  const
 	if (m_bDwdsCorpusInterface)
 		Result += Format("DwdsCorpusInterface\n");
 
-    for (size_t i=0; i < m_Indices.size(); i++)
 
 	if (m_bGutenbergInterface)
 		Result += Format("GutenbergInterface\n");
@@ -793,11 +794,12 @@ string CConcIndexator::SaveOptionsToString()  const
 	if (!IndicesStr.empty())
 		Result += "Indices " + IndicesStr + "\n";
 	Result += GetIndexAliasString();
+	Result += GetIndicesToShowStr() + "\n";
 	
-	IndicesStr = GetBorderIndicesString();
-	if (!IndicesStr.empty())
-		Result += "HitBorders " + IndicesStr + "\n";
-	
+	string BordersStr = GetBorderIndicesString();
+	if (!BordersStr.empty())
+		Result += "HitBorders " + BordersStr + "\n";
+
 	Result += m_Bibl.GetFreeBibiAttributesDescr();
 
 	return Result;

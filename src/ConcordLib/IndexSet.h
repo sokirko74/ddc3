@@ -73,8 +73,10 @@ class CStringIndexSet  :	public CIndexSetForLoadingStage, public CIndexSetForQue
 	string	GetStorageFileName() const;
 	//!	return file name for left bigrams
 	string	GetLeftBigramsFileName() const;
-	//!	make concatenation of two storages
+	//!	make concatenation of two storages (old)
 	bool	CreateUnionTokenStorage(const CStringIndexSet& I1, const CStringIndexSet& I2, const map<DWORD, DWORD>& First2Result, const map<DWORD, DWORD>& Second2Result);
+	//!	make concatenation of multiple storages (new)
+	bool	CreateUnionTokenStorages(const vector<CStringIndexSet*>& IndexSets, const vector<size_t>& TokenCounts, const vector< map<DWORD,DWORD> >& xlateItemId);
 	//!	save one part of token storage to the common file (called from CreateUnionTokenStorage)
 	bool	SaveOnePartOfUnionTokenStorage(FILE * res_fp, const map<DWORD, DWORD>& Old2New) const;
 	//!     open \ref storage_def "storage" file
@@ -112,8 +114,10 @@ public:
 	bool	DestroyIndexSet();
 	//! write index to file
 	bool	WriteToFile(bool bAfterLoading);
-	//! build union of two indices , throws CExpc if failes
+	//! build union of two indices , throws CExpc if fails (old)
 	void	UnionIndexSet(const CStringIndexSet& I1, const CStringIndexSet& I2, const CTokenNo EndToken1, const CTokenNo EndToken2);
+	//! build union of multiple indices , throws CExpc if fails (new)
+	void	UnionIndexSets(const vector<CStringIndexSet*>& IndexSets, const vector<size_t>& TokenCounts);
 	//! return sequence of tokens(strings) [start_offset,  end_offset] 
 	bool	GetTokensFromStorage(const size_t start_offset,  const size_t end_offset, vector<COutputToken>& Tokens) const;
 
@@ -139,7 +143,10 @@ public:
 	//! \li wrapper for GetTypeIndexIdLowerBoundIter(), returns item-id rather than iterator
 	//! \returns lower-bound item-id for \a ValueStr
 	DWORD   GetTypeIndexIdLowerBound(const string& ValueStr) const;
-	
+
+	//! gets index-local item-id of string type \a ValueStr, or DWORD_MAX if not in index
+	DWORD   GetTypeIndexId(const string& ValueStr) const;
+
 	//! populate bounds for context-sort operator
 	bool	GetContextBounds(CDDCFilterWithBounds &Filter, const string& LoValue, const string& HiValue) const;
 	//! find all occurrences of index items  in \ref period_def "subcorpora" PeriodNo, using cache pCaches
