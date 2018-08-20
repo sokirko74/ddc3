@@ -268,14 +268,6 @@ string  CConcXml::CFreeBiblIndex::GetIndexFileName (string Path) const
 	return MakeFName(Path, string("_bibl_")+m_Name+"_integers");
 }
 
-void CConcXml::CFreeBiblIndex::CreateUnion (string Path, const CFreeBiblIndex* pIndex1, const CFreeBiblIndex* pIndex2) 
-{
-	m_ValuesForEachFile.clear();
-	m_ValuesForEachFile.m_vec.insert(m_ValuesForEachFile.m_vec.end(), pIndex1->m_ValuesForEachFile.begin(), pIndex1->m_ValuesForEachFile.end());
-	m_ValuesForEachFile.m_vec.insert(m_ValuesForEachFile.m_vec.end(), pIndex2->m_ValuesForEachFile.begin(), pIndex2->m_ValuesForEachFile.end());
-	WriteVector(GetIndexFileName(Path), m_ValuesForEachFile.m_vec);
-}
-
 void CConcXml::CFreeBiblIndex::CreateUnion (const string& Path, const vector<const CFreeBiblIndex*>& Indices, const vector<size_t>& FileCounts)
 {
 	m_ValuesForEachFile.clear();
@@ -454,53 +446,6 @@ bool CConcXml::CFreeBiblStringIndex::ReadFromDisk (string Path, DWORD FileBreaks
 		return false;
 	return CFreeBiblIndex::ReadFromDisk(Path, FileBreaksSize, useMMap);
 }
-
-void CConcXml::CFreeBiblStringIndex::CreateUnionOfBiblStrings (const vector<string>&  _X1, const vector<string>&  _X2,   
-						  vector<DWORD>& Transfer1, vector<DWORD>& Transfer2)
-{
-	m_ValuesE.ensureVec();
-	m_ValuesE.m_strings.resize(_X1.size()  + _X2.size());
-
-	vector<string>::iterator it = set_union(_X1.begin(),_X1.end(), _X2.begin(),_X2.end(), m_ValuesE.m_strings.begin());
-	m_ValuesE.m_strings.resize(it - m_ValuesE.m_strings.begin());
-
-	Transfer1.clear();
-	for (size_t i=0; i< _X1.size(); i++)
-		Transfer1.push_back( lower_bound(m_ValuesE.m_strings.begin(), m_ValuesE.m_strings.end(), _X1[i]) - m_ValuesE.m_strings.begin() );
-
-	Transfer2.clear();
-	for (size_t i=0; i< _X2.size(); i++)
-		Transfer2.push_back( lower_bound(m_ValuesE.m_strings.begin(), m_ValuesE.m_strings.end(), _X2[i]) - m_ValuesE.m_strings.begin() );
-};
-
-void CConcXml::CFreeBiblStringIndex::CreateUnion (string Path, const CFreeBiblIndex* pIndex1, const CFreeBiblIndex* pIndex2 ) 
-{
-	const CFreeBiblStringIndex& I1 = *(const CFreeBiblStringIndex*)pIndex1;
-	const CFreeBiblStringIndex& I2 = *(const CFreeBiblStringIndex*)pIndex2;
-
-	m_ValuesForEachFile.clear();
-	m_ValuesE.clear();
-	m_ValuesE.ensureVec();
-
-	vector<string> Values1, Values2;
-	I1.m_ValuesE.to_vector(Values1);
-	I2.m_ValuesE.to_vector(Values2);
-	
-	vector<DWORD> Old2New1, Old2New2;
-	CreateUnionOfBiblStrings(Values1, Values2, Old2New1, Old2New2);
-
-	size_t Count = I1.m_ValuesForEachFile.size();
-	size_t i = 0;
-	for (; i < Count; i++)
-		m_ValuesForEachFile.m_vec.push_back( Old2New1[I1.m_ValuesForEachFile[i]] );
-
-	Count += I2.m_ValuesForEachFile.size();
-	for (; i < Count; i++)
-		m_ValuesForEachFile.m_vec.push_back( Old2New2[I2.m_ValuesForEachFile[i-I2.m_ValuesForEachFile.size()]] );
-
-	WriteBiblStringItems(m_ValuesE.m_strings, GetStringFileName(Path));
-	CFreeBiblIndex::ConvertAndSaveToDiskAfterIndexing(Path);
-};
 
 void CConcXml::CFreeBiblStringIndex::CreateUnion(const string& Path, const vector<const CFreeBiblIndex*>& Indices, const vector<size_t>& FileCounts)
 {
@@ -1458,75 +1403,6 @@ bool  CConcXml::CheckBibl(size_t FileBreaksNumber) const
 };
 
 
-
-//-- old
-bool CConcXml::UniteBibliography(const CConcXml& B1, const CConcXml& B2)
-{
-
-	
-	printf ("Uniting bibliographical integer indices\n");
-	{
-		m_EndOffsetsInBiblFile.clear();
-		m_EndOffsetsInBiblFile.m_vec.insert(m_EndOffsetsInBiblFile.m_vec.end(), B1.m_EndOffsetsInBiblFile.begin(),B1.m_EndOffsetsInBiblFile.end());
-		m_EndOffsetsInBiblFile.m_vec.insert(m_EndOffsetsInBiblFile.m_vec.end(), B2.m_EndOffsetsInBiblFile.begin(),B2.m_EndOffsetsInBiblFile.end());
-		file_off_t BiblOffset = FileSize(B1.GetBiblFileName().c_str());
-		for (size_t i = B1.m_EndOffsetsInBiblFile.size(); i < m_EndOffsetsInBiblFile.m_vec.size(); i++)
-			m_EndOffsetsInBiblFile.m_vec[i] += BiblOffset;
-
-		if (!m_EndOffsetsInBiblFile.m_vec.empty())
-			if (!WriteVector(GetBiblIndexFileName().c_str(), m_EndOffsetsInBiblFile.m_vec))
-				return false;
-	}
-
-	printf ("Uniting dates\n");
-	{
-		m_Dates.clear();
-		m_Dates.m_vec.insert(m_Dates.m_vec.end(), B2.m_Dates.begin(), B2.m_Dates.end());
-		m_Dates.m_vec.insert(m_Dates.m_vec.end(), B2.m_Dates.begin(), B2.m_Dates.end());
-		if (!WriteVector(GetBiblDateIndexFileName().c_str(), m_Dates.m_vec))
-			return false;
-	};
-
-
-	printf ("Uniting free bibliographical attributes\n");
-	{
-		if (B1.GetFreeBibiAttributesDescr() != B1.GetFreeBibiAttributesDescr())
-		{
-			fprintf (stderr, "The sets of free bibliographical attributes are different\n");
-			return false;
-		}
-		string ErrorStr;
-		if (!RegisterFreeBiblAttributes(B1.GetFreeBibiAttributesDescr(), ErrorStr))
-		{
-			fprintf (stderr, "%s\n", ErrorStr.c_str());
-			return false;
-		}
-		if (!RegisterTextAreas(B1.GetTextAreasDescr(), ErrorStr))
-		{
-			fprintf (stderr, "%s\n", ErrorStr.c_str());
-			return false;
-		}
-
-		FreeBiblStringMap::const_iterator bibl_it1 = B1.m_FreeBiblIndices.begin();
-		FreeBiblStringMap::const_iterator bibl_it2 = B2.m_FreeBiblIndices.begin();
-		FreeBiblStringMap::iterator bibl_it = m_FreeBiblIndices.begin();
-		for (; bibl_it != m_FreeBiblIndices.end(); bibl_it++, bibl_it1++, bibl_it2++)
-		{
-			bibl_it->second->CreateUnion(m_Path, bibl_it1->second, bibl_it2->second);
-		};
-	};
-
-	
-	//====================
-	printf ("Uniting bibliographical strings\n");
-	remove(GetBiblFileName().c_str());
-	if (FileExists(B1.GetBiblFileName().c_str() ) )
-		AddFile(GetBiblFileName().c_str(),B1.GetBiblFileName().c_str() );
-
-	if (FileExists(B2.GetBiblFileName().c_str() ) )
-		AddFile(GetBiblFileName().c_str(),B2.GetBiblFileName().c_str());
-	return true;
-};
 
 bool CConcXml::UnionBibliographies(const vector<const CConcXml*>& Bibls)
 {

@@ -447,67 +447,6 @@ bool	UnionBreaks	(const ddcBreakVector& V1,
 };
 
 
-bool CHitBorders::UniteBorders(const CHitBorders& H1, const CHitBorders& H2, const DWORD EndTokenNo1, const string& Path)
-{
-	assert(H1.GetBorderIndicesString() ==  H2.GetBorderIndicesString());
-	if (H1.GetBorderIndicesString() !=  H2.GetBorderIndicesString())
-		return false;
-	assert (H1.m_Breaks.size() == H2.m_Breaks.size());
-
-	if (H1.GetFileBreaks().empty() ) return false;
-	
-	m_Breaks.clear();
-	m_LastTextAreaBreaks.clear();
-	m_ShortName2BreakCollection.clear();
-	m_LongName2BreakCollection.clear();
-	m_FileBreakCollectionNo = -1;
-
-	for (size_t i=0; i < H1.m_Breaks.size(); i++)
-	{
-		string ShortName = H1.m_Breaks[i].m_ShortName;
-		const ddcBreakVector* Breaks2 = H2.GetBreaksByName(ShortName);
-		if (Breaks2 == 0)
-		{
-			fprintf (stderr, "cannot find \"%s\" break collection in the second index\n", ShortName.c_str() );
-			return false;
-		}
-
-		RegisterBreak(ShortName,  H1.m_Breaks[i].m_LongName);
-		
-
-		CBreakCollection& Result = m_Breaks.back();
-		Result.m_BreakOffsets.ensureVec();
-		if (!UnionBreaks(H1.m_Breaks[i].m_BreakOffsets, *Breaks2, EndTokenNo1, Result.m_BreakOffsets.m_vec))
-			return false;
-
-		string FileName = Result.GetBreakFileName(Path);
-		Result.SaveToFile(FileName);
-		if (PredefinedFileBreakName == Result.m_ShortName)
-			m_FileBreakCollectionNo = m_Breaks.size() - 1;
-	};
-	
-	if (m_FileBreakCollectionNo == -1) 
-	{
-		fprintf (stderr, "cannot find predefined \"%s\" break collection\n", PredefinedFileBreakName.c_str() );
-		return false;
-	};
-
-	{	//uniting page \ref break_def "breaks"
-		m_PageBreaks.clear();
-		m_PageBreaks.m_vec.insert(m_PageBreaks.m_vec.end(), H1.m_PageBreaks.begin(),H1.m_PageBreaks.end());
-		m_PageBreaks.m_vec.insert(m_PageBreaks.m_vec.end(), H2.m_PageBreaks.begin(),H2.m_PageBreaks.end());
-		
-		for (size_t  i = H1.m_PageBreaks.size(); i < m_PageBreaks.size(); i++)
-			m_PageBreaks.m_vec[i].m_StartTokenNo += EndTokenNo1;
-
-		SavePageBreaks(Path);
-	};
-
-	m_DefaultBreakName = H1.m_DefaultBreakName;
-
-	return true;
-};
-
 void CHitBorders::SavePageBreaks(const string& ProjectPath)
 {
 	m_PageBreaks.save( GetPageBreaksFileName(ProjectPath) );

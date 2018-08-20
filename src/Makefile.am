@@ -30,6 +30,7 @@ SUBDIRS = \
 	\
 	ddc_index \
 	ddc_union \
+	ddc_split \
 	ddc_dump \
 	ddc_stats \
 	ddc_simple \

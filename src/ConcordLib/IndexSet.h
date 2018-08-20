@@ -115,8 +115,6 @@ public:
 	bool	DestroyIndexSet();
 	//! write index to file
 	bool	WriteToFile(bool bAfterLoading);
-	//! build union of two indices , throws CExpc if fails (old)
-	void	UnionIndexSet(const CStringIndexSet& I1, const CStringIndexSet& I2, const CTokenNo EndToken1, const CTokenNo EndToken2);
 	//! build union of multiple indices , throws CExpc if fails (new)
 	void	UnionIndexSets(const vector<CStringIndexSet*>& IndexSets, const vector<size_t>& TokenCounts);
 	//! return sequence of tokens(strings) [start_offset,  end_offset] 

@@ -113,7 +113,6 @@ public:
 		virtual void	clear();
 		virtual string	GetStringValue(DWORD FileNo ) const;
 		virtual bool	ReadFromDisk (string Path, DWORD FileBreaksSize, bool useMMap=false);
-		virtual void	CreateUnion (string Path, const CFreeBiblIndex* pIndex1, const CFreeBiblIndex* pIndex2);
 		virtual void	CreateUnion (const string& Path, const vector<const CFreeBiblIndex*>& Indices, const vector<size_t>& FileCounts);
 		virtual bool	RegisterBiblStringItemId(const string& Value);
 		virtual bool	DeleteBiblFiles (string Path) const;
@@ -179,7 +178,6 @@ public:
 		//vector<string>		m_Values;
 		ddcStringEnum<>			m_ValuesE;
 
-		void	CreateUnionOfBiblStrings (const vector<string>&  _X1, const vector<string>&  _X2, vector<DWORD>& Transfer1, vector<DWORD>& Transfer2);
 		string	GetStringFileName (string Path) const;
 		bool	ReadBiblStringItems (string FileName, bool useMMap=false);
 		bool	WriteBiblStringItems (const vector<string>&  Set, string FileName) const;
@@ -192,7 +190,6 @@ public:
 		virtual string GetTypeStr() const;
 		virtual CFreeBiblIndexTypeId GetTypeId() const;
 		virtual string GetStringValue(DWORD FileNo ) const;
-		virtual void CreateUnion (string Path, const CFreeBiblIndex* pIndex1, const CFreeBiblIndex* pIndex2);
 		virtual void CreateUnion (const string& Path, const vector<const CFreeBiblIndex*>& Indices, const vector<size_t>& FileCounts);
 		bool	RegisterBiblStringItemId(const string& Value);
 		bool	DeleteBiblFiles (string Path) const;
@@ -339,9 +336,6 @@ public:
 	CBibliography GetFullBibliographyOfHit(size_t FileNo) const;
 	//! Check bibliographical references
 	bool			CheckBibl(size_t FileBreaksNumber) const;
-
-	//! union of 2 identically structured bibliographies (old)
-	bool			UniteBibliography(const CConcXml& B1, const CConcXml& B2);
 
 	//! union of multiple (heterogeneous) bibliographies (new)
 	bool UnionBibliographies(const vector<const CConcXml*>& Bibls);

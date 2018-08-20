@@ -441,8 +441,6 @@ public:
 	//! finds all \ref period_def "subcorpora"
 	void	CalculateSearchPeriods	(DWORD MaxTokenCountInOnePeriod);
 
-	//! creates new concordance as union of two concordances (old)
-	bool	CreateAsUnion(const CConcIndexator&  _X1, const CConcIndexator&  _X2);
 	//! creates new concordance as union of one or more concordances (new)
 	bool	CreateAsUnion(const vector<CConcIndexator>& X, bool inheritOptions=true);
 	//! creates new concordance as union of one or more concordances (new, filename-based)

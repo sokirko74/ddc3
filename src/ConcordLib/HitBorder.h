@@ -125,8 +125,6 @@ protected:
 	bool	RemoveHitBordersFileAndClear(string Path);
 	//!    adds one page break
 	void	AddPageBreak(const CPageNumber& P);
-	//!    creates union of H1 and H2 for all m_Breaks and for m_PageBreaks
-	bool	UniteBorders(const CHitBorders& H1, const CHitBorders& H2, const DWORD EndTokenNo1, const string& Path);
 	//!    save page break file
 	void   SavePageBreaks(const string& ProjectPath);
 

@@ -48,7 +48,7 @@ void show_usage(void) {
 	  " Options:\n"
 	  "  -h, --help            # this help message\n"
 	  "  -o, --output OUT      # specify output project basename (REQUIRED)\n"
-	  "  -O, --options OPTFILE # load output options from OPTFILE (default: CON_FILE.(opt/con)\n"
+	  "  -O, --options OPTFILE # load output options from OPTFILE (default: CON_FILE.(opt/con))\n"
 	  "  -v, --verbose LEVEL   # specify log-verbosity level (none|error|warn|info=weak|debug=medium|trace=heavy)\n"
 	  "\n"
 	  );
