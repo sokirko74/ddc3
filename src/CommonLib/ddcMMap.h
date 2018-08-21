@@ -307,9 +307,12 @@ public:
     typedef T*       iterator;
     typedef const T* const_iterator;
 
-    inline iterator begin() const { return m_data; };
-    inline iterator end()   const { return m_data+size(); };
-    
+    inline iterator begin() { return m_data; };
+    inline iterator end()   { return m_data+size(); };
+
+    inline const_iterator begin() const { return m_data; };
+    inline const_iterator end()   const { return m_data+size(); };
+
     //----------------------------------------------------------
     // guts
 
@@ -380,7 +383,7 @@ public:
 	if (!fp)
 	    throw CExpc("ddcVecFile<>::save(): invalid file pointer for "+name);
 	const T* datap = m_mmap ? m_mmap.m_data : &(m_vec[0]);
-	if (fwrite(datap, sizeof(T), size(), fp) != size())
+	if (fwrite(datap, sizeof(T), (m_mmap ? m_mmap.size() : m_vec.size()), fp) != size())
 	    throw CExpc("ddcVecFile<>::save(): failed to write data to "+name);
     };
 

@@ -283,6 +283,20 @@ void CConcXml::CFreeBiblIndex::CreateUnion (const string& Path, const vector<con
 	m_ValuesForEachFile.save(GetIndexFileName(Path));
 }
 
+void CConcXml::CFreeBiblIndex::CreatePartitions(vector<CFreeBiblIndex*>& Parts, const vector<string>& Paths, const vector<DWORD>& EndFileNo) const
+{
+	assert(Parts.size()==Paths.size());
+	assert(Parts.size()==EndFileNo.size());
+	for (size_t i=0; i < Parts.size(); ++i) {
+		Parts[i]->m_ValuesForEachFile.clear();
+		Parts[i]->m_ValuesForEachFile.ensureVec();
+		Parts[i]->m_ValuesForEachFile.m_vec.assign(m_ValuesForEachFile.begin()+(i==0 ? 0 : EndFileNo[i-1]),
+							   m_ValuesForEachFile.begin()+EndFileNo[i]);
+		Parts[i]->m_ValuesForEachFile.ensureData();
+		Parts[i]->m_ValuesForEachFile.save(Parts[i]->GetIndexFileName(Paths[i]));
+	}
+}
+
 
 bool CConcXml::CFreeBiblIndex::GetFilterBounds (CDDCFilterWithBounds& Filter, const string &LoValue, const string &HiValue) const
 {
@@ -504,6 +518,48 @@ void CConcXml::CFreeBiblStringIndex::CreateUnion(const string& Path, const vecto
 	}
 	m_ValuesForEachFile.ensureData();
 	m_ValuesForEachFile.save(GetIndexFileName(Path));
+};
+
+
+void CConcXml::CFreeBiblStringIndex::CreatePartitions(vector<CFreeBiblIndex*>& Parts, const vector<string>& Paths, const vector<DWORD>& EndFileNo) const
+{
+	assert(Parts.size()==Paths.size());
+	assert(Parts.size()==EndFileNo.size());
+
+	for (size_t i=0; i < Parts.size(); ++i) {
+		ddcLogDebug(Format("CConcXml::CFreeBiblStringIndex::CreatePartitions(%s): creating partition #%zd", m_Name.c_str(), i));
+		CFreeBiblStringIndex *Part = (CFreeBiblStringIndex*)Parts[i];
+		DWORD f_begin = (i==0 ? 0 : EndFileNo[i-1]);
+		DWORD f_end   = EndFileNo[i];
+
+		//-- get item-set for this partition
+		set<DWORD> PartItems;
+		for (DWORD fi=f_begin; fi < f_end; ++fi) {
+			DWORD itemId = m_ValuesForEachFile[fi];
+			if (PartItems.find(itemId) == PartItems.end()) PartItems.insert(itemId);
+		}
+
+		//-- populate m_ValuesE, build translation table
+		Part->m_ValuesE.clear();
+		Part->m_ValuesE.ensureVec();
+		vector<DWORD> xlateId(m_ValuesE.size(), DWORD_MAX); //-- [oldId] => newId_or_DWORD_MAX
+		for (set<DWORD>::const_iterator itemi=PartItems.begin(); itemi!=PartItems.end(); ++itemi) {
+			xlateId[*itemi] = Part->m_ValuesE.m_strings.size();
+			Part->m_ValuesE.m_strings.push_back( m_ValuesE[*itemi] );
+		}
+		ClearContainer(PartItems);
+		Part->WriteBiblStringItems(Part->m_ValuesE.m_strings, Part->GetStringFileName(Paths[i]));
+
+		//-- populate integers by file (a la CConcXml::CFreeBiblIndex::CreatePartitions())
+		Part->m_ValuesForEachFile.clear();
+		Part->m_ValuesForEachFile.ensureVec();
+		Part->m_ValuesForEachFile.m_vec.assign(m_ValuesForEachFile.begin()+f_begin,
+						       m_ValuesForEachFile.begin()+f_end);
+		for (vector<DWORD>::iterator vali=Part->m_ValuesForEachFile.m_vec.begin(); vali!=Part->m_ValuesForEachFile.m_vec.end(); ++vali)
+			*vali = xlateId[*vali];
+		Part->m_ValuesForEachFile.ensureData();
+		Part->m_ValuesForEachFile.save(Part->GetIndexFileName(Paths[i]));
+	}
 };
 
 bool CConcXml::CFreeBiblStringIndex::GetFilterBounds (CDDCFilterWithBounds& Filter, const string &LoValue, const string &HiValue) const
@@ -829,6 +885,11 @@ void CConcXml::CFreeBiblStringConstant::CreateUnion(const string& Path, const ve
 			ddcLogWarn("CConcXml::CFreeBiblStringConstant::CreateUnion(): Warning: cannot merge distinct constants \""+m_Value+"\" != \""+cfb->m_Value+"\" for attribute "+m_Name);
 		}
 	}
+};
+
+void CConcXml::CFreeBiblStringConstant::CreatePartitions(vector<CFreeBiblIndex*>& Parts, const vector<string>& Paths, const vector<DWORD>& EndFileNo) const
+{
+	ddcLogDebug("CConcXml::CFreeBiblStringConstant::CreatePartitions(): ignoring bibl string constant "+m_Name);
 };
 
 
@@ -1429,15 +1490,13 @@ bool CConcXml::UnionBibliographies(const vector<const CConcXml*>& Bibls)
 	if (FileExists(GetBiblFileName())) remove(GetBiblFileName().c_str());
 	for (size_t bi=0; bi < Bibls.size(); ++bi) {
 		if (FileExists(Bibls[bi]->GetBiblFileName()))
-			AddFile(GetBiblFileName().c_str(), Bibls[bi]->GetBiblFileName().c_str() );
+			FileAppend(Bibls[bi]->GetBiblFileName(), GetBiblFileName());
 	}
 
 	//-- sanity check: *._bibl <-> *._bibl_idx
 	if (FileExists(GetBiblFileName()) && FileSize(GetBiblFileName()) != boffset)
-		throw CExpc(Format("%s: Error: bibl index size mismatch (%s : %zd != %zd : %s)",
-				   logname.c_str(),
-				   GetBiblIndexFileName().c_str(),boffset,
-				   GetBiblFileName().c_str(),FileSize(GetBiblFileName())));
+		throw CExpc(Format("%s: Error: bibl index size mismatch (*._bibl_idx ~ %zd != %zd ~ *._bibl)",
+				   logname.c_str(), (size_t)boffset, FileSize(GetBiblFileName())));
 
 	//-- populate: *._bibl_date
 	ddcLogInfo(logname+": populating "+GetBiblDateIndexFileName());
@@ -1449,7 +1508,6 @@ bool CConcXml::UnionBibliographies(const vector<const CConcXml*>& Bibls)
 	m_Dates.save(GetBiblDateIndexFileName());
 
 	//-- populate: free bibl attributes
-	//-- step 1: get number of files
 	vector<size_t> FileCounts(Bibls.size());
 	for (size_t bi=0; bi < Bibls.size(); ++bi)
 		FileCounts[bi] = Bibls[bi]->m_Dates.size();
@@ -1472,6 +1530,91 @@ bool CConcXml::UnionBibliographies(const vector<const CConcXml*>& Bibls)
 	return true;
 };
 
+bool CConcXml::SplitBibliography(vector<CConcXml*>& Bibls, const vector<DWORD>& EndFileNo) const
+{
+	string logname("CConcXml::SplitBibliography()");
+	assert(Bibls.size() == EndFileNo.size());
+
+	//-- split: m_EndOffsetsInBiblFile (*._bibl_idx)
+	ddcLogInfo(logname+": splitting "+GetBiblIndexFileName());
+	file_off_t boffset = 0;
+	for (size_t i=0; i < Bibls.size(); ++i) {
+		Bibls[i]->m_EndOffsetsInBiblFile.clear();
+		Bibls[i]->m_EndOffsetsInBiblFile.ensureVec();
+		Bibls[i]->m_EndOffsetsInBiblFile.m_vec.insert(Bibls[i]->m_EndOffsetsInBiblFile.m_vec.end(),
+							      m_EndOffsetsInBiblFile.begin()+(i==0 ? 0 : EndFileNo[i-1]),
+							      m_EndOffsetsInBiblFile.begin()+EndFileNo[i]);
+		for (vector<file_off_t>::iterator foi=Bibls[i]->m_EndOffsetsInBiblFile.m_vec.begin(); foi!=Bibls[i]->m_EndOffsetsInBiblFile.m_vec.end(); ++foi)
+			*foi -= boffset;
+
+		ddcLogTrace(logname+": saving "+Bibls[i]->GetBiblIndexFileName());
+		Bibls[i]->m_EndOffsetsInBiblFile.ensureData();
+		Bibls[i]->m_EndOffsetsInBiblFile.save(Bibls[i]->GetBiblIndexFileName());
+
+		boffset = m_EndOffsetsInBiblFile[ EndFileNo[i]-1 ];
+	}
+
+	//-- split: bibl file (*._bibl)
+	ddcLogInfo(logname+": splitting "+GetBiblFileName());
+	for (size_t i=0; i < Bibls.size(); ++i) {
+		file_off_t bf_begin = (i==0 ? 0 : m_EndOffsetsInBiblFile[ EndFileNo[i-1]-1 ]);
+		file_off_t bf_end   = m_EndOffsetsInBiblFile[ EndFileNo[i]-1 ];
+
+		FILE *bf_out = fopen(Bibls[i]->GetBiblFileName().c_str(), "wb");
+		if (bf_out == NULL)
+			throw CExpc(Format("%s: Error: open failed for partition #%zd bibl file: %s", logname.c_str(), i, strerror(errno)));
+		if (!FSeek(m_BiblBodyFile, bf_begin, SEEK_SET))
+			throw CExpc(Format("%s: Error: seek failed for %s to position %zd", GetBiblFileName().c_str(), (size_t)bf_begin));
+
+		FileAppendPartial(m_BiblBodyFile, bf_out, bf_end-bf_begin);
+		if (fclose(bf_out) != 0)
+			throw CExpc(Format("%s: Error: close failed for partition #%zd bibl file: %s", logname.c_str(), i, strerror(errno)));
+
+		//-- sanity check: *._bibl <-> *._bibl_idx
+		if (FileSize(Bibls[i]->GetBiblFileName()) != Bibls[i]->m_EndOffsetsInBiblFile.m_vec.back())
+			throw CExpc(Format("%s: Error: bibl index size mismatch for patition #%zd (*._bibl_idx ~ %zd != %zd ~ *._bibl)",
+					   logname.c_str(), i,
+					   (size_t)Bibls[i]->m_EndOffsetsInBiblFile.m_vec.back(),
+					   (size_t)FileSize(Bibls[i]->GetBiblFileName())));
+	}
+
+	//-- populate: *._bibl_date
+	ddcLogInfo(logname+": splitting "+GetBiblDateIndexFileName());
+	for (size_t i=0; i < Bibls.size(); ++i) {
+		Bibls[i]->m_Dates.clear();
+		Bibls[i]->m_Dates.ensureVec();
+		Bibls[i]->m_Dates.m_vec.insert(Bibls[i]->m_Dates.m_vec.end(),
+					       m_Dates.begin()+(i==0 ? 0 : EndFileNo[i-1]),
+					       m_Dates.begin()+EndFileNo[i]);
+		Bibls[i]->m_Dates.ensureData();
+		Bibls[i]->m_Dates.save(Bibls[i]->GetBiblDateIndexFileName());
+	}
+
+	//-- populate: free bibl attributes
+	for (FreeBiblStringMap::const_iterator fbi=m_FreeBiblIndices.begin(); fbi!=m_FreeBiblIndices.end(); ++fbi) {
+		const string&        name = fbi->first;
+		const CFreeBiblIndex *fbx = fbi->second;
+
+		vector<CFreeBiblIndex*> parts(Bibls.size());
+		vector<string>          paths(Bibls.size());
+		bool canSplitBibl = true;
+		for (size_t i=0; i < Bibls.size(); ++i) {
+			if ((parts[i] = Bibls[i]->GetFreeBiblIndex(name)) == NULL) {
+				ddcLogWarn(Format("%s: Warning: no free bibl index '%s' in partition #%zd - skipping", logname.c_str(), name.c_str(), i));
+				canSplitBibl = false;
+				break;
+			}
+			paths[i] = Bibls[i]->m_Path;
+		}
+		if (canSplitBibl) {
+			ddcLogInfo(logname+": splitting free bibl index "+name);
+			fbx->CreatePartitions(parts, paths, EndFileNo);
+		}
+	}
+
+	//-- all done
+	return true;
+};
 
 void CConcXml::InitNoSort(vector<CHit>&	Hits) const
 {

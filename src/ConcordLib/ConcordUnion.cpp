@@ -1,5 +1,5 @@
 //  DDC originally by Alexey Sokirko
-//  Changes and modifications 2011-2015 by Bryan Jurish
+//  Changes and modifications 2011-2018 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -61,7 +61,7 @@ bool CConcIndexator::CreateAsUnion(const vector<CConcIndexator>& X, bool inherit
   // populate: breaks ("borders")
   // + lifted from old CHitBorders::UniteBorders()
   size_t offset;
-  ddcLogInfo(logname+": populating breaks");
+  ddcLogInfo(logname+": populating break collections");
   m_FileBreakCollectionNo = -1;
   for (vector<CBreakCollection>::iterator brki=m_Breaks.begin(); brki!=m_Breaks.end(); ++brki) {
     offset = 0;
@@ -141,12 +141,14 @@ bool CConcIndexator::CreateAsUnion(const vector<CConcIndexator>& X, bool inherit
     ixp->UnionIndexSets(subIndexSets, TokenCounts);
   }
 
-  //-- finalize indices
+  //---------------------------------------
+  // populate: finalize indices
   ddcLogInfo(logname+": saving index item buffers");
   if (!FinalSaveAllIndices(false))
-    throw CExpc (logname+": Error: failed to save index to disk - do you have enough free disk space?");
+    throw CExpc(logname+": Error: failed to save index to disk - do you have enough free disk space?");
 
-  //-- merge bibl
+  //---------------------------------------
+  // populate: bibl
   // + lifted from old CConcXml::UniteBibliography()
   ddcLogInfo(logname+": populating document-level metadata indices");
   m_Bibl.SetPath(m_Path);

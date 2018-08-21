@@ -54,6 +54,7 @@ libDDCConcord_la_SOURCES = \
  ConcordAlgorithm.cpp ConcordAlgorithm.h \
  Bibliography.cpp Bibliography.h \
  ConcordUnion.cpp \
+ ConcordSplit.cpp \
  HitBorder.cpp HitBorder.h \
  ConcordBibl.cpp \
  IndexMorphXml.cpp \

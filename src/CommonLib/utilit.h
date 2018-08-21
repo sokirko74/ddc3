@@ -267,13 +267,24 @@ extern string	RelativePathName(const string &RefDir, const string &PathName);
 //! If PathName is absolute, it is returned; otherwise returns (FileDirectory(RefFile) + "/" + PathName)
 extern string	RelativeFileName(const string &RefFile, const string &PathName);
 
+//! AddFile(): old ugly file-append hack using system("cat...")
 extern void	AddFile(const char* MainFile, const char* ToAdd);
+
+//! FileAppend(): newer better replacement for AddFile()
+extern void     FileAppend(FILE *src, FILE *dst);
+extern void     FileAppend(const char* srcFile, const char* dstFile);
+extern void     FileAppend(const string& srcFile, const string& dstFile);
+
+//! FileAppendPartial(): append a substring of \a src to \a dst
+extern void     FileAppendPartial(FILE *src, FILE *dst, size_t nBytes);
+			   
 extern bool     RmlMoveFile(const char *oldpath, const char *newpath);
 extern bool     RmlCopyFile(const char *oldpath, const char *newpath);
 extern string	CreateTempFileName();
 extern bool	MakeDir(const string& DirName);
 extern bool	MakeDirP(const string& DirName);
 extern bool     RemoveWithPrint (const string& FileName);
+
 
 //======================================================================
 // moo: get memory statistics using /proc/PID/statm (linux only)
@@ -347,6 +358,7 @@ extern string&  TrimRight (string& str);
 extern string&	Trim (string& str);
 extern void		rml_TRACE( const char* format, ... );
 extern bool		LoadFileToString(string FileName, string& Result, bool clobber=true);
+extern bool		SaveStringToFile(const string& Str, const string& FileName);
 extern void		SqueezeSpacesAndDeleteEoln(string& s);
 extern void		KOI8ToWin (string& s);
 extern void		WinToKOI8 (string& s);

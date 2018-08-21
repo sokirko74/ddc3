@@ -20,6 +20,8 @@ binfiles ?= \
  ../src/ddc_simple/ddc_simple \
  ../src/ddc_stats/ddc_stats \
  ../src/ddc_dump/ddc_dump \
+ ../src/ddc_union/ddc_union \
+ ../src/ddc_split/ddc_split \
  ../src/ddc_file_lem/ddc_file_lem \
  ../src/ddc_morph_gen/ddc_morph_gen \
  ../src/ddc_struct_dict_loader/ddc_struct_dict_loader \

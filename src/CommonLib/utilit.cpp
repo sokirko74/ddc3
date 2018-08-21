@@ -595,7 +595,7 @@ bool IsSuperEqualChar (BYTE ch1, BYTE ch2, MorphLanguageEnum langua)
 	const size_t LenEF    = 53;
 	//  \xef\xe5\xf0\xe2\xe0\xff \xe1\xf3\xea\xe2\xe0 - \xef\xf0\xee\xef\xe8\xf1\xed\xe0\xff  \xea\xe8\xf0\xe8\xeb\xeb\xe8\xf7\xe5\xf1\xea\xe0\xff \xe1\xf3\xea\xe2\xe0, \xf7\xf2\xee \xed\xe5\xee\xe1\xf5\xee\xe4\xe8\xec\xee,
 	// \xf7\xf2\xee\xe1\xfb \xf3\xf1\xf2\xe0\xed\xee\xe2\xe8\xf2\xfc \xef\xee\xf0\xff\xe4\xee\xea \xed\xe0 \xef\xee\xeb\xff\xf5 \xfd\xea\xe2\xe8\xe2\xe0\xeb\xe5\xed\xf2\xed\xee\xf1\xf2\xe8 \xe1\xf3\xea\xe2
-	char const EF[LenEF+1] = "\0‡¿aA\0Â≈Ee\0Á«3\0Í Kk\0ÏÃM\0ÌÕH\0ÓŒOo0\0–pP\0Ò—Cc\0Û”y\0ı’Xx";
+	char const EF[LenEF+1] = "\000\340\300aA\000\345\305Ee\000\347\3073\000\352\312Kk\000\354\314M\000\355\315H\000\356\316Oo0\000\360\320pP\000\361\321Cc\000\363\323y\000\365\325Xx";
 
 	size_t i = 0, k=0;
 	for (i=0; i<LenEF; i++)
@@ -625,7 +625,7 @@ bool IsSuperEqualChar (BYTE ch1, BYTE ch2, MorphLanguageEnum langua)
 
 
 
-/* \xf1‡‚ÌË‚‡ÂÚ ÒÚÓÍË Ò ÔÓÏÓ˘¸˛ ÔÂ‰ËÍ‡Ú‡ IsSuperEqualChar */
+/* \xf1\361\360\340\342\355\350\342\340\345\362\040\361\362\360\356\352\350\040\361\040\357\356\354\356\371\374\376\040\357\360\345\344\350\352\340\362\340 IsSuperEqualChar */
 // \xe2\xee\xe7\xf0\xe0\xf9\xe0\xe5\xf2 true, \xe5\xf1\xeb\xe8 \xf1\xf2\xf0\xee\xea\xe8 \xee\xe4\xe8\xed\xe0\xea\xee\xe2\xfb
 bool strscmp ( const char *s1, const char *s2, size_t l, MorphLanguageEnum langua)
 {
@@ -676,7 +676,7 @@ BYTE force_rus_char (BYTE ch)
 	// \xf0\xf3\xf1\xf1\xea\xe8\xe5
 	char search[] = "AaEe3KkMHOoPpCcyXxuT";
 	// \xe2\xee \xe2\xf2\xee\xf0\xee\xe9 \xf1\xf2\xf0\xee\xea\xe5 \xed\xe0\xf5\xee\xe4\xff\xf2\xf1\xff \xf0\xf3\xf1\xf1\xea\xe8\xe5
-	char replace[] = "¿‡≈Â« ÍÃÕŒÓ–—ÒÛ’ıË“";
+	char replace[] = "\300\340\305\345\307\312\352\314\315\316\356\320\360\321\361\363\325\365\350\322";
 
 	char *t = strchr (search,ch);
 
@@ -866,6 +866,65 @@ void AddFile(const char* MainFile, const char* ToAdd)
 	system (s);
 
 };
+
+void FileAppend(FILE *src, FILE *dst)
+{
+    if (!src) throw CExpc("FileAppend(): no source file specified");
+    if (!dst) throw CExpc("FileAppend(): no destination file specified");
+
+    char buf[DDC_STATIC_BUFLEN];
+    size_t nread;
+    do  {
+	    if ( (nread=fread(buf, 1, DDC_STATIC_BUFLEN, src)) > 0
+		 &&
+		 fwrite(buf, 1, nread, dst) != nread )
+		    throw CExpc("FileAppend(): failed to copy data");
+    }
+    while (nread  > 0 && !feof(src));
+};
+
+void FileAppend(const char *srcFile, const char *dstFile)
+{
+	FILE *src = fopen(srcFile,"rb");
+	FILE *dst = fopen(dstFile,"ab");
+	try {
+		if (!src) throw CExpc(Format("FileAppend(): open failed for source file '%s': %s", srcFile, strerror(errno)));
+		if (!dst) throw CExpc(Format("FileAppend(): open failed for destination file '%s': %s", dstFile, strerror(errno)));
+		FileAppend(src,dst);
+	}
+	catch (exception &e) {
+		if (src) fclose(src);
+		if (dst) fclose(dst);
+		throw;
+	}
+	if (src) fclose(src);
+	if (dst) fclose(dst);
+};
+
+void FileAppend(const string& srcFile, const string& dstFile)
+{
+	FileAppend(srcFile.c_str(), dstFile.c_str());
+};
+
+void FileAppendPartial(FILE *src, FILE *dst, size_t nBytes)
+{
+	if (!src) throw CExpc("FileAppendPartial(): no source file specified");
+	if (!dst) throw CExpc("FileAppendPartial(): no destination file specified");
+	
+	char buf[DDC_STATIC_BUFLEN];
+	size_t nPending=nBytes;
+	do  {
+		size_t nwant = (nPending > DDC_STATIC_BUFLEN ? DDC_STATIC_BUFLEN : nPending);
+		size_t nread = fread(buf, 1, nwant, src);
+		if (nread != nwant)
+			throw CExpc(Format("FileAppendPartial(): tried to read %zd byte(s) but got only %zd", nwant, nread));
+		if (fwrite(buf, 1, nread, dst) != nread)
+			throw CExpc(Format("FileAppendPartial(): failed to write %zd byte(s)", nread));
+		nPending -= nread;
+	}
+	while (nPending > 0);
+}
+
 
 #ifdef WIN32
 	string TryReadRMLFromRegistry()
@@ -2385,6 +2444,14 @@ bool LoadFileToString(string FileName, string& Result, bool clobber)
 	}
 	return true;
 };
+
+bool SaveStringToFile(const string& Str, const string& FileName)
+{
+	vector<char> V;
+	V.assign(Str.begin(), Str.end());
+	return WriteVector(FileName, V);
+};
+
 
 void		SqueezeSpacesAndDeleteEoln(string& s)
 {

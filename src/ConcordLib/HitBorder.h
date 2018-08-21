@@ -48,7 +48,17 @@ struct CPageNumber  {
 	//! the starting position (in tokens) of the beginning of the page
 	CTokenNo			m_StartTokenNo;
 	//! the page number itself (as it was mentioned in the source text)
-	DWORD				m_PageNumber; 
+	DWORD				m_PageNumber;
+
+	CPageNumber(CTokenNo StartTokenNo=0, DWORD PageNumber=0)
+		: m_StartTokenNo(StartTokenNo), m_PageNumber(PageNumber)
+	{};
+
+	inline bool operator<(const CPageNumber& X) const
+	{
+		return ((m_StartTokenNo < X.m_StartTokenNo)
+			|| (m_StartTokenNo == X.m_StartTokenNo && m_PageNumber < X.m_PageNumber));
+	};
 };
 
 

@@ -114,6 +114,7 @@ public:
 		virtual string	GetStringValue(DWORD FileNo ) const;
 		virtual bool	ReadFromDisk (string Path, DWORD FileBreaksSize, bool useMMap=false);
 		virtual void	CreateUnion (const string& Path, const vector<const CFreeBiblIndex*>& Indices, const vector<size_t>& FileCounts);
+		virtual void	CreatePartitions (vector<CFreeBiblIndex*>& Parts, const vector<string>& Paths, const vector<DWORD>& EndFileNo) const;
 		virtual bool	RegisterBiblStringItemId(const string& Value);
 		virtual bool	DeleteBiblFiles (string Path) const;
 		virtual bool	ConvertAndSaveToDiskAfterIndexing (string Path);
@@ -191,6 +192,7 @@ public:
 		virtual CFreeBiblIndexTypeId GetTypeId() const;
 		virtual string GetStringValue(DWORD FileNo ) const;
 		virtual void CreateUnion (const string& Path, const vector<const CFreeBiblIndex*>& Indices, const vector<size_t>& FileCounts);
+		virtual void CreatePartitions(vector<CFreeBiblIndex*>& Parts, const vector<string>& Paths, const vector<DWORD>& EndFileNo) const;
 		bool	RegisterBiblStringItemId(const string& Value);
 		bool	DeleteBiblFiles (string Path) const;
 		virtual bool ReadFromDisk (string Path, DWORD FileBreaksSize, bool useMMap=false);
@@ -240,6 +242,7 @@ public:
 		virtual bool ReadFromDisk (string Path, DWORD FileBreaksSize, bool useMMap=false);
 		virtual bool ConvertAndSaveToDiskAfterIndexing(string Path);
 		virtual void CreateUnion (const string& Path, const vector<const CFreeBiblIndex*>& Indices, const vector<size_t>& FileCounts);
+		virtual void CreatePartitions(vector<CFreeBiblIndex*>& Parts, const vector<string>& Paths, const vector<DWORD>& EndFileNo) const;
 	public:
 		//-- set constant value
 		void setValue(const string& value);
@@ -339,6 +342,9 @@ public:
 
 	//! union of multiple (heterogeneous) bibliographies (new)
 	bool UnionBibliographies(const vector<const CConcXml*>& Bibls);
+
+	//! partition this object into multiple sub-objects (called by CConcIndexator::SplitProject())
+	bool SplitBibliography(vector<CConcXml*>& Bibls, const vector<DWORD>& EndFileNo) const;
 
 	//! initialize a CDDCFilterWithBounds object for sorting by bibliographical information, given bound(s)
 	//! \param Filter filter to initialize

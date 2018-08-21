@@ -66,6 +66,7 @@ struct CHighlightTags
 
 class CSourceFileHolder
 {
+protected:
 	//! \ref source_file_def "Source files"
 	vector<string>					m_SourceFiles;
 	bool							m_bModifiedListOfFiles;
@@ -445,6 +446,11 @@ public:
 	bool	CreateAsUnion(const vector<CConcIndexator>& X, bool inheritOptions=true);
 	//! creates new concordance as union of one or more concordances (new, filename-based)
 	bool	CreateAsUnion(const vector<string>& Xfiles, bool inheritOptions=true);
+
+	//! split project uniformly into sub-projects (new; sub-projects inherit parent options)
+	bool    SplitProject(vector<CConcIndexator>& Subs) const;
+	//! split project uniformly into sub-projects (guts, given sub-options as string)
+	bool    SplitProject(vector<CConcIndexator>& Subs, const string& SubOptions) const;
 
 	//! creates morphology index
 	bool	CreateMorphIndex();
