@@ -67,7 +67,7 @@
 .\" ========================================================================
 .\"
 .IX Title "DDC_SERVER.OPT 5"
-.TH DDC_SERVER.OPT 5 "2018-07-06" "2.1.14" "DDC Corpus Indexing System"
+.TH DDC_SERVER.OPT 5 "2018-08-22" "2.1.15-pre1" "DDC Corpus Indexing System"
 .\" For nroff, turn off justification.  Always turn off hyphenation; it makes
 .\" way too many mistakes in technical documents.
 .if n .ad l
@@ -91,7 +91,7 @@ server option files (\*(L"server-opt files\*(R") used by the \s-1DDC\s0 corpus i
 \& 
 \& LogLevel LEVEL
 \& SlowQueryTimeout SECONDS
-\& StatsWindow SECONDS
+\& #StatsWindow SECONDS
 \&
 \& ##\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
 \& ## Client\-Thread and Parallelization Options
@@ -204,14 +204,19 @@ this case, your \s-1DDC\s0 logs should show nanosecond resolution.
 \& StatsWindow SECONDS
 .Ve
 .PP
+\&\fB\s-1OBSOLETE\s0\fR
+.PP
 Aliases: StatWindow, MovingAverageWindow
 .PP
 Default: 600
 .PP
 Size of the time window for tracking moving average statistics, in seconds.
-Currently affects only the \f(CW\*(C`qtavg\*(C'\fR status property (average query time).
+Used by \s-1DDC\s0 <= v2.1.14 for tracking average query times (\f(CW\*(C`qtavg\*(C'\fR) using
+a simple moving average.  As of \s-1DDC\s0 v2.1.15, average query times are
+tracked using an efficent exponential moving average with delay intervals (\f(CW\*(C`qtavgs\*(C'\fR)
+of 5, 30, and 60 minutes.
 .PP
-Since v2.1.1.
+Since v2.1.1, until v2.1.14.
 .SS "Client-Thread and Parallelization Options"
 .IX Subsection "Client-Thread and Parallelization Options"
 The following options control the behavior of per-client \*(L"worker\*(R" threads.

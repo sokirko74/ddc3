@@ -213,7 +213,7 @@ int main(int argc, char* argv[])
 			if (bPrintProfile)
 				R.m_Profiler.m_bTimeSpanHolderEnabled = true;
 
-			if (!R.m_pIndexator->LoadProject(Corpus) )
+			if (!R.m_pIndexator->LoadProject(Corpus, false) )
 			{
 				fprintf (stderr, "cannot load project %s\n", Corpus.c_str());
 				return -1;

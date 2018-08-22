@@ -107,7 +107,7 @@ int main(int argc, char* argv[])
   //-- load project
   CConcHolder R;
   R.m_pIndexator = new CConcIndexator;
-  if (!R.m_pIndexator->LoadProject(confilename)) {
+  if (!R.m_pIndexator->LoadProject(confilename,false)) {
     fprintf(stderr, "Error: cannot load project `%s'\n", confilename);
     exit(-1);
   }

@@ -52,7 +52,12 @@ bool   log_files=true;
 char   log_label[64]; //-- ddc log-label
 
 CDDCServerOptions ServerOptions;
+vector<string> ServerOptionsFiles;
 bool LoadedServerOptions = false;
+
+size_t nWorkers = 0;
+bool got_nWorkers;
+
 
 const char *prog = "ddc_daemon";
 
@@ -348,6 +353,10 @@ int	main(int argc, char	**argv)
 	ddcInitGlobal();
 	ddc_thread_init(log_label);
 
+	ddcLogLevel   = ddcLLInfo;
+	ddcLogToFiles = false;
+	ddcLogToStderr = true;
+	ddcLogToSyslog = false;
 
 	if (argc == 2) 	
 	{		
@@ -375,18 +384,10 @@ int	main(int argc, char	**argv)
 	Action = "restart"; //-- default action
 	doFork = true;
 
-	//-- load default server options
+	//-- queue default server options for loading
 	string ServerOptionsFile = GetIniFilePath()+"/ddc_server.opt";
-	if (FileExists(ServerOptionsFile.c_str())) {
-		try {
-			//fprintf(stderr, "Loading default server-options file '%s'\n", prog, ServerOptionsFile.c_str());
-			ServerOptions.LoadFile(ServerOptionsFile);
-		}
-		catch (exception &e) {
-			fprintf(stderr, "%s: Error loading default server-options file '%s': %s\n", prog, ServerOptionsFile.c_str(), e.what());
-			exit(1);
-		}
-	}
+	if (FileExists(ServerOptionsFile.c_str()))
+		ServerOptionsFiles.push_back(ServerOptionsFile);
 
 	//-- parse command-line
 	for (size_t i=1; i<argc; i++)
@@ -422,6 +423,7 @@ int	main(int argc, char	**argv)
 			if (i+1 >= argc) 
 				PrintUsage();
 			i++;
+			ServerOptionsFiles.push_back(argv[i]);
 			try {
 				ServerOptions.LoadFile(argv[i]); //-- load in-place
 			}
@@ -434,7 +436,8 @@ int	main(int argc, char	**argv)
 			if (i+1 >= argc)
 				PrintUsage();
 			i++;
-			ServerOptions.m_nWorkers = strtoul(argv[i],NULL,0);
+			nWorkers = strtoul(argv[i],NULL,0);
+			got_nWorkers = true;
 		}
 		else if (s == "--fork") { doFork = true; }
 		else if (s == "--nofork") { doFork = false; }
@@ -448,6 +451,20 @@ int	main(int argc, char	**argv)
 			Action = argv[i];
 		}
 	}
+
+	//-- load server options
+	for (vector<string>::const_iterator optfi=ServerOptionsFiles.begin(); optfi!=ServerOptionsFiles.end(); ++optfi) {
+		try {
+			//ddcLogDebug(Format("%s: loading server options file %s",prog,optfi->c_str()));
+			ServerOptions.LoadFile(*optfi);
+		}
+		catch (exception &e) {
+			fprintf(stderr, "%s: Error loading server options file '%s': %s\n", prog, optfi->c_str(), e.what());
+			exit(1);
+		}
+	}
+	//-- command-line overrides for server options
+	if (got_nWorkers) ServerOptions.m_nWorkers = nWorkers;
 
 	if (!FileExists(CorporaFile.c_str()))
 	{

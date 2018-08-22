@@ -667,7 +667,7 @@ bool CConcIndexator::LoadMaskedFiles()
 };
 
 
-bool CConcIndexator::LoadSourceFilesAndOptions(string FileName)
+bool CConcIndexator::LoadSourceFilesAndOptions(string FileName, bool reallyReadSourceFiles)
 {
 	m_LocalPathPrefix = "";
 	m_InternetPathPrefix = "";
@@ -692,7 +692,8 @@ bool CConcIndexator::LoadSourceFilesAndOptions(string FileName)
 	SetPath(FileName);
 
 	// reading source files
-	if (!ReadSourceFileList(FileName))
+	// 2018-08-21 16:05:27+0200 moo: don't read source files for runtime query
+	if (reallyReadSourceFiles && !ReadSourceFileList(FileName))
 		return false;
 
 	UpdateTimestamp(FileName.c_str());
@@ -1987,9 +1988,9 @@ error_label:
 //==============================================================================
 // moved from ad-hoc ConcordQuery.cpp
 
-bool CConcIndexator::LoadProject(string FileName)
+bool CConcIndexator::LoadProject(string FileName, bool includeSourceFiles)
 {
-	if ( !LoadSourceFilesAndOptions(FileName) ) return false;
+	if ( !LoadSourceFilesAndOptions(FileName,includeSourceFiles) ) return false;
 	if ( !LoadCorpusFiles() ) return false;
 	if ( !LoadMaskedFiles() ) return false;
 	

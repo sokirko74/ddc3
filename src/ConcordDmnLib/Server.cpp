@@ -91,7 +91,7 @@ void CDDCServer::SetOptions(const CDDCServerOptions &Options)
 	SetLogLevel(Options.m_LogLevel);
     m_VersionCompat = Options.m_VersionCompat;
     m_SlowQueryTimeout = Options.m_SlowQueryTimeout;
-    m_ServerStats.m_qTimes.m_Window = Options.m_StatsWindow;
+    //m_ServerStats.m_qTimes.m_Window = Options.m_StatsWindow;
     m_nWorkers = Options.m_nWorkers;
     m_ThreadQueueSize = Options.m_ThreadQueueSize;
 
@@ -163,7 +163,7 @@ void CDDCServer::HandleClientConnection(SOCKET& rConnectedSocket)
 string CDDCServer::ProcessSocketString(const string& SocketInput, SOCKET& rConnectedSocket)
 {
     string Result;
-    bool isQueryRequest=false, isFollowupRequest=false;
+    bool isQueryRequest=false, isFollowupRequest=false, isExpandRequest=false;
     DDCTimeHiRes t_started = DDCTimeHiRes::Now();
 
     //-- initialize with default values
@@ -273,8 +273,8 @@ string CDDCServer::ProcessSocketString(const string& SocketInput, SOCKET& rConne
 	else if (cmd == "expand_terms") {
 	    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	    // expand_terms "\x01" PIPELINE "\x01" TERMS "\x01" TIMEOUT ["\x01" CORPUS] : term expansion (leaf|branch)
-	    ++m_SessionStats.m_nQueries;
-	    isQueryRequest = true;
+	    ++m_SessionStats.m_nExpand;
+	    isExpandRequest = true;
 	    vector<string> qv = stringSplit(SocketInput.c_str(), "\x01");
 	    if (qv.size() < 4)
 		throw CExpc(errParseError, "could not parse `expand_terms' request");
@@ -289,6 +289,8 @@ string CDDCServer::ProcessSocketString(const string& SocketInput, SOCKET& rConne
 	else if (cmd == "get_paradigm") {
 	    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	    // get_paradigm " " WORD "\x01" LEMMATIZE_BOOL " " LANG_INT
+	    ++m_SessionStats.m_nExpand;
+	    isExpandRequest = true;
 	    char sWord[DDC_STATIC_BUFLEN];
 	    int iLemmatizeOnly, iLang;
 	    int nItems = sscanf(SocketInput.c_str(), "get_paradigm %[^\x01]\x01%i %i", sWord, &iLemmatizeOnly, &iLang);
@@ -354,7 +356,9 @@ string CDDCServer::ProcessSocketString(const string& SocketInput, SOCKET& rConne
     if (isQueryRequest)
 	m_SessionStats.m_qTimes.Append(t_elapsed);
     else if (isFollowupRequest)
-	m_SessionStats.m_qTimes.AppendCurrent(t_elapsed);
+	m_SessionStats.m_qTimes.AppendTotal(t_elapsed);
+    else if (isExpandRequest)
+	m_SessionStats.m_xTimes.Append(t_elapsed);
     
     //-- check for slow queries
     if (m_SlowQueryTimeout > 0 && t_elapsed > m_SlowQueryTimeout) {

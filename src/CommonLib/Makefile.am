@@ -46,6 +46,10 @@ libDDCCommon_la_SOURCES = \
 #vertest_SOURCES = vertest.cc
 #vertest_LDADD = libDDCCommon.la
 
+EXTRA_PROGRAMS = ematest
+ematest_SOURCES = ematest.cc
+ematest_LDADD = libDDCCommon.la
+
 ##-----------------------------------------------------------------------
 ## headers
 

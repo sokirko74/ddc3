@@ -33,7 +33,7 @@
 CDDCServerOptions::CDDCServerOptions() :
     m_LogLevel(ddcLLUnknown),
     m_SlowQueryTimeout(10),
-    m_StatsWindow(600),
+    //m_StatsWindow(600),
     m_nWorkers(0),
     m_ThreadQueueSize(DDC_DEFAULT_THREAD_QUEUE_SIZE),
     m_bHitStringsParallel(false),
@@ -69,7 +69,7 @@ void CDDCServerOptions::LoadLines(const vector<string>& Lines, const string& src
 	    string opt = end==string::npos ? li->substr(beg) : li->substr(beg,end-beg);
 	    string val = end==string::npos ? "" : li->substr(end);
 	    if (!Set(opt, val, srcName))
-		throw CExpc( Format("CDDCServerOptions::LoadLines(): ignoring unknown server option '%s' at %s line %i", opt.c_str(), srcName.c_str(), lineno) );
+		ddcLogWarn( Format("CDDCServerOptions::LoadLines(): ignoring unknown server option '%s' at %s line %i", opt.c_str(), srcName.c_str(), lineno) );
 	}
     }
 }
@@ -87,8 +87,10 @@ bool CDDCServerOptions::Set(const string& Option, const string& Value, const str
 	m_LogLevel = GetLogLevel(Value);
     else if (opt=="slowquerytimeout" || opt=="slowquerytime")
 	m_SlowQueryTimeout = strtod(Value.c_str(), NULL);
-    else if (opt=="statswindow" || opt=="statwindow" || opt=="movingaveragewindow")
-	m_StatsWindow = strtoul(Value.c_str(),NULL,0);
+    else if (opt=="statswindow" || opt=="statwindow" || opt=="movingaveragewindow") {
+	ddcLogWarn(Format("CDDCServerOptions::Set() option '%s' is no longer supported -- ignoring",Option.c_str()));
+	//m_StatsWindow = strtoul(Value.c_str(),NULL,0);
+    }
     else if (opt=="numthreads" || opt=="nthreads" || opt=="threads" || opt=="numworkers" || opt=="nworkers" || opt=="workers")
 	m_nWorkers = strtoul(Value.c_str(),NULL,0);
     else if (opt=="threadqueuesize" || opt=="queuesize" || opt=="qsize")
@@ -121,7 +123,7 @@ string CDDCServerOptions::toString() const
     return (string("")
 	    + "LogLevel " + LogLevelName(m_LogLevel) + "\n"
 	    + "SlowQueryTimeout " + Format("%g", m_SlowQueryTimeout) + "\n"
-	    + "StatsWindow " + Format("%zu", m_StatsWindow) + "\n"
+	    //+ "StatsWindow " + Format("%zu", m_StatsWindow) + "\n"
 	    + "NumThreads " + Format("%zu", m_nWorkers) + "\n"
 	    + "ThreadQueueSize " + Format("%zu", m_ThreadQueueSize) + "\n"
 	    + "HitStringsParallel " + BoolToString(m_bHitStringsParallel) + "\n"

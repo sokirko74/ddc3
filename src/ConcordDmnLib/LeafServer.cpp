@@ -229,9 +229,12 @@ void CDDCLeafServer::handle__status(string &Result, int timeout, bool verbose)
 	      + "\"uptime\":" + Format("%.0f", uptime) + ",\n\t"
 	      + "\"nrequests\":" + Format("%zd", m_ServerStats.m_nRequests) + ",\n\t"
 	      + "\"nqueries\":" + Format("%zd", m_ServerStats.m_nQueries) + ",\n\t"
+	      + "\"nexpand\":" + Format("%zd", m_ServerStats.m_nExpand) + ",\n\t"
 	      + "\"nerrors\":" + Format("%zd", m_ServerStats.m_nErrors) + ",\n\t"
 	      + "\"nslow\":" + Format("%zd", m_ServerStats.m_nSlow) + ",\n\t"
-	      + "\"qtavg\":" + Format("%g", m_ServerStats.m_qTimes.tAverage()) + ",\n\t"
+	      + "\"qtavg\":" + Format("%g", m_ServerStats.m_qTimes.tAverage()) + ",\n\t" //-- compat
+	      + "\"qtavgs\":" + m_ServerStats.m_qTimes.toJsonArray() + ",\n\t"
+	      + "\"xtavgs\":" + m_ServerStats.m_xTimes.toJsonArray() + ",\n\t"
 	      + "\"nworkers\":" + Format("%zd", m_nWorkers) + ",\n\t"
 	      + "\"memkb\":" + Format("%zd", pms.VmRSS) + ",\n\t" //-- compat
 	      + "\"vmem\":" + Format("{\"peak\":%zd,\"size\":%zd,\"hwm\":%zd,\"rss\":%zd,\"data\":%zd,\"stk\":%zd,\"exe\":%zd,\"lib\":%zd,\"swap\":%zd,\"file\":%zd,\"anon\":%zd}",
@@ -513,7 +516,7 @@ bool CDDCLeafServer::LoadHolder(CConcHolder **ppHolder) {
 
     (*ppHolder)->m_pIndexator = new CConcIndexator;
     ddcLogInfo( Format ("Loading corpus indices for %s (%s)", GetLocalPathOfIndex().c_str(), m_CorpusName.c_str()) );
-    if (!(*ppHolder)->m_pIndexator->LoadProject(GetLocalPathOfIndex())) {
+    if (!(*ppHolder)->m_pIndexator->LoadProject(GetLocalPathOfIndex(), false)) {
 	ddcLogError ( Format("Error! Cannot load project %s! ", GetLocalPathOfIndex().c_str()) );
 	    delete (*ppHolder)->m_pIndexator;
 	delete  (*ppHolder);

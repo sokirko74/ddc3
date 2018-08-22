@@ -1,6 +1,21 @@
 ###-*- Mode: Change-Log; coding: utf-8; -*-
 
 v2.1.15-pre1 WIP moocow
+	* TODO
+	  - query language comment support
+	    - idea: #comment['SYMBOL',...] : problem: need to double-escape symbols
+	    - idea: #comment 'SYMBOL'      : problem: need to double-escape symbols
+	    - idea: /* COMMENT_TEXT */ : problem - no literal "*/" in comment text
+	    - idea: // ... "\n" : problem - comments only at EOF (maybe best idea?)
+	* new class DDCTimeAvg in CommonLib/ddcTime.(h|cpp)
+	  - load-average style exponential moving average with delays of 5,30,60 minutes
+	  - updated CDDCServerStats to use new DDCTimeAvg for average query times (qtavgs)
+	  - makes ddc_server.opt option "StatsWindow" obsolete (documented, now emits warning)
+	* differentiated "expand_terms" (xtavgs) from "proper" queries (qtavgs) for server stats
+	* added boolean parameter 'includeSourceFiles' to CConcIndexator::LoadProject()
+	  - allows us to avoid memory-bloat due to unused resident file-lists from *.con (we already have *._con mmapped)
+	  - default (includeSourceFiles=true) is backwards-compatible resident behavior
+	  - override (includeSourceFiles=false) in LeafServer.cpp, ddc_simple, ddc_dump, ddc_split
 	* long-lived ddc_daemon processes with jemalloc are still stable
 	  - less RAM hogging than with default glibc malloc
 	  - no memory-leak like symptoms a la mantis #28558 have been observed with daemons using jemalloc in almost 2 months

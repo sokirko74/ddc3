@@ -13,7 +13,8 @@ ThreadQueueSize		256
 #SlowQueryTimeout	5
 #SlowQueryTimeout	1
 
-StatsWindow		10
+#StatsWindow: obsolete since v2.1.15-pre1
+#StatsWindow		10
 
 NavCacheSize		3
 NavCacheStep		20

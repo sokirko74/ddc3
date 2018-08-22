@@ -19,8 +19,13 @@
 //  along with DDC.  If not, see <http://www.gnu.org/licenses/>.
 //
 #include "ddcTime.h"
+#include "ddcString.h"
 #include <string.h>
 #include <stdio.h>
+#include <cstdarg>
+#include <math.h>
+
+using namespace std;
 
 //======================================================================
 // constants
@@ -111,3 +116,69 @@ double DDCTimeHiRes::Elapsed(const DDCTimeHiRes& t0) const
 }
 
 #endif /* defined(HAVE_CLOCK_GETTIME) */
+
+//======================================================================
+// DDCTimeAvg
+
+//----------------------------------------------------------------------
+void DDCTimeAvg::reset(ValueT val)
+{
+    for (MapT::iterator mapi=m_map.begin(); mapi != m_map.end(); ++mapi)
+	mapi->second = val;
+    m_total = val;
+    m_n     = (val==0 ? 0 : 1);
+}
+
+//----------------------------------------------------------------------
+void DDCTimeAvg::SetDelays(const std::vector<DelayT>& delays, ValueT val)
+{
+    m_map.clear();
+    for (std::vector<DelayT>::const_iterator ki=delays.begin(); ki != delays.end(); ++ki)
+	m_map[*ki] = val;
+}
+
+//----------------------------------------------------------------------
+void DDCTimeAvg::SetDelays(DelayT delay1, DelayT delay2, DelayT delay3, ValueT val)
+{
+    m_map.clear();
+    if (delay1 > 0) m_map[delay1] = val;
+    if (delay2 > 0) m_map[delay2] = val;
+    if (delay3 > 0) m_map[delay3] = val;
+}
+
+//----------------------------------------------------------------------
+DDCTimeAvg::MapT& DDCTimeAvg::Append(double sample, const TimeT& when)
+{
+    double tdiff = when.Elapsed(m_t);
+    for (MapT::iterator mapi=m_map.begin(); mapi != m_map.end(); ++mapi) {
+	double alpha  = (tdiff <= 0 ? 0.5 : exp(-tdiff / (double)(mapi->first)));
+	mapi->second  = (1-alpha)*sample + alpha*mapi->second;
+    }
+    m_t.Set(when);
+    m_total += sample;
+    ++m_n;
+}
+
+//----------------------------------------------------------------------
+string DDCTimeAvg::toJsonArray() const
+{
+    string buf("[");
+    for (MapT::const_iterator mapi=m_map.begin(); mapi != m_map.end(); ++mapi) {
+	if (mapi != m_map.begin()) buf.push_back(',');
+	buf += Format("%g",mapi->second);
+    }
+    buf.push_back(']');
+    return buf;
+}
+
+//----------------------------------------------------------------------
+string DDCTimeAvg::toJsonMap() const
+{
+    string buf("{");
+    for (MapT::const_iterator mapi=m_map.begin(); mapi != m_map.end(); ++mapi) {
+	if (mapi != m_map.begin()) buf.push_back(',');
+	buf += Format("\"%zd\":%g",mapi->first,mapi->second);
+    }
+    buf.push_back('}');
+    return buf;
+}

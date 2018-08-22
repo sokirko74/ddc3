@@ -384,7 +384,7 @@ public:
 
 
 	//! load list of \ref source_file_def "source files" and parses option file (*.opt)
-	bool	LoadSourceFilesAndOptions(string FileName);
+	bool	LoadSourceFilesAndOptions(string FileName, bool reallyReadSourceFiles=true);
 
 	//! load list of \ref corpus_file_def "corpus files" (*.con)
 	bool	LoadCorpusFiles();
@@ -405,7 +405,7 @@ public:
 	bool	SaveCorpusFileList() const;
 	
 	//! loads  everything
-	bool	LoadProject(string FileName);
+	bool	LoadProject(string FileName, bool includeSourceFiles=true);
 
 	//! update m_Timestamp to mtime of Filename if it is newer than the current m_Timestamp; \returns new m_Timestamp
 	time_t UpdateTimestamp(const char *filename);

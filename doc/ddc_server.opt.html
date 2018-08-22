@@ -74,7 +74,7 @@
  
  LogLevel LEVEL
  SlowQueryTimeout SECONDS
- StatsWindow SECONDS
+ #StatsWindow SECONDS
 
  ##-------------------------------------------------------------
  ## Client-Thread and Parallelization Options
@@ -180,13 +180,15 @@
 
 <pre><code> StatsWindow SECONDS</code></pre>
 
+<p><b>OBSOLETE</b></p>
+
 <p>Aliases: StatWindow, MovingAverageWindow</p>
 
 <p>Default: 600</p>
 
-<p>Size of the time window for tracking moving average statistics, in seconds. Currently affects only the <code>qtavg</code> status property (average query time).</p>
+<p>Size of the time window for tracking moving average statistics, in seconds. Used by DDC &lt;= v2.1.14 for tracking average query times (<code>qtavg</code>) using a simple moving average. As of DDC v2.1.15, average query times are tracked using an efficent exponential moving average with delay intervals (<code>qtavgs</code>) of 5, 30, and 60 minutes.</p>
 
-<p>Since v2.1.1.</p>
+<p>Since v2.1.1, until v2.1.14.</p>
 
 <h2 id="Client-Thread-and-Parallelization-Options">Client-Thread and Parallelization Options</h2>
 

@@ -548,9 +548,12 @@ void CDDCBranchServer::handle__status(string &Result, int timeout, bool verbose)
 	      + "\"uptime\":" + Format("%.0f", uptime) + ",\n"
 	      + "\"nrequests\":" + Format("%zd", m_ServerStats.m_nRequests) + ",\n"
 	      + "\"nqueries\":" + Format("%zd", m_ServerStats.m_nQueries) + ",\n"
+	      + "\"nexpand\":" + Format("%zd", m_ServerStats.m_nExpand) + ",\n"	      
 	      + "\"nerrors\":" + Format("%zd", m_ServerStats.m_nErrors) + ",\n"
 	      + "\"nslow\":" + Format("%zd", m_ServerStats.m_nSlow) + ",\n"
-	      + "\"qtavg\":" + Format("%g", m_ServerStats.m_qTimes.tAverage()) + ",\n"
+	      + "\"qtavg\":" + Format("%g", m_ServerStats.m_qTimes.tAverage()) + ",\n" //-- compat
+	      + "\"qtavgs\":" + m_ServerStats.m_qTimes.toJsonArray() + ",\n"
+	      + "\"xtavgs\":" + m_ServerStats.m_xTimes.toJsonArray() + ",\n"
 	      + "\"nworkers\":" + Format("%zd", m_nWorkers) + ",\n"
 	      + "\"hitstrings\":\"" + (m_bHitStringsParallel ? "parallel" : "serial") + "\",\n"
 	      + "\"navcachesize\":" + Format("%zd", (m_pNavCache ? m_pNavCache->size() : 0)) + ",\n"

@@ -86,7 +86,7 @@ int main(int argc, char* argv[])
     else if (s=="--n-corpora" || s=="-n") {
       ++argi;
       if (argi < argc)
-	n_splits = strtod(argv[argi],NULL);
+	n_splits = strotol(argv[argi],NULL,0);
     }
     else if (s=="--output" || s=="--outfmt" || s=="-o") {
       ++argi;
@@ -141,7 +141,7 @@ int main(int argc, char* argv[])
     //-- load input project
     ddcLogInfo("LoadProject "+infilename);
     CConcIndexator Ix;
-    if (!Ix.LoadProject(infilename))
+    if (!Ix.LoadProject(infilename, false))
       throw CExpc(Format("%s: failed to load input project '%s'", prog, infilename.c_str()));
 
     //-- load output options
