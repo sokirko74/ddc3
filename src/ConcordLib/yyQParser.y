@@ -1,5 +1,5 @@
 //-*- Mode: bison; c-basic-offset: 8; -*-*/
-//  Copyright 2011-2017 by Bryan Jurish
+//  Copyright 2011-2018 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -92,6 +92,7 @@ int yylex (void*,  CQueryCompiler*);
 %type   <m_pfilt>	q_filters
 %type	<m_pfilt>	q_filter
 %type	<m_pfilt>	q_flag
+%type	<m_pfilt>	q_comment
 
 %type   <m_pfilt>	count_filters
 %type   <m_pfilt>	count_filter
@@ -241,6 +242,7 @@ int yylex (void*,  CQueryCompiler*);
 %token	<m_str>	HASH_EQUAL
 %token	<m_str>	DOLLAR_DOT
 
+%token	<m_str>	KW_COMMENT
 %token	<m_str>	CNTXT
 %token	<m_str>	WITHIN
 %token	<m_str>	SEPARATE_HITS
@@ -388,6 +390,7 @@ query_conditions:
 q_filters:
 		/* empty */			{ $$=NULL; }
 	|	q_filters q_flag		{ $$=NULL; }
+	|	q_filters q_comment		{ $$=NULL; }
 	|	q_filters q_filter		{ $$=NULL; _qc->m_qOptions.m_QFilters.push_back($2); }
 	;
 
@@ -410,6 +413,12 @@ qf_subcorpora:
 		/* empty */			{ $$=NULL; }
 	|	s_subcorpus			{ _qc->m_qOptions.m_Subcorpora.push_back(*$1); $$ = NULL; }
 	|	qf_subcorpora ',' s_subcorpus	{ _qc->m_qOptions.m_Subcorpora.push_back(*$3); $$ = $1; }
+	;
+
+
+q_comment:
+		KW_COMMENT symbol		{ $$=NULL; _qc->m_qOptions.m_Comments.push_back(*$2); };
+	|	KW_COMMENT '[' symbol ']'	{ $$=NULL; _qc->m_qOptions.m_Comments.push_back(*$3); };
 	;
 
 q_filter:
@@ -793,6 +802,7 @@ l_indextuple:
 	|	s_indextuple_item				{ $$=NULL; _qc->m_IndexTuple.clear(); _qc->m_IndexTuple.push_back(*$1); }
 	|	l_indextuple ',' s_indextuple_item		{ $$=NULL; _qc->m_IndexTuple.push_back(*$3); }
 	;
+
 
  /*-------------------------------------------------------------
   * count_key: count-key expressions

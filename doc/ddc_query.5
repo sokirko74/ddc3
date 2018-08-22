@@ -67,7 +67,7 @@
 .\" ========================================================================
 .\"
 .IX Title "DDC_QUERY 5"
-.TH DDC_QUERY 5 "2018-03-08" "2.1.14" "DDC Corpus Indexing System"
+.TH DDC_QUERY 5 "2018-08-22" "2.1.15-pre1" "DDC Corpus Indexing System"
 .\" For nroff, turn off justification.  Always turn off hyphenation; it makes
 .\" way too many mistakes in technical documents.
 .if n .ad l
@@ -77,7 +77,7 @@
 .SS "Overview"
 .IX Subsection "Overview"
 This documentation describes the query language accepted by
-\&\s-1DDC\s0 version 2.1.1.  Current sources for \s-1DDC\s0 should be available
+\&\s-1DDC\s0 version 2.1.5.  Current sources for \s-1DDC\s0 should be available
 from
 http://sourceforge.net/projects/ddc\-concordance.
 .PP
@@ -325,11 +325,19 @@ Comments may appear after each rule in C notation
 \fIQuery Filter Rules\fR
 .IX Subsection "Query Filter Rules"
 .PP
-.Vb 5
+.Vb 6
 \& q_filters       ::=                                    /*\-\- List of global query options \-\-*/
 \&                                                        /* empty */
+\&                   | q_filters q_comment                /* ... query comment (parsed) */
 \&                   | q_filters q_flag                   /* ... query flag */
 \&                   | q_filters q_filter                 /* ... query filter */
+\&                   ;
+\& 
+\& q_comment       ::=                                    /*\-\- Query comment \-\-*/
+\&                     /* COMMENT */                      /* C\-style block comment (ignored by scanner) */
+\&                   | // COMMENT \en                      /* C\-style line comment (ignored by scanner) */
+\&                   | #COMMENT symbol                    /* Parsed comment as a single symbol (alias: #CMT) */
+\&                   | #COMMENT [ symbol ]                /* Parsed comment with optional brackets (alias: #CMT) */
 \&                   ;
 \& 
 \& q_flag          ::=                                    /*\-\- Global query flags \-\-*/
@@ -746,6 +754,21 @@ The following macros are defined for the underlying scanner:
 \& regex_modifier [dgimsx]
 .Ve
 .PP
+\fIComments\fR
+.IX Subsection "Comments"
+.PP
+.Vb 2
+\&  "/*".*"*/"                           /* C\-style block comment */
+\&  "//".*"\en"                           /* C\-style line comment */
+.Ve
+.PP
+The scanner supports C\-style block-comments (\*(L"/*...*/\*(R") and line-comments (//...)
+from its default start-state (e.g. pretty much everywhere except within regular expressions, date-strings, or expansion chains).
+C\-style comments will be ignored by the scanner and thus are not recoverable from a parsed query object.
+If you need to pass comments through the query parser, use the
+#COMMENT keyword instead.
+Since v2.1.15.
+.PP
 \fIQuery Keywords\fR
 .IX Subsection "Query Keywords"
 .PP
@@ -758,6 +781,7 @@ The following macros are defined for the underlying scanner:
 \& (?i:(file|doc)?id)
 \& (?i:(file|doc)_?(name)?)
 \& (?i:date)
+\& (?i:#(comment|cmt))
 \& (?i:#(co?n?te?xt?|n))
 \& (?i:#(with)?in)
 \& (?i:#(sep(arate)?|nojoin)(_hits)?)
@@ -821,7 +845,7 @@ assigned, any matched tokens without explicit match-IDs are assigned a match-ID 
 .IX Subsection "Regular Expressions"
 .PP
 .Vb 3
-\&   "/"{regex_text}"/"{regex_modifier}*                  /* slash\-quoted regex, with option modifiers */
+\&  "/"{regex_text}"/"{regex_modifier}*                   /* slash\-quoted regex, with option modifiers */
 \&  "!/"{regex_text}"/"{regex_modifier}*                  /* negated regex (complement) */
 \&  "s/"{regex_text}"/"{regex_text}"/"{regex_modifier}*   /* search\-and\-replace regex (for count\-by) */
 .Ve

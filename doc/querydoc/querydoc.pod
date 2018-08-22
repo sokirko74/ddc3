@@ -5,7 +5,7 @@
 =head2 Overview
 
 This documentation describes the query language accepted by
-DDC version 2.1.1.  Current sources for DDC should be available
+DDC version 2.1.5.  Current sources for DDC should be available
 from
 http://sourceforge.net/projects/ddc-concordance.
 
@@ -266,8 +266,16 @@ Comments may appear after each rule in C notation
 
  q_filters       ::=                                    /*-- List of global query options --*/
                                                         /* empty */
+                   | q_filters q_comment                /* ... query comment (parsed) */
                    | q_filters q_flag                   /* ... query flag */
                    | q_filters q_filter                 /* ... query filter */
+                   ;
+ 
+ q_comment       ::=                                    /*-- Query comment --*/
+                     /* COMMENT */                      /* C-style block comment (ignored by scanner) */
+                   | // COMMENT \n                      /* C-style line comment (ignored by scanner) */
+                   | #COMMENT symbol                    /* Parsed comment as a single symbol (alias: #CMT) */
+                   | #COMMENT [ symbol ]                /* Parsed comment with optional brackets (alias: #CMT) */
                    ;
  
  q_flag          ::=                                    /*-- Global query flags --*/
@@ -696,6 +704,21 @@ The following macros are defined for the underlying scanner:
 
 
 
+=head3 Comments
+
+  "/*".*"*/"                           /* C-style block comment */
+  "//".*"\n"                           /* C-style line comment */
+
+The scanner supports C-style block-comments ("/*...*/") and line-comments (//...)
+from its default start-state (e.g. pretty much everywhere except within regular expressions, date-strings, or expansion chains).
+C-style comments will be ignored by the scanner and thus are not recoverable from a parsed query object.
+If you need to pass comments through the query parser, use the
+#COMMENT keyword instead.
+Since v2.1.15.
+
+
+
+
 =head3 Query Keywords
 
  (?i:near)
@@ -706,6 +729,7 @@ The following macros are defined for the underlying scanner:
  (?i:(file|doc)?id)
  (?i:(file|doc)_?(name)?)
  (?i:date)
+ (?i:#(comment|cmt))
  (?i:#(co?n?te?xt?|n))
  (?i:#(with)?in)
  (?i:#(sep(arate)?|nojoin)(_hits)?)
@@ -769,7 +793,7 @@ assigned, any matched tokens without explicit match-IDs are assigned a match-ID 
 
 =head3 Regular Expressions
 
-   "/"{regex_text}"/"{regex_modifier}*			/* slash-quoted regex, with option modifiers */
+  "/"{regex_text}"/"{regex_modifier}*			/* slash-quoted regex, with option modifiers */
   "!/"{regex_text}"/"{regex_modifier}*			/* negated regex (complement) */
   "s/"{regex_text}"/"{regex_text}"/"{regex_modifier}*	/* search-and-replace regex (for count-by) */
 

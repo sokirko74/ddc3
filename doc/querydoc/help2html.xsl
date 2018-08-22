@@ -268,7 +268,17 @@
   <xsl:template name="terminal-value">
     <xsl:param name="text"/>
     <span class="ruleTerminal">
-      <xsl:value-of select="$text"/>
+      <xsl:choose>
+	<xsl:when test="./@href">
+	  <xsl:element name="a">
+	    <xsl:attribute name="href"><xsl:value-of select="./@href"/></xsl:attribute>
+	    <xsl:value-of select="$text"/>
+	  </xsl:element>
+	</xsl:when>
+	<xsl:otherwise>
+	  <xsl:value-of select="$text"/>
+	</xsl:otherwise>
+      </xsl:choose>
     </span>
   </xsl:template>
 

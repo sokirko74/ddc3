@@ -1,7 +1,7 @@
 //-*- Mode: C++; c-basic-offset: 2; -*-
 //
 //  DDC originally by Alexey Sokirko
-//  Changes and modifications 2011-2017 by Bryan Jurish
+//  Changes and modifications 2011-2018 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -43,6 +43,7 @@ void CQueryOptions::swap(CQueryOptions &o)
   m_QFilters.swap(o.m_QFilters);
   m_Filters.swap(o.m_Filters);
   m_Subcorpora.swap(o.m_Subcorpora);
+  m_Comments.swap(o.m_Comments);
 }
 
 //--------------------------------------------------------------
@@ -59,6 +60,7 @@ void CQueryOptions::assign(const CQueryOptions &src)
   //m_QFilters = src.m_QFilters;
   m_Filters = src.m_Filters;
   m_Subcorpora = src.m_Subcorpora;
+  m_Comments = src.m_Comments;
 
   m_QFilters.clear();
   for (CQFilterList::const_iterator fi=src.m_QFilters.begin(); fi != src.m_QFilters.end(); ++fi) {
@@ -114,6 +116,7 @@ void CQueryOptions::Clear()
   m_QFilters.clear();
   m_Filters.clear();
   m_Subcorpora.clear();
+  m_Comments.clear();
 }
 
 //--------------------------------------------------------------
@@ -166,7 +169,7 @@ string CQueryOptions::toString()
   }
   if (!m_QFilters.empty()) {
     string fs;
-    for (CQFilterList::iterator fi=m_QFilters.begin(); fi != m_QFilters.end(); fi++) {
+    for (CQFilterList::const_iterator fi=m_QFilters.begin(); fi != m_QFilters.end(); fi++) {
       if (*fi == NULL) continue; //-- should never happen
       if (!fs.empty()) fs.push_back(' ');
       fs += (*fi)->toString();
@@ -175,11 +178,19 @@ string CQueryOptions::toString()
   }
   if (!m_Subcorpora.empty()) {
     string cs;
-    for (CQSubcorpusList::iterator ci=m_Subcorpora.begin(); ci != m_Subcorpora.end(); ci++) {
+    for (CQSubcorpusList::const_iterator ci=m_Subcorpora.begin(); ci != m_Subcorpora.end(); ci++) {
       if (!cs.empty()) cs.push_back(',');
       cs += string("'") + escapeChars(*ci,"\\'") + "'";
     }
     if (!cs.empty()) qs += string(" :") + cs;
+  }
+  if (!m_Comments.empty()) {
+    string cs;
+    for (CQCommentList::const_iterator ci=m_Comments.begin(); ci != m_Comments.end(); ci++) {
+      if (!cs.empty()) cs.push_back(' ');
+      cs += string("#CMT ") + sqString(*ci);
+    }
+    if (!cs.empty()) qs += string(" ") + cs;
   }
   return qs;
 }
@@ -209,7 +220,7 @@ string CQueryOptions::jsonData()
 
   //-- filters
   qs += ",\"Filters\":[";
-  for (CQFilterList::iterator fi=m_QFilters.begin(); fi != m_QFilters.end(); fi++) {
+  for (CQFilterList::const_iterator fi=m_QFilters.begin(); fi != m_QFilters.end(); fi++) {
     if (*fi == NULL) continue; //-- should never happen
     if (fi!=m_QFilters.begin()) qs.push_back(',');
     qs += (*fi)->toJson();
@@ -218,8 +229,17 @@ string CQueryOptions::jsonData()
 
   if (!m_Subcorpora.empty()) {
     qs += ",\"Subcorpora\":[";
-    for (CQSubcorpusList::iterator ci=m_Subcorpora.begin(); ci != m_Subcorpora.end(); ci++) {
+    for (CQSubcorpusList::const_iterator ci=m_Subcorpora.begin(); ci != m_Subcorpora.end(); ci++) {
       if (ci != m_Subcorpora.begin()) qs.push_back(',');
+      qs += jsonStr(*ci);
+    }
+    qs.push_back(']');
+  }
+
+  if (!m_Comments.empty()) {
+    qs += ",\"Comments\":[";
+    for (CQCommentList::const_iterator ci=m_Comments.begin(); ci != m_Comments.end(); ci++) {
+      if (ci != m_Comments.begin()) qs.push_back(',');
       qs += jsonStr(*ci);
     }
     qs.push_back(']');

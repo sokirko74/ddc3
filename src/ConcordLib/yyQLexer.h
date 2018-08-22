@@ -274,7 +274,9 @@ int yyFlexLexer::yylex()
 #define Q_REGOPT 3
 #define Q_REGREP 4
 #define Q_XPIPE 5
-#define Q_MATCHID 6
+#define Q_CCOMMENT_BLOCK 6
+#define Q_CCOMMENT_LINE 7
+#define Q_MATCHID 8
 
 #endif
 
@@ -381,9 +383,9 @@ static int yy_flex_strlen (yyconst char * );
 #undef YY_DECL
 #endif
 
-#line 241 "yyQLexer.l"
+#line 253 "yyQLexer.l"
 
 
-#line 388 "yyQLexer.h"
+#line 390 "yyQLexer.h"
 #undef yyqIN_HEADER
 #endif /* yyqHEADER_H */

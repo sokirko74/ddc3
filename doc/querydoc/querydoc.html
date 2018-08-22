@@ -23,6 +23,7 @@
 <li>
 <a href="#terminals">Terminal Symbols</a><ul>
 <li><a href="#term_common">Common Definitions</a></li>
+<li><a href="#term_COMMENT">Comments</a></li>
 <li><a href="#term_KEYWORD">Query Keywords</a></li>
 <li><a href="#term_MATCHID">Match-IDs</a></li>
 <li><a href="#term_REGEX">Regular Expressions</a></li>
@@ -68,7 +69,7 @@
 <h2><a name="overview">Overview</a></h2>
 <p>
 	This documentation describes the query language accepted by
-	DDC version 2.1.1.  Current sources for DDC should be available
+	DDC version 2.1.5.  Current sources for DDC should be available
 	from
 	<!--<a href="http://odo.dwds.de/code/viewvc.cgi/ddc/trunk/?root=dev">svn+ssh://odo.dwds.de/home/svn/dev/ddc/trunk</a>.-->
 	<a href="http://sourceforge.net/projects/ddc-concordance">http://sourceforge.net/projects/ddc-concordance</a>.
@@ -1190,6 +1191,12 @@
 <tr>
 <td></td>
 <td></td>
+<td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_q_filters">q_filters</a></span> <span class="ruleNonterminal"><a href="#rule_q_comment">q_comment</a></span> </td>
+<td class="ruleComment">/* ... query comment (parsed) */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
 <td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_q_filters">q_filters</a></span> <span class="ruleNonterminal"><a href="#rule_q_flag">q_flag</a></span> </td>
 <td class="ruleComment">/* ... query flag */</td>
 </tr>
@@ -1198,6 +1205,43 @@
 <td></td>
 <td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_q_filters">q_filters</a></span> <span class="ruleNonterminal"><a href="#rule_q_filter">q_filter</a></span> </td>
 <td class="ruleComment">/* ... query filter */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td><b>;</b></td>
+</tr>
+<tr></tr>
+<tr>
+<td><b><a name="rule_q_comment">q_comment</a></b></td>
+<td>::=</td>
+<td></td>
+<td class="ruleCommentTop">/* Query comment */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS1">
+<span class="ruleTerminal">/*</span> <span class="ruleXTerminal"><a href="#term_COMMENT">COMMENT</a></span> <span class="ruleTerminal">*/</span> </td>
+<td class="ruleComment">/* C-style block comment (ignored by scanner) */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleTerminal">//</span> <span class="ruleXTerminal"><a href="#term_COMMENT">COMMENT</a></span> <span class="ruleTerminal">\n</span> </td>
+<td class="ruleComment">/* C-style line comment (ignored by scanner) */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleTerminal">#COMMENT</span> <span class="ruleNonterminal"><a href="#rule_symbol">symbol</a></span> </td>
+<td class="ruleComment">/* Parsed comment as a single symbol (alias: #CMT) */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleTerminal">#COMMENT</span> <span class="ruleTerminal">[</span> <span class="ruleNonterminal"><a href="#rule_symbol">symbol</a></span> <span class="ruleTerminal">]</span> </td>
+<td class="ruleComment">/* Parsed comment with optional brackets (alias: #CMT) */</td>
 </tr>
 <tr>
 <td></td>
@@ -3106,6 +3150,21 @@ regex_modifier	[dgimsx]
 </pre>
 </div>
 <!--/terminals:common--><!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ --><div class="subsection">
+<h3><a name="term_COMMENT">Comments</a></h3>
+<pre>
+ "/*".*"*/"                           /* C-style block comment */
+ "//".*"\n"                           /* C-style line comment */
+</pre>
+<p>
+	 The scanner supports C-style block-comments ("<tt>/*...*/</tt>") and line-comments (<tt>//...</tt>)
+	 from its default start-state (e.g. pretty much everywhere except within regular expressions, date-strings, or expansion chains).
+	 C-style comments will be ignored by the scanner and thus are <b>not</b> recoverable from a parsed query object.
+	 If you need to pass comments through the query parser, use the
+	 <a class="ruleTerminal" href="#rule_q_comment">#COMMENT</a> keyword instead.
+	 Since v2.1.15.
+       </p>
+</div>
+<!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ --><div class="subsection">
 <h3><a name="term_KEYWORD">Query Keywords</a></h3>
 <pre>
 (?i:near)
@@ -3116,6 +3175,7 @@ regex_modifier	[dgimsx]
 (?i:(file|doc)?id)
 (?i:(file|doc)_?(name)?)
 (?i:date)
+(?i:#(comment|cmt))
 (?i:#(co?n?te?xt?|n))
 (?i:#(with)?in)
 (?i:#(sep(arate)?|nojoin)(_hits)?)
@@ -3181,7 +3241,7 @@ regex_modifier	[dgimsx]
 <!--/terminals:match-ids--><!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ --><a name="term_REGOPT"></a><a name="term_NEG_REGEX"></a><a name="term_SEARCH_REPLACE_REGEX"></a><div class="subsection">
 <h3><a name="term_REGEX">Regular Expressions</a></h3>
 <pre>
-  "/"{regex_text}"/"{regex_modifier}*			/* slash-quoted regex, with option modifiers */
+ "/"{regex_text}"/"{regex_modifier}*			/* slash-quoted regex, with option modifiers */
  "!/"{regex_text}"/"{regex_modifier}*			/* negated regex (complement) */
  "s/"{regex_text}"/"{regex_text}"/"{regex_modifier}*	/* search-and-replace regex (for count-by) */
 </pre>
@@ -3952,7 +4012,7 @@ ot-asi2 /* hyponyms/subclasses (depth=2); alias=ot-sub2 */
   </body></div>
 <div class="footers">
 <div class="footer_sig">
-<address><a href="mailto:jurish@bbaw.de">jurish@bbaw.de</a></address>Last modified: Fri, 09 Mar 2018 10:45:15 +0100</div>
+<address><a href="mailto:jurish@bbaw.de">jurish@bbaw.de</a></address>Last modified: Wed, 22 Aug 2018 15:05:33 +0200</div>
 <div class="footer_linkbar"><p class="nopad"><a class="navLink" href="/">Root</a><a class="navLink" href="./">Back</a><span class="navLinkDisabled">Help</span></p></div>
 <p class="dummy"></p>
 </div>

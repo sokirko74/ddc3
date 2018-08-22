@@ -1,6 +1,6 @@
 /*-*- Mode: Flex; c-basic-offset: 8 -*-*/
 /*
-//  Copyright 2011-2017 by Bryan Jurish
+//  Copyright 2011-2018 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -94,7 +94,7 @@ index_name      ({index_char}|{symbol_cescape})+
 sq_text         ([^\']|{symbol_cescape})*
 
  /* regexes */
-regex_text      ((\\.)|[^\\/])*
+regex_text      ((\\.)|[^*])((\\.)|[^\\/])*
 regex_modifier	[dgimsx]
 
 /*======================================================================
@@ -108,6 +108,8 @@ regex_modifier	[dgimsx]
 %x Q_REGOPT
 %x Q_REGREP
 %x Q_XPIPE
+%x Q_CCOMMENT_BLOCK
+%x Q_CCOMMENT_LINE
 
  /* Q_MATCHID: non-exclusive state for expecting match-IDs
   * - ignores (hyphenated) bareword symbols
@@ -119,6 +121,15 @@ regex_modifier	[dgimsx]
  * Rules
  */
 %%
+
+ /* C-style comments */
+<INITIAL>"/*"			{ BEGIN(Q_CCOMMENT_BLOCK); }
+<Q_CCOMMENT_BLOCK>"*/"		{ BEGIN(INITIAL); }
+<Q_CCOMMENT_BLOCK>.		{ ; }
+
+<INITIAL>"//"			{ BEGIN(Q_CCOMMENT_LINE); }
+<Q_CCOMMENT_LINE>"\n"		{ BEGIN(INITIAL); }
+<Q_CCOMMENT_LINE>.		{ ; }
 
  /* operators */
 "&&"				{ return OP_BOOL_AND; }
@@ -139,6 +150,7 @@ regex_modifier	[dgimsx]
 <Q_DATE>""/.			{ BEGIN(INITIAL); }
 
  /* query operators */
+(?i:#(comment|cmt))			{ return KW_COMMENT; }
 (?i:#(co?n?te?xt?|n))			{ return CNTXT; }
 (?i:#(with)?in)				{ return WITHIN; }
 (?i:#(sep(arate)?|nojoin)(_hits)?)	{ return SEPARATE_HITS; }

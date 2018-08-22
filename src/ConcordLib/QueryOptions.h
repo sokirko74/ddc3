@@ -1,6 +1,6 @@
 //-*- Mode: C++ -*-
 //  DDC originally by Alexey Sokirko
-//  Changes and modifications 2011-2016 by Bryan Jurish
+//  Changes and modifications 2011-2018 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -30,6 +30,7 @@ class CQueryCompiler;  //-- forward decl
 
 typedef vector<CQFilter*> 	CQFilterList;
 typedef vector<string>    	CQSubcorpusList;
+typedef list<string>    	CQCommentList;
 
 //======================================================================
 /*!
@@ -68,6 +69,9 @@ public:
 
   //! selected subcorpora for this query
   CQSubcorpusList m_Subcorpora;
+
+  //! user comments for this query
+  CQCommentList m_Comments;
 
 public:
   //------------------------------------------------------------
