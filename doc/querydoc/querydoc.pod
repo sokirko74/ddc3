@@ -5,7 +5,7 @@
 =head2 Overview
 
 This documentation describes the query language accepted by
-DDC version 2.1.5.  Current sources for DDC should be available
+DDC version 2.1.15.  Current sources for DDC should be available
 from
 http://sourceforge.net/projects/ddc-concordance.
 
@@ -272,8 +272,7 @@ Comments may appear after each rule in C notation
                    ;
  
  q_comment       ::=                                    /*-- Query comment --*/
-                     /* COMMENT */                      /* C-style block comment (ignored by scanner) */
-                   | // COMMENT \n                      /* C-style line comment (ignored by scanner) */
+                     #[ COMMENT ]                       /* Block comment (ignored by scanner) */
                    | #COMMENT symbol                    /* Parsed comment as a single symbol (alias: #CMT) */
                    | #COMMENT [ symbol ]                /* Parsed comment with optional brackets (alias: #CMT) */
                    ;
@@ -701,17 +700,19 @@ The following macros are defined for the underlying scanner:
   /* regular expressions */
  regex_text      ((\\.)|[^\\/])*
  regex_modifier	[dgimsx]
+ 
+  /* lexer comments */
+ comment_text	(\\.|[^\]])*
 
 
 
 =head3 Comments
 
-  "/*".*"*/"                           /* C-style block comment */
-  "//".*"\n"                           /* C-style line comment */
+  "#["{comment_text}"]"              /* block comment, ignored by scanner */
 
-The scanner supports C-style block-comments ("/*...*/") and line-comments (//...)
-from its default start-state (e.g. pretty much everywhere except within regular expressions, date-strings, or expansion chains).
-C-style comments will be ignored by the scanner and thus are not recoverable from a parsed query object.
+The scanner supports block comments of the form "#[...]"
+pretty much everywhere except within regular expressions, date-strings, or expansion chains).
+These block comments will be ignored by the scanner and thus are not recoverable from a parsed query object.
 If you need to pass comments through the query parser, use the
 #COMMENT keyword instead.
 Since v2.1.15.

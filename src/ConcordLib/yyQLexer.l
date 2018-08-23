@@ -94,8 +94,11 @@ index_name      ({index_char}|{symbol_cescape})+
 sq_text         ([^\']|{symbol_cescape})*
 
  /* regexes */
-regex_text      ((\\.)|[^*])((\\.)|[^\\/])*
+regex_text      ((\\.)|[^\\/])*
 regex_modifier	[dgimsx]
+
+ /* lexer comments */
+comment_text	(\\.|[^\]])*
 
 /*======================================================================
  * Start States
@@ -108,12 +111,11 @@ regex_modifier	[dgimsx]
 %x Q_REGOPT
 %x Q_REGREP
 %x Q_XPIPE
-%x Q_CCOMMENT_BLOCK
-%x Q_CCOMMENT_LINE
+%x Q_COMMENT
 
  /* Q_MATCHID: non-exclusive state for expecting match-IDs
   * - ignores (hyphenated) bareword symbols
-  * - used for parsing e.g. count(..) #by[$x=1+1] --> count(...) #by[$x =1 + 1])
+  * - used for parsing e.g. count(..) #by[$x=1+1] --> count(...) #by[$x =1 + 1]
   */
 %s Q_MATCHID
 
@@ -122,14 +124,10 @@ regex_modifier	[dgimsx]
  */
 %%
 
- /* C-style comments */
-<INITIAL>"/*"			{ BEGIN(Q_CCOMMENT_BLOCK); }
-<Q_CCOMMENT_BLOCK>"*/"		{ BEGIN(INITIAL); }
-<Q_CCOMMENT_BLOCK>.		{ ; }
-
-<INITIAL>"//"			{ BEGIN(Q_CCOMMENT_LINE); }
-<Q_CCOMMENT_LINE>"\n"		{ BEGIN(INITIAL); }
-<Q_CCOMMENT_LINE>.		{ ; }
+ /* block-comments */
+"#["				{ yy_push_state(Q_COMMENT); }
+<Q_COMMENT>"]"			{ yy_pop_state(); }
+<Q_COMMENT>{comment_text}	{ ; }
 
  /* operators */
 "&&"				{ return OP_BOOL_AND; }
@@ -186,13 +184,13 @@ regex_modifier	[dgimsx]
 
  /* regexes */
 "!/"{regex_text}"/"/{regex_modifier}		{ yytext+=2; yyleng-=3; BEGIN(Q_REGOPT); return NEG_REGEX; /* negated regex, +modifiers */ }
-"!/"{regex_text}"/"				{ yytext+=2; yyleng-=3;                          return NEG_REGEX; /* negated regex, -modifiers */ }
+"!/"{regex_text}"/"				{ yytext+=2; yyleng-=3;                  return NEG_REGEX; /* negated regex, -modifiers */ }
 "/"{regex_text}"/"/{regex_modifier}		{ yytext++;  yyleng-=2; BEGIN(Q_REGOPT); return REGEX; /* slash-quoted regex, +modifiers */ }
-"/"{regex_text}"/"				{ yytext++;  yyleng-=2;                          return REGEX; /* slash-quoted regex, -modifiers */ }
+"/"{regex_text}"/"				{ yytext++;  yyleng-=2;                  return REGEX; /* slash-quoted regex, -modifiers */ }
 "s/"{regex_text}"/"				{ yytext+=2; yyleng-=3; BEGIN(Q_REGREP); return REGEX_SEARCH;  /* search-replace pattern */ }
 <Q_REGREP>{regex_text}"/"/{regex_modifier}	{            yyleng--;  BEGIN(Q_REGOPT); return REGEX_REPLACE; /* search-replace replacement, +modifiers */ }
-<Q_REGREP>{regex_text}"/"			{            yyleng--;  BEGIN(INITIAL);  	 return REGEX_REPLACE; /* search-replace replacement, -modifiers */ }
-<Q_REGOPT>{regex_modifier}+			{                       BEGIN(INITIAL);          return REGOPT; }
+<Q_REGREP>{regex_text}"/"			{            yyleng--;  BEGIN(INITIAL);  return REGEX_REPLACE; /* search-replace replacement, -modifiers */ }
+<Q_REGOPT>{regex_modifier}+			{                       BEGIN(INITIAL);  return REGOPT; }
 
  /* punctuation */
 "#="				{ return HASH_EQUAL; /* hash+equal: exact distance */ }

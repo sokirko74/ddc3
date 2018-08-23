@@ -5,7 +5,7 @@ v2.1.15-pre1 WIP moocow
 	  - comment support for DDC::XS(ok), DDC::PP
 	  - icinga check support for new qtavgs, xtavgs, nexpand
 	* added query language comment support, documented
-	  - C-Style /*...*/ and //..."\n" lexer comments (ignored by lexer; not recoverable from parsed query)
+	  - block-comments "#[...]" (ignored by lexer; not recoverable from parsed query)
           - DDC-style pseudo flag #COMMENT '...', #COMMENT['...']: recoverable from parsed query, but content must be escaped as a symbol
 	* new class DDCTimeAvg in CommonLib/ddcTime.(h|cpp)
 	  - load-average style exponential moving average with delays of 5,15,60 minutes

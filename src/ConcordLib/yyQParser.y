@@ -339,6 +339,7 @@ count_filter:
 	|	count_sample			{ $$=$1; }
 	|	count_limit			{ $$=$1; }
 	|	count_sort			{ $$=$1; }
+	|	q_comment			{ $$=$1; }
 	;
 
 count_by:
@@ -389,11 +390,16 @@ query_conditions:
   */
 q_filters:
 		/* empty */			{ $$=NULL; }
-	|	q_filters q_flag		{ $$=NULL; }
 	|	q_filters q_comment		{ $$=NULL; }
+	|	q_filters q_flag		{ $$=NULL; }
 	|	q_filters q_filter		{ $$=NULL; _qc->m_qOptions.m_QFilters.push_back($2); }
 	;
 
+
+q_comment:
+		KW_COMMENT symbol		{ $$=NULL; _qc->m_qOptions.m_Comments.push_back(*$2); }
+	|	KW_COMMENT '[' symbol ']'	{ $$=NULL; _qc->m_qOptions.m_Comments.push_back(*$3); }
+	;
 
 
 q_flag:	
@@ -415,11 +421,6 @@ qf_subcorpora:
 	|	qf_subcorpora ',' s_subcorpus	{ _qc->m_qOptions.m_Subcorpora.push_back(*$3); $$ = $1; }
 	;
 
-
-q_comment:
-		KW_COMMENT symbol		{ $$=NULL; _qc->m_qOptions.m_Comments.push_back(*$2); };
-	|	KW_COMMENT '[' symbol ']'	{ $$=NULL; _qc->m_qOptions.m_Comments.push_back(*$3); };
-	;
 
 q_filter:
 		qf_has_field	{ $$=$1; }
@@ -547,7 +548,7 @@ q_clause:
 		qc_basic		%prec OP_CLAUSE_BASIC	{ $$ = $1; }
 	|	qc_boolean		%prec OP_CLAUSE_BOOL	{ $$ = $1; }
 	|	qc_concat		%prec OP_CLAUSE_CONCAT	{ $$ = $1; }
-	|	qc_matchid		%prec OP_CLAUSE_MATCHID	{ $$ = $1; } 
+	|	qc_matchid		%prec OP_CLAUSE_MATCHID	{ $$ = $1; }
 	;
 
 qc_matchid:

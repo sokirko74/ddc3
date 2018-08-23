@@ -11,7 +11,7 @@
     <section name="overview" title="Overview">
       <p>
 	This documentation describes the query language accepted by
-	DDC version 2.1.5.  Current sources for DDC should be available
+	DDC version 2.1.15.  Current sources for DDC should be available
 	from
 	<!--<a href="http://odo.dwds.de/code/viewvc.cgi/ddc/trunk/?root=dev">svn+ssh://odo.dwds.de/home/svn/dev/ddc/trunk</a>.-->
 	<a href="http://sourceforge.net/projects/ddc-concordance">http://sourceforge.net/projects/ddc-concordance</a>.
@@ -680,15 +680,10 @@
 
 	  <!--~~~~~~~~ RULES: q_comment -->
           <rule lhs="q_comment" cmt="Query comment">
-	    <rhs cmt="C-style block comment (ignored by scanner)">
-	      <t>/*</t>
+	    <rhs cmt="Block comment (ignored by scanner)">
+	      <t>#[</t>
 	      <xt>COMMENT</xt>
-	      <t>*/</t>
-	    </rhs>
-	    <rhs cmt="C-style line comment (ignored by scanner)">
-	      <t>//</t>
-	      <xt>COMMENT</xt>
-	      <t>\n</t>
+	      <t>]</t>
 	    </rhs>
             <rhs cmt="Parsed comment as a single symbol (alias: #CMT)">
               <t>#COMMENT</t>
@@ -1711,6 +1706,9 @@ sq_text         ([^\']|{symbol_cescape})*
  /* regular expressions */
 regex_text      ((\\.)|[^\\/])*
 regex_modifier	[dgimsx]
+
+ /* lexer comments */
+comment_text	(\\.|[^\]])*
 </pre>
       </subsection>
       <!--/terminals:common-->
@@ -1718,13 +1716,12 @@ regex_modifier	[dgimsx]
       <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
       <subsection name="term_COMMENT" title="Comments">
 <pre>
- "/*".*"*/"                           /* C-style block comment */
- "//".*"\n"                           /* C-style line comment */
+ "#["{comment_text}"]"              /* block comment, ignored by scanner */
 </pre>
        <p>
-	 The scanner supports C-style block-comments ("<tt>/*...*/</tt>") and line-comments (<tt>//...</tt>)
-	 from its default start-state (e.g. pretty much everywhere except within regular expressions, date-strings, or expansion chains).
-	 C-style comments will be ignored by the scanner and thus are <b>not</b> recoverable from a parsed query object.
+	 The scanner supports block comments of the form "<tt>#[</tt>...<tt>]</tt>"
+	 pretty much everywhere except within regular expressions, date-strings, or expansion chains).
+	 These block comments will be ignored by the scanner and thus are <b>not</b> recoverable from a parsed query object.
 	 If you need to pass comments through the query parser, use the
 	 <a class="ruleTerminal" href="#rule_q_comment">#COMMENT</a> keyword instead.
 	 Since v2.1.15.
