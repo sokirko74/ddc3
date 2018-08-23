@@ -174,7 +174,7 @@ Size of the time window for tracking moving average statistics, in seconds.
 Used by DDC E<lt>= v2.1.14 for tracking average query times (C<qtavg>) using
 a simple moving average.  As of DDC v2.1.15, average query times are
 tracked using an efficent exponential moving average with delay intervals (C<qtavgs>)
-of 5, 30, and 60 minutes.
+of 5, 15, and 60 minutes.
 
 Since v2.1.1, until v2.1.14.
 

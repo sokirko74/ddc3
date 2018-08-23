@@ -140,20 +140,25 @@
   &quot;nqueries&quot;:18,                        //-- number of served queries (&gt;= v2.1.0)
   &quot;nerrors&quot;:0,                          //-- number of client errors (&gt;= v2.1.0)
   &quot;nslow&quot;:0,                            //-- number of slow queries (&gt;= v2.1.0)
-  &quot;qtavg&quot;:0.00284271,                   //-- average query time over last StatsWindow seconds (&gt;= v2.1.1)
+  &quot;qtavg&quot;:0.1383,                       //-- average query time over server lifetime (&gt;= v2.1.15) or over last StatsWindow seconds (&gt;= v2.1.1)
+  &quot;xtavg&quot;:0.0063,                       //-- average term-expansion time over server lifetem (&gt;= v2.1.15)
+  &quot;qtavgs&quot;:[0.1735,0.0685,0.0183],      //-- exponential rolling average query times for 5,15,60 minutes (&gt;= v2.1.15)
+  &quot;xtavgs&quot;:[0.0103,0.0037,0.0009],      //-- exponential rolling average term-expansion times for 5,15,60 minutes (&gt;= v2.1.15)
   &quot;nworkers&quot;:4,                         //-- number of client worker-threads (&gt;= v2.1.0)
   &quot;hitstrings&quot;:&quot;parallel&quot;,              //-- hit-retrieval mode (&quot;serial&quot; or &quot;parallel&quot;, branch only, &gt;= v2.1.12)
   &quot;memkb&quot;:68152,                        //-- memory resident set size in kb (&gt;= v2.0.49, linux only)
   &quot;vmem&quot;:{                              //-- virtual memory statistics from /proc/[PID]/status in kb (see proc(5), &gt;= v2.1.8)
-          &quot;peak&quot;:527788,                //   - VmPeak: peak virtual memory size (address space)
-          &quot;size&quot;:527788,                //   - VmSize: virtual memory size (address space)
-          &quot;hwm&quot;:68152,                  //   - VmHWM: peak resident set size (&quot;high water mark&quot;)
-          &quot;rss&quot;:68152,                  //   - VmRSS: resident set size
-          &quot;data&quot;:101416,                //   - VmData: size of data segment
+          &quot;peak&quot;:847100,                //   - VmPeak: peak virtual memory size (address space)
+          &quot;size&quot;:799100,                //   - VmSize: virtual memory size (address space)
+          &quot;hwm&quot;:270112,                 //   - VmHWM: peak resident set size (&quot;high water mark&quot;)
+          &quot;rss&quot;:143740,                 //   - VmRSS: resident set size (=RssAnon+RssFile+RssShmem)
+          &quot;data&quot;:516540,                //   - VmData: size of data segment
           &quot;stk&quot;:132,                    //   - VmStk: size of stack segment
-          &quot;exe&quot;:3160,                   //   - VmExe: size of text (program) segment
-          &quot;lib&quot;:13492,                  //   - VmLib: shared library code size
-          &quot;swap&quot;:0                      //   - VmSwap: swapped-out virtual memory size, not including shmem
+          &quot;exe&quot;:3280,                   //   - VmExe: size of text (program) segment
+          &quot;lib&quot;:13700,                  //   - VmLib: shared library code size
+          &quot;swap&quot;:0,                     //   - VmSwap: swapped-out virtual memory size, not including shmem
+          &quot;file&quot;:79852,                 //   - RssFile: size of resident file mappings (&gt;= v2.1.13)
+          &quot;anon&quot;:63888                  //   - RssFile: size of resident anonymous memory (&gt;= v2.1.13)
          },
   &quot;navcachesize&quot;:512,                   //-- size of navigation hint cache (branch servers only, &gt;= v2.1.9)
   &quot;navcachestep&quot;:1000,                  //-- navigation hint cache step-size (branch only, &gt;= v2.1.11)

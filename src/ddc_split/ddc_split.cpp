@@ -86,7 +86,7 @@ int main(int argc, char* argv[])
     else if (s=="--n-corpora" || s=="-n") {
       ++argi;
       if (argi < argc)
-	n_splits = strotol(argv[argi],NULL,0);
+	n_splits = strtol(argv[argi],NULL,0);
     }
     else if (s=="--output" || s=="--outfmt" || s=="-o") {
       ++argi;

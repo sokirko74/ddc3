@@ -232,8 +232,9 @@ void CDDCLeafServer::handle__status(string &Result, int timeout, bool verbose)
 	      + "\"nexpand\":" + Format("%zd", m_ServerStats.m_nExpand) + ",\n\t"
 	      + "\"nerrors\":" + Format("%zd", m_ServerStats.m_nErrors) + ",\n\t"
 	      + "\"nslow\":" + Format("%zd", m_ServerStats.m_nSlow) + ",\n\t"
-	      + "\"qtavg\":" + Format("%g", m_ServerStats.m_qTimes.tAverage()) + ",\n\t" //-- compat
+	      + "\"qtavg\":" + Format("%g", m_ServerStats.m_qTimes.Average()) + ",\n\t" //-- pseudo-compat
 	      + "\"qtavgs\":" + m_ServerStats.m_qTimes.toJsonArray() + ",\n\t"
+	      + "\"xtavg\":" + Format("%g", m_ServerStats.m_qTimes.Average()) + ",\n\t"	      
 	      + "\"xtavgs\":" + m_ServerStats.m_xTimes.toJsonArray() + ",\n\t"
 	      + "\"nworkers\":" + Format("%zd", m_nWorkers) + ",\n\t"
 	      + "\"memkb\":" + Format("%zd", pms.VmRSS) + ",\n\t" //-- compat

@@ -551,8 +551,9 @@ void CDDCBranchServer::handle__status(string &Result, int timeout, bool verbose)
 	      + "\"nexpand\":" + Format("%zd", m_ServerStats.m_nExpand) + ",\n"	      
 	      + "\"nerrors\":" + Format("%zd", m_ServerStats.m_nErrors) + ",\n"
 	      + "\"nslow\":" + Format("%zd", m_ServerStats.m_nSlow) + ",\n"
-	      + "\"qtavg\":" + Format("%g", m_ServerStats.m_qTimes.tAverage()) + ",\n" //-- compat
+	      + "\"qtavg\":" + Format("%g", m_ServerStats.m_qTimes.Average()) + ",\n" //-- pseudo-compat
 	      + "\"qtavgs\":" + m_ServerStats.m_qTimes.toJsonArray() + ",\n"
+	      + "\"xtavg\":" + Format("%g", m_ServerStats.m_xTimes.Average()) + ",\n" //-- pseudo-compat
 	      + "\"xtavgs\":" + m_ServerStats.m_xTimes.toJsonArray() + ",\n"
 	      + "\"nworkers\":" + Format("%zd", m_nWorkers) + ",\n"
 	      + "\"hitstrings\":\"" + (m_bHitStringsParallel ? "parallel" : "serial") + "\",\n"

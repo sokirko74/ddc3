@@ -67,7 +67,7 @@
 .\" ========================================================================
 .\"
 .IX Title "DDC_SERVER.OPT 5"
-.TH DDC_SERVER.OPT 5 "2018-08-22" "2.1.15-pre1" "DDC Corpus Indexing System"
+.TH DDC_SERVER.OPT 5 "2018-08-23" "2.1.15-rc1" "DDC Corpus Indexing System"
 .\" For nroff, turn off justification.  Always turn off hyphenation; it makes
 .\" way too many mistakes in technical documents.
 .if n .ad l
@@ -214,7 +214,7 @@ Size of the time window for tracking moving average statistics, in seconds.
 Used by \s-1DDC\s0 <= v2.1.14 for tracking average query times (\f(CW\*(C`qtavg\*(C'\fR) using
 a simple moving average.  As of \s-1DDC\s0 v2.1.15, average query times are
 tracked using an efficent exponential moving average with delay intervals (\f(CW\*(C`qtavgs\*(C'\fR)
-of 5, 30, and 60 minutes.
+of 5, 15, and 60 minutes.
 .PP
 Since v2.1.1, until v2.1.14.
 .SS "Client-Thread and Parallelization Options"

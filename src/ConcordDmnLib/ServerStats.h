@@ -28,7 +28,7 @@
 
 /** default delays for CDDCServerStats exponential moving averages */
 //#define DDC_SERVER_EMA_DELAYS 60,300,900  /* load-average style: 1,5,15 minutes*/
-#define DDC_SERVER_EMA_DELAYS 300,1800,3600 /* long window: 5,30,60 minutes */
+#define DDC_SERVER_EMA_DELAYS 300,900,3600  /* long window: 5,15,60 minutes */
 
 /** generic class for tracking server statistics */
 struct CDDCServerStats

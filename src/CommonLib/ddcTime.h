@@ -342,7 +342,7 @@ struct DDCTimeAvg
 
     /** alias used by CDDCLeafServer::handle__status() to synchronize times: causes moving-averages to decay */
     inline void Scrub()
-    { Append(0); };
+    { Append(0); --m_n; };
 
     //----------------------------------------------------------------------
     // access
