@@ -32,7 +32,7 @@ italicized lower-case hyperlinks.
 Literal terminal symbols are typeset in green monospace,
 and special terminal symbols appear as
 ITALICIZED UPPER-CASE HYPERLINKS.
-Comments may appear after each rule in C notation
+Comments in this document may appear after each rule in C notation
 /* like this */.
 
 
@@ -420,6 +420,7 @@ Comments may appear after each rule in C notation
                      | count_sample                                            /* histogram sample size */
                      | count_limit                                             /* histogram bin limit (only used by keys() queries) */
                      | count_sort                                              /* histogram sort order with optional limits */
+                     | q_comment                                               /* parsed comments are allowed */
                      ;
  
  count_by          ::=                                                         /*-- Select count-query histogram keys (metadata tuples) --*/

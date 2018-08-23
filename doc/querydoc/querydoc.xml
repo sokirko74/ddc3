@@ -39,7 +39,7 @@
 	Literal terminal symbols are typeset in <span class="ruleTerminal">green monospace</span>,
 	and special terminal symbols appear as
 	<span class="ruleXTerminal"><a name="ex_xterm"><a href="#ex_xterm">ITALICIZED UPPER-CASE HYPERLINKS</a></a></span>.
-	Comments may appear after each rule in C notation
+	Comments in this document may appear after each rule in C notation
 	<span class="ruleComment">/* like this */</span>.
       </p>
     </section>
@@ -1138,6 +1138,9 @@
 	    </rhs>
 	    <rhs cmt="histogram sort order with optional limits">
 	      <n>count_sort</n>
+	    </rhs>
+	    <rhs cmt="parsed comments are allowed">
+	      <n>q_comment</n>
 	    </rhs>
 	  </rule>
 
