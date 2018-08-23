@@ -51,10 +51,10 @@ struct CDDCServerStats
     /** number of slow requests */
     size_t m_nSlow;
 
-    /** average query times over fixed interval (exponential moving averages at 5,30,60 minutes) */
+    /** average query times over fixed interval (exponential moving averages at 5,15,60 minutes) */
     DDCTimeAvg m_qTimes;
 
-    /** average expansion times over fixed interval (exponential moving averages at 5,30,60 minutes) */
+    /** average expansion times over fixed interval (exponential moving averages at 5,15,60 minutes) */
     DDCTimeAvg m_xTimes;
 
     //--------------------------------------------------------------
