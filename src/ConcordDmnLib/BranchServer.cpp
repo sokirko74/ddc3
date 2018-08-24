@@ -1292,22 +1292,27 @@ NetworkErrorsEnum CDDCBranchServer::GetHitStringsFromOneCorpus(CHost& Host,
 bool CDDCBranchServer::ReadPossibleHosts(const string& InputQuery, string& CleanQuery, DwordVector& PossibleHosts)
 {
     PossibleHosts.reserve(m_Hosts.size());
-    int Starter;
-    for (Starter  = InputQuery.length()-1;   Starter >= 0; Starter--) {
-	if ((BYTE)InputQuery[Starter] == ':')
-	    break;
-	else if ((!is_english_alpha((BYTE)InputQuery[Starter]) && !strchr("_-1234567890,# \t", (BYTE)InputQuery[Starter]))
-		 ||
-		 (Starter == 0)) {
-	    for (size_t i=0; i<m_Hosts.size(); i++)
-		PossibleHosts.push_back(i);
-	    CleanQuery = InputQuery;
-	    return true;
-	}
-    }
-    assert (Starter != string::npos);
+    CleanQuery = InputQuery;
 
-    string s = InputQuery.substr(Starter+1);
+    //-- scan backwards for ":CORPUS_LIST"
+    size_t Beg;
+    for (Beg=InputQuery.rfind(':'); Beg != string::npos; Beg=InputQuery.rfind(':',Beg-1)) {
+	    if (Beg==0 || isspace(InputQuery[Beg-1])) break;
+    }
+    if (Beg==string::npos || InputQuery[Beg] != ':') {
+	    //-- no corpus list found in input query: pass to all hosts
+	    for (size_t i=0; i < m_Hosts.size(); ++i)
+		    PossibleHosts.push_back(i);
+	    return true;
+    }
+
+    //-- find end of corpus list: scan forward from Beg for next whitespace character
+    size_t End = InputQuery.find_first_of(" \t\r\n",Beg+1);
+    CleanQuery.erase(Beg,End-Beg);
+    Trim(CleanQuery);
+
+    //-- read subcorpus labels from selected corpus-list substring
+    string s = InputQuery.substr(Beg+1, End-(Beg+1));
     Trim(s);
     if (s.empty()) return false;
     StringTokenizer tok(s.c_str(),", ");
@@ -1325,7 +1330,6 @@ bool CDDCBranchServer::ReadPossibleHosts(const string& InputQuery, string& Clean
 	PossibleHosts.push_back(j);
     }
 
-    CleanQuery = InputQuery.substr(0, Starter);
     if (PossibleHosts.size() >= MaxSubhostsSize) {
 	m_ErrorStr = Format("requested subcorpus set too large (%u >= %u)", PossibleHosts.size(), MaxSubhostsSize);
 	return false;

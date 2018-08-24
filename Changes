@@ -1,7 +1,10 @@
 ###-*- Mode: Change-Log; coding: utf-8; -*-
 
-v2.1.16 Fri, 24 Aug 2018 12:08:43 +0200 moocow
+v2.1.16 Fri, 24 Aug 2018 13:48:20 +0200 moocow
 	* added line-comments "#: ... \n"
+	* updated subcorpus-list parsing in CDDCBranchServer::ReadPossibleHosts()
+	  - otherwise query-final line-comments "#:foo" were getting parsed as subcorpus-lists by branch server
+	  - new heuristic hacks require corpus-lists to be whitespace-bounded and contain no whitespace themselves
 
 v2.1.15 Thu, 23 Aug 2018 15:57:32 +0200 moocow
 	* added query language comment support, documented
