@@ -18,6 +18,8 @@ h4 { margin-left: 32px; margin-right: 32px; }
 h5 { margin-left: 48px; margin-right: 48px; }
 h6 { margin-left: 64px; margin-right: 64px; }
 P,CENTER,CL,DIV,TD,TH,DL,DT,DIV,pre,code,samp { margin-left: 72px; margin-right: 72px; }
+UL {margin-left:72px;}
+UL#index, UL UL, UL P { margin-left:0px; }
 
 pre,code,samp {
         font-family: monospace;
