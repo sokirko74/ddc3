@@ -1318,6 +1318,12 @@ bool CDDCBranchServer::ReadPossibleHosts(const string& InputQuery, string& Clean
     StringTokenizer tok(s.c_str(),", ");
     while (tok()) {
 	string CorpusName = tok.val();
+	if (CorpusName.size()>=2 && CorpusName[0]=='\'' && CorpusName[CorpusName.size()-1]=='\'') {
+		//-- hack for single-quoted subcorpus labels
+		CorpusName.erase(CorpusName.size()-1,1);
+		CorpusName.erase(0,1);
+	}
+	CorpusName = unescapeCString(CorpusName);
 	size_t j=0;
 	for (; j<m_Hosts.size(); j++) {
 	    if (m_Hosts[j].m_CorpusName == CorpusName)

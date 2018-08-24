@@ -176,14 +176,6 @@ string CQueryOptions::toString()
     }
     qs += string(" ") + fs;
   }
-  if (!m_Subcorpora.empty()) {
-    string cs;
-    for (CQSubcorpusList::const_iterator ci=m_Subcorpora.begin(); ci != m_Subcorpora.end(); ci++) {
-      if (!cs.empty()) cs.push_back(',');
-      cs += string("'") + escapeChars(*ci,"\\'") + "'";
-    }
-    if (!cs.empty()) qs += string(" :") + cs;
-  }
   if (!m_Comments.empty()) {
     string cs;
     for (CQCommentList::const_iterator ci=m_Comments.begin(); ci != m_Comments.end(); ci++) {
@@ -191,6 +183,14 @@ string CQueryOptions::toString()
       cs += string("#CMT ") + sqString(*ci);
     }
     if (!cs.empty()) qs += string(" ") + cs;
+  }
+  if (!m_Subcorpora.empty()) {
+    string cs;
+    for (CQSubcorpusList::const_iterator ci=m_Subcorpora.begin(); ci != m_Subcorpora.end(); ci++) {
+      if (!cs.empty()) cs.push_back(',');
+      cs += string("'") + escapeChars(*ci,"\\'") + "'";
+    }
+    if (!cs.empty()) qs += string(" :") + cs;
   }
   return qs;
 }
@@ -227,19 +227,19 @@ string CQueryOptions::jsonData()
   }
   qs.push_back(']');
 
-  if (!m_Subcorpora.empty()) {
-    qs += ",\"Subcorpora\":[";
-    for (CQSubcorpusList::const_iterator ci=m_Subcorpora.begin(); ci != m_Subcorpora.end(); ci++) {
-      if (ci != m_Subcorpora.begin()) qs.push_back(',');
+  if (!m_Comments.empty()) {
+    qs += ",\"Comments\":[";
+    for (CQCommentList::const_iterator ci=m_Comments.begin(); ci != m_Comments.end(); ci++) {
+      if (ci != m_Comments.begin()) qs.push_back(',');
       qs += jsonStr(*ci);
     }
     qs.push_back(']');
   }
 
-  if (!m_Comments.empty()) {
-    qs += ",\"Comments\":[";
-    for (CQCommentList::const_iterator ci=m_Comments.begin(); ci != m_Comments.end(); ci++) {
-      if (ci != m_Comments.begin()) qs.push_back(',');
+  if (!m_Subcorpora.empty()) {
+    qs += ",\"Subcorpora\":[";
+    for (CQSubcorpusList::const_iterator ci=m_Subcorpora.begin(); ci != m_Subcorpora.end(); ci++) {
+      if (ci != m_Subcorpora.begin()) qs.push_back(',');
       qs += jsonStr(*ci);
     }
     qs.push_back(']');
