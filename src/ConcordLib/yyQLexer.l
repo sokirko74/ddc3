@@ -97,7 +97,7 @@ sq_text         ([^\']|{symbol_cescape})*
 regex_text      ((\\.)|[^\\/])*
 regex_modifier	[dgimsx]
 
- /* lexer comments */
+ /* lexer block-comments */
 comment_text	(\\.|[^\]])*
 
 /*======================================================================
@@ -128,6 +128,9 @@ comment_text	(\\.|[^\]])*
 "#["				{ yy_push_state(Q_COMMENT); }
 <Q_COMMENT>"]"			{ yy_pop_state(); }
 <Q_COMMENT>{comment_text}	{ ; }
+
+ /* line-comments */
+"#:"([^\n]*)			{ ; }
 
  /* operators */
 "&&"				{ return OP_BOOL_AND; }
