@@ -67,7 +67,7 @@
 .\" ========================================================================
 .\"
 .IX Title "DDC_FILES 5"
-.TH DDC_FILES 5 "2018-07-06" "2.1.15-rc1" "DDC Corpus Indexing System"
+.TH DDC_FILES 5 "2018-08-24" "2.1.16" "DDC Corpus Indexing System"
 .\" For nroff, turn off justification.  Always turn off hyphenation; it makes
 .\" way too many mistakes in technical documents.
 .if n .ad l
@@ -146,11 +146,11 @@ Index options, see \fIddc_opt\fR\|(5) for details.
 .PP
 .Vb 10
 \& \- version: >= v2.0.0
-\& \- resident: no
+\& \- resident: sometimes
 \& \- mmap: no
-\& \- popularity: compile\-time only
-\& \- size: ?
-\& \- growth: O(NDocs)
+\& \- popularity: compile\-time only (>= v2.1.15)
+\& \- size: small
+\& \- growth: O(NSources) ~ O(NDocs)
 \& \- format:
 \&   \- 1 souce filename per line
 \& \- accessor: CConcIndexator::GetFileNameForCorpusFileNames()
@@ -165,13 +165,18 @@ Index options, see \fIddc_opt\fR\|(5) for details.
 \&        A list of corpus files (CConcIndexator::m_CorpusFiles) is built upon a list of 
 \&        \eref source_file_def "source files" extracting everything from all source archives. 
 \&        So if a source list doesn\*(Aqt contain archives then the lists of corpus files and source files are
-\&        identical, otherwise it contains also files from archives, which are prefixed by the name of the archive .
+\&        (mostly) identical, otherwise it contains also files from archives, which are prefixed by the name of the archive .
 \&        For each corpus file DDC maintains a file \eref break_def "break", quick bibliographical information 
 \&        (class CBiblIndex) and full bibliographical information (class CBibliography).
 \&   #+END_SRC
 .Ve
 .PP
 List of corpus source files as passed to \fIddc_index\fR\|(1).
+Prior to ddc v2.1.15, this file-list was \fBalways\fR loaded into resident anonymous memory
+on project load.
+As of v2.2.15, the runtime utilities \f(CW\*(C`ddc_daemon\*(C'\fR, \f(CW\*(C`ddc_dump\*(C'\fR, \f(CW\*(C`ddc_simple\*(C'\fR, \f(CW\*(C`ddc_split\*(C'\fR, and \f(CW\*(C`ddc_stats\*(C'\fR
+no longer load this file.  The list of actually indexed source files remains available in
+\&\fI\s-1CORPUS\s0._con_files\fR.
 .PP
 \fI\s-1CORPUS\s0._con\fR
 .IX Subsection "CORPUS._con"
@@ -202,7 +207,7 @@ List of corpus source files as passed to \fIddc_index\fR\|(1).
 \&     A list of corpus files (CConcIndexator::m_CorpusFiles) is built upon a list of 
 \&     \eref source_file_def "source files" extracting everything from all source archives. 
 \&     So if a source list doesn\*(Aqt contain archives then the lists of corpus files and source files are
-\&     identical, otherwise it contains also files from archives, which are prefixed by the name of the archive .
+\&     (mostly) identical, otherwise it contains also files from archives, which are prefixed by the name of the archive .
 \&     For each corpus file DDC maintains a file \eref break_def "break", quick bibliographical information 
 \&     (class CBiblIndex) and full bibliographical information (class CBibliography).
 \&   #+END_SRC
@@ -218,6 +223,13 @@ As of v2.1.13, the runtime corpus file-list is stored in \fImmap()\fR\-friendlie
 \&\fI\s-1CORPUS\s0._con_files\fR and \fI\s-1CORPUS\s0._con_idx\fR, which see.
 For compatibility reasons, \s-1DDC\s0 v2.1.13 will fall back to loading its corpus-list from this file
 if \fI\s-1CORPUS\s0._con_files\fR and/or \fI\s-1CORPUS\s0._con_idx\fR are unvavailble.
+.PP
+Note that \fI\s-1CORPUS\s0._con\fR (rsp. \fI\s-1CORPUS\s0._con_files\fR) contains the list of files
+\&\fBactually indexed\fR by the \f(CW\*(C`ddc_index\*(C'\fR program, and thus may differ from the
+the list of original source files \fI\s-1CORPUS\s0.con\fR passed as input to \f(CW\*(C`ddc_index\*(C'\fR.
+In particular, source files from \fI\s-1CORPUS\s0.con\fR which contain no tokens
+or which could not be indexed for any other reason will have no corresponding entry
+in \fI\s-1CORPUS\s0._con*\fR.
 .PP
 \fI\s-1CORPUS\s0._con_files\fR
 .IX Subsection "CORPUS._con_files"

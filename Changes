@@ -1,9 +1,9 @@
 ###-*- Mode: Change-Log; coding: utf-8; -*-
 
-v2.1.15-pre1 WIP moocow
-	* TODO
-	  - comment support for DDC::XS(ok), DDC::PP
-	  - icinga check support for new qtavgs, xtavgs, nexpand
+v2.1.16 Fri, 24 Aug 2018 12:08:43 +0200 moocow
+	* added line-comments "#: ... \n"
+
+v2.1.15 Thu, 23 Aug 2018 15:57:32 +0200 moocow
 	* added query language comment support, documented
 	  - block-comments "#[...]" (ignored by lexer; not recoverable from parsed query)
           - DDC-style pseudo flag #COMMENT '...', #COMMENT['...']: recoverable from parsed query, but content must be escaped as a symbol

@@ -69,7 +69,7 @@
 <h2><a name="overview">Overview</a></h2>
 <p>
 	This documentation describes the query language accepted by
-	DDC version 2.1.15.  Current sources for DDC should be available
+	DDC version 2.1.16.  Current sources for DDC should be available
 	from
 	<!--<a href="http://odo.dwds.de/code/viewvc.cgi/ddc/trunk/?root=dev">svn+ssh://odo.dwds.de/home/svn/dev/ddc/trunk</a>.-->
 	<a href="http://sourceforge.net/projects/ddc-concordance">http://sourceforge.net/projects/ddc-concordance</a>.
@@ -1192,7 +1192,7 @@
 <td></td>
 <td></td>
 <td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_q_filters">q_filters</a></span> <span class="ruleNonterminal"><a href="#rule_q_comment">q_comment</a></span> </td>
-<td class="ruleComment">/* ... query comment (parsed) */</td>
+<td class="ruleComment">/* ... query comment */</td>
 </tr>
 <tr>
 <td></td>
@@ -1222,7 +1222,13 @@
 <td></td>
 <td></td>
 <td class="ruleRHS1">
-<span class="ruleTerminal">#[</span> <span class="ruleXTerminal"><a href="#term_COMMENT">COMMENT</a></span> <span class="ruleTerminal">]</span> </td>
+<span class="ruleTerminal">#:</span> <span class="ruleXTerminal"><a href="#term_COMMENT">COMMENT</a></span> <span class="ruleTerminal">\n</span> </td>
+<td class="ruleComment">/* Line comment (ignored by scanner) */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleTerminal">#[</span> <span class="ruleXTerminal"><a href="#term_COMMENT">COMMENT</a></span> <span class="ruleTerminal">]</span> </td>
 <td class="ruleComment">/* Block comment (ignored by scanner) */</td>
 </tr>
 <tr>
@@ -3155,15 +3161,18 @@ comment_text	(\\.|[^\]])*
 <!--/terminals:common--><!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ --><div class="subsection">
 <h3><a name="term_COMMENT">Comments</a></h3>
 <pre>
+ "#:"([^\n]*)                       /* line comment, ignored by scanner */		 
  "#["{comment_text}"]"              /* block comment, ignored by scanner */
 </pre>
 <p>
-	 The scanner supports block comments of the form "<tt>#[</tt>...<tt>]</tt>"
-	 pretty much everywhere except within regular expressions, date-strings, or expansion chains).
-	 These block comments will be ignored by the scanner and thus are <b>not</b> recoverable from a parsed query object.
+	 The scanner supports line comments introduced by "<tt>#:</tt>" and extending to the end of the current line,
+	 as well as block comments of the form "<tt>#[</tt>...<tt>]</tt>"
+	 from non-exclusive start-states
+	 (i.e. pretty much everywhere except within regular expressions, date-strings, or expansion chains).
+	 Such comments will be ignored by the scanner and thus are <b>not</b> recoverable from a parsed query object.
 	 If you need to pass comments through the query parser, use the
 	 <a class="ruleTerminal" href="#rule_q_comment">#COMMENT</a> keyword instead.
-	 Since v2.1.15.
+	 Since v2.1.16.
        </p>
 </div>
 <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ --><div class="subsection">
@@ -4014,7 +4023,7 @@ ot-asi2 /* hyponyms/subclasses (depth=2); alias=ot-sub2 */
   </body></div>
 <div class="footers">
 <div class="footer_sig">
-<address><a href="mailto:jurish@bbaw.de">jurish@bbaw.de</a></address>Last modified: Thu, 23 Aug 2018 13:51:11 +0200</div>
+<address><a href="mailto:jurish@bbaw.de">jurish@bbaw.de</a></address>Last modified: Fri, 24 Aug 2018 08:47:18 +0200</div>
 <div class="footer_linkbar"><p class="nopad"><a class="navLink" href="/">Root</a><a class="navLink" href="./">Back</a><span class="navLinkDisabled">Help</span></p></div>
 <p class="dummy"></p>
 </div>

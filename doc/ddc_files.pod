@@ -126,11 +126,11 @@ Index options, see L<ddc_opt(5)|ddc_opt> for details.
 =head3 CORPUS.con
 
  - version: >= v2.0.0
- - resident: no
+ - resident: sometimes
  - mmap: no
- - popularity: compile-time only
- - size: ?
- - growth: O(NDocs)
+ - popularity: compile-time only (>= v2.1.15)
+ - size: small
+ - growth: O(NSources) ~ O(NDocs)
  - format:
    - 1 souce filename per line
  - accessor: CConcIndexator::GetFileNameForCorpusFileNames()
@@ -145,12 +145,18 @@ Index options, see L<ddc_opt(5)|ddc_opt> for details.
 	A list of corpus files (CConcIndexator::m_CorpusFiles) is built upon a list of 
 	\ref source_file_def "source files" extracting everything from all source archives. 
 	So if a source list doesn't contain archives then the lists of corpus files and source files are
-	identical, otherwise it contains also files from archives, which are prefixed by the name of the archive .
+	(mostly) identical, otherwise it contains also files from archives, which are prefixed by the name of the archive .
 	For each corpus file DDC maintains a file \ref break_def "break", quick bibliographical information 
 	(class CBiblIndex) and full bibliographical information (class CBibliography).
    #+END_SRC
 
 List of corpus source files as passed to L<ddc_index(1)|ddc_index>.
+Prior to ddc v2.1.15, this file-list was B<always> loaded into resident anonymous memory
+on project load.
+As of v2.2.15, the runtime utilities C<ddc_daemon>, C<ddc_dump>, C<ddc_simple>, C<ddc_split>, and C<ddc_stats>
+no longer load this file.  The list of actually indexed source files remains available in
+L<F<CORPUS._con_files>|/CORPUS._con_files>.
+
 
 =cut
 
@@ -184,7 +190,7 @@ List of corpus source files as passed to L<ddc_index(1)|ddc_index>.
      A list of corpus files (CConcIndexator::m_CorpusFiles) is built upon a list of 
      \ref source_file_def "source files" extracting everything from all source archives. 
      So if a source list doesn't contain archives then the lists of corpus files and source files are
-     identical, otherwise it contains also files from archives, which are prefixed by the name of the archive .
+     (mostly) identical, otherwise it contains also files from archives, which are prefixed by the name of the archive .
      For each corpus file DDC maintains a file \ref break_def "break", quick bibliographical information 
      (class CBiblIndex) and full bibliographical information (class CBibliography).
    #+END_SRC
@@ -199,6 +205,13 @@ As of v2.1.13, the runtime corpus file-list is stored in mmap()-friendlier forma
 F<CORPUS._con_files> and F<CORPUS._con_idx>, which see.
 For compatibility reasons, DDC v2.1.13 will fall back to loading its corpus-list from this file
 if F<CORPUS._con_files> and/or F<CORPUS._con_idx> are unvavailble.
+
+Note that F<CORPUS._con> (rsp. F<CORPUS._con_files>) contains the list of files
+B<actually indexed> by the C<ddc_index> program, and thus may differ from the
+the list of original source files L<F<CORPUS.con>|/CORPUS.con> passed as input to C<ddc_index>.
+In particular, source files from L<F<CORPUS.con>|/CORPUS.con> which contain no tokens
+or which could not be indexed for any other reason will have no corresponding entry
+in F<CORPUS._con*>.
 
 =cut
 

@@ -137,11 +137,11 @@
 <h3 id="CORPUS.con">CORPUS.con</h3>
 
 <pre><code> - version: &gt;= v2.0.0
- - resident: no
+ - resident: sometimes
  - mmap: no
- - popularity: compile-time only
- - size: ?
- - growth: O(NDocs)
+ - popularity: compile-time only (&gt;= v2.1.15)
+ - size: small
+ - growth: O(NSources) ~ O(NDocs)
  - format:
    - 1 souce filename per line
  - accessor: CConcIndexator::GetFileNameForCorpusFileNames()
@@ -156,12 +156,12 @@
         A list of corpus files (CConcIndexator::m_CorpusFiles) is built upon a list of 
         \ref source_file_def &quot;source files&quot; extracting everything from all source archives. 
         So if a source list doesn&#39;t contain archives then the lists of corpus files and source files are
-        identical, otherwise it contains also files from archives, which are prefixed by the name of the archive .
+        (mostly) identical, otherwise it contains also files from archives, which are prefixed by the name of the archive .
         For each corpus file DDC maintains a file \ref break_def &quot;break&quot;, quick bibliographical information 
         (class CBiblIndex) and full bibliographical information (class CBibliography).
    #+END_SRC</code></pre>
 
-<p>List of corpus source files as passed to <a>ddc_index(1)</a>.</p>
+<p>List of corpus source files as passed to <a>ddc_index(1)</a>. Prior to ddc v2.1.15, this file-list was <b>always</b> loaded into resident anonymous memory on project load. As of v2.2.15, the runtime utilities <code>ddc_daemon</code>, <code>ddc_dump</code>, <code>ddc_simple</code>, <code>ddc_split</code>, and <code>ddc_stats</code> no longer load this file. The list of actually indexed source files remains available in <a href="#CORPUS._con_files"><i>CORPUS._con_files</i></a>.</p>
 
 <h3 id="CORPUS._con">CORPUS._con</h3>
 
@@ -190,7 +190,7 @@
      A list of corpus files (CConcIndexator::m_CorpusFiles) is built upon a list of 
      \ref source_file_def &quot;source files&quot; extracting everything from all source archives. 
      So if a source list doesn&#39;t contain archives then the lists of corpus files and source files are
-     identical, otherwise it contains also files from archives, which are prefixed by the name of the archive .
+     (mostly) identical, otherwise it contains also files from archives, which are prefixed by the name of the archive .
      For each corpus file DDC maintains a file \ref break_def &quot;break&quot;, quick bibliographical information 
      (class CBiblIndex) and full bibliographical information (class CBibliography).
    #+END_SRC</code></pre>
@@ -198,6 +198,8 @@
 <p>For DDC &gt; v2.1.13 this file is a dummy stub containing only a version information header, used for compatibility checks. This file&#39;s modification time is also used to initialize the index timestamp returned by the server <a href="./ddc_proto.html#info"><code>info</code></a> command.</p>
 
 <p>In DDC versions prior to v2.1.13, the <i>CORPUS._con</i> file also included a list of newline-separated corpus filenames as for <i>CORPUS.con</i>, which were loaded into memory at runtime. As of v2.1.13, the runtime corpus file-list is stored in mmap()-friendlier format in <i>CORPUS._con_files</i> and <i>CORPUS._con_idx</i>, which see. For compatibility reasons, DDC v2.1.13 will fall back to loading its corpus-list from this file if <i>CORPUS._con_files</i> and/or <i>CORPUS._con_idx</i> are unvavailble.</p>
+
+<p>Note that <i>CORPUS._con</i> (rsp. <i>CORPUS._con_files</i>) contains the list of files <b>actually indexed</b> by the <code>ddc_index</code> program, and thus may differ from the the list of original source files <a href="#CORPUS.con"><i>CORPUS.con</i></a> passed as input to <code>ddc_index</code>. In particular, source files from <a href="#CORPUS.con"><i>CORPUS.con</i></a> which contain no tokens or which could not be indexed for any other reason will have no corresponding entry in <i>CORPUS._con*</i>.</p>
 
 <h3 id="CORPUS._con_files">CORPUS._con_files</h3>
 

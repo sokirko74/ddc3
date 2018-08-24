@@ -382,7 +382,7 @@ static int yy_flex_strlen (yyconst char * );
 #undef YY_DECL
 #endif
 
-#line 251 "yyQLexer.l"
+#line 254 "yyQLexer.l"
 
 
 #line 389 "yyQLexer.h"

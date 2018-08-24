@@ -5,7 +5,7 @@
 =head2 Overview
 
 This documentation describes the query language accepted by
-DDC version 2.1.15.  Current sources for DDC should be available
+DDC version 2.1.16.  Current sources for DDC should be available
 from
 http://sourceforge.net/projects/ddc-concordance.
 
@@ -266,13 +266,14 @@ Comments in this document may appear after each rule in C notation
 
  q_filters       ::=                                    /*-- List of global query options --*/
                                                         /* empty */
-                   | q_filters q_comment                /* ... query comment (parsed) */
+                   | q_filters q_comment                /* ... query comment */
                    | q_filters q_flag                   /* ... query flag */
                    | q_filters q_filter                 /* ... query filter */
                    ;
  
  q_comment       ::=                                    /*-- Query comment --*/
-                     #[ COMMENT ]                       /* Block comment (ignored by scanner) */
+                     #: COMMENT \n                      /* Line comment (ignored by scanner) */
+                   | #[ COMMENT ]                       /* Block comment (ignored by scanner) */
                    | #COMMENT symbol                    /* Parsed comment as a single symbol (alias: #CMT) */
                    | #COMMENT [ symbol ]                /* Parsed comment with optional brackets (alias: #CMT) */
                    ;
@@ -709,14 +710,17 @@ The following macros are defined for the underlying scanner:
 
 =head3 Comments
 
+  "#:"([^\n]*)                       /* line comment, ignored by scanner */		 
   "#["{comment_text}"]"              /* block comment, ignored by scanner */
 
-The scanner supports block comments of the form "#[...]"
-pretty much everywhere except within regular expressions, date-strings, or expansion chains).
-These block comments will be ignored by the scanner and thus are not recoverable from a parsed query object.
+The scanner supports line comments introduced by "#:" and extending to the end of the current line,
+as well as block comments of the form "#[...]"
+from non-exclusive start-states
+(i.e. pretty much everywhere except within regular expressions, date-strings, or expansion chains).
+Such comments will be ignored by the scanner and thus are not recoverable from a parsed query object.
 If you need to pass comments through the query parser, use the
 #COMMENT keyword instead.
-Since v2.1.15.
+Since v2.1.16.
 
 
 

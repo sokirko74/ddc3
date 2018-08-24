@@ -67,7 +67,7 @@
 .\" ========================================================================
 .\"
 .IX Title "DDC_QUERY 5"
-.TH DDC_QUERY 5 "2018-08-23" "2.1.15-rc1" "DDC Corpus Indexing System"
+.TH DDC_QUERY 5 "2018-08-24" "2.1.16" "DDC Corpus Indexing System"
 .\" For nroff, turn off justification.  Always turn off hyphenation; it makes
 .\" way too many mistakes in technical documents.
 .if n .ad l
@@ -77,7 +77,7 @@
 .SS "Overview"
 .IX Subsection "Overview"
 This documentation describes the query language accepted by
-\&\s-1DDC\s0 version 2.1.15.  Current sources for \s-1DDC\s0 should be available
+\&\s-1DDC\s0 version 2.1.16.  Current sources for \s-1DDC\s0 should be available
 from
 http://sourceforge.net/projects/ddc\-concordance.
 .PP
@@ -328,13 +328,14 @@ Comments in this document may appear after each rule in C notation
 .Vb 6
 \& q_filters       ::=                                    /*\-\- List of global query options \-\-*/
 \&                                                        /* empty */
-\&                   | q_filters q_comment                /* ... query comment (parsed) */
+\&                   | q_filters q_comment                /* ... query comment */
 \&                   | q_filters q_flag                   /* ... query flag */
 \&                   | q_filters q_filter                 /* ... query filter */
 \&                   ;
 \& 
 \& q_comment       ::=                                    /*\-\- Query comment \-\-*/
-\&                     #[ COMMENT ]                       /* Block comment (ignored by scanner) */
+\&                     #: COMMENT \en                      /* Line comment (ignored by scanner) */
+\&                   | #[ COMMENT ]                       /* Block comment (ignored by scanner) */
 \&                   | #COMMENT symbol                    /* Parsed comment as a single symbol (alias: #CMT) */
 \&                   | #COMMENT [ symbol ]                /* Parsed comment with optional brackets (alias: #CMT) */
 \&                   ;
@@ -760,16 +761,19 @@ The following macros are defined for the underlying scanner:
 \fIComments\fR
 .IX Subsection "Comments"
 .PP
-.Vb 1
+.Vb 2
+\&  "#:"([^\en]*)                       /* line comment, ignored by scanner */              
 \&  "#["{comment_text}"]"              /* block comment, ignored by scanner */
 .Ve
 .PP
-The scanner supports block comments of the form \*(L"#[...]\*(R"
-pretty much everywhere except within regular expressions, date-strings, or expansion chains).
-These block comments will be ignored by the scanner and thus are not recoverable from a parsed query object.
+The scanner supports line comments introduced by \*(L"#:\*(R" and extending to the end of the current line,
+as well as block comments of the form \*(L"#[...]\*(R"
+from non-exclusive start-states
+(i.e. pretty much everywhere except within regular expressions, date-strings, or expansion chains).
+Such comments will be ignored by the scanner and thus are not recoverable from a parsed query object.
 If you need to pass comments through the query parser, use the
 #COMMENT keyword instead.
-Since v2.1.15.
+Since v2.1.16.
 .PP
 \fIQuery Keywords\fR
 .IX Subsection "Query Keywords"
