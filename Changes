@@ -1,5 +1,8 @@
 ###-*- Mode: Change-Log; coding: utf-8; -*-
 
+WIP
+	* RssAnon typo fix in ddc_proto
+
 v2.1.16 Fri, 24 Aug 2018 14:23:40 +0200 moocow
 	* added line-comments "#: ... \n"
 	* updated subcorpus-list parsing in CDDCBranchServer::ReadPossibleHosts()

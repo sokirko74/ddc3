@@ -157,7 +157,7 @@ Returns status information on the running server as a JSON object of the form:
           "lib":13700,			//   - VmLib: shared library code size
           "swap":0,			//   - VmSwap: swapped-out virtual memory size, not including shmem
           "file":79852,			//   - RssFile: size of resident file mappings (>= v2.1.13)
-          "anon":63888			//   - RssFile: size of resident anonymous memory (>= v2.1.13)
+          "anon":63888			//   - RssAnon: size of resident anonymous memory (>= v2.1.13)
          },
   "navcachesize":512,                   //-- size of navigation hint cache (branch servers only, >= v2.1.9)
   "navcachestep":1000,                  //-- navigation hint cache step-size (branch only, >= v2.1.11)
