@@ -129,6 +129,11 @@ typedef unsigned char BYTE;
  #endif
 #endif
 
+//-- moo: ugly hack for gcc 4.7.2 (kaskade; debian wheezy)
+#ifndef SIZE_MAX
+# define SIZE_MAX ((size_t)-1)
+#endif
+
 typedef vector<string> StringVector;
 typedef set<string> StringSet;
 typedef vector<DWORD> DwordVector;
