@@ -112,7 +112,7 @@ bool CConcIndexator::CreateAsUnion(const vector<CConcIndexator>& X, bool inherit
   // populate: search periods
   ddcLogInfo(Format("%s: calculating search period boundaries (size ~ %zd)", logname.c_str(), GetMaxTokenCountInOnePeriod()));
   CalculateSearchPeriods(GetMaxTokenCountInOnePeriod());
-  ddcLogInfo(Format("%s: partioning into %zd search period(s)", logname.c_str(), m_SearchPeriods.size()));
+  ddcLogInfo(Format("%s: partitioning into %zd search period(s)", logname.c_str(), m_SearchPeriods.size()));
 
   //---------------------------------------
   // populate: token-level indices
