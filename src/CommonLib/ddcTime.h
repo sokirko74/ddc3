@@ -248,7 +248,7 @@ struct DDCTimeAvg
     typedef double ValueT;
 
     /** typedef for timestamps */
-    typedef DDCTime TimeT;
+    typedef DDCTimeHiRes TimeT;
 
     /** typedef for delay-to-value map */
     typedef std::map<DelayT,ValueT> MapT;
@@ -321,7 +321,7 @@ struct DDCTimeAvg
     /** append a new sample value with timestamp \a when
      * \returns new moving-average value map
      */
-    MapT& Append(ValueT sample, const TimeT& when);
+    MapT& Append(ValueT sample, const TimeT& when, size_t n=1);
 
     /** append a new sample value with current timestamp
      * \returns new moving-average
@@ -335,14 +335,14 @@ struct DDCTimeAvg
 
     /** hack: add EMA data from another object
      * \li used by CDDCServerStats to add session-local averages to server-global stats
-     * \li does nothing if x.m_n==0; otherwise actually calls Append(x.Total(),x.Time())
+     * \li does nothing if x.m_n==0; otherwise actually calls Append(x.Total())
      */
     inline DDCTimeAvg& operator+=(const DDCTimeAvg& x)
-    { if (x.m_n > 0) Append(x.Total(), x.Time()); };
+    { if (x.m_n > 0) Append(x.Total()); };
 
     /** alias used by CDDCLeafServer::handle__status() to synchronize times: causes moving-averages to decay */
     inline void Scrub()
-    { Append(0); --m_n; };
+    { Append(0,TimeT::Now(),0); };
 
     //----------------------------------------------------------------------
     // access

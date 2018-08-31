@@ -2,6 +2,13 @@
 
 WIP
 	* RssAnon typo fix in ddc_proto
+	* added missing m_ServerStats.m_xTimes.Scrub() in *Server::handle__status(): EMA decay
+	* fixed typo in LeafServer::handle__status(): xtavg keys was actually reporting qtavg
+	* EMA tweaks in DDCTimeAvg
+	  - redefined DDCTimeAvg::TimeT as DDCTimeHiRes: use high-resolution clock if available for EMA
+	  - handle counter overflow in DDCTimeAvg::Append()
+	  - use current timestamp TimeT::Now() for DDCTimeAvg::operator+=(): avoid out-of-order insertions
+
 
 v2.1.16 Fri, 24 Aug 2018 14:23:40 +0200 moocow
 	* added line-comments "#: ... \n"

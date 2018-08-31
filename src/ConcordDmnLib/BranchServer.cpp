@@ -536,7 +536,10 @@ void CDDCBranchServer::handle__status(string &Result, int timeout, bool verbose)
 	subResult += "]\n";
     }
 
-    m_ServerStats.m_qTimes.Scrub(); //-- synchronize moving-average query-time window
+    //-- synchronize moving-average query-time window (EMA decay)
+    m_ServerStats.m_qTimes.Scrub();
+    m_ServerStats.m_xTimes.Scrub();
+
     Result = (string("{\n")
 	      + "\"name\":" + jsonStr(m_CorpusName) + ",\n"
 	      + "\"version\":" + jsonStr(PACKAGE_VERSION) + ",\n"

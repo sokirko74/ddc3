@@ -147,7 +147,7 @@ void DDCTimeAvg::SetDelays(DelayT delay1, DelayT delay2, DelayT delay3, ValueT v
 }
 
 //----------------------------------------------------------------------
-DDCTimeAvg::MapT& DDCTimeAvg::Append(double sample, const TimeT& when)
+DDCTimeAvg::MapT& DDCTimeAvg::Append(double sample, const TimeT& when, size_t n)
 {
     double tdiff = when.Elapsed(m_t);
     for (MapT::iterator mapi=m_map.begin(); mapi != m_map.end(); ++mapi) {
@@ -155,8 +155,15 @@ DDCTimeAvg::MapT& DDCTimeAvg::Append(double sample, const TimeT& when)
 	mapi->second  = (1-alpha)*sample + alpha*mapi->second;
     }
     m_t.Set(when);
+
+    
+    while ((SIZE_MAX - n) < m_n) {
+	//-- avoid counter overflow: reduce by half
+	m_total /= 2;
+	m_n     /= 2;
+    }
     m_total += sample;
-    ++m_n;
+    m_n     += n;
 }
 
 //----------------------------------------------------------------------

@@ -217,7 +217,10 @@ void CDDCLeafServer::handle__status(string &Result, int timeout, bool verbose)
     double uptime = difftime(time(NULL), m_tStarted);
     DDCProcessMemoryStatus pms(getpid());
 
-    m_ServerStats.m_qTimes.Scrub(); //-- synchronize moving-average query-time window
+    //-- synchronize moving-average query-time window (EMA decay)
+    m_ServerStats.m_qTimes.Scrub();
+    m_ServerStats.m_xTimes.Scrub();
+    
     Result = (string("{\n\t")
 	      + "\"name\":" + jsonStr(m_CorpusName) + ",\n\t"
 	      + "\"version\":" + jsonStr(PACKAGE_VERSION) + ",\n\t"
@@ -234,7 +237,7 @@ void CDDCLeafServer::handle__status(string &Result, int timeout, bool verbose)
 	      + "\"nslow\":" + Format("%zd", m_ServerStats.m_nSlow) + ",\n\t"
 	      + "\"qtavg\":" + Format("%g", m_ServerStats.m_qTimes.Average()) + ",\n\t" //-- pseudo-compat
 	      + "\"qtavgs\":" + m_ServerStats.m_qTimes.toJsonArray() + ",\n\t"
-	      + "\"xtavg\":" + Format("%g", m_ServerStats.m_qTimes.Average()) + ",\n\t"	      
+	      + "\"xtavg\":" + Format("%g", m_ServerStats.m_xTimes.Average()) + ",\n\t"	      
 	      + "\"xtavgs\":" + m_ServerStats.m_xTimes.toJsonArray() + ",\n\t"
 	      + "\"nworkers\":" + Format("%zd", m_nWorkers) + ",\n\t"
 	      + "\"memkb\":" + Format("%zd", pms.VmRSS) + ",\n\t" //-- compat
