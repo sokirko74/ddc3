@@ -1,3 +1,5 @@
+//-*- Mode: C++; c-basic-offset:8;-*-
+//
 //  DDC originally by Alexey Sokirko
 //  Changes and modifications 2011-2018 by Bryan Jurish
 //
@@ -513,19 +515,24 @@ bool	CIndexSetForLoadingStage::AddMemoryLoadIndexToMainLoadIndex()
 };
 
 
+//-- maximum size of value-type string-buffer
+//  + formerly hard-coded at 500MB
+//  + should now be 2GB (2018-09-24 12:55:49+0200 moo)
+#define MAX_STRINGBUFFER_SIZE (DWORD_MAX & (~AllFlags))
+
 size_t CIndexSetForLoadingStage::AddItemStrToBuffer(const char* Str, size_t StrLen)
 {
 	//  including the last 0
-    size_t buf_len = m_StringBuffer.size();
-	if (m_StringBuffer.size() > 500000000) // 500 MB
+	size_t buf_len = m_StringBuffer.size();
+	if ((m_StringBuffer.size()+StrLen+1) >= MAX_STRINGBUFFER_SIZE)
 	{
-		throw CExpc ("index set(name = \"%s\") cannot contain more than 500 MB of different tokens", this->GetName().c_str());
+		throw CExpc("index set(name = \"%s\") cannot contain more than %zd bytes of string type data", this->GetName().c_str(), MAX_STRINGBUFFER_SIZE);
 	}
 
 	for (long i=0; i <= StrLen; i++)
 		m_StringBuffer.push_back(Str[i]);
 
-    return buf_len;
+	return buf_len;
 };
 
 

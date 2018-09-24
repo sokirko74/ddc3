@@ -194,9 +194,17 @@ size_t CIndexSetForQueryingStage::GetStartOccurNo(size_t IndexNo) const
 
 }
 
+#undef DEBUG_OCCURS
+//#define DEBUG_OCCURS 1
+#ifdef DEBUG_OCCURS
+# define OCCDEBUG(x) x
+#else
+# define OCCDEBUG(x)
+#endif
+
 void  CIndexSetForQueryingStage::AddOccurs (size_t PeriodDevId, const bool bOneOccurrence, const size_t StartOccurNo, const size_t EndOccurNo, vector<CTokenNo>& Occurs,  size_t PeriodNo, COccurrBuffer& TempOccurrsBuffer, CShortOccurCache* pCacheByIndexSet, int& CacheId) const
 {
-  //fprintf(stderr, "DEBUG: AddOccurs(PeriodDevId=%u, bOne=%d, Start=%u, End=%u, PNo=%u)\n", PeriodDevId, bOneOccurrence, StartOccurNo, EndOccurNo, PeriodNo);
+	OCCDEBUG(fprintf(stderr, "DEBUG: AddOccurs(PeriodDevId=%u, bOne=%d, Start=%u, End=%u, PNo=%u)\n", PeriodDevId, bOneOccurrence, StartOccurNo, EndOccurNo, PeriodNo));
 	
 	const CTokenNo StartSearchPeriod = (PeriodNo == 0)? 0: m_pParent->GetSearchPeriod(PeriodNo-1);
 	const CTokenNo EndSearchPeriod =  m_pParent->GetSearchPeriod(PeriodNo);
@@ -217,7 +225,11 @@ void  CIndexSetForQueryingStage::AddOccurs (size_t PeriodDevId, const bool bOneO
 	const DWORD *Periods = m_EndPeriodOffsets.find(PeriodDevId);
         if (Periods != NULL)
         {
-	    //fprintf(stderr, "DEBUG: AddOccurs(): per_dev_it != m_EndPeriodOffsets.end()\n");
+#ifdef DEBUG_OCCURS
+	    PeriodsDivisionMapT::const_iterator epi = lower_bound(m_EndPeriodOffsets.begin(),m_EndPeriodOffsets.end(),PeriodDevId,PeriodsDivisionMapT::KeyLess());
+	    fprintf(stderr, "DEBUG: AddOccurs(): Periods != NULL (#%d : %d => [%d => %u])\n",
+		    epi-m_EndPeriodOffsets.begin(), m_EndPeriodOffsets.key(epi), PeriodNo, Periods[PeriodNo]);
+#endif
             
 	    //const vector<DWORD>& Periods = per_dev_it->second;
 	    //-- moo: this assertion catches if we redefine & manually re-calculate search-period size WITHOUT re-indexing (Thu, 13 Nov 2015 09:57:03 +0100)
@@ -248,7 +260,7 @@ void  CIndexSetForQueryingStage::AddOccurs (size_t PeriodDevId, const bool bOneO
 
         else //  if no period division of this token, then read all occurrences from all periods
 	    {
-	      //fprintf(stderr, "DEBUG: AddOccurs(): per_dev_it == m_EndPeriodOffsets.end()\n");
+		    OCCDEBUG(fprintf(stderr, "DEBUG: AddOccurs(): Periods == NULL\n"));
 		    
 		    QWORD End  = EndOccurNo;
 		    DWORD MaxCountToRead = EndOccurNo-StartOccurNo;
@@ -270,7 +282,10 @@ void  CIndexSetForQueryingStage::AddOccurs (size_t PeriodDevId, const bool bOneO
 			    //   + possibly (?) solved by re-defining typedefs DWORD, WORD in ../CommonLib/utilit.h
 			    //       typedef unsigned int	DWORD --> uint32_t
 			    //	     typedef unsigned short	WORD  --> uint16_t
-			    //fprintf(stderr, "DEBUG: MaxCountToRead=%u, OccurBufferSize=%u\n", MaxCountToRead, OccurBufferSize);
+			    // * UPDATE 2018-09-24 12:43:50+0200
+			    //   + failure here is also symptomatic of ddc-v1.x indices, which use IndexItemOffsetAndFlags as key in *._perdiv* files
+			    //   + use dstar/script/ddc-upgrade-v2.0.0.perl to upgrade v1.x indices for use with ddc v2.x
+			    OCCDEBUG(fprintf(stderr, "DEBUG: MaxCountToRead=%u, OccurBufferSize=%u\n", MaxCountToRead, OccurBufferSize));
 			    assert (MaxCountToRead <= OccurBufferSize);
 
 			    // dearchiving the occurrences ( if !m_bCompressOccurrences then it is just a copy )
@@ -504,7 +519,7 @@ bool	CIndexSetForQueryingStage::AddOneIndexItem (CItemIndexForLoading& M, FILE* 
 
 	if (!M.CheckOccurrences(EndTokeNo))
 	{
-		ErrorMessage(Format("CheckOccurrences failed!\n Index Name: %s\nCount of occurrences=%i\n IndexItemOffset=%i\n", 
+		ErrorMessage(Format("CheckOccurrences failed!\n Index Name: %s\n Count of occurrences=%i\n IndexItemOffset=%i\n", 
 			GetName().c_str(), 
 			M.GetOccursSize(), 
 			M.GetIndexItemOffset()

@@ -8,6 +8,10 @@ WIP
 	  - redefined DDCTimeAvg::TimeT as DDCTimeHiRes: use high-resolution clock if available for EMA
 	  - handle counter overflow in DDCTimeAvg::Append()
 	  - use current timestamp TimeT::Now() for DDCTimeAvg::operator+=(): avoid out-of-order insertions
+	* removed old hard-codced 500MB limit on size of *._TOKATTR (string-buffer) in IndexSetForLoadingStage.cpp
+	  - now use macro MAX_STRINGBUFFER_SIZE = (DWORD_MAX & (~AllFlags)) --> 2GB
+	  - fixed limit check (the actual exception was previously only catching on 1st insertion after overflow)
+	* debugging for v1.x->v2.x index upgrade
 
 
 v2.1.16 Fri, 24 Aug 2018 14:23:40 +0200 moocow
