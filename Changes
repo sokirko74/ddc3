@@ -1,6 +1,6 @@
 ###-*- Mode: Change-Log; coding: utf-8; -*-
 
-WIP
+v2.1.17-rc1 Mon, 24 Sep 2018 14:05:03 +0200 moocow
 	* RssAnon typo fix in ddc_proto
 	* added missing m_ServerStats.m_xTimes.Scrub() in *Server::handle__status(): EMA decay
 	* fixed typo in LeafServer::handle__status(): xtavg keys was actually reporting qtavg
@@ -11,8 +11,9 @@ WIP
 	* removed old hard-codced 500MB limit on size of *._TOKATTR (string-buffer) in IndexSetForLoadingStage.cpp
 	  - now use macro MAX_STRINGBUFFER_SIZE = (DWORD_MAX & (~AllFlags)) --> 2GB
 	  - fixed limit check (the actual exception was previously only catching on 1st insertion after overflow)
+	* added rml.ini key "Software\Dialing\Lemmatizer\German\ExtEncoding" = "UTF8"
+	  - allow legacy latin-1 indices to be handled gracefully
 	* debugging for v1.x->v2.x index upgrade
-
 
 v2.1.16 Fri, 24 Aug 2018 14:23:40 +0200 moocow
 	* added line-comments "#: ... \n"

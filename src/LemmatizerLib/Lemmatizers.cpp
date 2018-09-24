@@ -644,8 +644,14 @@ void CLemmatizerEnglish:: FilterSrc(string& src) const
 
 CLemmatizerGerman:: CLemmatizerGerman() : CLemmatizer(morphGerman)
 {
-	m_Registry = "Software\\Dialing\\Lemmatizer\\German\\DictPath";
-	initIconv("LATIN1","UTF8"); //-- moo: always expect UTF8 I/O for German
+  	string RegBase = "Software\\Dialing\\Lemmatizer\\German";
+	m_Registry = RegBase + "\\DictPath";
+
+	string extEncoding = ::GetRegistryString( RegBase + "\\ExtEncoding" );
+	if (extEncoding.empty())
+	  extEncoding = "UTF8"; //-- moo: expect UTF8 I/O for German by default
+	if (extEncoding != "LATIN1")
+	  initIconv("LATIN1",extEncoding); 
 };
 
 void CLemmatizerGerman:: FilterSrc(string& src) const
