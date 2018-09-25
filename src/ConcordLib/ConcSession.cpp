@@ -1007,10 +1007,7 @@ bool CConcSession::GetTokensFromStorageByBreak(size_t IndexNo, size_t BreakNo, v
 	if (IndexNo > m_pIndexator->m_Indices.size()) return false;
 	const CStringIndexSet& I = *m_pIndexator->m_Indices[IndexNo];
 	if (!I.GetTokensFromStorage(StartTokenNo, EndTokenNo, Tokens)) 
-	{
-		concord_daemon_log(Format ("Error! Cannot read hit no %i \n",BreakNo));
-		return false;
-	};
+		throw CExpc(errReadSourceFile, "CConcSession::GetTokensFromStorageByBreak(): cannot read $%s storage data for break #%i", I.m_Name.c_str(), BreakNo);
 	return true;
 }
 
@@ -1046,10 +1043,7 @@ bool CConcSession::GetFileSnippets(const int HitNo, vector<COutputToken>& Result
 			CTokenNo  pos = *i;
 			if (CurrentStarter > pos) continue;
 			if (!m_pIndexator->GetTokenIndex()->GetTokensFromStorage(pos, pos+1, TempTokens)) 
-			{
-				concord_daemon_log(Format ("Error! Cannot read hit no %i \n",BreakNo));
-				return false;
-			}
+				throw CExpc(errReadSourceFile, "CConcSession::GetFileSnippets(): cannot read data for break #%i", BreakNo);
 			if (DifferentWords.insert(TempTokens[0].m_TokenStr).second)
 			{
 				DifferentTokens.insert(pos);
@@ -1086,10 +1080,8 @@ bool CConcSession::GetFileSnippets(const int HitNo, vector<COutputToken>& Result
 		int end_kwic_line = min (pos+m_pIndexator->m_RightKwicContextSize+1, EndTokenNo);
 		vector<COutputToken> CurrTokens;
 		if (!m_pIndexator->GetTokenIndex()->GetTokensFromStorage(start_kwic_line, end_kwic_line, CurrTokens)) 
-		{
-			concord_daemon_log(Format ("Error! Cannot read hit no %i \n",BreakNo));
-			return false;
-		};
+			throw CExpc(errReadSourceFile, "CConcSession::GetFileSnippets(): cannot read kwic data for break #%i", BreakNo);
+		
 		for (size_t i=0; i<end_kwic_line-start_kwic_line; i++)
 		{
 			CurrTokens[i].m_Highlight = binary_search(positions.begin(), positions.end(), start_kwic_line + i) ? 1 : 0;
@@ -1146,10 +1138,8 @@ DDCErrorEnum CConcSession::GenerateHitStrings(const int StartHitNo, bool UseAddi
 			{
 				vector<COutputToken> Interps;
 				if (!GetTokensFromStorageByBreak(m_pIndexator->m_IndicesToShow[indno], BreakNo, Interps))
-				{
-					ErrorMessage(Format("Cannot get sentence: IndexNo=%i, BreakNo=%i\n", m_pIndexator->m_IndicesToShow[indno], BreakNo));
-					return errReadSourceFile;
-				};
+					throw CExpc(errReadSourceFile, "CConcSession::GenerateHitStrings(): cannot get sentence: IndexNo=%u, BreakNo=%i",
+						    m_pIndexator->m_IndicesToShow[indno], BreakNo);
 				assert ( Interps.size() == Tokens.size() );
 				for (size_t tkn_no=0; tkn_no<Interps.size(); tkn_no++)
 				{
@@ -2092,19 +2082,22 @@ DDCErrorEnum CConcSession::GetHits(CQuery *QueryRoot, DWORD& EndHitNo, const str
 		m_ErrorStr = string("Error: ") + C.m_strCause;
 		ErrorMessage(m_ErrorStr);
 		ddcLogError(m_ErrorStr);
-		return (DDCErrorEnum)C.m_ErrorCode==errNone ? errRuntime : (DDCErrorEnum)C.m_ErrorCode;
+		throw;
+		//return (DDCErrorEnum)C.m_ErrorCode==errNone ? errRuntime : (DDCErrorEnum)C.m_ErrorCode;
 	}
 	catch (exception& e) {
 		m_ErrorStr = string("Exception: ") + e.what();
 		ErrorMessage(m_ErrorStr);
 		ddcLogError(m_ErrorStr);
-		return errRuntime;
+		throw;
+		//return errRuntime;
 	}
 	catch (...) {
 		m_ErrorStr = string("Unhandled exception");
 		ErrorMessage(m_ErrorStr);
 		ddcLogError(m_ErrorStr);
-		return errOther;
+		throw;
+		//return errOther;
 	}
 
 };
@@ -2146,7 +2139,8 @@ DDCErrorEnum CConcSession::SimpleQuery(const string &Query, DWORD& EndHitNo, DWO
 		m_ErrorStr = string("Error: ") + C.m_strCause;
 		ErrorMessage (m_ErrorStr);
 		ddcLogError(m_ErrorStr);
-		return (DDCErrorEnum)C.m_ErrorCode;
+		throw;
+		//return (DDCErrorEnum)C.m_ErrorCode;
 	}
 
 };

@@ -985,7 +985,13 @@ NetworkErrorsEnum CDDCBranchServer::GetHitContexts(CFirstHitsQueryResult& FHResu
 	}
 	else if (InternalError != errNone) {
 	    FHResult.CloseSockets();
-	    m_ErrorStr = S;
+	    m_ErrorStr = string("[") + m_Hosts[HostNo].m_CorpusName + "] ";
+	    size_t p = S.find_first_not_of("\x1\x2 \t\r\n");
+	    if (p != S.npos) {
+		    m_ErrorStr += S.substr(p);
+	    } else {
+		    m_ErrorStr += GetDDCErrorString((DDCErrorEnum)InternalError);
+	    }
 	    Trim(m_ErrorStr);
 	    return neInternalError;
 	}
