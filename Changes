@@ -1,6 +1,6 @@
 ###-*- Mode: Change-Log; coding: utf-8; -*-
 
-v2.1.17-rc2 Tue, 25 Sep 2018 15:23:19 +0200 moocow
+v2.1.17 Wed, 26 Sep 2018 11:13:45 +0200 moocow
 	* RssAnon typo fix in ddc_proto
 	* added missing m_ServerStats.m_xTimes.Scrub() in *Server::handle__status(): EMA decay
 	* fixed typo in LeafServer::handle__status(): xtavg keys was actually reporting qtavg
@@ -12,7 +12,7 @@ v2.1.17-rc2 Tue, 25 Sep 2018 15:23:19 +0200 moocow
 	  - now use macro MAX_STRINGBUFFER_SIZE = (DWORD_MAX & (~AllFlags)) --> 2GB
 	  - fixed limit check (the actual exception was previously only catching on 1st insertion after overflow)
 	* added rml.ini key "Software\Dialing\Lemmatizer\German\ExtEncoding" = "UTF8"
-	  - allow legacy latin-1 indices to be handled gracefully
+	  - allow legacy latin-1 indices to be handled gracefully by using alternate rml.ini with value "LATIN1"
 	* debugging for v1.x->v2.x index upgrade
 	* improved error messages in CConcSession::GetTokensFromStorageByBreak(), CConcSession::GetFileSnippets()
 	  - was: concord_daemon_log("Error! Cannot read hit no %i \n", BreakNo); return false;
