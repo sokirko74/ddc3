@@ -174,6 +174,7 @@ void CDDCBranchServer::WorkerCloneInit(const CDDCServer *Parent, size_t WorkerId
     CDDCBranchServer *parent = (CDDCBranchServer*)Parent;
     m_Hosts = parent->m_Hosts;
     m_pNavCache = parent->m_pNavCache;
+    m_bHitStringsParallel = parent->m_bHitStringsParallel;
 }
 
 //----------------------------------------------------------------------

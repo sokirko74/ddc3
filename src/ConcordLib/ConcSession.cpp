@@ -1685,6 +1685,7 @@ DDCErrorEnum CConcSession::GetAllHits(CQuery *QueryRoot, size_t Start, size_t Li
 
 	for (m_CurrentSearchPeriodNo = 0;  m_CurrentSearchPeriodNo < CountOfPeriods; m_CurrentSearchPeriodNo++)
 	{
+		//ddcLogWarn(Format("CConcSession::GetAllHits(): period %i / %i", m_CurrentSearchPeriodNo, CountOfPeriods));
 		m_pQueryCompiler->Evaluate(qRoot);
 		InitFileReferences(qHits);
 

@@ -1,5 +1,9 @@
 ###-*- Mode: Change-Log; coding: utf-8; -*-
 
+svn trunk (unreleased)
+- Fri, 12 Oct 2018 14:11:18 +0200 moocow
+	* fixed CDDCBranchServer::m_bHitStringsParallel option propagation to branch-server worker clones
+
 v2.1.17 Wed, 26 Sep 2018 11:13:45 +0200 moocow
 	* RssAnon typo fix in ddc_proto
 	* added missing m_ServerStats.m_xTimes.Scrub() in *Server::handle__status(): EMA decay
