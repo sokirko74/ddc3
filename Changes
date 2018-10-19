@@ -1,6 +1,10 @@
 ###-*- Mode: Change-Log; coding: utf-8; -*-
 
 svn trunk (unreleased)
+- Fri, 19 Oct 2018 09:16:45 +0200 moocow
+	* added AC_DEFINE()s for __STDC_LIMIT_MACROS, __STDC_CONSTANT_MACROS
+	  - workaround for old C++ compilers (e.g. debian wheezy)
+	  - fixes compile error for ddcTime.cpp: 'SIZE_MAX' was not declared in this scope
 - Mon, 15 Oct 2018 09:13:42 +0200 moocow
 	* mantis #31439: added missing Trim() for m_CommonFilePrefix in CConcIndexator::LoadCorpusFiles()
 	  - final newline from *._con_prefix was getting counted, resulting in bogus filenames

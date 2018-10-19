@@ -197,7 +197,8 @@
 /* Defined if libcurl supports TFTP */
 #undef LIBCURL_PROTOCOL_TFTP
 
-/* Define to the sub-directory where libtool stores uninstalled libraries. */
+/* Define to the sub-directory in which libtool stores uninstalled libraries.
+   */
 #undef LT_OBJDIR
 
 /* Name of package */
@@ -240,6 +241,12 @@
    <pthread.h>, or <semaphore.h> is not used. If the typedef were allowed, the
    #define below would cause a syntax error. */
 #undef _UINT64_T
+
+/* Workaround for old c++ compilers: use C99 stdint.h macros */
+#undef __STDC_CONSTANT_MACROS
+
+/* Workaround for old c++ compilers: use C99 stdint.h macros */
+#undef __STDC_LIMIT_MACROS
 
 /* Define curl_free() as free() if our version of curl lacks curl_free. */
 #undef curl_free

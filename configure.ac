@@ -3,7 +3,7 @@ AC_PREREQ(2.5)
 
 dnl Some handy macros
 define([THE_PACKAGE_NAME],    [ddc])
-define([THE_PACKAGE_VERSION], [2.1.18-pre1])
+define([THE_PACKAGE_VERSION], [2.1.18-pre2])
 define([THE_PACKAGE_MAINTAINER],  [jurish@bbaw.de])
 AC_INIT(THE_PACKAGE_NAME, THE_PACKAGE_VERSION, THE_PACKAGE_MAINTAINER)
 
@@ -623,12 +623,14 @@ dnl AC_SUBST(pkgdictdir)
 
 
 ##---------------------------------------------------------------
-## functions
+## functions etc
 dnl AC_CHECK_FUNC(strdup,[AC_DEFINE(HAVE_STRDUP,1,[Define this if you have the strdup() function])])
-
 AC_CHECK_FUNCS([erand48 jrand48 nrand48 rand_r])
 
-## /functions
+AC_DEFINE([__STDC_LIMIT_MACROS],   1,[Workaround for old c++ compilers: use C99 stdint.h macros])
+AC_DEFINE([__STDC_CONSTANT_MACROS],1,[Workaround for old c++ compilers: use C99 stdint.h macros])
+
+## /functions etc
 ##---------------------------------------------------------------
 
 dnl ---------------------------------------------------------------
