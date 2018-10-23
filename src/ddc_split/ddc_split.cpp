@@ -70,7 +70,7 @@ void copyOptionsFile(const string& srcFile, const string &dstFile)
 int main(int argc, char* argv[])
 {
   //-- command-line
-  ddc_thread_init("ddc_union");
+  ddc_thread_init("ddc_split");
   SetLogLevel(ddcLLInfo);
   ddcLogToFiles = false;
   ddcLogToSyslog = false;

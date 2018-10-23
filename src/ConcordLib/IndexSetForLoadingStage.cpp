@@ -32,6 +32,10 @@
 	#endif
 #endif
 
+//===========================================================
+// globals
+bool ddcEnableAnonymousTokens = false;
+
 
 //===========================================================
 //                    class CItemIndexForLoading
@@ -548,7 +552,7 @@ void CIndexSetForLoadingStage::InsertToInputLoadIndex(const char* Str, size_t St
 {
 	const char AnonymousFlag[] = "-#";
 	bool bHasAnonymousFlag = false;
-	if (!strncmp(Str,AnonymousFlag,2))
+	if (ddcEnableAnonymousTokens && !strncmp(Str,AnonymousFlag,2))
 	{
 		Str    += strlen(AnonymousFlag);
 		StrLen -= strlen(AnonymousFlag);
@@ -569,7 +573,7 @@ void CIndexSetForLoadingStage::InsertToInputLoadIndex(const char* Str, size_t St
 			*word.GetOccurs() = occurrences;
 	
 		IndexItemOffset = AddItemStrToBuffer(Str, StrLen);
-        word.SetIndexItemOffset(IndexItemOffset);
+		word.SetIndexItemOffset(IndexItemOffset);
 		m_InputLoadIndexHash[GetHashNo(Str)].insert(it, word);
 	}
 	else

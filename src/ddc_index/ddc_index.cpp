@@ -2,7 +2,7 @@
 //
 //  Original by Alexey Sokirko.
 //
-//  Modifications sopyright 2011-2016 by Bryan Jurish
+//  Modifications sopyright 2011-2018 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -34,7 +34,9 @@ void  PrintUsageAndExit()
   printf ("\nUsage: %s [OPTIONS] PROJECT\n", prog);
   printf ("\nOptions:\n"
 	  "  -V, --version                      # report program version and exit\n"
+	  "  -h, --help                         # this help message\n"
 	  "  -v, --verbose LEVEL                # set log-verbosity level (none|error|warn|info=weak|debug=medium|trace=heavy)\n"
+	  "  -a, --anonymize                    # enable anonymous tokens (beginning with '-#')?\n"
 	  "      --only-reindex-morph\n"
 	  "      --print-profiler-info\n"
 	  "      --skip-initial-file-checking\n"
@@ -68,7 +70,10 @@ int main(int argc, char* argv[])
 	for (size_t i=1; i < argc; i++)
 	{
 		string s = argv[i];
-		if (  (s == "--version") || (s== "-V")) {
+		if (s=="-h" || s=="--help") {
+			PrintUsageAndExit();
+		}
+		else if (  (s == "--version") || (s== "-V")) {
 			fprintf (stderr,"%s\n", DDCVersionStr.c_str());	
 			fprintf (stderr,"ddc_index: create index from a DDC project *.con file\n");	
 			return 1;
@@ -78,6 +83,9 @@ int main(int argc, char* argv[])
 				PrintUsageAndExit();
 			SetLogLevel( GetLogLevel(argv[i+1]) );
 			i++;
+		}
+		else if (s == "-a" || s == "--anonymize") {
+			ddcEnableAnonymousTokens = true;
 		}
 		else if (s == "--only-reindex-morph")
 		{

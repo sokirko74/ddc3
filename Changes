@@ -1,6 +1,12 @@
 ###-*- Mode: Change-Log; coding: utf-8; -*-
 
 svn trunk (unreleased)
+- Tue, 23 Oct 2018 15:28:25 +0200 moocow
+	* fixed ddc_split in presence of legacy "anonymized" tokens (those beginning with "-#")
+	  - workaround (hack): all types with 0 occurrences in source corpus are assumed to by "anonymized",
+	    and are added to the output vocabulary of *every* partition -- this is a bit bloated but should work
+	* added ddc_index option --anonymize (-a): enable legacy "anonymized" tokens (disabled by default)
+	  - fixes mantis #31586
 - Fri, 19 Oct 2018 09:16:45 +0200 moocow
 	* added AC_DEFINE()s for __STDC_LIMIT_MACROS, __STDC_CONSTANT_MACROS
 	  - workaround for old C++ compilers (e.g. debian wheezy)

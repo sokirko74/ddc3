@@ -23,6 +23,17 @@
 #include "DDCLessOperators.h"
 #include "../CommonLib/ddcMMap.h"
 
+//===========================================================
+// globals
+
+/** global hack: set this to a true value to enable "masked" tokens
+ *  (0 occurrences, in *_storage but not searchable) during corpus
+ *  indexing.  Default was true prior to ddc v2.1.18.
+ *  \li 'anonymized' tokens are any beginning with the string "-#"
+ *      (hard-coded in CIndexSetForLoadingStage::InsertToInputLoadIndex())
+ */
+extern bool ddcEnableAnonymousTokens;
+
 
 //!	CItemIndexForLoading holds all occurrences of one index item (token, morph. pattern...) on the index stage 
 /*!

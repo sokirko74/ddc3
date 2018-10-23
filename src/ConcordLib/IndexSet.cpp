@@ -260,7 +260,9 @@ bool	CStringIndexSet::CreatePartitionStorage(vector<CStringIndexSet*>& Partition
 				throw CExpc(Format("CStringIndexSet::CreatePartitionStorage(): Error: failed to read token #%zd from storage file '%s'",
 						   cur, GetStorageFileName().c_str()));
 			itemIdNew = xlateItemId[i][itemIdOld];
-			assert(itemIdNew != DWORD_MAX);
+			if (itemIdNew == DWORD_MAX)
+				throw CExpc(Format("CStringIndexSet::CreatePartitionStorage(): Error: token #%zd target itemId==DWORD_MAX==%zd for source itemId=#%zd, partition %zd",
+						   cur, itemIdNew, itemIdOld, i));
 			if (fwrite(&itemIdNew, sizeof(DWORD), 1, fp) != 1)
 				throw CExpc(Format("CStringIndexSet::CreatePartitionStorage(): Error: failed to write token #%zd to storage file '%s'",
 						   (cur-StartTokenNo), Partitions[i]->GetStorageFileName().c_str()));
@@ -361,9 +363,16 @@ void	CStringIndexSet::UnionIndexSets(const vector<CStringIndexSet*>& IndexSets, 
 		throw CExpc("CStringIndexSet::UnionIndexSets(): Error: cannot create union storage file "+GetStorageFileName());
 };
 
+#undef DDC_DEBUG_SPLIT
 void CStringIndexSet::CreatePartitions(vector<CStringIndexSet*>& Partitions, const vector<CTokenNo>& EndTokenNo) const
 {
 	string logname = "CStringIndexSet::CreatePartitions("+m_Name+")";
+
+#ifdef DDC_DEBUG_SPLIT
+	char debugfile[512];
+	sprintf(debugfile,"CreatePartitions.%s.log", m_Name.c_str());
+	FILE *fdebug = fopen(debugfile,"wb");
+#endif
 	
 	//-- intialize: clear partitions
 	ddcLogTrace(logname+": initialize");
@@ -395,15 +404,20 @@ void CStringIndexSet::CreatePartitions(vector<CStringIndexSet*>& Partitions, con
 		const char* ItemStr = GetIndexItemStr(m_Index[ItemId]);
 		CTokenNo offset = 0;
 		vector<CTokenNo>::const_iterator occi=occurs.begin(), occj, occ_end=occurs.end();
+		bool occ_none = (occi==occ_end); //-- no occurrences: "anonymized" token, see mantis #31586
 		for (size_t i=0; i < Partitions.size(); ++i) {
 			M[i].GetOccurs()->clear();
 			occi = lower_bound(occi, occ_end, offset);
-			if (occi != occ_end && *occi < EndTokenNo[i]) {
-				//-- at least one occurrence in this partition CONTINUE HERE
-				occj = lower_bound(occi, occ_end, EndTokenNo[i]);
+			if ((occi != occ_end && *occi < EndTokenNo[i]) || occ_none) {
+				//-- at least one occurrence in this partition OR no occurrences at all 
+				occj = occ_none ? occ_end : lower_bound(occi, occ_end, EndTokenNo[i]);
 				M[i].SetIndexItemOffset(Partitions[i]->m_StringBuffer.m_vec.size());
 				Partitions[i]->AddItemStrToBuffer(ItemStr, strlen(ItemStr));
 				xlateItemId[i][ItemId] = Partitions[i]->m_Index.size();
+#ifdef DDC_DEBUG_SPLIT
+				fprintf(fdebug,"XLATE[%zd]\t%zd\t%zd\n", i, ItemId, Partitions[i]->m_Index.size());
+#endif
+
 				M[i].GetOccurs()->insert(M[i].GetOccurs()->end(), occi, occj);
 				for (vector<CTokenNo>::iterator mocci=M[i].GetOccurs()->begin(); mocci != M[i].GetOccurs()->end(); ++mocci)
 					*mocci -= offset;
@@ -418,6 +432,9 @@ void CStringIndexSet::CreatePartitions(vector<CStringIndexSet*>& Partitions, con
 			offset = EndTokenNo[i];
 		}
 	}
+#ifdef DDC_DEBUG_SPLIT
+	fclose(fdebug);
+#endif
 
 	//-- cleanup
 	ClearVector(occurs);
