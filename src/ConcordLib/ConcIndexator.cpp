@@ -635,7 +635,7 @@ bool CConcIndexator::LoadCorpusFiles()
 	string PrefixFile = ConFile+"_prefix";
 	if (FileExists(PrefixFile)) {
 		LoadFileToString(PrefixFile, m_CommonFilePrefix, true);
-		//Trim(m_CommonFilePrefix);
+		Trim(m_CommonFilePrefix);
 	} else {
 		ddcLogWarn("WARNING: CConcIndexator::LoadCorpusFiles(): shared prefix file '"+PrefixFile+"' not found: please upgrade your index!");
 		m_CommonFilePrefix = GetCommonFilePrefix();
