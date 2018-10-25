@@ -1,6 +1,8 @@
 ###-*- Mode: Change-Log; coding: utf-8; -*-
 
 v2.1.18-rc2 Thu, 25 Oct 2018 10:22:39 +0200 moocow
+	* force LC_NUMERIC=C in ConcordOptions.cpp (otherwise JSON responses may not be parseable)
+	  - beware that your environment doesn't set LC_ALL
 	* fixed ddc_split in presence of legacy "anonymized" tokens (those beginning with "-#")
 	  - workaround (hack): all types with 0 occurrences in source corpus are assumed to by "anonymized",
 	    and are added to the output vocabulary of *every* partition -- this is a bit bloated but should work

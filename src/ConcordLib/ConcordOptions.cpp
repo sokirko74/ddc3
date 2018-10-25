@@ -29,6 +29,9 @@ const int DefaultKwicContextSize = 4;
 // LC_CTYPE_UTF8_DEFAULT : default LC_CTYPE to use for Utf8 mode if no utf8 locale is detected
 const char *LC_CTYPE_UTF8_DEFAULT = "en_US.UTF-8";
 
+// LC_NUMERIC_FORCE : force locale LC_NUMERIC (needed for sane JSON output)
+const char *LC_NUMERIC_FORCE = "C";
+
 void CConcIndexator::InitDefaultOptions()
 {
    	m_Path = "#empty_path";
@@ -563,6 +566,12 @@ bool CConcIndexator::LoadOptionsFromString(string Options)
 		EchoOption("Utf8 enabled (LC_CTYPE=%s)", lc_ctype);
 	} else {
 		EchoOption("Utf8 disabled");
+	}
+
+	//-- always set LC_NUMERIC="C"
+	if (LC_NUMERIC_FORCE) {
+		ddcLogDebug(Format("setting LC_CTYPE=%s", LC_NUMERIC_FORCE));
+		setlocale(LC_NUMERIC,LC_NUMERIC_FORCE);
 	}
 
 	//-- ensure default expanders exist
