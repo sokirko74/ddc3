@@ -1,7 +1,7 @@
 //-*- Mode: C++; c-basic-offset: 8; -*-
 //
 //  DDC originally by Alexey Sokirko
-//  Changes and modifications 2011-2017 by Bryan Jurish
+//  Changes and modifications 2011-2018 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -45,6 +45,11 @@ extern CDwdsThesaurus* pDwdsThesaurus;
 
 const size_t MaxDistanceForNear = 32;
 #define GetOccurrencesSize() m_Occurrences.size()  
+
+// DDC_HIT_INTERSECTION_BINSEARCH : use binay search lower_bound() for CQueryBinaryOperationNode::hits_and_positions_intersection()
+//  + ca. 5-10% faster complex queries ("@auf @der @Lauer" && $l=@sein)
+#define DDC_HIT_INTERSECTION_BINSEARCH 1
+//#undef DDC_HIT_INTERSECTION_BINSEARCH
 
 //======================== CQueryNode =====================
 
@@ -217,19 +222,20 @@ void CQueryNode::ConvertOccurrencesToHits (bool bSeparateHits)
 	int TextAreasCount = m_pHolder->m_pIndexator->m_Bibl.GetTextAreasCount();
 	int TextAreaNo = m_pHolder->GetTextArea();
 	bool bTextAreaNo =  TextAreaNo != UnknownTextAreaNo;
-	int cnt = GetOccurrencesSize();
+	size_t cnt = GetOccurrencesSize();
 	m_Hits.clear();
 	m_Hits.reserve(cnt);
 
 	bool bLongSequence = GetOccurrencesSize()*5 > Breaks.size() ;
 	ddcBreakVector::const_iterator break_it = Breaks.begin();
+	//ddcLogWarn(Format("ConvertOccurrencesToHits(%s): bLongSequence = %d", m_Source.c_str(), (bLongSequence ? 1 : 0)));
 
 	CQueryNode NewNode(m_bUseNodeIndices, m_bUseMatchIds);
 	if (bTextAreaNo)
 		NewNode.ClearAndReserveOccurrences(GetOccurrencesSize());
 
 
-	for (int i = 0;  i < cnt; i++)
+	for (size_t i= 0;  i < cnt; i++)
 	{
 		CTokenNo Occurrence = m_Occurrences[i];
 
@@ -285,7 +291,7 @@ void CQueryNode::ConvertOccurrencesToHitsForPatterns (bool bSeparateHits)
 
 	m_Hits.reserve(m_ChunkLengths.size());
 
-	int cnt = GetOccurrencesSize();
+	size_t cnt = GetOccurrencesSize();
 
 	CQueryNode NewNode(m_bUseNodeIndices, m_bUseMatchIds);
 	NewNode.ClearAndReserveOccurrences(cnt);
@@ -297,8 +303,7 @@ void CQueryNode::ConvertOccurrencesToHitsForPatterns (bool bSeparateHits)
 	bool bLongSequence = m_ChunkLengths.size()*5 > Breaks.size() ;
 	
 	size_t ChunkNo = 0;
-	int i = 0;
-	for ( ;  i < cnt; i += m_ChunkLengths[ChunkNo], ChunkNo++ )
+	for (size_t i=0;  i < cnt; i += m_ChunkLengths[ChunkNo], ChunkNo++ )
 	{
 		size_t ItemsCount = m_ChunkLengths[ChunkNo];
 
@@ -566,32 +571,47 @@ void CQueryBinaryOperationNode::hits_and_positions_intersection(bool bSeparateHi
 	m_Hits.reserve( min(m_pChild1->m_Hits.size(),m_pChild2->m_Hits.size()) );
 	ClearAndReserveOccurrences( min(m_pChild1->GetOccurrencesSize(),m_pChild2->GetOccurrencesSize()) );
 
+#if defined(DDC_HIT_INTERSECTION_BINSEARCH)	
+	CHitCompareByBreak CompareByBreak;
+#endif
+
 	size_t occ1=0, occ2=0;
-	for ( ; hit1i != hit1j && hit2i != hit2j; ) {
+	while (hit1i != hit1j && hit2i != hit2j) {
+#if defined(DDC_HIT_INTERSECTION_BINSEARCH)
 		if (hit1i->m_BreakNo < hit2i->m_BreakNo) {
-			occ1 = hit1i->m_HighlightOccurrenceEnd;
+			hit1i = lower_bound(++hit1i, hit1j, hit2i->m_BreakNo, CompareByBreak);
+		}
+		else if (hit1i->m_BreakNo > hit2i->m_BreakNo) {
+			hit2i = lower_bound(++hit2i, hit2j, hit1i->m_BreakNo, CompareByBreak);
+		}
+#else // !defined(DDC_HIT_INTERSECTION_BINSEARCH)
+		if (hit1i->m_BreakNo < hit2i->m_BreakNo) {
 			++hit1i;
 		}
 		else if (hit1i->m_BreakNo > hit2i->m_BreakNo) {
-			occ2 = hit2i->m_HighlightOccurrenceEnd;
 			++hit2i;
 		}
+#endif // DDC_HIT_INTERSECTION_BINSEARCH
 		else if (!bSeparateHits) {
 			//-- found a match (join-mode): join daughters' occurrences
+			occ1 = hit1i==m_pChild1->m_Hits.begin() ? 0 : (hit1i-1)->m_HighlightOccurrenceEnd;
+			occ2 = hit2i==m_pChild2->m_Hits.begin() ? 0 : (hit2i-1)->m_HighlightOccurrenceEnd;
 			AddOccurrences2(*m_pChild1, occ1, hit1i->m_HighlightOccurrenceEnd,
 					*m_pChild2, occ2, hit2i->m_HighlightOccurrenceEnd);
 			pushHit(hit1i->m_BreakNo);
 
-			occ1 = hit1i->m_HighlightOccurrenceEnd;
-			occ2 = hit2i->m_HighlightOccurrenceEnd;
 			++hit1i;
 			++hit2i;
 		}
 		else {
 			//-- found a match (separate-mode): insert all combinations of daughters' occurrences
+			occ1 = hit1i==m_pChild1->m_Hits.begin() ? 0 : (hit1i-1)->m_HighlightOccurrenceEnd;
+			occ2 = hit2i==m_pChild2->m_Hits.begin() ? 0 : (hit2i-1)->m_HighlightOccurrenceEnd;
+			
 			DWORD brkno = hit1i->m_BreakNo;
 			vector<CHit>::const_iterator resume_hit2i = hit2i;
 			size_t resume_occ2 = occ2;
+
 			for ( ; hit1i != hit1j && hit1i->m_BreakNo==brkno; ++hit1i) {
 				for (hit2i=resume_hit2i, occ2=resume_occ2; hit2i != hit2j && hit2i->m_BreakNo==brkno; ++hit2i) {
 					AddOccurrences2(*m_pChild1, occ1, hit1i->m_HighlightOccurrenceEnd,
@@ -630,10 +650,15 @@ void CQueryBinaryOperationNode::hits_and_positions_difference(bool bSeparateHits
 	m_Hits.reserve(m_pChild1->m_Hits.size());
 	ClearAndReserveOccurrences(m_pChild1->GetOccurrencesSize());
 
+#if defined(DDC_HIT_INTERSECTION_BINSEARCH)	
+	CHitCompareByBreak CompareByBreak;
+#endif
+
 	size_t occ1=0;
 	for ( ; hit1i != hit1j && hit2i != hit2j; ) {
 		if (hit1i->m_BreakNo < hit2i->m_BreakNo) {
-			//-- hit1 only: insert hit1
+			//-- hit1 only: insert (hit1..lb(hit1|hit2))
+			occ1   = hit1i==m_pChild1->m_Hits.begin() ? 0 : (hit1i-1)->m_HighlightOccurrenceEnd;
 			AddOccurrences(*m_pChild1, occ1, hit1i->m_HighlightOccurrenceEnd);
 			pushHit(hit1i->m_BreakNo);
 			occ1 = hit1i->m_HighlightOccurrenceEnd;
@@ -641,7 +666,11 @@ void CQueryBinaryOperationNode::hits_and_positions_difference(bool bSeparateHits
 		}
 		else if (hit1i->m_BreakNo > hit2i->m_BreakNo) {
 			//-- hit2 only: skip hit2
+#if defined(DDC_HIT_INTERSECTION_BINSEARCH)
+			hit2i = lower_bound(++hit2i, hit2j, hit1i->m_BreakNo, CompareByBreak);
+#else
 			++hit2i;
+#endif
 		}
 		else if (!bSeparateHits) {
 			//-- hit1 == hit2: skip it (join-mode)

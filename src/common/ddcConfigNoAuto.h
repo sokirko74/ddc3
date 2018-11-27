@@ -3,11 +3,11 @@
 /* src/common/ddcConfigAuto.h.in.  Generated from configure.ac by autoheader.  */
 
 /* Define this to enable debugging code */
-#undef DDC_DEBUG_ENABLED
+/* #undef DDC_DEBUG_ENABLED */
 
 /* Define this to enable curl UNIX socket support emulation (libcurl <
    v7.40.0) */
-#undef DDC_ENABLE_CURL_UNIX_SOCKETS
+/* #undef DDC_ENABLE_CURL_UNIX_SOCKETS */
 
 /* Define this to enable UNIX socket URL parsing */
 #undef DDC_ENABLE_CURL_UNIX_URLS
@@ -21,7 +21,7 @@
 
 /* define this if libcurl supports CURLOPT_UNIX_SOCKET_PATH (libcurl >=
    v7.40.0) */
-/* #undef DDC_HAVE_CURL_UNIX_SUPPORT */
+#undef DDC_HAVE_CURL_UNIX_SUPPORT
 
 /* Define this if you have the UNIX socket headers sys/types.h, sys/socket.h,
    sys/un.h */
@@ -35,7 +35,7 @@
 #undef DDC_STATIC_BUFLEN
 
 /* Define this to enable high-resolution clock - requires clock_gettime() */
-#undef DDC_USE_HIRES_CLOCK
+/* #undef DDC_USE_HIRES_CLOCK */
 
 /* Major ddc version */
 #undef DDC_VERSION_MAJOR
@@ -199,8 +199,7 @@
 /* Defined if libcurl supports TFTP */
 #undef LIBCURL_PROTOCOL_TFTP
 
-/* Define to the sub-directory in which libtool stores uninstalled libraries.
-   */
+/* Define to the sub-directory where libtool stores uninstalled libraries. */
 #undef LT_OBJDIR
 
 /* Name of package */

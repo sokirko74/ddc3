@@ -467,4 +467,13 @@ extern const CLemmatizer* GetLemmatizerByLanguage (MorphLanguageEnum Langua);
 //! return a grammatical table  by a language indentifier
 extern const CAgramtab* GetGramtabByLanguage (MorphLanguageEnum Langua);
 
+//! compare hits by break-number (for query evaluation, e.g. CQueryBinaryOperationNode::hits_and_positions_intersection())
+struct CHitCompareByBreak
+{
+	CHitCompareByBreak() {};
+
+	inline bool operator()(const CHit& h, const DWORD brkno) const
+	{ return h.m_BreakNo < brkno; };
+};
+
 #endif

@@ -1,5 +1,12 @@
 ###-*- Mode: Change-Log; coding: utf-8; -*-
 
+v2.1.19-pre1 WIP
+	Tue, 27 Nov 2018 16:05:31 +0100
+	* added macro DDC_HIT_INTERSECTION_BINSEARCH to QueryNode.cpp
+	  - use std::lower_bound for evaluating hit-list intersection and difference
+	  - may be 3-5% faster for large hit-lists (function words)
+	* attempted profiling of CQueryNode::ConvertOccurrencesToHits() [perf, callgrind]: no insights
+
 v2.1.18 Fri, 02 Nov 2018 13:12:36 +0100 moocow
 	* force LC_NUMERIC=C in ConcordOptions.cpp (otherwise JSON responses may not be parseable)
 	  - beware that your environment doesn't set LC_ALL
