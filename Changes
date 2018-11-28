@@ -5,6 +5,9 @@ v2.1.19-pre1 WIP
 	* added macro DDC_HIT_INTERSECTION_BINSEARCH to QueryNode.cpp
 	  - use std::lower_bound for evaluating hit-list intersection and difference
 	  - may be 3-5% faster for large hit-lists (function words)
+	* added macro DDC_GETBREAK_LB_MIN to QueryNode.cpp
+	  - threshold for use of std::lower_bound() in break-identification step of CQueryNode::ConvertOccurrencesToHits()
+	  - default value = 16k -> ca. 10% faster queries
 	* attempted profiling of CQueryNode::ConvertOccurrencesToHits() [perf, callgrind]: no insights
 
 v2.1.18 Fri, 02 Nov 2018 13:12:36 +0100 moocow

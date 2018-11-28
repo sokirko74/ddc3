@@ -216,6 +216,20 @@ void CQueryNode::SetHolder(const CConcHolder*	pHolder)
 	m_bUseMatchIds    = m_pHolder->HasMatchIdOperator();
 }
 
+/**
+ * DDC_GETBREAK_LB_MIN
+ *  + minimum number of tokens between "current" token and "current" break for which we'll use std::lower_bound()
+ *    to find the next "current" break; otherwise linear search will be used
+ *  + std::lower_bound() will never be used for break-increment if this is undefined
+ *  + notes: LEMMA@QUERIES_PER_SEC
+ */
+//#undef DDC_GETBREAK_LB_MIN         /* Haus@246.202 , sein@26.129 */
+//#define DDC_GETBREAK_LB_MIN 65536  /* Haus@589.553 , sein@26.008 */
+#define DDC_GETBREAK_LB_MIN 16384  /* Haus@606.531 , sein@26.244 */
+//#define DDC_GETBREAK_LB_MIN 4096   /* Haus@632.487 , sein@26.025 */
+//#define DDC_GETBREAK_LB_MIN 1024   /* Haus@478.542 , sein@25.954 */
+//#define DDC_GETBREAK_LB_MIN 0      /* Haus@552.938 , sein@23.047 */
+
 void CQueryNode::ConvertOccurrencesToHits (bool bSeparateHits)
 {
 	const ddcBreakVector& Breaks = m_pHolder->GetBreaks();
@@ -226,8 +240,10 @@ void CQueryNode::ConvertOccurrencesToHits (bool bSeparateHits)
 	m_Hits.clear();
 	m_Hits.reserve(cnt);
 
-	bool bLongSequence = GetOccurrencesSize()*5 > Breaks.size() ;
-	ddcBreakVector::const_iterator break_it = Breaks.begin();
+	ddcBreakVector::const_iterator
+		break_it  = Breaks.begin(),
+		break_end = Breaks.end();
+
 	//ddcLogWarn(Format("ConvertOccurrencesToHits(%s): bLongSequence = %d", m_Source.c_str(), (bLongSequence ? 1 : 0)));
 
 	CQueryNode NewNode(m_bUseNodeIndices, m_bUseMatchIds);
@@ -235,24 +251,25 @@ void CQueryNode::ConvertOccurrencesToHits (bool bSeparateHits)
 		NewNode.ClearAndReserveOccurrences(GetOccurrencesSize());
 
 
+	DWORD BreakNo;
 	for (size_t i= 0;  i < cnt; i++)
 	{
-		CTokenNo Occurrence = m_Occurrences[i];
-
-		if (!bLongSequence)
-		{
-			break_it = lower_bound (break_it, (ddcBreakVector::const_iterator)Breaks.end(), Occurrence);
-			assert (break_it != Breaks.end());
+#ifdef DDC_GETBREAK_LB_MIN
+		if ((m_Occurrences[i] - *break_it) >= DDC_GETBREAK_LB_MIN) {
+			break_it = lower_bound (break_it, break_end, m_Occurrences[i]);
+			//assert (break_it != Breaks.end());
 			while (*break_it == m_Occurrences[i]) //-- avoid bogus empty breaks (pathological indices)
 				break_it++;
 		}
 		else
+#endif // DDC_GETBREAK_LB_MIN
 		{
 			// optimization for the very long sequence of m_Occurrences, lower_bound is too slow
-			while(m_Occurrences[i] >= *break_it) break_it++;
-		};
+			while (m_Occurrences[i] >= *break_it) ++break_it;
+		}
+
 		
-		DWORD BreakNo = break_it - Breaks.begin();
+		BreakNo = break_it - Breaks.begin();
 		if (bTextAreaNo)
 			if ( BreakNo%TextAreasCount != TextAreaNo ) // if it is the right text area
 				continue;
