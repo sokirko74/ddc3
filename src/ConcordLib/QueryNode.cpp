@@ -58,6 +58,12 @@ CQueryNode::~CQueryNode()
 	ClearVector(m_Occurrences);
 	ClearVector(m_OccurrenceNodeIndices);
 	ClearVector(m_OccurrenceMatchIds);
+	/*
+	ClearVector(m_Hits);
+	ClearVector(m_ChunkLengths);
+	ClearVector(m_ChunkOffsets);
+	ClearVector(m_CacheIds);
+	*/
 };
 
 size_t CQueryNode::GetNodeFrequencyByNodeIndex(size_t NodeIndex) const
@@ -81,7 +87,17 @@ void	CQueryNode::Evaluate(bool bSeparateHits)
 	throw  CExpc (errParseError, "not implemented!");
 };	
 
-
+void	CQueryNode::EnsureChunkOffsets()
+{
+	if (m_ChunkOffsets.empty()) {
+		m_ChunkOffsets.resize(m_ChunkLengths.size());
+		DWORD offset=0;
+		for (size_t i=0; i < m_ChunkLengths.size(); ++i) {
+			m_ChunkOffsets[i] = offset;
+			offset += m_ChunkLengths[i];
+		}
+	}
+};
 
 void	CQueryNode::SetNegation(bool Value)
 {
@@ -219,7 +235,7 @@ void CQueryNode::SetHolder(const CConcHolder*	pHolder)
 /**
  * DDC_GETBREAK_LB_MIN
  *  + minimum number of tokens between "current" token and "current" break for which we'll use std::lower_bound()
- *    to find the next "current" break; otherwise linear search will be used
+ *    to find the next "current" break in CQueryNode::ConvertOccurrencesToHits(); otherwise linear search will be used
  *  + std::lower_bound() will never be used for break-increment if this is undefined
  *  + notes: LEMMA@QUERIES_PER_SEC
  */
@@ -322,7 +338,7 @@ void CQueryNode::ConvertOccurrencesToHitsForPatterns (bool bSeparateHits)
 	size_t ChunkNo = 0;
 	for (size_t i=0;  i < cnt; i += m_ChunkLengths[ChunkNo], ChunkNo++ )
 	{
-		size_t ItemsCount = m_ChunkLengths[ChunkNo];
+		DWORD ItemsCount = m_ChunkLengths[ChunkNo];
 
 		if (!bLongSequence)
 		{
@@ -1216,7 +1232,7 @@ void CQuerySequenceNode::EvaluateWithoutHits()
 	}
 
 	//-- evaluate non-trivial sub-queries and find the one with the smallest result-set (mini)
-	vector<CQOccurrenceIterator> iters(ItemsCount);
+	vector<CQTokenOccurrenceIterator> iters(ItemsCount);
 	vector<bool> ibind(ItemsCount);   //-- bind[i]==true iff m_Items[i] is a bound iterator
 	size_t mini=(size_t)-1;           //-- index of item with smallest result-set
 	for (size_t i=0; i < ItemsCount; ++i) {
@@ -1259,7 +1275,7 @@ void CQuerySequenceNode::EvaluateWithoutHits()
 	ClearAndReserveOccurrences(ItemsCount*m_Items[mini]->GetOccurrencesSize());
 
 	// resume[] stores previous iteration value (resume positions) for iters[]
-	vector<CQOccurrenceIterator> resume(iters);
+	vector<CQTokenOccurrenceIterator> resume(iters);
 
 	// Path[] is currently observed path from an occurrence of the first query-item in m_Items[] to an occurrence of the last query-item in m_Items[]
 	// for each i > 0, 
@@ -1270,7 +1286,7 @@ void CQuerySequenceNode::EvaluateWithoutHits()
 
 
 	// depth-first search  from iters[0]
-	for ( ; iters[0].valid(); ++iters[0]) {
+	for ( ; iters[0].valid(); ++iters[0] ) {
 		if (iters[0].cur > 0 && iters[0].tmin() == iters[0].tmax_prev()) continue; //-- ignore duplicates in iters[0]
 
 		// i is the level of depth-first search
@@ -1280,11 +1296,11 @@ void CQuerySequenceNode::EvaluateWithoutHits()
 			CTokenNo tprev = iters[i-1].tmin();
 
 			//-- advance iters[i] to first occurrence after iters[i-1]
-			for (iters[i]=resume[i]; iters[i].valid() && iters[i].tmin() <= tprev; ++iters[i]) ;
-			resume[i] = iters[i];
+			//for (iters[i]=resume[i]; iters[i].valid() && iters[i].tmin() <= tprev; ++iters[i]) ;
+			resume[i].seek(tprev+1);
+			iters[i] = resume[i];
 			if (!iters[i].valid())
 				goto seqdone;
-
 
 			//-- attempt to find an iterator-position fulfulling the distance conditions starting from iters[i]
 			BYTE Distance   = m_Distances[i-1] + 1;
@@ -1331,7 +1347,7 @@ void CQuerySequenceNode::EvaluateWithoutHits()
 		// after this iteration iters[1]...iters[ItemsCount-1] are non-matches;
 		// we are waiting  for the next value of iters[0]
 		// resume[1] ... resume[ItemCount-1] were possibly updated 
-		// resume[i] is a lower bound of a possible children of resume[i-1],
+		// resume[i] is a lower bound for possible continuations of resume[i-1],
 	};
  seqdone:
 
@@ -1857,3 +1873,34 @@ bool CQOccurrenceIterator::operator==(const CQOccurrenceIterator &b) const
 	}
 	return true;
 };
+
+//======================== CQTokenOccurrenceIterator =========================
+
+//--------------------------------------------------------------
+void CQTokenOccurrenceIterator::bind(CQueryTokenNode *node_, const CQTokenOccurrenceIterator &src, int minOffset, int maxOffset)
+{
+	assert(node_ && node_->m_bAny);
+	operator=(node_);
+
+	cnt = (1+maxOffset-minOffset) * src.cnt;
+	if (minOffset<=0 && maxOffset>=0) cnt -= src.cnt; //-- avoid dups: don't count zero-offsets
+	node->ClearAndReserveOccurrences(cnt);
+
+	CTokenNo last_tok = (CTokenNo)-1;
+	for (vector<CTokenNo>::const_iterator occi=src.node->m_Occurrences.begin(); occi!=src.node->m_Occurrences.end(); ++occi) {
+		for (int off=minOffset; off<=maxOffset; ++off) {
+			CTokenNo tok = *occi + off;
+			if (off==0 || (last_tok != (CTokenNo)-1 && last_tok >= tok)) continue; //-- avoid overlap
+			node->m_Occurrences.push_back(tok);
+			last_tok = tok;
+		}
+	}
+	cnt = node->m_Occurrences.size();
+	//node->m_ChunkLengths.resize(cnt,1);
+	if (node->m_bUseNodeIndices) {
+		node->m_OccurrenceNodeIndices.resize(cnt,node_->m_NodeIndex);
+	}
+	if (node->m_bUseMatchIds) {
+		node->m_OccurrenceMatchIds.resize(cnt,node_->m_MatchId);
+	}
+}

@@ -154,7 +154,7 @@ public:
 	//! find all occurrences of index items  in \ref period_def "subcorpora" PeriodNo, using cache pCaches
 	void	FindOccurrences (const vector<DWORD>& IndexItems, const size_t PeriodNo, vector<CTokenNo>& occurrences, CMyTimeSpanHolder& Profilerp, CShortOccurCacheMap* pCaches, vector<int>& CacheIds)	const;
 	//! find all occurrences of index items in \ref period_def "subcorpora" PeriodNo, using cache pCaches (if occurrences are written by chunks)
-	void	FindChunkOccurrences (const vector<DWORD>& IndexItems, vector<CTokenNo>& occurrences, vector<size_t>& ChunkLengths, size_t PeriodNo, CMyTimeSpanHolder& Profilerp, CShortOccurCacheMap* pCaches, vector<int>& CacheIds)	const;
+	void	FindChunkOccurrences (const vector<DWORD>& IndexItems, vector<CTokenNo>& occurrences, vector<DWORD>& ChunkLengths, size_t PeriodNo, CMyTimeSpanHolder& Profilerp, CShortOccurCacheMap* pCaches, vector<int>& CacheIds)	const;
 	//! search for a string "WordForm", and add it to "MatchWords", if it is found
 	void	QueryTokenList (const string& WordForm, vector<DWORD>& MatchWords)	const;
 	//! search for all strings, which start from  "WordForm", and add them to "MatchWords"

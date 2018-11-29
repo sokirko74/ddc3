@@ -651,12 +651,12 @@ void CStringIndexSet::FindOccurrences (const vector<DWORD>& IndexItems, const si
 
 
 
-void CStringIndexSet::FindChunkOccurrences (const vector<DWORD>& IndexItems, vector<CTokenNo>& occurrences,  vector<size_t>& ChunkLengths, size_t PeriodNo, CMyTimeSpanHolder& Profiler, CShortOccurCacheMap* pCaches, vector<int>& CacheIds)	const
+void CStringIndexSet::FindChunkOccurrences (const vector<DWORD>& IndexItems, vector<CTokenNo>& occurrences,  vector<DWORD>& ChunkLengths, size_t PeriodNo, CMyTimeSpanHolder& Profiler, CShortOccurCacheMap* pCaches, vector<int>& CacheIds)	const
 {
 		
 	vector<CTokenNo> TempBuffer;
 
-	vector<pair<CTokenNo, size_t> > pos_and_lengths;
+	vector<pair<CTokenNo, DWORD> > pos_and_lengths;
 
 	size_t Count = IndexItems.size();
 
@@ -697,14 +697,14 @@ void CStringIndexSet::FindChunkOccurrences (const vector<DWORD>& IndexItems, vec
                   pCacheByIndexSet, 
                   CacheIds[i]);
 		{
-			vector<pair<CTokenNo, size_t> > curr_pos_and_lengths;
+			vector<pair<CTokenNo, DWORD> > curr_pos_and_lengths;
 			for (size_t k=0; k < curr_positions.size(); k++)
 				curr_pos_and_lengths.push_back(make_pair(curr_positions[k], chunk_len));
 
 			//add curr_pos_and_lengths to pos_and_lengths
-			vector<pair<CTokenNo, size_t> > new_pos_and_lengths;
+			vector<pair<CTokenNo, DWORD> > new_pos_and_lengths;
 			new_pos_and_lengths.resize(curr_pos_and_lengths.size() + pos_and_lengths.size());
-			vector<pair<CTokenNo, size_t> >::iterator it = 
+			vector<pair<CTokenNo, DWORD> >::iterator it = 
 				set_union(curr_pos_and_lengths.begin(), curr_pos_and_lengths.end(), pos_and_lengths.begin(), pos_and_lengths.end(), new_pos_and_lengths.begin());
 			new_pos_and_lengths.resize(it - new_pos_and_lengths.begin());
 			new_pos_and_lengths.swap(pos_and_lengths);
@@ -714,7 +714,7 @@ void CStringIndexSet::FindChunkOccurrences (const vector<DWORD>& IndexItems, vec
 	Count = pos_and_lengths.size();
 	for (size_t i=0; i < Count; i++)
 	{
-		size_t l = pos_and_lengths[i].second;
+		DWORD l = pos_and_lengths[i].second;
 		for (int k = 0; k<l; k++)
 		{
 			CTokenNo LastPositionOfChunk = pos_and_lengths[i].first;

@@ -173,7 +173,7 @@ public:
 	//! creates snippets, concatenating contexts of  found words
 	bool	GetFileSnippets(const int HitNo, vector<COutputToken>& Tokens)  const;
 	//! saves current found hits using SaveTrigger, this function is only called from GetOccurrences
-	bool	SaveOccurrences(const vector<size_t>& ChunkLengths,  int ContextSize, const vector<CTokenNo>& Occurrences,  const vector<CHit>& Hits, SaveTriggerType SaveTrigger,DWORD LParam);	
+	bool	SaveOccurrences(const vector<DWORD>& ChunkLengths,  int ContextSize, const vector<CTokenNo>& Occurrences,  const vector<CHit>& Hits, SaveTriggerType SaveTrigger,DWORD LParam);	
 	//! initializes Tokens with words of hit BreakNo
 	bool	GetTokensFromStorageByBreak(size_t IndexNo, size_t BreakNo, vector<COutputToken>& Tokens) const;
 	//! initializes CHit::m_FileNo for each hit of Hits

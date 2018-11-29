@@ -74,7 +74,10 @@ public:
 
 	//! the division of m_Occurrences by chunks , so m_ChunkLengths[0]+m_ChunkLengths[1]... = m_Occurrences.size() ;
 	//! used by near() queries.
-	vector<size_t> m_ChunkLengths;
+	vector<DWORD> m_ChunkLengths;
+
+	//! chunk offsets, used by CQuerySequenceNode queries; populate with EnsureChunkOffsets()
+	vector<DWORD> m_ChunkOffsets;
 
 	//! ???
 	vector<int> m_CacheIds;
@@ -133,6 +136,9 @@ public:
 
 	//! convert occurrences to hits for pattern query construction (like "mother likes father")
 	void ConvertOccurrencesToHitsForPatterns (bool bSeparateHits);
+
+	//! ensure m_ChunkOffsets[] is populated
+	void EnsureChunkOffsets();
 
 	//! set  m_pHolder dependent properties m_bUseNodeIndices, m_bUseMatchIds
 	void SetHolder(const CConcHolder* pHolder);
@@ -471,15 +477,18 @@ public:
 };
 
 //----------------------------------------------------------------------
+
+
 /*!
-  \brief CQOccurrenceIterator (formerly CQNearEvalItem) is used to iterate over query occurrences;
-  used by near() and phrase ("") queries
+ * \brief CQOccurrenceIterator (formerly CQNearEvalItem) is used to iterate over query occurrences; used by near() queries
+ *  + used by near()-queries, appropriate for iterating over single- or mulit-token query nodes
+ *    (respects node->m_ChunkLengths)
  */
 struct CQOccurrenceIterator {
 	CQueryNode *node; //!< (sub)query node
 	int cnt;	  //!< limit for  node->m_Occurrences[]
 	int cur;	  //!< index into node->m_Occurrences[]
-	size_t chpos;	  //!< index into node->m_ChunkLengths[] (match occurrence)
+	DWORD chpos;	  //!< index into node->m_ChunkLengths[] (match occurrence)
 
 	/** default constructor */
 	CQOccurrenceIterator(CQueryNode *node_=NULL)
@@ -518,7 +527,8 @@ struct CQOccurrenceIterator {
 		cnt   = 0;
 		cur   = 0;
 		chpos = 0;
-		if (node) cnt = node->m_Occurrences.size();
+		if (node)
+			cnt = node->m_Occurrences.size();
 	};
 
 	/* node-assignment operator; wraps assign() */
@@ -560,8 +570,130 @@ struct CQOccurrenceIterator {
 		chpos++;
 	};
 
+	/* seek iterator to the first occurrence greater-than-or-equal-to Tok */
+	inline void seek(const CTokenNo Tok)
+	{
+		while (valid() && tmin() < Tok) operator++();
+	};
+		
+
 	/* equality operator tests whether calling object and argument \a b point to exactly the same tokens */
 	bool operator==(const CQOccurrenceIterator &b) const;
+};
+
+/**
+ * DDC_OCCITER_LB_MIN
+ *  + minimum number of tokens between "current" and "target" tokens for which we'll use std::lower_bound()
+ *    for CQTokenOccurrenceIterator::seek(); otherwise linear search will be used
+ *  + std::lower_bound() will never be used for occurence-iterator seek if this is undefined
+ *  + introduced in v2.1.19-pre1
+ */
+//#undef DDC_OCCITER_LB_MIN 			/* "@auf @der"=30.082 ; "@auf @der @Lauer"=42.945 ; "@das @Haus"=113.257 : ~old */
+//#define DDC_OCCITER_LB_MIN ((CTokenNo)-1)	/* "@auf @der"=30.069 ; "@auf @der @Lauer"=43.620 ; "@das @Haus"=115.421 : force-unused, just compare */
+//#define DDC_OCCITER_LB_MIN 16384 		/* "@auf @der"=00.000 ; "@auf @der @Lauer"=00.000 ; "@das @Haus"=000.000 : unused (zeit) */
+//#define DDC_OCCITER_LB_MIN 4096 		/* "@auf @der"=30.074 ; "@auf @der @Lauer"=43.564 ; "@das @Haus"=124.403 : minimal use (zeit) */
+#define DDC_OCCITER_LB_MIN 1024 		/* "@auf @der"=29.865 ; "@auf @der @Lauer"=42.705 ; "@das @Haus"=120.127 : some use */
+//#define DDC_OCCITER_LB_MIN 0 			/* "@auf @der"=26.468 ; "@auf @der @Lauer"=37.381 ; "@das @Haus"=123.514 : maximal use */
+					/* old:    "@auf @der"=28.553 ; "@auf @der @Lauer"=41.559 ; "@das @Haus"=111.291 */
+/* "@auf @der"= ; "@auf @der @Lauer"= ; "@das @Haus"= : ? use */
+
+/*!
+ * \brief CQTokenOccurrenceIterator (formerly CQNearEvalItem) is used to iterate over query occurrences;
+ *  + used by phrase ("") queries, appropriate for iterating over single-token query nodes
+ *    (assumes all node->m_ChunkLengths[i]==1)
+ *  + disregards chpos
+ */
+struct CQTokenOccurrenceIterator : public CQOccurrenceIterator
+{
+	/** default constructor */
+	CQTokenOccurrenceIterator(CQueryNode *node_=NULL)
+	{ assign(node_); };
+
+	/** copy constructor */
+	CQTokenOccurrenceIterator(const CQTokenOccurrenceIterator &b)
+	{ operator=(b); };
+
+	/**
+	 *  Create an iterator bound to the neighbors of \a src, used to avoid expensive EvaluateWithoutHits() for universal sub-queries as near() arguments.
+	 *  Destructively alters \a node_->m_Occurrences[] (and associated vectors).
+	 *  Generates a "bound" occurence in \a node_->m_Occurrences[] for each source-occurence <code>occi = src.node->m_Occurrences[i]</code>
+	 *  and each offset \a off with <code>minOffset <= off <= maxOffset</code> representing token <code>*occi + off</code>, modulo <code>off==0</code>.
+	 *  @param node_ universal wildcard node in which to create bound occurrences.
+	 *  @param src source iterator to use for occurrence generation (should already have been populated by EvaluateWithoutHits())
+	 *  @param minOffset minimum offset for bound occurrences wrt source-occurrence
+	 *  @param maxOffset maximum offset for bound occurrences wrt source-occurrence (inclusive)
+	 */
+	void bind(CQueryTokenNode *node_, const CQTokenOccurrenceIterator &src, int minOffset, int maxOffset);
+
+	/** assignment operator */
+	inline CQTokenOccurrenceIterator& operator=(const CQTokenOccurrenceIterator &b)
+	{
+		CQOccurrenceIterator::operator=(b);
+		return *this;
+	};
+
+
+	/** node-assignment : inherited */
+	//inline void assign(CQueryNode *node_)
+
+	/* node-assignment operator; wraps assign() */
+	inline CQTokenOccurrenceIterator& operator=(CQueryTokenNode *node_)
+	{
+		assign((CQueryNode*)node_);
+		return *this;
+	};
+
+	//-- inherited
+	//inline bool valid() const
+	//inline operator bool() const
+	
+	/** get size of current occurrence-chunk: override */
+	inline size_t chunksize() const
+	{ return 1; };
+
+	//-- inherited
+	inline CTokenNo tmin() const
+	{ return node->m_Occurrences[cur]; };
+
+	/* get last token-id of current occurrence (inclusive); assumes iterator is valid: override just returns tmin() */
+	inline CTokenNo tmax() const
+	{ return tmin(); };
+
+	//-- inherited
+	//inline CTokenNo tmax_prev() const
+
+	/* increment operator updates the iterator to point to the next available occurrence, or to an invalid state if no such occurrence exists */
+	inline void operator++()
+	{ 
+		if (!valid()) return;
+		++cur;
+	};
+
+	/* seek iterator to the first occurrence greater-than-or-equal-to Tok */
+	inline void seek(const CTokenNo Tok)
+	{
+#ifdef DDC_OCCITER_LB_MIN
+		if (valid() && tmin() < Tok
+# if DDC_OCCITER_LB_MIN != 0
+		    && (Tok-tmin()) >= DDC_OCCITER_LB_MIN
+# endif
+		) {
+			//fprintf(stderr, "BINSEARCH(%u->%u : %u)\n", tmin(), Tok, Tok-tmin());
+			cur = lower_bound(node->m_Occurrences.begin()+cur, node->m_Occurrences.end(), Tok) - node->m_Occurrences.begin();
+		}
+		else {
+			while (valid() && tmin() < Tok) ++cur;
+		}
+#else
+		while (valid() && tmin() < Tok) ++cur;
+#endif		
+	};
+		
+	/* equality operator tests whether calling object and argument \a b point to exactly the same tokens : override */
+	inline bool operator==(const CQTokenOccurrenceIterator &b) const
+	{
+		return node->m_Occurrences[cur] == b.node->m_Occurrences[b.cur];
+	};
 };
 
 //----------------------------------------------------------------------

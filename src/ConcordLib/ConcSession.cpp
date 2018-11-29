@@ -2148,7 +2148,7 @@ DDCErrorEnum CConcSession::SimpleQuery(const string &Query, DWORD& EndHitNo, DWO
 
 
  //----------------------------------------------------------------------
-bool CConcSession::SaveOccurrences(const vector<size_t>& ChunkLengths, int ContextSize, const vector<CTokenNo>& Occurrences,  const vector<CHit>& Hits,  SaveTriggerType SaveTrigger, DWORD LParam)
+bool CConcSession::SaveOccurrences(const vector<DWORD>& ChunkLengths, int ContextSize, const vector<CTokenNo>& Occurrences,  const vector<CHit>& Hits,  SaveTriggerType SaveTrigger, DWORD LParam)
 {
 	if (m_pIndexator->m_Indices.empty()) return false;
 	assert (Hits.size() == ChunkLengths.size());
