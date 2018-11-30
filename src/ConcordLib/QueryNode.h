@@ -599,31 +599,14 @@ struct CQOccurrenceIterator {
 };
 
 /**
- * DDC_OCCITER_LB_MIN
- *  + minimum number of tokens between "current" and "target" tokens for which we'll use std::lower_bound()
- *    for CQTokenOccurrenceIterator::seek(); otherwise linear search will be used
- *  + std::lower_bound() will never be used for occurence-iterator seek if this is undefined
- *  + introduced in v2.1.19-pre1
- */
-//#undef DDC_OCCITER_LB_MIN 			/* "@auf @der"=30.082 ; "@auf @der @Lauer"=42.945 ; "@das @Haus"=113.257 : ~old */
-//#define DDC_OCCITER_LB_MIN ((CTokenNo)-1)	/* "@auf @der"=30.069 ; "@auf @der @Lauer"=43.620 ; "@das @Haus"=115.421 : force-unused, just compare */
-//#define DDC_OCCITER_LB_MIN 16384 		/* "@auf @der"=00.000 ; "@auf @der @Lauer"=00.000 ; "@das @Haus"=000.000 : unused (zeit) */
-//#define DDC_OCCITER_LB_MIN 4096 		/* "@auf @der"=30.074 ; "@auf @der @Lauer"=43.564 ; "@das @Haus"=124.403 : minimal use */
-#define DDC_OCCITER_LB_MIN 1024 		/* "@auf @der"=29.865 ; "@auf @der @Lauer"=42.705 ; "@das @Haus"=120.127 : some use */
-//#define DDC_OCCITER_LB_MIN 0 			/* "@auf @der"=26.468 ; "@auf @der @Lauer"=37.381 ; "@das @Haus"=123.514 : maximal use */
-					/* old:    "@auf @der"=28.553 ; "@auf @der @Lauer"=41.559 ; "@das @Haus"=111.291 */
-/* "@auf @der"= ; "@auf @der @Lauer"= ; "@das @Haus"= : ? use */
-
-/**
  * DDC_OCCITER_LB_COEF
  *  + minimum coefficient for deciding between linear increment and std::lower_bound() on CQTokenOccurrenceIterator::seek()
- *  + if undefined, DDC_OCCITER_LB_MIN strategy will be used
+//  + heuristic for approximating number of linear-search ops per binary-search visitation (empirically set to 4)
+//  + speeds up phrase-, WITH-, and WITHOUT-queries by up to 69%,  e.g. ("@das @Haus")
+//  + can hurt up to 5% for "very simple" &&-queries, e.g. (@Haus && @Garten)
+ *  + introduced in v2.1.19-pre1
  */
-//#define DDC_OCCITER_LB_COEF 1
-//#define DDC_OCCITER_LB_COEF 2
 #define DDC_OCCITER_LB_COEF 4
-//#define DDC_OCCITER_LB_COEF 8
-//#undef DDC_OCCITER_LB_COEF
 
 /*!
  * \brief CQTokenOccurrenceIterator (formerly CQNearEvalItem) is used to iterate over query occurrences;
@@ -710,39 +693,14 @@ struct CQTokenOccurrenceIterator : public CQOccurrenceIterator
 	/* seek iterator to the first occurrence greater-than-or-equal-to Tok */
 	inline void seek(const CTokenNo Tok)
 	{
-#if   defined(DDC_OCCITER_LB_COEF)
 		if (valid() && tmin() < Tok) {
 			if ((Tok-tmin())/stride > DDC_OCCITER_LB_COEF*log2u32(cnt-cur)) {
-				//printf("SEEK-COEF-BINSEARCH(%u->%u : %u)\n", tmin(), Tok, Tok-tmin());
 				cur = lower_bound(node->m_Occurrences.begin()+cur, node->m_Occurrences.end(), Tok) - node->m_Occurrences.begin();
 			} else {
-				//printf("SEEK-COEF-INCR(%u->%u : %u)\n", tmin(), Tok, Tok-tmin());
 				do { ++cur; } while (valid() && tmin() < Tok);
 			}
 		}
-#elif defined(DDC_OCCITER_LB_MIN)
-		if (valid() && tmin() < Tok
-# if DDC_OCCITER_LB_MIN != 0
-		    && (Tok-tmin()) >= DDC_OCCITER_LB_MIN
-# endif
-		) {
-			//printf("SEEK-ABS-BINSEARCH(%u->%u : %u)\n", tmin(), Tok, Tok-tmin());
-			cur = lower_bound(node->m_Occurrences.begin()+cur, node->m_Occurrences.end(), Tok) - node->m_Occurrences.begin();
-		}
-		else {
-			//printf("SEEK-ABS-INCR(%u->%u : %u)\n", tmin(), Tok, Tok-tmin());
-			while (valid() && tmin() < Tok) ++cur;
-		}
-#else
-		//printf("SEEK-INCR(%u->%u : %u)\n", tmin(), Tok, Tok-tmin());
-		while (valid() && tmin() < Tok) ++cur;
-#endif		
 	};
-
-	/* find all matches in range (TokMin <= tocc(occ[*]) <= TokMax)
-	 * \li on completion, this->cur is as for seek(), i.e. (TokMin <= this->tmin())
-	 */
-	inline void seekAll(const CTokenNo TokMin, const CTokenNo TokMax, vector<DWORD>& occs);
 
 	/* equality operator tests whether calling object and argument \a b point to exactly the same tokens : override */
 	inline bool operator==(const CQTokenOccurrenceIterator &b) const
