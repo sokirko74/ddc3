@@ -1451,14 +1451,19 @@ NEW/seekall[binseek=1024]:
 zeit(opt) queries/sec:
 
 OLD:
- "@auf @der @Lauer"	->   40.199 (n=80)
- "@auf @der" 		->   26.582 (n=35118)
- "@das @Haus"		->  104.521 (n=1666)
+ "@auf @der @Lauer"	->   50.395 (n=80)
+ "@auf @der" 		->   32.660 (n=35118)
+ "@das @Haus"		->  119.649 (n=1666)
 
-NEW/simple[binseek=1024]:
+NEW/simple[LB_MIN=1024]:
  "@auf @der @Lauer"	->   72.131 (n=80)
  "@auf @der" 		->   32.011 (n=35118)
  "@das @Haus"		->  281.152 (n=1666)
+
+NEW/simple[LB_COEF=4]:
+ "@auf @der @Lauer"	->  123.637 (n=80)	+ 59%
+ "@auf @der" 		->   34.774 (n=35118)	+  6%
+ "@das @Haus"		->  388.651 (n=1666)	+ 69%
 
  */
 
@@ -1606,7 +1611,7 @@ void CQuerySequenceNode::EvaluateWithoutHits()
 	//-- allocate local occurrences
 	ClearAndReserveOccurrences(ItemsCount*m_Items[mini]->GetOccurrencesSize());
 
-	if (true/*DEBUG*/ && bSimplePhrase) {
+	if (false/*DEBUG*/ && bSimplePhrase) {
 		//---- PHRASE-SIMPLE: optimized evaluation for "simple" phrases (only immediate successors, no skip-operators)
 		size_t i,j;
 		while ( iters[0].valid() ) {
