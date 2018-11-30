@@ -1,6 +1,6 @@
 //-*- Mode: C++; c-basic-offset: 8; -*-
 //  DDC originally by Alexey Sokirko
-//  Changes and modifications 2011-2015 by Bryan Jurish
+//  Changes and modifications 2011-2018 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -111,6 +111,16 @@ public:
 
 	//! get m_bNegated
 	bool GetNegation() const;
+
+	//! insers a single occurrence FromNode.m_Occurrences[occ]
+	inline void AddOccurrence(const CQueryNode& FromNode, int FromOcc)
+	{
+		m_Occurrences.push_back(FromNode.m_Occurrences[FromOcc]);
+		if (m_bUseNodeIndices)
+			m_OccurrenceNodeIndices.push_back(FromNode.m_OccurrenceNodeIndices[FromOcc]);
+		if (m_bUseMatchIds)
+			m_OccurrenceMatchIds.push_back(FromNode.m_OccurrenceMatchIds[FromOcc]);
+	};
 
 	//! inserts occurrences [FromNode.m_Occurrences.begin()+start,  FromNode.m_Occurrences.begin()+end) into m_Occurrences[] (and m_OccurrenceNodeIndices if appropriate)
 	void AddOccurrences(const CQueryNode& FromNode, int start, int end);
@@ -542,6 +552,10 @@ struct CQOccurrenceIterator {
 	inline bool valid() const
 	{ return cur < cnt; };
 
+	/** invalidate iterator */
+	inline void invalidate()
+	{ cur = cnt; };
+
 	/** bool typecast just wraps valid() */
 	inline operator bool() const
 	{ return valid(); };
@@ -550,6 +564,10 @@ struct CQOccurrenceIterator {
 	inline size_t chunksize() const
 	{  return node->m_ChunkLengths[chpos]; };
 
+	/* get token-id for occurrence-id \a occ */
+	inline CTokenNo tocc(DWORD occ) const
+	{ return node->m_Occurrences[occ]; };
+	
 	/* get first token-id of current occurrence; assumes iterator is valid */
 	inline CTokenNo tmin() const
 	{ return node->m_Occurrences[cur]; };
@@ -575,7 +593,6 @@ struct CQOccurrenceIterator {
 	{
 		while (valid() && tmin() < Tok) operator++();
 	};
-		
 
 	/* equality operator tests whether calling object and argument \a b point to exactly the same tokens */
 	bool operator==(const CQOccurrenceIterator &b) const;
@@ -591,7 +608,7 @@ struct CQOccurrenceIterator {
 //#undef DDC_OCCITER_LB_MIN 			/* "@auf @der"=30.082 ; "@auf @der @Lauer"=42.945 ; "@das @Haus"=113.257 : ~old */
 //#define DDC_OCCITER_LB_MIN ((CTokenNo)-1)	/* "@auf @der"=30.069 ; "@auf @der @Lauer"=43.620 ; "@das @Haus"=115.421 : force-unused, just compare */
 //#define DDC_OCCITER_LB_MIN 16384 		/* "@auf @der"=00.000 ; "@auf @der @Lauer"=00.000 ; "@das @Haus"=000.000 : unused (zeit) */
-//#define DDC_OCCITER_LB_MIN 4096 		/* "@auf @der"=30.074 ; "@auf @der @Lauer"=43.564 ; "@das @Haus"=124.403 : minimal use (zeit) */
+//#define DDC_OCCITER_LB_MIN 4096 		/* "@auf @der"=30.074 ; "@auf @der @Lauer"=43.564 ; "@das @Haus"=124.403 : minimal use */
 #define DDC_OCCITER_LB_MIN 1024 		/* "@auf @der"=29.865 ; "@auf @der @Lauer"=42.705 ; "@das @Haus"=120.127 : some use */
 //#define DDC_OCCITER_LB_MIN 0 			/* "@auf @der"=26.468 ; "@auf @der @Lauer"=37.381 ; "@das @Haus"=123.514 : maximal use */
 					/* old:    "@auf @der"=28.553 ; "@auf @der @Lauer"=41.559 ; "@das @Haus"=111.291 */
@@ -652,6 +669,9 @@ struct CQTokenOccurrenceIterator : public CQOccurrenceIterator
 	{ return 1; };
 
 	//-- inherited
+	//inline CTokenNo tocc(DWORD occ) const
+
+	//-- inherited
 	inline CTokenNo tmin() const
 	{ return node->m_Occurrences[cur]; };
 
@@ -688,7 +708,12 @@ struct CQTokenOccurrenceIterator : public CQOccurrenceIterator
 		while (valid() && tmin() < Tok) ++cur;
 #endif		
 	};
-		
+
+	/* find all matches in range (TokMin <= tocc(occ[*]) <= TokMax)
+	 * \li on completion, this->cur is as for seek(), i.e. (TokMin <= this->tmin())
+	 */
+	inline void seekAll(const CTokenNo TokMin, const CTokenNo TokMax, vector<DWORD>& occs);
+
 	/* equality operator tests whether calling object and argument \a b point to exactly the same tokens : override */
 	inline bool operator==(const CQTokenOccurrenceIterator &b) const
 	{

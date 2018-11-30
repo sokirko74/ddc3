@@ -803,49 +803,49 @@ bool	GetCWBFormattedStringRecursive(const TiXmlNode* parent, string& Result)
 	{
 		Result += parent->Value()+string("\n");
 	}
-	else
-		if (parent->Type() == TiXmlNode::ELEMENT)
+	else if (parent->Type() == TiXmlNode::ELEMENT)
+	{
+		string type = parent->Value();
+		Trim(type);
+		bool bNotLineBreak = (type != PredefinedTableLineTag);
+		if (type == "pb")
 		{
-			string type = parent->Value();
-			Trim(type);
-			bool bNotLineBreak = (type != PredefinedTableLineTag);
-			if (type == "pb")
+			const char*	page_number = parent->ToElement()->Attribute("n");
+			if (page_number)
 			{
-				const char*	page_number = parent->ToElement()->Attribute("n");
-				if (page_number)
-				{
-					Result += Format("<pb %s>\n", page_number);
-					return true;
-				}
-				else
-				{
-					ErrorMessage("bad page break");						
-					return false;
-				};
+				Result += Format("<pb %s>\n", page_number);
+				return true;
 			}
 			else
-				if (bNotLineBreak)
-					Result += Format("\n<%s>\n", type.c_str());
-
-
-
-
-			for (TiXmlNode* child = parent->FirstChild();  child;  child = child->NextSibling())
 			{
-				string R;
-				if (!GetCWBFormattedStringRecursive(child, Result)) 
-					return false;
+				ErrorMessage("bad page break");						
+				return false;
 			};
-
-			if (bNotLineBreak)
-				Result += Format("\n</%s>\n", type.c_str());
-			
 		}
-		else
+		else if (bNotLineBreak)
+			Result += Format("\n<%s>\n", type.c_str());
+
+		
+		for (TiXmlNode* child = parent->FirstChild();  child;  child = child->NextSibling())
 		{
-			ErrorMessage (Format("Unknown xml-node:%s. Some parts of file cannot be parsed!", parent->Value()));
-			return false;
+			if (!GetCWBFormattedStringRecursive(child, Result)) 
+				return false;
 		};
+
+		if (bNotLineBreak)
+			Result += Format("\n</%s>\n", type.c_str());
+			
+	}
+	else if (parent->Type() == TiXmlNode::COMMENT)
+	{
+		//-- moo: skip comments in document body
+		;
+	}
+	else
+	{
+		ErrorMessage (Format("Unknown xml-node:%s. Some parts of file cannot be parsed!", parent->Value()));
+		return false;
+	};
 
 	return true;
 };

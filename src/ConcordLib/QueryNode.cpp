@@ -1221,6 +1221,157 @@ bool	CQuerySequenceNode::Create(const CConcHolder* pHolder, const vector<CQueryT
   return true;	
 };
 
+
+/*
+
+zeit(debug) queries/sec:
+
+OLD:
+ "@auf @der @Lauer"	->  8.764 (n=80)
+ "@auf @der" 		->  5.106 (n=35118)
+ "@das @Haus"		-> 13.044 (n=1666)
+
+NEW/simple[binseek=undef]
+ "@auf @der @Lauer"	-> 14.328 (n=80)
+ "@auf @der" 		->  5.902 (n=35118)
+ "@das @Haus"		-> 45.720 (n=1666)
+
+NEW/simple[binseek=0]
+ "@auf @der @Lauer"	-> 17.179 (n=80)
+ "@auf @der" 		->  2.317 (n=35118)
+ "@das @Haus"		-> 42.067 (n=1666)
+
+NEW/simple[binseek=1024]
+ "@auf @der @Lauer"	-> 17.503 (n=80)
+ "@auf @der" 		->  5.551 (n=35118)
+ "@das @Haus"		-> 49.295 (n=1666)
+
+NEW/simple[binseek=4096]
+ "@auf @der @Lauer"	-> 17.742 (n=80)
+ "@auf @der" 		->  5.624 (n=35118)
+ "@das @Haus"		-> 48.699 (n=1666)
+
+-----
+SEEK-RESUME[+debug]
+
+OLD[binseek=undef]:
+ "@auf @der @Lauer"	->    8.977 (n=80)
+ "@auf @der" 		->    5.170 (n=35118)
+ "@das @Haus"		->   13.588 (n=1666)
+
+NEW/seek-resume[binseek=undef]
+ "@auf @der @Lauer"	->    15.316 (n=80)
+ "@auf @der" 		->     5.270 (n=35118)
+ "@das @Haus"		->    48.077 (n=1666)
+
+NEW/seek-resume[binseek=1024]
+ "@auf @der @Lauer"	->    19.273 (n=80)
+ "@auf @der" 		->     5.015 (n=35118)
+ "@das @Haus"		->    48.867 (n=1666)
+
+NEW/simple-seek-resume[binseek=1024]
+ "@auf @der @Lauer"	->    19.150 (n=80)
+ "@auf @der" 		->     6.623 (n=35118)
+ "@das @Haus"		->    54.382 (n=1666)
+
+
+-----
+SEEKALL[+debug] -- no joy
+
+OLD[binseek=undef]:
+ "@auf @der @Lauer"	->    8.977 (n=80)
+ "@auf @der" 		->    5.170 (n=35118)
+ "@das @Haus"		->   13.588 (n=1666)
+
+NEW/seekall[binseek=undef]:
+ "@auf @der @Lauer"	->    0.856 (n=80)
+ "@auf @der" 		->    4.908 (n=35118)
+ "@das @Haus"		->    2.073 (n=1666)
+
+NEW/seekall[binseek=1024]:
+ "@auf @der @Lauer"	->    0.853 (n=80)
+ "@auf @der" 		->    4.678 (n=35118)
+ "@das @Haus"		->    2.035 (n=1666)
+
+-----
+zeit(opt) queries/sec:
+
+OLD:
+ "@auf @der @Lauer"	->   40.199 (n=80)
+ "@auf @der" 		->   26.582 (n=35118)
+ "@das @Haus"		->  104.521 (n=1666)
+
+NEW/simple[binseek=1024]:
+ "@auf @der @Lauer"	->   72.131 (n=80)
+ "@auf @der" 		->   32.011 (n=35118)
+ "@das @Haus"		->  281.152 (n=1666)
+
+ */
+
+template<typename T>
+struct ProductIterator {
+	vector<T> m_size;
+	vector<T> m_cur;
+
+	ProductIterator()
+	{};
+
+	ProductIterator(size_t nitems)
+		: m_size(nitems,1)
+	{ reset(); };
+
+	ProductIterator(const vector<T>& sizes)
+	{ assign(sizes); };
+
+	ProductIterator(const vector< vector<T> >& vecs)
+	{ assign(vecs); };
+
+
+	inline void assign(const vector<T>& sizes)
+	{
+		m_size = sizes;
+		reset();
+	};
+
+	inline void assign(const vector< vector<T> >& vecs)
+	{
+		m_size.resize(vecs.size());
+		for (T i=0; i < vecs.size(); ++i)
+			m_size[i] = vecs[i].size();
+		reset();
+	};
+
+	inline void reset()
+	{ m_cur.assign(m_size.size(), 0); };
+
+	inline bool valid() const
+	{ return m_cur.back() < m_size.back(); };
+
+	inline operator bool() const
+	{ return valid(); };
+
+	//-- see https://codereview.stackexchange.com/questions/122699/finding-a-cartesian-product-of-multiple-lists
+	void operator++()
+	{
+		do {
+			for (T j=0; j < m_cur.size(); ++j) {
+				//-- reset the slot if it can't be incremented
+				if (++m_cur[j] >= m_size[j]) {
+					//-- stop when the last enumerator resets
+					if (j == m_cur.size()-1) return;
+
+					//-- turnover
+					m_cur[j] = 0;
+					continue;
+				}
+
+				//-- we incremented m_cur[j] without reset, so stop here
+				return;
+			}
+		} while (true);
+	};
+};
+
 void CQuerySequenceNode::EvaluateWithoutHits()
 {	
 	int ItemsCount = m_Items.size();
@@ -1269,58 +1420,138 @@ void CQuerySequenceNode::EvaluateWithoutHits()
 		case '=': iters[i].bind(m_Items[i], iters[i+1], -1-di,   -1-di); break;
 		}
 	}
-	
+
+
+	//-- build minimum- and maximum-distance arrays
+	//  + (min|max)Distance[i] is (min|max)imum distance between iters[i] and iters[i+1]
+	//  + distances here are actual token-id differences (DDC "A #0 B" --> minDistance[0]=1)
+	vector<DWORD> minDistance(m_Distances.size());
+	vector<DWORD> maxDistance(m_Distances.size());
+	bool bSimplePhrase = true;
+	for (int i=0; i < m_Distances.size(); ++i) {
+		switch (m_DistanceOps[i]) {
+		default:
+		case '<':
+			minDistance[i] = 1;
+			maxDistance[i] = m_Distances[i]+1;
+			break;
+		case '=':
+			minDistance[i] = m_Distances[i]+1;
+			maxDistance[i] = m_Distances[i]+1;
+			break;
+		case '>':
+			minDistance[i] = m_Distances[i]+1;
+			maxDistance[i] = MaxDistanceForNear;
+			break;
+		}
+		maxDistance[i] = min(maxDistance[i], (DWORD)MaxDistanceForNear);
+		if (minDistance[i] != 1 || maxDistance[i] != 1)
+			bSimplePhrase = false;
+	}
 
 	//-- allocate local occurrences
 	ClearAndReserveOccurrences(ItemsCount*m_Items[mini]->GetOccurrencesSize());
 
-	// resume[] stores previous iteration value (resume positions) for iters[]
-	vector<CQTokenOccurrenceIterator> resume(iters);
+	if (true/*DEBUG*/ && bSimplePhrase) {
+		//---- PHRASE-SIMPLE: optimized evaluation for "simple" phrases (only immediate successors, no skip-operators)
+		size_t i,j;
+		while ( iters[0].valid() ) {
+			//-- check for hit
+			for (i=1; i < ItemsCount; ++i) {
+				CTokenNo nxt = iters[i-1].tmin()+1;
+				iters[i].seek( nxt );
+				if ( !iters[i].valid() || iters[i].tmin() != nxt ) break;
+			}
+			if (i==ItemsCount) {
+				//-- found __exactly__ one complete sequence-match: save it by adding complete path represented by iters[]
+				for (j=0; j < ItemsCount; ++j) {
+					//resume[j] = iters[j];
+					AddOccurrence(*m_Items[j], iters[j].cur);
+					++iters[j];
+				}
+			}
+			else if (!iters[i].valid()) {
+				//-- no more items[i]: we can stop looking
+				break;
+			}
+			else {
+				//-- failed to find a match for iters[i]
+				iters[0].seek( iters[i].tmin() - i );
+			}
+		}
+	}
+	else {
+		//---- PHRASE-COMPLEX: hairy evaluation for "complex" phrases (non-trivial skip-operators)
 
-	// Path[] is currently observed path from an occurrence of the first query-item in m_Items[] to an occurrence of the last query-item in m_Items[]
-	// for each i > 0, 
-	//  if Path[i] != -1, then
-	//   : (m_Items[i]->m_Occurrences[Path[i]] - m_Items[i-1]->m_Occurrences[Path[i-1]]) <= m_Distances[i-1] if m_DistanceOps[i-1]=='<' (default)
-	//   : (m_Items[i]->m_Occurrences[Path[i]] - m_Items[i-1]->m_Occurrences[Path[i-1]]) >= m_Distances[i-1] if m_DistanceOps[i-1]=='>'
-	//   : (m_Items[i]->m_Occurrences[Path[i]] - m_Items[i-1]->m_Occurrences[Path[i-1]]) == m_Distances[i-1] if m_DistanceOps[i-1]=='='
+#if 0 //-- PHRASE-COMPLEX: dispatch: new/seekall
+		//fprintf(stderr, "PHRASE-COMPLEX: new/seekall\n");
 
+		//-- allocate sub-occurrence buffers
+		vector< vector<DWORD> > ItemOccs(ItemsCount);
+		for (size_t i=0; i < ItemsCount; ++i)
+			ItemOccs[i].reserve(MaxDistanceForNear);
+		ItemOccs[0].resize(1);
 
-	// depth-first search  from iters[0]
-	for ( ; iters[0].valid(); ++iters[0] ) {
-		if (iters[0].cur > 0 && iters[0].tmin() == iters[0].tmax_prev()) continue; //-- ignore duplicates in iters[0]
+		ProductIterator<DWORD> ItemOccIter(ItemsCount);
 
-		// i is the level of depth-first search
-		size_t i = 1;
-		while (i > 0) {
-			//-- get token-id of the previous sequence-item
-			CTokenNo tprev = iters[i-1].tmin();
+		size_t i,j;
+		while ( iters[0].valid() ) {
+			//-- check for hits
+			for (i=1; i < ItemsCount; ++i) {
+				iters[i].seekAll( iters[i-1].tmin()+minDistance[i-1], iters[i-1].tmin()+maxDistance[i-1], ItemOccs[i] );
+				if (ItemOccs[i].empty()) break;
+			}
+			if (i==ItemsCount) {
+				//-- found __at_least_one__ complete sequence-match: add __all__ complete matches
+				ItemOccs[0][0] = iters[0].cur;
+				for (ItemOccIter.assign(ItemOccs); ItemOccIter.valid(); ++ItemOccIter) {
+					for (j=0; j < ItemsCount; ++j)
+						AddOccurrence(*m_Items[j], ItemOccs[j][ItemOccIter.m_cur[j]]);
+				}
+				++iters[0];
+			}
+			else {
+				//-- failed to find a match for iters[i] : backtrack
+				for (j=i; j > 0; --j) {
+					if (iters[j].valid()) {
+						CTokenNo seekprev = iters[j].tmin() - min(iters[j].tmin(), maxDistance[j-1]);
+						if (seekprev > iters[j-1].tmin()) iters[j-1].seek( seekprev );
+					}
+					else {
+						iters[j-1].invalidate();
+					}
+				}
+			}
+		}
 
-			//-- advance iters[i] to first occurrence after iters[i-1]
-			//for (iters[i]=resume[i]; iters[i].valid() && iters[i].tmin() <= tprev; ++iters[i]) ;
-			resume[i].seek(tprev+1);
-			iters[i] = resume[i];
-			if (!iters[i].valid())
-				goto seqdone;
+#elif 1
+		//fprintf(stderr, "PHRASE-COMPLEX: new/seek-resume\n");
 
-			//-- attempt to find an iterator-position fulfulling the distance conditions starting from iters[i]
-			BYTE Distance   = m_Distances[i-1] + 1;
-			BYTE DistanceOp = m_DistanceOps[i-1];
-			bool found=false;
-			for ( ; iters[i].valid(); ++iters[i]) {
-				if (iters[i].cur > 0 && iters[i].tmin()==iters[i].tmax_prev()) continue; //-- avoid duplicates in iters[i]
+		// resume[] stores previous iteration value (resume positions) for iters[]
+		vector<CQTokenOccurrenceIterator> resume(iters);
 
-				//-- check for distance-constraing violations
-				DWORD CurDistance = iters[i].tmin() - tprev;
-				if (CurDistance < Distance && (DistanceOp=='=' || DistanceOp=='>'))
-					//-- minimum distance not yet reached: increment current iterator and keep searching
-					continue;
-				else if (CurDistance > Distance && (DistanceOp=='=' || DistanceOp=='<'))
-					//-- max distance exceeded
-					break;
-				else if (CurDistance > MaxDistanceForNear)
-					//-- global max distance exceeded
-					break;
-				else {
+		// depth-first search  from iters[0]
+		while ( iters[0].valid() ) {
+			if (iters[0].cur > 0 && iters[0].tmin() == iters[0].tmax_prev()) continue; //-- ignore duplicates in iters[0]
+
+			// i is the level of depth-first search
+			size_t i = 1;
+			while (i > 0) {
+				//-- get token-id of the previous sequence-item
+				CTokenNo tprev = iters[i-1].tmin();
+
+				//-- advance iters[i] to first occurrence after iters[i-1]
+				//for (iters[i]=resume[i]; iters[i].valid() && iters[i].tmin() <= tprev; ++iters[i]) ;
+				resume[i].seek(tprev + minDistance[i-1]);
+				iters[i] = resume[i];
+				if (!iters[i].valid())
+					goto seqdone;
+
+				//-- attempt to find an iterator-position fulfilling the distance-constraints starting from iters[i]
+				bool found=false;
+				for ( ; iters[i].valid() && iters[i].tmin()-tprev <= maxDistance[i-1]; ++iters[i]) {
+					if (iters[i].cur > 0 && iters[i].tmin()==iters[i].tmax_prev()) continue; //-- avoid duplicates in iters[i]
+
 					//-- a suitable position has been found for iters[i]
 					if ((i+1)==ItemsCount) {
 						//-- found a complete sequence-match: save it by adding complete path represented by iters[]
@@ -1333,23 +1564,105 @@ void CQuerySequenceNode::EvaluateWithoutHits()
 						break;
 					}
 				}
-			}
 
-			if (found) {
-				//-- found sub-query match in iters[i]; continue by trying to match iters[i+1]
-				++i;
-			} else {
-				//-- no sub-query match iters[i] found: back up
-				--i;
-				++resume[i];
+				if (found) {
+					//-- found sub-query match in iters[i]; continue by trying to match iters[i+1]
+					++i;
+				} else {
+					//-- no sub-query match iters[i] found: back up
+					CTokenNo seekprev = resume[i].tmin() - min(resume[i].tmin(), maxDistance[i-1]);
+					--i;
+					if (seekprev > resume[i].tmin())
+						resume[i].seek(seekprev);
+					else
+						++resume[i];
+				}
 			}
+			// after this iteration iters[1]...iters[ItemsCount-1] are non-matches;
+			// we are waiting  for the next value of iters[0]
+			// resume[1] ... resume[ItemCount-1] were possibly updated 
+			// resume[i] is a lower bound for possible continuations of resume[i-1],
+
+			//-- update iters[0]
+			iters[0] = resume[0];
+			/*
+			if (resume[0].cur > iters[0].cur)
+				iters[0] = resume[0];
+			else
+				++iters[0];
+			*/
 		}
-		// after this iteration iters[1]...iters[ItemsCount-1] are non-matches;
-		// we are waiting  for the next value of iters[0]
-		// resume[1] ... resume[ItemCount-1] were possibly updated 
-		// resume[i] is a lower bound for possible continuations of resume[i-1],
-	};
+		
+#else  //-- PHRASE-COMPLEX: dispatch: old
+		//fprintf(stderr, "PHRASE-COMPLEX: old\n");
+
+		// resume[] stores previous iteration value (resume positions) for iters[]
+		vector<CQTokenOccurrenceIterator> resume(iters);
+
+		// depth-first search  from iters[0]
+		for ( ; iters[0].valid(); ++iters[0] ) {
+			if (iters[0].cur > 0 && iters[0].tmin() == iters[0].tmax_prev()) continue; //-- ignore duplicates in iters[0]
+
+			// i is the level of depth-first search
+			size_t i = 1;
+			while (i > 0) {
+				//-- get token-id of the previous sequence-item
+				CTokenNo tprev = iters[i-1].tmin();
+
+				//-- advance iters[i] to first occurrence after iters[i-1]
+				//for (iters[i]=resume[i]; iters[i].valid() && iters[i].tmin() <= tprev; ++iters[i]) ;
+				resume[i].seek(tprev+1);
+				iters[i] = resume[i];
+				if (!iters[i].valid())
+					goto seqdone;
+
+				//-- attempt to find an iterator-position fulfilling the distance conditions starting from iters[i]
+				bool found=false;
+				for ( ; iters[i].valid(); ++iters[i]) {
+					if (iters[i].cur > 0 && iters[i].tmin()==iters[i].tmax_prev()) continue; //-- avoid duplicates in iters[i]
+
+					//-- check for distance-constraint violations
+					DWORD CurDistance = iters[i].tmin() - tprev;
+					if (CurDistance < minDistance[i-1])
+						//-- minimum distance not yet reached: increment current iterator and keep searching
+						continue;
+					else if (CurDistance > maxDistance[i-1])
+						//-- max distance exceeded
+						break;
+					else {
+						//-- a suitable position has been found for iters[i]
+						if ((i+1)==ItemsCount) {
+							//-- found a complete sequence-match: save it by adding complete path represented by iters[]
+							for (size_t j=0; j < ItemsCount; ++j)
+								AddOccurrences(*m_Items[j], iters[j].cur, iters[j].cur+1);
+						}
+						else {
+							//-- we've got a good match in iters[i]; continue by searching iters[i+1]
+							found = true;
+							break;
+						}
+					}
+				}
+
+				if (found) {
+					//-- found sub-query match in iters[i]; continue by trying to match iters[i+1]
+					++i;
+				} else {
+					//-- no sub-query match iters[i] found: back up
+					--i;
+					++resume[i];
+				}
+			}
+			// after this iteration iters[1]...iters[ItemsCount-1] are non-matches;
+			// we are waiting  for the next value of iters[0]
+			// resume[1] ... resume[ItemCount-1] were possibly updated 
+			// resume[i] is a lower bound for possible continuations of resume[i-1],
+		}
+#endif // PHRASE-COMPLEX: dispatch
+	
+	}
  seqdone:
+	//fprintf(stderr, "CQSeq: added %zd total occurrences\n", m_Occurrences.size());
 
 	// this procedure produces list of occurrences are stored by chunks, and sorted by the first item. 
 	// The length of chunk is equal to the length of the  pattern,
@@ -1903,4 +2216,13 @@ void CQTokenOccurrenceIterator::bind(CQueryTokenNode *node_, const CQTokenOccurr
 	if (node->m_bUseMatchIds) {
 		node->m_OccurrenceMatchIds.resize(cnt,node_->m_MatchId);
 	}
+}
+
+//--------------------------------------------------------------
+void CQTokenOccurrenceIterator::seekAll(const CTokenNo TokMin, const CTokenNo TokMax, vector<DWORD>& occs)
+{
+	seek(TokMin);
+	occs.clear();
+	for (DWORD occ=cur; valid() && tocc(occ) <= TokMax; ++occ)
+		occs.push_back(occ);
 }
