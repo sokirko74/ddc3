@@ -46,11 +46,6 @@ extern CDwdsThesaurus* pDwdsThesaurus;
 const size_t MaxDistanceForNear = 32;
 #define GetOccurrencesSize() m_Occurrences.size()  
 
-// DDC_HIT_INTERSECTION_BINSEARCH : use binay search lower_bound() for CQueryBinaryOperationNode::hits_and_positions_intersection()
-//  + ca. 5-10% faster complex queries ("@auf @der @Lauer" && $l=@sein)
-#define DDC_HIT_INTERSECTION_BINSEARCH 1
-//#undef DDC_HIT_INTERSECTION_BINSEARCH
-
 //======================== CQueryNode =====================
 
 CQueryNode::~CQueryNode()
@@ -574,6 +569,21 @@ void CQueryBinaryOperationNode::hits_and_positions_union(bool bSeparateHits)
 }
 
 
+// DDC_HIT_INTERSECTION_BINSEARCH : use binay search lower_bound() for CQueryBinaryOperationNode::hits_and_positions_intersection()
+//  + ca. 5-10% faster complex queries ("@auf @der @Lauer" && $l=@sein)
+#define DDC_HIT_INTERSECTION_BINSEARCH 1
+//#undef DDC_HIT_INTERSECTION_BINSEARCH
+
+//#define DDC_HIT_INTERSECTION_BINSEARCH_COEF 1
+//#define DDC_HIT_INTERSECTION_BINSEARCH_COEF 2
+//#define DDC_HIT_INTERSECTION_BINSEARCH_COEF 3
+#define DDC_HIT_INTERSECTION_BINSEARCH_COEF 4
+//#define DDC_HIT_INTERSECTION_BINSEARCH_COEF 6
+//#define DDC_HIT_INTERSECTION_BINSEARCH_COEF 8
+
+//#define BINSEARCH_DEBUG(x) x
+#define BINSEARCH_DEBUG(x)
+
 void CQueryBinaryOperationNode::hits_and_positions_intersection(bool bSeparateHits)
 {
 #if 0
@@ -604,19 +614,157 @@ void CQueryBinaryOperationNode::hits_and_positions_intersection(bool bSeparateHi
 	m_Hits.reserve( min(m_pChild1->m_Hits.size(),m_pChild2->m_Hits.size()) );
 	ClearAndReserveOccurrences( min(m_pChild1->GetOccurrencesSize(),m_pChild2->GetOccurrencesSize()) );
 
-#if defined(DDC_HIT_INTERSECTION_BINSEARCH)	
+#if defined(DDC_HIT_INTERSECTION_BINSEARCH)
+	BINSEARCH_DEBUG( printf("binsearch enabled\n") );
+	
 	CHitCompareByBreak CompareByBreak;
+	//-- breakStride : average size of gap between breaks in m_pChildX (for binary-search vs batch-increment heuristics)
+	DWORD breakStride1 = max((size_t)1, (m_pChild1->m_Hits.back().m_BreakNo-m_pChild1->m_Hits.front().m_BreakNo) / m_pChild1->m_Hits.size());
+	DWORD breakStride2 = max((size_t)1, (m_pChild2->m_Hits.back().m_BreakNo-m_pChild1->m_Hits.front().m_BreakNo) / m_pChild2->m_Hits.size());
+#else
+	BINSEARCH_DEBUG( printf("binsearch disabled\n") );
 #endif
+	/* binsearch, zeit(+debug), queries/sec
 
+	 -binsearch
+	   @Lauer && $l=@sein	->  3.588 (n=51)
+	   @Haus && @Garten	-> 94.269 (n=144)
+	   @das && @Haus 	->  7.474 (n=3994)
+	   @auf && @der 	->  1.100 (n=230251)
+
+	 +binsearch
+	   @Lauer && $l=@sein	->  3.894 (n=51)
+	   @Haus && @Garten	-> 94.976 (n=144)
+	   @das && @Haus 	->  7.636 (n=3994)
+	   @auf && @der 	->  0.928 (n=230251)
+
+	 +batch-iter
+	   @Lauer && $l=@sein	->   3.674 (n=51)
+	   @Haus && @Garten	->  97.387 (n=144)
+	   @das && @Haus 	->   7.596 (n=3994)
+	   @auf && @der 	->   1.095 (n=230251)
+
+	 +binsearch/heuristic[coef=1]
+	   @Lauer && $l=@sein	->  3.831 (n=51)
+	   @Haus && @Garten	-> 96.604 (n=144)
+	   @das && @Haus 	->  7.638 (n=3994)
+	   @auf && @der 	->  1.077 (n=230251)
+
+	 +binsearch/heuristic[coef=2]
+	   @Lauer && $l=@sein	->  3.869 (n=51)
+	   @Haus && @Garten	-> 97.480 (n=144)
+	   @das && @Haus 	->  7.750 (n=3994)
+	   @auf && @der 	->  1.085 (n=230251)
+
+	 +binsearch/heuristic[coef=3]
+	   @Lauer && $l=@sein	->  3.889 (n=51)
+	   @Haus && @Garten	-> 97.640 (n=144)
+	   @das && @Haus 	->  7.714 (n=3994)
+	   @auf && @der 	->  1.090 (n=230251)
+
+	 +binsearch/heuristic[coef=4]
+	   @Lauer && $l=@sein	->  3.895 (n=51)
+	   @Haus && @Garten	-> 97.878 (n=144)
+	   @das && @Haus 	->  7.722 (n=3994)
+	   @auf && @der 	->  1.089 (n=230251)
+
+	 +binsearch/heuristic[coef=6]
+	   @Lauer && $l=@sein	->  3.867 (n=51)
+	   @Haus && @Garten	-> 97.866 (n=144)
+	   @das && @Haus 	->  7.706 (n=3994)
+	   @auf && @der 	->  1.089 (n=230251)
+
+	 +binsearch/heuristic[coef=8]
+	   @Lauer && $l=@sein	->  3.831 (n=51)
+	   @Haus && @Garten	-> 96.170 (n=144)
+	   @das && @Haus 	->  7.674 (n=3994)
+	   @auf && @der 	->  1.095 (n=230251)
+
+       ----
+       binsearch, zeit(+opt), queries/sec [vs OLD]
+
+         OLD
+	   @Lauer && $l=@sein	->  16.315 (n=51)
+	   @Haus && @Garten	-> 456.788 (n=144)
+	   @das && @Haus 	->  33.763 (n=3994)
+	   @auf && @der 	->   6.260 (n=230251)
+
+	 -binsearch
+	   @Lauer && $l=@sein	->  21.920 (n=51)	+26%
+	   @Haus && @Garten	-> 448.561 (n=144)	- 2%
+	   @das && @Haus 	->  43.677 (n=3994)	+23%
+	   @auf && @der 	->   8.039 (n=230251)	+22%
+
+	 +binsearch
+	   @Lauer && $l=@sein	->  25.407 (n=51)	+36%
+	   @Haus && @Garten	-> 424.070 (n=144)	- 8%
+	   @das && @Haus 	->  45.305 (n=3994)	+25%
+	   @auf && @der 	->   6.850 (n=230251)	+ 9%
+
+	 +batch-iter
+	   @Lauer && $l=@sein	->  21.543 (n=51)	+24%
+	   @Haus && @Garten	-> 440.684 (n=144)	- 4%
+	   @das && @Haus 	->  44.893 (n=3994)	+25%
+	   @auf && @der 	->   7.477 (n=230251)	+16%
+
+	 +binsearch/heuristic[coef=4]
+	   @Lauer && $l=@sein	->   25.304 (n=51)	+36%
+	   @Haus && @Garten	->  434.858 (n=144)	- 5%
+	   @das && @Haus 	->   47.461 (n=3994)	+29%
+	   @auf && @der 	->    8.068 (n=230251)	+22%
+
+	 +...
+	   @Lauer && $l=@sein	->   (n=51)
+	   @Haus && @Garten	->  (n=144)
+	   @das && @Haus 	->   (n=3994)
+	   @auf && @der 	->   (n=230251)
+	*/
+	
 	size_t occ1=0, occ2=0;
 	while (hit1i != hit1j && hit2i != hit2j) {
 #if defined(DDC_HIT_INTERSECTION_BINSEARCH)
+# if 0
+		//-- break-binsearch: impl dispatch: always-binsearch
 		if (hit1i->m_BreakNo < hit2i->m_BreakNo) {
 			hit1i = lower_bound(++hit1i, hit1j, hit2i->m_BreakNo, CompareByBreak);
 		}
 		else if (hit1i->m_BreakNo > hit2i->m_BreakNo) {
 			hit2i = lower_bound(++hit2i, hit2j, hit1i->m_BreakNo, CompareByBreak);
 		}
+# elif 0
+		// break-binsearch: impl dispatch: batch-increment
+		if (hit1i->m_BreakNo < hit2i->m_BreakNo) {
+			
+			do { ++hit1i; } while (hit1i < hit1j && hit1i->m_BreakNo < hit2i->m_BreakNo);
+		}
+		else if (hit1i->m_BreakNo > hit2i->m_BreakNo) {
+			
+			do { ++hit2i; } while (hit2i < hit2j && hit2i->m_BreakNo < hit1i->m_BreakNo);
+		}
+#else
+		// break-binsearch: impl dispatch: heuristic
+		if (hit1i->m_BreakNo < hit2i->m_BreakNo) {
+			// break distance: d=(hit2i->m_BreakNo-hit1->m_BreakNo)
+			// expected number of increment ops: d/breakStride1
+			// expected number of binsearch ops: log2u32(hit1i->m_Breaks.end()-hit1i)
+			if ((hit2i->m_BreakNo-hit1i->m_BreakNo)/breakStride1 > DDC_HIT_INTERSECTION_BINSEARCH_COEF*log2u32(hit1j-hit1i)) {
+				BINSEARCH_DEBUG( printf("binsearch:1\n") );
+				hit1i = lower_bound(++hit1i, hit1j, hit2i->m_BreakNo, CompareByBreak);
+			} else {
+				BINSEARCH_DEBUG( printf("batch-incr:1\n") );
+				do { ++hit1i; } while (hit1i < hit1j && hit1i->m_BreakNo < hit2i->m_BreakNo);
+			}
+		}
+		else if (hit1i->m_BreakNo > hit2i->m_BreakNo) {
+			if ((hit1i->m_BreakNo-hit2i->m_BreakNo)/breakStride2 > DDC_HIT_INTERSECTION_BINSEARCH_COEF*log2u32(hit2j-hit2i)) {
+				BINSEARCH_DEBUG( printf("binsearch:2\n") );
+				hit2i = lower_bound(++hit2i, hit2j, hit1i->m_BreakNo, CompareByBreak);
+			} else {
+				BINSEARCH_DEBUG( printf("batch-incr:2\n") );
+				do { ++hit2i; } while (hit2i < hit2j && hit2i->m_BreakNo < hit1i->m_BreakNo);
+			}
+		}
+# endif 	//--/break-binsearch: impl dispatch
 #else // !defined(DDC_HIT_INTERSECTION_BINSEARCH)
 		if (hit1i->m_BreakNo < hit2i->m_BreakNo) {
 			++hit1i;
@@ -685,13 +833,15 @@ void CQueryBinaryOperationNode::hits_and_positions_difference(bool bSeparateHits
 
 #if defined(DDC_HIT_INTERSECTION_BINSEARCH)	
 	CHitCompareByBreak CompareByBreak;
+	//-- breakStride : average size of gap between breaks in m_pChildX (for binary-search vs batch-increment heuristics)
+	DWORD breakStride2 = max((size_t)1, (m_pChild2->m_Hits.back().m_BreakNo-m_pChild2->m_Hits.front().m_BreakNo) / m_pChild2->m_Hits.size());
 #endif
 
 	size_t occ1=0;
-	for ( ; hit1i != hit1j && hit2i != hit2j; ) {
+	while ( hit1i != hit1j && hit2i != hit2j ) {
 		if (hit1i->m_BreakNo < hit2i->m_BreakNo) {
 			//-- hit1 only: insert (hit1..lb(hit1|hit2))
-			occ1   = hit1i==m_pChild1->m_Hits.begin() ? 0 : (hit1i-1)->m_HighlightOccurrenceEnd;
+			occ1  = hit1i==m_pChild1->m_Hits.begin() ? 0 : (hit1i-1)->m_HighlightOccurrenceEnd;
 			AddOccurrences(*m_pChild1, occ1, hit1i->m_HighlightOccurrenceEnd);
 			pushHit(hit1i->m_BreakNo);
 			occ1 = hit1i->m_HighlightOccurrenceEnd;
@@ -700,10 +850,14 @@ void CQueryBinaryOperationNode::hits_and_positions_difference(bool bSeparateHits
 		else if (hit1i->m_BreakNo > hit2i->m_BreakNo) {
 			//-- hit2 only: skip hit2
 #if defined(DDC_HIT_INTERSECTION_BINSEARCH)
-			hit2i = lower_bound(++hit2i, hit2j, hit1i->m_BreakNo, CompareByBreak);
-#else
-			++hit2i;
-#endif
+			if ((hit1i->m_BreakNo-hit2i->m_BreakNo)/breakStride2 > DDC_HIT_INTERSECTION_BINSEARCH_COEF*log2u32(hit2j-hit2i)) {
+				hit2i = lower_bound(++hit2i, hit2j, hit1i->m_BreakNo, CompareByBreak);
+			} else {
+				do { ++hit2i; } while (hit2i < hit2j && hit2i->m_BreakNo < hit1i->m_BreakNo);
+			}
+#else // !defined(DDC_HIT_INTERSECTION_BINSEARCH)
+			do { ++hit2i; } while (hit2i < hit2j && hit2i->m_BreakNo < hit1i->m_BreakNo);
+#endif  // DDC_HIT_INTERSECTION_BINSEARCH
 		}
 		else if (!bSeparateHits) {
 			//-- hit1 == hit2: skip it (join-mode)
@@ -1940,6 +2094,70 @@ bool CQueryWithNode::Create(const CConcHolder*	pHolder, CQueryNode* child1, CQue
 };
 
 
+/* with times (zeit01,+opt)
+
+OLD
+ @Haus with $l=@Haus	(n=11121)	355.954
+ @Haus with $p=@NN	(n=11116)	  9.156
+ @das  with $p=@ART	(n=393473)	 10.612
+
+NEW/set-intersection
+ @Haus with $l=@Haus	(n=11121)	363.168		+ 2%
+ @Haus with $p=@NN	(n=11116)	  9.091		- 1%
+ @das  with $p=@ART	(n=393473)	 11.918		+11%
+
+NEW/-seek
+ @Haus with $l=@Haus	(n=11121)	364.219
+ @Haus with $p=@NN	(n=11116)	  8.046
+ @das  with $p=@ART	(n=393473)	 10.812
+
+NEW/+seek[LB_MIN=undef]
+ @Haus with $l=@Haus	(n=11121)	359.041
+ @Haus with $p=@NN	(n=11116)	  9.765
+ @das  with $p=@ART	(n=393473)	 11.652
+
+NEW/+seek[LB_MIN=0]
+ @Haus with $l=@Haus	(n=11121)	343.584
+ @Haus with $p=@NN	(n=11116)	 10.266
+ @das  with $p=@ART	(n=393473)	  9.935
+
+NEW/+seek[LB_MIN=1024]
+ @Haus with $l=@Haus	(n=11121)	341.618
+ @Haus with $p=@NN	(n=11116)	 10.282
+ @das  with $p=@ART	(n=393473)	 11.345
+
+NEW/+seek[LB_COEF=1]
+ @Haus with $l=@Haus	(n=11121)	342.050		- 4%
+ @Haus with $p=@NN	(n=11116)	 10.203		+10%
+ @das  with $p=@ART	(n=393473)	 10.432		- 2%
+
+NEW/+seek[LB_COEF=2]
+ @Haus with $l=@Haus	(n=11121)	358.173		+ 1%
+ @Haus with $p=@NN	(n=11116)	 10.244		+11%
+ @das  with $p=@ART	(n=393473)	 11.007		+ 4%
+
+NEW/+seek[LB_COEF=4]
+ @Haus with $l=@Haus	(n=11121)	354.836		- 0%
+ @Haus with $p=@NN	(n=11116)	 10.277		+11%
+ @das  with $p=@ART	(n=393473)	 11.147		+ 5%
+
+----> WINNER: NEW/+seek+reorder[LB_COEF=4]
+ @Haus with $l=@Haus	(n=11121)	385.201		+ 8%
+ @Haus with $p=@NN	(n=11116)	 10.393		+12%
+ @das  with $p=@ART	(n=393473)	 12.939		+18%
+
+NEW/+seek[LB_COEF=8]
+ @Haus with $l=@Haus	(n=11121)	353.008		- 1%
+ @Haus with $p=@NN	(n=11116)	 10.278		+11%
+ @das  with $p=@ART	(n=393473)	 11.082		+ 4%
+
+...
+ @Haus with $l=@Haus	(n=11121)	0
+ @Haus with $p=@NN	(n=11116)	0
+ @das  with $p=@ART	(n=393473)	0
+
+*/
+
 void CQueryWithNode::EvaluateWithoutHits()
 {
 	CQueryTokenNode *child1 = (CQueryTokenNode*)m_pChild1;
@@ -1969,18 +2187,50 @@ void CQueryWithNode::EvaluateWithoutHits()
 	child1->EvaluateWithoutHits();
 	child2->EvaluateWithoutHits();
 
+#if 0 /* DEBUG: use set-intersection -- new implementation is actually faster without this clause! */
 	if (!m_bUseNodeIndices && !m_bUseMatchIds) {
 		//-- no node-indices or match-ids : just append to m_Occurrences[] and sort appended data
+		//printf("WITH:intersect\n");
 		m_Occurrences.resize( min(child1->GetOccurrencesSize(), child2->GetOccurrencesSize()) );
 		vector<CTokenNo>::iterator it = set_intersection(child1->m_Occurrences.begin(), child1->m_Occurrences.end(),
 								 child2->m_Occurrences.begin(), child2->m_Occurrences.end(),
 								 m_Occurrences.begin());
 		m_Occurrences.resize(it - m_Occurrences.begin());
 	}
-	else {
+	else
+#endif
+	{
 		//-- node-indices and/or match-ids in use: manual intersection via linear scan needed to preserve them
-		size_t i1,i2;
 		ClearAndReserveOccurrences( min(child1->GetOccurrencesSize(), child2->GetOccurrencesSize()) );
+#if 1
+		//-- WITH:new[+seek]
+		//printf("WITH:new[+seek]\n");
+		CQTokenOccurrenceIterator iter1(child1), iter2(child2);
+		while ( iter1.valid() && iter2.valid() ) {
+			if (iter1.tmin() < iter2.tmin()) {
+				iter1.seek(iter2.tmin());
+			}
+			else if (iter2.tmin() > iter1.tmin()) {
+				iter2.seek(iter1.tmin());
+			}
+			else /*if (iter1.tmin() == iter2.tmin())*/ {
+				//-- occ1 == occ2: add occ1
+				m_Occurrences.push_back(child1->m_Occurrences[iter1.cur]);
+				if (m_bUseNodeIndices)
+					m_OccurrenceNodeIndices.push_back(child1->m_OccurrenceNodeIndices[iter1.cur]);
+				if (m_bUseMatchIds)
+					m_OccurrenceMatchIds.push_back(child2->m_OccurrenceMatchIds[iter2.cur]!=DefaultMatchId
+								       ? child2->m_OccurrenceMatchIds[iter2.cur]
+								       : child1->m_OccurrenceMatchIds[iter1.cur]);
+				++iter1;
+				++iter2;
+			}
+		}
+		
+#else
+		//-- WITH:old
+		//printf("WITH:old\n");
+		size_t i1,i2;
 		for (i1=0, i2=0; i1 < child1->GetOccurrencesSize() && i2 < child2->GetOccurrencesSize(); ) {
 			if (child1->m_Occurrences[i1] == child2->m_Occurrences[i2]) {
 				//-- occ1 == occ2: add occ1
@@ -2001,7 +2251,7 @@ void CQueryWithNode::EvaluateWithoutHits()
 				++i2;
 			}
 		}
-
+#endif
 		//-- clobber match-ids
 		if (m_bUseMatchIds && m_MatchId)
 			m_OccurrenceMatchIds.assign(m_OccurrenceMatchIds.size(), m_MatchId);
@@ -2026,6 +2276,35 @@ bool CQueryWithoutNode::Create(const CConcHolder* pHolder, CQueryNode* child1, C
 };
 
 
+/* WITHOUT query-times (zeit01,+opt; queries/sec)
+
+OLD
+ %Haus != @Haus		(n=15740)	288.018
+ @das  != $p=@ART	(n=161223)	 13.430
+ @Liebe != $p=@NN	(n=174)		  9.552
+
+new/set-intersection
+ %Haus != @Haus		(n=15740)	301.187		+ 4%
+ @das  != $p=@ART	(n=161223)	 14.363		- 1%
+ @Liebe != $p=@NN	(n=174)		  9.953		+ 4%
+
+new/+seek[LB_MIN=1024]
+ %Haus != @Haus		(n=15740)	300.161		+ 4%
+ @das  != $p=@ART	(n=161223)	 13.239		- 1%
+ @Liebe != $p=@NN	(n=174)		 11.722		+19%
+
+new/+seek[COEF=4]
+ %Haus != @Haus		(n=15740)	297.584		+ 3%
+ @das  != $p=@ART	(n=161223)	 14.440		+ 7%
+ @Liebe != $p=@NN	(n=174)		 11.830		+19%
+
+...
+ %Haus != @Haus		(n=15740)	0
+ @das  != $p=@ART	(n=161223)	0
+ @Liebe != $p=@NN	(n=174)		0
+
+*/
+
 void CQueryWithoutNode::EvaluateWithoutHits()
 {
 	CQueryTokenNode* child1 = (CQueryTokenNode*)m_pChild1;
@@ -2034,6 +2313,7 @@ void CQueryWithoutNode::EvaluateWithoutHits()
 	child1->EvaluateWithoutHits();
 	child2->EvaluateWithoutHits();
 
+#if 0 /* DEBUG: use set-intersection -- we're actually faster without it now */
 	if (!m_bUseNodeIndices && !m_bUseMatchIds) {
 		//-- no node-indices or match-ids : simple set-operation
 		m_Occurrences.resize( child1->GetOccurrencesSize() );
@@ -2042,10 +2322,54 @@ void CQueryWithoutNode::EvaluateWithoutHits()
 							       m_Occurrences.begin());
 		m_Occurrences.resize(it - m_Occurrences.begin());
 	}
-	else {
+	else
+#endif
+        {
+		ClearAndReserveOccurrences( child1->GetOccurrencesSize() );
+#if 1
+		//-- WITHOUT:new[+seek]
+		CQTokenOccurrenceIterator iter1(child1), iter2(child2);
+		while ( iter1.valid() && iter2.valid() ) {
+			if (iter1.tmin() < iter2.tmin()) {
+				//-- occ1 < occ2: add occ1
+#if 0
+				//-- batch add & incr
+				DWORD start = iter1.cur;
+				iter1.seek(iter2.tmin());
+				AddOccurrences(*child1, start, (iter1.valid() ? iter1.cur : iter1.cnt));
+#else
+				//-- single add
+				m_Occurrences.push_back(child1->m_Occurrences[iter1.cur]);
+				if (m_bUseNodeIndices)
+					m_OccurrenceNodeIndices.push_back(child1->m_OccurrenceNodeIndices[iter1.cur]);
+				if (m_bUseMatchIds)
+					m_OccurrenceMatchIds.push_back(child1->m_OccurrenceMatchIds[iter1.cur]);
+				++iter1;
+#endif
+			}
+			else if (iter1.tmin() == iter2.tmin()) {
+				//-- occ1 == occ2: skip both
+				++iter1;
+				++iter2;
+			}
+			else /*if (iter1.tmin() > iter2.tmin())*/ {
+				//-- occ1 > occ2 : skip occ2
+				iter2.seek( iter1.tmin() );
+			}
+		}
+
+		//-- append final occurrences
+		if (iter1.valid())
+			AddOccurrences(*child1, iter1.cur, iter1.cnt);
+
+		//-- clobber match-ids
+		if (m_bUseMatchIds && m_MatchId)
+			m_OccurrenceMatchIds.assign(m_OccurrenceMatchIds.size(), m_MatchId);
+
+#else
+		//-- WITHOUT:old
 		//-- node-indices and/or match-ids in use: linear scan needed to preserve them
 		size_t i1,i2;
-		ClearAndReserveOccurrences( child1->GetOccurrencesSize() );
 		for (i1=0, i2=0; i1 < child1->GetOccurrencesSize() && i2 < child2->GetOccurrencesSize(); ) {
 			if (child1->m_Occurrences[i1] < child2->m_Occurrences[i2]) {
 				//-- occ1 < occ2: add occ1
@@ -2070,10 +2394,11 @@ void CQueryWithoutNode::EvaluateWithoutHits()
 		//-- append final occurrences
 		if (i1 < child1->GetOccurrencesSize())
 			AddOccurrences(*child1, i1, child1->GetOccurrencesSize());
-	       
+
 		//-- clobber match-ids
 		if (m_bUseMatchIds && m_MatchId)
 			m_OccurrenceMatchIds.assign(m_OccurrenceMatchIds.size(), m_MatchId);
+#endif
 	}
 
 	m_ChunkLengths.resize(GetOccurrencesSize(), 1);
@@ -2096,6 +2421,7 @@ void CQueryWithorNode::EvaluateWithoutHits()
 	child1->EvaluateWithoutHits();
 	child2->EvaluateWithoutHits();
 
+#if 1 /* DEBUG: use set-intersection */
 	if (!m_bUseNodeIndices && !m_bUseMatchIds) {
 		//-- no node-indices or match-ids : just append to m_Occurrences[] and sort appended data
 		m_Occurrences.resize( child1->GetOccurrencesSize() + child2->GetOccurrencesSize() );
@@ -2103,10 +2429,45 @@ void CQueryWithorNode::EvaluateWithoutHits()
 							  child2->m_Occurrences.begin(), child2->m_Occurrences.end(),
 							  m_Occurrences.begin());
 		m_Occurrences.resize(it - m_Occurrences.begin());
-	} else {
+	}
+	else
+#endif
+	{
+		ClearAndReserveOccurrences( child1->GetOccurrencesSize() + child2->GetOccurrencesSize() );
+#if 0
+		//-- WITHOR:new
+		CQTokenOccurrenceIterator iter1(child1), iter2(child2);
+		while ( iter1.valid() && iter2.valid() ) {
+			if (iter1.tmin() <= iter2.tmin()) {
+				//-- occ1 <= occ2: add occ1
+				m_Occurrences.push_back(child1->m_Occurrences[iter1.cur]);
+				if (m_bUseNodeIndices)
+					m_OccurrenceNodeIndices.push_back(child1->m_OccurrenceNodeIndices[iter1.cur]);
+				if (m_bUseMatchIds)
+					m_OccurrenceMatchIds.push_back(child1->m_OccurrenceMatchIds[iter1.cur]);
+				++iter1;
+				if (iter1.tmin() == iter2.tmin()) ++iter2;
+			}
+			else {
+				//-- occ1 > occ2: add occ2
+				m_Occurrences.push_back(child2->m_Occurrences[iter2.cur]);
+				if (m_bUseNodeIndices)
+					m_OccurrenceNodeIndices.push_back(child2->m_OccurrenceNodeIndices[iter2.cur]);
+				if (m_bUseMatchIds)
+					m_OccurrenceMatchIds.push_back(child2->m_OccurrenceMatchIds[iter2.cur]);
+				++iter2;
+			}
+
+		}
+
+		//-- append final occurrences
+		if (iter1.valid()) AddOccurrences(*child1, iter1.cur, iter1.cnt);
+		if (iter2.valid()) AddOccurrences(*child2, iter2.cur, iter2.cnt);
+
+#else
+		//-- WITHOR:old
 		//-- node-indices and/or match-ids in use: manual union via linear scan needed to preserve them
 		size_t i1,i2;
-		ClearAndReserveOccurrences( child1->GetOccurrencesSize() + child2->GetOccurrencesSize() );
 		for (i1=0, i2=0; i1 < child1->GetOccurrencesSize() && i2 < child2->GetOccurrencesSize(); ) {
 			if (child1->m_Occurrences[i1] <= child2->m_Occurrences[i2]) {
 				//-- occ1 <= occ2: add occ1
@@ -2134,7 +2495,7 @@ void CQueryWithorNode::EvaluateWithoutHits()
 			AddOccurrences(*child1, i1, child1->GetOccurrencesSize());
 		if (i2 < child2->GetOccurrencesSize())
 			AddOccurrences(*child2, i2, child2->GetOccurrencesSize());
-
+#endif /* WITHOR:old */
 		//-- clobber match-ids
 		if (m_bUseMatchIds && m_MatchId)
 			m_OccurrenceMatchIds.assign(m_OccurrenceMatchIds.size(), m_MatchId);

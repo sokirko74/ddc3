@@ -614,6 +614,17 @@ struct CQOccurrenceIterator {
 					/* old:    "@auf @der"=28.553 ; "@auf @der @Lauer"=41.559 ; "@das @Haus"=111.291 */
 /* "@auf @der"= ; "@auf @der @Lauer"= ; "@das @Haus"= : ? use */
 
+/**
+ * DDC_OCCITER_LB_COEF
+ *  + minimum coefficient for deciding between linear increment and std::lower_bound() on CQTokenOccurrenceIterator::seek()
+ *  + if undefined, DDC_OCCITER_LB_MIN strategy will be used
+ */
+//#define DDC_OCCITER_LB_COEF 1
+//#define DDC_OCCITER_LB_COEF 2
+#define DDC_OCCITER_LB_COEF 4
+//#define DDC_OCCITER_LB_COEF 8
+//#undef DDC_OCCITER_LB_COEF
+
 /*!
  * \brief CQTokenOccurrenceIterator (formerly CQNearEvalItem) is used to iterate over query occurrences;
  *  + used by phrase ("") queries, appropriate for iterating over single-token query nodes
@@ -622,6 +633,8 @@ struct CQOccurrenceIterator {
  */
 struct CQTokenOccurrenceIterator : public CQOccurrenceIterator
 {
+	DWORD stride; ///< average number of tokens between occurrences in node
+	
 	/** default constructor */
 	CQTokenOccurrenceIterator(CQueryNode *node_=NULL)
 	{ assign(node_); };
@@ -646,12 +659,17 @@ struct CQTokenOccurrenceIterator : public CQOccurrenceIterator
 	inline CQTokenOccurrenceIterator& operator=(const CQTokenOccurrenceIterator &b)
 	{
 		CQOccurrenceIterator::operator=(b);
+		stride = b.stride;
 		return *this;
 	};
 
 
 	/** node-assignment : inherited */
-	//inline void assign(CQueryNode *node_)
+	inline void assign(CQueryNode *node_)
+	{
+		CQOccurrenceIterator::assign(node_);
+		stride = node ? max((CTokenNo)1, (node->m_Occurrences.back()-node->m_Occurrences.front())/cnt) : 1;
+	};
 
 	/* node-assignment operator; wraps assign() */
 	inline CQTokenOccurrenceIterator& operator=(CQueryTokenNode *node_)
@@ -692,19 +710,31 @@ struct CQTokenOccurrenceIterator : public CQOccurrenceIterator
 	/* seek iterator to the first occurrence greater-than-or-equal-to Tok */
 	inline void seek(const CTokenNo Tok)
 	{
-#ifdef DDC_OCCITER_LB_MIN
+#if   defined(DDC_OCCITER_LB_COEF)
+		if (valid() && tmin() < Tok) {
+			if ((Tok-tmin())/stride > DDC_OCCITER_LB_COEF*log2u32(cnt-cur)) {
+				//printf("SEEK-COEF-BINSEARCH(%u->%u : %u)\n", tmin(), Tok, Tok-tmin());
+				cur = lower_bound(node->m_Occurrences.begin()+cur, node->m_Occurrences.end(), Tok) - node->m_Occurrences.begin();
+			} else {
+				//printf("SEEK-COEF-INCR(%u->%u : %u)\n", tmin(), Tok, Tok-tmin());
+				do { ++cur; } while (valid() && tmin() < Tok);
+			}
+		}
+#elif defined(DDC_OCCITER_LB_MIN)
 		if (valid() && tmin() < Tok
 # if DDC_OCCITER_LB_MIN != 0
 		    && (Tok-tmin()) >= DDC_OCCITER_LB_MIN
 # endif
 		) {
-			//fprintf(stderr, "BINSEARCH(%u->%u : %u)\n", tmin(), Tok, Tok-tmin());
+			//printf("SEEK-ABS-BINSEARCH(%u->%u : %u)\n", tmin(), Tok, Tok-tmin());
 			cur = lower_bound(node->m_Occurrences.begin()+cur, node->m_Occurrences.end(), Tok) - node->m_Occurrences.begin();
 		}
 		else {
+			//printf("SEEK-ABS-INCR(%u->%u : %u)\n", tmin(), Tok, Tok-tmin());
 			while (valid() && tmin() < Tok) ++cur;
 		}
 #else
+		//printf("SEEK-INCR(%u->%u : %u)\n", tmin(), Tok, Tok-tmin());
 		while (valid() && tmin() < Tok) ++cur;
 #endif		
 	};
