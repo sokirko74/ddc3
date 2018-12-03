@@ -249,7 +249,7 @@ void CQueryNode::ConvertOccurrencesToHits (bool bSeparateHits)
 		break_end = Breaks.end();
 
 	//-- breakStride : average number of tokens per break-unit in Breaks[]
-	DWORD breakStride = max((size_t)1, (size_t)Breaks[Breaks.size()-1]/Breaks.size());
+	DWORD breakStride = Breaks.empty() ? 1 : max((size_t)1, (size_t)Breaks[Breaks.size()-1]/Breaks.size());
 
 	CQueryNode NewNode(m_bUseNodeIndices, m_bUseMatchIds);
 	if (bTextAreaNo)
@@ -597,8 +597,8 @@ void CQueryBinaryOperationNode::hits_and_positions_intersection(bool bSeparateHi
 	//-- binary- vs. linear-search heuristics
 	CHitCompareByBreak CompareByBreak;
 	//-- breakStride : average size of gap between breaks in m_pChildX (for binary-search vs batch-increment heuristics)
-	DWORD breakStride1 = max((size_t)1, (m_pChild1->m_Hits.back().m_BreakNo-m_pChild1->m_Hits.front().m_BreakNo) / m_pChild1->m_Hits.size());
-	DWORD breakStride2 = max((size_t)1, (m_pChild2->m_Hits.back().m_BreakNo-m_pChild1->m_Hits.front().m_BreakNo) / m_pChild2->m_Hits.size());
+	DWORD breakStride1 = m_pChild1->BreakStride();
+	DWORD breakStride2 = m_pChild2->BreakStride();
 
 	size_t occ1=0, occ2=0;
 	while (hit1i != hit1j && hit2i != hit2j) {
@@ -679,7 +679,7 @@ void CQueryBinaryOperationNode::hits_and_positions_difference(bool bSeparateHits
 
 	//-- binary- vs. linear-search heuristics (see hits_and_positions_intersection())
 	CHitCompareByBreak CompareByBreak;
-	DWORD breakStride2 = max((size_t)1, (m_pChild2->m_Hits.back().m_BreakNo-m_pChild2->m_Hits.front().m_BreakNo) / m_pChild2->m_Hits.size());
+	DWORD breakStride2 = m_pChild2->BreakStride();
 
 	size_t occ1=0;
 	while ( hit1i != hit1j && hit2i != hit2j ) {

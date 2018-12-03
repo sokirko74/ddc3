@@ -179,6 +179,10 @@ public:
 	//! scan for middle-most occurrence of match-id \a MatchId for hit \a HitNo in m_OccurrenceMatchIds[]; only valid if m_bUseMatchIds is true
 	//! \returns middle-most occurence-index \a i such that: occurrence \a i belongs to Hits[HitNo] and as match-id MatchId, or (DWORD)-1 if none exists
 	DWORD GetMiddleOccurrenceInHit(DWORD HitNo, BYTE MatchId) const;
+
+	//! get average size of gap between breaks in m_Hits[]; returned value is always >= 1
+	inline DWORD BreakStride() const
+	{ return m_Hits.empty() ? 1 : max((size_t)1, (m_Hits.back().m_BreakNo-m_Hits.front().m_BreakNo)/m_Hits.size()); };
 };
 
 //----------------------------------------------------------------------
@@ -651,7 +655,7 @@ struct CQTokenOccurrenceIterator : public CQOccurrenceIterator
 	inline void assign(CQueryNode *node_)
 	{
 		CQOccurrenceIterator::assign(node_);
-		stride = node ? max((CTokenNo)1, (node->m_Occurrences.back()-node->m_Occurrences.front())/cnt) : 1;
+		stride = node && cnt ? max((CTokenNo)1, (node->m_Occurrences.back()-node->m_Occurrences.front())/cnt) : 1;
 	};
 
 	/* node-assignment operator; wraps assign() */
