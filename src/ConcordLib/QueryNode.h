@@ -76,7 +76,8 @@ public:
 	//! used by near() queries.
 	vector<DWORD> m_ChunkLengths;
 
-	//! chunk offsets, used by CQuerySequenceNode queries; populate with EnsureChunkOffsets()
+	//! chunk offsets, used by CQuerySequenceNode queries; use EnsureChunkOffsets() to populate if required
+	/// \li introduced in v2.1.19; still unused (should probably be used to allow binary-search seek for NEAR queries
 	vector<DWORD> m_ChunkOffsets;
 
 	//! ???
@@ -537,8 +538,7 @@ struct CQOccurrenceIterator {
 		cnt   = 0;
 		cur   = 0;
 		chpos = 0;
-		if (node)
-			cnt = node->m_Occurrences.size();
+		if (node) cnt = node->m_Occurrences.size();
 	};
 
 	/* node-assignment operator; wraps assign() */

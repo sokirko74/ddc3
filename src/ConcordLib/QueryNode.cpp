@@ -248,7 +248,7 @@ void CQueryNode::ConvertOccurrencesToHits (bool bSeparateHits)
 		break_it  = Breaks.begin(),
 		break_end = Breaks.end();
 
-	//-- breakStride : average size of a single break in Breaks[]
+	//-- breakStride : average number of tokens per break-unit in Breaks[]
 	DWORD breakStride = max((size_t)1, (size_t)Breaks[Breaks.size()-1]/Breaks.size());
 
 	CQueryNode NewNode(m_bUseNodeIndices, m_bUseMatchIds);
@@ -1327,14 +1327,14 @@ void CQuerySequenceNode::EvaluateWithoutHits()
 						AddOccurrences(*m_Items[j], iters[j].cur, iters[j].cur+1);
 				}
 				else {
-					//-- we've got a good match in iters[i]; continue by searching iters[i+1]
+					//-- we've got a good match in iters[0..i]; continue by searching iters[i+1]
 					found = true;
 					break;
 				}
 			}
 
 			if (found) {
-				//-- found sub-query match in iters[i]; continue by trying to match iters[i+1]
+				//-- found sub-query match in iters[0..i]; continue by trying to match iters[i+1]
 				++i;
 			} else {
 				//-- no sub-query match iters[i] found: back up
@@ -1663,8 +1663,7 @@ void CQueryWithNode::EvaluateWithoutHits()
 	//-- node-indices and/or match-ids in use: manual intersection via linear scan needed to preserve them
 	ClearAndReserveOccurrences( min(child1->GetOccurrencesSize(), child2->GetOccurrencesSize()) );
 
-	//-- WITH:new[+seek]
-	//printf("WITH:new[+seek]\n");
+	//-- WITH:v2.1.19[+seek]
 	CQTokenOccurrenceIterator iter1(child1), iter2(child2);
 	while ( iter1.valid() && iter2.valid() ) {
 		if (iter1.tmin() < iter2.tmin()) {
@@ -1720,12 +1719,11 @@ void CQueryWithoutNode::EvaluateWithoutHits()
 
 	ClearAndReserveOccurrences( child1->GetOccurrencesSize() );
 
-	//-- WITHOUT:new[+seek]
+	//-- WITHOUT:v2.1.19[+seek]
 	CQTokenOccurrenceIterator iter1(child1), iter2(child2);
 	while ( iter1.valid() && iter2.valid() ) {
 		if (iter1.tmin() < iter2.tmin()) {
 			//-- occ1 < occ2: add occ1
-			//-- single add
 			m_Occurrences.push_back(child1->m_Occurrences[iter1.cur]);
 			if (m_bUseNodeIndices)
 				m_OccurrenceNodeIndices.push_back(child1->m_OccurrenceNodeIndices[iter1.cur]);
