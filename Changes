@@ -10,13 +10,17 @@ v2.1.19-rc1 Mon, 03 Dec 2018 10:23:55 +0100
 	  - CQueryWithoutNode::EvaluateWithoutHits() : up to 19% faster (@Liebe != $p=@NN)
 	* added black magic heuristic constants for deciding on-the-fly between binary and linear search (empirically set to "optimal" values)
 	  - utilit.h function log2u32(): fast approximate binary logarithm for unsigned integers
+	    + uses gcc __builtin_clz() if available, otherwise DeBruijn multiplication
 	  - DDC_OCCITER_LB_COEF : binary-search cost-coefficient for CQTokenOccurrenceIterator::seek()
 	  - DDC_GETBREAK_BINSEARCH_COEF : cost-coefficient for CQueryNode::ConvertOccurrencesToHits()
 	  - DDC_HIT_INTERSECTION_BINSEARCH_COEF : cost-coefficient for CQueryBinaryOperationNode::hits_and_positions_intersection() & co
+	  - added struct CHitCompareByBreak for using std::lower_bound to search vector<CHit> by CHit::m_BreakNo
 	* CQuerySequenceNode uses new type CQTokenOccurrenceIterator (inherits from CQOccurrenceIterator)
 	  - we can use optimized binary search here because we know each occurrence covers exactly 1 token
 	  - for generic CQOccurrenceIterator as used by NEAR(), we need to maintain an index in node->m_ChunkLengths
 	    + possible future workaround: use new CQueryNode::m_ChunkOffsets[], populate with EnsureChunkOffsets()
+	    + changed type of CQueryNode::m_ChunkLengths[] from vector<size_t> to vector<DWORD>
+	* added support for comments in Free_Index document body during index creation
 
 v2.1.18 Fri, 02 Nov 2018 13:12:36 +0100 moocow
 	* force LC_NUMERIC=C in ConcordOptions.cpp (otherwise JSON responses may not be parseable)
