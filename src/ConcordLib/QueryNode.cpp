@@ -1669,7 +1669,7 @@ void CQueryWithNode::EvaluateWithoutHits()
 		if (iter1.tmin() < iter2.tmin()) {
 			iter1.seek(iter2.tmin());
 		}
-		else if (iter2.tmin() > iter1.tmin()) {
+		else if (iter1.tmin() > iter2.tmin()) {
 			iter2.seek(iter1.tmin());
 		}
 		else /*if (iter1.tmin() == iter2.tmin())*/ {

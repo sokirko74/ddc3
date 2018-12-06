@@ -1,5 +1,8 @@
 ###-*- Mode: Change-Log; coding: utf-8; -*-
 
+v2.1.20 Thu, 06 Dec 2018 10:41:20 +0100 moocow
+	* CQueryWithNode::EvaluateWithoutHits() bugfix
+
 v2.1.19 Mon, 03 Dec 2018 10:54:57 +0100 moocow
 	* optimized query evaluation to use binary search (std::lower_bound) for "big" operand queries
 	  - CQueryNode::ConvertOccurrencesToHits() : binary search for break-id discovery (up to 45% faster)
