@@ -169,6 +169,8 @@ protected:
 	string	GetOccursFileName() const;
 	//!  return the name  of file for m_Index
 	string	GetOccHdrFileName() const;
+	//!  return the name  of file for m_rIndex (for suffix-queries)
+	string	GetSuffixFileName() const;
 	
 	
 	//!  return the name  of file for occurrences \ref perdiv_def "period division"
@@ -190,6 +192,9 @@ protected:
 public:
 	//! the main index(from strings to the ordered list of their occurrences) 
 	ddcVecFile<CIndexItem>		m_Index;
+
+	//! optional auxiliary index for suffix-queries; ItemIds lexicographically sorted by reverse string-value
+	ddcVecFile<DWORD>		m_rIndex;
 
 	//! all corpus \ref perdiv_def "period divisions" for the long occurrence lists
 	PeriodsDivisionMapT		m_EndPeriodOffsets;

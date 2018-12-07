@@ -77,6 +77,7 @@ bool CIndexSetForQueryingStage::DestroyIndexSet( )
 {	
 	AssertHasPath();
 	m_Index.clear();
+	m_rIndex.clear();
 	m_EndPeriodOffsets.clear();
 
 	CloseOccursFile();
@@ -85,6 +86,10 @@ bool CIndexSetForQueryingStage::DestroyIndexSet( )
 		if (remove (GetOccHdrFileName().c_str() ) )
 			return false;
 
+	if (FileExists(GetSuffixFileName().c_str()))
+		if (remove (GetSuffixFileName().c_str() ) )
+			return false;
+	
 
 	if (FileExists(GetOccursFileName().c_str() ))
 		if (remove (GetOccursFileName().c_str() ))
@@ -115,8 +120,13 @@ bool	CIndexSetForQueryingStage::LoadIndexSet(bool bLoadHeaderOfOccurrences)
 	#endif
 
     
-	if (bLoadHeaderOfOccurrences)
+	if (bLoadHeaderOfOccurrences) {
 		m_Index.open(GetOccHdrFileName(), m_pParent->m_bMemoryMap);
+		if (FileExists(GetSuffixFileName()))
+			m_rIndex.open(GetSuffixFileName(), m_pParent->m_bMemoryMap);
+		else
+			ddcLogWarn(Format("Warning: no suffix index '%s': suffix queries will use fallback regex strategy", GetSuffixFileName().c_str()));
+	}
 
 	if (!LoadPeriodDivision()) return false;
 	return true;
@@ -346,6 +356,11 @@ string CIndexSetForQueryingStage::GetOccHdrFileName() const
 	return MakeFName(m_pParent->m_Path,"_occ_hdr_")  + GetName();
 };
 
+string CIndexSetForQueryingStage::GetSuffixFileName() const
+{
+	AssertHasPath();
+	return MakeFName(m_pParent->m_Path,"_suffix_")  + GetName();
+};
 
 
 string CIndexSetForQueryingStage::GetOccursFileName() const

@@ -1,5 +1,7 @@
+//-*- Mode: C++; c-basic-offset: 8;-*-
+//
 //  DDC originally by Alexey Sokirko
-//  Changes and modifications 2011-2015 by Bryan Jurish
+//  Changes and modifications 2011-2018 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -98,7 +100,6 @@ template <class IndexType, typename VectorType=vector<char> >
 			return strcmp(S1, S2) > 0;
 		}
 	};
-
 
 #endif
 

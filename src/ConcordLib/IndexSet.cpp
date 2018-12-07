@@ -117,8 +117,69 @@ void CStringIndexSet::QueryTokenListWithRightTruncation (const string& WordForm,
 	};
 };
 
+struct LessBySuffixIndex {
+	const char*       m_pBuffer;
+	const CIndexItem* m_pIndex;
+
+	LessBySuffixIndex(const char* pBuffer, const CIndexItem* pIndex)
+		: m_pBuffer(pBuffer), m_pIndex(pIndex)
+	{};
+
+	//! full suffix equality
+	bool hasSuffix(const string &A, const string& Suff) const
+	{
+		string::const_reverse_iterator ai,suffi;
+		for (ai=A.rbegin(),suffi=Suff.rbegin(); ai!=A.rend() && suffi!=Suff.rend() && *ai==*suffi; ++ai, ++suffi)
+			;
+		return (suffi==Suff.rend());
+	};
+
+	
+	//! direct string-comparison (by suffix)
+	bool operator()(const string &A, const string& B) const
+	{
+		string::const_reverse_iterator ai,bi;
+		for (ai=A.rbegin(),bi=B.rbegin(); ai!=A.rend() && bi!=B.rend(); ++ai, ++bi) {
+			if      (*ai < *bi) return true;
+			else if (*ai > *bi) return false;
+		}
+		return false;
+	};
+
+	//! less-than operator (for suffix-indices)
+	inline bool operator()(const DWORD ItemId, const string& Val) const
+	{
+		const CIndexItem& Ref = m_pIndex[ItemId];
+		string RefStr( m_pBuffer + Ref.GetIndexItemOffset() );
+		return operator()(RefStr, Val);
+	};
+};
+
+void CStringIndexSet::QueryTokenListWithLeftTruncation (const string& Suffix, vector<DWORD>& MatchWords)	const
+{
+	if (!m_rIndex)
+		throw CExpc("ERROR: CStringIndexSet::QueryTokenListWithLeftTruncation() called but no suffix index is defined");
+	//fprintf(stderr, "DEBUG: QueryTokenListWithLeftTruncation(%s)\n", Suffix.c_str());
+	
+	LessBySuffixIndex Less(m_StringBuffer.m_data, m_Index.m_data);
+	ddcVecFile<DWORD>::const_iterator it = lower_bound(m_rIndex.begin(), m_rIndex.end(), Suffix, Less);
+
+	string s;
+	while ( (it != m_rIndex.end()) ) {
+		s.assign( GetIndexItemStr(m_Index[*it]) );
+		if (!Less.hasSuffix(s,Suffix)) break;
+		if (MatchWords.size() > m_pParent->m_MaxRegExpExpansionSize)
+			throw CExpc("too many expansions for query suffix `%s' (MaxRegExpExpansionSize=%zd)", Suffix.c_str(), m_pParent->m_MaxRegExpExpansionSize);
+
+		MatchWords.push_back( *it );
+		it++;
+	};
+};
+
+
 void CStringIndexSet::QueryTokenListUsingRegExp (RML_RE &RegExp, vector<DWORD>& MatchWords, bool negated, bool ignore_diacritics) const
 {
+	//fprintf(stderr, "DEBUG: CStringIndexSet::QueryTokenListUsingRegExp(): called\n");
 	size_t Count = m_Index.size();
 	if (!ignore_diacritics) {
 		//-- honor diacritics (usual case)

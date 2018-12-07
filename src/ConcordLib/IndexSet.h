@@ -151,18 +151,28 @@ public:
 
 	//! populate bounds for context-sort operator
 	bool	GetContextBounds(CDDCFilterWithBounds &Filter, const string& LoValue, const string& HiValue) const;
+
 	//! find all occurrences of index items  in \ref period_def "subcorpora" PeriodNo, using cache pCaches
 	void	FindOccurrences (const vector<DWORD>& IndexItems, const size_t PeriodNo, vector<CTokenNo>& occurrences, CMyTimeSpanHolder& Profilerp, CShortOccurCacheMap* pCaches, vector<int>& CacheIds)	const;
+
 	//! find all occurrences of index items in \ref period_def "subcorpora" PeriodNo, using cache pCaches (if occurrences are written by chunks)
 	void	FindChunkOccurrences (const vector<DWORD>& IndexItems, vector<CTokenNo>& occurrences, vector<DWORD>& ChunkLengths, size_t PeriodNo, CMyTimeSpanHolder& Profilerp, CShortOccurCacheMap* pCaches, vector<int>& CacheIds)	const;
+
 	//! search for a string "WordForm", and add it to "MatchWords", if it is found
 	void	QueryTokenList (const string& WordForm, vector<DWORD>& MatchWords)	const;
-	//! search for all strings, which start from  "WordForm", and add them to "MatchWords"
+
+	//! search for all strings, which start from  "WordForm", and add their IDs to "MatchWords"
 	void	QueryTokenListWithRightTruncation (const string& WordForm, vector<DWORD>& MatchWords)	const;
+
+	//! search for all strings, which end with "Suffix", adding their IDs to "MatchWords" (requires m_rIndex, introduced in v2.1.21)
+	void	QueryTokenListWithLeftTruncation (const string& Suffix, vector<DWORD>& MatchWords)	const;
+
 	//! search for all index items, which satisfy regular expession "RegExp", and add them to "MatchWords"
 	void	QueryTokenListUsingRegExp (RML_RE &RegExp, vector<DWORD>& MatchWords, bool negated=false, bool ignore_diacritics=false)	const;
+
 	//! populate "MatchWords" with all index item indices
 	void	QueryTokenListUniversal (vector<DWORD>& MatchWords)	const;
+
 	//! print the string representation of the whole \ref storage_def "storage" to stdout
 	bool	DumpStorage() const;
 };

@@ -797,6 +797,7 @@ bool CQueryTokenNode::IsUniversalWildcard() const
 
 bool CQueryTokenNode::BuildRegExp(string RegExpStr, vector<DWORD>& IndexItems, bool negated)
 {
+	//fprintf(stderr, "DEBUG: CQueryTokenNode::BuildRegExp(): /%s/\n", RegExpStr.c_str());
 	const CStringIndexSet*  IndexSet =  m_pHolder->m_pIndexator->GetIndexByAlias(m_IndexName);
 	if (!IndexSet) return false;
 
@@ -986,13 +987,24 @@ bool CQueryTokenNode::CreateSuffixSetPattern(const CConcHolder* pHolder, const s
 	m_Source = string("$") + IndexName + "=*{...}";
 	CStringIndexSet* pIndexSet = GetIndex(pHolder,IndexName);
 	m_IndexItems.clear();
-	string regex("(?:");
-	for (set<string>::const_iterator it=Suffixes.begin(); it != Suffixes.end(); it++) {
-		if (it != Suffixes.begin()) regex.push_back('|');
-		regex += string("(?:\\Q") + *it + "\\E)";
+	if (pIndexSet->m_rIndex) {
+		//-- use fast suffix index (v2.1.21)
+		for (set<string>::const_iterator it = Suffixes.begin(); it != Suffixes.end(); it++) {
+			pIndexSet->QueryTokenListWithLeftTruncation(*it, m_IndexItems);
+		}
+		MakeUnique();
+		return true;
+	} else {
+		//-- no suffix index present: use old slow regex hack
+		string regex("(?:");
+		for (set<string>::const_iterator it=Suffixes.begin(); it != Suffixes.end(); it++) {
+			if (it != Suffixes.begin()) regex.push_back('|');
+			regex += string("(?:\\Q") + *it + "\\E)";
+		}
+		regex += string(")$");
+		return BuildRegExp(regex, m_IndexItems);
 	}
-	regex += string(")$");
-	return BuildRegExp(regex, m_IndexItems);
+	return false;
 };
 
 //--------------------------------------------------------------
