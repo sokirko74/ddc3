@@ -170,7 +170,6 @@ public:
 	bool		m_bUseItemStorage;
 
 	//! a buffer for storing index strings (compile-time)
-	//vector<char>	   m_StringBuffer;
 	ddcVecFile<char>   m_StringBuffer;
 
 

@@ -954,7 +954,8 @@ bool CQueryTokenNode::CreateSetPattern(const CConcHolder* pHolder, const string&
 	for (set<string>::const_iterator it = Values.begin(); it != Values.end(); it++) {
 		pIndexSet->QueryTokenList(*it, m_IndexItems);
 	}
-	MakeUnique();
+	//if (Values.size() > 1) //--?
+		MakeUnique();
 	return true;
 };
 
@@ -968,7 +969,8 @@ bool CQueryTokenNode::CreatePrefixSetPattern(const CConcHolder* pHolder, const s
 	for (set<string>::const_iterator it = Prefixes.begin(); it != Prefixes.end(); it++) {
 		pIndexSet->QueryTokenListWithRightTruncation(*it, m_IndexItems);
 	}
-	MakeUnique();
+	//if (Prefixes.size() > 1) //--?
+		MakeUnique();
 	return true;
 };
 

@@ -161,8 +161,8 @@ public:
 	//! search for a string "WordForm", and add it to "MatchWords", if it is found
 	void	QueryTokenList (const string& WordForm, vector<DWORD>& MatchWords)	const;
 
-	//! search for all strings, which start from  "WordForm", and add their IDs to "MatchWords"
-	void	QueryTokenListWithRightTruncation (const string& WordForm, vector<DWORD>& MatchWords)	const;
+	//! search for all strings, which begin with "Prefix", and add their IDs to "MatchWords"
+	void	QueryTokenListWithRightTruncation (const string& Prefix, vector<DWORD>& MatchWords)	const;
 
 	//! search for all strings, which end with "Suffix", adding their IDs to "MatchWords" (requires m_rIndex, introduced in v2.1.21)
 	void	QueryTokenListWithLeftTruncation (const string& Suffix, vector<DWORD>& MatchWords)	const;
