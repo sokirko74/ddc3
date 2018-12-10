@@ -1,5 +1,17 @@
 ###-*- Mode: Change-Log; coding: utf-8; -*-
 
+v2.1.21-rc1 Mon, 10 Dec 2018 15:40:07 +0100 moocow
+	* added suffix-query optimization via new index files CORPUS._suffix_TOKATTR
+	  - new low-level evaluation method CStringIndexSet::QueryTokenListWithRightTruncation()
+	  - new suffix-sorted index CIndexSetForQueryingStage::m_rIndex
+	  - can result in drastically improved suffix query-times compared to old regex-based vocabulary scan:
+	    + *en   :  24% faster (Amdahl S=1.24)
+	    + *chen : 169% faster (Amdahl S=3.69)
+	    + *ber  : 432% faster (Amdahl S=5.32)
+	* added ddc_(index|union|split) code to create CORPUS._suffix_TOKATTR for all indices at build-time
+	  - very small memory and disk footprint (<1% total index size, growth O(NTypes))
+	* suffix-indices are still optional: if not present, old regex-based vocabulary scan will be used
+
 v2.1.20 Thu, 06 Dec 2018 10:41:20 +0100 moocow
 	* CQueryWithNode::EvaluateWithoutHits() bugfix
 

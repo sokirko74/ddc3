@@ -170,7 +170,13 @@ struct LessBySuffixIndex {
 
 	//! less-than operator (for suffix-index creation)
 	inline bool operator()(const DWORD ItemIdA, const DWORD ItemIdB) const
-	{ return less(m_pBuffer+m_pIndex[ItemIdA].GetIndexItemOffset(), m_pBuffer+m_pIndex[ItemIdB].GetIndexItemOffset()); };
+	{
+		string A(m_pBuffer+m_pIndex[ItemIdA].GetIndexItemOffset()),
+		       B(m_pBuffer+m_pIndex[ItemIdB].GetIndexItemOffset());
+		reverse(A.begin(),A.end());
+		reverse(B.begin(),B.end());
+		return A < B;
+	};
 };
 
 void CStringIndexSet::QueryTokenListWithLeftTruncation (const string& Suffix, vector<DWORD>& MatchWords)	const

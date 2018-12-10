@@ -242,7 +242,7 @@
 	    <rhs cmt="Exact match (not expanded)">
 	      <n>qw_exact</n>
 	    </rhs>
-	    <rhs cmt="Regular expression">
+	    <rhs cmt="Regular expression (requires full vocabulary scan)">
 	      <n>qw_regex</n>
 	    </rhs>
 	    <rhs cmt="Universal match (arbitrary value)">
@@ -341,7 +341,7 @@
 	  </rule>
 
 	  <!--~~~~~~~~ RULES: qw_regex -->
-	  <rule lhs="qw_regex" cmt="Regular expression match using perl syntax">
+	  <rule lhs="qw_regex" cmt="Regular expression match using perl syntax (requires full vocabulary scan)">
 	    <rhs cmt="... on 'Token' index">
 	      <n>regex</n>
 	    </rhs>
@@ -463,7 +463,7 @@
 	  </rule>
 
 	  <!--~~~~~~~~ RULES: qw_infix -->
-	  <rule lhs="qw_infix" cmt="Substring (infix) condition">
+	  <rule lhs="qw_infix" cmt="Substring condition (infix; requires full vocabulary scan)">
 	    <rhs cmt="... on 'Token' index">
 	      <n>s_infix</n>
 	    </rhs>
@@ -475,7 +475,7 @@
 	  </rule>
 
 	  <!--~~~~~~~~ RULES: qw_infix_set -->
-	  <rule lhs="qw_infix_set" cmt="Disjunction over substrings (infix set)">
+	  <rule lhs="qw_infix_set" cmt="Disjunction over substrings (infix set; requires full vocabulary scan))">
 	    <rhs cmt="... on 'Token' index">
 	      <t>*{</t>
 	      <n>l_set</n>
@@ -1884,8 +1884,8 @@ comment_text	(\\.|[^\]])*
 [\"]                                /* double quotes (for pharse queries) */
 ":{"                                /* thesaurus-query opener */
 "@{"                                /* literal-set opener */
-"*{"                                /* prefix- or infix-set opener */
-"}*"                                /* suffix-set or infix-set closer */
+"*{"                                /* suffix- or infix-set opener */
+"}*"                                /* prefix- or infix-set closer */
 "*"                                 /* universal match wildcard */
 </pre>
 	<p>
