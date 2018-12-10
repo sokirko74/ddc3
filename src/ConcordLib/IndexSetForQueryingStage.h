@@ -142,40 +142,10 @@ inline size_t restore_from_bytes(CIndexItem& i, const BYTE* buf)
 /////////////////////////////////////////////////////////////////////////////
 // suffix-index
 
-//#define DDC_SUFFIX_INDEX_OFFSETS 1
-#undef DDC_SUFFIX_INDEX_OFFSETS
-#ifdef DDC_SUFFIX_INDEX_OFFSETS
- class CSuffixItem {
- public:
-	 DWORD m_ItemId;  //-- index of item in m_Index
-	 DWORD m_Offset;  //-- offset of terminating '\0' for this value in m_StringBuffer
-
- public:
-	 CSuffixItem(DWORD ItemId=0, DWORD Offset=0)
-		 : m_ItemId(ItemId), m_Offset(Offset)
-	 {};
- };
- inline size_t get_size_in_bytes (const CSuffixItem& t)
- { return 8; };
-
- inline size_t save_to_bytes(const CSuffixItem& i, BYTE* buf)
- {
-	buf += save_to_bytes(i.m_ItemId, buf);
-	buf += save_to_bytes(i.m_Offset, buf);
-	return get_size_in_bytes(i);
- };
- inline size_t restore_from_bytes(CSuffixItem& i, const BYTE* buf)
- {
-	buf += restore_from_bytes(i.m_ItemId, buf);
-	buf += restore_from_bytes(i.m_Offset, buf);
-	return get_size_in_bytes(i);
- };
-
-
- typedef ddcVecFile<CSuffixItem> CSuffixIndex;
-#else
- typedef ddcVecFile<DWORD> CSuffixIndex;
-#endif
+/** CSuffixIndex is a vector of Item-IDs sorted in ascending order by reverse string-value,
+ *  for fast binary search of string-suffixes.
+ */
+typedef ddcVecFile<DWORD> CSuffixIndex;
 
 
 /////////////////////////////////////////////////////////////////////////////
@@ -236,8 +206,7 @@ public:
 	ddcVecFile<CIndexItem>		m_Index;
 
 	//! optional auxiliary index for suffix-queries; ItemIds lexicographically sorted by reverse string-value
-	//ddcVecFile<DWORD>		m_rIndex; //-- 1d index
-	CSuffixIndex			m_rIndex; //-- 2d index
+	CSuffixIndex			m_rIndex;
 
 	//! all corpus \ref perdiv_def "period divisions" for the long occurrence lists
 	PeriodsDivisionMapT		m_EndPeriodOffsets;

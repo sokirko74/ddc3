@@ -454,6 +454,31 @@ Buffer holding all distinct string values (types) for I<TOKATTR>, NUL-terminated
 ##------------------------------------------------------
 =pod
 
+=head3 CORPUS._suffix_TOKATTR
+
+ - version: >= v2.1.21
+ - resident: yes
+ - mmap: yes
+ - popularity: low
+ - size: medium
+ - growth: O(NTypes)
+ - format: vector<DWORD> [size=NTypes]
+ - used by:
+   - CSuffixIndex CIndexSetForQueryingStage::m_rIndex
+     + typedef ddcVecFile<DWORD> CSuffixIndex
+     + used by CStringIndexSet::QueryTokenListWithLeftTruncation()
+ - loaded by:
+   - CIndexSetForQueryingStage::LoadIndexSet()
+
+All Item-IDs (= indices into CIndexSetForQueryingStage::m_Index) sorted by reverse
+associated string-value.  Used for fast discovery (binary search) of all index items matching
+a given suffix by CStringIndexSet::QueryTokenListWithLeftTruncation().
+
+=cut
+
+##------------------------------------------------------
+=pod
+
 =head3 CORPUS._occ_hdr_TOKATTR
 
  - version: >= v2.0.0

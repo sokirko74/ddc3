@@ -359,11 +359,7 @@ string CIndexSetForQueryingStage::GetOccHdrFileName() const
 string CIndexSetForQueryingStage::GetSuffixFileName() const
 {
 	AssertHasPath();
-#ifdef DDC_SUFFIX_INDEX_OFFSETS
-	return MakeFName(m_pParent->m_Path,"_suffix2_")  + GetName();
-#else
 	return MakeFName(m_pParent->m_Path,"_suffix_")  + GetName();
-#endif
 };
 
 

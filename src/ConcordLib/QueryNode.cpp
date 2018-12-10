@@ -954,8 +954,7 @@ bool CQueryTokenNode::CreateSetPattern(const CConcHolder* pHolder, const string&
 	for (set<string>::const_iterator it = Values.begin(); it != Values.end(); it++) {
 		pIndexSet->QueryTokenList(*it, m_IndexItems);
 	}
-	//if (Values.size() > 1) //--?
-		MakeUnique();
+	MakeUnique();
 	return true;
 };
 
@@ -969,8 +968,7 @@ bool CQueryTokenNode::CreatePrefixSetPattern(const CConcHolder* pHolder, const s
 	for (set<string>::const_iterator it = Prefixes.begin(); it != Prefixes.end(); it++) {
 		pIndexSet->QueryTokenListWithRightTruncation(*it, m_IndexItems);
 	}
-	//if (Prefixes.size() > 1) //--?
-		MakeUnique();
+	MakeUnique();
 	return true;
 };
 
@@ -990,7 +988,7 @@ bool CQueryTokenNode::CreateSuffixSetPattern(const CConcHolder* pHolder, const s
 	CStringIndexSet* pIndexSet = GetIndex(pHolder,IndexName);
 	m_IndexItems.clear();
 	if (pIndexSet->m_rIndex) {
-		//-- use fast suffix index (v2.1.21)
+		//-- use fast suffix index if available (>=v2.1.21)
 		for (set<string>::const_iterator it = Suffixes.begin(); it != Suffixes.end(); it++) {
 			pIndexSet->QueryTokenListWithLeftTruncation(*it, m_IndexItems);
 		}

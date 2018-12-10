@@ -691,7 +691,6 @@ string CQTokSetInfl::ValueString(void) {
 // CQTokPrefix
 
 bool CQTokPrefix::Create(CQueryTokenNode *pNode) {
-  //fprintf(stderr, "DEBUG: CQTokPrefix::Create(): %s\n",ValueString().c_str());
   return pNode->CreatePrefixPattern(m_Compiler->m_pHolder, this->IndexName("Token"), m_Value);
 }
 string CQTokPrefix::ValueString(void) {

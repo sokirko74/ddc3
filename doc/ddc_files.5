@@ -67,7 +67,7 @@
 .\" ========================================================================
 .\"
 .IX Title "DDC_FILES 5"
-.TH DDC_FILES 5 "2018-08-24" "2.1.20" "DDC Corpus Indexing System"
+.TH DDC_FILES 5 "2018-12-10" "2.1.20" "DDC Corpus Indexing System"
 .\" For nroff, turn off justification.  Always turn off hyphenation; it makes
 .\" way too many mistakes in technical documents.
 .if n .ad l
@@ -442,6 +442,29 @@ with one of each of these files.
 .Ve
 .PP
 Buffer holding all distinct string values (types) for \fI\s-1TOKATTR\s0\fR, NUL-terminated, in compile-time document order.
+.PP
+\fI\s-1CORPUS\s0._suffix_TOKATTR\fR
+.IX Subsection "CORPUS._suffix_TOKATTR"
+.PP
+.Vb 10
+\& \- version: >= v2.1.21
+\& \- resident: yes
+\& \- mmap: yes
+\& \- popularity: low
+\& \- size: medium
+\& \- growth: O(NTypes)
+\& \- format: vector<DWORD> [size=NTypes]
+\& \- used by:
+\&   \- CSuffixIndex CIndexSetForQueryingStage::m_rIndex
+\&     + typedef ddcVecFile<DWORD> CSuffixIndex
+\&     + used by CStringIndexSet::QueryTokenListWithLeftTruncation()
+\& \- loaded by:
+\&   \- CIndexSetForQueryingStage::LoadIndexSet()
+.Ve
+.PP
+All Item-IDs (= indices into CIndexSetForQueryingStage::m_Index) sorted by reverse
+associated string-value.  Used for fast discovery (binary search) of all index items matching
+a given suffix by \fICStringIndexSet::QueryTokenListWithLeftTruncation()\fR.
 .PP
 \fI\s-1CORPUS\s0._occ_hdr_TOKATTR\fR
 .IX Subsection "CORPUS._occ_hdr_TOKATTR"

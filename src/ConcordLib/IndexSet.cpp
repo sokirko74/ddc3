@@ -112,12 +112,10 @@ struct LessByPrefixIndex {
 	//! direct string-comparison (by prefix)
 	inline bool operator()(const char *A, const char *B) const
 	{
-		for ( ; *A && *B ; ++A, ++B ) {
-			if      (*A < *B) return true;
-			else if (*B > *A) return false;
-		}
-		return false;
+		while (*A && *B && *A==*B) { ++A; ++B; }
+		return (*A && *A < *B);
 	};
+
 
 	//! less-than operator (for suffix-indices lower_bound())
 	inline bool operator()(const CIndexItem& Ref, const char* Val) const
@@ -130,10 +128,6 @@ struct LessByPrefixIndex {
 
 void CStringIndexSet::QueryTokenListWithRightTruncation (const string& Prefix, vector<DWORD>& MatchWords) const
 {
-#if 1 /* >=v2.1.21 */
-	//LessIndexString1<CIndexItem,char*> Less(&m_StringBuffer.m_data);
-	//return lower_bound (m_Index.begin(), m_Index.end(), ValueStr.c_str(), Less);
-
 	LessByPrefixIndex Less(m_StringBuffer.m_data);
 	ddcVecFile<CIndexItem>::const_iterator lb = lower_bound(m_Index.begin(), m_Index.end(), Prefix.c_str(), Less);
 	ddcVecFile<CIndexItem>::const_iterator ub = upper_bound(lb,              m_Index.end(), Prefix.c_str(), Less);
@@ -145,85 +139,13 @@ void CStringIndexSet::QueryTokenListWithRightTruncation (const string& Prefix, v
 	for (size_t ii=0; moffset < MatchWords.size(); ++moffset, ++ii) {
 		MatchWords[moffset] += ii;
 	}
-
-#else /* <=v2.1.20 */
-	int len =  WordForm.length();
-	ddcVecFile<CIndexItem>::const_iterator it = GetTypeIndexIdLowerBoundIter(WordForm);
-
-	while ( (it != m_Index.end()) && (!strncmp(GetIndexItemStr(*it),WordForm.c_str(), len)) ) {
-		if (MatchWords.size() > m_pParent->m_MaxRegExpExpansionSize)
-			throw CExpc("too many expansions for query prefix `%s' (MaxRegExpExpansionSize=%zd)", WordForm.c_str(), m_pParent->m_MaxRegExpExpansionSize);
-
-		MatchWords.push_back( it -  m_Index.begin() );
-		it++;
-	};
-#endif
 };
 
-#define DDC_SUFFIX_INDEX_CSTR 1
-
-#if defined(DDC_SUFFIX_INDEX_OFFSETS) /* LessBySuffixIndex: NEW/2d-index */
-
-struct CSuffix {
-	const char *m_Begin;
-	const char *m_End;
-
-	CSuffix(const char *Suff=NULL)
-		: m_Begin(Suff)
-	{ m_End = m_Begin + strlen(Suff); };
-
-	CSuffix(const string& Suff)
-		: m_Begin(Suff.data()), m_End(Suff.data()+Suff.size())
-	{};
-
-	CSuffix(const char *Suff, const char *End)
-		: m_Begin(Suff), m_End(End)
-	{};
-};
-
-struct LessBySuffixIndex2 {
-	const char*         m_pBuffer;
-	
-	LessBySuffixIndex2(const char* pBuffer=NULL)
-		: m_pBuffer(pBuffer)
-	{};
-
-	//! direct string-comparison (A<B) (by suffix)
-	inline bool less(const char *bufp, const CSuffix& Suff) const
-	{
-		--bufp;
-		for ( const char *suffp=Suff.m_End-1; bufp >= m_pBuffer && suffp >= Suff.m_Begin; --bufp,--suffp ) {
-			if      (*bufp < *suffp) return true;
-			else if (*bufp > *suffp) return false;
-		}
-		return false;
-	};
-        inline bool less(const CSuffix& Suff, const char *bufp) const
-	{
-		--bufp;
-		for ( const char *suffp=Suff.m_End-1; bufp >= m_pBuffer && suffp >= Suff.m_Begin; --bufp,--suffp ) {
-			if      (*suffp < *bufp) return true;
-			else if (*suffp > *bufp) return false;
-		}
-		return false;
-	};
-
-	//! less-than operator (for suffix-indices lower_bound())
-	inline bool operator()(const CSuffixItem& Item, const CSuffix& Val) const
-	{ return less(m_pBuffer+Item.m_Offset, Val); };
-
-	//! less-than operator (for suffix-indices upper_bound())
-	inline bool operator()(const CSuffix& Val, const CSuffixItem& Item) const
-	{ return less(Val, m_pBuffer+Item.m_Offset); };
-};
-
-#elif defined(DDC_SUFFIX_INDEX_CSTR) /* LessBySuffixIndex: NEW/1d-index,cstr+strlen */
-
-struct LessBySuffixIndexC {
+struct LessBySuffixIndex {
 	const char*       m_pBuffer;
 	const CIndexItem* m_pIndex;
 	
-	LessBySuffixIndexC(const char* pBuffer=NULL, const CIndexItem* pIndex=NULL)
+	LessBySuffixIndex(const char* pBuffer=NULL, const CIndexItem* pIndex=NULL)
 		: m_pBuffer(pBuffer), m_pIndex(pIndex)
 	{};
 
@@ -247,87 +169,25 @@ struct LessBySuffixIndexC {
 	{ return less(Val, m_pBuffer+m_pIndex[ItemId].GetIndexItemOffset()); };	      
 };
 
-#else /* LessBySuffixIndex: NEW/1d-index,+temp-strings */
-
-struct LessBySuffixIndexS {
-	const char*       m_pBuffer;
-	const CIndexItem* m_pIndex;
-
-	LessBySuffixIndexS(const char* pBuffer, const CIndexItem* pIndex)
-		: m_pBuffer(pBuffer), m_pIndex(pIndex)
-	{};
-
-	//! direct string-comparison (by suffix)
-	bool operator()(const string &A, const string& B) const
-	{
-		string::const_reverse_iterator ai,bi;
-		for (ai=A.rbegin(),bi=B.rbegin(); ai!=A.rend() && bi!=B.rend(); ++ai, ++bi) {
-			if      (*ai < *bi) return true;
-			else if (*ai > *bi) return false;
-		}
-		return false;
-	};
-
-	//! less-than operator (for suffix-indices lower_bound())
-	inline bool operator()(const DWORD ItemId, const string& Val) const
-	{
-		const CIndexItem& Ref = m_pIndex[ItemId];
-		string RefStr( m_pBuffer + Ref.GetIndexItemOffset() );
-		return operator()(RefStr, Val);
-	};
-
-	//! less-than operator (for suffix-indices upper_bound())
-	inline bool operator()(const string& Val, const DWORD ItemId) const
-	{
-		const CIndexItem& Ref = m_pIndex[ItemId];
-		string RefStr( m_pBuffer + Ref.GetIndexItemOffset() );
-		return operator()(Val, RefStr);
-	};	      
-};
-#endif /* LessBySuffixIndex */
-
 void CStringIndexSet::QueryTokenListWithLeftTruncation (const string& Suffix, vector<DWORD>& MatchWords)	const
 {
 	if (!m_rIndex)
 		throw CExpc("ERROR: CStringIndexSet::QueryTokenListWithLeftTruncation() called but no suffix index is defined");
 	//fprintf(stderr, "DEBUG: QueryTokenListWithLeftTruncation(%s)\n", Suffix.c_str());
 
-#if defined(DDC_SUFFIX_INDEX_OFFSETS)
-	//-- LessBySuffixIndex: NEW/2d-index
-	LessBySuffixIndex2 Less(m_StringBuffer.m_data);
-	CSuffix suff(Suffix);
-	CSuffixIndex::const_iterator lb = lower_bound(m_rIndex.begin(), m_rIndex.end(), suff, Less);
-	CSuffixIndex::const_iterator ub = upper_bound(lb,               m_rIndex.end(), suff, Less);
-	if ( (ub-lb) > m_pParent->m_MaxRegExpExpansionSize )
-		throw CExpc("too many expansions for query suffix `%s' (MaxRegExpExpansionSize=%zd)", Suffix.c_str(), m_pParent->m_MaxRegExpExpansionSize);
-
-	MatchWords.reserve(MatchWords.size()+(ub-lb));
-	for ( ; lb != ub; ++lb ) {
-		MatchWords.push_back(lb->m_ItemId);
-	}
-#elif defined(DDC_SUFFIX_INDEX_CSTR)
-	//-- LessBySuffixIndex: NEW/1d-index,cstr+strlen
-	LessBySuffixIndexC Less(m_StringBuffer.m_data, m_Index.m_data);
+	//-- LessBySuffixIndex: v2.1.21/1d-index,cstr+strlen
+	LessBySuffixIndex Less(m_StringBuffer.m_data, m_Index.m_data);
 	CSuffixIndex::const_iterator lb = lower_bound(m_rIndex.begin(), m_rIndex.end(), Suffix.c_str(), Less);
 	CSuffixIndex::const_iterator ub = upper_bound(lb,               m_rIndex.end(), Suffix.c_str(), Less);
 	if ( (ub-lb) > m_pParent->m_MaxRegExpExpansionSize )
 		throw CExpc("too many expansions for query suffix `%s' (MaxRegExpExpansionSize=%zd)", Suffix.c_str(), m_pParent->m_MaxRegExpExpansionSize);
+
 	MatchWords.insert(MatchWords.end(), lb, ub);
-#else
-	//-- LessBySuffixIndex: NEW/1d-index,tempstr
-	LessBySuffixIndexS Less(m_StringBuffer.m_data, m_Index.m_data);
-	CSuffixIndex::const_iterator lb = lower_bound(m_rIndex.begin(), m_rIndex.end(), Suffix, Less);
-	CSuffixIndex::const_iterator ub = upper_bound(lb,               m_rIndex.end(), Suffix, Less);
-	if ( (ub-lb) > m_pParent->m_MaxRegExpExpansionSize )
-		throw CExpc("too many expansions for query suffix `%s' (MaxRegExpExpansionSize=%zd)", Suffix.c_str(), m_pParent->m_MaxRegExpExpansionSize);
-	MatchWords.insert(MatchWords.end(), lb, ub);
-#endif
 };
 
 
 void CStringIndexSet::QueryTokenListUsingRegExp (RML_RE &RegExp, vector<DWORD>& MatchWords, bool negated, bool ignore_diacritics) const
 {
-	//fprintf(stderr, "DEBUG: CStringIndexSet::QueryTokenListUsingRegExp(): called\n");
 	size_t Count = m_Index.size();
 	if (!ignore_diacritics) {
 		//-- honor diacritics (usual case)

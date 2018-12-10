@@ -33,6 +33,7 @@
       <li><a href="#Token-Level-Files">Token-Level Files</a>
         <ul>
           <li><a href="#CORPUS._TOKATTR">CORPUS._TOKATTR</a></li>
+          <li><a href="#CORPUS._suffix_TOKATTR">CORPUS._suffix_TOKATTR</a></li>
           <li><a href="#CORPUS._occ_hdr_TOKATTR">CORPUS._occ_hdr_TOKATTR</a></li>
           <li><a href="#CORPUS._occurs_TOKATTR">CORPUS._occurs_TOKATTR</a></li>
           <li><a href="#CORPUS._storage_TOKATTR">CORPUS._storage_TOKATTR</a></li>
@@ -379,6 +380,24 @@
    #+END_SRC</code></pre>
 
 <p>Buffer holding all distinct string values (types) for <i>TOKATTR</i>, NUL-terminated, in compile-time document order.</p>
+
+<h3 id="CORPUS._suffix_TOKATTR">CORPUS._suffix_TOKATTR</h3>
+
+<pre><code> - version: &gt;= v2.1.21
+ - resident: yes
+ - mmap: yes
+ - popularity: low
+ - size: medium
+ - growth: O(NTypes)
+ - format: vector&lt;DWORD&gt; [size=NTypes]
+ - used by:
+   - CSuffixIndex CIndexSetForQueryingStage::m_rIndex
+     + typedef ddcVecFile&lt;DWORD&gt; CSuffixIndex
+     + used by CStringIndexSet::QueryTokenListWithLeftTruncation()
+ - loaded by:
+   - CIndexSetForQueryingStage::LoadIndexSet()</code></pre>
+
+<p>All Item-IDs (= indices into CIndexSetForQueryingStage::m_Index) sorted by reverse associated string-value. Used for fast discovery (binary search) of all index items matching a given suffix by CStringIndexSet::QueryTokenListWithLeftTruncation().</p>
 
 <h3 id="CORPUS._occ_hdr_TOKATTR">CORPUS._occ_hdr_TOKATTR</h3>
 
