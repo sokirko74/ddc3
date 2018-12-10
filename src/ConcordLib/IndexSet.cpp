@@ -166,7 +166,11 @@ struct LessBySuffixIndex {
 
 	//! less-than operator (for suffix-indices upper_bound())
 	inline bool operator()(const char* Val, const DWORD ItemId) const
-	{ return less(Val, m_pBuffer+m_pIndex[ItemId].GetIndexItemOffset()); };	      
+	{ return less(Val, m_pBuffer+m_pIndex[ItemId].GetIndexItemOffset()); };
+
+	//! less-than operator (for suffix-index creation)
+	inline bool operator()(const DWORD ItemIdA, const DWORD ItemIdB) const
+	{ return less(m_pBuffer+m_pIndex[ItemIdA].GetIndexItemOffset(), m_pBuffer+m_pIndex[ItemIdB].GetIndexItemOffset()); };
 };
 
 void CStringIndexSet::QueryTokenListWithLeftTruncation (const string& Suffix, vector<DWORD>& MatchWords)	const
@@ -309,6 +313,23 @@ bool	CStringIndexSet::CreateUnionTokenStorages(const vector<CStringIndexSet*>& I
 	fclose (out_fp);
 
 	return OpenStorageFile();
+};
+
+void    CStringIndexSet::EnsureSuffixIndex()
+{
+	if (m_rIndex && m_rIndex.size()==m_Index.size()) return;
+
+	//-- initialize index
+	m_rIndex.ensureVec();
+	m_rIndex.m_vec.resize(m_Index.size());
+	for (DWORD i=0; i < m_rIndex.m_vec.size(); ++i)
+		m_rIndex.m_vec[i] = i;
+
+	//-- sort index by reverse value-string
+	m_Index.ensureVec();
+	m_StringBuffer.ensureVec();
+	LessBySuffixIndex Less( m_StringBuffer.m_vec.data(), m_Index.m_vec.data() );
+	stable_sort(m_rIndex.m_vec.begin(), m_rIndex.m_vec.end(), Less);
 };
 
 

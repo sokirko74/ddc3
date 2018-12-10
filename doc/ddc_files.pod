@@ -456,7 +456,7 @@ Buffer holding all distinct string values (types) for I<TOKATTR>, NUL-terminated
 
 =head3 CORPUS._suffix_TOKATTR
 
- - version: >= v2.1.21
+ - version: >= v2.1.21 (optional)
  - resident: yes
  - mmap: yes
  - popularity: low
@@ -473,6 +473,8 @@ Buffer holding all distinct string values (types) for I<TOKATTR>, NUL-terminated
 All Item-IDs (= indices into CIndexSetForQueryingStage::m_Index) sorted by reverse
 associated string-value.  Used for fast discovery (binary search) of all index items matching
 a given suffix by CStringIndexSet::QueryTokenListWithLeftTruncation().
+If this file is not present, DDC will fall back to the pre-v2.1.21 full-vocabulary regex search
+behavior for suffix queries.
 
 =cut
 

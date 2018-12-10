@@ -104,6 +104,10 @@ bool CStringIndexSet::WriteToFile(bool bAfterLoading)
 	m_StringBuffer.ensureVec();
 	if (!WriteVector(GetFileNameForInfos().c_str(), m_StringBuffer.m_vec)) return false;
 
+	EnsureSuffixIndex();
+	m_rIndex.ensureVec();
+	if (!WriteVector(GetSuffixFileName().c_str(), m_rIndex.m_vec)) return false;
+
 	return true;
 };
 

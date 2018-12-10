@@ -114,11 +114,13 @@ public:
 	//! clear all vectors of the index and removes index files
 	bool	DestroyIndexSet();
 	//! write index to file
-	bool	WriteToFile(bool bAfterLoading);
+	bool	WriteToFile(bool bAfterLoading);	
 	//! build union of multiple indices , throws CExpc if fails (new)
 	void	UnionIndexSets(const vector<CStringIndexSet*>& IndexSets, const vector<size_t>& TokenCounts);
 	//! partition this index into \a Paritions[] on \a EndTokenNo[] (exclusive)
 	void    CreatePartitions(vector<CStringIndexSet*>& Partitions, const vector<CTokenNo>& EndTokenNo) const;
+	//! ensure that m_rIndex is non-empty, populating it from m_Index if required (called during index compilation)
+	void	EnsureSuffixIndex();
 
 	//! return sequence of tokens(strings) [start_offset,  end_offset] 
 	bool	GetTokensFromStorage(const size_t start_offset,  const size_t end_offset, vector<COutputToken>& Tokens) const;
