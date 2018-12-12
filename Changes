@@ -1,5 +1,13 @@
 ###-*- Mode: Change-Log; coding: utf-8; -*-
 
+v2.1.22 Wed, 12 Dec 2018 11:20:59 +0100 moocow
+	* bug-fixes for new prefix- and suffix-search introduced in v2.1.21 (mantis #33072 [bams|zeit])
+	* speed improvements too
+	  - prefix searches are 7-26% faster than ddc-v2.1.18
+	  - suffix search performance gains from v2.1.21 remain; especially for highly specific suffixes:
+	    + *haus : ca. 32x faster (S=32.07)
+	    + *erde : ca. 74x faster (S=74.49)
+
 v2.1.21 Mon, 10 Dec 2018 16:13:54 +0100 moocow
 	* added suffix-query optimization via new index files CORPUS._suffix_TOKATTR
 	  - new low-level evaluation method CStringIndexSet::QueryTokenListWithRightTruncation()

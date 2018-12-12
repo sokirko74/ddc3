@@ -104,31 +104,24 @@ void CStringIndexSet::QueryTokenList (const string& WordForm, vector<DWORD>& Mat
 
 struct LessByPrefixIndex {
 	const char*       m_pBuffer;
+	size_t		  m_PrefixLen;
 
-	LessByPrefixIndex(const char* pBuffer)
-		: m_pBuffer(pBuffer)
+	LessByPrefixIndex(const char* pBuffer, size_t PrefixLen=0)
+		: m_pBuffer(pBuffer), m_PrefixLen(PrefixLen)
 	{};
 
-	//! direct string-comparison (by prefix)
-	inline bool operator()(const char *A, const char *B) const
-	{
-		while (*A && *B && *A==*B) { ++A; ++B; }
-		return (*A && *A < *B);
-	};
-
-
-	//! less-than operator (for suffix-indices lower_bound())
+	//! less-than operator (for prefix-search lower_bound())
 	inline bool operator()(const CIndexItem& Ref, const char* Val) const
-	{ return operator()(m_pBuffer+Ref.GetIndexItemOffset(), Val); };
+	{ return strncmp(m_pBuffer+Ref.GetIndexItemOffset(), Val, m_PrefixLen) < 0; };
 
-	//! less-than operator (for suffix-indices upper_bound())
+	//! less-than operator (for prefix-search upper_bound())
 	inline bool operator()(const char* Val, const CIndexItem& Ref) const
-	{ return operator()(Val, m_pBuffer+Ref.GetIndexItemOffset()); };
+	{ return strncmp(Val, m_pBuffer+Ref.GetIndexItemOffset(), m_PrefixLen) < 0; };
 };
 
 void CStringIndexSet::QueryTokenListWithRightTruncation (const string& Prefix, vector<DWORD>& MatchWords) const
 {
-	LessByPrefixIndex Less(m_StringBuffer.m_data);
+	LessByPrefixIndex Less(m_StringBuffer.m_data, Prefix.size());
 	ddcVecFile<CIndexItem>::const_iterator lb = lower_bound(m_Index.begin(), m_Index.end(), Prefix.c_str(), Less);
 	ddcVecFile<CIndexItem>::const_iterator ub = upper_bound(lb,              m_Index.end(), Prefix.c_str(), Less);
 	if ( (ub-lb) > m_pParent->m_MaxRegExpExpansionSize )
@@ -144,31 +137,30 @@ void CStringIndexSet::QueryTokenListWithRightTruncation (const string& Prefix, v
 struct LessBySuffixIndex {
 	const char*       m_pBuffer;
 	const CIndexItem* m_pIndex;
+	size_t m_SuffixLen; //-- only used for for (DWORD,char*) and (char*,DWORD) operators
 	
-	LessBySuffixIndex(const char* pBuffer=NULL, const CIndexItem* pIndex=NULL)
-		: m_pBuffer(pBuffer), m_pIndex(pIndex)
+	LessBySuffixIndex(const char* pBuffer=NULL, const CIndexItem* pIndex=NULL, const size_t SuffixLen=SIZE_MAX)
+		: m_pBuffer(pBuffer), m_pIndex(pIndex), m_SuffixLen(SuffixLen)
 	{};
 
 	//! direct string-comparison (A<B) (by suffix)
 	inline bool less(const char *A, const char *B) const
 	{
 		const char *a=(A+strlen(A)-1), *b=(B+strlen(B)-1);
-		for ( ; a>=A && b >= B && *a && *b; --a,--b ) {
-			if      (*a < *b) return true;
-			else if (*a > *b) return false;
-		}
-		return false;
+		size_t i=0;
+		while (i < m_SuffixLen && a>A && b>B && *a && *b && *a==*b) { ++i; --a; --b; }
+		return i==m_SuffixLen ? false : ((unsigned char)(*a)) < ((unsigned char)(*b));
 	};
 
-	//! less-than operator (for suffix-indices lower_bound())
+	//! less-than operator (for suffix-indices lower_bound(); respects m_SuffixLen)
 	inline bool operator()(const DWORD ItemId, const char* Val) const
 	{ return less(m_pBuffer+m_pIndex[ItemId].GetIndexItemOffset(), Val); };
 
-	//! less-than operator (for suffix-indices upper_bound())
+	//! less-than operator (for suffix-indices upper_bound(); respects m_SuffixLen)
 	inline bool operator()(const char* Val, const DWORD ItemId) const
 	{ return less(Val, m_pBuffer+m_pIndex[ItemId].GetIndexItemOffset()); };
 
-	//! less-than operator (for suffix-index creation)
+	//! less-than operator (for suffix-index creation; ignores m_SuffixLen)
 	inline bool operator()(const DWORD ItemIdA, const DWORD ItemIdB) const
 	{
 		string A(m_pBuffer+m_pIndex[ItemIdA].GetIndexItemOffset()),
@@ -186,7 +178,7 @@ void CStringIndexSet::QueryTokenListWithLeftTruncation (const string& Suffix, ve
 	//fprintf(stderr, "DEBUG: QueryTokenListWithLeftTruncation(%s)\n", Suffix.c_str());
 
 	//-- LessBySuffixIndex: v2.1.21/1d-index,cstr+strlen
-	LessBySuffixIndex Less(m_StringBuffer.m_data, m_Index.m_data);
+	LessBySuffixIndex Less(m_StringBuffer.m_data, m_Index.m_data, Suffix.size());
 	CSuffixIndex::const_iterator lb = lower_bound(m_rIndex.begin(), m_rIndex.end(), Suffix.c_str(), Less);
 	CSuffixIndex::const_iterator ub = upper_bound(lb,               m_rIndex.end(), Suffix.c_str(), Less);
 	if ( (ub-lb) > m_pParent->m_MaxRegExpExpansionSize )
