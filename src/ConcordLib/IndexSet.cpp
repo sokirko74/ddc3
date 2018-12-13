@@ -106,7 +106,7 @@ struct LessByPrefixIndex {
 	const char*       m_pBuffer;
 	size_t		  m_PrefixLen;
 
-	LessByPrefixIndex(const char* pBuffer, size_t PrefixLen=0)
+	LessByPrefixIndex(const char* pBuffer, size_t PrefixLen=SIZE_MAX)
 		: m_pBuffer(pBuffer), m_PrefixLen(PrefixLen)
 	{};
 

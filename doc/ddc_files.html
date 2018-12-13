@@ -383,7 +383,7 @@
 
 <h3 id="CORPUS._suffix_TOKATTR">CORPUS._suffix_TOKATTR</h3>
 
-<pre><code> - version: &gt;= v2.1.21
+<pre><code> - version: &gt;= v2.1.21 (optional)
  - resident: yes
  - mmap: yes
  - popularity: low
@@ -397,7 +397,7 @@
  - loaded by:
    - CIndexSetForQueryingStage::LoadIndexSet()</code></pre>
 
-<p>All Item-IDs (= indices into CIndexSetForQueryingStage::m_Index) sorted by reverse associated string-value. Used for fast discovery (binary search) of all index items matching a given suffix by CStringIndexSet::QueryTokenListWithLeftTruncation().</p>
+<p>All Item-IDs (= indices into <code>CIndexSetForQueryingStage::m_Index[]</code>) sorted by reverse associated string-value. Used for fast discovery (binary search) of all index items matching a given suffix by <code>CStringIndexSet::QueryTokenListWithLeftTruncation()</code>. If this file is not present, DDC will fall back to the pre-v2.1.21 full-vocabulary regex search behavior for suffix queries.</p>
 
 <h3 id="CORPUS._occ_hdr_TOKATTR">CORPUS._occ_hdr_TOKATTR</h3>
 

@@ -67,7 +67,7 @@
 .\" ========================================================================
 .\"
 .IX Title "DDC_FILES 5"
-.TH DDC_FILES 5 "2018-12-10" "2.1.20" "DDC Corpus Indexing System"
+.TH DDC_FILES 5 "2018-12-13" "2.1.22" "DDC Corpus Indexing System"
 .\" For nroff, turn off justification.  Always turn off hyphenation; it makes
 .\" way too many mistakes in technical documents.
 .if n .ad l
@@ -447,7 +447,7 @@ Buffer holding all distinct string values (types) for \fI\s-1TOKATTR\s0\fR, NUL-
 .IX Subsection "CORPUS._suffix_TOKATTR"
 .PP
 .Vb 10
-\& \- version: >= v2.1.21
+\& \- version: >= v2.1.21 (optional)
 \& \- resident: yes
 \& \- mmap: yes
 \& \- popularity: low
@@ -462,9 +462,11 @@ Buffer holding all distinct string values (types) for \fI\s-1TOKATTR\s0\fR, NUL-
 \&   \- CIndexSetForQueryingStage::LoadIndexSet()
 .Ve
 .PP
-All Item-IDs (= indices into CIndexSetForQueryingStage::m_Index) sorted by reverse
+All Item-IDs (= indices into \f(CW\*(C`CIndexSetForQueryingStage::m_Index[]\*(C'\fR) sorted by reverse
 associated string-value.  Used for fast discovery (binary search) of all index items matching
-a given suffix by \fICStringIndexSet::QueryTokenListWithLeftTruncation()\fR.
+a given suffix by \f(CW\*(C`CStringIndexSet::QueryTokenListWithLeftTruncation()\*(C'\fR.
+If this file is not present, \s-1DDC\s0 will fall back to the pre\-v2.1.21 full-vocabulary regex search
+behavior for suffix queries.
 .PP
 \fI\s-1CORPUS\s0._occ_hdr_TOKATTR\fR
 .IX Subsection "CORPUS._occ_hdr_TOKATTR"
