@@ -148,8 +148,8 @@ struct LessBySuffixIndex {
 	{
 		const char *a=(A+strlen(A)-1), *b=(B+strlen(B)-1);
 		size_t i=0;
-		while (i < m_SuffixLen && a>A && b>B && *a && *b && *a==*b) { ++i; --a; --b; }
-		return i==m_SuffixLen ? false : ((unsigned char)(*a)) < ((unsigned char)(*b));
+		while (i < m_SuffixLen && a>=A && b>=B && *a==*b) { ++i; --a; --b; }
+		return i==m_SuffixLen || A<A || B<B ? false : ((unsigned char)(*a)) < ((unsigned char)(*b));
 	};
 
 	//! less-than operator (for suffix-indices lower_bound(); respects m_SuffixLen)

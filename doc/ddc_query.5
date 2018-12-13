@@ -67,7 +67,7 @@
 .\" ========================================================================
 .\"
 .IX Title "DDC_QUERY 5"
-.TH DDC_QUERY 5 "2018-08-24" "2.1.22" "DDC Corpus Indexing System"
+.TH DDC_QUERY 5 "2018-12-13" "2.1.23" "DDC Corpus Indexing System"
 .\" For nroff, turn off justification.  Always turn off hyphenation; it makes
 .\" way too many mistakes in technical documents.
 .if n .ad l
@@ -175,7 +175,7 @@ Comments in this document may appear after each rule in C notation
 \& qc_word          ::=                                                       /*\-\- Single\-token condition \-\-*/
 \&                      qw_bareword                                           /* Bareword query (expanded) */
 \&                    | qw_exact                                              /* Exact match (not expanded) */
-\&                    | qw_regex                                              /* Regular expression */
+\&                    | qw_regex                                              /* Regular expression (requires full vocabulary scan) */
 \&                    | qw_any                                                /* Universal match (arbitrary value) */
 \&                    | qw_set_infl                                           /* Disjunction over a set of targets (expanded) */
 \&                    | qw_set_exact                                          /* Disjunction over a set of literals (not expanded) */
@@ -209,7 +209,7 @@ Comments in this document may appear after each rule in C notation
 \&                    | s_index = @ s_word                                    /* ... or on user\-specified index */
 \&                    ;
 \& 
-\& qw_regex         ::=                                                       /*\-\- Regular expression match using perl syntax \-\-*/
+\& qw_regex         ::=                                                       /*\-\- Regular expression match using perl syntax (requires full vocabulary scan) \-\-*/
 \&                      regex                                                 /* ... on \*(AqToken\*(Aq index */
 \&                    | s_index = regex                                       /* ... on user\-specified index */
 \&                    | neg_regex                                             /* ... on \*(AqToken\*(Aq index, negated */
@@ -251,12 +251,12 @@ Comments in this document may appear after each rule in C notation
 \&                    | s_index = *{ l_set }                                  /* ... on user\-specified index */
 \&                    ;
 \& 
-\& qw_infix         ::=                                                       /*\-\- Substring (infix) condition \-\-*/
+\& qw_infix         ::=                                                       /*\-\- Substring condition (infix; requires full vocabulary scan) \-\-*/
 \&                      s_infix                                               /* ... on \*(AqToken\*(Aq index */
 \&                    | s_index = s_infix                                     /* ... on user\-specified index */
 \&                    ;
 \& 
-\& qw_infix_set     ::=                                                       /*\-\- Disjunction over substrings (infix set) \-\-*/
+\& qw_infix_set     ::=                                                       /*\-\- Disjunction over substrings (infix set; requires full vocabulary scan)) \-\-*/
 \&                      *{ l_set }*                                           /* ... on \*(AqToken\*(Aq index */
 \&                    | s_index = *{ l_set }*                                 /* ... on user\-specified index */
 \&                    ;
@@ -907,8 +907,8 @@ for the running \s-1DDC\s0 server process.
 \& [\e"]                                /* double quotes (for pharse queries) */
 \& ":{"                                /* thesaurus\-query opener */
 \& "@{"                                /* literal\-set opener */
-\& "*{"                                /* prefix\- or infix\-set opener */
-\& "}*"                                /* suffix\-set or infix\-set closer */
+\& "*{"                                /* suffix\- or infix\-set opener */
+\& "}*"                                /* prefix\- or infix\-set closer */
 \& "*"                                 /* universal match wildcard */
 .Ve
 .PP

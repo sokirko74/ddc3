@@ -430,7 +430,7 @@
 <td></td>
 <td></td>
 <td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_qw_regex">qw_regex</a></span> </td>
-<td class="ruleComment">/* Regular expression */</td>
+<td class="ruleComment">/* Regular expression (requires full vocabulary scan) */</td>
 </tr>
 <tr>
 <td></td>
@@ -618,7 +618,7 @@
 <td><b><a name="rule_qw_regex">qw_regex</a></b></td>
 <td>::=</td>
 <td></td>
-<td class="ruleCommentTop">/* Regular expression match using perl syntax */</td>
+<td class="ruleCommentTop">/* Regular expression match using perl syntax (requires full vocabulary scan) */</td>
 </tr>
 <tr>
 <td></td>
@@ -830,7 +830,7 @@
 <td><b><a name="rule_qw_infix">qw_infix</a></b></td>
 <td>::=</td>
 <td></td>
-<td class="ruleCommentTop">/* Substring (infix) condition */</td>
+<td class="ruleCommentTop">/* Substring condition (infix; requires full vocabulary scan) */</td>
 </tr>
 <tr>
 <td></td>
@@ -855,7 +855,7 @@
 <td><b><a name="rule_qw_infix_set">qw_infix_set</a></b></td>
 <td>::=</td>
 <td></td>
-<td class="ruleCommentTop">/* Disjunction over substrings (infix set) */</td>
+<td class="ruleCommentTop">/* Disjunction over substrings (infix set; requires full vocabulary scan)) */</td>
 </tr>
 <tr>
 <td></td>
@@ -3311,8 +3311,8 @@ comment_text	(\\.|[^\]])*
 [\"]                                /* double quotes (for pharse queries) */
 ":{"                                /* thesaurus-query opener */
 "@{"                                /* literal-set opener */
-"*{"                                /* prefix- or infix-set opener */
-"}*"                                /* suffix-set or infix-set closer */
+"*{"                                /* suffix- or infix-set opener */
+"}*"                                /* prefix- or infix-set closer */
 "*"                                 /* universal match wildcard */
 </pre>
 <p>
@@ -4023,7 +4023,7 @@ ot-asi2 /* hyponyms/subclasses (depth=2); alias=ot-sub2 */
   </body></div>
 <div class="footers">
 <div class="footer_sig">
-<address><a href="mailto:jurish@bbaw.de">jurish@bbaw.de</a></address>Last modified: Fri, 24 Aug 2018 08:47:18 +0200</div>
+<address><a href="mailto:jurish@bbaw.de">jurish@bbaw.de</a></address>Last modified: Thu, 13 Dec 2018 08:50:11 +0100</div>
 <div class="footer_linkbar"><p class="nopad"><a class="navLink" href="/">Root</a><a class="navLink" href="./">Back</a><span class="navLinkDisabled">Help</span></p></div>
 <p class="dummy"></p>
 </div>
