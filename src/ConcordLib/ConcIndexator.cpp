@@ -648,7 +648,8 @@ bool CConcIndexator::LoadCorpusFiles()
 bool CConcIndexator::LoadMaskedFiles()
 {
 	m_MaskedFiles.clear();
-	// reading corpus files from *.con file
+
+	//-- masked files: strings: CORPUS._masked
 	FILE* fp = fopen(GetFileNameForMaskedFiles().c_str(), "rb");
 	if (!fp) return true;
 	char s[1024];
@@ -659,11 +660,21 @@ bool CConcIndexator::LoadMaskedFiles()
 		ddcCorpusList<>::IdT fileid = m_CorpusFiles.find(file);
 		if (fileid == m_CorpusFiles.NO_ID) {
 			ddcLogWarn( Format("CConcIndexator::LoadMaskedFiles(): %s in %s is not a corpus file name", file.c_str(), GetFileNameForMaskedFiles().c_str()) );
-			return false;
+			continue; //-- just skip
 		}
 		m_MaskedFiles.insert(fileid);
 	}
 	fclose(fp);
+
+	//-- masked files: binary IDs: CORPUS._masked_ids
+	string maskedBinFile = GetFileNameForMaskedFiles() + "_ids";
+	if (FileExists(maskedBinFile)) {
+		ddcVecFile<DWORD> maskedBinVec;
+		maskedBinVec.open(maskedBinFile, m_bMemoryMap);
+		m_MaskedFiles.insert(maskedBinVec.begin(), maskedBinVec.end());
+	}
+	
+	
 	return true;
 };
 
@@ -2301,6 +2312,7 @@ void CConcIndexator::DumpIndex(const char *dirname, CIndexDumpFormat fmt) const
 	}
 	size_t nfiles=m_CorpusFiles.size();
 	for (size_t fn=0; fn < nfiles; ++fn) {
+		if (m_MaskedFiles.find(fn) != m_MaskedFiles.end()) continue;  //-- skip masked files
 		string dumpfile = Format("%s/%d.%s", dirname, fn, file_ext);
 		FILE  *dumpfh   = fopen(dumpfile.c_str(), "wb");
 		if (!dumpfh)

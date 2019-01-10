@@ -324,6 +324,36 @@ Should be kept very small to minimize startup overhead O(NMasked*NFiles).
 ##------------------------------------------------------
 =pod
 
+=head3 CORPUS._masked_ids
+
+ - version: >= v2.1.24
+ - resident: yes
+ - mmap: not really
+ - popularity: optional (high if present)
+ - size: typically tiny if present at all
+ - growth: O(NMaskedBin)
+ - format:
+   - vector<DWORD> [size=NMaskedBin]
+   - flat list of file IDs (line-numbers in *._con_files) to be masked a la CORPUS._masked
+ - accessor: CConcIndexator::GetFileNameForMaskedFiles() + "_ids"
+ - used by:
+   - set<size_t> CConcIndexator::m_MaskedFiles;
+ - loaded by:
+   - CConcIndexator::LoadMaskedFiles()
+ - doc: (none)
+
+Optional list of corpus file-IDs for which hits are to be suppressed (simulated deletion)
+a la L<CORPUS._masked|/CORPUS._masked>.
+Moire efficient than L<CORPUS._masked|/CORPUS._masked>, since
+since binary mask-vector doesn't need linear search for filename-to-ID resolution at startup time.
+Should still be kept relatively small to minimize corpus bloat and
+avert a zombie apocalypse.
+
+=cut
+
+##------------------------------------------------------
+=pod
+
 =head3 CORPUS._periods
 
  - version: >= v2.0.0

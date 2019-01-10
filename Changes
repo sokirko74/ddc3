@@ -1,5 +1,11 @@
 ###-*- Mode: Change-Log; coding: utf-8; -*-
 
+v2.1.24 (work in progress)
+	Thu, 10 Jan 2019 16:21:10 +0100 moocow
+	* added support for CORPUS._masked_ids : binary variant of CORPUS._masked
+	  - quick and dirty implementation uses existing resident set<size_t> CConcIndexator::m_MaskedFiles
+
+
 v2.1.23 Wed, 12 Dec 2018 11:20:59 +0100 moocow
 	* bug-fix for suffix search (leftmost suffix character wasn't getting tested correctly;
 	  search (*aufzug) in ND found "Aufzug"; culprit was bogus comparison ("ufzug" < "aufzug")
