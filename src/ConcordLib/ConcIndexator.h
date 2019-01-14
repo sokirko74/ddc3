@@ -1,7 +1,7 @@
 //-*- Mode: C++; c-basic-offset: 8; -*-
 
 //  DDC originally by Alexey Sokirko
-//  Changes and modifications 2011-2018 by Bryan Jurish
+//  Changes and modifications 2011-2019 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -114,6 +114,9 @@ typedef enum CIndexDumpFormatE {
 	idfJson = 1,
 	idfTabs = 2
 } CIndexDumpFormat;
+
+/* CMaskedFileSet : type for CConcIndexator::m_MaskedFiles */
+typedef set<CFileNo> CMaskedFileSet;
 
 /*!
 	CConcIndexator is the central class of DDC technology.  The most of its  slots come from the 
@@ -228,7 +231,9 @@ public:
 	ddcCorpusList<>					    m_CorpusFiles;
 
 	//! masked (deleted corpus files)
-	set<size_t>					    m_MaskedFiles;
+	//set<size_t>  m_MaskedFiles;
+	CMaskedFileSet m_MaskedFiles;
+
 	//!  a member which holds a index for bibliographical information
 	CConcXml						m_Bibl;
 
@@ -355,8 +360,11 @@ public:
 	//! get file name for storing \ref corpus_file_def "corpus file" names
 	string	GetFileNameForCorpusFileNames() const;
 	
-	//! get file name for masked files
+	//! get file name for masked files (strings)
 	string	GetFileNameForMaskedFiles() const;
+	//! get file name for masked files (IDs, binary)
+	string	GetFileNameForMaskedFileIds() const;
+
 	//! parse a delimited token into fields by splitting on m_InterpDelimiter
 	vector<string> GetTokenFields(const COutputToken &tok);
 
@@ -365,11 +373,11 @@ public:
 	{ return m_CorpusFiles.size(); };
 
 	//! get corpus file by index
-	inline string GetCorpusFile(size_t FileNo) const
+	inline string GetCorpusFile(CFileNo FileNo) const
 	{ return m_CorpusFiles[FileNo]; };
 
 	//! returns true iff corpus-file FileNo is masked
-	inline bool IsMaskedFile(size_t FileNo) const
+	inline bool IsMaskedFile(CFileNo FileNo) const
 	{ return m_MaskedFiles.find(FileNo) != m_MaskedFiles.end(); };
 
 	//! get count of masked files
@@ -389,7 +397,7 @@ public:
 	//! load list of \ref corpus_file_def "corpus files" (*.con)
 	bool	LoadCorpusFiles();
 
-	//! compute common prefix of corpus files in m_CorpusFiles (TODO: use this method to assign m_CommonFilePrefix)
+	//! (re-)compute common prefix of corpus files in m_CorpusFiles
 	string GetCommonFilePrefix() const;
 
 	//! load list of masked (deleted)\ref corpus_file_def 
@@ -403,6 +411,9 @@ public:
 
 	//! saves corpus file list  (*._con)
 	bool	SaveCorpusFileList() const;
+
+	//! saves masked file-ids (*._masked_ids)
+	bool    SaveMaskedFileIds() const;
 	
 	//! loads  everything
 	bool	LoadProject(string FileName, bool includeSourceFiles=true);

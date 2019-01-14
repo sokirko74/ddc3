@@ -333,9 +333,9 @@ Should be kept very small to minimize startup overhead O(NMasked*NFiles).
  - size: typically tiny if present at all
  - growth: O(NMaskedBin)
  - format:
-   - vector<DWORD> [size=NMaskedBin]
+   - vector<CFileNo=DWORD> [size=NMaskedBin]
    - flat list of file IDs (line-numbers in *._con_files) to be masked a la CORPUS._masked
- - accessor: CConcIndexator::GetFileNameForMaskedFiles() + "_ids"
+ - accessor: CConcIndexator::GetFileNameForMaskedFileIds()
  - used by:
    - set<size_t> CConcIndexator::m_MaskedFiles;
  - loaded by:

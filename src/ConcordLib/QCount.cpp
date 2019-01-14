@@ -1,7 +1,7 @@
 //-*- Mode: C++; c-basic-offset: 2; -*-
 //
 //  DDC originally by Alexey Sokirko
-//  Changes and modifications 2011-2018 by Bryan Jurish
+//  Changes and modifications 2011-2019 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -574,9 +574,9 @@ void CQCount::CountUniversal(CQueryResult &Result, size_t Limit)
 
   //-- count(* ...) query: do memory-optimized computation
   CConcIndexator *ix = m_Compiler->m_pHolder->m_pIndexator;
-  const ddcBreakVector &fbreaks = ix->GetFileBreaks();
-  const set<size_t>      &fmasked = ix->m_MaskedFiles; 
-  set<size_t>::const_iterator fmaski = fmasked.begin();
+  const ddcBreakVector  &fbreaks = ix->GetFileBreaks();
+  const CMaskedFileSet  &fmasked = ix->m_MaskedFiles; 
+  CMaskedFileSet::const_iterator fmaski = fmasked.begin();
   DWORD nfiles = ix->GetCorpusFilesCount();
   CHit hit;
   string key;
@@ -587,7 +587,7 @@ void CQCount::CountUniversal(CQueryResult &Result, size_t Limit)
   if (qRoot->m_Options->m_bSeparateHits) {
     //-- count(* #sep): count tokens
     CTokenNo fw_begin=0, fw_end;
-    for (DWORD f=0; f<nfiles && m_CountSample < m_sample; ++f, fw_begin=fw_end) {
+    for (CFileNo f=0; f<nfiles && m_CountSample < m_sample; ++f, fw_begin=fw_end) {
       fw_end = fbreaks[f];
       if (fmaski != fmasked.end() && f == *fmaski) {
 	//-- don't count tokens in masked files
@@ -606,7 +606,7 @@ void CQCount::CountUniversal(CQueryResult &Result, size_t Limit)
   else {
     //-- count(* #join): count selected breaks
     const CHitBorders::CBreakCollection *sbreaks = ix->GetBreakCollectionByName(qRoot->m_Options->m_HitTypeStr);
-    DWORD    f=0, n=1;
+    CFileNo  f=0, n=1;
     CTokenNo fw_end = fbreaks[f];
     for (ddcBreakVector::const_iterator bi=sbreaks->m_BreakOffsets.begin(); bi!=sbreaks->m_BreakOffsets.end() && m_CountSample<m_sample; ++bi,++n) {
       if (*bi >= fw_end) {

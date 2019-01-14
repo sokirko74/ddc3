@@ -58,6 +58,18 @@ bool CConcIndexator::CreateAsUnion(const vector<CConcIndexator>& X, bool inherit
   }
 
   //---------------------------------------
+  // populate: "masked" files (pseudo-deletions)
+  ddcLogInfo(logname+": populating corpus mask "+GetFileNameForMaskedFileIds());
+  size_t moffset = 0;
+  for (vector<CConcIndexator>::const_iterator xi=X.begin(); xi != X.end(); ++xi) {
+    for (CMaskedFileSet::const_iterator xmi=xi->m_MaskedFiles.begin(); xmi!=xi->m_MaskedFiles.end(); ++xmi) {
+      m_MaskedFiles.insert(*xmi + moffset);
+    }
+    moffset += xi->m_CorpusFiles.size();
+  }
+  SaveMaskedFileIds();
+
+  //---------------------------------------
   // populate: breaks ("borders")
   // + lifted from old CHitBorders::UniteBorders()
   size_t offset;
@@ -90,6 +102,7 @@ bool CConcIndexator::CreateAsUnion(const vector<CConcIndexator>& X, bool inherit
 
   //-- count total tokens
   ddcLogInfo(Format("%s: output corpus will contain %zd tokens", logname.c_str(), GetCorpusEndTokenNo()));
+
 
   //---------------------------------------
   // populate: page-breaks

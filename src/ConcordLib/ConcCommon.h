@@ -76,6 +76,9 @@ const string PredefinedTextAreaBreakName = "textarea";
 //! integer type CTokenNo is used to  refer an index of a token in the corpus
 typedef	DWORD CTokenNo;
 
+//! integer type CFileNo is used to refer to a single document (file) in the corpus
+typedef DWORD CFileNo;
+
 //!  MaxShortOccurCacheSize is the upper bound  of  CShortOccurCache::m_Data.size() It is introduced to restrict memory usage.
 const size_t MaxShortOccurCacheSize = 1000000;
 

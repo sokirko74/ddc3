@@ -1,7 +1,7 @@
 //-*- Mode: C++; c-basic-offset: 8; -*-
 //
 //  DDC originally by Alexey Sokirko
-//  Changes and modifications 2011-2018 by Bryan Jurish
+//  Changes and modifications 2011-2019 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -534,6 +534,11 @@ string CConcIndexator::GetFileNameForMaskedFiles() const
 {
 	return MakeFName(m_Path, "_masked");
 };
+string CConcIndexator::GetFileNameForMaskedFileIds() const 
+{
+	return MakeFName(m_Path, "_masked_ids");
+};
+
 
 vector<string> CConcIndexator::GetTokenFields(const COutputToken &tok)
 {
@@ -555,7 +560,7 @@ vector<string> CConcIndexator::GetTokenFields(const COutputToken &tok)
 
 bool CConcIndexator::SaveCorpusFileList() const
 {
-	string ConFile = GetFileNameForCorpusFileNames();
+	string ConFile = GetFileNameForCorpusFileNames(); //-- *._con
 	FILE* cfp = fopen(ConFile.c_str(), "wb");
 	if (!cfp) return false;
 
@@ -592,6 +597,13 @@ bool CConcIndexator::SaveCorpusFileList() const
 	fclose(lfp);
 
 	return true;
+}
+
+bool CConcIndexator::SaveMaskedFileIds() const
+{
+	//-- ugly temporary so we can use WriteVector()
+	vector<CFileNo> maskedVec(m_MaskedFiles.begin(), m_MaskedFiles.end());
+	return WriteVector(GetFileNameForMaskedFileIds(), maskedVec);
 }
 
 
@@ -650,31 +662,35 @@ bool CConcIndexator::LoadMaskedFiles()
 	m_MaskedFiles.clear();
 
 	//-- masked files: strings: CORPUS._masked
-	FILE* fp = fopen(GetFileNameForMaskedFiles().c_str(), "rb");
-	if (!fp) return true;
-	char s[1024];
-	while (fgets(s,1024,fp)) {
-		string file = s;
-		Trim(file);
-		if (file.empty()) continue;
-		ddcCorpusList<>::IdT fileid = m_CorpusFiles.find(file);
-		if (fileid == m_CorpusFiles.NO_ID) {
-			ddcLogWarn( Format("CConcIndexator::LoadMaskedFiles(): %s in %s is not a corpus file name", file.c_str(), GetFileNameForMaskedFiles().c_str()) );
-			continue; //-- just skip
+	string maskedFile = GetFileNameForMaskedFiles();
+	FILE* fp = fopen(maskedFile.c_str(), "rb");
+	if (fp) {
+		char s[1024];
+		while (fgets(s,1024,fp)) {
+			string file = s;
+			Trim(file);
+			if (file.empty()) continue;
+			ddcCorpusList<>::IdT fileid = m_CorpusFiles.find(file);
+			if (fileid == m_CorpusFiles.NO_ID) {
+				ddcLogWarn( Format("CConcIndexator::LoadMaskedFiles(): %s in %s is not a corpus file name", file.c_str(), GetFileNameForMaskedFiles().c_str()) );
+				continue; //-- just skip
+			}
+			m_MaskedFiles.insert(fileid);
 		}
-		m_MaskedFiles.insert(fileid);
+		fclose(fp);
+		ddcLogDebug(Format("blacklisted %zd file(s) from %s", m_MaskedFiles.size(), maskedFile.c_str()));
 	}
-	fclose(fp);
 
 	//-- masked files: binary IDs: CORPUS._masked_ids
-	string maskedBinFile = GetFileNameForMaskedFiles() + "_ids";
+	string maskedBinFile = GetFileNameForMaskedFileIds();
 	if (FileExists(maskedBinFile)) {
-		ddcVecFile<DWORD> maskedBinVec;
+		ddcVecFile<CFileNo> maskedBinVec;
 		maskedBinVec.open(maskedBinFile, m_bMemoryMap);
 		m_MaskedFiles.insert(maskedBinVec.begin(), maskedBinVec.end());
+		ddcLogDebug(Format("blacklisted %zd file(s) from %s", maskedBinVec.size(), maskedBinFile.c_str()));
 	}
-	
-	
+
+
 	return true;
 };
 
@@ -736,6 +752,9 @@ bool	CConcIndexator::DestroyIndex()
 
 	if (FileExists(GetFileNameForMaskedFiles().c_str()))
 		if (remove(GetFileNameForMaskedFiles().c_str()))
+			return false;
+	if (FileExists(GetFileNameForMaskedFileIds().c_str()))
+		if (remove(GetFileNameForMaskedFileIds().c_str()))
 			return false;
 	m_MaskedFiles.clear();
 
