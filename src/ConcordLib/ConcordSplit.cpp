@@ -46,7 +46,7 @@ bool CConcIndexator::SplitProject(vector<CConcIndexator>& Subs, const string& Su
   size_t nTokensPerSub = GetCorpusEndTokenNo() / Subs.size();
   ddcLogInfo(Format("%s: finding %zd split points (%zd tokens total -> ca. %zd tokens/subcorpus)", logname.c_str(), Subs.size(), GetCorpusEndTokenNo(), nTokensPerSub));
   //
-  vector<DWORD>    splitFileBreaks(Subs.size());  //-- [splitId] => file_id_of_first_file_not_in_split
+  vector<CFileNo>  splitFileBreaks(Subs.size());  //-- [splitId] => file_id_of_first_file_not_in_split
   vector<CTokenNo> splitTokenBreaks(Subs.size()); //-- [splitId] => token_id_of_first_token_not_in_split
   const ddcBreakVector& fbreaks = GetFileBreaks();
   ddcBreakVector::const_iterator fbi=fbreaks.begin();
@@ -119,6 +119,24 @@ bool CConcIndexator::SplitProject(vector<CConcIndexator>& Subs, const string& Su
       throw CExpc(logname+": failed to save corpus file list "+Subs[i].GetFileNameForCorpusFileNames());
   }
 
+
+  //---------------------------------------
+  // populate: "masked" files (pseudo-deletions)
+  if (!m_MaskedFiles.empty()) {
+    ddcLogInfo(logname+": populating corpus file mask(s)");
+    size_t suboffset=0;
+    for (size_t i=0; i < Subs.size(); ++i) {
+      Subs[i].m_MaskedFiles.clear();
+
+      CMaskedFileSet::const_iterator lbi = m_MaskedFiles.lower_bound(suboffset);
+      CMaskedFileSet::const_iterator ubi = m_MaskedFiles.lower_bound(splitFileBreaks[i]);
+      for ( ; lbi != ubi; ++lbi)
+	Subs[i].m_MaskedFiles.insert(*lbi - suboffset);
+      if (!Subs[i].m_MaskedFiles.empty())
+	Subs[i].SaveMaskedFileIds();
+      suboffset += Subs[i].m_CorpusFiles.size();
+    }
+  }
 
   //---------------------------------------
   // populate: breaks ("borders")
