@@ -52,8 +52,7 @@ void show_usage(void) {
 	  "  -o, --output OUTFMT   # specify printf-style output format (default=\"split%%02d/split%%1$02d.con\")\n"
 	  "  -O, --options OPTFILE # load output options from OPTFILE (default:empty ~ inherit)\n"
 	  "  -v, --verbose LEVEL   # specify log-verbosity level (none|error|warn|info=weak|debug=medium|trace=heavy)\n"
-	  "\n",
-	  outfmt.c_str()
+	  "\n"
 	  );
 }
 

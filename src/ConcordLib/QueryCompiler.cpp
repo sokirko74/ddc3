@@ -374,13 +374,13 @@ string CQueryCompiler::QueryToJson(void)
 //----------------------------------------------------------------------
 // ERROR REPORTING
 
-void CQueryCompiler::barf(const std::string& msg) const throw(CExpc)
+void CQueryCompiler::barf(const std::string& msg) const /*throw(CExpc)*/
 {
 	throw CExpc(errParseError, msg);
 }
 
 #define BARFSIZE 1024
-void CQueryCompiler::barf(const char *fmt, ...) const throw(CExpc)
+void CQueryCompiler::barf(const char *fmt, ...) const //throw(CExpc)
 {
 	char buf[BARFSIZE];
 	va_list arglst;
@@ -391,7 +391,7 @@ void CQueryCompiler::barf(const char *fmt, ...) const throw(CExpc)
 	throw CExpc(errParseError, buf);
 }
 
-void CQueryCompiler::yybarf(const char *yymsg) const throw(CExpc)
+void CQueryCompiler::yybarf(const char *yymsg) const //throw(CExpc)
 {
 	barf("could not parse query: %s at line %d, near token `%s'", yymsg, lineno(), YYText());
 }

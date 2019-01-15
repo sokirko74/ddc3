@@ -660,11 +660,11 @@ public:
 
     template<typename IterT>
     inline const KeyT& key(const IterT& it) const
-    { return it.key<KeyT>(); };
+    { return it.template key<KeyT>(); };
 
     template<typename IterT>
     inline const ValT* val(const IterT& it) const
-    { return it.val<KeyT,ValT>(); };
+    { return it.template val<KeyT,ValT>(); };
 
 public:
     //----------------------------------------------------------
