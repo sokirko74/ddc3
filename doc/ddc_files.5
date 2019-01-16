@@ -67,7 +67,7 @@
 .\" ========================================================================
 .\"
 .IX Title "DDC_FILES 5"
-.TH DDC_FILES 5 "2018-12-13" "2.1.22" "DDC Corpus Indexing System"
+.TH DDC_FILES 5 "2019-01-14" "2.1.24-rc1" "DDC Corpus Indexing System"
 .\" For nroff, turn off justification.  Always turn off hyphenation; it makes
 .\" way too many mistakes in technical documents.
 .if n .ad l
@@ -328,6 +328,34 @@ behavior if this file is unavailable.
 .PP
 Optional list of corpus files for which hits are to be suppressed (simulated deletion).
 Should be kept very small to minimize startup overhead O(NMasked*NFiles).
+.PP
+\fI\s-1CORPUS\s0._masked_ids\fR
+.IX Subsection "CORPUS._masked_ids"
+.PP
+.Vb 10
+\& \- version: >= v2.1.24
+\& \- resident: yes
+\& \- mmap: not really
+\& \- popularity: optional (high if present)
+\& \- size: typically tiny if present at all
+\& \- growth: O(NMaskedBin)
+\& \- format:
+\&   \- vector<CFileNo=DWORD> [size=NMaskedBin]
+\&   \- flat list of file IDs (line\-numbers in *._con_files) to be masked a la CORPUS._masked
+\& \- accessor: CConcIndexator::GetFileNameForMaskedFileIds()
+\& \- used by:
+\&   \- set<size_t> CConcIndexator::m_MaskedFiles;
+\& \- loaded by:
+\&   \- CConcIndexator::LoadMaskedFiles()
+\& \- doc: (none)
+.Ve
+.PP
+Optional list of corpus file-IDs for which hits are to be suppressed (simulated deletion)
+a la \s-1CORPUS\s0._masked.
+Moire efficient than \s-1CORPUS\s0._masked, since
+since binary mask-vector doesn't need linear search for filename-to-ID resolution at startup time.
+Should still be kept relatively small to minimize corpus bloat and
+avert a zombie apocalypse.
 .PP
 \fI\s-1CORPUS\s0._periods\fR
 .IX Subsection "CORPUS._periods"

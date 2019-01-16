@@ -25,6 +25,7 @@
           <li><a href="#CORPUS._con_idx">CORPUS._con_idx</a></li>
           <li><a href="#CORPUS._con_prefix">CORPUS._con_prefix</a></li>
           <li><a href="#CORPUS._masked">CORPUS._masked</a></li>
+          <li><a href="#CORPUS._masked_ids">CORPUS._masked_ids</a></li>
           <li><a href="#CORPUS._periods">CORPUS._periods</a></li>
           <li><a href="#CORPUS._error_log">CORPUS._error_log</a></li>
           <li><a href="#CORPUS._time_statistics">CORPUS._time_statistics</a></li>
@@ -281,6 +282,26 @@
  - doc: (none)</code></pre>
 
 <p>Optional list of corpus files for which hits are to be suppressed (simulated deletion). Should be kept very small to minimize startup overhead O(NMasked*NFiles).</p>
+
+<h3 id="CORPUS._masked_ids">CORPUS._masked_ids</h3>
+
+<pre><code> - version: &gt;= v2.1.24
+ - resident: yes
+ - mmap: not really
+ - popularity: optional (high if present)
+ - size: typically tiny if present at all
+ - growth: O(NMaskedBin)
+ - format:
+   - vector&lt;CFileNo=DWORD&gt; [size=NMaskedBin]
+   - flat list of file IDs (line-numbers in *._con_files) to be masked a la CORPUS._masked
+ - accessor: CConcIndexator::GetFileNameForMaskedFileIds()
+ - used by:
+   - set&lt;size_t&gt; CConcIndexator::m_MaskedFiles;
+ - loaded by:
+   - CConcIndexator::LoadMaskedFiles()
+ - doc: (none)</code></pre>
+
+<p>Optional list of corpus file-IDs for which hits are to be suppressed (simulated deletion) a la <a href="#CORPUS._masked">CORPUS._masked</a>. Moire efficient than <a href="#CORPUS._masked">CORPUS._masked</a>, since since binary mask-vector doesn&#39;t need linear search for filename-to-ID resolution at startup time. Should still be kept relatively small to minimize corpus bloat and avert a zombie apocalypse.</p>
 
 <h3 id="CORPUS._periods">CORPUS._periods</h3>
 
