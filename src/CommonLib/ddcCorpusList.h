@@ -165,7 +165,7 @@ public:
     //static const IdT NO_ID = std::numeric_limits<IdT>::max();
     static const IdT NO_ID = DWORD_MAX;
 
-    /// returns id of \a key, or NO_ID if not found (linear search)
+    /// returns first id of \a key, or NO_ID if not found (linear search)
     inline IdT find(const string& key) const
     {
 	if (m_offsets) {
@@ -180,6 +180,28 @@ public:
 	    vector<string>::const_iterator it = std::find(m_strings.begin(), m_strings.end(), key);
 	    if (it != m_strings.end())
 		return (it - m_strings.begin());
+	}
+	return NO_ID;
+    };
+
+    /// returns last id of \a key, or NO_ID if not found (linear search)
+    inline IdT rfind(const string& key) const
+    {
+	if (m_offsets) {
+	    if (empty()) return NO_ID;
+	    string tmp;
+	    IdT idx = size()-1;
+	    do {
+		itemGet(idx,tmp);
+		if (tmp == key)
+		    return idx;
+		--idx;
+	    } while (idx != 0);
+	}
+	else {
+	    vector<string>::const_reverse_iterator it = std::find(m_strings.rbegin(), m_strings.rend(), key);
+	    if (it != m_strings.rend())
+		return (m_strings.size()-1) - (it - m_strings.rbegin());
 	}
 	return NO_ID;
     };

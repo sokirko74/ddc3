@@ -374,7 +374,7 @@ string CQueryCompiler::QueryToJson(void)
 //----------------------------------------------------------------------
 // ERROR REPORTING
 
-void CQueryCompiler::barf(const std::string& msg) const /*throw(CExpc)*/
+void CQueryCompiler::barf(const std::string& msg) const //throw(CExpc)
 {
 	throw CExpc(errParseError, msg);
 }

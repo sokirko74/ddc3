@@ -670,7 +670,7 @@ bool CConcIndexator::LoadMaskedFiles()
 			string file = s;
 			Trim(file);
 			if (file.empty()) continue;
-			ddcCorpusList<>::IdT fileid = m_CorpusFiles.find(file);
+			ddcCorpusList<>::IdT fileid = m_CorpusFiles.rfind(file); //-- mask LAST occurrence
 			if (fileid == m_CorpusFiles.NO_ID) {
 				ddcLogWarn( Format("CConcIndexator::LoadMaskedFiles(): %s in %s is not a corpus file name", file.c_str(), GetFileNameForMaskedFiles().c_str()) );
 				continue; //-- just skip
@@ -1705,7 +1705,7 @@ bool CConcIndexatorInvoker::BuildIndex	(string ProjectFile)
         char filename[2*_MAX_PATH];
         strcpy(filename,Format("TMP=%s", GetPathByFile(ProjectFile).c_str()).c_str());
         putenv(filename);
-        fprintf (stderr, "temp directory: %s\n", getenv("TMP"));
+	ddcLogDebug(Format("using temporary directory `%s'", getenv("TMP")));
     }
 
 	if (m_bOnlyReindexMorphology)

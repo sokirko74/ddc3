@@ -1,5 +1,5 @@
 //  DDC originally by Alexey Sokirko
-//  Changes and modifications 2011-2018 by Bryan Jurish
+//  Changes and modifications 2011-2019 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
