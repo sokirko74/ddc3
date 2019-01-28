@@ -67,7 +67,7 @@
 .\" ========================================================================
 .\"
 .IX Title "DDC_FILES 5"
-.TH DDC_FILES 5 "2019-01-14" "2.1.24-rc1" "DDC Corpus Indexing System"
+.TH DDC_FILES 5 "2019-01-28" "2.1.24" "DDC Corpus Indexing System"
 .\" For nroff, turn off justification.  Always turn off hyphenation; it makes
 .\" way too many mistakes in technical documents.
 .if n .ad l
@@ -97,7 +97,7 @@ Each file type described below is characterized with the following attributes:
 \&\fBmmap\fR: whether the \f(CW\*(C`MemoryMap\*(C'\fR option introduced in
 \&\s-1DDC\s0 v2.1.12 provides virtual memory-mapping support for files of this type.
 .IP "\(bu" 4
-\&\fBpopularity\fR: how often the file data is accessed often in the course of a persistent server's lifetime,
+\&\fBpopularity\fR: how often the file data is accessed in the course of a persistent server's lifetime,
 .IP "\(bu" 4
 \&\fBsize\fR: subjective categorization of expected file size (number of bytes used on disk).
 .IP "\(bu" 4
@@ -174,7 +174,7 @@ Index options, see \fIddc_opt\fR\|(5) for details.
 List of corpus source files as passed to \fIddc_index\fR\|(1).
 Prior to ddc v2.1.15, this file-list was \fBalways\fR loaded into resident anonymous memory
 on project load.
-As of v2.2.15, the runtime utilities \f(CW\*(C`ddc_daemon\*(C'\fR, \f(CW\*(C`ddc_dump\*(C'\fR, \f(CW\*(C`ddc_simple\*(C'\fR, \f(CW\*(C`ddc_split\*(C'\fR, and \f(CW\*(C`ddc_stats\*(C'\fR
+As of v2.1.15, the runtime utilities \f(CW\*(C`ddc_daemon\*(C'\fR, \f(CW\*(C`ddc_dump\*(C'\fR, \f(CW\*(C`ddc_simple\*(C'\fR, \f(CW\*(C`ddc_split\*(C'\fR, and \f(CW\*(C`ddc_stats\*(C'\fR
 no longer load this file.  The list of actually indexed source files remains available in
 \&\fI\s-1CORPUS\s0._con_files\fR.
 .PP

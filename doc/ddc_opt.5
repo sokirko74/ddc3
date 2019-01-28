@@ -67,7 +67,7 @@
 .\" ========================================================================
 .\"
 .IX Title "DDC_OPT 5"
-.TH DDC_OPT 5 "2018-06-12" "2.1.22" "DDC Corpus Indexing System"
+.TH DDC_OPT 5 "2019-01-25" "2.1.24" "DDC Corpus Indexing System"
 .\" For nroff, turn off justification.  Always turn off hyphenation; it makes
 .\" way too many mistakes in technical documents.
 .if n .ad l
@@ -257,7 +257,7 @@ if you choose to use this option.
 \fIMemoryMap\fR
 .IX Subsection "MemoryMap"
 .PP
-If specified true, \s-1DDC\s0 will attempt to map runtime index data from the filesystem into virtual memory on startup
+If specified ande true, \s-1DDC\s0 will attempt to map runtime index data from the filesystem into virtual memory on startup.
 If unspecified or false, \s-1DDC\s0 will fall back to the pre\-v2.1.12 behavior of loading runtime index data into
 resident memory on startup, which tends to be both slow and resource-hungry.
 Use of the MemoryMap option requires a working \fImmap()\fR system call and compile-time support in the underlying \s-1DDC\s0 library.

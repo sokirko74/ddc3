@@ -86,7 +86,7 @@
 <li><p><b>mmap</b>: whether the <a href="./ddc_opt.html#MemoryMap"><code>MemoryMap</code></a> option introduced in DDC v2.1.12 provides virtual memory-mapping support for files of this type.</p>
 
 </li>
-<li><p><b>popularity</b>: how often the file data is accessed often in the course of a persistent server&#39;s lifetime,</p>
+<li><p><b>popularity</b>: how often the file data is accessed in the course of a persistent server&#39;s lifetime,</p>
 
 </li>
 <li><p><b>size</b>: subjective categorization of expected file size (number of bytes used on disk).</p>
@@ -163,7 +163,7 @@
         (class CBiblIndex) and full bibliographical information (class CBibliography).
    #+END_SRC</code></pre>
 
-<p>List of corpus source files as passed to <a>ddc_index(1)</a>. Prior to ddc v2.1.15, this file-list was <b>always</b> loaded into resident anonymous memory on project load. As of v2.2.15, the runtime utilities <code>ddc_daemon</code>, <code>ddc_dump</code>, <code>ddc_simple</code>, <code>ddc_split</code>, and <code>ddc_stats</code> no longer load this file. The list of actually indexed source files remains available in <a href="#CORPUS._con_files"><i>CORPUS._con_files</i></a>.</p>
+<p>List of corpus source files as passed to <a>ddc_index(1)</a>. Prior to ddc v2.1.15, this file-list was <b>always</b> loaded into resident anonymous memory on project load. As of v2.1.15, the runtime utilities <code>ddc_daemon</code>, <code>ddc_dump</code>, <code>ddc_simple</code>, <code>ddc_split</code>, and <code>ddc_stats</code> no longer load this file. The list of actually indexed source files remains available in <a href="#CORPUS._con_files"><i>CORPUS._con_files</i></a>.</p>
 
 <h3 id="CORPUS._con">CORPUS._con</h3>
 
