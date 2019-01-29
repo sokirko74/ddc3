@@ -2167,7 +2167,7 @@ string CConcIndexator::DumpFileBibliography(DWORD FileNo) const
 		 + ",\"orig_\":" + jsonStr(B.m_OrigBibl, m_Utf8)
 		 + ",\"date_\":" + jsonStr(B.m_DateStr, m_Utf8)
 		 + ",\"page_\":" + (B.m_StartPageInfo==UnknownPageNumber ? "null" : Format("%u",B.m_StartPageInfo))
-		 + "," + m_Bibl.GetFreeHeaderBiblAttributesJson(FileNo, m_Utf8)
+		 + "," + m_Bibl.GetFreeHeaderBiblAttributesJson(FileNo, m_Utf8, true)
 		 + "}");
     return fb;
 }
@@ -2257,7 +2257,7 @@ void CConcIndexator::DumpFileIndexTabs(DWORD FileNo, FILE *f) const
 	fprintf(f, "%s:meta.orig_=%s\n", cmt, jsonStr(B.m_OrigBibl,m_Utf8,false).c_str());
 	fprintf(f, "%s:meta.date_=%s\n", cmt, jsonStr(B.m_DateStr,m_Utf8,false).c_str());
 	fprintf(f, "%s:meta.page_=%ld\n", cmt, (B.m_StartPageInfo==UnknownPageNumber ? -1L : (long int)B.m_StartPageInfo));
-	fputs(m_Bibl.GetFreeHeaderBiblAttributesTabsDump(FileNo,m_Utf8).c_str(), f);
+	fputs(m_Bibl.GetFreeHeaderBiblAttributesTabsDump(FileNo,m_Utf8,true).c_str(), f);
 
 	//-- intialize: page-breaks
 	ddcVecFile<CPageNumber>::const_iterator pb = GetTokenPageBreak(tok_min);

@@ -379,9 +379,9 @@ public:
 	//! return names and  values of all free bibliographical attributes for the given FileNo delimited by "Delim"  
 	string			GetFreeHeaderBiblAttributesWithNames(size_t  FileNo,  char Delim) const;
 	//! return names and  values of all free bibliographical attributes for the given FileNo as JSON (without enclosing {})
-	string			GetFreeHeaderBiblAttributesJson(size_t  FileNo, bool assume_utf8=true) const;
+	string			GetFreeHeaderBiblAttributesJson(size_t  FileNo, bool assume_utf8=true, bool include_invisible=false) const;
 	//! return names and  values of all free bibliographical attributes for the given FileNo as tt-comments (for tt-mode dump)
-	string			GetFreeHeaderBiblAttributesTabsDump(size_t  FileNo, bool assume_utf8=true) const;
+	string			GetFreeHeaderBiblAttributesTabsDump(size_t  FileNo, bool assume_utf8=true, bool include_invisible=false) const;
 	//! set all free bibliographical attributes to ""
 	void			SetFreeBiblAttribsEmpty(CBibliography& Bibl);
 	//! return all text area elements for this document ("doc")

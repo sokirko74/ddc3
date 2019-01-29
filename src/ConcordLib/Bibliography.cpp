@@ -2029,12 +2029,12 @@ string CConcXml::GetFreeHeaderBiblAttributesWithNames(size_t  FileNo,  char Deli
 	return Result;
 };
 
-string CConcXml::GetFreeHeaderBiblAttributesJson(size_t FileNo, bool assume_utf8) const
+string CConcXml::GetFreeHeaderBiblAttributesJson(size_t FileNo, bool assume_utf8, bool include_invisible) const
 {
     string js("");
     for (FreeBiblStringMap::const_iterator bibl_it = m_FreeBiblIndices.begin(); bibl_it != m_FreeBiblIndices.end(); bibl_it++) {
 	CFreeBiblIndex* I = bibl_it->second;
-	if (I->m_bShowInHeader) {
+	if (include_invisible || I->m_bShowInHeader) {
 	    if (!js.empty()) js.push_back(',');
 	    js.append(jsonStr(I->m_Name, assume_utf8));
 	    js.push_back(':');
@@ -2044,13 +2044,13 @@ string CConcXml::GetFreeHeaderBiblAttributesJson(size_t FileNo, bool assume_utf8
     return js;
 }
 
-string CConcXml::GetFreeHeaderBiblAttributesTabsDump(size_t FileNo, bool assume_utf8) const
+string CConcXml::GetFreeHeaderBiblAttributesTabsDump(size_t FileNo, bool assume_utf8, bool include_invisible) const
 {
     string ts("");
     string prefix("%%$DDC:meta.");
     for (FreeBiblStringMap::const_iterator bibl_it = m_FreeBiblIndices.begin(); bibl_it != m_FreeBiblIndices.end(); bibl_it++) {
 	CFreeBiblIndex* I = bibl_it->second;
-	if (I->m_bShowInHeader) {
+	if (include_invisible || I->m_bShowInHeader) {
 		ts.append(prefix);
 		ts.append(jsonStr(I->m_Name, assume_utf8, false));
 		ts.push_back('=');
