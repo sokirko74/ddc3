@@ -120,6 +120,11 @@ to perform his or her own tests before using any of the options
 described below (but particularly the undocumented ones)
 in a production environment.
 
+At runtime, DDC loads exactly one "top-level" corpus opt-file (C<CORPUS.opt>)
+for each physical (sub)corpus inventory C<CORPUS.con>.  Typically, the opt-files
+for physical subcorpora ("shards") will contain nothing more than an
+L</include> directive pointing to a superordinate shared options file.
+
 Note that server option-files (F<ddc_server.opt>) as read
 by the C<ddc_daemon> program are documented independently;
 see L<ddc_server.opt(5)|ddc_server.opt> for details.
@@ -156,7 +161,7 @@ B<except> for the backwards-compatible L<#include|/include> directive.
 
 The C<include> directive inserts the contents of an external opt-file at the
 current position.  If OPTFILE is a relative pathname, it is interpreted relative
-to the directory containing the top-level .opt file for the current corpus.
+to the directory containing the top-level opt-file for the current physical (sub)corpus.
 
 Note that for historical reasons, the C preprocessor syntax C<#include "OPTFILE">
 is also supported, is B<NOT> a comment, and B<WILL> be evaluated.  This behavior

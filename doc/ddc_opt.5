@@ -67,7 +67,7 @@
 .\" ========================================================================
 .\"
 .IX Title "DDC_OPT 5"
-.TH DDC_OPT 5 "2019-01-25" "2.1.24" "DDC Corpus Indexing System"
+.TH DDC_OPT 5 "2019-04-11" "2.1.25-pre1" "DDC Corpus Indexing System"
 .\" For nroff, turn off justification.  Always turn off hyphenation; it makes
 .\" way too many mistakes in technical documents.
 .if n .ad l
@@ -173,6 +173,11 @@ to perform his or her own tests before using any of the options
 described below (but particularly the undocumented ones)
 in a production environment.
 .PP
+At runtime, \s-1DDC\s0 loads exactly one \*(L"top-level\*(R" corpus opt-file (\f(CW\*(C`CORPUS.opt\*(C'\fR)
+for each physical (sub)corpus inventory \f(CW\*(C`CORPUS.con\*(C'\fR.  Typically, the opt-files
+for physical subcorpora (\*(L"shards\*(R") will contain nothing more than an
+\&\*(L"include\*(R" directive pointing to a superordinate shared options file.
+.PP
 Note that server option-files (\fIddc_server.opt\fR) as read
 by the \f(CW\*(C`ddc_daemon\*(C'\fR program are documented independently;
 see \fIddc_server.opt\fR\|(5) for details.
@@ -205,7 +210,7 @@ Such lines are ignored by the option processor
 .PP
 The \f(CW\*(C`include\*(C'\fR directive inserts the contents of an external opt-file at the
 current position.  If \s-1OPTFILE\s0 is a relative pathname, it is interpreted relative
-to the directory containing the top-level .opt file for the current corpus.
+to the directory containing the top-level opt-file for the current physical (sub)corpus.
 .PP
 Note that for historical reasons, the C preprocessor syntax \f(CW\*(C`#include "OPTFILE"\*(C'\fR
 is also supported, is \fB\s-1NOT\s0\fR a comment, and \fB\s-1WILL\s0\fR be evaluated.  This behavior

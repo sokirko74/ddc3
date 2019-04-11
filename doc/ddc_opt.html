@@ -194,6 +194,8 @@
 
 <p>This section contains descriptions of the various options and flags which may occur in a DDC corpus opt-file, insofar as the author is able to provide them. These are for the most part legacy options which may or may not be fully functional. I have not tested (most of) these options for functionality. The reader is strongly advised to perform his or her own tests before using any of the options described below (but particularly the undocumented ones) in a production environment.</p>
 
+<p>At runtime, DDC loads exactly one &quot;top-level&quot; corpus opt-file (<code>CORPUS.opt</code>) for each physical (sub)corpus inventory <code>CORPUS.con</code>. Typically, the opt-files for physical subcorpora (&quot;shards&quot;) will contain nothing more than an <a href="#include">&quot;include&quot;</a> directive pointing to a superordinate shared options file.</p>
+
 <p>Note that server option-files (<i>ddc_server.opt</i>) as read by the <code>ddc_daemon</code> program are documented independently; see <a href="./ddc_server.opt.html">ddc_server.opt(5)</a> for details.</p>
 
 <h2 id="Sources">Sources</h2>
@@ -211,7 +213,7 @@
 <pre><code> include &quot;OPTFILE&quot;
  #include &quot;OPTFILE&quot;</code></pre>
 
-<p>The <code>include</code> directive inserts the contents of an external opt-file at the current position. If OPTFILE is a relative pathname, it is interpreted relative to the directory containing the top-level .opt file for the current corpus.</p>
+<p>The <code>include</code> directive inserts the contents of an external opt-file at the current position. If OPTFILE is a relative pathname, it is interpreted relative to the directory containing the top-level opt-file for the current physical (sub)corpus.</p>
 
 <p>Note that for historical reasons, the C preprocessor syntax <code>#include &quot;OPTFILE&quot;</code> is also supported, is <b>NOT</b> a comment, and <b>WILL</b> be evaluated. This behavior may change in the future.</p>
 
