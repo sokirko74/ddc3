@@ -330,7 +330,10 @@ bool CConcXml::CFreeBiblIndex::GetFilterValues (CDDCFilterWithBounds& Filter, co
 
 bool CConcXml::CFreeBiblIndex::FileMatches(DWORD FileNo, const CDDCFilterWithBounds& Filter) const
 {
-	DWORD val = this->GetIntegerValue(FileNo);
+	// + 2019-08-15 moocow
+	//   - val: cast to int so it jives with CHitSortKey::i (avoid signed/unsigned comparison)
+	//   - should fixes bogus empty responses from e.g. "count(* #asc[author]) #by[textClass]"
+	int val = this->GetIntegerValue(FileNo);
 	return (Filter.m_bSet
 		? (Filter.m_SatisfiedValues.find(val) != Filter.m_SatisfiedValues.end())
 		: ((val >= Filter.m_KeyLo.i) && (val < Filter.m_KeyHi.i))
@@ -1671,7 +1674,10 @@ bool CConcXml::FileMatches(DWORD FileNo, const vector<CDDCFilterWithBounds>& Fil
 		}
 		else if (!fbi && (fi->m_FilterType==LessByDate || fi->m_FilterType==GreaterByDate)) {
 			//-- date filter is tested manually...
-			DWORD fdate = m_Dates[FileNo];
+			// + 2019-08-15 moocow
+			//   - fdate: cast to int so it jives with CHitSortKey::i (avoid signed/unsigned comparison)
+			//   - should fixes bogus empty responses from e.g. "count(* #asc_date) #by[textClass]"
+			int fdate = m_Dates[FileNo];
 			if (fdate < fi->m_KeyLo.i || fdate > fi->m_KeyHi.i)
 				return false;
 		}
