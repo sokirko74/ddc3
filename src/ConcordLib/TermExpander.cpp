@@ -525,10 +525,26 @@ string TxDispatcher::configString(const string &prefix) const
 //--------------------------------------------------------------
 void TxDispatcher::insert(const string &label, CTermExpander *tx)
 {
+#if 0
+  //-- old
   remove(label);
   tx->m_Label = label;
   m_tx[label] = tx;
   m_txlist.push_back(label);
+#else
+  //-- remove but leave order
+  TxMap::iterator mi = m_tx.find(label);
+  if (mi != m_tx.end()) {
+    if (mi->second != NULL) delete mi->second;
+    m_tx.erase(mi);
+    //m_txlist.remove(label);
+  } else {
+    m_txlist.remove(label);
+    m_txlist.push_back(label);
+  }
+  tx->m_Label = label;
+  m_tx[label] = tx;
+#endif
 }
 
 //--------------------------------------------------------------

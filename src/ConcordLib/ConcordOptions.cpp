@@ -809,6 +809,10 @@ string CConcIndexator::SaveOptionsToString()  const
 	if (!BordersStr.empty())
 		Result += "HitBorders " + BordersStr + "\n";
 
+	for (map<string,string>::const_iterator odi=m_OpDefaultIndexNames.begin(); odi!=m_OpDefaultIndexNames.end(); ++odi) {
+		Result += "DefaultQueryIndex " + odi->first + " " + odi->second + "\n";
+	}
+
 	Result += m_Bibl.GetFreeBibiAttributesDescr();
 
 	return Result;
@@ -817,12 +821,12 @@ string CConcIndexator::SaveOptionsToString()  const
 bool CConcIndexator::SaveOptions(string FileName) const
 {
 	string PathFile = MakeFName(FileName, "opt");
-	FILE* fp = fopen(PathFile.c_str(), "w");
+	FILE *fp = (FileName == "-" ? stdout : fopen(PathFile.c_str(), "w"));
 	if (!fp) return false;
 	string s  = SaveOptionsToString();
 	if (!s.empty())
 		fprintf (fp,"%s", s.c_str());
-	fclose(fp);
+	if (fp != stdout) fclose(fp);
 	return true;
 };
 

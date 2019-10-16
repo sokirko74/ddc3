@@ -1,5 +1,11 @@
 ###-*- Mode: Change-Log; coding: utf-8; -*-
 
+v2.1.26-pre1 (WIP)
+	Wed, 18 Sep 2019 14:03:31 +0200 moocow
+	* re-worked term expander output order for CConcIndexator::SaveOptionsToString() - avoid unparseable output
+	* added -O/--options option for ddc_dump (dump *.opt)
+	* added DefaultQueryIndex clauses to CConcIndexator::SaveOptionsToString()
+
 v2.1.25 Thu, 15 Aug 2019 09:48:36 +0200 moocow
 	* added support for "invisible" bibl fields in ddc_dump
 	* fixed bug causing empty count results from count-queries with vacuous date- and/or bibl-sort filters

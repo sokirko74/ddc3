@@ -30,6 +30,7 @@ const char *prog = "ddc_dump";
 const char *confilename = NULL;
 const char *outfilename = NULL;
 
+bool  dump_opt  = false;
 bool  dump_full = false;
 CIndexDumpFormat dump_fmt = idfJson;
 
@@ -50,6 +51,7 @@ void show_usage(void) {
 	  "  -h, --help         # this help message\n"
 	  "  -v, --version      # show version and exit\n"
 	  "  -o, --output OUT   # specify output file or directory (default=stdout)\n"
+	  "  -O, --options      # just dump PROJECT.opt\n",
 	  "  -f, --full         # full dump, output to directory\n"
 	  "  -j, --json         # for full dump: output as JSON (default)\n"
 	  "  -t, --tabs         # for full dump: output as TAB-separated records (aka TT)\n"
@@ -79,6 +81,9 @@ int main(int argc, char* argv[])
       ++argi;
       if (argi < argc)
 	outfilename = argv[argi];
+    }
+    else if (s=="--options" || s=="-O") {
+      dump_opt = true;
     }
     else if (s=="--full" || s=="-f") {
       dump_full = true;
@@ -113,7 +118,14 @@ int main(int argc, char* argv[])
   }
 
   try {
-    if (!dump_full) {
+    if (dump_opt) {
+      //-- option dump
+      fprintf(stderr, "%s: dumping project options ...", prog);
+      if (!outfilename) outfilename = "-";
+      R.m_pIndexator->SaveOptions(outfilename);
+      fprintf(stderr, " done.\n");
+    }
+    else if (!dump_full) {
       //-- bibliographic dump
 
       //-- bibl dump: output file
