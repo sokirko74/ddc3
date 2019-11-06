@@ -59,21 +59,6 @@ CGraphmatFile :: ~CGraphmatFile()
 
 
 
-
-void CGraphmatFile::FreeDicts()
-{
-		try {
-			const_cast<CGraphanDicts*>(m_pDicts)->FreeData();
-		}
-		catch (...)
-		{
-			assert (false);
-			return;
-		};
-}
-
-
-
 bool CGraphmatFile::LoadDicts ()
 {
 	try {
@@ -105,32 +90,19 @@ bool CGraphmatFile::LoadDicts ()
 			return false;
 		};
 
-		if (m_pDicts->m_pOborDic.m_Pointer == 0) 
-		{
-
-			pDicts->m_pOborDic.SetPointer(new CDictionary, true);
-			string Path;
-			if (m_Language != morphGerman) 
-				Path = GetRegistryString("Software\\Dialing\\Obor\\DictPath").c_str();
-			else
-				Path = GetRegistryString("Software\\Dialing\\GerObor\\DictPath").c_str();
-			if (!pDicts->m_pOborDic.m_Pointer->Load(Path.c_str() ) )
-			{
-				delete pDicts;
-				m_LastError = "Cannot load oborots";
-				return false;
-			};
-
-		}
+		pDicts->m_pOborDic.Reset(new CDictionary);
+		string Path;
+		if (m_Language != morphGerman)
+			Path = GetRegistryString("Software\\Dialing\\Obor\\DictPath").c_str();
 		else
+			Path = GetRegistryString("Software\\Dialing\\GerObor\\DictPath").c_str();
+		if (!pDicts->m_pOborDic.Get()->Load(Path.c_str() ) )
 		{
-			pDicts->m_pOborDic.SetPointer(m_pDicts->m_pOborDic.m_Pointer, m_pDicts->m_pOborDic.m_bOwnPointer);
-			//  we create a full clone of this share pointer (m_pDicts->m_pOborDic) 
-			// in new pDicts, and afterwards we will delete the current version of m_pDicts
-			// and replace it with the new version that' why  we should'not delete 
-			// this share pointer when the we free we old pointer.
-			const_cast<CGraphanDicts*>(m_pDicts)->m_pOborDic.m_bOwnPointer = false;
+			delete pDicts;
+			m_LastError = "Cannot load oborots";
+			return false;
 		};
+
 
 		pDicts->BuildOborottos();
 		delete m_pDicts;
@@ -149,18 +121,6 @@ bool CGraphmatFile::LoadDicts ()
 		return false;
 	};
 }
-
-
-
-
-
-
-
-
-
-
-
-
 
 bool CGraphmatFile :: GraphmatMain ()
 {
@@ -310,26 +270,6 @@ bool CGraphmatFile::LoadStringToGraphan(const string& szBuffer)
 }
 
 
-#ifdef WIN32
-#include <io.h>
-
-bool IsOlder (const char* FileName1, const char* FileName2)
-{
-   struct _stat buf1;
-   struct _stat buf2;
-
-   FILE* fp1 = fopen (FileName1, "r");
-   FILE* fp2 = fopen (FileName2, "r");
-   _fstat( fileno(fp1), &buf1 ); 
-   _fstat( fileno(fp2), &buf2 ); 
-   fclose (fp1);
-   fclose (fp2);
-   return buf1.st_mtime < buf2.st_mtime;
-};
-
-#else
-
-#include <sys/stat.h>
 
 bool IsOlder (const char* FileName1, const char* FileName2)
 {
@@ -345,57 +285,9 @@ bool IsOlder (const char* FileName1, const char* FileName2)
    return buf1.st_mtime < buf2.st_mtime;
 };
 
-#endif
 
 
 
-bool CGraphmatFile :: LoadFileToGraphan (const string&  CommandLine)
-{
-	try 
-	{
-		m_SourceFileName = CommandLine.c_str();
-		
-		if (IsHtmlFile(m_SourceFileName))
-		{
-			HTML Convert;
-			string Text = Convert.GetTextFromHtmlFile(m_SourceFileName);
-			
-			if (!InitInputBuffer(Text)) 
-			{	
-				m_LastError = Format("Cannot init inpur buffer for %i bytes", Text.length());
-				return false;
-			}
-
-		}
-		else
-		{
-			if (access(m_SourceFileName.c_str(), 04) != 0) return  false;
-			string Text;
-			LoadFileToString(m_SourceFileName, Text);
-			if (!InitInputBuffer(Text)) 
-			{
-				m_LastError = Format("Cannot init inpur buffer for %i bytes", Text.length());
-				return false;
-			};
-
-		};
-
-
-
-		return  GraphmatMain ();
-
-	}
-	catch (CExpc& C)
-	{
-        m_LastError = C.m_strCause;
-		return false;
-	}
-	catch (...)
-	{
-		m_LastError = "general exception";
-		return false;
-	};
-};
 
 const string&	CGraphmatFile::GetLastError() const
 {
@@ -438,3 +330,13 @@ const CDictionary* CGraphmatFile :: GetOborDic() const
 
 
 
+
+/*--- emacs style variables ---
+ * Local Variables:
+ *  mode: C++
+ *  c-default-style: "linux"
+ *  c-basic-offset: 4
+ *  tab-width: 8
+ *  indent-tabs-mode: nil
+ * End:
+ */

@@ -1,0 +1,47 @@
+[
+   {
+      "ctx_" : [
+         [],
+         [
+            [ 1, "Mutter" ],
+            [ 0, "kam" ],
+            [ 0, "nach" ],
+            [ 0, "hause" ],
+            [ 0, "," ],
+            [ 0, "deswegen" ],
+            [ 0, "war" ],
+            [ 0, "ich" ],
+            [ 0, "froh" ]
+         ],
+         []
+      ],
+      "meta_" : {
+         "date_" : "2004-11-03",
+         "file_" : "./a.xml",
+         "indices_" : [ "w" ],
+         "orig_" : "",
+         "page_" : null,
+         "scan_" : ""
+      }
+   },
+   {
+      "ctx_" : [
+         [],
+         [
+            [ 1, "-#Mutter" ],
+            [ 0, "war" ],
+            [ 0, "auch" ],
+            [ 0, "froh" ]
+         ],
+         []
+      ],
+      "meta_" : {
+         "date_" : "2004-11-03",
+         "file_" : "./a.xml",
+         "indices_" : [ "w" ],
+         "orig_" : "",
+         "page_" : 6,
+         "scan_" : ""
+      }
+   }
+]

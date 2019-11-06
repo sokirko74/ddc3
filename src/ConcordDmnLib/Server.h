@@ -1,4 +1,4 @@
-//-*- Mode: C++; c-basic-offset:4; -*-
+//-*- Mode: C++ -*-
 //
 //  DDC originally by Alexey Sokirko
 //  Changes and modifications 2011-2018 by Bryan Jurish
@@ -25,10 +25,10 @@
 #include "ServerStats.h"
 #include "../CommonLib/CHost.h"
 #include "../ConcordLib/ConcHolder.h"
-#include "../common/ddcThreadQueue.h"
+#include "../CommonLib/ddcThreadQueue.h"
 
 #ifdef WIN32
-	#include <process.h>  /* _beginthread, _endthread */
+        #include <process.h>  /* _beginthread, _endthread */
 #else
 #endif
 
@@ -228,3 +228,13 @@ public:
 };
 
 #endif /* DDC_SERVER_H */
+
+/*--- emacs style variables ---
+ * Local Variables:
+ *  mode: C++
+ *  c-default-style: "linux"
+ *  c-basic-offset: 4
+ *  tab-width: 8
+ *  indent-tabs-mode: nil
+ * End:
+ */

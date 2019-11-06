@@ -18,8 +18,8 @@
 // ==========  Copyright by Alexey Sokirko (1996-2001), Bryan Jurish (2011)
 
 #include "StdGraph.h"
-#include  "UnitHolder.h"
-#include  "../common/gra_descr_primitives.h"
+#include "UnitHolder.h"
+#include "gra_descr_primitives.h"
 
 
 //=======================================================
@@ -149,7 +149,7 @@ bool CUnitHolder::IsOneCloseQuotationMark (size_t i) const
 	BYTE z = (BYTE)m_Units[i].GetToken()[0];
 	return	(m_Units[i].GetTokenLength() == 1)
 		&&	(	( z == (BYTE)'"')
-			||	( z == (BYTE)'»')
+			||	( z == (BYTE)0xbb)
 		); 
 };
 
@@ -159,7 +159,7 @@ bool CUnitHolder::IsOneOpenQuotationMark (size_t i) const
 	BYTE z = (BYTE)m_Units[i].GetToken()[0];
 	return     (m_Units[i].GetTokenLength() == 1)
 		&& (     (z == (BYTE)'"')
-			|| (z == (BYTE)'«')
+			|| (z == (BYTE)0xab)
 			); 
 };
 
@@ -239,9 +239,9 @@ bool CUnitHolder::IsOneFullStop (size_t i) const
 };
 
 
-//  i - èíäåêñ ãðàôåìû â ñàìîì íà÷àëå  ñòðîêè.
-// Ñìåùàåìñÿ  äî íà÷àëà ñòðîêè è ñìîòðèì, ñòîèò ëè ïåðåä ýòîé ñòðîêîé
-// ïóñòàÿ ñòðîêà. 
+//  i - Ð¸Ð½Ð´ÐµÐºÑ Ð³Ñ€Ð°Ñ„ÐµÐ¼Ñ‹ Ð² ÑÐ°Ð¼Ð¾Ð¼ Ð½Ð°Ñ‡Ð°Ð»Ðµ  ÑÑ‚Ñ€Ð¾ÐºÐ¸. 
+// Ð¡Ð¼ÐµÑ‰Ð°ÐµÐ¼ÑÑ  Ð´Ð¾ Ð½Ð°Ñ‡Ð°Ð»Ð° ÑÑ‚Ñ€Ð¾ÐºÐ¸ Ð¸ ÑÐ¼Ð¾Ñ‚Ñ€Ð¸Ð¼, ÑÑ‚Ð¾Ð¸Ñ‚ Ð»Ð¸ Ð¿ÐµÑ€ÐµÐ´ ÑÑ‚Ð¾Ð¹ ÑÑ‚Ñ€Ð¾ÐºÐ¾Ð¹
+// Ð¿ÑƒÑÑ‚Ð°Ñ ÑÑ‚Ñ€Ð¾ÐºÐ°.
 
 bool  CUnitHolder::EmptyLineBeforeGraph (size_t i, size_t HB) const
 {
@@ -560,3 +560,13 @@ DWORD	CUnitHolder::GetPageNumber(size_t LineNo) const
 		return it->second;
 
 }
+
+/*--- emacs style variables ---
+ * Local Variables:
+ *  mode: C++
+ *  c-default-style: "linux"
+ *  c-basic-offset: 4
+ *  tab-width: 8
+ *  indent-tabs-mode: nil
+ * End:
+ */

@@ -31,7 +31,7 @@ distribution.
 #define TIXML_STRING_INCLUDED
 
 #ifdef _MSC_VER
-#pragma warning( disable : 4786 )	// Debugger truncating names.
+#pragma warning( disable : 4786 )       // Debugger truncating names.
 #endif
 
 #include <assert.h>
@@ -76,9 +76,9 @@ class TiXmlString
 
     // Return the length of a TiXmlString
     unsigned length () const
-	{
-		return ( allocated ) ? current_length : 0;
-	}
+        {
+                return ( allocated ) ? current_length : 0;
+        }
 
     // TiXmlString = operator
     void operator = (const char * content);
@@ -90,21 +90,21 @@ class TiXmlString
     TiXmlString& operator += (const char * suffix)
     {
         append (suffix);
-		return *this;
+                return *this;
     }
 
     // += operator. Maps to append
     TiXmlString& operator += (char single)
     {
         append (single);
-		return *this;
+                return *this;
     }
 
     // += operator. Maps to append
     TiXmlString& operator += (TiXmlString & suffix)
     {
         append (suffix);
-		return *this;
+                return *this;
     }
     bool operator == (const TiXmlString & compare) const;
     bool operator < (const TiXmlString & compare) const;
@@ -132,8 +132,8 @@ class TiXmlString
     // find a char in a string from an offset. Return TiXmlString::notfound if not found
     unsigned find (char tofind, unsigned offset) const;
 
-    /*	Function to reserve a big amount of data when we know we'll need it. Be aware that this
-		function clears the content of the TiXmlString if any exists.
+    /*  Function to reserve a big amount of data when we know we'll need it. Be aware that this
+                function clears the content of the TiXmlString if any exists.
     */
     void reserve (unsigned size)
     {
@@ -155,7 +155,7 @@ class TiXmlString
     }
 
     // Error value for find primitive 
-    enum {	notfound = 0xffffffff,
+    enum {      notfound = 0xffffffff,
             npos = notfound };
 
     void append (const char *str, int len );
@@ -198,18 +198,18 @@ class TiXmlString
     void append (char single)
     {
         if ( cstring && current_length < (allocated-1) )
-		{
-			cstring[ current_length ] = single;
-			++current_length;
-			cstring[ current_length ] = 0;
-		}
-		else
-		{
-			char smallstr [2];
-			smallstr [0] = single;
-			smallstr [1] = 0;
-			append (smallstr);
-		}
+                {
+                        cstring[ current_length ] = single;
+                        ++current_length;
+                        cstring[ current_length ] = 0;
+                }
+                else
+                {
+                        char smallstr [2];
+                        smallstr [0] = single;
+                        smallstr [1] = 0;
+                        append (smallstr);
+                }
     }
 
 } ;
@@ -238,5 +238,15 @@ public :
     }
 } ;
 
-#endif	// TIXML_STRING_INCLUDED
-#endif	// TIXML_USE_STL
+#endif  // TIXML_STRING_INCLUDED
+#endif  // TIXML_USE_STL
+
+/*--- emacs style variables ---
+ * Local Variables:
+ *  mode: C++
+ *  c-default-style: "linux"
+ *  c-basic-offset: 4
+ *  tab-width: 8
+ *  indent-tabs-mode: nil
+ * End:
+ */

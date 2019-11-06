@@ -24,7 +24,7 @@
 #include "../ConcordLib/Query.h"
 
 //======================================================================
-//typedef vector<string>    	CQCountByList;
+//typedef vector<string>        CQCountByList;
 
 /** default count()-query sample size */
 const size_t DDCDefaultCountSampleSize = (size_t)-1;
@@ -122,7 +122,7 @@ public:
 /*! count-key expression: indexed */
 class CQCountKeyExprIndexed : public CQCountKeyExprMeta {
 public:
-  class CConcIndexator* m_pIndexator;
+  class CConcordance* m_pConcordance;
 public:
   CQCountKeyExprIndexed(const string &label="file") : CQCountKeyExprMeta(label) {};
   virtual ~CQCountKeyExprIndexed() {};
@@ -180,7 +180,7 @@ public:
 class CQCountKeyExprBibl : public CQCountKeyExprIndexed
 {
 public:
-  class CConcXml::CFreeBiblIndex *m_Bibl;
+  const CFreeBiblIndexInterface *m_Bibl;
 public:
   CQCountKeyExprBibl(const string &attrName="") : CQCountKeyExprIndexed(attrName) {};
   virtual ~CQCountKeyExprBibl() {};
@@ -199,7 +199,7 @@ public:
   string      m_Pattern;
   string      m_Replacement;
   string      m_Modifiers;
-  bool	      isGlobal;
+  bool        isGlobal;
   RML_RE     *m_Regex;
 
 public:
@@ -505,3 +505,13 @@ inline void GenerateCountString(string &ResultStr, DDCFormatTypeEnum fmt, const 
 
 
 #endif /* DDC_QCOUNT_H */
+
+/*--- emacs style variables ---
+ * Local Variables:
+ *  mode: C++
+ *  c-default-style: "linux"
+ *  c-basic-offset: 4
+ *  tab-width: 8
+ *  indent-tabs-mode: nil
+ * End:
+ */

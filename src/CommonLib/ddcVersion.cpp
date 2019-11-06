@@ -1,4 +1,4 @@
-//-*- Mode: C++; c-basic-offset: 4;-*-
+//-*- Mode: C++ -*-
 //
 //  This file is part of DDC.
 // 
@@ -16,7 +16,7 @@
 //  along with DDC.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "ddcVersion.h"
-#include "../CommonLib/utilit.h"
+#include "utilit.h"
 
 //--------------------------------------------------------------
 const char *DDCVersionString()
@@ -56,3 +56,13 @@ void ddc_format_version_check(const char *s, const char *label)
       throw CExpc(errLogic,
 		  std::string(label) + ": DDC v"+DDCVersion.str()+" is too old to read format (need at least DDC v"+version_min.str()+")");
 }
+
+/*--- emacs style variables ---
+ * Local Variables:
+ *  mode: C++
+ *  c-default-style: "linux"
+ *  c-basic-offset: 4
+ *  tab-width: 8
+ *  indent-tabs-mode: nil
+ * End:
+ */

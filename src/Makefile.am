@@ -15,7 +15,6 @@
 
 ## --- recursion subdirectories
 SUBDIRS = \
-	common \
 	ConcordLib \
 	GraphanLib \
 	StructDictLib \
@@ -23,6 +22,7 @@ SUBDIRS = \
 	AgramtabLib \
 	tinyxml \
 	RmlTar \
+	jsoncpp \
 	PCRE \
 	MorphWizardLib \
 	ConcordDmnLib \
@@ -41,9 +41,7 @@ SUBDIRS = \
 	ddc_struct_dict_loader \
 	ddc_morph_gen \
 	ddc_test_lem \
-	ddc_file_lem \
-	ddc_expand \
-	ddc_graphmat_thick
+	ddc_expand
 
 .PHONY: list-subdirs
 list-subdirs:

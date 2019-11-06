@@ -1,0 +1,36 @@
+<?xml version="1.0" ?>
+<TEI.2>
+    <teiHeader>
+        <fileDesc>
+            <sourceDesc id="orig">
+                <bibl>A test for free indexing</bibl>
+                <biblFull>
+                    <date id="first">2004-11-03</date>
+                </biblFull>
+                <pb n="4"/>
+            </sourceDesc>
+        </fileDesc>
+    </teiHeader>
+    <text>
+<body>
+<s>
+Mutter	MUTTER
+kam	KOMMEN
+nach	NACH
+hause	HAUS
+,	,
+deswegen	DESWEGEN
+war	SEIN
+ich	ICH
+froh	FROH
+</s>
+<pb n="6"/>
+<s>
+-#Mutter	MUTTER
+war	SEIN
+auch	AUCH
+froh	FROH
+</s>
+</body>
+</text>
+</TEI.2>

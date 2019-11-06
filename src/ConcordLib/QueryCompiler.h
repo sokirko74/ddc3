@@ -1,4 +1,4 @@
-//-*- Mode: C++; c-basic-offset: 8; -*-
+//-*- Mode: C++ -*-
 //  DDC originally by Alexey Sokirko
 //  Changes and modifications 2011-2019 by Bryan Jurish
 //
@@ -25,7 +25,7 @@
 #include "QueryNode.h"    // v1.x query-node API
 #include "QueryFilter.h"  // v2.x query-filter API
 #include "Query.h"        // v2.x query-node API (wrapper)
-#include "QCount.h"	  // v2.0.23+ count-query API
+#include "QCount.h"       // v2.0.23+ count-query API
 
 #include "yyQParser.h"
 //#include "yyQLexer.h" //-- included from yyQParser.h (2017-03-01)
@@ -40,222 +40,232 @@
 #undef PARSER_USE_OLD_API
 
 /*!
-	CQueryCompiler  is a class for the parse tree of the input query and its general properties.
+        CQueryCompiler  is a class for the parse tree of the input query and its general properties.
 
-	Descended from FlexLexer (abstract class of flex tool), so it should implement also 
-	flex parser's  functionality (DDC uses YACC in thread-safe mode).
+        Descended from FlexLexer (abstract class of flex tool), so it should implement also 
+        flex parser's  functionality (DDC uses YACC in thread-safe mode).
 
-	moo: renamed CQueryParser to CQueryCompiler to reflect actual functionality.
+        moo: renamed CQueryParser to CQueryCompiler to reflect actual functionality.
 */
 class CQueryCompiler : public ddcObject, virtual public yyqLexer
 {
 public:
-	//--------------------------------------------------------------
-	// constants
+        //--------------------------------------------------------------
+        // constants
 
-	//! maximum context size for #cntxt operator
-	static const size_t m_MaxContextSentencesCount = 5;
-
-public:
-	//--------------------------------------------------------------
-	// top-level query properties
-
-	//!  a reference to the holder, for which this query is parsed
-	const CConcHolder* m_pHolder;
-
-	//! root of the abstract parse tree
-	CQuery* m_pQuery;
-
-	//! query options (adopted into top-level m_pQuery on SetQuery())
-	CQueryOptions m_qOptions;
-
-	//! query limit (anything but 0 (default) overrides CConcHolder arguments)
-	size_t m_Limit;
-
-	//--------------------------------------------------------------
-	// temporaries
-
-	//! count()-query keys
-	CQCountKeyExprList m_qCountKeys;
-
-	//! count()-query sample size (overrides count-query m_dtr->m_Options->m_Limit if set)
-	size_t m_qCountSample;
-
-	//! count()-query result-set size (for keys()-queries)
-	size_t m_qCountLimit;
-
-	//! count()-query sort order
-	HitSortEnum m_qCountSort;
-
-	//! count()-query lower bound
-	string m_qCountLo;
-
-	//! count()-query upper bound
-	string m_qCountHi;
-
-	//! keys()-query tuple
-	vector<string> m_IndexTuple;
-
-	//! temporary for $i={w1,w2,...,wN} word-set queries
-	set<string> m_WordSet;
-
-	//! temporary for "% X1 % X2 ..." expansion queries
-	vector<string> m_Expanders;
-
-	//! temporary for [m1,m2,...,mN] morph-pattern queries
-	vector<string> m_MorphItems;
-
-	//! temporary for filter field (#less_by_xyz, #greater_by_xyz)
-	string m_FilterField;
-
-	//! temporary for filter lower bound (#less_by_xyz, #greater_by_xyz)
-	string m_FilterLB;
-
-	//! temporary for filter upper bound (#less_by_xyz, #greater_by_xyz)
-	string m_FilterUB;
-
-	//! temporary for filter reference match-id (#left, #right, #mid; default=0:any)
-	BYTE m_FilterMatchId;
-
-	//! temporary for filter offsets (#left, #right, #mid; default=0:any)
-	int m_FilterOffset;
-
-	//! temporary for regex patterns
-	string m_RegexPattern;
-
-	//! temporary for regex replacement strings (used by count-keys)
-	string m_RegexReplacement;
-
-	//! temporary for regex modifiers
-	string m_RegexModifiers;
-
-	//--------------------------------------------------------------
-	// administrivia
-
-	//! current node index to set CQueryTokenNode::m_NodeIndex
-	int m_CurrentNodeIndex;
-
-	//! set of all query nodes allocated during current parse
-	vector<CQuery*> m_Queries;
-
-	//! a special slot for YACC (which contains all string leaves of the parse tree)
-	list<string> m_Labels;
+        //! maximum context size for #cntxt operator
+        static const size_t m_MaxContextSentencesCount = 5;
 
 public:
-	//! default constructor
-	CQueryCompiler(const CConcHolder* pHolder=NULL);
+        //--------------------------------------------------------------
+        // top-level query properties
 
-	//! default destructor
-	virtual ~CQueryCompiler();
+        //!  a reference to the holder, for which this query is parsed
+        const CConcHolder* m_pHolder;
 
-	//! make this parse ready for a new call of ParseQuery()
-	//! \li re-sets filters and subcorpora, deletes current parse tree (if any)
-	void CleanParser();
+        //! root of the abstract parse tree
+        CQuery* m_pQuery;
 
-	//! wrapper for yylex() as called from bison parser (valp is a YYSTYPE*)
-	int yyqlex (void* valp);
+        //! query options (adopted into top-level m_pQuery on SetQuery())
+        CQueryOptions m_qOptions;
 
-	//! wrapper to push a new string pointer onto the m_Labels stack (to be freed on CleanParser())
-	string* newString(const string &s=string(""));
+        //! query limit (anything but 0 (default) overrides CConcHolder arguments)
+        size_t m_Limit;
 
-	//! wrapper for regexes, similar to "(?" + modifers + ":" + pattern + ")"
-	//! \param isMatch if true (default), /g modifier will cause regex to be wrapped in '^' and '$' anchors (match whole string)
-	string* newRegex(const string &pattern, const string &modifiers=string(""), bool isMatch=true);
+        //--------------------------------------------------------------
+        // temporaries
 
-	//! flex convenience wrapper
-	inline const char* yytext() const { return YYText(); };
+        //! count()-query keys
+        CQCountKeyExprList m_qCountKeys;
 
-	//! flex convenience wrapper
-	inline int yyleng() const { return YYLeng(); };
+        //! count()-query sample size (overrides count-query m_dtr->m_Options->m_Limit if set)
+        size_t m_qCountSample;
 
-	//! flex convenience wrapper
-	inline string yystring() const { return string(YYText(),YYLeng()); };
+        //! count()-query result-set size (for keys()-queries)
+        size_t m_qCountLimit;
 
-	//! wrapper for protected yyFlexLexer::yy_begin()
-	void yybegin(int new_state);
+        //! count()-query sort order
+        HitSortEnum m_qCountSort;
 
-	//! delete parse tree (m_pQuery) if non-NULL; actually wipes all queries in m_Queries and m_qCountKeys
-	void DeleteTree();
+        //! count()-query lower bound
+        string m_qCountLo;
 
-	//! parse \c QueryStr and build a parse tree for it in \c m_pQuery
-	//! \li moo: this method should be safe to call even if (m_pHolder==NULL).
-	//! \returns false on failure (and may throw an exception)
-	bool ParseQuery(const string &QueryStr);
+        //! count()-query upper bound
+        string m_qCountHi;
 
-	//! moo: compile and apply filters in m_pQuery->m_Options->m_QFilters
-	//! \b OBSOLETE : now just a wrapper for m_pQuery->CompileOptions(this)
-	bool CompileFilters();
+        //! keys()-query tuple
+        vector<string> m_IndexTuple;
 
-	//! moo: compile the given query (query) with respect to
-	//! the current index (m_pHolder) and compiler options (m_HitTypeStr etc.)
-	//! \li really just a wrapper for query->CompileOptions(this) && query->Compile(this)
-	//! \returns false on failure (and may throw an exception)
-	bool Compile(CQuery *query);
+        //! temporary for $i={w1,w2,...,wN} word-set queries
+        set<string> m_WordSet;
 
-	//! evaluate parse tree bottom-up
-	//! \li query defaults to m_pQuery
-	bool Evaluate(CQuery *query);
+        //! temporary for "% X1 % X2 ..." expansion queries
+        vector<string> m_Expanders;
 
-	//! moo: compile the current parsed query (m_pQuery) with respect to
-	//! the current index (m_pHolder) and compiler options (m_HitTypeStr etc.)
-	//! \li really just a wrapper for m_pQuery->CompileOptions(this) && m_pQuery->Compile(this)
-	//! \returns false on failure (and may throw an exception)
-	inline bool Compile()
-	{ return Compile(m_pQuery); };
+        //! temporary for [m1,m2,...,mN] morph-pattern queries
+        vector<string> m_MorphItems;
 
-	//! evaluate parse tree bottom-up; wrapper for Evaluate(m_pQuery)
-	inline bool Evaluate()
-	{ return Evaluate(m_pQuery); };
+        //! temporary for filter field (#less_by_xyz, #greater_by_xyz)
+        string m_FilterField;
 
-	//! return current node index to set CQueryTokenNode::m_NodeIndex
-	int GetNewNodeIndex();
+        //! temporary for filter lower bound (#less_by_xyz, #greater_by_xyz)
+        string m_FilterLB;
 
-	//! return m_CurrentNodeIndex
-	size_t	GetNodeIndicesCount() const;
+        //! temporary for filter upper bound (#less_by_xyz, #greater_by_xyz)
+        string m_FilterUB;
 
-	//! set current top-level query, adopting filters and flags; sets this->m_pQuery=qp
-	//! Called by bison during the parse.
-	CQuery* SetQuery(CQuery* qp);
+        //! temporary for filter reference match-id (#left, #right, #mid; default=0:any)
+        BYTE m_FilterMatchId;
 
-	//! push a newly allocated CQuery* onto the stack.
-	//! Called by bison during the parse.
-	inline CQuery* PushQuery(CQuery* qp) { m_Queries.push_back(qp); return qp; };
+        //! temporary for filter offsets (#left, #right, #mid; default=0:any)
+        int m_FilterOffset;
 
-	//! push a newly allocated CQCount* count-query onto the stack, setting m_CountBy
-	//! Called by bison during the parse.
-	CQCount* PushCountQuery(CQuery *qConditions);
+        //! temporary for regex patterns
+        string m_RegexPattern;
 
-	//! push a newly allocated CQKeys* query onto the stack.
-	//! called by bison during the parse.
-	CQKeys* PushKeysQuery(CQCount *qCount);
+        //! temporary for regex replacement strings (used by count-keys)
+        string m_RegexReplacement;
 
-	//! set string bounds for current filter (called by bison parser)
-	void SetFilterBounds(const string& lb="", const string& ub="");
+        //! temporary for regex modifiers
+        string m_RegexModifiers;
 
-	//! set context-filter key
-	void SetFilterKey(const string &field="", BYTE matchid=0, int offset=INT_MIN);
+        //--------------------------------------------------------------
+        // administrivia
 
-	//! debug: return a string form for the current query; wraps m_pQuery->toString() + m_pQuery->optionsToString()
-	string QueryToString(void);
+        //! current node index to set CQueryTokenNode::m_NodeIndex
+        int m_CurrentNodeIndex;
 
-	//! return a json string form for the current query; wraps m_pQuery->toJson() + m_pQuery->optionsToJson()
-	string QueryToJson(void);
+        //! set of all query nodes allocated during current parse
+        vector<CQuery*> m_Queries;
 
-	//! error reporting: throws a errParseError exception
-	void barf(const std::string &msg) const;  //throw(CExpc)
+        //! a special slot for YACC (which contains all string leaves of the parse tree)
+        list<string> m_Labels;
 
-	//! error reporting: throws a errParseError exception with a printf() format
-	void barf(const char *fmt, ...) const; //throw(CExpc)
+public:
+        //! default constructor
+        CQueryCompiler(const CConcHolder* pHolder=NULL);
 
-	//! error reporting: throw a verbose errParseError exception using current lexer+parser context
-	//! \li this is called by underlying bison parser's yyerror() routine
-	void yybarf(const char *yymsg) const; //throw(CExpc)
+        //! default destructor
+        virtual ~CQueryCompiler();
 
-	//-- ddcObject API
-	virtual ddcObjectList Children() const;
-	virtual void DisownChildren();
-	virtual string jsonClass() { return "CQueryCompiler"; };
-	virtual string jsonData()  { return string("\"Query\":" + jsonStr(m_pQuery)); };
+        //! make this parse ready for a new call of ParseQuery()
+        //! \li re-sets filters and subcorpora, deletes current parse tree (if any)
+        void CleanParser();
+
+        //! wrapper for yylex() as called from bison parser (valp is a YYSTYPE*)
+        int yyqlex (void* valp);
+
+        //! wrapper to push a new string pointer onto the m_Labels stack (to be freed on CleanParser())
+        string* newString(const string &s=string(""));
+
+        //! wrapper for regexes, similar to "(?" + modifers + ":" + pattern + ")"
+        //! \param isMatch if true (default), /g modifier will cause regex to be wrapped in '^' and '$' anchors (match whole string)
+        string* newRegex(const string &pattern, const string &modifiers=string(""), bool isMatch=true);
+
+        //! flex convenience wrapper
+        inline const char* yytext() const { return YYText(); };
+
+        //! flex convenience wrapper
+        inline int yyleng() const { return YYLeng(); };
+
+        //! flex convenience wrapper
+        inline string yystring() const { return string(YYText(),YYLeng()); };
+
+        //! wrapper for protected yyFlexLexer::yy_begin()
+        void yybegin(int new_state);
+
+        //! delete parse tree (m_pQuery) if non-NULL; actually wipes all queries in m_Queries and m_qCountKeys
+        void DeleteTree();
+
+        //! parse \c QueryStr and build a parse tree for it in \c m_pQuery
+        //! \li moo: this method should be safe to call even if (m_pHolder==NULL).
+        //! \returns false on failure (and may throw an exception)
+        bool ParseQuery(const string &QueryStr);
+
+        //! moo: compile and apply filters in m_pQuery->m_Options->m_QFilters
+        //! \b OBSOLETE : now just a wrapper for m_pQuery->CompileOptions(this)
+        bool CompileFilters();
+
+        //! moo: compile the given query (query) with respect to
+        //! the current index (m_pHolder) and compiler options (m_HitTypeStr etc.)
+        //! \li really just a wrapper for query->CompileOptions(this) && query->Compile(this)
+        //! \returns false on failure (and may throw an exception)
+        bool Compile(CQuery *query);
+
+        //! evaluate parse tree bottom-up
+        //! \li query defaults to m_pQuery
+        bool Evaluate(CQuery *query);
+
+        //! moo: compile the current parsed query (m_pQuery) with respect to
+        //! the current index (m_pHolder) and compiler options (m_HitTypeStr etc.)
+        //! \li really just a wrapper for m_pQuery->CompileOptions(this) && m_pQuery->Compile(this)
+        //! \returns false on failure (and may throw an exception)
+        inline bool Compile()
+        { return Compile(m_pQuery); };
+
+        //! evaluate parse tree bottom-up; wrapper for Evaluate(m_pQuery)
+        inline bool Evaluate()
+        { return Evaluate(m_pQuery); };
+
+        //! return current node index to set CQueryTokenNode::m_NodeIndex
+        int GetNewNodeIndex();
+
+        //! return m_CurrentNodeIndex
+        size_t  GetNodeIndicesCount() const;
+
+        //! set current top-level query, adopting filters and flags; sets this->m_pQuery=qp
+        //! Called by bison during the parse.
+        CQuery* SetQuery(CQuery* qp);
+
+        //! push a newly allocated CQuery* onto the stack.
+        //! Called by bison during the parse.
+        inline CQuery* PushQuery(CQuery* qp) { m_Queries.push_back(qp); return qp; };
+
+        //! push a newly allocated CQCount* count-query onto the stack, setting m_CountBy
+        //! Called by bison during the parse.
+        CQCount* PushCountQuery(CQuery *qConditions);
+
+        //! push a newly allocated CQKeys* query onto the stack.
+        //! called by bison during the parse.
+        CQKeys* PushKeysQuery(CQCount *qCount);
+
+        //! set string bounds for current filter (called by bison parser)
+        void SetFilterBounds(const string& lb="", const string& ub="");
+
+        //! set context-filter key
+        void SetFilterKey(const string &field="", BYTE matchid=0, int offset=INT_MIN);
+
+        //! debug: return a string form for the current query; wraps m_pQuery->toString() + m_pQuery->optionsToString()
+        string QueryToString(void);
+
+        //! return a json string form for the current query; wraps m_pQuery->toJson() + m_pQuery->optionsToJson()
+        string QueryToJson(void);
+
+        //! error reporting: throws a errParseError exception
+        void barf(const std::string &msg) const;  //throw(CExpc)
+
+        //! error reporting: throws a errParseError exception with a printf() format
+        void barf(const char *fmt, ...) const; //throw(CExpc)
+
+        //! error reporting: throw a verbose errParseError exception using current lexer+parser context
+        //! \li this is called by underlying bison parser's yyerror() routine
+        void yybarf(const char *yymsg) const; //throw(CExpc)
+
+        //-- ddcObject API
+        virtual ddcObjectList Children() const;
+        virtual void DisownChildren();
+        virtual string jsonClass() { return "CQueryCompiler"; };
+        virtual string jsonData()  { return string("\"Query\":" + jsonStr(m_pQuery)); };
 };
 
 #endif
+
+/*--- emacs style variables ---
+ * Local Variables:
+ *  mode: C++
+ *  c-default-style: "linux"
+ *  c-basic-offset: 4
+ *  tab-width: 8
+ *  indent-tabs-mode: nil
+ * End:
+ */

@@ -1,4 +1,4 @@
-//-*- Mode: C++; c-basic-offset: 8; -*-
+//-*- Mode: C++ -*-
 //  DDC originally by Alexey Sokirko
 //  Changes and modifications 2011-2014 by Bryan Jurish
 //
@@ -24,7 +24,7 @@
 #include <time.h>
 
 #include "../ConcordLib/ConcHolder.h"
-#include "../common/util_classes.h"
+#include "../CommonLib/util_classes.h"
 #include "../ConcordLib/QueryNode.h"
 
 
@@ -52,32 +52,24 @@ string OutFile = "";
 
 void FreeCorpus()
 {
-	if (Holder.m_pIndexator)
+	if (Holder.m_pConcordance)
 	{
-		delete Holder.m_pIndexator;
-	    Holder.m_pIndexator = 0;
+		delete Holder.m_pConcordance;
+	    Holder.m_pConcordance = 0;
 	};
 };
 
-bool LoadCorpus(string FileName)
+void LoadCorpus(string FileName)
 {
 
 	Trim(FileName);
 	if (FileName.empty())
 	{
-		printf("cannot load from empty corpus\n");
-		return false;
+		throw CExpc ("File name is empty\n");
 	}
 	FreeCorpus();
-	Holder.m_pIndexator = new CConcIndexator;
-
-	if (!Holder.m_pIndexator->LoadProject(FileName.c_str()))
-	{
-		fprintf (stderr, "cannot load project %s\n", FileName.c_str());
-		return false;
-	};
-		
-	return true;
+	Holder.m_pConcordance = new CConcIndexator;
+	Holder.m_pConcordance->LoadProject(FileName.c_str());
 };
 
 void ExitFromProgram()
@@ -115,7 +107,7 @@ void RunQuery(string Command, string Query)
 		printf ("cannot process empty query\n");
 		return;
 	};		
-	if (!Holder.m_pIndexator)
+	if (!Holder.m_pConcordance)
 	{
 		printf ("no loaded corpus\n");
 		return;
@@ -156,7 +148,7 @@ void RunQuery(string Command, string Query)
 	string s = Holder.m_QueryResultStr;
 	if (OutFile.empty())
 	{
-		if (Holder.m_pIndexator->m_Language == morphRussian)
+		if (Holder.m_pConcordance->m_Language == morphRussian)
 			RussianConvertToScreen(s);
 		
 		printf ("%s", s.c_str());
@@ -200,7 +192,7 @@ void RunExpand(string Command, string Args)
 		words.insert(args.begin()+1, args.end());
 	}
 
-	if (!Holder.m_pIndexator)
+	if (!Holder.m_pConcordance)
 	{
 		printf ("no corpus loaded\n");
 		return;
@@ -209,7 +201,7 @@ void RunExpand(string Command, string Args)
 	//-- get chain
 	TxChain txc;
 	try {
-		txc = Holder.m_pIndexator->m_Txd.getChain(cspec);
+		txc = Holder.m_pConcordance->m_Txd.getChain(cspec);
 	}
 	catch (exception &e) {
 		fprintf(stderr, "Could not create pipeline `%s': %s\n", cspec.c_str(), e.what());
@@ -253,7 +245,7 @@ void RunCommand(string line)
 	string command = tok.next_token();
 	if (command.empty()) return;
 	if (command == "load")
-			LoadCorpus(tok.next_token());
+		LoadCorpus(tok.next_token());
 	else if (command == "query")
 		RunQuery(command,line.substr(line.find(" ")) );
 	else if (command == "expand")
@@ -315,7 +307,7 @@ int main(int argc, char* argv[])
 		}
 	};
 
-	Holder.m_pIndexator = 0;
+	Holder.m_pConcordance = 0;
 	Holder.SetResultFormat("TEXT");
 	Holder.m_ResultLimit=10;
 	InitConcordDicts();
@@ -335,10 +327,17 @@ int main(int argc, char* argv[])
 		if (bEchoQuery)
 			fwrite(linebuf, nread, 1, stdout);
 
-		if (Holder.m_pIndexator)
-			if (Holder.m_pIndexator->m_Language == morphRussian)
+		if (Holder.m_pConcordance)
+			if (Holder.m_pConcordance->m_Language == morphRussian)
 				RussianConvertToDictionary(q);
-		RunCommand(q);
+		try {
+			RunCommand(q);
+		}
+		catch (exception &e) {
+			fprintf (stderr, "General exception: %s", e.what());
+			return 1;
+		}
+
 	};
 
 
@@ -350,3 +349,13 @@ int main(int argc, char* argv[])
 
 
 
+
+/*--- emacs style variables ---
+ * Local Variables:
+ *  mode: C++
+ *  c-default-style: "linux"
+ *  c-basic-offset: 4
+ *  tab-width: 8
+ *  indent-tabs-mode: nil
+ * End:
+ */

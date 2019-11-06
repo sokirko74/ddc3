@@ -1,4 +1,4 @@
-//-*- Mode: C++; c-basic-offset:8;-*-
+//-*- Mode: C++ -*-
 //
 //  DDC originally by Alexey Sokirko
 //  Changes and modifications 2011-2016 by Bryan Jurish
@@ -154,3 +154,13 @@ void ddcLog(const string&  t)
 	}
 	pthread_mutex_unlock(&ddcLogMutex);
 }
+
+/*--- emacs style variables ---
+ * Local Variables:
+ *  mode: C++
+ *  c-default-style: "linux"
+ *  c-basic-offset: 4
+ *  tab-width: 8
+ *  indent-tabs-mode: nil
+ * End:
+ */

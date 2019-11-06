@@ -1,4 +1,4 @@
-//-*- Mode: C++; c-basic-offset: 8; -*-
+//-*- Mode: C++ -*-
 //
 //  DDC originally by Alexey Sokirko
 //  Changes and modifications 2011-2018 by Bryan Jurish
@@ -25,20 +25,10 @@
 #include "StdConc.h"
 #include "QueryNode.h"
 #include "Query.h"
-#include "../common/DwdsThesaurus.h"
-#include "../common/util_classes.h"
+#include "../CommonLib/util_classes.h"
 #include "../CommonLib/utilit.h"
 #include "../PCRE/pcre_rml.h"
 
-extern CDwdsThesaurus* pDwdsThesaurus;
-
-#ifdef DETECT_MEMORY_LEAK
-	#ifdef _DEBUG
-	#define new DEBUG_NEW
-	#undef THIS_FILE
-	static char THIS_FILE[] = __FILE__;
-	#endif
-#endif
 
 //#pragma intrinsic(memcpy, memcmp, memset, strlen,strcpy)
 
@@ -237,7 +227,7 @@ void CQueryNode::SetHolder(const CConcHolder*	pHolder)
 void CQueryNode::ConvertOccurrencesToHits (bool bSeparateHits)
 {
 	const ddcBreakVector& Breaks = m_pHolder->GetBreaks();
-	int TextAreasCount = m_pHolder->m_pIndexator->m_Bibl.GetTextAreasCount();
+	int TextAreasCount = m_pHolder->m_pConcordance->m_BiblIndex.GetTextAreasCount();
 	int TextAreaNo = m_pHolder->GetTextArea();
 	bool bTextAreaNo =  TextAreaNo != UnknownTextAreaNo;
 	size_t cnt = GetOccurrencesSize();
@@ -301,7 +291,7 @@ void CQueryNode::ConvertOccurrencesToHitsForPatterns (bool bSeparateHits)
 {
 	const ddcBreakVector& Breaks = m_pHolder->GetBreaks();
 	m_Hits.clear();
-	int TextAreasCount = m_pHolder->m_pIndexator->m_Bibl.GetTextAreasCount();
+	int TextAreasCount = m_pHolder->m_pConcordance->m_BiblIndex.GetTextAreasCount();
 	int TextAreaNo = m_pHolder->GetTextArea();
 	bool bTextAreaNo =  TextAreaNo != UnknownTextAreaNo;
 
@@ -798,7 +788,7 @@ bool CQueryTokenNode::IsUniversalWildcard() const
 bool CQueryTokenNode::BuildRegExp(string RegExpStr, vector<DWORD>& IndexItems, bool negated)
 {
 	//fprintf(stderr, "DEBUG: CQueryTokenNode::BuildRegExp(): /%s/\n", RegExpStr.c_str());
-	const CStringIndexSet*  IndexSet =  m_pHolder->m_pIndexator->GetIndexByAlias(m_IndexName);
+	const CStringIndexSet*  IndexSet =  m_pHolder->m_pConcordance->GetIndexByAlias(m_IndexName);
 	if (!IndexSet) return false;
 
 	//-- check for & dispatch on "ignore diacritics" pseudo-modifier
@@ -822,7 +812,7 @@ bool CQueryTokenNode::BuildRegExp(string RegExpStr, vector<DWORD>& IndexItems, b
 		}
 	}
 
-	RML_RE re(restr, m_pHolder->m_pIndexator->GetRegexOptions());
+	RML_RE re(restr, m_pHolder->m_pConcordance->GetRegexOptions());
 	IndexSet->QueryTokenListUsingRegExp(re, IndexItems, negated, ignore_diacritics);
 	return true;
 };
@@ -832,7 +822,7 @@ bool CQueryTokenNode::CreateMorphAnnotationPattern(const CConcHolder* pHolder, c
 	SetHolder(pHolder);
 	vector<string> m_Items(Items);
 	sort(m_Items.begin(), m_Items.end());
-	string RegExpStr = m_pHolder->m_pIndexator->GetIndexItemSetByVectorString(m_Items, true);
+	string RegExpStr = GetIndexItemSetByVectorString(m_Items, true);
 
 	m_Source.clear();
 	for (vector<string>::const_iterator ii=m_Items.begin(); ii != m_Items.end(); ii++) {
@@ -851,7 +841,7 @@ bool CQueryTokenNode::CreateThesPattern(const CConcHolder* pHolder, const string
 	SetHolder(pHolder);
 	m_Source = src;
 	string s(src);
-	RmlMakeUpper(s, pHolder->m_pIndexator->m_Language);	
+	RmlMakeUpper(s, pHolder->m_pConcordance->m_Language);
 	m_IndexName = IndexName;
 	if (m_IndexName.empty()) m_IndexName = "Thes";
 	m_IndexItems.clear();
@@ -865,7 +855,7 @@ bool	CQueryTokenNode::CreateChunkPattern(const CConcHolder* pHolder, const strin
 	m_bAtomic = true;
 	SetHolder(pHolder);
 	m_Source = ChunkTypeStr;
-	if (!pHolder->m_pIndexator->m_pChunkIndex) return false;
+	if (!pHolder->m_pConcordance->m_pChunkIndex) return false;
 	m_IndexName = IndexName;
 	if (m_IndexName.empty()) m_IndexName = ChunkIndexName;
 	return BuildRegExp(m_Source+",", m_IndexItems);
@@ -901,7 +891,7 @@ CStringIndexSet* CQueryTokenNode::GetIndex(const CConcHolder* pHolder, const str
 	{
 		string name = IndexName.empty() ? "Token" : IndexName;
 		
-		pIndexSet = pHolder->m_pIndexator->GetIndexByAlias(name);
+		pIndexSet = pHolder->m_pConcordance->GetIndexByAlias(name);
 		if (!pIndexSet)
 			throw CExpc(errParseError,"GetIndex(): unknown index `%s'", IndexName.c_str());
 
@@ -1061,7 +1051,7 @@ bool CQueryTokenNode::CreateLemmaPattern(const CConcHolder* pHolder, const strin
 	m_IndexItems.clear();
 
 	string re = '^'+ Value.substr(1) + '@';
-	RmlMakeLower(re, pHolder->m_pIndexator->m_Language);
+	RmlMakeLower(re, pHolder->m_pConcordance->m_Language);
 	m_IndexName = "MorphAnnot";
 	return BuildRegExp(re, m_IndexItems);
 }
@@ -1095,12 +1085,11 @@ void CQueryTokenNode::EvaluateWithoutHits()
 {
 	ClearAndReserveOccurrences(5000);
 	if (!m_bChunk && !m_bAnchor && !m_bAny) {
-		const CStringIndexSet* pIndex  = m_pHolder->m_pIndexator->GetIndexByAlias(m_IndexName);
+		const CStringIndexSet* pIndex  = m_pHolder->m_pConcordance->GetIndexByAlias(m_IndexName);
 		pIndex->FindOccurrences(
 					m_IndexItems, 
 					m_pHolder->m_CurrentSearchPeriodNo, 
 					m_Occurrences,
-					m_pHolder->m_Profiler, 
 					&m_pHolder->m_ShortOccurCaches,
 					m_CacheIds
 					);
@@ -1108,22 +1097,21 @@ void CQueryTokenNode::EvaluateWithoutHits()
 	}
 	else if (m_bAnchor) {
 		//-- anchor query ($.=N)
-		m_pHolder->m_pIndexator->GetOccurrencesByPosition(m_IndexName, m_AnchorOffset, m_Occurrences, m_pHolder->m_CurrentSearchPeriodNo);
+		m_pHolder->m_pConcordance->GetOccurrencesByPosition(m_IndexName, m_AnchorOffset, m_Occurrences, m_pHolder->m_CurrentSearchPeriodNo);
 		m_ChunkLengths.resize(GetOccurrencesSize(), 1); //-- near() queries use m_ChunkLengths[]
 	}
 	else if (m_bAny) {
 		//-- universal query (*)
-		m_pHolder->m_pIndexator->GetAllOccurrences(m_Occurrences, m_pHolder->m_CurrentSearchPeriodNo);
+		m_pHolder->m_pConcordance->GetAllOccurrences(m_Occurrences, m_pHolder->m_CurrentSearchPeriodNo);
 		m_ChunkLengths.resize(GetOccurrencesSize(), 1); //-- near() queries use m_ChunkLengths[]
 	}
 	else {
 	  // chunk query
-	  m_pHolder->m_pIndexator->m_pChunkIndex->FindChunkOccurrences(
+	  m_pHolder->m_pConcordance->m_pChunkIndex->FindChunkOccurrences(
 								       m_IndexItems, 
 								       m_Occurrences, 
 								       m_ChunkLengths,
 								       m_pHolder->m_CurrentSearchPeriodNo, 			
-								       m_pHolder->m_Profiler, 
 								       &m_pHolder->m_ShortOccurCaches,
 								       m_CacheIds
 								       );
@@ -1893,3 +1881,13 @@ void CQTokenOccurrenceIterator::bind(CQueryTokenNode *node_, const CQTokenOccurr
 		node->m_OccurrenceMatchIds.resize(cnt,node_->m_MatchId);
 	}
 }
+
+/*--- emacs style variables ---
+ * Local Variables:
+ *  mode: C++
+ *  c-default-style: "linux"
+ *  c-basic-offset: 4
+ *  tab-width: 8
+ *  indent-tabs-mode: nil
+ * End:
+ */

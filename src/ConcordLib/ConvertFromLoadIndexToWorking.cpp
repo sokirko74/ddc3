@@ -92,8 +92,7 @@ bool CStringIndexSet::WriteToFile(bool bAfterLoading)
 	{
 		if (!ConvertTempStorageToPersistent())
 			return false;
-		if (!OpenStorageFile())
-			return false;
+		OpenStorageFile();
 	};
 
 	DeleteTempFiles();
@@ -112,3 +111,13 @@ bool CStringIndexSet::WriteToFile(bool bAfterLoading)
 };
 
 
+
+/*--- emacs style variables ---
+ * Local Variables:
+ *  mode: C++
+ *  c-default-style: "linux"
+ *  c-basic-offset: 4
+ *  tab-width: 8
+ *  indent-tabs-mode: nil
+ * End:
+ */

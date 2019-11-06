@@ -346,3 +346,13 @@ void DeconvertFromVariableInteger(const DWORD* in_start, const DWORD* in_end,  D
 	OutCount =  out_start - save_out_start;
 
 };
+
+/*--- emacs style variables ---
+ * Local Variables:
+ *  mode: C++
+ *  c-default-style: "linux"
+ *  c-basic-offset: 4
+ *  tab-width: 8
+ *  indent-tabs-mode: nil
+ * End:
+ */

@@ -1,4 +1,4 @@
-//*-*- Mode: C++; c-basic-offset: 8; -*-*/
+//*-*- Mode: C++ -*-*/
 //
 //  DDC originally by Alexey Sokirko
 //  Changes and modifications 2011-2016 by Bryan Jurish
@@ -56,11 +56,11 @@ bool CConcSessionContext::CacheGet(CConcHolder& Holder, const string &Query, DWO
 		}
 
 		const CQueryResult& CacheItem = it->second;
-		CACHEDEBUGLOG( Format("CConcSessionContext::CacheGet() --> found --> nHits=%zd ; HitUB=%zd ; MaxCachedHitsCount=%zd", CacheItem.m_AllHitsCount, EndHitNo+Holder.m_ResultLimit, Holder.m_pIndexator->m_MaxCachedHitsCount) );
+		CACHEDEBUGLOG( Format("CConcSessionContext::CacheGet() --> found --> nHits=%zd ; HitUB=%zd ; MaxCachedHitsCount=%zd", CacheItem.m_AllHitsCount, EndHitNo+Holder.m_ResultLimit, Holder.m_pConcordance->m_MaxCachedHitsCount) );
 
 		// if one asks hits, which were beyond the storage limits of the cache
-		if (min(CacheItem.m_AllHitsCount,EndHitNo+Holder.m_ResultLimit) > Holder.m_pIndexator->m_MaxCachedHitsCount) {
-			CACHEDEBUGLOG( Format("CConcSessionContext::CacheGet() --> min(nHits,HitUB)=%zd > MaxCachedHitsCount=%zd : must re-evaluate", min(CacheItem.m_AllHitsCount,EndHitNo+Holder.m_ResultLimit), Holder.m_pIndexator->m_MaxCachedHitsCount) );
+		if (min(CacheItem.m_AllHitsCount,EndHitNo+Holder.m_ResultLimit) > Holder.m_pConcordance->m_MaxCachedHitsCount) {
+			CACHEDEBUGLOG( Format("CConcSessionContext::CacheGet() --> min(nHits,HitUB)=%zd > MaxCachedHitsCount=%zd : must re-evaluate", min(CacheItem.m_AllHitsCount,EndHitNo+Holder.m_ResultLimit), Holder.m_pConcordance->m_MaxCachedHitsCount) );
 			unlock();
 			return false;
 		}
@@ -106,7 +106,7 @@ bool CConcSessionContext::CacheGet(CConcHolder& Holder, const string &Query, DWO
 //----------------------------------------------------------------------
 void CConcSessionContext::CacheSet(CConcHolder& Holder, const string& Query, vector<size_t>::const_iterator start, vector<size_t>::const_iterator end)
 {
-	if (Holder.m_pIndexator->m_MaxQueryCacheSize==0) return;
+	if (Holder.m_pConcordance->m_MaxQueryCacheSize==0) return;
 
 	lock();
 	try {
@@ -120,7 +120,7 @@ void CConcSessionContext::CacheSet(CConcHolder& Holder, const string& Query, vec
 		}
 
 		// if the cache is full, then we should delete the oldest item
-		if (m_Queries.size() >= Holder.m_pIndexator->m_MaxQueryCacheSize) {
+		if (m_Queries.size() >= Holder.m_pConcordance->m_MaxQueryCacheSize) {
 			//  erasing  the first item from Query queue and from the Query cache
 			map<string, CQueryResult>::iterator it = m_QueryCache.find(m_Queries.front());
 			assert(it != m_QueryCache.end());
@@ -136,7 +136,7 @@ void CConcSessionContext::CacheSet(CConcHolder& Holder, const string& Query, vec
 		I.m_RelevantDocumentCount = Holder.m_RelevantDocumentCount;
 		I.m_SortOrder = Holder.m_SortOrder;
 		I.m_bSortByString = Holder.m_bSortByString;
-		size_t End  = min(Holder.m_pIndexator->m_MaxCachedHitsCount, (size_t)(end-start));
+		size_t End  = min(Holder.m_pConcordance->m_MaxCachedHitsCount, (size_t)(end-start));
 		for (size_t i=0; i < End; i++)
 			{
 				size_t HitNo = *start;
@@ -185,3 +185,13 @@ size_t CConcSessionContext::CacheSize()
 	unlock();
 	return sz;
 }
+
+/*--- emacs style variables ---
+ * Local Variables:
+ *  mode: C++
+ *  c-default-style: "linux"
+ *  c-basic-offset: 4
+ *  tab-width: 8
+ *  indent-tabs-mode: nil
+ * End:
+ */

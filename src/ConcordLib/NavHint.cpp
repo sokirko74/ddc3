@@ -1,4 +1,4 @@
-//-*- Mode: C++; c-basic-offset:2; -*-
+//-*- Mode: C++ -*-
 //
 //  DDC originally by Alexey Sokirko
 //  Changes and modifications 2018 by Bryan Jurish
@@ -215,3 +215,13 @@ string NavHintCache::toJson() const
   return s;
 };
 
+
+/*--- emacs style variables ---
+ * Local Variables:
+ *  mode: C++
+ *  c-default-style: "linux"
+ *  c-basic-offset: 4
+ *  tab-width: 8
+ *  indent-tabs-mode: nil
+ * End:
+ */

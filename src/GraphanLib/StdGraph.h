@@ -21,24 +21,25 @@
 #ifndef StdAfxGraphan
 #define StdAfxGraphan
 
-#ifdef WIN32
-
- #if _MSC_VER > 1000
- #pragma once
- #endif // _MSC_VER > 1000
- 
- #define WIN32_LEAN_AND_MEAN		// Exclude rarely-used stuff from Windows headers
-
-#endif
 
 #pragma warning (disable  : 4530)
 #pragma warning (disable  : 4786)
 
 #include "../CommonLib/utilit.h"
-#include "../common/Graspace.h"
-#include "../common/gra_descr.h"
+#include "Graspace.h"
+#include "gra_descr.h"
 
 
 #include "../StructDictLib/Ross.h"
 
 #endif 
+
+/*--- emacs style variables ---
+ * Local Variables:
+ *  mode: C++
+ *  c-default-style: "linux"
+ *  c-basic-offset: 4
+ *  tab-width: 8
+ *  indent-tabs-mode: nil
+ * End:
+ */

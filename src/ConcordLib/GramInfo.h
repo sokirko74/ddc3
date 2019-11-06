@@ -23,28 +23,38 @@
 //! CGramInfo represents one morphological pattern, for example "[SUB pl, sg]"
 struct CGramInfo 
 {
-	//! the language of the pattern 
-	MorphLanguageEnum	m_Language;
-	//! the part of speech mask  (SUB, ART,ADJ...)
-	DWORD				m_PartOfSpeechMask;
-	//! morphological features (plu, sig, nom...)
-	QWORD				m_Grammems;
+        //! the language of the pattern 
+        MorphLanguageEnum       m_Language;
+        //! the part of speech mask  (SUB, ART,ADJ...)
+        DWORD                           m_PartOfSpeechMask;
+        //! morphological features (plu, sig, nom...)
+        QWORD                           m_Grammems;
 
-	CGramInfo () {
-		m_PartOfSpeechMask = 0;
-	    m_Grammems = 0;;
-		m_Language = morphUnknown;
+        CGramInfo () {
+                m_PartOfSpeechMask = 0;
+            m_Grammems = 0;;
+                m_Language = morphUnknown;
 
-	};
-	CGramInfo (MorphLanguageEnum Language, DWORD PartOfSpeechMask, QWORD Grammems)
-	{ 
-		m_PartOfSpeechMask = PartOfSpeechMask;
-	    m_Grammems = Grammems;
-		m_Language = Language;
+        };
+        CGramInfo (MorphLanguageEnum Language, DWORD PartOfSpeechMask, QWORD Grammems)
+        { 
+                m_PartOfSpeechMask = PartOfSpeechMask;
+            m_Grammems = Grammems;
+                m_Language = Language;
 
-	};
-	
+        };
+        
 
 };
 
 #endif
+
+/*--- emacs style variables ---
+ * Local Variables:
+ *  mode: C++
+ *  c-default-style: "linux"
+ *  c-basic-offset: 4
+ *  tab-width: 8
+ *  indent-tabs-mode: nil
+ * End:
+ */

@@ -1,4 +1,4 @@
-//-*- Mode: C++; c-basic-offset: 4; -*-
+//-*- Mode: C++ -*-
 //  Original code by Alexey Sokirko
 //  Changes copyright 2011-2014 by Bryan Jurish
 //
@@ -201,3 +201,13 @@ int main(int argc, char* argv[])
 }
 
 
+
+/*--- emacs style variables ---
+ * Local Variables:
+ *  mode: C++
+ *  c-default-style: "linux"
+ *  c-basic-offset: 4
+ *  tab-width: 8
+ *  indent-tabs-mode: nil
+ * End:
+ */

@@ -77,7 +77,7 @@ public :
                {
                   case lex_bchar :
                   case lex_under :
-                     // [XML:4] NCName	::= (Letter | '_') (NCNameChar)* 
+                     // [XML:4] NCName  ::= (Letter | '_') (NCNameChar)* 
 
                      u_size = 1;
                      state = s_ncname;
@@ -95,8 +95,8 @@ public :
                   case lex_dot :
                      if (lex_get_class (b_forward (1)) == lex_digit)
                      {
-                        // [30]   Number				::=   Digits ('.' Digits?)? | '.' Digits 
-                        // [31]   Digits				::=   [0-9]+ 
+                        // [30]   Number                                ::=   Digits ('.' Digits?)? | '.' Digits 
+                        // [31]   Digits                                ::=   [0-9]+ 
                         u_size = 1;
                         state = s_number;
                         o_dot_in_number = true;
@@ -110,14 +110,14 @@ public :
                      break;
 
                   case lex_1_quote :
-                     // [29]   Literal				::=   '"' [^"]* '"' | "'" [^']* "'" 
+                     // [29]   Literal                          ::=   '"' [^"]* '"' | "'" [^']* "'" 
                      u_size = 0;
                      b_pop ();
                      state = s_literal_1;
                      break;
 
                   case lex_2_quote :
-                     // [29]   Literal				::=   '"' [^"]* '"' | "'" [^']* "'" 
+                     // [29]   Literal                          ::=   '"' [^"]* '"' | "'" [^']* "'" 
                      u_size = 0;
                      b_pop ();
                      state = s_literal_2;
@@ -130,7 +130,7 @@ public :
                }
                break;
             case s_literal_1 :
-               // [29]   Literal				::=   '"' [^"]* '"' | "'" [^']* "'" 
+               // [29]   Literal                                ::=   '"' [^"]* '"' | "'" [^']* "'" 
                switch (lex_next)
                {
                   case lex_1_quote :
@@ -145,7 +145,7 @@ public :
                }
                break;
             case s_literal_2 :
-               // [29]   Literal				::=   '"' [^"]* '"' | "'" [^']* "'" 
+               // [29]   Literal                                ::=   '"' [^"]* '"' | "'" [^']* "'" 
                switch (lex_next)
                {
                   case lex_2_quote :
@@ -182,8 +182,8 @@ public :
             case s_number :
                switch (lex_next)
                {
-                  // [30]   Number				::=   Digits ('.' Digits?)? | '.' Digits 
-                  // [31]   Digits				::=   [0-9]+ 
+                  // [30]   Number                              ::=   Digits ('.' Digits?)? | '.' Digits 
+                  // [31]   Digits                              ::=   [0-9]+ 
                   case lex_dot :
                      if (o_dot_in_number)
                      {
@@ -232,3 +232,13 @@ public :
 }
 
 #endif
+
+/*--- emacs style variables ---
+ * Local Variables:
+ *  mode: C++
+ *  c-default-style: "linux"
+ *  c-basic-offset: 4
+ *  tab-width: 8
+ *  indent-tabs-mode: nil
+ * End:
+ */

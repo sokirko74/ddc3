@@ -61,27 +61,38 @@ libDDCConcord_la_SOURCES = \
  IndexSet.cpp IndexSet.h \
  StringIndexator.cpp StringIndexator.h \
  ConcIndexator.cpp ConcIndexator.h \
+ ConcIndexatorInvoker.cpp ConcIndexatorInvoker.h \
+ InitDicts.cpp \
  ConcordOptions.cpp \
  IndexSetForLoadingStage.cpp IndexSetForLoadingStage.h \
  IndexSetForQueryingStage.cpp IndexSetForQueryingStage.h \
  ConvertFromLoadIndexToWorking.cpp \
  LoadingBinaries.cpp \
+ CreateMorphIndex.cpp \
+ Concordance.cpp \
  ConcCommon.h \
  pcre_rml.cpp ../PCRE/pcre_rml.h \
- MorphXmlToken.cpp ../common/MorphXmlToken.h \
- DwdsThesaurus.cpp ../common/DwdsThesaurus.h \
- ../common/ddcRandom.h \
- ../common/ddcObject.h
+ MorphXmlToken.h \
+ DwdsThesaurus.cpp DwdsThesaurus.h \
+ DocumentIterator.cpp DocumentIterator.h \
+ TabFormatIndexator.cpp TabFormatIndexator.h \
+ BiblIndex.cpp BiblIndex.h \
+ ConcXml.cpp ConcXml.h \
+ FreeBiblIndex.cpp FreeBiblIndex.h \
+  ../CommonLib/ddcRandom.h \
+ ../CommonLib/ddcObject.h
 
 noinst_HEADERS = \
  LRUCache.h \
  CCurl.h \
+ Concordance.h \
  TermExpander.h \
  BiblExpander.h \
  Bibliography.h \
  ConcCommon.h \
  ConcHolder.h \
  ConcIndexator.h \
+ ConcIndexatorInvoker.h \
  ConcordAlgorithm.h \
  DDCLessOperators.h \
  GramInfo.h \

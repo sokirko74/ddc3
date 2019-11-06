@@ -1,0 +1,20 @@
+%%$DDC:meta.file_=some_file_name.txt
+%%$DDC:meta.scan_=scan_bibl_stub
+%%$DDC:meta.orig_=orig_bibl_stub
+%%$DDC:meta.date_=2016-02-24
+%%$DDC:meta.page_=-1
+%%$DDC:meta.author=Jurish, Bryan
+%%$DDC:meta.title=DDC test document
+%%$DDC:index[ 0]=Lemma
+%%$DDC:index [1]=Token t
+%%$DDC:PAGE=42
+MUTTER	Mutter
+KOMMEN	kam
+
+%%$DDC:BREAK.s
+VATER	Vater
+KOMMEN	kam
+
+%%$DDC:BREAK.s=1234
+SOHN	Sohn
+KOMMEN	kam

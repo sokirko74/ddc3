@@ -25,18 +25,18 @@
 #include "../CommonLib/utilit.h"
 
 struct TSignatItem  {
-	BYTE m_DomNo;
-	bool m_IsMult;
-	TSignatItem (BYTE DomNo, bool IsMult)
-	{
-		m_DomNo = DomNo;
-	    m_IsMult = IsMult;
-	};
-	TSignatItem ()
-	{
-		m_IsMult = false;
-		m_DomNo = 0;
-	};
+        BYTE m_DomNo;
+        bool m_IsMult;
+        TSignatItem (BYTE DomNo, bool IsMult)
+        {
+                m_DomNo = DomNo;
+            m_IsMult = IsMult;
+        };
+        TSignatItem ()
+        {
+                m_IsMult = false;
+                m_DomNo = 0;
+        };
 };
 const size_t MaxFormatNameLen = 254;
 const size_t MaxFormatStrLen = 254;
@@ -53,10 +53,10 @@ struct CSignat
    int    OrderNo;
 
    bool operator==(const CSignat& X) const
-			{return     OrderNo == X.OrderNo; }
+                        {return     OrderNo == X.OrderNo; }
 
    bool operator<(const CSignat& X) const
-	 { return   (OrderNo < X.OrderNo); }
+         { return   (OrderNo < X.OrderNo); }
 
 };
 
@@ -64,3 +64,13 @@ struct CSignat
 
 
 #endif //__SIGNAT_H_
+
+/*--- emacs style variables ---
+ * Local Variables:
+ *  mode: C++
+ *  c-default-style: "linux"
+ *  c-basic-offset: 4
+ *  tab-width: 8
+ *  indent-tabs-mode: nil
+ * End:
+ */

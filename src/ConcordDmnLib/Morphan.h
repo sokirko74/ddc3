@@ -19,3 +19,13 @@
 #include "../ConcordLib/ConcCommon.h"
 extern string GetParadigm(string WordForm, int LemmaNo, MorphLanguageEnum Langua);
 extern string Lemmatize(string WordForm, MorphLanguageEnum Langua, int& LemmasCount);
+
+/*--- emacs style variables ---
+ * Local Variables:
+ *  mode: C++
+ *  c-default-style: "linux"
+ *  c-basic-offset: 4
+ *  tab-width: 8
+ *  indent-tabs-mode: nil
+ * End:
+ */

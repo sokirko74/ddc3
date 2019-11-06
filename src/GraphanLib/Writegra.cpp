@@ -21,7 +21,7 @@
 #include "GraphmatFile.h"
 #include "Consent.h"
 #include "GraphanDicts.h"
-#include "../common/gra_descr_primitives.h"
+#include "gra_descr_primitives.h"
 
 
 void CGraphmatFile :: GetGraphematicalLine (char* line, size_t LineNo) const
@@ -129,3 +129,13 @@ void CGraphmatFile :: WriteGraphMat (const char* FName) const
 }
 
 
+
+/*--- emacs style variables ---
+ * Local Variables:
+ *  mode: C++
+ *  c-default-style: "linux"
+ *  c-basic-offset: 4
+ *  tab-width: 8
+ *  indent-tabs-mode: nil
+ * End:
+ */

@@ -1,4 +1,4 @@
-//-*- Mode: C++; c-basic-offset:4;-*-
+//-*- Mode: C++ -*-
 //
 //  Copyright 2018 by Bryan Jurish
 //
@@ -21,7 +21,7 @@
 #ifndef DDC_STRING_ENUM_H
 #define DDC_STRING_ENUM_H
 
-#include "../CommonLib/ddcMMap.h"
+#include "ddcMMap.h"
 #include <limits>
 
 //======================================================================
@@ -51,12 +51,12 @@ public:
 
     /// default constructor
     ddcStringEnum()
-	: m_bufsize(20000)
+        : m_bufsize(20000)
     {};
 
     /// construct and open
     ddcStringEnum(const string& cdataFile, const string& offsetsFile, const string& fallbackFile="", bool useMMap=false)
-	: m_bufsize(20000)
+        : m_bufsize(20000)
     { open(cdataFile,offsetsFile,fallbackFile,useMMap); };
 
     /// default destructor calls close()
@@ -101,32 +101,32 @@ public:
     /// simulate vector::push_back(): used by indexing routines
     inline void push_back(const string& value)
     {
-	ensureVec();
-	m_strings.push_back(value);
+        ensureVec();
+        m_strings.push_back(value);
     };
 
     /// populate \a v with an equivalent vector-implementation (for compile-time compatibility)
     void to_vector(vector<string>& v) const
     {
-	ClearVector(v);
-	v.reserve(size());
-	if (m_offsets) {
-	    for (const OffT* oi=m_offsets.begin(); oi != m_offsets.end(); ++oi)
-		v.push_back( m_cdata.m_data + *oi );
-	} else {
-	    v = m_strings;
-	}
+        ClearVector(v);
+        v.reserve(size());
+        if (m_offsets) {
+            for (const OffT* oi=m_offsets.begin(); oi != m_offsets.end(); ++oi)
+                v.push_back( m_cdata.m_data + *oi );
+        } else {
+            v = m_strings;
+        }
     };
     
     /// force vector-implementation
     inline void ensureVec()
     {
-	if (m_offsets) {
-	    ddcLogWarn(Format("WARNING: ddcStringEnum(\"%s\") demoting to std::vector<> implementation", m_cdata.filename().c_str()));
-	    to_vector(m_strings);
-	    m_offsets.close();
-	    m_cdata.close();
-	}
+        if (m_offsets) {
+            ddcLogWarn(Format("WARNING: ddcStringEnum(\"%s\") demoting to std::vector<> implementation", m_cdata.filename().c_str()));
+            to_vector(m_strings);
+            m_offsets.close();
+            m_cdata.close();
+        }
     };
 
 public:
@@ -144,57 +144,57 @@ public:
 
     /// comparison helper struct for string-to-id search
     struct IdKeyLess {
-	const char *m_buf;
+        const char *m_buf;
 
-	IdKeyLess(const char *buf)
-	    : m_buf(buf)
-	{};
-	IdKeyLess(const ddcStringEnum& se)
-	    : m_buf(se.m_cdata.m_data)
-	{};
+        IdKeyLess(const char *buf)
+            : m_buf(buf)
+        {};
+        IdKeyLess(const ddcStringEnum& se)
+            : m_buf(se.m_cdata.m_data)
+        {};
 
-	
-	inline bool operator()(const OffT off, const string& key)
-	{ return (m_buf+off) < key; };
-	inline bool operator()(const string& key, const OffT off)
-	{ return key < (m_buf+off); };
+        
+        inline bool operator()(const OffT off, const string& key)
+        { return (m_buf+off) < key; };
+        inline bool operator()(const string& key, const OffT off)
+        { return key < (m_buf+off); };
     };
 
     /// returns id of lower-bound for \a key, or NO_ID if not found
     IdT lower_bound(const string& key) const
     {
-	if (m_offsets) {
-	    //-- ddc-v2.1.12 version
-	    typename ddcVecFile<OffT>::const_iterator lb = std::lower_bound(m_offsets.begin(), m_offsets.end(), key, IdKeyLess(*this));
-	    if (lb != m_offsets.end()) return (lb - m_offsets.begin());
-	} else {
-	    //-- backwards-compatible implementation using m_strings
-	    vector<string>::const_iterator lb = std::lower_bound(m_strings.begin(), m_strings.end(), key);
-	    if (lb != m_strings.end()) return (lb - m_strings.begin());
-	}
-	return NO_ID;
+        if (m_offsets) {
+            //-- ddc-v2.1.12 version
+            typename ddcVecFile<OffT>::const_iterator lb = std::lower_bound(m_offsets.begin(), m_offsets.end(), key, IdKeyLess(*this));
+            if (lb != m_offsets.end()) return (lb - m_offsets.begin());
+        } else {
+            //-- backwards-compatible implementation using m_strings
+            vector<string>::const_iterator lb = std::lower_bound(m_strings.begin(), m_strings.end(), key);
+            if (lb != m_strings.end()) return (lb - m_strings.begin());
+        }
+        return NO_ID;
     };
 
     /// returns id of upper-bound for \a key, or NO_ID if not found
     inline IdT upper_bound(const string& key) const
     {
-	if (m_offsets) {
-	    //-- ddc-v2.1.12 version
-	    typename ddcVecFile<OffT>::const_iterator ub = std::upper_bound(m_offsets.begin(), m_offsets.end(), key, IdKeyLess(*this));
-	    if (ub != m_offsets.end()) return (ub - m_offsets.begin());
-	} else {
-	    //-- backwards-compatible implementation using m_strings
-	    vector<string>::const_iterator ub = std::upper_bound(m_strings.begin(), m_strings.end(), key);
-	    if (ub != m_strings.end()) return (ub - m_strings.begin());
-	}
-	return NO_ID;
+        if (m_offsets) {
+            //-- ddc-v2.1.12 version
+            typename ddcVecFile<OffT>::const_iterator ub = std::upper_bound(m_offsets.begin(), m_offsets.end(), key, IdKeyLess(*this));
+            if (ub != m_offsets.end()) return (ub - m_offsets.begin());
+        } else {
+            //-- backwards-compatible implementation using m_strings
+            vector<string>::const_iterator ub = std::upper_bound(m_strings.begin(), m_strings.end(), key);
+            if (ub != m_strings.end()) return (ub - m_strings.begin());
+        }
+        return NO_ID;
     };
 
     /// returns id of \a key, or NO_ID if not found; wraps lower_bound()
     inline IdT find(const string& key) const
     {
-	IdT lbid = lower_bound(key);
-	return (lbid != NO_ID && operator[](lbid) == key) ? lbid : NO_ID;
+        IdT lbid = lower_bound(key);
+        return (lbid != NO_ID && operator[](lbid) == key) ? lbid : NO_ID;
     };
     
 public:
@@ -204,51 +204,61 @@ public:
     /// map a named file \a filename
     ddcStringEnum& open(const string& cdataFile, const string& offsetsFile, const string& fallbackFile, bool useMMap=false)
     {
-	if (opened()) close();
+        if (opened()) close();
 
-	if (FileExists(cdataFile.c_str()) && FileExists(offsetsFile.c_str())) {
-	    m_cdata.open(cdataFile, useMMap);
-	    m_offsets.open(offsetsFile, useMMap);
-	    ddcLogDebug(Format("ddcStringEnum[%s]::open(): read %zi item(s) from %s + %s", (useMMap ? "mmap" : "slurp"), size(), cdataFile.c_str(), offsetsFile.c_str()));
-	}
-	else if (!fallbackFile.empty() && FileExists(fallbackFile.c_str())) {
-	    ddcLogWarn("WARNING: ddcStringEnum::open(): loading fallback file '"+fallbackFile+"' in slurp mode: please upgrade your index!");
-	    openCompat(fallbackFile);
-	    ddcLogDebug(Format("ddcStringEnum[compat]::open(): read %zi item(s) from %s", size(), fallbackFile.c_str()));
-	} else {
-	    throw invalid_argument("ddcStringEnum::open(\""+cdataFile+"\",\""+offsetsFile+"\",\""+fallbackFile+"\"): no file(s) found!");
-	}
-	return *this;
+        if (FileExists(cdataFile.c_str()) && FileExists(offsetsFile.c_str())) {
+            m_cdata.open(cdataFile, useMMap);
+            m_offsets.open(offsetsFile, useMMap);
+            ddcLogDebug(Format("ddcStringEnum[%s]::open(): read %zi item(s) from %s + %s", (useMMap ? "mmap" : "slurp"), size(), cdataFile.c_str(), offsetsFile.c_str()));
+        }
+        else if (!fallbackFile.empty() && FileExists(fallbackFile.c_str())) {
+            ddcLogWarn("WARNING: ddcStringEnum::open(): loading fallback file '"+fallbackFile+"' in slurp mode: please upgrade your index!");
+            openCompat(fallbackFile);
+            ddcLogDebug(Format("ddcStringEnum[compat]::open(): read %zi item(s) from %s", size(), fallbackFile.c_str()));
+        } else {
+            throw invalid_argument("ddcStringEnum::open(\""+cdataFile+"\",\""+offsetsFile+"\",\""+fallbackFile+"\"): no file(s) found!");
+        }
+        return *this;
     };
 
     /// open in compatibility-mode; lifted from CConcXml::CFreeBiblStringIndex::ReadBiblStringItems (vector<string>&  Set, string FileName)
     void openCompat(const string& filename)
     {
-	if (opened()) close();
+        if (opened()) close();
 
-	FILE * fp = fopen(filename.c_str(), "rb");
-	if (!fp)
-	    throw invalid_argument(Format("ddcStringEnum::openCompat(): open failed for '%s': %s'", filename.c_str(), strerror(errno)));
-	
-	char buf[m_bufsize+1];
-	while (fgets(buf, m_bufsize, fp)) {
-	    string q(buf);
-	    Trim(q);
-	    m_strings.push_back(q);
-	}
+        FILE * fp = fopen(filename.c_str(), "rb");
+        if (!fp)
+            throw invalid_argument(Format("ddcStringEnum::openCompat(): open failed for '%s': %s'", filename.c_str(), strerror(errno)));
+        
+        char buf[m_bufsize+1];
+        while (fgets(buf, m_bufsize, fp)) {
+            string q(buf);
+            Trim(q);
+            m_strings.push_back(q);
+        }
 
-	fclose(fp);
+        fclose(fp);
     };
 
     /// unmap current file(s), if any
     void close()
     {
-	m_cdata.close();
-	m_offsets.close();
-	ClearVector(m_strings);
+        m_cdata.close();
+        m_offsets.close();
+        ClearVector(m_strings);
     };
 
 };
 
 
 #endif /* DDC_STRING_ENUM_H */
+
+/*--- emacs style variables ---
+ * Local Variables:
+ *  mode: C++
+ *  c-default-style: "linux"
+ *  c-basic-offset: 4
+ *  tab-width: 8
+ *  indent-tabs-mode: nil
+ * End:
+ */

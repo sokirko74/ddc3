@@ -19,8 +19,18 @@ int tar_open(TAR **t, const char *pathname);
 /* close tarfile handle */
 int tar_close(TAR *t);
 /* get next file, it returns false, if Result contains a file, otherwise there is no more files in the tar archive  */
-bool tar_get_next_file(TAR *t, string& FileName, vector<char>& Result, bool& bError);
+bool tar_get_next_file(TAR *t, string& FileName, vector<char>& Result);
 
 
 #endif /* ! LIBTAR_H */
 
+
+/*--- emacs style variables ---
+ * Local Variables:
+ *  mode: C++
+ *  c-default-style: "linux"
+ *  c-basic-offset: 4
+ *  tab-width: 8
+ *  indent-tabs-mode: nil
+ * End:
+ */

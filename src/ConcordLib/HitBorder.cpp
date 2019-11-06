@@ -1,4 +1,4 @@
-//-*- Mode: C++; c-basic-offset: 8; -*-
+//-*- Mode: C++ -*-
 //
 //  DDC originally by Alexey Sokirko
 //  Changes and modifications 2011-2018 by Bryan Jurish
@@ -7,20 +7,20 @@
 // 
 //  DDC is free software: you can redistribute it and/or modify
 //  it under the terms of the GNU Lesser General Public License as published by
-//  the Free Software Foundation, either version 3 of the License, or
+//  the Free Software Foundation, either veEnsursion 3 of the License, or
 //  (at your option) any later version.
 // 
 //  DDC is distributed in the hope that it will be useful,
 //  but WITHOUT ANY WARRANTY; without even the implied warranty of
 //  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 //  GNU Lesser General Public License for more details.
-// 
+//
 //  You should have received a copy of the GNU Lesser General Public License
 //  along with DDC.  If not, see <http://www.gnu.org/licenses/>.
 //
 #include "StdConc.h"
 #include "HitBorder.h"
-#include "../common/bserialize.h"
+#include "../CommonLib/bserialize.h"
 
 
 inline size_t get_size_in_bytes (const CPageNumber& t)
@@ -139,12 +139,12 @@ const ddcBreakVector&  CHitBorders::GetFileBreaks() const
 
 CTokenNo	CHitBorders::GetCorpusEndTokenNo() const 	
 {
-	if (m_FileBreakCollectionNo==-1)
+	if (m_FileBreakCollectionNo == -1)
 		return 0;
 	const ddcBreakVector& FileBreaks = GetFileBreaks();
-	if (FileBreaks.empty()) 
-		return 0;
-	return FileBreaks[FileBreaks.size()-1];
+	if (FileBreaks.empty())
+	    return 0;  //no file in proj
+    return FileBreaks[FileBreaks.size()-1];
 };
 
 CTokenNo CHitBorders::GetFileStartTokenNo(size_t i) const
@@ -198,14 +198,13 @@ bool	CHitBorders::StartIndexing(string Path)
 	return true;
 };
 
-bool	CHitBorders::BordersEndIndexing(string Path)
+void	CHitBorders::BordersEndIndexing(string Path)
 {
 	for (size_t i=0; i <  m_Breaks.size(); i++)
 		m_Breaks[i].CloseFileForIndexing();
 
 	SavePageBreaks(Path);
 
-	return true;
 };
 
 bool	CHitBorders::LoadHitBorders(string Path, bool useMMap)
@@ -236,31 +235,30 @@ void CHitBorders::StartTextAreaBorders()
 	m_LastTextAreaBreaks.resize(m_Breaks.size(), DWORD_MAX);
 }
 
-bool CHitBorders::EndTextAreaBorders(DWORD TextAreaEndTokenNo)
+void CHitBorders::EndTextAreaBorders(DWORD TextAreaEndTokenNo)
 {
 	for (size_t i=0; i < m_LastTextAreaBreaks.size(); i++)
 		if (m_FileBreakCollectionNo != i)
 			if ( (m_LastTextAreaBreaks[i] == DWORD_MAX) || ( m_LastTextAreaBreaks[i] < TextAreaEndTokenNo))
-				if (!AddBreakByIndex(i, TextAreaEndTokenNo))
-					return false;
-	return true;
+				AddBreakByIndex(i, TextAreaEndTokenNo);
 }
 
-bool CHitBorders::AddBreakByIndex(DWORD BreakCollectionNo, const CTokenNo& B)
+void CHitBorders::AddBreakByIndex(DWORD BreakCollectionNo, const CTokenNo& B)
 {
 	CBreakCollection& C = m_Breaks[BreakCollectionNo];
 	BYTE TextBreakBuffer[sizeof(CTokenNo)];
-	if (fwrite(TextBreakBuffer, save_to_bytes(B, TextBreakBuffer), 1, C.m_FileForIndexing) != 1) return false;
+	if (fwrite(TextBreakBuffer, save_to_bytes(B, TextBreakBuffer), 1, C.m_FileForIndexing) != 1) {
+		throw CExpc(Format("cannot write to break collection %i, name=%s", BreakCollectionNo, C.m_LongName.c_str()));
+	}
 	m_LastTextAreaBreaks[BreakCollectionNo] = B;
-	return true;
 };
 
-bool CHitBorders::AddBreakByName(const string& ShortName, const CTokenNo& B)
+void CHitBorders::AddBreakByName(const string& ShortName, const CTokenNo& B)
 {
 	map<string,int>::iterator it = m_ShortName2BreakCollection.find(ShortName);
 	if (it == m_ShortName2BreakCollection.end())
-		return false;
-	return AddBreakByIndex(it->second, B);
+		throw CExpc("Cannot find break name=" + ShortName);
+	AddBreakByIndex(it->second, B);
 };
 
 void CHitBorders::AddPageBreak(const CPageNumber& P)
@@ -344,31 +342,35 @@ ddcVecFile<CPageNumber>::const_iterator CHitBorders::GetTokenPageBreak(CTokenNo 
 	return lower_bound(m_PageBreaks.begin(), m_PageBreaks.end(), tok, LessPageBreak());
 }
 
-bool CHitBorders::EnsureRegisteredBreak(string ShortName, string LongName)
+int CHitBorders::EnsureRegisteredBreak(string ShortName, string LongName)
 {
-	const CBreakCollection *blong=GetBreakCollectionByName(LongName), *bshort=GetBreakCollectionByName(ShortName);
-	if (blong==NULL || blong!=bshort)
-		return RegisterBreak(ShortName, LongName);
-	return true;
+	int i  = GetBreakCollectionIndexByName(ShortName);
+	if (i != -1)
+		return i;
+	if (ShortName != LongName) {
+		int i  = GetBreakCollectionIndexByName(LongName);
+		if (i != -1)
+			return i;
+	}
+	return RegisterBreak(ShortName, LongName);
 }
 
-bool CHitBorders::RegisterBreak(string ShortName, string LongName)
+int CHitBorders::RegisterBreak(string ShortName, string LongName)
 {
 	CBreakCollection T (ShortName, LongName);
 	
 	pair<map<string,int>::iterator, bool> it = m_ShortName2BreakCollection.insert(make_pair(T.m_ShortName,m_Breaks.size()));
 	if (!it.second)
 	{
-		ErrorMessage ("Error! A duplicate hit type name is found: "+T.m_LongName);
-		return false;
+		throw CExpc("Error! A duplicate hit type name is found: "+T.m_LongName);
 	};
 	m_LongName2BreakCollection.insert(make_pair(T.m_LongName,m_Breaks.size()));
 	m_Breaks.push_back(T);
 	m_LastTextAreaBreaks.push_back(DWORD_MAX);
-	return true;
+	return m_Breaks.size() - 1;
 }
 
-bool CHitBorders::RegisterBorderIndices(const char* IndicesStr)
+void CHitBorders::RegisterBorderIndices(const char* IndicesStr)
 {
 	m_Breaks.clear();
 	m_LastTextAreaBreaks.clear();
@@ -384,35 +386,29 @@ bool CHitBorders::RegisterBorderIndices(const char* IndicesStr)
 			Trim(Item);
 			if ((Item.empty())  || (Item[0] != '[') || (Item[Item.length()-1] != ']'))
 			{
-				ErrorMessage (Format("Error! A bad format of the hit type definition (%s)!",IndicesStr));
-				return false;
+				throw CExpc(Format("Error! A bad format of the hit type definition (%s)!",IndicesStr));
 			};
 			Item = Item.substr(1, Item.length() - 2);
 			StringTokenizer item_tok(Item.c_str(), ":");
 			string ShortName = item_tok.next_token(); 
 			if (ShortName == PredefinedTableLineTag)
 			{
-				ErrorMessage ("Error! Using of the predefined hit type \"l\" is prohibited");
-				return false;
+				throw  CExpc(("Error! Using of the predefined hit type \"l\" is prohibited"));
 			};
 			
 
 			if (ShortName.empty())
 			{
-				ErrorMessage ("Am empty short name in the hit type definition: "+Item);
-				return false;
+				throw  CExpc ("Am empty short name in the hit type definition: "+Item);
 			};
-			if (!RegisterBreak(ShortName, item_tok.next_token()))
-				return false;
+			RegisterBreak(ShortName, item_tok.next_token());
 			if (item_tok.next_token() == "default")
 				m_DefaultBreakName = ShortName;
 		};
 	};
 
-	// register file break collection
-	if (!EnsureRegisteredBreak(PredefinedFileBreakName, PredefinedFileBreakName))
-			return false;
-	m_FileBreakCollectionNo = m_Breaks.size() - 1;
+	// register file break collection, if not already
+	m_FileBreakCollectionNo = EnsureRegisteredBreak(PredefinedFileBreakName, PredefinedFileBreakName);
 	
 
 	// set default break collection, if it is not set in the options file
@@ -420,30 +416,8 @@ bool CHitBorders::RegisterBorderIndices(const char* IndicesStr)
 		m_DefaultBreakName = m_Breaks[0].m_ShortName;
 
 	// register text area collection
-	if (!EnsureRegisteredBreak(PredefinedTextAreaBreakName, PredefinedTextAreaBreakName))
-			return false;
-	
-	return !m_Breaks.empty();
-};
-
-
-bool	UnionBreaks	(const ddcBreakVector& V1, 
-			 const ddcBreakVector& V2, 
-			 DWORD EndTokenNo1,
-			 vector<CTokenNo>& Result)
-{
-	if (V1.empty() != V2.empty()) return false;
-	if (V1.empty()) return false;
-	Result.clear();
-	Result.insert(Result.end(), V1.begin(),V1.end());
-	Result.insert(Result.end(), V2.begin(),V2.end());
-	
-	// adding delta to index
-	for (size_t i = V1.size(); i < Result.size(); i++)
-	{
-		Result[i] += EndTokenNo1;
-	};
-	return true;
+	EnsureRegisteredBreak(PredefinedTextAreaBreakName, PredefinedTextAreaBreakName);
+	assert (!m_Breaks.empty());
 };
 
 
@@ -469,18 +443,6 @@ string CHitBorders::GetBorderIndicesString() const
 	return Result;
 };
 
-vector<string> CHitBorders::GetBorderIndicesStringVector() const
-{
-	vector<string> Result;
-	for (map<string,int>::const_iterator it = m_ShortName2BreakCollection.begin(); it !=  m_ShortName2BreakCollection.end(); it++)
-	{
-		const CBreakCollection& B = m_Breaks[it->second];
-		Result.push_back(B.m_LongName);
-	};
-	return Result;
-};
-
-
 string CHitBorders::WithinBreakName(const vector<string>& Within) const
 {
 	for (vector<string>::const_reverse_iterator wi=Within.rbegin(); wi != Within.rend(); wi++) {
@@ -491,31 +453,37 @@ string CHitBorders::WithinBreakName(const vector<string>& Within) const
 	return m_DefaultBreakName;
 }
 
-string	CHitBorders::GetBreakCollectionShortName(size_t i) const
-{
-    return m_Breaks[i].m_ShortName;
-}
 
-int	CHitBorders::GetBreakCollectionIndexByName(string ShortName ) const
-{
-   	map<string,int>::const_iterator it = m_ShortName2BreakCollection.find(ShortName);
-	if (it == m_ShortName2BreakCollection.end())
-		return -1;
-
-    return it->second;
-}
-
-//----------------------------------------------------------------------
-const CHitBorders::CBreakCollection* CHitBorders::GetBreakCollectionByName(const string& Name) const
+int	CHitBorders::GetBreakCollectionIndexByName(string name ) const
 {
 	//-- try short name first
-	map<string,int>::const_iterator it = m_ShortName2BreakCollection.find(Name);
-	if (it!=m_ShortName2BreakCollection.end())
-		return &m_Breaks[it->second];
+   	map<string,int>::const_iterator it = m_ShortName2BreakCollection.find(name);
+	if (it != m_ShortName2BreakCollection.end())
+		return it->second;
 
-	it = m_LongName2BreakCollection.find(Name);
+	it = m_LongName2BreakCollection.find(name);
 	if (it!=m_LongName2BreakCollection.end())
-		return &m_Breaks[it->second];
+		return it->second;
 
-	return NULL;
+    return -1;
 }
+
+const CHitBorders::CBreakCollection* CHitBorders::GetBreakCollectionByName(const string& name) const
+{
+	int index = GetBreakCollectionIndexByName(name);
+	if (index == -1) {
+		return NULL;
+	}
+	return &m_Breaks[index];
+}
+
+
+/*--- emacs style variables ---
+ * Local Variables:
+ *  mode: C++
+ *  c-default-style: "linux"
+ *  c-basic-offset: 4
+ *  tab-width: 8
+ *  indent-tabs-mode: nil
+ * End:
+ */

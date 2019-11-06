@@ -27,41 +27,51 @@
 
 class CTempArticle 
 {
-	string					m_ArticleStr;
+        string                                  m_ArticleStr;
 public:
-	char					m_EntryStr[EntryStrSize];
-	BYTE					m_MeanNum;
-	WORD					m_UnitNo;
-	bool						m_ReadOnly;
-	vector<CTextField>		m_Fields;
-	CDictionary*				m_pRoss;
-	
-	vector<TCortege10>		m_Corteges;
-	string				m_LastError;
-	int						m_ErrorLine;
-	CTempArticle();
-	
+        char                                    m_EntryStr[EntryStrSize];
+        BYTE                                    m_MeanNum;
+        WORD                                    m_UnitNo;
+        bool                                            m_ReadOnly;
+        vector<CTextField>              m_Fields;
+        CDictionary*                            m_pRoss;
+        
+        vector<TCortege10>              m_Corteges;
+        string                          m_LastError;
+        int                                             m_ErrorLine;
+        CTempArticle();
+        
 
 
-	const TCortege10&	GetRossCortege (size_t i) const;
-	size_t				GetCortegesSize () const;
-	const TCortege10&	GetCortege (size_t i)  const;
-	string		ConstructFldName (BYTE FieldNo, BYTE LeafId, BYTE BracketLeafId);
-	bool		IsPartOf(const CTempArticle *Article, bool UseWildCards) const;
-	int			IntersectByFields(const CTempArticle *Article) const;
-	bool		AddArticle(const CTempArticle *Article);
-	bool		PutCortegeOnTheRigthPosition (const TCortege10& C);
-	bool		ArticleToText ();
-	bool		AddCortegeToVector (CTextField& F);
-	bool		CheckCortegeVector ();
-	bool		SetArticleStr(const char * s);
-	bool		MarkUp();
-	bool		BuildCortegeList();
-	bool		WriteToDictionary();
-	bool		IsModified() const;
-	void		ReadFromDictionary(WORD UnitNo, bool VisualOrder, bool ReadOnly);
-	const string& GetArticleStr();
-	
+        const TCortege10&       GetRossCortege (size_t i) const;
+        size_t                          GetCortegesSize () const;
+        const TCortege10&       GetCortege (size_t i)  const;
+        string          ConstructFldName (BYTE FieldNo, BYTE LeafId, BYTE BracketLeafId);
+        bool            IsPartOf(const CTempArticle *Article, bool UseWildCards) const;
+        int                     IntersectByFields(const CTempArticle *Article) const;
+        bool            AddArticle(const CTempArticle *Article);
+        bool            PutCortegeOnTheRigthPosition (const TCortege10& C);
+        bool            ArticleToText ();
+        bool            AddCortegeToVector (CTextField& F);
+        bool            CheckCortegeVector ();
+        bool            SetArticleStr(const char * s);
+        bool            MarkUp();
+        bool            BuildCortegeList();
+        bool            WriteToDictionary();
+        bool            IsModified() const;
+        void            ReadFromDictionary(WORD UnitNo, bool VisualOrder, bool ReadOnly);
+        const string& GetArticleStr();
+        
 };
 
 #endif
+
+/*--- emacs style variables ---
+ * Local Variables:
+ *  mode: C++
+ *  c-default-style: "linux"
+ *  c-basic-offset: 4
+ *  tab-width: 8
+ *  indent-tabs-mode: nil
+ * End:
+ */

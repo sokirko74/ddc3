@@ -88,3 +88,13 @@ void action_store::v_get (int i_entry, int & i_1, int & i_2, int & i_3, TIXML_ST
 }
 
 }
+
+/*--- emacs style variables ---
+ * Local Variables:
+ *  mode: C++
+ *  c-default-style: "linux"
+ *  c-basic-offset: 4
+ *  tab-width: 8
+ *  indent-tabs-mode: nil
+ * End:
+ */

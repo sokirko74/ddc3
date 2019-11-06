@@ -1,4 +1,4 @@
-//-*- Mode: C++; c-basic-offset: 8; -*-
+//-*- Mode: C++ -*-
 //
 //  Original by Alexey Sokirko.
 //
@@ -24,7 +24,7 @@
 
 #include "../CommonLib/ddcTime.h"
 #include "../ConcordLib/ConcCommon.h"
-#include "../ConcordLib/ConcIndexator.h"
+#include "../ConcordLib/ConcIndexatorInvoker.h"
 
 const char *prog = "ddc_index";
 void  PrintUsageAndExit()
@@ -62,7 +62,7 @@ int main(int argc, char* argv[])
 	prog = argv[0];
 	if (argc < 2) 
 		PrintUsageAndExit();
-	CConcIndexatorInvoker S;
+	ConcIndexatorInvoker S;
 	bool bOnlyReindexMorphology = false;
 	bool bPrintProfile = false;
 	bool bSkipInitialFileChecking = false;
@@ -133,3 +133,13 @@ int main(int argc, char* argv[])
 	return 0;
 }
 
+
+/*--- emacs style variables ---
+ * Local Variables:
+ *  mode: C++
+ *  c-default-style: "linux"
+ *  c-basic-offset: 4
+ *  tab-width: 8
+ *  indent-tabs-mode: nil
+ * End:
+ */

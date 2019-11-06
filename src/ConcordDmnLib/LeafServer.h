@@ -1,4 +1,4 @@
-//-*- Mode: C++; c-basic-offset:4; -*-
+//-*- Mode: C++ -*-
 //
 //  DDC originally by Alexey Sokirko
 //  Changes and modifications 2011-2018 by Bryan Jurish
@@ -37,7 +37,7 @@ public:
 
     /** default constructor */
     CDDCLeafServer()
-	: m_pHolder(NULL)
+        : m_pHolder(NULL)
     {};
 
     /** default destructor */
@@ -100,7 +100,7 @@ public:
     // local methods
 
     /** (re-)load the underlying index (reload broken!) */
-    bool LoadHolder(CConcHolder **ppHolder=NULL);
+    void LoadHolder(CConcHolder **ppHolder=NULL);
 
     /** generate count-query response for run_query handler */
     void GetHitCounts(CRunQueryData &runq, DDCFormatTypeEnum ResultTypeE);
@@ -115,3 +115,13 @@ typedef CDDCLeafServer CDDCCorpusListenHost;
 
 #endif /* DDC_LEAF_SERVER_H */
 
+
+/*--- emacs style variables ---
+ * Local Variables:
+ *  mode: C++
+ *  c-default-style: "linux"
+ *  c-basic-offset: 4
+ *  tab-width: 8
+ *  indent-tabs-mode: nil
+ * End:
+ */

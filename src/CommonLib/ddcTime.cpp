@@ -1,7 +1,7 @@
-//-*- Mode: C++; c-basic-offset:4;-*-
+//-*- Mode: C++ -*-
 //
 //  DDC originally by Alexey Sokirko
-//  Changes and modifications 2011-2016 by Bryan Jurish
+//  Changes and modifications 2011-2019 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -164,6 +164,8 @@ DDCTimeAvg::MapT& DDCTimeAvg::Append(double sample, const TimeT& when, size_t n)
     }
     m_total += sample;
     m_n     += n;
+
+    return m_map;
 }
 
 //----------------------------------------------------------------------
@@ -189,3 +191,13 @@ string DDCTimeAvg::toJsonMap() const
     buf.push_back('}');
     return buf;
 }
+
+/*--- emacs style variables ---
+ * Local Variables:
+ *  mode: C++
+ *  c-default-style: "linux"
+ *  c-basic-offset: 4
+ *  tab-width: 8
+ *  indent-tabs-mode: nil
+ * End:
+ */

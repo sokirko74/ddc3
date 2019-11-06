@@ -1,4 +1,4 @@
-//-*- Mode: C++; c-basic-offset: 8; -*-
+//-*- Mode: C++ -*-
 //
 //  DDC originally by Alexey Sokirko
 //  Changes and modifications 2011-2018 by Bryan Jurish
@@ -22,7 +22,7 @@
 #define IndexSetForQueryingStage_h
 
 
-#include "../common/bserialize.h"
+#include "../CommonLib/bserialize.h"
 #include "../CommonLib/ddcThread.h"
 #include "../CommonLib/ddcMMap.h"
 
@@ -31,8 +31,8 @@
 
 //!  a type for mappping an index item no to its \ref perdiv_def "period division"
 //typedef map<DWORD, vector<DWORD> > PeriodsDivisionMap__OLD
-typedef ddcMapFile<DWORD,DWORD>       PeriodsDivisionMapT;
-typedef PeriodsDivisionMapT::MapT     PeriodsDivisionMapR;  ///< low-level resident std::map<> implementation in PeriodsDivisionMap::m_map
+typedef ddcMapFile<DWORD, DWORD> PeriodsDivisionMapT;
+typedef PeriodsDivisionMapT::MapT PeriodsDivisionMapR;  ///< low-level resident std::map<> implementation in PeriodsDivisionMap::m_map
 typedef PeriodsDivisionMapT::RecFileT PeriodsDivisionMapV;  ///< low-level virtual mmap()-based implementation in PeriodsDivisionMap::m_rfile
 
 
@@ -40,103 +40,95 @@ typedef PeriodsDivisionMapT::RecFileT PeriodsDivisionMapV;  ///< low-level virtu
 /////////////////////////////////////////////////////////////////////////////
 // Flags for CIndexItem::m_IndexItemOffsetAndFlags
 
-const DWORD TheOnlyOccurIsInEndOccurNo = 1<<31;
+const DWORD TheOnlyOccurIsInEndOccurNo = 1 << 31;
 /*-- 2018-08-15: EndOfSentenceForBigrams flag is obsolete --*/
 //const DWORD EndOfSentenceForBigrams = 1<<30;
 //const DWORD AllFlags = TheOnlyOccurIsInEndOccurNo  | EndOfSentenceForBigrams;
 const DWORD AllFlags = TheOnlyOccurIsInEndOccurNo;
 
 /*!
-	CIndexItem contains basic information about one index item. In the strict sense one index item
-	is a connection between an indexed string and its occurrences. More generally the term "index item"
-	is used to refer also an indexed string.
+        CIndexItem contains basic information about one index item. In the strict sense one index item
+        is a connection between an indexed string and its occurrences. More generally the term "index item"
+        is used to refer also an indexed string.
 */
-class CIndexItem 
-{
-	// pointer to CStringIndexSet::m_StringBuffer and flags;
-	DWORD				m_IndexItemOffsetAndFlags;
+class CIndexItem {
+    // pointer to CStringIndexSet::m_StringBuffer and flags;
+    DWORD m_IndexItemOffsetAndFlags;
 
-	// upper bound offset of occurrences in CIndexSetForQueryingStage::m_OccursFp
-	DWORD				m_EndOccurOffset;
+    // upper bound offset of occurrences in CIndexSetForQueryingStage::m_OccursFp
+    DWORD m_EndOccurOffset;
 
 public:
-	//! return m_IndexItemOffsetAndFlags for serialization
-	DWORD	GetIndexItemOffsetAndFlags() const
-	{
-		return m_IndexItemOffsetAndFlags;
-	};
-	//! set m_IndexItemOffsetAndFlags for serialization
-	void	SetIndexItemOffsetAndFlags(DWORD Value) 
-	{
-		m_IndexItemOffsetAndFlags = Value;
-	};
+    //! return m_IndexItemOffsetAndFlags for serialization
+    DWORD GetIndexItemOffsetAndFlags() const {
+        return m_IndexItemOffsetAndFlags;
+    };
 
-	static size_t GetMaximalNumberOfRunningTokens()
-	{
-		return ~0 & ~AllFlags; 
-	};
+    //! set m_IndexItemOffsetAndFlags for serialization
+    void SetIndexItemOffsetAndFlags(DWORD Value) {
+        m_IndexItemOffsetAndFlags = Value;
+    };
 
-	//! returns a reference of this index item to CStringIndexSet::m_StringBuffer
-	DWORD	GetIndexItemOffset() const
-	{
-		return m_IndexItemOffsetAndFlags & ~AllFlags;
-	};
-	
-	//! sets a reference  of this index item to CStringIndexSet::m_StringBuffer
-	void	SetIndexItemOffset(DWORD Value) 
-	{
+    static size_t GetMaximalNumberOfRunningTokens() {
+        return ~0 & ~AllFlags;
+    };
+
+    //! returns a reference of this index item to CStringIndexSet::m_StringBuffer
+    DWORD GetIndexItemOffset() const {
+        return m_IndexItemOffsetAndFlags & ~AllFlags;
+    };
+
+    //! sets a reference  of this index item to CStringIndexSet::m_StringBuffer
+    void SetIndexItemOffset(DWORD Value) {
         m_IndexItemOffsetAndFlags &= AllFlags;
-		m_IndexItemOffsetAndFlags |= Value & ~AllFlags;
-	};
-	//! returns  flags of  this  index item
-	DWORD	GetItemIndexFlags() const
-	{
-		return m_IndexItemOffsetAndFlags & AllFlags;
-	};
-	//! set flags of  this  index item
-	void	AddItemIndexFlags(DWORD Value) 
-	{
-		m_IndexItemOffsetAndFlags |= Value & AllFlags;
-	};
-	//! return the upper bound offset of occurrences in CIndexSetForQueryingStage::m_OccursFp
-	DWORD GetEndOccurOffset() const 
-	{
-		return m_EndOccurOffset;
-	};
-	//! set the upper bound offset of occurrences in CIndexSetForQueryingStage::m_OccursFp
-	void SetEndOccurOffset(DWORD EndOccurOffset)  
-	{
-		m_EndOccurOffset = EndOccurOffset;
-	};
-    bool HasOneOccurrence () const 
-    {
+        m_IndexItemOffsetAndFlags |= Value & ~AllFlags;
+    };
+
+    //! returns  flags of  this  index item
+    DWORD GetItemIndexFlags() const {
+        return m_IndexItemOffsetAndFlags & AllFlags;
+    };
+
+    //! set flags of  this  index item
+    void AddItemIndexFlags(DWORD Value) {
+        m_IndexItemOffsetAndFlags |= Value & AllFlags;
+    };
+
+    //! return the upper bound offset of occurrences in CIndexSetForQueryingStage::m_OccursFp
+    DWORD GetEndOccurOffset() const {
+        return m_EndOccurOffset;
+    };
+
+    //! set the upper bound offset of occurrences in CIndexSetForQueryingStage::m_OccursFp
+    void SetEndOccurOffset(DWORD EndOccurOffset) {
+        m_EndOccurOffset = EndOccurOffset;
+    };
+
+    bool HasOneOccurrence() const {
         return (m_IndexItemOffsetAndFlags & TheOnlyOccurIsInEndOccurNo) != 0;
     }
 };
 
-inline size_t get_size_in_bytes (const CIndexItem& t)
-{
-	return 8;
+inline size_t get_size_in_bytes(const CIndexItem &t) {
+    return 8;
 };
 
-inline size_t save_to_bytes(const CIndexItem& i, BYTE* buf)
-{
-	buf += save_to_bytes(i.GetIndexItemOffsetAndFlags(), buf);
-	buf += save_to_bytes(i.GetEndOccurOffset(), buf);
-	return get_size_in_bytes(i);
+inline size_t save_to_bytes(const CIndexItem &i, BYTE *buf) {
+    buf += save_to_bytes(i.GetIndexItemOffsetAndFlags(), buf);
+    buf += save_to_bytes(i.GetEndOccurOffset(), buf);
+    return get_size_in_bytes(i);
 }
 
-inline size_t restore_from_bytes(CIndexItem& i, const BYTE* buf)
-{
-	DWORD d;
+inline size_t restore_from_bytes(CIndexItem &i, const BYTE *buf) {
+    DWORD d;
 
-	buf += restore_from_bytes(d, buf);
-	i.SetIndexItemOffsetAndFlags(d);
+    buf += restore_from_bytes(d, buf);
+    i.SetIndexItemOffsetAndFlags(d);
 
-	buf += restore_from_bytes(d, buf);
-	i.SetEndOccurOffset(d);
+    buf += restore_from_bytes(d, buf);
+    i.SetEndOccurOffset(d);
 
-	return get_size_in_bytes(i);
+    return get_size_in_bytes(i);
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -151,89 +143,112 @@ typedef ddcVecFile<DWORD> CSuffixIndex;
 /////////////////////////////////////////////////////////////////////////////
 // forward decls
 
-class CStringIndexator; 
+class CStringIndexator;
+
 class CItemIndexForLoading;
 
 /////////////////////////////////////////////////////////////////////////////
-/*!	This class is  a part of CStringIndexSet class which is used only during querying.  It contains
+/*!     This class is  a part of CStringIndexSet class which is used only during querying.  It contains
 the important serialization primitives.
 */
-class CIndexSetForQueryingStage : public ddcLockable
-{
-	//! the main file of  occurrences 
-	FILE*			m_OccursFp;
-	
-	
-	//! close m_OccursFp
-	void	CloseOccursFile();
+class CIndexSetForQueryingStage {
+    //! the main file of  occurrences
+    CFileOrMemoryMappedFile m_OccursFp;
 
-	//! load all \ref perdiv_def "period divisions" to m_EndPeriodOffsets
-	bool	LoadPeriodDivision();
-	
+    //! load all \ref perdiv_def "period divisions" to m_EndPeriodOffsets
+    bool LoadPeriodDivision();
+
+    //! reads \a Count occurences starting at \a FilePosition from \a m_OccursFp into \a OutBuffer
+    //! + ddc-v2.1.0: file-access (m_OccursFp); implicitly locks & unlocks the object
+    void ReadOccurrences(CTokenNo *OutBuffer, file_off_t FilePosition, size_t Count) const;
 
 protected:
 
-	//!		return true, if the project path is initialized
-	void	AssertHasPath() const;
-	//!  a function for reading occurrences for one index item
-	void	AddOccurs (size_t IndexItemNo, const bool bOneOccurrence, const size_t StartOccurNo, const size_t EndOccurNo, vector<CTokenNo>& Occurs, size_t PeriodNo, COccurrBuffer& OccursBuffer, CShortOccurCache* pCacheByIndexSet, int& CacheId) const;
-	//!  return the file name  for the file occurrences
-	string	GetOccursFileName() const;
-	//!  return the name  of file for m_Index
-	string	GetOccHdrFileName() const;
-	//!  return the name  of file for m_rIndex (for suffix-queries)
-	string	GetSuffixFileName() const;
-	
-	
-	//!  return the name  of file for occurrences \ref perdiv_def "period division"
-	string	GetPeriodsDivisionFileName () const;
-	//!  return the name  of file for CIndexSetForLoadingStage::m_StringBuffer
-	string	GetFileNameForInfos() const;
-	//! return the size of the file for occurrences
-	file_off_t	GetOccurrsFileSize() const;
-	//!  get the offset of the first occurrence of index item no IndexNo in the file of occurrences(m_OccursFp)
-	size_t	GetStartOccurNo(size_t IndexNo) const;
-   	//!		build  a \ref perdiv_def "period division"  for one index item  
-	bool	BuildPeriodsDivisionAndCompress (const DWORD TokenId, vector<CTokenNo>& InputTokens);
-	//! write one index item to result file
-	bool	AddOneIndexItem (CItemIndexForLoading& M, FILE* res_fp, size_t& CurrPositionInResFile, const CTokenNo EndTokeNo);
-	//! write index item's \ref perdiv_def "period division"  to disk
-	bool	WritePeriodsDivision ();
+    //!         return true, if the project path is initialized
+    void AssertHasPath() const;
+
+    //!  a function for reading occurrences for one index item
+    void AddOccurs(size_t IndexItemNo, const bool bOneOccurrence, const size_t StartOccurNo, const size_t EndOccurNo,
+                   vector<CTokenNo> &Occurs, size_t PeriodNo, COccurrBuffer &OccursBuffer,
+                   CShortOccurCache *pCacheByIndexSet, int &CacheId) const;
+
+    //!  return the file name  for the file occurrences
+    string GetOccursFileName() const;
+
+    //!  return the name  of file for m_Index
+    string GetOccHdrFileName() const;
+
+    //!  return the name  of file for m_rIndex (for suffix-queries)
+    string GetSuffixFileName() const;
+
+
+    //!  return the name  of file for occurrences \ref perdiv_def "period division"
+    string GetPeriodsDivisionFileName() const;
+
+    //!  return the name  of file for CIndexSetForLoadingStage::m_StringBuffer
+    string GetFileNameForInfos() const;
+
+    //! return the size of the file for occurrences
+    file_off_t GetOccurrsFileSize() const;
+
+    //!  get the offset of the first occurrence of index item no IndexNo in the file of occurrences(m_OccursFp)
+    size_t GetStartOccurNo(size_t IndexNo) const;
+
+    //!         build  a \ref perdiv_def "period division"  for one index item
+    bool BuildPeriodsDivisionAndCompress(const DWORD TokenId, vector<CTokenNo> &InputTokens);
+
+    //! write one index item to result file
+    bool
+    AddOneIndexItem(CItemIndexForLoading &M, FILE *res_fp, size_t &CurrPositionInResFile, const CTokenNo EndTokeNo);
+
+    //! write index item's \ref perdiv_def "period division"  to disk
+    bool WritePeriodsDivision();
+
+    //! load index set from binaries
+    bool LoadIndexSet(bool bLoadHeaderOfOccurrences = true);
 
 
 public:
-	//! the main index(from strings to the ordered list of their occurrences) 
-	ddcVecFile<CIndexItem>		m_Index;
+    //! the main index(from strings to the ordered list of their occurrences)
+    ddcVecFile<CIndexItem> m_Index;
 
-	//! optional auxiliary index for suffix-queries; ItemIds lexicographically sorted by reverse string-value
-	CSuffixIndex			m_rIndex;
+    //! optional auxiliary index for suffix-queries; ItemIds lexicographically sorted by reverse string-value
+    CSuffixIndex m_rIndex;
 
-	//! all corpus \ref perdiv_def "period divisions" for the long occurrence lists
-	PeriodsDivisionMapT		m_EndPeriodOffsets;
+    //! all corpus \ref perdiv_def "period divisions" for the long occurrence lists
+    PeriodsDivisionMapT m_EndPeriodOffsets;
 
-	//! a pointer to the collection of indices, which contains a reference to this index
-	const CStringIndexator*		m_pParent;
+    //! a pointer to the collection of indices, which contains a reference to this index
+    const CStringIndexator *m_pParent;
 
-	//! if true, then the occurrences should be compresses (up to 30% for huge corpora)
-	bool						m_bCompressOccurrences;
+    //! if true, then the occurrences should be compresses (up to 30% for huge corpora)
+    bool m_bCompressOccurrences;
 
 
-	CIndexSetForQueryingStage(const CStringIndexator*		pParent);
-	~CIndexSetForQueryingStage();
-	//! return the name of the index (CStringIndexSet::m_Name)
-	virtual string GetName() const = 0;
-	//! load index set from binaries
-	bool	LoadIndexSet(bool bLoadHeaderOfOccurrences = true);
-	//! destroy index set and remove index files
-	bool	DestroyIndexSet ();
-	//! reads all occurrences of IndexItemNo (this function can allocate much memory; it should be used carefully)
-	void ReadAllOccurrences (size_t IndexItemNo, vector<CTokenNo>& Occurs) const;
+    CIndexSetForQueryingStage(const CStringIndexator *pParent);
 
-	//! reads \a Count occurences starting at \a FilePosition from \a m_OccursFp into \a OutBuffer
-	//! + ddc-v2.1.0: file-access (m_OccursFp); implicitly locks & unlocks the object
-	void ReadOccurrences (CTokenNo* OutBuffer, file_off_t FilePosition, size_t Count) const;
+    ~CIndexSetForQueryingStage();
+
+    //! return the name of the index (CStringIndexSet::m_Name)
+    virtual string GetName() const = 0;
+
+    //! destroy index set and remove index files
+    bool DestroyIndexSet();
+
+    //! reads all occurrences of IndexItemNo (this function can allocate much memory; it should be used carefully)
+    void ReadAllOccurrences(size_t IndexItemNo, vector<CTokenNo> &Occurs) const;
+
 };
 
 
-
 #endif
+
+/*--- emacs style variables ---
+ * Local Variables:
+ *  mode: C++
+ *  c-default-style: "linux"
+ *  c-basic-offset: 4
+ *  tab-width: 8
+ *  indent-tabs-mode: nil
+ * End:
+ */

@@ -1,4 +1,4 @@
-//-*- Mode: C++; c-basic-offset: 2; -*-
+//-*- Mode: C++ -*-
 //
 //  Copyright 2011-2017 by Bryan Jurish
 //
@@ -98,16 +98,18 @@ bool CQFSort::Compile(CQueryCompiler *compiler, CQueryOptions *options)
 //--------------------------------------------------------------
 string CQFSort::ResolveAttributeName(CQueryCompiler *compiler, const string& attrName, bool allowBiblExpander)
 {
-  CConcIndexator *ix = compiler->m_pHolder->m_pIndexator;
+  CConcordance *ix = compiler->m_pHolder->m_pConcordance;
   assert(ix != NULL);
 
-  if (!attrName.empty() && ((ix->m_Bibl.GetFreeBiblIndex(attrName)!=NULL)
-			    ||
-			    (allowBiblExpander && ix->m_Bibl.GetBiblExpander(attrName)!=NULL)))
+  if (!attrName.empty() &&
+        (      ix->m_BiblIndex.HasFreeBiblIndex(attrName)
+			|| (allowBiblExpander && ix->m_BiblIndex.HasBiblExpander(attrName))
+		)
+      )
       return attrName;
 
-  if (!ix->m_Bibl.m_DefaultAttrName.empty() && ix->m_Bibl.GetFreeBiblIndex(ix->m_Bibl.m_DefaultAttrName)!=NULL)
-    return ix->m_Bibl.m_DefaultAttrName;
+  if (!ix->m_BiblIndex.m_DefaultAttrName.empty() && ix->m_BiblIndex.HasFreeBiblIndex(ix->m_BiblIndex.m_DefaultAttrName))
+    return ix->m_BiblIndex.m_DefaultAttrName;
 
   return string("");
 }
@@ -232,7 +234,7 @@ bool CQFRandomSort::Compile(CQueryCompiler *compiler, CQueryOptions *options)
 
 bool CQFBiblSort::Compile(CQueryCompiler *compiler, CQueryOptions *options)
 {
-  CConcIndexator *ix = compiler->m_pHolder->m_pIndexator;
+  CConcordance *ix = compiler->m_pHolder->m_pConcordance;
   assert(ix != NULL);
 
   if (m_arg0.empty())
@@ -245,7 +247,7 @@ bool CQFBiblSort::Compile(CQueryCompiler *compiler, CQueryOptions *options)
   }
 
   //-- guts: get filter bounds
-  if (!ix->m_Bibl.GetFilterBounds(m_Filter, m_arg1, m_arg2)) {
+  if (!ix->m_BiblIndex.GetFilterBounds(m_Filter, m_arg1, m_arg2)) {
     throw CExpc(errParseError,"Can't determine bound(s) for bibliographic sort operator `%s'", this->toString().c_str());
   }
 
@@ -286,7 +288,7 @@ string CQFBiblSort::jsonMinMax(void)
 
 bool CQFContextSort::Compile(CQueryCompiler *compiler, CQueryOptions *options)
 {
-  CConcIndexator *ix = compiler->m_pHolder->m_pIndexator;
+  CConcordance *ix = compiler->m_pHolder->m_pConcordance;
   assert(ix != NULL);
 
   m_Filter.m_AttrName  = m_arg0.empty() ? ix->GetTokenIndex()->m_Name : m_arg0;
@@ -387,9 +389,9 @@ bool CQFHasFieldValue::Compile(CQueryCompiler *compiler, CQueryOptions *options)
   CQFHasField::Compile(compiler,options);
 
   m_Filter.m_bNegated = m_Negated;
-  CConcIndexator *ix = compiler->m_pHolder->m_pIndexator;
+  CConcordance *ix = compiler->m_pHolder->m_pConcordance;
 
-  if (!ix->m_Bibl.GetFilterValue(m_Filter, m_arg1))
+  if (!ix->m_BiblIndex.GetFilterValue(m_Filter, m_arg1))
     throw CExpc(errParseError,"Can't compile literal filter condition `%s'", toString().c_str());
 
   return CQFSort::Compile(compiler,options);
@@ -403,8 +405,8 @@ bool CQFHasFieldRegex::Compile(CQueryCompiler *compiler, CQueryOptions *options)
   CQFHasField::Compile(compiler,options);
 
   m_Filter.m_bNegated = m_Negated;
-  CConcIndexator *ix = compiler->m_pHolder->m_pIndexator;
-  if (!ix->m_Bibl.GetFilterValues(m_Filter, m_Regex))
+  CConcordance *ix = compiler->m_pHolder->m_pConcordance;
+  if (!ix->m_BiblIndex.GetFilterValues(m_Filter, m_Regex))
     throw CExpc(errParseError,"Can't compile regex filter condition `%s'", toString().c_str());
 
   return CQFSort::Compile(compiler,options);
@@ -447,8 +449,8 @@ bool CQFHasFieldSet::Compile(CQueryCompiler *compiler, CQueryOptions *options)
   CQFHasField::Compile(compiler,options);
 
   m_Filter.m_bNegated = m_Negated;
-  CConcIndexator *ix = compiler->m_pHolder->m_pIndexator;
-  if (!ix->m_Bibl.GetFilterValues(m_Filter, m_Values))
+  CConcordance *ix = compiler->m_pHolder->m_pConcordance;
+  if (!ix->m_BiblIndex.GetFilterValues(m_Filter, m_Values))
     throw CExpc(errParseError,"Can't compile set-valued filter restriction `%s'", toString().c_str());
 
   return CQFSort::Compile(compiler,options);
@@ -479,3 +481,13 @@ string CQFHasFieldSet::jsonFieldValue()
   s.push_back(']');
   return s;
 }
+
+/*--- emacs style variables ---
+ * Local Variables:
+ *  mode: C++
+ *  c-default-style: "linux"
+ *  c-basic-offset: 4
+ *  tab-width: 8
+ *  indent-tabs-mode: nil
+ * End:
+ */

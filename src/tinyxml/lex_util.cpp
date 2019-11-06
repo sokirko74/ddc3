@@ -304,3 +304,12 @@ void v_assign_double_to_string (TIXML_STRING & S_string, double d_val)
 #endif
 
 }
+/*--- emacs style variables ---
+ * Local Variables:
+ *  mode: C++
+ *  c-default-style: "linux"
+ *  c-basic-offset: 4
+ *  tab-width: 8
+ *  indent-tabs-mode: nil
+ * End:
+ */

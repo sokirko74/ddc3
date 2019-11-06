@@ -1,4 +1,4 @@
-//-*- Mode: C++; c-basic-offset:4;-*-
+//-*- Mode: C++ -*-
 //
 //  DDC originally by Alexey Sokirko
 //  Changes and modifications 2011-2018 by Bryan Jurish
@@ -21,7 +21,7 @@
 #ifndef DDC_TIME_H
 #define DDC_TIME_H
 
-#include "../common/ddcConfig.h"
+#include "../CommonLib/ddcConfig.h"
 #include <time.h>
 #include <string>
 #include <map>
@@ -58,7 +58,7 @@ struct DDCTimeUnix
 
     /** copy constructor */
     DDCTimeUnix(const DDCTimeUnix& X)
-	: m_t(X.m_t)
+        : m_t(X.m_t)
     {};
 
     /** default destructor */
@@ -68,9 +68,9 @@ struct DDCTimeUnix
     /** constructor: current time */
     inline static DDCTimeUnix Now()
     {
-	DDCTimeUnix t;
-	t.Set();
-	return t;
+        DDCTimeUnix t;
+        t.Set();
+        return t;
     };
 
     /** set this object to current time */
@@ -105,17 +105,17 @@ struct DDCTimeUnix
     /** get date string in ISO-8601 format (YYYY-MM-DD) */
     inline std::string DateStr() const
     {
-	char DateBuf[DDCDateBufferSize];
-	this->DateTime(DateBuf, NULL);
-	return std::string(DateBuf);
+        char DateBuf[DDCDateBufferSize];
+        this->DateTime(DateBuf, NULL);
+        return std::string(DateBuf);
     };
 
     /** get time string in 24-hour HH:MM:SS format */
     inline std::string TimeStr() const
     {
-	char TimeBuf[DDCTimeBufferSize];
-	this->DateTime(NULL,TimeBuf);
-	return std::string(TimeBuf);
+        char TimeBuf[DDCTimeBufferSize];
+        this->DateTime(NULL,TimeBuf);
+        return std::string(TimeBuf);
     };
 
     /** get elapsed time since \a t0, double resolution */
@@ -158,31 +158,31 @@ struct DDCTimeHiRes : public DDCTimeUnix
     /** constructor: current time */
     inline static DDCTimeHiRes Now()
     {
-	DDCTimeHiRes t;
-	t.Set();
-	return t;
+        DDCTimeHiRes t;
+        t.Set();
+        return t;
     };
     
     /** set this object to current time */
     inline void Set()
     {
-	clock_gettime(CLOCK_REALTIME, &m_ts);
-	DDCTimeUnix::Set(m_ts.tv_sec);
+        clock_gettime(CLOCK_REALTIME, &m_ts);
+        DDCTimeUnix::Set(m_ts.tv_sec);
     };
 
     /** assignment operator (from time_t) */
     inline void Set(const time_t time_)
     {
-	DDCTimeUnix::Set(time_);
-	m_ts.tv_sec  = time_;
-	m_ts.tv_nsec = 0;
+        DDCTimeUnix::Set(time_);
+        m_ts.tv_sec  = time_;
+        m_ts.tv_nsec = 0;
     };
 
     /** assignment operator (from struct timespec) */
     inline void Set(const struct timespec &ts_)
     {
-	m_t  = ts_.tv_sec;
-	m_ts = ts_;
+        m_t  = ts_.tv_sec;
+        m_ts = ts_;
     };
 
     /** assignment operator (from DDCTimeUnix object) */
@@ -276,23 +276,23 @@ struct DDCTimeAvg
 
     /** constructor given up to three delays and optional initial value */
     DDCTimeAvg(DelayT delay1=60, DelayT delay2=300, DelayT delay3=900, ValueT val=0)
-	: m_total(0), m_n(0)
+        : m_total(0), m_n(0)
     {
-	SetDelays(delay1,delay2,delay3,val);
-	m_t.Set();
+        SetDelays(delay1,delay2,delay3,val);
+        m_t.Set();
     };
 
     /** constructor given delays as vector and optional initial value */
     DDCTimeAvg(const std::vector<DelayT>& delays, ValueT val=0)
-	: m_total(0), m_n(0)
+        : m_total(0), m_n(0)
     {
-	SetDelays(delays,val);
-	m_t.Set();
+        SetDelays(delays,val);
+        m_t.Set();
     };
 
     /** copy constructor */
     DDCTimeAvg(const DDCTimeAvg& X)
-	: m_map(X.m_map), m_t(X.m_t), m_total(X.m_total), m_n(X.m_n)
+        : m_map(X.m_map), m_t(X.m_t), m_total(X.m_total), m_n(X.m_n)
     {};
 
     /** reset sample values to zero */
@@ -301,8 +301,8 @@ struct DDCTimeAvg
     /** clear all data */
     inline void clear()
     {
-	m_map.clear();
-	reset();
+        m_map.clear();
+        reset();
     };
 
     //----------------------------------------------------------------------
@@ -338,7 +338,7 @@ struct DDCTimeAvg
      * \li does nothing if x.m_n==0; otherwise actually calls Append(x.Total())
      */
     inline DDCTimeAvg& operator+=(const DDCTimeAvg& x)
-    { if (x.m_n > 0) Append(x.Total()); };
+    { if (x.m_n > 0) Append(x.Total()); return *this;};
 
     /** alias used by CDDCLeafServer::handle__status() to synchronize times: causes moving-averages to decay */
     inline void Scrub()
@@ -380,5 +380,15 @@ struct DDCTimeAvg
 //======================================================================
 // Functions
 
-	
+        
 #endif /* DDC_TIME_H */
+
+/*--- emacs style variables ---
+ * Local Variables:
+ *  mode: C++
+ *  c-default-style: "linux"
+ *  c-basic-offset: 4
+ *  tab-width: 8
+ *  indent-tabs-mode: nil
+ * End:
+ */

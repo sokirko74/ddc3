@@ -1,4 +1,4 @@
-//-*- Mode: C++; c-basic-offset: 2; -*-
+//-*- Mode: C++ -*-
 //
 //  DDC originally by Alexey Sokirko
 //  Changes and modifications 2011-2018 by Bryan Jurish
@@ -18,8 +18,8 @@
 //  You should have received a copy of the GNU Lesser General Public License
 //  along with DDC.  If not, see <http://www.gnu.org/licenses/>.
 
-#include <QueryOptions.h>
-#include <QueryCompiler.h>
+#include "QueryOptions.h"
+#include "QueryCompiler.h"
 
 //======================================================================
 // CQueryOptions
@@ -99,9 +99,9 @@ bool CQueryOptions::Compile(CQueryCompiler *compiler)
 
   //-- index-dependent flag-setting from old CQueryParser::ParseQuery()
   assert(compiler->m_pHolder!=NULL);
-  assert(compiler->m_pHolder->m_pIndexator!=NULL);
-  m_HitTypeStr = compiler->m_pHolder->m_pIndexator->WithinBreakName(m_Within);
-  m_TextAreaNo = compiler->m_pHolder->m_pIndexator->m_Bibl.WithinTextArea(m_Within);
+  assert(compiler->m_pHolder->m_pConcordance!=NULL);
+  m_HitTypeStr = compiler->m_pHolder->m_pConcordance->WithinBreakName(m_Within);
+  m_TextAreaNo = compiler->m_pHolder->m_pConcordance->m_BiblIndex.WithinTextArea(m_Within);
 
   return rc;
 }
@@ -260,3 +260,13 @@ void CQueryOptions::DisownChildren()
 {
   m_QFilters.clear();
 }
+
+/*--- emacs style variables ---
+ * Local Variables:
+ *  mode: C++
+ *  c-default-style: "linux"
+ *  c-basic-offset: 4
+ *  tab-width: 8
+ *  indent-tabs-mode: nil
+ * End:
+ */

@@ -1,4 +1,4 @@
-//-*- Mode: C++; c-basic-offset: 8; -*-
+//-*- Mode: C++ -*-
 //
 //  DDC originally by Alexey Sokirko
 //  Changes and modifications 2011-2018 by Bryan Jurish
@@ -483,28 +483,41 @@ int	main(int argc, char	**argv)
 		)
 		PrintUsage();
 
-	if (Action == "start") {
-		return do_start(false);
-	}
-	else if (Action == "start_cli") {
-		return do_start(true);
-	}
-	else if (Action == "stop")  {
-		return do_stop();
-	}
-	else if (Action == "restart") {
-		do_stop();
-		sleep(1);
-		return do_start();
+	int resultCode = 0;
+	try {
+        if (Action == "start") {
+            return do_start(false);
+        } else if (Action == "start_cli") {
+            return do_start(true);
+        } else if (Action == "stop") {
+            return do_stop();
+        } else if (Action == "restart") {
+            do_stop();
+            sleep(1);
+            return do_start();
+        }
+    } catch (exception& e) {
+	    fprintf (stderr, "Exception: %s", e.what());
+        resultCode = 1;
 	}
 
 	//-- should never get here
 	RemoveLockFile();
 	SocketDeinitialize();	
-	return 0;
+	return resultCode;
 }
 
 
 
 
 
+
+/*--- emacs style variables ---
+ * Local Variables:
+ *  mode: C++
+ *  c-default-style: "linux"
+ *  c-basic-offset: 4
+ *  tab-width: 8
+ *  indent-tabs-mode: nil
+ * End:
+ */

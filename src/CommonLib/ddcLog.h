@@ -1,4 +1,4 @@
-//-*- Mode: C++; c-basic-offset:4;-*-
+//-*- Mode: C++ -*-
 //
 //  DDC originally by Alexey Sokirko
 //  Changes and modifications 2011-2018 by Bryan Jurish
@@ -28,9 +28,9 @@
 
 /*-- old, ununtuitively-named log-levels
 enum ProtocolDensityEnum {
-	pdWeakDensity = 0,
-	pdMediumDensity = 1,
-	pdHeavyDensity = 2
+        pdWeakDensity = 0,
+        pdMediumDensity = 1,
+        pdHeavyDensity = 2
 };
 --*/
 
@@ -49,7 +49,7 @@ extern const DDCLogLevel ddcLLTrace;     //< log-level: trace messages (=5 ~ pdH
 typedef DDCLogLevel ProtocolDensityEnum;
 
 /** constant aliases for unintuitively-named pre-v2.1 log-levels */
-extern const DDCLogLevel pdWeakDensity;	  //< log-level pre-v2.1 compatibility alias: ddcLLInfo
+extern const DDCLogLevel pdWeakDensity;   //< log-level pre-v2.1 compatibility alias: ddcLLInfo
 extern const DDCLogLevel pdMediumDensity; //< log-level pre-v2.1 compatibility alias: ddcLLDebug
 extern const DDCLogLevel pdHeavyDensity;  //< log-level pre-v2.1 compatibility alias: ddcLLTrace
 
@@ -115,3 +115,13 @@ inline void concord_daemon_log(const std::string& t)
 #define ddcLogTrace(Msg) ddcLogIf((ddcLogLevel >= ddcLLTrace),Msg)
 
 #endif /* DDC_LOG_H */
+
+/*--- emacs style variables ---
+ * Local Variables:
+ *  mode: C++
+ *  c-default-style: "linux"
+ *  c-basic-offset: 4
+ *  tab-width: 8
+ *  indent-tabs-mode: nil
+ * End:
+ */

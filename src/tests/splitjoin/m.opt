@@ -1,0 +1,6 @@
+German
+IndexType Free_Index
+Indices [Token w normal];[Lemma l normal storage]
+HitBorders [file:file];[s:sentence:default];[textarea:textarea]
+TextArea body /TEI.2/text/body
+

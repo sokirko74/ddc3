@@ -1,4 +1,4 @@
-//-*- Mode: C++; c-basic-offset: 4;-*-
+//-*- Mode: C++ -*-
 //
 //  This file is part of DDC.
 // 
@@ -34,20 +34,20 @@
 #include  <stdio.h>
 
 
-#define WIN32_LEAN_AND_MEAN		// Exclude rarely-used stuff from Windows headers
+#define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers
 
 #ifdef WIN32
 
-	// it is used to find memory leaks
-	#ifdef DETECT_MEMORY_LEAK
-		extern void* operator new(size_t nSize, const char* lpszFileName, int nLine);
-		extern void  operator delete(void* p, const char* lpszFileName, int nLine);
-		#define DEBUG_NEW new(THIS_FILE, __LINE__)
-	#endif
-	
+        // it is used to find memory leaks
+        #ifdef DETECT_MEMORY_LEAK
+                extern void* operator new(size_t nSize, const char* lpszFileName, int nLine);
+                extern void  operator delete(void* p, const char* lpszFileName, int nLine);
+                #define DEBUG_NEW new(THIS_FILE, __LINE__)
+        #endif
+        
 
-	#include "windows.h"
-	#include "winuser.h"
+        #include "windows.h"
+        #include "winuser.h"
 #endif
 
 #include  <assert.h>
@@ -76,12 +76,12 @@
 #pragma warning  (disable : 4251)
 #pragma warning  (disable : 4996)
 #endif
-		
+                
 
 #ifdef STLPORT
-	using namespace stlport;
+        using namespace stlport;
 #else
-	using namespace std;
+        using namespace std;
 #endif
 
 
@@ -94,19 +94,19 @@
 typedef unsigned char BYTE;
 
 #ifdef WIN32
-	#include  <io.h>
-	#include <fcntl.h>
-	typedef __int64 QWORD;
-	
+        #include  <io.h>
+        #include <fcntl.h>
+        typedef __int64 QWORD;
+        
 #else
-	#include  <unistd.h>
-//	typedef unsigned int	DWORD;	
-//	typedef unsigned short	WORD;
-	typedef uint32_t	DWORD;
-	typedef uint16_t	WORD;
-	typedef uint64_t	QWORD;
-	typedef unsigned int	UINT;  //-- unused
-	const   unsigned int _MAX_PATH = 512;
+        #include  <unistd.h>
+//      typedef unsigned int    DWORD;  
+//      typedef unsigned short  WORD;
+        typedef uint32_t        DWORD;
+        typedef uint16_t        WORD;
+        typedef uint64_t        QWORD;
+        typedef unsigned int    UINT;  //-- unused
+        const   unsigned int _MAX_PATH = 512;
 #endif
 
 //-- moo: more utilities
@@ -142,14 +142,6 @@ inline QWORD GetMaxQWORD ()
 { return QWORD_MAX; }
 
 const BYTE   cHyphenChar   = (BYTE) '-';
-const BYTE   cPeriodChar   = (BYTE) '.';
-const BYTE   cEofChar      = (BYTE) 0x1a;
-const BYTE   cPtrChar      = (BYTE) 0x13;
-const BYTE   cSpaceChar    = (BYTE) 32;
-const BYTE   cBackChar     = (BYTE) 'Ђ';
-const BYTE   cFullChar    = (BYTE) '«';
-const BYTE   cNumChar      = (BYTE) 'N';
-const BYTE   cAmpChar      = (BYTE) '&';
 const BYTE   cParagraph    = (BYTE) 21;
 const BYTE   cCompanyChar  = (BYTE) 176;
 const BYTE   cIonChar      = (BYTE) 183;
@@ -169,9 +161,9 @@ typedef enum {
 } MorphLanguageEnum;
 
 template <class T1, class T2, class T3>
-struct	troika : public pair<T1, T2>
+struct  troika : public pair<T1, T2>
 {
-	T3 third;
+        T3 third;
 };
 
 
@@ -182,7 +174,7 @@ typedef QWORD file_off_t;
 class CExpc : public runtime_error
 {
 public:
-    //! internal error code (see ../common/DDCInternalError.h)
+    //! internal error code (see ../CommonLib/DDCInternalError.h)
     int m_ErrorCode; 
 
     //! symbolic error message (should also be returned by what() method)
@@ -220,60 +212,60 @@ public:
 
 
 // working with files
-extern bool		FileExists (const char *FName);
-inline bool		FileExists (const string& FName)
+extern bool             FileExists (const char *FName);
+inline bool             FileExists (const string& FName)
 { return FileExists(FName.c_str()); };
 
-extern bool		IsDirectory(const char* DirName);
-inline bool		IsDirectory(const string& DirName)
+extern bool             IsDirectory(const char* DirName);
+inline bool             IsDirectory(const string& DirName)
 { return IsDirectory(DirName.c_str()); };
 
-extern file_off_t	FileSize (const char *filename);
+extern file_off_t       FileSize (const char *filename);
 inline file_off_t       FileSize (const string& filename)
 { return FileSize(filename.c_str()); };
 
-extern time_t		FileMTime (const char *filename);
-extern bool		FSeek(FILE* fp, file_off_t pos, int origin);
-extern file_off_t	FTell(FILE* fp);
+extern time_t           FileMTime (const char *filename);
+extern bool             FSeek(FILE* fp, file_off_t pos, int origin);
+extern file_off_t       FTell(FILE* fp);
 
 
-extern void	ErrorMessage (const string& Label, const string& Message);
-extern void	ErrorMessage (const string& Message);
-extern string	MakeFName ( const string& InpitFileName,  const string& Ext);
-extern bool	MakePath (const char* RossPath, const char* FileName, char* FullPath);
-extern string	GetPathByFile (string FileName);
-extern bool	IsBinFile (const char* FileName);
-extern bool	IsEmptyLine ( const char *t);
+extern void     ErrorMessage (const string& Label, const string& Message);
+extern void     ErrorMessage (const string& Message);
+extern string   MakeFName ( const string& InpitFileName,  const string& Ext);
+extern bool     MakePath (const char* RossPath, const char* FileName, char* FullPath);
+extern string   GetPathByFile (string FileName);
+extern bool     IsBinFile (const char* FileName);
+extern bool     IsEmptyLine ( const char *t);
 
 //-- filename stuff
-extern bool	IsHtmlFile (const string& FileName);
-extern bool	IsTableFile (const string& FileName);
-extern bool	IsJsonFile (const string& FileName);
-extern string	FileExtension (const string& FileName);
+extern bool     IsHtmlFile (const string& FileName);
+extern bool     IsTableFile (const string& FileName);
+extern bool     IsJsonFile (const string& FileName);
+extern string   FileExtension (const string& FileName);
 
 //! Returns directory part of \a FileName, or "." if FileName is a bare filename, like dirname(3)
-extern string	FileDirectory (const string& FileName);
+extern string   FileDirectory (const string& FileName);
 
 //! Returns file part of \a FileName, like basename(3)
-extern string	FileBasename  (const string& FileName);
+extern string   FileBasename  (const string& FileName);
 
 //! Returns basename \a FileName, removing any trailing extension \a FileExtension
-extern string	FileBasename  (const string& FileName, const string& FileExtension);
+extern string   FileBasename  (const string& FileName, const string& FileExtension);
 
 //! Wrapper for getcwd(); returns current working directory of current process
-extern string	CurrentDirectory(void);
+extern string   CurrentDirectory(void);
 
 //! Returns true iff PathName is an absolute path (simple string heuristics)
-extern bool	IsAbsolutePath (const string& PathName);
+extern bool     IsAbsolutePath (const string& PathName);
 
 //! If PathName is absolute, it is returned; otherwise returns (RefDir + "/" + PathName)
-extern string	RelativePathName(const string &RefDir, const string &PathName);
+extern string   RelativePathName(const string &RefDir, const string &PathName);
 
 //! If PathName is absolute, it is returned; otherwise returns (FileDirectory(RefFile) + "/" + PathName)
-extern string	RelativeFileName(const string &RefFile, const string &PathName);
+extern string   RelativeFileName(const string &RefFile, const string &PathName);
 
 //! AddFile(): old ugly file-append hack using system("cat...")
-extern void	AddFile(const char* MainFile, const char* ToAdd);
+extern void     AddFile(const char* MainFile, const char* ToAdd);
 
 //! FileAppend(): newer better replacement for AddFile()
 extern void     FileAppend(FILE *src, FILE *dst);
@@ -282,12 +274,12 @@ extern void     FileAppend(const string& srcFile, const string& dstFile);
 
 //! FileAppendPartial(): append a substring of \a src to \a dst
 extern void     FileAppendPartial(FILE *src, FILE *dst, size_t nBytes);
-			   
+                           
 extern bool     RmlMoveFile(const char *oldpath, const char *newpath);
 extern bool     RmlCopyFile(const char *oldpath, const char *newpath);
-extern string	CreateTempFileName();
-extern bool	MakeDir(const string& DirName);
-extern bool	MakeDirP(const string& DirName);
+extern string   CreateTempFileName();
+extern bool     MakeDir(const string& DirName);
+extern bool     MakeDirP(const string& DirName);
 extern bool     RemoveWithPrint (const string& FileName);
 
 
@@ -297,25 +289,25 @@ extern bool     RemoveWithPrint (const string& FileName);
 /** struct for reading /proc/PID/status; see proc(5) */
 struct DDCProcessMemoryStatus
 {
-    size_t VmPeak;	//< Peak virtual memory size.
-    size_t VmSize;	//< Virtual memory size.
-    size_t VmLck;	//< Locked memory size (see mlock(3)).
-    size_t VmPin;	//< Pinned memory size (since Linux 3.2).  These are pages that can't be moved because something needs to directly access physical memory.
-    size_t VmHWM;	//< Peak resident set size ("high water mark").
-    size_t VmRSS;	//< Resident set size.  Note that the value here is the sum of RssAnon, RssFile, and RssShmem.
-    size_t VmData;	//< Size of data segment.
-    size_t VmStk;	//< Size of stack segment.
-    size_t VmExe;	//< Size of text (code) segment.
-    size_t VmLib;	//< Shared library code size.
-    size_t VmPTE;	//< Page table entries size (since Linux 2.6.10).
-    size_t VmPMD;	//< Size of second-level page tables (since Linux 4.0).
-    size_t VmSwap;	//< Swapped-out virtual memory size by anonymous private pages; shmem swap usage is not included (since Linux 2.6.34).
+    size_t VmPeak;      //< Peak virtual memory size.
+    size_t VmSize;      //< Virtual memory size.
+    size_t VmLck;       //< Locked memory size (see mlock(3)).
+    size_t VmPin;       //< Pinned memory size (since Linux 3.2).  These are pages that can't be moved because something needs to directly access physical memory.
+    size_t VmHWM;       //< Peak resident set size ("high water mark").
+    size_t VmRSS;       //< Resident set size.  Note that the value here is the sum of RssAnon, RssFile, and RssShmem.
+    size_t VmData;      //< Size of data segment.
+    size_t VmStk;       //< Size of stack segment.
+    size_t VmExe;       //< Size of text (code) segment.
+    size_t VmLib;       //< Shared library code size.
+    size_t VmPTE;       //< Page table entries size (since Linux 2.6.10).
+    size_t VmPMD;       //< Size of second-level page tables (since Linux 4.0).
+    size_t VmSwap;      //< Swapped-out virtual memory size by anonymous private pages; shmem swap usage is not included (since Linux 2.6.34).
     size_t RssFile;     //< Size of resident file mappings.  (since Linux 4.5).
-    size_t RssAnon;	//< Size of resident file mappings.  (since Linux 4.5).
+    size_t RssAnon;     //< Size of resident file mappings.  (since Linux 4.5).
 
     /** default constructor (no implicit fetch) */
     DDCProcessMemoryStatus(void)
-	: VmSize(0), VmLck(0), VmPin(0), VmHWM(0), VmRSS(0), VmData(0), VmStk(0), VmExe(0), VmLib(0), VmPTE(0), VmPMD(0), VmSwap(0), RssFile(0), RssAnon(0)
+        : VmSize(0), VmLck(0), VmPin(0), VmHWM(0), VmRSS(0), VmData(0), VmStk(0), VmExe(0), VmLib(0), VmPTE(0), VmPMD(0), VmSwap(0), RssFile(0), RssAnon(0)
     {};
 
     /** constructor given pid implicitly fetches data */
@@ -336,39 +328,37 @@ struct DDCProcessMemoryStatus
 
 //======================================================================
 // working with registry 
-extern string	GetRegistryString (string RegistryPath);
-extern string	GetRegistryStringFromLocalIniFile (string RegistryPath);
-extern bool	CanGetRegistryString (string RegistryPath);
-extern void	SetRegistryString (string RegistryPath, string Value);
-extern bool	IsRmlRegistered(string& Error);
-extern bool	CheckEvaluationTime();
+extern string   GetRegistryString (string RegistryPath);
+extern string   GetRegistryStringFromLocalIniFile (string RegistryPath);
+extern bool     CanGetRegistryString (string RegistryPath);
+extern void     SetRegistryString (string RegistryPath, string Value);
+extern bool     IsRmlRegistered(string& Error);
+extern bool     CheckEvaluationTime();
 extern struct tm  RmlGetCurrentTime ();
-extern bool	ReadTimeOutFromRegistry(bool bReadFromLocalFile, int& TimeOut);
-extern string	GetIniFilePath();
-extern string	GetRmlVariable();
+extern bool     ReadTimeOutFromRegistry(bool bReadFromLocalFile, int& TimeOut);
+extern string   GetIniFilePath();
+extern string   GetRmlVariable();
 extern string   BuildRMLPath (const char* s);
 
 //======================================================================
 // working with strings
-extern char*	rtrim (char* s);
-extern bool	IsSuperEqualChar (BYTE ch1, BYTE ch2, MorphLanguageEnum langua);
-extern bool	strscmp ( const char *s1, const char *s2, size_t l, MorphLanguageEnum langua);
-extern int	CompareWithoutRegister ( const char *s1, const char *s2, size_t l, MorphLanguageEnum langua);
-extern BYTE	force_rus_char (BYTE ch);
-extern bool	force_to_rus (char* dest, const char* sour, size_t len);
-extern char*	IntToStr (int Value, char* Buffer);
-extern string&	IntToStr (int Value, string& oBuffer);
+extern char*    rtrim (char* s);
+extern bool     IsSuperEqualChar (BYTE ch1, BYTE ch2, MorphLanguageEnum langua);
+extern bool     strscmp ( const char *s1, const char *s2, size_t l, MorphLanguageEnum langua);
+extern int      CompareWithoutRegister ( const char *s1, const char *s2, size_t l, MorphLanguageEnum langua);
+extern BYTE     force_rus_char (BYTE ch);
+extern bool     force_to_rus (char* dest, const char* sour, size_t len);
+extern char*    IntToStr (int Value, char* Buffer);
+extern string&  IntToStr (int Value, string& oBuffer);
 extern string&  TrimLeft (string& str);
 extern string&  TrimRight (string& str);
-extern string&	Trim (string& str);
-extern void		rml_TRACE( const char* format, ... );
-extern bool		LoadFileToString(string FileName, string& Result, bool clobber=true);
-extern bool		SaveStringToFile(const string& Str, const string& FileName);
-extern void		SqueezeSpacesAndDeleteEoln(string& s);
-extern void		KOI8ToWin (string& s);
-extern void		WinToKOI8 (string& s);
-
-extern DWORD	StringCrc32(const char* szString);
+extern string&  Trim (string& str);
+extern bool             LoadFileToString(string FileName, string& Result, bool clobber=true);
+extern bool             SaveStringToFile(const string& Str, const string& FileName);
+extern void             KOI8ToWin (string& s);
+extern void             WinToKOI8 (string& s);
+extern void             WinToKOI8 (string& s);
+extern bool     StartsWith(const string& body, const string& prefix);
 
 //======================================================================
 //! moo: timestamp stuff
@@ -406,11 +396,11 @@ extern const char *ddc_log_label(void);
 extern void QPEncodeString(string& s);
 extern void QPDecodeString(string& s);
 #ifndef WIN32
-	extern void strrev(char* s);
+        extern void strrev(char* s);
 #endif
 
-const BYTE	UnknownPartOfSpeech		= 0xff;
-const int	UnknownSyntaxElement = 0xffff;
+const BYTE      UnknownPartOfSpeech             = 0xff;
+const int       UnknownSyntaxElement = 0xffff;
 typedef enum {DontKillHomonyms = 0, CoverageKillHomonyms = 1} KillHomonymsEnum;
 
 typedef enum { LocThes = 0, FinThes, CompThes, OmniThes, NoneThes } EThesType;
@@ -500,7 +490,7 @@ extern bool is_pseudo_graph(BYTE x);
 extern bool is_word_delim (BYTE x);
 //  =============  Punctuation Letters ======================
 
-extern	bool is_spc_fill (BYTE x);
+extern  bool is_spc_fill (BYTE x);
 
 
 
@@ -508,21 +498,23 @@ extern	bool is_spc_fill (BYTE x);
 extern  bool is_english_upper(BYTE x);
 extern  bool is_english_lower(BYTE x);
 
-const BYTE Auml  = 196; // "Д"
-const BYTE auml  = 228; // "д"
-const BYTE Uuml  = 220; // "Ь"
-const BYTE uuml  = 252; // "ь"
-const BYTE Ouml  = 214; // "Ц"
-const BYTE ouml  = 246; // "ц"
-const BYTE szlig  = 223; //"Я"
-const BYTE Nu  = 181;   // "ч"
-const BYTE agrave  = 224; //"р"
-const BYTE egrave  = 232; //"ш"
-const BYTE eacute  = 233; //"щ"
+const BYTE Auml  = 196; // "пїЅ"
+const BYTE auml  = 228; // "пїЅ"
+const BYTE Uuml  = 220; // "пїЅ"
+const BYTE uuml  = 252; // "пїЅ"
+const BYTE Ouml  = 214; // "пїЅ"
+const BYTE ouml  = 246; // "пїЅ"
+const BYTE szlig  = 223; //"пїЅ"
+const BYTE Nu  = 181;   // "пїЅ"
+const BYTE agrave  = 224; //"пїЅ"
+const BYTE egrave  = 232; //"пїЅ"
+const BYTE eacute  = 233; //"пїЅ"
 
 
-const BYTE LowerJO  = (BYTE)'ё';
-const BYTE UpperJO  = (BYTE)'Ё';
+const BYTE LowerJO_cp1251  = 184;
+const BYTE UpperJO_cp1251  = 168;
+const BYTE LowerE_cp1251  = 229;
+const BYTE UpperE_cp1251  = 197;
 const BYTE Apostrophe  = 39;
 
 
@@ -570,9 +562,9 @@ extern char* RmlMakeUpper (char *word, MorphLanguageEnum langua);
 extern string& RmlMakeUpper (string& word, MorphLanguageEnum langua);
 extern string& RmlMakeLower (string& word, MorphLanguageEnum langua);
 
-// конвертирует из строчной кириллицы в прописные 
+// пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ 
 extern string&  EngRusMakeUpper (string& word);
-// конвертирует из строчной кириллицы в прописные 
+// пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ 
 extern char*  EngRusMakeUpper (char* word);
 
 
@@ -597,9 +589,9 @@ extern string ConvertASCIIToHtmlSymbols(const string& txt);
 template <class T, class Pred, class Conv>
 T& RegisterConverter (T& word, size_t Len, Pred P,  Conv C)
 {
-	for( size_t i = 0 ; i < Len; i++ )
+        for( size_t i = 0 ; i < Len; i++ )
         if ( P( (BYTE)word[i] )  )
-			word[i] = C ( (BYTE)word[i] );
+                        word[i] = C ( (BYTE)word[i] );
 
     return word;
 }
@@ -608,20 +600,20 @@ T& RegisterConverter (T& word, size_t Len, Pred P,  Conv C)
 template <class T>
 T& GerEngRusMakeUpperTemplate (T& word, MorphLanguageEnum Langua, size_t Len )
 {
-	if (Len == 0) return word;
+        if (Len == 0) return word;
 
-	if (Langua == morphGerman)
-		return RegisterConverter(word, Len, is_german_lower, gtoupper);
-	else
-		for( size_t i = 0 ; i < Len; i++ )
-			if (is_russian_lower((BYTE)word[i]))
-					word[i] = rtoupper ( (BYTE)word[i] );
-			else
-			if (is_english_lower((BYTE)word[i]))
-					word[i] = etoupper ( (BYTE)word[i] );
+        if (Langua == morphGerman)
+                return RegisterConverter(word, Len, is_german_lower, gtoupper);
+        else
+                for( size_t i = 0 ; i < Len; i++ )
+                        if (is_russian_lower((BYTE)word[i]))
+                                        word[i] = rtoupper ( (BYTE)word[i] );
+                        else
+                        if (is_english_lower((BYTE)word[i]))
+                                        word[i] = etoupper ( (BYTE)word[i] );
 
-	return word;
-};	
+        return word;
+};      
 
 
 
@@ -634,3 +626,13 @@ enum RegisterEnum {AnyRegister=0, LowLow=1, UpLow=2, UpUp=3};
 #endif
 
 
+
+/*--- emacs style variables ---
+ * Local Variables:
+ *  mode: C++
+ *  c-default-style: "linux"
+ *  c-basic-offset: 4
+ *  tab-width: 8
+ *  indent-tabs-mode: nil
+ * End:
+ */

@@ -26,7 +26,6 @@ libDDCStructDict_la_SOURCES = \
  Ross.cpp Ross.h \
  TempArticle.cpp TempArticle.h
 
-# ../common/utilit.cpp ../common/utilit.h
 
 noinst_HEADERS = \
  Domen.h \

@@ -19,16 +19,16 @@
 #include "StdConc.h"
 #include "ConcCommon.h"
 #include "ConcIndexator.h"
+#include "DocumentIterator.h"
 
 
-bool	CConcIndexator::IndexMorphXml	(string FileName, const char* pFileBuffer, CTokenNo& NewCorpusEndTokenNo,string& strError)
+void	CConcIndexator::IndexMorphXml	(CIndexDocument* document)
 {
 	vector<CXmlToken> GraTable;
 	CBibliography Bibliography;
-	if (!m_Bibl.ReadMorphXmlFileIntoGraTable(FileName, pFileBuffer, GraTable, strError, Bibliography))
-		return  false;
+	m_BiblIndex.ReadMorphXmlFileIntoGraTable(document->CorpusFileName, &document->DocumentBuffer[0], GraTable, Bibliography);
 
-	CTokenNo StartTokenNo = NewCorpusEndTokenNo; 
+	CTokenNo StartTokenNo = document->CorpusEndTokenNo;
 
 
 	string TextBuffer;
@@ -37,7 +37,7 @@ bool	CConcIndexator::IndexMorphXml	(string FileName, const char* pFileBuffer, CT
 	int SentNo = 0;
 	bool bTheFirstPageBreakIsFound = false;
 	char OneIndexLine[2048];
-	DWORD LastSentenceBreak = NewCorpusEndTokenNo;
+	DWORD LastSentenceBreak = document->CorpusEndTokenNo;
 	for (long GraLineNo = 0; GraLineNo<GraLinesCount; GraLineNo++)
 	{
 		const CXmlToken& W = GraTable[GraLineNo];
@@ -54,11 +54,7 @@ bool	CConcIndexator::IndexMorphXml	(string FileName, const char* pFileBuffer, CT
 			if (W.m_Annots.empty() )
 			{
 				OneIndexLine[wordlen+1] = 0;
-				if (!IndexOneToken(OneIndexLine, NewCorpusEndTokenNo))
-				{
-					strError = string(" Cannot index ")+OneIndexLine;
-					return false;
-				};
+				IndexOneToken(document, OneIndexLine);
 			}
 			else
 			{
@@ -82,21 +78,17 @@ bool	CConcIndexator::IndexMorphXml	(string FileName, const char* pFileBuffer, CT
 				OneIndexLine[l] = globalFieldDelimeter;;
 				strcpy (OneIndexLine+l+1, GetIndexItemSetByVectorString(Lemmas, false).c_str());
 
-				if (!IndexOneToken(OneIndexLine, NewCorpusEndTokenNo))
-				{
-					strError = string(" Cannot index ")+OneIndexLine;
-					return false;
-				};
+				IndexOneToken(document, OneIndexLine);
 			};
-		
-			NewCorpusEndTokenNo++;
+
+			document->CorpusEndTokenNo++;
 
 		}
 
 		if(	W.m_bLastInSentence )
 		{
-			AddBreakByName("s", NewCorpusEndTokenNo);
-			LastSentenceBreak = NewCorpusEndTokenNo;
+			AddBreakByName("s", document->CorpusEndTokenNo);
+			LastSentenceBreak = document->CorpusEndTokenNo;
 			SentNo++;
 		};
 
@@ -114,17 +106,23 @@ bool	CConcIndexator::IndexMorphXml	(string FileName, const char* pFileBuffer, CT
 		}
 	};
 
-	if (NewCorpusEndTokenNo != StartTokenNo)
+	if (document->CorpusEndTokenNo != StartTokenNo)
 	{
 		// if at least one token is found, then add a bibliographical record
-		if (!m_Bibl.AddIndexItem(Bibliography))
+		if (!m_BiblIndex.AddIndexItem(Bibliography))
 		{
-			strError = "Cannot index bibliography " + Bibliography.WriteToString();
-			return false;
+			throw CExpc( "Cannot index bibliography " + Bibliography.WriteToString() );
 		}
 	};
-
-
-	return true;
 };
 
+
+/*--- emacs style variables ---
+ * Local Variables:
+ *  mode: C++
+ *  c-default-style: "linux"
+ *  c-basic-offset: 4
+ *  tab-width: 8
+ *  indent-tabs-mode: nil
+ * End:
+ */

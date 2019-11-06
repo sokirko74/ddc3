@@ -1,4 +1,4 @@
-//-*- Mode: C++; c-basic-offset:4;-*-
+//-*- Mode: C++ -*-
 //
 //  Copyright 2018 by Bryan Jurish
 //
@@ -21,8 +21,8 @@
 #ifndef DDC_CORPUS_FILES_H
 #define DDC_CORPUS_FILES_H
 
-#include "../CommonLib/ddcMMap.h"
-#include "../CommonLib/ddcVersion.h"
+#include "ddcMMap.h"
+#include "ddcVersion.h"
 
 //======================================================================
 // ddcCorpusList
@@ -52,12 +52,12 @@ public:
 
     /// default constructor
     ddcCorpusList()
-	: m_bufsize(20000)
+        : m_bufsize(20000)
     {};
 
     /// construct and open
     ddcCorpusList(const string& conFile, const string& cdataFile="", const string& offsetsFile="", bool useMMap=false)
-	: m_bufsize(20000)
+        : m_bufsize(20000)
     { open(conFile,cdataFile,offsetsFile,useMMap); };
 
     /// default destructor calls close()
@@ -99,9 +99,9 @@ public:
     /// pseudo-indexing operator
     inline void itemGet(IdT idx, string& str) const
     {
-	OffT i = itemStartOffset(idx);
-	OffT j = itemEndOffset(idx);
-	str.assign( &m_cdata[i], j-i );
+        OffT i = itemStartOffset(idx);
+        OffT j = itemEndOffset(idx);
+        str.assign( &m_cdata[i], j-i );
     };
 
 
@@ -116,10 +116,10 @@ public:
     /// indexing operator (copies)
     inline string operator[](IdT idx) const
     {
-	if (!m_offsets) return m_strings[idx];
-	OffT i = itemStartOffset(idx);
-	OffT j = itemEndOffset(idx);
-	return string( &m_cdata[i], j-i );
+        if (!m_offsets) return m_strings[idx];
+        OffT i = itemStartOffset(idx);
+        OffT j = itemEndOffset(idx);
+        return string( &m_cdata[i], j-i );
     };
 
     //----------------------------------------------------------
@@ -128,32 +128,32 @@ public:
     /// simulate vector::push_back(): used by indexing routines
     inline void push_back(const string& value)
     {
-	ensureVec();
-	m_strings.push_back(value);
+        ensureVec();
+        m_strings.push_back(value);
     };
 
     /// populate \a v with an equivalent vector-implementation (for compile-time compatibility)
     void append_vector(vector<string>& v) const
     {
-	v.reserve(v.size()+size());
-	if (m_offsets) {
-	    for (IdT idx=0; idx < size(); ++idx)
-		v.push_back(operator[](idx));
-	} else {
-	    v.insert(v.end(), m_strings.begin(), m_strings.end());
-	}
+        v.reserve(v.size()+size());
+        if (m_offsets) {
+            for (IdT idx=0; idx < size(); ++idx)
+                v.push_back(operator[](idx));
+        } else {
+            v.insert(v.end(), m_strings.begin(), m_strings.end());
+        }
     };
     
     /// force vector-implementation
     inline void ensureVec()
     {
-	if (m_offsets) {
-	    ddcLogWarn(Format("WARNING: ddcCorpusList(\"%s\") demoting to std::vector<> implementation", m_cdata.filename().c_str()));
-	    ClearVector(m_strings);
-	    append_vector(m_strings);
-	    m_offsets.close();
-	    m_cdata.close();
-	}
+        if (m_offsets) {
+            ddcLogWarn(Format("WARNING: ddcCorpusList(\"%s\") demoting to std::vector<> implementation", m_cdata.filename().c_str()));
+            ClearVector(m_strings);
+            append_vector(m_strings);
+            m_offsets.close();
+            m_cdata.close();
+        }
     };
 
 public:
@@ -168,42 +168,42 @@ public:
     /// returns first id of \a key, or NO_ID if not found (linear search)
     inline IdT find(const string& key) const
     {
-	if (m_offsets) {
-	    string tmp;
-	    for (IdT idx=0; idx < size(); ++idx) {
-		itemGet(idx,tmp);
-		if (tmp == key)
-		    return idx;
-	    }
-	}
-	else {
-	    vector<string>::const_iterator it = std::find(m_strings.begin(), m_strings.end(), key);
-	    if (it != m_strings.end())
-		return (it - m_strings.begin());
-	}
-	return NO_ID;
+        if (m_offsets) {
+            string tmp;
+            for (IdT idx=0; idx < size(); ++idx) {
+                itemGet(idx,tmp);
+                if (tmp == key)
+                    return idx;
+            }
+        }
+        else {
+            vector<string>::const_iterator it = std::find(m_strings.begin(), m_strings.end(), key);
+            if (it != m_strings.end())
+                return (it - m_strings.begin());
+        }
+        return NO_ID;
     };
 
     /// returns last id of \a key, or NO_ID if not found (linear search)
     inline IdT rfind(const string& key) const
     {
-	if (m_offsets) {
-	    if (empty()) return NO_ID;
-	    string tmp;
-	    IdT idx = size()-1;
-	    do {
-		itemGet(idx,tmp);
-		if (tmp == key)
-		    return idx;
-		--idx;
-	    } while (idx != 0);
-	}
-	else {
-	    vector<string>::const_reverse_iterator it = std::find(m_strings.rbegin(), m_strings.rend(), key);
-	    if (it != m_strings.rend())
-		return (m_strings.size()-1) - (it - m_strings.rbegin());
-	}
-	return NO_ID;
+        if (m_offsets) {
+            if (empty()) return NO_ID;
+            string tmp;
+            IdT idx = size()-1;
+            do {
+                itemGet(idx,tmp);
+                if (tmp == key)
+                    return idx;
+                --idx;
+            } while (idx != 0);
+        }
+        else {
+            vector<string>::const_reverse_iterator it = std::find(m_strings.rbegin(), m_strings.rend(), key);
+            if (it != m_strings.rend())
+                return (m_strings.size()-1) - (it - m_strings.rbegin());
+        }
+        return NO_ID;
     };
     
 public:
@@ -213,60 +213,70 @@ public:
     /// map a named file \a filename
     ddcCorpusList& open(const string& conFile, const string& cdataFile="", const string& offsetsFile="", bool useMMap=false)
     {
-	if (opened()) close();
+        if (opened()) close();
 
-	if (!cdataFile.empty() && !offsetsFile.empty() && FileExists(cdataFile) && FileExists(offsetsFile)) {
-	    openCompat(conFile,false);
-	    m_cdata.open(cdataFile, useMMap);
-	    m_offsets.open(offsetsFile, useMMap);
-	    ddcLogDebug(Format("ddcCorpusList[%s]::open(): read %zi item(s) from %s + %s", (useMMap ? "mmap" : "slurp"), size(), cdataFile.c_str(), offsetsFile.c_str()));
-	}
-	else {
-	    ddcLogWarn("WARNING: ddcCorpusList::open(): loading corpus list '"+conFile+"' in compatibility mode: please upgrade your index!");
-	    openCompat(conFile,true);
-	    ddcLogDebug(Format("ddcCorpusList[compat]::open(): read %zi item(s) from %s", size(), conFile.c_str()));
-	}
-	//ddc_format_version_check(m_verstr.c_str(), cdataFile.c_str());
-	return *this;
+        if (!cdataFile.empty() && !offsetsFile.empty() && FileExists(cdataFile) && FileExists(offsetsFile)) {
+            openCompat(conFile,false);
+            m_cdata.open(cdataFile, useMMap);
+            m_offsets.open(offsetsFile, useMMap);
+            ddcLogDebug(Format("ddcCorpusList[%s]::open(): read %zi item(s) from %s + %s", (useMMap ? "mmap" : "slurp"), size(), cdataFile.c_str(), offsetsFile.c_str()));
+        }
+        else {
+            ddcLogWarn("WARNING: ddcCorpusList::open(): loading corpus list '"+conFile+"' in compatibility mode: please upgrade your index!");
+            openCompat(conFile,true);
+            ddcLogDebug(Format("ddcCorpusList[compat]::open(): read %zi item(s) from %s", size(), conFile.c_str()));
+        }
+        //ddc_format_version_check(m_verstr.c_str(), cdataFile.c_str());
+        return *this;
     };
 
     /// open in compatibility-mode; lifted from CConcIndexator::LoadCorpusFiles()
     void openCompat(const string& filename, bool slurpList=true)
     {
-	if (opened()) close();
+        if (opened()) close();
 
-	FILE * fp = fopen(filename.c_str(), "rb");
-	if (!fp)
-	    throw invalid_argument(Format("ddcCorpusList::openCompat(): open failed for '%s': %s'", filename.c_str(), strerror(errno)));
+        FILE * fp = fopen(filename.c_str(), "rb");
+        if (!fp)
+            throw invalid_argument(Format("ddcCorpusList::openCompat(): open failed for '%s': %s'", filename.c_str(), strerror(errno)));
 
-	char buf[m_bufsize+1];
-	if (!fgets(buf, m_bufsize, fp))
-	    throw invalid_argument("ddcCorpusList::openCompat(): failed to read version information from '"+filename+"'");
-	m_verstr = buf;
-	Trim(m_verstr);
+        char buf[m_bufsize+1];
+        if (!fgets(buf, m_bufsize, fp))
+            throw invalid_argument("ddcCorpusList::openCompat(): failed to read version information from '"+filename+"'");
+        m_verstr = buf;
+        Trim(m_verstr);
 
-	if (slurpList) {
-	    string tmp;
-	    while (fgets(buf, m_bufsize, fp)) {
-		tmp = buf;
-		Trim(tmp);
-		m_strings.push_back(tmp);
-	    }
-	}
+        if (slurpList) {
+            string tmp;
+            while (fgets(buf, m_bufsize, fp)) {
+                tmp = buf;
+                Trim(tmp);
+                m_strings.push_back(tmp);
+            }
+        }
 
-	fclose(fp);
+        fclose(fp);
     };
 
     /// unmap current file(s), if any
     void close()
     {
-	m_cdata.close();
-	m_offsets.close();
-	ClearVector(m_strings);
-	ClearString(m_verstr);
+        m_cdata.close();
+        m_offsets.close();
+        ClearVector(m_strings);
+        ClearString(m_verstr);
     };
 
 };
 
 
 #endif /* DDC_STRING_ENUM_H */
+
+/*--- emacs style variables ---
+ * Local Variables:
+ *  mode: C++
+ *  c-default-style: "linux"
+ *  c-basic-offset: 4
+ *  tab-width: 8
+ *  indent-tabs-mode: nil
+ * End:
+ */

@@ -1,4 +1,4 @@
-//-*- Mode: C++; c-basic-offset:2; -*-
+//-*- Mode: C++ -*-
 //
 //  DDC originally by Alexey Sokirko
 //  Changes and modifications 2018 by Bryan Jurish
@@ -75,9 +75,9 @@ struct NavHintKey {
   //! \li m_HitNo comparison is reversed so we can use map<>::lower_bound()
   inline bool operator< (const NavHintKey &X) const
   {
-    return (m_QueryStr < X.m_QueryStr ? true			//-- QueryStr is primary sort-key
-	    : (m_QueryStr==X.m_QueryStr ? (m_HitNo > X.m_HitNo)	//-- ... only compare HitNo if QueryStr matches (otherwise map<> chokes)
-	       : false));					//-- ... QueryStr>X.QueryStr
+    return (m_QueryStr < X.m_QueryStr ? true                    //-- QueryStr is primary sort-key
+            : (m_QueryStr==X.m_QueryStr ? (m_HitNo > X.m_HitNo) //-- ... only compare HitNo if QueryStr matches (otherwise map<> chokes)
+               : false));                                       //-- ... QueryStr>X.QueryStr
   };
 
   //! equality operator (for debugging)
@@ -114,7 +114,7 @@ struct NavHintKey {
 //! navigation hint with respect to local subcorpus tree, for get_first_hits "paging"
 struct NavHint {
   string         m_SortKey;  ///< minimum sort key from this node or any subcorpus
-  size_t 	 m_Offset;   ///< minimum offset for local corpus node
+  size_t         m_Offset;   ///< minimum offset for local corpus node
   vector<string> m_DtrHints; ///< offset hints for immediate daughter subcorpora
 
   //! default constructor
@@ -346,3 +346,13 @@ public:
 
 
 #endif /* DDC_NAV_HINT_H */
+
+/*--- emacs style variables ---
+ * Local Variables:
+ *  mode: C++
+ *  c-default-style: "linux"
+ *  c-basic-offset: 4
+ *  tab-width: 8
+ *  indent-tabs-mode: nil
+ * End:
+ */

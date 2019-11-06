@@ -22,12 +22,10 @@ binfiles ?= \
  ../src/ddc_dump/ddc_dump \
  ../src/ddc_union/ddc_union \
  ../src/ddc_split/ddc_split \
- ../src/ddc_file_lem/ddc_file_lem \
  ../src/ddc_morph_gen/ddc_morph_gen \
  ../src/ddc_struct_dict_loader/ddc_struct_dict_loader \
  ../src/ddc_test_lem/ddc_test_lem \
  ../src/ddc_expand/ddc_expand \
- ../src/ddc_graphmat_thick/ddc_graphmat_thick \
  ../src/ddc_xml/ddc_xml
 
 all-local:

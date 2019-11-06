@@ -1,0 +1,150 @@
+Corpora Distribution:1=1;
+Relevant Documents Distribution:0=0;
+ ### &&1&&
+Corpora Distribution:1=1;
+Relevant Documents Distribution:0=0;
+ ### &&2&&
+Corpora Distribution:1=1;
+Relevant Documents Distribution:0=0;
+ ### &&3&&
+Corpora Distribution:1=1;
+Relevant Documents Distribution:0=0;
+ ### &&4&&
+Corpora Distribution:1=1;
+Relevant Documents Distribution:0=0;
+ ### &&5&&
+Corpora Distribution:1=1;
+Relevant Documents Distribution:0=0;
+ ### &&6&&
+Corpora Distribution:1=1;
+Relevant Documents Distribution:0=0;
+ ### &&7&&
+Corpora Distribution:1=1;
+Relevant Documents Distribution:0=0;
+ ### &&8&&
+Corpora Distribution:1=1;
+Relevant Documents Distribution:0=0;
+ ### &&9&&
+Corpora Distribution:1=1;
+Relevant Documents Distribution:0=0;
+ ### &&10&&
+Corpora Distribution:1=1;
+Relevant Documents Distribution:0=0;
+ ### &&11&&
+Corpora Distribution:1=1;
+Relevant Documents Distribution:0=0;
+ ### &&12&&
+Corpora Distribution:1=1;
+Relevant Documents Distribution:0=0;
+ ### &&13&&
+Corpora Distribution:1=1;
+Relevant Documents Distribution:0=0;
+ ### &&14&&
+Corpora Distribution:1=1;
+Relevant Documents Distribution:0=0;
+ ### &&15&&
+Corpora Distribution:1=1;
+Relevant Documents Distribution:0=0;
+ ### &&16&&
+Corpora Distribution:1=1;
+Relevant Documents Distribution:0=0;
+ ### &&17&&
+Corpora Distribution:1=1;
+Relevant Documents Distribution:0=0;
+ ### &&18&&
+Corpora Distribution:1=1;
+Relevant Documents Distribution:0=0;
+ ### &&19&&
+Corpora Distribution:1=1;
+Relevant Documents Distribution:0=0;
+ ### &&20&&
+Corpora Distribution:1=1;
+Relevant Documents Distribution:0=0;
+ ### &&21&&
+Corpora Distribution:1=1;
+Relevant Documents Distribution:0=0;
+ ### &&22&&
+Corpora Distribution:1=1;
+Relevant Documents Distribution:0=0;
+ ### &&23&&
+Corpora Distribution:1=1;
+Relevant Documents Distribution:0=0;
+ ### &&24&&
+Corpora Distribution:1=1;
+Relevant Documents Distribution:0=0;
+ ### &&25&&
+Corpora Distribution:1=1;
+Relevant Documents Distribution:0=0;
+ ### &&26&&
+Corpora Distribution:1=1;
+Relevant Documents Distribution:0=0;
+ ### &&27&&
+Corpora Distribution:1=1;
+Relevant Documents Distribution:0=0;
+ ### &&28&&
+Corpora Distribution:1=1;
+Relevant Documents Distribution:0=0;
+ ### &&29&&
+Corpora Distribution:1=1;
+Relevant Documents Distribution:0=0;
+ ### &&30&&
+Corpora Distribution:1=1;
+Relevant Documents Distribution:0=0;
+ ### &&31&&
+Corpora Distribution:1=1;
+Relevant Documents Distribution:0=0;
+ ### &&32&&
+Corpora Distribution:1=1;
+Relevant Documents Distribution:0=0;
+ ### &&33&&
+Corpora Distribution:1=1;
+Relevant Documents Distribution:0=0;
+ ### &&34&&
+Corpora Distribution:1=1;
+Relevant Documents Distribution:0=0;
+ ### &&35&&
+Corpora Distribution:1=1;
+Relevant Documents Distribution:0=0;
+ ### &&36&&
+Corpora Distribution:1=1;
+Relevant Documents Distribution:0=0;
+ ### &&37&&
+Corpora Distribution:1=1;
+Relevant Documents Distribution:0=0;
+ ### &&38&&
+Corpora Distribution:1=1;
+Relevant Documents Distribution:0=0;
+ ### &&39&&
+Corpora Distribution:1=1;
+Relevant Documents Distribution:0=0;
+ ### &&40&&
+Corpora Distribution:1=1;
+Relevant Documents Distribution:0=0;
+ ### &&41&&
+Corpora Distribution:1=1;
+Relevant Documents Distribution:0=0;
+ ### &&42&&
+Corpora Distribution:1=1;
+Relevant Documents Distribution:0=0;
+ ### &&43&&
+Corpora Distribution:1=1;
+Relevant Documents Distribution:0=0;
+ ### &&44&&
+Corpora Distribution:1=1;
+Relevant Documents Distribution:0=0;
+ ### &&45&&
+Corpora Distribution:1=1;
+Relevant Documents Distribution:0=0;
+ ### &&46&&
+Corpora Distribution:1=1;
+Relevant Documents Distribution:0=0;
+ ### &&47&&
+Corpora Distribution:1=1;
+Relevant Documents Distribution:0=0;
+ ### &&48&&
+Corpora Distribution:1=1;
+Relevant Documents Distribution:0=0;
+ ### &&49&&
+Corpora Distribution:1=1;
+Relevant Documents Distribution:0=0;
+ ### &&50&&

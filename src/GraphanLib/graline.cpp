@@ -18,9 +18,9 @@
 // ==========  Copyright by Alexey Sokirko (1996-2001), Bryan Jurish (2011)
 
 #include "StdGraph.h"
-#include  "../common/gra_descr.h"
-#include  "graline.h"
-#include  "GraphmatFile.h"
+#include "gra_descr.h"
+#include "graline.h"
+#include "GraphmatFile.h"
 #include "GraphanDicts.h"
 
 
@@ -295,7 +295,7 @@ size_t CGraLine::LengthUntilDelimiters (const char *s, const CGraphmatFile* G)
 			{	
 				if (		(isdigit((BYTE)s[i-1]) == isdigit((BYTE)s[i+1]))
 						&&	(		(G->m_Language != morphRussian)	// prohibit  "." as a word part  for Russian 
-								||	!is_russian_alpha((BYTE)s[i-1])  // for example: г.Самара, В.И.Ленин
+								||	!is_russian_alpha((BYTE)s[i-1])  // for example: пїЅ.пїЅпїЅпїЅпїЅпїЅпїЅ, пїЅ.пїЅ.пїЅпїЅпїЅпїЅпїЅ
 								||	!is_russian_alpha((BYTE)s[i+1])
 							)
 					)
@@ -352,7 +352,7 @@ size_t CGraLine::LengthUntilDelimiters (const char *s, const CGraphmatFile* G)
 
 
 
-// читает из буфера b в структуру L  
+// пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ b пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ L  
 size_t CGraLine::ReadWord (size_t Offset, const CGraphmatFile* G, DWORD& PageNumber)
 {
 	PageNumber = UnknownPageNumber;
@@ -542,8 +542,8 @@ size_t CGraLine::ReadWord (size_t Offset, const CGraphmatFile* G, DWORD& PageNum
 
 	else 
 	/*
-	последовательность из восклицательных и вопросительных знаков 
-	(используется как конец предложения) 
+	пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ 
+	(пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ) 
 	*/
 	if (		((BYTE)In[Offset] == '?')  
 			||	((BYTE)In[Offset] == '!') 
@@ -653,3 +653,13 @@ size_t CGraLine::ReadWord (size_t Offset, const CGraphmatFile* G, DWORD& PageNum
 	return Offset;  
  }
 
+
+/*--- emacs style variables ---
+ * Local Variables:
+ *  mode: C++
+ *  c-default-style: "linux"
+ *  c-basic-offset: 4
+ *  tab-width: 8
+ *  indent-tabs-mode: nil
+ * End:
+ */

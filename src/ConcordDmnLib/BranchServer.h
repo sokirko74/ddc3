@@ -1,4 +1,4 @@
-//-*- Mode: C++; c-basic-offset:4; -*-
+//-*- Mode: C++ -*-
 //
 //  DDC originally by Alexey Sokirko
 //  Changes and modifications 2011-2018 by Bryan Jurish
@@ -27,38 +27,38 @@
 /** single hit data in get_first_hits responses */
 struct CHitToSort 
 {
-    BYTE	m_HostNo;	///< subcorpus id
-    size_t	m_HitNo;	///< subcorpus-local hit-number for context queries OR hit count for count-queries
-    string	m_SortKeyStr;	///< hit sort-string
+    BYTE        m_HostNo;       ///< subcorpus id
+    size_t      m_HitNo;        ///< subcorpus-local hit-number for context queries OR hit count for count-queries
+    string      m_SortKeyStr;   ///< hit sort-string
 
     CHitToSort(BYTE HostNo=0)
-	: m_HostNo(HostNo)
+        : m_HostNo(HostNo)
     {};
 
     inline bool operator < (const CHitToSort& X) const {
-	return m_SortKeyStr < X.m_SortKeyStr;
+        return m_SortKeyStr < X.m_SortKeyStr;
     };
 
     /** steal data from X */
     inline void steal(CHitToSort &X)
     {
-	m_HostNo = X.m_HostNo;
-	m_HitNo  = X.m_HitNo;
-	m_SortKeyStr.swap(X.m_SortKeyStr);
+        m_HostNo = X.m_HostNo;
+        m_HitNo  = X.m_HitNo;
+        m_SortKeyStr.swap(X.m_SortKeyStr);
     };
 
     /** string form of hit, for debugging messages */
     inline string debugStr(void) const
     {
-	return Format("{HostNo=%d,HitNo=%zd,SortKey=%s}", m_HostNo, m_HitNo, jsonStr(m_SortKeyStr).c_str());
+        return Format("{HostNo=%d,HitNo=%zd,SortKey=%s}", m_HostNo, m_HitNo, jsonStr(m_SortKeyStr).c_str());
     };
 };
 
 //==============================================================================
 /** direct comparison operator for sorting count-hits by m_HitNo (count) */
 struct LessByHitNo {
-	bool operator() (const CHitToSort &a, const CHitToSort &b) const
-	{ return a.m_HitNo < b.m_HitNo; };
+        bool operator() (const CHitToSort &a, const CHitToSort &b) const
+        { return a.m_HitNo < b.m_HitNo; };
 };
 
 
@@ -69,23 +69,23 @@ struct LessByHitNo {
  * \li can and should probably be merged with CRunQueryData
  */
 struct CFirstHitsQueryResult  {
-    size_t			m_AllHitsCount;
-    size_t			m_AllRelevantDocsCount; 
-    string			m_HitsDistributionStr;
-    string			m_RelevantDocsDistributionStr;
-    int				m_InternalError;
-    HitSortOrderEnum		m_SortOrder;		//< hit sort order; formerly bool m_bSort
-    NetworkErrorsEnum		m_NetworkError;
-    string			m_ErrorStr;
-    vector<CHitToSort>  	m_Hits;
-    vector<size_t>		m_DtrEnds;		//< EndHitNo components scanned from each immediate daughter subcorpus
-    vector<SOCKET>		m_Sockets;
-    size_t                      m_Offset;            	//< logical offset of m_Hits[0] (sum over number of front-trimmed hits for all subcorpora)
+    size_t                      m_AllHitsCount;
+    size_t                      m_AllRelevantDocsCount; 
+    string                      m_HitsDistributionStr;
+    string                      m_RelevantDocsDistributionStr;
+    int                         m_InternalError;
+    HitSortOrderEnum            m_SortOrder;            //< hit sort order; formerly bool m_bSort
+    NetworkErrorsEnum           m_NetworkError;
+    string                      m_ErrorStr;
+    vector<CHitToSort>          m_Hits;
+    vector<size_t>              m_DtrEnds;              //< EndHitNo components scanned from each immediate daughter subcorpus
+    vector<SOCKET>              m_Sockets;
+    size_t                      m_Offset;               //< logical offset of m_Hits[0] (sum over number of front-trimmed hits for all subcorpora)
     
     /** destructor implicitly calls CloseSockets() */
     ~CFirstHitsQueryResult()
     {
-	CloseSockets();  //-- fix mantis bug #718?
+        CloseSockets();  //-- fix mantis bug #718?
     };
 
     /** clear the object */
@@ -94,7 +94,7 @@ struct CFirstHitsQueryResult  {
     /** check whether this result raised any errors */
     inline bool HasErrors() const
     {
-	return (m_NetworkError != neSuccess )  || (m_InternalError != errNone);
+        return (m_NetworkError != neSuccess )  || (m_InternalError != errNone);
     };
 
     /** close any previously opened sockets */
@@ -129,8 +129,8 @@ struct CFirstHitsQueryResult  {
 /** CDDCBranchServer statistics [UNUSED?] */
 struct CQueryStatistics 
 {
-    DwordVector	m_HitsEnds;
-    DWORD	m_FreqCount;
+    DwordVector m_HitsEnds;
+    DWORD       m_FreqCount;
 };
 
 
@@ -138,35 +138,35 @@ struct CQueryStatistics
 /** DDC branch server 'run_query' paramter & intermediate result-type */
 class CRunQueryData {
 public:
-    string sQuery; 			///< query string
-    string sResultFormat;		///< result format (string)
-    size_t StartHitNo;			///< first hit to return
-    size_t ResultLimit;			///< max number of hits to return
-    int TimeOut;			///< query timeout (seconds)
-    int iInternalError;			///< internal error code
-    int iNetworkError;  		///< network error code
-    size_t EndHitNo;			///< final hit number returned
-    size_t HitsCount;			///< total number of hits
-    size_t RelevantDocsCount;		///< ?
-    DwordVector PossibleHosts;		///< indices of selected immediate subcorpora
-    string HitDistrib;			///< ?
-    string DocDistrib;			///< ?
-    string HitsKey;			///< key for response body data (json only)
-    string ResponseBody;		///< response body data
-    string *pErrorStr;			///< error string pointer (empty or NULL for success)
-    NavHintKey navKey;			///< navigation hint key
-    NavHint    navHint;               	///< user- or cache-supplied navigation hint
+    string sQuery;                      ///< query string
+    string sResultFormat;               ///< result format (string)
+    size_t StartHitNo;                  ///< first hit to return
+    size_t ResultLimit;                 ///< max number of hits to return
+    int TimeOut;                        ///< query timeout (seconds)
+    int iInternalError;                 ///< internal error code
+    int iNetworkError;                  ///< network error code
+    size_t EndHitNo;                    ///< final hit number returned
+    size_t HitsCount;                   ///< total number of hits
+    size_t RelevantDocsCount;           ///< ?
+    DwordVector PossibleHosts;          ///< indices of selected immediate subcorpora
+    string HitDistrib;                  ///< ?
+    string DocDistrib;                  ///< ?
+    string HitsKey;                     ///< key for response body data (json only)
+    string ResponseBody;                ///< response body data
+    string *pErrorStr;                  ///< error string pointer (empty or NULL for success)
+    NavHintKey navKey;                  ///< navigation hint key
+    NavHint    navHint;                 ///< user- or cache-supplied navigation hint
    
 public:
     /** constructor */
     CRunQueryData(const string & _Query="", const string& _ResultFormat="JSON", size_t _Start=0, size_t _Limit=10, int _TimeOut=10, string *_pErrorStr=NULL)
-	: sQuery(_Query), sResultFormat(_ResultFormat), StartHitNo(_Start), ResultLimit(_Limit), TimeOut(_TimeOut),
-	  iInternalError(errNone), iNetworkError(neSuccess), EndHitNo(0), HitsCount(0), RelevantDocsCount(0), HitDistrib(""), DocDistrib(""),
-	  HitsKey("hits_"), ResponseBody(""),
-	  pErrorStr(_pErrorStr)
+        : sQuery(_Query), sResultFormat(_ResultFormat), StartHitNo(_Start), ResultLimit(_Limit), TimeOut(_TimeOut),
+          iInternalError(errNone), iNetworkError(neSuccess), EndHitNo(0), HitsCount(0), RelevantDocsCount(0), HitDistrib(""), DocDistrib(""),
+          HitsKey("hits_"), ResponseBody(""),
+          pErrorStr(_pErrorStr)
     {
-	Trim(sQuery);
-	Trim(sResultFormat);
+        Trim(sQuery);
+        Trim(sResultFormat);
     };
 
     /** (re-)initialize with parameters */
@@ -189,16 +189,16 @@ public:
 public:
     //--------------------------------------------------------------
     // local data
-    map<string, CQueryStatistics>	m_QueryToStatis; //-- unused?
-    vector<CHost>			m_Hosts;	
-    string				m_QueryResultString;
-    string				m_ErrorStr;  	//-- subcorpus error
+    map<string, CQueryStatistics>       m_QueryToStatis; //-- unused?
+    vector<CHost>                       m_Hosts;        
+    string                              m_QueryResultString;
+    string                              m_ErrorStr;     //-- subcorpus error
 
     //-- low-level data
-    CFirstHitsQueryResult 		m_FHResult;   //< first-hits result
-    CRunQueryData			m_QueryData;  //< run-query data
-    NavHintCache			*m_pNavCache; //< navigation hint cache (shared over multiple worker threads)
-    size_t				m_NavCacheStep;	//-- minimum offset increment for update of navigation hint cache
+    CFirstHitsQueryResult               m_FHResult;   //< first-hits result
+    CRunQueryData                       m_QueryData;  //< run-query data
+    NavHintCache                        *m_pNavCache; //< navigation hint cache (shared over multiple worker threads)
+    size_t                              m_NavCacheStep; //-- minimum offset increment for update of navigation hint cache
 
     bool m_bHitStringsParallel; ///< send get_hit_strings requests in parallel?
 
@@ -297,18 +297,18 @@ public:
 
     /** backwards-compatible guts for handle__run_query() */
     NetworkErrorsEnum RunDistributed(string Query,
-				     const string& ResultType,
-				     size_t   StartHitNo,
-				     size_t   ResultLimit,
-				     int&     iInternalError,
-				     size_t&  EndHitNo,
-				     size_t&  HitsCount,
-				     int      TimeOut,
-				     string&  ResultString,
-				     size_t&  RelevantDocsCount,
-				     string&  HitDistrib,
-				     string&  DocDistrib,
-				     string&  HitsKey);
+                                     const string& ResultType,
+                                     size_t   StartHitNo,
+                                     size_t   ResultLimit,
+                                     int&     iInternalError,
+                                     size_t&  EndHitNo,
+                                     size_t&  HitsCount,
+                                     int      TimeOut,
+                                     string&  ResultString,
+                                     size_t&  RelevantDocsCount,
+                                     string&  HitDistrib,
+                                     string&  DocDistrib,
+                                     string&  HitsKey);
 
     /** mid-level: update the navigation cache from runq.navHint, runq.navKey if applicable */
     void UpdateNavCache();
@@ -317,41 +317,41 @@ public:
      *  \li updates runq.m_navKey and runq.m_navHint to point to the next available hit
      */
     NetworkErrorsEnum GetHitContexts(CFirstHitsQueryResult& FHResult,
-				     const string& ResultType,
-				     DDCFormatTypeEnum ResultTypeE,
-				     DwordVector& PossibleHosts,
-				     int&    InternalError,
-				     int     TimeOut,
-				     string& ResultString
-				     );
+                                     const string& ResultType,
+                                     DDCFormatTypeEnum ResultTypeE,
+                                     DwordVector& PossibleHosts,
+                                     int&    InternalError,
+                                     int     TimeOut,
+                                     string& ResultString
+                                     );
 
     /** mid-level guts for handle__run_query() , count-queries only */
     NetworkErrorsEnum GetHitCounts(CFirstHitsQueryResult& FHResult, DDCFormatTypeEnum ResultTypeE, string& ResultString);
 
     /** old guts for handle__run_query() phase 1 */
     void GetFirstHitsFromCorpora(const DwordVector& PossibleHosts,
-				 const string  Query,
-				 const size_t  StartHitNo,
-				 const size_t  ResultLimit,
-				 const int     TimeOut,
-				 CFirstHitsQueryResult& Result);
+                                 const string  Query,
+                                 const size_t  StartHitNo,
+                                 const size_t  ResultLimit,
+                                 const int     TimeOut,
+                                 CFirstHitsQueryResult& Result);
 
     /** send a single get_hit_strings request (used by both parallel and serial modes) */
     NetworkErrorsEnum SendGetHitStringsRequest(BYTE PossibleHostNo,
-					       const vector< vector<size_t> >& SortedHits,
-					       const vector<size_t>& FirstOffsets,
-					       const string& ResultType);
+                                               const vector< vector<size_t> >& SortedHits,
+                                               const vector<size_t>& FirstOffsets,
+                                               const string& ResultType);
     
     /** old guts for handle__run_query() phase 2 */
     NetworkErrorsEnum GetHitStringsFromOneCorpus(CHost& Host,
-						 const string& ResultType,
-						 size_t StartHitNo,
-						 size_t ResultLimit,
-						 int   TimeOut,
-						 SOCKET& CorpusSocket,
-						 int&    InternalError,
-						 string& Result,
-						 string& ResultHint);
+                                                 const string& ResultType,
+                                                 size_t StartHitNo,
+                                                 size_t ResultLimit,
+                                                 int   TimeOut,
+                                                 SOCKET& CorpusSocket,
+                                                 int&    InternalError,
+                                                 string& Result,
+                                                 string& ResultHint);
 
     /** heuristically extract user-specified subcorpora from ":CORPORA" clause of InputQuery, called by RunDistributed()
      * \li returns false only when a network error occurs
@@ -365,3 +365,13 @@ typedef CDDCBranchServer CDDCServerListenHost;
 
 #endif /* DDC_BRANCH_SERVER_H */
 
+
+/*--- emacs style variables ---
+ * Local Variables:
+ *  mode: C++
+ *  c-default-style: "linux"
+ *  c-basic-offset: 4
+ *  tab-width: 8
+ *  indent-tabs-mode: nil
+ * End:
+ */

@@ -70,13 +70,11 @@ INPUT                  = \
 			 ../src/StructDictLib \
 			 ../src/MorphWizardLib \
 			 ../src/LemmatizerLib \
-			 ../src/common \
 			 ../src/PCRE \
 			 ../src/ConcordDmnLib \
 			 ../src/GraphanLib
 
 MOO_NO_INPUT           = \
-			 ../src/ddc_file_lem \
 			 ../src/ddc_simple \
 			 ../src/ddc_index \
 			 ../src/ddc_test_lem \
@@ -85,8 +83,7 @@ MOO_NO_INPUT           = \
 			 ../src/ddc_console \
 			 ../src/ddc_struct_dict_loader \
 			 ../src/ddc_stats \
-			 ../src/ddc_morph_gen \
-			 ../src/ddc_graphmat_thick
+			 ../src/ddc_morph_gen
 
 FILE_PATTERNS          = *.h *.c *.cpp *.cc *.cxx
 RECURSIVE              = NO
@@ -203,7 +200,7 @@ MACRO_EXPANSION        = YES
 #MACRO_EXPANSION        = NO
 EXPAND_ONLY_PREDEF     = NO
 SEARCH_INCLUDES        = YES
-INCLUDE_PATH           = ../src ../src/common
+INCLUDE_PATH           = ../src ../src/CommonLib
 INCLUDE_FILE_PATTERNS  = 
 PREDEFINED             = __cplusplus
 #PREDEFINED             =  GFSM_INLINE="static inline"

@@ -1,0 +1,36 @@
+%%$DDC:meta.file_=filename1.txt
+%%$DDC:meta.scan_=scan_bibl_stub
+%%$DDC:meta.orig_=orig_bibl_stub
+%%$DDC:meta.date_=2016-02-24
+%%$DDC:meta.page_=-1
+%%$DDC:meta.author=Jurish, Bryan
+%%$DDC:meta.title=DDC test document
+%%$DDC:index[0]=Token w
+%%$DDC:index[1]=Lemma l
+%%$DDC:index[2]=Dummy d
+%%$DDC:BREAK.s
+%%$DDC:BREAK.file
+%%$DDC:BREAK.textarea
+Mutter	MUTTER	
+kam	KOMMEN	
+nach	NACH	
+hause	HAUS	
+
+%%$DDC:meta.file_=filename2.txt
+%%$DDC:meta.scan_=scan_bibl_stub
+%%$DDC:meta.orig_=
+%%$DDC:meta.date_=2016-02-25
+%%$DDC:meta.page_=-1
+%%$DDC:meta.author=Jurish, Bryan
+%%$DDC:meta.title=DDC test document
+%%$DDC:index[0]=Token w
+%%$DDC:index[1]=Lemma l
+%%$DDC:index[2]=Dummy d
+%%$DDC:BREAK.s
+%%$DDC:BREAK.file
+%%$DDC:BREAK.textarea
+Mutter	MUTTER	
+kam	KOMMEN	
+nach	NACH	
+hause	HAUS	
+

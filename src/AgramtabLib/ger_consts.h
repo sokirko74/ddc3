@@ -27,23 +27,23 @@
 
 enum gPartOfSpeeches 
 {
-	  gART  = 0, 
-	  gADJ = 1, 
-	  gADV = 2, 
-	  gEIG = 3, 
-	  gSUB = 4, 
-	  gVER = 5,
-	  gPA1  = 6, 
-	  gPA2 = 7, 
-	  gPRONOMEN = 8, 
-	  gPRP = 9, 
-	  gKON = 10, 
-	  gNEG = 11, 
-	  gINJ = 12, 
-	  gZAL = 13,  
-	  gZUS = 14, 
-	  gPRO_BEG = 15,
-	  gZU_INFINITIV = 16
+          gART  = 0, 
+          gADJ = 1, 
+          gADV = 2, 
+          gEIG = 3, 
+          gSUB = 4, 
+          gVER = 5,
+          gPA1  = 6, 
+          gPA2 = 7, 
+          gPRONOMEN = 8, 
+          gPRP = 9, 
+          gKON = 10, 
+          gNEG = 11, 
+          gINJ = 12, 
+          gZAL = 13,  
+          gZUS = 14, 
+          gPRO_BEG = 15,
+          gZU_INFINITIV = 16
 };
 
 
@@ -160,9 +160,9 @@ gImpersonal=61
 
 
 typedef enum {
-	VERBSATZ_T =0,
-	PARTIZIPIALSATZ_T = 1,
-	INFINITIVSATZ_T=2
+        VERBSATZ_T =0,
+        PARTIZIPIALSATZ_T = 1,
+        INFINITIVSATZ_T=2
 } gClauseTypeEnum;
 
 
@@ -172,3 +172,13 @@ typedef enum {
 #endif
 
 #endif
+
+/*--- emacs style variables ---
+ * Local Variables:
+ *  mode: C++
+ *  c-default-style: "linux"
+ *  c-basic-offset: 4
+ *  tab-width: 8
+ *  indent-tabs-mode: nil
+ * End:
+ */

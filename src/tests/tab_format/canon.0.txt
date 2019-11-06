@@ -1,0 +1,31 @@
+%%$DDC:tokid.begin=0
+%%$DDC:tokid.end=13
+%%$DDC:meta.n_=0
+%%$DDC:meta.file_=./a.xml
+%%$DDC:meta.scan_=
+%%$DDC:meta.orig_=
+%%$DDC:meta.date_=
+%%$DDC:meta.page_=-1
+%%$DDC:index[0]=Token w
+%%$DDC:index[1]=Lemma l
+%%$DDC:PAGE=4294967295
+%%$DDC:BREAK.s[-1]=0
+%%$DDC:BREAK.file[-1]=0
+%%$DDC:BREAK.textarea[-1]=0
+Mutter	MUTTER
+kam	KOMMEN
+nach	NACH
+hause	HAUS
+,	,
+deswegen	DESWEGEN
+war	SEIN
+ich	ICH
+froh	FROH
+%%$DDC:PAGE=6
+
+%%$DDC:BREAK.s[0]=9
+-#Mutter	MUTTER
+war	SEIN
+auch	AUCH
+froh	FROH
+

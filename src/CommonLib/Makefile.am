@@ -23,6 +23,7 @@ lib_LTLIBRARIES = libDDCCommon.la
 ## sources
 
 libDDCCommon_la_SOURCES = \
+ ddcConfigNoAuto.h \
  utilit.cpp utilit.h \
  string_socket.cpp string_socket.h \
  CHost.cpp CHost.h \
@@ -35,9 +36,36 @@ libDDCCommon_la_SOURCES = \
  ddcTime.cpp ddcTime.h \
  ddcMMap.h \
  ddcStringEnum.h \
+ ptrholder.h \
  ddcCorpusList.h
 
-# unix_simple_qparse.h MyFlexLexer.h
+EXTRA_DIST = \
+ bserialize.h \
+ config.h \
+ cortege.h \
+ DDC_common.h \
+ ddcConfigAuto.h \
+ ddcConfig.h \
+ DDCInternalError.h \
+ ddcThreadQueue.h \
+ GramInfo.h \
+ string_tokenizer.h \
+ util_classes.h \
+ ddcConfigAuto.h.in \
+ ddcIconv.h \
+ ddcRandom.h \
+ ddcObject.h
+
+
+##-- extra sources
+BUILT_SOURCES = \
+	 ddcConfigNoAuto.h
+
+##-- extra rules
+ddcConfigNoAuto.h: ddcConfigAuto.h
+	echo "/* src/CommonLib/ddcConfigNoAuto.h. Generated from ddcConfigAuto.h by make */" >ddcConfigNoAuto.h
+	sed 's/^#define \([^ ]*\).*$$/#undef \1/;' ddcConfigAuto.h >>ddcConfigNoAuto.h
+
 
 ##-----------------------------------------------------------------------
 ## debug
@@ -82,7 +110,8 @@ libDDCCommon_la_SOURCES = \
 #CLEANFILES =
 
 ## --- distclean: built by 'configure'
-#DISTCLEANFILES =
+DISTCLEANFILES = \
+	ddcConfigNoAuto.h
 
 ## -- maintainerclean: built by maintainer / by hand
 MAINTAINERCLEANFILES = \
@@ -93,8 +122,6 @@ MAINTAINERCLEANFILES = \
 ## Variables: distribution
 ##-----------------------------------------------------------------------
 
-##--- extra distribution files
-#EXTRA_DIST = 
 
 ##--- recursion subdirectories for 'make dist'
 #DIST_SUBDIRS = $(SUBDIRS)

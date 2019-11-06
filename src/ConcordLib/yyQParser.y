@@ -38,6 +38,9 @@
  */
 
 #define YY_HEADER_EXPORT_START_CONDITIONS 1 /* export start conditions */
+
+#define yyqlex_ALREADY_DEFINED // let flex 2.6 not insert #undef yylex
+
 #include "yyQLexer.h"
 
 #include "QueryCompiler.h"

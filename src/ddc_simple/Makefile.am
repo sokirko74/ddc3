@@ -36,6 +36,7 @@ ddc_simple_LDADD = \
  ../AgramtabLib/libDDCAgramtab.la \
  ../RmlTar/libDDCRmlTar.la \
  ../MorphWizardLib/libDDCMorphWizard.la \
+ ../jsoncpp/libjsoncpp.la \
  ../CommonLib/libDDCCommon.la
 
 ##-----------------------------------------------------------------------

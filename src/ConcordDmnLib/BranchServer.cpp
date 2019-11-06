@@ -1,7 +1,7 @@
-//-*- Mode: C++; c-basic-offset:8; -*-
+//-*- Mode: C++ -*-
 //
 //  DDC originally by Alexey Sokirko
-//  Changes and modifications 2011-2018 by Bryan Jurish
+//  Changes and modifications 2011-2019 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -548,6 +548,7 @@ void CDDCBranchServer::handle__status(string &Result, int timeout, bool verbose)
 	      + "\"hostname\":" + jsonStr(m_FQHostName) + ",\n"
 	      + "\"hostaddr\":" + jsonStr(m_HostAddr) + ",\n"
 	      + "\"port\":" + Format("%d", m_Port) + ",\n"
+	      + "\"socket\":" + jsonStr(GetAddressStr()) + ",\n"
 	      + "\"started\":" + jsonStr(timestampUTC(m_tStarted)) + ",\n"
 	      + "\"uptime\":" + Format("%.0f", uptime) + ",\n"
 	      + "\"nrequests\":" + Format("%zd", m_ServerStats.m_nRequests) + ",\n"
@@ -1429,3 +1430,13 @@ string CDDCBranchServer::GetSubcorpusJsonArray(const string& request, int timeou
 	return Result;
 }
 
+
+/*--- emacs style variables ---
+ * Local Variables:
+ *  mode: C++
+ *  c-default-style: "linux"
+ *  c-basic-offset: 4
+ *  tab-width: 8
+ *  indent-tabs-mode: nil
+ * End:
+ */

@@ -416,3 +416,13 @@ CTermExpander *newTermExpander(const string& class_="Id", const string& label=st
 
 #endif /* DDC_TERM_EXPANDER_H */
 
+
+/*--- emacs style variables ---
+ * Local Variables:
+ *  mode: C++
+ *  c-default-style: "linux"
+ *  c-basic-offset: 4
+ *  tab-width: 8
+ *  indent-tabs-mode: nil
+ * End:
+ */

@@ -29,25 +29,25 @@
 //////////////////////////////////////////////////////////////////////////////
 struct  CPredictTuple 
 {
-	WORD							m_ItemNo;
-	DWORD							m_LemmaInfoNo;
-	BYTE							m_PartOfSpeechNo;
+        WORD                                                    m_ItemNo;
+        DWORD                                                   m_LemmaInfoNo;
+        BYTE                                                    m_PartOfSpeechNo;
 };
 
 
 //////////////////////////////////////////////////////////////////////
 class CPredictBase 
-{	
-	CMorphAutomat				m_SuffixAutomat;
-	void FindRecursive(int r, string& curr_path, vector<CPredictTuple>& Infos) const;
+{       
+        CMorphAutomat                           m_SuffixAutomat;
+        void FindRecursive(int r, string& curr_path, vector<CPredictTuple>& Infos) const;
 public:
-	DwordVector			m_ModelFreq;
+        DwordVector                     m_ModelFreq;
 
-	
-	CPredictBase(MorphLanguageEnum);
+        
+        CPredictBase(MorphLanguageEnum);
 
-	void Load (const string &path);
-	bool Find(const string &lettId, vector<CPredictTuple>& res) const;
+        void Load (const string &path);
+        bool Find(const string &lettId, vector<CPredictTuple>& res) const;
 };
 
 
@@ -56,3 +56,13 @@ public:
 
 #endif 
 
+
+/*--- emacs style variables ---
+ * Local Variables:
+ *  mode: C++
+ *  c-default-style: "linux"
+ *  c-basic-offset: 4
+ *  tab-width: 8
+ *  indent-tabs-mode: nil
+ * End:
+ */

@@ -1,0 +1,10 @@
+"Mutter";2
+"Vater";1
+"auch";3
+"deswegen";3
+"froh";6
+"hause";3
+"ich";3
+"kam";3
+"nach";3
+"war";6

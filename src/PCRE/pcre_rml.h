@@ -1,4 +1,4 @@
-//-*- Mode: C++; c-basic-offset: 2;-*-
+//-*- Mode: C++ -*-
 //  DDC originally by Alexey Sokirko
 //  Changes and modifications 2011-2014 by Bryan Jurish
 //
@@ -53,7 +53,7 @@ class RML_RE {
     {
       //-- moo: implicitly set PCRE_UCP whenever PCRE_UTF8 is requested: allows e.g. [[:upper:]] to match non-ASCII characters
       if (opts.utf8())
-	options_.set_all_options( options_.all_options() | PCRE_UCP );
+        options_.set_all_options( options_.all_options() | PCRE_UCP );
     };
   };
 
@@ -288,3 +288,13 @@ class RML_RE {
 
 
 #endif
+
+/*--- emacs style variables ---
+ * Local Variables:
+ *  mode: C++
+ *  c-default-style: "linux"
+ *  c-basic-offset: 4
+ *  tab-width: 8
+ *  indent-tabs-mode: nil
+ * End:
+ */

@@ -21,7 +21,7 @@
 #ifndef DDC_QUERY_H
 #define DDC_QUERY_H
 
-#include "../ConcordLib/QueryNode.h" 	//-- DDC-v1.x query API, wrapped here
+#include "../ConcordLib/QueryNode.h"    //-- DDC-v1.x query API, wrapped here
 #include "../ConcordLib/QueryOptions.h"
 
 extern const BYTE DefaultMatchId;
@@ -797,10 +797,10 @@ public:
   vector<CQToken*> m_Items;
 
   //! distances between items
-  vector<BYTE>	m_Dists;
+  vector<BYTE>  m_Dists;
 
   //! distance constraint relations
-  vector<BYTE>	m_DistOps;
+  vector<BYTE>  m_DistOps;
 
 public:
   //! literal constructor (unused)
@@ -845,3 +845,13 @@ public:
 
 
 #endif /* DDC_QUERY_H */
+
+/*--- emacs style variables ---
+ * Local Variables:
+ *  mode: C++
+ *  c-default-style: "linux"
+ *  c-basic-offset: 4
+ *  tab-width: 8
+ *  indent-tabs-mode: nil
+ * End:
+ */

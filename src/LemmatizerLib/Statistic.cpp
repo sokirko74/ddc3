@@ -19,7 +19,7 @@
 
 #include "StdMorph.h"
 #include "Statistic.h"
-#include "../common/bserialize.h"
+#include "../CommonLib/bserialize.h"
 
 
 #ifdef DETECT_MEMORY_LEAK
@@ -83,3 +83,13 @@ int		CStatistic::get_WordWeight(int paradigmid) const
 		return presult->second;
 	return (0);
 };
+
+/*--- emacs style variables ---
+ * Local Variables:
+ *  mode: C++
+ *  c-default-style: "linux"
+ *  c-basic-offset: 4
+ *  tab-width: 8
+ *  indent-tabs-mode: nil
+ * End:
+ */

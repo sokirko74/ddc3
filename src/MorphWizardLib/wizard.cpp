@@ -1,4 +1,4 @@
-//-*- Mode: C++; c-basic-offset: 4; -*-
+//-*- Mode: C++ -*-
 //  Original by Alexey Sokikro
 //  Changes Copyright 2011-2014 by Bryan Jurish
 //
@@ -21,7 +21,7 @@
 #pragma warning(disable:4786)
 
 #include "wizard.h"
-#include "../common/util_classes.h"
+#include "../CommonLib/util_classes.h"
 #include "../AgramtabLib/EngGramTab.h"
 #include "../AgramtabLib/RusGramTab.h"
 #include "../AgramtabLib/GerGramTab.h"
@@ -2888,3 +2888,13 @@ bool MorphoWizard::ReadNextParadigmFromFile(FILE* fp, CDumpParadigm& P, int& lin
 	return true; 
 
 };
+
+/*--- emacs style variables ---
+ * Local Variables:
+ *  mode: C++
+ *  c-default-style: "linux"
+ *  c-basic-offset: 4
+ *  tab-width: 8
+ *  indent-tabs-mode: nil
+ * End:
+ */

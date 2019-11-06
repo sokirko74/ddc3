@@ -24,6 +24,7 @@
 #include <unistd.h>
 #include "../ConcordLib/ConcSession.h"
 #include "../CommonLib/ddcTime.h"
+
 using namespace std;
 
 //======================================================================
@@ -31,145 +32,150 @@ const char *prog = "ddc_split";
 string infilename;
 string optfilename;
 string outfmt = "split%02d/split%1$02d.con";
-int    n_splits = 2;
+int n_splits = 2;
 
 //--------------------------------------------------------------
 void show_version(void) {
-  fprintf(stderr,"%s\n", DDCVersionStr.c_str());
-  fprintf(stderr,"%s: DDC corpus index split\n", prog);
+    fprintf(stderr, "%s\n", DDCVersionStr.c_str());
+    fprintf(stderr, "%s: DDC corpus index split\n", prog);
 }
 
 //--------------------------------------------------------------
 void show_usage(void) {
-  show_version();
-  fprintf(stderr,"\n");
-  fprintf(stderr,"Usage: %s [OPTIONS] CON_FILE\n", prog);
-  fprintf(stderr,
-	  "\n"
-	  " Options:\n"
-	  "  -h, --help            # this help message\n"
-	  "  -n, --n-corpora N     # number of output corpora (default=2)\n"
-	  "  -o, --output OUTFMT   # specify printf-style output format (default=\"split%%02d/split%%1$02d.con\")\n"
-	  "  -O, --options OPTFILE # load output options from OPTFILE (default:empty ~ inherit)\n"
-	  "  -v, --verbose LEVEL   # specify log-verbosity level (none|error|warn|info=weak|debug=medium|trace=heavy)\n"
-	  "\n"
-	  );
+    show_version();
+    fprintf(stderr, "\n");
+    fprintf(stderr, "Usage: %s [OPTIONS] CON_FILE\n", prog);
+    fprintf(stderr,
+            "\n"
+            " Options:\n"
+            "  -h, --help            # this help message\n"
+            "  -n, --n-corpora N     # number of output corpora (default=2)\n"
+            "  -o, --output OUTFMT   # specify printf-style output format (default=\"split%%02d/split%%1$02d.con\")\n"
+            "  -O, --options OPTFILE # load output options from OPTFILE (default:empty ~ inherit)\n"
+            "  -v, --verbose LEVEL   # specify log-verbosity level (none|error|warn|info=weak|debug=medium|trace=heavy)\n"
+            "\n"
+    );
 }
 
 //--------------------------------------------------------------
-void copyOptionsFile(const string& srcFile, const string &dstFile)
-{
-  if (FileExists(dstFile))
-    ddcLogWarn("copyOptionsFile(): Warning: destination file '"+dstFile+"' will be overwritten");
-  if (!RmlCopyFile(srcFile.c_str(), dstFile.c_str()))
-    throw CExpc("copyOptionsFile(): failed to copy options options from "+srcFile+" to "+dstFile);
+void copyOptionsFile(const string &srcFile, const string &dstFile) {
+    if (FileExists(dstFile))
+        ddcLogWarn("copyOptionsFile(): Warning: destination file '" + dstFile + "' will be overwritten");
+    if (!RmlCopyFile(srcFile.c_str(), dstFile.c_str()))
+        throw CExpc("copyOptionsFile(): failed to copy options options from " + srcFile + " to " + dstFile);
 }
 
 //======================================================================
-int main(int argc, char* argv[])
-{
-  //-- command-line
-  ddc_thread_init("ddc_split");
-  SetLogLevel(ddcLLInfo);
-  ddcLogToFiles = false;
-  ddcLogToSyslog = false;
-  ddcLogToStderr = true;
+int main(int argc, char *argv[]) {
+    //-- command-line
+    ddc_thread_init("ddc_split");
+    SetLogLevel(ddcLLInfo);
+    ddcLogToFiles = false;
+    ddcLogToSyslog = false;
+    ddcLogToStderr = true;
 
-  for (int argi=1; argi < argc; ++argi) {
-    string s = argv[argi];
+    for (int argi = 1; argi < argc; ++argi) {
+        string s = argv[argi];
 
-    if (s=="--help" || s=="-h") {
-      show_usage();
-      return 0;
+        if (s == "--help" || s == "-h") {
+            show_usage();
+            return 0;
+        } else if (s == "--n-corpora" || s == "-n") {
+            ++argi;
+            if (argi < argc)
+                n_splits = strtol(argv[argi], NULL, 0);
+        } else if (s == "--output" || s == "--outfmt" || s == "-o") {
+            ++argi;
+            if (argi < argc)
+                outfmt = argv[argi];
+        } else if (s == "--options" || s == "--opt" || s == "-O") {
+            ++argi;
+            if (argi < argc)
+                optfilename = argv[argi];
+        } else if (s == "--verbose" || s == "-verbose" || s == "-v" || s == "--log-level" || s == "--log" ||
+                   s == "--protocol") {
+            if (argi + 1 >= argc) {
+                show_usage();
+                exit(1);
+            }
+            SetLogLevel(GetLogLevel(argv[argi + 1]));
+            argi++;
+        } else if (!infilename.empty()) {
+            fprintf(stderr, "Error: multiple input files specified!\n");
+            show_usage();
+            exit(1);
+        } else {
+            infilename = argv[argi];
+        }
     }
-    else if (s=="--n-corpora" || s=="-n") {
-      ++argi;
-      if (argi < argc)
-	n_splits = strtol(argv[argi],NULL,0);
+
+    //-- sanity check(s)
+    if (infilename.empty()) {
+        fprintf(stderr, "Error: no input con-file specified!\n");
+        show_usage();
+        exit(1);
     }
-    else if (s=="--output" || s=="--outfmt" || s=="-o") {
-      ++argi;
-      if (argi < argc)
-	outfmt = argv[argi];
+    if (n_splits > 1) {
+        //-- check output format
+        string out1 = Format(outfmt.c_str(), 1);
+        string out2 = Format(outfmt.c_str(), 2);
+        if (out1 == out2) {
+            fprintf(stderr, "Error: output format should contain at least a \"%%d\" specifier\n");
+            show_usage();
+            exit(1);
+        }
     }
-    else if (s=="--options" || s=="--opt" || s=="-O") {
-      ++argi;
-      if (argi < argc)
-	optfilename = argv[argi];
+
+
+    try {
+        //-- timer
+        DDCTime t0 = DDCTime::Now();
+
+        //-- load input project
+        ddcLogInfo("LoadProject " + infilename);
+        CConcIndexator Ix;
+        Ix.LoadProject(infilename, false);
+
+        //-- load output options
+        string OutputOptions;
+        if (!optfilename.empty() && !LoadFileToString(optfilename, OutputOptions))
+            throw CExpc(Format("%s: Error: failed to load options from '%s'", prog, optfilename.c_str()));
+
+        //-- create output projects
+        vector<CConcIndexator *> Splits(n_splits);
+        for (int i = 0; i < n_splits; ++i) {
+            Splits[i] = new CConcIndexator();
+            Splits[i]->SetPath(Format(outfmt.c_str(), i));
+        }
+        Ix.SplitProject(Splits, OutputOptions);
+        for (int i = 0; i < n_splits; ++i) {
+            delete Splits[i];
+        }
+        //-- all done
+        ddcLogInfo("Split project " + infilename);
+        ddcLogInfo(Format("+ Total time elapsed = %.3f second(s)", DDCTime::Now().Elapsed(t0)));
+        DDCProcessMemoryStatus mstat(getpid());
+        ddcLogInfo(Format("+ Memory Usage (kB) = VmPeak:%zd , VmSize:%zd , VmHWM:%zd , VmRSS:%zd , VmSwap:%zd",
+                          mstat.VmPeak, mstat.VmSize, mstat.VmHWM, mstat.VmRSS, mstat.VmSwap));
     }
-    else if (s == "--verbose" || s == "-verbose" || s=="-v" || s=="--log-level" || s=="--log" || s=="--protocol") {
-      if (argi+1 >= argc) {
-	show_usage();
-	exit(1);
-      }
-      SetLogLevel( GetLogLevel(argv[argi+1]) );
-      argi++;
+    catch (exception &e) {
+        fprintf(stderr, "%s: Exception: %s\n", prog, e.what());
+        exit(-1);
     }
-    else if (!infilename.empty()) {
-      fprintf(stderr, "Error: multiple input files specified!\n");
-      show_usage();
-      exit(1);
-    }
-    else {
-      infilename = argv[argi];
-    }
-  }
-
-  //-- sanity check(s)
-  if (infilename.empty()) {
-    fprintf(stderr, "Error: no input con-file specified!\n");
-    show_usage();
-    exit(1);
-  }
-  if (n_splits > 1) {
-    //-- check output format
-    string out1 = Format(outfmt.c_str(),1);
-    string out2 = Format(outfmt.c_str(),2);
-    if (out1 == out2) {
-      fprintf(stderr, "Error: output format should contain at least a \"%%d\" specifier\n");
-      show_usage();
-      exit(1);
-    }
-  }
-
- 
-  try {
-    //-- timer
-    DDCTime t0 = DDCTime::Now();
-
-    //-- load input project
-    ddcLogInfo("LoadProject "+infilename);
-    CConcIndexator Ix;
-    if (!Ix.LoadProject(infilename, false))
-      throw CExpc(Format("%s: failed to load input project '%s'", prog, infilename.c_str()));
-
-    //-- load output options
-    string OutputOptions;
-    if (!optfilename.empty() && !LoadFileToString(optfilename,OutputOptions))
-      throw CExpc(Format("%s: Error: failed to load options from '%s'", prog, optfilename.c_str()));
-
-    //-- create output projects
-    vector<CConcIndexator> Splits(n_splits);
-    for (int i=0; i < n_splits; ++i) {
-      Splits[i].SetPath( Format(outfmt.c_str(),i) );
-    }
-    Ix.SplitProject(Splits, OutputOptions);
-
-    //-- all done
-    ddcLogInfo("Split project "+infilename);
-    ddcLogInfo(Format("+ Total time elapsed = %.3f second(s)", DDCTime::Now().Elapsed(t0)));
-    DDCProcessMemoryStatus mstat(getpid());
-    ddcLogInfo(Format("+ Memory Usage (kB) = VmPeak:%zd , VmSize:%zd , VmHWM:%zd , VmRSS:%zd , VmSwap:%zd",
-		      mstat.VmPeak, mstat.VmSize, mstat.VmHWM, mstat.VmRSS, mstat.VmSwap));
-  }
-  catch (exception &e) {
-    fprintf(stderr, "%s: Exception: %s\n", prog, e.what());
-    exit(-1);
-  }
 
 
 
-  //-- cleanup
-  return 0;
+    //-- cleanup
+    return 0;
 }
 
+
+/*--- emacs style variables ---
+ * Local Variables:
+ *  mode: C++
+ *  c-default-style: "linux"
+ *  c-basic-offset: 4
+ *  tab-width: 8
+ *  indent-tabs-mode: nil
+ * End:
+ */

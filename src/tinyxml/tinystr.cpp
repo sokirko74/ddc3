@@ -297,3 +297,13 @@ bool TiXmlString::operator > (const TiXmlString & compare) const
 
 
 #endif	// TIXML_USE_STL
+
+/*--- emacs style variables ---
+ * Local Variables:
+ *  mode: C++
+ *  c-default-style: "linux"
+ *  c-basic-offset: 4
+ *  tab-width: 8
+ *  indent-tabs-mode: nil
+ * End:
+ */

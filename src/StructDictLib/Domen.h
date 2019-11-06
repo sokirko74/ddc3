@@ -45,8 +45,8 @@ struct CDomen  {
   char* m_Items;
   int    m_ItemsLength;
   TItemContainer*  m_pParent;
-  int 	  m_StartDomItem;
-  int 	  m_EndDomItem;
+  int     m_StartDomItem;
+  int     m_EndDomItem;
   BYTE    m_DomNo;
   bool    m_bFreed;
 
@@ -59,3 +59,13 @@ struct CDomen  {
 };
 
 #endif //__DOMEN_H_
+
+/*--- emacs style variables ---
+ * Local Variables:
+ *  mode: C++
+ *  c-default-style: "linux"
+ *  c-basic-offset: 4
+ *  tab-width: 8
+ *  indent-tabs-mode: nil
+ * End:
+ */

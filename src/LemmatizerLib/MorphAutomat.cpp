@@ -19,7 +19,7 @@
 
 #include "StdMorph.h"
 #include "MorphAutomat.h"
-#include "../common/bserialize.h"
+#include "../CommonLib/bserialize.h"
 
 //-- suppress gcc warnings of the form "ignoring return value of ‘fread’, declared with attribute warn_unused_result [-Wunused-result]"
 #pragma GCC diagnostic ignored "-Wunused-result"
@@ -492,3 +492,13 @@ void CMorphAutomat::DecodeMorphAutomatInfo (DWORD Info, size_t& ModelNo, size_t&
 	PrefixNo = (0x1FF&Info);
 };
 
+
+/*--- emacs style variables ---
+ * Local Variables:
+ *  mode: C++
+ *  c-default-style: "linux"
+ *  c-basic-offset: 4
+ *  tab-width: 8
+ *  indent-tabs-mode: nil
+ * End:
+ */

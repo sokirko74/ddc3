@@ -1,4 +1,4 @@
-//-*- Mode: C++; c-basic-offset:8; -*-
+//-*- Mode: C++ -*-
 //  DDC originally by Alexey Sokirko
 //  Changes and modifications 2011-2016 by Bryan Jurish
 //
@@ -74,8 +74,7 @@ void LoadLocalCorpora (string ConfigFile, const CDDCServerOptions& Options)
 			CDDCLeafServer &H = LocalCorpora[i];
 			H.CopyAddressParametersFrom(Hosts[i]);
 			H.SetOptions(Options);
-			if (!H.LoadHolder())
-				throw CExpc(errOther, "LoadHolder() failed for host %d", i);
+			H.LoadHolder();
 		}
 		for (int i = 0; i<LocalCorpora.size(); i++) {
 			CDDCLeafServer& H = LocalCorpora[i];
@@ -163,9 +162,7 @@ void LoadDDCServer(string ServerConfigFile, const CDDCServerOptions& Options)
 		//-- assign subcorpus node to parent
 		ddcLogDebug(Format("LoadDDCServer(): assigning subcorpus node `%s' to parent node `%s'", hi->m_CorpusName.c_str(), bserver->m_CorpusName.c_str()));
 		CHost tmp_host;
-		string tmp_addr = hi->HostAddr();
-		if (tmp_addr == "0.0.0.0") tmp_addr = "127.0.0.1"; //-- connect to localhost for embedded branch servers binding all interfaces
-		tmp_host.Init(hi->m_CorpusName, tmp_addr, hi->Port());
+		tmp_host.InitEmbedded(*hi);
 		bserver->m_Hosts.push_back(tmp_host);
 	}
 
@@ -195,8 +192,10 @@ void UnloadLocalCorporaAndServer ()
 {
 	for (int i =0 ;  i<LocalCorpora.size(); i++)
 	{
-		delete LocalCorpora[i].m_pHolder->m_pIndexator;
-		delete LocalCorpora[i].m_pHolder;
+	    if (LocalCorpora[i].m_pHolder) {
+            delete LocalCorpora[i].m_pHolder->m_pConcordance;
+            delete LocalCorpora[i].m_pHolder;
+        }
 	};
 
 	LocalCorpora.clear();
@@ -226,3 +225,13 @@ void ShutdownLocalCorpora() {
 		LocalCorpora[i].Shutdown();
 	}
 }
+
+/*--- emacs style variables ---
+ * Local Variables:
+ *  mode: C++
+ *  c-default-style: "linux"
+ *  c-basic-offset: 4
+ *  tab-width: 8
+ *  indent-tabs-mode: nil
+ * End:
+ */

@@ -1,4 +1,4 @@
-//-*- Mode: C++; c-basic-offset:4; -*-
+//-*- Mode: C++ -*-
 //
 //  DDC originally by Alexey Sokirko
 //  Changes and modifications 2011-2018 by Bryan Jurish
@@ -20,8 +20,8 @@
 //
 
 #include "ServerOptions.h"
-#include "../common/string_tokenizer.h"
-#include "../common/ddcThreadQueue.h"
+#include "../CommonLib/string_tokenizer.h"
+#include "../CommonLib/ddcThreadQueue.h"
 #include "../ConcordLib/NavHint.h"
 #include <errno.h>
 #include <string.h>
@@ -132,3 +132,13 @@ string CDDCServerOptions::toString() const
 	    + "VersionCompat " + m_VersionCompat.str().c_str() + "\n"
 	    );
 }
+
+/*--- emacs style variables ---
+ * Local Variables:
+ *  mode: C++
+ *  c-default-style: "linux"
+ *  c-basic-offset: 4
+ *  tab-width: 8
+ *  indent-tabs-mode: nil
+ * End:
+ */

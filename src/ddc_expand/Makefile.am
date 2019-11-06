@@ -23,9 +23,9 @@ ddc_expand_SOURCES = ddc_expand.cpp
 ddc_expand_LDADD = \
  ../ConcordLib/libDDCConcord.la \
  ../tinyxml/libDDCTinyXml.la \
+ ../LemmatizerLib/libDDCLemmatizer.la \
  ../GraphanLib/libDDCGraphan.la \
  ../StructDictLib/libDDCStructDict.la \
- ../LemmatizerLib/libDDCLemmatizer.la \
  ../AgramtabLib/libDDCAgramtab.la \
  ../RmlTar/libDDCRmlTar.la \
  ../MorphWizardLib/libDDCMorphWizard.la \

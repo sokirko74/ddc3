@@ -1,0 +1,8 @@
+German
+IndexType Free_Index
+Indices [Token w normal];[Lemma l normal storage]
+HitBorders [s:sentence:default]
+TextArea body /TEI.2/text/body
+
+UserMaxTokenCountInOnePeriod  2
+UserMaxInputLoadIndexSize  1

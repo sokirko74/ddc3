@@ -1390,3 +1390,13 @@ int CGraphmatFile::InitContextDescriptors (size_t LB, size_t HB)
 	return 1;
 }
 
+
+/*--- emacs style variables ---
+ * Local Variables:
+ *  mode: C++
+ *  c-default-style: "linux"
+ *  c-basic-offset: 4
+ *  tab-width: 8
+ *  indent-tabs-mode: nil
+ * End:
+ */

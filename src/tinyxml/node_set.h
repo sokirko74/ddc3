@@ -171,7 +171,7 @@ protected :
    /// Nb of nodes in the set
    unsigned u_nb_node;
    /// List of node pointers to the 
-	const void ** vpp_node_set;
+        const void ** vpp_node_set;
    /// Attributes flag list
    bool * op_attrib;
 } ;
@@ -179,3 +179,13 @@ protected :
 }
 
 #endif
+
+/*--- emacs style variables ---
+ * Local Variables:
+ *  mode: C++
+ *  c-default-style: "linux"
+ *  c-basic-offset: 4
+ *  tab-width: 8
+ *  indent-tabs-mode: nil
+ * End:
+ */

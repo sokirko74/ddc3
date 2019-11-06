@@ -63,3 +63,13 @@ std::string stolower(const std::string &s);
 
 #endif //_DDC_LOCALE_H
 
+
+/*--- emacs style variables ---
+ * Local Variables:
+ *  mode: C++
+ *  c-default-style: "linux"
+ *  c-basic-offset: 4
+ *  tab-width: 8
+ *  indent-tabs-mode: nil
+ * End:
+ */

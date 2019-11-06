@@ -1,4 +1,4 @@
-//-*- Mode: C++; c-basic-offset: 8; -*-*/
+//-*- Mode: C++ -*-*/
 //
 //  This file is part of DDC.
 // 
@@ -27,91 +27,91 @@
 #include "Paradigm.h"
 #include "Statistic.h"
 #include "Predict.h"
-#include "../common/ddcIconv.h"
+#include "../CommonLib/ddcIconv.h"
 
 #pragma warning (disable : 4250)
 
 class CGraphmatFile;
 
-typedef enum {	subjFinance = 1, subjComputer = 2, subjLiterature = 4	} SubjectEnum;
+typedef enum {  subjFinance = 1, subjComputer = 2, subjLiterature = 4   } SubjectEnum;
 
 
 class CLemmatizer  : public CMorphDict
 {
 protected:
-	string				m_Registry;
-	
+        string                          m_Registry;
+        
     // Postfixes-particles, that do not change the meaning 
-	set<string>     	m_HyphenPostfixes;
+        set<string>             m_HyphenPostfixes;
     // productive prefixes
-    set<string> 		m_HyphenPrefixes;
+    set<string>                 m_HyphenPrefixes;
 
-	CStatistic			m_Statistic;
-	CPredictBase		m_Predict;
-	set<string>			m_PrefixesSet;
-
-
-	virtual void			FilterSrc(string& src) const = 0;
-
-	string					GetRegistryString()  const	{return m_Registry;	};
-	string					GetPath()  const;
-	void					ReadOptions(string FileName);
-		
-	
-	bool					LemmatizeWord(string& InputWordStr, const bool cap, const bool predict, vector<CAutomAnnotationInner>& results, bool bGetLemmaInfos) const;
-	void					AssignWeightIfNeed(vector<CAutomAnnotationInner>& FindResults) const;
-
-	// prediction by suffix
-	bool					CheckAbbreviation(string InputWordStr,vector<CAutomAnnotationInner>& FindResults, bool is_cap) const;
-	CAutomAnnotationInner	ConvertPredictTupleToAnnot(const CPredictTuple& input) const;
-	void					PredictByDataBase(string InputWordStr,  vector<CAutomAnnotationInner>&  results,bool is_cap) const;
-	bool					IsPrefix(const string& Prefix) const;
+        CStatistic                      m_Statistic;
+        CPredictBase            m_Predict;
+        set<string>                     m_PrefixesSet;
 
 
-public:
-	bool					m_bLoaded;
-	bool					m_bMaximalPrediction;
-	bool					m_bUseStatistic;
-	bool					m_bAllowRussianJo;
+        virtual void                    FilterSrc(string& src) const = 0;
+
+        string                                  GetRegistryString()  const      {return m_Registry;     };
+        string                                  GetPath()  const;
+        void                                    ReadOptions(string FileName);
+                
+        
+        bool                                    LemmatizeWord(string& InputWordStr, const bool cap, const bool predict, vector<CAutomAnnotationInner>& results, bool bGetLemmaInfos) const;
+        void                                    AssignWeightIfNeed(vector<CAutomAnnotationInner>& FindResults) const;
+
+        // prediction by suffix
+        bool                                    CheckAbbreviation(string InputWordStr,vector<CAutomAnnotationInner>& FindResults, bool is_cap) const;
+        CAutomAnnotationInner   ConvertPredictTupleToAnnot(const CPredictTuple& input) const;
+        void                                    PredictByDataBase(string InputWordStr,  vector<CAutomAnnotationInner>&  results,bool is_cap) const;
+        bool                                    IsPrefix(const string& Prefix) const;
 
 
 public:
-	//-- BEGIN moo: character set hacks
-	std::string                             m_enc_int;     ///< internal encoding (default=""=none)
-	std::string                             m_enc_ext;     ///< external encoding (default=""=none)
-	ddcIconv			       *m_ic_ext2int;  ///< iconv converter from user encoding to morph-internal encoding
-	ddcIconv			       *m_ic_int2ext;  ///< iconv converter from morph-internal encoding to user encoding
-	//-- END moo
-	
-	
-	CLemmatizer(MorphLanguageEnum Language);
-	virtual ~CLemmatizer();
-
-	//  basic methods
-	MorphLanguageEnum GetLanguage()  const {return m_pFormAutomat->m_Language; };
-	const CStatistic& GetStatistic() const;
-	bool	CheckABC(const string& WordForm) const;
-	bool	IsHyphenPostfix(const string& Postfix) const;
-	bool    IsHyphenPrefix(const string& Prefix) const;
+        bool                                    m_bLoaded;
+        bool                                    m_bMaximalPrediction;
+        bool                                    m_bUseStatistic;
+        bool                                    m_bAllowRussianJo;
 
 
-	//-- moo: character set hacks
-	bool initIconv(const string &enc_internal="", const string &enc_external="UTF8");
-	inline std::string recode_ext2int(const std::string s_ext) const { return m_ic_ext2int==NULL ? s_ext : m_ic_ext2int->convert(s_ext); }
-	inline std::string recode_int2ext(const std::string s_int) const { return m_ic_int2ext==NULL ? s_int : m_ic_int2ext->convert(s_int); }
+public:
+        //-- BEGIN moo: character set hacks
+        std::string                             m_enc_int;     ///< internal encoding (default=""=none)
+        std::string                             m_enc_ext;     ///< external encoding (default=""=none)
+        ddcIconv                               *m_ic_ext2int;  ///< iconv converter from user encoding to morph-internal encoding
+        ddcIconv                               *m_ic_int2ext;  ///< iconv converter from morph-internal encoding to user encoding
+        //-- END moo
+        
+        
+        CLemmatizer(MorphLanguageEnum Language);
+        virtual ~CLemmatizer();
 
-	
-	//  loading
-	bool	LoadDictionariesRegistry(string& strError) ;
-	bool	LoadStatisticRegistry(SubjectEnum subj);
+        //  basic methods
+        MorphLanguageEnum GetLanguage()  const {return m_pFormAutomat->m_Language; };
+        const CStatistic& GetStatistic() const;
+        bool    CheckABC(const string& WordForm) const;
+        bool    IsHyphenPostfix(const string& Postfix) const;
+        bool    IsHyphenPrefix(const string& Prefix) const;
 
-	//  main interfaces
-	bool	CreateParadigmCollection(bool bNorm, string& WordStr, bool capital, bool bUsePrediction, vector<CFormInfo>& Result) const;
-	void	GetAllAncodesQuick(const BYTE* WordForm, bool capital, BYTE* OutBuffer, bool bUsePrediction) const;
-	//string	GetAllAncodesAndLemmasQuick(string& InputWordStr, bool capital) const;
-	bool	GetAllAncodesAndLemmasQuick(string& InputWordStr, bool capital, char* OutBuffer, size_t MaxBufferSize, bool bUsePrediction) const;
-	bool	CreateParadigmFromID(DWORD id, CFormInfo& Result) const;
-	bool	ProcessHyphenWords(CGraphmatFile* piGraphmatFile) const;
+
+        //-- moo: character set hacks
+        bool initIconv(const string &enc_internal="", const string &enc_external="UTF8");
+        inline std::string recode_ext2int(const std::string s_ext) const { return m_ic_ext2int==NULL ? s_ext : m_ic_ext2int->convert(s_ext); }
+        inline std::string recode_int2ext(const std::string s_int) const { return m_ic_int2ext==NULL ? s_int : m_ic_int2ext->convert(s_int); }
+
+        
+        //  loading
+        bool    LoadDictionariesRegistry(string& strError) ;
+        bool    LoadStatisticRegistry(SubjectEnum subj);
+
+        //  main interfaces
+        bool    CreateParadigmCollection(bool bNorm, string& WordStr, bool capital, bool bUsePrediction, vector<CFormInfo>& Result) const;
+        void    GetAllAncodesQuick(const BYTE* WordForm, bool capital, BYTE* OutBuffer, bool bUsePrediction) const;
+        //string        GetAllAncodesAndLemmasQuick(string& InputWordStr, bool capital) const;
+        bool    GetAllAncodesAndLemmasQuick(string& InputWordStr, bool capital, char* OutBuffer, size_t MaxBufferSize, bool bUsePrediction) const;
+        bool    CreateParadigmFromID(DWORD id, CFormInfo& Result) const;
+        bool    ProcessHyphenWords(CGraphmatFile* piGraphmatFile) const;
 
 
 };
@@ -124,19 +124,19 @@ public:
 class CLemmatizerRussian : public CLemmatizer
 {
 public:
-	CLemmatizerRussian();
-	virtual ~CLemmatizerRussian() {};
-	void FilterSrc(string& src) const;
+        CLemmatizerRussian();
+        virtual ~CLemmatizerRussian() {};
+        void FilterSrc(string& src) const;
 };
 
 
 class  CLemmatizerEnglish : public CLemmatizer
 {
-	void FilterSrc(string& src) const;
+        void FilterSrc(string& src) const;
 public:
-	CLemmatizerEnglish();
-	virtual ~CLemmatizerEnglish() {};
-	
+        CLemmatizerEnglish();
+        virtual ~CLemmatizerEnglish() {};
+        
 };
 
 
@@ -145,11 +145,11 @@ public:
 
 class  CLemmatizerGerman: public CLemmatizer
 {
-	void FilterSrc(string& src) const;
+        void FilterSrc(string& src) const;
 public:
-	CLemmatizerGerman();
-	virtual ~CLemmatizerGerman() {};
-	
+        CLemmatizerGerman();
+        virtual ~CLemmatizerGerman() {};
+        
 };
 
 
@@ -157,3 +157,13 @@ public:
 
 
 #endif //__LEMMATIZERS_H_
+
+/*--- emacs style variables ---
+ * Local Variables:
+ *  mode: C++
+ *  c-default-style: "linux"
+ *  c-basic-offset: 4
+ *  tab-width: 8
+ *  indent-tabs-mode: nil
+ * End:
+ */

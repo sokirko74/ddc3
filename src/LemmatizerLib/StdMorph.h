@@ -20,7 +20,7 @@
 #define StdMorph_h
 
 #include <stdio.h>
-#include "../common/util_classes.h"
+#include "../CommonLib/util_classes.h"
 
 
 #include "../GraphanLib/GraphmatFile.h"       // main symbols
@@ -31,13 +31,23 @@
 
 
 
-#define HOMOWEIGHT_BIN_PATH			"homoweight.bin"		
-#define WORDWEIGHT_BIN_PATH			"wordweight.bin"		
-#define PREDICT_BIN_PATH			"npredict.bin"
-#define MORPH_MAIN_FILES			"morph.bin"
-#define OPTIONS_FILE				"morph.options"
+#define HOMOWEIGHT_BIN_PATH                     "homoweight.bin"                
+#define WORDWEIGHT_BIN_PATH                     "wordweight.bin"                
+#define PREDICT_BIN_PATH                        "npredict.bin"
+#define MORPH_MAIN_FILES                        "morph.bin"
+#define OPTIONS_FILE                            "morph.options"
 
-const DWORD ErrorParadigmId			= 0xffffffff;
+const DWORD ErrorParadigmId                     = 0xffffffff;
 
 
 #endif
+
+/*--- emacs style variables ---
+ * Local Variables:
+ *  mode: C++
+ *  c-default-style: "linux"
+ *  c-basic-offset: 4
+ *  tab-width: 8
+ *  indent-tabs-mode: nil
+ * End:
+ */

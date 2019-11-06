@@ -18,8 +18,8 @@
 //  along with DDC.  If not, see <http://www.gnu.org/licenses/>.
 //
 
-#include "../CommonLib/ddcLocale.h"
-#include "../CommonLib/utilit.h"
+#include "ddcLocale.h"
+#include "utilit.h"
 #include <wchar.h>
 #include <wctype.h>
 #include <limits.h>
@@ -136,3 +136,13 @@ std::string stolower(const std::string &s)
   return wstring2string(wstolower(string2wstring(s)));
 }
 
+
+/*--- emacs style variables ---
+ * Local Variables:
+ *  mode: C++
+ *  c-default-style: "linux"
+ *  c-basic-offset: 4
+ *  tab-width: 8
+ *  indent-tabs-mode: nil
+ * End:
+ */

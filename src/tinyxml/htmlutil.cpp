@@ -117,3 +117,13 @@ void v_out_html (
 		XNp_child = XNp_child -> NextSibling ();
 	}
 }
+
+/*--- emacs style variables ---
+ * Local Variables:
+ *  mode: C++
+ *  c-default-style: "linux"
+ *  c-basic-offset: 4
+ *  tab-width: 8
+ *  indent-tabs-mode: nil
+ * End:
+ */

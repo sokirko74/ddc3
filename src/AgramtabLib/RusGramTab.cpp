@@ -621,3 +621,13 @@ string RussianCaseNumberGender(const CAgramtab* pGramTab,  const string& adj, co
 	return "";
 };
 
+
+/*--- emacs style variables ---
+ * Local Variables:
+ *  mode: C++
+ *  c-default-style: "linux"
+ *  c-basic-offset: 4
+ *  tab-width: 8
+ *  indent-tabs-mode: nil
+ * End:
+ */

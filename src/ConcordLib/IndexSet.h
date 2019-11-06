@@ -1,4 +1,4 @@
-//*-*- Mode: C++; c-basic-offset: 8; -*-*/
+//*-*- Mode: C++ -*-*/
 
 //  DDC originally by Alexey Sokirko
 //  Changes and modifications 2011-2018 by Bryan Jurish
@@ -27,159 +27,171 @@
 #include "../PCRE/pcre_rml.h"
 
 /*!  COutputToken  contains information about one token of an output hit and its properties.
-*/ 
-struct COutputToken 
-{
-	//! the token itself
-	string	m_TokenStr;
-	//! the interpretation of the token 
-	string	m_InterpStr;
-	//! how DDC should highlight this token in the output hit
-	BYTE	m_Highlight;
-	
-	COutputToken () : m_Highlight(0)
-	{};
+*/
+struct COutputToken {
+    //! the token itself
+    string m_TokenStr;
+    //! the interpretation of the token
+    string m_InterpStr;
+    //! how DDC should highlight this token in the output hit
+    BYTE m_Highlight;
 
-	COutputToken(string WordStr, BYTE Highlight) : m_TokenStr(WordStr), m_Highlight(Highlight)
-	{};
+    COutputToken() : m_Highlight(0) {};
 
-	bool operator == (const COutputToken& X)const 
-	{
-		return m_TokenStr == X.m_TokenStr;
-	};
+    COutputToken(string WordStr, BYTE Highlight) : m_TokenStr(WordStr), m_Highlight(Highlight) {};
+
+    bool operator==(const COutputToken &X) const {
+        return m_TokenStr == X.m_TokenStr;
+    };
 };
-
 
 
 class CStringIndexator;
 
 
 /*! Class CStringIndexSet  is the upmost implementation of one \ref index_set_def "index set". The
-	main functions deals with the searching of strings in index and with the retrieving its occurrences.
-	On the other hand, this class is an inheritor of CIndexSetForLoadingStage and CIndexSetForQueryingStage, and 
-	therefore it provides a connection between them during the load phase (for example CStringIndexSet::ConvertLoadIndexToWorkingIndex).
+        main functions deals with the searching of strings in index and with the retrieving its occurrences.
+        On the other hand, this class is an inheritor of CIndexSetForLoadingStage and CIndexSetForQueryingStage, and 
+        therefore it provides a connection between them during the load phase (for example CStringIndexSet::ConvertLoadIndexToWorkingIndex).
 */
-class CStringIndexSet  :	public CIndexSetForLoadingStage, public CIndexSetForQueryingStage
-{
-	//! a file for \ref storage_def "index storage"
-	FILE*	m_StorageFile;
-    
+class CStringIndexSet : public CIndexSetForLoadingStage, public CIndexSetForQueryingStage {
+    //! a file for \ref storage_def "index storage"
+    CFileOrMemoryMappedFile m_StorageFile;
 
-    
 
-	//!	convert a temporal index set to the work index 
-	bool	ConvertLoadIndexToWorkingIndex ();
-	//!	return file name for storage
-	string	GetStorageFileName() const;
-	//!	return file name for left bigrams
-	string	GetLeftBigramsFileName() const;
-	//!	make concatenation of multiple storages (new)
-	bool	CreateUnionTokenStorages(const vector<CStringIndexSet*>& IndexSets, const vector<size_t>& TokenCounts, const vector< vector<DWORD> >& xlateItemId);
-	//!	save one part of token storage to the common file (called by CreateUnionTokenStorages())
-	bool	SaveOnePartOfUnionTokenStorage(FILE * res_fp, const vector<DWORD>& Old2New) const;
-	//!     split storage file into partitions
-	bool    CreatePartitionStorage(vector<CStringIndexSet*>& Partitions, const vector<CTokenNo>& EndTokenNo, const vector< vector<DWORD> >& xlateItemId) const;
-	
-	//!     open \ref storage_def "storage" file
-	bool	OpenStorageFile();
-	//!     close \ref storage_def "storage" file
-	void	CloseStorageFile();
-	//! return m_Name (an implementation of pure member CIndexSetForLoadingStage::GetName )
-	string	GetName() const;
-	//! converts temporary \ref storage_def "index storage" to persistent one (replacing a reference to  m_StringBuffer by a index item no)
-	bool	ConvertTempStorageToPersistent();
+    //! convert a temporal index set to the work index
+    bool ConvertLoadIndexToWorkingIndex();
+
+
+    //! make concatenation of multiple storages (new)
+    void CreateUnionTokenStorages(const vector<CStringIndexSet *> &IndexSets, const vector<size_t> &TokenCounts,
+                                  const vector<vector<DWORD> > &xlateItemId);
+
+    //!     open \ref storage_def "storage" file
+    void OpenStorageFile();
+
+
+    //! return m_Name (an implementation of pure member CIndexSetForLoadingStage::GetName )
+    string GetName() const;
+
+    //! converts temporary \ref storage_def "index storage" to persistent one (replacing a reference to  m_StringBuffer by a index item no)
+    bool ConvertTempStorageToPersistent();
 
 public:
-    
-	//! the main name of the index set, for example "Token", "MorphPattern", "Thes", "Chunk"...
-	string	m_Name;
 
-	//! a short name of the index set,  for example "m", "w", "t", "c"
-	string	m_ShortName;
+    //! the main name of the index set, for example "Token", "MorphPattern", "Thes", "Chunk"...
+    string m_Name;
 
-	//! this function returns a string(which was indexed by DDC) by an instance of CIndexItem or CItemIndexForLoading
-	template<class T>
-	inline const char* GetIndexItemStr(const T& W) const 
-	{
-		return m_StringBuffer.m_data + W.GetIndexItemOffset();
-	};
+    //! a short name of the index set,  for example "m", "w", "t", "c"
+    string m_ShortName;
 
-	CStringIndexSet(const CStringIndexator* pParent);
-	~CStringIndexSet();
+    //! this function returns a string(which was indexed by DDC) by an instance of CIndexItem or CItemIndexForLoading
+    template<class T>
+    inline const char *GetIndexItemStr(const T &W) const {
+        return m_StringBuffer.m_data + W.GetIndexItemOffset();
+    };
 
-	//! initialize all class slots
-	void	InitIndexSet(string Name, string ShortName,  bool bCreateItemStorage, bool bCompress);
-	//! read index from the disk
-	bool	ReadFromTheDisk();
-	//! clear all vectors of the index and removes index files
-	bool	DestroyIndexSet();
-	//! write index to file
-	bool	WriteToFile(bool bAfterLoading);	
-	//! build union of multiple indices , throws CExpc if fails (new)
-	void	UnionIndexSets(const vector<CStringIndexSet*>& IndexSets, const vector<size_t>& TokenCounts);
-	//! partition this index into \a Paritions[] on \a EndTokenNo[] (exclusive)
-	void    CreatePartitions(vector<CStringIndexSet*>& Partitions, const vector<CTokenNo>& EndTokenNo) const;
-	//! ensure that m_rIndex is non-empty, populating it from m_Index if required (called during index compilation)
-	void	EnsureSuffixIndex();
+    CStringIndexSet(const CStringIndexator *pParent);
 
-	//! return sequence of tokens(strings) [start_offset,  end_offset] 
-	bool	GetTokensFromStorage(const size_t start_offset,  const size_t end_offset, vector<COutputToken>& Tokens) const;
+    ~CStringIndexSet();
 
-	//! gets index-local item-id of token number \a TokenNo
-	//! \li basically a pared-down single-token version of GetTokensFromStorage()
-	//! \li \returns integer \a ItemId such that <code>CIndexItem TokenItem = m_Index[ItemId]</code> is the indexed attribute for token number \a TokenNo,
-	//!     or \a DWORD_MAX if an error occurs (e.g. no such token)
-	DWORD   GetTokenIndexId(CTokenNo TokenNo) const;
+    //! return file name for storage
+    string GetStorageFileName() const;
 
-	//! gets local m_Index iterator (lower-bound) for type \a ValueStr
-	//! \li guts for  QueryTokenList(string& WordForm)
-	//! \li really just a wrapper for std::lower_bound(m_Index.begin(), m_Index.end(), ValueStr.c_str(), LessIndexString1<CIndexItem>(&m_StringBuffer))
-	//! \returns lower-bound iterator for \a ValueStr
-	ddcVecFile<CIndexItem>::const_iterator GetTypeIndexIdLowerBoundIter(const string& ValueStr) const;
+    //!     close \ref storage_def "storage" file
+    void CloseStorageFile();
 
-	//! gets local m_Index iterator (upper bound) for string type \a ValueStr
-	//! \li guts for  QueryTokenList(string& WordForm)
-	//! \li really just a wrapper for std::upper_bound(m_Index.begin(), m_Index.end(), ValueStr.c_str(), LessIndexString1<CIndexItem>(&m_StringBuffer))
-	//! \returns upper-bound iterator for \a ValueStr
-	ddcVecFile<CIndexItem>::const_iterator GetTypeIndexIdUpperBoundIter(const string& ValueStr) const;
-	
-	//! gets index-local item-id (lower bound) of string type \a ValueStr
-	//! \li wrapper for GetTypeIndexIdLowerBoundIter(), returns item-id rather than iterator
-	//! \returns lower-bound item-id for \a ValueStr
-	DWORD   GetTypeIndexIdLowerBound(const string& ValueStr) const;
+    //! initialize all class slots
+    void InitIndexSet(string Name, string ShortName, bool bCreateItemStorage, bool bCompress);
 
-	//! gets index-local item-id of string type \a ValueStr, or DWORD_MAX if not in index
-	DWORD   GetTypeIndexId(const string& ValueStr) const;
+    //! read index from the disk
+    void ReadFromTheDisk();
 
-	//! populate bounds for context-sort operator
-	bool	GetContextBounds(CDDCFilterWithBounds &Filter, const string& LoValue, const string& HiValue) const;
+    //! clear all vectors of the index and removes index files
+    bool DestroyIndexSet();
 
-	//! find all occurrences of index items  in \ref period_def "subcorpora" PeriodNo, using cache pCaches
-	void	FindOccurrences (const vector<DWORD>& IndexItems, const size_t PeriodNo, vector<CTokenNo>& occurrences, CMyTimeSpanHolder& Profilerp, CShortOccurCacheMap* pCaches, vector<int>& CacheIds)	const;
+    //! write index to file
+    bool WriteToFile(bool bAfterLoading);
 
-	//! find all occurrences of index items in \ref period_def "subcorpora" PeriodNo, using cache pCaches (if occurrences are written by chunks)
-	void	FindChunkOccurrences (const vector<DWORD>& IndexItems, vector<CTokenNo>& occurrences, vector<DWORD>& ChunkLengths, size_t PeriodNo, CMyTimeSpanHolder& Profilerp, CShortOccurCacheMap* pCaches, vector<int>& CacheIds)	const;
+    //! build union of multiple indices , throws CExpc if fails (new)
+    void UnionIndexSets(const vector<CStringIndexSet *> &IndexSets, const vector<size_t> &TokenCounts);
 
-	//! search for a string "WordForm", and add it to "MatchWords", if it is found
-	void	QueryTokenList (const string& WordForm, vector<DWORD>& MatchWords)	const;
+    //! partition this index into \a Paritions[] on \a EndTokenNo[] (exclusive)
+    void CreatePartitionsDuringSplit(vector<CStringIndexSet *> &Partitions, const vector<CTokenNo> &EndTokenNo) const;
 
-	//! search for all strings, which begin with "Prefix", and add their IDs to "MatchWords"
-	void	QueryTokenListWithRightTruncation (const string& Prefix, vector<DWORD>& MatchWords)	const;
+    //! ensure that m_rIndex is non-empty, populating it from m_Index if required (called during index compilation)
+    void EnsureSuffixIndex();
 
-	//! search for all strings, which end with "Suffix", adding their IDs to "MatchWords" (requires m_rIndex, introduced in v2.1.21)
-	void	QueryTokenListWithLeftTruncation (const string& Suffix, vector<DWORD>& MatchWords)	const;
+    //! return sequence of tokens(strings) [start_offset,  end_offset]
+    bool GetTokensFromStorage(const size_t start_offset, const size_t end_offset, vector<COutputToken> &Tokens) const;
 
-	//! search for all index items, which satisfy regular expession "RegExp", and add them to "MatchWords"
-	void	QueryTokenListUsingRegExp (RML_RE &RegExp, vector<DWORD>& MatchWords, bool negated=false, bool ignore_diacritics=false)	const;
+    //! gets index-local item-id of token number \a TokenNo
+    //! \li basically a pared-down single-token version of GetTokensFromStorage()
+    //! \li \returns integer \a ItemId such that <code>CIndexItem TokenItem = m_Index[ItemId]</code> is the indexed attribute for token number \a TokenNo,
+    //!     or \a DWORD_MAX if an error occurs (e.g. no such token)
+    DWORD GetTokenIndexId(CTokenNo TokenNo) const;
 
-	//! populate "MatchWords" with all index item indices
-	void	QueryTokenListUniversal (vector<DWORD>& MatchWords)	const;
+    //! gets local m_Index iterator (lower-bound) for type \a ValueStr
+    //! \li guts for  QueryTokenList(string& WordForm)
+    //! \li really just a wrapper for std::lower_bound(m_Index.begin(), m_Index.end(), ValueStr.c_str(), LessIndexString1<CIndexItem>(&m_StringBuffer))
+    //! \returns lower-bound iterator for \a ValueStr
+    ddcVecFile<CIndexItem>::const_iterator GetTypeIndexIdLowerBoundIter(const string &ValueStr) const;
 
-	//! print the string representation of the whole \ref storage_def "storage" to stdout
-	bool	DumpStorage() const;
+    //! gets local m_Index iterator (upper bound) for string type \a ValueStr
+    //! \li guts for  QueryTokenList(string& WordForm)
+    //! \li really just a wrapper for std::upper_bound(m_Index.begin(), m_Index.end(), ValueStr.c_str(), LessIndexString1<CIndexItem>(&m_StringBuffer))
+    //! \returns upper-bound iterator for \a ValueStr
+    ddcVecFile<CIndexItem>::const_iterator GetTypeIndexIdUpperBoundIter(const string &ValueStr) const;
+
+    //! gets index-local item-id (lower bound) of string type \a ValueStr
+    //! \li wrapper for GetTypeIndexIdLowerBoundIter(), returns item-id rather than iterator
+    //! \returns lower-bound item-id for \a ValueStr
+    DWORD GetTypeIndexIdLowerBound(const string &ValueStr) const;
+
+    //! gets index-local item-id of string type \a ValueStr, or DWORD_MAX if not in index
+    DWORD GetTypeIndexId(const string &ValueStr) const;
+
+    //! populate bounds for context-sort operator
+    bool GetContextBounds(CDDCFilterWithBounds &Filter, const string &LoValue, const string &HiValue) const;
+
+    //! find all occurrences of index items  in \ref period_def "subcorpora" PeriodNo, using cache pCaches
+    void FindOccurrences(const vector<DWORD> &IndexItems, const size_t PeriodNo, vector<CTokenNo> &occurrences,
+                         CShortOccurCacheMap *pCaches, vector<int> &CacheIds) const;
+
+    //! find all occurrences of index items in \ref period_def "subcorpora" PeriodNo, using cache pCaches (if occurrences are written by chunks)
+    void
+    FindChunkOccurrences(const vector<DWORD> &IndexItems, vector<CTokenNo> &occurrences, vector<DWORD> &ChunkLengths,
+                         size_t PeriodNo, CShortOccurCacheMap *pCaches, vector<int> &CacheIds) const;
+
+    //! search for a string "WordForm", and add it to "MatchWords", if it is found
+    void QueryTokenList(const string &WordForm, vector<DWORD> &MatchWords) const;
+
+    //! search for all strings, which begin with "Prefix", and add their IDs to "MatchWords"
+    void QueryTokenListWithRightTruncation(const string &Prefix, vector<DWORD> &MatchWords) const;
+
+    //! search for all strings, which end with "Suffix", adding their IDs to "MatchWords" (requires m_rIndex, introduced in v2.1.21)
+    void QueryTokenListWithLeftTruncation(const string &Suffix, vector<DWORD> &MatchWords) const;
+
+    //! search for all index items, which satisfy regular expession "RegExp", and add them to "MatchWords"
+    void QueryTokenListUsingRegExp(RML_RE &RegExp, vector<DWORD> &MatchWords, bool negated = false,
+                                   bool ignore_diacritics = false) const;
+
+    //! populate "MatchWords" with all index item indices
+    void QueryTokenListUniversal(vector<DWORD> &MatchWords) const;
+
+    //! print the string representation of the whole \ref storage_def "storage" to stdout
+    void DumpStorage(FILE *output) const;
 };
 
 
-
-
 #endif
+
+/*--- emacs style variables ---
+ * Local Variables:
+ *  mode: C++
+ *  c-default-style: "linux"
+ *  c-basic-offset: 4
+ *  tab-width: 8
+ *  indent-tabs-mode: nil
+ * End:
+ */

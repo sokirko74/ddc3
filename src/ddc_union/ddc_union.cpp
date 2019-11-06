@@ -24,6 +24,7 @@
 #include <unistd.h>
 #include "../ConcordLib/ConcSession.h"
 #include "../CommonLib/ddcTime.h"
+
 using namespace std;
 
 //======================================================================
@@ -34,127 +35,131 @@ vector<string> infilenames;
 
 //--------------------------------------------------------------
 void show_version(void) {
-  fprintf(stderr,"%s\n", DDCVersionStr.c_str());
-  fprintf(stderr,"%s: DDC corpus index union\n", prog);
+    fprintf(stderr, "%s\n", DDCVersionStr.c_str());
+    fprintf(stderr, "%s: DDC corpus index union\n", prog);
 }
 
 //--------------------------------------------------------------
 void show_usage(void) {
-  show_version();
-  fprintf(stderr,"\n");
-  fprintf(stderr,"Usage: %s [OPTIONS] CON_FILE(s)\n", prog);
-  fprintf(stderr,
-	  "\n"
-	  " Options:\n"
-	  "  -h, --help            # this help message\n"
-	  "  -o, --output OUT      # specify output project basename (REQUIRED)\n"
-	  "  -O, --options OPTFILE # load output options from OPTFILE (default: CON_FILE.(opt/con))\n"
-	  "  -v, --verbose LEVEL   # specify log-verbosity level (none|error|warn|info=weak|debug=medium|trace=heavy)\n"
-	  "\n"
-	  );
+    show_version();
+    fprintf(stderr, "\n");
+    fprintf(stderr, "Usage: %s [OPTIONS] CON_FILE(s)\n", prog);
+    fprintf(stderr,
+            "\n"
+            " Options:\n"
+            "  -h, --help            # this help message\n"
+            "  -o, --output OUT      # specify output project basename (REQUIRED)\n"
+            "  -O, --options OPTFILE # load output options from OPTFILE (default: CON_FILE.(opt/con))\n"
+            "  -v, --verbose LEVEL   # specify log-verbosity level (none|error|warn|info=weak|debug=medium|trace=heavy)\n"
+            "\n"
+    );
 }
 
 //--------------------------------------------------------------
-void copyOptionsFile(const string& srcFile, const string &dstFile)
-{
-  if (FileExists(dstFile))
-    ddcLogWarn("copyOptionsFile(): Warning: destination file '"+dstFile+"' will be overwritten");
-  if (!RmlCopyFile(srcFile.c_str(), dstFile.c_str()))
-    throw CExpc("copyOptionsFile(): failed to copy options options from "+srcFile+" to "+dstFile);
+void copyOptionsFile(const string &srcFile, const string &dstFile) {
+    if (FileExists(dstFile))
+        ddcLogWarn("copyOptionsFile(): Warning: destination file '" + dstFile + "' will be overwritten");
+    if (!RmlCopyFile(srcFile.c_str(), dstFile.c_str()))
+        throw CExpc("copyOptionsFile(): failed to copy options options from " + srcFile + " to " + dstFile);
 }
 
 //======================================================================
-int main(int argc, char* argv[])
-{
-  //-- command-line
-  ddc_thread_init("ddc_union");
-  SetLogLevel(ddcLLInfo);
-  ddcLogToFiles = false;
-  ddcLogToSyslog = false;
-  ddcLogToStderr = true;
+int main(int argc, char *argv[]) {
+    //-- command-line
+    ddc_thread_init("ddc_union");
+    SetLogLevel(ddcLLInfo);
+    ddcLogToFiles = false;
+    ddcLogToSyslog = false;
+    ddcLogToStderr = true;
 
-  for (int argi=1; argi < argc; ++argi) {
-    string s = argv[argi];
+    for (int argi = 1; argi < argc; ++argi) {
+        string s = argv[argi];
 
-    if (s=="--help" || s=="-h") {
-      show_usage();
-      return 0;
+        if (s == "--help" || s == "-h") {
+            show_usage();
+            return 0;
+        } else if (s == "--output" || s == "-o") {
+            ++argi;
+            if (argi < argc)
+                outfilename = argv[argi];
+        } else if (s == "--options" || s == "--opt" || s == "-O") {
+            ++argi;
+            if (argi < argc)
+                optfilename = argv[argi];
+        } else if (s == "--verbose" || s == "-verbose" || s == "-v" || s == "--log-level" || s == "--log" ||
+                   s == "--protocol") {
+            if (argi + 1 >= argc) {
+                show_usage();
+                exit(1);
+            }
+            SetLogLevel(GetLogLevel(argv[argi + 1]));
+            argi++;
+        } else {
+            infilenames.push_back(argv[argi]);
+        }
     }
-    else if (s=="--output" || s=="-o") {
-      ++argi;
-      if (argi < argc)
-	outfilename = argv[argi];
+
+    //-- sanity check(s)
+    if (infilenames.empty()) {
+        fprintf(stderr, "Error: no input con-file(s) specified!\n");
+        show_usage();
+        exit(1);
     }
-    else if (s=="--options" || s=="--opt" || s=="-O") {
-      ++argi;
-      if (argi < argc)
-	optfilename = argv[argi];
+    if (outfilename.empty()) {
+        fprintf(stderr, "Error: no output con-file specified!\n");
+        show_usage();
+        exit(1);
     }
-    else if (s == "--verbose" || s == "-verbose" || s=="-v" || s=="--log-level" || s=="--log" || s=="--protocol") {
-      if (argi+1 >= argc) {
-	show_usage();
-	exit(1);
-      }
-      SetLogLevel( GetLogLevel(argv[argi+1]) );
-      argi++;
+
+
+    try {
+        //-- timer
+        DDCTime t0 = DDCTime::Now();
+
+        //-- ensure output directory
+        MakeDirP(FileDirectory(outfilename));
+
+        //-- create destination object
+        CConcIndexator Ix;
+        Ix.SetPath(outfilename);
+
+        //-- setup output options
+        string optfile_out = MakeFName(outfilename, "opt");
+        if (!optfilename.empty() && optfilename != optfile_out)
+            copyOptionsFile(optfilename, optfile_out);
+
+        bool inheritOptions = !FileExists(optfile_out);
+        if (!inheritOptions) {
+            ddcLogInfo(Format("%s: loading target options from '%s'", prog, optfile_out.c_str()));
+            Ix.LoadOptionsFromFile(optfile_out);
+        }
+        Ix.CreateAsUnion(infilenames, inheritOptions);
+
+        //-- all done
+        ddcLogInfo("Created project " + outfilename);
+        ddcLogInfo(Format("+ Total time elapsed = %.3f second(s)", DDCTime::Now().Elapsed(t0)));
+        DDCProcessMemoryStatus mstat(getpid());
+        ddcLogInfo(Format("+ Memory Usage (kB) = VmPeak:%zd , VmSize:%zd , VmHWM:%zd , VmRSS:%zd , VmSwap:%zd",
+                          mstat.VmPeak, mstat.VmSize, mstat.VmHWM, mstat.VmRSS, mstat.VmSwap));
     }
-    else {
-      infilenames.push_back( argv[argi] );
+    catch (exception &e) {
+        fprintf(stderr, "%s: Exception: %s\n", prog, e.what());
+        exit(-1);
     }
-  }
-
-  //-- sanity check(s)
-  if (infilenames.empty()) {
-    fprintf(stderr, "Error: no input con-file(s) specified!\n");
-    show_usage();
-    exit(1);
-  }
-  if (outfilename.empty()) {
-    fprintf(stderr, "Error: no output con-file specified!\n");
-    show_usage();
-    exit(1);
-  }
-
- 
-  try {
-    //-- timer
-    DDCTime t0 = DDCTime::Now();
-    
-    //-- ensure output directory
-    MakeDirP(FileDirectory(outfilename));
-
-    //-- create destination object
-    CConcIndexator Ix;
-    Ix.SetPath(outfilename);
-
-    //-- setup output options
-    string optfile_out = MakeFName(outfilename,"opt");
-    if (!optfilename.empty() && optfilename != optfile_out)
-      copyOptionsFile(optfilename, optfile_out);
-
-    bool inheritOptions = !FileExists(optfile_out);
-    if (!inheritOptions) {
-      ddcLogInfo(Format("%s: loading target options from '%s'", prog, optfile_out.c_str()));
-      if (!Ix.LoadOptionsFromFile(optfile_out))
-	throw CExpc("failed to load options from '"+optfile_out+"'");
-    }
-    Ix.CreateAsUnion(infilenames, inheritOptions);
-
-    //-- all done
-    ddcLogInfo("Created project "+outfilename);
-    ddcLogInfo(Format("+ Total time elapsed = %.3f second(s)", DDCTime::Now().Elapsed(t0)));
-    DDCProcessMemoryStatus mstat(getpid());
-    ddcLogInfo(Format("+ Memory Usage (kB) = VmPeak:%zd , VmSize:%zd , VmHWM:%zd , VmRSS:%zd , VmSwap:%zd",
-		      mstat.VmPeak, mstat.VmSize, mstat.VmHWM, mstat.VmRSS, mstat.VmSwap));
-  }
-  catch (exception &e) {
-    fprintf(stderr, "%s: Exception: %s\n", prog, e.what());
-    exit(-1);
-  }
 
 
 
-  //-- cleanup
-  return 0;
+    //-- cleanup
+    return 0;
 }
 
+
+/*--- emacs style variables ---
+ * Local Variables:
+ *  mode: C++
+ *  c-default-style: "linux"
+ *  c-basic-offset: 4
+ *  tab-width: 8
+ *  indent-tabs-mode: nil
+ * End:
+ */

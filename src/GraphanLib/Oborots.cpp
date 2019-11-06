@@ -19,7 +19,7 @@
 #include "StdGraph.h"
 #include "GraphmatFile.h"
 #include "GraphanDicts.h"
-#include "../common/util_classes.h"
+#include "../CommonLib/util_classes.h"
 
 
 
@@ -139,13 +139,13 @@ void  CGraphanDicts:: BuildOborot (const string& s, int OborotNo, bool bFixedFet
 				m_Oborottos.push_back(O);
 
 
-			// приравниваем "в контакте с" и "в контакте со"
+			// пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ "пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ" пїЅ "пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ"
 			string q = " " +  O.m_UnitStr;
 			q = q.substr(q.length() - 2, 2);
-			// если заканчивается на предлог "с", "в" или "к"
-			if ( (q ==  " К") || (q ==  " С") || (q ==  " В") )
+			// пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ "пїЅ", "пїЅ" пїЅпїЅпїЅ "пїЅ"
+			if ( (q ==  " пїЅ") || (q ==  " пїЅ") || (q ==  " пїЅ") )
 			{
-				O.m_UnitStr += "О";
+				O.m_UnitStr += "пїЅ";
 				if (find(m_Oborottos.begin(),  m_Oborottos.end(), O.m_UnitStr) == m_Oborottos.end())
 					m_Oborottos.push_back(O);
 			};
@@ -286,3 +286,13 @@ void  CGraphanDicts :: BuildOborottos ()
 
 	BuildOborottosIndex(*this);
 };
+
+/*--- emacs style variables ---
+ * Local Variables:
+ *  mode: C++
+ *  c-default-style: "linux"
+ *  c-basic-offset: 4
+ *  tab-width: 8
+ *  indent-tabs-mode: nil
+ * End:
+ */

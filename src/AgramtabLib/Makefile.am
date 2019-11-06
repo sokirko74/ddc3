@@ -51,8 +51,7 @@ libDDCAgramtab_la_SOURCES = \
  agramtab_.cpp agramtab_.h \
  EngGramTab.cpp EngGramTab.h eng_consts.h \
  GerGramTab.cpp GerGramTab.h ger_consts.h \
- RusGramTab.cpp RusGramTab.h rus_consts.h \
- StdGramtab.cpp StdGramtab.h morph_const.h
+ RusGramTab.cpp RusGramTab.h rus_consts.h
 
 # ../common/utilit.cpp ../common/utilit.h
 

@@ -1,4 +1,4 @@
-//-*- Mode: C++; c-basic-offset:8;-*-
+//-*- Mode: C++ -*-
 //
 //  DDC originally by Alexey Sokirko
 //  Changes and modifications 2011-2018 by Bryan Jurish
@@ -21,7 +21,6 @@
 #include "StdConc.h"
 #include "../ConcordLib/IndexSetForLoadingStage.h"
 #include "../ConcordLib/ConcIndexator.h"
-#include "../common/Graspace.h"
 
 
 #ifdef DETECT_MEMORY_LEAK
@@ -597,3 +596,13 @@ void CIndexSetForLoadingStage::InsertToInputLoadIndex(const char* Str, size_t St
 			throw CExpc ("Cannot write to temporary storage file");
 	};
 };
+
+/*--- emacs style variables ---
+ * Local Variables:
+ *  mode: C++
+ *  c-default-style: "linux"
+ *  c-basic-offset: 4
+ *  tab-width: 8
+ *  indent-tabs-mode: nil
+ * End:
+ */

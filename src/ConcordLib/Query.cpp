@@ -1,4 +1,4 @@
-//-*- Mode: C++; c-basic-offset: 2; -*-
+//-*- Mode: C++ -*-
 //
 //  DDC originally by Alexey Sokirko
 //  Changes and modifications 2011-2017 by Bryan Jurish
@@ -19,8 +19,8 @@
 //  along with DDC.  If not, see <http://www.gnu.org/licenses/>.
 //
 
-#include <Query.h>
-#include <QueryCompiler.h>
+#include "Query.h"
+#include "QueryCompiler.h"
 
 const BYTE DefaultMatchId = 255;
 
@@ -465,10 +465,10 @@ bool CQToken::Create(CQueryTokenNode *pNode)
 
 string CQToken::IndexName(const string& DefaultIndexName)
 {
-  assert(m_Compiler->m_pHolder->m_pIndexator);
+  assert(m_Compiler->m_pHolder->m_pConcordance);
   string name(m_IndexName);
   if (m_IndexName.empty()) {
-    const map<string,string> &op2name = m_Compiler->m_pHolder->m_pIndexator->m_OpDefaultIndexNames;
+    const map<string,string> &op2name = m_Compiler->m_pHolder->m_pConcordance->m_OpDefaultIndexNames;
     map<string,string>::const_iterator namei;
     if ( (namei = op2name.find(this->OperatorKey())) != op2name.end() ) {
       name = namei->second;
@@ -478,17 +478,17 @@ string CQToken::IndexName(const string& DefaultIndexName)
       name = DefaultIndexName;
     }
   }
-  const CStringIndexSet* pIndexSet = m_Compiler->m_pHolder->m_pIndexator->GetIndexByAlias(name);
+  const CStringIndexSet* pIndexSet = m_Compiler->m_pHolder->m_pConcordance->GetIndexByAlias(name);
   if (!pIndexSet) return name; //-- default
   return pIndexSet->m_Name;
 }
 
 string CQToken::BreakName(const string& DefaultBreakName)
 {
-  assert(m_Compiler->m_pHolder->m_pIndexator);
+  assert(m_Compiler->m_pHolder->m_pConcordance);
   string name(m_IndexName);
   if (m_IndexName.empty()) {
-    const map<string,string> &op2name = m_Compiler->m_pHolder->m_pIndexator->m_OpDefaultIndexNames;
+    const map<string,string> &op2name = m_Compiler->m_pHolder->m_pConcordance->m_OpDefaultIndexNames;
     map<string,string>::const_iterator namei;
     if ( (namei = op2name.find(this->OperatorKey())) != op2name.end() ) {
       name = namei->second;
@@ -496,7 +496,7 @@ string CQToken::BreakName(const string& DefaultBreakName)
       name = DefaultBreakName;
     }
   }
-  const CHitBorders::CBreakCollection* pBreaks = m_Compiler->m_pHolder->m_pIndexator->GetBreakCollectionByName(name);
+  const CHitBorders::CBreakCollection* pBreaks = m_Compiler->m_pHolder->m_pConcordance->GetBreakCollectionByName(name);
   if (!pBreaks) return name; //-- default
   return pBreaks->m_LongName;
 }
@@ -779,10 +779,10 @@ string CQTokMorph::ValueString(void) {
 
 bool CQTokLemma::Create(CQueryTokenNode *pNode)
 {
-  assert(m_Compiler->m_pHolder->m_pIndexator);
+  assert(m_Compiler->m_pHolder->m_pConcordance);
   if (m_IndexName.empty()) m_IndexName = this->IndexName("Lemma");
 
-  if (m_Compiler->m_pHolder->m_pIndexator->m_bLemmaQueryUsesMorphPattern) 
+  if (m_Compiler->m_pHolder->m_pConcordance->m_bLemmaQueryUsesMorphPattern)
     return CQTokMorph::Create(pNode);
   else
     return CQToken::Create(pNode);
@@ -817,7 +817,7 @@ bool CQTokChunk::Create(CQueryTokenNode *pNode)
 {
   //-- sanity checks
   string name = this->IndexName("Chunk");
-  if (!m_Compiler->m_pHolder->m_pIndexator->m_pChunkIndex)
+  if (!m_Compiler->m_pHolder->m_pConcordance->m_pChunkIndex)
     throw CExpc(errParseError,"no chunk index defined for query `%s'", this->toString().c_str());
 
   return pNode->CreateChunkPattern(m_Compiler->m_pHolder, name, m_Value);
@@ -831,7 +831,7 @@ string CQTokChunk::ValueString() {
 // CQTokFile
 
 bool CQTokFile::Create(CQueryTokenNode *pNode) {
-  if (!m_Compiler->m_pHolder->m_pIndexator->m_bAllowUnsafeQueries)
+  if (!m_Compiler->m_pHolder->m_pConcordance->m_bAllowUnsafeQueries)
     throw CExpc(errParseError,"unsafe file-list query `%s' disabled", this->toString().c_str());
   return pNode->CreateFileList(m_Compiler->m_pHolder, this->IndexName("Token"), m_Value);
 }
@@ -1093,3 +1093,13 @@ string CQSeq::jsonData() {
   s.push_back(']');
   return s;
 }
+
+/*--- emacs style variables ---
+ * Local Variables:
+ *  mode: C++
+ *  c-default-style: "linux"
+ *  c-basic-offset: 4
+ *  tab-width: 8
+ *  indent-tabs-mode: nil
+ * End:
+ */

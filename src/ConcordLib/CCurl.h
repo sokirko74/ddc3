@@ -23,7 +23,7 @@
 
 #include "../CommonLib/utilit.h"
 #include "../CommonLib/ddcString.h"
-#include "../common/ddcConfig.h"
+#include "../CommonLib/ddcConfig.h"
 #include "../CommonLib/ddcThread.h"
 #include "LRUCache.h"
 #include <pthread.h>
@@ -239,3 +239,13 @@ public:
 
 #endif /* DDC_CURL_H */
 
+
+/*--- emacs style variables ---
+ * Local Variables:
+ *  mode: C++
+ *  c-default-style: "linux"
+ *  c-basic-offset: 4
+ *  tab-width: 8
+ *  indent-tabs-mode: nil
+ * End:
+ */

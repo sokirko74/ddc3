@@ -25,28 +25,38 @@
 
 struct CTextField  
 {
-	BYTE  FieldNo;
-	BYTE  LeafId;
-	BYTE  BracketLeafId;
-	DWORD StartLine;
-	DWORD EndLine;
+        BYTE  FieldNo;
+        BYTE  LeafId;
+        BYTE  BracketLeafId;
+        DWORD StartLine;
+        DWORD EndLine;
 
-	CTextField() {};
-	CTextField (BYTE _FieldNo, BYTE _LeafId, BYTE _BracketLeafId)
-	{
-	  LeafId = _LeafId;
-	  FieldNo = _FieldNo;
-	  BracketLeafId = _BracketLeafId;
-	};
+        CTextField() {};
+        CTextField (BYTE _FieldNo, BYTE _LeafId, BYTE _BracketLeafId)
+        {
+          LeafId = _LeafId;
+          FieldNo = _FieldNo;
+          BracketLeafId = _BracketLeafId;
+        };
 
-	bool operator==(const CTextField& X) const
-	{
-		  return    (FieldNo == X.FieldNo)
-			        && (LeafId  == X.LeafId)
-					&& (BracketLeafId  == X.BracketLeafId);
-	}
+        bool operator==(const CTextField& X) const
+        {
+                  return    (FieldNo == X.FieldNo)
+                                && (LeafId  == X.LeafId)
+                                        && (BracketLeafId  == X.BracketLeafId);
+        }
 
 };
 
 
 #endif //__TEXTFIELD_H_
+
+/*--- emacs style variables ---
+ * Local Variables:
+ *  mode: C++
+ *  c-default-style: "linux"
+ *  c-basic-offset: 4
+ *  tab-width: 8
+ *  indent-tabs-mode: nil
+ * End:
+ */

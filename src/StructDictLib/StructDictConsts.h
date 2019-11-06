@@ -20,26 +20,36 @@
 #ifndef StructDictsConsts
 #define StructDictsConsts
 
-	const	DWORD	MaxDomensUnionSize = 20;
-	const	DWORD	AuthorNameSize = 10;
+        const   DWORD   MaxDomensUnionSize = 20;
+        const   DWORD   AuthorNameSize = 10;
 
-	// максимальное число актантов 
-	const	BYTE	MaxNumAct = 7;
+        // максимальное число актантов 
+        const   BYTE    MaxNumAct = 7;
 
-	// ошибочный номер словарного входа 
-	const	WORD	ErrUnitNo  = 65000;
-	const	DWORD	EntryStrSize = 40;
+        // ошибочный номер словарного входа 
+        const   WORD    ErrUnitNo  = 65000;
+        const   DWORD   EntryStrSize = 40;
 
-	   // »сходный материал доменов
-        const	BYTE	dsUnion = 'O';
-	const	BYTE	dsExpres = 'C';
-	const	BYTE	dsSystem = 'S';
-	const	BYTE	dsText = 'T';
-	const	BYTE	dsMetaText = 'M';
+           // »сходный материал доменов
+        const   BYTE    dsUnion = 'O';
+        const   BYTE    dsExpres = 'C';
+        const   BYTE    dsSystem = 'S';
+        const   BYTE    dsText = 'T';
+        const   BYTE    dsMetaText = 'M';
 
-	const	BYTE	frOne = 'O';
-	const	BYTE	frMany = 'M';
-	const	BYTE	frFormula = 'F';
+        const   BYTE    frOne = 'O';
+        const   BYTE    frMany = 'M';
+        const   BYTE    frFormula = 'F';
 
 
 #endif
+
+/*--- emacs style variables ---
+ * Local Variables:
+ *  mode: C++
+ *  c-default-style: "linux"
+ *  c-basic-offset: 4
+ *  tab-width: 8
+ *  indent-tabs-mode: nil
+ * End:
+ */

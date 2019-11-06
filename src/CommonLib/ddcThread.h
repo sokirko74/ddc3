@@ -1,4 +1,4 @@
-//-*- Mode: C++; c-basic-offset: 4; -*-
+//-*- Mode: C++ -*-
 //
 //  DDC originally by Alexey Sokirko
 //  This file by Bryan Jurish, adapted from https://vichargrave.github.io/articles/2012-12/java-style-thread-class-in-cpp
@@ -82,7 +82,7 @@ public:
 
     /** Default constructor */
     ddcThread()
-	: m_tid(0), m_attr(NULL), m_running(0), m_detached(0)
+        : m_tid(0), m_attr(NULL), m_running(0), m_detached(0)
     {};
 
     /** Default destructor
@@ -159,3 +159,13 @@ public:
 };
 
 #endif /* defined(DDC_THREAD_H) */
+
+/*--- emacs style variables ---
+ * Local Variables:
+ *  mode: C++
+ *  c-default-style: "linux"
+ *  c-basic-offset: 4
+ *  tab-width: 8
+ *  indent-tabs-mode: nil
+ * End:
+ */

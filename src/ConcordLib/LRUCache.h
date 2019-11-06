@@ -21,7 +21,7 @@
 #ifndef DDC_LRUCACHE_H
 #define DDC_LRUCACHE_H
 
-#include "../common/ddcConfig.h"
+#include "../CommonLib/ddcConfig.h"
 #include <list>
 #include <map>
 
@@ -170,10 +170,10 @@ public:
   //------------------------------------------------------------
   // public methods: map iterators
 
-  inline iterator begin()		{ return m_map.begin(); };
-  inline iterator end()			{ return m_map.end(); };
-  inline const_iterator begin()	const	{ return m_map.begin(); };
-  inline const_iterator end()	const	{ return m_map.end(); };
+  inline iterator begin()               { return m_map.begin(); };
+  inline iterator end()                 { return m_map.end(); };
+  inline const_iterator begin() const   { return m_map.begin(); };
+  inline const_iterator end()   const   { return m_map.end(); };
 
   //------------------------------------------------------------
   // public methods: lookup (no implicit locking; use must call lock() and unlock() if and when appropriate)
@@ -246,3 +246,13 @@ public:
 
 #endif /* DDC_LRUCACHE_H */
 
+
+/*--- emacs style variables ---
+ * Local Variables:
+ *  mode: C++
+ *  c-default-style: "linux"
+ *  c-basic-offset: 4
+ *  tab-width: 8
+ *  indent-tabs-mode: nil
+ * End:
+ */

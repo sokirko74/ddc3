@@ -55,7 +55,7 @@ DEPENDENCIES
         before re-compiling.
 
     GNU flex (optional)
-        Tested version(s) 2.5.35, 2.5.39.
+        Tested version(s) 2.5.35, 2.5.39, 2.6.
 
         If you get errors compiling src/ConcordLib/yyQLexer.o, try
         re-extracting the source archive and call

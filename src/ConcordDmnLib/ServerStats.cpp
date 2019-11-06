@@ -1,4 +1,4 @@
-//-*- Mode: C++; c-basic-offset:4; -*-
+//-*- Mode: C++ -*-
 //
 //  DDC originally by Alexey Sokirko
 //  Changes and modifications 2011-2018 by Bryan Jurish
@@ -38,3 +38,13 @@ CDDCServerStats& CDDCServerStats::operator+=(const CDDCServerStats& x)
     return *this;
 }
 
+
+/*--- emacs style variables ---
+ * Local Variables:
+ *  mode: C++
+ *  c-default-style: "linux"
+ *  c-basic-offset: 4
+ *  tab-width: 8
+ *  indent-tabs-mode: nil
+ * End:
+ */

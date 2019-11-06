@@ -1,4 +1,4 @@
-//-*- Mode: C++; c-basic-offset:8;-*-
+//-*- Mode: C++ -*-
 //
 //  DDC originally by Alexey Sokirko
 //  Changes and modifications 2011-2016 by Bryan Jurish
@@ -21,26 +21,19 @@
 #ifndef _string_socket_h
 #define _string_socket_h
 
-#include "../CommonLib/utilit.h"
-#include "../CommonLib/ddcLog.h"
+#include "utilit.h"
+#include "ddcLog.h"
 
-//  include headers for processes and sockets
-#ifdef WIN32
-	#include <winsock2.h>
-	#include <Ws2tcpip.h>
-	#include <process.h>
-#else
-	#include <pthread.h>
-	#include <arpa/inet.h>
-	#include <sys/types.h>
-	#include <sys/socket.h>
-	#include <netinet/in.h>
-	#include <netinet/tcp.h>
-	#include <netdb.h>
-	#include <stdio.h>
-	#include <fcntl.h>
-	#define SOCKET int
-#endif
+#include <pthread.h>
+#include <arpa/inet.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <netinet/tcp.h>
+#include <netdb.h>
+#include <stdio.h>
+#include <fcntl.h>
+#define SOCKET int
 
 //-- debugging
 //#define DDC_DEBUG_FDLEAK 1
@@ -50,22 +43,22 @@
 // Types
 
 enum NetworkErrorsEnum {
-	neSuccess = 0,
-	neNetworkError = 1,
-	neTimeout = 2,
-	neProtocolError = 3,
-	neSubcorpusNotFound = 4,
-	neInternalReadAccessError = 5,
-	neCouldNotOpenSocket = 6,
-	neCouldNotSendData = 7,
-	neCouldNotReceiveData = 8,
-	neInternalError = 9,
-	neRequestTooLarge = 10
+        neSuccess = 0,
+        neNetworkError = 1,
+        neTimeout = 2,
+        neProtocolError = 3,
+        neSubcorpusNotFound = 4,
+        neInternalReadAccessError = 5,
+        neCouldNotOpenSocket = 6,
+        neCouldNotSendData = 7,
+        neCouldNotReceiveData = 8,
+        neInternalError = 9,
+        neRequestTooLarge = 10
 };
 
 #define SOCKET int
 #ifdef WIN32
-	struct sockaddr_in;
+        struct sockaddr_in;
 #endif
 
 //======================================================================
@@ -83,8 +76,8 @@ extern const int ddcSocketChunkSize;
 extern uint32_t size_to_lsb(uint32_t sz);
 extern uint32_t lsb_to_size(uint32_t sz_lsb);
 
-extern bool fd_is_valid(int fd);
 extern SOCKET create_socket (const char* HostAddr, int Port, bool bBind, string& strError);
+extern SOCKET create_unix_domain_socket(string socket_path,  bool bBind, string& strError);
 extern void flush_socket (SOCKET sock);
 extern bool SocketInitialize(bool bReadFromLocalFile);
 extern bool SocketDeinitialize();
@@ -104,5 +97,15 @@ extern NetworkErrorsEnum ReceiveString (int  client_fd, string& Result, int Time
 //-- set system-level socket buffer sizes (UNUSED)
 extern bool SetSocketReceiveBuffer(int socket_fd, int BufferSize);
 extern bool SetSocketSendBuffer(int socket_fd, int BufferSize);
-	
+        
 #endif
+
+/*--- emacs style variables ---
+ * Local Variables:
+ *  mode: C++
+ *  c-default-style: "linux"
+ *  c-basic-offset: 4
+ *  tab-width: 8
+ *  indent-tabs-mode: nil
+ * End:
+ */

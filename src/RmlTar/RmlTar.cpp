@@ -1,4 +1,4 @@
-#include "../common/util_classes.h"
+#include "../CommonLib/util_classes.h"
 #include "tar.h"
 #include <stdio.h>
 #include <string.h>
@@ -381,9 +381,8 @@ int tar_close(TAR *t)
 }
 
 
-bool tar_get_next_file(TAR *t, string& FileName, vector<char>& Result, bool& bError)
+bool tar_get_next_file(TAR *t, string& FileName, vector<char>& Result)
 {
-	bError = false;
 	while (t->th_read() == 0)
 	{
 		if (t->th_buf.IsRegFile())
@@ -391,8 +390,7 @@ bool tar_get_next_file(TAR *t, string& FileName, vector<char>& Result, bool& bEr
 			FileName = t->th_buf.th_get_pathname();
 			if (t->tar_extract_regfile_to_buffer(Result) != 0)
 			{
-				bError = true;
-				return false;
+				throw CExpc (Format("cannot read tar %s ,  %s ", t->pathname.c_str(), FileName.c_str()));
 			}
 			else
 				return true;
@@ -422,3 +420,13 @@ bool tar_get_next_file(TAR *t, string& FileName, vector<char>& Result, bool& bEr
 
 	return false;
 };*/
+
+/*--- emacs style variables ---
+ * Local Variables:
+ *  mode: C++
+ *  c-default-style: "linux"
+ *  c-basic-offset: 4
+ *  tab-width: 8
+ *  indent-tabs-mode: nil
+ * End:
+ */

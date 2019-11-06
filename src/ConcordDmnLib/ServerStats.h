@@ -1,4 +1,4 @@
-//-*- Mode: C++; c-basic-offset:4; -*-
+//-*- Mode: C++ -*-
 //
 //  DDC originally by Alexey Sokirko
 //  Changes and modifications 2011-2018 by Bryan Jurish
@@ -37,7 +37,7 @@ struct CDDCServerStats
     // Counters
 
     /** number of served requests */
-    size_t m_nRequests;	
+    size_t m_nRequests; 
 
     /** number of serverd QUERY requests (run_query or get_first_hits only) */
     size_t m_nQueries;
@@ -62,24 +62,24 @@ struct CDDCServerStats
 
     /** default constructor */
     CDDCServerStats()
-	: m_nRequests(0), m_nQueries(0), m_nExpand(0), m_nErrors(0), m_nSlow(0), m_qTimes(DDC_SERVER_EMA_DELAYS), m_xTimes(DDC_SERVER_EMA_DELAYS)
+        : m_nRequests(0), m_nQueries(0), m_nExpand(0), m_nErrors(0), m_nSlow(0), m_qTimes(DDC_SERVER_EMA_DELAYS), m_xTimes(DDC_SERVER_EMA_DELAYS)
     {};
 
     /** copy constructor */
     CDDCServerStats(const CDDCServerStats& x)
-	: m_nRequests(x.m_nRequests), m_nQueries(x.m_nQueries), m_nExpand(x.m_nExpand), m_nErrors(x.m_nErrors), m_nSlow(x.m_nSlow), m_qTimes(x.m_qTimes), m_xTimes(x.m_xTimes)
+        : m_nRequests(x.m_nRequests), m_nQueries(x.m_nQueries), m_nExpand(x.m_nExpand), m_nErrors(x.m_nErrors), m_nSlow(x.m_nSlow), m_qTimes(x.m_qTimes), m_xTimes(x.m_xTimes)
     {};
 
     /** reset to zero */
     inline void clear()
     {
-	m_nRequests = 0;
-	m_nQueries = 0;
-	m_nExpand = 0;
-	m_nErrors = 0;
-	m_nSlow = 0;
-	m_qTimes.reset();
-	m_xTimes.reset();
+        m_nRequests = 0;
+        m_nQueries = 0;
+        m_nExpand = 0;
+        m_nErrors = 0;
+        m_nSlow = 0;
+        m_qTimes.reset();
+        m_xTimes.reset();
     };
 
     //--------------------------------------------------------------
@@ -95,3 +95,13 @@ struct CDDCServerStats
 
 
 #endif /* DDC_SERVER_STATS_H */
+
+/*--- emacs style variables ---
+ * Local Variables:
+ *  mode: C++
+ *  c-default-style: "linux"
+ *  c-basic-offset: 4
+ *  tab-width: 8
+ *  indent-tabs-mode: nil
+ * End:
+ */

@@ -1,4 +1,4 @@
-//*-*- Mode: C++; c-basic-offset: 8; -*- */
+//*-*- Mode: C++ -*- */
 //
 //  DDC originally by Alexey Sokirko
 //  Changes and modifications 2011-2016 by Bryan Jurish
@@ -32,61 +32,71 @@
 class CConcSessionContext : public ddcLockable
 {
 public:
-	//! hit results for the last MaxQueryCacheSize queries 
-	map<string, CQueryResult>	m_QueryCache;
+        //! hit results for the last MaxQueryCacheSize queries 
+        map<string, CQueryResult>       m_QueryCache;
 
-	//! a deque for last MaxQueryCacheSize queries; m_Queries.last() is the last given query 
-	deque<string>			m_Queries;
-
-public:
-	//----------------------------------------------------------------------
-	// \name Constructors etc.
-	//@{
-	/** default constructor */
-	CConcSessionContext()
-	{};
-
-	/** default destructor */
-	~CConcSessionContext()
-	{};
-	//@}
+        //! a deque for last MaxQueryCacheSize queries; m_Queries.last() is the last given query 
+        deque<string>                   m_Queries;
 
 public:
-	//----------------------------------------------------------------------
-	// \name API: caching
-	//@{
-	/** fetch cached result for Query if available
-	 *  \li formerly CConcHolder::TryToGetFromCache()
-	 *  \li implicitly handles locking
-	 *  \param Holder session object / result set to populate
-	 *  \param Query query string (cache key) to be fetched
-	 *  \param EndHitNo on call, index of first hit to retrieve; on return index of last hit retrieved
-	 *  \returns true on success, otherwise false
-	 */
-	bool CacheGet(CConcHolder& Holder, const string &Query, DWORD& EndHitNo);
+        //----------------------------------------------------------------------
+        // \name Constructors etc.
+        //@{
+        /** default constructor */
+        CConcSessionContext()
+        {};
 
-	/** store a result for \a Query in the cache
-	 *  \li formerly CConcHolder::SaveToCache()
-	 *  \li implicitly handles locking
-	 *  \param Holder session object / result set to store
-	 *  \param Query query string (cache key) to be stored
-	 *  \param start hit-index iterator wrt Holder.m_Hits[] of first hit to be stored
-	 *  \param end hit-index iterator wrt Holder.m_Hits[] of first hit NOT to store
-	 */
-	void CacheSet(CConcHolder& Holder, const string& Query, vector<size_t>::const_iterator start, vector<size_t>::const_iterator end);
+        /** default destructor */
+        ~CConcSessionContext()
+        {};
+        //@}
 
-	/** clear the query cache; implicitly handles locking */
-	void CacheClear();
+public:
+        //----------------------------------------------------------------------
+        // \name API: caching
+        //@{
+        /** fetch cached result for Query if available
+         *  \li formerly CConcHolder::TryToGetFromCache()
+         *  \li implicitly handles locking
+         *  \param Holder session object / result set to populate
+         *  \param Query query string (cache key) to be fetched
+         *  \param EndHitNo on call, index of first hit to retrieve; on return index of last hit retrieved
+         *  \returns true on success, otherwise false
+         */
+        bool CacheGet(CConcHolder& Holder, const string &Query, DWORD& EndHitNo);
 
-	/** get current cache size; implicitly handles locking */
-	size_t CacheSize();
-	//@}
+        /** store a result for \a Query in the cache
+         *  \li formerly CConcHolder::SaveToCache()
+         *  \li implicitly handles locking
+         *  \param Holder session object / result set to store
+         *  \param Query query string (cache key) to be stored
+         *  \param start hit-index iterator wrt Holder.m_Hits[] of first hit to be stored
+         *  \param end hit-index iterator wrt Holder.m_Hits[] of first hit NOT to store
+         */
+        void CacheSet(CConcHolder& Holder, const string& Query, vector<size_t>::const_iterator start, vector<size_t>::const_iterator end);
 
-	//----------------------------------------------------------------------
-	// API: locking : now in ddcLockable base class
-	//inline int lock();
-	//inline int unlock();
+        /** clear the query cache; implicitly handles locking */
+        void CacheClear();
+
+        /** get current cache size; implicitly handles locking */
+        size_t CacheSize();
+        //@}
+
+        //----------------------------------------------------------------------
+        // API: locking : now in ddcLockable base class
+        //inline int lock();
+        //inline int unlock();
 };
 
 
 #endif /* DDC_CONC_SESSION_CONTEXT_H */
+
+/*--- emacs style variables ---
+ * Local Variables:
+ *  mode: C++
+ *  c-default-style: "linux"
+ *  c-basic-offset: 4
+ *  tab-width: 8
+ *  indent-tabs-mode: nil
+ * End:
+ */

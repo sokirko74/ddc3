@@ -1,0 +1,28 @@
+%%$DDC:tokid.begin=0
+%%$DDC:tokid.end=6
+%%$DDC:meta.n_=0
+%%$DDC:meta.file_=some_file_name.txt
+%%$DDC:meta.scan_=scan_bibl_stub
+%%$DDC:meta.orig_=orig_bibl_stub
+%%$DDC:meta.date_=2016-02-24
+%%$DDC:meta.page_=-1
+%%$DDC:meta.author=Jurish, Bryan
+%%$DDC:meta.title=DDC test document
+%%$DDC:index[0]=Token w
+%%$DDC:index[1]=Lemma l
+%%$DDC:index[2]=Dummy d
+%%$DDC:PAGE=42
+%%$DDC:BREAK.s[-1]=0
+%%$DDC:BREAK.file[-1]=0
+%%$DDC:BREAK.textarea[-1]=0
+Mutter	MUTTER	
+kam	KOMMEN	
+
+%%$DDC:BREAK.s[0]=2
+Vater	VATER	
+kam	KOMMEN	
+
+%%$DDC:BREAK.s[1]=4
+Sohn	SOHN	
+kam	KOMMEN	
+

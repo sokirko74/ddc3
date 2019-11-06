@@ -2,9 +2,9 @@
 #ifndef DDC_version_h
 #define DDC_version_h
 
-#include "../common/ddcConfig.h" /*-- moo --*/
-#include "../CommonLib/utilit.h"
-#include "../common/DDCInternalError.h"
+#include "ddcConfig.h" /*-- moo --*/
+#include "utilit.h"
+#include "DDCInternalError.h"
 #include <sstream>
 
 //======================================================================
@@ -58,8 +58,8 @@ class DDCVersionT {
   inline bool operator<(const DDCVersionT x) const
   {
     return (v_major < x.v_major
-	    || (v_major == x.v_major && (v_minor < x.v_minor
-					 || (v_minor == x.v_minor && (v_micro < x.v_micro)))));
+            || (v_major == x.v_major && (v_minor < x.v_minor
+                                         || (v_minor == x.v_minor && (v_micro < x.v_micro)))));
   };
 
   //--------------------------------------------------------------
@@ -150,3 +150,13 @@ void ddc_parse_format_version(const char *s, DDCVersionT &version, DDCVersionT &
 void ddc_format_version_check(const char *s, const char *label=NULL);
 
 #endif
+
+/*--- emacs style variables ---
+ * Local Variables:
+ *  mode: C++
+ *  c-default-style: "linux"
+ *  c-basic-offset: 4
+ *  tab-width: 8
+ *  indent-tabs-mode: nil
+ * End:
+ */

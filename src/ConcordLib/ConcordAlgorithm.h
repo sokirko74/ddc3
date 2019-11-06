@@ -26,3 +26,13 @@ void ConvertToVariableInteger(const vector<DWORD>& In,vector<DWORD>& Out);
 void DeconvertFromVariableInteger(const DWORD* in_start, const DWORD* in_end,  DWORD* out_start, DWORD& OutCount);
 
 #endif
+
+/*--- emacs style variables ---
+ * Local Variables:
+ *  mode: C++
+ *  c-default-style: "linux"
+ *  c-basic-offset: 4
+ *  tab-width: 8
+ *  indent-tabs-mode: nil
+ * End:
+ */

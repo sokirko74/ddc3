@@ -22,7 +22,7 @@ lib_LTLIBRARIES = libDDCGraphan.la
 ## sources
 
 libDDCGraphan_la_SOURCES = \
- gra_descr.cpp ../common/gra_descr.h \
+ gra_descr.cpp \
  C_desc.cpp \
  Consent.cpp Consent.h \
  Cs_hiera.cpp \
@@ -46,7 +46,11 @@ noinst_HEADERS = \
  GraphmatFile.h \
  HTMLConv.h \
  StdGraph.h \
- UnitHolder.h
+ UnitHolder.h \
+ Graspace.h \
+ gra_descr.h \
+ gra_descr_primitives.h
+
 
 ##-----------------------------------------------------------------------
 ## special rules

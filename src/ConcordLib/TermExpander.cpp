@@ -1,4 +1,4 @@
-//-*- Mode: C++; c-basic-offset: 2; -*-
+//-*- Mode: C++ -*-
 //  DDC originally by Alexey Sokirko
 //  Changes and modifications 2011-2018 by Bryan Jurish
 //
@@ -29,8 +29,7 @@
 // CTermExpander
 
 //--------------------------------------------------------------
-CTermExpander* CTermExpander::mapClone(map<CTermExpander*,CTermExpander*>& xlate) const
-{
+CTermExpander *CTermExpander::mapClone(map<CTermExpander *, CTermExpander *> &xlate) const {
   map<CTermExpander*,CTermExpander*>::const_iterator vali = xlate.find((CTermExpander*)this);
   if (vali != xlate.end()) return vali->second;
 
@@ -40,31 +39,28 @@ CTermExpander* CTermExpander::mapClone(map<CTermExpander*,CTermExpander*>& xlate
 }
 
 //--------------------------------------------------------------
-string CTermExpander::configString(void) const
-{
+string CTermExpander::configString(void) const {
   return m_Label + " " + m_Class + " " + m_Param;
 }
 
 //--------------------------------------------------------------
-void CTermExpander::expand(const string& src, set<string>& dst)
-{
+void CTermExpander::expand(const string &src, set<string> &dst) {
   set<string> ssrc;
   ssrc.insert(src);
   this->expand(ssrc,dst);
 }
 
 //--------------------------------------------------------------
-void CTermExpander::expand(const set<string>& src, set<string>& dst)
-{
-  throw CExpc(errOther,"abstract method CTermExpander::expand() called for expander `%s' of class `%s'", m_Label.c_str(), m_Class.c_str());
+void CTermExpander::expand(const set<string> &src, set<string> &dst) {
+    throw CExpc(errOther, "abstract method CTermExpander::expand() called for expander `%s' of class `%s'",
+                m_Label.c_str(), m_Class.c_str());
 }
 
 //======================================================================
 // TxId
 
 //--------------------------------------------------------------
-void TxId::expand(const set<string>& src, set<string>& dst)
-{
+void TxId::expand(const set<string> &src, set<string> &dst) {
   dst = src;
 }
 
@@ -73,8 +69,7 @@ void TxId::expand(const set<string>& src, set<string>& dst)
 // TxChain
 
 //--------------------------------------------------------------
-CTermExpander *TxChain::clone(map<CTermExpander*,CTermExpander*>& xlate) const
-{
+CTermExpander *TxChain::clone(map<CTermExpander *, CTermExpander *> &xlate) const {
   TxChain *that = new TxChain(m_Label,m_Param);
   for (TxList::const_iterator li=m_Chain.begin(); li != m_Chain.end(); ++li) {
     that->m_Chain.push_back( (*li)->mapClone(xlate) );
@@ -83,21 +78,18 @@ CTermExpander *TxChain::clone(map<CTermExpander*,CTermExpander*>& xlate) const
 }
 
 //--------------------------------------------------------------
-void TxChain::append(TxList& txl)
-{
+void TxChain::append(TxList &txl) {
   m_Chain.reserve(m_Chain.size()+txl.size());
   m_Chain.insert(m_Chain.end(), txl.begin(), txl.end());
 }
 
 //--------------------------------------------------------------
-void TxChain::append(TxChain& txc)
-{
+void TxChain::append(TxChain &txc) {
   append(txc.m_Chain);
 }
 
 //--------------------------------------------------------------
-void TxChain::append(CTermExpander *tx)
-{
+void TxChain::append(CTermExpander *tx) {
   if (tx==NULL) return;
   if (tx->m_Class == "Chain")
     append( ((TxChain*)tx)->m_Chain );
@@ -106,8 +98,7 @@ void TxChain::append(CTermExpander *tx)
 }
 
 //--------------------------------------------------------------
-string TxChain::chainString(const string& joinstr)
-{
+string TxChain::chainString(const string &joinstr) {
   string s;
   for (TxList::const_iterator li=m_Chain.begin(); li != m_Chain.end(); li++) {
     if (!s.empty()) s += joinstr;
@@ -117,8 +108,7 @@ string TxChain::chainString(const string& joinstr)
 }
 
 //--------------------------------------------------------------
-void TxChain::expand(const set<string>& src, set<string>& dst)
-{
+void TxChain::expand(const set<string> &src, set<string> &dst) {
   set<string> tmp(src);
   for (TxList::const_iterator ci=m_Chain.begin(); ci!=m_Chain.end(); ci++) {
     (*ci)->expand(tmp,dst);
@@ -132,21 +122,18 @@ void TxChain::expand(const set<string>& src, set<string>& dst)
 
 //--------------------------------------------------------------
 TxLang::TxLang(const string &cls, const string &label, const string& param)
-  : CTermExpander(cls,label,param), m_Lang(morphGeneric)
-{
+        : CTermExpander(cls, label, param), m_Lang(morphGeneric) {
   setLanguage(param);
 }
 
 //--------------------------------------------------------------
-void TxLang::setLanguage(MorphLanguageEnum lang)
-{
+void TxLang::setLanguage(MorphLanguageEnum lang) {
   m_Lang = lang;
   m_Param = GetStringByLanguage(m_Lang);
 }
 
 //--------------------------------------------------------------
-void TxLang::setLanguage(const string &lang)
-{
+void TxLang::setLanguage(const string &lang) {
   string lang_(lang);
   Trim(lang_);
   if (lang_.empty()) {
@@ -164,8 +151,7 @@ void TxLang::setLanguage(const string &lang)
 
 //--------------------------------------------------------------
 // + hacked version of GetWordForms() from QueryNode.cpp
-void TxMorph::expand(const set<string>& src, set<string>& dst)
-{
+void TxMorph::expand(const set<string> &src, set<string> &dst) {
   dst = src;
   if (src.empty()) return;
   if (m_Lang == morphUnknown) return;
@@ -179,12 +165,10 @@ void TxMorph::expand(const set<string>& src, set<string>& dst)
 
     string w_ = pLemmatizer->recode_ext2int(w);
     const bool bCapital = is_upper_alpha((BYTE)w_[0],m_Lang);
-    try
-      {
+        try {
 	pLemmatizer->CreateParadigmCollection(false, w_, bCapital, true, Paradigms);
       }
-    catch (...)
-      {
+        catch (...) {
 	throw CExpc(errProcessMorphology, Format("TxMorph::expand(): morphology crashed for `%s'", w.c_str()));
       }
 
@@ -209,8 +193,7 @@ void TxMorph::expand(const set<string>& src, set<string>& dst)
 //======================================================================
 // TxToLower
 
-void TxToLower::expand(const set<string>& src, set<string>& dst)
-{
+void TxToLower::expand(const set<string> &src, set<string> &dst) {
   dst.clear();
   for (set<string>::const_iterator si = src.begin(); si != src.end(); si++) {
     if (si->empty())  continue;
@@ -223,8 +206,7 @@ void TxToLower::expand(const set<string>& src, set<string>& dst)
 //======================================================================
 // TxToUpper
 
-void TxToUpper::expand(const set<string>& src, set<string>& dst)
-{
+void TxToUpper::expand(const set<string> &src, set<string> &dst) {
   dst.clear();
   for (set<string>::const_iterator si = src.begin(); si != src.end(); si++) {
     if (si->empty())  continue;
@@ -239,8 +221,7 @@ void TxToUpper::expand(const set<string>& src, set<string>& dst)
 
 //--------------------------------------------------------------
 // + hacked version of AddFormsWithDifferentRegisters() from QueryNode.cpp
-void TxCase::expand(const set<string>& src, set<string>& dst)
-{
+void TxCase::expand(const set<string> &src, set<string> &dst) {
   dst.clear();
   for (set<string>::const_iterator si = src.begin(); si != src.end(); si++) {
     const string& q = *si;
@@ -255,8 +236,7 @@ void TxCase::expand(const set<string>& src, set<string>& dst)
 	wstring ws_u(ws);
 	ws_u[0] = towupper(ws_u[0]);
 	dst.insert(wstring2string(ws_u));
-      }
-      else {
+            } else {
 	//-- (AB|Ab)->ab
 	dst.insert(wstring2string(wstolower(ws)));
       }
@@ -270,8 +250,7 @@ void TxCase::expand(const set<string>& src, set<string>& dst)
       string upp = q;
       upp[0] = ReverseChar((BYTE)upp[0], m_Lang);
       dst.insert(upp);
-    }
-    else {
+        } else {
       string lwr = q;
       RmlMakeLower(lwr, m_Lang);
       dst.insert(lwr);
@@ -286,16 +265,14 @@ void TxCase::expand(const set<string>& src, set<string>& dst)
 // TxCurl
 
 //--------------------------------------------------------------
-CTermExpander* TxCurl::clone(map<CTermExpander*,CTermExpander*>& xlate) const
-{
+CTermExpander *TxCurl::clone(map<CTermExpander *, CTermExpander *> &xlate) const {
   TxCurl* that = new TxCurl(m_Class, m_Label, m_Param);
   that->compile();
   return (CTermExpander*)that;
 }
 
 //--------------------------------------------------------------
-void TxCurl::compile(void)
-{
+void TxCurl::compile(void) {
   m_CCurl.lock();
   m_CCurl.url("");
   m_CCurl.requestUrl("");
@@ -312,16 +289,14 @@ void TxCurl::compile(void)
 // TxCab
 
 //--------------------------------------------------------------
-CTermExpander* TxCab::clone(map<CTermExpander*,CTermExpander*>& xlate) const
-{
+CTermExpander *TxCab::clone(map<CTermExpander *, CTermExpander *> &xlate) const {
   TxCab* that = new TxCab(m_Label, m_Param, m_Debug, m_MapMode);
   that->compile();
   return (CTermExpander*)that;
 }
 
 //--------------------------------------------------------------
-void TxCab::compile(void)
-{
+void TxCab::compile(void) {
   //-- defaults
   TxCurl::compile();
 
@@ -364,8 +339,7 @@ void TxCab::compile(void)
 }
 
 //--------------------------------------------------------------
-void TxCab::expand(const set<string>& src, set<string>& dst)
-{
+void TxCab::expand(const set<string> &src, set<string> &dst) {
   if (!m_MapMode)
     dst = src;		//-- union-mode (default): always include identity expansions
   else
@@ -388,7 +362,7 @@ void TxCab::expand(const set<string>& src, set<string>& dst)
 #if 0
       throw CExpc(errRuntime, "TxCab::expand(): ERROR: %s", m_CCurl.m_CurlErr);
 #else
-      concord_daemon_log(Format("TxCab::expand(%s) failed: %s", m_UrlBase.c_str(), m_CCurl.m_CurlErr));
+            concord_daemon_log(Format("TxCab::expand(%s) failed: %s", url.c_str(), m_CCurl.m_CurlErr));
       if (m_MapMode) dst = src; //-- fallback to literal search in map mode
       m_CCurl.unlock();
       return;
@@ -415,8 +389,7 @@ void TxCab::expand(const set<string>& src, set<string>& dst)
 // TxCabMap
 
 //--------------------------------------------------------------
-CTermExpander* TxCabMap::clone(map<CTermExpander*,CTermExpander*>& xlate) const
-{
+CTermExpander *TxCabMap::clone(map<CTermExpander *, CTermExpander *> &xlate) const {
   TxCab* that = new TxCabMap(m_Label, m_Param, m_Debug, m_MapMode);
   that->compile();
   return (CTermExpander*)that;
@@ -426,8 +399,7 @@ CTermExpander* TxCabMap::clone(map<CTermExpander*,CTermExpander*>& xlate) const
 // TxDispatcher
 
 //--------------------------------------------------------------
-TxDispatcher* TxDispatcher::clone() const
-{
+TxDispatcher *TxDispatcher::clone() const {
   map<CTermExpander*,CTermExpander*> xlate;
   TxDispatcher *that = new TxDispatcher(*this);
   
@@ -439,14 +411,12 @@ TxDispatcher* TxDispatcher::clone() const
 }
 
 //--------------------------------------------------------------
-TxDispatcher::~TxDispatcher(void)
-{
+TxDispatcher::~TxDispatcher(void) {
   clear(true);
 }
 
 //--------------------------------------------------------------
-void TxDispatcher::clear(bool doDelete)
-{
+void TxDispatcher::clear(bool doDelete) {
   if (doDelete) {
     for (TxMap::iterator txi=m_tx.begin(); txi != m_tx.end(); txi++) {
       if (txi->second != NULL)
@@ -458,8 +428,7 @@ void TxDispatcher::clear(bool doDelete)
 }
 
 //--------------------------------------------------------------
-void TxDispatcher::ensureDefaultExpanders(MorphLanguageEnum mlang, MorphLanguageEnum clang, bool doInfl, bool doCase)
-{
+void TxDispatcher::ensureDefaultExpanders(MorphLanguageEnum mlang, MorphLanguageEnum clang, bool doInfl, bool doCase) {
   if (!get("id"))   insert(new TxId("id"));
   if (!get("null")) insert(new TxId("null"));
   if (!get("infl")) {
@@ -484,8 +453,7 @@ void TxDispatcher::ensureDefaultExpanders(MorphLanguageEnum mlang, MorphLanguage
 }
 
 //--------------------------------------------------------------
-CTermExpander *TxDispatcher::addExpander(const string &spec)
-{
+CTermExpander *TxDispatcher::addExpander(const string &spec) {
   string txclass, txlabel, txparam;
   parseTermExpanderSpec(spec, txclass, txlabel, txparam);
 
@@ -502,16 +470,14 @@ CTermExpander *TxDispatcher::addExpander(const string &spec)
 }
 
 //--------------------------------------------------------------
-void TxDispatcher::compile(void)
-{
+void TxDispatcher::compile(void) {
   for (TxMap::iterator txi=m_tx.begin(); txi != m_tx.end(); txi++) {
     txi->second->compile();
   }
 }
 
 //--------------------------------------------------------------
-string TxDispatcher::configString(const string &prefix) const
-{
+string TxDispatcher::configString(const string &prefix) const {
   string out;
   for (list<string>::const_iterator li=m_txlist.begin(); li != m_txlist.end(); ++li) {
     const CTermExpander *tx = get(*li);
@@ -548,15 +514,13 @@ void TxDispatcher::insert(const string &label, CTermExpander *tx)
 }
 
 //--------------------------------------------------------------
-void TxDispatcher::insert(CTermExpander *tx)
-{
+void TxDispatcher::insert(CTermExpander *tx) {
   if (tx==NULL) return;
   insert(tx->m_Label, tx);
 }
 
 //--------------------------------------------------------------
-void TxDispatcher::remove(const string &label)
-{
+void TxDispatcher::remove(const string &label) {
   TxMap::iterator mi = m_tx.find(label);
   if (mi != m_tx.end()) {
     if (mi->second != NULL) delete mi->second;
@@ -566,16 +530,14 @@ void TxDispatcher::remove(const string &label)
 }
 
 //--------------------------------------------------------------
-CTermExpander *TxDispatcher::get(const string &label) const
-{
+CTermExpander *TxDispatcher::get(const string &label) const {
   TxMap::const_iterator mi = m_tx.find(label);
   if (mi == m_tx.end()) return NULL;
   return mi->second;
 }
 
 //--------------------------------------------------------------
-TxChain TxDispatcher::getChain(const vector<string> &labels)
-{
+TxChain TxDispatcher::getChain(const vector<string> &labels) {
   TxChain chain("(user)");
   chain.m_Chain.reserve(labels.size());
   for (vector<string>::const_iterator li=labels.begin(); li!=labels.end(); li++) {
@@ -589,8 +551,7 @@ TxChain TxDispatcher::getChain(const vector<string> &labels)
 }
 
 //--------------------------------------------------------------
-TxChain TxDispatcher::getChain(const string& spec)
-{
+TxChain TxDispatcher::getChain(const string &spec) {
   vector<string> labels = stringSplit(spec.c_str(), " \t\r\n|");
   return getChain(labels);
 }
@@ -601,8 +562,7 @@ TxChain TxDispatcher::getChain(const string& spec)
 // Utilities
 
 //--------------------------------------------------------------
-void parseTermExpanderSpec(const string &spec, string &txclass, string &txlabel, string &txparam)
-{
+void parseTermExpanderSpec(const string &spec, string &txclass, string &txlabel, string &txparam) {
   txclass.clear();
   txlabel.clear();
   txparam.clear();
@@ -613,7 +573,10 @@ void parseTermExpanderSpec(const string &spec, string &txclass, string &txlabel,
   if (!stok.has_next()) return;
   txlabel = stok.next_token();
 
-  if (!stok.has_next()) { txclass=txlabel; return; }
+    if (!stok.has_next()) {
+        txclass = txlabel;
+        return;
+    }
   txclass = stok.next_token();
 
   txparam = stok.get_rest();
@@ -621,8 +584,7 @@ void parseTermExpanderSpec(const string &spec, string &txclass, string &txlabel,
 }
 
 //--------------------------------------------------------------
-CTermExpander *newTermExpander(const string& class_, const string& label, const string& param)
-{
+CTermExpander *newTermExpander(const string &class_, const string &label, const string &param) {
   string cls(class_);
   Trim(cls);
   EngMakeLower(cls); //-- class-names are all ASCII, so this is safe(-ish)
@@ -639,3 +601,13 @@ CTermExpander *newTermExpander(const string& class_, const string& label, const 
   throw CExpc(errLogic, "unknown TermExpander class `%s'", class_.c_str());
   return NULL;
 }
+
+/*--- emacs style variables ---
+ * Local Variables:
+ *  mode: C++
+ *  c-default-style: "linux"
+ *  c-basic-offset: 4
+ *  tab-width: 8
+ *  indent-tabs-mode: nil
+ * End:
+ */

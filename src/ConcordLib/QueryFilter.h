@@ -77,16 +77,16 @@ public:
 
 public:
   CQFSort(HitSortEnum   ftype=NoSort,
-	  const string &arg0=string(""),
-	  const string &arg1=string(""),
-	  const string &arg2=string("")
-	  );
+          const string &arg0=string(""),
+          const string &arg1=string(""),
+          const string &arg2=string("")
+          );
 
   CQFSort(HitSortEnum   ftype,
-	  const string &arg0,
-	  int           arg1i,
-	  int           arg2i
-	  );
+          const string &arg0,
+          int           arg1i,
+          int           arg2i
+          );
 
   virtual CQFilter* Clone()
   { return (CQFilter*)new CQFSort(*this); };
@@ -99,7 +99,7 @@ public:
 
   //! compilation utility: return a valid bibliographic attribute for \a attrName
   //!  + prefers \a attrName if that is a valid attribute name
-  //!  + otherwise uses compiler->m_pHolder->m_pIndexator->m_Bibl.m_DefaultAttrName if non-empty and a valid attribute name
+  //!  + otherwise uses compiler->m_pHolder->m_pConcordance->m_Bibl.m_DefaultAttrName if non-empty and a valid attribute name
   //!  + otherwise returns an empty string
   string ResolveAttributeName(CQueryCompiler *compiler, const string& attrName, bool allowBiblExpander=false);
 
@@ -191,9 +191,9 @@ public:
 class CQFBiblSort : public CQFSort {
 public:
   CQFBiblSort(HitSortEnum ftype=LessByFreeBiblField,
-	      const string &field=string(""),
-	      const string &lb=string(""),
-	      const string &ub=string(""))
+              const string &field=string(""),
+              const string &lb=string(""),
+              const string &ub=string(""))
     : CQFSort(ftype,field,lb,ub)
   {};
 
@@ -216,11 +216,11 @@ public:
 class CQFContextSort : public CQFSort {
 public:
   CQFContextSort(HitSortEnum ftype=LessByMiddleContext,
-		 const string &field=string(""),
-		 int matchid=0,
-		 int offset=0,
-		 const string &lb=string(""),
-		 const string &ub=string(""))
+                 const string &field=string(""),
+                 int matchid=0,
+                 int offset=0,
+                 const string &lb=string(""),
+                 const string &ub=string(""))
     : CQFSort(ftype,field,lb,ub)
   {
     m_Filter.m_ContextMatchId = matchid;
@@ -403,3 +403,13 @@ public:
 
 #endif /* DDC_QFILTER_H */
 
+
+/*--- emacs style variables ---
+ * Local Variables:
+ *  mode: C++
+ *  c-default-style: "linux"
+ *  c-basic-offset: 4
+ *  tab-width: 8
+ *  indent-tabs-mode: nil
+ * End:
+ */

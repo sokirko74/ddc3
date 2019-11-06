@@ -36,3 +36,13 @@ extern void v_out_html (FILE * Fp_out, const TiXmlNode * XNp_source, unsigned u_
 extern void v_levelize (int i_level, FILE * Fp_out = stdout, bool o_html = false);
 
 #endif
+
+/*--- emacs style variables ---
+ * Local Variables:
+ *  mode: C++
+ *  c-default-style: "linux"
+ *  c-basic-offset: 4
+ *  tab-width: 8
+ *  indent-tabs-mode: nil
+ * End:
+ */

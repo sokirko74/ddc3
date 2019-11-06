@@ -149,7 +149,7 @@ char* StrError(int ErrorNo);
 
 //--------------------------------------------------------------
 /**
- * old string tokenizer from ../common/util_classes.h, utilit.cpp, rsp. ../common/string_tokenizer.h
+ * old string tokenizer from ../CommonLib/util_classes.h, utilit.cpp, rsp. ../CommonLib/string_tokenizer.h
  * \detail see also stringSplitE() from utilit.cpp
  */
 /**
@@ -227,10 +227,10 @@ public:
  */
 class StringSplitter {
 public:
-  const std::string *srcp;	///< source string (reference)
-  const std::string *delimp;	///< delimiter characters (reference)
-  size_t begi;			///< start position of current token (string::npos after initilization)
-  size_t endi;			///< end position of current token
+  const std::string *srcp;      ///< source string (reference)
+  const std::string *delimp;    ///< delimiter characters (reference)
+  size_t begi;                  ///< start position of current token (string::npos after initilization)
+  size_t endi;                  ///< end position of current token
 
 public:
 
@@ -302,3 +302,13 @@ const char *BoolToString(bool b);
 
 
 #endif /* DDC_STRING_H */
+
+/*--- emacs style variables ---
+ * Local Variables:
+ *  mode: C++
+ *  c-default-style: "linux"
+ *  c-basic-offset: 4
+ *  tab-width: 8
+ *  indent-tabs-mode: nil
+ * End:
+ */

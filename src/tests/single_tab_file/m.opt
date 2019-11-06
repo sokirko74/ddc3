@@ -1,0 +1,7 @@
+German
+IndexType TabFormat_Index
+Indices [Token w normal];[Lemma l normal storage];[Dummy d normal storage]
+HitBorders [s:sentence:default]
+Bibl string 0 author /TEI.2/teiHeader/fileDesc/sourceDesc[@id="orig"]/author
+Bibl string 0 title   /TEI.2/teiHeader/fileDesc/sourceDesc[@id="orig"]/title
+

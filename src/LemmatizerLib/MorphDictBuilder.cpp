@@ -277,8 +277,11 @@ bool  CMorphDictBuilder::CreateAutomat(const MorphoWizard& Wizard)
 				
 
 				
-				if (!GetFormBuilder()->AddStringDaciuk(WordForm))
+				if (!GetFormBuilder()->AddStringDaciuk(WordForm)) {
+					fprintf (stderr,"cannot AddStringDaciuk base=\"%s\", wordform=\"%s\", lemma no = %zi, ModelNo = %zi\n",
+					        base.c_str(), WordForm.c_str(), LemmaNo, ModelNo);
 					return false;
+				}
 			};
 		};
 
@@ -311,3 +314,13 @@ bool  CMorphDictBuilder::CreateAutomat(const MorphoWizard& Wizard)
 	return bResult;
 };
 
+
+/*--- emacs style variables ---
+ * Local Variables:
+ *  mode: C++
+ *  c-default-style: "linux"
+ *  c-basic-offset: 4
+ *  tab-width: 8
+ *  indent-tabs-mode: nil
+ * End:
+ */

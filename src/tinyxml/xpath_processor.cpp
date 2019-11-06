@@ -2084,3 +2084,13 @@ void xpath_processor::v_set_context (
    XEp_context = XEp_in; 
    o_is_context_by_name = o_by_name;
 }
+
+/*--- emacs style variables ---
+ * Local Variables:
+ *  mode: C++
+ *  c-default-style: "linux"
+ *  c-basic-offset: 4
+ *  tab-width: 8
+ *  indent-tabs-mode: nil
+ * End:
+ */

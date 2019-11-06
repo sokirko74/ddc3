@@ -1,0 +1,380 @@
+//
+// Created by sokirko on 04.10.19.
+//
+
+#include "ConcIndexatorInvoker.h"
+#include "DwdsThesaurus.h"
+#include "DocumentIterator.h"
+
+
+ConcIndexatorInvoker::ConcIndexatorInvoker() {
+    m_bStoppedByUser = false;
+    m_bStdout = false;
+    m_CurrentSourceFileNo = 0;
+    m_SourceFilesNumber = 0;
+    // profiling takes 3 percent of working time, if we trust
+    // DevPartner or gprof, that's why by dGefault it should be switched off.
+    m_Profiler.m_bTimeSpanHolderEnabled = false;
+    m_bOnlyReindexMorphology = false;
+    m_bSkipInitialFileChecking = false;
+};
+
+void ConcIndexatorInvoker::SetCurrMessage(string Message) const {
+    m_CurrMessage = Message;
+    if (m_bStdout) {
+        fprintf(stderr, "%s\n", m_CurrMessage.c_str());
+    };
+};
+
+string ConcIndexatorInvoker::GetTimeStatisticsFileName(string Path) const {
+    return MakeFName(Path, "_time_statistics");
+};
+
+string ConcIndexatorInvoker::GetErrorLogFileName(string Path) const {
+    return MakeFName(Path, "_error_log");
+};
+
+
+
+
+void ConcIndexatorInvoker::WriteTimeStatistics(const CConcIndexator &Indexator, DWORD MaxTokenCountInOnePeriod) const {
+    try {
+        double AllClocksCount = m_Profiler.EndTimer("Indexing");
+
+        FILE *fp = fopen(GetTimeStatisticsFileName(Indexator.m_Path).c_str(), "w");
+        if (!fp) {
+            fprintf(stderr, "Cannot write time statistics to file!\n");
+        } else {
+            fprintf(fp, "%s", m_Profiler.GetStrRepresentation(AllClocksCount).c_str());
+            int AllSeconds = (int) (AllClocksCount / CLOCKS_PER_SEC);
+            int u = (AllSeconds > 0) ? (int) ((m_CorpusEndTokenNo) / AllSeconds) : 0;
+            fprintf(fp, "Speed (Tokens per second) = %i\n", u);
+            fprintf(fp, "MaxTokenCountInOnePeriod = %u (tokens in one subcorpus)\n", MaxTokenCountInOnePeriod);
+            fprintf(fp, "Count of subcorpora = %zi\n", Indexator.GetSearchPeriodsCount());
+            fprintf(fp, "Count of running tokens  = %u\n", m_CorpusEndTokenNo);
+
+            fclose(fp);
+        };
+    }
+    catch (...) {
+        SetCurrMessage("An exception occurred while saving time_statistsics files");
+    }
+};
+
+void ConcIndexatorInvoker::FinalizeIndex(CConcIndexator &Indexator, DWORD MaxTokenCountInOnePeriod) const {
+
+    if (!Indexator.SaveCorpusFileList()) {
+        throw CExpc(Format("Cannot save corpus file list %s\n", Indexator.GetFileNameForCorpusFileNames().c_str()));
+    };
+
+    if (m_CorpusEndTokenNo >= CIndexItem::GetMaximalNumberOfRunningTokens()) {
+        throw CExpc(Format("Error! Number of running tokens cannot be more than ",
+                           CIndexItem::GetMaximalNumberOfRunningTokens()));
+    };
+
+    m_Profiler.StartTimer("Final Save to Disc", 1);
+
+    Indexator.BordersEndIndexing(Indexator.m_Path);
+    if (!Indexator.LoadHitBorders(Indexator.m_Path)) throw CExpc ("LoadHitBorders failed");
+    assert (Indexator.GetCorpusEndTokenNo() == m_CorpusEndTokenNo);
+    Indexator.CalculateSearchPeriods(MaxTokenCountInOnePeriod);
+
+    SetCurrMessage(Format("Tokens Count = %i\n", m_CorpusEndTokenNo));
+
+    if (!Indexator.AddInputLoadIndexToMemoryLoadIndex()) throw CExpc ("AddInputLoadIndexToMemoryLoadIndex failed");
+    if (!Indexator.SaveMemoryLoadIndex()) {
+        throw CExpc("Cannot save memory indices to disk; probably no space left on device!");
+    }
+    if (!Indexator.AddMemoryLoadIndexToMainLoadIndex()) throw CExpc ("AddMemoryLoadIndexToMainLoadIndex failed");
+    if (!Indexator.FinalSaveAllIndices(true)) throw CExpc ("FinalSaveAllIndices failed");;
+    SetCurrMessage("finished final saving");
+    Indexator.NormalEndIndexing();
+    SetCurrMessage("finished deleting temp. files");
+    m_Profiler.EndTimer("Final Save to Disc");
+
+    m_Profiler.StartTimer("CreateMorphIndex", 1);
+    if (Indexator.m_bIndexMorphPatterns && !Indexator.CreateMorphIndexWrapper()) {
+        throw CExpc("Error! Cannot create morph index!");
+    }
+    m_Profiler.EndTimer("CreateMorphIndex");
+
+    SetCurrMessage("");
+
+    remove(GetErrorLogFileName(Indexator.m_Path).c_str());
+    if (Indexator.m_bResumeOnIndexErrors && !m_ErrorCorpusFiles.empty()) {
+        FILE *fp = fopen(GetErrorLogFileName(Indexator.m_Path).c_str(), "w");
+        if (fp) {
+            for (size_t i = 0; i < m_ErrorCorpusFiles.size(); i++)
+                fprintf(fp, "%s\n", m_ErrorCorpusFiles[i].c_str());
+            fclose(fp);
+        }
+        SetCurrMessage(Format("%i error(s) were written into %s", m_ErrorCorpusFiles.size(),
+                              GetErrorLogFileName(Indexator.m_Path).c_str()));
+    };
+};
+
+void ConcIndexatorInvoker::BuildOnlyMorphIndex(string ProjectFile) const {
+    CConcIndexator Indexator;
+    Indexator.LoadProject(ProjectFile);
+
+    if (!Indexator.CreateMorphIndexWrapper()) {
+        throw CExpc("cannot index morphology index");
+    }
+    SetCurrMessage("reindexing was successful!\n");
+};
+
+void newhandler() {
+    fprintf(stderr, "Cannot allocate memory (newhandler is called); terminate the process...\n");
+    throw bad_alloc();
+    return;
+}
+
+void ConcIndexatorInvoker::BuildIndexStart(string ProjectFile, CConcIndexator& indexator)
+{
+    m_CorpusEndTokenNo = 0;
+    indexator.LoadSourceFilesAndOptions(ProjectFile);
+
+    m_SourceFilesNumber = indexator.GetSourceFilesCount();
+
+    if (m_SourceFilesNumber == 0) {
+        throw CExpc("No files in the project!");
+    };
+
+    SetCurrMessage(Format("Files %i\n", m_SourceFilesNumber));
+    if (!m_bSkipInitialFileChecking) {
+        int FileNo = indexator.FoundNotExistedFile();
+        if (FileNo != -1) {
+            throw CExpc(Format("File %s was not found or it is empty, cannot load the project\n",
+                                indexator.GetSourceFile(FileNo).c_str()));
+        };
+    };
+
+
+    indexator.DestroyIndex();
+    indexator.StartIndexing();
+
+
+    SetCurrMessage(Format("MaxTokenCountInOnePeriod = %i", indexator.GetMaxTokenCountInOnePeriod()));
+    SetCurrMessage(Format("MaxInputLoadIndexSize = %i", indexator.GetMaxInputLoadIndexSize()));
+
+    m_Profiler.ClearTimers();
+    m_Profiler.StartTimer("Indexing", 0);
+    TiXmlBase::SetCondenseWhiteSpace(false);
+    time(&m_StartTime);
+}
+
+void ConcIndexatorInvoker::PrintProgress(DWORD saveCorpusEndTokenNo)
+{
+    time_t speed_curr_time;
+    time(&speed_curr_time);
+    size_t dur = speed_curr_time - m_StartTime;
+    size_t speed = (dur == 0) ? 0 : saveCorpusEndTokenNo / dur;
+    SetCurrMessage(Format("File  %s", m_CurrentSourceFileName.c_str()));
+    SetCurrMessage(Format("(%i from  %i)", m_CurrentSourceFileNo + 1, m_SourceFilesNumber));
+    SetCurrMessage(Format("Processed tokens = %i;Speed(tokens per sec)=%u", saveCorpusEndTokenNo, speed));
+}
+
+void ConcIndexatorInvoker::SaveLoadIndexToDisk(CConcIndexator& Indexator) {
+    SetCurrMessage("Saving index to disk");
+    m_Profiler.StartTimer("AddInputLoadIndexToMemoryLoadIndex", 1);
+    if (!Indexator.AddInputLoadIndexToMemoryLoadIndex()) {
+        throw CExpc(Format("Fatal Error! Cannot AddInputLoadIndexToMemoryLoadIndex"));
+    };
+    m_Profiler.EndTimer("AddInputLoadIndexToMemoryLoadIndex");
+
+    m_Profiler.StartTimer("Intermediate Save to Disc", 1);
+
+    if (!Indexator.SaveMemoryLoadIndex()) {
+        throw CExpc("Cannot save indices to disk; probably no space left on device!\n");
+    };
+    if (!Indexator.AddMemoryLoadIndexToMainLoadIndex()) {
+        throw CExpc("Fatal Error! Indexator.AddMemoryLoadIndexToMainLoadIndex returned false\n");
+    };
+    m_Profiler.EndTimer("Intermediate Save to Disc");
+}
+
+DWORD ConcIndexatorInvoker::IndexFile(CConcIndexator& Indexator, CIndexDocument* document)
+{
+    string strError;
+    m_Profiler.StartTimer("Indexator.IndexOneFile", 1);
+    string CorpusFileName = document->CorpusFileName;
+
+    if (document->IsEmpty()) {
+        string err = Format("skipping empty %s", CorpusFileName.c_str());
+        SetCurrMessage(err);
+        m_ErrorCorpusFiles.push_back(err);
+        return 0;
+    };
+
+    DWORD startFileTokenNo =  m_CorpusEndTokenNo;
+    try {
+        document->CorpusEndTokenNo = m_CorpusEndTokenNo;
+        Indexator.IndexOneFile(document);
+        m_CorpusEndTokenNo = document->CorpusEndTokenNo;
+    } catch  (CExpc e) {
+        string err = Format("Error! %s; Indexator.IndexOneFile returned false (file %s)",
+                            e.m_strCause.c_str(),
+                            CorpusFileName.c_str());
+        if (!Indexator.m_bResumeOnIndexErrors) {
+            throw CExpc(err);
+        } else {
+            m_ErrorCorpusFiles.push_back(err);
+            SetCurrMessage(Format("skipping %s", CorpusFileName.c_str()));
+            return 0;
+        }
+    }
+
+    m_Profiler.EndTimer("Indexator.IndexOneFile");
+
+    DWORD tokensCount = m_CorpusEndTokenNo - startFileTokenNo;
+    if (tokensCount == 0) {
+        string err = Format("skipping empty %s", CorpusFileName.c_str());
+        SetCurrMessage(err);
+        m_ErrorCorpusFiles.push_back(err);
+        return 0;
+    };
+
+    if (m_CorpusEndTokenNo >= CIndexItem::GetMaximalNumberOfRunningTokens()) {
+        throw CExpc(Format("Error! Number of running tokens cannot be more than ",
+                           CIndexItem::GetMaximalNumberOfRunningTokens()));
+    };
+
+    Indexator.m_CorpusFiles.push_back(CorpusFileName);
+    Indexator.AddBreakByName(PredefinedFileBreakName, m_CorpusEndTokenNo);
+
+
+    return tokensCount;
+}
+
+void ConcIndexatorInvoker::AddInputLoadIndexToMemoryLoadIndexWrapper(CConcIndexator& Indexator)
+{
+    PrintProgress(m_CorpusEndTokenNo);
+    m_Profiler.StartTimer("AddInputLoadIndexToMemoryLoadIndex", 1);
+
+    if (!Indexator.AddInputLoadIndexToMemoryLoadIndex()) {
+
+        throw CExpc(Format("Fatal error! Cannot AddInputLoadIndexToMemoryLoadIndex for %s",
+                           m_CurrentSourceFileName.c_str()));
+
+    };
+    m_Profiler.EndTimer("AddInputLoadIndexToMemoryLoadIndex");
+
+}
+
+
+void ConcIndexatorInvoker::ProcessTarOrSingleFile(CConcIndexator& Indexator, size_t& InputLoadIndexSize, size_t& MemoryLoadIndexSize)
+{
+    fprintf(stderr, "Indexing file `%s'\n", m_CurrentSourceFileName.c_str());
+    CDocumentIterator docIterator(&Indexator, m_CurrentSourceFileName);
+    CIndexDocument document;
+
+
+    while ( docIterator.NextDocument(document) )
+    {
+        if (InputLoadIndexSize > Indexator.GetMaxInputLoadIndexSize()) {
+            AddInputLoadIndexToMemoryLoadIndexWrapper (Indexator);
+            MemoryLoadIndexSize += InputLoadIndexSize;
+            InputLoadIndexSize = 0;
+        };
+        DWORD tokensCount = IndexFile(Indexator, &document);
+        if (m_bStoppedByUser) {
+            throw CExpc("stopped by user");
+        };
+        if  (tokensCount > 0) {
+
+            InputLoadIndexSize += tokensCount;
+            if (MemoryLoadIndexSize + InputLoadIndexSize > Indexator.GetMaxTokenCountInOnePeriod()) {
+                SaveLoadIndexToDisk(Indexator);
+                MemoryLoadIndexSize = 0;
+                InputLoadIndexSize = 0;
+            };
+        }
+
+    };
+}
+
+void ConcIndexatorInvoker::IndexFiles(CConcIndexator& Indexator)
+{
+    size_t InputLoadIndexSize = 0;
+    size_t MemoryLoadIndexSize = 0;
+    m_ErrorCorpusFiles.clear();
+    if (Indexator.GetMaxInputLoadIndexSize() > Indexator.GetMaxTokenCountInOnePeriod()) {
+        throw CExpc("max load index size is supposed to be less than one period, update ddc parameters!");
+    }
+
+    for (m_CurrentSourceFileNo = 0; m_CurrentSourceFileNo < m_SourceFilesNumber; m_CurrentSourceFileNo++) {
+        if (m_bStoppedByUser) {
+            throw CExpc("stopped by user");
+        };
+
+        m_CurrentSourceFileName = Indexator.GetSourceFile(m_CurrentSourceFileNo);
+
+        ProcessTarOrSingleFile(Indexator, InputLoadIndexSize, MemoryLoadIndexSize);
+    };
+
+    if (m_CorpusEndTokenNo == 0) {
+        throw CExpc("Cannot index empty corpus!");
+    }
+
+    FinalizeIndex(Indexator, Indexator.GetMaxTokenCountInOnePeriod());
+}
+
+bool ConcIndexatorInvoker::BuildIndex(string ProjectFile) {
+    set_new_handler(newhandler);
+
+    {  // set temp directory 
+        char filename[2 * _MAX_PATH];
+        strcpy(filename, Format("TMP=%s", GetPathByFile(ProjectFile).c_str()).c_str());
+        putenv(filename);
+        ddcLogDebug(Format("using temporary directory `%s'", getenv("TMP")));
+    }
+
+
+    CConcIndexator Indexator;
+    try {
+        if (m_bOnlyReindexMorphology) {
+            BuildOnlyMorphIndex(ProjectFile);
+            return true;
+        }
+
+        BuildIndexStart(ProjectFile, Indexator);
+    }
+    catch (CExpc e) {
+        SetCurrMessage(e.m_strCause);
+        return false;
+    }
+
+
+    try {
+        IndexFiles(Indexator);
+        WriteTimeStatistics(Indexator,  Indexator.GetMaxTokenCountInOnePeriod());
+        return true;
+    }
+    catch (CExpc e) {
+        SetCurrMessage(e.m_strCause);
+    }
+    catch (...) {
+        SetCurrMessage("An exception occurred");
+    }
+
+    try {
+        Indexator.TerminateIndexing();
+        Indexator.DestroyIndex();
+    }
+    catch (CExpc e) {
+        SetCurrMessage(Format("Cannot normally terminate indexing: %s", e.m_strCause.c_str()));
+    }
+    return m_bStoppedByUser;
+
+};
+
+
+/*--- emacs style variables ---
+ * Local Variables:
+ *  mode: C++
+ *  c-default-style: "linux"
+ *  c-basic-offset: 4
+ *  tab-width: 8
+ *  indent-tabs-mode: nil
+ * End:
+ */

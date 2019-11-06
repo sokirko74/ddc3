@@ -1,4 +1,4 @@
-//-*- Mode: C++; c-basic-offset: 4; -*-
+//-*- Mode: C++ -*-
 //  DDC originally by Alexey Sokirko
 //  Changes and modifications 2011-2015 by Bryan Jurish
 //
@@ -182,3 +182,13 @@ int u8_printf(char *fmt, ...);
 
 #endif /* UTF8XX_H */
 
+
+/*--- emacs style variables ---
+ * Local Variables:
+ *  mode: C++
+ *  c-default-style: "linux"
+ *  c-basic-offset: 4
+ *  tab-width: 8
+ *  indent-tabs-mode: nil
+ * End:
+ */

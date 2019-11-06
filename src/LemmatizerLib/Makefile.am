@@ -25,16 +25,13 @@ libDDCLemmatizer_la_SOURCES = \
  Lemmatizers.cpp Lemmatizers.h \
  Paradigm.cpp Paradigm.h \
  CreatePredictionBase.cpp \
- PLMLineCollection.cpp PLMLineCollection.h \
  Statistic.cpp Statistic.h \
  MorphAutomat.cpp MorphAutomat.h \
  MorphAutomBuilder.cpp MorphAutomBuilder.h \
  MorphDict.cpp MorphDict.h \
  MorphDictBuilder.cpp MorphDictBuilder.h \
  Predict.cpp Predict.h \
- PlmLine.cpp ../common/PlmLine.h \
- MorphologyHolder.cpp ../common/MorphologyHolder.h \
- ../common/ddcIconv.h
+ ../CommonLib/ddcIconv.h
 
 noinst_HEADERS = \
  LemmaInfoSerialize.h \
@@ -44,7 +41,6 @@ noinst_HEADERS = \
  MorphDictBuilder.h \
  MorphDict.h \
  Paradigm.h \
- PLMLineCollection.h \
  Predict.h \
  StaticVectorMap.h \
  Statistic.h \

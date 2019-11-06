@@ -25,9 +25,9 @@
 #pragma once
 #endif // _MSC_VER > 1000
 
-#define WIN32_LEAN_AND_MEAN		// Exclude rarely-used stuff from Windows headers
+#define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers
 #include "../CommonLib/utilit.h"
-//#include "../common/str_pp.h"
+//#include "../CommonLib/str_pp.h"
 
 
 
@@ -37,3 +37,13 @@
 // Microsoft Visual C++ will insert additional declarations immediately before the previous line.
 
 #endif // !defined(AFX_STDAFX_H__B8DB77F2_B8A8_4843_B52C_6A9B40D9E6F8__INCLUDED_)
+
+/*--- emacs style variables ---
+ * Local Variables:
+ *  mode: C++
+ *  c-default-style: "linux"
+ *  c-basic-offset: 4
+ *  tab-width: 8
+ *  indent-tabs-mode: nil
+ * End:
+ */

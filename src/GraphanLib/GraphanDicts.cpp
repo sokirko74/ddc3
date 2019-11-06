@@ -57,15 +57,6 @@ CGraphanDicts::CGraphanDicts(MorphLanguageEnum Language)
 
 CGraphanDicts::~CGraphanDicts()
 {
-	m_pOborDic.FreePointer();
-};
-
-void CGraphanDicts ::FreeData()
-{
-	m_pOborDic.FreePointer();
-	m_EnglishNames.clear();
-	m_Oborottos.clear();
-	m_Abbrevs.clear();
 };
 
 bool CGraphanDicts:: ReadENames (string FileName)
@@ -234,3 +225,13 @@ const char * CGraphanDicts ::SearchSpace (const char *In ,int *len ) const
 	return NULL;
 }
 
+
+/*--- emacs style variables ---
+ * Local Variables:
+ *  mode: C++
+ *  c-default-style: "linux"
+ *  c-basic-offset: 4
+ *  tab-width: 8
+ *  indent-tabs-mode: nil
+ * End:
+ */

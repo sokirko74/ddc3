@@ -27,7 +27,7 @@ pkgbin_PROGRAMS = ddc_search
 
 ddc_search_SOURCES = \
  ddc_search.cpp \
- cgic.cpp ../common/cgic.h 
+ cgic.cpp cgic.h
 
 ddc_search_LDADD = ../CommonLib/libDDCCommon.la
 

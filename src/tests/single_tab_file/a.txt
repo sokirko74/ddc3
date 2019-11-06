@@ -1,0 +1,23 @@
+%%$DDC:meta.file_=filename1.txt
+%%$DDC:meta.scan_=scan_bibl_stub
+%%$DDC:meta.orig_=orig_bibl_stub
+%%$DDC:meta.date_=2016-02-24
+%%$DDC:meta.page_=-1
+%%$DDC:meta.author=Jurish, Bryan
+%%$DDC:meta.title=DDC test document
+%%$DDC:index[ 0]=Lemma
+%%$DDC:index [1]=Token t
+MUTTER	Mutter
+KOMMEN	kam
+NACH	nach
+HAUS	hause
+%%$DDC:meta.file_=filename2.txt
+%%$DDC:meta.orig_=
+%%$DDC:meta.date_=2016-02-25
+%%$DDC:meta.page_=-1
+%%$DDC:index[ 0]=Lemma
+%%$DDC:index [1]=Token t
+MUTTER	Mutter
+KOMMEN	kam
+NACH	nach
+HAUS	hause

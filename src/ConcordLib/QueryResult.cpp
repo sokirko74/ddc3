@@ -1,4 +1,4 @@
-//*-*- Mode: C++; c-basic-offset: 8; -*-*/
+//*-*- Mode: C++ -*-*/
 //
 //  DDC originally by Alexey Sokirko
 //  Changes and modifications 2011-2016 by Bryan Jurish
@@ -99,3 +99,13 @@ void CQueryResultIndex::Apply(CQueryResult& Dst, size_t Begin, size_t End)
 	Dst.m_HighlightOccurs.swap(NewHighlightOccurs);
 	Dst.m_HighlightIds.swap(NewHighlightIds);
 };
+
+/*--- emacs style variables ---
+ * Local Variables:
+ *  mode: C++
+ *  c-default-style: "linux"
+ *  c-basic-offset: 4
+ *  tab-width: 8
+ *  indent-tabs-mode: nil
+ * End:
+ */

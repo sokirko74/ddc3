@@ -141,3 +141,13 @@ namespace TinyXPath
       return xp_proc . e_error == TinyXPath::xpath_processor::e_no_error;
    }
 }
+
+/*--- emacs style variables ---
+ * Local Variables:
+ *  mode: C++
+ *  c-default-style: "linux"
+ *  c-basic-offset: 4
+ *  tab-width: 8
+ *  indent-tabs-mode: nil
+ * End:
+ */

@@ -1,0 +1,16 @@
+cmake_minimum_required(VERSION 3.5)
+
+add_library(CommonLib
+CHost.cpp
+ddcLocale.cpp
+ddcLog.cpp
+ddcString.cpp
+ddcThread.cpp
+ddcTime.cpp
+ddcVersion.cpp
+string_socket.cpp
+utf8xx.cpp
+utilit.cpp
+)
+
+

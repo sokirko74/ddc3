@@ -1,4 +1,4 @@
-//-*- Mode: C++; c-basic-offset: 8; -*-
+//-*- Mode: C++ -*-
 //  DDC originally by Alexey Sokirko
 //  Changes and modifications 2011-2017 by Bryan Jurish
 //
@@ -408,3 +408,13 @@ void CQueryCompiler::DisownChildren()
 	m_pQuery = NULL;
 	m_Queries.clear(); //-- may leak memory after parse errors!
 }
+
+/*--- emacs style variables ---
+ * Local Variables:
+ *  mode: C++
+ *  c-default-style: "linux"
+ *  c-basic-offset: 4
+ *  tab-width: 8
+ *  indent-tabs-mode: nil
+ * End:
+ */

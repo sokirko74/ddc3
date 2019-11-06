@@ -20,9 +20,9 @@
 #pragma warning  (disable : 4530)
 #include "StdRoss.h"
 #include <stdio.h>
-#include "../common/bserialize.h"
+#include "../CommonLib/bserialize.h"
 #include "Ross.h"
-#include "../common/util_classes.h"
+#include "../CommonLib/util_classes.h"
 #include "LessDomItem.h"
 #include "TempArticle.h"
 
@@ -333,7 +333,7 @@ bool	TRoss::ReadConfig()
 const char* TRoss::GetTitleFieldName() const
 {
 	if (m_bRussianFields)
-		return "ЗГЛ";
+		return "пїЅпїЅпїЅ";
 	else
 		return "TITLE";
 
@@ -343,7 +343,7 @@ const char* TRoss::GetTitleFieldName() const
 const char* TRoss::GetSenseFieldName() const
 {
 	if (m_bRussianFields)
-		return "ЗНАЧ";
+		return "пїЅпїЅпїЅпїЅ";
 	else
 		return "SENSE";
 
@@ -353,7 +353,7 @@ const char* TRoss::GetSenseFieldName() const
 const char* TRoss::GetCommFieldName() const
 {
 	if (m_bRussianFields)
-		return "КОММ";
+		return "пїЅпїЅпїЅпїЅ";
 	else
 		return "COMM";
 
@@ -361,7 +361,7 @@ const char* TRoss::GetCommFieldName() const
 const char* TRoss::GetAuthorFieldName() const
 {
 	if (m_bRussianFields)
-		return "АВТОР";
+		return "пїЅпїЅпїЅпїЅпїЅ";
 	else
 		return "AUTHOR";
 
@@ -369,7 +369,7 @@ const char* TRoss::GetAuthorFieldName() const
 const char* TRoss::GetTimeCreatFieldName() const
 {
 	if (m_bRussianFields)
-		return "ВРЕМЯ_СОЗД";
+		return "пїЅпїЅпїЅпїЅпїЅ_пїЅпїЅпїЅпїЅ";
 	else
 		return "TIME_CREATE";
 
@@ -379,7 +379,7 @@ const char* TRoss::GetRedactFieldName() const
 {
 
 	if (m_bRussianFields)
-		return "РЕДАКТ";
+		return "пїЅпїЅпїЅпїЅпїЅпїЅ";
 	else
 		return "REDACT";
 
@@ -717,11 +717,11 @@ bool   TRoss::ReadFromStrWithOneSignatura (const char* s, TCortege10& C, BYTE Si
 		if (!IsDelim) rtrim (ItemStr);
 
 		/*
-			если есть два формата для одного поля: 
+			пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ: 
 				D_ENGL
 				D_RLE  
-			и пришло русское слово, тогда не будем добавлять его в 
-				в D_ENGL
+			пїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅ 
+				пїЅ D_ENGL
 		*/
 		if ( IsRussian (ItemStr) )
 			if (!strcmp  (m_Domens[DomNo].DomStr, "D_ENGL"))
@@ -733,27 +733,27 @@ bool   TRoss::ReadFromStrWithOneSignatura (const char* s, TCortege10& C, BYTE Si
 			if (   (strlen (ItemStr) == 2) 
 				&& (ItemStr[0] == (unsigned char)'A') 
 				&&  isdigit(ItemStr[1]))
-				ItemStr[0] = (unsigned char)'А';
+				ItemStr[0] = (unsigned char)'пїЅ';
 
 			if  (		(strlen (ItemStr) == 1) 
 					&&  (ItemStr[0] == (unsigned char)'C')
 				)
-				ItemStr[0] = (unsigned char)'С';
+				ItemStr[0] = (unsigned char)'пїЅ';
 		};*/
 
-		// #### Получение в строку q остатка строки для дальнейшей обработки
+		// #### пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅ q пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 		q += ItemStrLen;
 
-		//если строка прежедвременно закончилалсь,
-		// то выйти из процедуры с неудачей
+		//пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ,
+		// пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 		if (!FlagLastItem && IsEmptyLine(q))  return false;
 
 		/*
-		если данный элемент есть повторение некоторых констант их другого домена
-		Например, "D_GRAMMEMS+" означает, что на этом месте стоит перечень элементов
-		из домена D_GRAMMEMS, разделенных запятыми.
-		Нужно проверить, что перечень синтаксически правилен и записать его в домен 
-		D_MULT одной константой.
+		пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
+		пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ, "D_GRAMMEMS+" пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+		пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ D_GRAMMEMS, пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ.
+		пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅ 
+		D_MULT пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ.
 		*/
 		if (IsMult)
 		{
@@ -765,7 +765,7 @@ bool   TRoss::ReadFromStrWithOneSignatura (const char* s, TCortege10& C, BYTE Si
 			DomNo = GetDomenNoByDomStr("D_MULT");
 		};
 
-		// #### Поиск найденной  строки в домене
+		// #### пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ  пїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 		if (   (strlen (ItemStr) == 1)     
 			&& ((unsigned char)ItemStr[0] == '*') )
 		{
@@ -776,10 +776,10 @@ bool   TRoss::ReadFromStrWithOneSignatura (const char* s, TCortege10& C, BYTE Si
 
 
 
-		if (   (!m_Domens[DomNo].IsFree)   // Домен константный
+		if (   (!m_Domens[DomNo].IsFree)   // пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 			&& (DomNo != LexPlusDomNo)
 			&& (C.GetItem(CurrItemNo) == -1))
-		// Отрицательный результат
+		// пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 		return false;
 
 		if (!IsDelim)
@@ -799,7 +799,7 @@ bool   TRoss::ReadFromStrWithOneSignatura (const char* s, TCortege10& C, BYTE Si
 
 
 	for (i=0; i < ItemStrVec.size(); i++)
-		if (C.GetItem(i) == -1) // не определено значение
+		if (C.GetItem(i) == -1) // пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 		{
 			int ItemNo;
 			
@@ -946,7 +946,7 @@ bool   TRoss::InsertDomItem (const char* ItemStr, BYTE DomNo, int& ItemNo)
 
 void TRoss::DelDomItem	(int ItemNo)
 {
-   // константы системных доменов не могут встречаться в словарных статьях
+   // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
    if (m_Domens[ m_DomItems[ItemNo].GetDomNo() ].Source != dsSystem)
 	for (size_t i=0; i<m_Units.size(); i++)
      if (!m_Units[i].HasEmptyArticle())
@@ -1381,7 +1381,7 @@ bool CDictionary::ProcessOneArticle ( vector<CSourceLine>& L, int start, int las
    size_t RealStart = start; 
    if (L.size() == 1) return false;
    string S;
-   if (GetValue(L[RealStart].m_Line,"Дескриптор",S)) RealStart++;
+   if (GetValue(L[RealStart].m_Line,"пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ",S)) RealStart++;
 
    string Lemma;
    const char* Field = GetTitleFieldName();
@@ -1520,7 +1520,7 @@ bool CDictionary::ProcessOneArticle ( vector<CSourceLine>& L, int start, int las
 	 if (bSimulating)
 		 return true;
 
-	 // запись комментария
+	 // пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 	 SetUnitCommentStr(UnitNo, Comments.c_str());
 	 SetUnitAuthor(UnitNo, Author.c_str());
 	 if (ModifTime != "")
@@ -1530,7 +1530,7 @@ bool CDictionary::ProcessOneArticle ( vector<CSourceLine>& L, int start, int las
 		SetUnitEditor(UnitNo, UnitEditor.c_str());
 
 	 
-	 // запись кортежей	 
+	 // пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ	 
 	 A1.WriteToDictionary();
    }
    catch  (...)
@@ -1596,3 +1596,13 @@ void  CDictionary::SetUnitStr(WORD UnitNo, const char*  UnitStr)
 	strcpy (m_Units[UnitNo].m_EntryStr, UnitStr);
 	sort (m_Units.begin(),  m_Units.end());
 }
+
+/*--- emacs style variables ---
+ * Local Variables:
+ *  mode: C++
+ *  c-default-style: "linux"
+ *  c-basic-offset: 4
+ *  tab-width: 8
+ *  indent-tabs-mode: nil
+ * End:
+ */

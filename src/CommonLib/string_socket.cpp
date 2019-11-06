@@ -1,4 +1,4 @@
-//-*- Mode: C++; c-basic-offset:8;-*-
+//-*- Mode: C++ -*-
 //
 //  DDC originally by Alexey Sokirko
 //  Changes and modifications 2011-2016 by Bryan Jurish
@@ -18,26 +18,17 @@
 //  You should have received a copy of the GNU Lesser General Public License
 //  along with DDC.  If not, see <http://www.gnu.org/licenses/>.
 //
+#include "string_socket.h"
+#include "CHost.h"
+#include "util_classes.h"
+#include "DDCInternalError.h"
+
 #include <string.h>
 #include <errno.h>
-#include "../CommonLib/string_socket.h"
-#include "../CommonLib/CHost.h"
-#include "../common/util_classes.h"
-#include "../common/DDCInternalError.h"
+#include <sys/un.h>
 
-#ifdef WIN32
-const int ddcSocketChunkSize = 1024;
-#else
 const int ddcSocketChunkSize = 4096;
-#endif
 
-#ifdef WIN32
-	#ifdef _DEBUG
-	#define new DEBUG_NEW
-	#undef THIS_FILE
-	static char THIS_FILE[] = __FILE__;
-	#endif
-#endif
 
 //#define DDC_DEBUG_FDLEAK 1
 #undef DDC_DEBUG_FDLEAK
@@ -47,9 +38,6 @@ const int ddcSocketChunkSize = 4096;
 # define FDDEBUG(x)
 #endif
 
-
-//! DDC_SOCKET_SEND_MULTI : define this to enable old multiple-send() calls
-#undef DDC_SOCKET_SEND_MULTI
 
 struct ERROR_STRUCT
 {     
@@ -73,11 +61,8 @@ const ERROR_STRUCT errlist[] = {
 	{ENOENT, "Socket Error! The file does not exist."},
 	{ENOMEM, "Socket Error! Insufficient kernel memory was available." },
 	{ENOTDIR, "Socket Error! A component of the path prefix is not a directory." },
-
-#ifndef WIN32
 	{ELOOP, "Too many symbolic links were encountered in resolving my_addr" },
 	{ENOTSOCK, "Argument is a descriptor for a file, not a socket."}
-#endif
 
 };
 
@@ -86,9 +71,6 @@ bool CloseSocket(int l_socket, bool linger, int timeout)
 {
 	bool bResult;
 	if (l_socket == -1) return true;
-#ifdef WIN32
-	bResult = closesocket(l_socket) == 0;
-#else
 	if (linger) {
 		//-- optionally force SO_LINGER socket option (e.g. timeout=0 for immediate termination via RST; avoid TCP TIME_WAIT)
 		struct linger sock_linger;
@@ -97,7 +79,6 @@ bool CloseSocket(int l_socket, bool linger, int timeout)
 		setsockopt(l_socket, SOL_SOCKET, SO_LINGER, (void*)&sock_linger, sizeof(struct linger));
 	}
 	bResult =  close(l_socket) == 0;
-#endif
 	FDDEBUG(fprintf (stderr, "FDDEBUG: CloseSocket(%u) returned %s\n", (uint)l_socket, (bResult? "true" : "false"));)
 	return bResult;
 };
@@ -129,11 +110,7 @@ inline bool send_buffer(int client_fd, const char* Buffer,int Length, string& Er
 	
 
 	int count;
-	#ifdef WIN32
-		count = send(client_fd, Buffer, Length, 0);
-	#else
-		count = send(client_fd, Buffer, Length, MSG_NOSIGNAL);
-	#endif
+	count = send(client_fd, Buffer, Length, MSG_NOSIGNAL);
 	if (count == -1)
 	{
 		int err = errno;
@@ -210,36 +187,7 @@ bool SendString (int client_fd, const char* Str, uint32_t  PacketLength, string&
 		if (!send_buffer(client_fd, (const char*)&PacketLength_lsb, sizeof(PacketLength_lsb), ErrorStr) )
 			return false;
 
-#ifdef DDC_SOCKET_SEND_MULTI
-		//-- iterative chunked send
-		const int buffer_len = ddcSocketChunkSize;
-		if (PacketLength <= buffer_len)
-		{
-			if (!send_buffer(client_fd, Str, (int)PacketLength, ErrorStr))
-				return false;
-		}
-		else
-		{
-			int i = 0;
-			for (; i< PacketLength/buffer_len;  i++)
-			{
-				if (!send_buffer(client_fd, (Str + i*buffer_len), buffer_len, ErrorStr))
-				{
-					return false;
-				}
-			};
-
-			uint32_t rest=PacketLength % buffer_len;
-			if (!send_buffer(client_fd, (Str + i*buffer_len), (int)rest, ErrorStr))
-			{
-				return false;
-			}
-		};
-		return true;
-#else
-		//-- single send() call; let libc+kernel handle chunking
 		return send_buffer(client_fd, Str, (int)PacketLength, ErrorStr);
-#endif
 	}
 	catch (...)
 	{
@@ -273,12 +221,8 @@ NetworkErrorsEnum receive_buffer(int client_fd, char* Buffer,int Length, int& ha
 	if (!FD_ISSET(client_fd,&fds))
 		throw CExpc(errOther, "FD_ISSET() failed for client socket after select(): %s", StrError(errno));
 
-	#ifdef WIN32
-	 have_read = recv (client_fd, Buffer, Length, 0);
-	#else
 	 have_read = recv (client_fd, Buffer, Length, MSG_NOSIGNAL);
-	#endif
-	
+
 	 if (have_read <= 0)
 		 throw CExpc(errOther, "receive_buffer() failed: expected %d byte(s) from recv(), but got only %d: %s", Length, have_read, StrError(errno));
 
@@ -361,34 +305,60 @@ string GetBindErrorLinux (int ErrCode)
 	return Format("unknown socket error (bind returned %i): %s", ErrCode, StrError(errno));
 };
 
-//----------------------------------------------------------------------
-bool fd_is_valid(int fd)
+
+SOCKET create_unix_domain_socket(string socket_path,  bool bBind, string& strError)
 {
-    return fcntl(fd, F_GETFD) != -1 || errno != EBADF;
+	SOCKET l_socket = -1;
+	if (bBind) {
+        unlink(socket_path.c_str());
+    }
+
+	l_socket = socket(AF_UNIX, SOCK_STREAM, 0);
+    if ( l_socket  == -1) {
+        strError = Format("Could not create socket: %s", StrError(errno));
+        return -1;
+    }
+    sockaddr_un addr;
+    memset(&addr, 0, sizeof(addr));
+    addr.sun_family = AF_UNIX;
+    strncpy(addr.sun_path, socket_path.c_str(), socket_path.length());
+    if (bBind) {
+        //server
+        if (bind(l_socket, (struct sockaddr *) &addr, sizeof(addr)) == -1) {
+            strError = GetBindErrorLinux(errno);
+            CloseSocket(l_socket, true, 0);
+            return -1;
+        }
+    }
+    else {
+        //client
+        if (connect(l_socket, (struct sockaddr*)&addr, sizeof(addr)) == -1) {
+            strError = Format("Could not connect to unix domain socket %s", socket_path.c_str());
+            CloseSocket(l_socket, true, 0);
+			return -1;
+        }
+    }
+    return l_socket;
 }
 
 //----------------------------------------------------------------------
 SOCKET create_socket (const char* HostAddr, int Port, bool bBind, string& strError)
 {
 	strError = "";
-	struct addrinfo hints, *res, *res0; 
-	int error;
-	SOCKET l_socket;
-	
-
+	addrinfo hints, *res0;
+	SOCKET l_socket = -1;
 	memset(&hints, 0, sizeof(hints));
 	if (bBind)
 		hints.ai_flags = AI_PASSIVE;
 	hints.ai_family = PF_UNSPEC;
 	hints.ai_socktype = SOCK_STREAM;
-	error = getaddrinfo(HostAddr, Format("%i",Port).c_str(), &hints, &res0);
+	int error = getaddrinfo(HostAddr, Format("%i",Port).c_str(), &hints, &res0);
 	if (error) {
 		strError = Format("Socket Error! %s", gai_strerror(error)); /*NOTREACHED*/
 		throw CExpc(errRuntime, strError);
 	}
-	l_socket = -1;
 	string cause  = "no addresses";
-	for (res = res0; res; res = res->ai_next) 
+	for (addrinfo* res = res0; res; res = res->ai_next)
 	{ 
 		l_socket = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
 		if (l_socket < 0) 
@@ -427,11 +397,7 @@ SOCKET create_socket (const char* HostAddr, int Port, bool bBind, string& strErr
 		{
 			if (bBind)
 			{
-				#ifdef WIN32
-					cause = GetBindErrorWindows(WSAGetLastError());
-				#else
-					cause = GetBindErrorLinux(errno);
-				#endif
+				cause = GetBindErrorLinux(errno);
 			}
 			else
 				cause = "Could not connect";
@@ -475,28 +441,13 @@ void flush_socket(SOCKET sock)
 //----------------------------------------------------------------------
 bool SocketInitialize(bool bReadFromLocalFile)
 {
-	#ifdef WIN32
-		WORD    wVersionRequested;
-		WSADATA wsaData;
-		int     err;
-		wVersionRequested = MAKEWORD(1,1);
-		err = WSAStartup(wVersionRequested,&wsaData);
-		if (err != 0) {
-			//MessageBox(NULL, "Service could invoke WSAStartup()", "Concordance Socket", MB_OK);
-			return false;
-		}
-	#endif
-	
+
 	return true;
 };
 
 //----------------------------------------------------------------------
 bool SocketDeinitialize()
 {
-	#ifdef WIN32
-		WSACleanup ();
-	#endif
-
 	return true;
 };
 
@@ -520,3 +471,13 @@ string GetNetworkErrorString(const NetworkErrorsEnum& t)
 	return "Unknown error code";
 };
 
+
+/*--- emacs style variables ---
+ * Local Variables:
+ *  mode: C++
+ *  c-default-style: "linux"
+ *  c-basic-offset: 4
+ *  tab-width: 8
+ *  indent-tabs-mode: nil
+ * End:
+ */

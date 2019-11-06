@@ -29,9 +29,9 @@
 MorphLanguageEnum langua = morphUnknown;
 
 
-bool DumpFreqOrPositions(const CConcHolder& R, string IndexName, bool bDumpPositions)
+bool DumpFreqOrPositions(const CConcHolder& R, string IndexName, bool bDumpPositions, FILE* output)
 {
-	const CStringIndexSet* SI = R.m_pIndexator->GetIndexByAlias(IndexName);
+	const CStringIndexSet* SI = R.m_pConcordance->GetIndexByAlias(IndexName);
 	if (!SI)
 	{
 		fprintf(stderr, "Cannot find index name `%s'!\n", IndexName.c_str() );
@@ -54,15 +54,15 @@ bool DumpFreqOrPositions(const CConcHolder& R, string IndexName, bool bDumpPosit
 
 		vector<CTokenNo> Occurs;
 		SI->ReadAllOccurrences(i, Occurs);
-		printf("\"%s\";", s);
+		fprintf(output,"\"%s\";", s);
 
 		if (bDumpPositions)
 			for (size_t i=0; i < Occurs.size(); i++)
-				printf("%u ", Occurs[i] );
+				fprintf(output,"%u ", Occurs[i] );
 		else
-			printf("%zi", Occurs.size());
+			fprintf(output,"%zi", Occurs.size());
 
-		printf("\n");
+		fprintf(output,"\n");
 		
 		
 	};
@@ -70,46 +70,28 @@ bool DumpFreqOrPositions(const CConcHolder& R, string IndexName, bool bDumpPosit
 	return true;
 };
 
-bool DumpStorage(const CConcHolder& R, string IndexName)
+void DumpStorage(const CConcHolder& R, string IndexName, FILE* output)
 {
-	const CStringIndexSet* SI = R.m_pIndexator->GetIndexByName(IndexName);
+	const CStringIndexSet* SI = R.m_pConcordance->GetIndexByName(IndexName);
 	if (!SI)
 	{
-		fprintf(stderr, "Cannot find index name `%s'!\n", IndexName.c_str() );
-		return false;
+		throw CExpc(Format("Cannot find index name `%s'!\n", IndexName.c_str()));
 	};
-	return SI->DumpStorage();
+	SI->DumpStorage(output);
 };
 
-bool DumpBigrams(const CConcHolder& R, string IndexName)
-{
-	const CStringIndexSet* SI = R.m_pIndexator->GetIndexByName(IndexName);
-	if (!SI)
-	{
-		fprintf(stderr, "Cannot find index name `%s'!\n", IndexName.c_str() );
-		return false;
-	};
-#if 0
-	//-- ddc < v2.0.19
-	return SI->DumpBigrams();
-#else
-	//-- ddc >= v2.0.19
-	fprintf(stderr, "Bigram indices disabled for ddc >= v2.0.19!");
-	return false;
-#endif
-};
 
 void PrintUsageAndExit()
 {
 	fprintf (stderr, "%s\n", DDCVersionStr.c_str());	
-	fprintf (stderr, "Usage: ddc_Stats <Concordance Project> <lang> <index-name> <action>\n");
+	fprintf (stderr, "Usage: ddc_stats <Concordance Project> <lang> <index-name> <action> [--output FILE]\n");
 	fprintf (stderr, "Where <action> can be:\n");
 	fprintf (stderr, "\t\"dump-freq\" (get frequences of items)\n");
 	fprintf (stderr, "\t\"dump-positions\" (dump all positions of items)\n");
 	fprintf (stderr, "\t\"dump-storage\" (dump all saved string items)\n");
-    fprintf (stderr, "\t\"dump-bigrams\" (dump all bigrams)\n");
 	fprintf (stderr, "Where <lang> can be Russian, German, English, or All)\n");
-	fprintf (stderr, "Example: ConcordStatis test.con German Token dump-freq\n");
+	fprintf (stderr, "Example: ddc_stats test.con German Token dump-freq\n");
+	fprintf (stderr, "Example: ddc_stats test.con German Token dump-freq --output dump.txt\n");
 	exit( 1 );
 };
 
@@ -128,7 +110,11 @@ int main(int argc, char* argv[])
 		}
 	};
 
-
+	string outputFile = "-";
+	if (argc > 1  && !strcmp(argv[argc-2], "--output")) {
+		outputFile = argv[argc-1];
+		argc -= 2;
+	}
 
 	if (argc != 5)
 		PrintUsageAndExit();
@@ -139,45 +125,65 @@ int main(int argc, char* argv[])
 			fprintf (stderr, "Cannot find the language %s\n", argv[2]);
 			return 1;
 		}
+	try
 	{
 		CConcHolder R;
-		R.m_pIndexator = new CConcIndexator;
+		R.m_pConcordance = new CConcIndexator;
 
 
-		if (!R.m_pIndexator->LoadProject(argv[1])) 
+		try {
+			R.m_pConcordance->LoadProject(argv[1]);
+		}
+		catch (exception& e)
 		{
-			fprintf (stderr, "cannot load project %s", argv[1]);
+			fprintf (stderr, "cannot load project %s: %s", argv[1], e.what());
 			return -1;
 		};
 		
 
+		FILE* output = stdout;
+		if (outputFile != "-") {
+			output = fopen (outputFile.c_str(), "w");
+		}
 		string Action = argv[4];
 		if (Action  == "dump-freq")
-			DumpFreqOrPositions(R, argv[3], false);
+			DumpFreqOrPositions(R, argv[3], false, output);
 		else
 		if (Action  == "dump-positions")
-			DumpFreqOrPositions(R, argv[3], true);
+			DumpFreqOrPositions(R, argv[3], true, output);
 		else
 		if (Action  == "dump-storage")
 		{
-			DumpStorage(R, argv[3]);
-		}
-		if (Action  == "dump-bigrams")
-		{
-			DumpBigrams(R, argv[3]);
+			DumpStorage(R, argv[3], output);
 		}
 		else
 		{
-			
+
 			fprintf(stderr, "\"%s\" is not a valid action\n", Action.c_str());
 
 		};
+		if (outputFile != "-") {
+			fclose(output);
+		}
 
-		delete R.m_pIndexator;
+		delete R.m_pConcordance;
 
+	}
+	catch (runtime_error& e ) {
+		fprintf(stderr, "Exception: %s\n", e.what());
 	}
 
 
 	return 0;
 }
 
+
+/*--- emacs style variables ---
+ * Local Variables:
+ *  mode: C++
+ *  c-default-style: "linux"
+ *  c-basic-offset: 4
+ *  tab-width: 8
+ *  indent-tabs-mode: nil
+ * End:
+ */

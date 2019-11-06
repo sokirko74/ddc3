@@ -1,4 +1,4 @@
-// -*- Mode: C++; c-basic-offset: 8; -*-
+// -*- Mode: C++ -*-
 //
 //  DDC originally by Alexey Sokirko
 //  Changes and modifications 2011-2018 by Bryan Jurish
@@ -23,396 +23,353 @@
 #include "StringIndexator.h"
 
 
-
-
-
-
-CStringIndexator::CStringIndexator()
-{
-	m_Path = "#empty_path";
-	m_bMemoryMap = false;
-	m_MaxRegExpExpansionSize = 1000000;
-	m_pChunkIndex = NULL;
+CStringIndexator::CStringIndexator() {
+    m_Path = "#empty_path";
+    m_bMemoryMap = false;
+    m_MaxRegExpExpansionSize = 1000000;
+    m_pChunkIndex = NULL;
 };
 
-CStringIndexator::~CStringIndexator()
-{
-	ClearStringIndices();
-	
+CStringIndexator::~CStringIndexator() {
+    ClearStringIndices();
+
 };
 
-void CStringIndexator::SetPath(string Path)
-{
-	m_Path = Path;
+void CStringIndexator::SetPath(string Path) {
+    m_Path = Path;
 };
 
-void  CStringIndexator::ClearStringIndices()
-{
-	for (size_t i=0; i < m_Indices.size(); i++)
-		delete m_Indices[i];
-	m_Indices.clear();
+void CStringIndexator::ClearStringIndices() {
+    for (size_t i = 0; i < m_Indices.size(); i++)
+        delete m_Indices[i];
+    m_Indices.clear();
 };
 
-bool CStringIndexator::RegisterChunkIndex()
-{
-	if (GetIndexByAlias(ChunkIndexName))
-		return false; // no one should use this name 
+bool CStringIndexator::RegisterChunkIndex() {
+    if (GetIndexByAlias(ChunkIndexName))
+        return false; // no one should use this name
 
-	m_pChunkIndex = new CStringIndexSet(this);
-	m_pChunkIndex->InitIndexSet(ChunkIndexName, ChunkIndexName, false, false);
-	m_Indices.push_back(m_pChunkIndex);
-	return true;
+    m_pChunkIndex = new CStringIndexSet(this);
+    m_pChunkIndex->InitIndexSet(ChunkIndexName, ChunkIndexName, false, false);
+    m_Indices.push_back(m_pChunkIndex);
+    return true;
 };
 
-CStringIndexSet* CStringIndexator::GetTokenIndex()
-{
+CStringIndexSet *CStringIndexator::GetTokenIndex() {
     return m_Indices[0];
 }
 
-const CStringIndexSet* CStringIndexator::GetTokenIndex() const
-{
+const CStringIndexSet *CStringIndexator::GetTokenIndex() const {
     return m_Indices[0];
 }
 
-bool CStringIndexator::RegisterStringIndices(const string& IndicesStr)
-{
-	ClearStringIndices();
-	// to be done[name,short,archive]
-	StringTokenizer tok(IndicesStr.c_str(),";");
-	while (tok())
-	{
-		string Item = tok.val();
-		Trim(Item);
-		if ((Item.empty())  || (Item[0] != '[') || (Item[Item.length()-1] != ']'))
-		{
-			ErrorMessage ("A bad format of Indices Header !"+IndicesStr);
-			return false;
-		};
-		Item = Item.substr(1, Item.length() - 2);
-		StringTokenizer item_tok(Item.c_str(), " \t,");
-		string Name = item_tok.next_token(); 
-		string Short = item_tok.next_token();
-		string CompressedStr = item_tok.next_token();
-		string StorageStr = item_tok.next_token();
-        if (Name.empty() ||  Short.empty() || CompressedStr.empty())
-		{
-			ErrorMessage ("A bad format of Indices Header !"+Item);
-			return false;
-		};
+bool CStringIndexator::RegisterStringIndices(const string &IndicesStr) {
+    ClearStringIndices();
+    // to be done[name,short,archive]
+    StringTokenizer tok(IndicesStr.c_str(), ";");
+    while (tok()) {
+        string Item = tok.val();
+        Trim(Item);
+        if ((Item.empty()) || (Item[0] != '[') || (Item[Item.length() - 1] != ']')) {
+            ErrorMessage("A bad format of Indices Header !" + IndicesStr);
+            return false;
+        };
+        Item = Item.substr(1, Item.length() - 2);
+        StringTokenizer item_tok(Item.c_str(), " \t,");
+        string Name = item_tok.next_token();
+        string Short = item_tok.next_token();
+        string CompressedStr = item_tok.next_token();
+        string StorageStr = item_tok.next_token();
+        if (Name.empty() || Short.empty() || CompressedStr.empty()) {
+            ErrorMessage("A bad format of Indices Header !" + Item);
+            return false;
+        };
 
-		bool bCompressed = true;
-	
-		if (CompressedStr == "archive")
-			bCompressed = true;
-		else
-			if (CompressedStr == "normal")
-				bCompressed = false;
-			else
-			{
-				ErrorMessage ("A bad format of Indices Header :"+Item);
-				return false;
-			};
-		bool bStorage = m_Indices.empty();
-		if (StorageStr != "")
-			if (StorageStr  == "storage")
-				bStorage = true;
-			else
-				if (StorageStr == "storage_omit")
-					bStorage = false;
-				else
-				{
-					ErrorMessage ("A bad format of index header (storage specifier has wrong format) :"+Item);
-					return false;
-				};
+        bool bCompressed = true;
 
-		if (GetIndexByAlias(Name))
-		{
-			ErrorMessage("Error: multiple declarations of index name `%s'");
-			ClearStringIndices();
-			assert (false);
-			return false;
+        if (CompressedStr == "archive")
+            bCompressed = true;
+        else if (CompressedStr == "normal")
+            bCompressed = false;
+        else {
+            ErrorMessage("A bad format of Indices Header :" + Item);
+            return false;
+        };
+        bool bStorage = m_Indices.empty();
+        if (StorageStr != "")
+            if (StorageStr == "storage")
+                bStorage = true;
+            else if (StorageStr == "storage_omit")
+                bStorage = false;
+            else {
+                ErrorMessage("A bad format of index header (storage specifier has wrong format) :" + Item);
+                return false;
+            };
 
-		}
+        if (GetIndexByAlias(Name)) {
+            ErrorMessage("Error: multiple declarations of index name `%s'");
+            ClearStringIndices();
+            assert (false);
+            return false;
 
-		CStringIndexSet* R = new CStringIndexSet (this);
-		R->InitIndexSet(Name, Short, bStorage, bCompressed);
-		m_Indices.push_back(R);
+        }
 
-		//-- register alias
-		RegisterIndexAlias(Name,R);
-		RegisterIndexAlias(Short,R);
-	};
-	
-	return true;
+        CStringIndexSet *R = new CStringIndexSet(this);
+        R->InitIndexSet(Name, Short, bStorage, bCompressed);
+        m_Indices.push_back(R);
+
+        //-- register alias
+        RegisterIndexAlias(Name, R);
+        RegisterIndexAlias(Short, R);
+    };
+
+    return true;
 };
 
-bool CStringIndexator::RegisterIndexAliases(const string& IndexAliasStr)
-{
-	bool rc = true;
-	StringTokenizer lines(IndexAliasStr.c_str(),"\n");
-	while (lines()) {
-		string Item = lines.val();
-		Trim(Item);
-		if (Item.empty()) continue;
-		StringTokenizer fields(Item.c_str(), " \t\r\n");
-		string AliasOp   = fields.next_token();
-		string AliasFrom = fields.next_token();
-		string AliasTo   = fields.next_token();
-		if (AliasFrom.empty() || AliasTo.empty()) {
-			ddcLogWarn(Format("Warning: failed to parse index alias declaraction `%s' - skipping", Item.c_str()));
-			continue;
-		}
-		rc = (rc && RegisterIndexAlias(AliasFrom,AliasTo));
-	}
-	return rc;
+bool CStringIndexator::RegisterIndexAliases(const string &IndexAliasStr) {
+    bool rc = true;
+    StringTokenizer lines(IndexAliasStr.c_str(), "\n");
+    while (lines()) {
+        string Item = lines.val();
+        Trim(Item);
+        if (Item.empty()) continue;
+        StringTokenizer fields(Item.c_str(), " \t\r\n");
+        string AliasOp = fields.next_token();
+        string AliasFrom = fields.next_token();
+        string AliasTo = fields.next_token();
+        if (AliasFrom.empty() || AliasTo.empty()) {
+            ddcLogWarn(Format("Warning: failed to parse index alias declaraction `%s' - skipping", Item.c_str()));
+            continue;
+        }
+        rc = (rc && RegisterIndexAlias(AliasFrom, AliasTo));
+    }
+    return rc;
 }
 
-bool CStringIndexator::RegisterIndexAlias(const string& AliasFrom, const string& AliasTo)
-{
-	CStringIndexSet *idx = GetIndexByAlias(AliasTo);
-	if (idx == NULL)
-		ddcLogWarn(Format("Warning: cannot resolve target label `%s' for index alias `%s' -> `%s'",
-				  AliasTo.c_str(), AliasFrom.c_str(), AliasTo.c_str()));
-	m_IndexAlias[AliasFrom] = AliasTo; //-- remember alias topology, e.g. for GetIndexAliasString()
-	RegisterIndexAlias(AliasFrom, idx);
-	return true;
+bool CStringIndexator::RegisterIndexAlias(const string &AliasFrom, const string &AliasTo) {
+    CStringIndexSet *idx = GetIndexByAlias(AliasTo);
+    if (idx == NULL)
+        ddcLogWarn(Format("Warning: cannot resolve target label `%s' for index alias `%s' -> `%s'",
+                          AliasTo.c_str(), AliasFrom.c_str(), AliasTo.c_str()));
+    m_IndexAlias[AliasFrom] = AliasTo; //-- remember alias topology, e.g. for GetIndexAliasString()
+    RegisterIndexAlias(AliasFrom, idx);
+    return true;
 }
 
-void CStringIndexator::RegisterIndexAlias(const string& AliasFrom, CStringIndexSet *idx)
-{
-	CStringIndexSet *oldi = GetIndexByAlias(AliasFrom);
-	if (oldi != NULL) {
-		if (idx==NULL) {
-			ddcLogWarn(Format("Warning: deleting index label `%s' (-> `%s')",
-					  AliasFrom.c_str(), oldi->m_Name.c_str()));
-		} else {
-			ddcLogWarn(Format("Warning: overriding old target `%s' for index label `%s' (-> `%s')",
-					  oldi->m_Name.c_str(), AliasFrom.c_str(), idx->m_Name.c_str()));
-		}
-		m_IndexMap.erase(AliasFrom);
-	}
-	if (idx != NULL)
-		m_IndexMap[AliasFrom] = idx;
-}
-
-		
-string CStringIndexator::GetIndicesString() const
-{
-	string Result;
-	for (size_t i=0; i < m_Indices.size(); i++)
-	{
-		if (m_Indices[i]->m_Name != ChunkIndexName) 
-			Result += Format("[%s %s %s %s];", 
-					 m_Indices[i]->m_Name.c_str(),
-					 m_Indices[i]->m_ShortName.c_str(),
-					 (m_Indices[i]->m_bCompressOccurrences ? "archive" : "normal"),
-					 (m_Indices[i]->m_bUseItemStorage ? "storage" : "storage_omit"));
-	};
-	Trim(Result);
-	return Result;
-};
-
-
-string CStringIndexator::GetIndexAliasString() const
-{
-	string Result;
-	for (IndexAliasMap::const_iterator ai=m_IndexAlias.begin(); ai != m_IndexAlias.end(); ++ai)
-		Result += string("IndexAlias ") + ai->first + " " + ai->second + "\n";
-	return Result;
+void CStringIndexator::RegisterIndexAlias(const string &AliasFrom, CStringIndexSet *idx) {
+    CStringIndexSet *oldi = GetIndexByAlias(AliasFrom);
+    if (oldi != NULL) {
+        if (idx == NULL) {
+            ddcLogWarn(Format("Warning: deleting index label `%s' (-> `%s')",
+                              AliasFrom.c_str(), oldi->m_Name.c_str()));
+        } else {
+            ddcLogWarn(Format("Warning: overriding old target `%s' for index label `%s' (-> `%s')",
+                              oldi->m_Name.c_str(), AliasFrom.c_str(), idx->m_Name.c_str()));
+        }
+        m_IndexMap.erase(AliasFrom);
+    }
+    if (idx != NULL)
+        m_IndexMap[AliasFrom] = idx;
 }
 
 
-bool	CStringIndexator::StartIndexing(string Path)
-{
-	m_Path = Path;
-
-	for (size_t i=0; i < m_Indices.size(); i++)
-		if (!m_Indices[i]->CreateTempFiles(Path))
-			return false;
-
-
-	return true;
-};
-
-bool	CStringIndexator::TerminateIndexing()
-{
-	for (size_t i=0; i < m_Indices.size(); i++)
-		m_Indices[i]->DeleteTempFiles();
-
-	return true;
+string CStringIndexator::GetIndicesString() const {
+    string Result;
+    for (size_t i = 0; i < m_Indices.size(); i++) {
+        if (m_Indices[i]->m_Name != ChunkIndexName)
+            Result += Format("[%s %s %s %s];",
+                             m_Indices[i]->m_Name.c_str(),
+                             m_Indices[i]->m_ShortName.c_str(),
+                             (m_Indices[i]->m_bCompressOccurrences ? "archive" : "normal"),
+                             (m_Indices[i]->m_bUseItemStorage ? "storage" : "storage_omit"));
+    };
+    Trim(Result);
+    return Result;
 };
 
 
+string CStringIndexator::GetIndexAliasString() const {
+    string Result;
+    for (IndexAliasMap::const_iterator ai = m_IndexAlias.begin(); ai != m_IndexAlias.end(); ++ai)
+        Result += string("IndexAlias ") + ai->first + " " + ai->second + "\n";
+    return Result;
+}
 
-bool	CStringIndexator::FinalSaveAllIndices(bool bAfterLoading)
-{
-	for (size_t i=0; i < m_Indices.size(); i++)
-	{
-		if (!m_Indices[i]->WriteToFile(bAfterLoading)) 
-			return false;
-	}
 
-	if (!WriteVector(GetSearchPeriodsFileName().c_str(), m_SearchPeriods)) return false;
+bool CStringIndexator::StartIndexing(string Path) {
+    m_Path = Path;
 
-	return true;
+    for (size_t i = 0; i < m_Indices.size(); i++)
+        if (!m_Indices[i]->CreateTempFiles(Path))
+            return false;
+
+
+    return true;
+};
+
+void CStringIndexator::TerminateIndexing() {
+    for (size_t i = 0; i < m_Indices.size(); i++)
+        m_Indices[i]->DeleteTempFiles();
 };
 
 
-bool	CStringIndexator::IndexOneToken(const char* InputLine, const CTokenNo& TokenOffset)
-{
-	assert (!m_Indices.empty());
-	
-	size_t length = strlen(InputLine);
-	if (length == 0) return false;
+bool CStringIndexator::FinalSaveAllIndices(bool bAfterLoading) {
+    for (size_t i = 0; i < m_Indices.size(); i++) {
+        if (!m_Indices[i]->WriteToFile(bAfterLoading))
+            return false;
+    }
 
-	const size_t MaxIndexLineLength = 4096;
-	char Line[MaxIndexLineLength];
+    if (!WriteVector(GetSearchPeriodsFileName().c_str(), m_SearchPeriods)) return false;
 
-	if (length >= MaxIndexLineLength)
-	{
-		fprintf (stderr, "Error! Line \"%s\" is too long! It cannot be more than %zi chars\n", InputLine, MaxIndexLineLength);
-		return false;
-	};
-	strcpy(Line, InputLine);
-
-	
-	size_t IndexNo = 0;
-	vector<CTokenNo> occurrences(1, TokenOffset);
-
-	for (size_t start=0; start<length; start++)
-	{
-		if ( IndexNo == m_Indices.size() )
-		{
-			ErrorMessage(Format("Too many columns at line at line \"%s\"",Line) );
-			return false;
-		};
-
-		size_t end = start;
-		for (; end<length && (Line[end] != globalFieldDelimeter ); end++);
-		int len = end-start;
-		Line[end] = 0;
-
-		//if	(len != 0) 
-		m_Indices[IndexNo]->InsertToInputLoadIndex(Line+start, len, occurrences);
-
-
-		IndexNo++;
-		start = end;
-	};
-
-	// DDC has to insert a stub to each indices with storages in order to maintain 
-	// so all storage files should be of the same size
-	for (; IndexNo < m_Indices.size(); IndexNo++)
-		if (m_Indices[IndexNo]->m_bUseItemStorage)
-			m_Indices[IndexNo]->InsertToInputLoadIndex(ddc_archive_stub, strlen(ddc_archive_stub), occurrences);
-
-
-	return true;
+    return true;
 };
 
 
+void CStringIndexator::IndexOneToken(CTokenIndexator *document, const char *InputLine) {
+    assert (!m_Indices.empty());
+
+    size_t length = strlen(InputLine);
+    if (length == 0) {
+        throw CExpc("Error! CStringIndexator::IndexOneToken cannot index empty lines");
+    };
+
+    const size_t MaxIndexLineLength = 4096;
+    char Line[MaxIndexLineLength];
+
+    if (length >= MaxIndexLineLength) {
+        throw CExpc(Format("Error! Line \"%s\" is too long! It cannot be more than %zi chars", InputLine,
+                           MaxIndexLineLength));
+    };
+    strcpy(Line, InputLine);
 
 
+    size_t columnNo = 0;
+    vector<CTokenNo> occurrences(1, document->CorpusEndTokenNo);
+
+    for (size_t start = 0; start < length; start++) {
+        if (columnNo == document->ColumnMap.size()) {
+            throw CExpc(Format("Too many columns at line at line \"%s\"", Line));
+        };
+
+        size_t end = start;
+        for (; end < length && (Line[end] != globalFieldDelimeter); end++);
+        int len = end - start;
+        Line[end] = 0;
+
+        document->ColumnMap[columnNo]->InsertToInputLoadIndex(Line + start, len, occurrences);
 
 
-bool	CStringIndexator::AddInputLoadIndexToMemoryLoadIndex()
-{
-	try {
-		for (size_t i=0; i < m_Indices.size(); i++)
-			if (!m_Indices[i]->AddInputLoadIndexToMemoryLoadIndex())
-				return false;
+        columnNo++;
+        start = end;
+    };
 
-		return true;
-	}
-	catch (...)
-	{
-		fprintf (stderr, "exception in CStringIndexator::AddInputLoadIndexToMemoryLoadIndex\n");
-		return false;
-	}
+    // DDC has to insert a stub to each indices with storages in order to maintain
+    // so all storage files should be of the same size
+    for (; columnNo < document->ColumnMap.size(); columnNo++) {
+        CStringIndexSet *i = document->ColumnMap[columnNo];
+        if (i->m_bUseItemStorage)
+            i->InsertToInputLoadIndex(ddc_archive_stub, strlen(ddc_archive_stub), occurrences);
+    }
+
+    // DDC has to insert a stub to each indices with storages in order to maintain
+    // so all storage files should be of the same size
+    for (size_t i = 0; i < document->AbsentIndices.size(); i++) {
+        CStringIndexSet *index = document->AbsentIndices[i];
+        if (index->m_bUseItemStorage)
+            index->InsertToInputLoadIndex(ddc_archive_stub, strlen(ddc_archive_stub), occurrences);
+    }
 };
 
 
-bool	CStringIndexator::AddMemoryLoadIndexToMainLoadIndex()
-{
-	for (size_t i=0; i < m_Indices.size(); i++)
-		if (!m_Indices[i]->AddMemoryLoadIndexToMainLoadIndex()) 
-			return false;
+bool CStringIndexator::AddInputLoadIndexToMemoryLoadIndex() {
+    try {
+        for (size_t i = 0; i < m_Indices.size(); i++)
+            if (!m_Indices[i]->AddInputLoadIndexToMemoryLoadIndex())
+                return false;
 
-	return true;
+        return true;
+    }
+    catch (...) {
+        fprintf(stderr, "exception in CStringIndexator::AddInputLoadIndexToMemoryLoadIndex\n");
+        return false;
+    }
 };
 
 
-bool	CStringIndexator::SaveMemoryLoadIndex()
-{
-	for (size_t i=0; i < m_Indices.size(); i++)
-		if (!m_Indices[i]->SaveMemoryLoadIndex()) 
-			return false;
+bool CStringIndexator::AddMemoryLoadIndexToMainLoadIndex() {
+    for (size_t i = 0; i < m_Indices.size(); i++)
+        if (!m_Indices[i]->AddMemoryLoadIndexToMainLoadIndex())
+            return false;
 
-	return true;
-};
-
-CStringIndexSet*  CStringIndexator::GetIndexByName(const string& Name)
-{
-	for (size_t i=0; i < m_Indices.size(); i++)
-	if (m_Indices[i]->m_Name == Name)
-	{
-		return m_Indices[i];
-	};
-	return 0;
-};
-
-CStringIndexSet*  CStringIndexator::GetIndexByNameOrShortName(const string& Name)
-{
-	for (size_t i=0; i < m_Indices.size(); i++)
-	if	(		(m_Indices[i]->m_Name == Name) 
-			|| (m_Indices[i]->m_ShortName == Name)
-		)
-	{
-		return m_Indices[i];
-	};
-	return 0;
-};
-
-CStringIndexSet*  CStringIndexator::GetIndexByAlias(const string& Alias) const
-{
-	IndexMap::const_iterator ai = m_IndexMap.find(Alias);
-	if (ai != m_IndexMap.end())
-		return ai->second;
-	return NULL;
+    return true;
 };
 
 
-string CStringIndexator::GetSearchPeriodsFileName() const 
-{
-	return MakeFName(m_Path,"_periods");
+bool CStringIndexator::SaveMemoryLoadIndex() {
+    for (size_t i = 0; i < m_Indices.size(); i++)
+        if (!m_Indices[i]->SaveMemoryLoadIndex())
+            return false;
+
+    return true;
 };
 
-bool	CStringIndexator::ReadIndicesFromTheDisk()
-{
-	ReadVector(GetSearchPeriodsFileName().c_str(), m_SearchPeriods);
-
-	for (size_t i=0; i < m_Indices.size(); i++)
-		if (!m_Indices[i]->ReadFromTheDisk())
-			return false;
-
-	
-
-
-	return true;
+CStringIndexSet *CStringIndexator::GetIndexByName(const string &Name) {
+    for (size_t i = 0; i < m_Indices.size(); i++)
+        if (m_Indices[i]->m_Name == Name) {
+            return m_Indices[i];
+        };
+    return 0;
 };
 
-bool	CStringIndexator::DestroyIndices()
-{
-	for (size_t i=0; i < m_Indices.size(); i++)
-		if (!m_Indices[i]->DestroyIndexSet())
-			return false;
-
-
-	return true;
+CStringIndexSet *CStringIndexator::GetIndexByNameOrShortName(const string &Name) {
+    for (size_t i = 0; i < m_Indices.size(); i++)
+        if ((m_Indices[i]->m_Name == Name)
+            || (m_Indices[i]->m_ShortName == Name)
+                ) {
+            return m_Indices[i];
+        };
+    return 0;
 };
-		
 
-size_t	CStringIndexator::GetSearchPeriodsCount() const
-{
-	return m_SearchPeriods.size();
+CStringIndexSet *CStringIndexator::GetIndexByAlias(const string &Alias) const {
+    IndexMap::const_iterator ai = m_IndexMap.find(Alias);
+    if (ai != m_IndexMap.end())
+        return ai->second;
+    return NULL;
 };
+
+
+string CStringIndexator::GetSearchPeriodsFileName() const {
+    return MakeFName(m_Path, "_periods");
+};
+
+void CStringIndexator::ReadIndicesFromTheDisk() {
+    ReadVector(GetSearchPeriodsFileName().c_str(), m_SearchPeriods);
+
+    for (size_t i = 0; i < m_Indices.size(); i++)
+        m_Indices[i]->ReadFromTheDisk();
+};
+
+bool CStringIndexator::DestroyIndices() {
+    for (size_t i = 0; i < m_Indices.size(); i++)
+        if (!m_Indices[i]->DestroyIndexSet())
+            return false;
+
+
+    return true;
+};
+
+
+size_t CStringIndexator::GetSearchPeriodsCount() const {
+    return m_SearchPeriods.size();
+};
+
+/*--- emacs style variables ---
+ * Local Variables:
+ *  mode: C++
+ *  c-default-style: "linux"
+ *  c-basic-offset: 4
+ *  tab-width: 8
+ *  indent-tabs-mode: nil
+ * End:
+ */

@@ -69,10 +69,20 @@ public :
    void v_syntax_decode ();
    /// Pure virtual : action taken when processing the rule
    virtual void v_action (xpath_construct xc_rule, unsigned u_sub, 
-		unsigned u_variable = 0, const char * cp_literal = "") = 0;
+                unsigned u_variable = 0, const char * cp_literal = "") = 0;
    virtual int i_get_action_counter () = 0;
 } ;
 
 }
 
 #endif
+
+/*--- emacs style variables ---
+ * Local Variables:
+ *  mode: C++
+ *  c-default-style: "linux"
+ *  c-basic-offset: 4
+ *  tab-width: 8
+ *  indent-tabs-mode: nil
+ * End:
+ */

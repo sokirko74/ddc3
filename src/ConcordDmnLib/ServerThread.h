@@ -1,4 +1,4 @@
-//-*- Mode: C++; c-basic-offset:4; -*-
+//-*- Mode: C++ -*-
 //  DDC originally by Alexey Sokirko
 //  Changes and modifications 2011-2016 by Bryan Jurish
 //
@@ -22,7 +22,7 @@
 
 #include "Server.h"
 #include "../CommonLib/ddcThread.h"
-#include "../common/ddcThreadQueue.h"
+#include "../CommonLib/ddcThreadQueue.h"
 
 //======================================================================
 // globals
@@ -39,7 +39,7 @@ class CDDCServerThread : public ddcThread
     // data
 
     /** worker-index */
-    size_t	m_ThreadId;
+    size_t      m_ThreadId;
 
     /** thread label "CORPUS#TID"; set on run() */
     string       m_Label;
@@ -121,3 +121,13 @@ public:
 
 
 #endif /* DDC_SERVER_THREAD_H */
+
+/*--- emacs style variables ---
+ * Local Variables:
+ *  mode: C++
+ *  c-default-style: "linux"
+ *  c-basic-offset: 4
+ *  tab-width: 8
+ *  indent-tabs-mode: nil
+ * End:
+ */

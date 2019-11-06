@@ -28,9 +28,9 @@
 
 class CQueryCompiler;  //-- forward decl
 
-typedef vector<CQFilter*> 	CQFilterList;
-typedef vector<string>    	CQSubcorpusList;
-typedef list<string>    	CQCommentList;
+typedef vector<CQFilter*>       CQFilterList;
+typedef vector<string>          CQSubcorpusList;
+typedef list<string>            CQCommentList;
 
 //======================================================================
 /*!
@@ -138,3 +138,13 @@ public:
 
 #endif /* DDC_QUERY_OPTIONS_H */
 
+
+/*--- emacs style variables ---
+ * Local Variables:
+ *  mode: C++
+ *  c-default-style: "linux"
+ *  c-basic-offset: 4
+ *  tab-width: 8
+ *  indent-tabs-mode: nil
+ * End:
+ */
