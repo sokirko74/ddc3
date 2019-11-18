@@ -539,7 +539,7 @@ Flags and byte-offsets in F<I<CORPUS>._I<TOKATTR>> for I<TOKATTR> value-types, i
 
  - version: >= v2.0.0
  - resident: no
- - mmap: no
+ - mmap: yes
  - popularity: high
  - size: large
  - growth: O(NTokens)
@@ -574,7 +574,8 @@ Flags and byte-offsets in F<I<CORPUS>._I<TOKATTR>> for I<TOKATTR> value-types, i
 	called a "short" one. 
     #+END_SRC
 
-Inverted index for (non-hapax) I<TOKATTR> value-types, indexed by type-id.
+Inverted index for (non-hapax) I<TOKATTR> value-types, indexed by type-id;
+mmap() support since v2.2.0.
 
 =cut
 
@@ -585,7 +586,7 @@ Inverted index for (non-hapax) I<TOKATTR> value-types, indexed by type-id.
 
  - version: >= v2.0.0
  - resident: no
- - mmap: no
+ - mmap: yes
  - popularity: high
  - size: large
  - growth: O(NTokens)
@@ -609,6 +610,8 @@ Inverted index for (non-hapax) I<TOKATTR> value-types, indexed by type-id.
 Values for I<TOKATTR> indexed by logical token-ID.
 Only available if the L<C<STORAGE>|ddc_opt/STORAGE> option
 was set for I<TOKATTR> at compile-time.
+
+mmap() support since v2.2.0.
 
 =cut
 
@@ -690,6 +693,8 @@ with one or more of these files:
 Value types for I<DOCATTR> as used by DDC E<lt>= v2.1.11.
 As of DDC v2.1.12, the relevant data is stored in a pair of mmap()-friendly files
 F<CORPUS._bibl_DOCATTR_strings_values> and F<CORPUS._bibl_DOCATTR_strings_idx>, which see.
+
+mmap() support since v2.2.0.
 
 =cut
 
@@ -828,7 +833,8 @@ file gets its own naming conventions.
 	File of Bibliographical references
    #+END_SRC
 
-String values for built-in DDC metadata fields (read-only, no runtime query support, should probably go away).
+String values for built-in DDC metadata fields (read-only, no runtime query support, should probably go away);
+mmap() support since v2.2.0.
 
 =cut
 

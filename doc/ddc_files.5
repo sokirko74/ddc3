@@ -524,7 +524,7 @@ Flags and byte-offsets in \fI\fI\s-1CORPUS\s0\fI._\fI\s-1TOKATTR\s0\fI\fR for \f
 .Vb 10
 \& \- version: >= v2.0.0
 \& \- resident: no
-\& \- mmap: no
+\& \- mmap: yes
 \& \- popularity: high
 \& \- size: large
 \& \- growth: O(NTokens)
@@ -560,7 +560,8 @@ Flags and byte-offsets in \fI\fI\s-1CORPUS\s0\fI._\fI\s-1TOKATTR\s0\fI\fR for \f
 \&    #+END_SRC
 .Ve
 .PP
-Inverted index for (non-hapax) \fI\s-1TOKATTR\s0\fR value-types, indexed by type-id.
+Inverted index for (non-hapax) \fI\s-1TOKATTR\s0\fR value-types, indexed by type-id;
+\&\fImmap()\fR support since v2.2.0.
 .PP
 \fI\s-1CORPUS\s0._storage_TOKATTR\fR
 .IX Subsection "CORPUS._storage_TOKATTR"
@@ -568,7 +569,7 @@ Inverted index for (non-hapax) \fI\s-1TOKATTR\s0\fR value-types, indexed by type
 .Vb 10
 \& \- version: >= v2.0.0
 \& \- resident: no
-\& \- mmap: no
+\& \- mmap: yes
 \& \- popularity: high
 \& \- size: large
 \& \- growth: O(NTokens)
@@ -593,6 +594,8 @@ Inverted index for (non-hapax) \fI\s-1TOKATTR\s0\fR value-types, indexed by type
 Values for \fI\s-1TOKATTR\s0\fR indexed by logical token-ID.
 Only available if the \f(CW\*(C`STORAGE\*(C'\fR option
 was set for \fI\s-1TOKATTR\s0\fR at compile-time.
+.PP
+\&\fImmap()\fR support since v2.2.0.
 .PP
 \fI\s-1CORPUS\s0._perdivTOKATTR\fR
 .IX Subsection "CORPUS._perdivTOKATTR"
@@ -663,6 +666,8 @@ with one or more of these files:
 Value types for \fI\s-1DOCATTR\s0\fR as used by \s-1DDC\s0 <= v2.1.11.
 As of \s-1DDC\s0 v2.1.12, the relevant data is stored in a pair of \fImmap()\fR\-friendly files
 \&\fI\s-1CORPUS\s0._bibl_DOCATTR_strings_values\fR and \fI\s-1CORPUS\s0._bibl_DOCATTR_strings_idx\fR, which see.
+.PP
+\&\fImmap()\fR support since v2.2.0.
 .PP
 \fI\s-1CORPUS\s0._bibl_DOCATTR_strings_values\fR
 .IX Subsection "CORPUS._bibl_DOCATTR_strings_values"
@@ -795,7 +800,8 @@ file gets its own naming conventions.
 \&   #+END_SRC
 .Ve
 .PP
-String values for built-in \s-1DDC\s0 metadata fields (read-only, no runtime query support, should probably go away).
+String values for built-in \s-1DDC\s0 metadata fields (read-only, no runtime query support, should probably go away);
+\&\fImmap()\fR support since v2.2.0.
 .PP
 \fI\s-1CORPUS\s0._bibl_idx\fR
 .IX Subsection "CORPUS._bibl_idx"

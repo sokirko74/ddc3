@@ -443,7 +443,7 @@
 
 <pre><code> - version: &gt;= v2.0.0
  - resident: no
- - mmap: no
+ - mmap: yes
  - popularity: high
  - size: large
  - growth: O(NTokens)
@@ -478,13 +478,13 @@
         called a &quot;short&quot; one. 
     #+END_SRC</code></pre>
 
-<p>Inverted index for (non-hapax) <i>TOKATTR</i> value-types, indexed by type-id.</p>
+<p>Inverted index for (non-hapax) <i>TOKATTR</i> value-types, indexed by type-id; mmap() support since v2.2.0.</p>
 
 <h3 id="CORPUS._storage_TOKATTR">CORPUS._storage_TOKATTR</h3>
 
 <pre><code> - version: &gt;= v2.0.0
  - resident: no
- - mmap: no
+ - mmap: yes
  - popularity: high
  - size: large
  - growth: O(NTokens)
@@ -506,6 +506,8 @@
    #+END_SRC</code></pre>
 
 <p>Values for <i>TOKATTR</i> indexed by logical token-ID. Only available if the <a href="./ddc_opt.html#STORAGE"><code>STORAGE</code></a> option was set for <i>TOKATTR</i> at compile-time.</p>
+
+<p>mmap() support since v2.2.0.</p>
 
 <h3 id="CORPUS._perdivTOKATTR">CORPUS._perdivTOKATTR</h3>
 
@@ -563,6 +565,8 @@
      + via CConcXml::CFreeBiblStringIndex::ReadFromDisk (string Path, DWORD FileBreaksSize)</code></pre>
 
 <p>Value types for <i>DOCATTR</i> as used by DDC &lt;= v2.1.11. As of DDC v2.1.12, the relevant data is stored in a pair of mmap()-friendly files <i>CORPUS._bibl_DOCATTR_strings_values</i> and <i>CORPUS._bibl_DOCATTR_strings_idx</i>, which see.</p>
+
+<p>mmap() support since v2.2.0.</p>
 
 <h3 id="CORPUS._bibl_DOCATTR_strings_values">CORPUS._bibl_DOCATTR_strings_values</h3>
 
@@ -673,7 +677,7 @@
         File of Bibliographical references
    #+END_SRC</code></pre>
 
-<p>String values for built-in DDC metadata fields (read-only, no runtime query support, should probably go away).</p>
+<p>String values for built-in DDC metadata fields (read-only, no runtime query support, should probably go away); mmap() support since v2.2.0.</p>
 
 <h3 id="CORPUS._bibl_idx">CORPUS._bibl_idx</h3>
 
