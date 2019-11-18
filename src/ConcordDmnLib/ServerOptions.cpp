@@ -104,7 +104,7 @@ bool CDDCServerOptions::Set(const string& Option, const string& Value, const str
         m_NavCacheStep = strtoul(Value.c_str(),NULL,0);
     else if (opt=="compatversion" || opt=="versioncompat" || opt=="compatibility" || opt=="compat")
         m_VersionCompat.fromString(Value);
-    else if (opt=="unixsocketperms") {
+    else if (opt=="unixsocketperms" || opt=="unixsocketmode") {
         m_UnixSocketPerms = strtoul(Value.c_str(),NULL,8);
     }
     else if (opt=="include") {

@@ -577,7 +577,7 @@ void CConcordance::LoadOptionsFromString(string Options) {
     //-- sanity check for UserMaxInputLoadIndexSize << UserMaxTokenCountInOnePeriod
     // + see https://sourceforge.net/p/ddc-concordance/tickets/9/
     if (m_UserMaxInputLoadIndexSize > m_UserMaxTokenCountInOnePeriod) {
-        DWORD myMaxInputLoadIndexSize = m_UserMaxTokenCountInOnePeriod/2;
+        DWORD myMaxInputLoadIndexSize = (m_UserMaxTokenCountInOnePeriod>=10 ? m_UserMaxTokenCountInOnePeriod/10 : 1);
         ddcLogWarn(Format("WARNING: inconsistent MaxInputLoadIndexSize=%u > MaxTokenCountInOnePeriod=%u ; forcing MaxInputLoadIndexSize=%u",
                           m_UserMaxInputLoadIndexSize, m_UserMaxTokenCountInOnePeriod, myMaxInputLoadIndexSize));
         m_UserMaxInputLoadIndexSize = myMaxInputLoadIndexSize;

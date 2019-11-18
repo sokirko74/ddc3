@@ -77,8 +77,8 @@ bool CHost::ReadFromString (string S)
 bool CHost::InitEmbedded (const CHost& host)
 {
     CopyAddressParametersFrom(host);
-    if (m_SockAddr.m_Type==stTCP && m_SockAddr.m_Addr == "0.0.0.0") {
-        m_SockAddr.m_Addr = "127.0.0.1"; //-- connect to localhost for embedded branch servers binding all tcp interfaces
+    if (m_SockAddr.m_Type==stINET && m_SockAddr.m_Addr == "0.0.0.0") {
+        m_SockAddr.m_Addr = "127.0.0.1"; //-- connect to localhost for embedded branch servers binding all inet interfaces
     }
     m_LocalPath  = "";
     return CheckValidAddr();
@@ -92,7 +92,7 @@ int CHost::CreateSocket(bool bBind, string& strError) const
         return create_unix_socket(m_SockAddr.m_Addr.c_str(), bBind, m_UnixSocketPerms, strError);
     }
     else {
-        return  create_tcp_socket(m_SockAddr.m_Addr.c_str(), m_SockAddr.m_Port, bBind, strError);
+        return  create_inet_socket(m_SockAddr.m_Addr.c_str(), m_SockAddr.m_Port, bBind, strError);
     }
 }
 

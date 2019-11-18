@@ -59,7 +59,7 @@ enum NetworkErrorsEnum {
 /// enum for socket schemes
 enum SocketTypeEnum {
     stUnknown = 0,
-    stTCP = 1,
+    stINET = 1,
     stUNIX = 2
 };
 
@@ -121,8 +121,8 @@ struct CSocketAddr
     /** parse m_Type and m_Addr from \a Str.
      *  Implicitly calls ParseSocketPort() if \a parsePort is true.
      *  Supported notation:
-     *  \li ADDR - TCP socket on ADDR
-     *  \li tcp://ADDR_PORT - TCP socket on ADDR, with explicit scheme
+     *  \li ADDR - INET socket on ADDR
+     *  \li tcp://ADDR_PORT - INET socket on ADDR, with explicit scheme
      *  \li /PATH - UNIX socket on absolute path /PATH
      *  \li unix://PATH - UNIX socket on PATH
      *  \li unix:PATH - ditto
@@ -130,7 +130,7 @@ struct CSocketAddr
     void ParseSocketAddr(const string& Str, bool parsePort=true);
 
     /** extract \a m_Port from \a m_Addr.  Supported notation:
-     *  \li ADDR:PORT - TCP socket on ADDR:PORT
+     *  \li ADDR:PORT - INET socket on ADDR:PORT
      *  \li ADDR PORT - same
      */
     void ParseAddrPort();
@@ -150,9 +150,9 @@ extern uint32_t size_to_lsb(uint32_t sz);
 extern uint32_t lsb_to_size(uint32_t sz_lsb);
 
 extern SOCKET create_socket (const CSocketAddr& Addr, bool bBind, mode_t bindPerms, string& strError); //-- generic
-extern SOCKET create_tcp_socket (const char* HostAddr, int Port, bool bBind, string& strError); 
+extern SOCKET create_inet_socket (const char* HostAddr, int Port, bool bBind, string& strError); 
 extern SOCKET create_unix_socket(const string& socket_path,  bool bBind, mode_t bindPerms, string& strError);
-extern SOCKET create_socket(const char* HostAddr, int Port, bool bBind, string& strError);  //-- compatibility wrapper for create_tcp_socket() 
+extern SOCKET create_socket(const char* HostAddr, int Port, bool bBind, string& strError);  //-- compatibility wrapper for create_inet_socket() 
 
 extern void flush_socket (SOCKET sock);
 extern bool SocketInitialize(bool bReadFromLocalFile);

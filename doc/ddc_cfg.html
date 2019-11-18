@@ -27,6 +27,7 @@
       <li><a href="#Example-1:-Flat-Dataflow">Example 1: Flat Dataflow</a></li>
       <li><a href="#Example-2:-External-Leaf-Nodes-Meta-Server">Example 2: External Leaf Nodes / Meta-Server</a></li>
       <li><a href="#Example-3:-Internal-Branch-Nodes">Example 3: Internal Branch Nodes</a></li>
+      <li><a href="#Example-4:-INET-UNIX-sockets">Example 4: INET + UNIX sockets</a></li>
     </ul>
   </li>
   <li><a href="#ACKNOWLEDGEMENTS">ACKNOWLEDGEMENTS</a></li>
@@ -44,7 +45,7 @@
 
 <p>All DDC cfg-files share a common basic format. Files are line-based, containing one server-node record per line. Blank lines (containing only whitespace) and comments (lines beginning with a hash-mark (<code>#</code>) or double-slash (<code>//</code>)) are ignored. Each content line should contain 3 or 4 fields separated by whitespace:</p>
 
-<pre><code> LABEL  ADDR  PORT  PATH</code></pre>
+<pre><code> LABEL  ADDR  PORT  PATH?</code></pre>
 
 <h2 id="Label">Label</h2>
 
@@ -54,11 +55,20 @@
 
 <h2 id="Addr">Addr</h2>
 
-<p>The second field specifies the address <i>ADDR</i> to be bound by a branch-node and/or that to be queried for a leaf-node. If <i>ADDR</i> is the special string <code>0.0.0.0</code>, all available interfaces will be bound for a branch-node, while the loopback interface (<code>127.0.0.1</code>) will be queried.</p>
+<p>The second field specifies the address <i>ADDR</i> to be bound by a branch-node and/or that to be queried for a leaf-node. As of v2.2.0, <i>ADDR</i> may indicate either an internet (TCP) address or a UNIX socket path. The following notations are supported:</p>
+
+<pre><code> inet://IPADDR  # INET TCP socket on IPADDR (aliases: &quot;inet:IPADDR&quot;, &quot;tcp:IPADDR&quot;)
+ unix://PATH    # UNIX socket at local PATH (aliases: &quot;unix:PATH&quot;)
+ /PATH          # UNIX socket on local absolute /PATH
+ IPADDR         # default: INET TCP socket on IPADDR</code></pre>
+
+<p>If the <i>IPADDR</i> for an internet-domain (INET) address is the special string <code>0.0.0.0</code>, all available interfaces will be bound for a branch-node, while the loopback interface (<code>127.0.0.1</code>) will be queried.</p>
+
+<p>UNIX socket support since v2.2.0.</p>
 
 <h2 id="Port">Port</h2>
 
-<p>The third field specifies the TCP port-number <i>PORT</i> to be bound by a branch-node and/or to be queried for a leaf-node.</p>
+<p>The third field specifies the TCP port-number <i>PORT</i> to be bound by a branch-node and/or to be queried for a leaf-node. It has no protocol-relevant meaning for <a href="#Addr">UNIX-domain sockets</a>, but may be used to initialize a subcorpus-specific random seed, and will be reported in <a href="./ddc_proto.html#status"><code>status</code> responses</a> responses.</p>
 
 <h2 id="Path">Path</h2>
 
@@ -139,9 +149,9 @@
 <dd>
 
 <pre><code> sub1  0.0.0.0  50001  index/sub1/sub1.con
- sub2  0.0.0.0  50002  index/sub1/sub2.con
- sub3  0.0.0.0  50003  index/sub1/sub3.con
- sub4  0.0.0.0  50004  index/sub1/sub4.con</code></pre>
+ sub2  0.0.0.0  50002  index/sub2/sub2.con
+ sub3  0.0.0.0  50003  index/sub3/sub3.con
+ sub4  0.0.0.0  50004  index/sub4/sub4.con</code></pre>
 
 </dd>
 <dt id="ddc_server.cfg2">ddc_server.cfg</dt>
@@ -185,6 +195,38 @@
    ___|___         ___|___
    |     |         |     |
   sub1  sub2      sub3  sub4</code></pre>
+
+<h2 id="Example-4:-INET-UNIX-sockets">Example 4: INET + UNIX sockets</h2>
+
+<dl>
+
+<dt id="ddc_local_corpora.cfg3">ddc_local_corpora.cfg</dt>
+<dd>
+
+<pre><code> sub1  unix:/tmp/ddc/sub1.sock - index/sub1/sub1.con
+ sub2  unix:/tmp/ddc/sub2.sock - index/sub2/sub2.con</code></pre>
+
+</dd>
+<dt id="ddc_server.cfg3">ddc_server.cfg</dt>
+<dd>
+
+<pre><code> server:inet 0.0.0.0                   50000
+
+ server:unix unix:/tmp/ddc/server.sock
+ sub1        unix:/tmp/ddc/sub1.sock
+ sub2        unix:/tmp/ddc/sub2.sock</code></pre>
+
+</dd>
+</dl>
+
+<p>This example uses UNIX-domain sockets to communicate with local physical leaf corpora <code>sub1</code> and <code>sub2</code>. The logical corpus itself can be accessed from the local host via the UNIX-domain socket <code>/tmp/ddc/server.sock</code>, and from remote hosts by a &quot;pass-through&quot; server node listening on port <code>50000</code>.</p>
+
+<pre><code> server:root @ inet://0.0.0.0:5000
+      |
+ server:unix @ unix:///tmp/ddc/server.sock
+   ___|___
+   |     |
+  sub1  sub2</code></pre>
 
 <h1 id="ACKNOWLEDGEMENTS">ACKNOWLEDGEMENTS</h1>
 

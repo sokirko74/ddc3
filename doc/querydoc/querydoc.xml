@@ -11,7 +11,7 @@
     <section name="overview" title="Overview">
       <p>
 	This documentation describes the query language accepted by
-	DDC version 2.1.16.  Current sources for DDC should be available
+	DDC version 2.2.0.  Current sources for DDC should be available
 	from
 	<!--<a href="http://odo.dwds.de/code/viewvc.cgi/ddc/trunk/?root=dev">svn+ssh://odo.dwds.de/home/svn/dev/ddc/trunk</a>.-->
 	<a href="http://sourceforge.net/projects/ddc-concordance">http://sourceforge.net/projects/ddc-concordance</a>.
@@ -1424,12 +1424,12 @@
 	  </rule>
 
 	  <!--~~~~~~~~ RULES: qf_subcorpora -->
-	  <rule lhs="qf_subcorpora" cmt="Set of target subcorpora">
+	  <rule lhs="qf_subcorpora" cmt="Set of target subcorpus paths">
 	    <rhs cmt="... empty subcorpus set"/>
-	    <rhs cmt="... singleton subcorpus (symbol)">
+	    <rhs cmt="... singleton subcorpus path (symbol)">
 	      <n>s_subcorpus</n>
 	    </rhs>
-	    <rhs cmt="... multiple subcorpora are separated by commas">
+	    <rhs cmt="... multiple subcorpus paths are separated by commas">
 	      <n>qf_subcorpora</n>
 	      <t>,</t>
 	      <n>s_subcorpus</n>
@@ -1566,9 +1566,9 @@
 	  </rule>
 
 	  <!--~~~~~~~~ RULES: s_subcorpus -->
-	  <rule lhs="s_subcorpus" cmt="Named subcorpus used by :... filter">
-	    <rhs cmt="... can be any symbol">
-	      <n>symbol</n>
+	  <rule lhs="s_subcorpus" cmt="Named subcorpus path used by :... filter">
+	    <rhs cmt="... can be (almost) any symbol">
+	      <xt>SUBCORPUS</xt>
 	    </rhs>
 	  </rule>
 
@@ -2053,6 +2053,36 @@ comment_text	(\\.|[^\]])*
       </p>
     </subsection>
     <!--/terminals:expander-->
+
+    <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+    <subsection name="term_SUBCORPUS" title="Subcorpus Paths">
+      <p>
+        A branch-server query (see <a href="ddc_cfg.html">ddc_cfg(5)</a>)
+        may be restricted to a subset of available sub*corpora
+        by means of the <a href="#rule_qf_subcorpora"><code>:</code> operator</a> (<code>:PATH1,PATH2,...,PATHn</code>).
+        Each subcorpus <tt>PATH</tt> in the list is parsed syntactically as an
+        <a href="#term_SYMBOL">atomic symbol</a> but is otherwise ignored
+        by physical leaf servers.
+      </p>
+      <p>
+        Prior to v2.2.0, each <tt>PATH</tt> in a branch-server query had to be the literal name of
+        an immediate daughter node (see <a href="ddc_cfg.html">ddc_cfg(5)</a>),
+        and only those daughters explicitly specified were queried.
+        As of v2.2.0, branch servers allow slash-separated sub*corpus paths in <tt>PATH</tt>s
+        as well as (limited) wildcard strings <code>*</code> indicating all descendants
+        from the corresonding node:
+        <table class="escTable">
+	    <tr><th>Paths</th><th style="text-align:left;">Description</th></tr>
+	    <tr><td class="monospace">:</td><td>all descendants (empty list: default)</td></tr>
+	    <tr><td class="monospace">:'*'</td><td>all descendants (explicit wildcard)</td></tr>
+            <tr><td class="monospace">:'foo','bar'</td><td>immediate daughters "foo" and "bar" only</td></tr>
+            <tr><td class="monospace">:'foo/bar'</td><td>granddaughter "bar", child of daughter "foo"</td></tr>
+            <tr><td class="monospace">:'*/bar'</td><td>all granddaughters named "bar"</td></tr>
+            <tr><td class="monospace">:'*/bar','*/*/bar'</td><td>all granddaughters or great-granddaughters named "bar"</td></tr>
+	</table>
+      </p>
+    </subsection>
+    <!--/terminals:subcorpus-->
 
     <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
     <subsection name="term_other" title="Other Terminals">

@@ -37,7 +37,7 @@ Blank lines (containing only whitespace) and comments
 (lines beginning with a hash-mark (C<#>) or double-slash (C<//>)) are ignored.
 Each content line should contain 3 or 4 fields separated by whitespace:
 
- LABEL  ADDR  PORT  PATH
+ LABEL  ADDR  PORT  PATH?
 
 =cut
 
@@ -65,9 +65,20 @@ Otherwise, the node is treated as an opaque (terminal) leaf-node.
 =head2 Addr
 
 The second field specifies the address I<ADDR> to be bound by a branch-node
-and/or that to be queried for a leaf-node.  If I<ADDR> is the
-special string C<0.0.0.0>, all available interfaces will be bound for
+and/or that to be queried for a leaf-node.  As of v2.2.0, I<ADDR> may indicate
+either an internet (TCP) address or a UNIX socket path.  The following notations
+are supported:
+
+ inet://IPADDR  # INET TCP socket on IPADDR (aliases: "inet:IPADDR", "tcp:IPADDR")
+ unix://PATH    # UNIX socket at local PATH (aliases: "unix:PATH")
+ /PATH          # UNIX socket on local absolute /PATH
+ IPADDR         # default: INET TCP socket on IPADDR
+
+If the I<IPADDR> for an internet-domain (INET) address
+is the special string C<0.0.0.0>, all available interfaces will be bound for
 a branch-node, while the loopback interface (C<127.0.0.1>) will be queried.
+
+UNIX socket support since v2.2.0.
 
 =cut
 
@@ -79,6 +90,9 @@ a branch-node, while the loopback interface (C<127.0.0.1>) will be queried.
 
 The third field specifies the TCP port-number I<PORT> to be bound
 by a branch-node and/or to be queried for a leaf-node.
+It has no protocol-relevant meaning for L<UNIX-domain sockets|/Addr>, but
+may be used to initialize a subcorpus-specific random seed,
+and will be reported in L<C<status> responses|ddc_proto/status> responses.
 
 =cut
 
@@ -188,9 +202,9 @@ All leaf nodes are assumed to be handled by external processes.
 =item ddc_local_corpora.cfg
 
  sub1  0.0.0.0  50001  index/sub1/sub1.con
- sub2  0.0.0.0  50002  index/sub1/sub2.con
- sub3  0.0.0.0  50003  index/sub1/sub3.con
- sub4  0.0.0.0  50004  index/sub1/sub4.con
+ sub2  0.0.0.0  50002  index/sub2/sub2.con
+ sub3  0.0.0.0  50003  index/sub3/sub3.con
+ sub4  0.0.0.0  50004  index/sub4/sub4.con
 
 =item ddc_server.cfg
 
@@ -233,6 +247,43 @@ in addition to the root node ("server:root").  Requires ddc E<gt>= v2.1.0.
    |     |         |     |
   sub1  sub2      sub3  sub4
 
+=cut
+
+##==============================================================
+## Example 4
+=pod
+
+=head2 Example 4: INET + UNIX sockets
+
+=over 4
+
+=item ddc_local_corpora.cfg
+
+ sub1  unix:/tmp/ddc/sub1.sock - index/sub1/sub1.con
+ sub2  unix:/tmp/ddc/sub2.sock - index/sub2/sub2.con
+
+=item ddc_server.cfg
+
+ server:inet 0.0.0.0                   50000
+
+ server:unix unix:/tmp/ddc/server.sock
+ sub1        unix:/tmp/ddc/sub1.sock
+ sub2        unix:/tmp/ddc/sub2.sock
+
+=back
+
+This example uses UNIX-domain sockets to communicate with local physical
+leaf corpora C<sub1> and C<sub2>.  The logical corpus itself can be
+accessed from the local host via the UNIX-domain socket C</tmp/ddc/server.sock>,
+and from remote hosts by a "pass-through" server node listening
+on port C<50000>.
+
+ server:root @ inet://0.0.0.0:5000
+      |
+ server:unix @ unix:///tmp/ddc/server.sock
+   ___|___
+   |     |
+  sub1  sub2
 
 =cut
 

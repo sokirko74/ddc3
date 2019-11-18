@@ -42,7 +42,7 @@ describes the format of the F<DIR/FID.tabs> file(s).
  META  ::= "%%$DDC.meta." META_NAME . "=" META_VALUE "\n"
  
  PAGE  ::= "%%$DDC:PAGE=" PAGENO "\n"
- BREAK ::= "%%$DDC:BREAK." BREAK_NAME "=" TOKID "\n"
+ BREAK ::= "%%$DDC:BREAK." BREAK_NAME "[" BREAK_ID "]=" TOKID "\n"
  
  INDEX ::= "%%$DDC:index[" INDEX_ID "]=" INDEX_LONG " " INDEX_SHORT "\n"
  
@@ -119,7 +119,18 @@ Reports the range of DDC-internal token-IDs covered by the current document.
  META  ::= "%%$DDC.meta." META_NAME . "=" META_VALUE "\n"
 
 Reports the value of the bibliographic metadata attribute C<META_NAME>
-as C<META_VALUE>.
+as C<META_VALUE>.  Built-in metadata fields are reported with a trailing
+underscore for C<META_NAME>:
+
+ "%%$DDC.meta.n_=" DOC_ID "\n"
+ "%%$DDC.meta.file_=" DOC_FILENAME "\n"
+ "%%$DDC.meta.scan_=" BIBL_SCAN "\n"
+ "%%$DDC.meta.orig_=" BIBL_ORIG "\n"
+ "%%$DDC.meta.date_=" BIBL_DATE "\n"
+ "%%$DDC.meta.page_=" BIBL_PAGE "\n"
+
+In streaming TAB-format input mode, the C<%%$DDC.meta.file_=> declaration introduces
+a document boundary (a.k.a. "file break").
 
 =head3 Initial Page
 
@@ -129,11 +140,14 @@ Reports the position of the first internal page-break in the current document.
 
 =head3 Initial Break Positions
 
- BREAK ::= "%%$DDC:BREAK." BREAK_NAME "=" TOKID "\n"
+ BREAK ::= "%%$DDC:BREAK." BREAK_NAME "[" BREAK_ID "]" =" TOKID "\n"
 
 Reports the position of the first "break" of type C<BREAK_NAME> in the current
 document.  C<BREAK_NAME> is the short name of some "break collection"
 declared with the L<"HitBorders"|ddc_opt/HitBorders> option in the project option-file (*.opt).
+C<BREAK_ID> is the index of the break in the underlying break-vector,
+or C<-1> if the break is the corpus-initial break of its type, and C<TOKID>
+is the token-ID of the first token in the break.
 
 =head3 Token Index Attribute Positions
 
@@ -223,33 +237,31 @@ The following is an example file dump produced by C<ddc_dump --full --tabs> for
 a small toy file:
 
  %%$DDC:tokid.begin=0
- %%$DDC:tokid.end=11
+ %%$DDC:tokid.end=17
  %%$DDC:meta.n_=0
  %%$DDC:meta.file_=test/tiny.xml
- %%$DDC:meta.masked_=0
  %%$DDC:meta.scan_=
  %%$DDC:meta.orig_=
- %%$DDC:meta.date_=2016-02-24
+ %%$DDC:meta.date_=2016-02-25
  %%$DDC:meta.page_=-1
  %%$DDC:meta.author=Jurish, Bryan
  %%$DDC:meta.collection=tiny
  %%$DDC:meta.textClass=dummy:test-data
  %%$DDC:meta.title=DDC test document
- %%$DDC:PAGE=42
- %%$DDC:BREAK.s=5
- %%$DDC:BREAK.p=11
- %%$DDC:BREAK.file=11
- %%$DDC:BREAK.textarea=11
  %%$DDC:index[0]=Token w
  %%$DDC:index[1]=Pos p
  %%$DDC:index[2]=Lemma l
+ %%$DDC:BREAK.s[-1]=0
+ %%$DDC:BREAK.p[-1]=0
+ %%$DDC:BREAK.file[-1]=0
+ %%$DDC:BREAK.textarea[-1]=0
  This	DT	this
  is	VBZ	be
  a	DT	a
  test	NN	test
  .	SENT	.
  
- %%$DDC:BREAK.s=5
+ %%$DDC:BREAK.s[0]=5
  This	DT	this
  is	VBZ	be
  only	RB	only
@@ -257,7 +269,15 @@ a small toy file:
  test	NN	test
  .	SENT	.
  
-
+ %%$DDC:BREAK.s[1]=11
+ %%$DDC:BREAK.p[0]=11
+ This	DT	this
+ is	VBZ	be
+ still	RB	still
+ a	DT	a
+ test	NN	test
+ .	SENT	.
+ 
 
 =cut
 
@@ -269,7 +289,7 @@ a small toy file:
 
 =head1 ACKNOWLEDGEMENTS
 
-Alexey Sokirko wrote the original DDC.
+Alexey Sokirko wrote DDC.
 
 =head1 AUTHOR
 

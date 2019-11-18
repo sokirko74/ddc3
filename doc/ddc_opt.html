@@ -75,6 +75,7 @@
           <li><a href="#MaxCachedHitsCount">MaxCachedHitsCount</a></li>
           <li><a href="#MaxQueryCacheSize">MaxQueryCacheSize</a></li>
           <li><a href="#UserMaxTokenCountInOnePeriod">UserMaxTokenCountInOnePeriod</a></li>
+          <li><a href="#UserMaxInputLoadIndexSize">UserMaxInputLoadIndexSize</a></li>
           <li><a href="#LocalPathPrefix">LocalPathPrefix</a></li>
           <li><a href="#InternetPathPrefix">InternetPathPrefix</a></li>
           <li><a href="#TfIdfRank">TfIdfRank</a></li>
@@ -225,9 +226,9 @@
 
 <pre><code> IndexType TYPE</code></pre>
 
-<p>Sets the type of the underlying corpus index. <i>TYPE</i> can be <code>DWDS_Index</code>, <code>MorphXML_Index</code>, or <code>Free_Index</code>.</p>
+<p>Sets the type of the underlying corpus index. <i>TYPE</i> can be <code>DWDS_Index</code>, <code>MorphXML_Index</code>, <code>Free_Index</code>, or <code>TabFormat_Index</code>.</p>
 
-<p>Future versions of DDC may support only the <code>Free_Index</code> type.</p>
+<p>Future versions of DDC may support only the <code>TabFormat_Index</code> type; see <a href="./ddc_tabs.html">ddc_tabs(5)</a> for details on the <code>TabFormat_Index</code> format.</p>
 
 <h3 id="LANG">LANG</h3>
 
@@ -547,7 +548,17 @@
 
 <p>(from DDCReadme): Set the size of internal subcorpora. The greater the value of this parameter is, the faster querying procedures work, and the more memory the program needs.</p>
 
-<p>Default if unspecified is hard-coded as 5000000.</p>
+<p>Default if unspecified is hard-coded as 5000000 (5M).</p>
+
+<h3 id="UserMaxInputLoadIndexSize">UserMaxInputLoadIndexSize</h3>
+
+<pre><code> UserMaxInputLoadIndexSize N</code></pre>
+
+<p>Minimum number of tokens to buffer during corpus indexing before considering flushing to disk and possibly introducing a <a href="#UserMaxTokenCountInOnePeriod">period boundary</a> boundary. Must be strictly less than <a href="#UserMaxTokenCountInOnePeriod">&quot;UserMaxTokenCountInOnePeriod&quot;</a>, otherwise defaults to <code><a href="#UserMaxTokenCountInOnePeriod">&quot;UserMaxTokenCountInOnePeriod&quot;</a>/10</code>.</p>
+
+<p>Global default if unspecified is hard-coded as 400000 (400K).</p>
+
+<p>Since v2.2.0 (previously only a hard-coded constant).</p>
 
 <h3 id="LocalPathPrefix">LocalPathPrefix</h3>
 
@@ -854,7 +865,7 @@
 
 <h1 id="SEE-ALSO">SEE ALSO</h1>
 
-<p>ddc_server.opt(5), ddc_console(1), ddc_daemon(1), ddc_expand(1), ddc_file_lem(1), ddc_graphmat_thick(1), ddc_index(1), ddc_morph_gen(1), ddc_search(1), ddc_simple(1), ddc_stats(1), ddc_struct_dict_loader(1), ddc_test_lem(1), ddc_xml(1)</p>
+<p>ddc_server.opt(5), ddc_tabs(5), ddc_console(1), ddc_daemon(1), ddc_expand(1), ddc_file_lem(1), ddc_graphmat_thick(1), ddc_index(1), ddc_morph_gen(1), ddc_search(1), ddc_simple(1), ddc_stats(1), ddc_struct_dict_loader(1), ddc_test_lem(1), ddc_xml(1)</p>
 
 
 </body>

@@ -184,9 +184,10 @@ may be defined by an external file loaded with the L<include|/include> directive
  IndexType TYPE
 
 Sets the type of the underlying corpus index.
-I<TYPE> can be C<DWDS_Index>,  C<MorphXML_Index>, or C<Free_Index>.
+I<TYPE> can be C<DWDS_Index>,  C<MorphXML_Index>, C<Free_Index>, or C<TabFormat_Index>.
 
-Future versions of DDC may support only the C<Free_Index> type.
+Future versions of DDC may support only the C<TabFormat_Index> type; see
+L<ddc_tabs(5)|ddc_tabs> for details on the C<TabFormat_Index> format.
 
 =head3 LANG
 
@@ -632,7 +633,20 @@ Set the size of internal subcorpora.
 The greater the value of this parameter is, the faster
 querying procedures work, and the more memory the program needs.
 
-Default if unspecified is hard-coded as 5000000.
+Default if unspecified is hard-coded as 5000000 (5M).
+
+=head3 UserMaxInputLoadIndexSize
+
+ UserMaxInputLoadIndexSize N
+
+Minimum number of tokens to buffer during corpus indexing before considering
+flushing to disk and possibly introducing a L<period boundary|/UserMaxTokenCountInOnePeriod>
+boundary.  Must be strictly less than L</UserMaxTokenCountInOnePeriod>, otherwise
+defaults to C<L</UserMaxTokenCountInOnePeriod>/10>.
+
+Global default if unspecified is hard-coded as 400000 (400K).
+
+Since v2.2.0 (previously only a hard-coded constant).
 
 =head3 LocalPathPrefix
 
@@ -1024,6 +1038,7 @@ Bryan Jurish E<lt>jurish@bbaw.deE<gt>
 =head1 SEE ALSO
 
 ddc_server.opt(5),
+ddc_tabs(5),
 ddc_console(1),
 ddc_daemon(1),
 ddc_expand(1),

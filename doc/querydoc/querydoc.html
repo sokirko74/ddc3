@@ -36,6 +36,7 @@
 <a href="#term_SYMBOL">Symbols and Barewords</a><ul><li><a href="#escapes">Escapes</a></li></ul>
 </li>
 <li><a href="#term_EXPANDER">Term Expander Pipelines</a></li>
+<li><a href="#term_SUBCORPUS">Subcorpus Paths</a></li>
 <li><a href="#term_other">Other Terminals</a></li>
 </ul>
 </li>
@@ -69,7 +70,7 @@
 <h2><a name="overview">Overview</a></h2>
 <p>
 	This documentation describes the query language accepted by
-	DDC version 2.1.16.  Current sources for DDC should be available
+	DDC version 2.2.0.  Current sources for DDC should be available
 	from
 	<!--<a href="http://odo.dwds.de/code/viewvc.cgi/ddc/trunk/?root=dev">svn+ssh://odo.dwds.de/home/svn/dev/ddc/trunk</a>.-->
 	<a href="http://sourceforge.net/projects/ddc-concordance">http://sourceforge.net/projects/ddc-concordance</a>.
@@ -2507,7 +2508,7 @@
 <td><b><a name="rule_qf_subcorpora">qf_subcorpora</a></b></td>
 <td>::=</td>
 <td></td>
-<td class="ruleCommentTop">/* Set of target subcorpora */</td>
+<td class="ruleCommentTop">/* Set of target subcorpus paths */</td>
 </tr>
 <tr>
 <td></td>
@@ -2519,13 +2520,13 @@
 <td></td>
 <td></td>
 <td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_s_subcorpus">s_subcorpus</a></span> </td>
-<td class="ruleComment">/* ... singleton subcorpus (symbol) */</td>
+<td class="ruleComment">/* ... singleton subcorpus path (symbol) */</td>
 </tr>
 <tr>
 <td></td>
 <td></td>
 <td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_qf_subcorpora">qf_subcorpora</a></span> <span class="ruleTerminal">,</span> <span class="ruleNonterminal"><a href="#rule_s_subcorpus">s_subcorpus</a></span> </td>
-<td class="ruleComment">/* ... multiple subcorpora are separated by commas */</td>
+<td class="ruleComment">/* ... multiple subcorpus paths are separated by commas */</td>
 </tr>
 <tr>
 <td></td>
@@ -2857,14 +2858,14 @@
 <td><b><a name="rule_s_subcorpus">s_subcorpus</a></b></td>
 <td>::=</td>
 <td></td>
-<td class="ruleCommentTop">/* Named subcorpus used by :... filter */</td>
+<td class="ruleCommentTop">/* Named subcorpus path used by :... filter */</td>
 </tr>
 <tr>
 <td></td>
 <td></td>
 <td class="ruleRHS1">
-<span class="ruleNonterminal"><a href="#rule_symbol">symbol</a></span> </td>
-<td class="ruleComment">/* ... can be any symbol */</td>
+<span class="ruleXTerminal"><a href="#term_SUBCORPUS">SUBCORPUS</a></span> </td>
+<td class="ruleComment">/* ... can be (almost) any symbol */</td>
 </tr>
 <tr>
 <td></td>
@@ -3507,6 +3508,63 @@ comment_text	(\\.|[^\]])*
       </p>
 </div>
 <!--/terminals:expander--><!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ --><div class="subsection">
+<h3><a name="term_SUBCORPUS">Subcorpus Paths</a></h3>
+<p>
+        A branch-server query (see <a href="ddc_cfg.html">ddc_cfg(5)</a>)
+        may be restricted to a subset of available sub*corpora
+        by means of the <a href="#rule_qf_subcorpora"><code>:</code> operator</a> (<code>:PATH1,PATH2,...,PATHn</code>).
+        Each subcorpus <tt>PATH</tt> in the list is parsed syntactically as an
+        <a href="#term_SYMBOL">atomic symbol</a> but is otherwise ignored
+        by physical leaf servers.
+      </p>
+<p>
+        Prior to v2.2.0, each <tt>PATH</tt> in a branch-server query had to be the literal name of
+        an immediate daughter node (see <a href="ddc_cfg.html">ddc_cfg(5)</a>),
+        and only those daughters explicitly specified were queried.
+        As of v2.2.0, branch servers allow slash-separated sub*corpus paths in <tt>PATH</tt>s
+        as well as (limited) wildcard strings <code>*</code> indicating all descendants
+        from the corresonding node:
+        <table class="escTable">
+	    <tr>
+<th>Paths</th>
+<th style="text-align:left;">Description</th>
+</tr>
+	    <tr>
+<td class="monospace">:</td>
+<td>all descendants (empty list: default)</td>
+</tr>
+	    <tr>
+<td class="monospace">:'*'</td>
+<td>all descendants (explicit wildcard)</td>
+</tr>
+            <tr>
+<td class="monospace">:'foo','bar'</td>
+<td>immediate daughters "foo" and "bar" only</td>
+</tr>
+            <tr>
+<td class="monospace">:'foo/bar'</td>
+<td>granddaughter "bar", child of daughter "foo"</td>
+</tr>
+            <tr>
+<td class="monospace">:'*/bar'</td>
+<td>all granddaughters named "bar"</td>
+</tr>
+            <tr>
+<td class="monospace">:'*/bar','*/*/bar'</td>
+<td>all granddaughters or great-granddaughters named "bar"</td>
+</tr>
+	</table>
+<pre>
+:                   /* all descendants (empty list: default) */
+:'*'                /* all descendants (explicit wildcard) */
+:'foo','bar'        /* immediate daughters "foo" and "bar" only */
+:'foo/bar'          /* granddaughter "bar", child of daughter "foo" */
+:'*/bar'            /* all granddaughters named "bar" */
+:'*/bar','*/*/bar'  /* all granddaughters or great-granddaughters named "bar" */
+</pre>
+      </p>
+</div>
+<!--/terminals:subcorpus--><!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ --><div class="subsection">
 <h3><a name="term_other">Other Terminals</a></h3>
 <pre>
 {ws}+                               /* whitespace: skip */
@@ -4023,7 +4081,7 @@ ot-asi2 /* hyponyms/subclasses (depth=2); alias=ot-sub2 */
   </body></div>
 <div class="footers">
 <div class="footer_sig">
-<address><a href="mailto:jurish@bbaw.de">jurish@bbaw.de</a></address>Last modified: Thu, 13 Dec 2018 08:50:11 +0100</div>
+<address><a href="mailto:jurish@bbaw.de">jurish@bbaw.de</a></address>Last modified: Mon, 18 Nov 2019 15:44:46 +0100</div>
 <div class="footer_linkbar"><p class="nopad"><a class="navLink" href="/">Root</a><a class="navLink" href="./">Back</a><span class="navLinkDisabled">Help</span></p></div>
 <p class="dummy"></p>
 </div>

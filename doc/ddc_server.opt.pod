@@ -35,11 +35,12 @@ server option files ("server-opt files") used by the DDC corpus indexing system.
  #StatsWindow SECONDS
 
  ##-------------------------------------------------------------
- ## Client-Thread and Parallelization Options
+ ## Client and Parallelization Options
  
  NumThreads NTHREADS
  ThreadQueueSize QSIZE
  HitStringsParallel BOOL
+ UnixSocketPerms MODE
 
  ##-------------------------------------------------------------
  ## Navigation Cache Options
@@ -247,6 +248,22 @@ The parameter C<BOOL> is any string recoginized as a Boolean value;
 see L<ddc_opt/"Boolean Flags and Switches"> for details.
 
 Since v2.1.12.
+
+=head3 UnixSocketPerms
+
+ UnixSocketPerms MODE
+
+Aliases: UnixSocketPerms, UnixSocketMode
+
+Default: 0
+
+If specified and nonzero, any UNIX-domain sockets bound by this process will have
+their access permissions set to C<MODE> immediately upon creation.   C<MODE> should
+be an octal number representing socket access permissions as for C<chmod(1)>.
+If unspecified or zero, sockets will be created with the default permissions
+C<(0777 & ~umask())>.
+
+Since v2.2.0.
 
 =cut
 

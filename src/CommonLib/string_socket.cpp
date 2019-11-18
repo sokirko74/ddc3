@@ -54,7 +54,7 @@ void CSocketAddr::Clear()
 bool CSocketAddr::IsValid() const
 {
     switch (m_Type) {
-        case stTCP:
+        case stINET:
             return !m_Addr.empty() && m_Port != -1;
         case stUNIX:
             return !m_Addr.empty();
@@ -69,12 +69,20 @@ void CSocketAddr::ParseSocketAddr(const string& Str, bool parsePort)
     string s(Str);
     string lo = stolower(s);
     if (StartsWith(lo,"tcp://")) {
-        m_Type = stTCP;
+        m_Type = stINET;
         m_Addr = s.substr(6);
     }
     else if (StartsWith(lo,"tcp:")) {
-        m_Type = stTCP;
+        m_Type = stINET;
         m_Addr = s.substr(4);
+    }
+    else if (StartsWith(lo,"inet://")) {
+        m_Type = stINET;
+        m_Addr = s.substr(7);
+    }
+    else if (StartsWith(lo,"inet:")) {
+        m_Type = stINET;
+        m_Addr = s.substr(5);
     }
     else if (StartsWith(lo, "unix://")) {
         m_Type = stUNIX;
@@ -89,8 +97,8 @@ void CSocketAddr::ParseSocketAddr(const string& Str, bool parsePort)
         m_Addr = s;
     }
     else {
-        //-- default: TCP
-        m_Type = stTCP;
+        //-- default: INET
+        m_Type = stINET;
         m_Addr = s;
     }
 
@@ -115,8 +123,8 @@ void CSocketAddr::ParseAddrPort()
 string CSocketAddr::toString() const
 {
     switch (m_Type) {
-        case stTCP:
-            return Format("tcp://%s:%i", m_Addr.c_str(), m_Port);
+        case stINET:
+            return Format("inet://%s:%i", m_Addr.c_str(), m_Port);
         case stUNIX:
             return string("unix://") + m_Addr;
         default:
@@ -352,8 +360,8 @@ SOCKET create_socket(const CSocketAddr& Addr, bool bBind, mode_t bindPerms, stri
     switch (Addr.m_Type) {
         case stUNIX:
             return create_unix_socket(Addr.m_Addr, bBind, bindPerms, strError);
-        case stTCP:
-            return create_tcp_socket(Addr.m_Addr.c_str(), Addr.m_Port, bBind, strError);
+        case stINET:
+            return create_inet_socket(Addr.m_Addr.c_str(), Addr.m_Port, bBind, strError);
         default:
             throw CExpc("ERROR: create_socket(): unknown socket type");
     }
@@ -418,9 +426,9 @@ SOCKET create_unix_socket(const string& socket_path,  bool bBind, mode_t bindPer
 
 //----------------------------------------------------------------------
 SOCKET create_socket (const char* HostAddr, int Port, bool bBind, string& strError)
-{ return create_tcp_socket(HostAddr, Port, bBind, strError); }
+{ return create_inet_socket(HostAddr, Port, bBind, strError); }
 
-SOCKET create_tcp_socket (const char* HostAddr, int Port, bool bBind, string& strError)
+SOCKET create_inet_socket (const char* HostAddr, int Port, bool bBind, string& strError)
 {
     strError = "";
     addrinfo hints, *res0;

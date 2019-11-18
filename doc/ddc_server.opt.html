@@ -36,6 +36,7 @@
           <li><a href="#NumThreads">NumThreads</a></li>
           <li><a href="#ThreadQueueSize">ThreadQueueSize</a></li>
           <li><a href="#HitStringsParallel">HitStringsParallel</a></li>
+          <li><a href="#UnixSocketPerms">UnixSocketPerms</a></li>
         </ul>
       </li>
       <li><a href="#Navigation-Cache-Options">Navigation Cache Options</a>
@@ -77,11 +78,12 @@
  #StatsWindow SECONDS
 
  ##-------------------------------------------------------------
- ## Client-Thread and Parallelization Options
+ ## Client and Parallelization Options
  
  NumThreads NTHREADS
  ThreadQueueSize QSIZE
  HitStringsParallel BOOL
+ UnixSocketPerms MODE
 
  ##-------------------------------------------------------------
  ## Navigation Cache Options
@@ -225,6 +227,18 @@
 <p>If specified and true, branch servers created by this process will send <a href="./ddc_proto.html#get_hit_stings"><code>get_hit_strings</code></a> requests to their immediate daughters in parallel. If the daughters need to fetch hit data from secondary storage (i.e. if you don&#39;t have excessive amounts RAM), enabling this option is likely to actually slow things down unless your secondary storage device supports ultra-low-latency random access reads, in which case it might help. The parameter <code>BOOL</code> is any string recoginized as a Boolean value; see <a href="./ddc_opt.html#Boolean-Flags-and-Switches">&quot;Boolean Flags and Switches&quot; in ddc_opt</a> for details.</p>
 
 <p>Since v2.1.12.</p>
+
+<h3 id="UnixSocketPerms">UnixSocketPerms</h3>
+
+<pre><code> UnixSocketPerms MODE</code></pre>
+
+<p>Aliases: UnixSocketPerms, UnixSocketMode</p>
+
+<p>Default: 0</p>
+
+<p>If specified and nonzero, any UNIX-domain sockets bound by this process will have their access permissions set to <code>MODE</code> immediately upon creation. <code>MODE</code> should be an octal number representing socket access permissions as for <code>chmod(1)</code>. If unspecified or zero, sockets will be created with the default permissions <code>(0777 &amp; ~umask())</code>.</p>
+
+<p>Since v2.2.0.</p>
 
 <h2 id="Navigation-Cache-Options">Navigation Cache Options</h2>
 

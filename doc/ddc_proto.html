@@ -132,8 +132,9 @@
   &quot;version&quot;:&quot;2.1.9&quot;,                    //-- server DDC version
   &quot;compat&quot;:&quot;2.1.8&quot;,                     //-- server compatibility version (&gt;= v2.1.9)
   &quot;hostname&quot;:&quot;www.dwds.de&quot;,             //-- distributed server hostname if available (&gt;= v2.0.35)
-  &quot;hostaddr&quot;:&quot;127.0.0.1&quot;,               //-- distributed server socket hostname or address (&quot;host&quot; for ddc &lt; v2.0.35)
-  &quot;port&quot;:50011,                         //-- distributed server socket port
+  &quot;hostaddr&quot;:&quot;127.0.0.1&quot;,               //-- distributed server socket hostname, address, or path (&quot;host&quot; for ddc &lt; v2.0.35)
+  &quot;port&quot;:50011,                         //-- distributed server socket TCP port (if applicable)
+  &quot;sockaddr&quot;:&quot;inet://127.0.0.1:50011&quot;,  //-- URL-style socket address (&quot;inet://ADDR:PORT&quot; or &quot;unix://PATH&quot; &gt;= v2.2.0)
   &quot;started&quot;:&quot;2014-02-17T13:49:59Z&quot;,     //-- ISO-8601 timestamp of last server start
   &quot;uptime&quot;:1392644999,                  //-- server instance uptime in seconds
   &quot;nrequests&quot;:21,                       //-- number of served requests

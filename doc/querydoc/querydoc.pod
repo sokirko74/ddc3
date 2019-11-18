@@ -5,7 +5,7 @@
 =head2 Overview
 
 This documentation describes the query language accepted by
-DDC version 2.1.16.  Current sources for DDC should be available
+DDC version 2.2.0.  Current sources for DDC should be available
 from
 http://sourceforge.net/projects/ddc-concordance.
 
@@ -530,10 +530,10 @@ Comments in this document may appear after each rule in C notation
                  | l_indextuple , s_indextuple_item  /* Multiple indices are separated by commas */
                  ;
  
- qf_subcorpora ::=                                   /*-- Set of target subcorpora --*/
+ qf_subcorpora ::=                                   /*-- Set of target subcorpus paths --*/
                                                      /* ... empty subcorpus set */
-                 | s_subcorpus                       /* ... singleton subcorpus (symbol) */
-                 | qf_subcorpora , s_subcorpus       /* ... multiple subcorpora are separated by commas */
+                 | s_subcorpus                       /* ... singleton subcorpus path (symbol) */
+                 | qf_subcorpora , s_subcorpus       /* ... multiple subcorpus paths are separated by commas */
                  ;
  
 
@@ -608,8 +608,8 @@ Comments in this document may appear after each rule in C notation
                        EXPANDER                     /* ... begins with a literal '|', and may be '|-' for an index-dependent default */
                      ;
  
- s_subcorpus       ::=                              /*-- Named subcorpus used by :... filter --*/
-                       symbol                       /* ... can be any symbol */
+ s_subcorpus       ::=                              /*-- Named subcorpus path used by :... filter --*/
+                       SUBCORPUS                    /* ... can be (almost) any symbol */
                      ;
  
  s_field           ::=                              /*-- Document metadata field name --*/
@@ -1002,6 +1002,33 @@ The default expansion pipeline for any other other index is empty, i.e. equivale
 the identity expander "id" a.k.a. "null".
 Literal pipe symbols ("|") must be escaped if they occur anywhere
 in a literal symbol, e.g. by enclosing the symbol in single quotes.
+
+
+
+
+=head3 Subcorpus Paths
+
+A branch-server query (see ddc_cfg(5))
+may be restricted to a subset of available sub*corpora
+by means of the : operator (:PATH1,PATH2,...,PATHn).
+Each subcorpus PATH in the list is parsed syntactically as an
+atomic symbol but is otherwise ignored
+by physical leaf servers.
+
+
+Prior to v2.2.0, each PATH in a branch-server query had to be the literal name of
+an immediate daughter node (see ddc_cfg(5)),
+and only those daughters explicitly specified were queried.
+As of v2.2.0, branch servers allow slash-separated sub*corpus paths in PATHs
+as well as (limited) wildcard strings * indicating all descendants
+from the corresonding node:
+PathsDescription:all descendants (empty list: default):'*'all descendants (explicit wildcard):'foo','bar'immediate daughters "foo" and "bar" only:'foo/bar'granddaughter "bar", child of daughter "foo":'*/bar'all granddaughters named "bar":'*/bar','*/*/bar'all granddaughters or great-granddaughters named "bar"
+:                   /* all descendants (empty list: default) */
+:'*'                /* all descendants (explicit wildcard) */
+:'foo','bar'        /* immediate daughters "foo" and "bar" only */
+:'foo/bar'          /* granddaughter "bar", child of daughter "foo" */
+:'*/bar'            /* all granddaughters named "bar" */
+:'*/bar','*/*/bar'  /* all granddaughters or great-granddaughters named "bar" */
 
 
 

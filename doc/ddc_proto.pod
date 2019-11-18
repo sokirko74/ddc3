@@ -131,8 +131,9 @@ Returns status information on the running server as a JSON object of the form:
   "version":"2.1.9",			//-- server DDC version
   "compat":"2.1.8",			//-- server compatibility version (>= v2.1.9)
   "hostname":"www.dwds.de",		//-- distributed server hostname if available (>= v2.0.35)
-  "hostaddr":"127.0.0.1",		//-- distributed server socket hostname or address ("host" for ddc < v2.0.35)
-  "port":50011,                         //-- distributed server socket port
+  "hostaddr":"127.0.0.1",		//-- distributed server socket hostname, address, or path ("host" for ddc < v2.0.35)
+  "port":50011,                         //-- distributed server socket TCP port (if applicable)
+  "sockaddr":"inet://127.0.0.1:50011",  //-- URL-style socket address ("inet://ADDR:PORT" or "unix://PATH" >= v2.2.0)
   "started":"2014-02-17T13:49:59Z",	//-- ISO-8601 timestamp of last server start
   "uptime":1392644999,			//-- server instance uptime in seconds
   "nrequests":21,			//-- number of served requests
