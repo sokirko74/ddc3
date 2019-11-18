@@ -16,6 +16,7 @@ struct CIndexDocument : public CTokenIndexator {
     string CorpusFileName; // = document name
     vector<char> DocumentBuffer; // read to chars or
     vector<string> DocumentLines; // or to lines
+    size_t DroppedLinesCount;
 
     bool IsEmpty() const;
     void Initialize(const CConcIndexator* parent);
@@ -48,7 +49,7 @@ public:
 /*--- emacs style variables ---
  * Local Variables:
  *  mode: C++
- *  c-default-style: "linux"
+ *  c-file-style: "ellemtel"
  *  c-basic-offset: 4
  *  tab-width: 8
  *  indent-tabs-mode: nil

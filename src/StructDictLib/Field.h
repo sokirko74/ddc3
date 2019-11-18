@@ -26,22 +26,22 @@
 const size_t FieldStrLen = 100;
 struct  CField  
 {
-       int                              FieldId;
-       char                             FieldStr[FieldStrLen];
-           vector<CSignat>      m_Signats;
-       char                             TypeRes;
-       int                              OrderId;
-           bool                         IsApplicToActant;
-           CField& operator = (const CField& _F)
-           {
-                   FieldId = _F.FieldId;
-                   strcpy (FieldStr, _F.FieldStr);
-                   TypeRes = _F.TypeRes;
-                   OrderId = _F.OrderId;
-                   IsApplicToActant = _F.IsApplicToActant;
-                   m_Signats =  _F.m_Signats; 
-                   return *this;
-           };
+    int                              FieldId;
+    char                             FieldStr[FieldStrLen];
+    vector<CSignat>      m_Signats;
+    char                             TypeRes;
+    int                              OrderId;
+    bool                         IsApplicToActant;
+    CField& operator = (const CField& _F)
+    {
+        FieldId = _F.FieldId;
+        strcpy (FieldStr, _F.FieldStr);
+        TypeRes = _F.TypeRes;
+        OrderId = _F.OrderId;
+        IsApplicToActant = _F.IsApplicToActant;
+        m_Signats =  _F.m_Signats; 
+        return *this;
+    };
 
 };
 
@@ -50,7 +50,7 @@ struct  CField
 /*--- emacs style variables ---
  * Local Variables:
  *  mode: C++
- *  c-default-style: "linux"
+ *  c-file-style: "ellemtel"
  *  c-basic-offset: 4
  *  tab-width: 8
  *  indent-tabs-mode: nil

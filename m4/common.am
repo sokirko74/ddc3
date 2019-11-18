@@ -1,6 +1,7 @@
 ##-----------------------------------------------------------------------
 ## preprocessor flags
-AM_CPPFLAGS = -I../CommonLib -I$(top_srcdir)/src/CommonLib -I../PCRE -I$(top_srcdir)/src/PCRE -I$(top_srcdir)/src/jsoncpp/include
+#AM_CPPFLAGS = -I../CommonLib -I$(top_srcdir)/src/CommonLib -I../PCRE -I$(top_srcdir)/src/PCRE -I$(top_srcdir)/src/jsoncpp/include
+AM_CPPFLAGS = -I$(top_builddir)/src/CommonLib -I$(top_srcdir)/src/CommonLib -I$(top_builddir)/src/PCRE -I$(top_srcdir)/src/PCRE -I$(top_srcdir)/src/jsoncpp/include
 
 ##-----------------------------------------------------------------------
 ## Variables: cleanup

@@ -191,7 +191,7 @@ extern void v_assign_double_to_string (TIXML_STRING & S_string, double d_val);
 /*--- emacs style variables ---
  * Local Variables:
  *  mode: C++
- *  c-default-style: "linux"
+ *  c-file-style: "ellemtel"
  *  c-basic-offset: 4
  *  tab-width: 8
  *  indent-tabs-mode: nil

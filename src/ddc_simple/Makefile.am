@@ -36,7 +36,7 @@ ddc_simple_LDADD = \
  ../AgramtabLib/libDDCAgramtab.la \
  ../RmlTar/libDDCRmlTar.la \
  ../MorphWizardLib/libDDCMorphWizard.la \
- ../jsoncpp/libjsoncpp.la \
+ ../jsoncpp/libDDCjsoncpp.la \
  ../CommonLib/libDDCCommon.la
 
 ##-----------------------------------------------------------------------
@@ -91,7 +91,7 @@ MAINTAINERCLEANFILES = \
 ##-----------------------------------------------------------------------
 
 ##--- extra distribution files
-#EXTRA_DIST =
+EXTRA_DIST = CMakeLists.txt
 
 ##--- recursion subdirectories for 'make dist'
 #DIST_SUBDIRS = $(SUBDIRS)

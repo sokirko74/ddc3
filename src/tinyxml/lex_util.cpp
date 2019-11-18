@@ -182,20 +182,20 @@ lexico lex_test_id (const _byte_ * bp_str, unsigned u_size, lexico lex_next)
 
 /// Removes all leading and trailing white spaces
 TIXML_STRING S_remove_lead_trail (const char * cp_in)
-{	
-	TIXML_STRING S_ret;
-	const char * cp_start, * cp_end;
-	char * cp_new, * cp_out;
+{       
+        TIXML_STRING S_ret;
+        const char * cp_start, * cp_end;
+        char * cp_new, * cp_out;
 
    // result can't be longer. we assign same size
-	cp_new = new char [strlen (cp_in) + 1];
+        cp_new = new char [strlen (cp_in) + 1];
    cp_out = cp_new;
-	cp_start = cp_in;
-	while (* cp_start == ' ' || * cp_start == '\t')
-		cp_start++;
-	cp_end = cp_in + strlen (cp_in) - 1;
-	while (cp_end >= cp_in && (* cp_end == ' ' || * cp_end == '\t'))
-		cp_end--;
+        cp_start = cp_in;
+        while (* cp_start == ' ' || * cp_start == '\t')
+                cp_start++;
+        cp_end = cp_in + strlen (cp_in) - 1;
+        while (cp_end >= cp_in && (* cp_end == ' ' || * cp_end == '\t'))
+                cp_end--;
    while (cp_start <= cp_end)
    {
       if (* cp_start == ' ' || * cp_start == '\t')
@@ -209,9 +209,9 @@ TIXML_STRING S_remove_lead_trail (const char * cp_in)
          * cp_out++ = * cp_start++;
    }
    * cp_out = 0;
-	S_ret = cp_new;
-	delete [] cp_new;
-	return S_ret;
+        S_ret = cp_new;
+        delete [] cp_new;
+        return S_ret;
 }
 
 /// Assign an integer to a string
@@ -304,10 +304,11 @@ void v_assign_double_to_string (TIXML_STRING & S_string, double d_val)
 #endif
 
 }
+
 /*--- emacs style variables ---
  * Local Variables:
  *  mode: C++
- *  c-default-style: "linux"
+ *  c-file-style: "ellemtel"
  *  c-basic-offset: 4
  *  tab-width: 8
  *  indent-tabs-mode: nil

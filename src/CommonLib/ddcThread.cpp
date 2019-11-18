@@ -36,8 +36,8 @@ using namespace std;
 ddcThread::~ddcThread()
 {
     if (m_running) {
-	if (!m_detached)
-	    pthread_detach(m_tid);
+        if (!m_detached)
+            pthread_detach(m_tid);
         pthread_cancel(m_tid);
     }
 }
@@ -55,8 +55,8 @@ std::string ddcThread::toString(void) const
     str.reserve(2*sizeof(pthread_t)+2);
     str.append("0x");
     for (size_t i=0; i<sizeof(pthread_t); ++i) {
-	sprintf(tmp, "%02x", (unsigned)(thrc[i]));
-	str.append(tmp);
+        sprintf(tmp, "%02x", (unsigned)(thrc[i]));
+        str.append(tmp);
     }
     return str;
 }
@@ -83,7 +83,7 @@ int ddcThread::start()
 
     //-- destroy thread attributes if requested: they're no longer needed for this thread
     if (m_attr != NULL)
-	pthread_attr_destroy(m_attr);
+        pthread_attr_destroy(m_attr);
     
     return result;
 }
@@ -105,19 +105,19 @@ int ddcThread::detach(bool force)
 {
     int result = ENOTSUP;
     if (m_running && !m_detached) {
-	result = pthread_detach(m_tid);
-	if (result == 0)
-	    m_detached = 1;
+        result = pthread_detach(m_tid);
+        if (result == 0)
+            m_detached = 1;
     }
     if (m_detached && force && m_running)
-	m_running = 0; //-- force-detach underlying pthread_t
+        m_running = 0; //-- force-detach underlying pthread_t
     return result;
 }
 
 /*--- emacs style variables ---
  * Local Variables:
  *  mode: C++
- *  c-default-style: "linux"
+ *  c-file-style: "ellemtel"
  *  c-basic-offset: 4
  *  tab-width: 8
  *  indent-tabs-mode: nil

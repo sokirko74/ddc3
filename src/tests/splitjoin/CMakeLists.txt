@@ -11,7 +11,7 @@ macro (splitjoin)
     )
     add_test(
             NAME splitjoin_dump
-            COMMAND ddc_dump --tab-single-file -o new_dump.txt -f m.con
+            COMMAND ddc_dump --tabs-stream -o new_dump.txt -f m.con
             WORKING_DIRECTORY  ${dir}
     )
         #copy opts to maintain break orders
@@ -28,7 +28,7 @@ macro (splitjoin)
     )
     add_test(
             NAME splitjoin_dump_united
-            COMMAND ddc_dump --tab-single-file -o new_dump_united.txt -f m_united.con
+            COMMAND ddc_dump --tabs-stream -o new_dump_united.txt -f m_united.con
             WORKING_DIRECTORY  ${dir}
     )
     add_test(

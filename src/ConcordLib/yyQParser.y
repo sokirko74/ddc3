@@ -705,7 +705,7 @@ qw_suffix_set:
 
 qw_thesaurus:
 		COLON_LBRACE s_semclass '}'		{ $$ = _qc->PushQuery(new CQTokThes("Thes",*$2)); }
-	|	s_index '=' ':' '{' s_semclass '}'	{ $$ = _qc->PushQuery(new CQTokThes(*$1,*$5)); }
+	|	s_index '=' COLON_LBRACE s_semclass '}'	{ $$ = _qc->PushQuery(new CQTokThes(*$1,*$4)); }
 	;
 
 qw_morph:

@@ -30,17 +30,17 @@
 
 void PrintHelp()
 {
-		
-	printf ("load <Concordance Project>  - load project\n");
-	printf ("query <query> - run a query\n");
-	printf ("set limit <limit> - maximal count of hits to find\n");
-	printf ("set profile_cycle <count> - how many times should the program run the query\n");
-	printf ("set out <file> - print hits to <file> \n");
-	printf ("set result_format html|txt|table|docids|json - set the format of hits\n");
-	printf ("exit - exit\n");
-	printf ("showtime - toggle show time switcher\n");
-	printf ("echoquery - toggle echo query switcher\n");
-	printf ("expand [PIPELINE] <word> - expand word to all known inflected forms\n");
+                
+    printf ("load <Concordance Project>  - load project\n");
+    printf ("query <query> - run a query\n");
+    printf ("set limit <limit> - maximal count of hits to find\n");
+    printf ("set profile_cycle <count> - how many times should the program run the query\n");
+    printf ("set out <file> - print hits to <file> \n");
+    printf ("set result_format html|txt|table|docids|json - set the format of hits\n");
+    printf ("exit - exit\n");
+    printf ("showtime - toggle show time switcher\n");
+    printf ("echoquery - toggle echo query switcher\n");
+    printf ("expand [PIPELINE] <word> - expand word to all known inflected forms\n");
 
 };
 
@@ -52,308 +52,305 @@ string OutFile = "";
 
 void FreeCorpus()
 {
-	if (Holder.m_pConcordance)
-	{
-		delete Holder.m_pConcordance;
-	    Holder.m_pConcordance = 0;
-	};
+    if (Holder.m_pConcordance)
+    {
+        delete Holder.m_pConcordance;
+        Holder.m_pConcordance = 0;
+    };
 };
 
 void LoadCorpus(string FileName)
 {
 
-	Trim(FileName);
-	if (FileName.empty())
-	{
-		throw CExpc ("File name is empty\n");
-	}
-	FreeCorpus();
-	Holder.m_pConcordance = new CConcIndexator;
-	Holder.m_pConcordance->LoadProject(FileName.c_str());
+    Trim(FileName);
+    if (FileName.empty())
+    {
+        throw CExpc ("File name is empty\n");
+    }
+    FreeCorpus();
+    Holder.m_pConcordance = new CConcIndexator;
+    Holder.m_pConcordance->LoadProject(FileName.c_str());
 };
 
 void ExitFromProgram()
 {
-	FreeCorpus();
-	FreeConcordDicts();
-	exit(0);
+    FreeCorpus();
+    FreeConcordDicts();
+    exit(0);
 };
 
 void RussianConvertToDictionary (string& S)
 {
-	#ifdef WIN32
-		OemToCharBuff((char*)S.c_str(), (char*)S.c_str(), S.length());		
-	#else
-		KOI8ToWin(S);
-	#endif
+#ifdef WIN32
+    OemToCharBuff((char*)S.c_str(), (char*)S.c_str(), S.length());          
+#else
+    KOI8ToWin(S);
+#endif
 
 };
 
 void RussianConvertToScreen (string& S)
 {
-	#ifdef WIN32
-		CharToOemBuff((char*)S.c_str(), (char*)S.c_str(), S.length());		
-	#else
-		WinToKOI8(S);
-	#endif
+#ifdef WIN32
+    CharToOemBuff((char*)S.c_str(), (char*)S.c_str(), S.length());          
+#else
+    WinToKOI8(S);
+#endif
 
 };
 
 void RunQuery(string Command, string Query)
 {
-	Trim(Query);
-	if (Query.empty())
-	{
-		printf ("cannot process empty query\n");
-		return;
-	};		
-	if (!Holder.m_pConcordance)
-	{
-		printf ("no loaded corpus\n");
-		return;
-	};		
+    Trim(Query);
+    if (Query.empty())
+    {
+        printf ("cannot process empty query\n");
+        return;
+    };              
+    if (!Holder.m_pConcordance)
+    {
+        printf ("no loaded corpus\n");
+        return;
+    };              
 
-	if (CountOfCycles > 1)
-		printf ("Count of profile cycles = %zi\n", CountOfCycles);
+    if (CountOfCycles > 1)
+        printf ("Count of profile cycles = %zi\n", CountOfCycles);
 
-	DWORD  EndHitNo = 0, HitsCount;		
-		
+    DWORD  EndHitNo = 0, HitsCount;         
+                
 
-	time_t t1;
-	time(&t1);
-	DDCErrorEnum Error;
+    time_t t1;
+    time(&t1);
+    DDCErrorEnum Error;
 
-	for (int ProfileCycleNo=0; ProfileCycleNo < CountOfCycles; ProfileCycleNo++)
-	{
-	
-			EndHitNo = 0;
+    for (int ProfileCycleNo=0; ProfileCycleNo < CountOfCycles; ProfileCycleNo++)
+    {
+        
+        EndHitNo = 0;
 
-			Error =  Holder.SimpleQuery(Query.c_str(), EndHitNo, HitsCount);
+        Error =  Holder.SimpleQuery(Query.c_str(), EndHitNo, HitsCount);
 
-			if (Error != errNone)
-			{
-				fprintf (stderr, "Error! %s \n", GetDDCErrorString(Error));
-				return;
-			};
+        if (Error != errNone)
+        {
+            fprintf (stderr, "Error! %s \n", GetDDCErrorString(Error));
+            return;
+        };
 
-			if (ProfileCycleNo > 0)
-				Holder.ClearQueryCache();
+        if (ProfileCycleNo > 0)
+            Holder.ClearQueryCache();
 
-	};
-		
-		
+    };
+                
+                
 
-	time_t t2;
-	time(&t2);
-	string s = Holder.m_QueryResultStr;
-	if (OutFile.empty())
-	{
-		if (Holder.m_pConcordance->m_Language == morphRussian)
-			RussianConvertToScreen(s);
-		
-		printf ("%s", s.c_str());
-	}
-	else
-	{
-		FILE * fp = (OutFile.empty() ? stdout : fopen (OutFile.c_str(),"a"));
-		if (!fp)
-		{
-			fprintf (stderr, "cannot open  %s\n", OutFile.c_str());
-		}
-		else
-		{
-			fprintf (fp, "%s\n", s.c_str());
-			if (fp != stdout) fclose (fp);
-		};
-	};
-	
+    time_t t2;
+    time(&t2);
+    string s = Holder.m_QueryResultStr;
+    if (OutFile.empty())
+    {
+        if (Holder.m_pConcordance->m_Language == morphRussian)
+            RussianConvertToScreen(s);
+                
+        printf ("%s", s.c_str());
+    }
+    else
+    {
+        FILE * fp = (OutFile.empty() ? stdout : fopen (OutFile.c_str(),"a"));
+        if (!fp)
+        {
+            fprintf (stderr, "cannot open  %s\n", OutFile.c_str());
+        }
+        else
+        {
+            fprintf (fp, "%s\n", s.c_str());
+            if (fp != stdout) fclose (fp);
+        };
+    };
+        
 
-	printf ("HitsCount = %u\n", HitsCount);
-	if (bShowTime)
-		fprintf (stderr, "Seconds = %zi\n", t2 - t1);
+    printf ("HitsCount = %u\n", HitsCount);
+    if (bShowTime)
+        fprintf (stderr, "Seconds = %zi\n", t2 - t1);
 
 };
 
 void RunExpand(string Command, string Args)
 {
-	Trim(Args);
-	vector<string> args = stringSplit(Args.c_str(), " \t\r\n");
-	string cspec("default");
-	set<string> words;
-	if (args.empty()) {
-		printf ("Usage: expand [PIPELINE] WORD(s)...\n");
-		return;
-	}
-	else if (args.size() == 1) {
-		words.insert(args[0]);
-	}
-	else {
-		cspec = args.front();
-		words.insert(args.begin()+1, args.end());
-	}
+    Trim(Args);
+    vector<string> args = stringSplit(Args.c_str(), " \t\r\n");
+    string cspec("default");
+    set<string> words;
+    if (args.empty()) {
+        printf ("Usage: expand [PIPELINE] WORD(s)...\n");
+        return;
+    }
+    else if (args.size() == 1) {
+        words.insert(args[0]);
+    }
+    else {
+        cspec = args.front();
+        words.insert(args.begin()+1, args.end());
+    }
 
-	if (!Holder.m_pConcordance)
-	{
-		printf ("no corpus loaded\n");
-		return;
-	}
+    if (!Holder.m_pConcordance)
+    {
+        printf ("no corpus loaded\n");
+        return;
+    }
 
-	//-- get chain
-	TxChain txc;
-	try {
-		txc = Holder.m_pConcordance->m_Txd.getChain(cspec);
-	}
-	catch (exception &e) {
-		fprintf(stderr, "Could not create pipeline `%s': %s\n", cspec.c_str(), e.what());
-		return;
-	}
+    //-- get chain
+    TxChain txc;
+    try {
+        txc = Holder.m_pConcordance->m_Txd.getChain(cspec);
+    }
+    catch (exception &e) {
+        fprintf(stderr, "Could not create pipeline `%s': %s\n", cspec.c_str(), e.what());
+        return;
+    }
 
-	//-- expand
-	set<string> xwords;
-	txc.expand(words, xwords);
+    //-- expand
+    set<string> xwords;
+    txc.expand(words, xwords);
 
-	printf("Got %zi expansions for pipeline [%s]\n: ", xwords.size(), txc.chainString().c_str());
-	for (set<string>::const_iterator xi=xwords.begin(); xi!=xwords.end(); xi++) {
-		printf("%s%s", (xi==xwords.begin() ? "" : ", "), xi->c_str());
-	}
-	printf("\n");
+    printf("Got %zi expansions for pipeline [%s]\n: ", xwords.size(), txc.chainString().c_str());
+    for (set<string>::const_iterator xi=xwords.begin(); xi!=xwords.end(); xi++) {
+        printf("%s%s", (xi==xwords.begin() ? "" : ", "), xi->c_str());
+    }
+    printf("\n");
 };
 
 
 void RunCommand(string line)
 {
-	Trim(line);
-	if (line  == "exit") ExitFromProgram();
-	if (line  == "showtime") 
-	{
-		bShowTime = !bShowTime;
-		printf ("ShowTime = %s\n", bShowTime? "true":  "false");
-		return;
-	};
-	if (line  == "echoquery") 
-	{
-		bEchoQuery = !bEchoQuery;
-		printf ("EchoQuery = %s\n", bEchoQuery? "true":  "false");
-		return;
-	};
-	if (line  == "help")
-	{
-		PrintHelp();
-		return;
-	};
-	StringTokenizer tok(line.c_str(), " ");
-	string command = tok.next_token();
-	if (command.empty()) return;
-	if (command == "load")
-		LoadCorpus(tok.next_token());
-	else if (command == "query")
-		RunQuery(command,line.substr(line.find(" ")) );
-	else if (command == "expand")
-		RunExpand(command,line.substr(line.find(" ")) );
-	else
-	if (command == "set")
-	{
-		string variab = tok.next_token();
-		string value = tok.next_token();
-		if (value.empty()) return;
-		if (variab == "profile_cycle")
-			{
-				CountOfCycles = atoi(value.c_str());
-				printf ("Count of profile cycles = %zi\n", CountOfCycles);
-				
-			}
-		else
- 		 if (variab == "limit")
-			{
-		 		Holder.m_ResultLimit = atoi(value.c_str());
-				fprintf  (stderr, "ResultLimit = %zi\n", Holder.m_ResultLimit);
-			}
-		else
- 		 if (variab == "out")
-		 {
-			 OutFile = value.c_str();
-			 if (OutFile == "-" || OutFile == "stdout")
-				 OutFile = "";
-		 }
-		else
- 		 if (variab == "result_format")
-		 {
-			 Holder.SetResultFormat(value);
-			 fprintf  (stderr, "result format = %s\n", Holder.GetResultFormatStr().c_str());
-		 };
-	}
-	else
-	{
-		fprintf  (stderr, "Unknown command, type \"help\" to get the list of commands\n");
-	};
-	
-	
-		
+    Trim(line);
+    if (line  == "exit") ExitFromProgram();
+    if (line  == "showtime") 
+    {
+        bShowTime = !bShowTime;
+        printf ("ShowTime = %s\n", bShowTime? "true":  "false");
+        return;
+    };
+    if (line  == "echoquery") 
+    {
+        bEchoQuery = !bEchoQuery;
+        printf ("EchoQuery = %s\n", bEchoQuery? "true":  "false");
+        return;
+    };
+    if (line  == "help")
+    {
+        PrintHelp();
+        return;
+    };
+    StringTokenizer tok(line.c_str(), " ");
+    string command = tok.next_token();
+    if (command.empty()) return;
+    if (command == "load")
+        LoadCorpus(tok.next_token());
+    else if (command == "query")
+        RunQuery(command,line.substr(line.find(" ")) );
+    else if (command == "expand")
+        RunExpand(command,line.substr(line.find(" ")) );
+    else
+        if (command == "set")
+        {
+            string variab = tok.next_token();
+            string value = tok.next_token();
+            if (value.empty()) return;
+            if (variab == "profile_cycle")
+            {
+                CountOfCycles = atoi(value.c_str());
+                printf ("Count of profile cycles = %zi\n", CountOfCycles);
+                                
+            }
+            else
+                if (variab == "limit")
+                {
+                    Holder.m_ResultLimit = atoi(value.c_str());
+                    fprintf  (stderr, "ResultLimit = %zi\n", Holder.m_ResultLimit);
+                }
+                else
+                    if (variab == "out")
+                    {
+                        OutFile = value.c_str();
+                        if (OutFile == "-" || OutFile == "stdout")
+                            OutFile = "";
+                    }
+                    else
+                        if (variab == "result_format")
+                        {
+                            Holder.SetResultFormat(value);
+                            fprintf  (stderr, "result format = %s\n", Holder.GetResultFormatStr().c_str());
+                        };
+        }
+        else
+        {
+            fprintf  (stderr, "Unknown command, type \"help\" to get the list of commands\n");
+        };
+        
+        
+                
 };
 
 int main(int argc, char* argv[])
 {
-	ddcInitGlobal();
+    ddcInitGlobal();
 
-	if (argc == 2) 
-	{
-		string s = argv[1];
+    if (argc == 2) 
+    {
+        string s = argv[1];
 
-		if (  (s == "--version") || (s== "-v"))
-		{
-			fprintf (stderr,"%s\n", DDCVersionStr.c_str());	
-			fprintf (stderr,"%s: command line query processor\n", argv[0]);	
-			return 1;
-		}
-	};
+        if (  (s == "--version") || (s== "-v"))
+        {
+            fprintf (stderr,"%s\n", DDCVersionStr.c_str()); 
+            fprintf (stderr,"%s: command line query processor\n", argv[0]); 
+            return 1;
+        }
+    };
 
-	Holder.m_pConcordance = 0;
-	Holder.SetResultFormat("TEXT");
-	Holder.m_ResultLimit=10;
-	InitConcordDicts();
+    Holder.m_pConcordance = 0;
+    Holder.SetResultFormat("TEXT");
+    Holder.m_ResultLimit=10;
+    InitConcordDicts();
 
-	if (argc == 2)
-		RunCommand(string("load ") +argv[1]);
+    if (argc == 2)
+        RunCommand(string("load ") +argv[1]);
 
-	size_t bufsize=1024;
-	char *linebuf=(char*)malloc(bufsize);
-	for (;;)
-	{
-		printf (">");
-		ssize_t nread = getline(&linebuf,&bufsize,stdin);
-		if (nread==-1 || (nread==0 && feof(stdin))) break;
-		string q(linebuf, nread);
+    size_t bufsize=1024;
+    char *linebuf=(char*)malloc(bufsize);
+    for (;;)
+    {
+        printf (">");
+        ssize_t nread = getline(&linebuf,&bufsize,stdin);
+        if (nread==-1 || (nread==0 && feof(stdin))) break;
+        string q(linebuf, nread);
 
-		if (bEchoQuery)
-			fwrite(linebuf, nread, 1, stdout);
+        if (bEchoQuery)
+            fwrite(linebuf, nread, 1, stdout);
 
-		if (Holder.m_pConcordance)
-			if (Holder.m_pConcordance->m_Language == morphRussian)
-				RussianConvertToDictionary(q);
-		try {
-			RunCommand(q);
-		}
-		catch (exception &e) {
-			fprintf (stderr, "General exception: %s", e.what());
-			return 1;
-		}
+        if (Holder.m_pConcordance)
+            if (Holder.m_pConcordance->m_Language == morphRussian)
+                RussianConvertToDictionary(q);
+        try {
+            RunCommand(q);
+        }
+        catch (exception &e) {
+            fprintf (stderr, "General exception: %s", e.what());
+            return 1;
+        }
 
-	};
+    };
 
 
-	return 0;
+    return 0;
 }
 
 
-		
-
-
-
+                
 
 /*--- emacs style variables ---
  * Local Variables:
  *  mode: C++
- *  c-default-style: "linux"
+ *  c-file-style: "ellemtel"
  *  c-basic-offset: 4
  *  tab-width: 8
  *  indent-tabs-mode: nil

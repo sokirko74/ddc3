@@ -28,7 +28,7 @@
 //----------------------------------------------------------------------
 void CDDCLeafServer::Shutdown() {
     ddcLogInfo(Format("shutting down leaf server %s", m_CorpusName.c_str()));
-    StopAcceptingThread();
+    CloseListenSocket();
 };
 
 //==============================================================================
@@ -81,7 +81,7 @@ void CDDCLeafServer::handle__get_first_hits(string &Result, const char *Query, i
     int Error = m_pHolder->GetHits(Query, EndHitNo);
     if (Error != errNone)
         throw CExpc(Error, m_pHolder->m_ErrorStr.empty() ? GetDDCErrorString((DDCErrorEnum) Error)
-                                                         : m_pHolder->m_ErrorStr); //-- error
+                    : m_pHolder->m_ErrorStr); //-- error
     Result = Format("%i %i %i %i %i", Error, EndHitNo, m_pHolder->m_AllHitsCount, m_pHolder->m_RelevantDocumentCount,
                     m_pHolder->HitSortOrder());
     Result += m_pHolder->GetHitIds();
@@ -104,7 +104,7 @@ CDDCLeafServer::handle__get_hit_strings(string &Result, const char *ResultType, 
     int Error = m_pHolder->GenerateHitStrings(StartHitNo);
     if (Error != errNone)
         throw CExpc(Error, m_pHolder->m_ErrorStr.empty() ? GetDDCErrorString((DDCErrorEnum) Error)
-                                                         : m_pHolder->m_ErrorStr); //-- error
+                    : m_pHolder->m_ErrorStr); //-- error
 
     //-- no error
     if (m_pHolder->m_QueryResultStr.empty()) {
@@ -153,7 +153,7 @@ CDDCLeafServer::handle__run_query(string &Result, const char *CorpusName, const 
     runq.EndHitNo = EndHitNo;
     if (Error != errNone)
         throw CExpc(Error, m_pHolder->m_ErrorStr.empty() ? GetDDCErrorString((DDCErrorEnum) Error)
-                                                         : m_pHolder->m_ErrorStr); //-- error
+                    : m_pHolder->m_ErrorStr); //-- error
     runq.HitsCount = m_pHolder->m_AllHitsCount;
     runq.HitDistrib = Format("=%d", runq.HitsCount);
     if (IsCountSort(m_pHolder->HitSortOrder()))
@@ -165,7 +165,7 @@ CDDCLeafServer::handle__run_query(string &Result, const char *CorpusName, const 
     Error = m_pHolder->GenerateHitStrings(StartHitNo, false);
     if (Error != errNone)
         throw CExpc(Error, m_pHolder->m_ErrorStr.empty() ? GetDDCErrorString((DDCErrorEnum) Error)
-                                                         : m_pHolder->m_ErrorStr); //-- error
+                    : m_pHolder->m_ErrorStr); //-- error
     if (m_pHolder->m_QueryResultStr.empty()) {
         if (m_pHolder->GetResultFormatStr() == "html")
             if (m_pHolder->m_ResultLimit > 0)
@@ -230,9 +230,9 @@ void CDDCLeafServer::handle__status(string &Result, int timeout, bool verbose) {
               + "\"version\":" + jsonStr(PACKAGE_VERSION) + ",\n\t"
               + "\"compat\":" + jsonStr(m_VersionCompat.str()).c_str() + ",\n\t"
               + "\"hostname\":" + jsonStr(m_FQHostName) + ",\n\t"
-              + "\"hostaddr\":" + jsonStr(m_HostAddr) + ",\n\t"
-              + "\"port\":" + Format("%d", m_Port) + ",\n\t"
-              + "\"socket\":" + jsonStr(GetAddressStr()) + ",\n\t"
+              + "\"hostaddr\":" + jsonStr(m_SockAddr.m_Addr) + ",\n\t"
+              + "\"port\":" + Format("%d", m_SockAddr.m_Port) + ",\n\t"
+              + "\"sockaddr\":" + jsonStr(GetAddressStr()) + ",\n\t"
               + "\"started\":" + jsonStr(timestampUTC(m_tStarted)) + ",\n\t"
               + "\"uptime\":" + Format("%.0f", uptime) + ",\n\t"
               + "\"nrequests\":" + Format("%zd", m_ServerStats.m_nRequests) + ",\n\t"
@@ -253,7 +253,7 @@ void CDDCLeafServer::handle__status(string &Result, int timeout, bool verbose) {
               + "\"cachesize\":" + Format("%zd", m_pHolder->CacheSize()) + ",\n\t"
               + "\"curlcachesize\":" + Format("%zd", ddcCurlCache.size()) + "\n\t"
               + "}"
-    );
+        );
     m_bExpectMore = false;
 }
 
@@ -270,7 +270,7 @@ void CDDCLeafServer::handle__info(string &Result, int timeout, bool verbose) {
               + "\"name\":" + jsonStr(m_CorpusName) + ",\n\t"
               + "\"version\":" + jsonStr(PACKAGE_VERSION) + ",\n\t"
               + "\"project\":" + (ix ? jsonStr(ProjectName) : "null") //+ ",\n\t"
-    );
+        );
 
     if (ix) {
         int i;
@@ -297,7 +297,7 @@ void CDDCLeafServer::handle__info(string &Result, int timeout, bool verbose) {
                    + "\"indexPunctuation\":" + (ix->IndexPunctuation() ? '1' : '0') + ",\n\t"
                    + "\"indexMorphPatterns\":" + (ix->m_bIndexMorphPatterns ? '1' : '0') + ",\n\t"
                    + "\"indexChunks\":" + (ix->m_bIndexChunks ? '1' : '0') + ",\n\t"
-        );
+            );
 
         //-- info.periods
         Result += string("\"periods\":[");
@@ -313,7 +313,7 @@ void CDDCLeafServer::handle__info(string &Result, int timeout, bool verbose) {
                    + "\n\t\t{\"name\":\"scan\",\"builtin\":1},"
                    + "\n\t\t{\"name\":\"date\",\"builtin\":1},"
                    + "\n\t\t{\"name\":\"page\",\"builtin\":1}"
-        );
+            );
 
         Result += ix->m_BiblIndex.FreeBiblMapToJson(ix->m_Utf8);
 
@@ -332,7 +332,7 @@ void CDDCLeafServer::handle__info(string &Result, int timeout, bool verbose) {
                        + "\"longname\":" + jsonStr(b.m_LongName) + ", "
                        + "\"size\":" + Format("%zd", b.m_BreakOffsets.size()) //-- breaks[i].size : number of breaks
                        + "}"
-            );
+                );
         }
         Result += "\n\t\t],\n\t";
         //-- /info.breaks
@@ -357,7 +357,7 @@ void CDDCLeafServer::handle__info(string &Result, int timeout, bool verbose) {
                        //+ "\"left\":" + Format("%zd", sis->m_BigramsIndex.m_LeftBigrams.m_FirstWords.size()) + ", "
                        //+ "\"right\":" + Format("%zd", sis->m_BigramsIndex.m_RightBigrams.m_FirstWords.size()) + ", "
                        + "}"
-            );
+                );
         }
         //---- info.indices: aliases
         for (CStringIndexator::IndexMap::const_iterator imi = ix->m_IndexMap.begin();
@@ -391,11 +391,11 @@ void CDDCLeafServer::handle__info(string &Result, int timeout, bool verbose) {
 #if DDC_VERBOSE_CORPUS_INFO
             //-- info.expanders : verbose
             Result += (string("\n\t\t{")
-                   + "\"class\":" + jsonStr(tx->m_Class) + ", "
-                   + "\"label\":" + jsonStr(tx->m_Label) + ", "
-                   + "\"param\":" + jsonStr(tx->m_Param)
-                   + "}"
-                   );
+                       + "\"class\":" + jsonStr(tx->m_Class) + ", "
+                       + "\"label\":" + jsonStr(tx->m_Label) + ", "
+                       + "\"param\":" + jsonStr(tx->m_Param)
+                       + "}"
+                );
 #else
             Result += jsonStr(tx->m_Label);
 #endif
@@ -454,10 +454,10 @@ void CDDCLeafServer::handle__reload(string &Result, int depth) {
 #if 0 /* BROKEN */
     CConcHolder *pHolder = NULL;
     if (!LoadHolder(&pHolder))
-    throw CExpc(errOther, Format("reload failed for %s", GetLocalPathOfIndex().c_str()));
+        throw CExpc(errOther, Format("reload failed for %s", GetLocalPathOfIndex().c_str()));
     if (m_pHolder) {
-    if (m_pHolder->m_pConcordance) delete m_pHolder->m_pConcordance;
-    delete m_pHolder;
+        if (m_pHolder->m_pConcordance) delete m_pHolder->m_pConcordance;
+        delete m_pHolder;
     }
     m_pHolder = pHolder;
     Result = Format("{%s:1}", jsonStr(m_CorpusName).c_str());
@@ -504,8 +504,8 @@ void CDDCLeafServer::LoadHolder(CConcHolder **ppHolder) {
     ddcLogDebug("  init graphan ");
     (*ppHolder)->m_AdditionalHitDelimiter = CDDCServer::AdditionalHitDelimiter;
 
-    ddcLogDebug(Format("  init random: port=m_RandomSeed=%i", m_Port));
-    (*ppHolder)->m_RandomSeed = m_Port;
+    ddcLogDebug(Format("  init random: port=m_RandomSeed=%i", m_SockAddr.m_Port));
+    (*ppHolder)->m_RandomSeed = m_SockAddr.m_Port;
     (*ppHolder)->SetRandomSeed();
 
     ddcLogDebug(Format("Loaded corpus indices for %s (%s)", GetLocalPathOfIndex().c_str(), m_CorpusName.c_str()));
@@ -550,11 +550,10 @@ void CDDCLeafServer::GetHitContexts(CRunQueryData &runq, DDCFormatTypeEnum Resul
     }
 }
 
-
 /*--- emacs style variables ---
  * Local Variables:
  *  mode: C++
- *  c-default-style: "linux"
+ *  c-file-style: "ellemtel"
  *  c-basic-offset: 4
  *  tab-width: 8
  *  indent-tabs-mode: nil

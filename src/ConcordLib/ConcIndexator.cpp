@@ -23,6 +23,13 @@
 #include "ConcIndexator.h"
 #include "DocumentIterator.h"
 
+//===========================================
+// globals
+
+const DWORD DefaultMaxTokenCountInOnePeriod = 5000000;
+
+const DWORD DefaultMaxInputLoadIndexSize    =  400000;
+
 
 //===========================================
 //================== Common functions =======
@@ -31,12 +38,12 @@
 // Here is the definition of a token
 bool IsWord(const CGraphmatFile& piGraphmat, long GraLine) {
     return piGraphmat.HasDescr(GraLine, OLLE)
-           || piGraphmat.HasDescr(GraLine, ORLE);
+        || piGraphmat.HasDescr(GraLine, ORLE);
 };
 
 bool IsDigit(const CGraphmatFile& piGraphmat, long GraLine) {
     return piGraphmat.HasDescr(GraLine, ODigits)
-           || piGraphmat.HasDescr(GraLine, ONumChar);
+        || piGraphmat.HasDescr(GraLine, ONumChar);
 };
 
 bool IsSentenceEnd(const CGraphmatFile& piGraphmat, long GraLine) {
@@ -58,12 +65,12 @@ CConcIndexator::~CConcIndexator() {
 //!  graphematical definition of a token
 bool CConcIndexator::IsDWDSToken(long GraLine) const {
     return IsSentenceEnd(Graphmat, GraLine)
-           || IsWord(Graphmat, GraLine)
-           || IsDigit(Graphmat, GraLine)
-           || (
-                   m_bIndexPunctuation
-                   && Graphmat.HasDescr(GraLine, OPun)
-           );
+        || IsWord(Graphmat, GraLine)
+        || IsDigit(Graphmat, GraLine)
+        || (
+            m_bIndexPunctuation
+            && Graphmat.HasDescr(GraLine, OPun)
+            );
 }
 
 void CConcIndexator::InitGraphan()  {
@@ -159,17 +166,17 @@ void CConcIndexator::DestroyIndex() {
 };
 
 DWORD CConcIndexator::GetMaxTokenCountInOnePeriod() const {
-    if (m_bUserMaxTokenCountInOnePeriod)
+    if (m_UserMaxTokenCountInOnePeriod != 0)
         return m_UserMaxTokenCountInOnePeriod;
     else
-        return 5000000;
+        return DefaultMaxTokenCountInOnePeriod;
 };
 
 DWORD CConcIndexator::GetMaxInputLoadIndexSize() const {
     if (m_UserMaxInputLoadIndexSize != 0)
         return m_UserMaxInputLoadIndexSize;
     else
-        return 400000;
+        return DefaultMaxInputLoadIndexSize;
 };
 
 void GetTextFromXMLRecursive(TiXmlNode *parent, string &Result) {
@@ -279,9 +286,9 @@ CConcIndexator::LoadXmlFile(string FileName, const char *pFileBuffer, CBibliogra
 
 bool IsXmlFile(const string &FileName) {
     return (FileName.length() > 4)
-           && ((FileName.substr(FileName.length() - 4) == ".xml")
-               || (FileName.substr(FileName.length() - 4) == ".XML")
-           );
+        && ((FileName.substr(FileName.length() - 4) == ".xml")
+            || (FileName.substr(FileName.length() - 4) == ".XML")
+            );
 };
 
 
@@ -323,7 +330,7 @@ void CConcIndexator::IndexOneTableTextArea(const string &Text, const CPageNumber
                 && (len > 2)
                 && (q[0] == '<')
                 && (q[len - 1] == '>')
-                    ) {
+                ) {
                 if (q[1] != '/') {
                     string tag_name = q.substr(1, len - 2); // ge the tag name, for example "vp" from "</vp>"
                     if (tag_name.length() > 3 && (tag_name.substr(0, 3) == "pb ")) // page break
@@ -364,9 +371,9 @@ void CConcIndexator::IndexOneTableTextArea(const string &Text, const CPageNumber
                         if (m_bIndexChunks) {
                             if (start_chunk_tags_str_and_pos.empty()
                                 || (start_chunk_tags_str_and_pos.back().first != tag_name)
-                                    ) {
+                                ) {
                                 throw CExpc(Format("Error! An end tag without a start tag is found (%s<>%s)",
-                                                  start_chunk_tags_str_and_pos.back().first.c_str(), tag_name.c_str()));
+                                                   start_chunk_tags_str_and_pos.back().first.c_str(), tag_name.c_str()));
                             }
                             if (document->CorpusEndTokenNo > 0) {
                                 string tag = Format("%s,%i", start_chunk_tags_str_and_pos.back().first.c_str(),
@@ -494,13 +501,13 @@ void CConcIndexator::IndexTextOrHtmlFile(CIndexDocument* document) {
             BYTE TokenLen = Graphmat.GetUnits()[GraLineNo].GetTokenLength();
             if (TokenLen == 0) {
                 throw CExpc(Format("Fatal error: An empty word is found!\nGraph.Word No %i from %i \n", GraLineNo,
-                                  GraLinesCount));
+                                   GraLinesCount));
             };
 
             const char *Token = Graphmat.GetUnits()[GraLineNo].GetToken();
             if ((BYTE) Token[0] == globalFieldDelimeter) {
                 throw CExpc(Format("Error! An input word(LineNo=%i) cannot contain symbol \"%c\"(%i) \n", GraLineNo,
-                                  (int) globalFieldDelimeter, (unsigned int) globalFieldDelimeter));
+                                   (int) globalFieldDelimeter, (unsigned int) globalFieldDelimeter));
             };
 
             strncpy(OneIndexLine, Token, TokenLen);
@@ -511,7 +518,7 @@ void CConcIndexator::IndexTextOrHtmlFile(CIndexDocument* document) {
             if (m_bUseDwdsThesaurus
                 && (Graphmat.HasDescr(GraLineNo, OUp)
                     || Graphmat.HasDescr(GraLineNo, OUpLw))
-                    ) {
+                ) {
                 const char *UpperToken = Graphmat.GetUppercaseToken(GraLineNo);
                 OneIndexLine[TokenLen + 1] = globalFieldDelimeter;
                 strcpy(OneIndexLine + TokenLen + 2, m_pDwdsThesaurus->GetAllThesInterpetations(UpperToken).c_str());
@@ -540,7 +547,7 @@ void CConcIndexator::IndexTextOrHtmlFile(CIndexDocument* document) {
 
         if ((bToken && (FileTokensCount == 0) && !bTheFirstPageBreakIsFound)
             || Graphmat.GetUnits()[GraLineNo].IsPageBreak()
-                ) {
+            ) {
             bTheFirstPageBreakIsFound = true;
             CPageNumber Page;
             Page.m_PageNumber = Graphmat.GetPageNumber(GraLineNo);
@@ -557,7 +564,7 @@ void CConcIndexator::IndexTextOrHtmlFile(CIndexDocument* document) {
 
             if (bSentenceEnd
                 || (SentNo == 0)
-                    )
+                )
                 Page.m_StartTokenNo = document->CorpusEndTokenNo; // normal case
             else
                 Page.m_StartTokenNo = CurrSentenceBreak; //  shifting page break to the last end of sentence
@@ -641,7 +648,7 @@ bool CConcIndexator::CreateMorphIndexWrapper() {
 /*--- emacs style variables ---
  * Local Variables:
  *  mode: C++
- *  c-default-style: "linux"
+ *  c-file-style: "ellemtel"
  *  c-basic-offset: 4
  *  tab-width: 8
  *  indent-tabs-mode: nil

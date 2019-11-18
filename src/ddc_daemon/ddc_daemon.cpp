@@ -63,41 +63,42 @@ const char *prog = "ddc_daemon";
 
 void PrintUsage()
 {
-	printf ("%s\n", DDCVersionStr.c_str() );
-	printf ("Daemon for working with Dialing-DWDS Concordance\n");
-	printf ("\nUsage: %s ACTION [OPTIONS]\n", prog);
-	printf ("\nOptions:\n"
-		"  -V, --version             # report program version and exit\n"
-		"  -v, --verbose LEVEL       # set log-verbosity level (none|error|warn|info=weak|debug=medium|trace=heavy)\n"
-		"  -l, --local LOCAL_CFG     # set local corpus config (default=$RML/etc/ddc_local_corpora.cfg)\n"
-		"  -s, --server SERVER_CFG   # set server config (default=$RML/etc/ddc_server.cfg)\n"
-		"  -O, --options SERVER_OPT  # load server options file (default=$RML/etc/ddc_server.opt)\n"
-		"  -t, --threads N           # use N worker threads (default=0: serial mode)\n"
-		"      --[no]fork            # do/don't detach from the running terminal (default=--fork)\n"
-		"      --[no]stderr          # do/don't log to stderr (default=--nostderr)\n"
-		"      --[no]syslog          # do/don't log to syslog (default=--nosyslog)\n"
-		"      --[no]logfiles        # do/don't log to local files (default=--logfiles)\n"
-		);
-	printf ("\nActions:\n");
-	printf ("  start                 # start daemon\n");
-	printf ("  stop                  # stop running daemon\n");
-	printf ("  restart               # re-start running daemon\n");
-	printf ("  start_cli             # starts the program not as a daemon bat as a simple console program [BROKEN]\n");	
-	printf ("\n");
-	exit(1);
+    printf ("%s\n", DDCVersionStr.c_str() );
+    printf ("Daemon for working with Dialing-DWDS Concordance\n");
+    printf ("\nUsage: %s ACTION [OPTIONS]\n", prog);
+    printf ("\nOptions:\n"
+            "  -V, --version             # report program version and exit\n"
+            "  -v, --verbose LEVEL       # set log-verbosity level (none|error|warn|info=weak|debug=medium|trace=heavy)\n"
+            "  -l, --local LOCAL_CFG     # set local corpus config (default=$RML/etc/ddc_local_corpora.cfg)\n"
+            "  -s, --server SERVER_CFG   # set server config (default=$RML/etc/ddc_server.cfg)\n"
+            "  -O, --options SERVER_OPT  # load server options file (default=$RML/etc/ddc_server.opt)\n"
+            "  -t, --threads N           # use N worker threads (default=0: serial mode)\n"
+            "      --[no]fork            # do/don't detach from the running terminal (default=--fork)\n"
+            "      --[no]stderr          # do/don't log to stderr (default=--nostderr)\n"
+            "      --[no]syslog          # do/don't log to syslog (default=--nosyslog)\n"
+            "      --[no]logfiles        # do/don't log to local files (default=--logfiles)\n"
+        );
+    printf ("\nActions:\n");
+    printf ("  start                 # start daemon\n");
+    printf ("  stop                  # stop running daemon\n");
+    printf ("  status                # print status daemon\n");
+    printf ("  restart               # re-start running daemon\n");
+    printf ("  start_cli             # starts the program not as a daemon bat as a simple console program [BROKEN]\n");     
+    printf ("\n");
+    exit(1);
 };
 
 
 void RemoveFile(const string& filename)
 {
-	if (!filename.empty() && access(filename.c_str(), W_OK)==0)
-		remove(filename.c_str());
+    if (!filename.empty() && access(filename.c_str(), W_OK)==0)
+        remove(filename.c_str());
 }
 
 void RemoveLockFiles()
 {
-	RemoveFile(LockFileName);
-	RemoveFile(WaitFileName);
+    RemoveFile(LockFileName);
+    RemoveFile(WaitFileName);
 }
 
 void RemoveLockFile() { RemoveFile(LockFileName); }
@@ -106,389 +107,409 @@ void RemoveWaitFile() { RemoveFile(WaitFileName); }
 
 void CreateWaitFile()
 {
-	if (!WaitFileName.empty()) {
-		FILE *fp = fopen(WaitFileName.c_str(), "w");
-		if (fp==NULL)
-			throw( CExpc("could not open wait file `%s': %s", WaitFileName.c_str(), StrError(errno)) );
-		fclose(fp);
-	}
+    if (!WaitFileName.empty()) {
+        FILE *fp = fopen(WaitFileName.c_str(), "w");
+        if (fp==NULL)
+            throw( CExpc("could not open wait file `%s': %s", WaitFileName.c_str(), StrError(errno)) );
+        fclose(fp);
+    }
 }
 
 
 void UnloadData()
 {
-	FreeConcordDicts();
-	UnloadLocalCorporaAndServer();
-	SocketDeinitialize();
-	RemoveLockFile();
-	closelog();
+    FreeConcordDicts();
+    UnloadLocalCorporaAndServer();
+    SocketDeinitialize();
+    RemoveLockFile();
+    closelog();
 };
 
 void ShutdownServerSockets() {
-	ddcLogInfo("shutting down server socket(s)");
-	ShutdownDDCServer();
-	ShutdownLocalCorpora();
+    ddcLogInfo("shutting down server socket(s)");
+    ShutdownDDCServer();
+    ShutdownLocalCorpora();
 };
 
 
 void  termination_handler(int signum)
 {
-	ShutdownServerSockets();
-	UnloadData();
-	ddcLogInfo("Exiting from concordance");
-	exit(1);
+    ShutdownServerSockets();
+    UnloadData();
+    ddcLogInfo("Exiting from concordance");
+    exit(0);
 };
 
 int puke(const std::string& msg) {
-	fputs(msg.c_str(), stdout);
-	fputc('\n', stdout);
-	ddcLogError(msg);
-	UnloadData();
-	RemoveLockFile();
-	SocketDeinitialize();
-	return -1;
+    fputs(msg.c_str(), stdout);
+    fputc('\n', stdout);
+    ddcLogError(msg);
+    UnloadData();
+    RemoveLockFile();
+    SocketDeinitialize();
+    return -1;
 }
 
+bool  read_pid_from_lock_file(pid_t& pid) {
+    if (access(LockFileName.c_str(), R_OK) != 0) {
+        fprintf(stderr, "cannot access lock file `%s' (ddc_daemon not started?)\n", LockFileName.c_str());
+        return false;
+    }
+
+    FILE* fp = fopen(LockFileName.c_str(), "r");
+    if (!fp) {
+        fprintf(stderr, "open failed for lock file `%s': %s\n", LockFileName.c_str(), StrError(errno));
+        return false;
+    }
+    fscanf(fp, "%i", &pid);
+    fclose(fp);
+    return true;
+}
+
+int print_status() {
+    pid_t pid;
+    if (!read_pid_from_lock_file(pid)) {
+        return 1;
+    }
+    if (kill (pid, 0) != 0) { //it is not a kill
+        fprintf (stderr, "ddc_daemon (pid=%d) cannot be found \n", pid);
+        return 1;
+    }
+    fprintf(stderr, "ddc is running, pid=%d\n", pid);
+    return 0;
+}
 //----------------------------------------------------------------------
 // stop
 int do_stop(void)
 {
-	int rc=0;
-	FILE *fp=NULL;
-	pid_t pid=0;
+    pid_t pid;
 
-	fprintf(stderr, "Stopping ddc_daemon...\n");
-	
-	if (access(LockFileName.c_str(), R_OK) != 0) {
-		fprintf(stderr, "cannot access lock file `%s' (ddc_daemon not started?)\n", LockFileName.c_str());
-		rc=1;
-		goto stop_clean;
-	}
+    fprintf(stderr, "Stopping ddc_daemon...\n");
+    if (!read_pid_from_lock_file(pid)) {
+        RemoveLockFile();
+        return 1;
+    }
+    RemoveLockFile();
 
-	fp = fopen(LockFileName.c_str(), "r");
-	if (!fp) {
-		fprintf(stderr, "open failed for lock file `%s': %s\n", LockFileName.c_str(), StrError(errno));
-		rc=1;
-		goto stop_clean;
-	}
-	fscanf(fp, "%i", &pid);
-
-	if (kill (pid, SIGTERM)	== 0) {
-		fprintf (stderr, "ddc_daemon (pid=%d) was stopped\n", pid);
-	}
-	else {
-		fprintf(stderr, "cannot send a SIGTERM to daemon process (pid=%d): %s\n", pid, StrError(errno));
-		rc=1;
-	}
-
- stop_clean:
-	if (fp) fclose(fp);
-	RemoveLockFile();
-	return rc;
+    if (kill (pid, SIGTERM) == 0) {
+        fprintf (stderr, "ddc_daemon (pid=%d) was stopped\n", pid);
+        return 0;
+    }
+    else {
+        fprintf(stderr, "cannot send a SIGTERM to daemon process (pid=%d): %s\n", pid, StrError(errno));
+        return 1;
+    }
 }
 
 //----------------------------------------------------------------------
 // start
 int do_start(bool clientMode=false)
 {
-      try {
-      //-- clobber global log-level from server options (only if not read from command-line option)
-      if (gotLogLevel)
-	      ServerOptions.m_LogLevel = ddcLogLevel;
-      if (ServerOptions.m_LogLevel > ddcLLUnknown)
-	      SetLogLevel(ServerOptions.m_LogLevel);
+    try {
+        //-- clobber global log-level from server options (only if not read from command-line option)
+        if (gotLogLevel)
+            ServerOptions.m_LogLevel = ddcLogLevel;
+        if (ServerOptions.m_LogLevel > ddcLLUnknown)
+            SetLogLevel(ServerOptions.m_LogLevel);
 
-      string startmsg = Format("Starting ddc_daemon v" PACKAGE_VERSION " in %s %s mode with log-level `%s'%s",
-			       (doFork ? "forked" : "unforked"),
-			       (clientMode ? "client" : "server"),
-			       LogLevelName(ddcLogLevel),
-			       (ServerOptions.m_VersionCompat==DDCVersionT::current() ? ""
-				: (string(" (compatibility ~ ")+ServerOptions.m_VersionCompat.str()+")").c_str())
-			       );
+        string startmsg = Format("Starting ddc_daemon v" PACKAGE_VERSION " in %s %s mode with log-level `%s'%s",
+                                 (doFork ? "forked" : "unforked"),
+                                 (clientMode ? "client" : "server"),
+                                 LogLevelName(ddcLogLevel),
+                                 (ServerOptions.m_VersionCompat==DDCVersionT::current() ? ""
+                                  : (string(" (compatibility ~ ")+ServerOptions.m_VersionCompat.str()+")").c_str())
+            );
 
-	//-- setup logging options
-	ddcLogToFiles=log_files;
-	ddcLogToStderr=log_stderr;
-	if (log_syslog) {
+        //-- setup logging options
+        ddcLogToFiles=log_files;
+        ddcLogToStderr=log_stderr;
+        if (log_syslog) {
 #ifdef HAVE_SYSLOG_H
-		ddcLogToSyslog=true;
-		openlog("ddc_daemon", LOG_PID|LOG_CONS, LOG_DAEMON);
+            ddcLogToSyslog=true;
+            openlog("ddc_daemon", LOG_PID|LOG_CONS, LOG_DAEMON);
 #else
-		fprintf(stderr, "%s: syslog logging disabled because ddc_daemon wasn't compiled with syslog support\n", prog);
-		ddcLogToSyslog = false;
+            fprintf(stderr, "%s: syslog logging disabled because ddc_daemon wasn't compiled with syslog support\n", prog);
+            ddcLogToSyslog = false;
 #endif
-	}
+        }
 
-	ddcLogInfo(startmsg);
-	if (!log_stderr) fprintf(stderr, "%s\n", startmsg.c_str());
-	
-	if (clientMode) {
-		fprintf(stderr, "removing %s\n",LockFileName.c_str());
-		remove(LockFileName.c_str());
-	}
-	if (access(LockFileName.c_str(), R_OK) == 0) {
-		fprintf(stderr, "Daemon lock-file `%s' already exists: is ddc_daemon already running?\n", LockFileName.c_str());
-		return 1;
-	}
+        ddcLogInfo(startmsg);
+        if (!log_stderr) fprintf(stderr, "%s\n", startmsg.c_str());
+        
+        if (clientMode) {
+            fprintf(stderr, "removing %s\n",LockFileName.c_str());
+            remove(LockFileName.c_str());
+        }
+        if (access(LockFileName.c_str(), R_OK) == 0) {
+            fprintf(stderr, "Daemon lock-file `%s' already exists: is ddc_daemon already running?\n", LockFileName.c_str());
+            return 1;
+        }
 
-	//-- show server options
-	if (ddcLogLevel >= ddcLLInfo) {
-		ddcLog( "ServerOptions:" );
-		vector<string> srvOptLines = stringSplitE(ServerOptions.toString(),"\n");
-		for (vector<string>::const_iterator li=srvOptLines.begin(); li!=srvOptLines.end(); ++li) {
-			ddcLog(string("    ")+*li);
-		}
-		ClearVector(srvOptLines);
-	}
+        //-- show server options
+        if (ddcLogLevel >= ddcLLInfo) {
+            ddcLog( "ServerOptions:" );
+            vector<string> srvOptLines = stringSplitE(ServerOptions.toString(),"\n");
+            for (vector<string>::const_iterator li=srvOptLines.begin(); li!=srvOptLines.end(); ++li) {
+                ddcLog(string("    ")+*li);
+            }
+            ClearVector(srvOptLines);
+        }
 
-	if (!clientMode) {		
-		// running as a daemon
-		int fd, i;
-		struct rlimit flim;
+        if (!clientMode) {              
+            // running as a daemon
+            int fd, i;
+            struct rlimit flim;
 
-		if (getppid()!=1) {
-			signal(SIGTTOU,SIG_IGN);
-			signal(SIGTTIN,SIG_IGN);
-			signal(SIGTSTP,SIG_IGN);
-			if (doFork) {
-				CreateWaitFile();
-				int fpid = fork();
-				if (fpid != 0) {
-					//-- parent
-					fprintf(stderr, "spawned server process on pid=%d\n", fpid);
-					exit(0);
-				} else {
-					//-- daemon==child
-					setsid();
-				}
-			} else {
-				//-- daemon==parent
-				fprintf(stderr, "running server in non-forking mode on pid=%d\n", getpid());
-			}
-		}
+            if (getppid()!=1) {
+                signal(SIGTTOU,SIG_IGN);
+                signal(SIGTTIN,SIG_IGN);
+                signal(SIGTSTP,SIG_IGN);
+                if (doFork) {
+                    CreateWaitFile();
+                    int fpid = fork();
+                    if (fpid != 0) {
+                        //-- parent
+                        fprintf(stderr, "spawned server process on pid=%d\n", fpid);
+                        exit(0);
+                    } else {
+                        //-- daemon==child
+                        setsid();
+                    }
+                } else {
+                    //-- daemon==parent
+                    fprintf(stderr, "running server in non-forking mode on pid=%d\n", getpid());
+                }
+            }
 
-		//-- close all open filehandles (forking mode only)
-		if (doFork) {
-		  getrlimit(RLIMIT_NOFILE, &flim);
-		  for(fd=0;fd<flim.rlim_max;fd++)
-		    close(fd);
-		}
-	}
+            //-- close all open filehandles (forking mode only)
+            if (doFork) {
+                getrlimit(RLIMIT_NOFILE, &flim);
+                for(fd=0;fd<flim.rlim_max;fd++)
+                    close(fd);
+            }
+        }
 
 
-	//syslog(LOG_ALERT, "Open	lock file `%s'\n", LockFileName.c_str());
-	ddcLogDebug(Format("Open lock file `%s'", LockFileName.c_str()));
-	FILE* fp = fopen (LockFileName.c_str(),	"w");
-	if (!fp) {
-		ddcLogError(Format("Cannot open lock-file `%s': %s",	LockFileName.c_str(), StrError(errno)));
-		return 1;
-	}
-	fprintf(fp, "%i", getpid());
-	fclose (fp);
-	ddcLogDebug(Format("Wrote PID=%i to lock-file `%s'", getpid(), LockFileName.c_str()));
+        //syslog(LOG_ALERT, "Open       lock file `%s'\n", LockFileName.c_str());
+        ddcLogDebug(Format("Open lock file `%s'", LockFileName.c_str()));
+        FILE* fp = fopen (LockFileName.c_str(), "w");
+        if (!fp) {
+            ddcLogError(Format("Cannot open lock-file `%s': %s",    LockFileName.c_str(), StrError(errno)));
+            return 1;
+        }
+        fprintf(fp, "%i", getpid());
+        fclose (fp);
+        ddcLogDebug(Format("Wrote PID=%i to lock-file `%s'", getpid(), LockFileName.c_str()));
 
-	ddcLogDebug("SocketInitialize");
-	SocketInitialize(false);
+        ddcLogDebug("SocketInitialize");
+        SocketInitialize(false);
 
-	ddcLogDebug("InitLemmatizers");
-	if (!InitConcordDicts())
-		{
-			ddcLogDebug("Cannot load Morphology");
-			//SocketDeinitialize();
-			//return 1;
-		
-		}
+        ddcLogDebug("InitLemmatizers");
+        if (!InitConcordDicts())
+        {
+            ddcLogDebug("Cannot load Morphology");
+            //SocketDeinitialize();
+            //return 1;
+                
+        }
 
-	sprintf(log_label, "server-main[pid=%i]", getpid());
-	ddc_thread_init(log_label);
+        sprintf(log_label, "server-main[pid=%i]", getpid());
+        ddc_thread_init(log_label);
 
-	ddcLogInfo(string("LoadCorpora (CWD=") + CurrentDirectory() + ")");
-	LoadLocalCorpora(CorporaFile, ServerOptions);
+        ddcLogInfo(string("LoadCorpora (CWD=") + CurrentDirectory() + ")");
+        LoadLocalCorpora(CorporaFile, ServerOptions);
 
-	ddcLogInfo("LoadServer");
-	LoadDDCServer(ServerCorporaFile, ServerOptions);
+        ddcLogInfo("LoadServer");
+        LoadDDCServer(ServerCorporaFile, ServerOptions);
 
-	//-- moo 2016-12-20: wtf is this?  it looks like a no-op (ignore signal handlers only if they're already ignored)
-	if (signal (SIGTERM, termination_handler) == SIG_IGN)
-		signal (SIGTERM, SIG_IGN);
-	if (signal (SIGINT, termination_handler) == SIG_IGN)
-		signal (SIGINT, SIG_IGN);
 
-	if (clientMode)
-		fprintf	(stderr, "\nWaiting for accept...\n");
-	else {
-		//-- remove the wait-file to let the caller know we've started up ok
-		sleep(1);
-		RemoveWaitFile();
-	}
+        //-- moo 2016-12-20: wtf is this?  it looks like a no-op (ignore signal handlers only if they're already ignored)
+        if (signal (SIGTERM, termination_handler) == SIG_IGN)
+            signal (SIGTERM, SIG_IGN);
+        if (signal (SIGINT, termination_handler) == SIG_IGN)
+            signal (SIGINT, SIG_IGN);
 
-	while (1) {
-		sleep(40);
-	}
-      }
-      catch (CExpc& e) {
-	      return puke(Format("Exception[%d]: %s", e.code(), e.what()));
-      }
-      catch (exception &e) {
-	      return puke(Format("Exception: %s", e.what()));
-      }
-      catch (...) {
-	      return puke("Exception: (unhandled exception)");
-      }
+        if (clientMode)
+            fprintf (stderr, "\nWaiting for accept...\n");
+        else {
+            //-- remove the wait-file to let the caller know we've started up ok
+            sleep(1);
+            RemoveWaitFile();
+        }
 
-      RemoveLockFile();
-      SocketDeinitialize();	
-      return 0;
+        //-- moo 2019-11-13: why does this loop exist?
+        // + maybe it's a leftover from the one-fork-per-server-node era which keeps the main PID around forever?
+        // + raising the sleep() interval up to 60 sec (original was 40 sec) because polling is icky, and icinga does that for us
+        while (CheckDaemonAlive()) {
+            sleep(60);
+        }
+    }
+    catch (CExpc& e) {
+        return puke(Format("Exception[%d]: %s", e.code(), e.what()));
+    }
+    catch (exception &e) {
+        return puke(Format("Exception: %s", e.what()));
+    }
+    catch (...) {
+        return puke("Exception: (unhandled exception)");
+    }
+
+    RemoveLockFile();
+    SocketDeinitialize();     
+    return 1;
 }
 
 
 //----------------------------------------------------------------------
 // MAIN
-int	main(int argc, char	**argv)
+int     main(int argc, char     **argv)
 {
 
-	prog = argv[0];
-	sprintf(log_label, "main[pid=%i]", getpid());
+    prog = argv[0];
+    sprintf(log_label, "main[pid=%i]", getpid());
 
-	ddcInitGlobal();
-	ddc_thread_init(log_label);
+    ddcInitGlobal();
+    ddc_thread_init(log_label);
 
-	ddcLogLevel   = ddcLLInfo;
-	ddcLogToFiles = false;
-	ddcLogToStderr = true;
-	ddcLogToSyslog = false;
+    ddcLogLevel   = ddcLLInfo;
+    ddcLogToFiles = false;
+    ddcLogToStderr = true;
+    ddcLogToSyslog = false;
 
-	if (argc == 2) 	
-	{		
-		string s = argv[1];		
-		if (  (s == "--version") || (s== "-V"))		
-		{			
-			printf ("%s\n", DDCVersionStr.c_str());				
-			printf ("%s: Daemon for working with Dialing-DWDS Concordance\n", argv[0]);
-			return 1;		
-		}	
-	};
-	if (argc < 2 || argv[1]=="-h" || argv[1]=="--help") 
-		PrintUsage();
+    if (argc == 2)  
+    {               
+        string s = argv[1];             
+        if (  (s == "--version") || (s== "-V"))         
+        {                       
+            printf ("%s\n", DDCVersionStr.c_str());                         
+            printf ("%s: Daemon for working with Dialing-DWDS Concordance\n", argv[0]);
+            return 1;               
+        }       
+    };
+    if (argc < 2 || argv[1]=="-h" || argv[1]=="--help") 
+        PrintUsage();
 
-	string Error;
-	if (!IsRmlRegistered(Error)) 
-	{
-		fprintf (stderr, "%s\n", Error.c_str()  );
-		return 1;
-	};
+    string Error;
+    if (!IsRmlRegistered(Error)) 
+    {
+        fprintf (stderr, "%s\n", Error.c_str()  );
+        return 1;
+    };
 
-	//-- init globals
-	CorporaFile = GetIniFilePath()+"/ddc_local_corpora.cfg";
-	ServerCorporaFile = GetIniFilePath()+"/ddc_server.cfg";
-	Action = "restart"; //-- default action
-	doFork = true;
+    //-- init globals
+    CorporaFile = GetIniFilePath()+"/ddc_local_corpora.cfg";
+    ServerCorporaFile = GetIniFilePath()+"/ddc_server.cfg";
+    Action = "restart"; //-- default action
+    doFork = true;
 
-	//-- queue default server options for loading
-	string ServerOptionsFile = GetIniFilePath()+"/ddc_server.opt";
-	if (FileExists(ServerOptionsFile.c_str()))
-		ServerOptionsFiles.push_back(ServerOptionsFile);
+    //-- queue default server options for loading
+    string ServerOptionsFile = GetIniFilePath()+"/ddc_server.opt";
+    if (FileExists(ServerOptionsFile.c_str()))
+        ServerOptionsFiles.push_back(ServerOptionsFile);
 
-	//-- parse command-line
-	for (size_t i=1; i<argc; i++)
-	{
-		string s = argv[i];
-		if ((s == "-h")
-		    || (s == "--help")
-		    || (s == "/h")
-		    || (s == "/help")
-		    ) {
-			PrintUsage();
-		}
-		else if (s == "--verbose" || s=="-v" || s=="--log-level" || s=="--log" || s=="--protocol") {
-			if (i+1 >= argc) 
-				PrintUsage();
-			SetLogLevel( GetLogLevel(argv[i+1]) );
-			gotLogLevel = true;
-			i++;
-		}
-		else if (s == "--local" || s == "-l") {
-			if (i+1 >= argc) 
-				PrintUsage();
-			i++;
-			CorporaFile = argv[i];
-		}
-		else if (s == "--server" || s == "-s") {
-			if (i+1 >= argc) 
-				PrintUsage();
-			i++;
-			ServerCorporaFile = argv[i];
-		}
-		else if (s == "--options" || s == "-O") {
-			if (i+1 >= argc) 
-				PrintUsage();
-			i++;
-			ServerOptionsFiles.push_back(argv[i]);
-			try {
-				ServerOptions.LoadFile(argv[i]); //-- load in-place
-			}
-			catch (exception &e) {
-				fprintf(stderr, "%s: Error loading server options file '%s': %s\n", prog, argv[i], e.what());
-				exit(1);
-			}
-		}
-		else if (s == "--nthreads" || s == "--threads" || s == "-t") {
-			if (i+1 >= argc)
-				PrintUsage();
-			i++;
-			nWorkers = strtoul(argv[i],NULL,0);
-			got_nWorkers = true;
-		}
-		else if (s == "--fork") { doFork = true; }
-		else if (s == "--nofork") { doFork = false; }
-		else if (s == "--stderr") { log_stderr = true; }
-		else if (s == "--nostderr") { log_stderr = false; }
-		else if (s == "--syslog") { log_syslog = true; }
-		else if (s == "--nosyslog") { log_syslog = false; }
-		else if (s == "--logfiles" || s == "--logfile") { log_files = true; }
-		else if (s == "--nologfiles" || s == "--nologfile") { log_files = false; }
-		else {
-			Action = argv[i];
-		}
-	}
+    //-- parse command-line
+    for (size_t i=1; i<argc; i++)
+    {
+        string s = argv[i];
+        if ((s == "-h")
+            || (s == "--help")
+            || (s == "/h")
+            || (s == "/help")
+            ) {
+            PrintUsage();
+        }
+        else if (s == "--verbose" || s=="-v" || s=="--log-level" || s=="--log" || s=="--protocol") {
+            if (i+1 >= argc) 
+                PrintUsage();
+            SetLogLevel( GetLogLevel(argv[i+1]) );
+            gotLogLevel = true;
+            i++;
+        }
+        else if (s == "--local" || s == "-l") {
+            if (i+1 >= argc) 
+                PrintUsage();
+            i++;
+            CorporaFile = argv[i];
+        }
+        else if (s == "--server" || s == "-s") {
+            if (i+1 >= argc) 
+                PrintUsage();
+            i++;
+            ServerCorporaFile = argv[i];
+        }
+        else if (s == "--options" || s == "-O") {
+            if (i+1 >= argc) 
+                PrintUsage();
+            i++;
+            ServerOptionsFiles.push_back(argv[i]);
+            try {
+                ServerOptions.LoadFile(argv[i]); //-- load in-place
+            }
+            catch (exception &e) {
+                fprintf(stderr, "%s: Error loading server options file '%s': %s\n", prog, argv[i], e.what());
+                exit(1);
+            }
+        }
+        else if (s == "--nthreads" || s == "--threads" || s == "-t") {
+            if (i+1 >= argc)
+                PrintUsage();
+            i++;
+            nWorkers = strtoul(argv[i],NULL,0);
+            got_nWorkers = true;
+        }
+        else if (s == "--fork") { doFork = true; }
+        else if (s == "--nofork") { doFork = false; }
+        else if (s == "--stderr") { log_stderr = true; }
+        else if (s == "--nostderr") { log_stderr = false; }
+        else if (s == "--syslog") { log_syslog = true; }
+        else if (s == "--nosyslog") { log_syslog = false; }
+        else if (s == "--logfiles" || s == "--logfile") { log_files = true; }
+        else if (s == "--nologfiles" || s == "--nologfile") { log_files = false; }
+        else {
+            Action = argv[i];
+        }
+    }
 
-	//-- load server options
-	for (vector<string>::const_iterator optfi=ServerOptionsFiles.begin(); optfi!=ServerOptionsFiles.end(); ++optfi) {
-		try {
-			//ddcLogDebug(Format("%s: loading server options file %s",prog,optfi->c_str()));
-			ServerOptions.LoadFile(*optfi);
-		}
-		catch (exception &e) {
-			fprintf(stderr, "%s: Error loading server options file '%s': %s\n", prog, optfi->c_str(), e.what());
-			exit(1);
-		}
-	}
-	//-- command-line overrides for server options
-	if (got_nWorkers) ServerOptions.m_nWorkers = nWorkers;
+    //-- load server options
+    for (vector<string>::const_iterator optfi=ServerOptionsFiles.begin(); optfi!=ServerOptionsFiles.end(); ++optfi) {
+        try {
+            //ddcLogDebug(Format("%s: loading server options file %s",prog,optfi->c_str()));
+            ServerOptions.LoadFile(*optfi);
+        }
+        catch (exception &e) {
+            fprintf(stderr, "%s: Error loading server options file '%s': %s\n", prog, optfi->c_str(), e.what());
+            exit(1);
+        }
+    }
+    //-- command-line overrides for server options
+    if (got_nWorkers) ServerOptions.m_nWorkers = nWorkers;
 
-	if (!FileExists(CorporaFile.c_str()))
-	{
-		fprintf (stderr, "cannot access %s\n", CorporaFile.c_str());
-		exit(1);
-	};
+    if (!FileExists(CorporaFile.c_str()))
+    {
+        fprintf (stderr, "cannot access %s\n", CorporaFile.c_str());
+        exit(1);
+    };
 
-	LockFileName = MakeFName(CorporaFile,"ddc_lck");
-	WaitFileName = MakeFName(CorporaFile,"ddc_wait");
+    LockFileName = MakeFName(CorporaFile,"ddc_lck");
+    WaitFileName = MakeFName(CorporaFile,"ddc_wait");
 
-	
-	if (		(Action	!= "start")
-		&&	(Action	!= "start_cli")
-		&&	(Action	!= "stop")
-		&&	(Action	!= "restart")
-		)
-		PrintUsage();
+        
+    if (            (Action != "start")
+                    &&      (Action != "start_cli")
+                    &&      (Action != "stop")
+                    &&      (Action != "restart")
+                    &&      (Action != "status")
+        )
+        PrintUsage();
 
-	int resultCode = 0;
-	try {
+    int resultCode = 0;
+    try {
         if (Action == "start") {
             return do_start(false);
         } else if (Action == "start_cli") {
             return do_start(true);
+        } else if (Action == "status") {
+            return print_status();
         } else if (Action == "stop") {
             return do_stop();
         } else if (Action == "restart") {
@@ -497,25 +518,20 @@ int	main(int argc, char	**argv)
             return do_start();
         }
     } catch (exception& e) {
-	    fprintf (stderr, "Exception: %s", e.what());
+        fprintf (stderr, "Exception: %s", e.what());
         resultCode = 1;
-	}
+    }
 
-	//-- should never get here
-	RemoveLockFile();
-	SocketDeinitialize();	
-	return resultCode;
+    //-- should never get here
+    RemoveLockFile();
+    SocketDeinitialize();   
+    return resultCode;
 }
-
-
-
-
-
 
 /*--- emacs style variables ---
  * Local Variables:
  *  mode: C++
- *  c-default-style: "linux"
+ *  c-file-style: "ellemtel"
  *  c-basic-offset: 4
  *  tab-width: 8
  *  indent-tabs-mode: nil

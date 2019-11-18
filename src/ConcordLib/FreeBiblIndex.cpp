@@ -29,8 +29,8 @@ void CFreeBiblIndex::ReadFromDisk(string Path, DWORD FileBreaksSize, bool useMMa
 
     if (m_ValuesForEachFile.size() != FileBreaksSize) {
         throw CExpc(
-                Format("The number of corpus files (%zi) should be equal to the number of bibliographical records (%zi; index name = %s)",
-                       FileBreaksSize, m_ValuesForEachFile.size(), m_Name.c_str()));
+            Format("The number of corpus files (%zi) should be equal to the number of bibliographical records (%zi; index name = %s)",
+                   FileBreaksSize, m_ValuesForEachFile.size(), m_Name.c_str()));
     };
 }
 
@@ -45,7 +45,7 @@ string CFreeBiblIndex::GetIndexFileName(string Path) const {
 }
 
 void CFreeBiblIndex::CreateUnion(const string &Path, const vector<const CFreeBiblIndex *> &Indices,
-                                           const vector<size_t> &FileCounts) {
+                                 const vector<size_t> &FileCounts) {
     m_ValuesForEachFile.clear();
     m_ValuesForEachFile.ensureVec();
     for (size_t i = 0; i < Indices.size(); ++i) {
@@ -61,7 +61,7 @@ void CFreeBiblIndex::CreateUnion(const string &Path, const vector<const CFreeBib
 }
 
 void CFreeBiblIndex::CreatePartitions(vector<CFreeBiblIndex *> &Parts, const vector<string> &Paths,
-                                                const vector<DWORD> &EndFileNo) const {
+                                      const vector<DWORD> &EndFileNo) const {
     assert(Parts.size() == Paths.size());
     assert(Parts.size() == EndFileNo.size());
     for (size_t i = 0; i < Parts.size(); ++i) {
@@ -76,7 +76,7 @@ void CFreeBiblIndex::CreatePartitions(vector<CFreeBiblIndex *> &Parts, const vec
 
 
 bool CFreeBiblIndex::GetFilterBounds(CDDCFilterWithBounds &Filter, const string &LoValue,
-                                               const string &HiValue) const {
+                                     const string &HiValue) const {
     Filter.m_bSet = false;
     Filter.m_KeyLo = LoValue.empty() ? INT_MIN : atoi(LoValue.c_str());
     Filter.m_KeyHi = HiValue.empty() ? INT_MAX : atoi(HiValue.c_str());
@@ -112,7 +112,7 @@ bool CFreeBiblIndex::FileMatches(DWORD FileNo, const CDDCFilterWithBounds &Filte
     return (Filter.m_bSet
             ? (Filter.m_SatisfiedValues.find(val) != Filter.m_SatisfiedValues.end())
             : ((val >= Filter.m_KeyLo.i) && (val < Filter.m_KeyHi.i))
-    );
+        );
 }
 
 void CFreeBiblIndex::RegisterBiblStringItemId(const string &ValueStr) {
@@ -172,7 +172,7 @@ string CFreeBiblStringIndex::GetStringFileName(string Path) const {
 
 bool CFreeBiblStringIndex::DeleteBiblFiles(string Path) const {
     return remove(GetStringFileName(Path).c_str()) == 0
-           && CFreeBiblIndex::DeleteBiblFiles(Path);
+        && CFreeBiblIndex::DeleteBiblFiles(Path);
 };
 
 void CFreeBiblStringIndex::ReadBiblStringItems(string FileName, bool useMMap) {
@@ -222,7 +222,7 @@ void CFreeBiblStringIndex::ReadFromDisk(string Path, DWORD FileBreaksSize, bool 
 }
 
 void CFreeBiblStringIndex::CreateUnion(const string &Path, const vector<const CFreeBiblIndex *> &Indices,
-                                                 const vector<size_t> &FileCounts) {
+                                       const vector<size_t> &FileCounts) {
     assert(Indices.size() == FileCounts.size());
 
     //-- cast arguments to CFreeBiblStringIndex
@@ -282,14 +282,14 @@ void CFreeBiblStringIndex::CreateUnion(const string &Path, const vector<const CF
 
 
 void CFreeBiblStringIndex::CreatePartitions(vector<CFreeBiblIndex *> &Parts, const vector<string> &Paths,
-                                                      const vector<DWORD> &EndFileNo) const {
+                                            const vector<DWORD> &EndFileNo) const {
     assert(Parts.size() == Paths.size());
     assert(Parts.size() == EndFileNo.size());
 
     for (size_t i = 0; i < Parts.size(); ++i) {
         ddcLogDebug(
-                Format("CFreeBiblStringIndex::CreatePartitions(%s): creating partition #%zd", m_Name.c_str(),
-                       i));
+            Format("CFreeBiblStringIndex::CreatePartitions(%s): creating partition #%zd", m_Name.c_str(),
+                   i));
         CFreeBiblStringIndex *Part = (CFreeBiblStringIndex *) Parts[i];
         DWORD f_begin = (i == 0 ? 0 : EndFileNo[i - 1]);
         DWORD f_end = EndFileNo[i];
@@ -326,7 +326,7 @@ void CFreeBiblStringIndex::CreatePartitions(vector<CFreeBiblIndex *> &Parts, con
 };
 
 bool CFreeBiblStringIndex::GetFilterBounds(CDDCFilterWithBounds &Filter, const string &LoValue,
-                                                     const string &HiValue) const {
+                                           const string &HiValue) const {
     Filter.m_bSet = false;
     Filter.m_BiblIndex = this;
 
@@ -468,7 +468,7 @@ void CFreeBiblStringIndex::RegisterBiblStringItemId(const string &ValueStr) {
     list<CStringItem>::iterator it = lower_bound(m_BuildStringItems.begin(), m_BuildStringItems.end(), I);
     if ((it == m_BuildStringItems.end())
         || !(*it == I)
-            ) {
+        ) {
         I.m_BiblId = m_BuildStringItems.size();
         m_BuildStringItems.insert(it, I);
     } else
@@ -507,15 +507,15 @@ bool CFreeBiblStringIndex::ConvertAndSaveToDiskAfterIndexing(string m_Path) {
     FILE *vfp = fopen(ValuesFile.c_str(), "wb");
     if (!vfp) {
         ddcLogError(
-                Format("CFreeBiblStringIndex::ConvertAndSaveToDiskAfterIndexing(): open failed for '%s': %s",
-                       ValuesFile.c_str(), strerror(errno)));
+            Format("CFreeBiblStringIndex::ConvertAndSaveToDiskAfterIndexing(): open failed for '%s': %s",
+                   ValuesFile.c_str(), strerror(errno)));
         return false;
     }
     FILE *ifp = fopen(IndexFile.c_str(), "wb");
     if (!ifp) {
         ddcLogError(
-                Format("CFreeBiblStringIndex::ConvertAndSaveToDiskAfterIndexing(): open failed for '%s': %s",
-                       IndexFile.c_str(), strerror(errno)));
+            Format("CFreeBiblStringIndex::ConvertAndSaveToDiskAfterIndexing(): open failed for '%s': %s",
+                   IndexFile.c_str(), strerror(errno)));
         return false;
     }
 
@@ -604,15 +604,15 @@ bool CFreeBiblStringConstant::ConvertAndSaveToDiskAfterIndexing(string Path) {
 };
 
 void CFreeBiblStringConstant::CreateUnion(const string &Path, const vector<const CFreeBiblIndex *> &Indices,
-                                                    const vector<size_t> &FileCounts) {
+                                          const vector<size_t> &FileCounts) {
     size_t i = 0;
     bool gotValue = !m_Value.empty();
     for (; i < Indices.size(); ++i) {
         if (Indices[i] == NULL) continue;
         if (Indices[i]->GetTypeId() != cfbiStringConstant) {
             ddcLogWarn(
-                    "CFreeBiblStringConstant::CreateUnion(): Warning: cannot merge variable field into bibl constant " +
-                    m_Name);
+                "CFreeBiblStringConstant::CreateUnion(): Warning: cannot merge variable field into bibl constant " +
+                m_Name);
             continue;
         }
         CFreeBiblStringConstant *cfb = (CFreeBiblStringConstant *) Indices[i];
@@ -627,15 +627,14 @@ void CFreeBiblStringConstant::CreateUnion(const string &Path, const vector<const
 };
 
 void CFreeBiblStringConstant::CreatePartitions(vector<CFreeBiblIndex *> &Parts, const vector<string> &Paths,
-                                                         const vector<DWORD> &EndFileNo) const {
+                                               const vector<DWORD> &EndFileNo) const {
     ddcLogDebug("CFreeBiblStringConstant::CreatePartitions(): ignoring bibl string constant " + m_Name);
 };
-
 
 /*--- emacs style variables ---
  * Local Variables:
  *  mode: C++
- *  c-default-style: "linux"
+ *  c-file-style: "ellemtel"
  *  c-basic-offset: 4
  *  tab-width: 8
  *  indent-tabs-mode: nil

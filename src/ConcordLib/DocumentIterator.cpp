@@ -37,6 +37,7 @@ void CIndexDocument::Initialize(const CConcIndexator* parent) {
     DocumentBuffer.clear();
     DocumentLines.clear();
     DefaultColumnMap(parent);
+    DroppedLinesCount = 0;
 }
 
 void replaceZeroCharWithSpace(vector<char>& buffer) {
@@ -68,18 +69,18 @@ void CIndexDocument::NormalizeDocumentBuffer() {
 
 bool IsTarFile(const string &FileName) {
     return (FileName.length() > 4)
-           && ((FileName.substr(FileName.length() - 4) == ".tar")
-               || (FileName.substr(FileName.length() - 4) == ".TAR")
-           );
+        && ((FileName.substr(FileName.length() - 4) == ".tar")
+            || (FileName.substr(FileName.length() - 4) == ".TAR")
+            );
 };
 
 CDocumentIterator::CDocumentIterator(const CConcIndexator* parent, const string &containerPath) :
-        Parent(parent),
-        Tar(0),
-        ContainerPath(containerPath),
-        Finished(false),
-        IsStdin(false),
-        TabFormatStream(NULL)
+    Parent(parent),
+    Tar(0),
+    ContainerPath(containerPath),
+    Finished(false),
+    IsStdin(false),
+    TabFormatStream(NULL)
 {
     if (IsTarFile(containerPath)) {
         tar_open(&Tar, containerPath.c_str());
@@ -109,20 +110,22 @@ void CDocumentIterator::ReadTabFormatDocument(CIndexDocument& doc) {
         string line  = buffer;
         string docName = ReadTabFormatDocumentName(line);
         if (!docName.empty()) {
+            //-- log document boundaries (for streaming import)
+            ddcLogDebug("reading document "+docName);
+
             if (LastReadCorpusFileName.empty()) {
+                // initial document in stream
                 doc.CorpusFileName = docName;
                 LastReadCorpusFileName = docName;
             }
             else {
+                // non-initial document in stream
                 LastReadCorpusFileName = docName;
                 return;
             }
         }
         else {
             doc.DocumentLines.push_back(line);
-        }
-        if (doc.CorpusFileName.empty()) {
-            throw CExpc("the first line in tab-formatted file must be a document delimiter (\"%%$DDC:meta.file_=\")");
         }
     }
     fclose (TabFormatStream);
@@ -156,7 +159,7 @@ bool CDocumentIterator::NextDocument(CIndexDocument& doc) {
 /*--- emacs style variables ---
  * Local Variables:
  *  mode: C++
- *  c-default-style: "linux"
+ *  c-file-style: "ellemtel"
  *  c-basic-offset: 4
  *  tab-width: 8
  *  indent-tabs-mode: nil

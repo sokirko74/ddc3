@@ -26,28 +26,28 @@
 class HTML 
 {
 public:
-                bool    m_bCollectOffsets;
+    bool    m_bCollectOffsets;
 
-                HTML()
-                {
-                        m_bCollectOffsets = false;
-                };
-                string GetTextFromHtmlFile(string FileName);
-                string GetTextFromHTMLBuffer(const char* Buffer, size_t BufferLen);
-                unsigned long getOffset(unsigned long off);
+    HTML()
+    {
+        m_bCollectOffsets = false;
+    };
+    string GetTextFromHtmlFile(string FileName);
+    string GetTextFromHTMLBuffer(const char* Buffer, size_t BufferLen);
+    unsigned long getOffset(unsigned long off);
 
 private:
-      bool checkTag(const string& str, const char* tag);
-      void addOffset(unsigned long);
+    bool checkTag(const string& str, const char* tag);
+    void addOffset(unsigned long);
       
-      struct offset_range
-      {
-                unsigned long low;
-                unsigned long high;
-                offset_range(unsigned long l = 0L, unsigned long h = 0L) : low(l), high(h){};
-      };
+    struct offset_range
+    {
+        unsigned long low;
+        unsigned long high;
+        offset_range(unsigned long l = 0L, unsigned long h = 0L) : low(l), high(h){};
+    };
 
-      vector<offset_range> offsets;
+    vector<offset_range> offsets;
 };
 
 
@@ -56,7 +56,7 @@ private:
 /*--- emacs style variables ---
  * Local Variables:
  *  mode: C++
- *  c-default-style: "linux"
+ *  c-file-style: "ellemtel"
  *  c-basic-offset: 4
  *  tab-width: 8
  *  indent-tabs-mode: nil

@@ -39,7 +39,7 @@
 //===============================================
 
 CStringIndexSet::CStringIndexSet(const CStringIndexator *pParent)
-        : CIndexSetForQueryingStage(pParent) {
+    : CIndexSetForQueryingStage(pParent) {
     assert (pParent != 0);
 };
 
@@ -99,7 +99,7 @@ struct LessByPrefixIndex {
     size_t m_PrefixLen;
 
     LessByPrefixIndex(const char *pBuffer, size_t PrefixLen = SIZE_MAX)
-            : m_pBuffer(pBuffer), m_PrefixLen(PrefixLen) {};
+        : m_pBuffer(pBuffer), m_PrefixLen(PrefixLen) {};
 
     //! less-than operator (for prefix-search lower_bound())
     inline bool operator()(const CIndexItem &Ref, const char *Val) const {
@@ -133,7 +133,7 @@ struct LessBySuffixIndex {
     size_t m_SuffixLen; //-- only used for for (DWORD,char*) and (char*,DWORD) operators
 
     LessBySuffixIndex(const char *pBuffer = NULL, const CIndexItem *pIndex = NULL, const size_t SuffixLen = SIZE_MAX)
-            : m_pBuffer(pBuffer), m_pIndex(pIndex), m_SuffixLen(SuffixLen) {};
+        : m_pBuffer(pBuffer), m_pIndex(pIndex), m_SuffixLen(SuffixLen) {};
 
     //! direct string-comparison (A<B) (by suffix)
     inline bool less(const char *A, const char *B) const {
@@ -160,7 +160,7 @@ struct LessBySuffixIndex {
     //! less-than operator (for suffix-index creation; ignores m_SuffixLen)
     inline bool operator()(const DWORD ItemIdA, const DWORD ItemIdB) const {
         string A(m_pBuffer + m_pIndex[ItemIdA].GetIndexItemOffset()),
-                B(m_pBuffer + m_pIndex[ItemIdB].GetIndexItemOffset());
+            B(m_pBuffer + m_pIndex[ItemIdB].GetIndexItemOffset());
         reverse(A.begin(), A.end());
         reverse(B.begin(), B.end());
         return A < B;
@@ -319,7 +319,7 @@ void CStringIndexSet::EnsureSuffixIndex() {
 
 
 static void CreatePartitionStorage(string inputFileName, vector<CStringIndexSet *> &Partitions,
-                     const vector<CTokenNo> &EndTokenNo, const vector<vector<DWORD> > &xlateItemId) {
+                                   const vector<CTokenNo> &EndTokenNo, const vector<vector<DWORD> > &xlateItemId) {
     assert(Partitions.size() == EndTokenNo.size());
     assert(Partitions.size() == xlateItemId.size());
     FILE* inputStream =  fopen (inputFileName.c_str(), "rb");
@@ -338,17 +338,17 @@ static void CreatePartitionStorage(string inputFileName, vector<CStringIndexSet 
             for (; cur < EndTokenNo[i]; ++cur) {
                 if (fread(&itemIdOld, sizeof(DWORD), 1, inputStream) != 1)
                     throw CExpc(
-                            Format("CStringIndexSet::CreatePartitionStorage(): Error: failed to read token #%zd from storage file '%s'",
-                                   cur, inputFileName.c_str()));
+                        Format("CStringIndexSet::CreatePartitionStorage(): Error: failed to read token #%zd from storage file '%s'",
+                               cur, inputFileName.c_str()));
                 itemIdNew = xlateItemId[i][itemIdOld];
                 if (itemIdNew == DWORD_MAX)
                     throw CExpc(
-                            Format("CStringIndexSet::CreatePartitionStorage(): Error: token #%zd target itemId==DWORD_MAX==%zd for source itemId=#%zd, partition %zd",
-                                   cur, itemIdNew, itemIdOld, i));
+                        Format("CStringIndexSet::CreatePartitionStorage(): Error: token #%zd target itemId==DWORD_MAX==%zd for source itemId=#%zd, partition %zd",
+                               cur, itemIdNew, itemIdOld, i));
                 if (fwrite(&itemIdNew, sizeof(DWORD), 1, fp) != 1)
                     throw CExpc(
-                            Format("CStringIndexSet::CreatePartitionStorage(): Error: failed to write token #%zd to storage file '%s'",
-                                   (cur - StartTokenNo), Partitions[i]->GetStorageFileName().c_str()));
+                        Format("CStringIndexSet::CreatePartitionStorage(): Error: failed to write token #%zd to storage file '%s'",
+                               (cur - StartTokenNo), Partitions[i]->GetStorageFileName().c_str()));
             }
             if (fclose(fp) != 0)
                 throw CExpc("CStringIndexSet::CreatePartitionStorage(): Error: close failed for file " +
@@ -384,8 +384,8 @@ void CStringIndexSet::UnionIndexSets(const vector<CStringIndexSet *> &IndexSets,
     }
     if (ItemStrings.size() >= DWORD_MAX)
         throw CExpc(
-                "CStringIndexSet::UnionIndexSets(): Error: vocabulary size (%zd) too large for index %s %s (max=%zd)",
-                ItemStrings.size(), m_Name.c_str(), m_ShortName.c_str(), (size_t) DWORD_MAX - 1);
+            "CStringIndexSet::UnionIndexSets(): Error: vocabulary size (%zd) too large for index %s %s (max=%zd)",
+            ItemStrings.size(), m_Name.c_str(), m_ShortName.c_str(), (size_t) DWORD_MAX - 1);
     ddcLogDebug(Format("found %zd value type(s) for attribute %s", ItemStrings.size(), m_Name.c_str()));
 
     //-- phase 2: adopt occurrences
@@ -456,8 +456,8 @@ void CStringIndexSet::UnionIndexSets(const vector<CStringIndexSet *> &IndexSets,
 #undef DDC_DEBUG_SPLIT
 
 void
-CStringIndexSet::CreatePartitionsDuringSplit(vector<CStringIndexSet *> &Partitions, const vector<CTokenNo> &EndTokenNo) const {
-    string logname = "CStringIndexSet::CreatePartitionsDuringSplit(" + m_Name + ")";
+CStringIndexSet::CreateSplitPartitions(vector<CStringIndexSet *> &Partitions, const vector<CTokenNo> &EndTokenNo) const {
+    string logname = "CStringIndexSet::CreateSplitPartitions(" + m_Name + ")";
 
 #ifdef DDC_DEBUG_SPLIT
     char debugfile[512];
@@ -478,12 +478,12 @@ CStringIndexSet::CreatePartitionsDuringSplit(vector<CStringIndexSet *> &Partitio
 
         if (!M[i].InitOccurs())
             throw CExpc(
-                    Format("CStringIndexSet::CreatePartitionsDuringSplit(): cannot initialize occurrences buffer for partition #%zd",
-                           i));
+                Format("CStringIndexSet::CreateSpltPartitions(): cannot initialize occurrences buffer for partition #%zd",
+                       i));
 
 
         if (!(Mfp[i] = fopen(Partitions[i]->GetOccursFileName().c_str(), "wb")))
-            throw CExpc("CStringIndexSet::CreatePartitionsDuringSplit(): cannot open occurrences file " +
+            throw CExpc("CStringIndexSet::CreateSpltPartitions(): cannot open occurrences file " +
                         Partitions[i]->GetOccursFileName());
 
         Mpos[i] = 0;
@@ -520,8 +520,8 @@ CStringIndexSet::CreatePartitionsDuringSplit(vector<CStringIndexSet *> &Partitio
                 //-- format occurrences
                 if (!Partitions[i]->AddOneIndexItem(M[i], Mfp[i], Mpos[i], EndTokenNo[i]))
                     throw CExpc(
-                            Format("CStringIndexSet::CreatePartitionsDuringSplit(): Error: failed to add index item for string '%s', partition #%zd",
-                                   ItemStr, i));
+                        Format("CStringIndexSet::CreateSpltPartitions(): Error: failed to add index item for string '%s', partition #%zd",
+                               ItemStr, i));
 
                 //-- update
                 occi = occj;
@@ -538,7 +538,7 @@ CStringIndexSet::CreatePartitionsDuringSplit(vector<CStringIndexSet *> &Partitio
     for (size_t i = 0; i < Partitions.size(); ++i) {
         M[i].FreeOccurs();
         if (Mfp[i] != NULL && fclose(Mfp[i]) != 0)
-            throw CExpc("CStringIndexSet::CreatePartitionsDuringSplit(): Error: failed to close occurrences file " +
+            throw CExpc("CStringIndexSet::CreateSpltPartitions(): Error: failed to close occurrences file " +
                         Partitions[i]->GetOccursFileName());
     }
 
@@ -547,8 +547,8 @@ CStringIndexSet::CreatePartitionsDuringSplit(vector<CStringIndexSet *> &Partitio
     for (size_t i = 0; i < Partitions.size(); ++i) {
         if (!Partitions[i]->WritePeriodsDivision())
             throw CExpc(
-                    Format("CStringIndexSet::CreatePartitionsDuringSplit(): Error: failed to write period division map for partition #%zd",
-                           i));
+                Format("CStringIndexSet::CreateSpltPartitions(): Error: failed to write period division map for partition #%zd",
+                       i));
     }
 
     //-- split storage files
@@ -694,7 +694,7 @@ static void SortOccurrences(vector<CTokenNo> &occurrences, size_t SortChunkCount
     if ((size < 30)
         || (SortChunkCount > 1000)
         || (size / SortChunkCount < 3)
-            ) // if occurrences are very defragmented then use simple sort
+        ) // if occurrences are very defragmented then use simple sort
         sort(occurrences.begin(), occurrences.end());
     else {
         // else use sort based on list unions
@@ -805,8 +805,8 @@ void CStringIndexSet::FindChunkOccurrences(const vector<DWORD> &IndexItems, vect
             vector<pair<CTokenNo, DWORD> > new_pos_and_lengths;
             new_pos_and_lengths.resize(curr_pos_and_lengths.size() + pos_and_lengths.size());
             vector<pair<CTokenNo, DWORD> >::iterator it =
-                    set_union(curr_pos_and_lengths.begin(), curr_pos_and_lengths.end(), pos_and_lengths.begin(),
-                              pos_and_lengths.end(), new_pos_and_lengths.begin());
+                set_union(curr_pos_and_lengths.begin(), curr_pos_and_lengths.end(), pos_and_lengths.begin(),
+                          pos_and_lengths.end(), new_pos_and_lengths.begin());
             new_pos_and_lengths.resize(it - new_pos_and_lengths.begin());
             new_pos_and_lengths.swap(pos_and_lengths);
         }
@@ -824,12 +824,12 @@ void CStringIndexSet::FindChunkOccurrences(const vector<DWORD> &IndexItems, vect
     };
 
 };
-	
+        
 
 /*--- emacs style variables ---
  * Local Variables:
  *  mode: C++
- *  c-default-style: "linux"
+ *  c-file-style: "ellemtel"
  *  c-basic-offset: 4
  *  tab-width: 8
  *  indent-tabs-mode: nil

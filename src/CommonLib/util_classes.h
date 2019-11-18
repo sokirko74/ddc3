@@ -18,7 +18,7 @@
 // ==========  Copyright by Alexey Sokirko, Bryan Jurish (2011)
 
 #ifndef utilit_classes_h
- #define utilit_classes_h
+#define utilit_classes_h
 
 #include "utilit.h"
 #include "ptrholder.h"
@@ -28,94 +28,77 @@
 
 class CShortString
 {
-        vector<char>::const_iterator m_pStringPointer;
+    vector<char>::const_iterator m_pStringPointer;
 public:
-        CShortString(vector<char>::const_iterator pData);
+    CShortString(vector<char>::const_iterator pData);
 
-        BYTE GetLength() const;
-        vector<char>::const_iterator GetData() const;
-        const char*     GetString() const;
-        //bool  operator <(const CShortString& s) const;
+    BYTE GetLength() const;
+    vector<char>::const_iterator GetData() const;
+    const char*     GetString() const;
+    //bool  operator <(const CShortString& s) const;
 };
 
 class IsLessShortString : public std::binary_function<const CShortString&, const char*, bool>
 {
 public:
-        bool operator()(const CShortString& Item1,      const char* Item2) const;
-        bool operator()(const char* Item1,                      const CShortString& Item2) const;
-        bool operator()(const CShortString& Item1,      const CShortString& Item2) const;
+    bool operator()(const CShortString& Item1,      const char* Item2) const;
+    bool operator()(const char* Item1,                      const CShortString& Item2) const;
+    bool operator()(const CShortString& Item1,      const CShortString& Item2) const;
 };
 
 
 class CShortStringHolder : public vector<CShortString> 
 {
-        vector<char> m_Buffer;
-        template<class T>
-                bool CreateFromSequence(T begin, T end);
+    vector<char> m_Buffer;
+    template<class T>
+    bool CreateFromSequence(T begin, T end);
 public: 
-        void    ReadShortStringHolder(string filename);
-        bool    WriteShortStringHolder(const string& FileName) const;
-        bool    CreateFromVector(const StringVector& in);
-        bool    CreateFromSet(const StringSet& in);
+    void    ReadShortStringHolder(string filename);
+    bool    WriteShortStringHolder(const string& FileName) const;
+    bool    CreateFromVector(const StringVector& in);
+    bool    CreateFromSet(const StringSet& in);
 };
 
 
 
 struct CMyTimeSpan 
 {
-        clock_t     m_StartTime;
-        double      m_TimeSpan;
-        long            m_InterfaceNestId;
-        long            m_SequenceId;
-        long        m_InvokeCount;
-        CMyTimeSpan (long SequenceId = 0, long InterfaceNestId = 0);
-        void GetStrRepresentation(const char* Name, char* buffer, double AllClocksCount) const;
+    clock_t     m_StartTime;
+    double      m_TimeSpan;
+    long            m_InterfaceNestId;
+    long            m_SequenceId;
+    long        m_InvokeCount;
+    CMyTimeSpan (long SequenceId = 0, long InterfaceNestId = 0);
+    void GetStrRepresentation(const char* Name, char* buffer, double AllClocksCount) const;
 };
 
 
 class CMyTimeSpanHolder 
 {
-        map<string, CMyTimeSpan>        m_TimeSpans;
-        long                                            m_SequenceId;
+    map<string, CMyTimeSpan>        m_TimeSpans;
+    long                                            m_SequenceId;
         
 public:
-        bool                                            m_bTimeSpanHolderEnabled;
+    bool                                            m_bTimeSpanHolderEnabled;
 
-        typedef map<string, CMyTimeSpan>::const_iterator        ConstIterator;
-        typedef map<string, CMyTimeSpan>::iterator                      Iterator;
+    typedef map<string, CMyTimeSpan>::const_iterator        ConstIterator;
+    typedef map<string, CMyTimeSpan>::iterator                      Iterator;
 
-        CMyTimeSpanHolder();
-        void StartTimer(const string& Name, long NestId);
-        double EndTimer(const string& Name);
-        string GetStrRepresentation (double AllClocksCount = 0) const;
-        void ClearTimers();
+    CMyTimeSpanHolder();
+    void StartTimer(const string& Name, long NestId);
+    double EndTimer(const string& Name);
+    string GetStrRepresentation (double AllClocksCount = 0) const;
+    void ClearTimers();
 };
 
 
-class CFileOrMemoryMappedFile : public ddcLockable {
-    bool m_UseMemoryMap;
-    ddcMMap<char> m_MemoryMap;
-    FILE* m_File;
-    bool  m_Opened;
-
-    bool ReadFromFile(file_off_t start, size_t nbytes, BYTE* buffer) const;
-public:
-    CFileOrMemoryMappedFile();
-    ~CFileOrMemoryMappedFile();
-
-    bool IsOpened() const {return m_Opened;};
-    void Open (bool useMemoryMap, const std::string &filename);
-        void Close();
-    bool ReadBuffer(file_off_t offset, size_t nbytes, BYTE* buffer) const;
-
-};
 
 #endif
 
 /*--- emacs style variables ---
  * Local Variables:
  *  mode: C++
- *  c-default-style: "linux"
+ *  c-file-style: "ellemtel"
  *  c-basic-offset: 4
  *  tab-width: 8
  *  indent-tabs-mode: nil

@@ -54,7 +54,7 @@ void show_usage(void) {
             "  -O, --options OPTFILE # load output options from OPTFILE (default:empty ~ inherit)\n"
             "  -v, --verbose LEVEL   # specify log-verbosity level (none|error|warn|info=weak|debug=medium|trace=heavy)\n"
             "\n"
-    );
+        );
 }
 
 //--------------------------------------------------------------
@@ -169,11 +169,10 @@ int main(int argc, char *argv[]) {
     return 0;
 }
 
-
 /*--- emacs style variables ---
  * Local Variables:
  *  mode: C++
- *  c-default-style: "linux"
+ *  c-file-style: "ellemtel"
  *  c-basic-offset: 4
  *  tab-width: 8
  *  indent-tabs-mode: nil

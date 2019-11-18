@@ -72,7 +72,8 @@ EXTRA_DIST = \
  xpath_stream.cpp \
  xpath_stream.h \
  xpath_syntax.cpp \
- xpath_syntax.h
+ xpath_syntax.h \
+ CMakeLists.txt
 
 ##-----------------------------------------------------------------------
 ## special rules
@@ -119,9 +120,6 @@ MAINTAINERCLEANFILES = \
 ##-----------------------------------------------------------------------
 ## Variables: distribution
 ##-----------------------------------------------------------------------
-
-##--- extra distribution files
-#EXTRA_DIST =
 
 ##--- recursion subdirectories for 'make dist'
 #DIST_SUBDIRS = $(SUBDIRS)

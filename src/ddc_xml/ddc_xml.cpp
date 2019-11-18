@@ -132,7 +132,7 @@ bool CPrototype::Initialize(string PrototypeStr) {
 };
 
 /*
-	this function  fills  the prototype with real values from Hit
+  this function  fills  the prototype with real values from Hit
 */
 string CPrototype::BuildEntry(const map<string, string> &Hit, const string &Query) {
     //map::reverse_iterator
@@ -166,7 +166,7 @@ void PrintUsageAndExit() {
     fprintf(stderr, "where <options> can be \n");
     fprintf(stderr, "  -Limit [Start,]Count  \"Start\" is the first hit(starting from zero), \n");
     fprintf(stderr, "         \"Count\" is the maximal number of hits to find\n"),
-            fprintf(stderr, "  -text   let the program create a text file( by default is xml)\n");
+        fprintf(stderr, "  -text   let the program create a text file( by default is xml)\n");
     fprintf(stderr, "  -timeout N   set the timeout in seconds (by default it is 200 seconds)\n");
     fprintf(stderr, "  -s, --server SERVER_CFG   (default=$RML/etc/ddc_xml_server.cfg)\n");
     fprintf(stderr, "  -o, --output if specified, write the result to this file\n");
@@ -195,13 +195,13 @@ public:
     vector<SOCKET> OpenSockets;
     CQueryRunner (string cfgPath, int resultLimit, int startHitNo, string templateFile, string outputFormat,
                   int timeOut, bool reloadCorpus):
-            CfgPath(cfgPath),
-            ResultLimit(resultLimit),
-            StartHitNo(startHitNo),
-            TemplateFile(templateFile),
-            OutputFormat(outputFormat),
-            TimeOut(timeOut),
-            ReloadCorpus(reloadCorpus)
+        CfgPath(cfgPath),
+        ResultLimit(resultLimit),
+        StartHitNo(startHitNo),
+        TemplateFile(templateFile),
+        OutputFormat(outputFormat),
+        TimeOut(timeOut),
+        ReloadCorpus(reloadCorpus)
     {
 
     }
@@ -506,7 +506,7 @@ int main(int argc, char **argv) {
         if ((s == "-help")
             || (s == "--help")
             || (s == "/?")
-                )
+            )
             PrintUsageAndExit();
         else if (s == "-text")
             OutputFormat = "text";
@@ -631,7 +631,7 @@ int main(int argc, char **argv) {
     sighandler_t oldHandler;
     oldHandler = signal(SIGINT, my_handler);
     QueryRunner = new  CQueryRunner(cfgPath, ResultLimit, StartHitNo, TemplateFile, OutputFormat,
-            Timeout, bReloadCorpus);
+                                    Timeout, bReloadCorpus);
     int resultCode = 0;
     try {
         if (threadCount == -1) {
@@ -666,12 +666,10 @@ int main(int argc, char **argv) {
     return resultCode;
 }
 
-
-
 /*--- emacs style variables ---
  * Local Variables:
  *  mode: C++
- *  c-default-style: "linux"
+ *  c-file-style: "ellemtel"
  *  c-basic-offset: 4
  *  tab-width: 8
  *  indent-tabs-mode: nil

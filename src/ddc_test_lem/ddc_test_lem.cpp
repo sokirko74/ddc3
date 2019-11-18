@@ -42,42 +42,42 @@
 #include "../LemmatizerLib/Lemmatizers.h"
 #include "../LemmatizerLib/Paradigm.h"
 
-bool				bPrintIds = true;;
-MorphLanguageEnum	Language;
-CLemmatizer*		pLemmatizer;
-CAgramtab*			pAgramtab;
+bool                            bPrintIds = true;;
+MorphLanguageEnum       Language;
+CLemmatizer*            pLemmatizer;
+CAgramtab*                      pAgramtab;
 
 
 
 string GetGrammems (const char* tab_str)
 {
-	QWORD G;
-	pAgramtab->GetGrammems(tab_str, G);
-	string s = pAgramtab->GrammemsToStr (G);
-	if (!s.empty() && (s[s.length() -1] == ','))
-		s.erase(s.length() - 1);
-	return s;
+    QWORD G;
+    pAgramtab->GetGrammems(tab_str, G);
+    string s = pAgramtab->GrammemsToStr (G);
+    if (!s.empty() && (s[s.length() -1] == ','))
+        s.erase(s.length() - 1);
+    return s;
 }
 
 //--------------------------------------------------------------
 // ugly hacks: Russian
 void RussianConvertToDictionary (std::string& S)
 {
-	#ifdef WIN32
-		OemToCharBuff((char*)S.c_str(), (char*)S.c_str(), S.length());		 
-	#else
-		KOI8ToWin(S);
-	#endif
+#ifdef WIN32
+    OemToCharBuff((char*)S.c_str(), (char*)S.c_str(), S.length());           
+#else
+    KOI8ToWin(S);
+#endif
 
 };
 
 void RussianConvertToScreen (std::string& S)
 {
-	#ifdef WIN32
-		CharToOemBuff((char*)S.c_str(), (char*)S.c_str(), S.length());		 
-	#else
-		WinToKOI8(S);
-	#endif
+#ifdef WIN32
+    CharToOemBuff((char*)S.c_str(), (char*)S.c_str(), S.length());           
+#else
+    WinToKOI8(S);
+#endif
 
 };
 
@@ -85,69 +85,69 @@ void RussianConvertToScreen (std::string& S)
 // ugly hacks: German (utf8)
 void GermanConvertToDictionary (std::string& S)
 {
-  std::string tmp = pLemmatizer->recode_ext2int(S);
-  S.swap(tmp);
+    std::string tmp = pLemmatizer->recode_ext2int(S);
+    S.swap(tmp);
 };
 void GermanConvertToScreen (std::string& S)
 {
-  std::string tmp = pLemmatizer->recode_int2ext(S);
-  S.swap(tmp);
+    std::string tmp = pLemmatizer->recode_int2ext(S);
+    S.swap(tmp);
 };
 //--------------------------------------------------------------
 
 
 std::string  GetMorphInfo (std::string  Form)
 {
-	
-	std::string  Result;
+        
+    std::string  Result;
 
-	bool bCapital   = is_upper_alpha((BYTE)Form[0], Language);
+    bool bCapital   = is_upper_alpha((BYTE)Form[0], Language);
 
-	std::vector<CFormInfo> Paradigms;
+    std::vector<CFormInfo> Paradigms;
 
-	pLemmatizer->CreateParadigmCollection(false, Form, bCapital, true, Paradigms);
+    pLemmatizer->CreateParadigmCollection(false, Form, bCapital, true, Paradigms);
 
-	for (int i =0; i < Paradigms.size(); i++)
-	{
-		const CFormInfo& F = Paradigms[i];
-		Result += F.m_bFound ? "+ " : "- ";
+    for (int i =0; i < Paradigms.size(); i++)
+    {
+        const CFormInfo& F = Paradigms[i];
+        Result += F.m_bFound ? "+ " : "- ";
 
-		Result += "{"; 
-		Result += F.GetWordForm(0); 
-		Result += ", ";
+        Result += "{"; 
+        Result += F.GetWordForm(0); 
+        Result += ", ";
 
-		{
-			string GramCodes =	F.GetSrcAncode();
-			BYTE  PartOfSpeech = pAgramtab->GetPartOfSpeech (GramCodes.c_str());
-			Result	+= pAgramtab->GetPartOfSpeechStr(PartOfSpeech) + std::string(", ") ;	
+        {
+            string GramCodes =      F.GetSrcAncode();
+            BYTE  PartOfSpeech = pAgramtab->GetPartOfSpeech (GramCodes.c_str());
+            Result  += pAgramtab->GetPartOfSpeechStr(PartOfSpeech) + std::string(", ") ;    
 
-			string  CommonAncode = F.GetCommonAncode();
-			Result += Format ("\"%s\",  (", (CommonAncode.empty()) ? "" : GetGrammems(CommonAncode.c_str()).c_str());
+            string  CommonAncode = F.GetCommonAncode();
+            Result += Format ("\"%s\",  (", (CommonAncode.empty()) ? "" : GetGrammems(CommonAncode.c_str()).c_str());
 
-			for (long i=0; i < GramCodes.length(); i+=2)
-				Result += Format ("\"%s\",", GetGrammems(GramCodes.c_str()+i).c_str());
+            for (long i=0; i < GramCodes.length(); i+=2)
+                Result += Format ("\"%s\",", GetGrammems(GramCodes.c_str()+i).c_str());
 
-			Result += ") }";
-		}
+            Result += ") }";
+        }
 
-		if (bPrintIds)
-			Result += Format(" Id=%i",F.GetParadigmId())+" " ;
+        if (bPrintIds)
+            Result += Format(" Id=%i",F.GetParadigmId())+" " ;
 
-		BYTE Accent = F.GetSrcAccentedVowel();
-		if (Accent != 0xff)
-			Result += Format("Accented=%s'%s", Form.substr(0, Accent+1).c_str(), Form.substr(Accent+1).c_str());
+        BYTE Accent = F.GetSrcAccentedVowel();
+        if (Accent != 0xff)
+            Result += Format("Accented=%s'%s", Form.substr(0, Accent+1).c_str(), Form.substr(Accent+1).c_str());
 
-		Result += "\nAll forms: ";
-		for (int k=0; k < F.GetCount (); k++)
-		{
-			Result += Paradigms[i].GetWordForm(k);
-			Result += " ";
-		};
-		Result += "\n\n";
+        Result += "\nAll forms: ";
+        for (int k=0; k < F.GetCount (); k++)
+        {
+            Result += Paradigms[i].GetWordForm(k);
+            Result += " ";
+        };
+        Result += "\n\n";
 
-   	};
+    };
 
-	return Result;
+    return Result;
 };
 
 
@@ -155,67 +155,67 @@ std::string  GetMorphInfo (std::string  Form)
 
 void ProcessFile(std::string Filename)
 {
-	printf ("read %s\n", Filename.c_str());
+    printf ("read %s\n", Filename.c_str());
 
-	StringVector Forms;
-	{
-		FILE* fp = fopen (Filename.c_str(), "r");
-		if (!fp)
-		{
-			printf ("cannot open file %s\n", Filename.c_str());
-			return;
-		};
-		char buffer[256];
-		while (fgets(buffer,256, fp))
-		{
-			std::string q =  buffer;
-			Trim(q);
-			if (q.empty()) continue;
-			RmlMakeUpper(q,pLemmatizer->GetLanguage());
-			Forms.push_back(q);
-		};
-		fclose (fp);
-	};
-	size_t Count = Forms.size();
+    StringVector Forms;
+    {
+        FILE* fp = fopen (Filename.c_str(), "r");
+        if (!fp)
+        {
+            printf ("cannot open file %s\n", Filename.c_str());
+            return;
+        };
+        char buffer[256];
+        while (fgets(buffer,256, fp))
+        {
+            std::string q =  buffer;
+            Trim(q);
+            if (q.empty()) continue;
+            RmlMakeUpper(q,pLemmatizer->GetLanguage());
+            Forms.push_back(q);
+        };
+        fclose (fp);
+    };
+    size_t Count = Forms.size();
 
-	StringVector Results;
-	Results.resize(Count, string (255,' ') );
-	printf ("process %s\n", Filename.c_str());
-	clock_t start = clock();
-	const size_t OutBufferSize = 2000; 
-	char OutBuffer[OutBufferSize];
-	for (size_t i=0; i < Count; i++)
-	{
-		if (!pLemmatizer->GetAllAncodesAndLemmasQuick(Forms[i], true, OutBuffer, OutBufferSize, true))
-		{
-			printf ("Too many variants for %s\n", Forms[i].c_str());
-		};
-		//pLemmatizer->GetAllAncodesQuick((const BYTE*)Forms[i].c_str(), true, OutBuffer);
-		Results[i] = (char*)OutBuffer;
-	};
-	long ticks = clock() - start;
-	printf ("Count of words = %zi\n", Count);
-	double seconds = (double)ticks/(double)CLOCKS_PER_SEC;
-	printf ("Time = %g seconds; %li ticks\n", seconds,ticks);
-	if (seconds > 0)
-		printf ("Speed = %g words per seconds\n", (((double)Count)/seconds));
-	else
-		printf ("too few words to measure the speed\n");
-	
+    StringVector Results;
+    Results.resize(Count, string (255,' ') );
+    printf ("process %s\n", Filename.c_str());
+    clock_t start = clock();
+    const size_t OutBufferSize = 2000; 
+    char OutBuffer[OutBufferSize];
+    for (size_t i=0; i < Count; i++)
+    {
+        if (!pLemmatizer->GetAllAncodesAndLemmasQuick(Forms[i], true, OutBuffer, OutBufferSize, true))
+        {
+            printf ("Too many variants for %s\n", Forms[i].c_str());
+        };
+        //pLemmatizer->GetAllAncodesQuick((const BYTE*)Forms[i].c_str(), true, OutBuffer);
+        Results[i] = (char*)OutBuffer;
+    };
+    long ticks = clock() - start;
+    printf ("Count of words = %zi\n", Count);
+    double seconds = (double)ticks/(double)CLOCKS_PER_SEC;
+    printf ("Time = %g seconds; %li ticks\n", seconds,ticks);
+    if (seconds > 0)
+        printf ("Speed = %g words per seconds\n", (((double)Count)/seconds));
+    else
+        printf ("too few words to measure the speed\n");
+        
 
-	std::string OutFileName = MakeFName(Filename,"lem");
-	printf ("writing to %s\n",OutFileName.c_str());
-	{
-		FILE* out_fp = fopen (OutFileName.c_str(), "w");
-		if (!out_fp)
-		{
-			printf ("cannot write file %s\n", OutFileName.c_str());
-			return;
-		};
-		for (size_t i=0; i < Count; i++)
-			fprintf (out_fp,"%s -> %s\n", Forms[i].c_str(), Results[i].c_str());
-		fclose (out_fp);
-	};
+    std::string OutFileName = MakeFName(Filename,"lem");
+    printf ("writing to %s\n",OutFileName.c_str());
+    {
+        FILE* out_fp = fopen (OutFileName.c_str(), "w");
+        if (!out_fp)
+        {
+            printf ("cannot write file %s\n", OutFileName.c_str());
+            return;
+        };
+        for (size_t i=0; i < Count; i++)
+            fprintf (out_fp,"%s -> %s\n", Forms[i].c_str(), Results[i].c_str());
+        fclose (out_fp);
+    };
 
 
 };
@@ -224,141 +224,136 @@ void ProcessFile(std::string Filename)
 template <class  T, class Y>
 bool InitMorphologySystem()
 {
-	std::string langua_str = GetStringByLanguage(Language);
-	pLemmatizer = new T;
-	string strError;
-	if (!pLemmatizer->LoadDictionariesRegistry(strError))
-	{
-   		fprintf (stderr, "Cannot load %s  morphological dictionary\n", langua_str.c_str());
-		fprintf (stderr, "Return error: %s\n", strError.c_str());
-		return false;
-	};
-	pAgramtab = new Y;
-	if (!pAgramtab->LoadFromRegistry())
-	{
-   		fprintf (stderr, "Cannot load %s  gramtab\n", langua_str.c_str() );
-		return false;
-	};
-	return true;
+    std::string langua_str = GetStringByLanguage(Language);
+    pLemmatizer = new T;
+    string strError;
+    if (!pLemmatizer->LoadDictionariesRegistry(strError))
+    {
+        fprintf (stderr, "Cannot load %s  morphological dictionary\n", langua_str.c_str());
+        fprintf (stderr, "Return error: %s\n", strError.c_str());
+        return false;
+    };
+    pAgramtab = new Y;
+    if (!pAgramtab->LoadFromRegistry())
+    {
+        fprintf (stderr, "Cannot load %s  gramtab\n", langua_str.c_str() );
+        return false;
+    };
+    return true;
 };
 
 
 void PrintUsage()
 {
-		printf ("Dialing Command Line Morphology (www.aot.ru)\n");
-		printf ("Usage: TestLem (RUSSIAN|ENGLISH|GERMAN) [file]\n");
-		printf ("if [file] is specified then TestLem builds a lem-file by [file] and exits\n");
-		printf ("otherwise it reads from standard input\n");
-		printf ("Example: TestLem Russian\n");
-		printf ("Example: TestLem English test.txt\n");
-		exit(-1);	
+    printf ("Dialing Command Line Morphology (www.aot.ru)\n");
+    printf ("Usage: TestLem (RUSSIAN|ENGLISH|GERMAN) [file]\n");
+    printf ("if [file] is specified then TestLem builds a lem-file by [file] and exits\n");
+    printf ("otherwise it reads from standard input\n");
+    printf ("Example: TestLem Russian\n");
+    printf ("Example: TestLem English test.txt\n");
+    exit(-1);       
 };
 
 
 int main(int argc, char **argv)
 {
-	const char *prog=*argv;
+    const char *prog=*argv;
 
-	if (argc < 2)
-		PrintUsage();
+    if (argc < 2)
+        PrintUsage();
 
-	if (!GetLanguageByString(argv[1], Language))
-	{
-		PrintUsage();
-	};
+    if (!GetLanguageByString(argv[1], Language))
+    {
+        PrintUsage();
+    };
 
-	if (		!strcmp (argv[1],  "-h")
-			||  !strcmp (argv[1],  "-help")
-			||  !strcmp (argv[1],  "/h")
-			||  !strcmp (argv[1],  "/help")
-	)
-		PrintUsage();
+    if (            !strcmp (argv[1],  "-h")
+                    ||  !strcmp (argv[1],  "-help")
+                    ||  !strcmp (argv[1],  "/h")
+                    ||  !strcmp (argv[1],  "/help")
+        )
+        PrintUsage();
 
 
-	std::string FileName;
-	if (argc > 2)
-		FileName = argv[2];
+    std::string FileName;
+    if (argc > 2)
+        FileName = argv[2];
 
-	// ===============  LOADING DICTS ================
-	printf ("Loading..\n");
-	bool bResult = false;
-	switch (Language)
-	{
-		case morphRussian: 
-					bResult = InitMorphologySystem<CLemmatizerRussian, CRusGramTab>();
-					break;
-		case morphEnglish : 
-					bResult = InitMorphologySystem<CLemmatizerEnglish, CEngGramTab>();
-					break;
-		case morphGerman: 
-					bResult = InitMorphologySystem<CLemmatizerGerman, CGerGramTab>();
-					break;
-		default : PrintUsage();
-		
-	};
-	if (!bResult)
-		return 1;
+    // ===============  LOADING DICTS ================
+    printf ("Loading..\n");
+    bool bResult = false;
+    switch (Language)
+    {
+        case morphRussian: 
+            bResult = InitMorphologySystem<CLemmatizerRussian, CRusGramTab>();
+            break;
+        case morphEnglish : 
+            bResult = InitMorphologySystem<CLemmatizerEnglish, CEngGramTab>();
+            break;
+        case morphGerman: 
+            bResult = InitMorphologySystem<CLemmatizerGerman, CGerGramTab>();
+            break;
+        default : PrintUsage();
+                
+    };
+    if (!bResult)
+        return 1;
 
-	if (!FileName.empty())
-	{
-		ProcessFile(FileName);
-		delete pLemmatizer;
-		delete pAgramtab;
-		return 0;
-	};
-	
+    if (!FileName.empty())
+    {
+        ProcessFile(FileName);
+        delete pLemmatizer;
+        delete pAgramtab;
+        return 0;
+    };
+        
 
-	// ===============  WORKING ===============
-	
-	printf ("Input a word:\n");
-	for (;;)
-	{
-		printf (">");
-		char buffer[1000];
-		fgets(buffer, 1000, stdin);
-		std::string s = buffer;
-		Trim(s);
-		if (feof(stdin) || s=="q") break;
-		else if (s.empty()) continue;
-		else if (s == "noids")
-		{
-			bPrintIds  = false;
-			continue;
-		};
+    // ===============  WORKING ===============
+        
+    printf ("Input a word:\n");
+    for (;;)
+    {
+        printf (">");
+        char buffer[1000];
+        fgets(buffer, 1000, stdin);
+        std::string s = buffer;
+        Trim(s);
+        if (feof(stdin) || s=="q") break;
+        else if (s.empty()) continue;
+        else if (s == "noids")
+        {
+            bPrintIds  = false;
+            continue;
+        };
 
-		switch (Language) {
-		case morphRussian: RussianConvertToDictionary(s); break;
-		case morphGerman: GermanConvertToDictionary(s); break;
-		default: break;
-		}
+        switch (Language) {
+            case morphRussian: RussianConvertToDictionary(s); break;
+            case morphGerman: GermanConvertToDictionary(s); break;
+            default: break;
+        }
 
-		string mResult = GetMorphInfo(s);
+        string mResult = GetMorphInfo(s);
 
-		switch (Language) {
-		case morphRussian: RussianConvertToScreen(mResult); break;
-		case morphGerman: GermanConvertToScreen(mResult); break;
-		default: break;
-		}
+        switch (Language) {
+            case morphRussian: RussianConvertToScreen(mResult); break;
+            case morphGerman: GermanConvertToScreen(mResult); break;
+            default: break;
+        }
 
-		printf ("%s", mResult.c_str());
-		 
-	};
-	delete pLemmatizer;
-	delete pAgramtab;
+        printf ("%s", mResult.c_str());
+                 
+    };
+    delete pLemmatizer;
+    delete pAgramtab;
 
-	fputc('\n',stdout);
-	return 0;
+    fputc('\n',stdout);
+    return 0;
 }
-
-
-
-
-
 
 /*--- emacs style variables ---
  * Local Variables:
  *  mode: C++
- *  c-default-style: "linux"
+ *  c-file-style: "ellemtel"
  *  c-basic-offset: 4
  *  tab-width: 8
  *  indent-tabs-mode: nil

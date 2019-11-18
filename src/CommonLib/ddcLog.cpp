@@ -64,101 +64,101 @@ pthread_mutex_t ddcLogMutex = PTHREAD_MUTEX_INITIALIZER;
 //----------------------------------------------------------------------
 DDCLogLevel GetLogLevel(const std::string& Name)
 {
-	string s(Name);
-	Trim(s);
-	EngMakeLower(s);
+    string s(Name);
+    Trim(s);
+    EngMakeLower(s);
 
-	if (s=="silent" || s=="none" || s=="no" || s=="off")
-		return ddcLLSilent;
-	else if (s=="error" || s=="errors")
-		return ddcLLError;
-	else if (s=="warn" || s=="warning" || s=="warnings")
-		return ddcLLWarn;
-	else if (s=="info" || s=="default")
-		return ddcLLInfo;
-	else if (s=="debug")
-		return ddcLLDebug;
-	else if (s=="trace")
-		return ddcLLTrace;
-	else if (s=="unknown")
-	    	return ddcLLUnknown;
+    if (s=="silent" || s=="none" || s=="no" || s=="off")
+        return ddcLLSilent;
+    else if (s=="error" || s=="errors")
+        return ddcLLError;
+    else if (s=="warn" || s=="warning" || s=="warnings")
+        return ddcLLWarn;
+    else if (s=="info" || s=="default")
+        return ddcLLInfo;
+    else if (s=="debug")
+        return ddcLLDebug;
+    else if (s=="trace")
+        return ddcLLTrace;
+    else if (s=="unknown")
+        return ddcLLUnknown;
 
-	//-- backwards-compatible log-level names
-	else if (s=="weak" || s=="light")
-		return pdWeakDensity;
-	else if (s=="medium")
-		return pdMediumDensity;
-	else if (s=="heavy")
-		return pdHeavyDensity;
+    //-- backwards-compatible log-level names
+    else if (s=="weak" || s=="light")
+        return pdWeakDensity;
+    else if (s=="medium")
+        return pdMediumDensity;
+    else if (s=="heavy")
+        return pdHeavyDensity;
 
-	//-- oops
-	else
-		throw CExpc( Format("GetLogLevel(): unknown log-level name '%s'", s.c_str()) );
+    //-- oops
+    else
+        throw CExpc( Format("GetLogLevel(): unknown log-level name '%s'", s.c_str()) );
 }
 
 //----------------------------------------------------------------------
 const char* DDCLogLevelName[6] = { "none", "error", "warning", "info", "debug", "trace" };
 const char* LogLevelName(DDCLogLevel Level)
 {
-	if      (Level <= ddcLLUnknown) return "unknown";
-	else if (Level >  ddcLLTrace)   return "(undefined)";
-	return DDCLogLevelName[Level];
+    if      (Level <= ddcLLUnknown) return "unknown";
+    else if (Level >  ddcLLTrace)   return "(undefined)";
+    return DDCLogLevelName[Level];
 }
 
 //----------------------------------------------------------------------
 DDCLogLevel SetLogLevel(DDCLogLevel Level)
 {
-	pthread_mutex_lock(&ddcLogMutex);
-	DDCLogLevel oldLevel = ddcLogLevel;
-	ddcLogLevel = Level;
-	pthread_mutex_unlock(&ddcLogMutex);
-	return oldLevel;
+    pthread_mutex_lock(&ddcLogMutex);
+    DDCLogLevel oldLevel = ddcLogLevel;
+    ddcLogLevel = Level;
+    pthread_mutex_unlock(&ddcLogMutex);
+    return oldLevel;
 }
 
 //----------------------------------------------------------------------
 void ddcLog(const string&  t)
 {
-	FILE * fp = NULL;
-	pthread_mutex_lock(&ddcLogMutex);
-	try {
-	    const char *loglabel = ddc_log_label();
-	    char datebuf[DDCDateBufferSize];
-	    char timebuf[DDCTimeBufferSize];
-	    DDCTime::Now().DateTime(datebuf,timebuf);
+    FILE * fp = NULL;
+    pthread_mutex_lock(&ddcLogMutex);
+    try {
+        const char *loglabel = ddc_log_label();
+        char datebuf[DDCDateBufferSize];
+        char timebuf[DDCTimeBufferSize];
+        DDCTime::Now().DateTime(datebuf,timebuf);
 
-	    //-- log to stderr
-	    if (concord_daemon_log_stderr) {
-		fprintf(stderr, "%s (%s) > %s\n", timebuf, loglabel, t.c_str());
-		fflush(stderr);
-	    }
+        //-- log to stderr
+        if (concord_daemon_log_stderr) {
+            fprintf(stderr, "%s (%s) > %s\n", timebuf, loglabel, t.c_str());
+            fflush(stderr);
+        }
 
 #if HAVE_SYSLOG_H
-	    //-- log to syslog
-	    if (concord_daemon_log_syslog) {
-		syslog(LOG_NOTICE, "(%s) > %s", loglabel, t.c_str());
-	    }
+        //-- log to syslog
+        if (concord_daemon_log_syslog) {
+            syslog(LOG_NOTICE, "(%s) > %s", loglabel, t.c_str());
+        }
 #endif
 
-	    //-- log to local file LOG_PATH/log/concord/YYYY-MM-DD.log
-	    if (concord_daemon_log_files) {
-		string log_path = GetRegistryString( "Software\\Dialing\\Logs\\Main" );
-		string FileName = log_path + Format("/log/concord/%s.log", datebuf);
-		if ((fp=fopen (FileName.c_str(), "a"))) {
-		    fprintf (fp, "%s (%s) > %s\n", timebuf, loglabel, t.c_str());
-		    fclose(fp);
-		}
-	    }
-	}
-	catch (...) {
-	    if (fp) fclose(fp);
-	}
-	pthread_mutex_unlock(&ddcLogMutex);
+        //-- log to local file LOG_PATH/log/concord/YYYY-MM-DD.log
+        if (concord_daemon_log_files) {
+            string log_path = GetRegistryString( "Software\\Dialing\\Logs\\Main" );
+            string FileName = log_path + Format("/log/concord/%s.log", datebuf);
+            if ((fp=fopen (FileName.c_str(), "a"))) {
+                fprintf (fp, "%s (%s) > %s\n", timebuf, loglabel, t.c_str());
+                fclose(fp);
+            }
+        }
+    }
+    catch (...) {
+        if (fp) fclose(fp);
+    }
+    pthread_mutex_unlock(&ddcLogMutex);
 }
 
 /*--- emacs style variables ---
  * Local Variables:
  *  mode: C++
- *  c-default-style: "linux"
+ *  c-file-style: "ellemtel"
  *  c-basic-offset: 4
  *  tab-width: 8
  *  indent-tabs-mode: nil

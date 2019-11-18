@@ -21,18 +21,17 @@
 #include "ConcIndexator.h"
 
 #ifdef DETECT_MEMORY_LEAK
-	#ifdef _DEBUG
-	#define new DEBUG_NEW
-	#undef THIS_FILE
-	static char THIS_FILE[] = __FILE__;
-	#endif
+#ifdef _DEBUG
+#define new DEBUG_NEW
+#undef THIS_FILE
+static char THIS_FILE[] = __FILE__;
 #endif
-
+#endif
 
 /*--- emacs style variables ---
  * Local Variables:
  *  mode: C++
- *  c-default-style: "linux"
+ *  c-file-style: "ellemtel"
  *  c-basic-offset: 4
  *  tab-width: 8
  *  indent-tabs-mode: nil

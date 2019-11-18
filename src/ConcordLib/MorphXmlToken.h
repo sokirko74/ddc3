@@ -26,12 +26,12 @@ const string XmlWordType = "w";
 //! CXmlMorphAnnot holds one morphological interpretation, which is read from xml under CConcIndexator::m_IndexType == MorphXML_Index
 struct  CXmlMorphAnnot
 {
-        //! lemma
-        string                          m_Lemma;
-        //! other morphological features
-        string                          m_GrammemsStr;
+    //! lemma
+    string                          m_Lemma;
+    //! other morphological features
+    string                          m_GrammemsStr;
     //! reference to xml node
-        //! return the structure as a set of token properties
+    //! return the structure as a set of token properties
     void        GetAsSetOfProperties(vector<string>& Result)  const
     {
         Result.clear();
@@ -48,14 +48,14 @@ struct  CXmlMorphAnnot
 //! CXmlToken holds a word and all ist  morphological interpretations (used under CConcIndexator::m_IndexType == MorphXML_Index)
 struct CXmlToken 
 {
-        //! type of token (a word, a punctuation mark)
-        string                                          m_Type;
-        //! the string itself
-        string                                          m_WordStr;
-        //! all morphological annotations
-        vector<CXmlMorphAnnot>          m_Annots;
-        //! true if the token is last in the sentence
-        bool                                            m_bLastInSentence;
+    //! type of token (a word, a punctuation mark)
+    string                                          m_Type;
+    //! the string itself
+    string                                          m_WordStr;
+    //! all morphological annotations
+    vector<CXmlMorphAnnot>          m_Annots;
+    //! true if the token is last in the sentence
+    bool                                            m_bLastInSentence;
     CXmlToken()
     {
         m_bLastInSentence = false;
@@ -64,11 +64,10 @@ struct CXmlToken
 };
 #endif
 
-
 /*--- emacs style variables ---
  * Local Variables:
  *  mode: C++
- *  c-default-style: "linux"
+ *  c-file-style: "ellemtel"
  *  c-basic-offset: 4
  *  tab-width: 8
  *  indent-tabs-mode: nil

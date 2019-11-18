@@ -82,30 +82,30 @@ int u8_seqlen(const utf8str &s, size_t i)
 */
 size_t u8_toucs(ucs4str &dst, const utf8str &src)
 {
-  size_t nc=0;
-  for (utf8str::const_iterator si=src.begin(); si!=src.end(); si++,nc++) {
-    ucs4 ch = 0;
-    int nb = trailingBytesForUTF8[(unsigned char)*si];
-    switch (nb) {
-      /* these fall through deliberately */
-    case 3: ch += (unsigned char)*si++; ch <<= 6;
-    case 2: ch += (unsigned char)*si++; ch <<= 6;
-    case 1: ch += (unsigned char)*si++; ch <<= 6;
-    case 0: ch += (unsigned char)*si++;
+    size_t nc=0;
+    for (utf8str::const_iterator si=src.begin(); si!=src.end(); si++,nc++) {
+        ucs4 ch = 0;
+        int nb = trailingBytesForUTF8[(unsigned char)*si];
+        switch (nb) {
+            /* these fall through deliberately */
+            case 3: ch += (unsigned char)*si++; ch <<= 6;
+            case 2: ch += (unsigned char)*si++; ch <<= 6;
+            case 1: ch += (unsigned char)*si++; ch <<= 6;
+            case 0: ch += (unsigned char)*si++;
+        }
+        ch -= offsetsFromUTF8[nb];
+        dst.push_back(ch);
     }
-    ch -= offsetsFromUTF8[nb];
-    dst.push_back(ch);
-  }
-  return nc;
+    return nc;
 }
 
 /** convert UTF-8 byte string \c src to a new UCS-4 string */
 ucs4str u8_toucs(const utf8str &src)
 {
-  ucs4str dest;
-  dest.reserve(src.size());
-  u8_toucs(dest,src);
-  return dest;
+    ucs4str dest;
+    dest.reserve(src.size());
+    u8_toucs(dest,src);
+    return dest;
 }
 
 /* returns # characters converted
@@ -121,24 +121,24 @@ size_t u8_toutf8(utf8str &dst, const ucs4str &src)
 {
     size_t nc=0;
     for (ucs4str::const_iterator si=src.begin(); si != src.end(); si++,nc++) {
-	ucs4 ch = *si;
+        ucs4 ch = *si;
         if (ch < 0x80) {
-	    dst.push_back((char)ch);
+            dst.push_back((char)ch);
         }
         else if (ch < 0x800) {
-	    dst.push_back((ch>>6) | 0xC0);
+            dst.push_back((ch>>6) | 0xC0);
             dst.push_back((ch & 0x3F) | 0x80);
         }
         else if (ch < 0x10000) {
-	    dst.push_back((ch>>12) | 0xE0);
-	    dst.push_back(((ch>>6) & 0x3F) | 0x80);
-	    dst.push_back((ch & 0x3F) | 0x80);
+            dst.push_back((ch>>12) | 0xE0);
+            dst.push_back(((ch>>6) & 0x3F) | 0x80);
+            dst.push_back((ch & 0x3F) | 0x80);
         }
         else if (ch < 0x110000) {
-	    dst.push_back((ch>>18) | 0xF0);
+            dst.push_back((ch>>18) | 0xF0);
             dst.push_back(((ch>>12) & 0x3F) | 0x80);
-	    dst.push_back(((ch>>6) & 0x3F) | 0x80);
-	    dst.push_back((ch & 0x3F) | 0x80);
+            dst.push_back(((ch>>6) & 0x3F) | 0x80);
+            dst.push_back((ch & 0x3F) | 0x80);
         }
     }
     return nc;
@@ -167,7 +167,7 @@ size_t u8_ws_len(const ucs4str &src)
 {
     size_t len=0;
     for (ucs4str::const_iterator si=src.begin(); si != src.end(); si++) {
-	len += u8_wc_len(*si);
+        len += u8_wc_len(*si);
     }
     return len;
 }
@@ -180,7 +180,7 @@ size_t u8_wc_toutf8(utf8str &dst, ucs4 ch)
     }
     if (ch < 0x800) {
         dst.push_back((ch>>6) | 0xC0);
-	dst.push_back((ch & 0x3F) | 0x80);
+        dst.push_back((ch & 0x3F) | 0x80);
         return 2;
     }
     if (ch < 0x10000) {
@@ -506,7 +506,7 @@ int u8_vprintf(char *fmt, va_list ap)
 
     sz = 512;
     buf = (char*)alloca(sz);
- try_print:
+  try_print:
     cnt = vsnprintf(buf, sz, fmt, ap);
     if (cnt >= sz) {
         buf = (char*)alloca(cnt - sz + 1);
@@ -538,7 +538,7 @@ int u8_printf(char *fmt, ...)
 /*--- emacs style variables ---
  * Local Variables:
  *  mode: C++
- *  c-default-style: "linux"
+ *  c-file-style: "ellemtel"
  *  c-basic-offset: 4
  *  tab-width: 8
  *  indent-tabs-mode: nil

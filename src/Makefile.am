@@ -15,6 +15,7 @@
 
 ## --- recursion subdirectories
 SUBDIRS = \
+	CommonLib \
 	ConcordLib \
 	GraphanLib \
 	StructDictLib \
@@ -26,7 +27,6 @@ SUBDIRS = \
 	PCRE \
 	MorphWizardLib \
 	ConcordDmnLib \
-	CommonLib \
 	\
 	ddc_index \
 	ddc_union \
@@ -74,7 +74,7 @@ MAINTAINERCLEANFILES = *~ \
 ## Variables: distribution
 
 ##--- extra distribution files
-#EXTRA_DIST =
+EXTRA_DIST = CMakeLists.txt
 
 ##--- recursion subdirectories for 'make dist'
 DIST_SUBDIRS = $(SUBDIRS)

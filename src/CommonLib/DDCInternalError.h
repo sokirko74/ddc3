@@ -23,35 +23,35 @@
 
 enum DDCErrorEnum
 {       
-        errNone = 0,
-        errReadOccurrenceFile   = 1,
-        errProcessMorphology    = 2,
-        errNonePath             = 3,
-        errParseError           = 4,
-        errReadSourceFile       = 5,
-        errTimeoutElapsed       = 6,
-        errRuntime              = 7,
-        errLogic                = 8,
-        errOther                = 9
+    errNone = 0,
+    errReadOccurrenceFile   = 1,
+    errProcessMorphology    = 2,
+    errNonePath             = 3,
+    errParseError           = 4,
+    errReadSourceFile       = 5,
+    errTimeoutElapsed       = 6,
+    errRuntime              = 7,
+    errLogic                = 8,
+    errOther                = 9
 };
 
 
 inline const char* GetDDCErrorString(DDCErrorEnum ErrorCode)
 {
-        switch (ErrorCode) {
-                case errNone: return "No error";
-                case errReadOccurrenceFile: return "cannot read an index file";
-                case errProcessMorphology: return "an exception in morphology";
-                case errNonePath: return "bad path for index files";
-                case errParseError: return "cannot parse the input query";
-                case errReadSourceFile: return "cannot read a source file";
-                case errTimeoutElapsed: return "timeout elapsed";
-                case errRuntime: return "runtime error";
-                case errLogic: return "logic error";
-                case errOther: return "other error";
-                default: break;
-        }
-        return "Unknown error code";
+    switch (ErrorCode) {
+        case errNone: return "No error";
+        case errReadOccurrenceFile: return "cannot read an index file";
+        case errProcessMorphology: return "an exception in morphology";
+        case errNonePath: return "bad path for index files";
+        case errParseError: return "cannot parse the input query";
+        case errReadSourceFile: return "cannot read a source file";
+        case errTimeoutElapsed: return "timeout elapsed";
+        case errRuntime: return "runtime error";
+        case errLogic: return "logic error";
+        case errOther: return "other error";
+        default: break;
+    }
+    return "Unknown error code";
 }
 
 #endif
@@ -59,7 +59,7 @@ inline const char* GetDDCErrorString(DDCErrorEnum ErrorCode)
 /*--- emacs style variables ---
  * Local Variables:
  *  mode: C++
- *  c-default-style: "linux"
+ *  c-file-style: "ellemtel"
  *  c-basic-offset: 4
  *  tab-width: 8
  *  indent-tabs-mode: nil

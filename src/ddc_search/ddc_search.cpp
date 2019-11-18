@@ -126,13 +126,13 @@ void delete_main_tags(string &HtmlName) {
         EngMakeLower(q);
         if ((q == "</html>")
             || (q == "</body>")
-                ) {
+            ) {
             HtmlName.erase(i, 7);
             HtmlName.insert(i, "<br>");
 
         } else if ((q.substr(0, 6) == "<html>")
                    || (q.substr(0, 6) == "<body>")
-                ) {
+            ) {
             HtmlName.erase(i, 6);
             i--;
         };
@@ -489,12 +489,10 @@ int cgiMain() {
     return 0;
 }
 
-
-
 /*--- emacs style variables ---
  * Local Variables:
  *  mode: C++
- *  c-default-style: "linux"
+ *  c-file-style: "ellemtel"
  *  c-basic-offset: 4
  *  tab-width: 8
  *  indent-tabs-mode: nil

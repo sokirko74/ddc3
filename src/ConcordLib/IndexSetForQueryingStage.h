@@ -47,9 +47,9 @@ const DWORD TheOnlyOccurIsInEndOccurNo = 1 << 31;
 const DWORD AllFlags = TheOnlyOccurIsInEndOccurNo;
 
 /*!
-        CIndexItem contains basic information about one index item. In the strict sense one index item
-        is a connection between an indexed string and its occurrences. More generally the term "index item"
-        is used to refer also an indexed string.
+  CIndexItem contains basic information about one index item. In the strict sense one index item
+  is a connection between an indexed string and its occurrences. More generally the term "index item"
+  is used to refer also an indexed string.
 */
 class CIndexItem {
     // pointer to CStringIndexSet::m_StringBuffer and flags;
@@ -149,11 +149,11 @@ class CItemIndexForLoading;
 
 /////////////////////////////////////////////////////////////////////////////
 /*!     This class is  a part of CStringIndexSet class which is used only during querying.  It contains
-the important serialization primitives.
+  the important serialization primitives.
 */
 class CIndexSetForQueryingStage {
     //! the main file of  occurrences
-    CFileOrMemoryMappedFile m_OccursFp;
+    ddcFileOrMMap m_OccursFp;
 
     //! load all \ref perdiv_def "period divisions" to m_EndPeriodOffsets
     bool LoadPeriodDivision();
@@ -246,7 +246,7 @@ public:
 /*--- emacs style variables ---
  * Local Variables:
  *  mode: C++
- *  c-default-style: "linux"
+ *  c-file-style: "ellemtel"
  *  c-basic-offset: 4
  *  tab-width: 8
  *  indent-tabs-mode: nil

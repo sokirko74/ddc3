@@ -42,22 +42,22 @@ int expression_result::i_get_int ()
       default :
          return atoi (S_get_string () . c_str ());
    }
-}	
+}       
 
 /// Get the expression_result as a double
 double expression_result::d_get_double ()
 {
-	switch (e_type)
-	{
-		case e_double :
-			return d_content;
-		case e_int :
-			return (double) i_content;
+        switch (e_type)
+        {
+                case e_double :
+                        return d_content;
+                case e_int :
+                        return (double) i_content;
       case e_bool :
          return o_content ? 1.0 : 0.0;
       default :
          return atof (S_get_string () . c_str ());
-	}
+        }
 }
 
 /// Get the expression_result as a string
@@ -102,7 +102,7 @@ TIXML_STRING expression_result::S_get_string ()
          break;
    }
    return S_res;
-}	
+}       
 
 /**
 Get the expression_result as a bool\n
@@ -135,8 +135,8 @@ bool expression_result::o_get_bool ()
       case e_bool :  
          return o_content;
    }
-	return false;
-}	
+        return false;
+}       
 
 #ifdef TINYXPATH_DEBUG
 
@@ -176,7 +176,7 @@ bool expression_result::o_get_bool ()
 /*--- emacs style variables ---
  * Local Variables:
  *  mode: C++
- *  c-default-style: "linux"
+ *  c-file-style: "ellemtel"
  *  c-basic-offset: 4
  *  tab-width: 8
  *  indent-tabs-mode: nil

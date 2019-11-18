@@ -125,10 +125,10 @@ union YYSTYPE
 {
 #line 80 "yyQParser.y" /* yacc.c:1909  */
 
-  std::string*          m_str;     /* For returning simple strings  */
+  std::string*	 	m_str;     /* For returning simple strings  */
   int                   m_int;     /* For returning integers */
-  class CQuery*         m_pnode;   /* For returning basic query nodes */
-  class CQFilter*       m_pfilt;   /* For returning single query filters */
+  class CQuery*	 	m_pnode;   /* For returning basic query nodes */
+  class CQFilter* 	m_pfilt;   /* For returning single query filters */
 
 #line 134 "yyQParser.h" /* yacc.c:1909  */
 };
@@ -143,13 +143,3 @@ typedef union YYSTYPE YYSTYPE;
 int yyqparse (CQueryCompiler* _qcompiler);
 
 #endif /* !YY_YYQ_YYQPARSER_H_INCLUDED  */
-
-/*--- emacs style variables ---
- * Local Variables:
- *  mode: C++
- *  c-default-style: "linux"
- *  c-basic-offset: 4
- *  tab-width: 8
- *  indent-tabs-mode: nil
- * End:
- */

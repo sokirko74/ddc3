@@ -38,111 +38,110 @@ typedef list<string>            CQCommentList;
 */
 class CQueryOptions : public ddcObject {
 public:
-  //! how many hits of the left and right context should be output (must be &lt;= m_MaxContextSentencesCount)
-  size_t m_ContextSentencesCount;
+    //! how many hits of the left and right context should be output (must be &lt;= m_MaxContextSentencesCount)
+    size_t m_ContextSentencesCount;
 
-  // if true, DDC shows file names, instead of bibliographical information for this query
-  //! (CConcIndexator::m_bOutputBibliographyOfHits is default value for outputting bibliography
-  bool m_bEnableBibliography;
+    // if true, DDC shows file names, instead of bibliographical information for this query
+    //! (CConcIndexator::m_bOutputBibliographyOfHits is default value for outputting bibliography
+    bool m_bEnableBibliography;
   
-  //! if true, DDC initializes CHit::m_DebugRank
-  bool m_bDebugRank;
+    //! if true, DDC initializes CHit::m_DebugRank
+    bool m_bDebugRank;
 
-  //! whether to return a separate hit for each occurrence, or collect into distinct instances of the selected container (sentence)
-  //! default=false; used by CQueryNode::Evaluate()
-  bool m_bSeparateHits;
+    //! whether to return a separate hit for each occurrence, or collect into distinct instances of the selected container (sentence)
+    //! default=false; used by CQueryNode::Evaluate()
+    bool m_bSeparateHits;
 
-  //! the index of text area where DDC should perform the input query
-  int m_TextAreaNo;
+    //! the index of text area where DDC should perform the input query
+    int m_TextAreaNo;
 
-  //! list of all '#WITHIN' arguments (break collections or text areas) from currently parsed query 
-  vector<string> m_Within;
+    //! list of all '#WITHIN' arguments (break collections or text areas) from currently parsed query 
+    vector<string> m_Within;
 
-  //! the break collection name which should be used while querying
-  string m_HitTypeStr;
+    //! the break collection name which should be used while querying
+    string m_HitTypeStr;
   
-  //! (abstract) filters and sort operators which should be applied to the resulted hit set
-  CQFilterList m_QFilters;
+    //! (abstract) filters and sort operators which should be applied to the resulted hit set
+    CQFilterList m_QFilters;
 
-  //! (runtime) filters and sort operators which should be applied to the resulted hit set (available after Compile())
-  vector<CDDCFilterWithBounds> m_Filters; 
+    //! (runtime) filters and sort operators which should be applied to the resulted hit set (available after Compile())
+    vector<CDDCFilterWithBounds> m_Filters; 
 
-  //! selected subcorpora for this query
-  CQSubcorpusList m_Subcorpora;
+    //! selected subcorpora for this query
+    CQSubcorpusList m_Subcorpora;
 
-  //! user comments for this query
-  CQCommentList m_Comments;
-
-public:
-  //------------------------------------------------------------
-  ///\name Constructors etc.
-  //@{
-
-  //! Default constructor
-  CQueryOptions()
-    : 
-      m_ContextSentencesCount(0),
-      m_bEnableBibliography(true),
-      m_bDebugRank(false),
-      m_bSeparateHits(false),
-      m_TextAreaNo(UnknownTextAreaNo),
-      m_HitTypeStr("")
-  {};
-
-  //! Default destructor; calls Clear
-  virtual ~CQueryOptions(void);
-
-  //! swap options
-  void swap(CQueryOptions &x);
-
-  //! assign options (copies filter list)
-  void assign(const CQueryOptions &src);
-
-  //! clone object (wraps new() and assign())
-  inline CQueryOptions* Clone(void) const
-  {
-    CQueryOptions *clone = new CQueryOptions();
-    clone->assign(*this);
-    return clone;
-  };
-  //@}
+    //! user comments for this query
+    CQCommentList m_Comments;
 
 public:
-  //------------------------------------------------------------
-  ///\name CQueryOptions API
-  //@{
-  //! Compile index-dependent filter properties (required for evaluation)
-  virtual bool Compile(CQueryCompiler *compiler);
+    //------------------------------------------------------------
+    ///\name Constructors etc.
+    //@{
 
-  //! clear options.
-  virtual void Clear();
+    //! Default constructor
+    CQueryOptions()
+        : 
+        m_ContextSentencesCount(0),
+        m_bEnableBibliography(true),
+        m_bDebugRank(false),
+        m_bSeparateHits(false),
+        m_TextAreaNo(UnknownTextAreaNo),
+        m_HitTypeStr("")
+    {};
 
-  //! returns true iff all defined filters are file-based (for optimized count(*) evaluation)
-  bool CanFilterByFile() const;
+    //! Default destructor; calls Clear
+    virtual ~CQueryOptions(void);
 
-  //! returns true iff all defined filters are trivial (i.e. do not change default hit-sort order)
-  bool IsTrivialFilter() const;
-  //@}
+    //! swap options
+    void swap(CQueryOptions &x);
+
+    //! assign options (copies filter list)
+    void assign(const CQueryOptions &src);
+
+    //! clone object (wraps new() and assign())
+    inline CQueryOptions* Clone(void) const
+    {
+        CQueryOptions *clone = new CQueryOptions();
+        clone->assign(*this);
+        return clone;
+    };
+    //@}
 
 public:
-  //------------------------------------------------------------
-  ///\name ddcObject API
-  //@{
-  virtual ddcObjectList Children() const;
-  virtual void DisownChildren();
-  virtual string toString();
-  virtual string jsonClass() { return "CQueryOptions"; };
-  virtual string jsonData();
-  //@}
+    //------------------------------------------------------------
+    ///\name CQueryOptions API
+    //@{
+    //! Compile index-dependent filter properties (required for evaluation)
+    virtual bool Compile(CQueryCompiler *compiler);
+
+    //! clear options.
+    virtual void Clear();
+
+    //! returns true iff all defined filters are file-based (for optimized count(*) evaluation)
+    bool CanFilterByFile() const;
+
+    //! returns true iff all defined filters are trivial (i.e. do not change default hit-sort order)
+    bool IsTrivialFilter() const;
+    //@}
+
+public:
+    //------------------------------------------------------------
+    ///\name ddcObject API
+    //@{
+    virtual ddcObjectList Children() const;
+    virtual void DisownChildren();
+    virtual string toString();
+    virtual string jsonClass() { return "CQueryOptions"; };
+    virtual string jsonData();
+    //@}
 };
 
 #endif /* DDC_QUERY_OPTIONS_H */
 
-
 /*--- emacs style variables ---
  * Local Variables:
  *  mode: C++
- *  c-default-style: "linux"
+ *  c-file-style: "ellemtel"
  *  c-basic-offset: 4
  *  tab-width: 8
  *  indent-tabs-mode: nil

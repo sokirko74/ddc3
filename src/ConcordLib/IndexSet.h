@@ -27,7 +27,7 @@
 #include "../PCRE/pcre_rml.h"
 
 /*!  COutputToken  contains information about one token of an output hit and its properties.
-*/
+ */
 struct COutputToken {
     //! the token itself
     string m_TokenStr;
@@ -50,13 +50,13 @@ class CStringIndexator;
 
 
 /*! Class CStringIndexSet  is the upmost implementation of one \ref index_set_def "index set". The
-        main functions deals with the searching of strings in index and with the retrieving its occurrences.
-        On the other hand, this class is an inheritor of CIndexSetForLoadingStage and CIndexSetForQueryingStage, and 
-        therefore it provides a connection between them during the load phase (for example CStringIndexSet::ConvertLoadIndexToWorkingIndex).
+  main functions deals with the searching of strings in index and with the retrieving its occurrences.
+  On the other hand, this class is an inheritor of CIndexSetForLoadingStage and CIndexSetForQueryingStage, and 
+  therefore it provides a connection between them during the load phase (for example CStringIndexSet::ConvertLoadIndexToWorkingIndex).
 */
 class CStringIndexSet : public CIndexSetForLoadingStage, public CIndexSetForQueryingStage {
     //! a file for \ref storage_def "index storage"
-    CFileOrMemoryMappedFile m_StorageFile;
+    ddcFileOrMMap m_StorageFile;
 
 
     //! convert a temporal index set to the work index
@@ -117,7 +117,7 @@ public:
     void UnionIndexSets(const vector<CStringIndexSet *> &IndexSets, const vector<size_t> &TokenCounts);
 
     //! partition this index into \a Paritions[] on \a EndTokenNo[] (exclusive)
-    void CreatePartitionsDuringSplit(vector<CStringIndexSet *> &Partitions, const vector<CTokenNo> &EndTokenNo) const;
+    void CreateSplitPartitions(vector<CStringIndexSet *> &Partitions, const vector<CTokenNo> &EndTokenNo) const;
 
     //! ensure that m_rIndex is non-empty, populating it from m_Index if required (called during index compilation)
     void EnsureSuffixIndex();
@@ -189,7 +189,7 @@ public:
 /*--- emacs style variables ---
  * Local Variables:
  *  mode: C++
- *  c-default-style: "linux"
+ *  c-file-style: "ellemtel"
  *  c-basic-offset: 4
  *  tab-width: 8
  *  indent-tabs-mode: nil

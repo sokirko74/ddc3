@@ -5,7 +5,8 @@
 #include "TabFormatIndexator.h"
 #include "DocumentIterator.h"
 
-const string STARTER = "%%$DDC:";
+const string COMMENT_STARTER = "%%";
+const string CMD_STARTER = "%%$DDC:";
 const string META_STARTER = "%%$DDC:meta.";
 const string BREAK_STARTER = "%%$DDC:BREAK.";
 const string META_FILE_DELIMITER = "%%$DDC:meta.file_";
@@ -15,6 +16,7 @@ const string BIBL_ORIG = "%%$DDC:meta.orig_";
 const string BIBL_DATE = "%%$DDC:meta.date_";
 const string BIBL_PAGE = "%%$DDC:meta.page_";
 const string META_N = "%%$DDC:meta.n_";
+const string TOKID_STARTER = "%%$DDC:tokid."; //-- ignored
 const string PAGE_BREAK = "%%$DDC:PAGE";
 
 const char EQU_CHAR = '=';
@@ -46,16 +48,22 @@ void CTabFormatIndexator::AddColumnMap (const string& field, const string& value
     params->FoundDocColumnDeclarations.push_back(indexSet);
 }
 
+void CTabFormatIndexator::ProcessBreakRecord (CIndexDocument* document, const string& line, CTabFormattedMetaParams* params) {
+    int equDelim = line.find(EQU_CHAR);
+    string field = (equDelim == -1) ? line : line.substr(0, equDelim);
+    //  ignore  numbers in breaks
+    string breakName = field.substr(BREAK_STARTER.length());
+    int bracketIndex = breakName.find('[');
+    if (bracketIndex != -1) {
+        breakName.erase(bracketIndex);
+    }
+    if (breakName != PredefinedFileBreakName) {
+        AddBreakByName(breakName, document->CorpusEndTokenNo);
+    }
+}
+
 void CTabFormatIndexator::ProcessMetaField (CIndexDocument* document, const string& line, CTabFormattedMetaParams* params) {
     int equDelim = line.find(EQU_CHAR);
-    if (equDelim == -1) {
-        // without '='
-        if (StartsWith(line, BREAK_STARTER)) {
-            string breakName = line.substr(BREAK_STARTER.length());
-            AddBreakByName(breakName, document->CorpusEndTokenNo);
-            return;
-        }
-    }
 
     if (equDelim == -1) {
         throw CExpc(Format("In line %s cannot find '%c' ", line.c_str(), EQU_CHAR));
@@ -92,6 +100,9 @@ void CTabFormatIndexator::ProcessMetaField (CIndexDocument* document, const stri
     else if (field == META_N) {
         // nothing to store
     }
+    else if (StartsWith(field, TOKID_STARTER)) {
+        // ignored
+    }
     else if (StartsWith(field, BREAK_STARTER)) {
         // if with '=', then ignore value
         string breakName = field.substr(BREAK_STARTER.length());
@@ -103,7 +114,9 @@ void CTabFormatIndexator::ProcessMetaField (CIndexDocument* document, const stri
         m_BiblIndex.SetFreeBiblByName(indexName, value, params->Bibl);
     }
     else {
-        throw CExpc(Format("Bad format at line: %s", line.c_str()));
+        // unrecognized "%%DDC:" instruction: ignored
+        ddcLogTrace("ignoring unrecognized instruction `"+line+"'");
+        ++document->DroppedLinesCount;
     }
 
 }
@@ -139,8 +152,16 @@ void CTabFormatIndexator::IndexTabFormat(CIndexDocument* document) {
         string& line  = document->DocumentLines[i];
         Trim(line);
         if (line.empty()) continue;
-        if (StartsWith(line, STARTER)) {
+        if (StartsWith(line, BREAK_STARTER)) {
+            if (!inDocumentHeader) {
+                ProcessBreakRecord(document, line, &params);
+            }
+        }
+        else if (StartsWith(line, CMD_STARTER)) {
             ProcessMetaField(document, line, &params);
+        }
+        else if (StartsWith(line, COMMENT_STARTER)) {
+            //-- other comment: ignore
         }
         else {
             if (inDocumentHeader) {
@@ -155,12 +176,16 @@ void CTabFormatIndexator::IndexTabFormat(CIndexDocument* document) {
     m_BiblIndex.AddIndexItem(params.Bibl);
     *PrevBibl.Get() = params.Bibl;
     EndTextAreaBorders(document->CorpusEndTokenNo);
+    if (document->DroppedLinesCount > 0) {
+        ddcLogDebug(Format("ignored %i line(s) in document %s",
+                           document->DroppedLinesCount, document->CorpusFileName.c_str()));
+    }
 };
 
 /*--- emacs style variables ---
  * Local Variables:
  *  mode: C++
- *  c-default-style: "linux"
+ *  c-file-style: "ellemtel"
  *  c-basic-offset: 4
  *  tab-width: 8
  *  indent-tabs-mode: nil

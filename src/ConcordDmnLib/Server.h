@@ -28,7 +28,7 @@
 #include "../CommonLib/ddcThreadQueue.h"
 
 #ifdef WIN32
-        #include <process.h>  /* _beginthread, _endthread */
+#include <process.h>  /* _beginthread, _endthread */
 #else
 #endif
 
@@ -46,9 +46,6 @@
 class CDDCServer : public CHost
 {
 public:
-    //--------------------------------------------------------------
-    // Administrivia
-
     /** additional hit delimiter; overrides CConcHolder.m_AdditionalHitDelimiter , also used for branch server hit-tokenization; default is "\x01" */
     static const char *AdditionalHitDelimiter;
 
@@ -232,7 +229,7 @@ public:
 /*--- emacs style variables ---
  * Local Variables:
  *  mode: C++
- *  c-default-style: "linux"
+ *  c-file-style: "ellemtel"
  *  c-basic-offset: 4
  *  tab-width: 8
  *  indent-tabs-mode: nil

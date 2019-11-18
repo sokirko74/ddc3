@@ -19,27 +19,27 @@
 // ==========  Copyright by Alexey Sokirko (1996-2001), Bryan Jurish (2011)
 
 #ifndef graspace_h
- #define graspace_h
+#define graspace_h
 
-   #include "../CommonLib/utilit.h"
+#include "../CommonLib/utilit.h"
 
-   #define   SEOLN        (unsigned char) 171
-   #define   SSpace       (unsigned char) 129
-   #define   STab         '\x10'
+#define   SEOLN        (unsigned char) 171
+#define   SSpace       (unsigned char) 129
+#define   STab         '\x10'
 
 
-   // max length of the token
-   const size_t CriticalTokenLength = 255;
+// max length of the token
+const size_t CriticalTokenLength = 255;
 
-   // length of the token and its graphematical descriptors 
-   const size_t CriticalGraphemLineLength = CriticalTokenLength*2;
+// length of the token and its graphematical descriptors 
+const size_t CriticalGraphemLineLength = CriticalTokenLength*2;
 
 #endif
 
 /*--- emacs style variables ---
  * Local Variables:
  *  mode: C++
- *  c-default-style: "linux"
+ *  c-file-style: "ellemtel"
  *  c-basic-offset: 4
  *  tab-width: 8
  *  indent-tabs-mode: nil

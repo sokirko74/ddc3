@@ -1,3 +1,5 @@
+%%$DDC:unknown_field=some_file_name.txt
+
 %%$DDC:meta.file_=some_file_name.txt
 %%$DDC:meta.scan_=scan_bibl_stub
 %%$DDC:meta.orig_=orig_bibl_stub
@@ -15,6 +17,6 @@ KOMMEN	kam
 VATER	Vater
 KOMMEN	kam
 
-%%$DDC:BREAK.s=1234
+%%$DDC:BREAK.s[1]=1234
 SOHN	Sohn
 KOMMEN	kam

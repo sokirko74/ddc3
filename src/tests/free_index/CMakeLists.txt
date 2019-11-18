@@ -11,7 +11,7 @@ macro (free_index)
     )
     add_test(
             NAME free_index_query
-            COMMAND ddc_simple -prettyjson m.con $l=MUTTER new_result.json
+            COMMAND ddc_simple -pretty m.con $l=MUTTER new_result.json
             WORKING_DIRECTORY  ${dir}
     )
     add_test(
@@ -27,7 +27,7 @@ macro (free_index)
     )
     add_test(
             NAME free_index_query_mapped
-            COMMAND ddc_simple -prettyjson m_mapped.con $l=MUTTER new_result_mapped.json
+            COMMAND ddc_simple -pretty m_mapped.con $l=MUTTER new_result_mapped.json
             WORKING_DIRECTORY  ${dir}
     )
     add_test(

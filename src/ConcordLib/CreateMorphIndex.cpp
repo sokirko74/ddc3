@@ -129,7 +129,7 @@ bool CreateMorphIndex(const CStringIndexator* indexator, string path, MorphLangu
 
         if ((OccursCount > 3 * maxTokenCountInOnePeriod)
             || (i + 1 == CountOfTokens)
-                ) {
+            ) {
 
             pMorphIndexSet->SortInputAndMemoryIndices();
 
@@ -164,7 +164,7 @@ bool CreateMorphIndex(const CStringIndexator* indexator, string path, MorphLangu
 /*--- emacs style variables ---
  * Local Variables:
  *  mode: C++
- *  c-default-style: "linux"
+ *  c-file-style: "ellemtel"
  *  c-basic-offset: 4
  *  tab-width: 8
  *  indent-tabs-mode: nil

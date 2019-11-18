@@ -85,8 +85,8 @@ bool token_syntax_decoder::o_recognize (
    {
       case xpath_location_path :
          //
-         // [1]   LocationPath			::=   RelativeLocationPath 
-			// 					         | AbsoluteLocationPath 
+         // [1]   LocationPath                  ::=   RelativeLocationPath 
+                        //                                               | AbsoluteLocationPath 
          //
          if (! ltp_get (0))
             return false;
@@ -109,8 +109,8 @@ bool token_syntax_decoder::o_recognize (
          break;         
 
       case xpath_absolute_location_path :
-         // [2]   AbsoluteLocationPath	::=   '/' RelativeLocationPath? 
-			// 					         | AbbreviatedAbsoluteLocationPath 
+         // [2]   AbsoluteLocationPath  ::=   '/' RelativeLocationPath? 
+                        //                                               | AbbreviatedAbsoluteLocationPath 
          if (! ltp_get (0))
             return false;
          i_action_counter = i_get_action_counter ();
@@ -147,10 +147,10 @@ bool token_syntax_decoder::o_recognize (
 
       case xpath_relative_location_path :
          //
-         // [3]   RelativeLocationPath	::=   Step 
-			// 					         | RelativeLocationPath '/' Step 
-			// 					         | AbbreviatedRelativeLocationPath
-         // [11]   AbbreviatedRelativeLocationPath	::=   RelativeLocationPath '//' Step 
+         // [3]   RelativeLocationPath  ::=   Step 
+                        //                                               | RelativeLocationPath '/' Step 
+                        //                                               | AbbreviatedRelativeLocationPath
+         // [11]   AbbreviatedRelativeLocationPath      ::=   RelativeLocationPath '//' Step 
          //
          i_action_counter = i_get_action_counter ();
          if (! o_recognize (xpath_step, o_final))
@@ -180,8 +180,8 @@ bool token_syntax_decoder::o_recognize (
          break;         
 
       case xpath_step :
-         // [4]   Step					::=   AxisSpecifier NodeTest Predicate* 
-			// 					         | AbbreviatedStep 
+         // [4]   Step                                  ::=   AxisSpecifier NodeTest Predicate* 
+                        //                                               | AbbreviatedStep 
          if (! ltp_get (0))
             return false;
          switch (ltp_get (0) -> lex_get_value ())
@@ -220,10 +220,10 @@ bool token_syntax_decoder::o_recognize (
 
       case xpath_axis_specifier :
          // 
-         // [5]   AxisSpecifier			::=   AxisName '::' 
-			// 					         | AbbreviatedAxisSpecifier 
+         // [5]   AxisSpecifier                 ::=   AxisName '::' 
+                        //                                               | AbbreviatedAxisSpecifier 
          //
-         // [13]   AbbreviatedAxisSpecifier			::=   '@'?
+         // [13]   AbbreviatedAxisSpecifier                     ::=   '@'?
          o_empty = false;
          if (ltp_get (0))
          {
@@ -265,19 +265,19 @@ bool token_syntax_decoder::o_recognize (
          break;
 
       case xpath_axis_name :
-         // [6]   AxisName				::=   'ancestor' 
-         // 								| 'ancestor-or-self' 
-         // 								| 'attribute' 
-         // 								| 'child' 
-         // 								| 'descendant' 
-         // 								| 'descendant-or-self' 
-         // 								| 'following' 
-         // 								| 'following-sibling' 
-         // 								| 'namespace' 
-         // 								| 'parent' 
-         // 								| 'preceding' 
-         // 								| 'preceding-sibling' 
-         // 								| 'self'
+         // [6]   AxisName                              ::=   'ancestor' 
+         //                                                             | 'ancestor-or-self' 
+         //                                                             | 'attribute' 
+         //                                                             | 'child' 
+         //                                                             | 'descendant' 
+         //                                                             | 'descendant-or-self' 
+         //                                                             | 'following' 
+         //                                                             | 'following-sibling' 
+         //                                                             | 'namespace' 
+         //                                                             | 'parent' 
+         //                                                             | 'preceding' 
+         //                                                             | 'preceding-sibling' 
+         //                                                             | 'self'
    
          if (! ltp_get (0))
             return false;
@@ -289,13 +289,13 @@ bool token_syntax_decoder::o_recognize (
          break;
 
       case xpath_node_test :
-         // [7]   NodeTest				::=   NameTest 
-         // 								| NodeType '(' ')' 
-         // 								| 'processing-instruction' '(' Literal ')'
-         // [38]   NodeType				::=   'comment' 
-			// 				| 'text' 
-			// 				| 'processing-instruction' 
-			// 				| 'node' 
+         // [7]   NodeTest                              ::=   NameTest 
+         //                                                             | NodeType '(' ')' 
+         //                                                             | 'processing-instruction' '(' Literal ')'
+         // [38]   NodeType                             ::=   'comment' 
+                        //                              | 'text' 
+                        //                              | 'processing-instruction' 
+                        //                              | 'node' 
          if (! ltp_get (0))
             return false;
          switch (ltp_get (0) -> lex_get_value ())
@@ -333,7 +333,7 @@ bool token_syntax_decoder::o_recognize (
          break;
 
       case xpath_predicate :
-         // [8]   Predicate				::=   '[' PredicateExpr ']' 
+         // [8]   Predicate                             ::=   '[' PredicateExpr ']' 
          if (! ltp_get (1))
             return false;
          if (ltp_get (0) -> lex_get_value () != lex_obrack)
@@ -349,7 +349,7 @@ bool token_syntax_decoder::o_recognize (
          break;
 
       case xpath_predicate_expr :
-         // [9]   PredicateExpr			::=   Expr
+         // [9]   PredicateExpr                 ::=   Expr
          if (! o_recognize (xpath_expr, o_final))
             return false;
          if (o_final)
@@ -357,7 +357,7 @@ bool token_syntax_decoder::o_recognize (
          break;
 
       case xpath_abbreviated_absolute_location_path :
-         // [10]   AbbreviatedAbsoluteLocationPath	::=   '//' RelativeLocationPath 
+         // [10]   AbbreviatedAbsoluteLocationPath      ::=   '//' RelativeLocationPath 
          if (! ltp_get (0) || ltp_get (0) -> lex_get_value () != lex_2_slash)
             return false;
          v_inc_current (1);
@@ -370,7 +370,7 @@ bool token_syntax_decoder::o_recognize (
       // Note : [11] is processed by [3]
 
       case xpath_abbrieviated_step :
-         // [12]   AbbreviatedStep					::=   '.' | '..' 
+         // [12]   AbbreviatedStep                                      ::=   '.' | '..' 
          if (! ltp_get (0))
             return false;
          switch (ltp_get (0) -> lex_get_value ())
@@ -394,7 +394,7 @@ bool token_syntax_decoder::o_recognize (
 
       case xpath_expr :
          //
-         // [14]   Expr					::=   OrExpr 
+         // [14]   Expr                                 ::=   OrExpr 
          //
          if (! ltp_get (0))
             return false;
@@ -405,11 +405,11 @@ bool token_syntax_decoder::o_recognize (
          break;
 
       case xpath_primary_expr :
-         // [15]   PrimaryExpr			::=   VariableReference
-			// 				            | '(' Expr ')' 
-			// 				            | Literal 
-			// 				            | Number 
-			// 				            | FunctionCall
+         // [15]   PrimaryExpr                  ::=   VariableReference
+                        //                                          | '(' Expr ')' 
+                        //                                          | Literal 
+                        //                                          | Number 
+                        //                                          | FunctionCall
          if (! ltp_get (0))
             return false;
          switch (ltp_get (0) -> lex_get_value ())
@@ -450,8 +450,8 @@ bool token_syntax_decoder::o_recognize (
          break;
 
       case xpath_function_call :
-         // [16]   FunctionCall			::=   FunctionName '(' ( Argument ( ',' Argument )* )? ')' 
-         // [35]   FunctionName	      ::=  	QName - NodeType
+         // [16]   FunctionCall                 ::=   FunctionName '(' ( Argument ( ',' Argument )* )? ')' 
+         // [35]   FunctionName       ::=       QName - NodeType
          if (! ltp_get (0))
             return false;
          switch (ltp_get (0) -> lex_get_value ())
@@ -517,7 +517,7 @@ bool token_syntax_decoder::o_recognize (
          break;
 
       case xpath_argument :
-         // [17]   Argument				::=   Expr
+         // [17]   Argument                             ::=   Expr
          if (! o_recognize (xpath_expr, o_final))
             return false;
          if (o_final)
@@ -526,8 +526,8 @@ bool token_syntax_decoder::o_recognize (
 
       case xpath_union_expr :
          //
-         // [18]   UnionExpr			::=   PathExpr 
-			// 					         | UnionExpr '|' PathExpr 
+         // [18]   UnionExpr                    ::=   PathExpr 
+                        //                                               | UnionExpr '|' PathExpr 
          //
          if (! o_recognize (xpath_path_expr, o_final))
             return false;
@@ -546,10 +546,10 @@ bool token_syntax_decoder::o_recognize (
 
       case xpath_path_expr :
          //
-         // [19]   PathExpr				::=   LocationPath 
-         // 	        							| FilterExpr 
-         // 			      					| FilterExpr '/' RelativeLocationPath 
-         // 					      			| FilterExpr '//' RelativeLocationPath 
+         // [19]   PathExpr                             ::=   LocationPath 
+         //                                                                     | FilterExpr 
+         //                                                             | FilterExpr '/' RelativeLocationPath 
+         //                                                             | FilterExpr '//' RelativeLocationPath 
          //
          ltp_freeze = ltp_get (0);
          o_location_path = false;
@@ -598,8 +598,8 @@ bool token_syntax_decoder::o_recognize (
 
       case xpath_filter_expr :
          //
-         // [20]   FilterExpr			::=   PrimaryExpr 
-			// 				            | FilterExpr Predicate
+         // [20]   FilterExpr                   ::=   PrimaryExpr 
+                        //                                          | FilterExpr Predicate
          //
          if (! o_recognize (xpath_primary_expr, o_final))
             return false;
@@ -617,8 +617,8 @@ bool token_syntax_decoder::o_recognize (
 
       case xpath_or_expr :
          //
-         // [21]   OrExpr				::=   AndExpr 
-			// 					         | OrExpr 'or' AndExpr 
+         // [21]   OrExpr                               ::=   AndExpr 
+                        //                                               | OrExpr 'or' AndExpr 
          //
          if (! o_recognize (xpath_and_expr, o_final))
             return false;
@@ -637,8 +637,8 @@ bool token_syntax_decoder::o_recognize (
 
       case xpath_and_expr :
          //
-         // [22]   AndExpr				::=   EqualityExpr 
-         // 								| AndExpr 'and' EqualityExpr 
+         // [22]   AndExpr                              ::=   EqualityExpr 
+         //                                                             | AndExpr 'and' EqualityExpr 
          //
          if (! o_recognize (xpath_equality_expr, o_final))
             return false;
@@ -657,9 +657,9 @@ bool token_syntax_decoder::o_recognize (
 
       case xpath_equality_expr :
          //
-         // [23]   EqualityExpr			::=   RelationalExpr 
-			// 					         | EqualityExpr '=' RelationalExpr 
-			// 					         | EqualityExpr '!=' RelationalExpr 
+         // [23]   EqualityExpr                 ::=   RelationalExpr 
+                        //                                               | EqualityExpr '=' RelationalExpr 
+                        //                                               | EqualityExpr '!=' RelationalExpr 
          //
          if (! o_recognize (xpath_relational_expr, o_final))
             return false;
@@ -698,11 +698,11 @@ bool token_syntax_decoder::o_recognize (
 
       case xpath_relational_expr :
          //
-         // [24]   RelationalExpr		::=   AdditiveExpr 
-			// 					         | RelationalExpr '<' AdditiveExpr 
-			// 					         | RelationalExpr '>' AdditiveExpr 
-			// 					         | RelationalExpr '<=' AdditiveExpr 
-			// 					         | RelationalExpr '>=' AdditiveExpr
+         // [24]   RelationalExpr               ::=   AdditiveExpr 
+                        //                                               | RelationalExpr '<' AdditiveExpr 
+                        //                                               | RelationalExpr '>' AdditiveExpr 
+                        //                                               | RelationalExpr '<=' AdditiveExpr 
+                        //                                               | RelationalExpr '>=' AdditiveExpr
          //
          if (! o_recognize (xpath_additive_expr, o_final))
             return false;
@@ -751,9 +751,9 @@ bool token_syntax_decoder::o_recognize (
 
       case xpath_additive_expr :
          // 
-         // [25]   AdditiveExpr			::=   MultiplicativeExpr 
-			// 					         | AdditiveExpr '+' MultiplicativeExpr 
-			// 					         | AdditiveExpr '-' MultiplicativeExpr 
+         // [25]   AdditiveExpr                 ::=   MultiplicativeExpr 
+                        //                                               | AdditiveExpr '+' MultiplicativeExpr 
+                        //                                               | AdditiveExpr '-' MultiplicativeExpr 
          // 
          if (! o_recognize (xpath_multiplicative_expr, o_final))
             return false;
@@ -814,9 +814,9 @@ bool token_syntax_decoder::o_recognize (
       case xpath_multiplicative_expr :
          //
          // [26]   MultiplicativeExpr   ::=   UnaryExpr 
-			// 					         | MultiplicativeExpr MultiplyOperator UnaryExpr 
-			// 					         | MultiplicativeExpr 'div' UnaryExpr 
-			// 					         | MultiplicativeExpr 'mod' UnaryExpr 
+                        //                                               | MultiplicativeExpr MultiplyOperator UnaryExpr 
+                        //                                               | MultiplicativeExpr 'div' UnaryExpr 
+                        //                                               | MultiplicativeExpr 'mod' UnaryExpr 
          //
          if (! o_recognize (xpath_unary_expr, o_final))
             return false;
@@ -826,7 +826,7 @@ bool token_syntax_decoder::o_recognize (
             {
                case lex_star :
                   //
-                  // [34]   MultiplyOperator		::=   '*' 
+                  // [34]   MultiplyOperator            ::=   '*' 
                   //
                   v_inc_current (1);
                   if (! o_recognize (xpath_unary_expr, o_final))
@@ -861,8 +861,8 @@ bool token_syntax_decoder::o_recognize (
 
       case xpath_unary_expr :
          //
-         // [27]   UnaryExpr			::=   UnionExpr 
-			// 					         | '-' UnaryExpr
+         // [27]   UnaryExpr                    ::=   UnionExpr 
+                        //                                               | '-' UnaryExpr
          //
          if (ltp_get (0) && ltp_get (0) -> lex_get_value () == lex_minus)
          {
@@ -882,7 +882,7 @@ bool token_syntax_decoder::o_recognize (
          break;
 
       case xpath_variable_reference :
-         // [36]   VariableReference	::=   '$' QName 
+         // [36]   VariableReference    ::=   '$' QName 
          if (! ltp_get (0) || ! ltp_get (1))
             return false;
          if (ltp_get (0) -> lex_get_value () != lex_dollar)
@@ -895,9 +895,9 @@ bool token_syntax_decoder::o_recognize (
          break;
 
       case xpath_name_test :
-         // [37]   NameTest				::=   '*' 
-			// 				            | NCName ':' '*' 
-			// 				            | QName 
+         // [37]   NameTest                             ::=   '*' 
+                        //                                          | NCName ':' '*' 
+                        //                                          | QName 
          if (! ltp_get (0))
             return false;
          switch (ltp_get (0) -> lex_get_value ())
@@ -935,9 +935,9 @@ bool token_syntax_decoder::o_recognize (
          break;
 
       case xpath_xml_q_name :
-         // [Namespace XML : 6] QName					::= (Prefix ':')? LocalPart 
-         // [Namespace XML : 7] Prefix					::= NCName 
-         // [Namespace XML : 8] LocalPart				::= NCName
+         // [Namespace XML : 6] QName                                   ::= (Prefix ':')? LocalPart 
+         // [Namespace XML : 7] Prefix                                  ::= NCName 
+         // [Namespace XML : 8] LocalPart                               ::= NCName
          if (! ltp_get (0) || ltp_get (0) -> lex_get_value () != lex_ncname)
             return false;
          if (ltp_get (1) && ltp_get (1) -> lex_get_value () == lex_colon)
@@ -977,7 +977,7 @@ bool token_syntax_decoder::o_recognize (
 /*--- emacs style variables ---
  * Local Variables:
  *  mode: C++
- *  c-default-style: "linux"
+ *  c-file-style: "ellemtel"
  *  c-basic-offset: 4
  *  tab-width: 8
  *  indent-tabs-mode: nil

@@ -37,68 +37,68 @@ int i_xml_cardinality (
    const TiXmlElement * XEp_elem,      ///< Base element. Must not be null
    bool o_by_name)                     ///< true if we ask for the cardinality for our name only
 {
-	TiXmlNode * XNp_parent;
-	TiXmlElement * XEp_child;
+        TiXmlNode * XNp_parent;
+        TiXmlElement * XEp_child;
    TIXML_STRING S_name; 
-	int i_res;
+        int i_res;
 
    assert (XEp_elem);
-	XNp_parent = XEp_elem -> Parent ();
-	assert (XNp_parent);
+        XNp_parent = XEp_elem -> Parent ();
+        assert (XNp_parent);
    if (o_by_name)
    {
       S_name = XEp_elem -> Value ();
-	   XEp_child = XNp_parent -> FirstChildElement (S_name . c_str ());
-	   i_res = 1;
-	   while (XEp_child)
-	   {
-	      if (XEp_child == XEp_elem)
-			   return i_res;
-		   else
-		   {
+           XEp_child = XNp_parent -> FirstChildElement (S_name . c_str ());
+           i_res = 1;
+           while (XEp_child)
+           {
+              if (XEp_child == XEp_elem)
+                           return i_res;
+                   else
+                   {
             i_res++;
-			   XEp_child = XEp_child -> NextSiblingElement (S_name . c_str ());
-		   }
-	   }
+                           XEp_child = XEp_child -> NextSiblingElement (S_name . c_str ());
+                   }
+           }
    }
    else
    {
-	   XEp_child = XNp_parent -> FirstChildElement ();
-	   i_res = 1;
-	   while (XEp_child)
-	   {
-	      if (XEp_child == XEp_elem)
-			   return i_res;
-		   else
-		   {
+           XEp_child = XNp_parent -> FirstChildElement ();
+           i_res = 1;
+           while (XEp_child)
+           {
+              if (XEp_child == XEp_elem)
+                           return i_res;
+                   else
+                   {
             i_res++;
-			   XEp_child = XEp_child -> NextSiblingElement ();
-		   }
-	   }
+                           XEp_child = XEp_child -> NextSiblingElement ();
+                   }
+           }
    }
-	assert (false);
-	return -1;
+        assert (false);
+        return -1;
 }
 
 /// Family size : Nb of sibling elements (including ourselves)
 int i_xml_family_size (
    const TiXmlElement * XEp_elem)   ///< Base element. Must not be null 
 {
-	TiXmlElement * XEp_child;
-	TiXmlNode * XNp_parent;
+        TiXmlElement * XEp_child;
+        TiXmlNode * XNp_parent;
    int i_res;
 
    assert (XEp_elem);
-	XNp_parent = XEp_elem -> Parent ();
-	assert (XNp_parent);
-	XEp_child = XNp_parent -> FirstChildElement ();
+        XNp_parent = XEp_elem -> Parent ();
+        assert (XNp_parent);
+        XEp_child = XNp_parent -> FirstChildElement ();
    i_res = 0;
-	while (XEp_child)
-	{
+        while (XEp_child)
+        {
       i_res++;
-		XEp_child = XEp_child -> NextSiblingElement ();
-	}
-	return i_res;
+                XEp_child = XEp_child -> NextSiblingElement ();
+        }
+        return i_res;
 }
 
 }
@@ -106,7 +106,7 @@ int i_xml_family_size (
 /*--- emacs style variables ---
  * Local Variables:
  *  mode: C++
- *  c-default-style: "linux"
+ *  c-file-style: "ellemtel"
  *  c-basic-offset: 4
  *  tab-width: 8
  *  indent-tabs-mode: nil

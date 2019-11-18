@@ -57,8 +57,8 @@ struct CHitToSort
 //==============================================================================
 /** direct comparison operator for sorting count-hits by m_HitNo (count) */
 struct LessByHitNo {
-        bool operator() (const CHitToSort &a, const CHitToSort &b) const
-        { return a.m_HitNo < b.m_HitNo; };
+    bool operator() (const CHitToSort &a, const CHitToSort &b) const
+    { return a.m_HitNo < b.m_HitNo; };
 };
 
 
@@ -133,6 +133,51 @@ struct CQueryStatistics
     DWORD       m_FreqCount;
 };
 
+//======================================================================
+
+/** struct for mapping immediate subcorpus host-IDs to selected sub-subcorpora
+ *  \li replaces CRunQueryData::PossibleHosts
+ *  \li sub-path "*" indicates all daughter-corpora
+ */
+struct CSelectedHosts
+{
+    typedef vector<DWORD>            VecT;
+    typedef map<DWORD, set<string> > MapT;
+
+    VecT m_vec;  ///< Host-IDs of selected daughter(s); empty for all daughters
+    MapT m_map;  ///< sub-paths relative to each selected daugther, keyed by Host-ID
+
+    CSelectedHosts()
+    {};
+
+    ~CSelectedHosts()
+    {};
+
+    inline size_t size() const
+    { return m_vec.size(); };
+
+    inline void resize(size_t sz)
+    { m_vec.resize(sz); };
+
+    void Clear();
+
+    ///< select sub-path \a "HostId/SubPath"
+    void Insert(DWORD HostId, const string& SubPath);
+
+    ///< alias for Insert(HostId,"*"): select all sub-paths for \a HostId
+    inline void Insert(DWORD HostId)
+    { Insert(HostId,"*"); };
+
+    ///< alias for Insert(0 <= HostId < nDtrs, SubPath)
+    void InsertAll(DWORD nDtrs, const string &SubPath);
+    
+    ///< returns a string suitable for use in query
+    string DtrPaths(DWORD HostId) const;
+
+    ///< debug: convert to string
+    string toString() const;
+};
+
 
 //======================================================================
 /** DDC branch server 'run_query' paramter & intermediate result-type */
@@ -148,7 +193,8 @@ public:
     size_t EndHitNo;                    ///< final hit number returned
     size_t HitsCount;                   ///< total number of hits
     size_t RelevantDocsCount;           ///< ?
-    DwordVector PossibleHosts;          ///< indices of selected immediate subcorpora
+    //DwordVector PossibleHosts;          ///< indices of selected immediate subcorpora
+    CSelectedHosts SelectedHosts;       ///< maps immediate subcorpora to selected sub-subcorpora
     string HitDistrib;                  ///< ?
     string DocDistrib;                  ///< ?
     string HitsKey;                     ///< key for response body data (json only)
@@ -319,17 +365,17 @@ public:
     NetworkErrorsEnum GetHitContexts(CFirstHitsQueryResult& FHResult,
                                      const string& ResultType,
                                      DDCFormatTypeEnum ResultTypeE,
-                                     DwordVector& PossibleHosts,
+                                     CSelectedHosts& SelectedHosts,
                                      int&    InternalError,
                                      int     TimeOut,
                                      string& ResultString
-                                     );
+        );
 
     /** mid-level guts for handle__run_query() , count-queries only */
     NetworkErrorsEnum GetHitCounts(CFirstHitsQueryResult& FHResult, DDCFormatTypeEnum ResultTypeE, string& ResultString);
 
     /** old guts for handle__run_query() phase 1 */
-    void GetFirstHitsFromCorpora(const DwordVector& PossibleHosts,
+    void GetFirstHitsFromCorpora(const CSelectedHosts& SelectedHosts,
                                  const string  Query,
                                  const size_t  StartHitNo,
                                  const size_t  ResultLimit,
@@ -337,7 +383,7 @@ public:
                                  CFirstHitsQueryResult& Result);
 
     /** send a single get_hit_strings request (used by both parallel and serial modes) */
-    NetworkErrorsEnum SendGetHitStringsRequest(BYTE PossibleHostNo,
+    NetworkErrorsEnum SendGetHitStringsRequest(BYTE SelectedHostNo,
                                                const vector< vector<size_t> >& SortedHits,
                                                const vector<size_t>& FirstOffsets,
                                                const string& ResultType);
@@ -357,7 +403,15 @@ public:
      * \li returns false only when a network error occurs
      * \todo fixme : have this method actually parse the query to avoid ":"-scanning errors
      */
-    bool   ReadPossibleHosts(const string& InputQuery, string& CleanQuery, DwordVector& PossibleHosts) /*const*/;
+    bool   ReadSelectedHosts(const string& InputQuery, string& CleanQuery, CSelectedHosts& SelectedHosts) /*const*/;
+
+    /** find Host-ID (index in m_Hosts[]) for a given CorpusName.
+     *  \returns host-ID for \a CorpusName on success, otherwise m_Hosts.size()
+     */
+    size_t FindHostID(const string& CorpusName) const;
+
+    /** Parses CorpusPath into initial (immediate daughter) and non-initial (grandchildren etc.) components */
+    void ParseCorpusPath(const string& CorpusPath, string& Dtr, string& Rest);
 };
 
 /** compatibility typedef for ddc < v2.0.23 */
@@ -365,11 +419,10 @@ typedef CDDCBranchServer CDDCServerListenHost;
 
 #endif /* DDC_BRANCH_SERVER_H */
 
-
 /*--- emacs style variables ---
  * Local Variables:
  *  mode: C++
- *  c-default-style: "linux"
+ *  c-file-style: "ellemtel"
  *  c-basic-offset: 4
  *  tab-width: 8
  *  indent-tabs-mode: nil

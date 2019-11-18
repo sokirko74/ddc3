@@ -124,12 +124,12 @@ void CIndexSetForQueryingStage::ReadOccurrences(CTokenNo *OutBuffer, file_off_t 
 
 
 /*
- AddLongOccursOccurs reads from m_OccursFp occurrences. Input parameters are:
-	IndexItemNo - the index item, whose occurrences we are going to read
-	Occurs - output vector of occurrences, we will add  occurrences to the end of this vector
-	PeriodNo - the number of subcorpora in which we should read occurrences.
-	Buffer - an auxiliary buffer in which we read tokens for the first time(We use this buffer for performance, 
-			for simplicity it can be declared inside AddLongOccursOccurs)
+  AddLongOccursOccurs reads from m_OccursFp occurrences. Input parameters are:
+  IndexItemNo - the index item, whose occurrences we are going to read
+  Occurs - output vector of occurrences, we will add  occurrences to the end of this vector
+  PeriodNo - the number of subcorpora in which we should read occurrences.
+  Buffer - an auxiliary buffer in which we read tokens for the first time(We use this buffer for performance, 
+  for simplicity it can be declared inside AddLongOccursOccurs)
 */
 
 
@@ -178,7 +178,7 @@ void CIndexSetForQueryingStage::AddOccurs(size_t PeriodDevId, const bool bOneOcc
         CTokenNo T = EndOccurNo;
         if ((T >= StartSearchPeriod)
             && (T < EndSearchPeriod)
-                )
+            )
             Occurs.push_back(T);
     } else {
         const DWORD *Periods = m_EndPeriodOffsets.find(PeriodDevId);
@@ -186,7 +186,7 @@ void CIndexSetForQueryingStage::AddOccurs(size_t PeriodDevId, const bool bOneOcc
 #ifdef DEBUG_OCCURS
             PeriodsDivisionMapT::const_iterator epi = lower_bound(m_EndPeriodOffsets.begin(),m_EndPeriodOffsets.end(),PeriodDevId,PeriodsDivisionMapT::KeyLess());
             fprintf(stderr, "DEBUG: AddOccurs(): Periods != NULL (#%d : %d => [%d => %u])\n",
-                epi-m_EndPeriodOffsets.begin(), m_EndPeriodOffsets.key(epi), PeriodNo, Periods[PeriodNo]);
+                    epi-m_EndPeriodOffsets.begin(), m_EndPeriodOffsets.key(epi), PeriodNo, Periods[PeriodNo]);
 #endif
 
             //const vector<DWORD>& Periods = per_dev_it->second;
@@ -234,8 +234,8 @@ void CIndexSetForQueryingStage::AddOccurs(size_t PeriodDevId, const bool bOneOcc
                 //-- moo: this assertion is catching if we query 'sein' (Mon, 06 Jun 2011 14:14:51 +0200)
                 //   + appears to be a result of old index files from kaskade (64-bit problem ?!)
                 //   + possibly (?) solved by re-defining typedefs DWORD, WORD in ../CommonLib/utilit.h
-                //       typedef unsigned int	DWORD --> uint32_t
-                //	     typedef unsigned short	WORD  --> uint16_t
+                //       typedef unsigned int   DWORD --> uint32_t
+                //           typedef unsigned short     WORD  --> uint16_t
                 // * UPDATE 2018-09-24 12:43:50+0200
                 //   + failure here is also symptomatic of ddc-v1.x indices, which use IndexItemOffsetAndFlags as key in *._perdiv* files
                 //   + use dstar/script/ddc-upgrade-v2.0.0.perl to upgrade v1.x indices for use with ddc v2.x
@@ -343,12 +343,12 @@ CompressPortion(vector<DWORD> &Archive, const vector<DWORD> &Body, DWORD Start, 
 
 
 /*
-	this procedure  archives the sequence of occurrences (IndexItem.m_pOccurs)
-	and calculates the borders between the search periods for this sequence
+  this procedure  archives the sequence of occurrences (IndexItem.m_pOccurs)
+  and calculates the borders between the search periods for this sequence
 
-	For example,  let sequence of occurrences be a = "1 34 45 46 89"   and the search periods be "20 50 90"
-	then  a should  be divided into 3 periods according to  the search periods i.e.
-	" 1 | 34 45 46 | 89 |". These three  borders  should be saved to m_EndPeriodOffsets.
+  For example,  let sequence of occurrences be a = "1 34 45 46 89"   and the search periods be "20 50 90"
+  then  a should  be divided into 3 periods according to  the search periods i.e.
+  " 1 | 34 45 46 | 89 |". These three  borders  should be saved to m_EndPeriodOffsets.
 */
 bool CIndexSetForQueryingStage::BuildPeriodsDivisionAndCompress(const DWORD PerDivId, vector<CTokenNo> &InputTokens) {
     if (m_pParent->GetSearchPeriodsCount() == 0) {
@@ -460,10 +460,10 @@ bool CIndexSetForQueryingStage::AddOneIndexItem(CItemIndexForLoading &M, FILE *r
 
     if (!M.CheckOccurrences(EndTokeNo)) {
         ErrorMessage(
-                Format("CheckOccurrences failed!\n Index Name: %s\n Count of occurrences=%i\n IndexItemOffset=%i\n",
-                       GetName().c_str(),
-                       M.GetOccursSize(),
-                       M.GetIndexItemOffset()
+            Format("CheckOccurrences failed!\n Index Name: %s\n Count of occurrences=%i\n IndexItemOffset=%i\n",
+                   GetName().c_str(),
+                   M.GetOccursSize(),
+                   M.GetIndexItemOffset()
 
                 ));
         return false;
@@ -538,7 +538,7 @@ bool CIndexSetForQueryingStage::LoadPeriodDivision() {
 /*--- emacs style variables ---
  * Local Variables:
  *  mode: C++
- *  c-default-style: "linux"
+ *  c-file-style: "ellemtel"
  *  c-basic-offset: 4
  *  tab-width: 8
  *  indent-tabs-mode: nil

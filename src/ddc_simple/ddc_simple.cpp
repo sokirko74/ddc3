@@ -54,7 +54,7 @@ void PrintUsageAndExit() {
             "  -HitCount                             # call GetHits() rather than SimpleQuery()\n"
             "  -HitIds                               # call GetHitIds() (simulate subcorpus server)\n"
             "  -NoMorphology                         # suppress call to InitConcordDicts()\n"
-            "  -prettyjson                           # print multiline json\n"
+            "  -pretty                               # pretty-print results (JSON format only)\n"
             "  -f FILE                               # file that contains queries\n"
             "  -verbose LEVEL                        # set log-verbosity level (none|error|warn|info=weak|debug=medium|trace=heavy)\n"
             "\n"
@@ -65,7 +65,7 @@ void PrintUsageAndExit() {
             "Example(1): %s test.con \"thank && God\" out.txt -Limit 10\n",
 
             prog, prog
-    );
+        );
     exit(1);
 
 };
@@ -96,7 +96,7 @@ int main(int argc, char *argv[]) {
         bool bOnlyGetHitsCount = false;
         bool bOnlyGetHitIds = false;
         bool bInitConcordDicts = true;
-        bool bPrettyjson = false;
+        bool bPretty = false;
         int CountOfCycles = 1;
         string _Query;
         string QueryFileName;
@@ -146,9 +146,9 @@ int main(int argc, char *argv[]) {
             else if (s_lo == "-html" || s_lo == "-html") { ResultFormat = "html"; }
             else if (s_lo == "-table" || s_lo == "-tab") { ResultFormat = "table"; }
             else if (s_lo == "-json" || s_lo == "-js") { ResultFormat = "json"; }
-            else if (s_lo == "-prettyjson") {
-                bPrettyjson = true;
-                ResultFormat != "json";
+            else if (s_lo == "-pretty") {
+                bPretty = true;
+                //vacuous if ResultFormat != "json";
             } else if (s_lo == "-nomorphology" || s_lo == "-nomorph") {
                 bInitConcordDicts = false;
                 fprintf(stderr, "no call to InitConcordDicts\n");
@@ -370,7 +370,7 @@ int main(int argc, char *argv[]) {
 
 
             string result = R.m_QueryResultStr;
-            if (bPrettyjson) {
+            if (bPretty) {
                 result = PrettifyJson(result);
             }
             fprintf(OutFile, "%s", result.c_str());
@@ -388,15 +388,10 @@ int main(int argc, char *argv[]) {
     return 0;
 }
 
-
-
-
-
-
 /*--- emacs style variables ---
  * Local Variables:
  *  mode: C++
- *  c-default-style: "linux"
+ *  c-file-style: "ellemtel"
  *  c-basic-offset: 4
  *  tab-width: 8
  *  indent-tabs-mode: nil

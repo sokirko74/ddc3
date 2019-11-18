@@ -14,9 +14,9 @@ class CGraphmatFile;
 class TAR;
 //! CConcIndexatorInvoker is a class for invoking an  index process.
 /*!
-        This class was established to start, to stop and to monitor an indexing process.
-        To start it  a user should call function CConcIndexatorInvoker::BuildIndex.
-        To stop the process a user should set CConcIndexatorInvoker::m_bStoppedByUser to true.
+  This class was established to start, to stop and to monitor an indexing process.
+  To start it  a user should call function CConcIndexatorInvoker::BuildIndex.
+  To stop the process a user should set CConcIndexatorInvoker::m_bStoppedByUser to true.
 */
 class ConcIndexatorInvoker {
     time_t m_StartTime;
@@ -90,7 +90,7 @@ public:
 /*--- emacs style variables ---
  * Local Variables:
  *  mode: C++
- *  c-default-style: "linux"
+ *  c-file-style: "ellemtel"
  *  c-basic-offset: 4
  *  tab-width: 8
  *  indent-tabs-mode: nil

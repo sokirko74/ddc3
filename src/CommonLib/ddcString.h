@@ -55,33 +55,33 @@ std::string unescapeJsonString(const std::string &s);
 /** wrapper for escapeJsonString */
 inline std::string jsonStr(const std::string &s, bool assume_utf8=true, bool add_quotes=true)
 {
-  return escapeJsonString(s,assume_utf8,add_quotes);
+    return escapeJsonString(s,assume_utf8,add_quotes);
 }
 
 /** jsonStr(unsigned char) maps to unsigned int */
 inline std::string jsonStr(unsigned char b)
 {
-  char buf[4];
-  sprintf(buf,"%u",b);
-  return std::string(buf);
+    char buf[4];
+    sprintf(buf,"%u",b);
+    return std::string(buf);
 };
 
 /** jsonStr(char) maps to single-character string */
 inline std::string jsonStr(char c)
 {
-  return jsonStr(std::string(&c,1));
+    return jsonStr(std::string(&c,1));
 };
 
 template<class Container>
 std::string jsonArray(const Container &values)
 {
-  std::string s("[");
-  for (typename Container::const_iterator vi=values.begin(); vi != values.end(); vi++) {
-    if (s.size() > 1) s.push_back(',');
-    s += jsonStr(*vi);
-  }
-  s.push_back(']');
-  return s;
+    std::string s("[");
+    for (typename Container::const_iterator vi=values.begin(); vi != values.end(); vi++) {
+        if (s.size() > 1) s.push_back(',');
+        s += jsonStr(*vi);
+    }
+    s.push_back(']');
+    return s;
 };
 
 //@}
@@ -157,67 +157,67 @@ char* StrError(int ErrorNo);
 
    Usage (C-strings):
    <code>
-     char *text = "word, word2;word3"
-     CStringTokenizer token(text, " ,;");
-     const char *word;
-     while((word = token())){
-       // handle token here
-     }
-  </code>
+   char *text = "word, word2;word3"
+   CStringTokenizer token(text, " ,;");
+   const char *word;
+   while((word = token())){
+   // handle token here
+   }
+   </code>
 */
 class StringTokenizer {
 protected:
-  char *text_ptr;
-  char *text;
-  int i;
+    char *text_ptr;
+    char *text;
+    int i;
 
-  //-------------------------------------------------------
-  std::string delims;
-  inline bool is_delim(char ch) const
-  { return delims.find_first_of(ch) != std::string::npos; }
+    //-------------------------------------------------------
+    std::string delims;
+    inline bool is_delim(char ch) const
+    { return delims.find_first_of(ch) != std::string::npos; }
   
-  char *_val;
+    char *_val;
 
 public:
-  //-------------------------------------------------------
-  // constructors etc.
-  StringTokenizer(const char *_text, const char *_delims=" \t\r\n");
+    //-------------------------------------------------------
+    // constructors etc.
+    StringTokenizer(const char *_text, const char *_delims=" \t\r\n");
 
-  ///! moo: constructor from std::string (implicitly calls c_str() on arguments)
-  StringTokenizer(const std::string& _text, const std::string& _delims)
-  { initialize(_text,_delims); };
+    ///! moo: constructor from std::string (implicitly calls c_str() on arguments)
+    StringTokenizer(const std::string& _text, const std::string& _delims)
+    { initialize(_text,_delims); };
 
-  ~StringTokenizer();
+    ~StringTokenizer();
 
-  void initialize(const char *_text, const char *_delims=" \t\r\n");
-  void reinitialize(const char *_text, const char *_delims=" \t\r\n");
+    void initialize(const char *_text, const char *_delims=" \t\r\n");
+    void reinitialize(const char *_text, const char *_delims=" \t\r\n");
 
-  ///! moo: initialize from std::string (copies)
-  void initialize(const std::string& _text, const std::string &_delims)
-  { initialize(_text.c_str(), _delims.c_str()); };
+    ///! moo: initialize from std::string (copies)
+    void initialize(const std::string& _text, const std::string &_delims)
+    { initialize(_text.c_str(), _delims.c_str()); };
 
-  //-------------------------------------------------------
-  // API
-  const char * operator ()();
-  std::string next_token();
+    //-------------------------------------------------------
+    // API
+    const char * operator ()();
+    std::string next_token();
 
-  inline const char * get_rest () const
-  { return text; };
+    inline const char * get_rest () const
+    { return text; };
   
-  inline const char *val() const
-  { return _val; };
+    inline const char *val() const
+    { return _val; };
   
-  inline int count() const
-  { return i; };
+    inline int count() const
+    { return i; };
  
-  inline bool has_next() const
-  { return (*text) != '\0'; };
+    inline bool has_next() const
+    { return (*text) != '\0'; };
 
-  //! moo: append all remaining tokens to a string vector (consumes the rest of the source string)
-  void get_tokens(std::vector<std::string> &tokens);
+    //! moo: append all remaining tokens to a string vector (consumes the rest of the source string)
+    void get_tokens(std::vector<std::string> &tokens);
 
-  //! moo: get all remaining text as a single token, trimming any initial or trailing delimiters
-  const char* get_rest_trim();
+    //! moo: get all remaining text as a single token, trimming any initial or trailing delimiters
+    const char* get_rest_trim();
 };
 
 
@@ -227,56 +227,56 @@ public:
  */
 class StringSplitter {
 public:
-  const std::string *srcp;      ///< source string (reference)
-  const std::string *delimp;    ///< delimiter characters (reference)
-  size_t begi;                  ///< start position of current token (string::npos after initilization)
-  size_t endi;                  ///< end position of current token
+    const std::string *srcp;      ///< source string (reference)
+    const std::string *delimp;    ///< delimiter characters (reference)
+    size_t begi;                  ///< start position of current token (string::npos after initilization)
+    size_t endi;                  ///< end position of current token
 
 public:
 
-  /** constructor; positions at first available token */
-  inline StringSplitter(const std::string& src, const std::string& delims)
-    : srcp(&src), delimp(&delims)
-  {
-    begin();
-  };
+    /** constructor; positions at first available token */
+    inline StringSplitter(const std::string& src, const std::string& delims)
+        : srcp(&src), delimp(&delims)
+    {
+        begin();
+    };
 
-  /** position iterators to first token */
-  inline void begin()
-  {
-    begi = 0;
-    endi = srcp->find_first_of(*delimp, begi);
-  };
+    /** position iterators to first token */
+    inline void begin()
+    {
+        begi = 0;
+        endi = srcp->find_first_of(*delimp, begi);
+    };
 
-  /** returns true iff the iterators point to a valid token */
-  inline bool valid() const
-  { return begi != std::string::npos; };
+    /** returns true iff the iterators point to a valid token */
+    inline bool valid() const
+    { return begi != std::string::npos; };
 
-  /** cast-to-bool: wrapper for valid() */
-  inline operator bool() const
-  { return valid(); };
+    /** cast-to-bool: wrapper for valid() */
+    inline operator bool() const
+    { return valid(); };
 
-  /** get current token substring - should only be called if valid() is true */
-  inline std::string current() const
-  { return endi==std::string::npos ? srcp->substr(begi) : srcp->substr(begi,endi-begi); };
+    /** get current token substring - should only be called if valid() is true */
+    inline std::string current() const
+    { return endi==std::string::npos ? srcp->substr(begi) : srcp->substr(begi,endi-begi); };
 
-  /** dereference operator wraps current() */
-  inline std::string operator*() const
-  { return current(); };
+    /** dereference operator wraps current() */
+    inline std::string operator*() const
+    { return current(); };
   
-  /** increment to next available token */
-  inline void next()
-  {
-    begi = endi==std::string::npos ? endi : (endi+1);
-    endi = begi==std::string::npos ? begi : srcp->find_first_of(*delimp,begi);
-  };
+    /** increment to next available token */
+    inline void next()
+    {
+        begi = endi==std::string::npos ? endi : (endi+1);
+        endi = begi==std::string::npos ? begi : srcp->find_first_of(*delimp,begi);
+    };
 
-  /** increment operator wraps next() */
-  inline StringSplitter& operator++()
-  {
-    next();
-    return *this;
-  };
+    /** increment operator wraps next() */
+    inline StringSplitter& operator++()
+    {
+        next();
+        return *this;
+    };
 };
 
 //----------------------------------------------------------------------
@@ -306,7 +306,7 @@ const char *BoolToString(bool b);
 /*--- emacs style variables ---
  * Local Variables:
  *  mode: C++
- *  c-default-style: "linux"
+ *  c-file-style: "ellemtel"
  *  c-basic-offset: 4
  *  tab-width: 8
  *  indent-tabs-mode: nil

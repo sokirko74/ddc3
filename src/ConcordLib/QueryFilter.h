@@ -32,28 +32,28 @@ class CQueryOptions;  //-- forward decl
 //! class for global query filters aka "query operators"
 class CQFilter : public ddcObject {
 public:
-  //------------------------------------------------------------
-  //!\name CQFilter API
-  //@{
-  //! Default constructor
-  CQFilter()
-  {};
+    //------------------------------------------------------------
+    //!\name CQFilter API
+    //@{
+    //! Default constructor
+    CQFilter()
+    {};
 
-  //! apply the filter to the given compiler
-  virtual bool Compile(CQueryCompiler *compiler, CQueryOptions *options);
+    //! apply the filter to the given compiler
+    virtual bool Compile(CQueryCompiler *compiler, CQueryOptions *options);
 
-  //! clone this filter
-  virtual CQFilter* Clone()
-  { return new CQFilter(*this); };
-  //@}
+    //! clone this filter
+    virtual CQFilter* Clone()
+    { return new CQFilter(*this); };
+    //@}
 
-  //------------------------------------------------------------
-  //!\name ddcObject API
-  //@{
-  //! convert filter to a canonical string
-  virtual string toString(void) { return string("#FILTER[?]"); };
-  virtual string jsonClass(void) { return "CQFilter"; };
-  //@}
+    //------------------------------------------------------------
+    //!\name ddcObject API
+    //@{
+    //! convert filter to a canonical string
+    virtual string toString(void) { return string("#FILTER[?]"); };
+    virtual string jsonClass(void) { return "CQFilter"; };
+    //@}
 };
 
 //======================================================================
@@ -63,54 +63,54 @@ public:
 //! m_arg0: unused, m_arg1: lower_bound, m_arg2: upper_bound
 class CQFSort : public CQFilter {
 public:
-  //! underlying DDC Filter struct
-  CDDCFilterWithBounds m_Filter;
+    //! underlying DDC Filter struct
+    CDDCFilterWithBounds m_Filter;
 
-  //! 0th argument (e.g. field name)
-  std::string m_arg0;
+    //! 0th argument (e.g. field name)
+    std::string m_arg0;
 
-  //! 1st argument (e.g. lower bound)
-  std::string m_arg1;
+    //! 1st argument (e.g. lower bound)
+    std::string m_arg1;
 
-  //! 2nd argument (e.g. upper bound)
-  std::string m_arg2;
+    //! 2nd argument (e.g. upper bound)
+    std::string m_arg2;
 
 public:
-  CQFSort(HitSortEnum   ftype=NoSort,
-          const string &arg0=string(""),
-          const string &arg1=string(""),
-          const string &arg2=string("")
-          );
+    CQFSort(HitSortEnum   ftype=NoSort,
+            const string &arg0=string(""),
+            const string &arg1=string(""),
+            const string &arg2=string("")
+        );
 
-  CQFSort(HitSortEnum   ftype,
-          const string &arg0,
-          int           arg1i,
-          int           arg2i
-          );
+    CQFSort(HitSortEnum   ftype,
+            const string &arg0,
+            int           arg1i,
+            int           arg2i
+        );
 
-  virtual CQFilter* Clone()
-  { return (CQFilter*)new CQFSort(*this); };
+    virtual CQFilter* Clone()
+    { return (CQFilter*)new CQFSort(*this); };
 
-  //! swap lower- and upper-bounds if they not in logical order
-  void SortBounds(void);
+    //! swap lower- and upper-bounds if they not in logical order
+    void SortBounds(void);
 
-  //! compile the filter.  Default implementation just pushes m_Filter onto options->m_Filters
-  virtual bool Compile(CQueryCompiler *compiler, CQueryOptions *options);
+    //! compile the filter.  Default implementation just pushes m_Filter onto options->m_Filters
+    virtual bool Compile(CQueryCompiler *compiler, CQueryOptions *options);
 
-  //! compilation utility: return a valid bibliographic attribute for \a attrName
-  //!  + prefers \a attrName if that is a valid attribute name
-  //!  + otherwise uses compiler->m_pHolder->m_pConcordance->m_Bibl.m_DefaultAttrName if non-empty and a valid attribute name
-  //!  + otherwise returns an empty string
-  string ResolveAttributeName(CQueryCompiler *compiler, const string& attrName, bool allowBiblExpander=false);
+    //! compilation utility: return a valid bibliographic attribute for \a attrName
+    //!  + prefers \a attrName if that is a valid attribute name
+    //!  + otherwise uses compiler->m_pHolder->m_pConcordance->m_Bibl.m_DefaultAttrName if non-empty and a valid attribute name
+    //!  + otherwise returns an empty string
+    string ResolveAttributeName(CQueryCompiler *compiler, const string& attrName, bool allowBiblExpander=false);
 
-  //-- ddcObject API & utilities
-  //! stringification utility: quoted strign for arg, or empty string
-  string argString(const string &arg) const;
-  virtual string toString(void);
-  virtual string jsonClass(void) { return "CQFSort"; };
-  virtual string jsonMinMax(void);
-  virtual string jsonType(void);
-  virtual string jsonData(void) { return (this->jsonType()+","+this->jsonMinMax()); };
+    //-- ddcObject API & utilities
+    //! stringification utility: quoted strign for arg, or empty string
+    string argString(const string &arg) const;
+    virtual string toString(void);
+    virtual string jsonClass(void) { return "CQFSort"; };
+    virtual string jsonMinMax(void);
+    virtual string jsonType(void);
+    virtual string jsonData(void) { return (this->jsonType()+","+this->jsonMinMax()); };
 };
 
 //======================================================================
@@ -118,15 +118,15 @@ public:
 
 class CQFRankSort : public CQFSort {
 public:
-  CQFRankSort(HitSortEnum ftype=GreaterByRank)
-    : CQFSort(ftype)
-  {};
+    CQFRankSort(HitSortEnum ftype=GreaterByRank)
+        : CQFSort(ftype)
+    {};
 
-  virtual CQFilter* Clone()
-  { return (CQFilter*)new CQFRankSort(*this); };
+    virtual CQFilter* Clone()
+    { return (CQFilter*)new CQFRankSort(*this); };
 
-  virtual string jsonClass(void) { return "CQFRankSort"; };
-  virtual string jsonData(void) { return this->jsonType(); };
+    virtual string jsonClass(void) { return "CQFRankSort"; };
+    virtual string jsonData(void) { return this->jsonType(); };
 };
 
 //======================================================================
@@ -134,17 +134,17 @@ public:
 
 class CQFDateSort : public CQFSort {
 public:
-  CQFDateSort(HitSortEnum ftype=LessByDate, const string &lb=string(""), const string &ub=string(""))
-    : CQFSort(ftype,string(""),lb,ub)
-  {};
+    CQFDateSort(HitSortEnum ftype=LessByDate, const string &lb=string(""), const string &ub=string(""))
+        : CQFSort(ftype,string(""),lb,ub)
+    {};
 
-  virtual CQFilter* Clone()
-  { return (CQFilter*)new CQFDateSort(*this); };
+    virtual CQFilter* Clone()
+    { return (CQFilter*)new CQFDateSort(*this); };
   
-  static int Str2Date(const std::string &datestr, int onEmpty=0);
+    static int Str2Date(const std::string &datestr, int onEmpty=0);
 
-  virtual bool Compile(CQueryCompiler *compiler, CQueryOptions *options);
-  virtual string jsonClass(void) { return "CQFDateSort"; };
+    virtual bool Compile(CQueryCompiler *compiler, CQueryOptions *options);
+    virtual string jsonClass(void) { return "CQFDateSort"; };
 };
 
 //======================================================================
@@ -152,17 +152,17 @@ public:
 
 class CQFSizeSort : public CQFSort {
 public:
-  CQFSizeSort(HitSortEnum ftype=LessBySize, const string &lb=string(""), const string &ub=string(""))
-    : CQFSort(ftype,string(""),lb,ub)
-  {};
+    CQFSizeSort(HitSortEnum ftype=LessBySize, const string &lb=string(""), const string &ub=string(""))
+        : CQFSort(ftype,string(""),lb,ub)
+    {};
 
-  CQFSizeSort(HitSortEnum ftype=LessBySize, int lb=INT_MIN, int ub=INT_MAX);
+    CQFSizeSort(HitSortEnum ftype=LessBySize, int lb=INT_MIN, int ub=INT_MAX);
 
-  virtual CQFilter* Clone()
-  { return (CQFilter*)new CQFSizeSort(*this); };
+    virtual CQFilter* Clone()
+    { return (CQFilter*)new CQFSizeSort(*this); };
 
-  virtual bool Compile(CQueryCompiler *compiler, CQueryOptions *options);
-  virtual string jsonClass(void) { return "CQFSizeSort"; };
+    virtual bool Compile(CQueryCompiler *compiler, CQueryOptions *options);
+    virtual string jsonClass(void) { return "CQFSizeSort"; };
 };
 
 //======================================================================
@@ -170,18 +170,18 @@ public:
 
 class CQFRandomSort : public CQFSort {
 public:
-  CQFRandomSort(const string &seed0=string(""))
-    : CQFSort(RandomSort,string(""),seed0)
-  {};
+    CQFRandomSort(const string &seed0=string(""))
+        : CQFSort(RandomSort,string(""),seed0)
+    {};
 
-  CQFRandomSort(int seed0);
+    CQFRandomSort(int seed0);
 
-  virtual CQFilter* Clone()
-  { return (CQFilter*)new CQFRandomSort(*this); };
+    virtual CQFilter* Clone()
+    { return (CQFilter*)new CQFRandomSort(*this); };
 
-  virtual bool Compile(CQueryCompiler *compiler, CQueryOptions *options);
-  virtual string jsonClass(void) { return "CQFRandomSort"; };
-  virtual string jsonData(void) { return (this->jsonType()+",\"Seed\":"+jsonStr(m_arg1)); };
+    virtual bool Compile(CQueryCompiler *compiler, CQueryOptions *options);
+    virtual string jsonClass(void) { return "CQFRandomSort"; };
+    virtual string jsonData(void) { return (this->jsonType()+",\"Seed\":"+jsonStr(m_arg1)); };
 };
 
 //======================================================================
@@ -190,23 +190,23 @@ public:
 //! m_arg0: field name, m_arg1: lower_bound, m_arg2: upper_bound
 class CQFBiblSort : public CQFSort {
 public:
-  CQFBiblSort(HitSortEnum ftype=LessByFreeBiblField,
-              const string &field=string(""),
-              const string &lb=string(""),
-              const string &ub=string(""))
-    : CQFSort(ftype,field,lb,ub)
-  {};
+    CQFBiblSort(HitSortEnum ftype=LessByFreeBiblField,
+                const string &field=string(""),
+                const string &lb=string(""),
+                const string &ub=string(""))
+        : CQFSort(ftype,field,lb,ub)
+    {};
 
-  virtual CQFilter* Clone()
-  { return (CQFilter*)new CQFBiblSort(*this); };
+    virtual CQFilter* Clone()
+    { return (CQFilter*)new CQFBiblSort(*this); };
 
-  //! compile the filter.  requires reference to underlying CConcIndexator
-  virtual bool Compile(CQueryCompiler *compiler, CQueryOptions *options);
+    //! compile the filter.  requires reference to underlying CConcIndexator
+    virtual bool Compile(CQueryCompiler *compiler, CQueryOptions *options);
 
-  virtual string toString(void);
-  virtual string jsonClass(void) { return "CQFBiblSort"; };
-  virtual string jsonData(void);
-  virtual string jsonMinMax(void);
+    virtual string toString(void);
+    virtual string jsonClass(void) { return "CQFBiblSort"; };
+    virtual string jsonData(void);
+    virtual string jsonMinMax(void);
 };
 
 //======================================================================
@@ -215,27 +215,27 @@ public:
 //! m_arg0: field name, m_arg1: lower_bound, m_arg2: upper_bound
 class CQFContextSort : public CQFSort {
 public:
-  CQFContextSort(HitSortEnum ftype=LessByMiddleContext,
-                 const string &field=string(""),
-                 int matchid=0,
-                 int offset=0,
-                 const string &lb=string(""),
-                 const string &ub=string(""))
-    : CQFSort(ftype,field,lb,ub)
-  {
-    m_Filter.m_ContextMatchId = matchid;
-    m_Filter.m_ContextOffset = offset;
-  };
+    CQFContextSort(HitSortEnum ftype=LessByMiddleContext,
+                   const string &field=string(""),
+                   int matchid=0,
+                   int offset=0,
+                   const string &lb=string(""),
+                   const string &ub=string(""))
+        : CQFSort(ftype,field,lb,ub)
+    {
+        m_Filter.m_ContextMatchId = matchid;
+        m_Filter.m_ContextOffset = offset;
+    };
 
-  virtual CQFilter* Clone()
-  { return (CQFilter*)new CQFContextSort(*this); };
+    virtual CQFilter* Clone()
+    { return (CQFilter*)new CQFContextSort(*this); };
 
-  //! compile the filter
-  virtual bool Compile(CQueryCompiler *compiler, CQueryOptions *options);
+    //! compile the filter
+    virtual bool Compile(CQueryCompiler *compiler, CQueryOptions *options);
 
-  virtual string toString(void);
-  virtual string jsonClass(void) { return "CQFContextSort"; };
-  virtual string jsonData(void);
+    virtual string toString(void);
+    virtual string jsonClass(void) { return "CQFContextSort"; };
+    virtual string jsonData(void);
 };
 
 //======================================================================
@@ -243,33 +243,33 @@ public:
 
 class CQFHasField : public CQFSort {
 public:
-  //! is this a negated filter?
-  bool m_Negated;
+    //! is this a negated filter?
+    bool m_Negated;
 
 public:
-  CQFHasField(const std::string &field, const std::string &val=string(""), bool isNegated=false)
-    : CQFSort(NoSort, field, val, string("")), m_Negated(isNegated)
-  {};
+    CQFHasField(const std::string &field, const std::string &val=string(""), bool isNegated=false)
+        : CQFSort(NoSort, field, val, string("")), m_Negated(isNegated)
+    {};
 
-  virtual CQFilter* Clone()
-  { return (CQFilter*)new CQFHasField(*this); };
+    virtual CQFilter* Clone()
+    { return (CQFilter*)new CQFHasField(*this); };
 
-  //! negate the filter condition
-  virtual void Negate(void);
+    //! negate the filter condition
+    virtual void Negate(void);
 
-  //! compile the filter.  requires reference to underlying CConcIndexator.
-  //! CQFHasField implementation just ensures that m_arg0, m_arg1 are non-empty, throwing a CExpc otherwise
-  virtual bool Compile(CQueryCompiler *compiler, CQueryOptions *options);
+    //! compile the filter.  requires reference to underlying CConcIndexator.
+    //! CQFHasField implementation just ensures that m_arg0, m_arg1 are non-empty, throwing a CExpc otherwise
+    virtual bool Compile(CQueryCompiler *compiler, CQueryOptions *options);
 
-  //! value string for stringification
-  virtual string valueString(void);
+    //! value string for stringification
+    virtual string valueString(void);
 
-  //! generic stringification; uses valueString()
-  virtual string toString(void);
+    //! generic stringification; uses valueString()
+    virtual string toString(void);
 
-  virtual string jsonClass(void) { return "CQFHasField"; };
-  virtual string jsonFieldValue(void) { return jsonStr(m_arg1); };
-  virtual string jsonMinMax(void);
+    virtual string jsonClass(void) { return "CQFHasField"; };
+    virtual string jsonFieldValue(void) { return jsonStr(m_arg1); };
+    virtual string jsonMinMax(void);
 };
 
 
@@ -278,16 +278,16 @@ public:
 
 class CQFHasFieldValue : public CQFHasField {
 public:
-  CQFHasFieldValue(const std::string &field, const std::string &val=string(""), bool isNegated=false)
-    : CQFHasField(field, val, isNegated)
-  {};
+    CQFHasFieldValue(const std::string &field, const std::string &val=string(""), bool isNegated=false)
+        : CQFHasField(field, val, isNegated)
+    {};
 
-  virtual CQFilter* Clone()
-  { return (CQFilter*)new CQFHasFieldValue(*this); };
+    virtual CQFilter* Clone()
+    { return (CQFilter*)new CQFHasFieldValue(*this); };
 
-  //! compile the filter.  requires reference to underlying CConcIndexator
-  virtual bool Compile(CQueryCompiler *compiler, CQueryOptions *options);
-  virtual string jsonClass(void) { return "CQFHasFieldValue"; };
+    //! compile the filter.  requires reference to underlying CConcIndexator
+    virtual bool Compile(CQueryCompiler *compiler, CQueryOptions *options);
+    virtual string jsonClass(void) { return "CQFHasFieldValue"; };
 };
 
 //======================================================================
@@ -295,22 +295,22 @@ public:
 
 class CQFHasFieldRegex : public CQFHasField {
 public:
-  //! target regex (same as m_arg1 for direct regex filters; auto-generated for prefix-, suffix-, and infix-filters)
-  std::string m_Regex;
+    //! target regex (same as m_arg1 for direct regex filters; auto-generated for prefix-, suffix-, and infix-filters)
+    std::string m_Regex;
 
 public:
-  CQFHasFieldRegex(const std::string &field, const std::string &val=string(""), bool isNegated=false)
-    : CQFHasField(field, val, isNegated), m_Regex(val)
-  {};
+    CQFHasFieldRegex(const std::string &field, const std::string &val=string(""), bool isNegated=false)
+        : CQFHasField(field, val, isNegated), m_Regex(val)
+    {};
 
-  virtual CQFilter* Clone()
-  { return (CQFilter*)new CQFHasFieldRegex(*this); };
+    virtual CQFilter* Clone()
+    { return (CQFilter*)new CQFHasFieldRegex(*this); };
 
-  //! compile the filter.  requires reference to underlying CConcIndexator
-  virtual bool Compile(CQueryCompiler *compiler, CQueryOptions *options);
+    //! compile the filter.  requires reference to underlying CConcIndexator
+    virtual bool Compile(CQueryCompiler *compiler, CQueryOptions *options);
 
-  virtual string valueString(void);
-  virtual string jsonClass(void) { return "CQFHasFieldRegex"; };
+    virtual string valueString(void);
+    virtual string jsonClass(void) { return "CQFHasFieldRegex"; };
 };
 
 //======================================================================
@@ -318,17 +318,17 @@ public:
 
 class CQFHasFieldPrefix : public CQFHasFieldRegex {
 public:
-  CQFHasFieldPrefix(const std::string &field, const std::string &val=string(""), bool isNegated=false)
-    : CQFHasFieldRegex(field, val, isNegated)
-  {
-    m_Regex = std::string("^") + escapeRegex(val);
-  };
+    CQFHasFieldPrefix(const std::string &field, const std::string &val=string(""), bool isNegated=false)
+        : CQFHasFieldRegex(field, val, isNegated)
+    {
+        m_Regex = std::string("^") + escapeRegex(val);
+    };
 
-  virtual CQFilter* Clone()
-  { return (CQFilter*)new CQFHasFieldPrefix(*this); };
+    virtual CQFilter* Clone()
+    { return (CQFilter*)new CQFHasFieldPrefix(*this); };
   
-  virtual string valueString(void);
-  virtual string jsonClass(void) { return "CQFHasFieldPrefix"; };
+    virtual string valueString(void);
+    virtual string jsonClass(void) { return "CQFHasFieldPrefix"; };
 };
 
 //======================================================================
@@ -336,17 +336,17 @@ public:
 
 class CQFHasFieldSuffix : public CQFHasFieldRegex {
 public:
-  CQFHasFieldSuffix(const std::string &field, const std::string &val=string(""), bool isNegated=false)
-    : CQFHasFieldRegex(field, val, isNegated)
-  {
-    m_Regex = escapeRegex(val) + "$";
-  };
+    CQFHasFieldSuffix(const std::string &field, const std::string &val=string(""), bool isNegated=false)
+        : CQFHasFieldRegex(field, val, isNegated)
+    {
+        m_Regex = escapeRegex(val) + "$";
+    };
 
-  virtual CQFilter* Clone()
-  { return (CQFilter*)new CQFHasFieldSuffix(*this); };
+    virtual CQFilter* Clone()
+    { return (CQFilter*)new CQFHasFieldSuffix(*this); };
   
-  virtual string valueString(void);
-  virtual string jsonClass(void) { return "CQFHasFieldSuffix"; };
+    virtual string valueString(void);
+    virtual string jsonClass(void) { return "CQFHasFieldSuffix"; };
 };
 
 //======================================================================
@@ -354,17 +354,17 @@ public:
 
 class CQFHasFieldInfix : public CQFHasFieldRegex {
 public:
-  CQFHasFieldInfix(const std::string &field, const std::string &val=string(""), bool isNegated=false)
-    : CQFHasFieldRegex(field, val, isNegated)
-  {
-    m_Regex = escapeRegex(val);
-  };
+    CQFHasFieldInfix(const std::string &field, const std::string &val=string(""), bool isNegated=false)
+        : CQFHasFieldRegex(field, val, isNegated)
+    {
+        m_Regex = escapeRegex(val);
+    };
 
-  virtual CQFilter* Clone()
-  { return (CQFilter*)new CQFHasFieldInfix(*this); };
+    virtual CQFilter* Clone()
+    { return (CQFilter*)new CQFHasFieldInfix(*this); };
   
-  virtual string valueString(void);
-  virtual string jsonClass(void) { return "CQFHasFieldInfix"; };
+    virtual string valueString(void);
+    virtual string jsonClass(void) { return "CQFHasFieldInfix"; };
 };
 
 //======================================================================
@@ -372,42 +372,41 @@ public:
 
 class CQFHasFieldSet : public CQFHasField {
 public:
-  //! original target strings string
-  std::set<std::string> m_Values;
+    //! original target strings string
+    std::set<std::string> m_Values;
 
 public:
-  CQFHasFieldSet(const std::string &field, const set<string>& vals=set<string>(), bool isNegated=false)
-    : CQFHasField(field, string("{}"), isNegated), m_Values(vals)
-  {};
+    CQFHasFieldSet(const std::string &field, const set<string>& vals=set<string>(), bool isNegated=false)
+        : CQFHasField(field, string("{}"), isNegated), m_Values(vals)
+    {};
 
-  virtual CQFilter* Clone()
-  { return (CQFilter*)new CQFHasFieldSet(*this); };
+    virtual CQFilter* Clone()
+    { return (CQFilter*)new CQFHasFieldSet(*this); };
 
-  //! compile the filter.  requires reference to underlying CConcIndexator
-  virtual bool Compile(CQueryCompiler *compiler, CQueryOptions *options);
+    //! compile the filter.  requires reference to underlying CConcIndexator
+    virtual bool Compile(CQueryCompiler *compiler, CQueryOptions *options);
 
-  //! utility for use by subclasses: comma-separated list of strings in \a values
-  string SetValueString(const set<string> &values);
+    //! utility for use by subclasses: comma-separated list of strings in \a values
+    string SetValueString(const set<string> &values);
 
-  //! wrapper for SetValueString(m_Values)
-  inline string SetValueString(void)
-  { return SetValueString(m_Values); };
+    //! wrapper for SetValueString(m_Values)
+    inline string SetValueString(void)
+    { return SetValueString(m_Values); };
 
-  //! stringification virtual method
-  virtual string valueString(void);
+    //! stringification virtual method
+    virtual string valueString(void);
 
-  virtual string jsonClass(void) { return "CQFHasFieldSet"; };
-  virtual string jsonFieldValue(void);
+    virtual string jsonClass(void) { return "CQFHasFieldSet"; };
+    virtual string jsonFieldValue(void);
 };
 
 
 #endif /* DDC_QFILTER_H */
 
-
 /*--- emacs style variables ---
  * Local Variables:
  *  mode: C++
- *  c-default-style: "linux"
+ *  c-file-style: "ellemtel"
  *  c-basic-offset: 4
  *  tab-width: 8
  *  indent-tabs-mode: nil

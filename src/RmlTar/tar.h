@@ -95,7 +95,7 @@
 #define DIRTYPE         '5'     /* Directory.  */
 #define FIFOTYPE        '6'     /* Named pipe.  */
 #define CONTTYPE        '7'     /* Contiguous file */
- /* (regular file if not supported).  */
+/* (regular file if not supported).  */
 
 /* Contents of magic field and its length.  */
 #define TMAGIC  "ustar"
@@ -110,7 +110,7 @@
 /*--- emacs style variables ---
  * Local Variables:
  *  mode: C++
- *  c-default-style: "linux"
+ *  c-file-style: "ellemtel"
  *  c-basic-offset: 4
  *  tab-width: 8
  *  indent-tabs-mode: nil

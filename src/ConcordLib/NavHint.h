@@ -55,159 +55,159 @@
 //======================================================================
 //! navigation hint-key for branch server get_first_hits() "paging" 
 struct NavHintKey {
-  string m_QueryStr;    ///< original query string
-  size_t m_HitNo;       ///< maximum logical hit number covered w.r.t. local corpus
+    string m_QueryStr;    ///< original query string
+    size_t m_HitNo;       ///< maximum logical hit number covered w.r.t. local corpus
 
-  //! default constructor
-  NavHintKey(const string& qstr="", const size_t hitno=0)
-    : m_QueryStr(qstr), m_HitNo(hitno)
-  {};
+    //! default constructor
+    NavHintKey(const string& qstr="", const size_t hitno=0)
+        : m_QueryStr(qstr), m_HitNo(hitno)
+    {};
 
-  //! clear the object
-  inline void clear()
-  {
-    ClearString(m_QueryStr);
-    m_HitNo = 0;
-  };
+    //! clear the object
+    inline void clear()
+    {
+        ClearString(m_QueryStr);
+        m_HitNo = 0;
+    };
 
-  //! comparison operator, for use with map<>
-  //! \li wraps <code>m_QueryStr < X.m_QueryStr || m_HitNo > X.m_HitNo</code>
-  //! \li m_HitNo comparison is reversed so we can use map<>::lower_bound()
-  inline bool operator< (const NavHintKey &X) const
-  {
-    return (m_QueryStr < X.m_QueryStr ? true                    //-- QueryStr is primary sort-key
-            : (m_QueryStr==X.m_QueryStr ? (m_HitNo > X.m_HitNo) //-- ... only compare HitNo if QueryStr matches (otherwise map<> chokes)
-               : false));                                       //-- ... QueryStr>X.QueryStr
-  };
+    //! comparison operator, for use with map<>
+    //! \li wraps <code>m_QueryStr < X.m_QueryStr || m_HitNo > X.m_HitNo</code>
+    //! \li m_HitNo comparison is reversed so we can use map<>::lower_bound()
+    inline bool operator< (const NavHintKey &X) const
+    {
+        return (m_QueryStr < X.m_QueryStr ? true                    //-- QueryStr is primary sort-key
+                : (m_QueryStr==X.m_QueryStr ? (m_HitNo > X.m_HitNo) //-- ... only compare HitNo if QueryStr matches (otherwise map<> chokes)
+                   : false));                                       //-- ... QueryStr>X.QueryStr
+    };
 
-  //! equality operator (for debugging)
-  inline bool operator== (const NavHintKey &X) const
-  { return m_HitNo == X.m_HitNo && m_QueryStr == X.m_QueryStr; };
+    //! equality operator (for debugging)
+    inline bool operator== (const NavHintKey &X) const
+    { return m_HitNo == X.m_HitNo && m_QueryStr == X.m_QueryStr; };
 
-  //! verbose assignment
-  inline void assign(const string& qstr, const size_t hitno=0)
-  {
-    m_QueryStr = qstr;
-    m_HitNo    = hitno;
-  };
+    //! verbose assignment
+    inline void assign(const string& qstr, const size_t hitno=0)
+    {
+        m_QueryStr = qstr;
+        m_HitNo    = hitno;
+    };
   
-  //! assignment operator
-  inline NavHintKey& operator= (const NavHintKey &X)
-  {
-    assign(X.m_QueryStr, X.m_HitNo);
-    return *this;
-  };
+    //! assignment operator
+    inline NavHintKey& operator= (const NavHintKey &X)
+    {
+        assign(X.m_QueryStr, X.m_HitNo);
+        return *this;
+    };
 
-  //! debug: native stringification
-  inline string toString() const
-  { return Format("%zd %s", m_HitNo, m_QueryStr.c_str()); };
+    //! debug: native stringification
+    inline string toString() const
+    { return Format("%zd %s", m_HitNo, m_QueryStr.c_str()); };
 
-  //! debug: native decoding from string
-  void fromString(const char *s);
+    //! debug: native decoding from string
+    void fromString(const char *s);
   
-  //! debug: JSON stringification
-  string toJson() const;
+    //! debug: JSON stringification
+    string toJson() const;
 };
 
 
 //======================================================================
 //! navigation hint with respect to local subcorpus tree, for get_first_hits "paging"
 struct NavHint {
-  string         m_SortKey;  ///< minimum sort key from this node or any subcorpus
-  size_t         m_Offset;   ///< minimum offset for local corpus node
-  vector<string> m_DtrHints; ///< offset hints for immediate daughter subcorpora
+    string         m_SortKey;  ///< minimum sort key from this node or any subcorpus
+    size_t         m_Offset;   ///< minimum offset for local corpus node
+    vector<string> m_DtrHints; ///< offset hints for immediate daughter subcorpora
 
-  //! default constructor
-  //! \param nDtrs number of immediate subcorpora
-  NavHint(size_t nDtrs=0)
-    : m_SortKey(""), m_Offset(0), m_DtrHints(nDtrs,"")
-  {};
+    //! default constructor
+    //! \param nDtrs number of immediate subcorpora
+    NavHint(size_t nDtrs=0)
+        : m_SortKey(""), m_Offset(0), m_DtrHints(nDtrs,"")
+    {};
 
-  //! constructor given local offset and number of daughters
-  NavHint(size_t Offset, size_t nDtrs)
-    : m_SortKey(""), m_Offset(Offset), m_DtrHints(nDtrs,"")
-  {};
+    //! constructor given local offset and number of daughters
+    NavHint(size_t Offset, size_t nDtrs)
+        : m_SortKey(""), m_Offset(Offset), m_DtrHints(nDtrs,"")
+    {};
 
-  //! constructor given sort key, offset, and number of subcorpora
-  NavHint(const string& SortKey, size_t Offset, size_t nDtrs)
-    : m_SortKey(SortKey), m_Offset(Offset), m_DtrHints(nDtrs,"")
-  {};
+    //! constructor given sort key, offset, and number of subcorpora
+    NavHint(const string& SortKey, size_t Offset, size_t nDtrs)
+        : m_SortKey(SortKey), m_Offset(Offset), m_DtrHints(nDtrs,"")
+    {};
 
-  //! full constructor
-  NavHint(const string& SortKey, size_t Offset, const vector<string> DtrHints)
-    : m_SortKey(SortKey), m_Offset(Offset), m_DtrHints(DtrHints)
-  {};
+    //! full constructor
+    NavHint(const string& SortKey, size_t Offset, const vector<string> DtrHints)
+        : m_SortKey(SortKey), m_Offset(Offset), m_DtrHints(DtrHints)
+    {};
 
-  //! constructor from string
-  NavHint(const string& HintStr)
-  { fromString(HintStr); };
+    //! constructor from string
+    NavHint(const string& HintStr)
+    { fromString(HintStr); };
 
-  //! clear the hint
-  inline void clear(size_t nDtrs=0)
-  {
-    m_SortKey.clear();
-    m_Offset = 0;
-    m_DtrHints.assign(nDtrs,"");
-  };
+    //! clear the hint
+    inline void clear(size_t nDtrs=0)
+    {
+        m_SortKey.clear();
+        m_Offset = 0;
+        m_DtrHints.assign(nDtrs,"");
+    };
 
-  //! returns true iff this is an empty hint
-  inline bool empty() const
-  { return m_SortKey.empty() && m_Offset==0; };
+    //! returns true iff this is an empty hint
+    inline bool empty() const
+    { return m_SortKey.empty() && m_Offset==0; };
 
-  //! get sum of daughter offsets
-  size_t OffsetTotal() const;
+    //! get sum of daughter offsets
+    size_t OffsetTotal() const;
 
-  //! convenience wrapper: set local offset to sum of daughter offsets
-  inline void UpdateOffset()
-  { m_Offset = OffsetTotal(); };
+    //! convenience wrapper: set local offset to sum of daughter offsets
+    inline void UpdateOffset()
+    { m_Offset = OffsetTotal(); };
 
-  //! get hint-string for daughter number DtrNo
-  inline const char* DtrHint(size_t DtrNo) const
-  { return (DtrNo < m_DtrHints.size() ? m_DtrHints[DtrNo].c_str() : ""); };
+    //! get hint-string for daughter number DtrNo
+    inline const char* DtrHint(size_t DtrNo) const
+    { return (DtrNo < m_DtrHints.size() ? m_DtrHints[DtrNo].c_str() : ""); };
   
-  //! get offset for daughter number DtrNo
-  inline size_t DtrOffset(size_t DtrNo) const
-  { return (DtrNo < m_DtrHints.size() ? strtoul(m_DtrHints[DtrNo].c_str(),NULL,0) : 0); };
+    //! get offset for daughter number DtrNo
+    inline size_t DtrOffset(size_t DtrNo) const
+    { return (DtrNo < m_DtrHints.size() ? strtoul(m_DtrHints[DtrNo].c_str(),NULL,0) : 0); };
   
-  //! assignment operator
-  inline NavHint& operator= (const NavHint &X)
-  {
-    m_SortKey  = X.m_SortKey;
-    m_Offset   = X.m_Offset;
-    m_DtrHints = X.m_DtrHints;
-    return *this;
-  };
+    //! assignment operator
+    inline NavHint& operator= (const NavHint &X)
+    {
+        m_SortKey  = X.m_SortKey;
+        m_Offset   = X.m_Offset;
+        m_DtrHints = X.m_DtrHints;
+        return *this;
+    };
 
-  //! string assignment wraps fromString()
-  inline NavHint& operator= (const string& S)
-  {
-    fromString(S);
-    return *this;
-  };
+    //! string assignment wraps fromString()
+    inline NavHint& operator= (const string& S)
+    {
+        fromString(S);
+        return *this;
+    };
 
-  //! assigns \a SortKey and \a Offset and resize \a DtrHints 
-  inline void update(const string& SortKey, size_t Offset, size_t nDtrs)
-  {
-    m_SortKey = SortKey;
-    m_Offset  = Offset;
-    m_DtrHints.resize(nDtrs);
-  };
+    //! assigns \a SortKey and \a Offset and resize \a DtrHints 
+    inline void update(const string& SortKey, size_t Offset, size_t nDtrs)
+    {
+        m_SortKey = SortKey;
+        m_Offset  = Offset;
+        m_DtrHints.resize(nDtrs);
+    };
 
-  //! serialization: returns a string-form for this hint suitable for parsing with the fromString() method.
-  //! \li returned string is of the form <code>OFFSET ("(" DTR_OFFSETS ")")? (" " SORTKEY)?</code>
-  //! \li if the local node has no daughters, the daughter offset hint <code>DTR_OFFSETS</code> is omitted.
-  //! \li if the local node is a branch-node, <code>$DTR_OFFSETS</code> is a "+"-separated list of subcorpus-wise daughter offset hints
-  //!     of the form <code>DTR_OFFSET_1 "+" DTR_OFFSET_2 "+" ... "+" DTR_OFFSET_N</code>,
-  //!     and each <code>DTR_OFFSET_i</code> item is a nested hint <code>DTR_OFFSET ("(" DTR_DTR_OFFSETS ")")?</code> appropriate for
-  //!     the respective daughter subcorpus.
-  //! \li if \a m_SortKey is empty, the <code>"\t" SORTKEY</code> suffix is omitted.
-  string toString(bool includeSortKey=true) const;
+    //! serialization: returns a string-form for this hint suitable for parsing with the fromString() method.
+    //! \li returned string is of the form <code>OFFSET ("(" DTR_OFFSETS ")")? (" " SORTKEY)?</code>
+    //! \li if the local node has no daughters, the daughter offset hint <code>DTR_OFFSETS</code> is omitted.
+    //! \li if the local node is a branch-node, <code>$DTR_OFFSETS</code> is a "+"-separated list of subcorpus-wise daughter offset hints
+    //!     of the form <code>DTR_OFFSET_1 "+" DTR_OFFSET_2 "+" ... "+" DTR_OFFSET_N</code>,
+    //!     and each <code>DTR_OFFSET_i</code> item is a nested hint <code>DTR_OFFSET ("(" DTR_DTR_OFFSETS ")")?</code> appropriate for
+    //!     the respective daughter subcorpus.
+    //! \li if \a m_SortKey is empty, the <code>"\t" SORTKEY</code> suffix is omitted.
+    string toString(bool includeSortKey=true) const;
 
-  //! de-serialization: parses a string hint as returned by the toString() method, which see for details on the accepted syntax.
-  void fromString(const string& Str);
+    //! de-serialization: parses a string hint as returned by the toString() method, which see for details on the accepted syntax.
+    void fromString(const string& Str);
 
-  //! debug: JSON stringification
-  string toJson() const;
+    //! debug: JSON stringification
+    string toJson() const;
 };
 
 //======================================================================
@@ -215,133 +215,133 @@ struct NavHint {
 class NavHintCache : public ddcLockable
 {
 public:
-  //------------------------------------------------------------
-  // public typedefs
-  typedef NavHintKey  KeyT; ///< navigation cache key type
-  typedef NavHint ValT; ///< navigation cache value type
+    //------------------------------------------------------------
+    // public typedefs
+    typedef NavHintKey  KeyT; ///< navigation cache key type
+    typedef NavHint ValT; ///< navigation cache value type
 
-  //----------------------------------------------------
-  //! typedef for underlying LRU cache object
-  typedef ddcLRUCache<KeyT,ValT> CacheT;
-
-public:
-  //------------------------------------------------------------
-  // public data
-  CacheT m_Cache;  ///< underlying LRU cache
+    //----------------------------------------------------
+    //! typedef for underlying LRU cache object
+    typedef ddcLRUCache<KeyT,ValT> CacheT;
 
 public:
-  //------------------------------------------------------------
-  // constructors etc.
+    //------------------------------------------------------------
+    // public data
+    CacheT m_Cache;  ///< underlying LRU cache
 
-  //! default constructor
-  //! \li initializes m_Cache to use m_Mutex inherited from ddcLockable
-  NavHintCache(size_t capacity=DDC_DEFAULT_NAV_HINT_CACHE_CAPACITY)
-    : m_Cache(capacity, &m_Mutex)
-  {};
+public:
+    //------------------------------------------------------------
+    // constructors etc.
 
-  //! default destructor (empty)
-  ~NavHintCache()
-  {};
+    //! default constructor
+    //! \li initializes m_Cache to use m_Mutex inherited from ddcLockable
+    NavHintCache(size_t capacity=DDC_DEFAULT_NAV_HINT_CACHE_CAPACITY)
+        : m_Cache(capacity, &m_Mutex)
+    {};
 
-  //------------------------------------------------------------
-  // API
+    //! default destructor (empty)
+    ~NavHintCache()
+    {};
 
-  //! wraps lock(); m_Cache.reserve(capacity_); unlock()
-  inline void reserve(size_t capacity_)
-  {
-    lock();
-    try {
-      m_Cache.reserve(capacity_);
-    } catch (...) {
-      unlock();
-      throw;
-    }
-    unlock();
-  };
+    //------------------------------------------------------------
+    // API
+
+    //! wraps lock(); m_Cache.reserve(capacity_); unlock()
+    inline void reserve(size_t capacity_)
+    {
+        lock();
+        try {
+            m_Cache.reserve(capacity_);
+        } catch (...) {
+            unlock();
+            throw;
+        }
+        unlock();
+    };
   
-  //----------------------------------------------------
-  //! wraps lock(); m_Cache.size(); unlock()
-  inline size_t size() const
-  {
-    size_t sz=0;
-    lock();
-    try {
-      sz = m_Cache.size();
-    } catch (...) {
-      unlock();
-      throw;
-    }
-    unlock();
-    return sz;
-  };
+    //----------------------------------------------------
+    //! wraps lock(); m_Cache.size(); unlock()
+    inline size_t size() const
+    {
+        size_t sz=0;
+        lock();
+        try {
+            sz = m_Cache.size();
+        } catch (...) {
+            unlock();
+            throw;
+        }
+        unlock();
+        return sz;
+    };
 
-  //----------------------------------------------------
-  //! wraps lock(); m_Cache.clear(); unlock()
-  inline void clear()
-  {
-    lock();
-    try {
-      m_Cache.clear();
-    } catch (...) {
-      unlock();
-      throw;
-    }
-    unlock();
-  };
+    //----------------------------------------------------
+    //! wraps lock(); m_Cache.clear(); unlock()
+    inline void clear()
+    {
+        lock();
+        try {
+            m_Cache.clear();
+        } catch (...) {
+            unlock();
+            throw;
+        }
+        unlock();
+    };
 
-  //----------------------------------------------------
-  //! get lower bound for key \a key = (QueryStr,HitNo)
-  //! \returns true iff a match was found in cache, false otherwise
-  //! \li copies lower-bound cached hint for key if \a QueryStr matches, otherwise clears hint
-  //! \li if a valid match is found, it is promoted to MRU position iff \a doPromote is true
-  //! \li wraps operation in lock() + unlock()
-  //! \param val (output) hint to be extracted (data copied from cache if found, otherwise an empty hint)
-  //! \param key (input) key to search for
-  //! \param doPromote (input) whether to implicitly promote match to MRU position
-  bool lower_bound(ValT& val, const KeyT& key, bool doPromote=true);
+    //----------------------------------------------------
+    //! get lower bound for key \a key = (QueryStr,HitNo)
+    //! \returns true iff a match was found in cache, false otherwise
+    //! \li copies lower-bound cached hint for key if \a QueryStr matches, otherwise clears hint
+    //! \li if a valid match is found, it is promoted to MRU position iff \a doPromote is true
+    //! \li wraps operation in lock() + unlock()
+    //! \param val (output) hint to be extracted (data copied from cache if found, otherwise an empty hint)
+    //! \param key (input) key to search for
+    //! \param doPromote (input) whether to implicitly promote match to MRU position
+    bool lower_bound(ValT& val, const KeyT& key, bool doPromote=true);
 
-  //----------------------------------------------------
-  //! get lower bound for key \a key = (QueryStr,HitNo)
-  //! \returns copy of lower-bound cached hint for key if \a QueryStr matches, otherwise an empty hint for nSubs
-  inline ValT lower_bound(const KeyT& key, bool doPromote=true)
-  {
-    ValT val;
-    lower_bound(val, key, doPromote);
-    return val;
-  };
+    //----------------------------------------------------
+    //! get lower bound for key \a key = (QueryStr,HitNo)
+    //! \returns copy of lower-bound cached hint for key if \a QueryStr matches, otherwise an empty hint for nSubs
+    inline ValT lower_bound(const KeyT& key, bool doPromote=true)
+    {
+        ValT val;
+        lower_bound(val, key, doPromote);
+        return val;
+    };
 
-  //----------------------------------------------------
-  //! insert new entry for \a key = (QueryStr,HitNo)
-  //! \li promotes new entry to MRU position
-  //! \li implicitly wraps operation in lock() + unlock()
-  inline void insert(const KeyT& key, const ValT& val)
-  {
-    lock();
-    try {
-      NAVCACHE_TRACE(ddcLogTrace(Format("NavCache::insert(\"%s\",\"%s\")", escapeCString(key.toString()).c_str(), escapeCString(val.toString()).c_str())));
-      m_Cache.insert(key,val);
-    } catch (...) {
-      unlock();
-      throw;
-    }
-    unlock();
-  };
+    //----------------------------------------------------
+    //! insert new entry for \a key = (QueryStr,HitNo)
+    //! \li promotes new entry to MRU position
+    //! \li implicitly wraps operation in lock() + unlock()
+    inline void insert(const KeyT& key, const ValT& val)
+    {
+        lock();
+        try {
+            NAVCACHE_TRACE(ddcLogTrace(Format("NavCache::insert(\"%s\",\"%s\")", escapeCString(key.toString()).c_str(), escapeCString(val.toString()).c_str())));
+            m_Cache.insert(key,val);
+        } catch (...) {
+            unlock();
+            throw;
+        }
+        unlock();
+    };
 
-  //------------------------------------------------------------
-  // convenience API
+    //------------------------------------------------------------
+    // convenience API
 
-  //! wrapper for lower_bound(KeyT(QueryStr, HitNo))
-  inline ValT lower_bound(const string& QueryStr, size_t HitNo)
-  { return lower_bound(KeyT(QueryStr,HitNo)); };
+    //! wrapper for lower_bound(KeyT(QueryStr, HitNo))
+    inline ValT lower_bound(const string& QueryStr, size_t HitNo)
+    { return lower_bound(KeyT(QueryStr,HitNo)); };
 
-  //! wrapper for insert(KeyT(QueryStr, HitNo), ValT(SortKey,Offset,DtrHints))
-  inline void insert(const string& QueryStr, size_t HitNo, const string& SortKey, const size_t Offset, const vector<string>& DtrHints)
-  { insert(KeyT(QueryStr,HitNo), ValT(SortKey,Offset,DtrHints)); };
+    //! wrapper for insert(KeyT(QueryStr, HitNo), ValT(SortKey,Offset,DtrHints))
+    inline void insert(const string& QueryStr, size_t HitNo, const string& SortKey, const size_t Offset, const vector<string>& DtrHints)
+    { insert(KeyT(QueryStr,HitNo), ValT(SortKey,Offset,DtrHints)); };
 
-  //------------------------------------------------------------
-  // debugging
-  //! debug: stringification
-  string toJson() const;
+    //------------------------------------------------------------
+    // debugging
+    //! debug: stringification
+    string toJson() const;
 };
 
 
@@ -350,7 +350,7 @@ public:
 /*--- emacs style variables ---
  * Local Variables:
  *  mode: C++
- *  c-default-style: "linux"
+ *  c-file-style: "ellemtel"
  *  c-basic-offset: 4
  *  tab-width: 8
  *  indent-tabs-mode: nil

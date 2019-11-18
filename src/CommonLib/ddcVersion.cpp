@@ -31,9 +31,9 @@ void ddc_parse_format_version(const char *s, DDCVersionT &version, DDCVersionT &
     version.clear();
     version_min.clear();
     for (int i=0; i < toks.size()-1; i++) {
-      if (toks[i]=="Version")		version.fromString(toks[++i]);
-      else if (toks[i]=="Format")	version.fromString(toks[++i]);
-      else if (toks[i]=="min-compat")	version_min.fromString(toks[++i]);
+        if (toks[i]=="Version")           version.fromString(toks[++i]);
+        else if (toks[i]=="Format")       version.fromString(toks[++i]);
+        else if (toks[i]=="min-compat")   version_min.fromString(toks[++i]);
     }
     if (version_min.empty()) { version_min = version; }
     return;
@@ -47,20 +47,20 @@ void ddc_format_version_check(const char *s, const char *label)
     ddc_parse_format_version(s,version,version_min);
     //std::string sv_str=version.str(), svmin_str=version_min.str(), ddcv_str=DDCVersion.str(), ddcvmin_str=DDCVersionMinR.str();
     if (version.empty() && version_min.empty())
-      throw CExpc(errLogic,
-		  std::string("could not parse format version from `") + label + "'");
+        throw CExpc(errLogic,
+                    std::string("could not parse format version from `") + label + "'");
     if (version < DDCVersionMinR)
-      throw CExpc(errLogic,
-		  std::string(label) + ": format version "+version.str()+" is obsolete (need format >= v" + DDCVersionMinR.str() + ")");
+        throw CExpc(errLogic,
+                    std::string(label) + ": format version "+version.str()+" is obsolete (need format >= v" + DDCVersionMinR.str() + ")");
     if (DDCVersion < version_min)
-      throw CExpc(errLogic,
-		  std::string(label) + ": DDC v"+DDCVersion.str()+" is too old to read format (need at least DDC v"+version_min.str()+")");
+        throw CExpc(errLogic,
+                    std::string(label) + ": DDC v"+DDCVersion.str()+" is too old to read format (need at least DDC v"+version_min.str()+")");
 }
 
 /*--- emacs style variables ---
  * Local Variables:
  *  mode: C++
- *  c-default-style: "linux"
+ *  c-file-style: "ellemtel"
  *  c-basic-offset: 4
  *  tab-width: 8
  *  indent-tabs-mode: nil

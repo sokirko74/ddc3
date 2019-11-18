@@ -27,12 +27,12 @@ typedef pair<int, int>          _statnode_t;
 
 class CStatistic  
 {
-        vector<_statnode_t>                     m_WordWeights;
-        vector<_homonode_t>                     m_HomoWeights;
+    vector<_statnode_t>                     m_WordWeights;
+    vector<_homonode_t>                     m_HomoWeights;
 public:
-        void    Load(const string& path);
-        int             get_HomoWeight(int paradigmid, int form) const;
-        int             get_WordWeight(int paradigmid) const;
+    void    Load(const string& path);
+    int             get_HomoWeight(int paradigmid, int form) const;
+    int             get_WordWeight(int paradigmid) const;
 };
 
 #endif 
@@ -40,7 +40,7 @@ public:
 /*--- emacs style variables ---
  * Local Variables:
  *  mode: C++
- *  c-default-style: "linux"
+ *  c-file-style: "ellemtel"
  *  c-basic-offset: 4
  *  tab-width: 8
  *  indent-tabs-mode: nil

@@ -186,7 +186,8 @@ MAINTAINERCLEANFILES = \
 EXTRA_DIST = \
 	FlexLexer.h \
 	yyQLexer.l yyQLexer.h yyQLexer.cpp \
-	yyQParser.y yyQParser.h yyQParser.cpp
+	yyQParser.y yyQParser.h yyQParser.cpp \
+	CMakeLists.txt
 
 ##--- recursion subdirectories for 'make dist'
 #DIST_SUBDIRS = $(SUBDIRS)

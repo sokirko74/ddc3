@@ -36,6 +36,11 @@ macro (requests_in_threads)
             WORKING_DIRECTORY  ${dir}
     )
     add_test(
+            NAME requests_in_threads_stop_server
+            COMMAND ddc_daemon stop -l ddc_local_corpora.cfg  -s ddc_server.cfg -v trace
+            WORKING_DIRECTORY  ${dir}
+    )
+    add_test(
             NAME requests_in_threads_comp_multi
             COMMAND ${CMAKE_COMMAND} -E compare_files new_result_multi_threaded.txt canon.txt
             WORKING_DIRECTORY  ${dir}

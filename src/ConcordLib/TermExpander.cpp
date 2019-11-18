@@ -30,24 +30,24 @@
 
 //--------------------------------------------------------------
 CTermExpander *CTermExpander::mapClone(map<CTermExpander *, CTermExpander *> &xlate) const {
-  map<CTermExpander*,CTermExpander*>::const_iterator vali = xlate.find((CTermExpander*)this);
-  if (vali != xlate.end()) return vali->second;
+    map<CTermExpander*,CTermExpander*>::const_iterator vali = xlate.find((CTermExpander*)this);
+    if (vali != xlate.end()) return vali->second;
 
-  CTermExpander *that = this->clone(xlate);
-  xlate[(CTermExpander*)this] = that;
-  return that;
+    CTermExpander *that = this->clone(xlate);
+    xlate[(CTermExpander*)this] = that;
+    return that;
 }
 
 //--------------------------------------------------------------
 string CTermExpander::configString(void) const {
-  return m_Label + " " + m_Class + " " + m_Param;
+    return m_Label + " " + m_Class + " " + m_Param;
 }
 
 //--------------------------------------------------------------
 void CTermExpander::expand(const string &src, set<string> &dst) {
-  set<string> ssrc;
-  ssrc.insert(src);
-  this->expand(ssrc,dst);
+    set<string> ssrc;
+    ssrc.insert(src);
+    this->expand(ssrc,dst);
 }
 
 //--------------------------------------------------------------
@@ -61,7 +61,7 @@ void CTermExpander::expand(const set<string> &src, set<string> &dst) {
 
 //--------------------------------------------------------------
 void TxId::expand(const set<string> &src, set<string> &dst) {
-  dst = src;
+    dst = src;
 }
 
 
@@ -70,51 +70,51 @@ void TxId::expand(const set<string> &src, set<string> &dst) {
 
 //--------------------------------------------------------------
 CTermExpander *TxChain::clone(map<CTermExpander *, CTermExpander *> &xlate) const {
-  TxChain *that = new TxChain(m_Label,m_Param);
-  for (TxList::const_iterator li=m_Chain.begin(); li != m_Chain.end(); ++li) {
-    that->m_Chain.push_back( (*li)->mapClone(xlate) );
-  }
-  return that;
+    TxChain *that = new TxChain(m_Label,m_Param);
+    for (TxList::const_iterator li=m_Chain.begin(); li != m_Chain.end(); ++li) {
+        that->m_Chain.push_back( (*li)->mapClone(xlate) );
+    }
+    return that;
 }
 
 //--------------------------------------------------------------
 void TxChain::append(TxList &txl) {
-  m_Chain.reserve(m_Chain.size()+txl.size());
-  m_Chain.insert(m_Chain.end(), txl.begin(), txl.end());
+    m_Chain.reserve(m_Chain.size()+txl.size());
+    m_Chain.insert(m_Chain.end(), txl.begin(), txl.end());
 }
 
 //--------------------------------------------------------------
 void TxChain::append(TxChain &txc) {
-  append(txc.m_Chain);
+    append(txc.m_Chain);
 }
 
 //--------------------------------------------------------------
 void TxChain::append(CTermExpander *tx) {
-  if (tx==NULL) return;
-  if (tx->m_Class == "Chain")
-    append( ((TxChain*)tx)->m_Chain );
-  else
-    m_Chain.push_back(tx);
+    if (tx==NULL) return;
+    if (tx->m_Class == "Chain")
+        append( ((TxChain*)tx)->m_Chain );
+    else
+        m_Chain.push_back(tx);
 }
 
 //--------------------------------------------------------------
 string TxChain::chainString(const string &joinstr) {
-  string s;
-  for (TxList::const_iterator li=m_Chain.begin(); li != m_Chain.end(); li++) {
-    if (!s.empty()) s += joinstr;
-    s += (*li)->m_Label;
-  }
-  return s;
+    string s;
+    for (TxList::const_iterator li=m_Chain.begin(); li != m_Chain.end(); li++) {
+        if (!s.empty()) s += joinstr;
+        s += (*li)->m_Label;
+    }
+    return s;
 }
 
 //--------------------------------------------------------------
 void TxChain::expand(const set<string> &src, set<string> &dst) {
-  set<string> tmp(src);
-  for (TxList::const_iterator ci=m_Chain.begin(); ci!=m_Chain.end(); ci++) {
-    (*ci)->expand(tmp,dst);
+    set<string> tmp(src);
+    for (TxList::const_iterator ci=m_Chain.begin(); ci!=m_Chain.end(); ci++) {
+        (*ci)->expand(tmp,dst);
+        swap(tmp,dst);
+    }
     swap(tmp,dst);
-  }
-  swap(tmp,dst);
 }
 
 //======================================================================
@@ -122,28 +122,28 @@ void TxChain::expand(const set<string> &src, set<string> &dst) {
 
 //--------------------------------------------------------------
 TxLang::TxLang(const string &cls, const string &label, const string& param)
-        : CTermExpander(cls, label, param), m_Lang(morphGeneric) {
-  setLanguage(param);
+    : CTermExpander(cls, label, param), m_Lang(morphGeneric) {
+    setLanguage(param);
 }
 
 //--------------------------------------------------------------
 void TxLang::setLanguage(MorphLanguageEnum lang) {
-  m_Lang = lang;
-  m_Param = GetStringByLanguage(m_Lang);
+    m_Lang = lang;
+    m_Param = GetStringByLanguage(m_Lang);
 }
 
 //--------------------------------------------------------------
 void TxLang::setLanguage(const string &lang) {
-  string lang_(lang);
-  Trim(lang_);
-  if (lang_.empty()) {
-    this->setLanguage(morphGeneric);
-    return;
-  }
-  if (!GetLanguageByString(lang_, m_Lang)) {
-    this->setLanguage(morphUnknown);
-    throw CExpc(errProcessMorphology, "unsupported language `%s'", lang.c_str());
-  }
+    string lang_(lang);
+    Trim(lang_);
+    if (lang_.empty()) {
+        this->setLanguage(morphGeneric);
+        return;
+    }
+    if (!GetLanguageByString(lang_, m_Lang)) {
+        this->setLanguage(morphUnknown);
+        throw CExpc(errProcessMorphology, "unsupported language `%s'", lang.c_str());
+    }
 }
 
 //======================================================================
@@ -152,68 +152,68 @@ void TxLang::setLanguage(const string &lang) {
 //--------------------------------------------------------------
 // + hacked version of GetWordForms() from QueryNode.cpp
 void TxMorph::expand(const set<string> &src, set<string> &dst) {
-  dst = src;
-  if (src.empty()) return;
-  if (m_Lang == morphUnknown) return;
+    dst = src;
+    if (src.empty()) return;
+    if (m_Lang == morphUnknown) return;
 
-  const CLemmatizer* pLemmatizer = GetLemmatizerByLanguage(m_Lang);
-  if (!pLemmatizer) return;
+    const CLemmatizer* pLemmatizer = GetLemmatizerByLanguage(m_Lang);
+    if (!pLemmatizer) return;
 
-  for (set<string>::const_iterator si = src.begin(); si != src.end(); si++) {
-    const string& w = *si;
-    vector<CFormInfo> Paradigms;
+    for (set<string>::const_iterator si = src.begin(); si != src.end(); si++) {
+        const string& w = *si;
+        vector<CFormInfo> Paradigms;
 
-    string w_ = pLemmatizer->recode_ext2int(w);
-    const bool bCapital = is_upper_alpha((BYTE)w_[0],m_Lang);
+        string w_ = pLemmatizer->recode_ext2int(w);
+        const bool bCapital = is_upper_alpha((BYTE)w_[0],m_Lang);
         try {
-	pLemmatizer->CreateParadigmCollection(false, w_, bCapital, true, Paradigms);
-      }
+            pLemmatizer->CreateParadigmCollection(false, w_, bCapital, true, Paradigms);
+        }
         catch (...) {
-	throw CExpc(errProcessMorphology, Format("TxMorph::expand(): morphology crashed for `%s'", w.c_str()));
-      }
+            throw CExpc(errProcessMorphology, Format("TxMorph::expand(): morphology crashed for `%s'", w.c_str()));
+        }
 
-    // adopt all paradigms
-    for (vector<CFormInfo>::const_iterator pi=Paradigms.begin(); pi!=Paradigms.end(); pi++) {
-      const CFormInfo& F = *pi;
-      //  print all forms of one paradigm
-      for (int j = 0; j < F.GetCount(); j++) {
-	string form = F.GetWordForm(j);
-	RmlMakeLower(form, m_Lang);
-	// set 'register' (i.e. letter-case) of the first char of "form" equal to the 'register' of "*w"
-	if (bCapital) {
-	  // make the first word upper-case (ugly hack)
-	  form[0] = ReverseChar((BYTE)form[0], m_Lang);
-	}
-	dst.insert(pLemmatizer->recode_int2ext(form));
-      }
+        // adopt all paradigms
+        for (vector<CFormInfo>::const_iterator pi=Paradigms.begin(); pi!=Paradigms.end(); pi++) {
+            const CFormInfo& F = *pi;
+            //  print all forms of one paradigm
+            for (int j = 0; j < F.GetCount(); j++) {
+                string form = F.GetWordForm(j);
+                RmlMakeLower(form, m_Lang);
+                // set 'register' (i.e. letter-case) of the first char of "form" equal to the 'register' of "*w"
+                if (bCapital) {
+                    // make the first word upper-case (ugly hack)
+                    form[0] = ReverseChar((BYTE)form[0], m_Lang);
+                }
+                dst.insert(pLemmatizer->recode_int2ext(form));
+            }
+        }
     }
-  }
 }
 
 //======================================================================
 // TxToLower
 
 void TxToLower::expand(const set<string> &src, set<string> &dst) {
-  dst.clear();
-  for (set<string>::const_iterator si = src.begin(); si != src.end(); si++) {
-    if (si->empty())  continue;
-    string dq(*si);
-    RmlMakeLower(dq,m_Lang);
-    dst.insert(dq);
-  }
+    dst.clear();
+    for (set<string>::const_iterator si = src.begin(); si != src.end(); si++) {
+        if (si->empty())  continue;
+        string dq(*si);
+        RmlMakeLower(dq,m_Lang);
+        dst.insert(dq);
+    }
 }
 
 //======================================================================
 // TxToUpper
 
 void TxToUpper::expand(const set<string> &src, set<string> &dst) {
-  dst.clear();
-  for (set<string>::const_iterator si = src.begin(); si != src.end(); si++) {
-    if (si->empty())  continue;
-    string dq(*si);
-    RmlMakeUpper(dq,m_Lang);
-    dst.insert(dq);
-  }
+    dst.clear();
+    for (set<string>::const_iterator si = src.begin(); si != src.end(); si++) {
+        if (si->empty())  continue;
+        string dq(*si);
+        RmlMakeUpper(dq,m_Lang);
+        dst.insert(dq);
+    }
 }
 
 //======================================================================
@@ -222,43 +222,43 @@ void TxToUpper::expand(const set<string> &src, set<string> &dst) {
 //--------------------------------------------------------------
 // + hacked version of AddFormsWithDifferentRegisters() from QueryNode.cpp
 void TxCase::expand(const set<string> &src, set<string> &dst) {
-  dst.clear();
-  for (set<string>::const_iterator si = src.begin(); si != src.end(); si++) {
-    const string& q = *si;
-    if (q.empty())  continue;
-    dst.insert(q);
+    dst.clear();
+    for (set<string>::const_iterator si = src.begin(); si != src.end(); si++) {
+        const string& q = *si;
+        if (q.empty())  continue;
+        dst.insert(q);
 
-    if (m_Lang == morphGeneric) {
-      //-- new: generic conversion using current locale
-      wstring ws = string2wstring(q);
-      if (iswlower(ws[0])) {
-	//-- ab->Ab, aB->AB
-	wstring ws_u(ws);
-	ws_u[0] = towupper(ws_u[0]);
-	dst.insert(wstring2string(ws_u));
+        if (m_Lang == morphGeneric) {
+            //-- new: generic conversion using current locale
+            wstring ws = string2wstring(q);
+            if (iswlower(ws[0])) {
+                //-- ab->Ab, aB->AB
+                wstring ws_u(ws);
+                ws_u[0] = towupper(ws_u[0]);
+                dst.insert(wstring2string(ws_u));
             } else {
-	//-- (AB|Ab)->ab
-	dst.insert(wstring2string(wstolower(ws)));
-      }
-      //-- (AB|Ab|aB|ab)->AB
-      dst.insert(wstring2string(wstoupper(ws)));
-      continue;
-    }
+                //-- (AB|Ab)->ab
+                dst.insert(wstring2string(wstolower(ws)));
+            }
+            //-- (AB|Ab|aB|ab)->AB
+            dst.insert(wstring2string(wstoupper(ws)));
+            continue;
+        }
 
-    //-- old conversion using local tables
-    if (is_lower_alpha((BYTE)q[0],  m_Lang)) {
-      string upp = q;
-      upp[0] = ReverseChar((BYTE)upp[0], m_Lang);
-      dst.insert(upp);
+        //-- old conversion using local tables
+        if (is_lower_alpha((BYTE)q[0],  m_Lang)) {
+            string upp = q;
+            upp[0] = ReverseChar((BYTE)upp[0], m_Lang);
+            dst.insert(upp);
         } else {
-      string lwr = q;
-      RmlMakeLower(lwr, m_Lang);
-      dst.insert(lwr);
-    };
-    string upr = q;
-    RmlMakeUpper(upr, m_Lang);
-    dst.insert(upr);
-  }
+            string lwr = q;
+            RmlMakeLower(lwr, m_Lang);
+            dst.insert(lwr);
+        };
+        string upr = q;
+        RmlMakeUpper(upr, m_Lang);
+        dst.insert(upr);
+    }
 }
 
 //======================================================================
@@ -266,22 +266,22 @@ void TxCase::expand(const set<string> &src, set<string> &dst) {
 
 //--------------------------------------------------------------
 CTermExpander *TxCurl::clone(map<CTermExpander *, CTermExpander *> &xlate) const {
-  TxCurl* that = new TxCurl(m_Class, m_Label, m_Param);
-  that->compile();
-  return (CTermExpander*)that;
+    TxCurl* that = new TxCurl(m_Class, m_Label, m_Param);
+    that->compile();
+    return (CTermExpander*)that;
 }
 
 //--------------------------------------------------------------
 void TxCurl::compile(void) {
-  m_CCurl.lock();
-  m_CCurl.url("");
-  m_CCurl.requestUrl("");
-  m_CCurl.unixSocketPath("");
-  m_CCurl.timeout(5);
-  m_CCurl.noSignal(1);
-  m_CCurl.failOnError(1);
-  m_CCurl.setDefaultDataCallback();
-  m_CCurl.unlock();
+    m_CCurl.lock();
+    m_CCurl.url("");
+    m_CCurl.requestUrl("");
+    m_CCurl.unixSocketPath("");
+    m_CCurl.timeout(5);
+    m_CCurl.noSignal(1);
+    m_CCurl.failOnError(1);
+    m_CCurl.setDefaultDataCallback();
+    m_CCurl.unlock();
 }
 
 
@@ -290,99 +290,99 @@ void TxCurl::compile(void) {
 
 //--------------------------------------------------------------
 CTermExpander *TxCab::clone(map<CTermExpander *, CTermExpander *> &xlate) const {
-  TxCab* that = new TxCab(m_Label, m_Param, m_Debug, m_MapMode);
-  that->compile();
-  return (CTermExpander*)that;
+    TxCab* that = new TxCab(m_Label, m_Param, m_Debug, m_MapMode);
+    that->compile();
+    return (CTermExpander*)that;
 }
 
 //--------------------------------------------------------------
 void TxCab::compile(void) {
-  //-- defaults
-  TxCurl::compile();
+    //-- defaults
+    TxCurl::compile();
 
-  //-- parse parameters
-  m_CCurl.lock();
-  vector<string> params = stringSplit(m_Param.c_str(), " \t\r\n");
-  m_UrlBase.clear();
-  if (params.size() > 0) {
-    m_UrlBase = params[0];
-    if (*m_UrlBase.rbegin() != '=')
-      m_UrlBase += "&qd="; //-- compatibility hack for versions < 2.0.5
-  }
-  if (params.size() > 1) {
-    int secs = strtol(params[1].c_str(), NULL, 0);
-    m_CCurl.timeout(secs);
-  }
-  if (params.size() > 2) {
-    m_Debug = strtol(params[2].c_str(), NULL, 0);
-  }
-  if (params.size() > 3) {
-    m_MapMode = strtol(params[3].c_str(), NULL, 0);
-  }
+    //-- parse parameters
+    m_CCurl.lock();
+    vector<string> params = stringSplit(m_Param.c_str(), " \t\r\n");
+    m_UrlBase.clear();
+    if (params.size() > 0) {
+        m_UrlBase = params[0];
+        if (*m_UrlBase.rbegin() != '=')
+            m_UrlBase += "&qd="; //-- compatibility hack for versions < 2.0.5
+    }
+    if (params.size() > 1) {
+        int secs = strtol(params[1].c_str(), NULL, 0);
+        m_CCurl.timeout(secs);
+    }
+    if (params.size() > 2) {
+        m_Debug = strtol(params[2].c_str(), NULL, 0);
+    }
+    if (params.size() > 3) {
+        m_MapMode = strtol(params[3].c_str(), NULL, 0);
+    }
 
 #ifdef DDC_ENABLE_CURL_UNIX_URLS
-  if (m_Debug) {
-    string unixPath, requestUrl;
-    bool useUnixSocket = CCurl::parseUnixSocketUrl(m_UrlBase, unixPath, requestUrl);
-    if (useUnixSocket) {
-      ddcLogDebug(Format("TxCab::expand[%s]: detected UNIX socket URL: %s", m_Label.c_str(), m_UrlBase.c_str()));
-      ddcLogDebug(Format("TxCab::expand[%s]: -> UNIX socket path: %s", m_Label.c_str(), unixPath.c_str()));
-      ddcLogDebug(Format("TxCab::expand[%s]: -> curl request URL: %s", m_Label.c_str(), requestUrl.c_str()));
+    if (m_Debug) {
+        string unixPath, requestUrl;
+        bool useUnixSocket = CCurl::parseUnixSocketUrl(m_UrlBase, unixPath, requestUrl);
+        if (useUnixSocket) {
+            ddcLogDebug(Format("TxCab::expand[%s]: detected UNIX socket URL: %s", m_Label.c_str(), m_UrlBase.c_str()));
+            ddcLogDebug(Format("TxCab::expand[%s]: -> UNIX socket path: %s", m_Label.c_str(), unixPath.c_str()));
+            ddcLogDebug(Format("TxCab::expand[%s]: -> curl request URL: %s", m_Label.c_str(), requestUrl.c_str()));
+        }
     }
-  }
 #endif
   
-  //-- curl flags
-  m_CCurl.forbidReuse(1); //-- CAB closes client connections, but CURL is smart enough to re-connect anyway (?)
-  m_CCurl.verbose(m_Debug ? 1 : 0); //-- DEBUG
-  m_CCurl.unlock();
+    //-- curl flags
+    m_CCurl.forbidReuse(1); //-- CAB closes client connections, but CURL is smart enough to re-connect anyway (?)
+    m_CCurl.verbose(m_Debug ? 1 : 0); //-- DEBUG
+    m_CCurl.unlock();
 }
 
 //--------------------------------------------------------------
 void TxCab::expand(const set<string> &src, set<string> &dst) {
-  if (!m_MapMode)
-    dst = src;		//-- union-mode (default): always include identity expansions
-  else
-    dst.clear();	//-- map-mode: output terms must occur explicitly in the query response
+    if (!m_MapMode)
+        dst = src;          //-- union-mode (default): always include identity expansions
+    else
+        dst.clear();        //-- map-mode: output terms must occur explicitly in the query response
 
 
-  //-- construct query url
-  string url(m_UrlBase);
-  for (set<string>::const_iterator si=src.begin(); si != src.end(); si++) {
-    url += escapeUrlString(*si) + "%0A";
-  }
+    //-- construct query url
+    string url(m_UrlBase);
+    for (set<string>::const_iterator si=src.begin(); si != src.end(); si++) {
+        url += escapeUrlString(*si) + "%0A";
+    }
 
-  //-- low-level query
-  m_CCurl.lock();
-  try {
-    m_CCurl.url(url);
+    //-- low-level query
+    m_CCurl.lock();
+    try {
+        m_CCurl.url(url);
     
-    if (!this->perform() || m_CCurl.m_Response.empty()) {
-      //-- query failed: silently do identity expansion
+        if (!this->perform() || m_CCurl.m_Response.empty()) {
+            //-- query failed: silently do identity expansion
 #if 0
-      throw CExpc(errRuntime, "TxCab::expand(): ERROR: %s", m_CCurl.m_CurlErr);
+            throw CExpc(errRuntime, "TxCab::expand(): ERROR: %s", m_CCurl.m_CurlErr);
 #else
             concord_daemon_log(Format("TxCab::expand(%s) failed: %s", url.c_str(), m_CCurl.m_CurlErr));
-      if (m_MapMode) dst = src; //-- fallback to literal search in map mode
-      m_CCurl.unlock();
-      return;
+            if (m_MapMode) dst = src; //-- fallback to literal search in map mode
+            m_CCurl.unlock();
+            return;
 #endif      
+        }
+
+        //-- parse response
+        StringTokenizer rtok(m_CCurl.m_Response.c_str(), "\t\r\n");
+        while (rtok()) {
+            dst.insert(rtok.val());
+        }
+    }
+    catch (...) {
+        m_CCurl.unlock();
+        throw;
     }
 
-    //-- parse response
-    StringTokenizer rtok(m_CCurl.m_Response.c_str(), "\t\r\n");
-    while (rtok()) {
-      dst.insert(rtok.val());
-    }
-  }
-  catch (...) {
+    //-- all done
     m_CCurl.unlock();
-    throw;
-  }
-
-  //-- all done
-  m_CCurl.unlock();
-  return;
+    return;
 }
 
 //======================================================================
@@ -390,9 +390,9 @@ void TxCab::expand(const set<string> &src, set<string> &dst) {
 
 //--------------------------------------------------------------
 CTermExpander *TxCabMap::clone(map<CTermExpander *, CTermExpander *> &xlate) const {
-  TxCab* that = new TxCabMap(m_Label, m_Param, m_Debug, m_MapMode);
-  that->compile();
-  return (CTermExpander*)that;
+    TxCab* that = new TxCabMap(m_Label, m_Param, m_Debug, m_MapMode);
+    that->compile();
+    return (CTermExpander*)that;
 }
 
 //======================================================================
@@ -400,160 +400,160 @@ CTermExpander *TxCabMap::clone(map<CTermExpander *, CTermExpander *> &xlate) con
 
 //--------------------------------------------------------------
 TxDispatcher *TxDispatcher::clone() const {
-  map<CTermExpander*,CTermExpander*> xlate;
-  TxDispatcher *that = new TxDispatcher(*this);
+    map<CTermExpander*,CTermExpander*> xlate;
+    TxDispatcher *that = new TxDispatcher(*this);
   
-  for (TxMap::iterator xi=that->m_tx.begin(); xi!=that->m_tx.end(); ++xi) {
-    xi->second = xi->second->mapClone(xlate);
-  }
-  that->m_txlist = m_txlist;
-  return that;
+    for (TxMap::iterator xi=that->m_tx.begin(); xi!=that->m_tx.end(); ++xi) {
+        xi->second = xi->second->mapClone(xlate);
+    }
+    that->m_txlist = m_txlist;
+    return that;
 }
 
 //--------------------------------------------------------------
 TxDispatcher::~TxDispatcher(void) {
-  clear(true);
+    clear(true);
 }
 
 //--------------------------------------------------------------
 void TxDispatcher::clear(bool doDelete) {
-  if (doDelete) {
-    for (TxMap::iterator txi=m_tx.begin(); txi != m_tx.end(); txi++) {
-      if (txi->second != NULL)
-	delete txi->second;
+    if (doDelete) {
+        for (TxMap::iterator txi=m_tx.begin(); txi != m_tx.end(); txi++) {
+            if (txi->second != NULL)
+                delete txi->second;
+        }
     }
-  }
-  m_tx.clear();
-  m_txlist.clear();
+    m_tx.clear();
+    m_txlist.clear();
 }
 
 //--------------------------------------------------------------
 void TxDispatcher::ensureDefaultExpanders(MorphLanguageEnum mlang, MorphLanguageEnum clang, bool doInfl, bool doCase) {
-  if (!get("id"))   insert(new TxId("id"));
-  if (!get("null")) insert(new TxId("null"));
-  if (!get("infl")) {
-    if (mlang==morphUnknown || mlang==morphGeneric) {
-      insert(new TxId("infl")); //-- dummy morphology
-    } else {
-      insert(new TxMorph("infl",GetStringByLanguage(mlang)));
-      if (clang==morphUnknown) clang=mlang; //-- default case language
+    if (!get("id"))   insert(new TxId("id"));
+    if (!get("null")) insert(new TxId("null"));
+    if (!get("infl")) {
+        if (mlang==morphUnknown || mlang==morphGeneric) {
+            insert(new TxId("infl")); //-- dummy morphology
+        } else {
+            insert(new TxMorph("infl",GetStringByLanguage(mlang)));
+            if (clang==morphUnknown) clang=mlang; //-- default case language
+        }
     }
-  }
-  if (!get("case"))
-    insert(new TxCase("case",GetStringByLanguage(clang)));
+    if (!get("case"))
+        insert(new TxCase("case",GetStringByLanguage(clang)));
 
-  if (!get("Token")) {
-    TxChain *def = new TxChain("Token");
-    if (doInfl)
-      def->append(get("infl"));
-    if (doCase)
-      def->append(get("case"));
-    insert(def);
-  }
+    if (!get("Token")) {
+        TxChain *def = new TxChain("Token");
+        if (doInfl)
+            def->append(get("infl"));
+        if (doCase)
+            def->append(get("case"));
+        insert(def);
+    }
 }
 
 //--------------------------------------------------------------
 CTermExpander *TxDispatcher::addExpander(const string &spec) {
-  string txclass, txlabel, txparam;
-  parseTermExpanderSpec(spec, txclass, txlabel, txparam);
+    string txclass, txlabel, txparam;
+    parseTermExpanderSpec(spec, txclass, txlabel, txparam);
 
-  CTermExpander *tx = newTermExpander(txclass,txlabel,txparam);
-  //-- compile chains
-  if (tx->m_Class == "Chain") {
-    vector<string> clabels = stringSplit(txparam.c_str(), " \t\r\n");
-    TxChain tmp = getChain(clabels);
-    swap(((TxChain*)tx)->m_Chain, tmp.m_Chain);
-  }
+    CTermExpander *tx = newTermExpander(txclass,txlabel,txparam);
+    //-- compile chains
+    if (tx->m_Class == "Chain") {
+        vector<string> clabels = stringSplit(txparam.c_str(), " \t\r\n");
+        TxChain tmp = getChain(clabels);
+        swap(((TxChain*)tx)->m_Chain, tmp.m_Chain);
+    }
 
-  insert(tx);
-  return tx;
+    insert(tx);
+    return tx;
 }
 
 //--------------------------------------------------------------
 void TxDispatcher::compile(void) {
-  for (TxMap::iterator txi=m_tx.begin(); txi != m_tx.end(); txi++) {
-    txi->second->compile();
-  }
+    for (TxMap::iterator txi=m_tx.begin(); txi != m_tx.end(); txi++) {
+        txi->second->compile();
+    }
 }
 
 //--------------------------------------------------------------
 string TxDispatcher::configString(const string &prefix) const {
-  string out;
-  for (list<string>::const_iterator li=m_txlist.begin(); li != m_txlist.end(); ++li) {
-    const CTermExpander *tx = get(*li);
-    assert(tx != NULL);
-    out += prefix + tx->configString();
-    if (out[out.size()-1] != '\n') out.push_back('\n');
-  }
-  return out;
+    string out;
+    for (list<string>::const_iterator li=m_txlist.begin(); li != m_txlist.end(); ++li) {
+        const CTermExpander *tx = get(*li);
+        assert(tx != NULL);
+        out += prefix + tx->configString();
+        if (out[out.size()-1] != '\n') out.push_back('\n');
+    }
+    return out;
 }
 
 //--------------------------------------------------------------
 void TxDispatcher::insert(const string &label, CTermExpander *tx)
 {
 #if 0
-  //-- old
-  remove(label);
-  tx->m_Label = label;
-  m_tx[label] = tx;
-  m_txlist.push_back(label);
-#else
-  //-- remove but leave order
-  TxMap::iterator mi = m_tx.find(label);
-  if (mi != m_tx.end()) {
-    if (mi->second != NULL) delete mi->second;
-    m_tx.erase(mi);
-    //m_txlist.remove(label);
-  } else {
-    m_txlist.remove(label);
+    //-- old
+    remove(label);
+    tx->m_Label = label;
+    m_tx[label] = tx;
     m_txlist.push_back(label);
-  }
-  tx->m_Label = label;
-  m_tx[label] = tx;
+#else
+    //-- remove but leave order
+    TxMap::iterator mi = m_tx.find(label);
+    if (mi != m_tx.end()) {
+        if (mi->second != NULL) delete mi->second;
+        m_tx.erase(mi);
+        //m_txlist.remove(label);
+    } else {
+        m_txlist.remove(label);
+        m_txlist.push_back(label);
+    }
+    tx->m_Label = label;
+    m_tx[label] = tx;
 #endif
 }
 
 //--------------------------------------------------------------
 void TxDispatcher::insert(CTermExpander *tx) {
-  if (tx==NULL) return;
-  insert(tx->m_Label, tx);
+    if (tx==NULL) return;
+    insert(tx->m_Label, tx);
 }
 
 //--------------------------------------------------------------
 void TxDispatcher::remove(const string &label) {
-  TxMap::iterator mi = m_tx.find(label);
-  if (mi != m_tx.end()) {
-    if (mi->second != NULL) delete mi->second;
-    m_tx.erase(mi);
-    m_txlist.remove(label);
-  }
+    TxMap::iterator mi = m_tx.find(label);
+    if (mi != m_tx.end()) {
+        if (mi->second != NULL) delete mi->second;
+        m_tx.erase(mi);
+        m_txlist.remove(label);
+    }
 }
 
 //--------------------------------------------------------------
 CTermExpander *TxDispatcher::get(const string &label) const {
-  TxMap::const_iterator mi = m_tx.find(label);
-  if (mi == m_tx.end()) return NULL;
-  return mi->second;
+    TxMap::const_iterator mi = m_tx.find(label);
+    if (mi == m_tx.end()) return NULL;
+    return mi->second;
 }
 
 //--------------------------------------------------------------
 TxChain TxDispatcher::getChain(const vector<string> &labels) {
-  TxChain chain("(user)");
-  chain.m_Chain.reserve(labels.size());
-  for (vector<string>::const_iterator li=labels.begin(); li!=labels.end(); li++) {
-    CTermExpander *tx = get(*li);
-    if (tx == NULL)
-      throw CExpc(errRuntime, "TxDispatcher::getList(): unknown term expander label `%s'", li->c_str());
-    chain.append(tx);
-  }
-  chain.m_Param = string("|") + chain.chainString();
-  return chain;
+    TxChain chain("(user)");
+    chain.m_Chain.reserve(labels.size());
+    for (vector<string>::const_iterator li=labels.begin(); li!=labels.end(); li++) {
+        CTermExpander *tx = get(*li);
+        if (tx == NULL)
+            throw CExpc(errRuntime, "TxDispatcher::getList(): unknown term expander label `%s'", li->c_str());
+        chain.append(tx);
+    }
+    chain.m_Param = string("|") + chain.chainString();
+    return chain;
 }
 
 //--------------------------------------------------------------
 TxChain TxDispatcher::getChain(const string &spec) {
-  vector<string> labels = stringSplit(spec.c_str(), " \t\r\n|");
-  return getChain(labels);
+    vector<string> labels = stringSplit(spec.c_str(), " \t\r\n|");
+    return getChain(labels);
 }
 
 
@@ -563,49 +563,49 @@ TxChain TxDispatcher::getChain(const string &spec) {
 
 //--------------------------------------------------------------
 void parseTermExpanderSpec(const string &spec, string &txclass, string &txlabel, string &txparam) {
-  txclass.clear();
-  txlabel.clear();
-  txparam.clear();
+    txclass.clear();
+    txlabel.clear();
+    txparam.clear();
 
-  const char *delims = " \t\r\n";
-  StringTokenizer stok(spec.c_str(), delims);
+    const char *delims = " \t\r\n";
+    StringTokenizer stok(spec.c_str(), delims);
 
-  if (!stok.has_next()) return;
-  txlabel = stok.next_token();
+    if (!stok.has_next()) return;
+    txlabel = stok.next_token();
 
     if (!stok.has_next()) {
         txclass = txlabel;
         return;
     }
-  txclass = stok.next_token();
+    txclass = stok.next_token();
 
-  txparam = stok.get_rest();
-  return;
+    txparam = stok.get_rest();
+    return;
 }
 
 //--------------------------------------------------------------
 CTermExpander *newTermExpander(const string &class_, const string &label, const string &param) {
-  string cls(class_);
-  Trim(cls);
-  EngMakeLower(cls); //-- class-names are all ASCII, so this is safe(-ish)
-  //cls = stolower(cls);
-  if (cls.empty() || cls=="id" || cls=="null")	{ return new TxId(label,param); }
-  else if (cls=="chain")			{ return new TxChain(label,param); }
-  else if (cls=="morph" || cls=="infl")		{ return new TxMorph(label,param); }
-  else if (cls=="case")				{ return new TxCase(label,param); }
-  else if (cls=="tolower" || cls=="lc")         { return new TxToLower(label,param); }
-  else if (cls=="toupper" || cls=="uc")         { return new TxToUpper(label,param); }
-  else if (cls=="cab")				{ return new TxCab(label,param); }
-  else if (cls=="cabmap")			{ return new TxCabMap(label,param); }
+    string cls(class_);
+    Trim(cls);
+    EngMakeLower(cls); //-- class-names are all ASCII, so this is safe(-ish)
+    //cls = stolower(cls);
+    if (cls.empty() || cls=="id" || cls=="null")  { return new TxId(label,param); }
+    else if (cls=="chain")                        { return new TxChain(label,param); }
+    else if (cls=="morph" || cls=="infl")         { return new TxMorph(label,param); }
+    else if (cls=="case")                         { return new TxCase(label,param); }
+    else if (cls=="tolower" || cls=="lc")         { return new TxToLower(label,param); }
+    else if (cls=="toupper" || cls=="uc")         { return new TxToUpper(label,param); }
+    else if (cls=="cab")                          { return new TxCab(label,param); }
+    else if (cls=="cabmap")                       { return new TxCabMap(label,param); }
 
-  throw CExpc(errLogic, "unknown TermExpander class `%s'", class_.c_str());
-  return NULL;
+    throw CExpc(errLogic, "unknown TermExpander class `%s'", class_.c_str());
+    return NULL;
 }
 
 /*--- emacs style variables ---
  * Local Variables:
  *  mode: C++
- *  c-default-style: "linux"
+ *  c-file-style: "ellemtel"
  *  c-basic-offset: 4
  *  tab-width: 8
  *  indent-tabs-mode: nil

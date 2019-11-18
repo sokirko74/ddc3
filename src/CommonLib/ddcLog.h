@@ -27,12 +27,12 @@
 // Types & Constants
 
 /*-- old, ununtuitively-named log-levels
-enum ProtocolDensityEnum {
-        pdWeakDensity = 0,
-        pdMediumDensity = 1,
-        pdHeavyDensity = 2
-};
---*/
+  enum ProtocolDensityEnum {
+  pdWeakDensity = 0,
+  pdMediumDensity = 1,
+  pdHeavyDensity = 2
+  };
+  --*/
 
 /** typedef for a log-level (formerly ProtocolDensityEnum) */
 typedef int DDCLogLevel;
@@ -119,7 +119,7 @@ inline void concord_daemon_log(const std::string& t)
 /*--- emacs style variables ---
  * Local Variables:
  *  mode: C++
- *  c-default-style: "linux"
+ *  c-file-style: "ellemtel"
  *  c-basic-offset: 4
  *  tab-width: 8
  *  indent-tabs-mode: nil

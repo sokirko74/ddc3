@@ -30,7 +30,7 @@
 #include "bserialize.h"
 #include "utilit.h"
 #include "ddcLog.h"
-
+#include "ddcThread.h"
 #include <string>
 #include <stdexcept>
 #include <algorithm>
@@ -72,10 +72,10 @@ public:
 
     /// default constructor
     ddcMMap()
-            : m_nbytes(0), m_data(NULL) {};
+        : m_nbytes(0), m_data(NULL) {};
 
     ddcMMap(const std::string &filename, int mode = O_RDONLY)
-            : m_nbytes(0), m_data(NULL) { open(filename, mode); };
+        : m_nbytes(0), m_data(NULL) { open(filename, mode); };
 
     /// default destructor calls close()
     ~ddcMMap() { close(); };
@@ -133,13 +133,13 @@ public:
         int mmfd = ::open(filename.c_str(), mode);
         if (mmfd == -1)
             throw std::invalid_argument(
-                    Format("ddcMMap::open(): open failed for '%s': %s", filename.c_str(), strerror(errno)));
+                Format("ddcMMap::open(): open failed for '%s': %s", filename.c_str(), strerror(errno)));
 
         //-- get total file size
         struct stat statbuf;
         if (fstat(mmfd, &statbuf) != 0)
             throw std::runtime_error(
-                    Format("ddcMMap::open(): fstat() failed for file '%s': %s", filename.c_str(), strerror(errno)));
+                Format("ddcMMap::open(): fstat() failed for file '%s': %s", filename.c_str(), strerror(errno)));
         m_nbytes = statbuf.st_size;
 
         if (m_nbytes > 0) {
@@ -164,7 +164,7 @@ public:
             m_data = (T *) mmap(NULL, m_nbytes, mmprot, MAP_SHARED, mmfd, 0);
             if (m_data == MAP_FAILED)
                 throw std::runtime_error(
-                        Format("ddcMMap::open(): mmap() failed for file '%s': %s", filename.c_str(), strerror(errno)));
+                    Format("ddcMMap::open(): mmap() failed for file '%s': %s", filename.c_str(), strerror(errno)));
 
 #else // !DDC_HAVE_MMAP
 
@@ -172,9 +172,9 @@ public:
 
             m_data = (T*)malloc(m_nbytes);
             if (m_data == NULL)
-            throw std::runtime_error(Format("ddcMap::open(): failed to allocate memory for file '%s'", filename.c_str()));
+                throw std::runtime_error(Format("ddcMap::open(): failed to allocate memory for file '%s'", filename.c_str()));
             if (read(mmfd, m_data, m_nbytes) != m_nbytes)
-            throw std::runtime_error(Format("ddcMap::open(): failed read data for file '%s'", filename.c_str()));
+                throw std::runtime_error(Format("ddcMap::open(): failed read data for file '%s'", filename.c_str()));
 
 #endif // DDC_HAVE_MMAP
         }
@@ -182,7 +182,7 @@ public:
         //-- we can now safely close the fd
         if (::close(mmfd) != 0)
             throw std::runtime_error(
-                    Format("ddcMMap::open(): close() failed for file '%s': %s", filename.c_str(), strerror(errno)));
+                Format("ddcMMap::open(): close() failed for file '%s': %s", filename.c_str(), strerror(errno)));
 
         return *this;
     };
@@ -194,7 +194,7 @@ public:
 #if DDC_ENABLE_MMAP
             if (munmap(m_data, m_nbytes) != 0)
                 throw std::runtime_error(
-                        Format("ddcMMap::close(): munmap() failed for file '%s': %s", m_file.c_str(), strerror(errno)));
+                    Format("ddcMMap::close(): munmap() failed for file '%s': %s", m_file.c_str(), strerror(errno)));
 #else
             free(m_data);
 #endif
@@ -240,11 +240,11 @@ public:
 
     /// default constructor
     ddcVecFile()
-            : m_data(NULL) {};
+        : m_data(NULL) {};
 
     /// construct and open
     ddcVecFile(const std::string &filename, bool useMMap = false)
-            : m_data(NULL) { open(filename, useMMap); };
+        : m_data(NULL) { open(filename, useMMap); };
 
     /// default destructor calls close()
     ~ddcVecFile() { close(); };
@@ -338,7 +338,7 @@ public:
     void ensureVec() {
         if (m_mmap) {
             ddcLogWarn(
-                    Format("WARNING: ddcVecFile(\"%s\") demoting to std::vector<> implementation", filename().c_str()));
+                Format("WARNING: ddcVecFile(\"%s\") demoting to std::vector<> implementation", filename().c_str()));
             ClearVector(m_vec);
             m_vec.reserve(size());
             m_vec.insert(m_vec.begin(), m_mmap.m_data, m_mmap.m_data + m_mmap.size());
@@ -398,10 +398,10 @@ public:
 
     /// default constructor
     ddcRecFile()
-            : m_recsize(0) {};
+        : m_recsize(0) {};
 
     ddcRecFile(const std::string &filename, size_t recsize, bool useMMap = false)
-            : m_recsize(0) { open(filename, recsize, useMMap); };
+        : m_recsize(0) { open(filename, recsize, useMMap); };
 
     /// default destructor calls close()
     ~ddcRecFile() { close(); };
@@ -442,8 +442,8 @@ public:
         VecFileT::open(filename, useMMap);
         if ((VecFileT::size() % recsize) != 0)
             throw invalid_argument(
-                    Format("ddcRecFile::open(): error opening '%s': file size (%zd) is not a multiple of record size (%zd)",
-                           filename.c_str(), VecFileT::size(), recsize));
+                Format("ddcRecFile::open(): error opening '%s': file size (%zd) is not a multiple of record size (%zd)",
+                       filename.c_str(), VecFileT::size(), recsize));
         m_recsize = recsize;
         return *this;
     };
@@ -468,12 +468,12 @@ public:
         ET *m_cur;
 
         iteratorT(const ddcRecFile *obj, ET *cur)
-                : m_obj(obj), m_cur(cur) {};
+            : m_obj(obj), m_cur(cur) {};
 
         template<typename srcIteratorT>
         //-- for implicit const/non-const conversions
         iteratorT(const srcIteratorT &i)
-                : m_obj(i.m_obj), m_cur(i.m_cur) {};
+            : m_obj(i.m_obj), m_cur(i.m_cur) {};
 
         //-- utils
         inline ET *beg_() const { return m_obj->VecFileT::begin(); };
@@ -607,11 +607,11 @@ public:
 
     // default constructor
     ddcMapFile()
-            : m_vsize(0) {};
+        : m_vsize(0) {};
 
     /// construct and open
     ddcMapFile(const std::string &filename, size_t vsize_, bool useMMap = false)
-            : m_vsize(0) { open(filename, vsize_, useMMap); };
+        : m_vsize(0) { open(filename, vsize_, useMMap); };
 
     /// default destructor calls close()
     ~ddcMapFile() { close(); };
@@ -730,12 +730,59 @@ public:
     };
 };
 
+class ddcFileOrMMap : public ddcLockable {
+public:
+    //----------------------------------------------------------
+    // data
+    bool m_UseMemoryMap;
+    ddcMMap<char> m_mmap;
+    FILE* m_File;
+
+public:
+    //----------------------------------------------------------
+    // constructors etc.
+    ddcFileOrMMap()
+        : m_UseMemoryMap(false), m_mmap(), m_File(NULL)
+    {};
+ 
+    ~ddcFileOrMMap()
+    { Close(); };
+
+public:
+    //----------------------------------------------------------
+    // API
+
+    /// check if file is currently mapped or opened
+    inline bool opened() const
+    { return m_mmap.opened() || m_File != NULL; };
+
+    /// implicit cast-to-bool wraps opened()
+    inline operator bool() const
+    { return opened(); };
+
+    /// open or memory-map \a filename
+    void Open (bool useMemoryMap, const std::string &filename);
+
+    /// close or un-map current file
+    void Close();
+
+    /// read \a nbytes of data at offset \a offset from file or memory-map into \a buffer
+    bool ReadBuffer(file_off_t offset, size_t nbytes, BYTE* buffer) const;
+
+public:
+    //----------------------------------------------------------
+    // low-level guts (use at your own risk)
+
+    /// guts for ReadBuffer() on \a m_File
+    bool ReadFromFile(file_off_t start, size_t nbytes, BYTE* buffer) const;
+};
+
 #endif /* DDC_MMAP_H */
 
 /*--- emacs style variables ---
  * Local Variables:
  *  mode: C++
- *  c-default-style: "linux"
+ *  c-file-style: "ellemtel"
  *  c-basic-offset: 4
  *  tab-width: 8
  *  indent-tabs-mode: nil

@@ -20,9 +20,9 @@
 //
 
 /*! \mainpage Dialing DDWS Concordance  (DDC)
-        DDC is a tool for linguists to search for a particular construction 
-        in a given corpus.  A corpus is defined by a list \ref source_file_def "source files",
-        which should be before indexed. The index and query process is governed by file of options. 
+  DDC is a tool for linguists to search for a particular construction 
+  in a given corpus.  A corpus is defined by a list \ref source_file_def "source files",
+  which should be before indexed. The index and query process is governed by file of options. 
 */
 
 
@@ -59,7 +59,7 @@ struct CHighlightTags {
 
 
 /*!
-        CSourceFileHolder holds the list of source files 
+  CSourceFileHolder holds the list of source files 
 */
 
 class CSourceFileHolder {
@@ -111,17 +111,17 @@ typedef enum CIndexDumpFormatE {
     idfUnknown,
     idfJson,
     idfTabs,
-    idfTabsSingleFile
+    idfTabsStream
 } CIndexDumpFormat;
 
 /* CMaskedFileSet : type for CConcIndexator::m_MaskedFiles */
 typedef set<CFileNo> CMaskedFileSet;
 
 /*!
-        CConcordance is the central class of DDC technology.  The most of its  slots come from the
-        two parent classes:CStringIndexator (indexing tokens and its properties) and CHitBorders (indexing corpus divisions)
-        This class also contains a list of \ref corpus_file_def "corpus files" and some
-        indexing  and querying options.
+  CConcordance is the central class of DDC technology.  The most of its  slots come from the
+  two parent classes:CStringIndexator (indexing tokens and its properties) and CHitBorders (indexing corpus divisions)
+  This class also contains a list of \ref corpus_file_def "corpus files" and some
+  indexing  and querying options.
 */
 class CConcordance : public CStringIndexator, public CHitBorders, public CSourceFileHolder {
 
@@ -161,7 +161,7 @@ class CConcordance : public CStringIndexator, public CHitBorders, public CSource
     bool ReadIndexTypeFromStr(const string &s);
 
     //! dump file data to a file (tabs)
-    void DumpFileIndexTabs(DWORD FileNo, FILE *f, bool printNumbers) const;
+    void DumpFileIndexTabs(DWORD FileNo, FILE *f) const;
 
 protected:
     /*! \brief  enum DDCIndexTypeEnum contains index types. Each index type determines DDC indices and
@@ -169,26 +169,26 @@ protected:
     */
     enum DDCIndexTypeEnum {
         /*! \brief  A type for corpus without annotations, which are written for each word. Fr example the input text can be
-        a plain text. DDC always builds a token index and a file break collection for this index type.
-        Optionally DDC can build "Thes" index, "Morph" index and a sentence collection.
+          a plain text. DDC always builds a token index and a file break collection for this index type.
+          Optionally DDC can build "Thes" index, "Morph" index and a sentence collection.
         */
-                DWDS_Index,
+        DWDS_Index,
         /*! \brief  A type for xml-texts, if their words have predefined and written annotations.
-        DDC always builds a token index and a "MorphPattern" index. It also creates a file and a  sentence break collection
+          DDC always builds a token index and a "MorphPattern" index. It also creates a file and a  sentence break collection
         */
-                MorphXML_Index,
+        MorphXML_Index,
         /*! \brief  This index type is free and therefore it should be defined in the options file (fields "Indices" and "HitBorders"). The corpus
-        should consists of xml-files with a bibliographical header and a body (text).
-        The text is written in CWB format (http://www.ims.uni-stuttgart.de/projekte/CorpusWorkbench/CWBTutorial/cwb-tutorial.pdf).
-        The original CWB format was changed in the following way.  Instead of line breaks
-        which are used to delimit records in the input file, DDC uses a special tag CConcCommon.h::PredefinedTableLineTag.
-        This is done because line breaks are not preserved by the XML-parser.
+          should consists of xml-files with a bibliographical header and a body (text).
+          The text is written in CWB format (http://www.ims.uni-stuttgart.de/projekte/CorpusWorkbench/CWBTutorial/cwb-tutorial.pdf).
+          The original CWB format was changed in the following way.  Instead of line breaks
+          which are used to delimit records in the input file, DDC uses a special tag CConcCommon.h::PredefinedTableLineTag.
+          This is done because line breaks are not preserved by the XML-parser.
         */
-                Free_Index,
+        Free_Index,
         /*! \brief see http://odo.dwds.de/~moocow/software/ddc/ddc_tabs.html
          *
          */
-                TabFormat_Index
+        TabFormat_Index
 
     };
     //!  the type of index
@@ -203,7 +203,6 @@ protected:
     bool m_bUseIndention;
     //! The maximal number of occurrences in one \ref period_def "subcorpora" (defined by user)
     DWORD m_UserMaxTokenCountInOnePeriod;
-    bool m_bUserMaxTokenCountInOnePeriod;
     //! The maximal number of occurrences in the input load index,  by default 400000
     DWORD m_UserMaxInputLoadIndexSize;
     //! Enables indexing and querying using  DWDS Thesaurus
@@ -446,7 +445,7 @@ public:
 /*--- emacs style variables ---
  * Local Variables:
  *  mode: C++
- *  c-default-style: "linux"
+ *  c-file-style: "ellemtel"
  *  c-basic-offset: 4
  *  tab-width: 8
  *  indent-tabs-mode: nil

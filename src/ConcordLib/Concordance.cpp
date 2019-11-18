@@ -288,8 +288,6 @@ void CConcordance::LoadSourceFilesAndOptions(string FileName, bool reallyReadSou
 
     m_Path = FileName;
 
-    m_bUserMaxTokenCountInOnePeriod = false;
-
     // reading options  from *.opt file
     string PathFile = MakeFName(FileName, "opt");
     string AllOptions;
@@ -297,7 +295,7 @@ void CConcordance::LoadSourceFilesAndOptions(string FileName, bool reallyReadSou
         LoadOptionsFromString(AllOptions);
     } else {
         ddcLogWarn(
-                Format("CConcordance::LoadSourceFilesAndOptions(): Warning: cannot find file %s", PathFile.c_str()));
+            Format("CConcordance::LoadSourceFilesAndOptions(): Warning: cannot find file %s", PathFile.c_str()));
     }
 
     SetPath(FileName);
@@ -426,7 +424,7 @@ void CConcordance::LoadProject(string FileName, bool includeSourceFiles) {
         ReadIndicesFromTheDisk();
 
         if (GetFileBreaks().size() != m_CorpusFiles.size()) {
-            throw CExpc("The number of files is not equal to the number of files in the index");
+            throw CExpc(Format("The number of files in %s is not equal to the number of files in the index", FileName.c_str()));
         }
 
         m_BiblIndex.LoadBibl(FileName, GetFileBreaks().size(), m_bMemoryMap);
@@ -537,17 +535,15 @@ void CConcordance::DumpFileIndexJson(DWORD FileNo, FILE *f) const {
 
 
 //----------------------------------------------------------------------
-void CConcordance::DumpFileIndexTabs(DWORD FileNo, FILE *f, bool printNumbers) const {
+void CConcordance::DumpFileIndexTabs(DWORD FileNo, FILE *f) const {
     //-- dump: token range
     const char *cmt = "%%$DDC";
     CTokenNo tok_min = FileNo == 0 ? 0 : GetFileBreaks()[FileNo - 1];
     CTokenNo tok_max = GetFileBreaks()[FileNo];
 
-    if (printNumbers) {
-        fprintf(f, "%s:tokid.begin=%u\n", cmt, (uint) tok_min);
-        fprintf(f, "%s:tokid.end=%u\n", cmt, (uint) tok_max);
-        fprintf(f, "%s:meta.n_=%u\n", cmt, (uint) FileNo);
-    }
+    fprintf(f, "%s:tokid.begin=%u\n", cmt, (uint) tok_min);
+    fprintf(f, "%s:tokid.end=%u\n", cmt, (uint) tok_max);
+    fprintf(f, "%s:meta.n_=%u\n", cmt, (uint) FileNo);
 
     //-- dump: metadata: built-in
     CBibliography B = m_BiblIndex.GetFullBibliographyOfHit(FileNo);
@@ -568,7 +564,7 @@ void CConcordance::DumpFileIndexTabs(DWORD FileNo, FILE *f, bool printNumbers) c
     for (size_t brkid = 0; brkid < m_Breaks.size(); ++brkid) {
         const CBreakCollection &breaks = m_Breaks[brkid];
         breaknos[brkid] = lower_bound(breaks.m_BreakOffsets.begin(), breaks.m_BreakOffsets.end(), tok_min) -
-                          breaks.m_BreakOffsets.begin();
+            breaks.m_BreakOffsets.begin();
         if (breaks.m_ShortName == m_DefaultBreakName || breaks.m_LongName == m_DefaultBreakName)
             defaultBreakId = brkid;
     }
@@ -600,28 +596,18 @@ void CConcordance::DumpFileIndexTabs(DWORD FileNo, FILE *f, bool printNumbers) c
             const CBreakCollection &breaks = m_Breaks[brkid];
             if (tokid == 0) // articificial break
             {
-                if (printNumbers) {
-                    fprintf(f, "%s:BREAK.%s[-1]=0\n", cmt, breaks.m_ShortName.c_str());
-                }
-                else {
-                    fprintf(f, "%s:BREAK.%s\n", cmt, breaks.m_ShortName.c_str());
-                }
-
+                fprintf(f, "%s:BREAK.%s[-1]=0\n", cmt, breaks.m_ShortName.c_str());
             }
             else {
                 size_t& breakNo = breaknos[brkid];
                 while (     (breakNo < breaks.m_BreakOffsets.size())
-                       &&   (breaks.m_BreakOffsets[breakNo] <= tokid) // in correct indices there must be '==' instead of '<='
-                        ) {
+                            &&   (breaks.m_BreakOffsets[breakNo] <= tokid) // in correct indices there must be '==' instead of '<='
+                    ) {
                     if (brkid == defaultBreakId && tokid > tok_min) {
                         fputc('\n', f);
                     }
-                    if (printNumbers) {
-                        fprintf(f, "%s:BREAK.%s[%zu]=%u\n", cmt, breaks.m_ShortName.c_str(), breakNo,
-                                (uint) (breaks.m_BreakOffsets[breakNo]));
-                    } else {
-                        fprintf(f, "%s:BREAK.%s\n", cmt, breaks.m_ShortName.c_str());
-                    }
+                    fprintf(f, "%s:BREAK.%s[%zu]=%u\n", cmt, breaks.m_ShortName.c_str(), breakNo,
+                            (uint) (breaks.m_BreakOffsets[breakNo]));
                     ++breakNo;
                 }
             }
@@ -661,7 +647,7 @@ void CConcordance::DumpIndex(string dirname, CIndexDumpFormat fmt) const {
                 DumpFileIndexJson(fn, dumpfh);
                 break;
             case idfTabs:
-                DumpFileIndexTabs(fn, dumpfh, true);
+                DumpFileIndexTabs(fn, dumpfh);
                 break;
             default:
                 break;
@@ -675,7 +661,7 @@ void CConcordance::DumpIndexToSingleTabFile(FILE *outfp) const {
     size_t nfiles = m_CorpusFiles.size();
     for (size_t fn = 0; fn < nfiles; ++fn) {
         if (m_MaskedFiles.find(fn) != m_MaskedFiles.end()) continue;  //-- skip masked files
-        DumpFileIndexTabs(fn, outfp, false);
+        DumpFileIndexTabs(fn, outfp);
     }
 }
 
@@ -734,7 +720,7 @@ void CConcordance::RegisterIndicesToShow(const string &IndexListStr) {
 /*--- emacs style variables ---
  * Local Variables:
  *  mode: C++
- *  c-default-style: "linux"
+ *  c-file-style: "ellemtel"
  *  c-basic-offset: 4
  *  tab-width: 8
  *  indent-tabs-mode: nil

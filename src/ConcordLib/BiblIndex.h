@@ -29,7 +29,7 @@ class CBiblIndex {
 private:
     /** whether to mmap resident data (default=false) */
     bool m_bMemoryMap;
-    CFileOrMemoryMappedFile m_BiblBodyFile;
+    ddcFileOrMMap m_BiblBodyFile;
     //! common regex options
     RML_RE::Options m_RegexOpts;
     vector<CTextArea> m_TextAreas;
@@ -58,15 +58,15 @@ protected:
     string m_StartPageXPath;
 public:
     /** \brief name of default bibliographic field to query if no literal match is found
- * \detail
- *   This can be used in conjunction with a constant bibliographic metadata attribute (CConcXml::CFreeBiblStringConstant)
- *   to provide a default value for unknown bibliographic metadata attributes, e.g. to facilitate interoperability
- *   between multiple corpora.  If set to the empty string (the default), query filters on an undefined bibliographic
- *   attribute will raise an error.
- * \warning
- *   Think \b carefully before using this feature, since it will suppress error and/or warning messages due to
- *   typographical errors for "real" attribute fields.
- */
+     * \detail
+     *   This can be used in conjunction with a constant bibliographic metadata attribute (CConcXml::CFreeBiblStringConstant)
+     *   to provide a default value for unknown bibliographic metadata attributes, e.g. to facilitate interoperability
+     *   between multiple corpora.  If set to the empty string (the default), query filters on an undefined bibliographic
+     *   attribute will raise an error.
+     * \warning
+     *   Think \b carefully before using this feature, since it will suppress error and/or warning messages due to
+     *   typographical errors for "real" attribute fields.
+     */
     string m_DefaultAttrName;
 
 
@@ -211,7 +211,7 @@ public:
 /*--- emacs style variables ---
  * Local Variables:
  *  mode: C++
- *  c-default-style: "linux"
+ *  c-file-style: "ellemtel"
  *  c-basic-offset: 4
  *  tab-width: 8
  *  indent-tabs-mode: nil

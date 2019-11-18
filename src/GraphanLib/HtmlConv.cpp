@@ -26,21 +26,21 @@
  */
 unsigned long HTML::getOffset(unsigned long off)
 {
-	assert (m_bCollectOffsets);
-	unsigned long cur_offset = 0;
+    assert (m_bCollectOffsets);
+    unsigned long cur_offset = 0;
 
-	int i=0;
+    int i=0;
 
-	for(; i < offsets.size(); i++)
-	{
-		cur_offset += offsets[i].high - offsets[i].low + 1;
-		if(off <= cur_offset) break;
-	}
+    for(; i < offsets.size(); i++)
+    {
+        cur_offset += offsets[i].high - offsets[i].low + 1;
+        if(off <= cur_offset) break;
+    }
 
-	assert(i != offsets.size());
+    assert(i != offsets.size());
 
 
-	return offsets[i].high - (cur_offset - off);
+    return offsets[i].high - (cur_offset - off);
 }
 
 /*
@@ -48,14 +48,14 @@ unsigned long HTML::getOffset(unsigned long off)
  */
 void HTML::addOffset(unsigned long off)
 {
-	if (!m_bCollectOffsets) return;
-	if(offsets.empty())
-		offsets.push_back(offset_range(off, off));
-	else
-		if(offsets.back().high == off - 1)
-			offsets.back().high++;
-		else
-			offsets.push_back(offset_range(off, off));
+    if (!m_bCollectOffsets) return;
+    if(offsets.empty())
+        offsets.push_back(offset_range(off, off));
+    else
+        if(offsets.back().high == off - 1)
+            offsets.back().high++;
+        else
+            offsets.push_back(offset_range(off, off));
 }
 
 
@@ -64,237 +64,237 @@ void HTML::addOffset(unsigned long off)
  */
 string HTML::GetTextFromHTMLBuffer(const char* Buffer, size_t BufferLen)
 {
-	offsets.clear();
+    offsets.clear();
 
-	size_t cur_offset = 0, old_offset = 0;
-	string result;
+    size_t cur_offset = 0, old_offset = 0;
+    string result;
 
-	string cur_tag, cur_amp;
+    string cur_tag, cur_amp;
 
-	bool next_read = true;
-
-
-	enum
-	{
-		normal = 0,
-		tag,
-		amp,
-		spaces
-	} state = normal;
+    bool next_read = true;
 
 
-	stack<string> NotTextTags;
-	BYTE ch;
+    enum
+    {
+        normal = 0,
+        tag,
+        amp,
+        spaces
+    } state = normal;
 
-	while (cur_offset < BufferLen)
-	{ 
-		if(next_read) 
-		{ 
-			ch = (BYTE)Buffer[cur_offset]; 
-			cur_offset++; 
-		}
-		else 
-			next_read = true;
 
-		switch(state)
-		{
-		case normal:
-			{
-				if(isspace(ch))
-				{
-					if (NotTextTags.empty()) 
-					{
-						result += ' ';
-						addOffset(cur_offset-1);
-					}
-					state = spaces;
-					break;
-				}
-				else
-					switch(ch)
-				{
-					case '<': 
-						state = tag; 
-						old_offset = cur_offset-1;
-						cur_tag.erase();
-						break;
-					case '&': 
-						state = amp; 
-						old_offset = cur_offset-1;
-						cur_amp.erase();
-						break;
-					default:
-						if (NotTextTags.empty())
-						{
-							result += ch;
-							addOffset(cur_offset-1);
-						};
-				}
+    stack<string> NotTextTags;
+    BYTE ch;
 
-				break;
-			}
-		case tag:
-			{
-				switch(ch)
-				{
-				case '>': 
-					state = normal; 
-					if(checkTag(cur_tag,"br")) 
-					{ 
-						if (NotTextTags.empty())
-						{
-							result += "\n"; 
-							addOffset(old_offset);
-						};
-						state = spaces; 
-					}
-					else
-						if(	checkTag(cur_tag,"xml")  )
-						{
-							NotTextTags.push("/xml");
-						}
-						else
-							//  the tag itself can be very long for example"<script language="JavaScript1.1">"
-							if(checkTag(cur_tag,"script")  )
-							{
-								NotTextTags.push("/script");
-							}
-							else
-								if( !NotTextTags.empty() && checkTag(cur_tag, NotTextTags.top().c_str())  )
-								{
-									NotTextTags.pop();
-								}
-								else
-									if( checkTag(cur_tag,"li")       ||
-										checkTag(cur_tag,"/li")      ||
-										checkTag(cur_tag,"ul")       ||
-										checkTag(cur_tag,"/ul")      ||
-										checkTag(cur_tag,"dl")       ||
-										checkTag(cur_tag,"/dl")      ||
-										checkTag(cur_tag,"dt")       ||
-										checkTag(cur_tag,"/dt")      ||
-										checkTag(cur_tag,"/p")       ||
-										checkTag(cur_tag,"title")    ||
-										checkTag(cur_tag,"/title")   ||
-										checkTag(cur_tag,"table")    ||
-										checkTag(cur_tag,"/table")   ||
-										checkTag(cur_tag,"tr")       ||
-										checkTag(cur_tag,"/tr")      ||
-										checkTag(cur_tag,"td")       ||
-										checkTag(cur_tag,"/td")      ||
-										checkTag(cur_tag,"h1")       ||
-										checkTag(cur_tag,"/h1")      ||
-										checkTag(cur_tag,"h2")       ||
-										checkTag(cur_tag,"/h2")      ||
-										checkTag(cur_tag,"h3")       ||
-										checkTag(cur_tag,"/h3")      
-										)
-									{ 
-										if (NotTextTags.empty())
-										{
-											result += "\n\n"; 
-											addOffset(old_offset);
-											addOffset(cur_offset-1);
-										};
+    while (cur_offset < BufferLen)
+    { 
+        if(next_read) 
+        { 
+            ch = (BYTE)Buffer[cur_offset]; 
+            cur_offset++; 
+        }
+        else 
+            next_read = true;
 
-										state = spaces; 
-									}
-									break;
-				default :
-					cur_tag += ch;
-				}
-				break;
-			}
-		case amp:
-			{
-				if(isalnum(ch)) 
-					cur_amp += ch;
-				else
-				{
-					if(ch != ';') next_read = false;
+        switch(state)
+        {
+            case normal:
+            {
+                if(isspace(ch))
+                {
+                    if (NotTextTags.empty()) 
+                    {
+                        result += ' ';
+                        addOffset(cur_offset-1);
+                    }
+                    state = spaces;
+                    break;
+                }
+                else
+                    switch(ch)
+                    {
+                        case '<': 
+                            state = tag; 
+                            old_offset = cur_offset-1;
+                            cur_tag.erase();
+                            break;
+                        case '&': 
+                            state = amp; 
+                            old_offset = cur_offset-1;
+                            cur_amp.erase();
+                            break;
+                        default:
+                            if (NotTextTags.empty())
+                            {
+                                result += ch;
+                                addOffset(cur_offset-1);
+                            };
+                    }
 
-					if (NotTextTags.empty())
-					{
-						if(cur_amp == "amp")       { result += "&"; addOffset(old_offset); }
-						else if(cur_amp == "lt")   { result += "<"; addOffset(old_offset); }
-						else if(cur_amp == "gt")   { result += ">"; addOffset(old_offset); }
-						else if(cur_amp == "nbsp") { result += " "; addOffset(old_offset); }
-						else if(cur_amp == "ouml") { result += ouml; addOffset(old_offset); }
-						else if(cur_amp == "auml") { result += auml; addOffset(old_offset); }
-						else if(cur_amp == "uuml") { result += uuml; addOffset(old_offset); }
-						else if(cur_amp == "Ouml") { result += Ouml; addOffset(old_offset); }
-						else if(cur_amp == "Auml") { result += Auml; addOffset(old_offset); }
-						else if(cur_amp == "Uuml") { result += Uuml; addOffset(old_offset); }
-						else if(cur_amp == "szlig") { result += szlig; addOffset(old_offset); }
-						else if(cur_amp == "agrave") { result += agrave; addOffset(old_offset); }
-						else if(cur_amp == "egrave") { result += egrave; addOffset(old_offset); }
-						else if(cur_amp == "eacute") { result += eacute; addOffset(old_offset); }
-					}
-					state = normal;
-				}
+                break;
+            }
+            case tag:
+            {
+                switch(ch)
+                {
+                    case '>': 
+                        state = normal; 
+                        if(checkTag(cur_tag,"br")) 
+                        { 
+                            if (NotTextTags.empty())
+                            {
+                                result += "\n"; 
+                                addOffset(old_offset);
+                            };
+                            state = spaces; 
+                        }
+                        else
+                            if(     checkTag(cur_tag,"xml")  )
+                            {
+                                NotTextTags.push("/xml");
+                            }
+                            else
+                                //  the tag itself can be very long for example"<script language="JavaScript1.1">"
+                                if(checkTag(cur_tag,"script")  )
+                                {
+                                    NotTextTags.push("/script");
+                                }
+                                else
+                                    if( !NotTextTags.empty() && checkTag(cur_tag, NotTextTags.top().c_str())  )
+                                    {
+                                        NotTextTags.pop();
+                                    }
+                                    else
+                                        if( checkTag(cur_tag,"li")       ||
+                                            checkTag(cur_tag,"/li")      ||
+                                            checkTag(cur_tag,"ul")       ||
+                                            checkTag(cur_tag,"/ul")      ||
+                                            checkTag(cur_tag,"dl")       ||
+                                            checkTag(cur_tag,"/dl")      ||
+                                            checkTag(cur_tag,"dt")       ||
+                                            checkTag(cur_tag,"/dt")      ||
+                                            checkTag(cur_tag,"/p")       ||
+                                            checkTag(cur_tag,"title")    ||
+                                            checkTag(cur_tag,"/title")   ||
+                                            checkTag(cur_tag,"table")    ||
+                                            checkTag(cur_tag,"/table")   ||
+                                            checkTag(cur_tag,"tr")       ||
+                                            checkTag(cur_tag,"/tr")      ||
+                                            checkTag(cur_tag,"td")       ||
+                                            checkTag(cur_tag,"/td")      ||
+                                            checkTag(cur_tag,"h1")       ||
+                                            checkTag(cur_tag,"/h1")      ||
+                                            checkTag(cur_tag,"h2")       ||
+                                            checkTag(cur_tag,"/h2")      ||
+                                            checkTag(cur_tag,"h3")       ||
+                                            checkTag(cur_tag,"/h3")      
+                                            )
+                                        { 
+                                            if (NotTextTags.empty())
+                                            {
+                                                result += "\n\n"; 
+                                                addOffset(old_offset);
+                                                addOffset(cur_offset-1);
+                                            };
 
-				break;
-			}
-		case spaces:
-			{
-				if(!isspace(ch)) 
-				{ 
-					state = normal; 
-					next_read = false; 
-				}
-				break;
-			}
-		}
-	}
+                                            state = spaces; 
+                                        }
+                        break;
+                    default :
+                        cur_tag += ch;
+                }
+                break;
+            }
+            case amp:
+            {
+                if(isalnum(ch)) 
+                    cur_amp += ch;
+                else
+                {
+                    if(ch != ';') next_read = false;
 
-	return result;
+                    if (NotTextTags.empty())
+                    {
+                        if(cur_amp == "amp")       { result += "&"; addOffset(old_offset); }
+                        else if(cur_amp == "lt")   { result += "<"; addOffset(old_offset); }
+                        else if(cur_amp == "gt")   { result += ">"; addOffset(old_offset); }
+                        else if(cur_amp == "nbsp") { result += " "; addOffset(old_offset); }
+                        else if(cur_amp == "ouml") { result += ouml; addOffset(old_offset); }
+                        else if(cur_amp == "auml") { result += auml; addOffset(old_offset); }
+                        else if(cur_amp == "uuml") { result += uuml; addOffset(old_offset); }
+                        else if(cur_amp == "Ouml") { result += Ouml; addOffset(old_offset); }
+                        else if(cur_amp == "Auml") { result += Auml; addOffset(old_offset); }
+                        else if(cur_amp == "Uuml") { result += Uuml; addOffset(old_offset); }
+                        else if(cur_amp == "szlig") { result += szlig; addOffset(old_offset); }
+                        else if(cur_amp == "agrave") { result += agrave; addOffset(old_offset); }
+                        else if(cur_amp == "egrave") { result += egrave; addOffset(old_offset); }
+                        else if(cur_amp == "eacute") { result += eacute; addOffset(old_offset); }
+                    }
+                    state = normal;
+                }
+
+                break;
+            }
+            case spaces:
+            {
+                if(!isspace(ch)) 
+                { 
+                    state = normal; 
+                    next_read = false; 
+                }
+                break;
+            }
+        }
+    }
+
+    return result;
 }
 
 /*
-* Check tag in the string
-*/
+ * Check tag in the string
+ */
 bool HTML::checkTag(const string& str, const char* tag)
 {
-	string::const_iterator i = str.begin();
-	const char* j;
+    string::const_iterator i = str.begin();
+    const char* j;
 
-	for( ; i != str.end(); i++) if(!isspace(*i)) break;
+    for( ; i != str.end(); i++) if(!isspace(*i)) break;
 
-	for(j = tag; *j && i != str.end(); j++, i++)
-		if(toupper(*j) != toupper(*i)) 
-			break;
+    for(j = tag; *j && i != str.end(); j++, i++)
+        if(toupper(*j) != toupper(*i)) 
+            break;
 
-	if(*j) return false;
-	if(i == str.end()) return true;
-	if(isspace(*i)) return true;
-	return false;
+    if(*j) return false;
+    if(i == str.end()) return true;
+    if(isspace(*i)) return true;
+    return false;
 }
 
 
 /***************************************************************************
-* Very simple parser
-*/
+ * Very simple parser
+ */
 string HTML::GetTextFromHtmlFile(string FileName)
 {
-	string result;
+    string result;
 
-	FILE* fp = fopen(FileName.c_str(), "rb");
-	vector<char> buffer;
-	for (;;)
-	{
-		int ch = fgetc(fp); 
-		if(ch == EOF) break;
-		buffer.push_back(ch);
-	};
-	fclose (fp);
-	if (buffer.empty()) return "";
-	return GetTextFromHTMLBuffer(&buffer[0], buffer.size());
+    FILE* fp = fopen(FileName.c_str(), "rb");
+    vector<char> buffer;
+    for (;;)
+    {
+        int ch = fgetc(fp); 
+        if(ch == EOF) break;
+        buffer.push_back(ch);
+    };
+    fclose (fp);
+    if (buffer.empty()) return "";
+    return GetTextFromHTMLBuffer(&buffer[0], buffer.size());
 }
 
 /*--- emacs style variables ---
  * Local Variables:
  *  mode: C++
- *  c-default-style: "linux"
+ *  c-file-style: "ellemtel"
  *  c-basic-offset: 4
  *  tab-width: 8
  *  indent-tabs-mode: nil

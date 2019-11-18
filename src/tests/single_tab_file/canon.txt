@@ -1,3 +1,6 @@
+%%$DDC:tokid.begin=0
+%%$DDC:tokid.end=4
+%%$DDC:meta.n_=0
 %%$DDC:meta.file_=filename1.txt
 %%$DDC:meta.scan_=scan_bibl_stub
 %%$DDC:meta.orig_=orig_bibl_stub
@@ -8,14 +11,19 @@
 %%$DDC:index[0]=Token w
 %%$DDC:index[1]=Lemma l
 %%$DDC:index[2]=Dummy d
-%%$DDC:BREAK.s
-%%$DDC:BREAK.file
-%%$DDC:BREAK.textarea
+%%$DDC:BREAK.s[-1]=0
+%%$DDC:BREAK.file[-1]=0
+%%$DDC:BREAK.textarea[-1]=0
 Mutter	MUTTER	
 kam	KOMMEN	
+
+%%$DDC:BREAK.s[0]=2
 nach	NACH	
 hause	HAUS	
 
+%%$DDC:tokid.begin=4
+%%$DDC:tokid.end=8
+%%$DDC:meta.n_=1
 %%$DDC:meta.file_=filename2.txt
 %%$DDC:meta.scan_=scan_bibl_stub
 %%$DDC:meta.orig_=
@@ -26,9 +34,9 @@ hause	HAUS
 %%$DDC:index[0]=Token w
 %%$DDC:index[1]=Lemma l
 %%$DDC:index[2]=Dummy d
-%%$DDC:BREAK.s
-%%$DDC:BREAK.file
-%%$DDC:BREAK.textarea
+%%$DDC:BREAK.s[1]=4
+%%$DDC:BREAK.file[0]=4
+%%$DDC:BREAK.textarea[0]=4
 Mutter	MUTTER	
 kam	KOMMEN	
 nach	NACH	

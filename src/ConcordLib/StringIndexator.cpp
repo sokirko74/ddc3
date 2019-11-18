@@ -325,7 +325,7 @@ CStringIndexSet *CStringIndexator::GetIndexByNameOrShortName(const string &Name)
     for (size_t i = 0; i < m_Indices.size(); i++)
         if ((m_Indices[i]->m_Name == Name)
             || (m_Indices[i]->m_ShortName == Name)
-                ) {
+            ) {
             return m_Indices[i];
         };
     return 0;
@@ -367,7 +367,7 @@ size_t CStringIndexator::GetSearchPeriodsCount() const {
 /*--- emacs style variables ---
  * Local Variables:
  *  mode: C++
- *  c-default-style: "linux"
+ *  c-file-style: "ellemtel"
  *  c-basic-offset: 4
  *  tab-width: 8
  *  indent-tabs-mode: nil

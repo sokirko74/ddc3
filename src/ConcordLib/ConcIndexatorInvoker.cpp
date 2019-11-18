@@ -145,14 +145,13 @@ void ConcIndexatorInvoker::BuildIndexStart(string ProjectFile, CConcIndexator& i
         int FileNo = indexator.FoundNotExistedFile();
         if (FileNo != -1) {
             throw CExpc(Format("File %s was not found or it is empty, cannot load the project\n",
-                                indexator.GetSourceFile(FileNo).c_str()));
+                               indexator.GetSourceFile(FileNo).c_str()));
         };
     };
 
 
     indexator.DestroyIndex();
     indexator.StartIndexing();
-
 
     SetCurrMessage(Format("MaxTokenCountInOnePeriod = %i", indexator.GetMaxTokenCountInOnePeriod()));
     SetCurrMessage(Format("MaxInputLoadIndexSize = %i", indexator.GetMaxInputLoadIndexSize()));
@@ -299,7 +298,8 @@ void ConcIndexatorInvoker::IndexFiles(CConcIndexator& Indexator)
     size_t MemoryLoadIndexSize = 0;
     m_ErrorCorpusFiles.clear();
     if (Indexator.GetMaxInputLoadIndexSize() > Indexator.GetMaxTokenCountInOnePeriod()) {
-        throw CExpc("max load index size is supposed to be less than one period, update ddc parameters!");
+        throw CExpc(Format("ConcIndexatorInvoker::IndexFiles(): can't handle MaxInputLoadIndexSize=%u > MaxTokenCountInOnePeriod=%u",
+                           Indexator.GetMaxInputLoadIndexSize(), Indexator.GetMaxTokenCountInOnePeriod()));
     }
 
     for (m_CurrentSourceFileNo = 0; m_CurrentSourceFileNo < m_SourceFilesNumber; m_CurrentSourceFileNo++) {
@@ -368,11 +368,10 @@ bool ConcIndexatorInvoker::BuildIndex(string ProjectFile) {
 
 };
 
-
 /*--- emacs style variables ---
  * Local Variables:
  *  mode: C++
- *  c-default-style: "linux"
+ *  c-file-style: "ellemtel"
  *  c-basic-offset: 4
  *  tab-width: 8
  *  indent-tabs-mode: nil

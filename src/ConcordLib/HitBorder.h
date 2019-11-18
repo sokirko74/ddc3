@@ -43,7 +43,7 @@
 typedef ddcVecFile<CTokenNo> ddcBreakVector;
 
 /*! CPageNumber is a structure that holds a page number and the index of token, from which this page starts
-*/
+ */
 struct CPageNumber {
     //! the starting position (in tokens) of the beginning of the page
     CTokenNo m_StartTokenNo;
@@ -51,7 +51,7 @@ struct CPageNumber {
     DWORD m_PageNumber;
 
     CPageNumber(CTokenNo StartTokenNo = 0, DWORD PageNumber = 0)
-            : m_StartTokenNo(StartTokenNo), m_PageNumber(PageNumber) {};
+        : m_StartTokenNo(StartTokenNo), m_PageNumber(PageNumber) {};
 
     inline bool operator<(const CPageNumber &X) const {
         return ((m_StartTokenNo < X.m_StartTokenNo)
@@ -61,8 +61,8 @@ struct CPageNumber {
 
 
 /*!
-        Class  CHitBorders contains all \ref break_def "break" collections and all 
-        \ref pb_def "page breaks".
+  Class  CHitBorders contains all \ref break_def "break" collections and all 
+  \ref pb_def "page breaks".
 */
 class CHitBorders {
 public:
@@ -222,7 +222,7 @@ typedef struct CHitBorders::CBreakCollection CHBreakCollection;
 /*--- emacs style variables ---
  * Local Variables:
  *  mode: C++
- *  c-default-style: "linux"
+ *  c-file-style: "ellemtel"
  *  c-basic-offset: 4
  *  tab-width: 8
  *  indent-tabs-mode: nil

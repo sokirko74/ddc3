@@ -26,65 +26,65 @@
 //======================================================================
 /*!
   \brief
-   Abstract API for bibliographic metadata-expansion modules
+  Abstract API for bibliographic metadata-expansion modules
 */
 class CBiblExpander {
 public:
-  //! unique label for this expander
-  string m_BxLabel;
+    //! unique label for this expander
+    string m_BxLabel;
 
-  //! physically indexed target bibliographic field name
-  string m_BxTarget;
+    //! physically indexed target bibliographic field name
+    string m_BxTarget;
 
-  //! string parameters (for stringification)
-  string m_BxParam;
-
-public:
-  //------------------------------------------------------------
-  ///\name Constructors etc.
-  //@{
-  CBiblExpander(const string& label=string("NoLabel"), const string& target=string("NoTarget"), const string& param=string(""))
-    : m_BxLabel(label), m_BxTarget(target), m_BxParam(param)
-  {};
-
-  //! Default destructor.
-  virtual ~CBiblExpander(void) {};
-
-  //! set up object based on label, target, and/or parameter strings; default implementation does nothing
-  virtual void compile(void) {};
-  //@}
+    //! string parameters (for stringification)
+    string m_BxParam;
 
 public:
-  //------------------------------------------------------------
-  ///\name API
-  //@{
-  //! String form of this expander. Default is m_BxLabel + " " + m_BxTarget + " " + m_BxParam
-  virtual string configString(void) const;
+    //------------------------------------------------------------
+    ///\name Constructors etc.
+    //@{
+    CBiblExpander(const string& label=string("NoLabel"), const string& target=string("NoTarget"), const string& param=string(""))
+        : m_BxLabel(label), m_BxTarget(target), m_BxParam(param)
+    {};
 
-  //! Expand a single term \a term to a set of terms \a dst ; default just calls expand(const set<string>&, set<string>&) for temporary singleton source-set
-  virtual void expand(const string& src, set<string>& dst);
+    //! Default destructor.
+    virtual ~CBiblExpander(void) {};
 
-  //! Expand a set of terms \a src to a set of terms \a dst ; must be overridden by subclass
-  virtual void expand(const set<string>& src, set<string>& dst);
-  //@}
+    //! set up object based on label, target, and/or parameter strings; default implementation does nothing
+    virtual void compile(void) {};
+    //@}
+
+public:
+    //------------------------------------------------------------
+    ///\name API
+    //@{
+    //! String form of this expander. Default is m_BxLabel + " " + m_BxTarget + " " + m_BxParam
+    virtual string configString(void) const;
+
+    //! Expand a single term \a term to a set of terms \a dst ; default just calls expand(const set<string>&, set<string>&) for temporary singleton source-set
+    virtual void expand(const string& src, set<string>& dst);
+
+    //! Expand a set of terms \a src to a set of terms \a dst ; must be overridden by subclass
+    virtual void expand(const set<string>& src, set<string>& dst);
+    //@}
 };
 
 //======================================================================
 /*! BxTermWrapper : bibliographic expander wrapping term
   \brief
-   Abstract API for bibliographic metadata-expansion modules
+  Abstract API for bibliographic metadata-expansion modules
 */
 class BxTermWrapper : public CBiblExpander {
 public:
-  //! underlying CTermExpander
-  CTermExpander *m_BxTx;
+    //! underlying CTermExpander
+    CTermExpander *m_BxTx;
 
 public:
-  //! parses term-expander args as "CLASS PARAM...", uses term-expander label = bibl-expander label
-  BxTermWrapper(const string& label=string("NoLabel"), const string& target=string("NoTarget"), const string& param=string(""));
-  virtual ~BxTermWrapper(void);
-  virtual void compile(void);
-  virtual void expand(const set<string>& src, set<string>& dst);
+    //! parses term-expander args as "CLASS PARAM...", uses term-expander label = bibl-expander label
+    BxTermWrapper(const string& label=string("NoLabel"), const string& target=string("NoTarget"), const string& param=string(""));
+    virtual ~BxTermWrapper(void);
+    virtual void compile(void);
+    virtual void expand(const set<string>& src, set<string>& dst);
 }; 
 
 #endif /* DDC_BIBL_EXPANDER_H */
@@ -92,7 +92,7 @@ public:
 /*--- emacs style variables ---
  * Local Variables:
  *  mode: C++
- *  c-default-style: "linux"
+ *  c-file-style: "ellemtel"
  *  c-basic-offset: 4
  *  tab-width: 8
  *  indent-tabs-mode: nil

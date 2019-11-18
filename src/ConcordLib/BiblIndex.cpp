@@ -133,8 +133,8 @@ bool CBiblIndex::RegisterFreeBiblAttributes(string fields, string &ErrorStr) {
             isAlias = true;
         } else {
             ErrorStr = Format(
-                    "Error! Bad type \"%s\" in free bibliographical filed type; known types are \"%s\", \"%s\", \"%s\", and \"%s\"",
-                    TypeStr.c_str(), IntegerTypeStr, StringTypeStr, StringConstantTypeStr, StringAliasTypeStr);
+                "Error! Bad type \"%s\" in free bibliographical filed type; known types are \"%s\", \"%s\", \"%s\", and \"%s\"",
+                TypeStr.c_str(), IntegerTypeStr, StringTypeStr, StringConstantTypeStr, StringAliasTypeStr);
             return false;
         };
 
@@ -192,8 +192,8 @@ bool CBiblIndex::RegisterFreeBiblAttributes(string fields, string &ErrorStr) {
                 delete oldi->second;
                 m_FreeBiblIndices.erase(oldi);
                 ddcLogWarn(
-                        Format("Warning: bibliographic attribute alias `%s' -> `%s' overrides physical attribute `%s'",
-                               Name.c_str(), Xpath.c_str(), Name.c_str()));
+                    Format("Warning: bibliographic attribute alias `%s' -> `%s' overrides physical attribute `%s'",
+                           Name.c_str(), Xpath.c_str(), Name.c_str()));
             }
             if (m_FreeBiblAlias.find(Name) != m_FreeBiblAlias.end()) {
                 //-- new alias clobbers old alias
@@ -222,8 +222,8 @@ bool CBiblIndex::RegisterFreeBiblAttributes(string fields, string &ErrorStr) {
                 delete oldi->second;
                 m_FreeBiblIndices.erase(oldi);
                 ddcLogWarn(
-                        Format("Warning: multiple definitions for free bibliographic attribute `%s', using most recent",
-                               Name.c_str()));
+                    Format("Warning: multiple definitions for free bibliographic attribute `%s', using most recent",
+                           Name.c_str()));
             }
             if (m_FreeBiblAlias.find(Name) != m_FreeBiblAlias.end()) {
                 //-- just warn about clobbering an existng alias
@@ -295,7 +295,7 @@ string CBiblIndex::GetTextAreasDescr() const {
                          TextAreaOptionFieldName.c_str(),
                          m_TextAreas[i].m_TextAreaName.c_str(),
                          m_TextAreas[i].m_Xpath.c_str()
-        );
+            );
 
 
         Result += "\n";
@@ -326,8 +326,8 @@ void CBiblIndex::LoadBibl(string Path, size_t FileBreaksSize, bool useMMap) {
     m_EndOffsetsInBiblFile.open(GetBiblIndexFileName(), useMMap);
     if (m_EndOffsetsInBiblFile.size() != FileBreaksSize) {
         string s = Format(
-                "The number of corpus files should be equal to the number of bibliographical records in file `%s'",
-                GetBiblIndexFileName().c_str());
+            "The number of corpus files should be equal to the number of bibliographical records in file `%s'",
+            GetBiblIndexFileName().c_str());
         s += Format("\nnumber of corpus files = %zi", FileBreaksSize);
         s += Format("\nnumber of bibliographical records = %zi", m_EndOffsetsInBiblFile.size());
         throw CExpc(s);
@@ -348,7 +348,6 @@ CBibliography CBiblIndex::GetFullBibliographyOfHit(size_t FileNo) const {
     file_off_t startBiblFileOffset = (FileNo == 0) ? 0 : m_EndOffsetsInBiblFile[FileNo - 1];
     assert (endBiblFileOffset >= startBiblFileOffset);
     size_t length = endBiblFileOffset - startBiblFileOffset;
-    if (!m_BiblBodyFile.IsOpened()) return CBibliography();
     PtrHolder<BYTE> buffer(new BYTE[length]);
     if (!m_BiblBodyFile.ReadBuffer(startBiblFileOffset, length, buffer.Get())) {
         return CBibliography();
@@ -658,12 +657,12 @@ string CBiblIndex::FreeBiblMapToJson(bool useUtf) const {
         const CFreeBiblIndexTypeId fbtyp = fbi->GetTypeId();
         result += (string(",\n\t\t{")
                    + "\"name\":" + jsonStr(fbi->m_Name) + ", "
-                   #if DDC_VERBOSE_CORPUS_INFO
+#if DDC_VERBOSE_CORPUS_INFO
                    + "\"xpath\":" + jsonStr(fbi->m_Xpath) + ", "
-                   #endif
+#endif
                    + "\"visible\":" + (fbi->m_bShowInHeader ? '1' : '0') + ", "
                    + "\"size\":" + Format("%zd", fbi->size()) //-- bibl[i].size : number of values (?)
-        );
+            );
         if (fbtyp==cfbiStringConstant) {
             result += string(", \"value\":") + jsonStr(fbi->GetXpathStr(),useUtf);
         }
@@ -679,7 +678,7 @@ string CBiblIndex::FreeBiblAliasMapToJson() const {
                    + "\"alias\":" + jsonStr(bai->first) + ", "
                    + "\"ref\":" + jsonStr(bai->second)
                    + "}"
-        );
+            );
     }
     return result;
 
@@ -695,12 +694,12 @@ string CBiblIndex::BiblExpanderMapToJson() const {
         if (i != 0) result += ',';
 #if DDC_VERBOSE_CORPUS_INFO
         //-- info.xbibl: verbose
-			result += (string("\n\t\t{")
-				   + "\"label\":" + jsonStr(bx->m_BxLabel) + ", "
-				   + "\"target\":" + jsonStr(bx->m_BxTarget) + ", "
-				   + "\"param\":" + jsonStr(bx->m_BxParam)
-				   + "}"
-				   );
+        result += (string("\n\t\t{")
+                   + "\"label\":" + jsonStr(bx->m_BxLabel) + ", "
+                   + "\"target\":" + jsonStr(bx->m_BxTarget) + ", "
+                   + "\"param\":" + jsonStr(bx->m_BxParam)
+                   + "}"
+            );
 #else
         //-- info.xbibl: terse
         result += jsonStr(bx->m_BxLabel);
@@ -713,7 +712,7 @@ string CBiblIndex::BiblExpanderMapToJson() const {
 /*--- emacs style variables ---
  * Local Variables:
  *  mode: C++
- *  c-default-style: "linux"
+ *  c-file-style: "ellemtel"
  *  c-basic-offset: 4
  *  tab-width: 8
  *  indent-tabs-mode: nil

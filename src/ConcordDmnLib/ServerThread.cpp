@@ -29,8 +29,8 @@ CDDCServerThread::CDDCServerThread(CDDCServer* Parent, size_t ThreadId)
     : m_ThreadId(ThreadId), m_Parent(Parent), m_Client(-1)
 {
     if (m_Parent) {
-	m_Server = m_Parent->WorkerClone();
-	m_Server->WorkerCloneInit(m_Parent,ThreadId);
+        m_Server = m_Parent->WorkerClone();
+        m_Server->WorkerCloneInit(m_Parent,ThreadId);
     }
 };
 
@@ -38,8 +38,8 @@ CDDCServerThread::CDDCServerThread(CDDCServer* Parent, size_t ThreadId)
 CDDCServerThread::~CDDCServerThread()
 {
     if (m_Server) {
-	m_Server->WorkerCloneFree();
-	delete m_Server;
+        m_Server->WorkerCloneFree();
+        delete m_Server;
     }
 };
 
@@ -52,7 +52,7 @@ void* CDDCServerThread::run(void)
 
     //-- common initialization (thread label, worker-id)
     if (m_Label.empty())
-	m_Label = Format("%s#%zu", m_Server->m_CorpusName.c_str(), m_ThreadId);
+        m_Label = Format("%s#%zu", m_Server->m_CorpusName.c_str(), m_ThreadId);
     ddc_thread_init(m_Label.c_str());
 
     //-- report
@@ -60,19 +60,19 @@ void* CDDCServerThread::run(void)
 
     //-- thread-pool mode (persistent)
     for (;;) {
-	m_Client = m_Parent->m_ThreadPool->m_Queue.remove();
+        m_Client = m_Parent->m_ThreadPool->m_Queue.remove();
 
-	//-- adopt parent server-stats so we can report them accurately (moving average window may be out-of-sync)
-	pthread_mutex_lock(&m_Parent->m_ThreadPool->m_mutex);
-	m_Server->m_ServerStats = m_Parent->m_ServerStats;
-	pthread_mutex_unlock(&m_Parent->m_ThreadPool->m_mutex);
+        //-- adopt parent server-stats so we can report them accurately (moving average window may be out-of-sync)
+        pthread_mutex_lock(&m_Parent->m_ThreadPool->m_mutex);
+        m_Server->m_ServerStats = m_Parent->m_ServerStats;
+        pthread_mutex_unlock(&m_Parent->m_ThreadPool->m_mutex);
 
-	m_Server->HandleClientConnection(m_Client);
+        m_Server->HandleClientConnection(m_Client);
 
-	//-- propagate session-stats back to parent
-	pthread_mutex_lock(&m_Parent->m_ThreadPool->m_mutex);
-	m_Parent->m_ServerStats += m_Server->m_SessionStats; 
-	pthread_mutex_unlock(&m_Parent->m_ThreadPool->m_mutex);
+        //-- propagate session-stats back to parent
+        pthread_mutex_lock(&m_Parent->m_ThreadPool->m_mutex);
+        m_Parent->m_ServerStats += m_Server->m_SessionStats; 
+        pthread_mutex_unlock(&m_Parent->m_ThreadPool->m_mutex);
     }
     //-- should never be reached
     ddcLogWarn("CDDCServerThread::run() exiting queue processing loop");
@@ -111,19 +111,19 @@ void CDDCServerThreadPool::start(CDDCServer *Server, size_t nWorkers, size_t max
     
     //-- +pthread
     if (!m_Workers.empty())
-	throw CExpc( Format("CDDCServerThreadPool::start(): ERROR: thread-pool seems to be already running!") );
+        throw CExpc( Format("CDDCServerThreadPool::start(): ERROR: thread-pool seems to be already running!") );
 
     if (nWorkers == 0)
-	nWorkers = 1; //-- if we get here, we need at least 1 worker thread
+        nWorkers = 1; //-- if we get here, we need at least 1 worker thread
    
     
     ddcLogInfo( Format("initializing thread pool with %zd worker(s), max %zu queued requests", nWorkers, maxQueueSize) );
     m_Queue.m_max_size = (maxQueueSize==0 ? 1 : maxQueueSize); //-- queue needs to hold at least 1 element
     m_Workers.resize(nWorkers);
     for (size_t i=0; i < nWorkers; ++i) {
-	m_Workers[i] = new CDDCServerThread(Server,i+1);
-	m_Workers[i]->start();
-	m_Workers[i]->detach();
+        m_Workers[i] = new CDDCServerThread(Server,i+1);
+        m_Workers[i]->start();
+        m_Workers[i]->detach();
     }
 }
 
@@ -131,7 +131,7 @@ void CDDCServerThreadPool::start(CDDCServer *Server, size_t nWorkers, size_t max
 void CDDCServerThreadPool::stop()
 {
     for (size_t i=0; i < m_Workers.size(); ++i) {
-	if (m_Workers[i] != NULL) delete m_Workers[i];
+        if (m_Workers[i] != NULL) delete m_Workers[i];
     }
     m_Workers.clear();
 }
@@ -139,7 +139,7 @@ void CDDCServerThreadPool::stop()
 /*--- emacs style variables ---
  * Local Variables:
  *  mode: C++
- *  c-default-style: "linux"
+ *  c-file-style: "ellemtel"
  *  c-basic-offset: 4
  *  tab-width: 8
  *  indent-tabs-mode: nil

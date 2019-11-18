@@ -7,17 +7,27 @@
 %%$DDC:meta.title=DDC test document
 %%$DDC:index[ 0]=Lemma
 %%$DDC:index [1]=Token t
+%%$DDC:BREAK.s[-1]=0
+%%$DDC:BREAK.file[-1]=0
 MUTTER	Mutter
 KOMMEN	kam
+%%$DDC:BREAK.s
+%%$DDC:BREAK.s
 NACH	nach
 HAUS	hause
+
+%%$DDC:unknown_field=some_value
+%%$DDC:meta.n_=some_value
 %%$DDC:meta.file_=filename2.txt
 %%$DDC:meta.orig_=
 %%$DDC:meta.date_=2016-02-25
 %%$DDC:meta.page_=-1
 %%$DDC:index[ 0]=Lemma
 %%$DDC:index [1]=Token t
+%%$DDC:BREAK.s[1]=4
+%%$DDC:BREAK.file[1]=4
 MUTTER	Mutter
 KOMMEN	kam
 NACH	nach
 HAUS	hause
+%%$DDC:BREAK.s

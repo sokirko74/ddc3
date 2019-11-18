@@ -57,10 +57,10 @@ void show_usage(void) {
             "  -f, --full         # full dump, output to directory\n"
             "  -j, --json         # for full dump: output as JSON (default)\n"
             "  -t, --tabs         # for full dump: output as TAB-separated records (aka TT)\n"
+            "  -T, --tabs-stream  # output --tabs format to monolithic file or stdout\n"
             "  -b, --bibl         # bibliography only dump (default; output to file)\n"
-            "  --tab-single-file  # dump tab-formatted to the file, specified by --output\n"
             "\n"
-            );
+        );
 }
 
 FILE* getOutputStream(string outfilename){
@@ -74,7 +74,7 @@ FILE* getOutputStream(string outfilename){
     }
 }
 
-string getOutputFolder(string outdir) {
+string getOutputDirectory(string outdir) {
     //-- full dump: check for dump directory
     if (outdir == "-")
         throw CExpc(errRuntime, "Error: full dump requested but no output directory specified with --output");
@@ -125,8 +125,9 @@ int main(int argc, char *argv[]) {
             dump_fmt = idfJson;
         } else if (s == "--tabs" || s == "-t" || s == "--tt") {
             dump_fmt = idfTabs;
-        } else if (s == "--tab-single-file") {
-            dump_fmt = idfTabsSingleFile;
+        } else if (s == "--tabs-stream" || s == "-T" || s == "--tab-stream") {
+            dump_fmt = idfTabsStream;
+            dump_full = true;
         } else {
             confilename = argv[argi];
         }
@@ -163,14 +164,15 @@ int main(int argc, char *argv[]) {
 
             fclose(outfile);
         }
-        else if (dump_fmt == idfTabsSingleFile) {
+        else if (dump_fmt == idfTabsStream) {
+            //-- full dump, stream
             FILE* outfile = getOutputStream(outfilename);
             R.m_pConcordance->DumpIndexToSingleTabFile(outfile);
             fclose(outfile);
         }
         else {
-            //-- full dump
-            string output = getOutputFolder(outfilename);
+            //-- full dump, multiple files
+            string output = getOutputDirectory(outfilename);
       
             //-- full dump: data
             fprintf(stderr, "%s: dumping index data to %s ...\n", prog, output.c_str());
@@ -188,11 +190,10 @@ int main(int argc, char *argv[]) {
     return 0;
 }
 
-
 /*--- emacs style variables ---
  * Local Variables:
  *  mode: C++
- *  c-default-style: "linux"
+ *  c-file-style: "ellemtel"
  *  c-basic-offset: 4
  *  tab-width: 8
  *  indent-tabs-mode: nil

@@ -58,8 +58,8 @@ bool CConcIndexator::SplitProject(vector<CConcIndexator *> &Subs, const string &
         } else if (fbj >= fbreaks.end()) {
             //-- this should never happen
             throw CExpc(
-                    Format("%s: Error: no file break found for split index=%zd, target token=%zd", logname.c_str(), i,
-                           tok_want));
+                Format("%s: Error: no file break found for split index=%zd, target token=%zd", logname.c_str(), i,
+                       tok_want));
         } else if (fbj > fbi) {
             //-- multiple possibilities: pick closest split-point
             CTokenNo delta_j0 = ((*fbj) - tok_want);
@@ -104,8 +104,8 @@ bool CConcIndexator::SplitProject(vector<CConcIndexator *> &Subs, const string &
         // + looks like "empty" m_SourceFiles[] items (from *.con, indexing time) don't have a m_CorpusFiles[] equivalent)
         // + hack for SplitProject() just treats m_CorpusFiles[] as "source files"
         if (m_SourceFiles.size() != m_CorpusFiles.size())
-          throw CExpc(Format("%s: Error: number of source files (%zd) is not identical to number of indexed files (%zd)",
-                 logname.c_str(), m_SourceFiles.size(), m_CorpusFiles.size()));
+            throw CExpc(Format("%s: Error: number of source files (%zd) is not identical to number of indexed files (%zd)",
+                               logname.c_str(), m_SourceFiles.size(), m_CorpusFiles.size()));
 #endif
         for (size_t fi = (i == 0 ? 0 : splitFileBreaks[i - 1]); fi < splitFileBreaks[i]; ++fi) {
             Subs[i]->m_CorpusFiles.m_strings.push_back(m_CorpusFiles[fi]);
@@ -218,7 +218,7 @@ bool CConcIndexator::SplitProject(vector<CConcIndexator *> &Subs, const string &
         if (Partitions[0] == NULL) continue;
 
         ddcLogInfo(logname + ": populating index " + ixp->m_Name + " " + ixp->m_ShortName);
-        ixp->CreatePartitionsDuringSplit(Partitions, splitTokenBreaks);
+        ixp->CreateSplitPartitions(Partitions, splitTokenBreaks);
     }
 
     //---------------------------------------
@@ -247,7 +247,7 @@ bool CConcIndexator::SplitProject(vector<CConcIndexator *> &Subs, const string &
 /*--- emacs style variables ---
  * Local Variables:
  *  mode: C++
- *  c-default-style: "linux"
+ *  c-file-style: "ellemtel"
  *  c-basic-offset: 4
  *  tab-width: 8
  *  indent-tabs-mode: nil

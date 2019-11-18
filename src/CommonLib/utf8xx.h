@@ -47,11 +47,11 @@
 #endif
 
 #ifndef ucs4
- typedef u_int32_t ucs4;
+typedef u_int32_t ucs4;
 #endif
 
 #ifndef uchar
- typedef unsigned char uchar;
+typedef unsigned char uchar;
 #endif
 
 #define UTF8XX_MAXBYTES  4
@@ -147,15 +147,15 @@ void u8_dec(const utf8str &s, size_t *i);
 int u8_read_escape_sequence(char *src, u_int32_t *dest);
 
 /** given a wide character, convert it to an ASCII escape sequence stored in
-   buf, where buf is "sz" bytes. returns the number of characters output. */
+    buf, where buf is "sz" bytes. returns the number of characters output. */
 int u8_escape_wchar(char *buf, int sz, u_int32_t ch);
 
 /** convert a string "src" containing escape sequences to UTF-8 */
 int u8_unescape(char *buf, int sz, char *src);
 
 /** convert UTF-8 "src" to ASCII with escape sequences.
-   if escape_quotes is nonzero, quote characters will be preceded by
-   backslashes as well. */
+    if escape_quotes is nonzero, quote characters will be preceded by
+    backslashes as well. */
 int u8_escape(char *buf, int sz, char *src, int escape_quotes);
 
 /** utility predicates used by the above */
@@ -163,18 +163,18 @@ int octal_digit(char c);
 int hex_digit(char c);
 
 /** return a pointer to the first occurrence of ch in s, or NULL if not
-   found. character index of found character returned in *charn. */
+    found. character index of found character returned in *charn. */
 char *u8_strchr(char *s, u_int32_t ch, int *charn);
 
 /** same as the above, but searches a buffer of a given size instead of
-   a NUL-terminated string. */
+    a NUL-terminated string. */
 char *u8_memchr(char *s, u_int32_t ch, size_t sz, int *charn);
 
 int u8_is_locale_utf8(char *locale);
 
 /** printf where the format string and arguments may be in UTF-8.
-   you can avoid this function and just use ordinary printf() if the current
-   locale is UTF-8. */
+    you can avoid this function and just use ordinary printf() if the current
+    locale is UTF-8. */
 int u8_vprintf(char *fmt, va_list ap);
 int u8_printf(char *fmt, ...);
 
@@ -182,11 +182,10 @@ int u8_printf(char *fmt, ...);
 
 #endif /* UTF8XX_H */
 
-
 /*--- emacs style variables ---
  * Local Variables:
  *  mode: C++
- *  c-default-style: "linux"
+ *  c-file-style: "ellemtel"
  *  c-basic-offset: 4
  *  tab-width: 8
  *  indent-tabs-mode: nil

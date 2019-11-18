@@ -28,177 +28,177 @@ extern const BYTE DefaultMatchId;
 
 //======================================================================
 /*!
- \brief
-   Truly abstract (index-independent) representation of a parsed query
- \detail
-   Should eventually replace old ad-hoc QueryNode.h 
+  \brief
+  Truly abstract (index-independent) representation of a parsed query
+  \detail
+  Should eventually replace old ad-hoc QueryNode.h 
 */
 class CQuery : public ddcObject {
 public:
-  //! arbitrary name for this query node (e.g. string from which it was parsed)
-  string m_Label;
+    //! arbitrary name for this query node (e.g. string from which it was parsed)
+    string m_Label;
 
-  //! associated query compiler (only set on Compile())
-  CQueryCompiler *m_Compiler;
+    //! associated query compiler (only set on Compile())
+    CQueryCompiler *m_Compiler;
 
-  //! underlying CQueryNode (DDC-v1.x API)
-  CQueryNode *m_Node;
+    //! underlying CQueryNode (DDC-v1.x API)
+    CQueryNode *m_Node;
 
-  //! root-level options (root queries only)
-  CQueryOptions *m_Options;
-
-public:
-  //------------------------------------------------------------
-  ///\name Constructors etc.
-  //@{
-  //! Default constructor
-  CQuery(const string &label=string(""))
-    : m_Label(label),
-      m_Compiler(NULL),
-      m_Node(NULL),
-      m_Options(NULL)
-  {};
-
-  //! Default destructor.
-  //! \li child classes should propagate deletion to daughter nodes
-  //! \li default implementation calls CQuery::Clear(true) [i.e. ClearNode() and ClearOptions()]
-  virtual ~CQuery(void);
-  //@}
+    //! root-level options (root queries only)
+    CQueryOptions *m_Options;
 
 public:
-  //------------------------------------------------------------
-  ///\name API
-  //@{
-  //! Compile index-dependent query properties (required for evaluation).  Required.
-  //! \li called once per leaf-corpus query by CConcHolder::GetOccurrences() or CConcHolder::GetHits() via CQueryCompiler::Compile()
-  virtual bool Compile(CQueryCompiler *compiler);
+    //------------------------------------------------------------
+    ///\name Constructors etc.
+    //@{
+    //! Default constructor
+    CQuery(const string &label=string(""))
+        : m_Label(label),
+          m_Compiler(NULL),
+          m_Node(NULL),
+          m_Options(NULL)
+    {};
 
-  //! Compile index-dependent options in m_Options.  Optional.
-  //! \li compiler defaults to this->m_Compiler
-  virtual bool CompileOptions(CQueryCompiler *compiler=NULL);
+    //! Default destructor.
+    //! \li child classes should propagate deletion to daughter nodes
+    //! \li default implementation calls CQuery::Clear(true) [i.e. ClearNode() and ClearOptions()]
+    virtual ~CQuery(void);
+    //@}
 
-  //! Wrapper for m_Node->Evaluate()
-  //! \li called once per leaf-corpus "search period" by CConcHolder::GetAllHits() via CQueryCompiler::Evaluate()
-  virtual void Evaluate();
+public:
+    //------------------------------------------------------------
+    ///\name API
+    //@{
+    //! Compile index-dependent query properties (required for evaluation).  Required.
+    //! \li called once per leaf-corpus query by CConcHolder::GetOccurrences() or CConcHolder::GetHits() via CQueryCompiler::Compile()
+    virtual bool Compile(CQueryCompiler *compiler);
 
-  //! For sanity checks.  Default just returns false.
-  virtual bool Negated() { return false; };
+    //! Compile index-dependent options in m_Options.  Optional.
+    //! \li compiler defaults to this->m_Compiler
+    virtual bool CompileOptions(CQueryCompiler *compiler=NULL);
 
-  //! Toggle negation flag, returns new value.  Default throws an exception.
-  virtual bool Negate();
+    //! Wrapper for m_Node->Evaluate()
+    //! \li called once per leaf-corpus "search period" by CConcHolder::GetAllHits() via CQueryCompiler::Evaluate()
+    virtual void Evaluate();
 
-  //! Get current match-id (should return a nontrivial match-id if any was used, else 0; default just returns 0)
-  virtual BYTE GetMatchId() const;
+    //! For sanity checks.  Default just returns false.
+    virtual bool Negated() { return false; };
 
-  //! Set match-id, returns new value.  Default throws an exception.
-  virtual BYTE SetMatchId(BYTE matchId);
+    //! Toggle negation flag, returns new value.  Default throws an exception.
+    virtual bool Negate();
 
-  //! Returns true iff this query uses a nontrival match-id operator; default checks (this->GetMatchId() != 0)
-  virtual bool HasMatchId() const;
+    //! Get current match-id (should return a nontrivial match-id if any was used, else 0; default just returns 0)
+    virtual BYTE GetMatchId() const;
 
-  //! Is this query an admissible root of a compiled parse tree (default returns !this->Negated())
-  virtual bool RootOK()
-  { return !this->Negated(); };
-  //@}
+    //! Set match-id, returns new value.  Default throws an exception.
+    virtual BYTE SetMatchId(BYTE matchId);
 
-  //------------------------------------------------------------
-  ///\name Object Substructure (ddcObject API)
-  //@{
-  //! get a list of direct non-NULL CQuery direct daughters of this node
-  //! \li default just returns an empty list
-  virtual ddcObjectList Children() const;
+    //! Returns true iff this query uses a nontrival match-id operator; default checks (this->GetMatchId() != 0)
+    virtual bool HasMatchId() const;
 
-  //! "disown" any direct child nodes, preventing their destruction if the current object is deleted
-  //! \li default implementation does nothing
-  virtual void DisownChildren();
-  //@}
+    //! Is this query an admissible root of a compiled parse tree (default returns !this->Negated())
+    virtual bool RootOK()
+    { return !this->Negated(); };
+    //@}
 
-  //------------------------------------------------------------
-  ///\name Stringification (ddcObject API & associated utilities)
-  //@{
-  //! \b DEBUG: return a canonical string form for this query (default just returns m_Label)
-  virtual string toString() { return m_Label; };
+    //------------------------------------------------------------
+    ///\name Object Substructure (ddcObject API)
+    //@{
+    //! get a list of direct non-NULL CQuery direct daughters of this node
+    //! \li default just returns an empty list
+    virtual ddcObjectList Children() const;
 
-  //! \b DEBUG: return canonical option string
-  virtual string optionsToString();
+    //! "disown" any direct child nodes, preventing their destruction if the current object is deleted
+    //! \li default implementation does nothing
+    virtual void DisownChildren();
+    //@}
 
-  //! return json format option string
-  virtual string optionsToJson();
+    //------------------------------------------------------------
+    ///\name Stringification (ddcObject API & associated utilities)
+    //@{
+    //! \b DEBUG: return a canonical string form for this query (default just returns m_Label)
+    virtual string toString() { return m_Label; };
 
-  //! return a JSON representation of this query
-  //! \li default just returns this->toString()
-  //! \li JSON query structures relflect C++ class structures with an additional "class" key
-  virtual string toJson() { return string("{\"class\":"+jsonStr(this->jsonClass())+","+this->jsonData()+"}"); };
-  virtual string jsonClass() { return "CQuery"; };
-  virtual string jsonData()  { return ""; };
-  //@}
+    //! \b DEBUG: return canonical option string
+    virtual string optionsToString();
 
-  //------------------------------------------------------------
-  ///\name Misc Utilities
-  //@{
-  //! \li sets m_Compiler=compiler
-  //! \li throws an exception if compiler==NULL
-  //! \li calls CQuery::ClearNode()
-  void SetCompiler(CQueryCompiler *compiler);
+    //! return json format option string
+    virtual string optionsToJson();
 
-  //! deletes m_Node if non-NULL
-  virtual void ClearNode();
+    //! return a JSON representation of this query
+    //! \li default just returns this->toString()
+    //! \li JSON query structures relflect C++ class structures with an additional "class" key
+    virtual string toJson() { return string("{\"class\":"+jsonStr(this->jsonClass())+","+this->jsonData()+"}"); };
+    virtual string jsonClass() { return "CQuery"; };
+    virtual string jsonData()  { return ""; };
+    //@}
 
-  //! deletes m_Options if non-NULL
-  virtual void ClearOptions();
+    //------------------------------------------------------------
+    ///\name Misc Utilities
+    //@{
+    //! \li sets m_Compiler=compiler
+    //! \li throws an exception if compiler==NULL
+    //! \li calls CQuery::ClearNode()
+    void SetCompiler(CQueryCompiler *compiler);
 
-  //! clear query contents.  if \c deep is true, propagates operation to daughters
-  virtual void Clear(bool deep=true);
+    //! deletes m_Node if non-NULL
+    virtual void ClearNode();
 
-  //! set global query options ; deletes any pre-existing m_Options
-  virtual void SetOptions(CQueryOptions *opts);
-  //@}
+    //! deletes m_Options if non-NULL
+    virtual void ClearOptions();
+
+    //! clear query contents.  if \c deep is true, propagates operation to daughters
+    virtual void Clear(bool deep=true);
+
+    //! set global query options ; deletes any pre-existing m_Options
+    virtual void SetOptions(CQueryOptions *opts);
+    //@}
 };
 
 //======================================================================
 //! CQNegatable: negatable queries
 class CQNegatable : public CQuery {
 public:
-  //! whether this query is negated
-  bool m_Negated;
+    //! whether this query is negated
+    bool m_Negated;
 
 public:
-  //! Default constructor
-  CQNegatable(const string &label=string(""), bool negated=false)
-    : CQuery(label), m_Negated(negated)
-  {};
-  CQNegatable(bool negated)
-    : m_Negated(negated)
-  {};
+    //! Default constructor
+    CQNegatable(const string &label=string(""), bool negated=false)
+        : CQuery(label), m_Negated(negated)
+    {};
+    CQNegatable(bool negated)
+        : m_Negated(negated)
+    {};
 
-  //! toggle negation flag; returns new value
-  virtual bool Negate(void);
+    //! toggle negation flag; returns new value
+    virtual bool Negate(void);
 
-  //! override returns current value of m_Negated
-  virtual bool Negated() { return m_Negated; };
+    //! override returns current value of m_Negated
+    virtual bool Negated() { return m_Negated; };
 
-  //! string creation utility
-  virtual string NegString(const std::string &s);
+    //! string creation utility
+    virtual string NegString(const std::string &s);
 
-  //! override just calls m_Node->SetNegation(m_Negated)
-  virtual bool Compile(CQueryCompiler *compiler);
+    //! override just calls m_Node->SetNegation(m_Negated)
+    virtual bool Compile(CQueryCompiler *compiler);
 
-  //-- ddcObject API
-  virtual string jsonClass() { return "CQNegatable"; };
-  virtual string jsonData()  { return string("\"Negated\":")+(m_Negated ? "1" : "0"); };
+    //-- ddcObject API
+    virtual string jsonClass() { return "CQNegatable"; };
+    virtual string jsonData()  { return string("\"Negated\":")+(m_Negated ? "1" : "0"); };
 };
 
 //======================================================================
 //! CQAtomic: atomic (sequencable) queries
 class CQAtomic : public CQNegatable {
 public:
-  //! Default constructor
-  CQAtomic(const string &label=string(""), bool negated=false)
-    : CQNegatable(label,negated)
-  {};
+    //! Default constructor
+    CQAtomic(const string &label=string(""), bool negated=false)
+        : CQNegatable(label,negated)
+    {};
 
-  //-- ddcObject API
-  virtual string jsonClass() { return "CQAtomic"; };
+    //-- ddcObject API
+    virtual string jsonClass() { return "CQAtomic"; };
 };
 
 
@@ -209,138 +209,138 @@ public:
 //! binary operation (abstract)
 class CQBinOp : public CQNegatable {
 public:
-  //! first argument
-  CQuery *m_dtr1;
+    //! first argument
+    CQuery *m_dtr1;
 
-  //! second argument
-  CQuery *m_dtr2;
+    //! second argument
+    CQuery *m_dtr2;
 
-  //! convenience: operation name
-  string m_OpName;
+    //! convenience: operation name
+    string m_OpName;
 
 public:
-  CQBinOp(CQuery *dtr1=NULL, CQuery *dtr2=NULL, const string &opName="", bool negated=false)
-    : CQNegatable(opName,negated), m_dtr1(dtr1), m_dtr2(dtr2), m_OpName(opName)
-  {};
+    CQBinOp(CQuery *dtr1=NULL, CQuery *dtr2=NULL, const string &opName="", bool negated=false)
+        : CQNegatable(opName,negated), m_dtr1(dtr1), m_dtr2(dtr2), m_OpName(opName)
+    {};
 
-  //! destructor deletes daughters
-  virtual ~CQBinOp();
+    //! destructor deletes daughters
+    virtual ~CQBinOp();
 
-  //! get match id: dtr2 > dtr1
-  virtual BYTE GetMatchId() const;
+    //! get match id: dtr2 > dtr1
+    virtual BYTE GetMatchId() const;
 
-  //! override propagates matchId to daughters
-  virtual BYTE SetMatchId(BYTE matchId);
+    //! override propagates matchId to daughters
+    virtual BYTE SetMatchId(BYTE matchId);
 
-  //! deletes associated daughter nodes (avoiding double-free)
-  virtual void ClearNode();
+    //! deletes associated daughter nodes (avoiding double-free)
+    virtual void ClearNode();
 
-  //! clear query contents.  if \c deep is true, propagates operation to daughters
-  virtual void Clear(bool deep=true);
+    //! clear query contents.  if \c deep is true, propagates operation to daughters
+    virtual void Clear(bool deep=true);
 
-  //! compile the query
-  virtual bool Compile(CQueryCompiler *compiler);
+    //! compile the query
+    virtual bool Compile(CQueryCompiler *compiler);
 
-  //-- ddcObject API
-  virtual ddcObjectList Children() const;
-  virtual void DisownChildren();
-  virtual string toString();
-  virtual string jsonClass() { return "CQBinOp"; };
-  virtual string jsonData();
+    //-- ddcObject API
+    virtual ddcObjectList Children() const;
+    virtual void DisownChildren();
+    virtual string toString();
+    virtual string jsonClass() { return "CQBinOp"; };
+    virtual string jsonData();
 };
 
 //------------------------------------------------------------
 //! logical conjunction
 class CQAnd : public CQBinOp {
 public:
-  CQAnd(CQuery *dtr1=NULL, CQuery *dtr2=NULL)
-    : CQBinOp(dtr1,dtr2,"&&")
-  {};
+    CQAnd(CQuery *dtr1=NULL, CQuery *dtr2=NULL)
+        : CQBinOp(dtr1,dtr2,"&&")
+    {};
 
-  virtual bool RootOK() { return true; };
-  virtual bool Compile(CQueryCompiler *compiler);
-  virtual string jsonClass() { return "CQAnd"; };
+    virtual bool RootOK() { return true; };
+    virtual bool Compile(CQueryCompiler *compiler);
+    virtual string jsonClass() { return "CQAnd"; };
 };
 
 //------------------------------------------------------------
 //! logical conjunction (implicit)
 class CQAndImplicit : public CQAnd {
 public:
-  CQAndImplicit(CQuery *dtr1=NULL, CQuery *dtr2=NULL)
-    : CQAnd(dtr1,dtr2)
-  {
-    //m_OpName.clear();
-  };
+    CQAndImplicit(CQuery *dtr1=NULL, CQuery *dtr2=NULL)
+        : CQAnd(dtr1,dtr2)
+    {
+        //m_OpName.clear();
+    };
 
-  virtual string jsonClass() { return "CQAndImplicit"; };
+    virtual string jsonClass() { return "CQAndImplicit"; };
 };
 
 //------------------------------------------------------------
 //! logical disjunction
 class CQOr : public CQBinOp {
 public:
-  CQOr(CQuery *dtr1=NULL, CQuery *dtr2=NULL)
-    : CQBinOp(dtr1,dtr2,"||")
-  {};
+    CQOr(CQuery *dtr1=NULL, CQuery *dtr2=NULL)
+        : CQBinOp(dtr1,dtr2,"||")
+    {};
 
-  virtual bool RootOK() { return true; };
-  virtual bool Compile(CQueryCompiler *compiler);
-  virtual string jsonClass() { return "CQOr"; };
+    virtual bool RootOK() { return true; };
+    virtual bool Compile(CQueryCompiler *compiler);
+    virtual string jsonClass() { return "CQOr"; };
 };
 
 //------------------------------------------------------------
 //! 'WITH' query
 class CQWith : public CQBinOp {
 public:
-  //! match-id for highlighting (TODO: and context-sort reference)
-  //! initialized to 0; anything other than 0 is considered a non-trivial user-specified match-id
-  BYTE m_MatchId;
+    //! match-id for highlighting (TODO: and context-sort reference)
+    //! initialized to 0; anything other than 0 is considered a non-trivial user-specified match-id
+    BYTE m_MatchId;
 
 public:
-  CQWith(CQuery *dtr1=NULL, CQuery *dtr2=NULL, BYTE matchId=0)
-    : CQBinOp(dtr1,dtr2,"WITH"), m_MatchId(matchId)
-  {};
+    CQWith(CQuery *dtr1=NULL, CQuery *dtr2=NULL, BYTE matchId=0)
+        : CQBinOp(dtr1,dtr2,"WITH"), m_MatchId(matchId)
+    {};
 
-  //! get match id: local > dtr2 > dtr1
-  virtual BYTE GetMatchId() const;
+    //! get match id: local > dtr2 > dtr1
+    virtual BYTE GetMatchId() const;
 
-  //! set local match-id ONLY
-  virtual BYTE SetMatchId(BYTE matchId);
+    //! set local match-id ONLY
+    virtual BYTE SetMatchId(BYTE matchId);
 
-  virtual bool Compile(CQueryCompiler *compiler);
+    virtual bool Compile(CQueryCompiler *compiler);
 
-  //-- ddcObject API
-  virtual string jsonClass() { return "CQWith"; };
-  virtual string jsonData();
-  virtual string toString();
+    //-- ddcObject API
+    virtual string jsonClass() { return "CQWith"; };
+    virtual string jsonData();
+    virtual string toString();
 };
 
 //------------------------------------------------------------
 //! 'WITHOUT' query
 class CQWithout : public CQWith {
 public:
-  CQWithout(CQuery *dtr1=NULL, CQuery *dtr2=NULL, BYTE matchId=0)
-    : CQWith(dtr1,dtr2,matchId)
-  {
-    m_OpName = "WITHOUT";
-  };
+    CQWithout(CQuery *dtr1=NULL, CQuery *dtr2=NULL, BYTE matchId=0)
+        : CQWith(dtr1,dtr2,matchId)
+    {
+        m_OpName = "WITHOUT";
+    };
 
-  virtual bool Compile(CQueryCompiler *compiler);
-  virtual string jsonClass() { return "CQWithout"; };
+    virtual bool Compile(CQueryCompiler *compiler);
+    virtual string jsonClass() { return "CQWithout"; };
 };
 
 //------------------------------------------------------------
 //! 'WITHOR' query
 class CQWithor : public CQWith {
 public:
-  CQWithor(CQuery *dtr1=NULL, CQuery *dtr2=NULL, BYTE matchId=0)
-    : CQWith(dtr1,dtr2,matchId)
-  {
-    m_OpName = "WITHOR";
-  };
+    CQWithor(CQuery *dtr1=NULL, CQuery *dtr2=NULL, BYTE matchId=0)
+        : CQWith(dtr1,dtr2,matchId)
+    {
+        m_OpName = "WITHOR";
+    };
 
-  virtual bool Compile(CQueryCompiler *compiler);
-  virtual string jsonClass() { return "CQWithor"; };
+    virtual bool Compile(CQueryCompiler *compiler);
+    virtual string jsonClass() { return "CQWithor"; };
 };
 
 
@@ -351,91 +351,91 @@ public:
 //! single-token query (abstract)
 class CQToken : public CQAtomic {
 public:
-  //! name of index to be queried (default="" (->"Token"))
-  string m_IndexName;
+    //! name of index to be queried (default="" (->"Token"))
+    string m_IndexName;
 
-  //! value to be searched for (default="")
-  string m_Value;
+    //! value to be searched for (default="")
+    string m_Value;
 
-  //! match-id for highlighting (TODO: and context-sort reference)
-  //! initialized to 0; anything other than 0 is considered a non-trivial user-specified match-id
-  BYTE m_MatchId;
+    //! match-id for highlighting (TODO: and context-sort reference)
+    //! initialized to 0; anything other than 0 is considered a non-trivial user-specified match-id
+    BYTE m_MatchId;
 
 public:
-  CQToken(const string &indexName=string(""), const string &value=string(""), const BYTE matchId=0)
-    : CQAtomic(value), m_IndexName(indexName), m_Value(value), m_MatchId(matchId)
-  {};
+    CQToken(const string &indexName=string(""), const string &value=string(""), const BYTE matchId=0)
+        : CQAtomic(value), m_IndexName(indexName), m_Value(value), m_MatchId(matchId)
+    {};
 
-  //! get local match-id
-  virtual BYTE GetMatchId() const;
+    //! get local match-id
+    virtual BYTE GetMatchId() const;
 
-  //! Set match-id, returns new value.  Override sets m_MatchId.
-  virtual BYTE SetMatchId(BYTE matchId);
+    //! Set match-id, returns new value.  Override sets m_MatchId.
+    virtual BYTE SetMatchId(BYTE matchId);
 
-  //! Compile query.  Default implementation just calls CQueryTokenNode::CreateStringPattern(m_IndexName,m_Value)
-  virtual bool Compile(CQueryCompiler *compiler);
+    //! Compile query.  Default implementation just calls CQueryTokenNode::CreateStringPattern(m_IndexName,m_Value)
+    virtual bool Compile(CQueryCompiler *compiler);
 
-  //! Compilation utility called by default Compile() method
-  //! \li SetCompiler() has already been called when this method runs
-  //! \li pNode = this->m_Node is the local CQueryTokenNode created for this query
-  //! \li default implementation just calls pNode->CreateStringPattern(m_IndexName,m_Value) 
-  virtual bool Create(CQueryTokenNode *pNode);
+    //! Compilation utility called by default Compile() method
+    //! \li SetCompiler() has already been called when this method runs
+    //! \li pNode = this->m_Node is the local CQueryTokenNode created for this query
+    //! \li default implementation just calls pNode->CreateStringPattern(m_IndexName,m_Value) 
+    virtual bool Create(CQueryTokenNode *pNode);
 
-  //! Compilation utility: return query-operator key for use with CConcIndexator::m_OpDefaultIndexNames
-  virtual const char *OperatorKey(void) const { return "_"; };
+    //! Compilation utility: return query-operator key for use with CConcIndexator::m_OpDefaultIndexNames
+    virtual const char *OperatorKey(void) const { return "_"; };
 
-  //! Compilation utility: get long index name (requires non-NULL compiler), empty string is returned if not found
-  string IndexName(const string& DefaultIndexName=string(""));
+    //! Compilation utility: get long index name (requires non-NULL compiler), empty string is returned if not found
+    string IndexName(const string& DefaultIndexName=string(""));
 
-  //! Compilation utility: get long break name (requires non-NULL compiler), empty string is returned if not found
-  string BreakName(const string& DefaultBreakName=string(""));
+    //! Compilation utility: get long break name (requires non-NULL compiler), empty string is returned if not found
+    string BreakName(const string& DefaultBreakName=string(""));
 
-  //! Stringification utility for use by subclasses; returns string "$INDEX=" or empty
-  virtual string IndexString(void);
+    //! Stringification utility for use by subclasses; returns string "$INDEX=" or empty
+    virtual string IndexString(void);
 
-  //! Stringification utility for use by subclasses; default returns sqString(m_Value)
-  virtual string ValueString(void);
+    //! Stringification utility for use by subclasses; default returns sqString(m_Value)
+    virtual string ValueString(void);
 
-  //! Stringification utility for use by subclasses; default should be sensible
-  virtual string MatchIdString(void);
+    //! Stringification utility for use by subclasses; default should be sensible
+    virtual string MatchIdString(void);
 
-  //-- ddcObject API & utilities
-  //! Default stringification: NegString(IndexString() + ValueString())
-  virtual string toString(void);
+    //-- ddcObject API & utilities
+    //! Default stringification: NegString(IndexString() + ValueString())
+    virtual string toString(void);
 
-  //! json stringification utility
-  virtual string jsonValue(void);
+    //! json stringification utility
+    virtual string jsonValue(void);
 
-  virtual string jsonClass() { return "CQToken"; };
-  virtual string jsonData();
+    virtual string jsonClass() { return "CQToken"; };
+    virtual string jsonData();
 };
 
 //------------------------------------------------------------
 //! single-token query: exact full-string match
 class CQTokExact : public CQToken {
 public:
-  CQTokExact(const string &indexName=string(""), const string &value=string(""))
-    : CQToken(indexName,value)
-  {};
+    CQTokExact(const string &indexName=string(""), const string &value=string(""))
+        : CQToken(indexName,value)
+    {};
 
-  virtual const char *OperatorKey(void) const { return "@_"; };
-  virtual string ValueString();
+    virtual const char *OperatorKey(void) const { return "@_"; };
+    virtual string ValueString();
 
-  virtual string jsonClass() { return "CQTokExact"; };
+    virtual string jsonClass() { return "CQTokExact"; };
 };
 
 //------------------------------------------------------------
 //! single-token query: arbitrary token (indexName and value are ignored)
 class CQTokAny : public CQToken {
 public:
-  CQTokAny(const string &indexName=string(""), const string &value=string("*"))
-    : CQToken(indexName,value)
-  {};
+    CQTokAny(const string &indexName=string(""), const string &value=string("*"))
+        : CQToken(indexName,value)
+    {};
 
-  virtual const char *OperatorKey(void) const { return "*"; };
-  virtual bool Create(CQueryTokenNode *pNode);
-  virtual string ValueString();
-  virtual string jsonClass() { return "CQTokAny"; };
+    virtual const char *OperatorKey(void) const { return "*"; };
+    virtual bool Create(CQueryTokenNode *pNode);
+    virtual string ValueString();
+    virtual string jsonClass() { return "CQTokAny"; };
 };
 
 
@@ -443,289 +443,289 @@ public:
 //! single-token query: positional anchor
 class CQTokAnchor : public CQToken {
 public:
-  int m_ValueInt;
+    int m_ValueInt;
 
 public:
-  CQTokAnchor(const string &indexName=string(""), const string &value=string(""))
-    : CQToken(indexName,value)
-  {
-    m_ValueInt = strtol(value.c_str(), NULL, 0);
-  };
+    CQTokAnchor(const string &indexName=string(""), const string &value=string(""))
+        : CQToken(indexName,value)
+    {
+        m_ValueInt = strtol(value.c_str(), NULL, 0);
+    };
 
-  virtual const char *OperatorKey(void) const { return "."; };
-  virtual bool Create(CQueryTokenNode *pNode);
-  virtual string IndexString(void);
-  virtual string ValueString();
-  virtual string jsonClass() { return "CQTokAnchor"; };
-  virtual string jsonValue() { return Format("%d", m_ValueInt); };
+    virtual const char *OperatorKey(void) const { return "."; };
+    virtual bool Create(CQueryTokenNode *pNode);
+    virtual string IndexString(void);
+    virtual string ValueString();
+    virtual string jsonClass() { return "CQTokAnchor"; };
+    virtual string jsonValue() { return Format("%d", m_ValueInt); };
 };
 
 //------------------------------------------------------------
 //! single-token query: regex
 class CQTokRegex : public CQToken {
 public:
-  bool m_bRegexNegated;
+    bool m_bRegexNegated;
 public:
-  CQTokRegex(const string &indexName=string(""), const string &regex=string(""), bool negated=false)
-    : CQToken(indexName,regex), m_bRegexNegated(negated)
-  {};
+    CQTokRegex(const string &indexName=string(""), const string &regex=string(""), bool negated=false)
+        : CQToken(indexName,regex), m_bRegexNegated(negated)
+    {};
 
-  virtual const char *OperatorKey(void) const { return "/_/"; };
-  virtual bool Create(CQueryTokenNode *pNode);
-  virtual string ValueString();
-  virtual string jsonClass() { return "CQTokRegex"; };
+    virtual const char *OperatorKey(void) const { return "/_/"; };
+    virtual bool Create(CQueryTokenNode *pNode);
+    virtual string ValueString();
+    virtual string jsonClass() { return "CQTokRegex"; };
 };
 
 //------------------------------------------------------------
 //! single-token query: disjunction over a finite set of values
 class CQTokSet : public CQToken {
 public:
-  //! set of user-specified target forms
-  set<string> m_Values;
+    //! set of user-specified target forms
+    set<string> m_Values;
 
 public:
-  CQTokSet(const string &indexName=string(""), const string& rawValue=string(""), const set<string>& values=set<string>())
-    : CQToken(indexName,rawValue), m_Values(values)
-  {};
+    CQTokSet(const string &indexName=string(""), const string& rawValue=string(""), const set<string>& values=set<string>())
+        : CQToken(indexName,rawValue), m_Values(values)
+    {};
 
-  virtual bool Create(CQueryTokenNode *pNode);
-  virtual const char *OperatorKey(void) const { return "@_"; };
+    virtual bool Create(CQueryTokenNode *pNode);
+    virtual const char *OperatorKey(void) const { return "@_"; };
 
-  //! utility for use by subclasses: comma-separated list of strings in \a values
-  string SetValueString(const set<string> &values);
+    //! utility for use by subclasses: comma-separated list of strings in \a values
+    string SetValueString(const set<string> &values);
 
-  //! wrapper for SetValueString(m_Values)
-  inline string SetValueString(void) { return SetValueString(m_Values); };
+    //! wrapper for SetValueString(m_Values)
+    inline string SetValueString(void) { return SetValueString(m_Values); };
 
-  //! wrapper for jsonArray(m_Values)
-  inline string jsonValues(void) { return jsonArray(m_Values); };
+    //! wrapper for jsonArray(m_Values)
+    inline string jsonValues(void) { return jsonArray(m_Values); };
 
-  //! ValueString() returns "@{" + SetValueString() + "}"
-  virtual string ValueString(void);
+    //! ValueString() returns "@{" + SetValueString() + "}"
+    virtual string ValueString(void);
 
-  virtual string jsonClass() { return "CQTokSet"; };
-  virtual string jsonValue() { return jsonValues(); };
+    virtual string jsonClass() { return "CQTokSet"; };
+    virtual string jsonValue() { return jsonValues(); };
 };
 
 //------------------------------------------------------------
 //! single-token query: expanded using CTermExpander.h interface
 class CQTokInfl : public CQTokSet {
 public:
-  //! expansion chain labels (empty list uses default expander for current index or identity)
-  vector<string> m_Expanders;
+    //! expansion chain labels (empty list uses default expander for current index or identity)
+    vector<string> m_Expanders;
 
-  //! expansion chain; see TermExpander.h
-  TxChain m_Txc;
+    //! expansion chain; see TermExpander.h
+    TxChain m_Txc;
 
 public:
-  CQTokInfl(const string &indexName=string(""), const string &value=string(""), const vector<string> expanders=vector<string>())
-    : CQTokSet(indexName,value), m_Expanders(expanders), m_Txc("(CQTokInfl)")
-  {};
+    CQTokInfl(const string &indexName=string(""), const string &value=string(""), const vector<string> expanders=vector<string>())
+        : CQTokSet(indexName,value), m_Expanders(expanders), m_Txc("(CQTokInfl)")
+    {};
 
-  CQTokInfl(const string &indexName=string(""), const set<string> &values=set<string>(), const vector<string> expanders=vector<string>())
-    : CQTokSet(indexName,string(""),values), m_Expanders(expanders), m_Txc("(CQTokInfl)")
-  {};
+    CQTokInfl(const string &indexName=string(""), const set<string> &values=set<string>(), const vector<string> expanders=vector<string>())
+        : CQTokSet(indexName,string(""),values), m_Expanders(expanders), m_Txc("(CQTokInfl)")
+    {};
 
 
-  //! utility gets expansion chain for m_Expanders in m_Txc; requires non-NULL m_Compiler
-  //! \li if m_Expanders is empty, uses default expansion chain for index, or identity expander if none is defined
-  //! \li an empty string in m_Expanders likewise corresponds to the default expansion chain
-  //! \li throws an exception if an otherwise unknown expander is referenced
-  //! \li returns m_Txc (by reference)
-  TxChain& GetChain(void);
+    //! utility gets expansion chain for m_Expanders in m_Txc; requires non-NULL m_Compiler
+    //! \li if m_Expanders is empty, uses default expansion chain for index, or identity expander if none is defined
+    //! \li an empty string in m_Expanders likewise corresponds to the default expansion chain
+    //! \li throws an exception if an otherwise unknown expander is referenced
+    //! \li returns m_Txc (by reference)
+    TxChain& GetChain(void);
 
-  virtual const char *OperatorKey(void) const { return "_"; };
-  virtual bool Create(CQueryTokenNode *pNode);
-  virtual string ValueString(void);
+    virtual const char *OperatorKey(void) const { return "_"; };
+    virtual bool Create(CQueryTokenNode *pNode);
+    virtual string ValueString(void);
 
-  //! Stringification utility: returns string "%X1%X2%X3..." for m_Expanders
-  virtual string ExpanderString(void);
-  virtual string ExpanderJson(void);
+    //! Stringification utility: returns string "%X1%X2%X3..." for m_Expanders
+    virtual string ExpanderString(void);
+    virtual string ExpanderJson(void);
 
-  virtual string jsonClass() { return "CQTokInfl"; };
-  virtual string jsonValue() { return CQToken::jsonValue(); };
-  virtual string jsonData();
+    virtual string jsonClass() { return "CQTokInfl"; };
+    virtual string jsonValue() { return CQToken::jsonValue(); };
+    virtual string jsonData();
 };
 
 //------------------------------------------------------------
 //! single-token query: set expanded using CTermExpander.h interface
 class CQTokSetInfl : public CQTokInfl {
 public:
-  //! raw input values
-  set<string> m_RawValues;
+    //! raw input values
+    set<string> m_RawValues;
 
 public:
-  CQTokSetInfl(const string &indexName=string(""), const set<string> &values=set<string>(), const vector<string> expanders=vector<string>())
-    : CQTokInfl(indexName,values,expanders)
-  { m_RawValues = m_Values; };
+    CQTokSetInfl(const string &indexName=string(""), const set<string> &values=set<string>(), const vector<string> expanders=vector<string>())
+        : CQTokInfl(indexName,values,expanders)
+    { m_RawValues = m_Values; };
 
-  virtual bool Create(CQueryTokenNode *pNode);
-  virtual string ValueString(void);
+    virtual bool Create(CQueryTokenNode *pNode);
+    virtual string ValueString(void);
 
-  virtual string jsonClass() { return "CQTokSetInfl"; };
-  virtual string jsonValue() { return CQTokSet::jsonValue(); };
+    virtual string jsonClass() { return "CQTokSetInfl"; };
+    virtual string jsonValue() { return CQTokSet::jsonValue(); };
 };
 
 //------------------------------------------------------------
 //! single-token query: prefix (right-truncated) query PREFIX*
 class CQTokPrefix : public CQToken {
 public:
-  CQTokPrefix(const string &indexName=string(""), const string &prefix=string(""))
-    : CQToken(indexName,prefix)
-  {};
+    CQTokPrefix(const string &indexName=string(""), const string &prefix=string(""))
+        : CQToken(indexName,prefix)
+    {};
 
-  virtual const char *OperatorKey(void) const { return "/_/"; };
-  virtual bool Create(CQueryTokenNode *pNode);
-  virtual string ValueString();
+    virtual const char *OperatorKey(void) const { return "/_/"; };
+    virtual bool Create(CQueryTokenNode *pNode);
+    virtual string ValueString();
 
-  virtual string jsonClass() { return "CQTokPrefix"; };
+    virtual string jsonClass() { return "CQTokPrefix"; };
 };
 
 //------------------------------------------------------------
 //! single-token query: suffix (left-truncated) query *SUFFIX
 class CQTokSuffix : public CQToken {
 public:
-  CQTokSuffix(const string &indexName=string(""), const string &suffix=string(""))
-    : CQToken(indexName,suffix)
-  {};
-  virtual const char *OperatorKey(void) const { return "/_/"; };
-  virtual bool Create(CQueryTokenNode *pNode);
-  virtual string ValueString();
-  virtual string jsonClass() { return "CQTokSuffix"; };
+    CQTokSuffix(const string &indexName=string(""), const string &suffix=string(""))
+        : CQToken(indexName,suffix)
+    {};
+    virtual const char *OperatorKey(void) const { return "/_/"; };
+    virtual bool Create(CQueryTokenNode *pNode);
+    virtual string ValueString();
+    virtual string jsonClass() { return "CQTokSuffix"; };
 };
 
 //------------------------------------------------------------
 //! single-token query: infix (substring) query *INFIX*
 class CQTokInfix : public CQToken {
 public:
-  CQTokInfix(const string &indexName=string(""), const string &infix=string(""))
-    : CQToken(indexName,infix)
-  {};
-  virtual const char *OperatorKey(void) const { return "/_/"; };
-  virtual bool Create(CQueryTokenNode *pNode);
-  virtual string ValueString();
-  virtual string jsonClass() { return "CQTokInfix"; };
+    CQTokInfix(const string &indexName=string(""), const string &infix=string(""))
+        : CQToken(indexName,infix)
+    {};
+    virtual const char *OperatorKey(void) const { return "/_/"; };
+    virtual bool Create(CQueryTokenNode *pNode);
+    virtual string ValueString();
+    virtual string jsonClass() { return "CQTokInfix"; };
 };
 
 //------------------------------------------------------------
 //! single-token query: prefix-set (right-truncated) query {PREFIX,...}*
 class CQTokPrefixSet : public CQTokSet {
 public:
-  CQTokPrefixSet(const string &indexName=string(""), const set<string> &prefixes=set<string>())
-    : CQTokSet(indexName,"",prefixes)
-  {};
-  virtual const char *OperatorKey(void) const { return "/_/"; };
-  virtual bool Create(CQueryTokenNode *pNode);
-  virtual string ValueString();
-  virtual string jsonClass() { return "CQTokPrefixSet"; };
+    CQTokPrefixSet(const string &indexName=string(""), const set<string> &prefixes=set<string>())
+        : CQTokSet(indexName,"",prefixes)
+    {};
+    virtual const char *OperatorKey(void) const { return "/_/"; };
+    virtual bool Create(CQueryTokenNode *pNode);
+    virtual string ValueString();
+    virtual string jsonClass() { return "CQTokPrefixSet"; };
 };
 
 //------------------------------------------------------------
 //! single-token query: suffix-set (left-truncated) query *{SUFFIX,...}
 class CQTokSuffixSet : public CQTokSet {
 public:
-  CQTokSuffixSet(const string &indexName=string(""), const set<string> &suffixes=set<string>())
-    : CQTokSet(indexName,"",suffixes)
-  {};
-  virtual const char *OperatorKey(void) const { return "/_/"; };
-  virtual bool Create(CQueryTokenNode *pNode);
-  virtual string ValueString();
-  virtual string jsonClass() { return "CQTokSuffixSet"; };
+    CQTokSuffixSet(const string &indexName=string(""), const set<string> &suffixes=set<string>())
+        : CQTokSet(indexName,"",suffixes)
+    {};
+    virtual const char *OperatorKey(void) const { return "/_/"; };
+    virtual bool Create(CQueryTokenNode *pNode);
+    virtual string ValueString();
+    virtual string jsonClass() { return "CQTokSuffixSet"; };
 };
 
 //------------------------------------------------------------
 //! single-token query: infix-set (substring) query *{INFIX,...}*
 class CQTokInfixSet : public CQTokSet {
 public:
-  CQTokInfixSet(const string &indexName=string(""), const set<string> &infixes=set<string>())
-    : CQTokSet(indexName,"",infixes)
-  {};
-  virtual const char *OperatorKey(void) const { return "/_/"; };
-  virtual bool Create(CQueryTokenNode *pNode);
-  virtual string ValueString();
-  virtual string jsonClass() { return "CQTokInfixSet"; };
+    CQTokInfixSet(const string &indexName=string(""), const set<string> &infixes=set<string>())
+        : CQTokSet(indexName,"",infixes)
+    {};
+    virtual const char *OperatorKey(void) const { return "/_/"; };
+    virtual bool Create(CQueryTokenNode *pNode);
+    virtual string ValueString();
+    virtual string jsonClass() { return "CQTokInfixSet"; };
 };
 
 //------------------------------------------------------------
 //! single-token query: morph pattern (compiles, but UNTESTED)
 class CQTokMorph : public CQToken {
 public:
-  //! morph query items
-  vector<string> m_Items;
+    //! morph query items
+    vector<string> m_Items;
 
 public:
-  CQTokMorph(const string &indexName=string("MorphPattern"), const vector<string>& items=vector<string>())
-    : CQToken(indexName), m_Items(items)
-  { if (!m_Items.empty()) m_Value=m_Items[0]; };
+    CQTokMorph(const string &indexName=string("MorphPattern"), const vector<string>& items=vector<string>())
+        : CQToken(indexName), m_Items(items)
+    { if (!m_Items.empty()) m_Value=m_Items[0]; };
 
-  //! append an item to the current list
-  void Append(const string &item) { m_Items.push_back(item); };
+    //! append an item to the current list
+    void Append(const string &item) { m_Items.push_back(item); };
 
-  virtual const char *OperatorKey(void) const { return "[_]"; };
-  virtual bool Create(CQueryTokenNode *pNode);
-  virtual string ValueString();
+    virtual const char *OperatorKey(void) const { return "[_]"; };
+    virtual bool Create(CQueryTokenNode *pNode);
+    virtual string ValueString();
 
-  virtual string jsonClass() { return "CQTokMorph"; };
-  virtual string jsonValue() { return jsonArray(m_Items); };
+    virtual string jsonClass() { return "CQTokMorph"; };
+    virtual string jsonValue() { return jsonArray(m_Items); };
 };
 
 //------------------------------------------------------------
 //! single-token query: lemma-search "%LEMMA" (UNTESTED under LemmaQueryUsesMorphPattern=true (default))
 class CQTokLemma : public CQTokMorph {
 public:
-  CQTokLemma(const string &indexName=string("Lemma"), const string &value=string(""))
-    : CQTokMorph(indexName,vector<string>(1,value))
-  {};
+    CQTokLemma(const string &indexName=string("Lemma"), const string &value=string(""))
+        : CQTokMorph(indexName,vector<string>(1,value))
+    {};
 
-  virtual const char *OperatorKey(void) const { return "%_"; };
-  virtual bool Create(CQueryTokenNode *pNode);
-  virtual string ValueString();
+    virtual const char *OperatorKey(void) const { return "%_"; };
+    virtual bool Create(CQueryTokenNode *pNode);
+    virtual string ValueString();
 
-  virtual string jsonClass() { return "CQTokLemma"; };
-  virtual string jsonValue() { return CQToken::jsonValue(); };
+    virtual string jsonClass() { return "CQTokLemma"; };
+    virtual string jsonValue() { return CQToken::jsonValue(); };
 };
 
 //------------------------------------------------------------
 //! single-token query: thesaurus (compiles, but UNTESTED)
 class CQTokThes : public CQToken {
 public:
-  CQTokThes(const string &indexName=string("Thes"), const string &value=string(""))
-    : CQToken(indexName,value)
-  {};
+    CQTokThes(const string &indexName=string("Thes"), const string &value=string(""))
+        : CQToken(indexName,value)
+    {};
 
-  virtual const char *OperatorKey(void) const { return ":{_}"; };
-  virtual bool Create(CQueryTokenNode *pNode);
-  virtual string ValueString();
+    virtual const char *OperatorKey(void) const { return ":{_}"; };
+    virtual bool Create(CQueryTokenNode *pNode);
+    virtual string ValueString();
 
-  virtual string jsonClass() { return "CQTokThes"; };
+    virtual string jsonClass() { return "CQTokThes"; };
 };
 
 //------------------------------------------------------------
 //! single-token query: chunk (compiles, but UNTESTED)
 class CQTokChunk : public CQToken {
 public:
-  CQTokChunk(const string &indexName=string(""), const string &value=string(""))
-    : CQToken(indexName,value)
-  {};
+    CQTokChunk(const string &indexName=string(""), const string &value=string(""))
+        : CQToken(indexName,value)
+    {};
 
-  virtual const char *OperatorKey(void) const { return "^_"; };
-  virtual bool Create(CQueryTokenNode *pNode);
-  virtual string ValueString();
-  virtual string jsonClass() { return "CQTokChunk"; };
+    virtual const char *OperatorKey(void) const { return "^_"; };
+    virtual bool Create(CQueryTokenNode *pNode);
+    virtual string ValueString();
+    virtual string jsonClass() { return "CQTokChunk"; };
 };
 
 //------------------------------------------------------------
 //! single-token query: file list (UNSAFE)
 class CQTokFile : public CQToken {
 public:
-  CQTokFile(const string &indexName=string(""), const string &fileName=string(""))
-    : CQToken(indexName,fileName)
-  {};
+    CQTokFile(const string &indexName=string(""), const string &fileName=string(""))
+        : CQToken(indexName,fileName)
+    {};
 
-  virtual const char *OperatorKey(void) const { return "<_"; };
-  virtual bool Create(CQueryTokenNode *pNode);
-  virtual string ValueString();
-  virtual string jsonClass() { return "CQTokFile"; };
+    virtual const char *OperatorKey(void) const { return "<_"; };
+    virtual bool Create(CQueryTokenNode *pNode);
+    virtual string ValueString();
+    virtual string jsonClass() { return "CQTokFile"; };
 };
 
 
@@ -737,51 +737,51 @@ public:
 //! un-ordered proximity constraint over 2 sub-queries
 class CQNear : public CQNegatable {
 public:
-  //! first query argument (required)
-  CQuery *m_dtr1;
+    //! first query argument (required)
+    CQuery *m_dtr1;
 
-  //! second query argument (required)
-  CQuery *m_dtr2;
+    //! second query argument (required)
+    CQuery *m_dtr2;
 
-  //! thrid query argument (NULL for none)
-  CQuery *m_dtr3;
+    //! thrid query argument (NULL for none)
+    CQuery *m_dtr3;
 
-  //! maximum distance
-  BYTE    m_Dist;
+    //! maximum distance
+    BYTE    m_Dist;
 
 public:
-  CQNear(BYTE dist=1, CQuery *dtr1=NULL, CQuery *dtr2=NULL, CQuery *dtr3=NULL)
-    : m_dtr1(dtr1), m_dtr2(dtr2), m_dtr3(dtr3), m_Dist(dist)
-  {};
+    CQNear(BYTE dist=1, CQuery *dtr1=NULL, CQuery *dtr2=NULL, CQuery *dtr3=NULL)
+        : m_dtr1(dtr1), m_dtr2(dtr2), m_dtr3(dtr3), m_Dist(dist)
+    {};
 
-  //! destructor deletes daughter nodes
-  virtual ~CQNear();
+    //! destructor deletes daughter nodes
+    virtual ~CQNear();
 
-  //! deletes associated daughter nodes (avoiding double-free)
-  virtual void ClearNode();
+    //! deletes associated daughter nodes (avoiding double-free)
+    virtual void ClearNode();
 
-  //! clear query contents.  if \c deep is true, propagates operation to daughters
-  virtual void Clear(bool deep=true);
+    //! clear query contents.  if \c deep is true, propagates operation to daughters
+    virtual void Clear(bool deep=true);
 
-  //! get a list of direct non-NULL CQuery direct daughters of this node
-  virtual ddcObjectList Children() const;
+    //! get a list of direct non-NULL CQuery direct daughters of this node
+    virtual ddcObjectList Children() const;
 
-  //! "disown" any direct child nodes, preventing their destruction if the current object is deleted
-  virtual void DisownChildren();
+    //! "disown" any direct child nodes, preventing their destruction if the current object is deleted
+    virtual void DisownChildren();
 
-  //! get match-id: dtr3 > dtr2 > dtr1
-  virtual BYTE GetMatchId() const;
+    //! get match-id: dtr3 > dtr2 > dtr1
+    virtual BYTE GetMatchId() const;
 
-  //! Set match-id, returns new value; override propagates matchId to daughers.
-  virtual BYTE SetMatchId(BYTE matchId);
+    //! Set match-id, returns new value; override propagates matchId to daughers.
+    virtual BYTE SetMatchId(BYTE matchId);
 
-  //! Compile() method implicitly compiles daughter nodes
-  virtual bool Compile(CQueryCompiler *compiler);
+    //! Compile() method implicitly compiles daughter nodes
+    virtual bool Compile(CQueryCompiler *compiler);
 
-  virtual string toString();
+    virtual string toString();
 
-  virtual string jsonClass() { return "CQNear"; };
-  virtual string jsonData();
+    virtual string jsonClass() { return "CQNear"; };
+    virtual string jsonData();
 };
 
 //------------------------------------------------------------
@@ -793,54 +793,54 @@ public:
 //!  \li exactly      \c m_Dists[i] tokens if \c m_DistOps[i] == '='
 class CQSeq : public CQAtomic {
 public:
-  //! items to be queried (must be token nodes)
-  vector<CQToken*> m_Items;
+    //! items to be queried (must be token nodes)
+    vector<CQToken*> m_Items;
 
-  //! distances between items
-  vector<BYTE>  m_Dists;
+    //! distances between items
+    vector<BYTE>  m_Dists;
 
-  //! distance constraint relations
-  vector<BYTE>  m_DistOps;
+    //! distance constraint relations
+    vector<BYTE>  m_DistOps;
 
 public:
-  //! literal constructor (unused)
-  CQSeq(const vector<CQToken*> &items, const vector<BYTE> &dists, const vector<BYTE> &distops)
-    : m_Items(items), m_Dists(dists), m_DistOps(distops)
-  {};
+    //! literal constructor (unused)
+    CQSeq(const vector<CQToken*> &items, const vector<BYTE> &dists, const vector<BYTE> &distops)
+        : m_Items(items), m_Dists(dists), m_DistOps(distops)
+    {};
 
-  //! constructor for atomic (1-token) sequences
-  CQSeq(CQToken *item)
-    : m_Items(1,item)
-  {};
+    //! constructor for atomic (1-token) sequences
+    CQSeq(CQToken *item)
+        : m_Items(1,item)
+    {};
 
-  //! destructor deletes all child nodes in m_Items
-  virtual ~CQSeq();
+    //! destructor deletes all child nodes in m_Items
+    virtual ~CQSeq();
 
-  //! get match-id: later nonzero matchid-items clobber earlier ones
-  virtual BYTE GetMatchId() const;
+    //! get match-id: later nonzero matchid-items clobber earlier ones
+    virtual BYTE GetMatchId() const;
 
-  //! Set match-id, returns new value; override propagates matchId to daughters.
-  virtual BYTE SetMatchId(BYTE matchId);
+    //! Set match-id, returns new value; override propagates matchId to daughters.
+    virtual BYTE SetMatchId(BYTE matchId);
 
-  //! ClearNode() clears associated m_Node's pointer vector to avoid double-free
-  virtual void ClearNode();
+    //! ClearNode() clears associated m_Node's pointer vector to avoid double-free
+    virtual void ClearNode();
 
-  //! clear query contents.  if \c deep is true, propagates operation to daughters
-  virtual void Clear(bool deep=true);
+    //! clear query contents.  if \c deep is true, propagates operation to daughters
+    virtual void Clear(bool deep=true);
 
-  //! append another (item,distance) pair onto this sequence
-  //! \c nextDist is ignored if this is the first item in the sequence
-  void Append(CQToken *nextItem, BYTE nextDist=0, BYTE nextDistOp='<');
+    //! append another (item,distance) pair onto this sequence
+    //! \c nextDist is ignored if this is the first item in the sequence
+    void Append(CQToken *nextItem, BYTE nextDist=0, BYTE nextDistOp='<');
 
-  //! Compile() method implicitly compiles daughter nodes
-  virtual bool Compile(CQueryCompiler *compiler);
+    //! Compile() method implicitly compiles daughter nodes
+    virtual bool Compile(CQueryCompiler *compiler);
 
-  //-- ddcObject API
-  virtual ddcObjectList Children() const;
-  virtual void DisownChildren();
-  virtual string toString();
-  virtual string jsonClass() { return "CQSeq"; };
-  virtual string jsonData();
+    //-- ddcObject API
+    virtual ddcObjectList Children() const;
+    virtual void DisownChildren();
+    virtual string toString();
+    virtual string jsonClass() { return "CQSeq"; };
+    virtual string jsonData();
 };
 
 
@@ -849,7 +849,7 @@ public:
 /*--- emacs style variables ---
  * Local Variables:
  *  mode: C++
- *  c-default-style: "linux"
+ *  c-file-style: "ellemtel"
  *  c-basic-offset: 4
  *  tab-width: 8
  *  indent-tabs-mode: nil

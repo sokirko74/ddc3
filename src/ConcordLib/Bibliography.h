@@ -8,7 +8,7 @@
 #include "../CommonLib/utilit.h"
 
 /*! CBibliography  contains bibliographical information about one \ref corpus_file_def "corpus file", this information
- is read from xml, xpathes are defined in options file.
+  is read from xml, xpathes are defined in options file.
 */
 struct CBibliography {
     //! original bibliography
@@ -44,7 +44,7 @@ struct CBibliography {
 /*--- emacs style variables ---
  * Local Variables:
  *  mode: C++
- *  c-default-style: "linux"
+ *  c-file-style: "ellemtel"
  *  c-basic-offset: 4
  *  tab-width: 8
  *  indent-tabs-mode: nil

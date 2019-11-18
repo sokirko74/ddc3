@@ -68,7 +68,7 @@ static void dumpHits(const std::string &Label, const vector<CHit> &Hits) {
                 Label.c_str(), hi,
                 h.m_BreakNo, h.m_HighlightOccurrenceEnd, h.m_SortKey.i, jsonStr(h.m_SortKey.s).c_str(), h.m_FileNo,
                 h.m_Value.m_DebugRankNo
-        );
+            );
     }
 }
 
@@ -83,7 +83,7 @@ static void dumpHitIndex(const std::string &IndexLabel, const vector<size_t> &Hi
                 Label.c_str(), hi,
                 h.m_BreakNo, h.m_HighlightOccurrenceEnd, h.m_SortKey.i, jsonStr(h.m_SortKey.s).c_str(), h.m_FileNo,
                 h.m_Value.m_DebugRankNo
-        );
+            );
     }
 }
 
@@ -94,7 +94,7 @@ struct IsLessByHitSortKey {
     const vector<CHit> &m_Base;
 
     IsLessByHitSortKey(const vector<CHit> &Base)
-            : m_Base(Base) {};
+        : m_Base(Base) {};
 
     bool operator()(size_t i1, size_t i2) const {
         return m_Base[i1].m_SortKey.i < m_Base[i2].m_SortKey.i;
@@ -172,7 +172,7 @@ void SpaceStartQuoteMarks(string &s) {
             if (s[i + 1] == ' ')
                 if (bInQuoteMark
                     || ((i > 0) && (s[i - 1] == ':'))
-                        )
+                    )
                     swap(s[i], s[i + 1]);
 
             bInQuoteMark = !bInQuoteMark;
@@ -197,8 +197,8 @@ void SpaceStartQuoteMarks(string &s) {
         && (s[1] == ' ')
         && ((s[0] == '\'')
             || (s[0] == '"')
-        )
             )
+        )
         swap(s[0], s[1]);
 
 
@@ -296,9 +296,9 @@ CConcSession *CConcSession::WorkerClone(size_t WorkerId) {
 
 #if 0 //-- DEBUG
     concord_daemon_log(Format("CConcSession::WorkerClone(): this = %0.16p:{Ctx=%0.16p, Random=%0.16p, Index=%0.16p}",
-                  this, this->m_pSessionContext, this->m_pRandom, this->m_pConcordance));
+                              this, this->m_pSessionContext, this->m_pRandom, this->m_pConcordance));
     concord_daemon_log(Format("CConcSession::WorkerClone(): clone= %0.16p:{Ctx=%0.16p, Random=%0.16p, Index=%0.16p}",
-                  clone, clone->m_pSessionContext, clone->m_pRandom, clone->m_pConcordance));
+                              clone, clone->m_pSessionContext, clone->m_pRandom, clone->m_pConcordance));
 #endif
 
     return clone;
@@ -360,10 +360,10 @@ void CConcSession::ShowBibliographyForTextOrHtml(const CHit &Hit, DWORD PageNumb
 
     string BiblStr;
     /*
-        if <sourcedesc id="scan"> exists then
-            - take <bibl>...</bibl>
-            - take <date id="first"> in <sourcedesc id="orig">
-        else take <bibl>...</bibl> in <sourcedesc id="orig">
+      if <sourcedesc id="scan"> exists then
+      - take <bibl>...</bibl>
+      - take <date id="first"> in <sourcedesc id="orig">
+      else take <bibl>...</bibl> in <sourcedesc id="orig">
     */
     if (m_pConcordance->IsGutenbergInterface()) {
         int dummy, birth, death;
@@ -401,7 +401,7 @@ void CConcSession::ShowBibliographyForTextOrHtml(const CHit &Hit, DWORD PageNumb
             for (i += 2; i < BiblStr.length(); i++)
                 if ((BiblStr[i] != ' ')
                     && !isdigit((BYTE) BiblStr[i])
-                        )
+                    )
                     break;
 
             if (i == BiblStr.length())
@@ -469,9 +469,9 @@ string BuildHtmlHitStrWithHighlighting(const vector<COutputToken> &Tokens, bool 
         if ((i > 0)
             && (!ispunct((BYTE) Tokens[i].m_TokenStr[0])
                 || (Tokens[i].m_TokenStr == "-")
-            )
-
                 )
+
+            )
             HitStr += " ";
 
         if (bUseAnchorSpan && !Tokens[i].m_InterpStr.empty())
@@ -560,11 +560,11 @@ string CConcSession::BuildJsonContextString(const vector<COutputToken> &Tokens, 
             //-- return each token as a json hash
             js.push_back('{');
             for (size_t fi=0; fi < fields.size(); fi++) {
-            const CStringIndexSet& I = *m_pConcordance->m_Indices[m_pConcordance->m_IndicesToShow[fi]];
-            if (fi>0) js.push_back(',');
-            js.append(jsonStr(I.m_ShortName, utf8));
-            js.push_back(':');
-            js.append(jsonStr(fields[fi], utf8));
+                const CStringIndexSet& I = *m_pConcordance->m_Indices[m_pConcordance->m_IndicesToShow[fi]];
+                if (fi>0) js.push_back(',');
+                js.append(jsonStr(I.m_ShortName, utf8));
+                js.push_back(':');
+                js.append(jsonStr(fields[fi], utf8));
             }
             js += ",\"hl_\":";
             if (Tokens[i].m_Highlight) {
@@ -632,7 +632,7 @@ bool CConcSession::GetContext(int StartBreakNo, int EndBreakNo, const DWORD Curr
         const CTokenNo &B = Breaks[BreakNo];
         if ((B > FileStartTokenNo)
             && (B <= FileEndTokenNo)
-                ) {
+            ) {
 
             assert (!m_pConcordance->m_IndicesToShow.empty());
             vector<COutputToken> Tokens;
@@ -681,7 +681,7 @@ bool CConcSession::GetContextJson(int StartBreakNo, int EndBreakNo, const DWORD 
                 vector<COutputToken> ixTokens;
                 if (!GetTokensFromStorageByBreak(m_pConcordance->m_IndicesToShow[ixno], BreakNo, ixTokens)) {
                     throw CExpc(errOther, Format("CConcSession::GetContextJson(): could not get index items for IndexNo=%i, BreakNo=%i\n",
-                                 m_pConcordance->m_IndicesToShow[ixno], BreakNo));
+                                                 m_pConcordance->m_IndicesToShow[ixno], BreakNo));
                     return false;
                 }
                 if (ixno==0) {
@@ -718,8 +718,8 @@ bool CConcSession::ShowBibliographyForTable(DWORD PageNumber, const CHit &Hit, c
         if (Tokens[i].m_Highlight
             && ((i == 0)
                 || (find(Tokens.begin(), Tokens.begin() + i - 1, Tokens[i]) == Tokens.begin() + i - 1)
-            )
-                ) // print only unique keywords
+                )
+            ) // print only unique keywords
             KeyWords += string("<orth>") + ConvertASCIIToHtmlSymbols(Tokens[i].m_TokenStr) + " </orth>";
 
     CBibliography B = m_pConcordance->m_BiblIndex.GetFullBibliographyOfHit(Hit.m_FileNo);
@@ -738,13 +738,13 @@ bool CConcSession::ShowBibliographyForTable(DWORD PageNumber, const CHit &Hit, c
                          + string("keyword") + globalTableItemsDelim + KeyWords);
 
     m_QueryResultStr +=
-            m_pConcordance->m_BiblIndex.GetFreeHeaderBiblAttributesWithNames(Hit.m_FileNo, globalTableItemsDelim) +
-            globalTableItemsDelim;
+        m_pConcordance->m_BiblIndex.GetFreeHeaderBiblAttributesWithNames(Hit.m_FileNo, globalTableItemsDelim) +
+        globalTableItemsDelim;
 
     //-- rank stuff / table
     if (HasRankOrderOperator()) {
         m_QueryResultStr +=
-                string("rank") + globalTableItemsDelim + Format("%d", Hit.m_SortKey.i) + globalTableItemsDelim;
+            string("rank") + globalTableItemsDelim + Format("%d", Hit.m_SortKey.i) + globalTableItemsDelim;
         if (m_pQueryCompiler->m_pQuery->m_Options->m_bDebugRank) {
             const char *DebugInfo = (const char *) (void *) (&m_DebugInfo[0]) + Hit.m_Value.m_DebugRankNo;
             m_QueryResultStr += string("rank_debug") + globalTableItemsDelim + DebugInfo + globalTableItemsDelim;
@@ -826,7 +826,7 @@ bool CConcSession::GenerateOneHitString(DWORD PageNumber, const CHit &Hit, const
                                                                                    m_pConcordance->m_TableHighlighting,
                                                                                    false,
                                                                                    m_pConcordance->m_TokenDelimiter) +
-                                "</s>";
+                "</s>";
             break;
         case DDC_ResultDocIds :
             break; // no hit body
@@ -864,29 +864,29 @@ bool CConcSession::GenerateOneHitStringJson(DWORD PageNumber, const CHit &Hit, c
     // hit debugging
 #ifdef DEBUG_HIT_JSON
     hitStr        += (string("\"debug_\":{")
-              + "\"project_\":" + jsonStr(m_pConcordance->m_Path)
-              + ",\"worker_\":" + Format("%zu", m_WorkerId)
-              + ",\"breakno_\":" + Format("%u",  (uint)Hit.m_BreakNo)
-              + ",\"breakstart_\":" + Format("%u",  (uint)(Hit.m_BreakNo==0 ? 0 : GetBreaks()[Hit.m_BreakNo-1]))
-              + ",\"highlight_\":" + Format("%u",(uint)Hit.m_HighlightOccurrenceEnd)
-              + ",\"fileno_\":" + Format("%u",   (uint)Hit.m_FileNo)
-              + ",\"key_\":[" + Format("%d", Hit.m_SortKey.i) + "," + jsonStr(Hit.m_SortKey.s, utf8) + "]"
-              + "},");
+                      + "\"project_\":" + jsonStr(m_pConcordance->m_Path)
+                      + ",\"worker_\":" + Format("%zu", m_WorkerId)
+                      + ",\"breakno_\":" + Format("%u",  (uint)Hit.m_BreakNo)
+                      + ",\"breakstart_\":" + Format("%u",  (uint)(Hit.m_BreakNo==0 ? 0 : GetBreaks()[Hit.m_BreakNo-1]))
+                      + ",\"highlight_\":" + Format("%u",(uint)Hit.m_HighlightOccurrenceEnd)
+                      + ",\"fileno_\":" + Format("%u",   (uint)Hit.m_FileNo)
+                      + ",\"key_\":[" + Format("%d", Hit.m_SortKey.i) + "," + jsonStr(Hit.m_SortKey.s, utf8) + "]"
+                      + "},");
 #endif
 
     //==================================================
     // hit metadata
     hitStr += (string("\"meta_\":{")
-               #if JSON_SHORT_FILENAMES
+#if JSON_SHORT_FILENAMES
                + "\"file_\":" + jsonStr(m_pConcordance->GetShortFilename(Hit.m_FileNo), utf8)
-               #else
+#else
                + "\"file_\":" + jsonStr(m_pConcordance->m_CorpusFiles[Hit.m_FileNo], utf8)
-               #endif // JSON_SHORT_FILENAMES
+#endif // JSON_SHORT_FILENAMES
                + ",\"scan_\":" + jsonStr(B.m_ScanBibl, utf8)
                + ",\"orig_\":" + jsonStr(B.m_OrigBibl, utf8)
                + ",\"date_\":" + jsonStr(B.m_DateStr, utf8)
                + ",\"page_\":" + pageStr
-    );
+        );
     if (m_pQueryCompiler->m_pQuery->m_Options->m_bEnableBibliography && m_pConcordance->OutputBibliographyOfHits()) {
         hitStr += "," + m_pConcordance->m_BiblIndex.GetFreeHeaderBiblAttributesJson(Hit.m_FileNo, utf8);
     }
@@ -982,8 +982,8 @@ bool CConcSession::GetFileSnippets(const int HitNo, vector<COutputToken> &Result
     vector<CTokenNo> positions;
     {
         vector<CTokenNo>::const_iterator start = (HitNo != 0) ? m_HighlightOccurs.begin() +
-                                                                m_Hits[HitNo - 1].m_HighlightOccurrenceEnd
-                                                              : m_HighlightOccurs.begin();
+            m_Hits[HitNo - 1].m_HighlightOccurrenceEnd
+            : m_HighlightOccurs.begin();
         vector<CTokenNo>::const_iterator end = m_HighlightOccurs.begin() + m_Hits[HitNo].m_HighlightOccurrenceEnd;
         positions.insert(positions.begin(), start, end);
         sort(positions.begin(), positions.end());
@@ -1031,8 +1031,8 @@ bool CConcSession::GetFileSnippets(const int HitNo, vector<COutputToken> &Result
     for (set<CTokenNo>::const_iterator pos_it = DifferentTokens.begin(); pos_it != DifferentTokens.end(); pos_it++) {
         CTokenNo pos = *pos_it;
         int start_kwic_line = max(
-                ((m_pConcordance->m_LeftKwicContextSize >= pos) ? 0 : pos - m_pConcordance->m_LeftKwicContextSize),
-                StartTokenNo);
+            ((m_pConcordance->m_LeftKwicContextSize >= pos) ? 0 : pos - m_pConcordance->m_LeftKwicContextSize),
+            StartTokenNo);
         int end_kwic_line = min(pos + m_pConcordance->m_RightKwicContextSize + 1, EndTokenNo);
         vector<COutputToken> CurrTokens;
         if (!m_pConcordance->GetTokenIndex()->GetTokensFromStorage(start_kwic_line, end_kwic_line, CurrTokens))
@@ -1098,11 +1098,11 @@ DDCErrorEnum CConcSession::GenerateHitStrings(const int StartHitNo, bool UseAddi
                     if (!Interps[tkn_no].m_TokenStr.empty())
                         if (m_ResultFormat != DDC_ResultHTML)
                             Tokens[tkn_no].m_InterpStr +=
-                                    m_pConcordance->m_InterpDelimiter + Interps[tkn_no].m_TokenStr;
+                                m_pConcordance->m_InterpDelimiter + Interps[tkn_no].m_TokenStr;
                         else
                             Tokens[tkn_no].m_InterpStr += Interps[tkn_no].m_TokenStr + " ";
                     //else
-                    //	Tokens[tkn_no].m_InterpStr +=  m_pConcordance->m_InterpDelimiter;
+                    //  Tokens[tkn_no].m_InterpStr +=  m_pConcordance->m_InterpDelimiter;
 
                 }
             }
@@ -1158,10 +1158,10 @@ DDCErrorEnum CConcSession::GenerateCountStrings(const int StartHitNo, bool UseAd
     int end = min(m_Hits.size(), StartHitNo - m_ResultOffset + m_ResultLimit);
 
     HIT_SORT_DEBUG(
-            ddcLogDebug(Format("GenerateCountStrings() called: StartHitNo=%zd ; ResultOffset=%zd ; nHits=%zd ; end=%zd",
-                               StartHitNo, m_ResultOffset, m_Hits.size(), end));
-            dumpHits("DEBUG[generateCountStrings]: m_Hits", m_Hits);
-    );
+        ddcLogDebug(Format("GenerateCountStrings() called: StartHitNo=%zd ; ResultOffset=%zd ; nHits=%zd ; end=%zd",
+                           StartHitNo, m_ResultOffset, m_Hits.size(), end));
+        dumpHits("DEBUG[generateCountStrings]: m_Hits", m_Hits);
+        );
 
     for (DWORD HitNo = beg; HitNo < end; HitNo++) {
         GenerateCountString(m_QueryResultStr, m_ResultFormat, m_Hits[HitNo]);
@@ -1189,24 +1189,24 @@ void CConcSession::InitFileReferences(vector<CHit> &Hits) const {
     const ddcBreakVector &FileBreaks = m_pConcordance->GetFileBreaks();
     size_t HitsCount = Hits.size();
     /* uncomment it if you want 1.5% performance boost
-    if (HitsCount > 10) {
-        size_t hitNo = 0;
-        size_t fileNo =
-                lower_bound(FileBreaks.begin(), FileBreaks.end(), Breaks[Hits[0].m_BreakNo]) - FileBreaks.begin();
-        size_t fileCount = FileBreaks.size();
-        while (fileNo < fileCount && hitNo < HitsCount) {
-            CHit &H = Hits[hitNo];
-            const CTokenNo &Break = Breaks[H.m_BreakNo];
-            if ((fileNo == 0 || FileBreaks[fileNo - 1] < Break) && Break <= FileBreaks[fileNo]) {
-                H.m_FileNo = fileNo;
-                H.m_SortKey = H.m_BreakNo;  // no sort
-                ++hitNo;
-            } else {
-                ++fileNo;
-            }
-        }
-        return;
-    }*/
+       if (HitsCount > 10) {
+       size_t hitNo = 0;
+       size_t fileNo =
+       lower_bound(FileBreaks.begin(), FileBreaks.end(), Breaks[Hits[0].m_BreakNo]) - FileBreaks.begin();
+       size_t fileCount = FileBreaks.size();
+       while (fileNo < fileCount && hitNo < HitsCount) {
+       CHit &H = Hits[hitNo];
+       const CTokenNo &Break = Breaks[H.m_BreakNo];
+       if ((fileNo == 0 || FileBreaks[fileNo - 1] < Break) && Break <= FileBreaks[fileNo]) {
+       H.m_FileNo = fileNo;
+       H.m_SortKey = H.m_BreakNo;  // no sort
+       ++hitNo;
+       } else {
+       ++fileNo;
+       }
+       }
+       return;
+       }*/
     for (size_t HitNo = 0; HitNo < HitsCount; HitNo++) {
         CHit &H = Hits[HitNo];
         const CTokenNo &Break = Breaks[H.m_BreakNo];
@@ -1355,7 +1355,7 @@ void CConcSession::InitSortByRank(const CQuery *pQuery) const {
         }
         tfidf = m_pConcordance->m_TfIdfRank * tfidf / (double) NodeIndicesCount;
         double near_rank = m_pConcordance->m_NearRank /
-                           ((double) (HitRank.m_PassageEnd - HitRank.m_PassageStart) / (double) NodeIndicesCount);
+            ((double) (HitRank.m_PassageEnd - HitRank.m_PassageStart) / (double) NodeIndicesCount);
         int pos_from_the_hit_beginning = HitRank.m_PassageStart - StartTokenNo + 1;
         double position_rank = m_pConcordance->m_PositionRank / (double) pos_from_the_hit_beginning;
         double rank = (tfidf + near_rank + position_rank) / 3;
@@ -1464,7 +1464,7 @@ void CConcSession::InitSortByContext(const CQuery *pQuery, const CDDCFilterWithB
                     DWORD occur_ri = H.m_HighlightOccurrenceEnd - 1;
                     occur_i = occur_li + (occur_ri - occur_li) / 2;
                 }
-                    break;
+                break;
             }
         }
 
@@ -1563,10 +1563,10 @@ void CConcSession::SortKeyLB(CHitSortKey &Key, const CDDCFilterWithBounds &Filte
             if (Filter.m_BiblIndex == NULL) {
                 //-- should never happen
                 ddcLogWarn(
-                        Format("WARNING: Filter.m_BiblIndex undefined: cannot get value-ID for key `%s' via filter %s[%s]",
-                               Key.s.c_str(),
-                               HitSortEnumStrings[Filter.m_FilterType],
-                               Filter.m_AttrName.c_str()));
+                    Format("WARNING: Filter.m_BiblIndex undefined: cannot get value-ID for key `%s' via filter %s[%s]",
+                           Key.s.c_str(),
+                           HitSortEnumStrings[Filter.m_FilterType],
+                           Filter.m_AttrName.c_str()));
             } else {
                 Key.i = Filter.m_BiblIndex->GetIntegerLowerBound(Key.s);
             }
@@ -1661,16 +1661,16 @@ DDCErrorEnum CConcSession::GetAllHits(CQuery *QueryRoot, size_t Start, size_t Li
                 //-- ascending sort (also run for NoSort, since #has_field[] filters need bounds-checking)
                 stable_sort(PeriodHitsIndex.begin(), PeriodHitsIndex.end(), IsLessByHitSortKey(qHits));
                 hits_start = my_lower_bound(PeriodHitsIndex.begin(), PeriodHitsIndex.end(), F.m_KeyLo, qHits) -
-                             PeriodHitsIndex.begin();
+                    PeriodHitsIndex.begin();
                 hits_end = my_lower_bound(PeriodHitsIndex.begin(), PeriodHitsIndex.end(), F.m_KeyHi, qHits) -
-                           PeriodHitsIndex.begin();
+                    PeriodHitsIndex.begin();
             } else if (m_SortOrder < 0) {
                 //-- descending sort
                 stable_sort(PeriodHitsIndex.rbegin(), PeriodHitsIndex.rend(), IsLessByHitSortKey(qHits));
                 hits_start = my_lower_bound(PeriodHitsIndex.rbegin(), PeriodHitsIndex.rend(), F.m_KeyHi, qHits) -
-                             PeriodHitsIndex.rbegin();
+                    PeriodHitsIndex.rbegin();
                 hits_end = my_lower_bound(PeriodHitsIndex.rbegin(), PeriodHitsIndex.rend(), F.m_KeyLo, qHits) -
-                           PeriodHitsIndex.rbegin();
+                    PeriodHitsIndex.rbegin();
                 hits_start = PeriodHitsIndex.size() - hits_start;
                 hits_end = PeriodHitsIndex.size() - hits_end;
             } else {
@@ -1681,11 +1681,11 @@ DDCErrorEnum CConcSession::GetAllHits(CQuery *QueryRoot, size_t Start, size_t Li
 
 #if DEBUG_HIT_SORT //-- DEBUG
             fprintf(stderr, "DEBUG[pre-trim,period=%d/%d,filter=%s(%s),order=%d]: KeyLo={%d,%s}, KeyHi={%d,%s}, hits_start=%zd, hits_end=%zd\n",
-                m_CurrentSearchPeriodNo, CountOfPeriods,
-                HitSortEnumNames[F.m_FilterType], F.m_AttrName.c_str(), m_SortOrder,
-                F.m_KeyLo.i, jsonStr(F.m_KeyLo.s).c_str(),
-                F.m_KeyHi.i, jsonStr(F.m_KeyHi.s).c_str(),
-                hits_start, hits_end);
+                    m_CurrentSearchPeriodNo, CountOfPeriods,
+                    HitSortEnumNames[F.m_FilterType], F.m_AttrName.c_str(), m_SortOrder,
+                    F.m_KeyLo.i, jsonStr(F.m_KeyLo.s).c_str(),
+                    F.m_KeyHi.i, jsonStr(F.m_KeyHi.s).c_str(),
+                    hits_start, hits_end);
             dumpHitIndex("DEBUG: periodHits", PeriodHitsIndex, "qHits", qHits);
 #endif //-- DEBUG
 
@@ -1745,31 +1745,31 @@ DDCErrorEnum CConcSession::GetAllHits(CQuery *QueryRoot, size_t Start, size_t Li
                 PeriodHitsIndex.erase(PeriodHitsIndex.begin(), PeriodHitsIndex.begin() + TrimFrontOffset);
                 m_ResultOffset += TrimFrontOffset;
                 HIT_TRIM_DEBUG(ddcLogDebug(
-                        Format("TRIM-FRONT[period=%zd/%zd,ResultOffset=%zd,Start=%zd]: trimmed %zd/%zd initial hit(s)",
-                               m_CurrentSearchPeriodNo, CountOfPeriods, m_ResultOffset, Start,
-                               TrimFrontOffset, TrimFrontOffset + PeriodHitsIndex.size()))
-                );
+                                   Format("TRIM-FRONT[period=%zd/%zd,ResultOffset=%zd,Start=%zd]: trimmed %zd/%zd initial hit(s)",
+                                          m_CurrentSearchPeriodNo, CountOfPeriods, m_ResultOffset, Start,
+                                          TrimFrontOffset, TrimFrontOffset + PeriodHitsIndex.size()))
+                    );
             } else if (m_SortOrder != hsoNone && !m_ResultMinKey.empty() && !qOpts->m_Filters.empty()) {
                 //-- trim-front: sortkey-based (nontrivial sort operators)
                 SortKeyLB(minKey, qOpts->m_Filters.back());
                 if (m_SortOrder > 0) {
                     //-- ascending sort
                     TrimFrontOffset = my_lower_bound(PeriodHitsIndex.begin(), PeriodHitsIndex.end(), minKey, qHits) -
-                                      PeriodHitsIndex.begin();
+                        PeriodHitsIndex.begin();
                 } else if (m_SortOrder < 0) {
                     //-- descending sortt
                     TrimFrontOffset = my_upper_bound(PeriodHitsIndex.rbegin(), PeriodHitsIndex.rend(), minKey, qHits) -
-                                      PeriodHitsIndex.rbegin();
+                        PeriodHitsIndex.rbegin();
                     TrimFrontOffset = PeriodHitsIndex.size() - TrimFrontOffset;
                 }
 
                 m_ResultOffset += TrimFrontOffset;
                 PeriodHitsIndex.erase(PeriodHitsIndex.begin(), PeriodHitsIndex.begin() + TrimFrontOffset);
                 HIT_TRIM_DEBUG(ddcLogDebug(
-                        Format("TRIM-FRONT[period=%zd/%zd,ResultOffset=%zd,minKey=%d=`%s']: trimmed %zd/%zd initial hit(s)",
-                               m_CurrentSearchPeriodNo, CountOfPeriods, m_ResultOffset, minKey.i, minKey.s.c_str(),
-                               TrimFrontOffset, (TrimFrontOffset + PeriodHitsIndex.size())))
-                );
+                                   Format("TRIM-FRONT[period=%zd/%zd,ResultOffset=%zd,minKey=%d=`%s']: trimmed %zd/%zd initial hit(s)",
+                                          m_CurrentSearchPeriodNo, CountOfPeriods, m_ResultOffset, minKey.i, minKey.s.c_str(),
+                                          TrimFrontOffset, (TrimFrontOffset + PeriodHitsIndex.size())))
+                    );
             }
         }
 
@@ -1791,11 +1791,11 @@ DDCErrorEnum CConcSession::GetAllHits(CQuery *QueryRoot, size_t Start, size_t Li
         // + a native post-retrieval k-way merge with a min-heap would be even better, but would be a PITA
         size_t PeriodCount = min(PeriodLimit, PeriodHitsIndex.size());
         HIT_TRIM_DEBUG(ddcLogDebug(
-                Format("TRIM-BACK[period=%zd/%zd,qLimit=%zd,ResultOffset=%zd,TrimFrontOffset=%zd,PeriodLimit=%zd,PeriodCount=%zd]: trimming %zd/%zd final hit(s)",
-                       m_CurrentSearchPeriodNo, CountOfPeriods, qLimit, m_ResultOffset, TrimFrontOffset, PeriodLimit,
-                       PeriodCount,
-                       PeriodHitsIndex.size() - PeriodCount, PeriodHitsIndex.size()
-                )));
+                           Format("TRIM-BACK[period=%zd/%zd,qLimit=%zd,ResultOffset=%zd,TrimFrontOffset=%zd,PeriodLimit=%zd,PeriodCount=%zd]: trimming %zd/%zd final hit(s)",
+                                  m_CurrentSearchPeriodNo, CountOfPeriods, qLimit, m_ResultOffset, TrimFrontOffset, PeriodLimit,
+                                  PeriodCount,
+                                  PeriodHitsIndex.size() - PeriodCount, PeriodHitsIndex.size()
+                               )));
         for (size_t i = 0; i < PeriodCount; i++) {
             size_t HitNo = PeriodHitsIndex[i];
             const CHit &H = qHits[HitNo];
@@ -1804,12 +1804,12 @@ DDCErrorEnum CConcSession::GetAllHits(CQuery *QueryRoot, size_t Start, size_t Li
             m_HighlightOccurs.insert(m_HighlightOccurs.end(),
                                      qNode->m_Occurrences.begin() + start_index,
                                      qNode->m_Occurrences.begin() + H.m_HighlightOccurrenceEnd
-            );
+                );
             if (bUseMatchIds)
                 m_HighlightIds.insert(m_HighlightIds.end(),
                                       qNode->m_OccurrenceMatchIds.begin() + start_index,
                                       qNode->m_OccurrenceMatchIds.begin() + H.m_HighlightOccurrenceEnd
-                );
+                    );
             m_Hits.push_back(H);
             m_Hits.back().m_HighlightOccurrenceEnd = m_HighlightOccurs.size();
         }
@@ -1966,6 +1966,7 @@ DDCErrorEnum CConcSession::GetHits(CQuery *QueryRoot, DWORD &EndHitNo, const str
 
     try {
         size_t StartHitNo = EndHitNo; //-- EndHitNo as input parameter
+
         if (!TryToGetFromCache(QueryStr, EndHitNo)) {
             //-- new query, cache-miss, or re-evaluation required (e.g. high-offset page request)
             DDCErrorEnum result = GetAllHits(QueryRoot, StartHitNo,
@@ -2009,9 +2010,9 @@ DDCErrorEnum CConcSession::GetHits(CQuery *QueryRoot, DWORD &EndHitNo, const str
                 HitsIndex.erase(HitsIndex.begin(), HitsIndex.begin() + nTrim);
                 m_ResultOffset += nTrim;
                 HIT_TRIM_DEBUG(ddcLogDebug(
-                        Format("TRIM-FRONT[final,ResultOffset=%zd,StartHitNo=%zd]: trimmed %zd/%zd initial hit(s)",
-                               m_ResultOffset, StartHitNo, nTrim, nTrim + HitsIndex.size()))
-                );
+                                   Format("TRIM-FRONT[final,ResultOffset=%zd,StartHitNo=%zd]: trimmed %zd/%zd initial hit(s)",
+                                          m_ResultOffset, StartHitNo, nTrim, nTrim + HitsIndex.size()))
+                    );
 
             }
             //HIT_SORT_DEBUG( dumpHitIndex(Format("DEBUG[post-trim;offset=%zd]: HitsIndex", m_ResultOffset), HitsIndex, "m_Hits", m_Hits) );
@@ -2071,11 +2072,11 @@ DDCErrorEnum CConcSession::SimpleQuery(const string &Query, DWORD &EndHitNo, DWO
         if (m_ResultFormat == DDC_ResultHTML) {
             if (m_pConcordance->m_bShowNumberOfRelevantDocuments)
                 m_QueryResultStr =
-                        Format("Occurrences %i - %i of %i in %i document(s)<br>", StartHitNo + 1, EndHitNo, HitsCount,
-                               m_RelevantDocumentCount) + m_QueryResultStr;
+                    Format("Occurrences %i - %i of %i in %i document(s)<br>", StartHitNo + 1, EndHitNo, HitsCount,
+                           m_RelevantDocumentCount) + m_QueryResultStr;
             else
                 m_QueryResultStr =
-                        Format("Occurrences %i - %i of %i<br>", StartHitNo + 1, EndHitNo, HitsCount) + m_QueryResultStr;
+                    Format("Occurrences %i - %i of %i<br>", StartHitNo + 1, EndHitNo, HitsCount) + m_QueryResultStr;
         };
 
         DecorateQueryResults(GetResultFormatStr(), m_QueryResultStr);
@@ -2350,12 +2351,10 @@ void CConcSession::SetRandomSeed(unsigned int seed1) const {
     m_pRandom->set_seed(m_RandomSeed + seed1);
 }
 
-
-
 /*--- emacs style variables ---
  * Local Variables:
  *  mode: C++
- *  c-default-style: "linux"
+ *  c-file-style: "ellemtel"
  *  c-basic-offset: 4
  *  tab-width: 8
  *  indent-tabs-mode: nil

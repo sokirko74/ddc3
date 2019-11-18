@@ -16,12 +16,12 @@ include $(top_srcdir)/m4/library.am
 
 ##--- libtool libraries
 #lib_LTLIBRARIES = ${lib_1}.la ... ${lib_N}.la
-lib_LTLIBRARIES = libjsoncpp.la
+lib_LTLIBRARIES = libDDCjsoncpp.la
 
 ##======================================================================
 ## sources
 
-libjsoncpp_la_SOURCES = \
+libDDCjsoncpp_la_SOURCES = \
  json_reader.cpp json_tool.h \
  json_value.cpp json_valueiterator.inl \
  json_writer.cpp version.h.in
@@ -90,7 +90,7 @@ MAINTAINERCLEANFILES = \
 ##-----------------------------------------------------------------------
 
 ##--- extra distribution files
-#EXTRA_DIST =
+EXTRA_DIST = CMakeLists.txt
 
 ##--- recursion subdirectories for 'make dist'
 #DIST_SUBDIRS = $(SUBDIRS)

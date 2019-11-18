@@ -11,7 +11,7 @@ macro (single_tab_file)
     )
     add_test(
             NAME single_tab_file_dump
-            COMMAND ddc_dump --tab-single-file -o new_dump.txt -f m.con
+            COMMAND ddc_dump --tabs-stream -o new_dump.txt -f m.con
             WORKING_DIRECTORY  ${dir}
     )
     add_test(

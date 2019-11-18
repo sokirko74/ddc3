@@ -28,10 +28,10 @@ const  size_t AbbrevSize  = 200;
 enum AbbrevItemTypeEnum  {abString, abNumber, abUpperCase, abAny};
 struct  CAbbrevItem 
 {
-        AbbrevItemTypeEnum      m_Type;
-        string                          m_ItemStr;
-        bool operator == (const CAbbrevItem X) const;
-        bool operator < (const CAbbrevItem X) const;
+    AbbrevItemTypeEnum      m_Type;
+    string                          m_ItemStr;
+    bool operator == (const CAbbrevItem X) const;
+    bool operator < (const CAbbrevItem X) const;
 
         
 };
@@ -45,7 +45,7 @@ typedef list<CAbbrevItem> CAbbrev;
 /*--- emacs style variables ---
  * Local Variables:
  *  mode: C++
- *  c-default-style: "linux"
+ *  c-file-style: "ellemtel"
  *  c-basic-offset: 4
  *  tab-width: 8
  *  indent-tabs-mode: nil

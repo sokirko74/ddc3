@@ -31,10 +31,10 @@
 //--------------------------------------------------------------
 bool CQFilter::Compile(CQueryCompiler *compiler, CQueryOptions *options)
 {
-  assert(compiler!=NULL);
-  assert(options!=NULL);
-  throw CExpc(errParseError,"CQFilter::Compile(): abstract method called!");
-  return false;
+    assert(compiler!=NULL);
+    assert(options!=NULL);
+    throw CExpc(errParseError,"CQFilter::Compile(): abstract method called!");
+    return false;
 }
 
 
@@ -43,13 +43,13 @@ bool CQFilter::Compile(CQueryCompiler *compiler, CQueryOptions *options)
 
 //--------------------------------------------------------------
 CQFSort::CQFSort(HitSortEnum   ftype,
-		 const string &arg0,
-		 const string &arg1,
-		 const string &arg2
-		 )
-  : m_arg0(arg0),
-    m_arg1(arg1),
-    m_arg2(arg2)
+                 const string &arg0,
+                 const string &arg1,
+                 const string &arg2
+    )
+    : m_arg0(arg0),
+      m_arg1(arg1),
+      m_arg2(arg2)
 {
     m_Filter.m_FilterType = ftype;
     m_Filter.m_AttrName = arg0;
@@ -60,107 +60,107 @@ CQFSort::CQFSort(HitSortEnum   ftype,
 
 //--------------------------------------------------------------
 CQFSort::CQFSort(HitSortEnum   ftype,
-		 const string &arg0,
-		 int           arg1i,
-		 int           arg2i
-		 )
-  : m_arg0(arg0)
+                 const string &arg0,
+                 int           arg1i,
+                 int           arg2i
+    )
+    : m_arg0(arg0)
 {
-  m_arg1 = Format("%d", arg1i); //-- debug
-  m_arg2 = Format("%d", arg2i); //-- debug
+    m_arg1 = Format("%d", arg1i); //-- debug
+    m_arg2 = Format("%d", arg2i); //-- debug
 
-  m_Filter.m_FilterType = ftype;
-  m_Filter.m_AttrName = arg0;
-  m_Filter.m_bSet       = false;
-  m_Filter.m_KeyLo      = arg1i;
-  m_Filter.m_KeyHi      = arg2i;
+    m_Filter.m_FilterType = ftype;
+    m_Filter.m_AttrName = arg0;
+    m_Filter.m_bSet       = false;
+    m_Filter.m_KeyLo      = arg1i;
+    m_Filter.m_KeyHi      = arg2i;
 }
 
 //--------------------------------------------------------------
 void CQFSort::SortBounds(void) {
-  if (m_Filter.m_KeyLo > m_Filter.m_KeyHi)
-    std::swap(m_Filter.m_KeyLo, m_Filter.m_KeyHi);
+    if (m_Filter.m_KeyLo > m_Filter.m_KeyHi)
+        std::swap(m_Filter.m_KeyLo, m_Filter.m_KeyHi);
 }
 
 //--------------------------------------------------------------
 bool CQFSort::Compile(CQueryCompiler *compiler, CQueryOptions *options)
 {
-  /*
-  assert(compiler!=NULL);
-  assert(compiler->m_pQuery!=NULL);
-  assert(compiler->m_pQuery->m_Options!=NULL);
-  */
-  assert(options != NULL);
-  options->m_Filters.push_back(m_Filter);
-  return true;
+    /*
+      assert(compiler!=NULL);
+      assert(compiler->m_pQuery!=NULL);
+      assert(compiler->m_pQuery->m_Options!=NULL);
+    */
+    assert(options != NULL);
+    options->m_Filters.push_back(m_Filter);
+    return true;
 }
 
 //--------------------------------------------------------------
 string CQFSort::ResolveAttributeName(CQueryCompiler *compiler, const string& attrName, bool allowBiblExpander)
 {
-  CConcordance *ix = compiler->m_pHolder->m_pConcordance;
-  assert(ix != NULL);
+    CConcordance *ix = compiler->m_pHolder->m_pConcordance;
+    assert(ix != NULL);
 
-  if (!attrName.empty() &&
+    if (!attrName.empty() &&
         (      ix->m_BiblIndex.HasFreeBiblIndex(attrName)
-			|| (allowBiblExpander && ix->m_BiblIndex.HasBiblExpander(attrName))
-		)
-      )
-      return attrName;
+               || (allowBiblExpander && ix->m_BiblIndex.HasBiblExpander(attrName))
+            )
+        )
+        return attrName;
 
-  if (!ix->m_BiblIndex.m_DefaultAttrName.empty() && ix->m_BiblIndex.HasFreeBiblIndex(ix->m_BiblIndex.m_DefaultAttrName))
-    return ix->m_BiblIndex.m_DefaultAttrName;
+    if (!ix->m_BiblIndex.m_DefaultAttrName.empty() && ix->m_BiblIndex.HasFreeBiblIndex(ix->m_BiblIndex.m_DefaultAttrName))
+        return ix->m_BiblIndex.m_DefaultAttrName;
 
-  return string("");
+    return string("");
 }
 
 //--------------------------------------------------------------
 string CQFSort::argString(const string &arg) const
 {
-  if (arg.empty()) return arg;
-  return string("'") + escapeChars(arg,"\\'") + "'";
+    if (arg.empty()) return arg;
+    return string("'") + escapeChars(arg,"\\'") + "'";
 }
 
 
 //--------------------------------------------------------------
 string CQFSort::toString(void)
 {
-  string os("#");
-  os += HitSortEnumStrings[m_Filter.m_FilterType];
-  EngMakeUpper(os);
+    string os("#");
+    os += HitSortEnumStrings[m_Filter.m_FilterType];
+    EngMakeUpper(os);
 
-  string as("");
-  if (!m_arg0.empty()) {
-    as += m_arg0;
-  }
-  if (!m_arg1.empty() || !m_arg2.empty()) {
-    if (!as.empty()) as.push_back(',');
-    as += m_arg1;
-    if (!m_arg2.empty()) {
-      as.push_back(',');
-      as += m_arg2;
+    string as("");
+    if (!m_arg0.empty()) {
+        as += m_arg0;
     }
-  }
-  if (!as.empty()) {
-    os.push_back('[');
-    os += as;
-    os.push_back(']');
-  }
-  return os;
+    if (!m_arg1.empty() || !m_arg2.empty()) {
+        if (!as.empty()) as.push_back(',');
+        as += m_arg1;
+        if (!m_arg2.empty()) {
+            as.push_back(',');
+            as += m_arg2;
+        }
+    }
+    if (!as.empty()) {
+        os.push_back('[');
+        os += as;
+        os.push_back(']');
+    }
+    return os;
 };
 
 //--------------------------------------------------------------
 string CQFSort::jsonMinMax()
 {
-  return (string("\"Min\":")+jsonStr(m_arg1)
-	  +",\"Max\":"+jsonStr(m_arg2)
-	  );
+    return (string("\"Min\":")+jsonStr(m_arg1)
+            +",\"Max\":"+jsonStr(m_arg2)
+        );
 };
 
 //--------------------------------------------------------------
 string CQFSort::jsonType()
 {
-  return string("\"FilterType\":")+jsonStr(HitSortEnumStrings[m_Filter.m_FilterType]);
+    return string("\"FilterType\":")+jsonStr(HitSortEnumStrings[m_Filter.m_FilterType]);
 };
 
 
@@ -172,24 +172,24 @@ string CQFSort::jsonType()
 
 int CQFDateSort::Str2Date(const std::string &datestr, int onEmpty)
 {
-  int val = onEmpty;
-  if (!datestr.empty()) {
-    CBibliography B;
-    B.m_DateStr = datestr;
-    B.ConvertDateToInt(val);
-  }
-  return val;
+    int val = onEmpty;
+    if (!datestr.empty()) {
+        CBibliography B;
+        B.m_DateStr = datestr;
+        B.ConvertDateToInt(val);
+    }
+    return val;
 }
 
 bool CQFDateSort::Compile(CQueryCompiler *compiler, CQueryOptions *options)
 {
-  m_Filter.m_KeyLo = INT_MIN+1;
-  m_Filter.m_KeyHi = INT_MAX-1;
+    m_Filter.m_KeyLo = INT_MIN+1;
+    m_Filter.m_KeyHi = INT_MAX-1;
 
-  if (!m_arg1.empty()) m_Filter.m_KeyLo.i = Str2Date(m_arg1);
-  if (!m_arg2.empty()) m_Filter.m_KeyHi.i = Str2Date(m_arg2)+1;
+    if (!m_arg1.empty()) m_Filter.m_KeyLo.i = Str2Date(m_arg1);
+    if (!m_arg2.empty()) m_Filter.m_KeyHi.i = Str2Date(m_arg2)+1;
 
-  return CQFSort::Compile(compiler, options);
+    return CQFSort::Compile(compiler, options);
 }
 
   
@@ -199,15 +199,15 @@ bool CQFDateSort::Compile(CQueryCompiler *compiler, CQueryOptions *options)
 CQFSizeSort::CQFSizeSort(HitSortEnum ftype, int lb, int ub)
     : CQFSort(ftype)
 {
-  m_arg1 = Format("%d", lb);
-  m_arg2 = Format("%d", ub);
+    m_arg1 = Format("%d", lb);
+    m_arg2 = Format("%d", ub);
 }
 
 bool CQFSizeSort::Compile(CQueryCompiler *compiler, CQueryOptions *options)
 {
-  m_Filter.m_KeyLo = (m_arg1.empty() ? INT_MIN : atoi(m_arg1.c_str())  );
-  m_Filter.m_KeyHi = (m_arg2.empty() ? INT_MAX : atoi(m_arg2.c_str())+1);
-  return CQFSort::Compile(compiler, options);
+    m_Filter.m_KeyLo = (m_arg1.empty() ? INT_MIN : atoi(m_arg1.c_str())  );
+    m_Filter.m_KeyHi = (m_arg2.empty() ? INT_MAX : atoi(m_arg2.c_str())+1);
+    return CQFSort::Compile(compiler, options);
 }
 
 //======================================================================
@@ -216,16 +216,16 @@ bool CQFSizeSort::Compile(CQueryCompiler *compiler, CQueryOptions *options)
 CQFRandomSort::CQFRandomSort(int seed0)
     : CQFSort(RandomSort)
 {
-  m_arg1 = Format("%d", seed0);
+    m_arg1 = Format("%d", seed0);
 }
 
 bool CQFRandomSort::Compile(CQueryCompiler *compiler, CQueryOptions *options)
 {
-  //-- #RANDOM[] is equivalent to #RANDOM[0]
-  //   + we __could__ use time(NULL) to seed here, but DDC's cache prevents re-sorting for identical query strings
-  int seed = m_arg1.empty() ? 0 : atoi(m_arg1.c_str());
-  compiler->m_pHolder->SetRandomSeed((unsigned int)seed);
-  return CQFSort::Compile(compiler, options);
+    //-- #RANDOM[] is equivalent to #RANDOM[0]
+    //   + we __could__ use time(NULL) to seed here, but DDC's cache prevents re-sorting for identical query strings
+    int seed = m_arg1.empty() ? 0 : atoi(m_arg1.c_str());
+    compiler->m_pHolder->SetRandomSeed((unsigned int)seed);
+    return CQFSort::Compile(compiler, options);
 }
 
 
@@ -234,53 +234,53 @@ bool CQFRandomSort::Compile(CQueryCompiler *compiler, CQueryOptions *options)
 
 bool CQFBiblSort::Compile(CQueryCompiler *compiler, CQueryOptions *options)
 {
-  CConcordance *ix = compiler->m_pHolder->m_pConcordance;
-  assert(ix != NULL);
+    CConcordance *ix = compiler->m_pHolder->m_pConcordance;
+    assert(ix != NULL);
 
-  if (m_arg0.empty())
-    throw CExpc(errParseError,"Empty bibliographic field not allowed in sort operator `%s'", this->toString().c_str());
+    if (m_arg0.empty())
+        throw CExpc(errParseError,"Empty bibliographic field not allowed in sort operator `%s'", this->toString().c_str());
 
-  //-- resolve attribute name (fallback to DefaultBibl)
-  m_Filter.m_AttrName = ResolveAttributeName(compiler, m_arg0);
-  if (m_Filter.m_AttrName.empty()) {
-    throw CExpc(errParseError,"Can't resolve attribute name `%s' for bibliographic sort operator `%s'", m_arg0.c_str(), this->toString().c_str());
-  }
+    //-- resolve attribute name (fallback to DefaultBibl)
+    m_Filter.m_AttrName = ResolveAttributeName(compiler, m_arg0);
+    if (m_Filter.m_AttrName.empty()) {
+        throw CExpc(errParseError,"Can't resolve attribute name `%s' for bibliographic sort operator `%s'", m_arg0.c_str(), this->toString().c_str());
+    }
 
-  //-- guts: get filter bounds
-  if (!ix->m_BiblIndex.GetFilterBounds(m_Filter, m_arg1, m_arg2)) {
-    throw CExpc(errParseError,"Can't determine bound(s) for bibliographic sort operator `%s'", this->toString().c_str());
-  }
+    //-- guts: get filter bounds
+    if (!ix->m_BiblIndex.GetFilterBounds(m_Filter, m_arg1, m_arg2)) {
+        throw CExpc(errParseError,"Can't determine bound(s) for bibliographic sort operator `%s'", this->toString().c_str());
+    }
 
-  return CQFSort::Compile(compiler, options);
+    return CQFSort::Compile(compiler, options);
 }
 
 string CQFBiblSort::toString(void)
 {
-  string os("#");
-  os += HitSortEnumStrings[m_Filter.m_FilterType];
-  EngMakeUpper(os);
-  os += string("['") + escapeChars(m_arg0,"\\'") + "',";
+    string os("#");
+    os += HitSortEnumStrings[m_Filter.m_FilterType];
+    EngMakeUpper(os);
+    os += string("['") + escapeChars(m_arg0,"\\'") + "',";
 
-  if (!m_arg1.empty() || !m_arg2.empty()) {
-    os += argString(m_arg1) + "," + argString(m_arg2);
-  }
-  os.push_back(']');
-  return os;
+    if (!m_arg1.empty() || !m_arg2.empty()) {
+        os += argString(m_arg1) + "," + argString(m_arg2);
+    }
+    os.push_back(']');
+    return os;
 };
 
 string CQFBiblSort::jsonData(void)
 {
-  return (this->jsonType()
-	  +",\"Field\":"+jsonStr(m_arg0)
-	  +","+this->jsonMinMax()
-	  );
+    return (this->jsonType()
+            +",\"Field\":"+jsonStr(m_arg0)
+            +","+this->jsonMinMax()
+        );
 };
 
 string CQFBiblSort::jsonMinMax(void)
 {
-  return (string("\"Min\":")+jsonStr(m_arg1)
-	  +",\"Max\":"+jsonStr(m_arg2)
-	  );
+    return (string("\"Min\":")+jsonStr(m_arg1)
+            +",\"Max\":"+jsonStr(m_arg2)
+        );
 };
 
 //======================================================================
@@ -288,47 +288,47 @@ string CQFBiblSort::jsonMinMax(void)
 
 bool CQFContextSort::Compile(CQueryCompiler *compiler, CQueryOptions *options)
 {
-  CConcordance *ix = compiler->m_pHolder->m_pConcordance;
-  assert(ix != NULL);
+    CConcordance *ix = compiler->m_pHolder->m_pConcordance;
+    assert(ix != NULL);
 
-  m_Filter.m_AttrName  = m_arg0.empty() ? ix->GetTokenIndex()->m_Name : m_arg0;
-  CStringIndexSet* ixx = ix->GetIndexByAlias(m_Filter.m_AttrName);
-  if (ixx == NULL)
-    throw CExpc(errParseError,"Can't find index `%s' for context-sort operator `%s'", m_Filter.m_AttrName.c_str(), toString().c_str());
+    m_Filter.m_AttrName  = m_arg0.empty() ? ix->GetTokenIndex()->m_Name : m_arg0;
+    CStringIndexSet* ixx = ix->GetIndexByAlias(m_Filter.m_AttrName);
+    if (ixx == NULL)
+        throw CExpc(errParseError,"Can't find index `%s' for context-sort operator `%s'", m_Filter.m_AttrName.c_str(), toString().c_str());
 
-  if (!ixx->GetContextBounds(m_Filter, m_arg1, m_arg2))
-      throw CExpc(errParseError,"Can't determine bound(s) for context-sort operator `%s'", toString().c_str());
+    if (!ixx->GetContextBounds(m_Filter, m_arg1, m_arg2))
+        throw CExpc(errParseError,"Can't determine bound(s) for context-sort operator `%s'", toString().c_str());
 
-  return CQFSort::Compile(compiler,options);
+    return CQFSort::Compile(compiler,options);
 }
 
 string CQFContextSort::toString(void)
 {
-  string os("#");
-  os += HitSortEnumStrings[m_Filter.m_FilterType];
-  EngMakeUpper(os);
+    string os("#");
+    os += HitSortEnumStrings[m_Filter.m_FilterType];
+    EngMakeUpper(os);
 
-  //if (!m_arg0.empty() || m_Filter.m_ContextOffset!=0 || !m_arg1.empty() || !m_arg2.empty()) {...}
-  os += string("[") + argString(m_arg0);
-  if (m_Filter.m_ContextMatchId != 0)
-    os += Format(" =%u", m_Filter.m_ContextMatchId);
-  os += Format(" %+d", m_Filter.m_ContextOffset);
-  if (!m_arg1.empty() || !m_arg2.empty()) {
-    os += string(",") + argString(m_arg1) + "," + argString(m_arg2);
-  }
-  os.push_back(']');
+    //if (!m_arg0.empty() || m_Filter.m_ContextOffset!=0 || !m_arg1.empty() || !m_arg2.empty()) {...}
+    os += string("[") + argString(m_arg0);
+    if (m_Filter.m_ContextMatchId != 0)
+        os += Format(" =%u", m_Filter.m_ContextMatchId);
+    os += Format(" %+d", m_Filter.m_ContextOffset);
+    if (!m_arg1.empty() || !m_arg2.empty()) {
+        os += string(",") + argString(m_arg1) + "," + argString(m_arg2);
+    }
+    os.push_back(']');
 
-  return os;
+    return os;
 };
 
 string CQFContextSort::jsonData(void)
 {
-  return (this->jsonType()
-	  +",\"Field\":"+jsonStr(m_arg0)
-	  +",\"MatchId\":"+Format("%u", m_Filter.m_ContextMatchId)
-	  +",\"Offset\":"+Format("%d", m_Filter.m_ContextOffset)
-	  +","+this->jsonMinMax()
-	  );
+    return (this->jsonType()
+            +",\"Field\":"+jsonStr(m_arg0)
+            +",\"MatchId\":"+Format("%u", m_Filter.m_ContextMatchId)
+            +",\"Offset\":"+Format("%d", m_Filter.m_ContextOffset)
+            +","+this->jsonMinMax()
+        );
 };
 
 
@@ -337,48 +337,48 @@ string CQFContextSort::jsonData(void)
 
 void CQFHasField::Negate(void)
 {
-  m_Negated = !m_Negated;
+    m_Negated = !m_Negated;
 }
 
 bool CQFHasField::Compile(CQueryCompiler *compiler, CQueryOptions *options)
 {
-  if (m_arg0.empty())
-    throw CExpc(errParseError,"Empty bibliographic field not allowed in filter operator `%s'", toString().c_str());
+    if (m_arg0.empty())
+        throw CExpc(errParseError,"Empty bibliographic field not allowed in filter operator `%s'", toString().c_str());
 
-  if (m_arg1.empty())
-    throw CExpc(errParseError,"Empty value field not allowed in filter operator `%s'", toString().c_str());
+    if (m_arg1.empty())
+        throw CExpc(errParseError,"Empty value field not allowed in filter operator `%s'", toString().c_str());
 
-  //-- resolve attribute name (allow expanders, fallback to DefaultBibl)
-  m_Filter.m_AttrName = ResolveAttributeName(compiler, m_arg0, true);
-  if (m_Filter.m_AttrName.empty()) {
-    throw CExpc(errParseError,"Can't resolve attribute name `%s' in bibliographic filter operator `%s'", m_arg0.c_str(), this->toString().c_str());
-  }
+    //-- resolve attribute name (allow expanders, fallback to DefaultBibl)
+    m_Filter.m_AttrName = ResolveAttributeName(compiler, m_arg0, true);
+    if (m_Filter.m_AttrName.empty()) {
+        throw CExpc(errParseError,"Can't resolve attribute name `%s' in bibliographic filter operator `%s'", m_arg0.c_str(), this->toString().c_str());
+    }
 
-  return true;
+    return true;
 }
 
 string CQFHasField::toString()
 {
-  return 
-    std::string(m_Negated ? "!" : "")
-    + "#HAS["
-    + sqString(m_arg0)
-    + ","
-    + valueString()
-    + "]";
+    return 
+        std::string(m_Negated ? "!" : "")
+        + "#HAS["
+        + sqString(m_arg0)
+        + ","
+        + valueString()
+        + "]";
 }
 
 string CQFHasField::valueString()
 {
-  return sqString(m_arg1);
+    return sqString(m_arg1);
 }
 
 string CQFHasField::jsonMinMax(void)
 {
-  return (string("\"Field\":")+jsonStr(m_arg0)
-	  +",\"Value\":"+this->jsonFieldValue()
-	  +",\"Negated\":"+(m_Negated ? "1" : "0")
-	  );
+    return (string("\"Field\":")+jsonStr(m_arg0)
+            +",\"Value\":"+this->jsonFieldValue()
+            +",\"Negated\":"+(m_Negated ? "1" : "0")
+        );
 }
 
 //======================================================================
@@ -386,15 +386,15 @@ string CQFHasField::jsonMinMax(void)
 
 bool CQFHasFieldValue::Compile(CQueryCompiler *compiler, CQueryOptions *options)
 {
-  CQFHasField::Compile(compiler,options);
+    CQFHasField::Compile(compiler,options);
 
-  m_Filter.m_bNegated = m_Negated;
-  CConcordance *ix = compiler->m_pHolder->m_pConcordance;
+    m_Filter.m_bNegated = m_Negated;
+    CConcordance *ix = compiler->m_pHolder->m_pConcordance;
 
-  if (!ix->m_BiblIndex.GetFilterValue(m_Filter, m_arg1))
-    throw CExpc(errParseError,"Can't compile literal filter condition `%s'", toString().c_str());
+    if (!ix->m_BiblIndex.GetFilterValue(m_Filter, m_arg1))
+        throw CExpc(errParseError,"Can't compile literal filter condition `%s'", toString().c_str());
 
-  return CQFSort::Compile(compiler,options);
+    return CQFSort::Compile(compiler,options);
 }
 
 //======================================================================
@@ -402,19 +402,19 @@ bool CQFHasFieldValue::Compile(CQueryCompiler *compiler, CQueryOptions *options)
 
 bool CQFHasFieldRegex::Compile(CQueryCompiler *compiler, CQueryOptions *options)
 {
-  CQFHasField::Compile(compiler,options);
+    CQFHasField::Compile(compiler,options);
 
-  m_Filter.m_bNegated = m_Negated;
-  CConcordance *ix = compiler->m_pHolder->m_pConcordance;
-  if (!ix->m_BiblIndex.GetFilterValues(m_Filter, m_Regex))
-    throw CExpc(errParseError,"Can't compile regex filter condition `%s'", toString().c_str());
+    m_Filter.m_bNegated = m_Negated;
+    CConcordance *ix = compiler->m_pHolder->m_pConcordance;
+    if (!ix->m_BiblIndex.GetFilterValues(m_Filter, m_Regex))
+        throw CExpc(errParseError,"Can't compile regex filter condition `%s'", toString().c_str());
 
-  return CQFSort::Compile(compiler,options);
+    return CQFSort::Compile(compiler,options);
 }
 
 string CQFHasFieldRegex::valueString()
 {
-  return reString(m_arg1);
+    return reString(m_arg1);
 }
 
 //======================================================================
@@ -422,7 +422,7 @@ string CQFHasFieldRegex::valueString()
 
 string CQFHasFieldPrefix::valueString()
 {
-  return sqString(m_arg1) + "*";
+    return sqString(m_arg1) + "*";
 }
 
 //======================================================================
@@ -430,7 +430,7 @@ string CQFHasFieldPrefix::valueString()
 
 string CQFHasFieldSuffix::valueString()
 {
-  return std::string("*") + sqString(m_arg1);
+    return std::string("*") + sqString(m_arg1);
 }
 
 //======================================================================
@@ -438,7 +438,7 @@ string CQFHasFieldSuffix::valueString()
 
 string CQFHasFieldInfix::valueString()
 {
-  return std::string("*") + sqString(m_arg1) + "*";
+    return std::string("*") + sqString(m_arg1) + "*";
 }
 
 //======================================================================
@@ -446,46 +446,46 @@ string CQFHasFieldInfix::valueString()
 
 bool CQFHasFieldSet::Compile(CQueryCompiler *compiler, CQueryOptions *options)
 {
-  CQFHasField::Compile(compiler,options);
+    CQFHasField::Compile(compiler,options);
 
-  m_Filter.m_bNegated = m_Negated;
-  CConcordance *ix = compiler->m_pHolder->m_pConcordance;
-  if (!ix->m_BiblIndex.GetFilterValues(m_Filter, m_Values))
-    throw CExpc(errParseError,"Can't compile set-valued filter restriction `%s'", toString().c_str());
+    m_Filter.m_bNegated = m_Negated;
+    CConcordance *ix = compiler->m_pHolder->m_pConcordance;
+    if (!ix->m_BiblIndex.GetFilterValues(m_Filter, m_Values))
+        throw CExpc(errParseError,"Can't compile set-valued filter restriction `%s'", toString().c_str());
 
-  return CQFSort::Compile(compiler,options);
+    return CQFSort::Compile(compiler,options);
 }
 
 string CQFHasFieldSet::SetValueString(const set<string> &values)
 {
-  string s("");
-  for (set<string>::const_iterator vi=values.begin(); vi != values.end(); vi++) {
-    if (!s.empty()) s.push_back(',');
-    s += sqString(*vi);
-  }
-  return s;
+    string s("");
+    for (set<string>::const_iterator vi=values.begin(); vi != values.end(); vi++) {
+        if (!s.empty()) s.push_back(',');
+        s += sqString(*vi);
+    }
+    return s;
 }
 
 string CQFHasFieldSet::valueString()
 {
-  return std::string("{") + SetValueString() + "}";
+    return std::string("{") + SetValueString() + "}";
 }
 
 string CQFHasFieldSet::jsonFieldValue()
 {
-  string s("[");
-  for (set<string>::const_iterator vi=m_Values.begin(); vi != m_Values.end(); vi++) {
-    if (s.size() > 1) s.push_back(',');
-    s += jsonStr(*vi);
-  }
-  s.push_back(']');
-  return s;
+    string s("[");
+    for (set<string>::const_iterator vi=m_Values.begin(); vi != m_Values.end(); vi++) {
+        if (s.size() > 1) s.push_back(',');
+        s += jsonStr(*vi);
+    }
+    s.push_back(']');
+    return s;
 }
 
 /*--- emacs style variables ---
  * Local Variables:
  *  mode: C++
- *  c-default-style: "linux"
+ *  c-file-style: "ellemtel"
  *  c-basic-offset: 4
  *  tab-width: 8
  *  indent-tabs-mode: nil

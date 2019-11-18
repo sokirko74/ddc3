@@ -11,4 +11,7 @@ add_subdirectory (tar_and_stats)
 add_subdirectory (input_tab_format)
 add_subdirectory (single_tab_file)
 add_subdirectory (splitjoin)
+add_subdirectory (bad_daemon_config)
+add_subdirectory (good_daemon_config)
+
 

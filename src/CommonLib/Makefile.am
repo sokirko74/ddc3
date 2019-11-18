@@ -23,43 +23,41 @@ lib_LTLIBRARIES = libDDCCommon.la
 ## sources
 
 libDDCCommon_la_SOURCES = \
- ddcConfigNoAuto.h \
- utilit.cpp utilit.h \
- string_socket.cpp string_socket.h \
  CHost.cpp CHost.h \
- ddcThread.cpp ddcThread.h \
- ddcLocale.cpp ddcLocale.h \
- ddcLog.cpp ddcLog.h \
- ddcVersion.cpp ddcVersion.h \
- ddcString.cpp ddcString.h \
- utf8xx.cpp utf8xx.h \
- ddcTime.cpp ddcTime.h \
- ddcMMap.h \
- ddcStringEnum.h \
- ptrholder.h \
- ddcCorpusList.h
-
-EXTRA_DIST = \
+ DDCInternalError.h \
+ DDC_common.h \
+ GramInfo.h \
  bserialize.h \
  config.h \
  cortege.h \
- DDC_common.h \
- ddcConfigAuto.h \
  ddcConfig.h \
- DDCInternalError.h \
- ddcThreadQueue.h \
- GramInfo.h \
- string_tokenizer.h \
- util_classes.h \
- ddcConfigAuto.h.in \
+ ddcConfigAuto.h \
+ ddcCorpusList.h \
  ddcIconv.h \
+ ddcLocale.cpp ddcLocale.h \
+ ddcLog.cpp ddcLog.h \
+ ddcMMap.cpp ddcMMap.h \
+ ddcObject.h \
  ddcRandom.h \
- ddcObject.h
-
+ ddcString.cpp ddcString.h \
+ ddcStringEnum.h \
+ ddcThread.cpp ddcThread.h \
+ ddcThreadQueue.h \
+ ddcTime.cpp ddcTime.h \
+ ddcVersion.cpp ddcVersion.h \
+ ptrholder.h \
+ string_socket.cpp string_socket.h \
+ string_tokenizer.h \
+ utf8xx.cpp utf8xx.h \
+ util_classes.h \
+ utilit.cpp utilit.h
 
 ##-- extra sources
+nodist_libDDCCommon_la_SOURCES = \
+	ddcConfigNoAuto.h
+
 BUILT_SOURCES = \
-	 ddcConfigNoAuto.h
+	ddcConfigNoAuto.h
 
 ##-- extra rules
 ddcConfigNoAuto.h: ddcConfigAuto.h
@@ -111,6 +109,7 @@ ddcConfigNoAuto.h: ddcConfigAuto.h
 
 ## --- distclean: built by 'configure'
 DISTCLEANFILES = \
+	ddcConfigAuto.h \
 	ddcConfigNoAuto.h
 
 ## -- maintainerclean: built by maintainer / by hand
@@ -122,6 +121,10 @@ MAINTAINERCLEANFILES = \
 ## Variables: distribution
 ##-----------------------------------------------------------------------
 
+##-- extra distribution files
+EXTRA_DIST = \
+	ddcConfigAuto.h.in \
+	CMakeLists.txt
 
 ##--- recursion subdirectories for 'make dist'
 #DIST_SUBDIRS = $(SUBDIRS)

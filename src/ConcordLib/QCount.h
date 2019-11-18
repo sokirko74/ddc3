@@ -33,9 +33,9 @@ const size_t DDCDefaultCountSampleSize = (size_t)-1;
 class CQCountKeyBadOccurrence : public invalid_argument
 {
 public:
-  CQCountKeyBadOccurrence(const string& what_arg)
-    : invalid_argument(what_arg)
-  {};
+    CQCountKeyBadOccurrence(const string& what_arg)
+        : invalid_argument(what_arg)
+    {};
 };
 
 //==============================================================================
@@ -49,95 +49,95 @@ public:
 class CQCountKeyExpr : public CQuery
 {
 public:
-  /** default constructor */
-  CQCountKeyExpr(const string& label="")
-    : CQuery(label)
-  {};
+    /** default constructor */
+    CQCountKeyExpr(const string& label="")
+        : CQuery(label)
+    {};
 
-  /** clear */
-  //virtual void Clear(bool deep=true);
+    /** clear */
+    //virtual void Clear(bool deep=true);
 
-  /** default destuctor */
-  virtual ~CQCountKeyExpr()
-  {};
+    /** default destuctor */
+    virtual ~CQCountKeyExpr()
+    {};
 
-  /** returns true iff this expression can count at the file-level; default returns true */
-  virtual bool CanCountByFile() const { return true; };
+    /** returns true iff this expression can count at the file-level; default returns true */
+    virtual bool CanCountByFile() const { return true; };
 
-  /** compile the expression relative to a CQueryCompiler and its associated index */
-  virtual bool Compile(CQueryCompiler *compiler);
+    /** compile the expression relative to a CQueryCompiler and its associated index */
+    virtual bool Compile(CQueryCompiler *compiler);
 
-  /** get string key for the hit \a Hit ; default just throws an exception */
-  virtual string& Evaluate(const CHit &Hit);
+    /** get string key for the hit \a Hit ; default just throws an exception */
+    virtual string& Evaluate(const CHit &Hit);
 
-  /** stringification (default returns m_Label) */
-  virtual string toString() { return m_Label; };
+    /** stringification (default returns m_Label) */
+    virtual string toString() { return m_Label; };
 
-  /** json stringification: class */
-  string jsonClass() { return "CQCountKeyExpr"; };
+    /** json stringification: class */
+    string jsonClass() { return "CQCountKeyExpr"; };
 
-  /** json stringification: data */
-  string jsonData() { return "\"label\":" + jsonStr(m_Label); };
+    /** json stringification: data */
+    string jsonData() { return "\"label\":" + jsonStr(m_Label); };
 };
 
 //----------------------------------------------------------------------
 /*! count-key expression: constant */
 class CQCountKeyExprConstant : public CQCountKeyExpr {
 public:
-  CQCountKeyExprConstant(const string &label="*") : CQCountKeyExpr(label) {};
-  virtual ~CQCountKeyExprConstant() {};
-  virtual string& Evaluate(const CHit &Hit) { return m_Label; };
-  virtual string jsonClass() { return "CQCountKeyExprConstant"; };
-  virtual string toString() { return string("@'") + escapeChars(m_Label,"\\'") + "'"; };
+    CQCountKeyExprConstant(const string &label="*") : CQCountKeyExpr(label) {};
+    virtual ~CQCountKeyExprConstant() {};
+    virtual string& Evaluate(const CHit &Hit) { return m_Label; };
+    virtual string jsonClass() { return "CQCountKeyExprConstant"; };
+    virtual string toString() { return string("@'") + escapeChars(m_Label,"\\'") + "'"; };
 };
 
 //----------------------------------------------------------------------
 /*! count-key expression: metadata-attribute */
 class CQCountKeyExprMeta : public CQCountKeyExpr {
 public:
-  //! last file-number evaluated
-  DWORD  m_CurFile;
+    //! last file-number evaluated
+    DWORD  m_CurFile;
 
-  //! last key generated
-  string m_CurKey;
+    //! last key generated
+    string m_CurKey;
 
 public:
-  CQCountKeyExprMeta(const string &label="*") : CQCountKeyExpr(label), m_CurFile(-1), m_CurKey("") {};
-  virtual ~CQCountKeyExprMeta() {};
+    CQCountKeyExprMeta(const string &label="*") : CQCountKeyExpr(label), m_CurFile(-1), m_CurKey("") {};
+    virtual ~CQCountKeyExprMeta() {};
 };
 
 //----------------------------------------------------------------------
 /*! count-key expression: fileid (aka docid) */
 class CQCountKeyExprFileId : public CQCountKeyExprMeta {
 private:
-  char buf[16];
+    char buf[16];
 public:
-  CQCountKeyExprFileId(const string &label="fileid") : CQCountKeyExprMeta(label) {};
-  virtual ~CQCountKeyExprFileId() {};
-  virtual string& Evaluate(const CHit &Hit);
-  virtual string jsonClass() { return "CQCountKeyExprFileId"; };
+    CQCountKeyExprFileId(const string &label="fileid") : CQCountKeyExprMeta(label) {};
+    virtual ~CQCountKeyExprFileId() {};
+    virtual string& Evaluate(const CHit &Hit);
+    virtual string jsonClass() { return "CQCountKeyExprFileId"; };
 };
 
 //----------------------------------------------------------------------
 /*! count-key expression: indexed */
 class CQCountKeyExprIndexed : public CQCountKeyExprMeta {
 public:
-  class CConcordance* m_pConcordance;
+    class CConcordance* m_pConcordance;
 public:
-  CQCountKeyExprIndexed(const string &label="file") : CQCountKeyExprMeta(label) {};
-  virtual ~CQCountKeyExprIndexed() {};
-  virtual bool Compile(CQueryCompiler *compiler);
-  virtual string jsonClass() { return "CQCountKeyExprIndexed"; };
+    CQCountKeyExprIndexed(const string &label="file") : CQCountKeyExprMeta(label) {};
+    virtual ~CQCountKeyExprIndexed() {};
+    virtual bool Compile(CQueryCompiler *compiler);
+    virtual string jsonClass() { return "CQCountKeyExprIndexed"; };
 };
 
 //----------------------------------------------------------------------
 /*! count-key expression: filename */
 class CQCountKeyExprFileName : public CQCountKeyExprIndexed {
 public:
-  CQCountKeyExprFileName(const string &label="filename") : CQCountKeyExprIndexed(label) {};
-  virtual ~CQCountKeyExprFileName() {};
-  virtual string& Evaluate(const CHit &Hit);
-  virtual string jsonClass() { return "CQCountKeyExprFileName"; };
+    CQCountKeyExprFileName(const string &label="filename") : CQCountKeyExprIndexed(label) {};
+    virtual ~CQCountKeyExprFileName() {};
+    virtual string& Evaluate(const CHit &Hit);
+    virtual string jsonClass() { return "CQCountKeyExprFileName"; };
 };
 
 //----------------------------------------------------------------------
@@ -145,18 +145,18 @@ public:
 class CQCountKeyExprDate : public CQCountKeyExprIndexed
 {
 public:
-  const ddcDateVector *m_pDates;
-  unsigned int         m_year;
-  unsigned int         m_month;
-  unsigned int         m_day;
-  char                 buf[16];
+    const ddcDateVector *m_pDates;
+    unsigned int         m_year;
+    unsigned int         m_month;
+    unsigned int         m_day;
+    char                 buf[16];
 
 public:
-  CQCountKeyExprDate(const string &label="date") : CQCountKeyExprIndexed(label), m_pDates(NULL) {};
-  virtual ~CQCountKeyExprDate() {};
-  virtual bool Compile(CQueryCompiler *compiler);
-  virtual string& Evaluate(const CHit &Hit);
-  virtual string jsonClass() { return "CQCountKeyExprDate"; };
+    CQCountKeyExprDate(const string &label="date") : CQCountKeyExprIndexed(label), m_pDates(NULL) {};
+    virtual ~CQCountKeyExprDate() {};
+    virtual bool Compile(CQueryCompiler *compiler);
+    virtual string& Evaluate(const CHit &Hit);
+    virtual string jsonClass() { return "CQCountKeyExprDate"; };
 };
 
 //----------------------------------------------------------------------
@@ -164,15 +164,15 @@ public:
 class CQCountKeyExprDateSlice : public CQCountKeyExprDate
 {
 public:
-  unsigned int m_slice;
+    unsigned int m_slice;
 public:
-  CQCountKeyExprDateSlice(const string &label="date", int slice=1) : CQCountKeyExprDate(label), m_slice(slice) {};
-  virtual ~CQCountKeyExprDateSlice() {};
-  virtual bool Compile(CQueryCompiler *compiler);
-  virtual string& Evaluate(const CHit &Hit);
-  virtual string toString() { return m_Label + Format("/%d",m_slice); };
-  virtual string jsonClass() { return "CQCountKeyExprDateSlice"; };
-  virtual string jsonData() { return CQCountKeyExprDate::jsonData() + Format(",\"slice\":%d",m_slice); };
+    CQCountKeyExprDateSlice(const string &label="date", int slice=1) : CQCountKeyExprDate(label), m_slice(slice) {};
+    virtual ~CQCountKeyExprDateSlice() {};
+    virtual bool Compile(CQueryCompiler *compiler);
+    virtual string& Evaluate(const CHit &Hit);
+    virtual string toString() { return m_Label + Format("/%d",m_slice); };
+    virtual string jsonClass() { return "CQCountKeyExprDateSlice"; };
+    virtual string jsonData() { return CQCountKeyExprDate::jsonData() + Format(",\"slice\":%d",m_slice); };
 };
 
 //----------------------------------------------------------------------
@@ -180,14 +180,14 @@ public:
 class CQCountKeyExprBibl : public CQCountKeyExprIndexed
 {
 public:
-  const CFreeBiblIndexInterface *m_Bibl;
+    const CFreeBiblIndexInterface *m_Bibl;
 public:
-  CQCountKeyExprBibl(const string &attrName="") : CQCountKeyExprIndexed(attrName) {};
-  virtual ~CQCountKeyExprBibl() {};
-  virtual bool Compile(CQueryCompiler *compiler);
-  virtual string& Evaluate(const CHit &Hit);
-  virtual string jsonClass() { return "CQCountKeyExprBibl"; };
-  virtual string toString() { return string("'") + escapeChars(m_Label,"\\'") + "'"; };
+    CQCountKeyExprBibl(const string &attrName="") : CQCountKeyExprIndexed(attrName) {};
+    virtual ~CQCountKeyExprBibl() {};
+    virtual bool Compile(CQueryCompiler *compiler);
+    virtual string& Evaluate(const CHit &Hit);
+    virtual string jsonClass() { return "CQCountKeyExprBibl"; };
+    virtual string toString() { return string("'") + escapeChars(m_Label,"\\'") + "'"; };
 };
 
 //----------------------------------------------------------------------
@@ -195,36 +195,36 @@ public:
 class CQCountKeyExprRegex : public CQCountKeyExprIndexed
 {
 public:
-  CQCountKeyExpr *m_Src;
-  string      m_Pattern;
-  string      m_Replacement;
-  string      m_Modifiers;
-  bool        isGlobal;
-  RML_RE     *m_Regex;
+    CQCountKeyExpr *m_Src;
+    string      m_Pattern;
+    string      m_Replacement;
+    string      m_Modifiers;
+    bool        isGlobal;
+    RML_RE     *m_Regex;
 
 public:
-  CQCountKeyExprRegex(CQCountKeyExpr *src, const string& pattern, const string &replacement, const string& modifiers=string(""))
-    : CQCountKeyExprIndexed("regex"), m_Src(src), m_Pattern(pattern), m_Replacement(replacement), m_Modifiers(modifiers), isGlobal(false), m_Regex(NULL) {};
-  virtual ~CQCountKeyExprRegex();
-  virtual void DisownChildren();
-  virtual bool CanCountByFile() const { return m_Src->CanCountByFile(); };
-  virtual bool Compile(CQueryCompiler *compiler);
-  virtual string& Evaluate(const CHit &Hit);
-  inline void EvaluateRegex(const CHit &Hit, const string& srcKey)
-  {
-    m_CurKey = srcKey;
-    if (isGlobal)
-      m_Regex->GlobalReplace(m_Replacement, &m_CurKey);
-    else
-      m_Regex->Replace(m_Replacement, &m_CurKey);
-    m_CurFile = Hit.m_FileNo;
-  };
+    CQCountKeyExprRegex(CQCountKeyExpr *src, const string& pattern, const string &replacement, const string& modifiers=string(""))
+        : CQCountKeyExprIndexed("regex"), m_Src(src), m_Pattern(pattern), m_Replacement(replacement), m_Modifiers(modifiers), isGlobal(false), m_Regex(NULL) {};
+    virtual ~CQCountKeyExprRegex();
+    virtual void DisownChildren();
+    virtual bool CanCountByFile() const { return m_Src->CanCountByFile(); };
+    virtual bool Compile(CQueryCompiler *compiler);
+    virtual string& Evaluate(const CHit &Hit);
+    inline void EvaluateRegex(const CHit &Hit, const string& srcKey)
+    {
+        m_CurKey = srcKey;
+        if (isGlobal)
+            m_Regex->GlobalReplace(m_Replacement, &m_CurKey);
+        else
+            m_Regex->Replace(m_Replacement, &m_CurKey);
+        m_CurFile = Hit.m_FileNo;
+    };
   
-  //-- ddcObject API
-  virtual ddcObjectList Children() const;
-  virtual string toString();
-  virtual string jsonClass() { return "CQCountKeyExprRegex"; };
-  virtual string jsonData();
+    //-- ddcObject API
+    virtual ddcObjectList Children() const;
+    virtual string toString();
+    virtual string jsonClass() { return "CQCountKeyExprRegex"; };
+    virtual string jsonData();
 };
 
 //----------------------------------------------------------------------
@@ -232,31 +232,31 @@ public:
 class CQCountKeyExprToken : public CQCountKeyExprIndexed
 {
 public:
-  //! name of token index attribute
-  string m_IndexName;
+    //! name of token index attribute
+    string m_IndexName;
 
-  //! match-id of anchor token (0 for any)
-  BYTE   m_MatchId;
+    //! match-id of anchor token (0 for any)
+    BYTE   m_MatchId;
 
-  //! offset of reference token
-  int    m_Offset;
+    //! offset of reference token
+    int    m_Offset;
 
-  //! underlying index-set (post-compile())
-  CStringIndexSet *m_pIndex;
+    //! underlying index-set (post-compile())
+    CStringIndexSet *m_pIndex;
 
 public:
-  CQCountKeyExprToken(const string &IndexName="Token", BYTE MatchId=0, int Offset=0)
-    : CQCountKeyExprIndexed("token"), m_IndexName(IndexName), m_MatchId(MatchId), m_Offset(Offset), m_pIndex(NULL)
-  {};
-  virtual ~CQCountKeyExprToken() {};
-  virtual BYTE GetMatchId() const { return m_MatchId; };
-  virtual BYTE SetMatchId(BYTE matchId) { return m_MatchId = matchId; };
-  virtual bool CanCountByFile() const { return false; };
-  virtual bool Compile(CQueryCompiler *compiler);
-  virtual string& Evaluate(const CHit &Hit);
-  virtual string toString();
-  virtual string jsonClass() { return "CQCountKeyExprToken"; };
-  virtual string jsonData();
+    CQCountKeyExprToken(const string &IndexName="Token", BYTE MatchId=0, int Offset=0)
+        : CQCountKeyExprIndexed("token"), m_IndexName(IndexName), m_MatchId(MatchId), m_Offset(Offset), m_pIndex(NULL)
+    {};
+    virtual ~CQCountKeyExprToken() {};
+    virtual BYTE GetMatchId() const { return m_MatchId; };
+    virtual BYTE SetMatchId(BYTE matchId) { return m_MatchId = matchId; };
+    virtual bool CanCountByFile() const { return false; };
+    virtual bool Compile(CQueryCompiler *compiler);
+    virtual string& Evaluate(const CHit &Hit);
+    virtual string toString();
+    virtual string jsonClass() { return "CQCountKeyExprToken"; };
+    virtual string jsonData();
 };
 
 //----------------------------------------------------------------------
@@ -264,232 +264,232 @@ public:
 class CQCountKeyExprList : public CQCountKeyExpr
 {
 public:
-  /** underlying expression list */
-  vector<CQCountKeyExpr*> m_Exprs;
+    /** underlying expression list */
+    vector<CQCountKeyExpr*> m_Exprs;
 
-  /** temporary key */
-  string m_Key;
+    /** temporary key */
+    string m_Key;
 
 public:
-  CQCountKeyExprList() : m_Key("") {};
+    CQCountKeyExprList() : m_Key("") {};
 
-  CQCountKeyExprList(const CQCountKeyExprList &src)
-  : m_Exprs(src.m_Exprs), m_Key(src.m_Key)
-  {};
+    CQCountKeyExprList(const CQCountKeyExprList &src)
+        : m_Exprs(src.m_Exprs), m_Key(src.m_Key)
+    {};
 
-  virtual ~CQCountKeyExprList();
+    virtual ~CQCountKeyExprList();
 
-  /*! clear and delete all sub-expressions */
-  virtual void Clear();
+    /*! clear and delete all sub-expressions */
+    virtual void Clear();
 
-  /*! wrapper for m_Exprs.empty() */
-  inline bool empty() const { return m_Exprs.empty(); };
+    /*! wrapper for m_Exprs.empty() */
+    inline bool empty() const { return m_Exprs.empty(); };
 
-  /*! append a count-by expression */
-  void PushKey(CQCountKeyExpr *expr)
-  { m_Exprs.push_back(expr); };
+    /*! append a count-by expression */
+    void PushKey(CQCountKeyExpr *expr)
+    { m_Exprs.push_back(expr); };
 
-  /*! returns true iff all sub-expressions can count by file */
-  virtual bool CanCountByFile() const;
+    /*! returns true iff all sub-expressions can count by file */
+    virtual bool CanCountByFile() const;
 
-  virtual BYTE GetMatchId() const;
+    virtual BYTE GetMatchId() const;
 
-  virtual bool Compile(CQueryCompiler *compiler);
-  virtual string& Evaluate(const CHit &Hit);
+    virtual bool Compile(CQueryCompiler *compiler);
+    virtual string& Evaluate(const CHit &Hit);
 
-  //-- ddcObject API
-  virtual ddcObjectList Children() const;
-  virtual void DisownChildren();
-  virtual string toString();
-  virtual string jsonClass() { return "CQCountKeyExprList"; };
-  virtual string jsonData();
+    //-- ddcObject API
+    virtual ddcObjectList Children() const;
+    virtual void DisownChildren();
+    virtual string toString();
+    virtual string jsonClass() { return "CQCountKeyExprList"; };
+    virtual string jsonData();
 
 };
 
 //======================================================================
 /*!
- \brief
-   count query
+  \brief
+  count query
 */
 class CQCount : public CQuery {
 public:
-  //! underlying query conditions to be counted
-  CQuery *m_dtr;
+    //! underlying query conditions to be counted
+    CQuery *m_dtr;
 
-  //! sample size (sub-query limit)
-  size_t m_sample;
+    //! sample size (sub-query limit)
+    size_t m_sample;
 
-  //! sort-order one of: NoSort, (Less|Greater)ByCount(Key|Value)
-  HitSortEnum m_sort;
+    //! sort-order one of: NoSort, (Less|Greater)ByCount(Key|Value)
+    HitSortEnum m_sort;
 
-  //! maximum sort-key to return (empty for none)
-  string m_lo;
+    //! maximum sort-key to return (empty for none)
+    string m_lo;
 
-  //! minimum sort-key to return (empty for none)
-  string m_hi;
+    //! minimum sort-key to return (empty for none)
+    string m_hi;
 
-  //! list of count-bin metadata key expressions
-  CQCountKeyExprList* m_keys;
+    //! list of count-bin metadata key expressions
+    CQCountKeyExprList* m_keys;
 
-  //! temporary for constructing count-query results
-  CCountMap m_Counts;
+    //! temporary for constructing count-query results
+    CCountMap m_Counts;
 
-  //! temporary for tracking count-query sample size
-  size_t m_CountSample;
-
-public:
-  //! bison constructor
-  CQCount(CQuery *dtr_, CQCountKeyExprList* keys_, size_t sample_=DDCDefaultCountSampleSize, HitSortEnum sort_=NoSort, string lb="", string ub="")
-  : CQuery("count"),
-    m_dtr(dtr_),
-    m_sample(sample_),
-    m_sort(sort_),
-    m_keys(keys_),
-    m_lo(lb),
-    m_hi(ub),
-    m_CountSample(0)
-  {
-    if (sample_==0) m_sample = DDCDefaultCountSampleSize;
-  };
-
-  //! Default destructor.
-  virtual ~CQCount(void);
+    //! temporary for tracking count-query sample size
+    size_t m_CountSample;
 
 public:
-  //! get local match-id: keys > dtr
-  virtual BYTE GetMatchId() const;
+    //! bison constructor
+    CQCount(CQuery *dtr_, CQCountKeyExprList* keys_, size_t sample_=DDCDefaultCountSampleSize, HitSortEnum sort_=NoSort, string lb="", string ub="")
+        : CQuery("count"),
+          m_dtr(dtr_),
+          m_sample(sample_),
+          m_sort(sort_),
+          m_keys(keys_),
+          m_lo(lb),
+          m_hi(ub),
+          m_CountSample(0)
+    {
+        if (sample_==0) m_sample = DDCDefaultCountSampleSize;
+    };
 
-  //! Compile index-dependent query properties
-  virtual bool Compile(CQueryCompiler *compiler);
+    //! Default destructor.
+    virtual ~CQCount(void);
 
-  //! evaluate query: top-level (sanity checks only)
-  virtual void Evaluate();
+public:
+    //! get local match-id: keys > dtr
+    virtual BYTE GetMatchId() const;
 
-  //! evaluation utility: returns true iff this is a count(*)-query; guts for CConcHolder::IsUniversalCountQuery()
-  virtual bool CanCountUniversal();
+    //! Compile index-dependent query properties
+    virtual bool Compile(CQueryCompiler *compiler);
 
-  //! evaluation utility: returns true iff this query can count at file-level; wraps m_keys.canCountByFile()
-  virtual bool CanCountByFile() const;
+    //! evaluate query: top-level (sanity checks only)
+    virtual void Evaluate();
+
+    //! evaluation utility: returns true iff this is a count(*)-query; guts for CConcHolder::IsUniversalCountQuery()
+    virtual bool CanCountUniversal();
+
+    //! evaluation utility: returns true iff this query can count at file-level; wraps m_keys.canCountByFile()
+    virtual bool CanCountByFile() const;
     
-  //! evaluation guts: populate m_Counts with universal counts; formerly CConcHolder::GetUniversalCounts()
-  //! \li should be called only once per query
-  //! \li stores encoded results in Result
-  //! \li implicitly calls ConvertCountsToHits()
-  virtual void CountUniversal(CQueryResult &Result, size_t Limit);
+    //! evaluation guts: populate m_Counts with universal counts; formerly CConcHolder::GetUniversalCounts()
+    //! \li should be called only once per query
+    //! \li stores encoded results in Result
+    //! \li implicitly calls ConvertCountsToHits()
+    virtual void CountUniversal(CQueryResult &Result, size_t Limit);
 
-  //! evaluation guts: extend m_Counts[] with counts for current search period; formerly CConcHolder::GetPeriodCounts()
-  //! \li should be called once per subcorpus search period
-  //! \li manipulates Result (clears local query-data, expected to correspond to m_dtr query for current period)
-  //! \li ConvertCountsToHits() still needs to be called after all search-periods have been counted
-  virtual void CountLocal(CQueryResult &Result, size_t Limit);
+    //! evaluation guts: extend m_Counts[] with counts for current search period; formerly CConcHolder::GetPeriodCounts()
+    //! \li should be called once per subcorpus search period
+    //! \li manipulates Result (clears local query-data, expected to correspond to m_dtr query for current period)
+    //! \li ConvertCountsToHits() still needs to be called after all search-periods have been counted
+    virtual void CountLocal(CQueryResult &Result, size_t Limit);
 
-  //! encode count()-query results from m_Counts[] to m_Compiler->m_pHolder->m_Hits[], using
-  //! m_Hits[] element CHit hit.m_SortKey.s to transport count-key
-  //! and hit.m_Value.m_Count to transport count results in a backwards-compatible manner.
-  //! \li formerly CConcHolder::ConvertCountsToHits()
-  virtual void ConvertCountsToHits(CQueryResult &Result, size_t Limit);
+    //! encode count()-query results from m_Counts[] to m_Compiler->m_pHolder->m_Hits[], using
+    //! m_Hits[] element CHit hit.m_SortKey.s to transport count-key
+    //! and hit.m_Value.m_Count to transport count results in a backwards-compatible manner.
+    //! \li formerly CConcHolder::ConvertCountsToHits()
+    virtual void ConvertCountsToHits(CQueryResult &Result, size_t Limit);
 
-  //! \b DEBUG: return a canonical string form for this query
-  virtual string toString();
-  //virtual string optionsToString() { return ""; };
-  virtual string countOptionsToString();
+    //! \b DEBUG: return a canonical string form for this query
+    virtual string toString();
+    //virtual string optionsToString() { return ""; };
+    virtual string countOptionsToString();
 
-  virtual string jsonClass() { return "CQCount"; };
-  virtual string jsonData();
-  //virtual string optionsToJson() { return "null"; };
+    virtual string jsonClass() { return "CQCount"; };
+    virtual string jsonData();
+    //virtual string optionsToJson() { return "null"; };
 
-  //! wrapper for m_dtr->ClearNode()
-  virtual void ClearNode();
+    //! wrapper for m_dtr->ClearNode()
+    virtual void ClearNode();
 
-  //! clear query contents.  if \c deep is true, propagates operation to daughters
-  virtual void Clear(bool deep=true);
+    //! clear query contents.  if \c deep is true, propagates operation to daughters
+    virtual void Clear(bool deep=true);
 
-  //-- ddcObject API
-  virtual ddcObjectList Children() const;
-  virtual void DisownChildren();
+    //-- ddcObject API
+    virtual ddcObjectList Children() const;
+    virtual void DisownChildren();
 };
 
 
 //======================================================================
 /*!
- \brief utility struct for iterating over hit occurrences
+  \brief utility struct for iterating over hit occurrences
 */
 
 //======================================================================
 /*!
- \brief
-   keys-query
+  \brief
+  keys-query
 */
 class CQKeys : public CQuery {
 public:
-  //! typedef for target value-tuples
-  typedef set< vector<string> > StringTupleSet;
+    //! typedef for target value-tuples
+    typedef set< vector<string> > StringTupleSet;
   
 public:
-  //! underlying count() query supplying keys
-  CQCount *m_qCount;
+    //! underlying count() query supplying keys
+    CQCount *m_qCount;
 
-  //! limit for m_qCount subquery
-  size_t m_CountLimit;
+    //! limit for m_qCount subquery
+    size_t m_CountLimit;
 
-  //! target index-tuple
-  vector<string> m_IndexNames;
+    //! target index-tuple
+    vector<string> m_IndexNames;
 
-  //! match-id of anchor token (0 for any)
-  BYTE   m_MatchId;
+    //! match-id of anchor token (0 for any)
+    BYTE   m_MatchId;
 
-  //! pseudo-private: temporary sub-queries for each CQCountKeyExprToken key-expression in m_qCount->m_keys->m_Exprs
-  vector<CQTokSet*> m_dtrs;
+    //! pseudo-private: temporary sub-queries for each CQCountKeyExprToken key-expression in m_qCount->m_keys->m_Exprs
+    vector<CQTokSet*> m_dtrs;
 
-  //! pseudo-private: proxy query for join of independent attributes (WITH)
-  CQuery *m_proxy;
+    //! pseudo-private: proxy query for join of independent attributes (WITH)
+    CQuery *m_proxy;
 
-  // pseudo-private: all value tuples
-  //StringTupleSet m_tuples;
-
-public:
-  //! bison constructor
-  CQKeys(CQCount *qCount=NULL, size_t CountLimit=DDCDefaultCountSampleSize)
-    : CQuery("keys"), m_qCount(qCount), m_CountLimit(CountLimit), m_MatchId(0), m_proxy(NULL)
-  {};
-
-  //! bison constructor
-  CQKeys(CQCount *qCount, size_t CountLimit, const vector<string>& IndexNames)
-    : CQuery("keys"), m_qCount(qCount), m_CountLimit(CountLimit), m_IndexNames(IndexNames), m_MatchId(0), m_proxy(NULL)
-  {};
-
-  //! Default destructor.
-  virtual ~CQKeys(void);
+    // pseudo-private: all value tuples
+    //StringTupleSet m_tuples;
 
 public:
-  //! Compile index-dependent query properties
-  virtual bool Compile(CQueryCompiler *compiler);
+    //! bison constructor
+    CQKeys(CQCount *qCount=NULL, size_t CountLimit=DDCDefaultCountSampleSize)
+        : CQuery("keys"), m_qCount(qCount), m_CountLimit(CountLimit), m_MatchId(0), m_proxy(NULL)
+    {};
 
-  //! evaluate query: top-level (sanity checks only)
-  virtual void Evaluate();
+    //! bison constructor
+    CQKeys(CQCount *qCount, size_t CountLimit, const vector<string>& IndexNames)
+        : CQuery("keys"), m_qCount(qCount), m_CountLimit(CountLimit), m_IndexNames(IndexNames), m_MatchId(0), m_proxy(NULL)
+    {};
 
-  //! get nontrivial match-id: local > qCount
-  virtual BYTE GetMatchId() const;
+    //! Default destructor.
+    virtual ~CQKeys(void);
 
-  //! Set match-id, returns new value
-  virtual BYTE SetMatchId(BYTE matchId)
-  { return m_MatchId = matchId; };
+public:
+    //! Compile index-dependent query properties
+    virtual bool Compile(CQueryCompiler *compiler);
 
-  //! \b DEBUG: return a canonical string form for this query
-  virtual string toString();
+    //! evaluate query: top-level (sanity checks only)
+    virtual void Evaluate();
 
-  virtual string jsonClass() { return "CQKeys"; };
-  virtual string jsonData();
+    //! get nontrivial match-id: local > qCount
+    virtual BYTE GetMatchId() const;
 
-  //! clears all daugher nodes
-  virtual void ClearNode();
+    //! Set match-id, returns new value
+    virtual BYTE SetMatchId(BYTE matchId)
+    { return m_MatchId = matchId; };
 
-  //! clear query contents.  if \c deep is true, propagates operation to daughters
-  virtual void Clear(bool deep=true);
+    //! \b DEBUG: return a canonical string form for this query
+    virtual string toString();
 
-  //-- ddcObject API
-  virtual ddcObjectList Children() const;
-  virtual void DisownChildren();
+    virtual string jsonClass() { return "CQKeys"; };
+    virtual string jsonData();
+
+    //! clears all daugher nodes
+    virtual void ClearNode();
+
+    //! clear query contents.  if \c deep is true, propagates operation to daughters
+    virtual void Clear(bool deep=true);
+
+    //-- ddcObject API
+    virtual ddcObjectList Children() const;
+    virtual void DisownChildren();
 };
 
 
@@ -509,7 +509,7 @@ inline void GenerateCountString(string &ResultStr, DDCFormatTypeEnum fmt, const 
 /*--- emacs style variables ---
  * Local Variables:
  *  mode: C++
- *  c-default-style: "linux"
+ *  c-file-style: "ellemtel"
  *  c-basic-offset: 4
  *  tab-width: 8
  *  indent-tabs-mode: nil

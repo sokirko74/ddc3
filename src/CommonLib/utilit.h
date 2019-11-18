@@ -38,16 +38,16 @@
 
 #ifdef WIN32
 
-        // it is used to find memory leaks
-        #ifdef DETECT_MEMORY_LEAK
-                extern void* operator new(size_t nSize, const char* lpszFileName, int nLine);
-                extern void  operator delete(void* p, const char* lpszFileName, int nLine);
-                #define DEBUG_NEW new(THIS_FILE, __LINE__)
-        #endif
+// it is used to find memory leaks
+#ifdef DETECT_MEMORY_LEAK
+extern void* operator new(size_t nSize, const char* lpszFileName, int nLine);
+extern void  operator delete(void* p, const char* lpszFileName, int nLine);
+#define DEBUG_NEW new(THIS_FILE, __LINE__)
+#endif
         
 
-        #include "windows.h"
-        #include "winuser.h"
+#include "windows.h"
+#include "winuser.h"
 #endif
 
 #include  <assert.h>
@@ -79,9 +79,9 @@
                 
 
 #ifdef STLPORT
-        using namespace stlport;
+using namespace stlport;
 #else
-        using namespace std;
+using namespace std;
 #endif
 
 
@@ -94,19 +94,19 @@
 typedef unsigned char BYTE;
 
 #ifdef WIN32
-        #include  <io.h>
-        #include <fcntl.h>
-        typedef __int64 QWORD;
+#include  <io.h>
+#include <fcntl.h>
+typedef __int64 QWORD;
         
 #else
-        #include  <unistd.h>
+#include  <unistd.h>
 //      typedef unsigned int    DWORD;  
 //      typedef unsigned short  WORD;
-        typedef uint32_t        DWORD;
-        typedef uint16_t        WORD;
-        typedef uint64_t        QWORD;
-        typedef unsigned int    UINT;  //-- unused
-        const   unsigned int _MAX_PATH = 512;
+typedef uint32_t        DWORD;
+typedef uint16_t        WORD;
+typedef uint64_t        QWORD;
+typedef unsigned int    UINT;  //-- unused
+const   unsigned int _MAX_PATH = 512;
 #endif
 
 //-- moo: more utilities
@@ -118,15 +118,15 @@ typedef unsigned char BYTE;
 //  + c++ chokes on fixed-width limit macros (UINT32_MAX) unless you #define __STDC_LIMIT_MACROS , which is unportable
 #ifndef DWORD_MAX
 //# define DWORD_MAX UINT32_MAX
-  # define DWORD_MAX (0xffffffff)
+# define DWORD_MAX (0xffffffff)
 #endif
 
 #ifndef QWORD_MAX
- #ifdef WIN32
-   #define QWORD_MAX  0xffffffffffffffff
- #else
-   #define QWORD_MAX  0xffffffffffffffffULL
- #endif
+#ifdef WIN32
+#define QWORD_MAX  0xffffffffffffffff
+#else
+#define QWORD_MAX  0xffffffffffffffffULL
+#endif
 #endif
 
 //-- moo: ugly hack for gcc 4.7.2 (kaskade; debian wheezy)
@@ -163,7 +163,7 @@ typedef enum {
 template <class T1, class T2, class T3>
 struct  troika : public pair<T1, T2>
 {
-        T3 third;
+    T3 third;
 };
 
 
@@ -180,7 +180,7 @@ public:
     //! symbolic error message (should also be returned by what() method)
     string m_strCause;
 
- public:
+public:
     CExpc(int ErrorCode) throw();
     CExpc(int ErrorCode, const string& Cause) throw();
     CExpc(const string& Cause) throw();
@@ -329,22 +329,16 @@ struct DDCProcessMemoryStatus
 //======================================================================
 // working with registry 
 extern string   GetRegistryString (string RegistryPath);
-extern string   GetRegistryStringFromLocalIniFile (string RegistryPath);
 extern bool     CanGetRegistryString (string RegistryPath);
-extern void     SetRegistryString (string RegistryPath, string Value);
-extern bool     IsRmlRegistered(string& Error);
-extern bool     CheckEvaluationTime();
+extern bool  IsRmlRegistered(string& Error);
 extern struct tm  RmlGetCurrentTime ();
-extern bool     ReadTimeOutFromRegistry(bool bReadFromLocalFile, int& TimeOut);
 extern string   GetIniFilePath();
 extern string   GetRmlVariable();
-extern string   BuildRMLPath (const char* s);
 
 //======================================================================
 // working with strings
 extern char*    rtrim (char* s);
 extern bool     IsSuperEqualChar (BYTE ch1, BYTE ch2, MorphLanguageEnum langua);
-extern bool     strscmp ( const char *s1, const char *s2, size_t l, MorphLanguageEnum langua);
 extern int      CompareWithoutRegister ( const char *s1, const char *s2, size_t l, MorphLanguageEnum langua);
 extern BYTE     force_rus_char (BYTE ch);
 extern bool     force_to_rus (char* dest, const char* sour, size_t len);
@@ -393,19 +387,7 @@ extern       void  ddc_thread_init(const char *log_label=NULL);
 //! get thread-local log prefix, or empty string if none registered
 extern const char *ddc_log_label(void);
 
-extern void QPEncodeString(string& s);
-extern void QPDecodeString(string& s);
-#ifndef WIN32
-        extern void strrev(char* s);
-#endif
-
 const BYTE      UnknownPartOfSpeech             = 0xff;
-const int       UnknownSyntaxElement = 0xffff;
-typedef enum {DontKillHomonyms = 0, CoverageKillHomonyms = 1} KillHomonymsEnum;
-
-typedef enum { LocThes = 0, FinThes, CompThes, OmniThes, NoneThes } EThesType;
-typedef enum { EClause = 0, EWord, EGroup, ENoneType } EUnitType;
-
 
 extern int GetPredictionPartOfSpeech(const string& PartOfSpeech, MorphLanguageEnum langua);
 extern bool GetLanguageByString (string s, MorphLanguageEnum& Result);
@@ -426,11 +408,11 @@ inline uint32_t log2u32(uint32_t v)
     return (v==0 ? 0 : __builtin_clz(v)^31);
 #else
     //-- everywhere else, we use DeBruijn multiplication
-  static const int MultiplyDeBruijnBitPosition[32] =
-    {
-        0, 9, 1, 10, 13, 21, 2, 29, 11, 14, 16, 18, 22, 25, 3, 30,
-        8, 12, 20, 28, 15, 17, 24, 7, 19, 27, 23, 6, 26, 5, 4, 31
-    };
+    static const int MultiplyDeBruijnBitPosition[32] =
+        {
+            0, 9, 1, 10, 13, 21, 2, 29, 11, 14, 16, 18, 22, 25, 3, 30,
+            8, 12, 20, 28, 15, 17, 24, 7, 19, 27, 23, 6, 26, 5, 4, 31
+        };
 
     v |= v >> 1; // first round down to one less than a power of 2
     v |= v >> 2;
@@ -461,7 +443,6 @@ void ClearContainer(ContainerT& C)
     C.clear();
     ContainerT tmp;
     tmp.swap(C);
-    //TrimHeap();
 }
 
 /* also clears capacity */
@@ -474,22 +455,11 @@ inline void ClearString(string& S)
 { ClearContainer(S); };
 
 
-// ============     Brackets =========================
-
-
 extern int isbracket  (BYTE x);
 extern size_t dual_bracket (BYTE x);
 
 
-
-//==================    Digits   ===========================
-extern bool is_upper_roman_digit (BYTE ch);
-extern bool is_lower_roman_digit (BYTE ch);
-extern bool is_roman_number ( const char *s, size_t len);
 extern bool is_pseudo_graph(BYTE x);
-extern bool is_word_delim (BYTE x);
-//  =============  Punctuation Letters ======================
-
 extern  bool is_spc_fill (BYTE x);
 
 
@@ -498,17 +468,18 @@ extern  bool is_spc_fill (BYTE x);
 extern  bool is_english_upper(BYTE x);
 extern  bool is_english_lower(BYTE x);
 
-const BYTE Auml  = 196; // "�"
-const BYTE auml  = 228; // "�"
-const BYTE Uuml  = 220; // "�"
-const BYTE uuml  = 252; // "�"
-const BYTE Ouml  = 214; // "�"
-const BYTE ouml  = 246; // "�"
-const BYTE szlig  = 223; //"�"
-const BYTE Nu  = 181;   // "�"
-const BYTE agrave  = 224; //"�"
-const BYTE egrave  = 232; //"�"
-const BYTE eacute  = 233; //"�"
+// Windows-1252
+const BYTE Auml  = 196;
+const BYTE auml  = 228;
+const BYTE Uuml  = 220;
+const BYTE uuml  = 252;
+const BYTE Ouml  = 214;
+const BYTE ouml  = 246;
+const BYTE szlig  = 223;
+const BYTE Nu  = 181;
+const BYTE agrave  = 224;
+const BYTE egrave  = 232;
+const BYTE eacute  = 233;
 
 
 const BYTE LowerJO_cp1251  = 184;
@@ -518,14 +489,11 @@ const BYTE UpperE_cp1251  = 197;
 const BYTE Apostrophe  = 39;
 
 
-
- 
-extern  bool is_german_upper(BYTE x); 
+extern  bool is_german_upper(BYTE x);
 extern  bool is_german_lower(BYTE x);
 extern  bool is_russian_upper(BYTE x);     
 extern  bool is_russian_lower(BYTE x);
 
-extern  bool is_lower_consonant(BYTE x, MorphLanguageEnum Langua);
 extern  bool is_upper_consonant(BYTE x, MorphLanguageEnum Langua);
 extern  bool is_lower_vowel(BYTE x, MorphLanguageEnum Langua);
 extern  bool is_upper_vowel(BYTE x, MorphLanguageEnum Langua);
@@ -549,39 +517,23 @@ extern  BYTE rtolower (BYTE ch);
 extern  BYTE gtoupper (BYTE ch); 
 extern  BYTE gtolower (BYTE ch); 
 extern  BYTE ReverseChar (BYTE ch, MorphLanguageEnum langua);
-extern char* RusMakeUpper (char *word);
-extern char* EngMakeUpper (char *word);
 extern string& EngMakeUpper (string& word);
 extern string& EngMakeLower (string& word);
-extern char* GerMakeUpper (char *word);
-extern string& GerMakeUpper (string& word);
-extern char* RusMakeLower (char *word);
 extern string& EngRusMakeLower (string& word);
-extern char* EngRusMakeLower (char* word);
 extern char* RmlMakeUpper (char *word, MorphLanguageEnum langua);
 extern string& RmlMakeUpper (string& word, MorphLanguageEnum langua);
 extern string& RmlMakeLower (string& word, MorphLanguageEnum langua);
-
-// ������������ �� �������� ��������� � ��������� 
 extern string&  EngRusMakeUpper (string& word);
-// ������������ �� �������� ��������� � ��������� 
 extern char*  EngRusMakeUpper (char* word);
 
 
 // check languaage 
 extern bool IsRussian (const char *word); 
-extern bool IsRussian (const string& word);
-extern bool IsEnglish (const char *word);
-extern bool IsEnglish (const string& word);
-extern bool IsGerman (const char *word);
-extern bool IsGerman (const string& word);
 extern bool CheckLanguage (const char *word, MorphLanguageEnum langua);
-extern bool CheckLanguage (const string& word, MorphLanguageEnum langua);
 
 
 
 extern void ConvertJO2Je(string& src);
-extern void ConvertJO2Je(char* src);
 extern void ConvertJO2Je(char* src, size_t Length);
 extern string ConvertASCIIToHtmlSymbols(const string& txt);
 
@@ -589,9 +541,9 @@ extern string ConvertASCIIToHtmlSymbols(const string& txt);
 template <class T, class Pred, class Conv>
 T& RegisterConverter (T& word, size_t Len, Pred P,  Conv C)
 {
-        for( size_t i = 0 ; i < Len; i++ )
+    for( size_t i = 0 ; i < Len; i++ )
         if ( P( (BYTE)word[i] )  )
-                        word[i] = C ( (BYTE)word[i] );
+            word[i] = C ( (BYTE)word[i] );
 
     return word;
 }
@@ -600,19 +552,19 @@ T& RegisterConverter (T& word, size_t Len, Pred P,  Conv C)
 template <class T>
 T& GerEngRusMakeUpperTemplate (T& word, MorphLanguageEnum Langua, size_t Len )
 {
-        if (Len == 0) return word;
+    if (Len == 0) return word;
 
-        if (Langua == morphGerman)
-                return RegisterConverter(word, Len, is_german_lower, gtoupper);
-        else
-                for( size_t i = 0 ; i < Len; i++ )
-                        if (is_russian_lower((BYTE)word[i]))
-                                        word[i] = rtoupper ( (BYTE)word[i] );
-                        else
-                        if (is_english_lower((BYTE)word[i]))
-                                        word[i] = etoupper ( (BYTE)word[i] );
+    if (Langua == morphGerman)
+        return RegisterConverter(word, Len, is_german_lower, gtoupper);
+    else
+        for( size_t i = 0 ; i < Len; i++ )
+            if (is_russian_lower((BYTE)word[i]))
+                word[i] = rtoupper ( (BYTE)word[i] );
+            else
+                if (is_english_lower((BYTE)word[i]))
+                    word[i] = etoupper ( (BYTE)word[i] );
 
-        return word;
+    return word;
 };      
 
 
@@ -625,12 +577,10 @@ enum RegisterEnum {AnyRegister=0, LowLow=1, UpLow=2, UpUp=3};
 
 #endif
 
-
-
 /*--- emacs style variables ---
  * Local Variables:
  *  mode: C++
- *  c-default-style: "linux"
+ *  c-file-style: "ellemtel"
  *  c-basic-offset: 4
  *  tab-width: 8
  *  indent-tabs-mode: nil

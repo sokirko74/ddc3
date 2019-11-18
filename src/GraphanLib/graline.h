@@ -49,16 +49,14 @@ class CGraphmatFile;
 
 
 struct  CGraphemOborot {
-        string m_UnitStr;
-        WORD m_UnitNo;
-        // ������ ����� RESTR = fixed !
-        bool m_bFixedFet;               
-        vector<WORD> m_TokenIds;
+    string m_UnitStr;
+    WORD m_UnitNo;
+    vector<WORD> m_TokenIds;
 
-        bool operator == (const string& s)
-        {
-                return s == m_UnitStr;
-        };
+    bool operator == (const string& s)
+    {
+        return s == m_UnitStr;
+    };
 };
 
 
@@ -67,82 +65,74 @@ const DWORD UnknownPageNumber  = 0xffffffff;
 
 class CGraLine  
 {
-         // ���� ��������� ���� ��������� �� ������ ���������� ���������� ��� 
-        // ������ ������� ����� ������, ���� � m_TokenBuf (� �����-�� ���������).
-        //  ���������� m_m_UnitBuf  ���������� � ����� graphmat.cpp
-        const char* unit;
+    // a pointer to tokens (not null-terminated)
+    const char* unit;
  
-        // �����  ������ � ������ ��������� (screen length) � ��������
-        // ����� ������� ����� ����� - ���� ������.
-        BYTE            slen;            
+    // screen length (multiply tabulation char)
+    BYTE            slen;
 
-        // ����� ������ unit
+    // unit length
     BYTE                ulen;             
-        QWORD           m_Descriptors;
+    QWORD           m_Descriptors;
     WORD                m_Status;
-        DWORD           m_InputOffset;
+    DWORD           m_InputOffset;
 
-        size_t          LengthUntilDelimiters (const char *s, const CGraphmatFile* G);
+    size_t          LengthUntilDelimiters (const char *s, const CGraphmatFile* G);
 
 public:
        
     CGraLine();
-        BYTE GetTokenLength() const { return ulen; };
-        const char* GetToken() const {return unit; };
-        BYTE GetScreenLength() const {return slen;};
-        DWORD GetInputOffset() const {return m_InputOffset;};
-        QWORD GetDescriptors() const {return m_Descriptors; };
+    BYTE GetTokenLength() const { return ulen; };
+    const char* GetToken() const {return unit; };
+    BYTE GetScreenLength() const {return slen;};
+    DWORD GetInputOffset() const {return m_InputOffset;};
+    QWORD GetDescriptors() const {return m_Descriptors; };
 
-        bool IsNotPrint  () const;
-        // we leave these function in the header, since VC doesn't want to make them inline
-        bool IsSpace () const {return (m_Status & stSpace) != 0; };
-        bool IsEOLN  () const {return (m_Status & stEOLN) != 0; };
-        bool IsSoft  () const {return IsSpace() || IsEOLN();};
-        bool IsPunct  () const {return (m_Status & stPunct) != 0;};
+    bool IsNotPrint  () const;
+    // we leave these function in the header, since VC doesn't want to make them inline
+    bool IsSpace () const {return (m_Status & stSpace) != 0; };
+    bool IsEOLN  () const {return (m_Status & stEOLN) != 0; };
+    bool IsSoft  () const {return IsSpace() || IsEOLN();};
+    bool IsPunct  () const {return (m_Status & stPunct) != 0;};
 
-        bool IsIdent () const;
-;
-        bool IsEnglishName  () const;
-        bool IsGrouped  () const;
+    bool IsIdent () const;
+    ;
+    bool IsEnglishName  () const;
+    bool IsGrouped  () const;
 
-        bool IsAbbreviation  () const;
-        bool IsParagraphChar () const;
-        bool IsPageBreak() const;
-        bool IsTextAreaEnd() const;
-        bool IsElectronicAddress()  const;
-        bool IsParagraphTag () const;
-        bool IsKeyModifier()  const;
-        bool IsChar (int c) const;
-        bool IsAsterisk () const;
-        bool HasSingleSpaceAfter()  const;
-        bool IsString (const char* s) const;
-        int  ToInt () const;
-        bool IsEndTextPeriodDescriptor (int d) const;
-        bool HasMacroSyntaxDelimiter () const;
-        bool IsWordOrNumberOrAbbr() const;
+    bool IsAbbreviation  () const;
+    bool IsParagraphChar () const;
+    bool IsPageBreak() const;
+    bool IsTextAreaEnd() const;
+    bool IsElectronicAddress()  const;
+    bool IsParagraphTag () const;
+    bool IsKeyModifier()  const;
+    bool IsChar (int c) const;
+    bool IsAsterisk () const;
+    bool HasSingleSpaceAfter()  const;
+    bool HasMacroSyntaxDelimiter () const;
+    bool IsWordOrNumberOrAbbr() const;
         
 
-        void SetSpace ();
-        void SetPunct ();
-        void SetEOLN  ();
-        void SetNotPrint();
-        void SetParagraphChar();
-        void SetParagraphTag();
-        void SetKeyModifier();
-        void SetSingleSpaceAfter();
-        void SetIdent();
-        void SetElectronicAddress();
-        void SetPageBreak();
-        void SetTextAreaEnd();
-        void SetEnglishName  ();
-        void DelDes(Descriptors d);
-        void SetDes(Descriptors d);  
-        void MakeSpaces(size_t SpacesLength);
-        void AddStatus(WORD add_state);
-        void AddLength(const CGraLine& L);
-        void SetToken(const char*);
-        size_t          ReadWord (size_t Offset, const CGraphmatFile* G, DWORD& PageNumber);
-        bool IsSingleSpaceToDelete() const;
+    void SetSpace ();
+    void SetPunct ();
+    void SetEOLN  ();
+    void SetNotPrint();
+    void SetParagraphChar();
+    void SetParagraphTag();
+    void SetKeyModifier();
+    void SetSingleSpaceAfter();
+    void SetIdent();
+    void SetElectronicAddress();
+    void SetPageBreak();
+    void SetTextAreaEnd();
+    void SetEnglishName  ();
+    void DelDes(Descriptors d);
+    void SetDes(Descriptors d);  
+    void AddStatus(WORD add_state);
+    void SetToken(const char*);
+    size_t          ReadWord (size_t Offset, const CGraphmatFile* G, DWORD& PageNumber);
+    bool IsSingleSpaceToDelete() const;
 };
 
 
@@ -151,7 +141,7 @@ public:
 /*--- emacs style variables ---
  * Local Variables:
  *  mode: C++
- *  c-default-style: "linux"
+ *  c-file-style: "ellemtel"
  *  c-basic-offset: 4
  *  tab-width: 8
  *  indent-tabs-mode: nil

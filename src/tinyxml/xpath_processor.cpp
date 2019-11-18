@@ -275,10 +275,10 @@ double xpath_processor::d_compute_xpath ()
 
 /// Callback from the XPath decoder : a rule has to be applied
 void xpath_processor::v_action (
-	xpath_construct xc_rule,      ///< XPath Rule 
-	unsigned u_sub,               ///< Rule sub number
-	unsigned u_variable,          ///< Parameter, depends on the rule
-	const char * cp_literal)      ///< Input literal, depends on the rule
+        xpath_construct xc_rule,      ///< XPath Rule 
+        unsigned u_sub,               ///< Rule sub number
+        unsigned u_variable,          ///< Parameter, depends on the rule
+        const char * cp_literal)      ///< Input literal, depends on the rule
 {
    as_action_store . v_add (xc_rule, u_sub, u_variable, cp_literal);
    #ifdef TINYXPATH_DEBUG
@@ -321,12 +321,12 @@ void xpath_processor::v_execute_one (
    xpath_construct xc_rule,      ///< Rule number
    bool o_skip_only)             ///< True if we only need to skip rules and not act on the data stack
 {
-	xpath_construct xc_action;
-	unsigned u_sub;      
-	unsigned u_variable;
-	TIXML_STRING S_literal;
+        xpath_construct xc_action;
+        unsigned u_sub;      
+        unsigned u_variable;
+        TIXML_STRING S_literal;
 
-	TIXML_STRING S_name;
+        TIXML_STRING S_name;
    expression_result ** erpp_arg;
    unsigned u_arg;
    bool o_error;
@@ -680,11 +680,11 @@ void xpath_processor::v_execute_one (
          switch (u_sub)
          {
             case xpath_unary_expr_simple :   
-               // [27]   UnaryExpr			::=   UnionExpr 
+               // [27]   UnaryExpr                      ::=   UnionExpr 
                v_execute_one (xpath_union_expr, o_skip_only);
                break;
             case xpath_unary_expr_minus :
-               // [27]   UnaryExpr			::=   '-' UnaryExpr
+               // [27]   UnaryExpr                      ::=   '-' UnaryExpr
                v_execute_one (xpath_unary_expr, o_skip_only);
                v_function_opposite ();
                break;
@@ -867,15 +867,15 @@ void xpath_processor::v_execute_one (
          switch (u_sub)
          {
             case xpath_relative_location_path_rel_step :
-               // RelativeLocationPath	::=   RelativeLocationPath '/' Step 
+               // RelativeLocationPath  ::=   RelativeLocationPath '/' Step 
                v_execute_one (xpath_relative_location_path, o_skip_only);
                // v_execute_step (i_relative_action);
                break;
             case xpath_relative_location_path_rel_double_slash_step :
-               // RelativeLocationPath	::= RelativeLocationPath '//' Step 
+               // RelativeLocationPath  ::= RelativeLocationPath '//' Step 
                break;
             case xpath_relative_location_path_step :
-               // RelativeLocationPath	::=   Step
+               // RelativeLocationPath  ::=   Step
                int i_dummy;
                i_dummy = -2;
                v_execute_step (i_dummy, o_skip_only);
@@ -887,15 +887,15 @@ void xpath_processor::v_execute_one (
          switch (u_sub)
          {
             case xpath_absolute_location_path_slash :
-               // AbsoluteLocationPath	::=   '/' 
+               // AbsoluteLocationPath  ::=   '/' 
                v_execute_absolute_path (u_variable, false, false);
                break;
             case xpath_absolute_location_path_slash_rel :
-               // AbsoluteLocationPath	::=   '/' RelativeLocationPath
+               // AbsoluteLocationPath  ::=   '/' RelativeLocationPath
                v_execute_absolute_path (u_variable, true, false);
                break;
             case xpath_absolute_location_path_abbrev :
-               // AbsoluteLocationPath	::= AbbreviatedAbsoluteLocationPath
+               // AbsoluteLocationPath  ::= AbbreviatedAbsoluteLocationPath
                v_execute_absolute_path (u_variable, true, true);
                break;
          }
@@ -905,13 +905,13 @@ void xpath_processor::v_execute_one (
          switch (u_sub)
          {
             case xpath_axis_specifier_at :
-               // AxisSpecifier			::= '@'
+               // AxisSpecifier                 ::= '@'
                if (! o_skip_only)
                   // will be used in the v_execute_step
                   v_push_int (1, "axis specifier is at");
                break;
             case xpath_axis_specifier_axis_name :
-               // AxisSpecifier			::= AxisName '::'
+               // AxisSpecifier                 ::= AxisName '::'
                v_execute_one (xpath_axis_name, o_skip_only);
                break;
             case xpath_axis_specifier_empty :
@@ -952,12 +952,12 @@ void xpath_processor::v_execute_one (
          break;
 
       case xpath_predicate :
-         // [8]   Predicate				::=   '[' PredicateExpr ']' 
+         // [8]   Predicate                             ::=   '[' PredicateExpr ']' 
          v_execute_one (xpath_predicate_expr, o_skip_only);
          break;
 
       case xpath_predicate_expr :
-         // [9]   PredicateExpr			::=   Expr
+         // [9]   PredicateExpr                 ::=   Expr
          v_execute_one (xpath_expr, o_skip_only);
          break;
 
@@ -1059,7 +1059,7 @@ void xpath_processor ::v_execute_step (
    bool o_by_name;
    int i_axis_type, i_end_store, i_node_store, i_pred_store;
    unsigned u_nb_node, u_node, u_pred, u_sub, u_variable;
-	xpath_construct xc_action;
+        xpath_construct xc_action;
    TIXML_STRING S_literal, S_name;
    TiXmlElement * XEp_child, * XEp_elem, * XEp_father;
    TiXmlAttribute * XAp_attrib;
@@ -1366,7 +1366,7 @@ void xpath_processor::v_execute_function (
       v_function_name (u_nb_arg, erpp_arg);
    else
 
-	if (S_name == "normalize-space")
+        if (S_name == "normalize-space")
       v_function_normalize_space (u_nb_arg, erpp_arg);
    else
 
@@ -1421,7 +1421,7 @@ void xpath_processor::v_function_ceiling (
          i_val = erpp_arg [0] -> i_get_int ();
          break;
       case e_double :
-			i_val = (int) ceil (erpp_arg [0] -> d_get_double ());
+                        i_val = (int) ceil (erpp_arg [0] -> d_get_double ());
          break;
       default :
          i_val = 0;
@@ -1502,7 +1502,7 @@ void xpath_processor::v_function_floor (
          i_val = erpp_arg [0] -> i_get_int ();
          break;
       case e_double :
-			i_val = (int) floor (erpp_arg [0] -> d_get_double ());
+                        i_val = (int) floor (erpp_arg [0] -> d_get_double ());
          break;
       default :
          i_val = 0;
@@ -2088,7 +2088,7 @@ void xpath_processor::v_set_context (
 /*--- emacs style variables ---
  * Local Variables:
  *  mode: C++
- *  c-default-style: "linux"
+ *  c-file-style: "ellemtel"
  *  c-basic-offset: 4
  *  tab-width: 8
  *  indent-tabs-mode: nil

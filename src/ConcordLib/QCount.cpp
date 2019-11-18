@@ -222,7 +222,7 @@ string CQCountKeyExprRegex::toString() {
 //----------------------------------------------------------------------
 string CQCountKeyExprRegex::jsonData() {
     return "\"Src\":" + m_Src->toJson() + ",\"Pattern\":" + jsonStr(m_Pattern) + ",\"Replacement\":" +
-           jsonStr(m_Replacement) + ",\"Modifiers\":" + jsonStr(m_Modifiers);
+        jsonStr(m_Replacement) + ",\"Modifiers\":" + jsonStr(m_Modifiers);
 }
 
 //==============================================================================
@@ -305,7 +305,7 @@ string CQCountKeyExprToken::toString() {
 //----------------------------------------------------------------------
 string CQCountKeyExprToken::jsonData() {
     return string("\"IndexName\":") + jsonStr(m_IndexName) +
-           Format(",\"MatchId\":%hhu,\"Offset\":%d", m_MatchId, m_Offset);
+        Format(",\"MatchId\":%hhu,\"Offset\":%d", m_MatchId, m_Offset);
 }
 
 
@@ -682,9 +682,9 @@ void CQCount::CountLocal(CQueryResult &Result, size_t Limit) {
 //--------------------------------------------------------------
 void CQCount::ConvertCountsToHits(CQueryResult &Result, size_t Limit) {
     /*
-    assert(m_Compiler != NULL);
-    assert(m_Compiler->m_pHolder != NULL);
-    CConcHolder  *holder = (CConcHolder*)m_Compiler->m_pHolder;
+      assert(m_Compiler != NULL);
+      assert(m_Compiler->m_pHolder != NULL);
+      CConcHolder  *holder = (CConcHolder*)m_Compiler->m_pHolder;
     */
 
     //-- count query: apply bounds
@@ -1008,7 +1008,7 @@ string CQKeys::toString() {
 string CQKeys::jsonData() {
     string qs("\"IndexNames\":" + jsonArray(m_IndexNames)
               + ",\"QCount\":" + m_qCount->toJson()
-    );
+        );
     if (m_CountLimit != DDCDefaultCountSampleSize)
         qs += Format(",\"CountLimit\":%zi", m_CountLimit);
     if (m_MatchId != 0)
@@ -1061,7 +1061,7 @@ void GenerateCountString(string &ResultStr, DDCFormatTypeEnum fmt, const string 
 /*--- emacs style variables ---
  * Local Variables:
  *  mode: C++
- *  c-default-style: "linux"
+ *  c-file-style: "ellemtel"
  *  c-basic-offset: 4
  *  tab-width: 8
  *  indent-tabs-mode: nil

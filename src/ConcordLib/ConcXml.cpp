@@ -10,7 +10,7 @@
 //  the Free Software Foundation, either version 3 of the License, or
 //  (at your option) any later version.
 // 
-//  DDC is distributed in tWriteToStringhe hope that it will be useful,
+//  DDC is distributed in the hope that it will be useful,
 //  but WITHOUT ANY WARRANTY; without even the implied warranty of
 //  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 //  GNU Lesser General Public License for more details.
@@ -29,7 +29,7 @@ string &DeleteEoln(string &s) {
     for (size_t i = 0; i < s.length(); i++)
         if ((s[i] == '\n')
             || (s[i] == '\r')
-                )
+            )
             s[i] = ' ';
 
     return s;
@@ -211,7 +211,7 @@ void CConcXml::FinalSaveBibliography() {
     m_EndOffsetsInBiblFile.ensureVec();
     if (!WriteVector(BiblIndexFileName, m_EndOffsetsInBiblFile.m_vec))
         throw CExpc(
-                Format("Cannot write index in CConcXml::FinalSaveBibliography, file %s!\n", BiblIndexFileName.c_str()));
+            Format("Cannot write index in CConcXml::FinalSaveBibliography, file %s!\n", BiblIndexFileName.c_str()));
 
     if (!FileExists(BiblIndexFileName.c_str())) {
         throw CExpc(Format("Cannot create %s!\n", BiblIndexFileName.c_str()));
@@ -291,8 +291,8 @@ bool CConcXml::UnionBibliographies(const vector<const CConcXml *> &Bibls) {
             bixs[bi] = Bibls[bi]->GetFreeBiblIndex(name);
             if (bixs[bi] == NULL)
                 ddcLogWarn(
-                        logname + ": Warning: no free bibl index '" + name + "' in sub-project '" + Bibls[bi]->m_Path +
-                        "' - using default values");
+                    logname + ": Warning: no free bibl index '" + name + "' in sub-project '" + Bibls[bi]->m_Path +
+                    "' - using default values");
         }
         fbx->CreateUnion(m_Path, bixs, FileCounts);
     }
@@ -349,10 +349,10 @@ bool CConcXml::SplitBibliography(vector<CConcXml *> &Bibls, const vector<DWORD> 
             //-- sanity check: *._bibl <-> *._bibl_idx
             if (FileSize(Bibls[i]->GetBiblFileName()) != Bibls[i]->m_EndOffsetsInBiblFile.m_vec.back())
                 throw CExpc(
-                        Format("%s: Error: bibl index size mismatch for patition #%zd (*._bibl_idx ~ %zd != %zd ~ *._bibl)",
-                               logname.c_str(), i,
-                               (size_t) Bibls[i]->m_EndOffsetsInBiblFile.m_vec.back(),
-                               (size_t) FileSize(Bibls[i]->GetBiblFileName())));
+                    Format("%s: Error: bibl index size mismatch for patition #%zd (*._bibl_idx ~ %zd != %zd ~ *._bibl)",
+                           logname.c_str(), i,
+                           (size_t) Bibls[i]->m_EndOffsetsInBiblFile.m_vec.back(),
+                           (size_t) FileSize(Bibls[i]->GetBiblFileName())));
         }
     }
     catch (exception& e) {
@@ -514,7 +514,7 @@ void CConcXml::ReadMorphXmlFileIntoGraTable(string FileName, const char *pFileBu
 
 
                     for (TiXmlElement *xml_annot = xml_word->FirstChildElement(
-                            "ana"); xml_annot; xml_annot = xml_annot->NextSiblingElement("ana")) {
+                             "ana"); xml_annot; xml_annot = xml_annot->NextSiblingElement("ana")) {
                         CXmlMorphAnnot A;
 
                         {
@@ -552,11 +552,10 @@ void CConcXml::ReadMorphXmlFileIntoGraTable(string FileName, const char *pFileBu
 
 };
 
-
 /*--- emacs style variables ---
  * Local Variables:
  *  mode: C++
- *  c-default-style: "linux"
+ *  c-file-style: "ellemtel"
  *  c-basic-offset: 4
  *  tab-width: 8
  *  indent-tabs-mode: nil

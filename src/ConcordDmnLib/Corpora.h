@@ -30,13 +30,13 @@ extern void LoadLocalCorpora(string ConfigFile, const CDDCServerOptions& Options
 extern void UnloadLocalCorporaAndServer ();
 extern void ShutdownDDCServer();
 extern void ShutdownLocalCorpora();
-
+extern bool CheckDaemonAlive();
 #endif //__CORPORA_H_
 
 /*--- emacs style variables ---
  * Local Variables:
  *  mode: C++
- *  c-default-style: "linux"
+ *  c-file-style: "ellemtel"
  *  c-basic-offset: 4
  *  tab-width: 8
  *  indent-tabs-mode: nil

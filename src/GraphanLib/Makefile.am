@@ -40,7 +40,6 @@ libDDCGraphan_la_SOURCES = \
 noinst_HEADERS = \
  abbrev.h \
  Consent.h \
- Descriptors.h \
  graline.h \
  GraphanDicts.h \
  GraphmatFile.h \
@@ -99,7 +98,7 @@ MAINTAINERCLEANFILES = \
 ##-----------------------------------------------------------------------
 
 ##--- extra distribution files
-#EXTRA_DIST =
+EXTRA_DIST = CMakeLists.txt
 
 ##--- recursion subdirectories for 'make dist'
 #DIST_SUBDIRS = $(SUBDIRS)

@@ -19,6 +19,8 @@ class CTabFormatIndexator : public CConcordance {
 
     void ProcessMetaField(CIndexDocument* document, const string &line, CTabFormattedMetaParams* params);
 
+    void ProcessBreakRecord(CIndexDocument* document, const string &line, CTabFormattedMetaParams* params);
+
     void ProcessToken (CIndexDocument* document, const string& line);
 
 protected:
@@ -34,7 +36,7 @@ extern  string ReadTabFormatDocumentName(const string& line);
 /*--- emacs style variables ---
  * Local Variables:
  *  mode: C++
- *  c-default-style: "linux"
+ *  c-file-style: "ellemtel"
  *  c-basic-offset: 4
  *  tab-width: 8
  *  indent-tabs-mode: nil

@@ -20,9 +20,9 @@
 //
 
 /*! \mainpage Dialing DDWS Concordance  (DDC)
-        DDC is a tool for linguists to search for a particular construction
-        in a given corpus.  A corpus is defined by a list \ref source_file_def "source files",
-        which should be before indexed. The index and query process is governed by file of options.
+  DDC is a tool for linguists to search for a particular construction
+  in a given corpus.  A corpus is defined by a list \ref source_file_def "source files",
+  which should be before indexed. The index and query process is governed by file of options.
 */
 
 
@@ -32,9 +32,14 @@
 
 #include "TabFormatIndexator.h"
 
+/// global default value (5000000) for CConcIndexator::m_UserMaxTokenCountInOnePeriod 
+extern const DWORD DefaultMaxTokenCountInOnePeriod;
+
+/// global default value for (400000) CConcIndexator::m_UserMaxInputLoadIndexSize (must be <= DefaultMaxTokenCountInOnePeriod)
+extern const DWORD DefaultMaxInputLoadIndexSize;
 
 /*!
-        CConcIndexator is the class for corpus indexing.  The most of its  slots come from Concordance class.
+  CConcIndexator is the class for corpus indexing.  The most of its  slots come from Concordance class.
 */
 class CConcIndexator : public CTabFormatIndexator {
 
@@ -52,7 +57,7 @@ class CConcIndexator : public CTabFormatIndexator {
     void IndexFreeIndex(CIndexDocument* document);
 
     void IndexOneTableTextArea(const string &Text, const CPageNumber &StartPageFromHeader, size_t &page_breaks_count,
-                                    CIndexDocument* document);
+                               CIndexDocument* document);
 
     //!  graphematical definition of a token for DWDSIndex
     bool IsDWDSToken(long GraLine) const;
@@ -124,7 +129,7 @@ public:
 /*--- emacs style variables ---
  * Local Variables:
  *  mode: C++
- *  c-default-style: "linux"
+ *  c-file-style: "ellemtel"
  *  c-basic-offset: 4
  *  tab-width: 8
  *  indent-tabs-mode: nil

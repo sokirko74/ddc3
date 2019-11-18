@@ -31,31 +31,31 @@ class TItemContainer;
 const int DomStrSize = 100;
 
 struct CDomen  {
-  int  DomId;
-  char DomStr[DomStrSize];
-  char Format[255];
-  char Source;
-  bool IsDelim;
-  bool IsFree;
-  WORD ItemsCount;
-  BYTE Parts[MaxDomensUnionSize];
-  BYTE PartsSize;
-  int   DropDownCount;
-  DWORD Color;
-  char* m_Items;
-  int    m_ItemsLength;
-  TItemContainer*  m_pParent;
-  int     m_StartDomItem;
-  int     m_EndDomItem;
-  BYTE    m_DomNo;
-  bool    m_bFreed;
+    int  DomId;
+    char DomStr[DomStrSize];
+    char Format[255];
+    char Source;
+    bool IsDelim;
+    bool IsFree;
+    WORD ItemsCount;
+    BYTE Parts[MaxDomensUnionSize];
+    BYTE PartsSize;
+    int   DropDownCount;
+    DWORD Color;
+    char* m_Items;
+    int    m_ItemsLength;
+    TItemContainer*  m_pParent;
+    int     m_StartDomItem;
+    int     m_EndDomItem;
+    BYTE    m_DomNo;
+    bool    m_bFreed;
 
 
-  CDomen ();
-  ~CDomen ();
-  int AddItem (const char* s, int Length);
-  void DelItem (int Offset, int Length);
-  bool IsEmpty () const;
+    CDomen ();
+    ~CDomen ();
+    int AddItem (const char* s, int Length);
+    void DelItem (int Offset, int Length);
+    bool IsEmpty () const;
 };
 
 #endif //__DOMEN_H_
@@ -63,7 +63,7 @@ struct CDomen  {
 /*--- emacs style variables ---
  * Local Variables:
  *  mode: C++
- *  c-default-style: "linux"
+ *  c-file-style: "ellemtel"
  *  c-basic-offset: 4
  *  tab-width: 8
  *  indent-tabs-mode: nil

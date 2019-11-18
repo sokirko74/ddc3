@@ -22,7 +22,6 @@
 
 //----------------------------------------------------------------------
 bool CConcIndexator::CreateAsUnion(vector<CConcIndexator* > &X, bool inheritOptions) {
-    typedef vector<CConcIndexator* >::const_iterator indexator_iter_t;
     //---------------------------------------
     // general preparations
     string logname = "CConcIndexator::CreateAsUnion()";
@@ -37,7 +36,7 @@ bool CConcIndexator::CreateAsUnion(vector<CConcIndexator* > &X, bool inheritOpti
     ddcLogInfo(logname + ": populating union file-lists");
     m_CorpusFiles.clear();
     DeleteAllSourceFiles();
-    for (indexator_iter_t xi = X.begin(); xi != X.end(); ++xi) {
+    for (vector<CConcIndexator* >::const_iterator xi = X.begin(); xi != X.end(); ++xi) {
         (*xi)->m_CorpusFiles.append_vector(m_CorpusFiles.m_strings);
         AddSourceFilesFrom(**xi);
     }
@@ -61,7 +60,7 @@ bool CConcIndexator::CreateAsUnion(vector<CConcIndexator* > &X, bool inheritOpti
     // populate: "masked" files (pseudo-deletions)
     ddcLogInfo(logname + ": populating corpus mask " + GetFileNameForMaskedFileIds());
     size_t moffset = 0;
-    for (indexator_iter_t xi = X.begin(); xi != X.end(); ++xi) {
+    for (vector<CConcIndexator* >::const_iterator xi = X.begin(); xi != X.end(); ++xi) {
         for (CMaskedFileSet::const_iterator xmi = (*xi)->m_MaskedFiles.begin(); xmi != (*xi)->m_MaskedFiles.end(); ++xmi) {
             m_MaskedFiles.insert(*xmi + moffset);
         }
@@ -78,7 +77,7 @@ bool CConcIndexator::CreateAsUnion(vector<CConcIndexator* > &X, bool inheritOpti
     for (vector<CBreakCollection>::iterator brki = m_Breaks.begin(); brki != m_Breaks.end(); ++brki) {
         offset = 0;
         ddcLogInfo(logname + ": populating break collection " + brki->m_ShortName + ":" + brki->m_LongName);
-        for (indexator_iter_t xi = X.begin(); xi != X.end(); ++xi) {
+        for (vector<CConcIndexator* >::const_iterator xi = X.begin(); xi != X.end(); ++xi) {
             const CBreakCollection *xbrk = (*xi)->GetBreakCollectionByName(brki->m_ShortName);
             if (xbrk == NULL) xbrk = (*xi)->GetBreakCollectionByName(brki->m_LongName);
             if (xbrk == NULL) {
@@ -113,7 +112,7 @@ bool CConcIndexator::CreateAsUnion(vector<CConcIndexator* > &X, bool inheritOpti
     m_PageBreaks.clear();
     m_PageBreaks.ensureVec();
     offset = 0;
-    for (indexator_iter_t xi = X.begin(); xi != X.end(); ++xi) {
+    for (vector<CConcIndexator* >::const_iterator xi = X.begin(); xi != X.end(); ++xi) {
         const ddcVecFile<CPageNumber> &xpbrk = (*xi)->m_PageBreaks;
         size_t xoffset = m_PageBreaks.size();
         m_PageBreaks.m_vec.insert(m_PageBreaks.m_vec.end(), xpbrk.begin(), xpbrk.end());
@@ -134,7 +133,7 @@ bool CConcIndexator::CreateAsUnion(vector<CConcIndexator* > &X, bool inheritOpti
     // populate: token-level indices
     ddcLogInfo(logname + ": populating token-level indices");
     vector<size_t> TokenCounts;
-    for (indexator_iter_t xi = X.begin(); xi != X.end(); ++xi) {
+    for (vector<CConcIndexator* >::const_iterator xi = X.begin(); xi != X.end(); ++xi) {
         TokenCounts.push_back((*xi)->GetCorpusEndTokenNo());
     }
     for (vector<CStringIndexSet *>::const_iterator ixi = m_Indices.begin(); ixi != m_Indices.end(); ++ixi) {
@@ -143,7 +142,7 @@ bool CConcIndexator::CreateAsUnion(vector<CConcIndexator* > &X, bool inheritOpti
 
         //-- get sub-indices
         vector<CStringIndexSet *> subIndexSets;
-        for (indexator_iter_t xi = X.begin(); xi != X.end(); ++xi) {
+        for (vector<CConcIndexator* >::const_iterator xi = X.begin(); xi != X.end(); ++xi) {
             CStringIndexSet *subx = (*xi)->GetIndexByAlias(ixp->m_Name);
             if (subx == NULL) subx = (*xi)->GetIndexByAlias(ixp->m_ShortName);
             if (subx == NULL) {
@@ -169,7 +168,7 @@ bool CConcIndexator::CreateAsUnion(vector<CConcIndexator* > &X, bool inheritOpti
     ddcLogInfo(logname + ": populating document-level metadata indices");
     m_BiblIndex.SetPath(m_Path);
     vector<const CConcXml *> bibls;
-    for (indexator_iter_t xi = X.begin(); xi != X.end(); ++xi) {
+    for (vector<CConcIndexator* >::const_iterator xi = X.begin(); xi != X.end(); ++xi) {
         bibls.push_back(&((*xi)->m_BiblIndex));
     }
     m_BiblIndex.UnionBibliographies(bibls);
@@ -205,7 +204,7 @@ bool CConcIndexator::CreateAsUnion(const vector<string> &Xfiles, bool inheritOpt
 /*--- emacs style variables ---
  * Local Variables:
  *  mode: C++
- *  c-default-style: "linux"
+ *  c-file-style: "ellemtel"
  *  c-basic-offset: 4
  *  tab-width: 8
  *  indent-tabs-mode: nil
