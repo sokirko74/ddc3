@@ -1,7 +1,30 @@
 ###-*- Mode: Change-Log; coding: utf-8; -*-
 
-v2.1.26-pre1 (WIP)
-	Wed, 18 Sep 2019 14:03:31 +0200 moocow
+v2.2.0-pre1 (WIP)
+	Mon, 18 Nov 2019 16:22:47 +0100 moocow
+	* merged "delwin" branch changes into trunk
+	* expanded TABs to spaces in all *.cpp and *.h files
+	* added emacs indentation-style variables to all *.cpp and *.h files, also .dir-locals.el
+	* added URL-style "sockaddr" attribute (URL-style) to server 'status' responses
+	* fixed 'make distcheck' (sf ticket #8)
+	* parse & honor "deep" daughter-specific subcorpus paths in branch-server requests
+	* added INET-vs-UNIX abstract socket address layer CSocketAddr
+	* updated docs
+
+v2.2.0-delwin Mon, 18 Nov 2019 16:20:31 +0100 sokirko (UNRELEASED)
+	* deleted stale source code, including win32 support
+	* added cmake files and basic tests in src/test
+	* moved src/common/* to src/CommonLib
+	* added support for UNIX-domain sockets
+	* converted various old "return-bool" error-detection conventions to exceptions
+	* new document container classes CIndexDocument, CDocumentIterator for indexing
+	* restrict Bibliography.* to CBibliography stuff, move CConcXML to new ConcXml.*
+	* added ddc_index support for ddc_dump-style TAB-dumps (multi-file or streaming mode)
+	* added https://github.com/open-source-parsers/jsoncpp for JSON pretty-printing
+	* added mmap() support for remaining index FILE*s (*._occurs_TOKATTR, *._storage_TOKATTR, *._bibl_DOCATTR_strings, *._bibl)
+	* added opt-file option "UserMaxInputLoadIndexSize"
+
+v2.1.26-pre1 Wed, 18 Sep 2019 14:03:31 +0200 moocow (UNRELEASED)
 	* re-worked term expander output order for CConcIndexator::SaveOptionsToString() - avoid unparseable output
 	* added -O/--options option for ddc_dump (dump *.opt)
 	* added DefaultQueryIndex clauses to CConcIndexator::SaveOptionsToString()
