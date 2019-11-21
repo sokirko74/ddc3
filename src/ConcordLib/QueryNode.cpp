@@ -239,7 +239,7 @@ void CQueryNode::ConvertOccurrencesToHits (bool bSeparateHits)
         break_end = Breaks.end();
 
     //-- breakStride : average number of tokens per break-unit in Breaks[]
-    DWORD breakStride = Breaks.empty() ? 1 : max((size_t)1, (size_t)Breaks[Breaks.size()-1]/Breaks.size());
+    DWORD breakStride = VectorStride(Breaks);
 
     CQueryNode NewNode(m_bUseNodeIndices, m_bUseMatchIds);
     if (bTextAreaNo)

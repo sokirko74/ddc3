@@ -424,6 +424,15 @@ inline uint32_t log2u32(uint32_t v)
 #endif
 };
 
+/** get average size of gap between elements of v[]
+ *  \param v vector of numeric types castable to (size_t), sorted in ascending order, implicit start=0 (e.g. ddcBreakVector)
+ *  \returns average size of gap between elements of v[], always >= 1
+ */
+template <class VecT>
+inline size_t VectorStride(const VecT& v)
+{
+    return v.empty() ? 1 : max((size_t)1, (size_t)v[v.size()-1]/v.size());
+};
 
 //======================================================================
 

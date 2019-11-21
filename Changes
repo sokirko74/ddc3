@@ -1,7 +1,7 @@
 ###-*- Mode: Change-Log; coding: utf-8; -*-
 
 v2.2.0-pre1 (WIP)
-	Mon, 18 Nov 2019 16:22:47 +0100 moocow
+	Thu, 21 Nov 2019 13:27:57 +0100 moocow
 	* merged "delwin" branch changes into trunk
 	* expanded TABs to spaces in all *.cpp and *.h files
 	* added emacs indentation-style variables to all *.cpp and *.h files, also .dir-locals.el
@@ -10,8 +10,10 @@ v2.2.0-pre1 (WIP)
 	* parse & honor "deep" daughter-specific subcorpus paths in branch-server requests
 	* added INET-vs-UNIX abstract socket address layer CSocketAddr
 	* updated docs
+	* optimized CConcSession::InitFileReferences() using binary-vs-linear dispatch (up to 1.5x faster, avg 63% faster)
+	  - inspired by sokirko's delwin commit r1294
 
-v2.2.0-delwin Mon, 18 Nov 2019 16:20:31 +0100 sokirko (UNRELEASED)
+v2.1.26-delwin Mon, 18 Nov 2019 16:20:31 +0100 sokirko (UNRELEASED)
 	* deleted stale source code, including win32 support
 	* added cmake files and basic tests in src/test
 	* moved src/common/* to src/CommonLib

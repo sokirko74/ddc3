@@ -1184,37 +1184,59 @@ void CConcSession::DecorateQueryResults(const string &FormatStr, string &QueryRe
 }
 
 //----------------------------------------------------------------------
+/*
+ * DDC_FILEREF_BINSEARCH_COEF
+ *  + heuristic for approximating number of linear-search ops per binary-search visitation (empirically set to 8)
+ *    - for binary-vs-linear dispatch in CConcSession::InitFileReferences()
+ *    - based on v2.1.19 CQueryNode::ConvertOccurrencesToHits() optimizations
+ *    - inspired by Alexey Sokirko's HitsCount-dispatch optimization in delwin branch r1294
+ *  + if undefined, lower_bound() is called for each hit
+ *  + benchmarks (zeit01@plato, tested with ddc_simple -HitIds -ProfileRun $iters "$query")
+ *    - avg 63% faster than always-use-binsearch strategy
+ *    - <1% slower for VLF items ($l=@Kaffeeklastch), up to 1.5x faster for VHF items ($l=@diese)
+ */
+#define DDC_FILEREF_BINSEARCH_COEF 8
+
 void CConcSession::InitFileReferences(vector<CHit> &Hits) const {
     const ddcBreakVector &Breaks = GetBreaks();
     const ddcBreakVector &FileBreaks = m_pConcordance->GetFileBreaks();
     size_t HitsCount = Hits.size();
-    /* uncomment it if you want 1.5% performance boost
-       if (HitsCount > 10) {
-       size_t hitNo = 0;
-       size_t fileNo =
-       lower_bound(FileBreaks.begin(), FileBreaks.end(), Breaks[Hits[0].m_BreakNo]) - FileBreaks.begin();
-       size_t fileCount = FileBreaks.size();
-       while (fileNo < fileCount && hitNo < HitsCount) {
-       CHit &H = Hits[hitNo];
-       const CTokenNo &Break = Breaks[H.m_BreakNo];
-       if ((fileNo == 0 || FileBreaks[fileNo - 1] < Break) && Break <= FileBreaks[fileNo]) {
-       H.m_FileNo = fileNo;
-       H.m_SortKey = H.m_BreakNo;  // no sort
-       ++hitNo;
-       } else {
-       ++fileNo;
-       }
-       }
-       return;
-       }*/
-    for (size_t HitNo = 0; HitNo < HitsCount; HitNo++) {
+
+#ifdef DDC_FILEREF_BINSEARCH_COEF
+    //-- binary-vs-linear dispatch
+    DWORD breakStride = VectorStride(Breaks);     //-- average number of tokens per break-unit in Breaks[]
+    DWORD fileStride  = VectorStride(FileBreaks); //-- average number of tokens per file-unit in FileBreaks[]
+    ddcBreakVector::const_iterator
+        fbi=FileBreaks.begin(),
+        fbi_end=FileBreaks.end();
+
+    for (size_t HitNo=0; HitNo < HitsCount; ++HitNo) {
         CHit &H = Hits[HitNo];
-        const CTokenNo &Break = Breaks[H.m_BreakNo];
-        ddcBreakVector::const_iterator it = lower_bound(FileBreaks.begin(), FileBreaks.end(), Break);
-        assert (it < FileBreaks.end());
-        H.m_FileNo = it - FileBreaks.begin();
+
+        // seek distance (tokens): d=(Breaks[H.m_BreakNo] - *fbi)
+        // expected number of linear-increment ops: d/fileStride
+        // expected number of binary-search    ops: log2u32(fbi_end-fbi)
+        const CTokenNo &brk = Breaks[H.m_BreakNo];
+        if (brk > *fbi && (brk - *fbi)/fileStride > DDC_FILEREF_BINSEARCH_COEF*log2u32(fbi_end-fbi)) {
+            fbi = lower_bound(fbi, fbi_end, brk);
+        } else {
+            while (fbi != fbi_end && brk > *fbi) ++fbi;
+        }
+
+        H.m_FileNo  = fbi - FileBreaks.begin();
         H.m_SortKey = H.m_BreakNo;  // no sort
-    };
+    }
+
+#else // !defined(DDC_FILEREF_BINSEARCH_COEF)
+    //-- always use binsearch
+    ddcBreakVector::const_iterator fbi=FileBreaks.begin();
+    for (size_t HitNo = 0; HitNo < HitsCount; ++HitNo) {
+        CHit &H     = Hits[HitNo];
+        fbi         = lower_bound(fbi, FileBreaks.end(), Breaks[H.m_BreakNo]);
+        H.m_FileNo  = fbi - FileBreaks.begin();
+        H.m_SortKey = H.m_BreakNo;  // no sort
+    }
+#endif
 }
 
 //----------------------------------------------------------------------
