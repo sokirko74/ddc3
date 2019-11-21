@@ -609,7 +609,7 @@ Comments in this document may appear after each rule in C notation
                      ;
  
  s_subcorpus       ::=                              /*-- Named subcorpus path used by :... filter --*/
-                       SUBCORPUS                    /* ... can be (almost) any symbol */
+                       SUBCORPUS                    /* ... can be any symbol, bare '/' and '*' are allowed */
                      ;
  
  s_field           ::=                              /*-- Document metadata field name --*/
@@ -680,20 +680,25 @@ The underlying scanner makes use of several regular expression
 The following macros are defined for the underlying scanner:
 
 
-  /* whitespace */	   
- ws		[ \t\n\r\f\v]
+  /* whitespace */          
+ ws              [ \t\n\r\f\v]
  
   /* integer boundary characters */
- int_boundary	 [ \t\n\r\f\v\0&|!?^%,:;#*=~(){}<>\[\]\\/\'\".$@_+-]
+ int_boundary     [ \t\n\r\f\v\0&|!?^%,:;#*=~(){}<>\[\]\\/\'\".$@_+-]
  
   /* bareword symbols */
- symbol_cfirst	[^ \t\n\r\f\v\0&|!?^%,:;#*=~(){}<>\[\]\\/\'\".$@]
- symbol_crest	[^ \t\n\r\f\v\0&|!?^%,:;#*=~(){}<>\[\]\\/\'\"]
+ symbol_cfirst   [^ \t\n\r\f\v\0&|!?^%,:;#*=~(){}<>\[\]\\/\'\".$@]
+ symbol_crest    [^ \t\n\r\f\v\0&|!?^%,:;#*=~(){}<>\[\]\\/\'\"]
  symbol_cescape  (\\.)
- symbol_text	({symbol_cescape}|{symbol_cfirst})({symbol_cescape}|{symbol_crest})*
+ symbol_text     ({symbol_cescape}|{symbol_cfirst})({symbol_cescape}|{symbol_crest})*
+ 
+  /* subcorpus symbols (allowing bare '/' and '*') */
+ corpus_cfirst	[^ \t\n\r\f\v\0&|!?^%,:;#=~(){}<>\[\]\\\'\"$@]
+ corpus_crest	[^ \t\n\r\f\v\0&|!?^%,:;#=~(){}<>\[\]\\\'\"]
+ corpus_text	({symbol_cescape}|{corpus_cfirst})({symbol_cescape}|{corpus_crest})*
  
   /* bareword index names (underscore and digits are ok, but no '.', '-', or '+') */
- index_char	[^ \t\n\r\f\v\0&|!?^%,:;#*=~(){}<>\[\]\\/\'\".$@+-]
+ index_char      [^ \t\n\r\f\v\0&|!?^%,:;#*=~(){}<>\[\]\\/\'\".$@+-]
  index_name      ({index_char}|{symbol_cescape})+
  
   /* single-quoted symbols */
@@ -701,16 +706,16 @@ The following macros are defined for the underlying scanner:
  
   /* regular expressions */
  regex_text      ((\\.)|[^\\/])*
- regex_modifier	[dgimsx]
+ regex_modifier  [dgimsx]
  
   /* lexer comments */
- comment_text	(\\.|[^\]])*
+ comment_text    (\\.|[^\]])*
 
 
 
 =head3 Comments
 
-  "#:"([^\n]*)                       /* line comment, ignored by scanner */		 
+  "#:"([^\n]*)                       /* line comment, ignored by scanner */               
   "#["{comment_text}"]"              /* block comment, ignored by scanner */
 
 The scanner supports line comments introduced by "#:" and extending to the end of the current line,
@@ -744,13 +749,13 @@ Since v2.1.16.
  (?i:#file(_?)names)
  (?i:#debug_rank)
  (?i:#(greater|de?sc)(_by)?_rank)
- (?i:#(less|asc)(_by)?_rank)	
+ (?i:#(less|asc)(_by)?_rank)     
  (?i:#(greater|de?sc)(_by)?_date)
- (?i:#(less|asc)(_by)?_date)	
- (?i:#(is_|has_)?date)		
+ (?i:#(less|asc)(_by)?_date)     
+ (?i:#(is_|has_)?date)           
  (?i:#(greater|de?sc)(_by)?_size)
- (?i:#(less|asc)(_by)?_size)	
- (?i:#(is_|has_)?size)		
+ (?i:#(less|asc)(_by)?_size)     
+ (?i:#(is_|has_)?size)           
  (?i:#((less|asc)(_by)?_)?left)
  (?i:#((greater|de?sc)(_by)?_)left)
  (?i:#((less|asc)(_by)?_)?right)
@@ -799,9 +804,9 @@ assigned, any matched tokens without explicit match-IDs are assigned a match-ID 
 
 =head3 Regular Expressions
 
-  "/"{regex_text}"/"{regex_modifier}*			/* slash-quoted regex, with option modifiers */
-  "!/"{regex_text}"/"{regex_modifier}*			/* negated regex (complement) */
-  "s/"{regex_text}"/"{regex_text}"/"{regex_modifier}*	/* search-and-replace regex (for count-by) */
+  "/"{regex_text}"/"{regex_modifier}*                    /* slash-quoted regex, with option modifiers */
+  "!/"{regex_text}"/"{regex_modifier}*                   /* negated regex (complement) */
+  "s/"{regex_text}"/"{regex_text}"/"{regex_modifier}*    /* search-and-replace regex (for count-by) */
 
 The scanner supports regular expressions enclosed by forward slashes, with
 an optional suffix modifer string.  If the expression is immediately
@@ -871,13 +876,13 @@ symbol, e.g. by enclosing the symbol in single quotes.
 
 =head3 Truncated Symbols
 
- "*"\'{sq_text}\'"*"	            /* dual-truncated quoted string (infix symbol) */
-    \'{sq_text}\'"*"	            /* right-truncated quoted string (prefix symbol) */
- "*"\'{sq_text}\'	            /* left-truncated quoted string (suffix symbol) */
+ "*"\'{sq_text}\'"*"                 /* dual-truncated quoted string (infix symbol) */
+    \'{sq_text}\'"*"                 /* right-truncated quoted string (prefix symbol) */
+ "*"\'{sq_text}\'                    /* left-truncated quoted string (suffix symbol) */
  
- "*"{symbol_text}"*"	            /* dual-truncated bare string (infix symbol) */
-    {symbol_text}"*"	            /* right-truncated bare string (prefix symbol) */
- "*"{symbol_text}	            /* left-truncated bare string (suffix symbol) */
+ "*"{symbol_text}"*"                 /* dual-truncated bare string (infix symbol) */
+    {symbol_text}"*"                 /* right-truncated bare string (prefix symbol) */
+ "*"{symbol_text}                    /* left-truncated bare string (suffix symbol) */
 
 Truncated symbols (for
 prefix-,
@@ -923,7 +928,7 @@ The scanner supports date-like tokens in a superset of the ISO 8601 format
 =head3 Index Names
 
  "$"{index_name}                     /* dollar-prefixed index name bareword */
- "$'"{sq_text}"'"	            /* quoted index name */
+ "$'"{sq_text}"'"                    /* quoted index name */
  "$"                                 /* bare dollar symbol (default index) */
 
 As of v2.1.1, the query scanner treats index names specially.
@@ -941,7 +946,7 @@ or single quotes.
 =head3 Symbols and Barewords
 
  \'{sq_text}\'                       /* single-quoted symbol */
- {symbol_text}			    /* bareword symbol */
+ {symbol_text}                       /* bareword symbol */
 
 Symbols (strings) are the basic building blocks of the DDC query language.
 The scanner supports "bareword" symbols (e.g. my_symbol)
@@ -978,9 +983,9 @@ and single-quoted symbols:
 
 =head3 Term Expander Pipelines
 
- "|"{ws}*"-"			    /* alias for default term expander pipeline (index-dependent) */
- "|"{ws}*\'{sq_text}\'		    /* quoted term expander label */
- "|"{ws}*{symbol_text}		    /* bare term expander label */
+ "|"{ws}*"-"                         /* alias for default term expander pipeline (index-dependent) */
+ "|"{ws}*\'{sq_text}\'               /* quoted term expander label */
+ "|"{ws}*{symbol_text}               /* bare term expander label */
 
 The scanner supports special rules for user specification of term expansion pipelines
 used by the qw_bareword and qw_set_infl
@@ -1008,12 +1013,16 @@ in a literal symbol, e.g. by enclosing the symbol in single quotes.
 
 =head3 Subcorpus Paths
 
+ {corpus_text}                       /* bareword subcorpus path (including '/' and '*') */
+ \'{sq_text}\'                       /* single-quoted subcorpus path */
+
 A branch-server query (see ddc_cfg(5))
 may be restricted to a subset of available sub*corpora
 by means of the : operator (:PATH1,PATH2,...,PATHn).
 Each subcorpus PATH in the list is parsed syntactically as an
-atomic symbol but is otherwise ignored
-by physical leaf servers.
+atomic symbol (allowing un-escaped
+"/" and "*" for convenience),
+but is otherwise ignored by physical leaf servers.
 
 
 Prior to v2.2.0, each PATH in a branch-server query had to be the literal name of
@@ -1022,13 +1031,7 @@ and only those daughters explicitly specified were queried.
 As of v2.2.0, branch servers allow slash-separated sub*corpus paths in PATHs
 as well as (limited) wildcard strings * indicating all descendants
 from the corresonding node:
-PathsDescription:all descendants (empty list: default):'*'all descendants (explicit wildcard):'foo','bar'immediate daughters "foo" and "bar" only:'foo/bar'granddaughter "bar", child of daughter "foo":'*/bar'all granddaughters named "bar":'*/bar','*/*/bar'all granddaughters or great-granddaughters named "bar"
-:                   /* all descendants (empty list: default) */
-:'*'                /* all descendants (explicit wildcard) */
-:'foo','bar'        /* immediate daughters "foo" and "bar" only */
-:'foo/bar'          /* granddaughter "bar", child of daughter "foo" */
-:'*/bar'            /* all granddaughters named "bar" */
-:'*/bar','*/*/bar'  /* all granddaughters or great-granddaughters named "bar" */
+PathsDescription:all descendants (empty list: default):*all descendants (explicit wildcard):foo,barimmediate daughters foo and bar only:foo/bargranddaughter bar, which is a child of daughter foo:*/barall granddaughters named bar:*/bar,*/*/barall granddaughters or great-granddaughters named bar
 
 
 

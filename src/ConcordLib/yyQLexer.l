@@ -1,6 +1,6 @@
 /*-*- Mode: Flex; c-basic-offset: 8 -*-*/
 /*
-//  Copyright 2011-2018 by Bryan Jurish
+//  Copyright 2011-2019 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -86,6 +86,11 @@ symbol_crest	[^ \t\n\r\f\v\0&|!?^%,:;#*=~(){}<>\[\]\\/\'\"]
 symbol_cescape  (\\.)
 symbol_text	({symbol_cescape}|{symbol_cfirst})({symbol_cescape}|{symbol_crest})*
 
+/* subcorpus symbols */
+corpus_cfirst	[^ \t\n\r\f\v\0&|!?^%,:;#=~(){}<>\[\]\\\'\"$@]
+corpus_crest	[^ \t\n\r\f\v\0&|!?^%,:;#=~(){}<>\[\]\\\'\"]
+corpus_text	({symbol_cescape}|{corpus_cfirst})({symbol_cescape}|{corpus_crest})*
+
  /* bareword index names (underscore and digits ok, but no '.', '-', or '+') */
 index_char	[^ \t\n\r\f\v\0&|!?^%,:;#*=~(){}<>\[\]\\/\'\".$@+-]
 index_name      ({index_char}|{symbol_cescape})+
@@ -112,6 +117,7 @@ comment_text	(\\.|[^\]])*
 %x Q_REGREP
 %x Q_XPIPE
 %x Q_COMMENT
+%x Q_CORPORA
 
  /* Q_MATCHID: non-exclusive state for expecting match-IDs
   * - ignores (hyphenated) bareword symbols
@@ -204,9 +210,17 @@ comment_text	(\\.|[^\]])*
 "@{"				{ return AT_LBRACE; /* literal-set opener */ }
 "*{"				{ return STAR_LBRACE; /* prefix-set opener */ }
 "}*"				{ return RBRACE_STAR; /* suffix-set closer */ }
-[!.,:;=@%^#~/]			{ return (int)yytext[0]; /* single-character punctuation operators */ }
+[!.,;=@%^#~/]			{ return (int)yytext[0]; /* single-character punctuation operators */ }
 [\[\]{}()<>]			{ return (int)yytext[0]; /* parentheses */ }
 [\"]				{ return (int)yytext[0]; /* double-quotes */ }
+
+ /* subcorpus lists */
+":"				{ BEGIN(Q_CORPORA); return ':'; }
+<Q_CORPORA>{corpus_text}	{ return SYMBOL;			/* corpora: bare subcorpus label */ }
+<Q_CORPORA>\'{sq_text}\'        { yytext++; yyleng-=2; return SYMBOL;	/* corpora: single-quoted symbol */ }
+<Q_CORPORA>","			{ return (int)yytext[0];		/* corpora: comma separator */ }
+<Q_CORPORA>{ws}+		{ ;					/* corpora: whitespace: skip */ }
+<Q_CORPORA>""/.			{ BEGIN(INITIAL); 			/* corpora: end of list */ }
 
  /* truncated symbols */
 "*"\'{sq_text}\'"*"		{ yytext+=2; yyleng-=4; return INFIX;  /* dual-truncated quoted string (infix symbol) */ }

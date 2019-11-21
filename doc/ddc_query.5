@@ -67,7 +67,7 @@
 .\" ========================================================================
 .\"
 .IX Title "DDC_QUERY 5"
-.TH DDC_QUERY 5 "2019-11-18" "2.2.0-pre1" "DDC Corpus Indexing System"
+.TH DDC_QUERY 5 "2019-11-21" "2.2.0-pre1" "DDC Corpus Indexing System"
 .\" For nroff, turn off justification.  Always turn off hyphenation; it makes
 .\" way too many mistakes in technical documents.
 .if n .ad l
@@ -665,7 +665,7 @@ Comments in this document may appear after each rule in C notation
 \&                     ;
 \& 
 \& s_subcorpus       ::=                              /*\-\- Named subcorpus path used by :... filter \-\-*/
-\&                       SUBCORPUS                    /* ... can be (almost) any symbol */
+\&                       SUBCORPUS                    /* ... can be any symbol, bare \*(Aq/\*(Aq and \*(Aq*\*(Aq are allowed */
 \&                     ;
 \& 
 \& s_field           ::=                              /*\-\- Document metadata field name \-\-*/
@@ -731,20 +731,25 @@ The underlying scanner makes use of several regular expression
 The following macros are defined for the underlying scanner:
 .PP
 .Vb 2
-\&  /* whitespace */         
-\& ws             [ \et\en\er\ef\ev]
+\&  /* whitespace */          
+\& ws              [ \et\en\er\ef\ev]
 \& 
 \&  /* integer boundary characters */
-\& int_boundary    [ \et\en\er\ef\ev\e0&|!?^%,:;#*=~(){}<>\e[\e]\e\e/\e\*(Aq\e".$@_+\-]
+\& int_boundary     [ \et\en\er\ef\ev\e0&|!?^%,:;#*=~(){}<>\e[\e]\e\e/\e\*(Aq\e".$@_+\-]
 \& 
 \&  /* bareword symbols */
-\& symbol_cfirst  [^ \et\en\er\ef\ev\e0&|!?^%,:;#*=~(){}<>\e[\e]\e\e/\e\*(Aq\e".$@]
-\& symbol_crest   [^ \et\en\er\ef\ev\e0&|!?^%,:;#*=~(){}<>\e[\e]\e\e/\e\*(Aq\e"]
+\& symbol_cfirst   [^ \et\en\er\ef\ev\e0&|!?^%,:;#*=~(){}<>\e[\e]\e\e/\e\*(Aq\e".$@]
+\& symbol_crest    [^ \et\en\er\ef\ev\e0&|!?^%,:;#*=~(){}<>\e[\e]\e\e/\e\*(Aq\e"]
 \& symbol_cescape  (\e\e.)
-\& symbol_text    ({symbol_cescape}|{symbol_cfirst})({symbol_cescape}|{symbol_crest})*
+\& symbol_text     ({symbol_cescape}|{symbol_cfirst})({symbol_cescape}|{symbol_crest})*
+\& 
+\&  /* subcorpus symbols (allowing bare \*(Aq/\*(Aq and \*(Aq*\*(Aq) */
+\& corpus_cfirst  [^ \et\en\er\ef\ev\e0&|!?^%,:;#=~(){}<>\e[\e]\e\e\e\*(Aq\e"$@]
+\& corpus_crest   [^ \et\en\er\ef\ev\e0&|!?^%,:;#=~(){}<>\e[\e]\e\e\e\*(Aq\e"]
+\& corpus_text    ({symbol_cescape}|{corpus_cfirst})({symbol_cescape}|{corpus_crest})*
 \& 
 \&  /* bareword index names (underscore and digits are ok, but no \*(Aq.\*(Aq, \*(Aq\-\*(Aq, or \*(Aq+\*(Aq) */
-\& index_char     [^ \et\en\er\ef\ev\e0&|!?^%,:;#*=~(){}<>\e[\e]\e\e/\e\*(Aq\e".$@+\-]
+\& index_char      [^ \et\en\er\ef\ev\e0&|!?^%,:;#*=~(){}<>\e[\e]\e\e/\e\*(Aq\e".$@+\-]
 \& index_name      ({index_char}|{symbol_cescape})+
 \& 
 \&  /* single\-quoted symbols */
@@ -752,17 +757,17 @@ The following macros are defined for the underlying scanner:
 \& 
 \&  /* regular expressions */
 \& regex_text      ((\e\e.)|[^\e\e/])*
-\& regex_modifier [dgimsx]
+\& regex_modifier  [dgimsx]
 \& 
 \&  /* lexer comments */
-\& comment_text   (\e\e.|[^\e]])*
+\& comment_text    (\e\e.|[^\e]])*
 .Ve
 .PP
 \fIComments\fR
 .IX Subsection "Comments"
 .PP
 .Vb 2
-\&  "#:"([^\en]*)                       /* line comment, ignored by scanner */              
+\&  "#:"([^\en]*)                       /* line comment, ignored by scanner */               
 \&  "#["{comment_text}"]"              /* block comment, ignored by scanner */
 .Ve
 .PP
@@ -796,13 +801,13 @@ Since v2.1.16.
 \& (?i:#file(_?)names)
 \& (?i:#debug_rank)
 \& (?i:#(greater|de?sc)(_by)?_rank)
-\& (?i:#(less|asc)(_by)?_rank)    
+\& (?i:#(less|asc)(_by)?_rank)     
 \& (?i:#(greater|de?sc)(_by)?_date)
-\& (?i:#(less|asc)(_by)?_date)    
-\& (?i:#(is_|has_)?date)          
+\& (?i:#(less|asc)(_by)?_date)     
+\& (?i:#(is_|has_)?date)           
 \& (?i:#(greater|de?sc)(_by)?_size)
-\& (?i:#(less|asc)(_by)?_size)    
-\& (?i:#(is_|has_)?size)          
+\& (?i:#(less|asc)(_by)?_size)     
+\& (?i:#(is_|has_)?size)           
 \& (?i:#((less|asc)(_by)?_)?left)
 \& (?i:#((greater|de?sc)(_by)?_)left)
 \& (?i:#((less|asc)(_by)?_)?right)
@@ -851,9 +856,9 @@ assigned, any matched tokens without explicit match-IDs are assigned a match-ID 
 .IX Subsection "Regular Expressions"
 .PP
 .Vb 3
-\&  "/"{regex_text}"/"{regex_modifier}*                   /* slash\-quoted regex, with option modifiers */
-\&  "!/"{regex_text}"/"{regex_modifier}*                  /* negated regex (complement) */
-\&  "s/"{regex_text}"/"{regex_text}"/"{regex_modifier}*   /* search\-and\-replace regex (for count\-by) */
+\&  "/"{regex_text}"/"{regex_modifier}*                    /* slash\-quoted regex, with option modifiers */
+\&  "!/"{regex_text}"/"{regex_modifier}*                   /* negated regex (complement) */
+\&  "s/"{regex_text}"/"{regex_text}"/"{regex_modifier}*    /* search\-and\-replace regex (for count\-by) */
 .Ve
 .PP
 The scanner supports regular expressions enclosed by forward slashes, with
@@ -921,13 +926,13 @@ symbol, e.g. by enclosing the symbol in single quotes.
 .IX Subsection "Truncated Symbols"
 .PP
 .Vb 3
-\& "*"\e\*(Aq{sq_text}\e\*(Aq"*"                /* dual\-truncated quoted string (infix symbol) */
-\&    \e\*(Aq{sq_text}\e\*(Aq"*"                /* right\-truncated quoted string (prefix symbol) */
-\& "*"\e\*(Aq{sq_text}\e\*(Aq                   /* left\-truncated quoted string (suffix symbol) */
+\& "*"\e\*(Aq{sq_text}\e\*(Aq"*"                 /* dual\-truncated quoted string (infix symbol) */
+\&    \e\*(Aq{sq_text}\e\*(Aq"*"                 /* right\-truncated quoted string (prefix symbol) */
+\& "*"\e\*(Aq{sq_text}\e\*(Aq                    /* left\-truncated quoted string (suffix symbol) */
 \& 
-\& "*"{symbol_text}"*"                /* dual\-truncated bare string (infix symbol) */
-\&    {symbol_text}"*"                /* right\-truncated bare string (prefix symbol) */
-\& "*"{symbol_text}                   /* left\-truncated bare string (suffix symbol) */
+\& "*"{symbol_text}"*"                 /* dual\-truncated bare string (infix symbol) */
+\&    {symbol_text}"*"                 /* right\-truncated bare string (prefix symbol) */
+\& "*"{symbol_text}                    /* left\-truncated bare string (suffix symbol) */
 .Ve
 .PP
 Truncated symbols (for
@@ -973,7 +978,7 @@ The scanner supports date-like tokens in a superset of the \s-1ISO 8601\s0 forma
 .PP
 .Vb 3
 \& "$"{index_name}                     /* dollar\-prefixed index name bareword */
-\& "$\*(Aq"{sq_text}"\*(Aq"                   /* quoted index name */
+\& "$\*(Aq"{sq_text}"\*(Aq"                    /* quoted index name */
 \& "$"                                 /* bare dollar symbol (default index) */
 .Ve
 .PP
@@ -991,7 +996,7 @@ or single quotes.
 .PP
 .Vb 2
 \& \e\*(Aq{sq_text}\e\*(Aq                       /* single\-quoted symbol */
-\& {symbol_text}                      /* bareword symbol */
+\& {symbol_text}                       /* bareword symbol */
 .Ve
 .PP
 Symbols (strings) are the basic building blocks of the \s-1DDC\s0 query language.
@@ -1026,9 +1031,9 @@ and single-quoted symbols:
 .IX Subsection "Term Expander Pipelines"
 .PP
 .Vb 3
-\& "|"{ws}*"\-"                        /* alias for default term expander pipeline (index\-dependent) */
-\& "|"{ws}*\e\*(Aq{sq_text}\e\*(Aq              /* quoted term expander label */
-\& "|"{ws}*{symbol_text}              /* bare term expander label */
+\& "|"{ws}*"\-"                         /* alias for default term expander pipeline (index\-dependent) */
+\& "|"{ws}*\e\*(Aq{sq_text}\e\*(Aq               /* quoted term expander label */
+\& "|"{ws}*{symbol_text}               /* bare term expander label */
 .Ve
 .PP
 The scanner supports special rules for user specification of term expansion pipelines
@@ -1055,12 +1060,18 @@ in a literal symbol, e.g. by enclosing the symbol in single quotes.
 \fISubcorpus Paths\fR
 .IX Subsection "Subcorpus Paths"
 .PP
+.Vb 2
+\& {corpus_text}                       /* bareword subcorpus path (including \*(Aq/\*(Aq and \*(Aq*\*(Aq) */
+\& \e\*(Aq{sq_text}\e\*(Aq                       /* single\-quoted subcorpus path */
+.Ve
+.PP
 A branch-server query (see \fIddc_cfg\fR\|(5))
 may be restricted to a subset of available sub*corpora
 by means of the : operator (:PATH1,PATH2,...,PATHn).
 Each subcorpus \s-1PATH\s0 in the list is parsed syntactically as an
-atomic symbol but is otherwise ignored
-by physical leaf servers.
+atomic symbol (allowing un-escaped
+\&\*(L"/\*(R" and \*(L"*\*(R" for convenience),
+but is otherwise ignored by physical leaf servers.
 .PP
 Prior to v2.2.0, each \s-1PATH\s0 in a branch-server query had to be the literal name of
 an immediate daughter node (see \fIddc_cfg\fR\|(5)),
@@ -1068,13 +1079,7 @@ and only those daughters explicitly specified were queried.
 As of v2.2.0, branch servers allow slash-separated sub*corpus paths in PATHs
 as well as (limited) wildcard strings * indicating all descendants
 from the corresonding node:
-PathsDescription:all descendants (empty list: default):'*'all descendants (explicit wildcard):'foo','bar'immediate daughters \*(L"foo\*(R" and \*(L"bar\*(R" only:'foo/bar'granddaughter \*(L"bar\*(R", child of daughter \*(L"foo\*(R":'*/bar'all granddaughters named \*(L"bar\*(R":'*/bar','*/*/bar'all granddaughters or great-granddaughters named \*(L"bar\*(R"
-:                   /* all descendants (empty list: default) */
-:'*'                /* all descendants (explicit wildcard) */
-:'foo','bar'        /* immediate daughters \*(L"foo\*(R" and \*(L"bar\*(R" only */
-:'foo/bar'          /* granddaughter \*(L"bar\*(R", child of daughter \*(L"foo\*(R" */
-:'*/bar'            /* all granddaughters named \*(L"bar\*(R" */
-:'*/bar','*/*/bar'  /* all granddaughters or great-granddaughters named \*(L"bar\*(R" */
+PathsDescription:all descendants (empty list: default):*all descendants (explicit wildcard):foo,barimmediate daughters foo and bar only:foo/bargranddaughter bar, which is a child of daughter foo:*/barall granddaughters named bar:*/bar,*/*/barall granddaughters or great-granddaughters named bar
 .PP
 \fIOther Terminals\fR
 .IX Subsection "Other Terminals"

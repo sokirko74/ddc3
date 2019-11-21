@@ -8,6 +8,7 @@ v2.2.0-pre1 (WIP)
 	* added URL-style "sockaddr" attribute (URL-style) to server 'status' responses
 	* fixed 'make distcheck' (sf ticket #8)
 	* parse & honor "deep" daughter-specific subcorpus paths in branch-server requests
+	  - allow bare '/' and '*' for subcorpous items in yyQLexer.l (new start-state)
 	* added INET-vs-UNIX abstract socket address layer CSocketAddr
 	* updated docs
 	* optimized CConcSession::InitFileReferences() using binary-vs-linear dispatch (up to 1.5x faster, avg 63% faster)
