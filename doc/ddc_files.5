@@ -67,7 +67,7 @@
 .\" ========================================================================
 .\"
 .IX Title "DDC_FILES 5"
-.TH DDC_FILES 5 "2019-11-18" "2.2.0-pre1" "DDC Corpus Indexing System"
+.TH DDC_FILES 5 "2019-12-10" "2.2.0-pre2" "DDC Corpus Indexing System"
 .\" For nroff, turn off justification.  Always turn off hyphenation; it makes
 .\" way too many mistakes in technical documents.
 .if n .ad l
@@ -648,7 +648,7 @@ with one or more of these files:
 .Vb 10
 \& \- version: <= v2.1.11 (compatibility fallback >= v2.1.12)
 \& \- resident: yes
-\& \- mmap: no
+\& \- mmap: yes
 \& \- popularity: high
 \& \- size: small to medium (comparable to _Lemma (types) for ibk_web_2016b)
 \& \- growth: O(NValueTypes)
@@ -771,7 +771,7 @@ file gets its own naming conventions.
 .Vb 10
 \& \- version: >= v2.0.0
 \& \- resident: no
-\& \- mmap: no
+\& \- mmap: yes
 \& \- popularity: high
 \& \- size: small\-medium
 \& \- growth: O(NDocs)

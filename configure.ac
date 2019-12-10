@@ -3,7 +3,7 @@ AC_PREREQ(2.5)
 
 dnl Some handy macros
 define([THE_PACKAGE_NAME],    [ddc])
-define([THE_PACKAGE_VERSION], [2.2.0-pre1])
+define([THE_PACKAGE_VERSION], [2.2.0-pre2])
 define([THE_PACKAGE_MAINTAINER],  [jurish@bbaw.de])
 AC_INIT(THE_PACKAGE_NAME, THE_PACKAGE_VERSION, THE_PACKAGE_MAINTAINER)
 
@@ -209,9 +209,9 @@ AC_CHECK_LIB(jemalloc, mallocx,
 
 ##--------
 AC_ARG_ENABLE([jemalloc],
-	AC_HELP_STRING([--enable-jemalloc],[enable jemalloc allocator (default=if avavilable)]),
+	AC_HELP_STRING([--enable-jemalloc],[enable jemalloc allocator (default=no)]),
 	[ddc_enable_jemalloc="$enableval"],
-	[ddc_enable_jemalloc="auto"])
+	[ddc_enable_jemalloc="no"])
 AC_MSG_CHECKING([whether to enable jemalloc allocator])
 if test "$ddc_enable_jemalloc" = "no" ; then
    AC_MSG_RESULT([no])

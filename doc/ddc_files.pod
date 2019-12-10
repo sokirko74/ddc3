@@ -676,7 +676,7 @@ with one or more of these files:
 
  - version: <= v2.1.11 (compatibility fallback >= v2.1.12)
  - resident: yes
- - mmap: no
+ - mmap: yes
  - popularity: high
  - size: small to medium (comparable to _Lemma (types) for ibk_web_2016b)
  - growth: O(NValueTypes)
@@ -805,7 +805,7 @@ file gets its own naming conventions.
 
  - version: >= v2.0.0
  - resident: no
- - mmap: no
+ - mmap: yes
  - popularity: high
  - size: small-medium
  - growth: O(NDocs)
