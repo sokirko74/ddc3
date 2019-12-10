@@ -1,7 +1,8 @@
 ###-*- Mode: Change-Log; coding: utf-8; -*-
 
-v2.2.0-pre1 (WIP)
-	Thu, 21 Nov 2019 13:27:57 +0100 moocow
+v2.2.0 Tue, 10 Dec 2019 15:22:49 +0100 moocow
+	* disable jemalloc by default
+	  - DDC::XS chokes on debian/buster (libjemalloc2 v5.1.0-3) with jemalloc linked into ddc libs
 	* merged "delwin" branch changes into trunk
 	* expanded TABs to spaces in all *.cpp and *.h files
 	* added emacs indentation-style variables to all *.cpp and *.h files, also .dir-locals.el
