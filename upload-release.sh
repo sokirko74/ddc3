@@ -1,6 +1,6 @@
 #!/bin/bash
 
-DSTURL="mukau@frs.sourceforge.net:/home/frs/project/ddc-concordance/ddc-concordance/2.1/"
+DSTURL="mukau@frs.sourceforge.net:/home/frs/project/ddc-concordance/ddc-concordance/2.2/"
 
 if test -z "$*" -o "$1" = "-h" -o "$1" = "--help" ; then
     cat <<EOF >&2
