@@ -1,6 +1,6 @@
     README for package ddc
 
-    Last updated for ddc v2.1.0
+    Last updated for ddc v2.2.0
 
 DESCRIPTION
     The ddc package contains core C++ utilities for the DWDS/Dialing
@@ -32,7 +32,7 @@ DEPENDENCIES
 
         URL: http://www.pcre.org/
 
-        Tested version(s): 8.02
+        Tested version(s): 8.02, 8.39-3
 
     libcurl (optional)
         If available, libcurl can be used for accessing external HTTP-based
@@ -42,10 +42,10 @@ DEPENDENCIES
 
         URL: http://curl.haxx.se/
 
-        Tested version(s): 7.21.0, 7.38.0
+        Tested version(s): 7.21.0, 7.38.0, 7.52.1
 
     GNU bison (optional)
-        Tested version(s): 2.4.1, 3.0.2
+        Tested version(s): 2.4.1, 3.0.2, 3.0.4
 
         If you get errors compiling src/ConcordLib/yyQParser.o, try
         re-extracting the source archive and call
@@ -55,7 +55,7 @@ DEPENDENCIES
         before re-compiling.
 
     GNU flex (optional)
-        Tested version(s) 2.5.35, 2.5.39, 2.6.
+        Tested version(s) 2.5.35, 2.5.39, 2.6.1
 
         If you get errors compiling src/ConcordLib/yyQLexer.o, try
         re-extracting the source archive and call
