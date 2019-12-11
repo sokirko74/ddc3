@@ -69,7 +69,7 @@ FILE* getOutputStream(string outfilename){
     else {
         FILE* outfile = fopen(outfilename.c_str(), "wb");
         if (!outfile)
-            throw CExpc(errRuntime, "Error: cannot open output file `%s': %s", outfilename, strerror(errno));
+            throw CExpc(errRuntime, "Error: cannot open output file `%s': %s", outfilename.c_str(), strerror(errno));
         return outfile;
     }
 }
