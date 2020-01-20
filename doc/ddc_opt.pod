@@ -640,8 +640,8 @@ Default if unspecified is hard-coded as 5000000 (5M).
  UserMaxInputLoadIndexSize N
 
 Minimum number of tokens to buffer during corpus indexing before considering
-flushing to disk and possibly introducing a L<period boundary|/UserMaxTokenCountInOnePeriod>
-boundary.  Must be strictly less than L</UserMaxTokenCountInOnePeriod>, otherwise
+flushing to disk and possibly introducing a L<period boundary|/UserMaxTokenCountInOnePeriod>.
+Must be strictly less than L</UserMaxTokenCountInOnePeriod>, otherwise
 defaults to C<L</UserMaxTokenCountInOnePeriod>/10>.
 
 Global default if unspecified is hard-coded as 400000 (400K).
