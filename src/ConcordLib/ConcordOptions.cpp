@@ -719,6 +719,10 @@ string CConcordance::SaveOptionsToString() const {
     if (!BordersStr.empty())
         Result += "HitBorders " + BordersStr + "\n";
 
+    string TextAreasString = m_BiblIndex.GetTextAreasDescr();
+    if (!TextAreasString.empty())
+        Result += TextAreasString + "\n";
+
     for (map<string,string>::const_iterator odi=m_OpDefaultIndexNames.begin(); odi!=m_OpDefaultIndexNames.end(); ++odi) {
         Result += "DefaultQueryIndex " + odi->first + " " + odi->second + "\n";
     }
