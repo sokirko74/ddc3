@@ -2166,6 +2166,15 @@ const char *ddc_log_label(void)
     return NULL;
 #endif
 }
+const char *ddc_set_log_label(const char *log_label)
+{
+    const char *old = ddc_log_label();
+#ifndef WIN32
+    pthread_setspecific(ddc_loglabel_key, log_label);
+#endif
+    return old;
+}
+
 
 bool LoadFileToString(string FileName, string& Result, bool clobber)
 {
