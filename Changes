@@ -1,6 +1,6 @@
 ###-*- Mode: Change-Log; coding: utf-8; -*-
 
-v2.2.1-pre1 Wed, 22 Jan 2020 15:26:45 +0100 moocow
+v2.2.1-rc1 Wed, 22 Jan 2020 15:34:15 +0100 moocow
 	* fixed bug suppressing "Value for bibl field `ATTR' is too long" errors from CFreeBiblStringIndex::RegisterBiblStringItemId()
 	* built-in bibl fields are now auto-truncated to MaxBiblStringLen bytes (=20kB)
 	* include textarea declarations in CConcordance::SaveOptionsToString()
