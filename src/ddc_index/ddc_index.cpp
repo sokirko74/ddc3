@@ -118,7 +118,12 @@ int main(int argc, char* argv[])
         
     DDCTimeHiRes t0 = DDCTimeHiRes::Now();
     S.m_bStdout = true;
-        
+
+    //-- verbose log label
+    string loglabel = FileBasename(prog) + " " + FileBasename(ProjectFile);
+    ddc_set_log_label(loglabel.c_str());
+
+    //-- guts
     if (!S.BuildIndex(ProjectFile ))
     {
         ddcLogError("cannot index the project!");
