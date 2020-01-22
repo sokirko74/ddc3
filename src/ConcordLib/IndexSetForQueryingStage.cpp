@@ -24,6 +24,8 @@
 #include "StringIndexator.h"
 #include <fcntl.h>
 
+#include <signal.h> //-- for raise(SIGABRT) : force core-dump
+
 #ifdef DETECT_MEMORY_LEAK
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -453,19 +455,21 @@ bool CIndexSetForQueryingStage::BuildPeriodsDivisionAndCompress(const DWORD PerD
 };
 
 bool CIndexSetForQueryingStage::AddOneIndexItem(CItemIndexForLoading &M, FILE *res_fp, size_t &CurrPositionInResFile,
-                                                const CTokenNo EndTokeNo) {
+                                                const CTokenNo EndTokenNo) {
     CIndexItem I;
     I.SetIndexItemOffsetAndFlags(M.GetIndexItemOffset() | 0);
 
 
-    if (!M.CheckOccurrences(EndTokeNo)) {
+    if (!M.CheckOccurrences(EndTokenNo)) {
         ErrorMessage(
-            Format("CheckOccurrences failed!\n Index Name: %s\n Count of occurrences=%i\n IndexItemOffset=%i\n",
+            Format("ERROR: CheckOccurrences failed!\n Index Name: %s\n Count of occurrences=%i\n IndexItemOffset=%i\n Occurs.back=%i\n EndTokenNo=%i\n",
                    GetName().c_str(),
                    M.GetOccursSize(),
-                   M.GetIndexItemOffset()
-
+                   M.GetIndexItemOffset(),
+                   (M.GetOccursSize() ? M.GetOccurs()->back() : -1),
+                   EndTokenNo
                 ));
+        raise(SIGABRT); //-- dump core & bug out
         return false;
     };
 

@@ -86,12 +86,19 @@ bool CItemIndexForLoading::CheckOccurrences(CTokenNo EndTokenNo) const
         return true;
     }
 
-    for (size_t i = 0; i+1 < Count; i++)
-        if ((*m_pCurrOccurs)[i] >= (*m_pCurrOccurs)[i+1])
+    for (size_t i = 0; i+1 < Count; i++) {
+        if ((*m_pCurrOccurs)[i] >= (*m_pCurrOccurs)[i+1]) {
+            ErrorMessage(Format("ERROR: CheckOccurrences(): occurrences are not sorted (occ[%i]=%i >= %i=occ[%i])\n",
+                                i, (*m_pCurrOccurs)[i], (*m_pCurrOccurs)[i+1], i+1));
             return false;
+        }
+    }
 
-    if ((*m_pCurrOccurs).back() >= EndTokenNo)
+    if ((*m_pCurrOccurs).back() >= EndTokenNo) {
+        ErrorMessage(Format("ERROR: CheckOccurrences(): final occurrence exceeds EndTokenNo (occs[%i]=%i >= %i=EndTokenNo)\n",
+                            m_pCurrOccurs->size()-1, m_pCurrOccurs->back(), EndTokenNo));
         return false;
+    }
         
     return true;
 };
