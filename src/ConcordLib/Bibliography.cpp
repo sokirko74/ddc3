@@ -17,7 +17,6 @@ void CBibliography::CleanBibliography() {
     m_BiblAttribs.clear();
 };
 
-
 void CBibliography::ReadFromString(const string &S) {
     CleanBibliography();
 

@@ -18,6 +18,7 @@
 //
 #include "ddcString.h"
 #include "utilit.h"
+#include "ddcLog.h"
 #include <string.h>
 
 using namespace std;
@@ -543,6 +544,14 @@ std::string TrimSafe(const std::string &str)
     size_t j = str.find_last_not_of(" \t\r\n");
     if (i >= j) return string();
     return str.substr(i, j-i+1);
+}
+
+//--------------------------------------------------------------
+void TrimTruncateV(std::string &str, size_t max, const char *label)
+{
+    if (TrimTruncate(str,max)) {
+        ddcLogWarn(Format("Warning: %s string truncated to max=%zi bytes", (label ? label : ""), max));
+    }
 }
 
 //======================================================================

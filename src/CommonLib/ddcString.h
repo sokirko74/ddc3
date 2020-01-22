@@ -286,6 +286,21 @@ public:
 /** constructive variant of Trim() from utilit.(h|cpp): trims leading and trailing whitespace from argument, returns new trimmed string */
 std::string TrimSafe(const std::string &str);
 
+/** truncate string \a str to \a maxLen bytes if str.size() > max
+ * \returns true iff string was actually truncated
+ */
+inline bool TrimTruncate(std::string &str, size_t max)
+{
+    if (str.size() > max) {
+        str.erase(max);
+        return true;
+    }
+    return false;
+};
+
+/** verbose auto-truncation: logs a warning "LABEL ILABEL truncated to max=MAX bytes" on truncation */
+void TrimTruncateV(std::string &str, size_t max, const char *label=NULL);
+
 //@}
 
 //----------------------------------------------------------------------

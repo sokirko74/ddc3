@@ -67,7 +67,7 @@
 .\" ========================================================================
 .\"
 .IX Title "DDC_OPT 5"
-.TH DDC_OPT 5 "2019-12-10" "2.2.0" "DDC Corpus Indexing System"
+.TH DDC_OPT 5 "2020-01-20" "2.2.0" "DDC Corpus Indexing System"
 .\" For nroff, turn off justification.  Always turn off hyphenation; it makes
 .\" way too many mistakes in technical documents.
 .if n .ad l
@@ -724,8 +724,8 @@ Default if unspecified is hard-coded as 5000000 (5M).
 .Ve
 .PP
 Minimum number of tokens to buffer during corpus indexing before considering
-flushing to disk and possibly introducing a period boundary
-boundary.  Must be strictly less than \*(L"UserMaxTokenCountInOnePeriod\*(R", otherwise
+flushing to disk and possibly introducing a period boundary.
+Must be strictly less than \*(L"UserMaxTokenCountInOnePeriod\*(R", otherwise
 defaults to \f(CW\*(C`"UserMaxTokenCountInOnePeriod"/10\*(C'\fR.
 .PP
 Global default if unspecified is hard-coded as 400000 (400K).

@@ -1,7 +1,7 @@
 /*-*- Mode: C++ -*-*/
 //
 //  DDC originally by Alexey Sokirko
-//  Changes and modifications 2011-2018 by Bryan Jurish
+//  Changes and modifications 2011-2020 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -450,8 +450,29 @@ void CConcXml::LoadXmlAndReadBibliography(TiXmlDocument &doc, const char *pFileB
         Bibl.m_BiblAttribs.push_back(q);
     };
 
+    SanitizeBibliography(Bibl);
 };
 
+void CConcXml::SanitizeBiblString(std::string& val, const std::string& label)
+{
+    if (TrimTruncate(val,MaxBiblStringLen))
+        ddcLogWarn(Format("Warning: value for bibl attribute `%s' truncated to max=%zi bytes", label.c_str(), MaxBiblStringLen));
+}
+
+void CConcXml::SanitizeBibliography(CBibliography &Bibl) const
+{
+    SanitizeBiblString(Bibl.m_OrigBibl,"orig");
+    SanitizeBiblString(Bibl.m_ScanBibl,"scan");
+    SanitizeBiblString(Bibl.m_DateStr,"date");
+
+    size_t fbix = 0;
+    Bibl.m_BiblAttribs.resize(m_FreeBiblIndices.size());
+    for (FreeBiblStringMap::const_iterator fbit=m_FreeBiblIndices.begin(); fbit != m_FreeBiblIndices.end(); ++fbit, ++fbix) {
+        const string& biblName = fbit->first;
+        SanitizeBiblString(Bibl.m_BiblAttribs[fbix], biblName.c_str());
+    }
+};
+        
 void CConcXml::SetFreeBiblAttribsEmpty(CBibliography &Bibl) const {
     assert (Bibl.m_BiblAttribs.empty());
     for (size_t i = 0; i < m_FreeBiblIndices.size(); ++i)

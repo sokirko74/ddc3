@@ -75,6 +75,12 @@ public:
     //! load xml file into TiXmlDocument& doc and load bibliographical fileds to CBibliography& Bibl
     void LoadXmlAndReadBibliography(TiXmlDocument &doc, const char *pFileBuffer, CBibliography &Bibl);
 
+    //! auto-truncate bibliography values
+    void SanitizeBibliography(CBibliography& Bibl) const;
+
+    //! auto-truncate bibliography string
+    static void SanitizeBiblString(std::string& val, const std::string& label);
+
     //! load xml file under  MorphXML_Index into vector<CXmlToken>& GraTable
     void ReadMorphXmlFileIntoGraTable(string FileName, const char *pFileBuffer, vector<CXmlToken> &GraTable,
                                       CBibliography &Bibl);
