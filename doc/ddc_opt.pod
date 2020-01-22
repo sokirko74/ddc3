@@ -629,9 +629,29 @@ Since v2.0.23 (formerly a global constant = 500).
  UserMaxTokenCountInOnePeriod N
 
 (from DDCReadme):
-Set the size of internal subcorpora.
+Set the size of internal subcorpus blocks.
 The greater the value of this parameter is, the faster
 querying procedures work, and the more memory the program needs.
+
+This parameter is basically a block-size limit for so-called "periods"
+(aka "partitions", "blocks") of a physical sucorpus
+used implicitly by the low-level query
+evaluation routines.
+A "period" is a contiguous sequence of documents within a single
+physical (sub)corpus.
+C<CConcSession::GetAllHits()> iterates over all "periods" of a physical
+subcorpus, and (re-)populates the set of query hits within the current "period"
+at each step of the iteration.
+Query filters (sort operators, C<#HAS_FIELD>, etc.) are re-evaluated for each
+period-local hit subset.  User-supplied timeout values and hint optimization
+are only checked at the end of each "period"-specific iteration.
+
+This mechanism was probably originally meant to reduce the likelihood of RAM overflow for large
+result-sets (e.g. function words) with nontrival filters (e.g. =#HAS[author,...]=) by restricting
+the number of hits that had to be kept in memory at any given time, under the assumption
+that the filter stage would substantially reduce the number of valid hits, but can lead
+to longer query times especially for large corpora containing many "small" documents
+in the presence of a non-trvial sort operator (e.g. C<#ASC_DATE>).
 
 Default if unspecified is hard-coded as 5000000 (5M).
 
@@ -762,6 +782,21 @@ of the field data in corpus source documents; for
 the C<constant> type, it should be a literal string indicating the value to be returned,
 and for the C<alias> type, it should be the name of the target bibliographic field (or other alias)
 for which the pseudo-attribute C<NAME> is to serve as an alias.
+
+All X-Path expressions for the document-dependent C<string> and C<integer> metadata types should be "trivial" in the
+sense that for each input document, every metadata X-Path C<VALUE> should resolve to a unique attribute- or element-node,
+whose content should be a single text node containing all and only the string to be indexed as the value of the
+metadata attribute C<NAME> for that document (i.e. any nested elements and their content will be ignored).
+For best results, the X-Path should be an absolute
+C<XPATH> is an absolute location path (beginning with C</>), and consisting
+only of element names (C<foo>),
+element wildcards (C<*>),
+slashes (C</>),
+and attribute restriction clauses (C<[@foo="bar"]>).
+
+A non-empty "C<date>" attribute is B<required> for all input documents,
+and all metadata attribute values may be at most 20000 bytes (20 kB) in length:
+longer values in input files will cause the C<ddc_index> process to abort.
 
 =back
 

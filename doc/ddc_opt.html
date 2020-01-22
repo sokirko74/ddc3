@@ -546,7 +546,11 @@
 
 <pre><code> UserMaxTokenCountInOnePeriod N</code></pre>
 
-<p>(from DDCReadme): Set the size of internal subcorpora. The greater the value of this parameter is, the faster querying procedures work, and the more memory the program needs.</p>
+<p>(from DDCReadme): Set the size of internal subcorpus blocks. The greater the value of this parameter is, the faster querying procedures work, and the more memory the program needs.</p>
+
+<p>This parameter is basically a block-size limit for so-called &quot;periods&quot; (aka &quot;partitions&quot;, &quot;blocks&quot;) of a physical sucorpus used implicitly by the low-level query evaluation routines. A &quot;period&quot; is a contiguous sequence of documents within a single physical (sub)corpus. <code>CConcSession::GetAllHits()</code> iterates over all &quot;periods&quot; of a physical subcorpus, and (re-)populates the set of query hits within the current &quot;period&quot; at each step of the iteration. Query filters (sort operators, <code>#HAS_FIELD</code>, etc.) are re-evaluated for each period-local hit subset. User-supplied timeout values and hint optimization are only checked at the end of each &quot;period&quot;-specific iteration.</p>
+
+<p>This mechanism was probably originally meant to reduce the likelihood of RAM overflow for large result-sets (e.g. function words) with nontrival filters (e.g. =#HAS[author,...]=) by restricting the number of hits that had to be kept in memory at any given time, under the assumption that the filter stage would substantially reduce the number of valid hits, but can lead to longer query times especially for large corpora containing many &quot;small&quot; documents in the presence of a non-trvial sort operator (e.g. <code>#ASC_DATE</code>).</p>
 
 <p>Default if unspecified is hard-coded as 5000000 (5M).</p>
 
@@ -647,6 +651,10 @@
 <dd>
 
 <p>For the <code>string</code> and <code>integer</code> types, <code>VALUE</code> should be an X-Path specification of the location of the field data in corpus source documents; for the <code>constant</code> type, it should be a literal string indicating the value to be returned, and for the <code>alias</code> type, it should be the name of the target bibliographic field (or other alias) for which the pseudo-attribute <code>NAME</code> is to serve as an alias.</p>
+
+<p>All X-Path expressions for the document-dependent <code>string</code> and <code>integer</code> metadata types should be &quot;trivial&quot; in the sense that for each input document, every metadata X-Path <code>VALUE</code> should resolve to a unique attribute- or element-node, whose content should be a single text node containing all and only the string to be indexed as the value of the metadata attribute <code>NAME</code> for that document (i.e. any nested elements and their content will be ignored). For best results, the X-Path should be an absolute <code>XPATH</code> is an absolute location path (beginning with <code>/</code>), and consisting only of element names (<code>foo</code>), element wildcards (<code>*</code>), slashes (<code>/</code>), and attribute restriction clauses (<code>[@foo=&quot;bar&quot;]</code>).</p>
+
+<p>A non-empty &quot;<code>date</code>&quot; attribute is <b>required</b> for all input documents, and all metadata attribute values may be at most 20000 bytes (20 kB) in length: longer values in input files will cause the <code>ddc_index</code> process to abort.</p>
 
 </dd>
 </dl>

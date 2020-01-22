@@ -67,7 +67,7 @@
 .\" ========================================================================
 .\"
 .IX Title "DDC_OPT 5"
-.TH DDC_OPT 5 "2020-01-20" "2.2.1-rc1" "DDC Corpus Indexing System"
+.TH DDC_OPT 5 "2020-01-22" "2.2.1-rc1" "DDC Corpus Indexing System"
 .\" For nroff, turn off justification.  Always turn off hyphenation; it makes
 .\" way too many mistakes in technical documents.
 .if n .ad l
@@ -710,9 +710,29 @@ Since v2.0.23 (formerly a global constant = 500).
 .Ve
 .PP
 (from DDCReadme):
-Set the size of internal subcorpora.
+Set the size of internal subcorpus blocks.
 The greater the value of this parameter is, the faster
 querying procedures work, and the more memory the program needs.
+.PP
+This parameter is basically a block-size limit for so-called \*(L"periods\*(R"
+(aka \*(L"partitions\*(R", \*(L"blocks\*(R") of a physical sucorpus
+used implicitly by the low-level query
+evaluation routines.
+A \*(L"period\*(R" is a contiguous sequence of documents within a single
+physical (sub)corpus.
+\&\f(CW\*(C`CConcSession::GetAllHits()\*(C'\fR iterates over all \*(L"periods\*(R" of a physical
+subcorpus, and (re\-)populates the set of query hits within the current \*(L"period\*(R"
+at each step of the iteration.
+Query filters (sort operators, \f(CW\*(C`#HAS_FIELD\*(C'\fR, etc.) are re-evaluated for each
+period-local hit subset.  User-supplied timeout values and hint optimization
+are only checked at the end of each \*(L"period\*(R"\-specific iteration.
+.PP
+This mechanism was probably originally meant to reduce the likelihood of \s-1RAM\s0 overflow for large
+result-sets (e.g. function words) with nontrival filters (e.g. =#HAS[author,...]=) by restricting
+the number of hits that had to be kept in memory at any given time, under the assumption
+that the filter stage would substantially reduce the number of valid hits, but can lead
+to longer query times especially for large corpora containing many \*(L"small\*(R" documents
+in the presence of a non-trvial sort operator (e.g. \f(CW\*(C`#ASC_DATE\*(C'\fR).
 .PP
 Default if unspecified is hard-coded as 5000000 (5M).
 .PP
@@ -860,6 +880,21 @@ of the field data in corpus source documents; for
 the \f(CW\*(C`constant\*(C'\fR type, it should be a literal string indicating the value to be returned,
 and for the \f(CW\*(C`alias\*(C'\fR type, it should be the name of the target bibliographic field (or other alias)
 for which the pseudo-attribute \f(CW\*(C`NAME\*(C'\fR is to serve as an alias.
+.Sp
+All X\-Path expressions for the document-dependent \f(CW\*(C`string\*(C'\fR and \f(CW\*(C`integer\*(C'\fR metadata types should be \*(L"trivial\*(R" in the
+sense that for each input document, every metadata X\-Path \f(CW\*(C`VALUE\*(C'\fR should resolve to a unique attribute\- or element-node,
+whose content should be a single text node containing all and only the string to be indexed as the value of the
+metadata attribute \f(CW\*(C`NAME\*(C'\fR for that document (i.e. any nested elements and their content will be ignored).
+For best results, the X\-Path should be an absolute
+\&\f(CW\*(C`XPATH\*(C'\fR is an absolute location path (beginning with \f(CW\*(C`/\*(C'\fR), and consisting
+only of element names (\f(CW\*(C`foo\*(C'\fR),
+element wildcards (\f(CW\*(C`*\*(C'\fR),
+slashes (\f(CW\*(C`/\*(C'\fR),
+and attribute restriction clauses (\f(CW\*(C`[@foo="bar"]\*(C'\fR).
+.Sp
+A non-empty "\f(CW\*(C`date\*(C'\fR" attribute is \fBrequired\fR for all input documents,
+and all metadata attribute values may be at most 20000 bytes (20 kB) in length:
+longer values in input files will cause the \f(CW\*(C`ddc_index\*(C'\fR process to abort.
 .PP
 Note that additions, deletions, and/or changes to \f(CW\*(C`constant\*(C'\fR bibliographic fields do \fBnot\fR
 require re-indexing, whereas any changes to non\-\f(CW\*(C`constant\*(C'\fR fields \fBdo\fR.
