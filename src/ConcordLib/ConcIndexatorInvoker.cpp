@@ -210,7 +210,12 @@ DWORD ConcIndexatorInvoker::IndexFile(CConcIndexator& Indexator, CIndexDocument*
         document->CorpusEndTokenNo = m_CorpusEndTokenNo;
         Indexator.IndexOneFile(document);
         m_CorpusEndTokenNo = document->CorpusEndTokenNo;
-    } catch  (CExpc e) {
+    }
+    catch (CFatalExpc &e) {
+        ddcLogError(Format("Error: failed to index file `%s': %s", CorpusFileName.c_str(), e.what()));
+        throw;
+    }
+    catch (CExpc &e) {
         string err = Format("Error! %s; Indexator.IndexOneFile returned false (file %s)",
                             e.m_strCause.c_str(),
                             CorpusFileName.c_str());
@@ -221,6 +226,9 @@ DWORD ConcIndexatorInvoker::IndexFile(CConcIndexator& Indexator, CIndexDocument*
             SetCurrMessage(Format("skipping %s", CorpusFileName.c_str()));
             return 0;
         }
+    }
+    catch (...) {
+        throw;
     }
 
     m_Profiler.EndTimer("Indexator.IndexOneFile");
@@ -350,13 +358,18 @@ bool ConcIndexatorInvoker::BuildIndex(string ProjectFile) {
         WriteTimeStatistics(Indexator,  Indexator.GetMaxTokenCountInOnePeriod());
         return true;
     }
-    catch (CExpc e) {
-        SetCurrMessage(e.m_strCause);
+    catch (exception& e) {
+        ddcLogError(Format("Error: exception while indexing `%s': %s", ProjectFile.c_str(), e.what()));
+        SetCurrMessage(Format("An exception occurred: %s", e.what()));
+        throw;
     }
     catch (...) {
-        SetCurrMessage("An exception occurred");
+        ddcLogError(Format("Error: unknown exception while indexing `%s'", ProjectFile.c_str()));
+        SetCurrMessage("An unknown exception occurred");
+        throw;
     }
 
+    //-- 2020-01-22: never reached (keep temporary data for debugging if something went wrong)
     try {
         Indexator.TerminateIndexing();
         Indexator.DestroyIndex();

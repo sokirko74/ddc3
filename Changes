@@ -1,5 +1,13 @@
 ###-*- Mode: Change-Log; coding: utf-8; -*-
 
+v2.2.1-pre1 Wed, 22 Jan 2020 15:26:45 +0100 moocow
+	* fixed bug suppressing "Value for bibl field `ATTR' is too long" errors from CFreeBiblStringIndex::RegisterBiblStringItemId()
+	* built-in bibl fields are now auto-truncated to MaxBiblStringLen bytes (=20kB)
+	* include textarea declarations in CConcordance::SaveOptionsToString()
+	* include project name in ddc_index log-label (via new ddc_set_log_label() function)
+	* changed exception handling in CConcIndexatorInvoker::IndexFile() and ::BuildIndex()
+	  - exceptions are now re-thrown, temporary data is left in place, core is dumped (for better debugging)
+
 v2.2.0 Tue, 10 Dec 2019 15:22:49 +0100 moocow
 	* disable jemalloc by default
 	  - DDC::XS chokes on debian/buster (libjemalloc2 v5.1.0-3) with jemalloc linked into ddc libs

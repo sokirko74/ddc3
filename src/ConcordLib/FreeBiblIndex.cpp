@@ -446,16 +446,30 @@ bool CFreeBiblStringIndex::GetFilterValues(CDDCFilterWithBounds &Filter, const s
 };
 
 
+// DDC_FREE_BIBL_AUTOTRUNCATE
+//  + if undefined, free bibl values > 20kB long cause a fatal error
+//  + otherwise, such values will be implicitly truncated
+//  + executive decision (moo + fw, 2020-01-22): use fatal error -> pass on to curators
+//#define DDC_FREE_BIBL_AUTOTRUNCATE 1
+//#undef DDC_FREE_BIBL_AUTOTRUNCATE
+
 void CFreeBiblStringIndex::RegisterBiblStringItemId(const string &ValueStr) {
+    //-- sanity checks (v2.2.1, 2020-01-22: do NOT use CExpc here: it will corrupt the resulting index!)
+    //   + thrown CExpc exceptions will be caught by ConcIndexatorInvoker::IndexFile() (~ line 213)
+    //   + throwing CFatalExpc will cause immediate termination, but core dump won't point us here
+    //   + calling ddcLogDie() will print error message and abort here (but won't tell us which input file was wonky)
     if (m_BuildStringItems.size() >= DWORD_MAX) {
         //-- v2.0.40: moo Mon, 07 Dec 2015 11:16:00 +0100 moocow: bail out here rather than creating a corrupt index
-        throw CExpc(Format("Too many values for bibl field `%s'. Cannot be more than %u\n", m_Name.c_str(), DWORD_MAX));
+        throw CFatalExpc(Format("Too many values for bibl field `%s'. Cannot be more than %u\n", m_Name.c_str(), DWORD_MAX));
     }
+#ifndef DDC_FREE_BIBL_AUTOTRUNCATE
     if (ValueStr.length() > MaxBiblStringLen) {
         //-- v2.0.40: Mon, 07 Dec 2015 11:16:00 +0100 moocow: bail out here rather than creating a corrupt index
-        throw CExpc(Format("Value for bibl field `%s' is too long (%zi bytes > max=%zi bytes)\n", m_Name.c_str(),
-                           ValueStr.length(), MaxBiblStringLen));
+        throw CFatalExpc(Format("Value for bibl field `%s' is too long (%zi bytes > max=%zi bytes)",
+                                m_Name.c_str(), ValueStr.length(), MaxBiblStringLen));
     }
+#endif
+
 
     CStringItem I;
     I.m_BiblString = ValueStr;
@@ -464,6 +478,11 @@ void CFreeBiblStringIndex::RegisterBiblStringItemId(const string &ValueStr) {
             I.m_BiblString[i] = ' ';
 
     Trim(I.m_BiblString);
+
+#ifdef DDC_FREE_BIBL_AUTOTRUNCATE
+    if (TrimTruncate(I.m_BiblString,MaxBiblStringLen))
+        ddcLogWarn(Format("Warning: truncating value for free bibl attribute `%s' to max=%zi bytes", m_Name.c_str(), MaxBiblStringLen));
+#endif
 
     list<CStringItem>::iterator it = lower_bound(m_BuildStringItems.begin(), m_BuildStringItems.end(), I);
     if ((it == m_BuildStringItems.end())

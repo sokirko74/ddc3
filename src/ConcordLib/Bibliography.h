@@ -36,6 +36,11 @@ struct CBibliography {
 
     //! convert m_DateStr to an integer
     bool ConvertDateToInt(int &Result) const;
+
+    //! sanitize (auto-truncate) built-in attribute strings
+    //! \detail free string values are auto-truncated by CFreeBiblStringIndex::RegisterBiblStringItemId()
+    //! \param sanitizeFree : sanitize free bibl-attributes too?
+    void Sanitize(bool sanitizeFree=false);
 };
 
 

@@ -192,7 +192,7 @@ public:
     CExpc(const CExpc& from) throw();
 
     //! destructor
-    ~CExpc() throw() {};
+    virtual ~CExpc() throw() {};
 
     //! set m_strCause with a printf() format
     void Set(const char* format, ... ) throw();
@@ -209,6 +209,22 @@ public:
     //! error code interface
     virtual int code() const throw();
 };
+
+//! \brief local exception class, fatal (can be used to force immediate bail-out)
+class CFatalExpc : public CExpc
+{
+public:
+    CFatalExpc(int ErrorCode) throw() : CExpc(ErrorCode) {};
+    CFatalExpc(int ErrorCode, const string& Cause) throw() : CExpc(ErrorCode, Cause) {};
+    CFatalExpc(const string& Cause) throw() : CExpc(Cause) {};
+
+    //! copy constructor
+    CFatalExpc(const CFatalExpc& from) throw() : CExpc(from) {};
+
+    //! destructor
+    virtual ~CFatalExpc() throw() {};
+};
+
 
 
 // working with files

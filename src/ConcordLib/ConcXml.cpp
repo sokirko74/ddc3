@@ -450,27 +450,7 @@ void CConcXml::LoadXmlAndReadBibliography(TiXmlDocument &doc, const char *pFileB
         Bibl.m_BiblAttribs.push_back(q);
     };
 
-    SanitizeBibliography(Bibl);
-};
-
-void CConcXml::SanitizeBiblString(std::string& val, const std::string& label)
-{
-    if (TrimTruncate(val,MaxBiblStringLen))
-        ddcLogWarn(Format("Warning: value for bibl attribute `%s' truncated to max=%zi bytes", label.c_str(), MaxBiblStringLen));
-}
-
-void CConcXml::SanitizeBibliography(CBibliography &Bibl) const
-{
-    SanitizeBiblString(Bibl.m_OrigBibl,"orig");
-    SanitizeBiblString(Bibl.m_ScanBibl,"scan");
-    SanitizeBiblString(Bibl.m_DateStr,"date");
-
-    size_t fbix = 0;
-    Bibl.m_BiblAttribs.resize(m_FreeBiblIndices.size());
-    for (FreeBiblStringMap::const_iterator fbit=m_FreeBiblIndices.begin(); fbit != m_FreeBiblIndices.end(); ++fbit, ++fbix) {
-        const string& biblName = fbit->first;
-        SanitizeBiblString(Bibl.m_BiblAttribs[fbix], biblName.c_str());
-    }
+    Bibl.Sanitize();
 };
         
 void CConcXml::SetFreeBiblAttribsEmpty(CBibliography &Bibl) const {
@@ -480,7 +460,6 @@ void CConcXml::SetFreeBiblAttribsEmpty(CBibliography &Bibl) const {
         Bibl.m_BiblAttribs.push_back("");
     }
 };
-
 
 
 void CConcXml::ReadMorphXmlFileIntoGraTable(string FileName, const char *pFileBuffer, vector<CXmlToken> &GraTable,

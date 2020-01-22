@@ -114,6 +114,10 @@ inline void concord_daemon_log(const std::string& t)
 /** conditionally log a trace-message if ddcLogLevel >= ddcLLTrace */
 #define ddcLogTrace(Msg) ddcLogIf((ddcLogLevel >= ddcLLTrace),Msg)
 
+/** wrapper for ddcLogError() and abort() */
+#define ddcLogDie(Msg) { ddcLogError(Msg); abort(); }
+
+
 #endif /* DDC_LOG_H */
 
 /*--- emacs style variables ---

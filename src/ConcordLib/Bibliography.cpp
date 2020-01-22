@@ -3,6 +3,8 @@
 //
 
 #include "Bibliography.h"
+#include "ConcCommon.h"
+#include "../CommonLib/ddcLog.h"
 #include "../GraphanLib/graline.h"
 
 CBibliography::CBibliography() {
@@ -71,6 +73,27 @@ bool CBibliography::ConvertDateToInt(int &Result) const {
     };
     Result = date2int(year, month, day);
     return true;
+};
+
+//! auto-truncate a single bibliography string (convenience class method)
+inline static void SanitizeBiblString(std::string& val, const char *label)
+{
+    if (TrimTruncate(val,MaxBiblStringLen))
+        ddcLogWarn(Format("Warning: truncating value for bibl attribute `%s' to max=%zi bytes", label, MaxBiblStringLen));
+};
+
+void CBibliography::Sanitize(bool sanitizeFree)
+{
+    SanitizeBiblString(m_OrigBibl,"orig");
+    SanitizeBiblString(m_ScanBibl,"scan");
+    SanitizeBiblString(m_DateStr, "date");
+    if (sanitizeFree) {
+        //-- probably best not to do this here, since free bibl attributes are auto-truncated by
+        for (size_t i=0; i < m_BiblAttribs.size(); ++i) {
+            if (TrimTruncate(m_BiblAttribs[i],MaxBiblStringLen))
+                ddcLogWarn(Format("Warning: truncating value for free bibl field #%zi to max=%zi bytes", i, MaxBiblStringLen));
+        }
+    }
 };
 
 /*--- emacs style variables ---
