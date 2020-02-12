@@ -348,7 +348,7 @@ CBibliography CBiblIndex::GetFullBibliographyOfHit(size_t FileNo) const {
     file_off_t startBiblFileOffset = (FileNo == 0) ? 0 : m_EndOffsetsInBiblFile[FileNo - 1];
     assert (endBiblFileOffset >= startBiblFileOffset);
     size_t length = endBiblFileOffset - startBiblFileOffset;
-    PtrHolder<BYTE> buffer(new BYTE[length]);
+    ArrayPtrHolder<BYTE> buffer(new BYTE[length]);
     if (!m_BiblBodyFile.ReadBuffer(startBiblFileOffset, length, buffer.Get())) {
         return CBibliography();
     }
