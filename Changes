@@ -3,6 +3,7 @@
 v2.2.2-rc1 UNRELEASED
 	Wed, 12 Feb 2020 14:25:00 +0100 moocow
 	* added a bunch of missing virtual destructors, attempt to debug deadlocks and fd-leaks from jemalloc v5.1.0 (debian buster libjemalloc2-5.1.0-3)
+	* fixed missing return from non-void function CQKeys::GetMatchId()
 
 v2.2.1 Tue, 04 Feb 2020 10:07:15 +0100 moocow
 	* fixed bug suppressing "Value for bibl field `ATTR' is too long" errors from CFreeBiblStringIndex::RegisterBiblStringItemId()
