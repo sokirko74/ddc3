@@ -974,6 +974,7 @@ void CQKeys::Evaluate() {
 BYTE CQKeys::GetMatchId() const {
     if (m_MatchId != 0) return m_MatchId;
     if (m_qCount) return m_qCount->GetMatchId();
+    return 0;
 }
 
 //--------------------------------------------------------------
