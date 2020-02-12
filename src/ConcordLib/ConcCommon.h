@@ -250,6 +250,9 @@ static const char *HitSortEnumStrings[HitSortsCount] = {
 
 class CFreeBiblIndexInterface {
 public:
+    virtual ~CFreeBiblIndexInterface()
+    {};
+    
     virtual string GetStringValue(DWORD FileNo) const = 0;
 
     //! for key-based pruning (v2.1.9): map a single value-string to its value-id

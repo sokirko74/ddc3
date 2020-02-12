@@ -36,6 +36,7 @@ public:
     CQCountKeyBadOccurrence(const string& what_arg)
         : invalid_argument(what_arg)
     {};
+    virtual ~CQCountKeyBadOccurrence() {};
 };
 
 //==============================================================================

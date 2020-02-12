@@ -254,6 +254,7 @@ class CQueryAndOperation        : public CQueryBinaryOperationNode
 {
 public:
     CQueryAndOperation();
+    virtual ~CQueryAndOperation() {};
     void Evaluate(bool bSeparateHits=false);
 };
 
@@ -263,6 +264,7 @@ class CQueryOrOperation : public CQueryBinaryOperationNode
 {
 public:
     CQueryOrOperation();
+    virtual ~CQueryOrOperation() {};
     void Evaluate(bool bSeparateHits=false);
 };
 
@@ -451,6 +453,7 @@ public:
 
 public:
     CQueryWithNode();
+    virtual ~CQueryWithNode() {};
 
     //! create the node during yacc parsing
     bool Create(const CConcHolder*  pHolder, CQueryNode* child1, CQueryNode* child2, BYTE matchId=0);
@@ -468,6 +471,7 @@ class CQueryWithoutNode : public CQueryWithNode
 public:
     CQueryWithoutNode()
     {};
+    virtual ~CQueryWithoutNode() {};
 
     //! create the node during yacc parsing
     bool Create(const CConcHolder*  pHolder, CQueryNode* child1, CQueryNode* child2, BYTE matchId=0);
@@ -484,6 +488,7 @@ class CQueryWithorNode : public CQueryWithNode
 public:
     CQueryWithorNode()
     {};
+    virtual ~CQueryWithorNode() {};
 
     //! create the node during yacc parsing
     bool Create(const CConcHolder*  pHolder, CQueryNode* child1, CQueryNode* child2, BYTE matchId=0);
@@ -512,6 +517,8 @@ struct CQOccurrenceIterator {
     /** copy constructor */
     CQOccurrenceIterator(const CQOccurrenceIterator &b)
     { operator=(b); };
+
+    virtual ~CQOccurrenceIterator() {};
 
     /**
      *  Create an iterator bound to the neighbors of \a src, used to avoid expensive EvaluateWithoutHits() for universal sub-queries as near() arguments.
@@ -630,6 +637,8 @@ struct CQTokenOccurrenceIterator : public CQOccurrenceIterator
     CQTokenOccurrenceIterator(const CQTokenOccurrenceIterator &b)
     { operator=(b); };
 
+    virtual ~CQTokenOccurrenceIterator() {};
+    
     /**
      *  Create an iterator bound to the neighbors of \a src, used to avoid expensive EvaluateWithoutHits() for universal sub-queries as near() arguments.
      *  Destructively alters \a node_->m_Occurrences[] (and associated vectors).

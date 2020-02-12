@@ -105,6 +105,7 @@ public :
 
 
     TItemContainer();
+    virtual ~TItemContainer() {};
 
     const char*                      GetDomItemStr(const TDomItem& Item) const 
     {

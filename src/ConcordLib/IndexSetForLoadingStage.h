@@ -174,7 +174,7 @@ public:
 
 
     CIndexSetForLoadingStage ();
-    ~CIndexSetForLoadingStage ();
+    virtual ~CIndexSetForLoadingStage ();
 
     //! creates temporary files  for indexing
     bool    CreateTempFiles (string Path);

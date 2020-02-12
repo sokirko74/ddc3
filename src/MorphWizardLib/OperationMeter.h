@@ -122,6 +122,7 @@ class CSimpleMeterRML: public COperationMeterRML
 {
 public:
     CSimpleMeterRML()       {}
+    virtual ~CSimpleMeterRML() {};
         
     virtual void SetInfo( LPCSTR info )             { printf("\n%s",info); }
 protected:
@@ -134,6 +135,7 @@ class CFileMeterRML: public COperationMeterRML
 {
 public:
     CFileMeterRML() : m_fp(0)       {}
+    virtual ~CFileMeterRML() {};
 
     bool SetFileMaxPos( FILE* fp )
     {

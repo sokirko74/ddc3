@@ -227,7 +227,7 @@ public:
 
     CIndexSetForQueryingStage(const CStringIndexator *pParent);
 
-    ~CIndexSetForQueryingStage();
+    virtual ~CIndexSetForQueryingStage();
 
     //! return the name of the index (CStringIndexSet::m_Name)
     virtual string GetName() const = 0;

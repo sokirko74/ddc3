@@ -55,6 +55,7 @@ struct CParadigmInfo : public CLemmaInfo
 
     CParadigmInfo();
     CParadigmInfo(WORD ParadigmNo, WORD AccentModelNo, WORD SessionNo, BYTE AuxAccent, const char* CommonAncode, WORD PrefixSetNo);
+    virtual ~CParadigmInfo() {};
     bool operator == (const CParadigmInfo& X) const;
 
     static CParadigmInfo    AnyParadigmInfo();                              // Nick [17/Dec/2003]

@@ -12,4 +12,8 @@ EOF
     exit 0
 fi
 
-exec rsync -tzv "$@" "$DSTURL"
+cmd=(rsync -tv "$@" "$DSTURL")
+echo "EXEC" "${cmd[@]@Q}"
+[ -n "$DUMMY" ] && exit 0
+
+exec "${cmd[@]}"

@@ -39,6 +39,9 @@ public:
     CQFilter()
     {};
 
+    //! Default destructor (empty)
+    virtual ~CQFilter() {};
+
     //! apply the filter to the given compiler
     virtual bool Compile(CQueryCompiler *compiler, CQueryOptions *options);
 
@@ -88,6 +91,8 @@ public:
             int           arg2i
         );
 
+    virtual ~CQFSort() {};
+
     virtual CQFilter* Clone()
     { return (CQFilter*)new CQFSort(*this); };
 
@@ -121,6 +126,7 @@ public:
     CQFRankSort(HitSortEnum ftype=GreaterByRank)
         : CQFSort(ftype)
     {};
+    virtual ~CQFRankSort() {};
 
     virtual CQFilter* Clone()
     { return (CQFilter*)new CQFRankSort(*this); };
@@ -137,6 +143,7 @@ public:
     CQFDateSort(HitSortEnum ftype=LessByDate, const string &lb=string(""), const string &ub=string(""))
         : CQFSort(ftype,string(""),lb,ub)
     {};
+    virtual ~CQFDateSort() {};
 
     virtual CQFilter* Clone()
     { return (CQFilter*)new CQFDateSort(*this); };
@@ -158,6 +165,8 @@ public:
 
     CQFSizeSort(HitSortEnum ftype=LessBySize, int lb=INT_MIN, int ub=INT_MAX);
 
+    virtual ~CQFSizeSort() {};
+
     virtual CQFilter* Clone()
     { return (CQFilter*)new CQFSizeSort(*this); };
 
@@ -175,6 +184,8 @@ public:
     {};
 
     CQFRandomSort(int seed0);
+
+    virtual ~CQFRandomSort() {};
 
     virtual CQFilter* Clone()
     { return (CQFilter*)new CQFRandomSort(*this); };
@@ -196,6 +207,8 @@ public:
                 const string &ub=string(""))
         : CQFSort(ftype,field,lb,ub)
     {};
+
+    virtual ~CQFBiblSort() {};
 
     virtual CQFilter* Clone()
     { return (CQFilter*)new CQFBiblSort(*this); };
@@ -227,6 +240,8 @@ public:
         m_Filter.m_ContextOffset = offset;
     };
 
+    virtual ~CQFContextSort() {};
+
     virtual CQFilter* Clone()
     { return (CQFilter*)new CQFContextSort(*this); };
 
@@ -250,6 +265,8 @@ public:
     CQFHasField(const std::string &field, const std::string &val=string(""), bool isNegated=false)
         : CQFSort(NoSort, field, val, string("")), m_Negated(isNegated)
     {};
+
+    virtual ~CQFHasField() {};
 
     virtual CQFilter* Clone()
     { return (CQFilter*)new CQFHasField(*this); };
@@ -282,6 +299,8 @@ public:
         : CQFHasField(field, val, isNegated)
     {};
 
+    virtual ~CQFHasFieldValue() {};
+
     virtual CQFilter* Clone()
     { return (CQFilter*)new CQFHasFieldValue(*this); };
 
@@ -302,6 +321,8 @@ public:
     CQFHasFieldRegex(const std::string &field, const std::string &val=string(""), bool isNegated=false)
         : CQFHasField(field, val, isNegated), m_Regex(val)
     {};
+
+    virtual ~CQFHasFieldRegex() {};
 
     virtual CQFilter* Clone()
     { return (CQFilter*)new CQFHasFieldRegex(*this); };
@@ -324,6 +345,8 @@ public:
         m_Regex = std::string("^") + escapeRegex(val);
     };
 
+    virtual ~CQFHasFieldPrefix() {};
+
     virtual CQFilter* Clone()
     { return (CQFilter*)new CQFHasFieldPrefix(*this); };
   
@@ -342,6 +365,8 @@ public:
         m_Regex = escapeRegex(val) + "$";
     };
 
+    virtual ~CQFHasFieldSuffix() {};
+
     virtual CQFilter* Clone()
     { return (CQFilter*)new CQFHasFieldSuffix(*this); };
   
@@ -359,6 +384,8 @@ public:
     {
         m_Regex = escapeRegex(val);
     };
+
+    virtual ~CQFHasFieldInfix() {};
 
     virtual CQFilter* Clone()
     { return (CQFilter*)new CQFHasFieldInfix(*this); };
@@ -379,6 +406,8 @@ public:
     CQFHasFieldSet(const std::string &field, const set<string>& vals=set<string>(), bool isNegated=false)
         : CQFHasField(field, string("{}"), isNegated), m_Values(vals)
     {};
+
+    virtual ~CQFHasFieldSet() {};
 
     virtual CQFilter* Clone()
     { return (CQFilter*)new CQFHasFieldSet(*this); };

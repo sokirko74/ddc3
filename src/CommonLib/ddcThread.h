@@ -39,7 +39,7 @@ public:
     { pthread_mutex_init(&m_Mutex,NULL); };
 
     /** default constructor de-initializes mutex */
-    ~ddcLockable()
+    virtual ~ddcLockable()
     { pthread_mutex_destroy(&m_Mutex); };
 
 

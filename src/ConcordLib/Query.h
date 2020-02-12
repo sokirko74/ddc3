@@ -171,6 +171,8 @@ public:
         : m_Negated(negated)
     {};
 
+    virtual ~CQNegatable() {};
+
     //! toggle negation flag; returns new value
     virtual bool Negate(void);
 
@@ -196,6 +198,7 @@ public:
     CQAtomic(const string &label=string(""), bool negated=false)
         : CQNegatable(label,negated)
     {};
+    virtual ~CQAtomic() {};
 
     //-- ddcObject API
     virtual string jsonClass() { return "CQAtomic"; };
@@ -256,6 +259,7 @@ public:
     CQAnd(CQuery *dtr1=NULL, CQuery *dtr2=NULL)
         : CQBinOp(dtr1,dtr2,"&&")
     {};
+    virtual ~CQAnd() {};
 
     virtual bool RootOK() { return true; };
     virtual bool Compile(CQueryCompiler *compiler);
@@ -272,6 +276,8 @@ public:
         //m_OpName.clear();
     };
 
+    virtual ~CQAndImplicit() {};
+
     virtual string jsonClass() { return "CQAndImplicit"; };
 };
 
@@ -282,6 +288,7 @@ public:
     CQOr(CQuery *dtr1=NULL, CQuery *dtr2=NULL)
         : CQBinOp(dtr1,dtr2,"||")
     {};
+    virtual ~CQOr() {};
 
     virtual bool RootOK() { return true; };
     virtual bool Compile(CQueryCompiler *compiler);
@@ -300,6 +307,7 @@ public:
     CQWith(CQuery *dtr1=NULL, CQuery *dtr2=NULL, BYTE matchId=0)
         : CQBinOp(dtr1,dtr2,"WITH"), m_MatchId(matchId)
     {};
+    virtual ~CQWith() {};
 
     //! get match id: local > dtr2 > dtr1
     virtual BYTE GetMatchId() const;
@@ -324,6 +332,7 @@ public:
     {
         m_OpName = "WITHOUT";
     };
+    virtual ~CQWithout() {};
 
     virtual bool Compile(CQueryCompiler *compiler);
     virtual string jsonClass() { return "CQWithout"; };
@@ -338,6 +347,7 @@ public:
     {
         m_OpName = "WITHOR";
     };
+    virtual ~CQWithor() {};
 
     virtual bool Compile(CQueryCompiler *compiler);
     virtual string jsonClass() { return "CQWithor"; };
@@ -365,6 +375,7 @@ public:
     CQToken(const string &indexName=string(""), const string &value=string(""), const BYTE matchId=0)
         : CQAtomic(value), m_IndexName(indexName), m_Value(value), m_MatchId(matchId)
     {};
+    virtual ~CQToken() {};
 
     //! get local match-id
     virtual BYTE GetMatchId() const;
@@ -417,6 +428,7 @@ public:
     CQTokExact(const string &indexName=string(""), const string &value=string(""))
         : CQToken(indexName,value)
     {};
+    virtual ~CQTokExact() {};
 
     virtual const char *OperatorKey(void) const { return "@_"; };
     virtual string ValueString();
@@ -431,6 +443,7 @@ public:
     CQTokAny(const string &indexName=string(""), const string &value=string("*"))
         : CQToken(indexName,value)
     {};
+    virtual ~CQTokAny() {};
 
     virtual const char *OperatorKey(void) const { return "*"; };
     virtual bool Create(CQueryTokenNode *pNode);
@@ -451,6 +464,7 @@ public:
     {
         m_ValueInt = strtol(value.c_str(), NULL, 0);
     };
+    virtual ~CQTokAnchor() {};
 
     virtual const char *OperatorKey(void) const { return "."; };
     virtual bool Create(CQueryTokenNode *pNode);
@@ -469,6 +483,7 @@ public:
     CQTokRegex(const string &indexName=string(""), const string &regex=string(""), bool negated=false)
         : CQToken(indexName,regex), m_bRegexNegated(negated)
     {};
+    virtual ~CQTokRegex() {};
 
     virtual const char *OperatorKey(void) const { return "/_/"; };
     virtual bool Create(CQueryTokenNode *pNode);
@@ -487,6 +502,7 @@ public:
     CQTokSet(const string &indexName=string(""), const string& rawValue=string(""), const set<string>& values=set<string>())
         : CQToken(indexName,rawValue), m_Values(values)
     {};
+    virtual ~CQTokSet() {};
 
     virtual bool Create(CQueryTokenNode *pNode);
     virtual const char *OperatorKey(void) const { return "@_"; };
@@ -526,6 +542,8 @@ public:
         : CQTokSet(indexName,string(""),values), m_Expanders(expanders), m_Txc("(CQTokInfl)")
     {};
 
+    virtual ~CQTokInfl() {};
+
 
     //! utility gets expansion chain for m_Expanders in m_Txc; requires non-NULL m_Compiler
     //! \li if m_Expanders is empty, uses default expansion chain for index, or identity expander if none is defined
@@ -559,6 +577,8 @@ public:
         : CQTokInfl(indexName,values,expanders)
     { m_RawValues = m_Values; };
 
+    virtual ~CQTokSetInfl() {};
+
     virtual bool Create(CQueryTokenNode *pNode);
     virtual string ValueString(void);
 
@@ -574,6 +594,8 @@ public:
         : CQToken(indexName,prefix)
     {};
 
+    virtual ~CQTokPrefix() {};
+
     virtual const char *OperatorKey(void) const { return "/_/"; };
     virtual bool Create(CQueryTokenNode *pNode);
     virtual string ValueString();
@@ -588,6 +610,7 @@ public:
     CQTokSuffix(const string &indexName=string(""), const string &suffix=string(""))
         : CQToken(indexName,suffix)
     {};
+    virtual ~CQTokSuffix() {};
     virtual const char *OperatorKey(void) const { return "/_/"; };
     virtual bool Create(CQueryTokenNode *pNode);
     virtual string ValueString();
@@ -601,6 +624,7 @@ public:
     CQTokInfix(const string &indexName=string(""), const string &infix=string(""))
         : CQToken(indexName,infix)
     {};
+    virtual ~CQTokInfix() {};
     virtual const char *OperatorKey(void) const { return "/_/"; };
     virtual bool Create(CQueryTokenNode *pNode);
     virtual string ValueString();
@@ -614,6 +638,7 @@ public:
     CQTokPrefixSet(const string &indexName=string(""), const set<string> &prefixes=set<string>())
         : CQTokSet(indexName,"",prefixes)
     {};
+    virtual ~CQTokPrefixSet() {};
     virtual const char *OperatorKey(void) const { return "/_/"; };
     virtual bool Create(CQueryTokenNode *pNode);
     virtual string ValueString();
@@ -627,6 +652,7 @@ public:
     CQTokSuffixSet(const string &indexName=string(""), const set<string> &suffixes=set<string>())
         : CQTokSet(indexName,"",suffixes)
     {};
+    virtual ~CQTokSuffixSet() {};
     virtual const char *OperatorKey(void) const { return "/_/"; };
     virtual bool Create(CQueryTokenNode *pNode);
     virtual string ValueString();
@@ -640,6 +666,7 @@ public:
     CQTokInfixSet(const string &indexName=string(""), const set<string> &infixes=set<string>())
         : CQTokSet(indexName,"",infixes)
     {};
+    virtual ~CQTokInfixSet() {};
     virtual const char *OperatorKey(void) const { return "/_/"; };
     virtual bool Create(CQueryTokenNode *pNode);
     virtual string ValueString();
@@ -657,6 +684,8 @@ public:
     CQTokMorph(const string &indexName=string("MorphPattern"), const vector<string>& items=vector<string>())
         : CQToken(indexName), m_Items(items)
     { if (!m_Items.empty()) m_Value=m_Items[0]; };
+
+    virtual ~CQTokMorph() {};
 
     //! append an item to the current list
     void Append(const string &item) { m_Items.push_back(item); };
@@ -676,6 +705,7 @@ public:
     CQTokLemma(const string &indexName=string("Lemma"), const string &value=string(""))
         : CQTokMorph(indexName,vector<string>(1,value))
     {};
+    virtual ~CQTokLemma() {};
 
     virtual const char *OperatorKey(void) const { return "%_"; };
     virtual bool Create(CQueryTokenNode *pNode);
@@ -692,6 +722,7 @@ public:
     CQTokThes(const string &indexName=string("Thes"), const string &value=string(""))
         : CQToken(indexName,value)
     {};
+    virtual ~CQTokThes() {};
 
     virtual const char *OperatorKey(void) const { return ":{_}"; };
     virtual bool Create(CQueryTokenNode *pNode);
@@ -707,6 +738,7 @@ public:
     CQTokChunk(const string &indexName=string(""), const string &value=string(""))
         : CQToken(indexName,value)
     {};
+    virtual ~CQTokChunk() {};
 
     virtual const char *OperatorKey(void) const { return "^_"; };
     virtual bool Create(CQueryTokenNode *pNode);
@@ -721,6 +753,7 @@ public:
     CQTokFile(const string &indexName=string(""), const string &fileName=string(""))
         : CQToken(indexName,fileName)
     {};
+    virtual ~CQTokFile() {};
 
     virtual const char *OperatorKey(void) const { return "<_"; };
     virtual bool Create(CQueryTokenNode *pNode);

@@ -118,6 +118,7 @@ public :
     BYTE m_MaxNumDom;
 
     TCortegeContainer(BYTE MaxNumDom);
+    virtual ~TCortegeContainer() {};
     TCortege10*           GetCortege (size_t i);
     const TCortege10*     GetCortege (size_t i)  const;
 
@@ -151,7 +152,7 @@ public:
 
 
     TRoss (BYTE MaxNumDom);
-    ~TRoss ();
+    virtual ~TRoss ();
     bool    FullLoad(const char* _RossPath);
     bool    LoadOnlyConstants(const char* _RossPath);
     bool    Save ();

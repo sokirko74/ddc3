@@ -41,6 +41,14 @@ CHost::CHost()
 };
 
 //--------------------------------------------------------------
+CHost::~CHost()
+{
+    if (m_bListen) {
+        CloseListenSocket();
+    }
+}
+
+//--------------------------------------------------------------
 bool CHost::CheckValidAddr() const
 {
     return m_SockAddr.IsValid();

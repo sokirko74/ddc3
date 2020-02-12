@@ -49,6 +49,7 @@ public:
     string          m_CorpusName;
         
     CHost();
+    virtual ~CHost();
     bool                    ReadFromString (string S);
 
     /** top-level call to start accept-process-respond loop; run in main thread */
