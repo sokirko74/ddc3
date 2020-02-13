@@ -61,7 +61,6 @@ WARN_LOGFILE           = ddc.log
 #---------------------------------------------------------------------------
 INPUT                  = \
 			 ../src/ddc_daemon \
-			 ../src/ddc_index \                         
 			 \
 			 ../src/CommonLib \			 
 			 ../src/ConcordLib \
