@@ -1,8 +1,22 @@
 ###-*- Mode: Change-Log; coding: utf-8; -*-
 
-v2.2.2-rc1 UNRELEASED
-	Wed, 12 Feb 2020 14:25:00 +0100 moocow
-	* added a bunch of missing virtual destructors, attempt to debug deadlocks and fd-leaks from jemalloc v5.1.0 (debian buster libjemalloc2-5.1.0-3)
+v2.2.2-rc2 UNRELEASED
+	* fixed ddc_index Schlemiehl-the-Painter bug due to flat sorted list<CStringItem> CFreeBiblStringIndex::m_BuildStringItems
+	  - symptoms: throughput rates reported by ddc_index (exponential decay?) as indexing progresses,
+	    dropping from initial >130k tok/sec to <4k tok/sec after processing ca. 100M tokens in ca. 300K documents
+	  - re-implemented using map<string,DWORD> CFreeBiblStringIndex::m_BuildStringItemsMap
+	  - new code reports near-constant throughput on 5M-token test corpus
+	    + (150k +/- 9k) tok/sec if input corpus is in OS buffer cache
+	    + ( 32k +/- 8k) tok/sec otherwise
+	* added a bunch of missing virtual destructors,
+	* fixed deadlocks and fd-leaks from jemalloc v5.1.0 (debian buster libjemalloc2-5.1.0-3)
+	  - culprit seems to have been 'delete T_' in PtrHolder<T>::DoDestroy() when T_ was allocated with operator new[]
+	  - concrete case was PtrHolder<BYTE> buffer(new BYTE[length]) in CBiblIndex::GetFullBibliographyOfHit()
+	  - tracked down with the help of manually built libjemalloc configured with `--enable-debug` and server.opt `NumThreads 0`
+	    + aborts & dumps core after 2-3 queries with
+	      <jemalloc>: src/jemalloc.c:2989: Failed assertion: "usize == isalloc(tsd_tsdn(tsd), ptr)
+	  - ddc_daemon with jemalloc v5.1.0 gobbles a *lot* more resident anonymous RAM than v3.6.0 (debian stretch libjemalloc1) by default
+	    + workaround: set environment variable MALLOC_CONF="narenas:16,dirty_decay_ms:0,muzzy_decay_ms:0" for libjemalloc2
 	* fixed missing return from non-void function CQKeys::GetMatchId()
 
 v2.2.1 Tue, 04 Feb 2020 10:07:15 +0100 moocow

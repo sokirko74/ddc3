@@ -158,7 +158,8 @@ CFreeBiblStringIndex::~CFreeBiblStringIndex() {
 
 void CFreeBiblStringIndex::clear() {
     CFreeBiblIndex::clear();
-    m_BuildStringItems.clear();
+    m_BuildStringItemsMap.clear();
+    m_BuildStringItemsSize = 0;
     m_ValuesE.clear();
 };
 
@@ -454,14 +455,6 @@ bool CFreeBiblStringIndex::GetFilterValues(CDDCFilterWithBounds &Filter, const s
 //#undef DDC_FREE_BIBL_AUTOTRUNCATE
 
 void CFreeBiblStringIndex::RegisterBiblStringItemId(const string &ValueStr) {
-    //-- sanity checks (v2.2.1, 2020-01-22: do NOT use CExpc here: it will corrupt the resulting index!)
-    //   + thrown CExpc exceptions will be caught by ConcIndexatorInvoker::IndexFile() (~ line 213)
-    //   + throwing CFatalExpc will cause immediate termination, but core dump won't point us here
-    //   + calling ddcLogDie() will print error message and abort here (but won't tell us which input file was wonky)
-    if (m_BuildStringItems.size() >= DWORD_MAX) {
-        //-- v2.0.40: moo Mon, 07 Dec 2015 11:16:00 +0100 moocow: bail out here rather than creating a corrupt index
-        throw CFatalExpc(Format("Too many values for bibl field `%s'. Cannot be more than %u\n", m_Name.c_str(), DWORD_MAX));
-    }
 #ifndef DDC_FREE_BIBL_AUTOTRUNCATE
     if (ValueStr.length() > MaxBiblStringLen) {
         //-- v2.0.40: Mon, 07 Dec 2015 11:16:00 +0100 moocow: bail out here rather than creating a corrupt index
@@ -471,47 +464,49 @@ void CFreeBiblStringIndex::RegisterBiblStringItemId(const string &ValueStr) {
 #endif
 
 
-    CStringItem I;
-    I.m_BiblString = ValueStr;
-    for (size_t i = 0; i < I.m_BiblString.length(); i++)  // delete all \x1, since it is used as a delimeter
-        if ((BYTE) I.m_BiblString[i] == 1)
-            I.m_BiblString[i] = ' ';
+    string BiblString(ValueStr);
+    DWORD  BiblId = (DWORD)-1;
+    for (size_t i = 0; i < BiblString.length(); i++)  // delete all \x1, since it is used as a delimeter
+        if ((BYTE) BiblString[i] == 1)
+            BiblString[i] = ' ';
 
-    Trim(I.m_BiblString);
+    Trim(BiblString);
 
 #ifdef DDC_FREE_BIBL_AUTOTRUNCATE
-    if (TrimTruncate(I.m_BiblString,MaxBiblStringLen))
+    if (TrimTruncate(BiblString,MaxBiblStringLen))
         ddcLogWarn(Format("Warning: truncating value for free bibl attribute `%s' to max=%zi bytes", m_Name.c_str(), MaxBiblStringLen));
 #endif
 
-    list<CStringItem>::iterator it = lower_bound(m_BuildStringItems.begin(), m_BuildStringItems.end(), I);
-    if ((it == m_BuildStringItems.end())
-        || !(*it == I)
-        ) {
-        I.m_BiblId = m_BuildStringItems.size();
-        m_BuildStringItems.insert(it, I);
-    } else
-        I.m_BiblId = it->m_BiblId;
+    BuildStringItemsMapT::const_iterator it = m_BuildStringItemsMap.find(BiblString);
+    if (it == m_BuildStringItemsMap.end()) {
 
-    m_ValuesForEachFile.push_back(I.m_BiblId);
+        //-- sanity checks (v2.2.1, 2020-01-22: do NOT use CExpc here: it will corrupt the resulting index!)
+        //   + thrown CExpc exceptions will be caught by ConcIndexatorInvoker::IndexFile() (~ line 213)
+        //   + throwing CFatalExpc will cause immediate termination, but core dump won't point us here
+        //   + calling ddcLogDie() will print error message and abort here (but won't tell us which input file was wonky)
+        if (m_BuildStringItemsSize >= DWORD_MAX) {
+            //-- v2.0.40: moo Mon, 07 Dec 2015 11:16:00 +0100 moocow: bail out here rather than creating a corrupt index
+            throw CFatalExpc(Format("Too many values for bibl field `%s'. Cannot be more than %u\n", m_Name.c_str(), DWORD_MAX));
+        }
+
+        BiblId = m_BuildStringItemsSize++;
+        m_BuildStringItemsMap[BiblString] = BiblId;
+    } else {
+        BiblId = it->second;
+    }
+
+    m_ValuesForEachFile.push_back(BiblId);
 };
 
 
 bool CFreeBiblStringIndex::ConvertAndSaveToDiskAfterIndexing(string m_Path) {
     fprintf(stderr, "sorting and saving index for %s\n", m_Name.c_str());
     { // converting
-        vector<DWORD> Old(m_BuildStringItems.size());
-        {
-            list<CStringItem>::const_iterator it = m_BuildStringItems.begin();
-            for (size_t i = 0; i < Old.size(); i++, it++) {
-                Old[i] = it->m_BiblId;
-            }
+        vector<DWORD> Old2New(m_BuildStringItemsMap.size());
+        size_t newId = 0;
+        for (BuildStringItemsMapT::const_iterator mi=m_BuildStringItemsMap.begin(); mi != m_BuildStringItemsMap.end(); ++mi, ++newId) {
+            Old2New[mi->second] = newId;
         }
-        vector<DWORD> Old2New;
-        Old2New.resize(Old.size());
-
-        for (size_t i = 0; i < Old.size(); i++)
-            Old2New[Old[i]] = i;
 
         m_ValuesForEachFile.ensureVec();
         for (size_t i = 0; i < m_ValuesForEachFile.size(); i++)
@@ -538,13 +533,12 @@ bool CFreeBiblStringIndex::ConvertAndSaveToDiskAfterIndexing(string m_Path) {
         return false;
     }
 
-    const list<CStringItem> &Set = m_BuildStringItems;
-    fprintf(stderr, "Writing %zi items  to %s_*\n", Set.size(), StringFileName.c_str());
+    fprintf(stderr, "Writing %zi items  to %s_*\n", m_BuildStringItemsMap.size(), StringFileName.c_str());
 
     bool rc = true;
     try {
-        for (list<CStringItem>::const_iterator it = Set.begin(); it != Set.end(); it++) {
-            const string &I = it->m_BiblString;
+        for (BuildStringItemsMapT::const_iterator it=m_BuildStringItemsMap.begin(); it != m_BuildStringItemsMap.end(); ++it) {
+            const string &I = it->first;
             ddcStringEnum<>::OffT pos = ftell(vfp);
 
             if (fwrite(&pos, sizeof(ddcStringEnum<>::OffT), 1, ifp) != 1)
@@ -556,13 +550,11 @@ bool CFreeBiblStringIndex::ConvertAndSaveToDiskAfterIndexing(string m_Path) {
         rc = true;
     }
     catch (exception &e) {
-        fprintf(stderr, "CFreeBiblStringIndex::ConvertAndSaveToDiskAfterIndexing(): Exception: %s\n",
-                e.what());
+        fprintf(stderr, "CFreeBiblStringIndex::ConvertAndSaveToDiskAfterIndexing(): Exception: %s\n", e.what());
         rc = false;
     }
     catch (...) {
-        fprintf(stderr,
-                "CFreeBiblStringIndex::ConvertAndSaveToDiskAfterIndexing(): Exception: (unhandled exception)\n");
+        fprintf(stderr, "CFreeBiblStringIndex::ConvertAndSaveToDiskAfterIndexing(): Exception: (unhandled exception)\n");
         rc = false;
     }
 

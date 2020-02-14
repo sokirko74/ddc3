@@ -131,7 +131,12 @@ protected:
     };
 
     //! a list  that is used during building  this  bibl-index
-    list<CStringItem> m_BuildStringItems;
+    //! v2.2.2 : replace with map<>
+    //list<CStringItem> m_BuildStringItems;
+    typedef map<string,DWORD> BuildStringItemsMapT;
+    BuildStringItemsMapT m_BuildStringItemsMap;
+    size_t m_BuildStringItemsSize;
+    
     //! a set of all possible string values for this index
     //vector<string>            m_Values;
     ddcStringEnum<> m_ValuesE;
@@ -162,7 +167,7 @@ public:
     virtual void CreatePartitions(vector<CFreeBiblIndex *> &Parts, const vector<string> &Paths,
                                   const vector<DWORD> &EndFileNo) const;
 
-    void RegisterBiblStringItemId(const string &Value);
+    virtual void RegisterBiblStringItemId(const string &Value);
 
     bool DeleteBiblFiles(string Path) const;
 
