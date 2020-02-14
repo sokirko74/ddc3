@@ -144,7 +144,8 @@ struct LessBySuffixIndex {
             --a;
             --b;
         }
-        return i == m_SuffixLen || A < A || B < B ? false : ((unsigned char) (*a)) < ((unsigned char) (*b));
+        //return i == m_SuffixLen || A < A || B < B ? false : ((unsigned char) (*a)) < ((unsigned char) (*b));
+        return i == m_SuffixLen ? false : ((unsigned char) (*a)) < ((unsigned char) (*b));
     };
 
     //! less-than operator (for suffix-indices lower_bound(); respects m_SuffixLen)

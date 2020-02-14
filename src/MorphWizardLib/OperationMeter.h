@@ -46,7 +46,7 @@ public:
         
     bool SetMaxPos( DWORD pos, DWORD count = 50 )
     {
-        if( pos!=m_maxPos && pos>=0 || m_curPos!=0 ) 
+        if( pos!=m_maxPos && (pos>=0 || m_curPos!=0) ) 
         {
             m_maxPos = pos;
             SetStepCount(count);    // коррекция шага

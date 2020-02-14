@@ -29,6 +29,12 @@ distribution.
 #include "tinyxml.h"
 #include "node_set.h"
 
+//-- suppress irritating warnings from clang (moocow, Fri, 14 Feb 2020 12:55:42 +0100)
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wundefined-bool-conversion"
+#endif
+
 namespace TinyXPath
 {
 
@@ -91,6 +97,7 @@ public :
          case e_node_set :
             ns_set = er_2 . ns_set;
             break;
+          default: break; //-- unhandled
       }
       #ifdef TINYXPATH_DEBUG
          S_comment = er_2 . S_comment;
@@ -190,6 +197,10 @@ public :
 } ;
 
 }
+
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif
 
 #endif
 

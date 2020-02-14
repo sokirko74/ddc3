@@ -164,7 +164,7 @@ bool CTempArticle::ArticleToText ()
             )
             CurrLevelId = 0;
 
-        if (C.m_LevelId > 0) 
+        if (C.m_LevelId > 0)  {
             if  (C.m_LevelId > CurrLevelId)
             {
                 char s[20];
@@ -178,6 +178,7 @@ bool CTempArticle::ArticleToText ()
             }
             else 
                 strcpy(RightPart, "  ");
+        }
 
         m_pRoss->CortegeToStr(C, RightPart + strlen(RightPart));
 

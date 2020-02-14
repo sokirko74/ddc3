@@ -259,11 +259,12 @@ void CQueryNode::ConvertOccurrencesToHits (bool bSeparateHits)
         }
                 
         BreakNo = break_it - Breaks.begin();
-        if (bTextAreaNo)
+        if (bTextAreaNo) {
             if ( BreakNo%TextAreasCount != TextAreaNo ) // if it is the right text area
                 continue;
             else
                 NewNode.AddOccurrences(*this, i, i+1);
+        }
                                 
 
 

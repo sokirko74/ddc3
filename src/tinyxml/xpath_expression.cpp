@@ -22,6 +22,8 @@ must not be misrepresented as being the original software.
 distribution.
 */
 
+#pragma clang diagnostic ignored "-Wswitch"
+
 #include "xpath_expression.h"
 #include "lex_util.h"
 

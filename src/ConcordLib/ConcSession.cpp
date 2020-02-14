@@ -830,6 +830,11 @@ bool CConcSession::GenerateOneHitString(DWORD PageNumber, const CHit &Hit, const
             break;
         case DDC_ResultDocIds :
             break; // no hit body
+
+        case DDC_ResultJson:
+        default:
+            // unhandled
+            break;
     };
 
     // =============   add right hit context  =================
@@ -1095,15 +1100,15 @@ DDCErrorEnum CConcSession::GenerateHitStrings(const int StartHitNo, bool UseAddi
                 assert (Interps.size() == Tokens.size());
                 for (size_t tkn_no = 0; tkn_no < Interps.size(); tkn_no++) {
                     //if (Interps[tkn_no].m_TokenStr == ddc_archive_stub)
-                    if (!Interps[tkn_no].m_TokenStr.empty())
+                    if (!Interps[tkn_no].m_TokenStr.empty()) {
                         if (m_ResultFormat != DDC_ResultHTML)
                             Tokens[tkn_no].m_InterpStr +=
                                 m_pConcordance->m_InterpDelimiter + Interps[tkn_no].m_TokenStr;
                         else
                             Tokens[tkn_no].m_InterpStr += Interps[tkn_no].m_TokenStr + " ";
-                    //else
-                    //  Tokens[tkn_no].m_InterpStr +=  m_pConcordance->m_InterpDelimiter;
-
+                        //else
+                        //  Tokens[tkn_no].m_InterpStr +=  m_pConcordance->m_InterpDelimiter;
+                    }
                 }
             }
 
@@ -1552,6 +1557,8 @@ void CConcSession::InitSortKeyForHits(const CQuery *pQuery, const CDDCFilterWith
         case RandomSort:
             InitSortByRandom(pQuery);
             break;
+
+        default: break; //-- unhandled
     };
 }
 

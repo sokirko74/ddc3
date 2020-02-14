@@ -29,6 +29,10 @@ distribution.
 #include <sstream>
 #endif
 
+#ifdef __clang__
+#pragma clang diagnostic ignored "-Wtautological-constant-out-of-range-compare"
+#endif
+
 
 bool TiXmlBase::condenseWhiteSpace = true;
 

@@ -25,6 +25,11 @@
 //#define DEBUG_NCOUNT 1
 //#undef DEBUG_NCOUNT
 
+//-- suppress irritating warnings from clang (moocow, Fri, 14 Feb 2020 12:55:42 +0100)
+#ifdef __clang__
+#pragma clang diagnostic ignored "-Wpotentially-evaluated-expression"
+#endif
+
 //==============================================================================
 // Sorting utility structures
 

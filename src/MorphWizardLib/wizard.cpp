@@ -783,11 +783,12 @@ static void ReadLemmas (FILE* fp, MorphoWizard& W )
         if (!strcmp(CommonAncode,"-"))
             CommonAncode[0] = 0;
 
-        if (strcmp(s2,"-"))
+        if (strcmp(s2,"-")) {
             if ( (strlen(s2) == 0) ||  !isdigit((BYTE)s2[0]) )
                 throw CExpc("Cannot parse line %s", buffer);
             else
                 PrefixSetNo = atoi(s2);
+        }
 
 
 

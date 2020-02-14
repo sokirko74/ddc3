@@ -91,7 +91,7 @@ struct CPredictSuffix
             return m_FlexiaModelNo < X.m_FlexiaModelNo;
 
         if (m_SourceLemmaAncode != X.m_SourceLemmaAncode)
-            m_SourceLemmaAncode < X.m_SourceLemmaAncode;
+            ;//m_SourceLemmaAncode < X.m_SourceLemmaAncode; //-- missing return? Fri, 14 Feb 2020 13:15:27 +0100 moocow
 
         return m_Suffix < X.m_Suffix;
     };

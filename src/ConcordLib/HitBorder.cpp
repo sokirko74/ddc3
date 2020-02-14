@@ -436,11 +436,12 @@ string CHitBorders::GetBorderIndicesString() const
     for (map<string,int>::const_iterator it = m_ShortName2BreakCollection.begin(); it !=  m_ShortName2BreakCollection.end(); it++)
     {
         const CBreakCollection& B = m_Breaks[it->second];
-        if (B.m_ShortName != PredefinedFileBreakName)
+        if (B.m_ShortName != PredefinedFileBreakName) {
             if (B.m_ShortName == m_DefaultBreakName)
                 Result += Format("[%s:%s:default];",B.m_ShortName.c_str(), B.m_LongName.c_str() );
             else
                 Result += Format("[%s:%s];",        B.m_ShortName.c_str(), B.m_LongName.c_str() );
+        }
     };
     Trim(Result);
     return Result;

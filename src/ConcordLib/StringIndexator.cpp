@@ -96,7 +96,7 @@ bool CStringIndexator::RegisterStringIndices(const string &IndicesStr) {
             return false;
         };
         bool bStorage = m_Indices.empty();
-        if (StorageStr != "")
+        if (StorageStr != "") {
             if (StorageStr == "storage")
                 bStorage = true;
             else if (StorageStr == "storage_omit")
@@ -104,7 +104,8 @@ bool CStringIndexator::RegisterStringIndices(const string &IndicesStr) {
             else {
                 ErrorMessage("A bad format of index header (storage specifier has wrong format) :" + Item);
                 return false;
-            };
+            }
+        }
 
         if (GetIndexByAlias(Name)) {
             ErrorMessage("Error: multiple declarations of index name `%s'");

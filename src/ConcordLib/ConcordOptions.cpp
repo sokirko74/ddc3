@@ -527,10 +527,13 @@ void CConcordance::LoadOptionsFromString(string Options) {
                 HitTypesStr = "[s:sentence:default]";
             break;
 
+        case TabFormat_Index:
         case Free_Index:
             if (HitTypesStr.empty())
                 throw CExpc("Error! Cannot find a hit types definition in the options file.");
             break;
+
+        default: break; //-- unhandled
     };
 
 

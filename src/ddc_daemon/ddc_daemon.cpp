@@ -385,8 +385,8 @@ int     main(int argc, char     **argv)
             printf ("%s: Daemon for working with Dialing-DWDS Concordance\n", argv[0]);
             return 1;               
         }       
-    };
-    if (argc < 2 || argv[1]=="-h" || argv[1]=="--help") 
+    }
+    if (argc < 2)
         PrintUsage();
 
     string Error;
