@@ -1433,6 +1433,7 @@ bool is_lower_vowel(BYTE x, MorphLanguageEnum Langua)
         case morphRussian : return is_russian_lower_vowel(x);
         case morphEnglish : return is_english_lower_vowel(x);
         case morphGerman : return is_german_lower_vowel(x);
+        default: break;
     };
     assert (false);
     return false;
@@ -1445,6 +1446,7 @@ bool is_upper_vowel(BYTE x, MorphLanguageEnum Langua)
         case morphRussian : return is_russian_upper_vowel(x);
         case morphEnglish : return is_english_upper_vowel(x);
         case morphGerman : return is_german_upper_vowel(x);
+        default: break;
     };
     assert (false);
     return false;
@@ -1471,6 +1473,7 @@ bool is_alpha (BYTE x, MorphLanguageEnum Langua)
         case morphGerman : return is_german_alpha(x);
         case morphGeneric : return is_generic_alpha(x);
         case morphURL : return is_URL_alpha(x);
+        default: break;
     };
     assert (false);
     return false;
@@ -1485,6 +1488,7 @@ bool is_lower_alpha(BYTE x, MorphLanguageEnum Langua)
         case morphGerman : return is_german_lower(x);
         case morphGeneric : return is_generic_lower(x);
         case morphURL : return false;
+        default: break;
     };
     assert (false);
     return false;
@@ -1499,6 +1503,7 @@ bool is_upper_alpha(BYTE x, MorphLanguageEnum Langua)
         case morphGerman : return is_german_upper(x);
         case morphGeneric : return is_generic_upper(x);
         case morphURL : return false;
+        default: break;
     };
     assert (false);
     return false;
@@ -1578,6 +1583,7 @@ bool CheckLanguage(const T& src, size_t Length, MorphLanguageEnum langua)
         case morphGerman : SymbolChecker =  is_german_alpha; break;
         case morphEnglish : SymbolChecker =  is_english_alpha; break;
         case morphDigits : SymbolChecker =  is_arab_digit; break;
+        default: break;
     };
     if (!SymbolChecker) return false;
 
