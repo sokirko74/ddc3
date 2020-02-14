@@ -60,12 +60,12 @@ bool CGraphmatFile::DealBullet (size_t i, size_t HB)
         TempLowBorder = i-100;
 
     if  (HasDescr(nt,OCls))
-        for (size_t k=i; k > TempLowBorder; k--)
+        for (size_t k=i; k > TempLowBorder; k--) {
             if (HasDescr (k,OCls)) // встретилась другая закрывающая  скобка 
                 break;
-            else
-                if  (HasDescr (k,OOpn)) // встретилась открывающая скобка 
-                    return false;
+            else if  (HasDescr (k,OOpn)) // встретилась открывающая скобка 
+                return false;
+        }
 
 
 
@@ -328,8 +328,8 @@ int CGraphmatFile::DealReferences (size_t i,size_t HB)
     // п. 1 ст. 2 
     // п. 1.1 ст. 2
 
-    bool is_part_string =  (GetUnits()[i].GetTokenLength() == 1)  &&  (GetUnits()[i].GetToken()[0] == 'ч');
-    bool is_bullet_string =  (GetUnits()[i].GetTokenLength() == 1)  &&  (GetUnits()[i].GetToken()[0] == 'п');
+    bool is_part_string =  (GetUnits()[i].GetTokenLength() == 1)  &&  (GetUnits()[i].GetToken()[0] == '\xf7');
+    bool is_bullet_string =  (GetUnits()[i].GetTokenLength() == 1)  &&  (GetUnits()[i].GetToken()[0] == '\xef');
 
     if (!is_part_string && !is_bullet_string) return false;
 
@@ -359,7 +359,7 @@ int CGraphmatFile::DealReferences (size_t i,size_t HB)
     if ( (nt == HB) || ((nt -k) > 20)) return false;
 
     if   (               (GetUnits()[nt].GetTokenLength() != 2) 
-                         ||      strncmp (GetUppercaseToken(nt), "СТ",2)
+                         ||      strncmp (GetUppercaseToken(nt), "\xd1\xd2",2)
         ) 
         return false;
 
@@ -518,7 +518,7 @@ int CGraphmatFile::DealShortFIO(size_t i, size_t HB)
         && !HasIndention(nh,l)
         && (GetUnits()[l].GetTokenLength() > 1)
 
-        //// иначе "Т.Е. ОТКАЗАТЬСЯ" будет ФИО
+        //// иначе "\xd2.\xc5. \xce\xd2\xca\xc0\xc7\xc0\xd2\xdc\xd1\xdf" будет ФИО
         && (HasDescr(l,OEXPR1) == HasDescr(l,OEXPR2));
 
     bool flag_surname_is_before = 
@@ -526,7 +526,7 @@ int CGraphmatFile::DealShortFIO(size_t i, size_t HB)
         && !HasIndention(k,i) 
         && (GetUnits()[k].GetTokenLength() > 1)
 
-        //// иначе "Т.Е. ОТКАЗАТЬСЯ" будет ФИО
+        //// иначе "\xd2.\xc5. \xce\xd2\xca\xc0\xc7\xc0\xd2\xdc\xd1\xdf" будет ФИО
         && (HasDescr(k,OEXPR1) == HasDescr(k,OEXPR2));
 
     if (!flag_surname_is_before && !flag_surname_is_after)
@@ -617,7 +617,7 @@ int CGraphmatFile::DealFIO (size_t i,size_t HB)
         && !HasIndention(nh,l)
         && (GetUnits()[l].GetTokenLength() > 1)
 
-        //// иначе "Т.Е. ОТКАЗАТЬСЯ" будет ФИО
+        //// иначе "\xd2.\xc5. \xce\xd2\xca\xc0\xc7\xc0\xd2\xdc\xd1\xdf" будет ФИО
         && (HasDescr(l,OEXPR1) == HasDescr(l,OEXPR2));
 
     bool flag_surname_is_before = 
@@ -625,7 +625,7 @@ int CGraphmatFile::DealFIO (size_t i,size_t HB)
         && !HasIndention(k,i) 
         && (GetUnits()[k].GetTokenLength() > 1)
 
-        //// иначе "Т.Е. ОТКАЗАТЬСЯ" будет ФИО
+        //// иначе "\xd2.\xc5. \xce\xd2\xca\xc0\xc7\xc0\xd2\xdc\xd1\xdf" будет ФИО
         && (HasDescr(k,OEXPR1) == HasDescr(k,OEXPR2));
 
     if (!flag_surname_is_before && !flag_surname_is_after)
@@ -736,7 +736,7 @@ void CGraphmatFile::DealExtensionsAndLocalFileNames(size_t LB, size_t  HB)
         if (LB == 0 || !CanBeFileName(*this, LB-1))
         {
             /*
-              Пример "рассмотрим файлы .txt"
+              Пример "\xf0\xe0\xf1\xf1\xec\xee\xf2\xf0\xe8\xec \xf4\xe0\xe9\xeb\xfb .txt"
             */
             if ( !GetUnits()[LB-1].IsSoft() && (LB != 1)) 
                 return;
