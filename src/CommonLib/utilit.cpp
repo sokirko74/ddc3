@@ -1405,7 +1405,7 @@ BYTE rtoupper (BYTE ch)
     if (ch == Apostrophe ) return Apostrophe;
 
     if ( is_russian_lower(ch) )
-        return  ch -= 'à'-'À';
+        return  ch -= '\xe0'-'\xc0';
     else
         return ch;
 };
@@ -1416,7 +1416,7 @@ BYTE rtolower (BYTE ch)
     if (ch == Apostrophe ) return Apostrophe;
 
     if ( is_russian_upper(ch) )
-        return ch += 'à'-'À';
+        return ch += '\xe0'-'\xc0';
     else
         return ch;
 };
