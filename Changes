@@ -1,6 +1,8 @@
 ###-*- Mode: Change-Log; coding: utf-8; -*-
 
 v2.2.2-rc2 UNRELEASED
+	* converted diverse assorted 8-bit string and character constants to hex escapes
+	* various tweaks for compilation with clang
 	* fixed ddc_index Schlemiehl-the-Painter bug due to flat sorted list<CStringItem> CFreeBiblStringIndex::m_BuildStringItems
 	  - symptoms: throughput rates reported by ddc_index (exponential decay?) as indexing progresses,
 	    dropping from initial >130k tok/sec to <4k tok/sec after processing ca. 100M tokens in ca. 300K documents
