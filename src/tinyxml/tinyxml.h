@@ -32,6 +32,12 @@ distribution.
 #pragma warning( disable : 4996 )
 #endif
 
+//-- suppress irritating warnings from clang (moocow, Fri, 14 Feb 2020 12:55:42 +0100)
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wundefined-bool-conversion"
+#endif
+
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -1367,6 +1373,9 @@ private:
         TiXmlNode* node;
 };
 
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif
 
 #endif
 

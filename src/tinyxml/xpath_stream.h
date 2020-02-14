@@ -30,6 +30,12 @@ distribution.
 #ifndef __TINYXPSTREAM_H
 #define __TINYXPSTREAM_H
 
+//-- suppress irritating warnings from clang (moocow, Fri, 14 Feb 2020 12:55:42 +0100)
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wswitch"
+#endif
+
 #include "lex_util.h"
 #include "byte_stream.h"
 #include "xpath_syntax.h"
@@ -230,6 +236,10 @@ public :
 } ;     // class xpath_stream
 
 }
+
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif
 
 #endif
 
