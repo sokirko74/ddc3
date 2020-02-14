@@ -138,13 +138,13 @@ void  CGraphanDicts:: BuildOborot (const string& s, int OborotNo)
                 m_Oborottos.push_back(O);
 
 
-            // приравниваем "в контакте с" и "в контакте со"
+            // приравниваем "\xe2 \xea\xee\xed\xf2\xe0\xea\xf2\xe5 \xf1" \xe8 "\xe2 \xea\xee\xed\xf2\xe0\xea\xf2\xe5 \xf1\xee"
             string q = " " +  O.m_UnitStr;
             q = q.substr(q.length() - 2, 2);
-            // если заканчивается на предлог "с", "в" или "к"
-            if ( (q ==  " К") || (q ==  " С") || (q ==  " В") )
+            // если заканчивается на предлог "\xf1", "\xe2" \xe8\xeb\xe8 "\xea"
+            if ( (q ==  " \xca") || (q ==  " \xd1") || (q ==  " \xc2") )
             {
-                O.m_UnitStr += "О";
+                O.m_UnitStr += "\xce";
                 if (find(m_Oborottos.begin(),  m_Oborottos.end(), O.m_UnitStr) == m_Oborottos.end())
                     m_Oborottos.push_back(O);
             };
