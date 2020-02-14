@@ -29,6 +29,11 @@
 /** default count()-query sample size */
 const size_t DDCDefaultCountSampleSize = (size_t)-1;
 
+// workaround for "error: overriding ‘virtual std::invalid_argument::~invalid_argument() throw ()’" under g++-5.4.0 / ubuntu 16.04.6
+#ifndef _GLIBCXX_USE_NOEXCEPT
+# define _GLIBCXX_USE_NOEXCEPT
+#endif
+
 /*! exception type used for aligning count-keys */
 class CQCountKeyBadOccurrence : public invalid_argument
 {
@@ -36,7 +41,7 @@ public:
     CQCountKeyBadOccurrence(const string& what_arg)
         : invalid_argument(what_arg)
     {};
-    virtual ~CQCountKeyBadOccurrence() {};
+    virtual ~CQCountKeyBadOccurrence() _GLIBCXX_USE_NOEXCEPT {};
 };
 
 //==============================================================================
