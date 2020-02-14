@@ -58,7 +58,7 @@ public:
     /** initialize a newly created worker-clone (and any subordinate data) */
     virtual void WorkerCloneInit(const CDDCServer *Parent, size_t WorkerId);
 
-    /** /** perform local cleanup of a worker clone prior to deletion */
+    /** perform local cleanup of a worker clone prior to deletion */
     virtual void WorkerCloneFree(void);
 
 public:

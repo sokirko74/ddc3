@@ -76,10 +76,11 @@ void CDDCServer::Shutdown(bool quiet)
     }
 
     if (!quiet) {
-        if (m_WorkerId)
+        if (m_WorkerId) {
             ddcLogDebug(Format("shutting down worker thread #%zd for server %s", m_WorkerId, m_CorpusName.c_str()));
-        else
+        } else {
             ddcLogDebug(Format("shutting down main thread for server %s", m_CorpusName.c_str()));
+        }
     }
     CloseListenSocket();
 };
@@ -185,10 +186,11 @@ string CDDCServer::ProcessSocketString(const string& SocketInput, SOCKET& rConne
         string cmd(SocketInput,0,eocpos);
 
         //-- moo: maybe log request
-        if (m_bLogRequests && m_noLogCommands.find(cmd)==m_noLogCommands.end())
+        if (m_bLogRequests && m_noLogCommands.find(cmd)==m_noLogCommands.end()) {
             ddcLogInfo(Format("%s recv \"%s\"", m_CorpusName.c_str(), SocketInput.c_str()));
-        else if (ddcLogLevel >= ddcLLTrace)
+        } else if (ddcLogLevel >= ddcLLTrace) {
             ddcLogInfo(Format("%s recv \"%s\"", m_CorpusName.c_str(), SocketInput.c_str()));
+        }
 
         //-- moo: command parsing and dispatch
         if (cmd == "get_first_hits") {
