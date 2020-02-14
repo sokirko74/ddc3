@@ -149,7 +149,7 @@ void log (string s)
 string GetPlugLemmabyLanguage (MorphLanguageEnum Langua)
 {
     switch (Langua) {
-        case morphRussian: return  "месахбюилемъ";
+        case morphRussian: return  "\xcd\xc5\xd3\xc1\xc8\xc2\xc0\xc9\xcc\xc5\xcd\xdf";
         case morphEnglish: return  "DURNOVO";
         case morphGerman: return  "UNKNOWN";
         default :return "unk";
