@@ -271,7 +271,7 @@ bool GenderNumberCaseNotAnimRussian (const CAgramtabLine* l1, const CAgramtabLin
 
 // Стандартное согласование между существительным и прилашательнымпо роду, числу и падежу, если 
 // если существительное не неодушевленное и не одушевленное
-//  (для местоимений, например, "все это было хорошо")
+//  (для местоимений, например, "\xe2\xf1\xe5 \xfd\xf2\xee \xe1\xfb\xeb\xee \xf5\xee\xf0\xee\xf8\xee")
 bool GenderNumberCaseRussian (const CAgramtabLine* l1, const CAgramtabLine* l2) 
 {       
     const QWORD& gram_noun = l1->m_Grammems;
@@ -291,7 +291,7 @@ bool FiniteFormCoordRussian (const CAgramtabLine* l1, const CAgramtabLine* l2)
     const QWORD& verb2 = l2->m_Grammems;
 
     // жил и был
-    if (verb1 &  verb2 & rAllNumbers)
+    if (verb1 &  verb2 & rAllNumbers) {
         if (verb1 &  verb2 & _QM(rPastTense))
         {
 
@@ -300,9 +300,11 @@ bool FiniteFormCoordRussian (const CAgramtabLine* l1, const CAgramtabLine* l2)
                 )
                 return true;
         }
-        else
+        else {
             if (verb1 &  verb2 & rAllPersons)
                 return true;
+        }
+    }
 
     return false;
 
@@ -423,10 +425,10 @@ bool CRusGramTab::IsStrongClauseRoot(const DWORD poses) const
 
 
 
-char months[12][10] = {"ЯНВАРЬ","ФЕВРАЛЬ","МАРТ",
-                       "АПРЕЛЬ","МАЙ","ИЮНЬ",
-                       "ИЮЛЬ","АВГУСТ","СЕНТЯБРЬ"
-                       ,"ОКТЯБРЬ","НОЯБРЬ","ДЕКАБРЬ"};
+char months[12][10] = {"\xdf\xcd\xc2\xc0\xd0\xdc","\xd4\xc5\xc2\xd0\xc0\xcb\xdc","\xcc\xc0\xd0\xd2",
+                       "\xc0\xcf\xd0\xc5\xcb\xdc","\xcc\xc0\xc9","\xc8\xde\xcd\xdc",
+                       "\xc8\xde\xcb\xdc","\xc0\xc2\xc3\xd3\xd1\xd2","\xd1\xc5\xcd\xd2\xdf\xc1\xd0\xdc"
+                       ,"\xce\xca\xd2\xdf\xc1\xd0\xdc","\xcd\xce\xdf\xc1\xd0\xdc","\xc4\xc5\xca\xc0\xc1\xd0\xdc"};
 
 bool CRusGramTab::is_month (const char* lemma) const
 {
@@ -437,7 +439,7 @@ bool CRusGramTab::is_month (const char* lemma) const
     return false;
 }
 
-char SmallNumbers[5][10] = {"ДВА","ТРИ","ЧЕТЫРЕ","ОБА","ПОЛТОРА"};
+char SmallNumbers[5][10] = {"\xc4\xc2\xc0","\xd2\xd0\xc8","\xd7\xc5\xd2\xdb\xd0\xc5","\xce\xc1\xc0","\xcf\xce\xcb\xd2\xce\xd0\xc0"};
 
 bool CRusGramTab::is_small_number (const char* lemma) const  
 {
@@ -531,7 +533,7 @@ bool CRusGramTab::is_morph_personal_pronoun (size_t poses, QWORD grammems) const
 
 
 const size_t  ParticleCount = 8;
-const char Particles[ParticleCount][20] = {"ЛИ","ЖЕ","БЫ","УЖ","ТОЛЬКО", "Ж", "Б", "ЛЬ"};
+const char Particles[ParticleCount][20] = {"\xcb\xc8","\xc6\xc5","\xc1\xdb","\xd3\xc6","\xd2\xce\xcb\xdc\xca\xce", "\xc6", "\xc1", "\xcb\xdc"};
 
 bool CRusGramTab::IsSimpleParticle(const char* lemma, size_t poses) const
 {
@@ -554,7 +556,7 @@ bool CRusGramTab::IsSimpleParticle(const char* lemma, size_t poses) const
 
 /*
   Есть такие  мест. прилагательные, которые могут выступать в роли существительных:
-  "КАЖДЫЙ", "ОДИН", "ДРУГОЙ","ТОТ","КОТОРЫЙ".
+  "\xca\xc0\xc6\xc4\xdb\xc9", "\xce\xc4\xc8\xcd", "\xc4\xd0\xd3\xc3\xce\xc9","\xd2\xce\xd2","\xca\xce\xd2\xce\xd0\xdb\xc9".
   Для  них не имеет смысла вводит аналогичные местоимения,поскольку  все они могут 
   быть использованы во всех родах. Эти прилагательные могут вести себя так же, как
   существительные. Например,
@@ -562,14 +564,14 @@ bool CRusGramTab::IsSimpleParticle(const char* lemma, size_t poses) const
   Я знаю ту, которая тебя видит
   Один пришел, другой ушел.
   Я вижу дом, который разрушился.
-  Вышеуказанные мест. прилагательные отличаются, например, от местоимения "этот" и "всякий", поскольку    
+  Вышеуказанные мест. прилагательные отличаются, например, от местоимения "\xfd\xf2\xee\xf2" \xe8 "\xe2\xf1\xff\xea\xe8\xe9", поскольку    
   трудно себе представить что-то вроде:
-  "эта пришла"
-  "всякая пришла"
+  "\xfd\xf2\xe0 \xef\xf0\xe8\xf8\xeb\xe0"
+  "\xe2\xf1\xff\xea\xe0\xff \xef\xf0\xe8\xf8\xeb\xe0"
   Но возможно:
-  "всякое бывает"
-  "это бывает"
-  Здесь "всякое" и "это" - простые местоимения ср рода.
+  "\xe2\xf1\xff\xea\xee\xe5 \xe1\xfb\xe2\xe0\xe5\xf2"
+  "\xfd\xf2\xee \xe1\xfb\xe2\xe0\xe5\xf2"
+  Здесь "\xe2\xf1\xff\xea\xee\xe5" \xe8 "\xfd\xf2\xee" - простые местоимения ср рода.
 
   !! Таким образом, я не хочу дублировать в морфологии МС-П, если они могут использованы
   !! во всех родах в качестве существительного.
@@ -581,11 +583,11 @@ bool CRusGramTab::IsSynNoun(size_t poses, const char* Lemma) const
     return   IsMorphNoun (poses) 
         ||( poses & (1 <<PRONOUN ))
         ||(    (poses & (1 <<PRONOUN_P ) )
-               && (      !strcmp(Lemma, "КАЖДЫЙ") 
-                         ||!strcmp(Lemma, "ОДИН") 
-                         ||!strcmp(Lemma, "ДРУГОЙ") 
-                         ||!strcmp(Lemma, "ТОТ") 
-                         ||!strcmp(Lemma, "КОТОРЫЙ") 
+               && (      !strcmp(Lemma, "\xca\xc0\xc6\xc4\xdb\xc9") 
+                         ||!strcmp(Lemma, "\xce\xc4\xc8\xcd") 
+                         ||!strcmp(Lemma, "\xc4\xd0\xd3\xc3\xce\xc9") 
+                         ||!strcmp(Lemma, "\xd2\xce\xd2") 
+                         ||!strcmp(Lemma, "\xca\xce\xd2\xce\xd0\xdb\xc9") 
                    )
             );
 };
@@ -595,7 +597,7 @@ const int StandardParamAbbrCount = 8;
 const int StandardParamAbbrLength = 4;
 
 const char StandardParamAbbr[StandardParamAbbrCount][StandardParamAbbrLength] =  
-{ "КГ", "КМ", "СМ","МЛ", "МБ","КБ", "МГЦ", "КВ"};
+{ "\xca\xc3", "\xca\xcc", "\xd1\xcc","\xcc\xcb", "\xcc\xc1","\xca\xc1", "\xcc\xc3\xd6", "\xca\xc2"};
 
 bool CRusGramTab::IsStandardParamAbbr (const char* WordStrUpper) const
 {

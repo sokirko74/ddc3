@@ -26,80 +26,80 @@
 
 /////////////////////////////////////////////////////////////////////////////
 
-const unsigned int  StartUp =  0xC0E0; //Аа 
-const unsigned int  EndUp = 0x10000;  //яя
-const unsigned int MaxGrmCount  = EndUp -StartUp; // // 16159  (16 Кб) 
+const unsigned int  StartUp =  0xC0E0; //\xc0\xe0\xa0
+const unsigned int  EndUp = 0x10000;  //\xff\xff
+const unsigned int MaxGrmCount  = EndUp -StartUp; // // 16159  (16 \xca\xe1) 
 const BYTE rPartOfSpeechCount = 22;
-// не должно быть пробелов между словами 
+// \xed\xe5 \xe4\xee\xeb\xe6\xed\xee \xe1\xfb\xf2\xfc \xef\xf0\xee\xe1\xe5\xeb\xee\xe2 \xec\xe5\xe6\xe4\xf3 \xf1\xeb\xee\xe2\xe0\xec\xe8 
 const char rPartOfSpeeches[rPartOfSpeechCount][20] = 
-{       "С",  // 0
-        "П", // 1
-        "Г", // 2
-        "МС", // 3
-        "МС-П", // 4
-        "МС-ПРЕДК", // 5
-        "ЧИСЛ", // 6
-        "ЧИСЛ-П", // 7
-        "Н", // 8
-        "ПРЕДК", //9 
-        "ПРЕДЛ", // 10
-        "ПОСЛ", // 11
-        "СОЮЗ", // 12
-        "МЕЖД", // 13
-        "ВВОДН",// 14
-        "ФРАЗ", // 15
-        "ЧАСТ", // 16
-        "КР_ПРИЛ",  // 17
-        "ПРИЧАСТИЕ", //18
-        "ДЕЕПРИЧАСТИЕ", //19
-        "КР_ПРИЧАСТИЕ", // 20
-        "ИНФИНИТИВ"  //21
+{       "\xd1",  // 0
+        "\xcf", // 1
+        "\xc3", // 2
+        "\xcc\xd1", // 3
+        "\xcc\xd1-\xcf", // 4
+        "\xcc\xd1-\xcf\xd0\xc5\xc4\xca", // 5
+        "\xd7\xc8\xd1\xcb", // 6
+        "\xd7\xc8\xd1\xcb-\xcf", // 7
+        "\xcd", // 8
+        "\xcf\xd0\xc5\xc4\xca", //9 
+        "\xcf\xd0\xc5\xc4\xcb", // 10
+        "\xcf\xce\xd1\xcb", // 11
+        "\xd1\xce\xde\xc7", // 12
+        "\xcc\xc5\xc6\xc4", // 13
+        "\xc2\xc2\xce\xc4\xcd",// 14
+        "\xd4\xd0\xc0\xc7", // 15
+        "\xd7\xc0\xd1\xd2", // 16
+        "\xca\xd0_\xcf\xd0\xc8\xcb",  // 17
+        "\xcf\xd0\xc8\xd7\xc0\xd1\xd2\xc8\xc5", //18
+        "\xc4\xc5\xc5\xcf\xd0\xc8\xd7\xc0\xd1\xd2\xc8\xc5", //19
+        "\xca\xd0_\xcf\xd0\xc8\xd7\xc0\xd1\xd2\xc8\xc5", // 20
+        "\xc8\xcd\xd4\xc8\xcd\xc8\xd2\xc8\xc2"  //21
 };
 
 const short GrammemsCount = 52;
 const char Grammems[GrammemsCount][10] = { 
     // 0..1
-    "мн","ед",
+    "\xec\xed","\xe5\xe4",
     // 2..8
-    "им","рд","дт","вн","тв","пр","зв",
-    // род 9-12
-    "мр","жр","ср","мр-жр",
+    "\xe8\xec","\xf0\xe4","\xe4\xf2","\xe2\xed","\xf2\xe2","\xef\xf0","\xe7\xe2",
+    // \xf0\xee\xe4 9-12
+    "\xec\xf0","\xe6\xf0","\xf1\xf0","\xec\xf0-\xe6\xf0",
     // 13..15
-    "нст","буд","прш",
+    "\xed\xf1\xf2","\xe1\xf3\xe4","\xef\xf0\xf8",
     // 16..18
-    "1л","2л","3л", 
+    "1\xeb","2\xeb","3\xeb", 
     // 19
-    "пвл",
+    "\xef\xe2\xeb",
     // 20..21
-    "од","но",      
+    "\xee\xe4","\xed\xee",      
     // 22
-    "сравн",
+    "\xf1\xf0\xe0\xe2\xed",
     // 23..24
-    "св","нс",      
+    "\xf1\xe2","\xed\xf1",      
     // 25..26
-    "нп","пе",
+    "\xed\xef","\xef\xe5",
     // 27..28
-    "дст","стр",
+    "\xe4\xf1\xf2","\xf1\xf2\xf0",
     // 29-31
-    "0", "аббр", "отч",
+    "0", "\xe0\xe1\xe1\xf0", "\xee\xf2\xf7",
     // 32-33
-    "лок", "орг",
+    "\xeb\xee\xea", "\xee\xf0\xe3",
     // 34-35
-    "кач", "дфст",
-    // 36-37 (наречия)
-    "вопр", "указат",
+    "\xea\xe0\xf7", "\xe4\xf4\xf1\xf2",
+    // 36-37 (\xed\xe0\xf0\xe5\xf7\xe8\xff)
+    "\xe2\xee\xef\xf0", "\xf3\xea\xe0\xe7\xe0\xf2",
     // 38..39
-    "имя","фам",
+    "\xe8\xec\xff","\xf4\xe0\xec",
     // 40
-    "безл",
+    "\xe1\xe5\xe7\xeb",
     // 41,42
-    "жарг", "опч",
+    "\xe6\xe0\xf0\xe3", "\xee\xef\xf7",
     // 43,44,45
-    "разг", "притяж", "арх",
-    // для второго родительного и второго предложного
+    "\xf0\xe0\xe7\xe3", "\xef\xf0\xe8\xf2\xff\xe6", "\xe0\xf0\xf5",
+    // \xe4\xeb\xff \xe2\xf2\xee\xf0\xee\xe3\xee \xf0\xee\xe4\xe8\xf2\xe5\xeb\xfc\xed\xee\xe3\xee \xe8 \xe2\xf2\xee\xf0\xee\xe3\xee \xef\xf0\xe5\xe4\xeb\xee\xe6\xed\xee\xe3\xee
     "2",
-    "поэт", "проф",
-    "прев", "полож"
+    "\xef\xee\xfd\xf2", "\xef\xf0\xee\xf4",
+    "\xef\xf0\xe5\xe2", "\xef\xee\xeb\xee\xe6"
 };
 
 
@@ -108,18 +108,18 @@ const char Grammems[GrammemsCount][10] = {
 const int rClauseTypesCount = 12;
 const char rClauseTypes [rClauseTypesCount][30] = 
 {
-    "ГЛ_ЛИЧН", 
-    "ДПР",
-    "КР_ПРЧ",
-    "КР_ПРИЛ",
-    "ПРЕДК",
-    "ПРЧ",   
-    "ИНФ",  
-    "ВВОД",
-    "ТИРЕ",
-    "НСО",
-    "СРАВН",
-    "КОПУЛ"
+    "\xc3\xcb_\xcb\xc8\xd7\xcd", 
+    "\xc4\xcf\xd0",
+    "\xca\xd0_\xcf\xd0\xd7",
+    "\xca\xd0_\xcf\xd0\xc8\xcb",
+    "\xcf\xd0\xc5\xc4\xca",
+    "\xcf\xd0\xd7",   
+    "\xc8\xcd\xd4",  
+    "\xc2\xc2\xce\xc4",
+    "\xd2\xc8\xd0\xc5",
+    "\xcd\xd1\xce",
+    "\xd1\xd0\xc0\xc2\xcd",
+    "\xca\xce\xcf\xd3\xcb"
 };
 
 
