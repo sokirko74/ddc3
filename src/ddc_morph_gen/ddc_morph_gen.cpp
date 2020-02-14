@@ -47,7 +47,7 @@ void PrintUsage()
 string GetPrefixPartOfSpeech (MorphLanguageEnum Langua)
 {
     switch (Langua) {
-        case morphRussian: return  "ÏÐÈÑÒ";
+        case morphRussian: return  "\xcf\xd0\xc8\xd1\xd2";
         case morphEnglish: return  "PREFIX";
         case morphGerman: return  "PREFIX";
         default :return "unk";
