@@ -409,8 +409,8 @@ string Format( const char* format, ... )
     vsnprintf( pBuffer, OutputLength, format, arglst);
     va_end( arglst );
     string Result(pBuffer,OutputLength-1);
-    delete pBuffer;
-    return Result;
+    delete[] pBuffer;
+    return   Result;
 };
 
 
@@ -427,12 +427,12 @@ string vFormat( const char* format, va_list& args )
     if ((OutputLength == 0) || (OutputLength < SmallBufferSize))
         return string(SmallBuffer,OutputLength-1);
 
-    char * pBuffer = new char[OutputLength];
+    char *pBuffer = new char[OutputLength];
     if (!pBuffer)
         return string(SmallBuffer,SmallBufferSize);
     vsnprintf( pBuffer, OutputLength, format, args1);
     string Result(pBuffer,OutputLength-1);
-    delete pBuffer;
+    delete[] pBuffer;
     return Result;
 }
 
