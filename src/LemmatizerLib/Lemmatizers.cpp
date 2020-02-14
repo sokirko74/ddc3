@@ -120,7 +120,7 @@ bool CLemmatizer::LemmatizeWord(string& InputWordStr, const bool cap, const bool
                 };
             };
 
-            // отменяем предсказание по местоимениям, например "Семыкиным"
+            // отменяем предсказание по местоимениям, например "\xd1\xe5\xec\xfb\xea\xe8\xed\xfb\xec"
             for (size_t i=0; i<results.size(); i++)
                 if (m_NPSs[results[i].m_ModelNo] == UnknownPartOfSpeech)
                 {
@@ -515,15 +515,15 @@ void CLemmatizer::PredictByDataBase(string InputWordStr,  vector<CAutomAnnotatio
 CLemmatizerRussian::CLemmatizerRussian() : CLemmatizer(morphRussian)
 {
     m_Registry = "Software\\Dialing\\Lemmatizer\\Russian\\DictPath";
-    m_HyphenPostfixes.insert("КА");
-    m_HyphenPostfixes.insert("ТО");
-    m_HyphenPostfixes.insert("С");
+    m_HyphenPostfixes.insert("\xca\xc0");
+    m_HyphenPostfixes.insert("\xd2\xce");
+    m_HyphenPostfixes.insert("\xd1");
 
-    m_HyphenPrefixes.insert("ПОЛУ");
-    m_HyphenPrefixes.insert("ПОЛ");
-    m_HyphenPrefixes.insert("ВИЦЕ");
-    m_HyphenPrefixes.insert("МИНИ");
-    m_HyphenPrefixes.insert("КИК");
+    m_HyphenPrefixes.insert("\xcf\xce\xcb\xd3");
+    m_HyphenPrefixes.insert("\xcf\xce\xcb");
+    m_HyphenPrefixes.insert("\xc2\xc8\xd6\xc5");
+    m_HyphenPrefixes.insert("\xcc\xc8\xcd\xc8");
+    m_HyphenPrefixes.insert("\xca\xc8\xca");
 };
 
 
@@ -532,11 +532,11 @@ void CLemmatizerRussian::FilterSrc(string& src) const
     if (!m_bAllowRussianJo)
         ConvertJO2Je(src); 
 
-    // переводим ' в "ъ", например, "об'явление" -> "объявление"
+    // переводим ' в "\xfa", \xed\xe0\xef\xf0\xe8\xec\xe5\xf0, "\xee\xe1'\xff\xe2\xeb\xe5\xed\xe8\xe5" -> "\xee\xe1\xfa\xff\xe2\xeb\xe5\xed\xe8\xe5"
     size_t len = src.length();
     for (size_t i=0; i<len; i++)
         if (src[i] == '\'')
-            src[i] = 'ъ';
+            src[i] = '\xfa';
 };
 
 CLemmatizerEnglish:: CLemmatizerEnglish() : CLemmatizer(morphEnglish)
