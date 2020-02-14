@@ -1080,10 +1080,10 @@ struct CPredictPartOfSpeech {
 // Windows-1251!
 const CPredictPartOfSpeech  predict_rus_pos[predict_poses_size] =
 {
-    "—",
-    "»Õ‘»Õ»“»¬",
-    "œ",
-    "Õ",
+    "\xd1",
+    "\xc8\xcd\xd4\xc8\xcd\xc8\xd2\xc8\xc2",
+    "\xcf",
+    "\xcd",
 };
 
 const CPredictPartOfSpeech predict_eng_pos[predict_poses_size] =

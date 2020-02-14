@@ -87,7 +87,7 @@ public:
     ddcObject* Traverse(Visit& visit)
     {
         ddcObject* retval=NULL;
-        ddcObjectList stack(1,this);
+        ddcObjectList stack(1,(ddcObject*)this);
         while (!stack.empty()) {
             ddcObject *optr = stack.front();
             stack.pop_front();
@@ -153,7 +153,7 @@ public:
     ddcObject* TraverseR(Visit& visit) const
     {
         ddcObject* retval=NULL;
-        ddcObjectList stack(1,this);
+        ddcObjectList stack(1,(ddcObject*)this);
         while (!stack.empty()) {
             ddcObject *optr = stack.front();
             ddcObjectList kids;
