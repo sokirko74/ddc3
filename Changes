@@ -1,6 +1,6 @@
 ###-*- Mode: Change-Log; coding: utf-8; -*-
 
-v2.2.2 Mon, 17 Feb 2020 10:05:39 +0100 moocow
+v2.2.2 Mon, 17 Feb 2020 11:17:32 +0100 moocow
 	* added "nfd" attribute to daemon "status" responses (number of open file descriptors, via /proc/PID/fd/)
 	* converted diverse assorted 8-bit string and character constants to hex escapes
 	* various tweaks for compilation with clang
