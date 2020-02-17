@@ -342,6 +342,11 @@ struct DDCProcessMemoryStatus
 };
 
 
+/// return the number of open files for \a pid (linux only).
+/// \li pid=0 maps to PID of current process)
+size_t GetNumberOfOpenFiles(pid_t pid=0);
+
+
 //======================================================================
 // working with registry 
 extern string   GetRegistryString (string RegistryPath);

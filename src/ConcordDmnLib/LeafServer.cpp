@@ -1,7 +1,7 @@
 //-*- Mode: C++ -*-
 //
 //  DDC originally by Alexey Sokirko
-//  Changes and modifications 2011-2019 by Bryan Jurish
+//  Changes and modifications 2011-2020 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -219,7 +219,9 @@ void CDDCLeafServer::handle__expand_terms(string &Result, const string &pipeline
 //----------------------------------------------------------------------
 void CDDCLeafServer::handle__status(string &Result, int timeout, bool verbose) {
     double uptime = difftime(time(NULL), m_tStarted);
-    DDCProcessMemoryStatus pms(getpid());
+    pid_t pid = getpid();
+    DDCProcessMemoryStatus pms(pid);
+    size_t nfd = GetNumberOfOpenFiles(pid);
 
     //-- synchronize moving-average query-time window (EMA decay)
     m_ServerStats.m_qTimes.Scrub();
@@ -246,10 +248,11 @@ void CDDCLeafServer::handle__status(string &Result, int timeout, bool verbose) {
               + "\"xtavgs\":" + m_ServerStats.m_xTimes.toJsonArray() + ",\n\t"
               + "\"nworkers\":" + Format("%zd", m_nWorkers) + ",\n\t"
               + "\"memkb\":" + Format("%zd", pms.VmRSS) + ",\n\t" //-- compat
-              + "\"vmem\":" +
-              Format("{\"peak\":%zd,\"size\":%zd,\"hwm\":%zd,\"rss\":%zd,\"data\":%zd,\"stk\":%zd,\"exe\":%zd,\"lib\":%zd,\"swap\":%zd,\"file\":%zd,\"anon\":%zd}",
-                     pms.VmPeak, pms.VmSize, pms.VmHWM, pms.VmRSS, pms.VmData, pms.VmStk, pms.VmExe, pms.VmLib,
-                     pms.VmSwap, pms.RssFile, pms.RssAnon) + ",\n\t"
+              + "\"vmem\":"
+              + Format("{\"peak\":%zd,\"size\":%zd,\"hwm\":%zd,\"rss\":%zd,\"data\":%zd,\"stk\":%zd,\"exe\":%zd,\"lib\":%zd,\"swap\":%zd,\"file\":%zd,\"anon\":%zd}",
+                       pms.VmPeak, pms.VmSize, pms.VmHWM, pms.VmRSS, pms.VmData, pms.VmStk, pms.VmExe, pms.VmLib, pms.VmSwap, pms.RssFile, pms.RssAnon
+                  ) + ",\n\t"
+              + "\"nfd\":" + Format("%zd", nfd) + ",\n\t"
               + "\"cachesize\":" + Format("%zd", m_pHolder->CacheSize()) + ",\n\t"
               + "\"curlcachesize\":" + Format("%zd", ddcCurlCache.size()) + "\n\t"
               + "}"

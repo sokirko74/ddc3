@@ -1009,6 +1009,27 @@ void DDCProcessMemoryStatus::fetch(pid_t pid)
     return;
 }
 
+size_t GetNumberOfOpenFiles(pid_t pid)
+{
+    if (pid==0) pid = getpid();
+
+    char fddir[64];
+    DIR *d;
+    sprintf(fddir, "/proc/%d/fd", pid);
+    if (!(d=opendir(fddir))) {
+        return 0; //-- no process matching pid, or non-linux
+    }
+
+    struct dirent *de;
+    size_t n=0;
+    while ( (de=readdir(d)) ) {
+        if (strcmp(de->d_name,".")!=0 && strcmp(de->d_name,"..")!=0)
+            ++n;
+    }
+    closedir(d);
+    
+    return n;
+};
 
 //======================================================================
 // working with registry 
