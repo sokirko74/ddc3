@@ -49,6 +49,8 @@ void ddcFileOrMMap::Close()
         fclose(m_File);
         unlock();
         m_File = 0;
+    } else {
+        m_mmap.close();
     }
 };
 
