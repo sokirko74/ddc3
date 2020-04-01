@@ -922,7 +922,7 @@ NetworkErrorsEnum CDDCBranchServer::GetHitCounts(CFirstHitsQueryResult& FHResult
         }
     }
 
-    if (ResultTypeE == DDC_ResultJson && !FHResult.m_Hits.empty()) {
+    if (ResultTypeE == DDC_ResultJson && ResultString.size() >= 2) {
         ResultString.erase(ResultString.size()-2);
     }
     else if (ResultTypeE == DDC_ResultHTML) {
