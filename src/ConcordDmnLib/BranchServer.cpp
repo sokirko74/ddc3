@@ -535,6 +535,7 @@ void CDDCBranchServer::handle__run_query(string &Result, const char *CorpusName,
         RunDistributed();
     }
     catch (exception &e) {
+        m_FHResult.CloseSockets(); //-- don't leak file descriptors!
         if (m_ErrorStr.empty()) m_ErrorStr = Format("Exception: %s", e.what());
     }
 
