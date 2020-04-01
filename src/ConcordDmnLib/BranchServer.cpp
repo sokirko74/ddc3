@@ -185,7 +185,7 @@ void CDDCBranchServer::WorkerCloneFree(void)
 }
 
 //==============================================================================
-// CHostSubcorpora
+// CSelectedHosts
 
 //----------------------------------------------------------------------
 void CSelectedHosts::Clear()
@@ -922,7 +922,13 @@ NetworkErrorsEnum CDDCBranchServer::GetHitCounts(CFirstHitsQueryResult& FHResult
         }
     }
 
-    if (ResultTypeE == DDC_ResultJson && ResultString.size() >= 2) {
+    if (ResultTypeE == DDC_ResultJson
+        && ResultString.size() >= 2
+        && ResultString[ResultString.size()-2]==','
+        && ResultString[ResultString.size()-1]=='\n')
+
+    {
+        //-- trim final trailing ",\n"
         ResultString.erase(ResultString.size()-2);
     }
     else if (ResultTypeE == DDC_ResultHTML) {
@@ -1120,8 +1126,12 @@ NetworkErrorsEnum CDDCBranchServer::GetHitContexts(CFirstHitsQueryResult& FHResu
         }
     }
 
-    if (ResultTypeE == DDC_ResultJson && !ResultString.empty()) {
-        //-- trim final trailing comma
+    if (ResultTypeE == DDC_ResultJson
+        && ResultString.size() >= 2
+        && ResultString[ResultString.size()-2]==','
+        && ResultString[ResultString.size()-1]=='\n')
+    {
+        //-- trim final trailing ",", leave final newline in place
         ResultString.erase(ResultString.size()-2,1);
     }
 
