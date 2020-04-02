@@ -289,6 +289,9 @@ int yylex (void*,  CQueryCompiler*);
 %token	<m_str>	KW_FILEID
 %token	<m_str>	KW_FILENAME
 
+%token	<m_str>	BLOCK_COMMENT
+%token	<m_str>	LINE_COMMENT
+
 //------------------------------------------------------
 // Start Symbol
 %start  query

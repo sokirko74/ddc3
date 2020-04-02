@@ -133,10 +133,10 @@ comment_text	(\\.|[^\]])*
  /* block-comments */
 "#["				{ yy_push_state(Q_COMMENT); }
 <Q_COMMENT>"]"			{ yy_pop_state(); }
-<Q_COMMENT>{comment_text}	{ ; }
+<Q_COMMENT>{comment_text}	{ return BLOCK_COMMENT; }
 
  /* line-comments */
-"#:"([^\n]*)			{ ; }
+"#:"([^\n]*)			{ return LINE_COMMENT; }
 
  /* operators */
 "&&"				{ return OP_BOOL_AND; }

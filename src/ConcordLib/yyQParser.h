@@ -105,20 +105,22 @@ extern int yyqdebug;
     KW_DATE = 311,
     KW_FILEID = 312,
     KW_FILENAME = 313,
-    OP_CLAUSE_MATCHID = 314,
-    OP_CLAUSE_CONCAT = 315,
-    OP_CLAUSE_BOOL = 316,
-    OP_CLAUSE_BASIC = 317,
-    OP_PHRASE = 318,
-    OP_WORD = 319,
-    OP_BOOL_AND = 320,
-    OP_BOOL_OR = 321,
-    COUNT = 322,
-    KEYS = 323,
-    NEAR = 324,
-    WITH = 325,
-    WITHOUT = 326,
-    WITHOR = 327
+    BLOCK_COMMENT = 314,
+    LINE_COMMENT = 315,
+    OP_CLAUSE_MATCHID = 316,
+    OP_CLAUSE_CONCAT = 317,
+    OP_CLAUSE_BOOL = 318,
+    OP_CLAUSE_BASIC = 319,
+    OP_PHRASE = 320,
+    OP_WORD = 321,
+    OP_BOOL_AND = 322,
+    OP_BOOL_OR = 323,
+    COUNT = 324,
+    KEYS = 325,
+    NEAR = 326,
+    WITH = 327,
+    WITHOUT = 328,
+    WITHOR = 329
   };
 #endif
 
@@ -134,7 +136,7 @@ union YYSTYPE
   class CQuery*	 	m_pnode;   /* For returning basic query nodes */
   class CQFilter* 	m_pfilt;   /* For returning single query filters */
 
-#line 138 "yyQParser.h" /* yacc.c:1921  */
+#line 140 "yyQParser.h" /* yacc.c:1921  */
 };
 
 typedef union YYSTYPE YYSTYPE;

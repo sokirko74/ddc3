@@ -15,7 +15,7 @@
 #define FLEX_SCANNER
 #define YY_FLEX_MAJOR_VERSION 2
 #define YY_FLEX_MINOR_VERSION 6
-#define YY_FLEX_SUBMINOR_VERSION 1
+#define YY_FLEX_SUBMINOR_VERSION 4
 #if YY_FLEX_SUBMINOR_VERSION > 0
 #define FLEX_BETA
 #endif
@@ -32,6 +32,24 @@
 
 /* %if-c-only */
 /* %endif */
+
+#ifdef yyalloc
+#define yyqalloc_ALREADY_DEFINED
+#else
+#define yyalloc yyqalloc
+#endif
+
+#ifdef yyrealloc
+#define yyqrealloc_ALREADY_DEFINED
+#else
+#define yyrealloc yyqrealloc
+#endif
+
+#ifdef yyfree
+#define yyqfree_ALREADY_DEFINED
+#else
+#define yyfree yyqfree
+#endif
 
 /* %if-c-only */
 /* %endif */
@@ -107,14 +125,18 @@ typedef unsigned int flex_uint32_t;
 #define UINT32_MAX             (4294967295U)
 #endif
 
+#ifndef SIZE_MAX
+#define SIZE_MAX               (~(size_t)0)
+#endif
+
 #endif /* ! C99 */
 
 #endif /* ! FLEXINT_H */
 
 /* %endif */
 
-/* %if-c++-only */
 /* begin standard C++ headers. */
+/* %if-c++-only */
 #include <iostream>
 #include <errno.h>
 #include <cstdlib>
@@ -243,9 +265,9 @@ struct yy_buffer_state
 /* %endif */
 /* %endif */
 
-void *yyqalloc (yy_size_t  );
-void *yyqrealloc (void *,yy_size_t  );
-void yyqfree (void *  );
+void *yyalloc ( yy_size_t  );
+void *yyrealloc ( void *, yy_size_t  );
+void yyfree ( void *  );
 
 /* %% [1.0] yytext/yyin/yyout/yy_state_type/yylineno etc. def's & init go here */
 /* Begin user sect3 */
@@ -310,11 +332,11 @@ int yyFlexLexer::yylex()
 /* %endif */
 
 #ifndef yytext_ptr
-static void yy_flex_strncpy (char *,yyconst char *,int );
+static void yy_flex_strncpy ( char *, const char *, int );
 #endif
 
 #ifdef YY_NEED_STRLEN
-static int yy_flex_strlen (yyconst char * );
+static int yy_flex_strlen ( const char * );
 #endif
 
 #ifndef YY_NO_INPUT
@@ -383,9 +405,154 @@ static int yy_flex_strlen (yyconst char * );
 #undef YY_DECL
 #endif
 
-#line 268 "yyQLexer.l"
+#ifndef yyq_create_buffer_ALREADY_DEFINED
+#undef yy_create_buffer
+#endif
+#ifndef yyq_delete_buffer_ALREADY_DEFINED
+#undef yy_delete_buffer
+#endif
+#ifndef yyq_scan_buffer_ALREADY_DEFINED
+#undef yy_scan_buffer
+#endif
+#ifndef yyq_scan_string_ALREADY_DEFINED
+#undef yy_scan_string
+#endif
+#ifndef yyq_scan_bytes_ALREADY_DEFINED
+#undef yy_scan_bytes
+#endif
+#ifndef yyq_init_buffer_ALREADY_DEFINED
+#undef yy_init_buffer
+#endif
+#ifndef yyq_flush_buffer_ALREADY_DEFINED
+#undef yy_flush_buffer
+#endif
+#ifndef yyq_load_buffer_state_ALREADY_DEFINED
+#undef yy_load_buffer_state
+#endif
+#ifndef yyq_switch_to_buffer_ALREADY_DEFINED
+#undef yy_switch_to_buffer
+#endif
+#ifndef yyqpush_buffer_state_ALREADY_DEFINED
+#undef yypush_buffer_state
+#endif
+#ifndef yyqpop_buffer_state_ALREADY_DEFINED
+#undef yypop_buffer_state
+#endif
+#ifndef yyqensure_buffer_stack_ALREADY_DEFINED
+#undef yyensure_buffer_stack
+#endif
+#ifndef yyqlex_ALREADY_DEFINED
+#undef yylex
+#endif
+#ifndef yyqrestart_ALREADY_DEFINED
+#undef yyrestart
+#endif
+#ifndef yyqlex_init_ALREADY_DEFINED
+#undef yylex_init
+#endif
+#ifndef yyqlex_init_extra_ALREADY_DEFINED
+#undef yylex_init_extra
+#endif
+#ifndef yyqlex_destroy_ALREADY_DEFINED
+#undef yylex_destroy
+#endif
+#ifndef yyqget_debug_ALREADY_DEFINED
+#undef yyget_debug
+#endif
+#ifndef yyqset_debug_ALREADY_DEFINED
+#undef yyset_debug
+#endif
+#ifndef yyqget_extra_ALREADY_DEFINED
+#undef yyget_extra
+#endif
+#ifndef yyqset_extra_ALREADY_DEFINED
+#undef yyset_extra
+#endif
+#ifndef yyqget_in_ALREADY_DEFINED
+#undef yyget_in
+#endif
+#ifndef yyqset_in_ALREADY_DEFINED
+#undef yyset_in
+#endif
+#ifndef yyqget_out_ALREADY_DEFINED
+#undef yyget_out
+#endif
+#ifndef yyqset_out_ALREADY_DEFINED
+#undef yyset_out
+#endif
+#ifndef yyqget_leng_ALREADY_DEFINED
+#undef yyget_leng
+#endif
+#ifndef yyqget_text_ALREADY_DEFINED
+#undef yyget_text
+#endif
+#ifndef yyqget_lineno_ALREADY_DEFINED
+#undef yyget_lineno
+#endif
+#ifndef yyqset_lineno_ALREADY_DEFINED
+#undef yyset_lineno
+#endif
+#ifndef yyqget_column_ALREADY_DEFINED
+#undef yyget_column
+#endif
+#ifndef yyqset_column_ALREADY_DEFINED
+#undef yyset_column
+#endif
+#ifndef yyqwrap_ALREADY_DEFINED
+#undef yywrap
+#endif
+#ifndef yyqget_lval_ALREADY_DEFINED
+#undef yyget_lval
+#endif
+#ifndef yyqset_lval_ALREADY_DEFINED
+#undef yyset_lval
+#endif
+#ifndef yyqget_lloc_ALREADY_DEFINED
+#undef yyget_lloc
+#endif
+#ifndef yyqset_lloc_ALREADY_DEFINED
+#undef yyset_lloc
+#endif
+#ifndef yyqalloc_ALREADY_DEFINED
+#undef yyalloc
+#endif
+#ifndef yyqrealloc_ALREADY_DEFINED
+#undef yyrealloc
+#endif
+#ifndef yyqfree_ALREADY_DEFINED
+#undef yyfree
+#endif
+#ifndef yyqtext_ALREADY_DEFINED
+#undef yytext
+#endif
+#ifndef yyqleng_ALREADY_DEFINED
+#undef yyleng
+#endif
+#ifndef yyqin_ALREADY_DEFINED
+#undef yyin
+#endif
+#ifndef yyqout_ALREADY_DEFINED
+#undef yyout
+#endif
+#ifndef yyq_flex_debug_ALREADY_DEFINED
+#undef yy_flex_debug
+#endif
+#ifndef yyqlineno_ALREADY_DEFINED
+#undef yylineno
+#endif
+#ifndef yyqtables_fload_ALREADY_DEFINED
+#undef yytables_fload
+#endif
+#ifndef yyqtables_destroy_ALREADY_DEFINED
+#undef yytables_destroy
+#endif
+#ifndef yyqTABLES_NAME_ALREADY_DEFINED
+#undef yyTABLES_NAME
+#endif
+
+#line 269 "yyQLexer.l"
 
 
-#line 390 "yyQLexer.h"
+#line 557 "yyQLexer.h"
 #undef yyqIN_HEADER
 #endif /* yyqHEADER_H */

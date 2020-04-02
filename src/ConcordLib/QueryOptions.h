@@ -1,6 +1,6 @@
 //-*- Mode: C++ -*-
 //  DDC originally by Alexey Sokirko
-//  Changes and modifications 2011-2018 by Bryan Jurish
+//  Changes and modifications 2011-2020 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -70,8 +70,11 @@ public:
     //! selected subcorpora for this query
     CQSubcorpusList m_Subcorpora;
 
-    //! user comments for this query
+    //! user comments for this query (#CMT[comment text])
     CQCommentList m_Comments;
+
+    //! lexer comments for this query (#[lexer comment], #:line comment)
+    CQCommentList m_LexerComments;
 
 public:
     //------------------------------------------------------------

@@ -1,3 +1,9 @@
+Terminals unused in grammar
+
+   BLOCK_COMMENT
+   LINE_COMMENT
+
+
 State 109 conflicts: 1 shift/reduce
 
 
@@ -478,235 +484,237 @@ CLIMIT <m_str> (310) 15 16
 KW_DATE <m_str> (311) 81 82 238 239
 KW_FILEID <m_str> (312) 236
 KW_FILENAME <m_str> (313) 237 262
-OP_CLAUSE_MATCHID (314)
-OP_CLAUSE_CONCAT (315)
-OP_CLAUSE_BOOL (316)
-OP_CLAUSE_BASIC (317)
-OP_PHRASE (318)
-OP_WORD (319)
-OP_BOOL_AND (320) 122
-OP_BOOL_OR (321) 123
-COUNT (322) 3
-KEYS (323) 205 206
-NEAR (324) 131 132
-WITH (325) 202
-WITHOUT (326) 203
-WITHOR (327) 204
+BLOCK_COMMENT <m_str> (314)
+LINE_COMMENT <m_str> (315)
+OP_CLAUSE_MATCHID (316)
+OP_CLAUSE_CONCAT (317)
+OP_CLAUSE_BOOL (318)
+OP_CLAUSE_BASIC (319)
+OP_PHRASE (320)
+OP_WORD (321)
+OP_BOOL_AND (322) 122
+OP_BOOL_OR (323) 123
+COUNT (324) 3
+KEYS (325) 205 206
+NEAR (326) 131 132
+WITH (327) 202
+WITHOUT (328) 203
+WITHOR (329) 204
 
 
 Nonterminals, with rules where they appear
 
-$accept (96)
+$accept (98)
     on left: 0
-query <m_pnode> (97)
+query <m_pnode> (99)
     on left: 1 2, on right: 0
-count_query <m_pnode> (98)
+count_query <m_pnode> (100)
     on left: 3, on right: 2 208
-count_filters <m_pfilt> (99)
+count_filters <m_pfilt> (101)
     on left: 4 5, on right: 3 5 209
-count_filter <m_pfilt> (100)
+count_filter <m_pfilt> (102)
     on left: 6 7 8 9 10, on right: 5
-count_by <m_pfilt> (101)
+count_by <m_pfilt> (103)
     on left: 11 12, on right: 6
-count_sample <m_pfilt> (102)
+count_sample <m_pfilt> (104)
     on left: 13 14, on right: 7
-count_limit <m_pfilt> (103)
+count_limit <m_pfilt> (105)
     on left: 15 16, on right: 8
-count_sort <m_pfilt> (104)
+count_sort <m_pfilt> (106)
     on left: 17, on right: 9
-count_sort_op <m_pfilt> (105)
+count_sort_op <m_pfilt> (107)
     on left: 18 19 20 21, on right: 17
-count_sort_minmax <m_pfilt> (106)
+count_sort_minmax <m_pfilt> (108)
     on left: 22 23 24 25 26 27 28, on right: 17
-query_conditions <m_pnode> (107)
+query_conditions <m_pnode> (109)
     on left: 29, on right: 1 3 209
-q_filters <m_pfilt> (108)
+q_filters <m_pfilt> (110)
     on left: 30 31 32 33, on right: 29 31 32 33
-q_comment <m_pfilt> (109)
+q_comment <m_pfilt> (111)
     on left: 34 35, on right: 10 31
-q_flag <m_pfilt> (110)
+q_flag <m_pfilt> (112)
     on left: 36 37 38 39 40 41 42 43 44 45, on right: 32
-qf_subcorpora <m_pfilt> (111)
+qf_subcorpora <m_pfilt> (113)
     on left: 46 47 48, on right: 36 48
-q_filter <m_pfilt> (112)
+q_filter <m_pfilt> (114)
     on left: 49 50 51 52 53 54 55, on right: 33
-qf_has_field <m_pfilt> (113)
+qf_has_field <m_pfilt> (115)
     on left: 56 57 58 59 60 61 62 63, on right: 49 63
-qf_rank_sort <m_pfilt> (114)
+qf_rank_sort <m_pfilt> (116)
     on left: 64 65, on right: 50
-qf_context_sort <m_pfilt> (115)
+qf_context_sort <m_pfilt> (117)
     on left: 66 67 68 69 70 71, on right: 51
-qf_size_sort <m_pfilt> (116)
+qf_size_sort <m_pfilt> (118)
     on left: 72 73 74, on right: 52
-qf_date_sort <m_pfilt> (117)
+qf_date_sort <m_pfilt> (119)
     on left: 75 76 77, on right: 53
-qf_random_sort <m_pfilt> (118)
+qf_random_sort <m_pfilt> (120)
     on left: 78 79 80, on right: 55
-qf_bibl_sort <m_pfilt> (119)
+qf_bibl_sort <m_pfilt> (121)
     on left: 81 82 83 84, on right: 54
-qfb_int <m_pfilt> (120)
+qfb_int <m_pfilt> (122)
     on left: 85 86 87 88 89 90, on right: 72 73
-qfb_date <m_pfilt> (121)
+qfb_date <m_pfilt> (123)
     on left: 91 92 93 94 95 96, on right: 75 76
-qfb_bibl <m_pfilt> (122)
+qfb_bibl <m_pfilt> (124)
     on left: 97 98, on right: 81 82 83 84
-qfb_bibl_ne <m_pfilt> (123)
+qfb_bibl_ne <m_pfilt> (125)
     on left: 99 100 101 102 103 104, on right: 98 107
-qfb_ctxsort <m_int> (124)
+qfb_ctxsort <m_int> (126)
     on left: 105 106 107, on right: 66 67 68 69 70 71
-qfb_ctxkey <m_int> (125)
+qfb_ctxkey <m_int> (127)
     on left: 108 109, on right: 106 107
-qfbc_matchref <m_int> (126)
+qfbc_matchref <m_int> (128)
     on left: 110 111, on right: 108 109
-qfbc_offset <m_int> (127)
+qfbc_offset <m_int> (129)
     on left: 112 113 114 115, on right: 108 109
-q_clause <m_pnode> (128)
+q_clause <m_pnode> (130)
     on left: 116 117 118 119, on right: 29 120 122 123 124
-qc_matchid <m_pnode> (129)
+qc_matchid <m_pnode> (131)
     on left: 120 121, on right: 119 121
-qc_boolean <m_pnode> (130)
+qc_boolean <m_pnode> (132)
     on left: 122 123 124 125, on right: 117 125
-qc_concat <m_pnode> (131)
+qc_concat <m_pnode> (133)
     on left: 126 127 128, on right: 118 127 128
-qc_basic <m_pnode> (132)
+qc_basic <m_pnode> (134)
     on left: 129 130, on right: 116 126 127
-qc_near <m_pnode> (133)
+qc_near <m_pnode> (135)
     on left: 131 132 133 134, on right: 130 133 134
-qc_tokens <m_pnode> (134)
+qc_tokens <m_pnode> (136)
     on left: 135 136 137, on right: 129 131 132 137
-qc_phrase <m_pnode> (135)
+qc_phrase <m_pnode> (137)
     on left: 138 139, on right: 136 139
-qc_word <m_pnode> (136)
+qc_word <m_pnode> (138)
     on left: 140 141 142 143 144 145 146 147 148 149 150 151 152 153
     154 155 156 157 158 159 160 161 162 163, on right: 135 163 202
     203 204 210 218 219 220 221 222 223
-qw_bareword <m_pnode> (137)
+qw_bareword <m_pnode> (139)
     on left: 164 165, on right: 140
-qw_exact <m_pnode> (138)
+qw_exact <m_pnode> (140)
     on left: 166 167, on right: 141
-qw_regex <m_pnode> (139)
+qw_regex <m_pnode> (141)
     on left: 168 169 170 171, on right: 142
-qw_any <m_pnode> (140)
+qw_any <m_pnode> (142)
     on left: 172 173, on right: 143
-qw_set_exact <m_pnode> (141)
+qw_set_exact <m_pnode> (143)
     on left: 174 175, on right: 145
-qw_set_infl <m_pnode> (142)
+qw_set_infl <m_pnode> (144)
     on left: 176 177, on right: 144
-qw_prefix <m_pnode> (143)
+qw_prefix <m_pnode> (145)
     on left: 178 179, on right: 148
-qw_suffix <m_pnode> (144)
+qw_suffix <m_pnode> (146)
     on left: 180 181, on right: 150
-qw_infix <m_pnode> (145)
+qw_infix <m_pnode> (147)
     on left: 182 183, on right: 146
-qw_infix_set <m_pnode> (146)
+qw_infix_set <m_pnode> (148)
     on left: 184 185, on right: 147
-qw_prefix_set <m_pnode> (147)
+qw_prefix_set <m_pnode> (149)
     on left: 186 187, on right: 149
-qw_suffix_set <m_pnode> (148)
+qw_suffix_set <m_pnode> (150)
     on left: 188 189, on right: 151
-qw_thesaurus <m_pnode> (149)
+qw_thesaurus <m_pnode> (151)
     on left: 190 191, on right: 152
-qw_morph <m_pnode> (150)
+qw_morph <m_pnode> (152)
     on left: 192 193, on right: 153
-qw_lemma <m_pnode> (151)
+qw_lemma <m_pnode> (153)
     on left: 194 195, on right: 154
-qw_chunk <m_pnode> (152)
+qw_chunk <m_pnode> (154)
     on left: 196 197, on right: 155
-qw_anchor <m_pnode> (153)
+qw_anchor <m_pnode> (155)
     on left: 198 199, on right: 156
-qw_listfile <m_pnode> (154)
+qw_listfile <m_pnode> (156)
     on left: 200 201, on right: 157
-qw_with <m_pnode> (155)
+qw_with <m_pnode> (157)
     on left: 202, on right: 158
-qw_without <m_pnode> (156)
+qw_without <m_pnode> (158)
     on left: 203, on right: 159
-qw_withor <m_pnode> (157)
+qw_withor <m_pnode> (159)
     on left: 204, on right: 160
-qw_keys <m_pnode> (158)
+qw_keys <m_pnode> (160)
     on left: 205 206, on right: 161
-qwk_indextuple <m_pnode> (159)
+qwk_indextuple <m_pnode> (161)
     on left: 207, on right: 206
-qwk_countsrc <m_pnode> (160)
+qwk_countsrc <m_pnode> (162)
     on left: 208 209, on right: 205 206
-qw_matchid <m_pnode> (161)
+qw_matchid <m_pnode> (163)
     on left: 210, on right: 162
-l_set <m_pnode> (162)
+l_set <m_pnode> (164)
     on left: 211 212 213, on right: 62 174 175 176 177 184 185 186
     187 188 189 212 213
-l_morph <m_pnode> (163)
+l_morph <m_pnode> (165)
     on left: 214 215 216 217, on right: 192 193 215 216 217
-l_phrase <m_pnode> (164)
+l_phrase <m_pnode> (166)
     on left: 218 219 220 221 222 223, on right: 138 219 220 221 222
     223
-l_txchain <m_pnode> (165)
+l_txchain <m_pnode> (167)
     on left: 224 225, on right: 164 165 176 177 225
-l_countkeys <m_pnode> (166)
+l_countkeys <m_pnode> (168)
     on left: 226 227 228, on right: 11 12 228
-l_indextuple <m_pnode> (167)
+l_indextuple <m_pnode> (169)
     on left: 229 230 231, on right: 207 231
-l_comment <m_str> (168)
+l_comment <m_str> (170)
     on left: 232 233, on right: 35 233
-count_key <m_pnode> (169)
+count_key <m_pnode> (171)
     on left: 234 235 236 237 238 239 240 241 242 243, on right: 227
     228 242 243
-ck_matchid <m_int> (170)
+ck_matchid <m_int> (172)
     on left: 244 245, on right: 241
-ck_offset <m_int> (171)
+ck_offset <m_int> (173)
     on left: 246 247 248 249, on right: 241
-s_index <m_str> (172)
+s_index <m_str> (174)
     on left: 250, on right: 165 167 169 171 173 175 177 179 181 183
     185 187 189 191 193 195 197 201 241 251
-s_indextuple_item <m_str> (173)
+s_indextuple_item <m_str> (175)
     on left: 251 252, on right: 230 231
-s_word <m_str> (174)
+s_word <m_str> (176)
     on left: 253, on right: 164 165 166 167 212
-s_semclass <m_str> (175)
+s_semclass <m_str> (177)
     on left: 254, on right: 190 191
-s_lemma <m_str> (176)
+s_lemma <m_str> (178)
     on left: 255, on right: 194 195
-s_chunk <m_str> (177)
+s_chunk <m_str> (179)
     on left: 256, on right: 196 197
-s_filename <m_str> (178)
+s_filename <m_str> (180)
     on left: 257, on right: 200 201
-s_morphitem <m_str> (179)
+s_morphitem <m_str> (181)
     on left: 258, on right: 215
-s_subcorpus <m_str> (180)
+s_subcorpus <m_str> (182)
     on left: 259, on right: 47 48
-s_biblname <m_str> (181)
+s_biblname <m_str> (183)
     on left: 260, on right: 56 57 58 59 60 61 62 83 84 240
-s_breakname <m_str> (182)
+s_breakname <m_str> (184)
     on left: 261 262, on right: 39
-symbol <m_str> (183)
+symbol <m_str> (185)
     on left: 263 264 265, on right: 25 26 27 28 34 56 101 102 103 104
     199 233 235 252 253 254 255 256 257 258 259 260 261
-index <m_str> (184)
+index <m_str> (186)
     on left: 266 267, on right: 250
-sym_str <m_str> (185)
+sym_str <m_str> (187)
     on left: 268, on right: 108
-s_prefix <m_str> (186)
+s_prefix <m_str> (188)
     on left: 269, on right: 59 178 179
-s_suffix <m_str> (187)
+s_suffix <m_str> (189)
     on left: 270, on right: 60 180 181
-s_infix <m_str> (188)
+s_infix <m_str> (190)
     on left: 271, on right: 61 182 183
-s_expander <m_str> (189)
+s_expander <m_str> (191)
     on left: 272, on right: 225
-regex <m_str> (190)
+regex <m_str> (192)
     on left: 273 274, on right: 57 168 169
-neg_regex <m_str> (191)
+neg_regex <m_str> (193)
     on left: 275 276, on right: 58 170 171
-replace_regex <m_str> (192)
+replace_regex <m_str> (194)
     on left: 277 278, on right: 242
-int_str <m_str> (193)
+int_str <m_str> (195)
     on left: 279, on right: 74 80 87 88 89 90 198 199 280
-integer <m_int> (194)
+integer <m_int> (196)
     on left: 280, on right: 13 14 15 16 37 38 113 114 115 131 132 220
     221 222 223 239 247 248 249 284
-date <m_str> (195)
+date <m_str> (197)
     on left: 281 282, on right: 77 93 94 95 96
-matchid <m_int> (196)
+matchid <m_int> (198)
     on left: 284, on right: 111 120 133 137 210 245
-$@1 (197)
+$@1 (199)
     on left: 283, on right: 284
 
 

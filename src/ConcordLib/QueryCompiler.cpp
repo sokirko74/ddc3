@@ -230,52 +230,62 @@ void CQueryCompiler::DeleteTree()
 
 int CQueryCompiler::yyqlex(void* valp)
 {
-    int iRetVal = this->yylex();
-    const char* __s = yytext();
-    int len = yyleng();
+    int iRetVal;
+    do {
+        iRetVal = this->yylex();
+        const char* __s = yytext();
+        int len = yyleng();
 
-    //-- sanity check
-    if (yyleng() >= DDC_STATIC_BUFLEN) {
-        //assert (yyleng() < DDC_STATIC_BUFLEN);
-        throw CExpc(errParseError, "CQueryCompiler::yyqlex(): query string exceeds maximum static buffer length (%d)", DDC_STATIC_BUFLEN);
-    }
+        //-- sanity check
+        if (yyleng() >= DDC_STATIC_BUFLEN) {
+            //assert (yyleng() < DDC_STATIC_BUFLEN);
+            throw CExpc(errParseError, "CQueryCompiler::yyqlex(): query string exceeds maximum static buffer length (%d)", DDC_STATIC_BUFLEN);
+        }
         
-    string s(yytext(), yyleng()); //-- temporary
-    size_t gpos; //-- temporary
+        string s(yytext(), yyleng()); //-- temporary
+        size_t gpos; //-- temporary
 
-    switch (iRetVal) {
-        case REGEX:
-        case NEG_REGEX:
-        case REGEX_SEARCH:
-            m_RegexPattern = s;
-            // 2016-11-25: setting valp->m_str=&m_RegexPattern chokes on (/foo/ /bar/) --> (/bar/ /bar/)
-            ((YYSTYPE *)valp)->m_str = newString(s);
-            break;
-        case REGOPT:
-            m_RegexModifiers = s;
-            ((YYSTYPE *)valp)->m_str = &m_RegexModifiers;
-            break;
-        case REGEX_REPLACE:
-            m_RegexReplacement = s;
-            ((YYSTYPE *)valp)->m_str = &m_RegexReplacement;
-            break;
-        case SYMBOL:
-        case INDEX:
-        case INFIX:
-        case PREFIX:
-        case SUFFIX:
-        case INTEGER:
-        case DATE:
-        case EXPANDER:
-        case KW_DATE:
-        case KW_FILENAME:
-        case KW_FILEID:
-            ((YYSTYPE *)valp)->m_str = newString(s);
-            break;
-        default:
-            ((YYSTYPE *)valp)->m_str = NULL;
-            break;
-    }
+        switch (iRetVal) {
+            case REGEX:
+            case NEG_REGEX:
+            case REGEX_SEARCH:
+                m_RegexPattern = s;
+                // 2016-11-25: setting valp->m_str=&m_RegexPattern chokes on (/foo/ /bar/) --> (/bar/ /bar/)
+                ((YYSTYPE *)valp)->m_str = newString(s);
+                break;
+            case REGOPT:
+                m_RegexModifiers = s;
+                ((YYSTYPE *)valp)->m_str = &m_RegexModifiers;
+                break;
+            case REGEX_REPLACE:
+                m_RegexReplacement = s;
+                ((YYSTYPE *)valp)->m_str = &m_RegexReplacement;
+                break;
+            case SYMBOL:
+            case INDEX:
+            case INFIX:
+            case PREFIX:
+            case SUFFIX:
+            case INTEGER:
+            case DATE:
+            case EXPANDER:
+            case KW_DATE:
+            case KW_FILENAME:
+            case KW_FILEID:
+                ((YYSTYPE *)valp)->m_str = newString(s);
+                break;
+            case BLOCK_COMMENT:
+                m_qOptions.m_LexerComments.push_back(string("#[")+s+"]");
+                continue;
+            case LINE_COMMENT:
+                m_qOptions.m_LexerComments.push_back(s+"\n");
+                continue;
+            default:
+                ((YYSTYPE *)valp)->m_str = NULL;
+                break;
+        }
+        break;
+    } while (true);
 
     return (iRetVal);
 }

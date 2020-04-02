@@ -1,7 +1,7 @@
 //-*- Mode: C++ -*-
 //
 //  DDC originally by Alexey Sokirko
-//  Changes and modifications 2011-2018 by Bryan Jurish
+//  Changes and modifications 2011-2020 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -44,6 +44,7 @@ void CQueryOptions::swap(CQueryOptions &o)
     m_Filters.swap(o.m_Filters);
     m_Subcorpora.swap(o.m_Subcorpora);
     m_Comments.swap(o.m_Comments);
+    m_LexerComments.swap(o.m_LexerComments);
 }
 
 //--------------------------------------------------------------
@@ -61,6 +62,7 @@ void CQueryOptions::assign(const CQueryOptions &src)
     m_Filters = src.m_Filters;
     m_Subcorpora = src.m_Subcorpora;
     m_Comments = src.m_Comments;
+    m_LexerComments = src.m_LexerComments;
 
     m_QFilters.clear();
     for (CQFilterList::const_iterator fi=src.m_QFilters.begin(); fi != src.m_QFilters.end(); ++fi) {
@@ -117,6 +119,7 @@ void CQueryOptions::Clear()
     m_Filters.clear();
     m_Subcorpora.clear();
     m_Comments.clear();
+    m_LexerComments.clear();
 }
 
 //--------------------------------------------------------------
@@ -184,6 +187,12 @@ string CQueryOptions::toString()
         }
         if (!cs.empty()) qs += string(" ") + cs;
     }
+    if (!m_LexerComments.empty()) {
+        for (CQCommentList::const_iterator ci=m_LexerComments.begin(); ci != m_LexerComments.end(); ci++) {
+            qs.push_back(' ');
+            qs += *ci;
+        }
+    }
     if (!m_Subcorpora.empty()) {
         string cs;
         for (CQSubcorpusList::const_iterator ci=m_Subcorpora.begin(); ci != m_Subcorpora.end(); ci++) {
@@ -236,6 +245,15 @@ string CQueryOptions::jsonData()
         qs.push_back(']');
     }
 
+    if (!m_LexerComments.empty()) {
+        qs += ",\"LexerComments\":[";
+        for (CQCommentList::const_iterator ci=m_LexerComments.begin(); ci != m_LexerComments.end(); ci++) {
+            if (ci != m_LexerComments.begin()) qs.push_back(',');
+            qs += jsonStr(*ci);
+        }
+        qs.push_back(']');
+    }
+    
     if (!m_Subcorpora.empty()) {
         qs += ",\"Subcorpora\":[";
         for (CQSubcorpusList::const_iterator ci=m_Subcorpora.begin(); ci != m_Subcorpora.end(); ci++) {
