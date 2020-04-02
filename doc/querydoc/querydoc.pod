@@ -5,7 +5,7 @@
 =head2 Overview
 
 This documentation describes the query language accepted by
-DDC version 2.2.0.  Current sources for DDC should be available
+DDC version 2.2.3.  Current sources for DDC should be available
 from
 http://sourceforge.net/projects/ddc-concordance.
 
@@ -275,7 +275,7 @@ Comments in this document may appear after each rule in C notation
                      #: COMMENT \n                      /* Line comment (ignored by scanner) */
                    | #[ COMMENT ]                       /* Block comment (ignored by scanner) */
                    | #COMMENT symbol                    /* Parsed comment as a single symbol (alias: #CMT) */
-                   | #COMMENT [ symbol ]                /* Parsed comment with optional brackets (alias: #CMT) */
+                   | #COMMENT [ l_comment ]             /* Parsed comment with optional brackets (alias: #CMT) */
                    ;
  
  q_flag          ::=                                    /*-- Global query flags --*/
@@ -534,6 +534,11 @@ Comments in this document may appear after each rule in C notation
                                                      /* ... empty subcorpus set */
                  | s_subcorpus                       /* ... singleton subcorpus path (symbol) */
                  | qf_subcorpora , s_subcorpus       /* ... multiple subcorpus paths are separated by commas */
+                 ;
+ 
+ l_comment     ::=                                   /*-- bracketed comment --*/
+                                                     /* ... may be empty */
+                 | l_comment symbol                  /* ... or a list of symbols */
                  ;
  
 

@@ -70,7 +70,7 @@
 <h2><a name="overview">Overview</a></h2>
 <p>
         This documentation describes the query language accepted by
-        DDC version 2.2.0.  Current sources for DDC should be available
+        DDC version 2.2.3.  Current sources for DDC should be available
         from
         <!--<a href="http://odo.dwds.de/code/viewvc.cgi/ddc/trunk/?root=dev">svn+ssh://odo.dwds.de/home/svn/dev/ddc/trunk</a>.-->
         <a href="http://sourceforge.net/projects/ddc-concordance">http://sourceforge.net/projects/ddc-concordance</a>.
@@ -1241,7 +1241,7 @@
 <tr>
 <td></td>
 <td></td>
-<td class="ruleRHS">| <span class="ruleTerminal">#COMMENT</span> <span class="ruleTerminal">[</span> <span class="ruleNonterminal"><a href="#rule_symbol">symbol</a></span> <span class="ruleTerminal">]</span> </td>
+<td class="ruleRHS">| <span class="ruleTerminal">#COMMENT</span> <span class="ruleTerminal">[</span> <span class="ruleNonterminal"><a href="#rule_l_comment">l_comment</a></span> <span class="ruleTerminal">]</span> </td>
 <td class="ruleComment">/* Parsed comment with optional brackets (alias: #CMT) */</td>
 </tr>
 <tr>
@@ -2527,6 +2527,30 @@
 <td></td>
 <td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_qf_subcorpora">qf_subcorpora</a></span> <span class="ruleTerminal">,</span> <span class="ruleNonterminal"><a href="#rule_s_subcorpus">s_subcorpus</a></span> </td>
 <td class="ruleComment">/* ... multiple subcorpus paths are separated by commas */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td><b>;</b></td>
+</tr>
+<tr></tr>
+<tr>
+<td><b><a name="rule_l_comment">l_comment</a></b></td>
+<td>::=</td>
+<td></td>
+<td class="ruleCommentTop">/* bracketed comment */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS1"></td>
+<td class="ruleComment">/* ... may be empty */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_l_comment">l_comment</a></span> <span class="ruleNonterminal"><a href="#rule_symbol">symbol</a></span> </td>
+<td class="ruleComment">/* ... or a list of symbols */</td>
 </tr>
 <tr>
 <td></td>
@@ -4086,7 +4110,7 @@ ot-asi2 /* hyponyms/subclasses (depth=2); alias=ot-sub2 */
   </body></div>
 <div class="footers">
 <div class="footer_sig">
-<address><a href="mailto:jurish@bbaw.de">jurish@bbaw.de</a></address>Last modified: Mon, 20 Jan 2020 12:44:56 +0100</div>
+<address><a href="mailto:jurish@bbaw.de">jurish@bbaw.de</a></address>Last modified: Thu, 02 Apr 2020 14:23:33 +0200</div>
 <div class="footer_linkbar"><p class="nopad"><a class="navLink" href="/">Root</a><a class="navLink" href="./">Back</a><span class="navLinkDisabled">Help</span></p></div>
 <p class="dummy"></p>
 </div>

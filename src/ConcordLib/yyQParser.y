@@ -22,9 +22,15 @@
 %pure-parser
 %lex-param {CQueryCompiler* _qcompiler}
 %parse-param {CQueryCompiler* _qcompiler}
+
+//2020-04-02/debian-buster: yyQParser.y:25.1-18: warning: deprecated directive, use ‘%define api.prefix {yyq}’ [-Wdeprecated]
 %name-prefix "yyq"
+
 %output  "yyQParser.cpp"
 %defines "yyQParser.h"
+
+ //-- expect 1 shift/reduce conflict for q_comment
+%expect 1
 
 /*%debug*/
 
@@ -186,6 +192,7 @@ int yylex (void*,  CQueryCompiler*);
 %type	<m_pnode>	l_set
 %type	<m_pnode>	l_txchain
 %type	<m_pnode>	l_countkeys
+%type	<m_str>		l_comment
 
 //------------------------------------------------------
 // Types: Semantic Sugar (symbols)
@@ -401,7 +408,7 @@ q_filters:
 
 q_comment:
 		KW_COMMENT symbol		{ $$=NULL; _qc->m_qOptions.m_Comments.push_back(*$2); }
-	|	KW_COMMENT '[' symbol ']'	{ $$=NULL; _qc->m_qOptions.m_Comments.push_back(*$3); }
+	|	KW_COMMENT '[' l_comment ']'	{ $$=NULL; _qc->m_qOptions.m_Comments.push_back(*$3); }
 	;
 
 
@@ -807,6 +814,10 @@ l_indextuple:
 	|	l_indextuple ',' s_indextuple_item		{ $$=NULL; _qc->m_IndexTuple.push_back(*$3); }
 	;
 
+l_comment:
+		  /* empty */			{ $$=_qc->newString(""); }
+	|	l_comment symbol		{ $$=$1; if (!$$->empty()) $$->push_back(' '); $$->append(*$2); };
+	;
 
  /*-------------------------------------------------------------
   * count_key: count-key expressions

@@ -11,7 +11,7 @@
     <section name="overview" title="Overview">
       <p>
         This documentation describes the query language accepted by
-        DDC version 2.2.0.  Current sources for DDC should be available
+        DDC version 2.2.3.  Current sources for DDC should be available
         from
         <!--<a href="http://odo.dwds.de/code/viewvc.cgi/ddc/trunk/?root=dev">svn+ssh://odo.dwds.de/home/svn/dev/ddc/trunk</a>.-->
         <a href="http://sourceforge.net/projects/ddc-concordance">http://sourceforge.net/projects/ddc-concordance</a>.
@@ -697,7 +697,7 @@
             <rhs cmt="Parsed comment with optional brackets (alias: #CMT)">
               <t>#COMMENT</t>
               <t>[</t>
-              <n>symbol</n>
+              <n>l_comment</n>
               <t>]</t>
             </rhs>
           </rule>
@@ -1433,6 +1433,15 @@
               <n>qf_subcorpora</n>
               <t>,</t>
               <n>s_subcorpus</n>
+            </rhs>
+          </rule>
+
+          <!--~~~~~~~~ RULES: l_comment -->
+          <rule lhs="l_comment" cmt="bracketed comment">
+            <rhs cmt="... may be empty"/>
+            <rhs cmt="... or a list of symbols">
+              <n>l_comment</n>
+              <n>symbol</n>
             </rhs>
           </rule>
 
