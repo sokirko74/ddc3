@@ -1,11 +1,15 @@
 ##-*- Mode: Change-Log; coding: utf-8; -*-
 
-v2.2.3 UNRELEASED moocow
+v2.2.3 Fri, 03 Apr 2020 09:51:15 +0200 moocow
 	* fixed bogus exceptions for overflow count()-queries
 	  + e.g. pnn "count(Haus) #by[date/100]" -start 99 -limit 10
 	    -> Exception: basic_string::erase: __pos (which is 18446744073709551614) > this->size() (which is 0)
 	* fixed file-descriptor leak in catch-clause of CDDCBranchServer::handle__run_query()
           + was being regularly invoked by pnn for overflowing count-queries; may also occur for timeouts, etc.
+	* added optional parsing & collection of lexer comment, disabled by default
+	  + can be enabled at runtime by setting CQueryCompiler::m_KeepLexerComments = true
+	  + before enabling this by default, it needs to be tested for DDC::XS and DWDS::DDC::Query scenarios
+	* added debuging query-parsing & -canonicalization utility src/ddc_qparse/ddc_qparse.cpp
 
 v2.2.2 Mon, 17 Feb 2020 11:17:32 +0100 moocow
 	* added "nfd" attribute to daemon "status" responses (number of open file descriptors, via /proc/PID/fd/)
