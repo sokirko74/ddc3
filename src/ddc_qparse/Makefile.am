@@ -29,7 +29,7 @@ ddc_qparse_LDADD = \
  ../AgramtabLib/libDDCAgramtab.la \
  ../RmlTar/libDDCRmlTar.la \
  ../MorphWizardLib/libDDCMorphWizard.la \
- ../CommonLib/libDDCCommon.la
+../CommonLib/libDDCCommon.la
 
 ##-----------------------------------------------------------------------
 ## special rules

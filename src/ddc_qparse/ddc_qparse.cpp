@@ -22,15 +22,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <locale.h>
-
 #include "../ConcordLib/ConcCommon.h"
 #include "../ConcordLib/QueryCompiler.h"
-
-//-- suppress gcc warnings of the form "ignoring return value of `fread', declared with attribute warn_unused_result [-Wunused-result]"
-#pragma GCC diagnostic ignored "-Wunused-result"
 
 const char *prog = "ddc_qparse";
 bool outputJson = false;
