@@ -27,7 +27,7 @@
 
 const char *prog = "ddc_qparse";
 bool outputJson = false;
-bool outputComments = true;
+bool outputComments = false;
 CQueryCompiler qc;
 
 void PrintUsage()
@@ -40,7 +40,7 @@ void PrintUsage()
            "  -v, -verbose LEVEL # set ddc log level (silent|error|warn|info|debug|trace)\n"
            "  -d, -ddc           # select DDC output (default)\n"
            "  -j, -json          # select JSON output\n"
-           "  -c, -[no]comments  # do/don't output comments (default=do)\n"
+           "  -c, -[no]comments  # do/don't keep lexer comments (default=don't)\n"
            "\n"
         );
     exit(-1);   
@@ -96,17 +96,21 @@ int main(int argc, char **argv)
     //-- log configuration
     ddcLogInfo(string("Query = ") + qstr);
     ddcLogInfo(Format("Output = %s", (outputJson ? "JSON" : "DDC")));
+    ddcLogInfo(Format("Comments = %s", (outputComments ? "true" : "false")));
 
     //-- compile
+    qc.m_KeepLexerComments = outputComments;
     if (!qc.ParseQuery(qstr)) {
         ddcLogError("failed to parse query");
         return 1;
     }
 
-    //-- prune comments
+#if 0
+    //-- prune comments (should be controlled by qc.m_KeepLexerComments
     if (!outputComments && qc.m_pQuery->m_Options) {
         qc.m_pQuery->m_Options->ClearComments();
     }
+#endif
 
     //-- dump
     string ostr = (outputJson

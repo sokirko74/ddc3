@@ -68,6 +68,17 @@
 
 #define DPRINTF2(a1,a2) DBG(fprintf(stderr,a1,a2);)
 
+//-- DDC_WANT_LEXER_COMMENTS : define this to return lexer comments from yylex()
+// + lexer comments were introduced for v2.1.16
+// + prior to v2.2.3, lexer comments were __never__ kept (no CQueryOptions::m_LexerComments field)
+// + as of v2.2.3, lexer comments are enabled here, and disabled for runtime in  CQueryCompiler::m_KeepLexerComments
+#define DDC_WANT_LEXER_COMMENTS 1
+#ifdef DDC_WANT_LEXER_COMMENTS
+ #define DDC_LEXER_COMMENT(x) x
+#else
+ #define DDC_LEXER_COMMENT(x)
+#endif
+
 %}
 
 /*======================================================================
@@ -133,10 +144,10 @@ comment_text	(\\.|[^\]])*
  /* block-comments */
 "#["				{ yy_push_state(Q_COMMENT); }
 <Q_COMMENT>"]"			{ yy_pop_state(); }
-<Q_COMMENT>{comment_text}	{ return BLOCK_COMMENT; }
+<Q_COMMENT>{comment_text}	{ DDC_LEXER_COMMENT(return BLOCK_COMMENT); }
 
  /* line-comments */
-"#:"([^\n]*)			{ return LINE_COMMENT; }
+"#:"([^\n]*)			{ DDC_LEXER_COMMENT(return LINE_COMMENT); }
 
  /* operators */
 "&&"				{ return OP_BOOL_AND; }

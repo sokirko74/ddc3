@@ -70,6 +70,7 @@ CQueryCompiler::CQueryCompiler(const CConcHolder* pHolder)
     m_qCountSort = NoSort;
     m_CurrentNodeIndex = 0;
     m_Limit = 0;
+    m_KeepLexerComments = false;
 }
 
 CQueryCompiler::~CQueryCompiler()
@@ -275,10 +276,12 @@ int CQueryCompiler::yyqlex(void* valp)
                 ((YYSTYPE *)valp)->m_str = newString(s);
                 break;
             case BLOCK_COMMENT:
-                m_qOptions.m_LexerComments.push_back(string("#[")+s+"]");
+                if (m_KeepLexerComments)
+                    m_qOptions.m_LexerComments.push_back(string("#[")+s+"]");
                 continue;
             case LINE_COMMENT:
-                m_qOptions.m_LexerComments.push_back(s+"\n");
+                if (m_KeepLexerComments)
+                    m_qOptions.m_LexerComments.push_back(s+"\n");
                 continue;
             default:
                 ((YYSTYPE *)valp)->m_str = NULL;

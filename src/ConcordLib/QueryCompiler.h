@@ -141,6 +141,9 @@ public:
     //! a special slot for YACC (which contains all string leaves of the parse tree)
     list<string> m_Labels;
 
+    //! enable collection of lexer comments in m_pQuery->m_Options->m_LexerComments (default=false)=
+    bool m_KeepLexerComments;
+
 public:
     //! default constructor
     CQueryCompiler(const CConcHolder* pHolder=NULL);
