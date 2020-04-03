@@ -120,6 +120,9 @@ public:
     //! clear options.
     virtual void Clear();
 
+    //! clear comments
+    void ClearComments();
+
     //! returns true iff all defined filters are file-based (for optimized count(*) evaluation)
     bool CanFilterByFile() const;
 

@@ -3,7 +3,7 @@ AC_PREREQ(2.5)
 
 dnl Some handy macros
 define([THE_PACKAGE_NAME],    [ddc])
-define([THE_PACKAGE_VERSION], [2.2.3-pre1])
+define([THE_PACKAGE_VERSION], [2.2.3-pre2])
 define([THE_PACKAGE_MAINTAINER],  [jurish@bbaw.de])
 AC_INIT(THE_PACKAGE_NAME, THE_PACKAGE_VERSION, THE_PACKAGE_MAINTAINER)
 
@@ -805,6 +805,7 @@ AC_CONFIG_FILES(src/ddc_struct_dict_loader/Makefile)
 AC_CONFIG_FILES(src/ddc_morph_gen/Makefile)
 AC_CONFIG_FILES(src/ddc_test_lem/Makefile)
 AC_CONFIG_FILES(src/ddc_expand/Makefile)
+AC_CONFIG_FILES(src/ddc_qparse/Makefile)
 AC_CONFIG_FILES(src/Makefile)
 AC_CONFIG_FILES(skel/Makefile)
 AC_CONFIG_FILES(bin/Makefile)

@@ -123,6 +123,13 @@ void CQueryOptions::Clear()
 }
 
 //--------------------------------------------------------------
+void CQueryOptions::ClearComments()
+{
+    m_Comments.clear();
+    m_LexerComments.clear();
+}
+
+//--------------------------------------------------------------
 bool CQueryOptions::CanFilterByFile() const
 {
     for (vector<CDDCFilterWithBounds>::const_iterator fi=m_Filters.begin(); fi != m_Filters.end(); ++fi) {

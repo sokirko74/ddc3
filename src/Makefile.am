@@ -41,7 +41,8 @@ SUBDIRS = \
 	ddc_struct_dict_loader \
 	ddc_morph_gen \
 	ddc_test_lem \
-	ddc_expand
+	ddc_expand \
+	ddc_qparse
 
 .PHONY: list-subdirs
 list-subdirs:
