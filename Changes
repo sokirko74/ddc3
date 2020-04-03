@@ -5,7 +5,7 @@ v2.2.3 Fri, 03 Apr 2020 09:51:15 +0200 moocow
 	  + e.g. pnn "count(Haus) #by[date/100]" -start 99 -limit 10
 	    -> Exception: basic_string::erase: __pos (which is 18446744073709551614) > this->size() (which is 0)
 	* fixed file-descriptor leak in catch-clause of CDDCBranchServer::handle__run_query()
-          + was being regularly invoked by pnn for overflowing count-queries; may also occur for timeouts, etc.
+          + was being regularly triggered for pnn by overflowing count-queries; may also occur for socket timeouts, etc.
 	* added optional parsing & collection of lexer comment, disabled by default
 	  + can be enabled at runtime by setting CQueryCompiler::m_KeepLexerComments = true
 	  + before enabling this by default, it needs to be tested for DDC::XS and DWDS::DDC::Query scenarios
