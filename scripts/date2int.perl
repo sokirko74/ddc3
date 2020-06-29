@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-my ($y,$m,$d) = map {split(/\-/,$_//'0')} @ARGV;
+my ($y,$m,$d) = map {split(/(?<!^)\-/,$_//'0')} @ARGV; ##-- ddc >= v2.2.4: allow negative years
 my $i =
 #  ((($y&0xfffffe00)<<9) | (($m&0x0f)<<5) | (($d&0x1f)<<0));
 #  ((($y&0xfffff)<<12) | (($m&0x0f)<<8) | (($d&0xff)<<0));
