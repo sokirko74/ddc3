@@ -362,19 +362,39 @@ bool CFreeBiblStringIndex::GetFilterValue(CDDCFilterWithBounds &Filter, const st
 
     if (Value.empty()) return true; //-- compatibility
 
-    if (Filter.m_bNegated) {
-        //-- negative filter condition (literal): generate regex
-        return GetFilterValues(Filter, string("^") + escapeRegex(Value) + "$");
-    }
-
-    //-- positive filter condition (literal)
     DWORD id = m_ValuesE.find(Value);
-    if (id == m_ValuesE.NO_ID) {
-        Filter.m_KeyLo = 0;
-        Filter.m_KeyHi = 0;
-    } else {
-        Filter.m_KeyLo.assign(id, Value);
-        Filter.m_KeyHi.assign(Filter.m_KeyLo.i + 1, Value);
+    if (!Filter.m_bNegated) {
+        //-- positive filter condition (literal)
+        if (id == m_ValuesE.NO_ID) {
+            Filter.m_KeyLo = 0;
+            Filter.m_KeyHi = 0;
+        } else {
+            Filter.m_KeyLo.assign(id, Value);
+            Filter.m_KeyHi.assign(Filter.m_KeyLo.i + 1, Value);
+        }
+    }
+    else {
+        //-- negative filter condition (literal)
+        if (id == m_ValuesE.NO_ID) {
+            Filter.m_KeyLo.assign(0, m_ValuesE[0]);
+            Filter.m_KeyHi.assign(m_ValuesE.size(), m_ValuesE[m_ValuesE.size()-1]);
+        } else {
+            Filter.m_bSet = true;
+            for (DWORD it=0; it < m_ValuesE.size(); ++it) {
+                if (it != id) Filter.m_SatisfiedValues.insert(Filter.m_SatisfiedValues.end(), it);
+            }
+            if (Filter.m_SatisfiedValues.empty()) {
+                Filter.m_KeyLo = 0;
+                Filter.m_KeyHi = 0;
+            } else {
+                Filter.m_KeyLo.i = *Filter.m_SatisfiedValues.begin();
+                Filter.m_KeyLo.s = m_ValuesE[Filter.m_KeyLo.i];
+
+                Filter.m_KeyHi.i = *Filter.m_SatisfiedValues.rbegin();
+                Filter.m_KeyHi.s = m_ValuesE[Filter.m_KeyHi.i];
+                Filter.m_KeyHi.i++;
+            }
+        }
     }
 
     return true;

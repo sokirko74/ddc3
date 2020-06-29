@@ -2,6 +2,7 @@
 
 v2.2.4 UNRELEASED moocow
 	* fixed mantis #47973: double-escaped slashes from CQTokRegex::toString()
+	* optimized out implicit regex for negative literal filter conditions in in CFreeBiblStringIndex::GetFilterValue()
 
 v2.2.3 Fri, 03 Apr 2020 09:51:15 +0200 moocow
 	* fixed bogus exceptions for overflow count()-queries
