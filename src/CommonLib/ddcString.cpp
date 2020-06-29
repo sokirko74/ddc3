@@ -376,7 +376,8 @@ string sqString(const std::string &s)
 //--------------------------------------------------------------
 string reString(const std::string &re)
 {
-    return string("/") + escapeChars(re,"/") + "/";
+    //return string("/") + escapeChars(re,"/") + "/"; //-- double-escapes slashes; see mantis #47973
+    return string("/") + re + "/";
 }
 
 //--------------------------------------------------------------
