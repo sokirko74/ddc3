@@ -1,5 +1,8 @@
 ##-*- Mode: Change-Log; coding: utf-8; -*-
 
+v2.2.4 UNRELEASED moocow
+	* fixed mantis #47973: double-escaped slashes from CQTokRegex::toString()
+
 v2.2.3 Fri, 03 Apr 2020 09:51:15 +0200 moocow
 	* fixed bogus exceptions for overflow count()-queries
 	  + e.g. pnn "count(Haus) #by[date/100]" -start 99 -limit 10
