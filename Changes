@@ -5,15 +5,20 @@ v2.2.4 UNRELEASED moocow
 	* optimized out implicit regex for negative literal filter conditions in in CFreeBiblStringIndex::GetFilterValue()
 	* added support for negative date "year" components in utilit.cpp date2int(), int2date() functions
 	  + "year" component uses 16 bits of encoded date (32-bit unsigned int)
-	  + previous encoding supported unsigned "year" parts in range [0..65535]
+	  + previous encoding supported only unsigned "year" parts in range [0..65535]
 	  + new encoding supports signed "year" parts in range [-32768..32767]
 	  + any existing indices with date-years in range [32678..65535] are no longer supported
-	    (probably safe: these most likely don't and shouldn't happen anywhere)
+  	    (probably safe: these most likely don't and shouldn't happen anywhere)
+	* added linux kernel-style branch prediction macros likely(), unlikely()
 	* added index-compile-time negative-year support for CBibliography::ConvertDateToInt()
 	* hacked slice computation for negative years in CQCountKeyExprDateSlice::Evaluate()
 	  + slice labels always round *down*, even for negative slices, e.g. slice(1974/10)=1970 but slice(-1974/10)=-1980
 	  + without this hack, slice-label "0" would cover a 20-year interval (-10..9)
-	* added linux kernel-style branch prediction macros likely(), unlikely()
+	* added basic query-lexer support for bareword negative dates,
+	  + full support breaks mantis #19051 (symbol "6-er")
+	  + negative dates as integers (years) are still supported, but negative dates with month and day are tricky
+	    - quoted negative dates with month and day are ok: '-427-01-01'
+	    - bareword negative dates with month and day need at least 4 digits of "year" part: -0427-01-01
 
 v2.2.3 Fri, 03 Apr 2020 09:51:15 +0200 moocow
 	* fixed bogus exceptions for overflow count()-queries

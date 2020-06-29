@@ -109,6 +109,10 @@ index_name      ({index_char}|{symbol_cescape})+
  /* single-quoted symbols */
 sq_text         ([^\']|{symbol_cescape})*
 
+ /* bareword dates (>= 4 digits of year, otherwise breaks {count(...) #by[$w=1-1]}) */
+ /*date_bare	[0-9]{4,}(-[0-9]{1,2}){1,2}*/
+date_bare	[+-]?[0-9]{4,}(-[0-9]{1,2}){1,2}
+
  /* regexes */
 regex_text      ((\\.)|[^\\/])*
 regex_modifier	[dgimsx]
@@ -248,8 +252,8 @@ comment_text	(\\.|[^\]])*
 [+-]?[0-9]+/{int_boundary}	{ return INTEGER; }
 [+-]?[0-9]+			{ return INTEGER; }
 
-\'[0-9\-]+\'		          { yytext++; yyleng-=2; return DATE; }
-[+-]?[0-9][0-9\-]*/{int_boundary} { return DATE; }
+\'[0-9\-]+\'			{ yytext++; yyleng-=2; return DATE; }
+{date_bare}/{int_boundary}	{ return DATE; /* bareword date: beware of mantis #19051 (symbol:"6-er") */ }
 
  /* single-term wildcard */
 "*"				{ return '*'; }
