@@ -3,6 +3,12 @@
 v2.2.4 UNRELEASED moocow
 	* fixed mantis #47973: double-escaped slashes from CQTokRegex::toString()
 	* optimized out implicit regex for negative literal filter conditions in in CFreeBiblStringIndex::GetFilterValue()
+	* added support for negative date "year" components in utilit.cpp date2int(), int2date() functions
+	  + "year" component uses 16 bits of encoded date (32-bit unsigned int)
+	  + previous encoding supported unsigned "year" parts in range [0..65535]
+	  + new encoding supports signed "year" parts in range [-32768..32767]
+	  + any existing indices with date-years in range [32678..65535] are no longer supported
+	    (probably safe: these most likely don't and shouldn't happen anywhere)
 
 v2.2.3 Fri, 03 Apr 2020 09:51:15 +0200 moocow
 	* fixed bogus exceptions for overflow count()-queries

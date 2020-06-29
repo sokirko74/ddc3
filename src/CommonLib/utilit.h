@@ -391,11 +391,11 @@ void stringSplitE(const string& s, const string& delims, vector<string>& tokens)
 //! moo: stringSplitE() variant returning token-vector
 vector<string> stringSplitE(const string& s, const string& delims);
 
-//! moo: date-to-int encoding
-extern unsigned int date2int(unsigned int y, unsigned int m=1, unsigned int d=1);
+//! moo: date-to-int encoding (v2.2.4: use signed years)
+extern uint32_t date2int(  signed int y, unsigned int m=1, unsigned int d=1);
 
-//! moo: int-to-date decoding
-extern void int2date(unsigned int i, unsigned int *y, unsigned int *m=NULL, unsigned int *d=NULL);
+//! moo: int-to-date decoding (v2.2.4: use signed years)
+extern void int2date(uint32_t i, signed int *y, unsigned int *m=NULL, unsigned int *d=NULL);
 
 //! moo: int-to-hexidecimal string encoding; encoding preserves sort order (for subcorpus->server communications)
 extern string int2hex(int32_t i);
