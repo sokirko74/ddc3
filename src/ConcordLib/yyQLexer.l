@@ -248,8 +248,8 @@ comment_text	(\\.|[^\]])*
 [+-]?[0-9]+/{int_boundary}	{ return INTEGER; }
 [+-]?[0-9]+			{ return INTEGER; }
 
-\'[0-9\-]+\'			 { yytext++; yyleng-=2; return DATE; }
-[0-9]{4,}[0-9\-]+/{int_boundary} { return DATE; }
+\'[0-9\-]+\'		          { yytext++; yyleng-=2; return DATE; }
+[+-]?[0-9][0-9\-]*/{int_boundary} { return DATE; }
 
  /* single-term wildcard */
 "*"				{ return '*'; }

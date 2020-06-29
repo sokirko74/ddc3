@@ -134,7 +134,7 @@ bool CQCountKeyExprDate::Compile(CQueryCompiler *compiler) {
 string &CQCountKeyExprDate::Evaluate(const CHit &Hit) {
     if (Hit.m_FileNo != m_CurFile) {
         int2date((*m_pDates)[Hit.m_FileNo], &m_year, &m_month, &m_day);
-        sprintf(buf, "%u-%02u-%02u", m_year, m_month, m_day);
+        sprintf(buf, "%d-%02u-%02u", m_year, m_month, m_day);
         m_CurKey = buf;
         m_CurFile = Hit.m_FileNo;
     }
@@ -152,8 +152,14 @@ bool CQCountKeyExprDateSlice::Compile(CQueryCompiler *compiler) {
 string &CQCountKeyExprDateSlice::Evaluate(const CHit &Hit) {
     if (Hit.m_FileNo != m_CurFile) {
         int2date((*m_pDates)[Hit.m_FileNo], &m_year, NULL, NULL);
-        m_year /= m_slice;
-        sprintf(buf, "%u", m_slice * m_year);
+
+        int yslice = (m_year/(int)m_slice) * (int)m_slice;
+        if (unlikely(m_year < 0  && m_year != yslice)) {
+            //-- always round slices *down*, even for negative years
+            yslice -= m_slice;
+        }
+
+        sprintf(buf, "%d", yslice);
         m_CurKey = buf;
         m_CurFile = Hit.m_FileNo;
     }

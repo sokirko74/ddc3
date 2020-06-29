@@ -109,6 +109,15 @@ typedef unsigned int    UINT;  //-- unused
 const   unsigned int _MAX_PATH = 512;
 #endif
 
+//-- moo: branch prediction macros; see e.g. https://www.geeksforgeeks.org/branch-prediction-macros-in-gcc/
+#ifdef __GNUC__
+# define likely(x)      __builtin_expect(!!(x), 1) 
+# define unlikely(x)    __builtin_expect(!!(x), 0)
+#else
+# define likely(x) x
+# define unlikely(x) x
+#endif
+
 //-- moo: more utilities
 #include "../CommonLib/ddcLocale.h"
 #include "../CommonLib/ddcVersion.h"

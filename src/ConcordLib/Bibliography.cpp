@@ -54,26 +54,31 @@ string CBibliography::WriteToString() const {
     return Result;
 };
 
-bool CBibliography::ConvertDateToInt(int &Result) const {
+bool CBibliography::ConvertDateToInt(int &Result) const
+{
     if (m_DateStr.empty())
-        return false;
-    int year, month, day;
-    StringTokenizer tok(m_DateStr.c_str(), "-");
-    if (!tok()) return false;
-    year = atoi(tok.val());
-    if (year > 0xffff) return false; //-- moo: year-part is 16-bit
-    if (tok()) {
-        //-- Mon, 17 Feb 2015 13:26:37 +0100 moocow: allow MM > 12, YYYY-MM dates, and YYYY-MM-DD with DD > 31
-        month = atoi(tok.val());
+        return false; //-- sanity check: no empty dates
 
-        if (tok()) day = atoi(tok.val());
-    } else {
-        month = 1;
-        day = 1;
-    };
+    signed   int year=0;
+    unsigned int month=1,day=1;
+    const char *s=m_DateStr.c_str();
+    char *tail;
+
+    year = strtol(s, &tail, 0);
+    if (year < -32768 || year > 32767) return false; //-- sanity check: year-part is 16-bit signed
+
+    while (tail && *tail=='-') ++tail;
+    if (tail && *tail)
+        month = strtoul((s=tail), &tail, 0);
+
+    while (tail && *tail=='-') ++tail;
+    if (tail && *tail)
+        day = strtoul((s=tail), &tail, 0);
+
     Result = date2int(year, month, day);
     return true;
 };
+
 
 //! auto-truncate a single bibliography string (convenience class method)
 inline static void SanitizeBiblString(std::string& val, const char *label)

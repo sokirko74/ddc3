@@ -9,6 +9,11 @@ v2.2.4 UNRELEASED moocow
 	  + new encoding supports signed "year" parts in range [-32768..32767]
 	  + any existing indices with date-years in range [32678..65535] are no longer supported
 	    (probably safe: these most likely don't and shouldn't happen anywhere)
+	* added index-compile-time negative-year support for CBibliography::ConvertDateToInt()
+	* hacked slice computation for negative years in CQCountKeyExprDateSlice::Evaluate()
+	  + slice labels always round *down*, even for negative slices, e.g. slice(1974/10)=1970 but slice(-1974/10)=-1980
+	  + without this hack, slice-label "0" would cover a 20-year interval (-10..9)
+	* added linux kernel-style branch prediction macros likely(), unlikely()
 
 v2.2.3 Fri, 03 Apr 2020 09:51:15 +0200 moocow
 	* fixed bogus exceptions for overflow count()-queries

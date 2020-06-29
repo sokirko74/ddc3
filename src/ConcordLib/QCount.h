@@ -152,7 +152,7 @@ class CQCountKeyExprDate : public CQCountKeyExprIndexed
 {
 public:
     const ddcDateVector *m_pDates;
-    unsigned int         m_year;
+      signed int         m_year;
     unsigned int         m_month;
     unsigned int         m_day;
     char                 buf[16];

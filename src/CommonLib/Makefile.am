@@ -76,6 +76,12 @@ ddcConfigNoAuto.h: ddcConfigAuto.h
 #ematest_SOURCES = ematest.cc
 #ematest_LDADD = libDDCCommon.la
 
+EXTRA_PROGRAMS = dateparse dateparse2
+dateparse_SOURCES = dateparse.cpp
+dateparse_LDADD = libDDCCommon.la
+dateparse2_SOURCES = dateparse2.cpp
+dateparse2_LDADD = libDDCCommon.la
+
 ##-----------------------------------------------------------------------
 ## headers
 
