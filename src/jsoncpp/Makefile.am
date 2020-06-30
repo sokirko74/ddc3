@@ -39,10 +39,6 @@ noinst_HEADERS = \
  include/json/version.h \
  include/json/writer.h
 
-EXTRA_DIST = \
-	CMakeLists.txt \
-	include/CMakeLists.txt
-
 ##-----------------------------------------------------------------------
 ## special rules
 
@@ -90,7 +86,9 @@ MAINTAINERCLEANFILES = \
 ##-----------------------------------------------------------------------
 
 ##--- extra distribution files
-EXTRA_DIST = CMakeLists.txt
+EXTRA_DIST = \
+	CMakeLists.txt \
+	include/CMakeLists.txt
 
 ##--- recursion subdirectories for 'make dist'
 #DIST_SUBDIRS = $(SUBDIRS)
