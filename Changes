@@ -4,9 +4,11 @@ v2.2.5-pre1 UNRELEASED moocow
 	* fixed weird fatal "ERROR: CheckOccurrences failed! occurrences are not sorted" error for pathologically long token lines
 	  + v2.1.25 built a consistent index and emitted warnings, but assigned partially indexed file data to *next* corpus file
 	  + v2.1.26-delwin and later throw this error at end of indexing ("return-bool" -> throw/catch)
-	* failed document indexing now initiates a rollback of in-memory index buffers via net methods CConcIndexator::RollbackIndexOneFile(), CIndexSetForLoadingStage::RollbackLoadIndex()
+	* failed document indexing now initiates a rollback of in-memory index buffers via new methods
+	  CConcIndexator::RollbackIndexOneFile(), CIndexSetForLoadingStage::RollbackLoadIndex()
 	  + fixes "orphaned" token data as produced by v2.1.25
-	* exceptions from CConcIndexator::IndexOneTableTextArea(), CConcIndexator::IndexOneFile() should now be propagated to console and to *._error_log file
+	* exceptions from CConcIndexator::IndexOneTableTextArea(), CConcIndexator::IndexOneFile() should now be propagated
+	  to console and to *._error_log file
 
 v2.2.4 Tue, 30 Jun 2020 09:25:32 +0200 moocow
 	* fixed mantis #47973: double-escaped slashes from CQTokRegex::toString()
