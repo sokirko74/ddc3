@@ -1,7 +1,7 @@
 //-*- Mode: C++ -*-
 //
 //  DDC originally by Alexey Sokirko
-//  Changes and modifications 2011-2018 by Bryan Jurish
+//  Changes and modifications 2011-2020 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -597,12 +597,73 @@ void CIndexSetForLoadingStage::InsertToInputLoadIndex(const char* Str, size_t St
         IndexItemOffset = it->GetIndexItemOffset();
     }
 
-    if (m_bUseItemStorage)
-    {
+    if (m_bUseItemStorage) {
         if (fwrite(&IndexItemOffset,sizeof(DWORD),1, m_TempStorageFile) != 1) 
             throw CExpc ("Cannot write to temporary storage file");
     };
 };
+
+
+void PrintLoadIndexHashStats(const vector<CItemIndexForLoading> *hash, const char *label, FILE *f) {
+    size_t nbins=0, nitems=0, noccs=0, max_offset=0, max_occ=0;
+    for (size_t j=0; j < 256; j++) {
+        const vector<CItemIndexForLoading>& mv = hash[j];
+        if (!mv.empty()) ++nbins;
+        
+        for (vector<CItemIndexForLoading>::const_iterator mvi=mv.begin(); mvi != mv.end(); ++mvi) {
+            ++nitems;
+            if (mvi->GetIndexItemOffset() > max_occ) max_occ = mvi->GetIndexItemOffset();
+
+            const vector<CTokenNo>* occs = mvi->GetOccurs();
+            if (!occs) continue;
+            
+            noccs += occs->size();
+            for (vector<CTokenNo>::const_iterator mvio=occs->begin(); mvio!=occs->end(); ++mvio) {
+                if (*mvio > max_occ) max_occ = *mvio;
+            }
+        }
+    }
+
+    //-- dump stats
+    fprintf(f, "%s statistics: %zd bins; %zd items (max=%zd), %zd occs (max=%zd)\n",
+            label, nbins, nitems, max_offset, noccs, max_occ);
+}
+void CIndexSetForLoadingStage::PrintLoadIndexStats(FILE *f) const {
+    PrintLoadIndexHashStats(m_MemoryLoadIndexHash, "MemoryLoadIndexHash", f);
+    PrintLoadIndexHashStats(m_InputLoadIndexHash,  "InputLoadIndexHash ", f);
+};
+
+
+void RollbackLoadIndexHash(vector<CItemIndexForLoading> *Hash, CTokenNo startTrimTokenNo)
+{
+    for (size_t j=0; j < 256; j++) {
+        vector<CItemIndexForLoading>& mv = Hash[j];
+        
+        for (vector<CItemIndexForLoading>::iterator mvi=mv.begin(); mvi != mv.end(); ++mvi) {
+            vector<CTokenNo> *occs = mvi->GetOccurs();
+            vector<CTokenNo>::iterator it = lower_bound(occs->begin(), occs->end(), startTrimTokenNo);
+            if (it != occs->end())
+                occs->erase(it,occs->end());
+        }
+    }
+}
+
+void CIndexSetForLoadingStage::RollbackLoadIndex(CTokenNo startTrimTokenNo)
+{
+    RollbackLoadIndexHash(m_InputLoadIndexHash, startTrimTokenNo);
+    RollbackLoadIndexHash(m_InputLoadIndexHash, startTrimTokenNo);
+    
+    if (m_bUseItemStorage) {
+        off_t truncate_offset = ((off_t)startTrimTokenNo) * sizeof(DWORD);
+        fflush(m_TempStorageFile);
+        if (ftruncate(fileno(m_TempStorageFile), ((off_t)startTrimTokenNo) * sizeof(DWORD)) != 0)
+            throw CExpc(Format("failed to truncate temporary storage file '%s' during rollback", m_TempStorageFileName.c_str()));
+        if (!FSeek(m_TempStorageFile, truncate_offset, SEEK_SET))
+            throw CExpc(Format("failed to re-seek to end of temporary storage file '%s' during rollback", m_TempStorageFileName.c_str()));
+        //fprintf(stderr, "DEBUG/ROLLBACK: truncate_offset=%zd ; new_offset=%zd\n", truncate_offset, ftell(m_TempStorageFile)); //-- DEBUG
+    }
+};
+
 
 /*--- emacs style variables ---
  * Local Variables:

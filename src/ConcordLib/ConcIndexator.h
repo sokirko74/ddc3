@@ -1,7 +1,7 @@
 //-*- Mode: C++ -*-
 
 //  DDC originally by Alexey Sokirko
-//  Changes and modifications 2011-2019 by Bryan Jurish
+//  Changes and modifications 2011-2020 by Bryan Jurish
 //
 //  This file is part of DDC.
 //
@@ -96,6 +96,9 @@ public:
 
     //!  index one file according to m_IndexType
     void IndexOneFile(CIndexDocument* document);
+
+    //! rollback data buffered by an immediate preceding failed IndexOneFile()
+    void RollbackIndexOneFile(CTokenNo startTrimTokenNo);
 
     //! finds all \ref period_def "subcorpora"
     void CalculateSearchPeriods(DWORD MaxTokenCountInOnePeriod);

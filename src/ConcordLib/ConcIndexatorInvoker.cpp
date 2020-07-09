@@ -205,6 +205,7 @@ DWORD ConcIndexatorInvoker::IndexFile(CConcIndexator& Indexator, CIndexDocument*
         return 0;
     };
 
+    //Indexator.m_Indices[0]->PrintLoadIndexStats(stderr); //-- DEBUG
     DWORD startFileTokenNo =  m_CorpusEndTokenNo;
     try {
         document->CorpusEndTokenNo = m_CorpusEndTokenNo;
@@ -216,14 +217,20 @@ DWORD ConcIndexatorInvoker::IndexFile(CConcIndexator& Indexator, CIndexDocument*
         throw;
     }
     catch (CExpc &e) {
-        string err = Format("Error! %s; Indexator.IndexOneFile returned false (file %s)",
-                            e.m_strCause.c_str(),
-                            CorpusFileName.c_str());
+        string err = Format("Indexator.IndexOneFile() failed for file %s: %s", CorpusFileName.c_str(), e.m_strCause.c_str());
+
         if (!Indexator.m_bResumeOnIndexErrors) {
-            throw CExpc(err);
+            throw CExpc(string("Error: ")+err);
         } else {
+            ddcLogWarn(string("Warning: ")+err);
             m_ErrorCorpusFiles.push_back(err);
+
             SetCurrMessage(Format("skipping %s", CorpusFileName.c_str()));
+
+            //-- trim discarded doc data from buffered index structures
+            m_ErrorCorpusFiles.push_back(Format("Initiated rollback for file `%s' at CTokenNo=%u", CorpusFileName.c_str(), startFileTokenNo));
+            Indexator.RollbackIndexOneFile(startFileTokenNo);
+            
             return 0;
         }
     }
@@ -288,7 +295,6 @@ void ConcIndexatorInvoker::ProcessTarOrSingleFile(CConcIndexator& Indexator, siz
             throw CExpc("stopped by user");
         };
         if  (tokensCount > 0) {
-
             InputLoadIndexSize += tokensCount;
             if (MemoryLoadIndexSize + InputLoadIndexSize > Indexator.GetMaxTokenCountInOnePeriod()) {
                 SaveLoadIndexToDisk(Indexator);
@@ -296,7 +302,6 @@ void ConcIndexatorInvoker::ProcessTarOrSingleFile(CConcIndexator& Indexator, siz
                 InputLoadIndexSize = 0;
             };
         }
-
     };
 }
 

@@ -192,6 +192,12 @@ public:
     bool    AddMemoryLoadIndexToMainLoadIndex();
     //! updates input or memory load index with one string
     void    InsertToInputLoadIndex(const char* Str, size_t StrLen, const vector<CTokenNo>& occurrences);
+
+    //! rolls back buffered index data starting at startTrimTokenNo
+    void    RollbackLoadIndex(CTokenNo startTrimTokenNo);
+
+    //! debug: print input/memory load index stats
+    void PrintLoadIndexStats(FILE *f=stderr) const;
 };
 
 

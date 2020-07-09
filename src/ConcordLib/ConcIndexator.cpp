@@ -1,7 +1,7 @@
 //-*- Mode: C++ -*-
 //
 //  DDC originally by Alexey Sokirko
-//  Changes and modifications 2011-2019 by Bryan Jurish
+//  Changes and modifications 2011-2020 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -396,6 +396,9 @@ void CConcIndexator::IndexOneTableTextArea(const string &Text, const CPageNumber
         };
         EndTextAreaBorders(document->CorpusEndTokenNo);
     }
+    catch (CExpc &err) {
+        throw err;
+    }
     catch (...) {
         throw CExpc (Format("General exception while processing \"%s\"\n", tok.val()));
     };
@@ -644,6 +647,14 @@ extern bool CreateMorphIndex(const CStringIndexator* indexator, string path, Mor
 bool CConcIndexator::CreateMorphIndexWrapper() {
     return ::CreateMorphIndex(this, m_Path, m_Language, GetMaxTokenCountInOnePeriod());
 }
+
+void CConcIndexator::RollbackIndexOneFile(CTokenNo startTrimTokenNo)
+{
+    ddcLogWarn(Format("Warning: rolling back buffered index data to token #%u\n", startTrimTokenNo));
+    for (vector<CStringIndexSet*>::const_iterator ixi=m_Indices.begin(); ixi!=m_Indices.end(); ++ixi) {
+        (*ixi)->RollbackLoadIndex(startTrimTokenNo);
+    }
+};
 
 /*--- emacs style variables ---
  * Local Variables:
