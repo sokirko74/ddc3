@@ -13,6 +13,13 @@ v2.2.5-pre1 UNRELEASED moocow
 	  + global const int ddcSocketChunkSize in CommonLib/string_socket.cpp
 	  + literal "4096" during CConcSession::SaveOccurrences() check on Result.length() in ConcordLib/ConcSession.cpp
 	  + const size_t MaxIndexLineLength for CStringIndexator::IndexOneToken() in ConcordLib/StringIndexator.cpp
+	* added new method CStringIndexator::IndexTokenFixLongColumns() for fallback repair of "greedy" tokens at indexing time
+	  + implicitly called by CStringIndexator::IndexOneToken() for overlong lines if new bool param tryFixErrors is true
+	  + tryFixErrors param is populated from CConcIndexator::m_bResumeOnIndexErrors on IndexOneToken() calls
+	  + truncates only "greedy" columns (those using more than MaxLen/nCols bytes)
+	  + truncates each "greedy" column indepdently, proportionate to its "greediness"
+	    (the number of bytes by which its length exceeds MaxLen/nCols)
+	  + emits console warnings about truncation of line and each truncated column when invoked
 
 v2.2.4 Tue, 30 Jun 2020 09:25:32 +0200 moocow
 	* fixed mantis #47973: double-escaped slashes from CQTokRegex::toString()

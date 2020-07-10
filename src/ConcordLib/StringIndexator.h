@@ -1,7 +1,7 @@
 //-*- Mode: C++ -*-
 //
 //  DDC originally by Alexey Sokirko
-//  Changes and modifications 2011-2017 by Bryan Jurish
+//  Changes and modifications 2011-2020 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -136,7 +136,18 @@ protected:
     //!  clear m_Indices
     void    ClearStringIndices();
     //! index one token and its properies (delimited by CConcCommon.h::globalFieldDelimeter)
-    void    IndexOneToken   (CTokenIndexator* document, const char* Line);
+    void    IndexOneToken   (CTokenIndexator* document, const char* Line, bool tryFixErrors=true);
+
+    //! moo: truncate long columns in \a InputLine, storing result in \a Out
+    // \param MaxLen maximum length in bytes of \a Out, including terminating NUL byte
+    // \param nCols number of TAB-separated columns to write to \a Out ("globalFieldDelimeter" (sic))
+    // \param InputLine TAB-separated input token line string with length greater than or equal to \a MaxLen
+    // \param Out output string, should already be allocated with at least \a MaxLen bytes
+    // \detail
+    //   \li called implicitly by IndexOneToken() encounters a too-long line if \a tryFixErrors is true
+    //   \li truncates only "greedy" columns (those using more than MaxLen/nCols bytes)
+    //   \li truncates each "greedy" column indepdently, proportionate to its "greediness" (the number of bytes by which its length exceeds MaxLen/nCols)
+    void IndexTokenFixLongColumns(const size_t MaxLen, const size_t nCols, const char *InputLine, char *Out);
 
 public:
     //! typedef for index alias maps

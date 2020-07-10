@@ -122,7 +122,7 @@ void CTabFormatIndexator::ProcessMetaField (CIndexDocument* document, const stri
 }
 
 void CTabFormatIndexator::ProcessToken (CIndexDocument* document, const string& line) {
-    IndexOneToken(document, line.c_str());
+    IndexOneToken(document, line.c_str(), m_bResumeOnIndexErrors);
     document->CorpusEndTokenNo ++;
 }
 

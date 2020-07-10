@@ -54,7 +54,7 @@ void    CConcIndexator::IndexMorphXml   (CIndexDocument* document)
             if (W.m_Annots.empty() )
             {
                 OneIndexLine[wordlen+1] = 0;
-                IndexOneToken(document, OneIndexLine);
+                IndexOneToken(document, OneIndexLine, m_bResumeOnIndexErrors);
             }
             else
             {
@@ -78,7 +78,7 @@ void    CConcIndexator::IndexMorphXml   (CIndexDocument* document)
                 OneIndexLine[l] = globalFieldDelimeter;;
                 strcpy (OneIndexLine+l+1, GetIndexItemSetByVectorString(Lemmas, false).c_str());
 
-                IndexOneToken(document, OneIndexLine);
+                IndexOneToken(document, OneIndexLine, m_bResumeOnIndexErrors);
             };
 
             document->CorpusEndTokenNo++;

@@ -225,8 +225,51 @@ bool CStringIndexator::FinalSaveAllIndices(bool bAfterLoading) {
     return true;
 };
 
+void CStringIndexator::IndexTokenFixLongColumns(const size_t MaxLen, const size_t nCols, const char *InputLine, char *Out)
+{
+    //-- get column start & end positions
+    //const char globalFieldDelimeter = '\t'; //-- ddc global constant
+    char delims[2] = { globalFieldDelimeter, '\0' };
+    vector<string> cols = stringSplit(InputLine, delims);  
 
-void CStringIndexator::IndexOneToken(CTokenIndexator *document, const char *InputLine) {
+    //-- force number of columns
+    if (cols.size() != nCols)
+        cols.resize(nCols);
+
+    //-- get relative overflow
+    size_t clmax  = (MaxLen-nCols) / nCols;
+    double ldiff  = strlen(InputLine) - MaxLen + 1;
+    vector<double> cldiff(nCols,0);
+    double cldtotal = 0;
+    for (int i=0; i < nCols; ++i) {
+        cldiff[i] = (cols[i].length() >= clmax ? (cols[i].length() - clmax) : 0);
+        cldtotal += cldiff[i];
+    }
+
+    //-- truncate columns independently, proportional to their relative overflow
+    for (int i=0; i < nCols; ++i) {
+        if (cldiff[i] == 0) continue;
+        size_t clen  = cols[i].length();
+        size_t ctrim = clen - ( cldiff[i]/cldtotal * ldiff + 0.5 );
+        cols[i].resize(ctrim);
+        if (cols[i].length() > 3) {
+            cols[i].replace(cols[i].length()-3, 3, 3, '.');
+        }
+        ddcLogWarn(Format("Warning: truncated %zd suffix byte(s) from greedy column #%d -> \"%s\"", clen-ctrim, i, cols[i].c_str()));
+    }
+
+    //-- construct output string
+    char *outp = Out;
+    for (int i=0; i < nCols; ++i, ++outp) {
+        strcpy(outp, cols[i].c_str());
+        outp += cols[i].length();
+        assert(outp < (Out+MaxLen));
+        *outp = '\t';
+    }
+    *(--outp) = '\0';
+}
+
+void CStringIndexator::IndexOneToken(CTokenIndexator *document, const char *InputLine, bool tryFixErrors) {
     assert (!m_Indices.empty());
 
     size_t length = strlen(InputLine);
@@ -238,9 +281,14 @@ void CStringIndexator::IndexOneToken(CTokenIndexator *document, const char *Inpu
     char Line[MaxIndexLineLength];
 
     if (length >= MaxIndexLineLength) {
-        throw CExpc(Format("Error! Line \"%s\" is too long! It cannot be more than %zi chars", InputLine, MaxIndexLineLength));
-    };
-    strcpy(Line, InputLine);
+        if (!tryFixErrors)
+            throw CExpc(Format("Error! Line \"%s\" is too long! It cannot be more than %zi chars", InputLine, MaxIndexLineLength));
+
+        ddcLogWarn(Format("Warning: truncating greedy colums for input line \"%s\" (length=%zd > max=%zd)", InputLine, length, MaxIndexLineLength));
+        IndexTokenFixLongColumns(MaxIndexLineLength, document->ColumnMap.size(), InputLine, Line);
+    } else {
+        strcpy(Line, InputLine);
+    }
 
 
     size_t columnNo = 0;

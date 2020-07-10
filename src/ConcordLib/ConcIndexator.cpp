@@ -390,7 +390,7 @@ void CConcIndexator::IndexOneTableTextArea(const string &Text, const CPageNumber
                 }
 
             } else {
-                IndexOneToken(document, q.c_str());
+                IndexOneToken(document, q.c_str(), m_bResumeOnIndexErrors);
                 document->CorpusEndTokenNo++;
             }
         };
@@ -527,7 +527,7 @@ void CConcIndexator::IndexTextOrHtmlFile(CIndexDocument* document) {
                 strcpy(OneIndexLine + TokenLen + 2, m_pDwdsThesaurus->GetAllThesInterpetations(UpperToken).c_str());
             }
 
-            IndexOneToken(document, OneIndexLine);
+            IndexOneToken(document, OneIndexLine, m_bResumeOnIndexErrors);
 
 
             // if m_bQueryOnlyFiles then no sentence break collection

@@ -82,6 +82,10 @@ ddcConfigNoAuto.h: ddcConfigAuto.h
 #dateparse2_SOURCES = dateparse2.cpp
 #dateparse2_LDADD = libDDCCommon.la
 
+#EXTRA_PROGRAMS = toktrim
+#toktrim_SOURCES = toktrim.cc
+#toktrim_LDADD = libDDCCommon.la
+
 ##-----------------------------------------------------------------------
 ## headers
 
