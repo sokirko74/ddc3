@@ -300,7 +300,7 @@ void CStringIndexator::IndexOneToken(CTokenIndexator *document, const char *Inpu
         if (columnNo == document->ColumnMap.size()) {
             if (!tryFixErrors)
                 throw CExpc(Format("Too many columns at line at line \"%s\", starting at \"%s\"", Line, Line+start));
-            ddcLogWarn(Format("Warning: ignoring extra columns in line \"%s\" starting at \"%s\"", Line, Line+start));
+            ddcLogWarn(Format("Warning: ignoring extra column(s) in line \"%s\" starting at \"%s\"", Line, Line+start));
             break;
         };
 
