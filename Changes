@@ -1,9 +1,9 @@
 ##-*- Mode: Change-Log; coding: utf-8; -*-
 
-v2.2.5-pre1 UNRELEASED moocow
-	* fixed weird fatal "ERROR: CheckOccurrences failed! occurrences are not sorted" error for pathologically long token lines
+v2.2.5 Fri, 10 Jul 2020 12:02:45 +0200 moocow
+	* fixed weird fatal "ERROR: CheckOccurrences failed! occurrences are not sorted" for pathologically long token lines during ddc_index
 	  + v2.1.25 built a consistent index and emitted warnings, but assigned partially indexed file data to *next* corpus file
-	  + v2.1.26-delwin and later throw this error at end of indexing ("return-bool" -> throw/catch)
+	  + v2.1.26-delwin and later throw this error at end of indexing (due to "return-bool" -> "throw+catch" changes)
 	* failed document indexing now initiates a rollback of in-memory index buffers via new methods
 	  CConcIndexator::RollbackIndexOneFile(), CIndexSetForLoadingStage::RollbackLoadIndex()
 	  + fixes "orphaned" token data as produced by v2.1.25
