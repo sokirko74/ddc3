@@ -1,7 +1,7 @@
 //*-*- Mode: C++ -*-*/
 //
 //  DDC originally by Alexey Sokirko
-//  Changes and modifications 2011-2018 by Bryan Jurish
+//  Changes and modifications 2011-2020 by Bryan Jurish
 //
 //  This file is part of DDC (formerly CConcHolder.cpp)
 // 
@@ -2186,7 +2186,7 @@ CConcSession::SaveOccurrences(const vector<DWORD> &ChunkLengths, int ContextSize
         Result += Postfix;
         Result += "\n";
 
-        if (Result.length() > 4096) {
+        if (Result.length() > DDC_STATIC_BUFLEN) {
             if (!SaveTrigger(Result, LParam))
                 return false;
 

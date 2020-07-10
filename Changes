@@ -9,6 +9,10 @@ v2.2.5-pre1 UNRELEASED moocow
 	  + fixes "orphaned" token data as produced by v2.1.25
 	* exceptions from CConcIndexator::IndexOneTableTextArea(), CConcIndexator::IndexOneFile() should now be propagated
 	  to console and to *._error_log file
+	* replaced various byte-length constants "4096" with DDC_STATIC_BUFLEN
+	  + global const int ddcSocketChunkSize in CommonLib/string_socket.cpp
+	  + literal "4096" during CConcSession::SaveOccurrences() check on Result.length() in ConcordLib/ConcSession.cpp
+	  + const size_t MaxIndexLineLength for CStringIndexator::IndexOneToken() in ConcordLib/StringIndexator.cpp
 
 v2.2.4 Tue, 30 Jun 2020 09:25:32 +0200 moocow
 	* fixed mantis #47973: double-escaped slashes from CQTokRegex::toString()

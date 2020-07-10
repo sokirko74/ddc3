@@ -1,7 +1,7 @@
 // -*- Mode: C++ -*-
 //
 //  DDC originally by Alexey Sokirko
-//  Changes and modifications 2011-2018 by Bryan Jurish
+//  Changes and modifications 2011-2020 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -234,12 +234,11 @@ void CStringIndexator::IndexOneToken(CTokenIndexator *document, const char *Inpu
         throw CExpc("Error! CStringIndexator::IndexOneToken cannot index empty lines");
     };
 
-    const size_t MaxIndexLineLength = 4096;
+    const size_t MaxIndexLineLength = DDC_STATIC_BUFLEN;
     char Line[MaxIndexLineLength];
 
     if (length >= MaxIndexLineLength) {
-        throw CExpc(Format("Error! Line \"%s\" is too long! It cannot be more than %zi chars", InputLine,
-                           MaxIndexLineLength));
+        throw CExpc(Format("Error! Line \"%s\" is too long! It cannot be more than %zi chars", InputLine, MaxIndexLineLength));
     };
     strcpy(Line, InputLine);
 

@@ -1,7 +1,7 @@
 //-*- Mode: C++ -*-
 //
 //  DDC originally by Alexey Sokirko
-//  Changes and modifications 2011-2016 by Bryan Jurish
+//  Changes and modifications 2011-2020 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -27,7 +27,7 @@
 #include <errno.h>
 #include <sys/un.h>
 
-const int ddcSocketChunkSize = 4096;
+const int ddcSocketChunkSize = DDC_STATIC_BUFLEN;
 
 
 //#define DDC_DEBUG_FDLEAK 1
