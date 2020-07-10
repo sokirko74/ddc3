@@ -286,6 +286,8 @@ void CStringIndexator::IndexOneToken(CTokenIndexator *document, const char *Inpu
 
         ddcLogWarn(Format("Warning: truncating greedy colums for input line \"%s\" (length=%zd > max=%zd)", InputLine, length, MaxIndexLineLength));
         IndexTokenFixLongColumns(MaxIndexLineLength, document->ColumnMap.size(), InputLine, Line);
+        length = strlen(Line);
+        //ddcLogWarn(Format("DEBUG: got truncated line of length %zd: %s\n", length, Line));
     } else {
         strcpy(Line, InputLine);
     }
@@ -296,7 +298,10 @@ void CStringIndexator::IndexOneToken(CTokenIndexator *document, const char *Inpu
 
     for (size_t start = 0; start < length; start++) {
         if (columnNo == document->ColumnMap.size()) {
-            throw CExpc(Format("Too many columns at line at line \"%s\"", Line));
+            if (!tryFixErrors)
+                throw CExpc(Format("Too many columns at line at line \"%s\", starting at \"%s\"", Line, Line+start));
+            ddcLogWarn(Format("Warning: ignoring extra columns in line \"%s\" starting at \"%s\"", Line, Line+start));
+            break;
         };
 
         size_t end = start;
