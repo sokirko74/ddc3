@@ -1241,7 +1241,8 @@ void CDDCBranchServer::GetFirstHitsFromCorpora(const CSelectedHosts& SelectedHos
         RelevantDocsDistribution[HostNo] = RelevantDocumentsCount;
         Result.m_SortOrder = (HitSortOrderEnum)iSort;
         Result.m_DtrEnds[HostNo] = EndHitNo;
-        //-- check for count()-results: needed for v2.1.4 fixes
+
+        //-- alow special handling for count()-query results
         bool isCountResult = IsCountSort(Result.m_SortOrder);
 
         HSDEBUG( Format("DEBUG[status:%s]=\"%s\" --> iSort=%d", Host.m_CorpusName.c_str(), S.c_str(), iSort) );
@@ -1282,10 +1283,7 @@ void CDDCBranchServer::GetFirstHitsFromCorpora(const CSelectedHosts& SelectedHos
                     return;
                 }
                 else if (nscanned > 2 && strcmp(SortKeyBuf, "<empty>") != 0) {
-                    if (isCountResult && SortKeyBuf[0]=='\002')
-                        HS.m_SortKeyStr = &(SortKeyBuf[1]); //-- suppress empty initial sort-key fields for ddc-2.1.4
-                    else
-                        HS.m_SortKeyStr = SortKeyBuf;
+                    HS.m_SortKeyStr = SortKeyBuf;
                 }
 
                 Result.m_Hits.push_back(HS);
