@@ -1,6 +1,6 @@
 ##-*- Mode: Change-Log; coding: utf-8; -*-
 
-v2.2.6 Thu, 03 Sep 2020 10:29:10 +0200 moocow
+v2.2.6-rc1 UNRELEASED
 	* removed COUNT_KEY_COMPAT macro & related code entirely
 	  + introduced in v2.0.38 (2015-05-20), disabled in v2.1.9 (2018-03-08)
 	* removed hack suppressing initial empty sort-key fields in CDDCBranchServer::GetFirstHitsFromCorpora()
