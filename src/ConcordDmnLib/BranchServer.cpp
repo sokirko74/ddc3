@@ -1221,7 +1221,7 @@ void CDDCBranchServer::GetFirstHitsFromCorpora(const CSelectedHosts& SelectedHos
         Result.m_NetworkError = ReceiveString(Result.m_Sockets[i], S, TimeOut);
         if (Result.m_NetworkError != neSuccess)
         {
-            concord_daemon_log ( " Cannot receive a result string from a client  " );
+            concord_daemon_log( string(" Cannot receive a result string from daughter corpus ")+Host.m_CorpusName+" " );
             return;
         };
 
@@ -1241,11 +1241,8 @@ void CDDCBranchServer::GetFirstHitsFromCorpora(const CSelectedHosts& SelectedHos
         RelevantDocsDistribution[HostNo] = RelevantDocumentsCount;
         Result.m_SortOrder = (HitSortOrderEnum)iSort;
         Result.m_DtrEnds[HostNo] = EndHitNo;
-        //#ifdef DDC_COUNT_KEY_COMPAT
-        //-- hack for transition to v2.0.38; see DDC_COUNT_KEY_COMPAT definition in ConcCommon.h
-        //   + also needed for v2.1.4 fixes
+        //-- check for count()-results: needed for v2.1.4 fixes
         bool isCountResult = IsCountSort(Result.m_SortOrder);
-        //#endif
 
         HSDEBUG( Format("DEBUG[status:%s]=\"%s\" --> iSort=%d", Host.m_CorpusName.c_str(), S.c_str(), iSort) );
 
@@ -1285,22 +1282,6 @@ void CDDCBranchServer::GetFirstHitsFromCorpora(const CSelectedHosts& SelectedHos
                     return;
                 }
                 else if (nscanned > 2 && strcmp(SortKeyBuf, "<empty>") != 0) {
-#ifdef DDC_COUNT_KEY_COMPAT
-                    //-- hack for transition to v2.0.38; see DDC_COUNT_KEY_COMPAT definition in ConcCommon.h
-                    //   + trim bogus leading spaces from sort-keys from subcorpus server <=ddc v2.0.37
-                    //   + it ought to be safe to leave this code in even after transition
-                    if (isCountResult && SortKeyBuf[0]=='\002') {
-                        char *bi=SortKeyBuf, *bj=SortKeyBuf, *end=SortKeyBuf+DDC_SORTKEY_MAXLEN-1;
-                        for ( ; bi<end; ++bi, ++bj) {
-                            *bj = *bi;
-                            if (*bi=='\002' && *(bi+1)==' ')
-                                ++bi;
-                            else if (*bi=='\0')
-                                break;
-                        }
-                        if (bi==end) *bj = '\0';
-                    }
-#endif // DDC_COUNT_KEY_COMPAT
                     if (isCountResult && SortKeyBuf[0]=='\002')
                         HS.m_SortKeyStr = &(SortKeyBuf[1]); //-- suppress empty initial sort-key fields for ddc-2.1.4
                     else

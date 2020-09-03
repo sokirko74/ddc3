@@ -1932,30 +1932,13 @@ string CConcSession::GetHitIds() const {
 //----------------------------------------------------------------------
 string CConcSession::GetCountIds() const {
     string Result;
-#ifdef DDC_COUNT_KEY_COMPAT
-    size_t keylen;
-#endif
     for (vector<CHit>::const_iterator hi = m_Hits.begin(); hi != m_Hits.end(); ++hi) {
         //-- "HitId OrderId" for ddc < v2.0.19
         //-- "HitId    -0"   for ddc >=v2.0.19, context-queries
         //-- "HitCount -0"   for ddc >=v2.0.23, count-queries
-#ifdef DDC_COUNT_KEY_COMPAT
-        //-- hack for transition to v2.0.38; see DDC_COUNT_KEY_COMPAT definition in ConcCommon.h
-        Result += Format("\t%zi -0%c ", hi->m_Value.m_Count, globalCountKeyDelim);
-        keylen  = 2;
-        for (string::const_iterator si=hi->m_SortKey.s.begin(); si != hi->m_SortKey.s.end() && keylen < DDC_SORTKEY_MAXLEN; ++si) {
-            Result.push_back(*si);
-            ++keylen;
-            if (*si == globalCountKeyDelim) {
-                Result.push_back(' ');
-                ++keylen;
-            }
-        }
-#else
         //-- for ddc >=v2.0.38: omit extraneous spaces from count-key ids
         Result += Format("\t%zi -0 ", hi->m_Value.m_Count);
         Result.append(hi->m_SortKey.s, 0, DDC_SORTKEY_MAXLEN - 1);
-#endif // DDC_COUNT_KEY_COMPAT
     }
     return Result;
 }

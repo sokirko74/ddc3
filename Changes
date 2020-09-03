@@ -1,5 +1,9 @@
 ##-*- Mode: Change-Log; coding: utf-8; -*-
 
+v2.2.6-pre1 UNRELEASED
+	* removed COUNT_KEY_COMPAT macro & related code entirely
+	  + introduced in v2.0.38 (2015-05-20), disabled in v2.1.9 (2018-03-08)
+
 v2.2.5 Fri, 10 Jul 2020 12:02:45 +0200 moocow
 	* fixed weird fatal "ERROR: CheckOccurrences failed! occurrences are not sorted" for pathologically long token lines during ddc_index
 	  + v2.1.25 built a consistent index and emitted warnings, but assigned partially indexed file data to *next* corpus file
