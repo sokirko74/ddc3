@@ -1,5 +1,11 @@
 ##-*- Mode: Change-Log; coding: utf-8; -*-
 
+v2.2.7 Mon, 14 Sep 2020 15:45:56 +0200 moocow
+	* force BASE=10 for strtoul() calls in CBibliography::ConvertDateToInt()
+  	  + fixes bug introduced in v2.2.4 causing leading zeroes in date components (e.g. month, day) to be interpreted as octal
+	  + no one really wants to specify dates in octal
+	  + existing index documents with misparsed dates will need to be updated (basically anything indexed since 2020-06-30)
+
 v2.2.6 Thu, 03 Sep 2020 11:48:58 +0200 moocow
 	* removed COUNT_KEY_COMPAT macro & related code entirely
 	  + introduced in v2.0.38 (2015-05-20), disabled in v2.1.9 (2018-03-08)

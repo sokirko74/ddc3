@@ -64,16 +64,16 @@ bool CBibliography::ConvertDateToInt(int &Result) const
     const char *s=m_DateStr.c_str();
     char *tail;
 
-    year = strtol(s, &tail, 0);
+    year = strtol(s, &tail, 10);
     if (year < -32768 || year > 32767) return false; //-- sanity check: year-part is 16-bit signed
 
     while (tail && *tail=='-') ++tail;
     if (tail && *tail)
-        month = strtoul((s=tail), &tail, 0);
+        month = strtoul((s=tail), &tail, 10);
 
     while (tail && *tail=='-') ++tail;
     if (tail && *tail)
-        day = strtoul((s=tail), &tail, 0);
+        day = strtoul((s=tail), &tail, 10);
 
     Result = date2int(year, month, day);
     return true;
