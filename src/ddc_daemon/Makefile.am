@@ -38,6 +38,7 @@ ddc_daemon_LDADD = \
  ../tinyxml/libDDCTinyXml.la \
  ../RmlTar/libDDCRmlTar.la \
  ../MorphWizardLib/libDDCMorphWizard.la \
+ ../jsoncpp/libDDCjsoncpp.la \
  ../CommonLib/libDDCCommon.la
 
 

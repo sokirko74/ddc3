@@ -1,7 +1,7 @@
 //-*- Mode: C++ -*-
 //
 //  DDC originally by Alexey Sokirko
-//  Changes and modifications 2011-2016 by Bryan Jurish
+//  Changes and modifications 2011-2020 by Bryan Jurish
 //
 //  This file is part of DDC (fomerly defined in string_socket.h)
 // 
@@ -46,7 +46,8 @@ protected:
     bool            CheckValidAddr() const;
     void            StopListening ();
 public:
-    string          m_CorpusName;
+    string          m_CorpusName;	///< full node label, including optional "server:" prefix
+    string	    m_ShortName;	///< short node label, without optional "server:" prefix
         
     CHost();
     virtual ~CHost();
@@ -63,13 +64,18 @@ public:
     int                     CreateAndConnectSocket(string& strError) const;
     string                  GetAddressStr() const;
     const string&           GetLocalPathOfIndex() const;
-
+    
     inline const CSocketAddr& SocketAddr() const { return m_SockAddr; };
     inline const string&    HostAddr() const { return m_SockAddr.m_Addr; };
     inline const int        Port() const { return m_SockAddr.m_Port; };
 
+    
+
     /** initialize static host parameters, in lieu of reading from file */
     bool InitEmbedded(const CHost&);
+
+    /** initialize m_ShortName from m_CorpusName */
+    void InitShortName();
 
     bool IsListening () const {return m_bListen; };
 

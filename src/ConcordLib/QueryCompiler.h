@@ -1,6 +1,6 @@
 //-*- Mode: C++ -*-
 //  DDC originally by Alexey Sokirko
-//  Changes and modifications 2011-2019 by Bryan Jurish
+//  Changes and modifications 2011-2020 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -72,6 +72,9 @@ public:
     //! query limit (anything but 0 (default) overrides CConcHolder arguments)
     size_t m_Limit;
 
+    //! is query satisfiable? (default is true, may be set to false by CheckSatisfiable())
+    bool m_bSatisfiable;
+
     //--------------------------------------------------------------
     // temporaries
 
@@ -141,7 +144,7 @@ public:
     //! a special slot for YACC (which contains all string leaves of the parse tree)
     list<string> m_Labels;
 
-    //! enable collection of lexer comments in m_pQuery->m_Options->m_LexerComments (default=false)=
+    //! enable collection of lexer comments in m_pQuery->m_Options->m_LexerComments (default=false)
     bool m_KeepLexerComments;
 
 public:
@@ -189,6 +192,14 @@ public:
     //! \b OBSOLETE : now just a wrapper for m_pQuery->CompileOptions(this)
     bool CompileFilters();
 
+    //! moo: check the current parsed query (m_pQuery) for unsatisfiability with respect to
+    //! the current index (m_pHolder) and compiler options (m_HitTypeStr etc.)
+    //! \li sets m_bSatisfiable to false if any trivially unsatisfiable global constraints (e.g subcorpus match, etc) are found
+    //! \li call this and act on its return value (if at all) before calling Compile()
+    //! \li really just a wrapper for m_pQuery->CheckSatisfiable(this)
+    //! \returns new value of m_bSatisfiable
+    bool CheckSatisfiable(CQuery* query);
+
     //! moo: compile the given query (query) with respect to
     //! the current index (m_pHolder) and compiler options (m_HitTypeStr etc.)
     //! \li really just a wrapper for query->CompileOptions(this) && query->Compile(this)
@@ -198,10 +209,13 @@ public:
     //! evaluate parse tree bottom-up
     //! \li query defaults to m_pQuery
     bool Evaluate(CQuery *query);
+    
+    //! wrapper for CheckSatisfiable(m_pQuery)
+    //! \returns false on failure (and may throw an exception)
+    inline bool CheckSatisfiable()
+    { return CheckSatisfiable(m_pQuery); };
 
-    //! moo: compile the current parsed query (m_pQuery) with respect to
-    //! the current index (m_pHolder) and compiler options (m_HitTypeStr etc.)
-    //! \li really just a wrapper for m_pQuery->CompileOptions(this) && m_pQuery->Compile(this)
+    //! wrapper for Compile(m_pQuery)
     //! \returns false on failure (and may throw an exception)
     inline bool Compile()
     { return Compile(m_pQuery); };
@@ -232,6 +246,10 @@ public:
     //! called by bison during the parse.
     CQKeys* PushKeysQuery(CQCount *qCount);
 
+    //!  allocated CQFPrune* filter onto 
+    //! Called by bison during the parse.
+    CQFPrune* newPruneFilter(HitSortEnum ftype, const string& limitStr="-1");
+    
     //! set string bounds for current filter (called by bison parser)
     void SetFilterBounds(const string& lb="", const string& ub="");
 

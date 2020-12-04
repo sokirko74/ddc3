@@ -1,7 +1,7 @@
 //-*- Mode: C++ -*-
 //
 //  DDC originally by Alexey Sokirko
-//  Changes and modifications 2011-2018 by Bryan Jurish
+//  Changes and modifications 2011-2020 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -22,6 +22,7 @@
 #define DDC_BRANCH_SERVER_H
 
 #include "../ConcordDmnLib/Server.h"
+#include "../ConcordLib/QueryCompiler.h"
 
 //======================================================================
 /** single hit data in get_first_hits responses */
@@ -103,6 +104,17 @@ struct CFirstHitsQueryResult  {
     /** collect counts by sort-key, only makes sense if m_SortOrder==hsoCounts ; also modifies m_AllHitsCount */
     void CollectCounts();
 
+    /** prune hits by sort-key, only makes sense for #prune[]-sorts; also modifies m_AllHitsCount */
+    void PruneHits(size_t PruneLimit);
+
+    /** compute the number of hits we need to request to cover all physical hit-offsets (for a single host) in HostHits
+     * \li for prune-queries
+     * \li \a HostHitIds[] is a list of physical indices into \a m_Hits[]
+     * \li all hits in \a m_Hits[HostHitIds[]] should share the same \a m_HostNo
+     * \li hits \a m_Hits[HistHitIds[]] should be sorted by \a m_HitNo , but may contain gaps
+     */
+    size_t HostHitsLimit(const vector<size_t>& HostHitIds);
+
     /** convert a logical branch-level hit offset to a physical index in m_Hits[] (no boundary-checking, underflow possible) */
     inline size_t PhysicalOffset(size_t LogicalHitNo) const
     { return LogicalHitNo - m_Offset; };
@@ -138,6 +150,7 @@ struct CQueryStatistics
 /** struct for mapping immediate subcorpus host-IDs to selected sub-subcorpora
  *  \li replaces CRunQueryData::PossibleHosts
  *  \li sub-path "*" indicates all daughter-corpora
+ *  \todo TODO allow sub-path "**" indicating all descendendant corpora for CSelectedHosts (BranchServer)
  */
 struct CSelectedHosts
 {
@@ -161,7 +174,7 @@ struct CSelectedHosts
 
     void Clear();
 
-    ///< select sub-path \a "HostId/SubPath"
+    ///< select sub-path \a "HostId/SubPath" (empty \a SubPath is treated as "*")
     void Insert(DWORD HostId, const string& SubPath);
 
     ///< alias for Insert(HostId,"*"): select all sub-paths for \a HostId
@@ -200,31 +213,44 @@ public:
     string HitsKey;                     ///< key for response body data (json only)
     string ResponseBody;                ///< response body data
     string *pErrorStr;                  ///< error string pointer (empty or NULL for success)
+    string     ReqPath;                 ///< request path (>=v2.2.8)
     NavHintKey navKey;                  ///< navigation hint key
     NavHint    navHint;                 ///< user- or cache-supplied navigation hint
+    CQueryCompiler *pQCompiler;		///< query compiler for parsing input queries (parsed query is pQCompiler->m_pQuery)
    
 public:
     /** constructor */
-    CRunQueryData(const string & _Query="", const string& _ResultFormat="JSON", size_t _Start=0, size_t _Limit=10, int _TimeOut=10, string *_pErrorStr=NULL)
-        : sQuery(_Query), sResultFormat(_ResultFormat), StartHitNo(_Start), ResultLimit(_Limit), TimeOut(_TimeOut),
-          iInternalError(errNone), iNetworkError(neSuccess), EndHitNo(0), HitsCount(0), RelevantDocsCount(0), HitDistrib(""), DocDistrib(""),
-          HitsKey("hits_"), ResponseBody(""),
-          pErrorStr(_pErrorStr)
-    {
-        Trim(sQuery);
-        Trim(sResultFormat);
-    };
+    CRunQueryData(const string & _Query="", const string& _ResultFormat="JSON", size_t _Start=0, size_t _Limit=10, int _TimeOut=10, string *_pErrorStr=NULL);
+
+    /** destructor */
+    virtual ~CRunQueryData();
 
     /** (re-)initialize with parameters */
-    void Init(const string & _Query="", const string& _ResultFormat="JSON", size_t _Start=0, size_t _Limit=10, int _TimeOut=10, string *_pErrorStr=NULL, const NavHint& _Hint=NavHint());
+    void Init(const string & _Query="", const string& _ResultFormat="JSON", size_t _Start=0, size_t _Limit=10, int _TimeOut=10, string *_pErrorStr=NULL, const string& _ReqPath="", const NavHint& _Hint=NavHint());
 
     /** clear object */
     void Clear();
+
+    /** convenience method for accessing compiled query */
+    inline CQuery* Query() const
+    { return pQCompiler->m_pQuery; };
+
+    /** convenience method for accessing compiled query */
+    inline CQueryOptions* QueryOptions() const
+    { return Query()->m_Options; };
+
+    /** is this a prune-query? */
+    inline bool IsPruneQuery() const
+    { return QueryOptions()->IsPruneFilter(); };
 
     /** populate response string \a Response */
     void toString(string &Response, size_t WorkerId=0, const DDCVersionT& vCompat=DDCVersion);
 
 };
+
+//======================================================================
+/** utility typedef for CDDCBranchServer::m_HostMap */
+typedef map<string,size_t> CHostIdMap;
 
 //======================================================================
 /** DDC branch server node, formerly CDDCCorpusListenHost */
@@ -236,7 +262,8 @@ public:
     //--------------------------------------------------------------
     // local data
     map<string, CQueryStatistics>       m_QueryToStatis; //-- unused?
-    vector<CHost>                       m_Hosts;        
+    vector<CHost>                       m_Hosts;
+    CHostIdMap				m_HostMap;       ///< maps short daughter labels (without "server:" prefix) to m_Hosts[] offsets
     string                              m_QueryResultString;
     string                              m_ErrorStr;     //-- subcorpus error
 
@@ -296,13 +323,13 @@ public:
     // DDCServer API: request handlers: required
 
     /* request handler: get_first_hits: required (leaf) */
-    virtual void handle__get_first_hits(string &Result, const char *Query, int TimeOut, size_t ResultLimit, const NavHint& Hint);
+    virtual void handle__get_first_hits(string &Result, const char *Query, int TimeOut, size_t ResultLimit, const string& ReqPath, const NavHint& Hint);
 
     /* request handler: get_hit_strings: required (leaf) */
     virtual void handle__get_hit_strings(string &Result, const char *ResultType, size_t StartHitNo, size_t ResultLimit);
 
     /* request handler: run_query: required (branch) */
-    virtual void handle__run_query(string &Result, const char *CorpusName, const char *Query, const char *ResultType, size_t StartHitNo, size_t ResultLimit, int TimeOut, const NavHint& Hint);
+    virtual void handle__run_query(string &Result, const char *CorpusName, const char *Query, const char *ResultType, size_t StartHitNo, size_t ResultLimit, int TimeOut, const string& ReqPath, const NavHint& Hint);
 
     /** request handler: expand_terms: required (leaf|branch) */
     virtual void handle__expand_terms(string &Result, const string& pipeline, const string& terms, int timeout, const string &corpus);
@@ -319,6 +346,9 @@ public:
     /** request handler: clear_cache: required (leaf|branch) */
     virtual void handle__clear_cache(string &Result, int depth=0);
 
+    /** request handler: nodes: required (leaf|branch; since v2.2.8) */
+    virtual void handle__nodes(string &Result, int depth=-1);
+
     /** request handler: ddc_close_socket: required (leaf|branch) */
     virtual void handle__close_socket(string &Result, SOCKET &rConnectedSocket);
 
@@ -326,8 +356,14 @@ public:
     //--------------------------------------------------------------
     // local methods
 
-    /** pass request to each subcorpus host and fetch results into a JSON array */
-    string  GetSubcorpusJsonArray(const string &request, int timeout=10);
+    /** initialize m_HostMap[] from m_Hosts[] */
+    void InitHostMap();
+
+    /** pass request to each subcorpus host and fetch results into a vector<> */
+    void GetSubcorpusJsonStrings(vector<string>& Results, const string &request, int timeout=10);
+
+    /** pass request to each subcorpus host, fetch results, and collect into a single JSON array */
+    string GetSubcorpusJsonArray(const string &request, int timeout=10);
 
     /** new top-level guts for handle__run_query(); uses m_FHResult and m_QueryData */
     void RunDistributed();
@@ -399,19 +435,25 @@ public:
                                                  string& Result,
                                                  string& ResultHint);
 
-    /** heuristically extract user-specified subcorpora from ":CORPORA" clause of InputQuery, called by RunDistributed()
+    /** heuristically extract user-specified subcorpora from ":CORPORA" clause of current query, called by RunDistributed()
+     * \li uses (parsed) input query from m_QueryData
+     * \li appends parsed daughter paths to \a m_QueryData.SelectedHosts (which is assumed to be empty when this method is called)
      * \li returns false only when a network error occurs
-     * \todo fixme : have this method actually parse the query to avoid ":"-scanning errors
      */
-    bool   ReadSelectedHosts(const string& InputQuery, string& CleanQuery, CSelectedHosts& SelectedHosts) /*const*/;
+    bool   ReadSelectedHosts(string& CleanQuery);
 
-    /** find Host-ID (index in m_Hosts[]) for a given CorpusName.
+    /** find Host-ID (index in m_Hosts[]) for a given CorpusName (short form, uses m_HostIdMap[])
      *  \returns host-ID for \a CorpusName on success, otherwise m_Hosts.size()
      */
     size_t FindHostID(const string& CorpusName) const;
 
-    /** Parses CorpusPath into initial (immediate daughter) and non-initial (grandchildren etc.) components */
-    void ParseCorpusPath(const string& CorpusPath, string& Dtr, string& Rest);
+    /** find pointer to host in m_Hosts[] for a given CorpusName
+     * \returns pointer into m_Hosts[] for \a CorpusName on success, otherwise NULL
+     */
+    CHost* FindHost(const string& CorpusName);
+
+    /** aligns user-request CorpusPath into shared (~runq.ReqPath), initial (immediate daughter), and non-initial (grandchildren etc.) components */
+    void AlignCorpusPath(const string& UserPath, string& Dtr, string& Rest);
 };
 
 /** compatibility typedef for ddc < v2.0.23 */

@@ -1,7 +1,7 @@
 //-*- Mode: C++ -*-
 //
 //  DDC originally by Alexey Sokirko
-//  Changes and modifications 2011-2018 by Bryan Jurish
+//  Changes and modifications 2011-2020 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -201,19 +201,22 @@ string CDDCServer::ProcessSocketString(const string& SocketInput, SOCKET& rConne
             ++m_SessionStats.m_nQueries;
             isQueryRequest = true;
             try {
-                int TimeOut, HintPos;
-                size_t ResultLimit;
+                int TimeOut, StartPathPos;
+                size_t ResultLimit, PathPos,HintPos;
                 char sQuery[DDC_STATIC_BUFLEN];
                 const char* SocketInputStr = SocketInput.c_str();
 
                 //-- parse mandatory arguments (QUERY, TIMEOUT, LIMIT)
-                int nItems = sscanf(SocketInputStr, "get_first_hits %[^\x01]\x01 %i %zi%n", sQuery, &TimeOut, &ResultLimit, &HintPos);
+                int nItems = sscanf(SocketInputStr, "get_first_hits %[^\x01]\x01 %i %zi%n", sQuery, &TimeOut, &ResultLimit, &StartPathPos);
                 if (nItems != 3) {
                     //-- unparseable
                     throw CExpc(errParseError, "CDDCServer::ProcessSocketString(): cannot parse `get_first_hits' request");
                 }
 
-                this->handle__get_first_hits(Result, sQuery, TimeOut, ResultLimit, NavHint(SocketInputStr+HintPos));
+                findPathHint(SocketInput, StartPathPos, PathPos, HintPos);
+                this->handle__get_first_hits(Result, sQuery, TimeOut, ResultLimit,
+                                             SocketInput.substr(PathPos,HintPos-PathPos),
+                                             NavHint(SocketInput.substr(HintPos)));
             }
             catch (CExpc& e) {
                 Result = Format("%i 0 0 0 0\n%s", (e.code()==errNone ? errOther : e.code()), e.what());
@@ -252,18 +255,22 @@ string CDDCServer::ProcessSocketString(const string& SocketInput, SOCKET& rConne
             ++m_SessionStats.m_nQueries;
             isQueryRequest = true;
             try {
-                size_t StartHitNo, ResultLimit;
-                int TimeOut, HintPos;
+                size_t StartHitNo, ResultLimit, PathPos,HintPos;
+                int TimeOut, StartPathPos;
                 char sQuery[DDC_STATIC_BUFLEN];
                 char sCorpusName[DDC_STATIC_BUFLEN]; //-- unused?
                 char sResultType[DDC_STATIC_BUFLEN];
                 const char* SocketInputStr = SocketInput.c_str();
                 int nItems = sscanf(SocketInputStr,
                                     "run_query %[^\x01]\x01%[^\x01]\x01%[^\x01]\x01%zi %zi %i%n",
-                                    sCorpusName, sQuery, sResultType, &StartHitNo, &ResultLimit, &TimeOut, &HintPos);
+                                    sCorpusName, sQuery, sResultType, &StartHitNo, &ResultLimit, &TimeOut, &StartPathPos);
                 if (nItems != 6)
                     throw CExpc(errParseError, "cannot parse `run_query` request");
-                this->handle__run_query(Result, sCorpusName,sQuery,sResultType,StartHitNo,ResultLimit,TimeOut, NavHint(SocketInputStr+HintPos));
+
+                findPathHint(SocketInput, StartPathPos, PathPos, HintPos);
+                this->handle__run_query(Result, sCorpusName,sQuery,sResultType,StartHitNo,ResultLimit,TimeOut,
+                                        SocketInput.substr(PathPos,HintPos-PathPos),
+                                        NavHint(SocketInput.substr(HintPos)));
             }
             catch (CExpc &e) {
                 Result = Format("\x01 %i %i %i %i %i\n%s", e.code(), 0, 0, 0, 0, e.what());
@@ -339,6 +346,13 @@ string CDDCServer::ProcessSocketString(const string& SocketInput, SOCKET& rConne
             int depth = strtol(SocketInput.substr(eocpos).c_str(),NULL,0);
             this->handle__clear_cache(Result, depth);
         }
+        else if (cmd == "nodes") {
+            //-- nodes [DEPTH]
+            int depth = (eocpos >= SocketInput.size()
+                         ? -1
+                         : strtol(SocketInput.substr(eocpos).c_str(),NULL,0));
+            this->handle__nodes(Result, depth);
+        }
         else {
             //-- unknown request
             throw CExpc(errParseError, Format("unknown command `%s'", cmd.c_str()));
@@ -375,7 +389,7 @@ string CDDCServer::ProcessSocketString(const string& SocketInput, SOCKET& rConne
 }
 
 //----------------------------------------------------------------------
-void CDDCServer::handle__get_first_hits(string &Result, const char *Query, int TimeOut, size_t ResultLimit, const NavHint& Hint)
+void CDDCServer::handle__get_first_hits(string &Result, const char *Query, int TimeOut, size_t ResultLimit, const string& ReqPath, const NavHint& Hint)
 {
     m_bExpectMore = true;
     method_not_implemented("handle__get_first_hits()");
@@ -384,7 +398,7 @@ void CDDCServer::handle__get_first_hits(string &Result, const char *Query, int T
 //----------------------------------------------------------------------
 void CDDCServer::handle__get_first_hits(string &Result, const char *Query, int TimeOut, size_t ResultLimit)
 {
-    this->handle__get_first_hits(Result,Query,TimeOut,ResultLimit,NavHint());
+    this->handle__get_first_hits(Result,Query,TimeOut,ResultLimit,string(""),NavHint());
 }
 
 //----------------------------------------------------------------------
@@ -394,7 +408,7 @@ void CDDCServer::handle__get_hit_strings(string &Result, const char *ResultType,
 }
 
 //----------------------------------------------------------------------
-void CDDCServer::handle__run_query(string &Result, const char *CorpusName, const char *Query, const char *ResultType, size_t StartHitNo, size_t ResultLimit, int TimeOut, const NavHint& Hint)
+void CDDCServer::handle__run_query(string &Result, const char *CorpusName, const char *Query, const char *ResultType, size_t StartHitNo, size_t ResultLimit, int TimeOut, const string& ReqPath, const NavHint& Hint)
 {
     method_not_implemented("handle__run_query()");
 }
@@ -402,7 +416,7 @@ void CDDCServer::handle__run_query(string &Result, const char *CorpusName, const
 //----------------------------------------------------------------------
 void CDDCServer::handle__run_query(string &Result, const char *CorpusName, const char *Query, const char *ResultType, size_t StartHitNo, size_t ResultLimit, int TimeOut)
 {
-    this->handle__run_query(Result,CorpusName,Query,ResultType,StartHitNo,ResultLimit,TimeOut,NavHint());
+    this->handle__run_query(Result,CorpusName,Query,ResultType,StartHitNo,ResultLimit,TimeOut,string(""),NavHint());
 }
 
 //----------------------------------------------------------------------
@@ -473,6 +487,12 @@ void CDDCServer::handle__clear_cache(string &Result, int depth)
     method_not_implemented("handle__clear_cache()");
 }
 
+//----------------------------------------------------------------------
+void CDDCServer::handle__nodes(string &Result, int depth)
+{
+    method_not_implemented("handle__nodes()");
+}
+
 //==============================================================================
 
 //----------------------------------------------------------------------
@@ -488,6 +508,23 @@ size_t CDDCServer::totalMemorySize(void) const
     DDCProcessMemoryStatus pms(getpid());
     return pms.VmSize;
 }
+
+//----------------------------------------------------------------------
+void CDDCServer::findPathHint(const string& ReqStr, size_t StartPos, size_t &PathPos, size_t &HintPos)
+{
+    //-- skip initial whitespace
+    for (PathPos=StartPos; PathPos < ReqStr.size() && isspace(ReqStr[PathPos]); ++PathPos) ;
+
+    //-- check whether path was specified (must begin with a non-digit and contain no whitespace)
+    if (PathPos < ReqStr.size() && !isdigit(ReqStr[PathPos])) {
+        for (HintPos=PathPos; HintPos < ReqStr.size() && !isspace(ReqStr[HintPos]); ++HintPos) ;
+    } else {
+        HintPos = PathPos;
+    }
+    
+    return;
+}
+
 
 /*--- emacs style variables ---
  * Local Variables:

@@ -120,6 +120,9 @@ public:
     //! \li assumed to be set explicitly by user
     string                                  m_ResultMinKey;
 
+    //! full request path leading to this session (used by CDDCLeafServer)
+    string                                  m_RequestPath;
+
     //! The index of the current \ref period_def "subcorpora", which is now  being processed
     size_t                                  m_CurrentSearchPeriodNo;
 
@@ -180,8 +183,8 @@ public:
     void InitFileReferences(vector<CHit>&   Hits) const;
 
     //! initializes CHit::m_SortKey for each in m_pQueryCompiler->m_pQueryTree->m_Hits.
-    //! Also sets m_bSortDescending=Filter.isDescending() and m_bSortByString appropriately
-    void    InitSortKeyForHits(const CQuery *pQuery, const CDDCFilterWithBounds& Filter);
+    //! Also sets m_bSortDescending=Filter.isDescending(), m_bSortByString, m_bPrune appropriately
+    void    InitSortKeyForHits(const CQuery *pQuery, const CDDCFilterWithBounds& Filter, vector<size_t>& PeriodHitsIndex);
     void    InitSortByRank(const CQuery *pQuery) const;
     void    InitSortBySize(const CQuery *pQuery) const;
     void    InitSortByRandom(const CQuery *pQuery) const;

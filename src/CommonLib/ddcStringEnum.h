@@ -26,7 +26,7 @@
 
 //======================================================================
 // ddcStringEnum
-/** convenience wrapper for integer<->string mappings */
+/** convenience wrapper for file-based integer<->string mappings */
 template <typename OffT_=DWORD>
 class ddcStringEnum
 {
@@ -249,6 +249,7 @@ public:
     };
 
 };
+
 
 
 #endif /* DDC_STRING_ENUM_H */

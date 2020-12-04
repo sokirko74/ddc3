@@ -60,6 +60,9 @@ struct CQueryResult
     //! whether to sort by string-value
     bool                    m_bSortByString : 1;
 
+    //! whether primary sort is a prune-sort
+    bool		    m_bPrune : 1;
+
     //! hit sort order
     HitSortOrderEnum        m_SortOrder : 4;
 

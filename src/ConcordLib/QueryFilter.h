@@ -23,8 +23,10 @@
 
 #include "ConcHolder.h"
 
-class CQueryCompiler; //-- forward decl
-class CQueryOptions;  //-- forward decl
+class CQueryCompiler;       //-- forward decl
+class CQueryOptions;        //-- forward decl
+class CQCountKeyExprList;   //-- forward decl, for CQFPrune
+class CQCount;              //-- forward decl, for CQFPrune
 
 //======================================================================
 // CQFilter
@@ -41,6 +43,9 @@ public:
 
     //! Default destructor (empty)
     virtual ~CQFilter() {};
+    
+    //! Run fast (un)satisfiability checks for filter before Compile() is called.  Default just returns true.
+    virtual bool CheckSatisfiable(CQueryCompiler *compiler, CQueryOptions *options);
 
     //! apply the filter to the given compiler
     virtual bool Compile(CQueryCompiler *compiler, CQueryOptions *options);
@@ -48,6 +53,10 @@ public:
     //! clone this filter
     virtual CQFilter* Clone()
     { return new CQFilter(*this); };
+
+    //! sort-type for this filter (if any)
+    virtual HitSortEnum FilterType() const
+    { return NoSort; };
     //@}
 
     //------------------------------------------------------------
@@ -96,6 +105,9 @@ public:
     virtual CQFilter* Clone()
     { return (CQFilter*)new CQFSort(*this); };
 
+    virtual HitSortEnum FilterType() const
+    { return m_Filter.m_FilterType; };
+
     //! swap lower- and upper-bounds if they not in logical order
     void SortBounds(void);
 
@@ -107,6 +119,9 @@ public:
     //!  + otherwise uses compiler->m_pHolder->m_pConcordance->m_Bibl.m_DefaultAttrName if non-empty and a valid attribute name
     //!  + otherwise returns an empty string
     string ResolveAttributeName(CQueryCompiler *compiler, const string& attrName, bool allowBiblExpander=false);
+
+    //! compilation & satisfiability-check utility: return constant bibliographic index for \a attrName (if it is one), or NULL
+    CFreeBiblIndex *GetBiblConstant(CQueryCompiler *compiler, const string &attrName, bool allowBiblExpander=true);
 
     //-- ddcObject API & utilities
     //! stringification utility: quoted strign for arg, or empty string
@@ -304,6 +319,9 @@ public:
     virtual CQFilter* Clone()
     { return (CQFilter*)new CQFHasFieldValue(*this); };
 
+    //! Run fast (un)satisfiability checks for filter before Compile() is called.  Default just returns true.
+    virtual bool CheckSatisfiable(CQueryCompiler *compiler, CQueryOptions *options);
+    
     //! compile the filter.  requires reference to underlying CConcIndexator
     virtual bool Compile(CQueryCompiler *compiler, CQueryOptions *options);
     virtual string jsonClass(void) { return "CQFHasFieldValue"; };
@@ -326,6 +344,9 @@ public:
 
     virtual CQFilter* Clone()
     { return (CQFilter*)new CQFHasFieldRegex(*this); };
+
+    //! Run fast (un)satisfiability checks for filter before Compile() is called.  Default just returns true.
+    virtual bool CheckSatisfiable(CQueryCompiler *compiler, CQueryOptions *options);
 
     //! compile the filter.  requires reference to underlying CConcIndexator
     virtual bool Compile(CQueryCompiler *compiler, CQueryOptions *options);
@@ -412,6 +433,9 @@ public:
     virtual CQFilter* Clone()
     { return (CQFilter*)new CQFHasFieldSet(*this); };
 
+    //! Run fast (un)satisfiability checks for filter before Compile() is called.  Default just returns true.
+    virtual bool CheckSatisfiable(CQueryCompiler *compiler, CQueryOptions *options);
+
     //! compile the filter.  requires reference to underlying CConcIndexator
     virtual bool Compile(CQueryCompiler *compiler, CQueryOptions *options);
 
@@ -429,6 +453,56 @@ public:
     virtual string jsonFieldValue(void);
 };
 
+//======================================================================
+// CQFPrune
+
+//! class for global query pruning filters
+//! m_arg0 : pruning limit (maximum number of hits per key)
+class CQFPrune : public CQFSort {
+public:
+    //! maximum number of hits per count-key
+    size_t m_limit;
+
+    //! list count-keys (externally allocated, freed here)
+    CQCountKeyExprList *m_keys;
+
+    //! underlying counts
+    CCountMap m_Counts;
+
+public:
+    //------------------------------------------------------------
+    //!\name CQFilter API
+    //@{
+    CQFPrune(HitSortEnum ftype=LessByPruneKey, size_t Limit=0, CQCountKeyExprList* Keys=NULL);
+
+    //! Default destructor (empty)
+    virtual ~CQFPrune();
+
+    //! clone this filter (also clones m_keys)
+    virtual CQFilter* Clone();
+
+    //! apply the filter to the given compiler
+    virtual bool Compile(CQueryCompiler *compiler, CQueryOptions *options);
+    //@}
+
+    //------------------------------------------------------------
+    //!\name ddcObject API
+    //@{
+    //! convert filter to a canonical string
+    virtual string toString(void);
+
+    virtual string jsonClass(void) { return "CQFPrune"; };
+    virtual string jsonData(void);
+    //@}
+
+    //------------------------------------------------------------
+    //!\name CQFPrune local methods
+    //@{
+    //! apply pruning filter to \a PeriodHitsIndex, assigning hit sort-key strings as we go
+    //! \li also assigns period-local key-ids (for use with navigation hints via ConcSession::SortKeyLB() etc)
+    void PruneHitsIndex(const CQuery *qRoot, vector<size_t>& PeriodHitsIndex);
+    //@}
+};
 
 #endif /* DDC_QFILTER_H */
 

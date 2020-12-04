@@ -1,7 +1,7 @@
 //-*- Mode: C++ -*-
 //
 //  DDC originally by Alexey Sokirko
-//  Changes and modifications 2011-2017 by Bryan Jurish
+//  Changes and modifications 2011-2020 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -26,6 +26,12 @@ const BYTE DefaultMatchId = 255;
 
 //======================================================================
 // CQuery
+
+//--------------------------------------------------------------
+bool CQuery::CheckSatisfiable(CQueryCompiler *compiler)
+{
+    return (compiler != NULL && (m_Options == NULL || m_Options->CheckSatisfiable(compiler)));
+}
 
 //--------------------------------------------------------------
 bool CQuery::Compile(CQueryCompiler *compiler)
@@ -452,7 +458,9 @@ bool CQToken::Compile(CQueryCompiler *compiler)
     SetCompiler(compiler);
     CQueryTokenNode* pObj = new CQueryTokenNode(compiler->GetNewNodeIndex(), m_MatchId);
     m_Node  = pObj;
-    bool rc = this->Create(pObj);
+    bool rc = (compiler->m_bSatisfiable
+               ? this->Create(pObj)
+               : pObj->CreateNullPattern(compiler->m_pHolder, this->IndexName("Token")));
     if (!rc)
         throw CExpc(errParseError,"could not compile query condition `%s'", this->toString().c_str());
     return CQNegatable::Compile(compiler);

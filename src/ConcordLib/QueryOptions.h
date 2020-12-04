@@ -98,8 +98,8 @@ public:
     //! swap options
     void swap(CQueryOptions &x);
 
-    //! assign options (copies filter list)
-    void assign(const CQueryOptions &src);
+    //! assign options (copies filter list if \a deep is true)
+    void assign(const CQueryOptions &src, bool deep=true);
 
     //! clone object (wraps new() and assign())
     inline CQueryOptions* Clone(void) const
@@ -108,12 +108,24 @@ public:
         clone->assign(*this);
         return clone;
     };
+
+    //! "safe" clone, used by CQFPrune (wraps new() and assign(*this,false))
+    inline CQueryOptions* SafeClone()
+    {
+        CQueryOptions *clone = new CQueryOptions();
+        clone->assign(*this,false);
+        return clone;
+    };
     //@}
 
 public:
     //------------------------------------------------------------
     ///\name CQueryOptions API
     //@{
+
+    //! Run optional fast unsatisfiability checks for query before Compile() is called
+    virtual bool CheckSatisfiable(CQueryCompiler *compiler);
+    
     //! Compile index-dependent filter properties (required for evaluation)
     virtual bool Compile(CQueryCompiler *compiler);
 
@@ -128,6 +140,12 @@ public:
 
     //! returns true iff all defined filters are trivial (i.e. do not change default hit-sort order)
     bool IsTrivialFilter() const;
+
+    //! returns a pointer (into m_QFilters) to the primary sort-filter, or NULL if no sort-filters are defined
+    CQFilter *PrimarySortFilter() const;
+
+    //! returns true iff the primary sort-filter is prune-filter
+    bool IsPruneFilter() const;
     //@}
 
 public:

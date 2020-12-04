@@ -102,6 +102,20 @@ struct IsLessByHitSortKey {
 };
 
 //==============================================================================
+//! indirect comparison operator for hits on CHit::m_SortKey.s (for std::sort); replaces IsLessByHitOrderId .
+//! \li true string-based sorting occurs only at distributed server level
+struct IsLessByHitSortKeyStr {
+    const vector<CHit> &m_Base;
+
+    IsLessByHitSortKeyStr(const vector<CHit> &Base)
+        : m_Base(Base) {};
+
+    bool operator()(size_t i1, size_t i2) const {
+        return m_Base[i1].m_SortKey.s < m_Base[i2].m_SortKey.s;
+    };
+};
+
+//==============================================================================
 // cannot create cross-platform heterogenious predicate lower_bound:
 // http://groups.google.com/group/comp.std.c++/browse_thread/thread/151b0210b6266c2f?hl=en&lr=&safe=off&ic=1&seekm=MPG.143ab91a14f21268989743%40news.supernews.com
 // that's why we are to create i
@@ -247,6 +261,7 @@ CConcSession::CConcSession(CConcSessionContext *SessionContext) {
     m_ResultOffset = 0;
     m_ResultLimit = SIZE_MAX;
     m_ResultMinKey = "";
+    m_RequestPath = "";
     m_pConcordance = 0;
     m_pBreaks = 0;
     m_ResultFormat = DDC_ResultText;
@@ -255,6 +270,7 @@ CConcSession::CConcSession(CConcSessionContext *SessionContext) {
     m_pRandom = new DDCRandom();
     m_RandomSeed = 0;
     m_bSortByString = false;
+    m_bPrune = false;
     m_SortOrder = hsoNone;
 }
 
@@ -880,6 +896,10 @@ bool CConcSession::GenerateOneHitStringJson(DWORD PageNumber, const CHit &Hit, c
 #endif
 
     //==================================================
+    // hit node
+    hitStr += string("\"node_\":") + jsonStr(m_RequestPath) + ',';
+
+    //==================================================
     // hit metadata
     hitStr += (string("\"meta_\":{")
 #if JSON_SHORT_FILENAMES
@@ -1070,8 +1090,7 @@ DDCErrorEnum CConcSession::GenerateHitStrings(const int StartHitNo, bool UseAddi
     m_ErrorStr = "";
 
     if (StartHitNo < m_ResultOffset)
-        throw CExpc("GenerateHitStrings(): m_ResultOffset=%zd exceeds requested StartHitNo=%d", StartHitNo,
-                    m_ResultOffset);
+        throw CExpc("GenerateHitStrings(): m_ResultOffset=%zd exceeds requested StartHitNo=%d", StartHitNo, m_ResultOffset);
 
     int beg = StartHitNo - m_ResultOffset;
     int end = GetOffsetHint(StartHitNo) - m_ResultOffset;
@@ -1509,13 +1528,13 @@ void CConcSession::InitSortByContext(const CQuery *pQuery, const CDDCFilterWithB
     }
 }
 
-
 //----------------------------------------------------------------------
-void CConcSession::InitSortKeyForHits(const CQuery *pQuery, const CDDCFilterWithBounds &Filter) {
+void CConcSession::InitSortKeyForHits(const CQuery *pQuery, const CDDCFilterWithBounds &Filter, vector<size_t>& PeriodHitsIndex) {
     assert (Filter.m_FilterType != HitSortsCount);
 
     //-- defaults
     m_bSortByString = false;
+    m_bPrune    = false;
     m_SortOrder = Filter.SortOrder();
 
     //-- guts
@@ -1556,6 +1575,14 @@ void CConcSession::InitSortKeyForHits(const CQuery *pQuery, const CDDCFilterWith
 
         case RandomSort:
             InitSortByRandom(pQuery);
+            break;
+
+        case GreaterByPruneKey:
+        case LessByPruneKey:
+            assert(Filter.m_Parent != NULL);
+            ((CQFPrune*)Filter.m_Parent)->PruneHitsIndex(pQuery, PeriodHitsIndex);
+            m_bSortByString = true;
+            m_bPrune = true;
             break;
 
         default: break; //-- unhandled
@@ -1601,6 +1628,11 @@ void CConcSession::SortKeyLB(CHitSortKey &Key, const CDDCFilterWithBounds &Filte
             }
             break;
         }
+
+        case LessByPruneKey:
+        case GreaterByPruneKey:
+            //-- just use string key
+            break;
 
         default:
             Key.i = hex2int(Key.s);
@@ -1681,27 +1713,28 @@ DDCErrorEnum CConcSession::GetAllHits(CQuery *QueryRoot, size_t Start, size_t Li
         m_SortOrder = hsoNone; //-- no sort
         for (size_t FilterNo = 0; FilterNo < qOpts->m_Filters.size(); FilterNo++) {
             const CDDCFilterWithBounds &F = qOpts->m_Filters[FilterNo];
+            //ddcLogDebug(Format("[period=%d] evaluating filter of type %s ; SortOrder=%d", m_CurrentSearchPeriodNo, HitSortEnumStrings[F.m_FilterType], m_SortOrder));
 
             //-- init Hits::m_SortKey (always initialized in raw ascending order)
-            InitSortKeyForHits(qRoot, F);
+            InitSortKeyForHits(qRoot, F, PeriodHitsIndex);
 
             size_t hits_start, hits_end;
-            if (m_SortOrder >= 0) {
+            if (F.IsPruneFilter()) {
+                //-- prune sort
+                hits_start = 0;
+                hits_end = PeriodHitsIndex.size();
+            } else if (m_SortOrder >= 0) {
                 //-- ascending sort (also run for NoSort, since #has_field[] filters need bounds-checking)
                 stable_sort(PeriodHitsIndex.begin(), PeriodHitsIndex.end(), IsLessByHitSortKey(qHits));
-                hits_start = my_lower_bound(PeriodHitsIndex.begin(), PeriodHitsIndex.end(), F.m_KeyLo, qHits) -
-                    PeriodHitsIndex.begin();
-                hits_end = my_lower_bound(PeriodHitsIndex.begin(), PeriodHitsIndex.end(), F.m_KeyHi, qHits) -
-                    PeriodHitsIndex.begin();
+                hits_start = my_lower_bound(PeriodHitsIndex.begin(), PeriodHitsIndex.end(), F.m_KeyLo, qHits) - PeriodHitsIndex.begin();
+                hits_end   = my_lower_bound(PeriodHitsIndex.begin(), PeriodHitsIndex.end(), F.m_KeyHi, qHits) - PeriodHitsIndex.begin();
             } else if (m_SortOrder < 0) {
                 //-- descending sort
                 stable_sort(PeriodHitsIndex.rbegin(), PeriodHitsIndex.rend(), IsLessByHitSortKey(qHits));
-                hits_start = my_lower_bound(PeriodHitsIndex.rbegin(), PeriodHitsIndex.rend(), F.m_KeyHi, qHits) -
-                    PeriodHitsIndex.rbegin();
-                hits_end = my_lower_bound(PeriodHitsIndex.rbegin(), PeriodHitsIndex.rend(), F.m_KeyLo, qHits) -
-                    PeriodHitsIndex.rbegin();
+                hits_start = my_lower_bound(PeriodHitsIndex.rbegin(), PeriodHitsIndex.rend(), F.m_KeyHi, qHits) - PeriodHitsIndex.rbegin();
+                hits_end   = my_lower_bound(PeriodHitsIndex.rbegin(), PeriodHitsIndex.rend(), F.m_KeyLo, qHits) - PeriodHitsIndex.rbegin();
                 hits_start = PeriodHitsIndex.size() - hits_start;
-                hits_end = PeriodHitsIndex.size() - hits_end;
+                hits_end   = PeriodHitsIndex.size() - hits_end;
             } else {
                 //-- no sort
                 hits_start = 0;
@@ -1765,9 +1798,10 @@ DDCErrorEnum CConcSession::GetAllHits(CQuery *QueryRoot, size_t Start, size_t Li
 
         //-- trim-front: trimming from *front* of period-local hits (v2.1.9: save memory for high-offset result pages)
         //   + non-count queries only
+        //   + non-pruned queries only
         //   + only meaningful for Start > 0
         size_t TrimFrontOffset = 0; //-- for trim-front, period-local
-        if (!qCount && Start > 0) {
+        if (!qCount && !m_bPrune && Start > 0) {
             if (m_SortOrder == hsoNone && Start > m_ResultOffset) {
                 //-- trim-front: offset-based (no sort operators)
                 TrimFrontOffset = min(Start - m_ResultOffset, PeriodHitsIndex.size());
@@ -1786,7 +1820,7 @@ DDCErrorEnum CConcSession::GetAllHits(CQuery *QueryRoot, size_t Start, size_t Li
                     TrimFrontOffset = my_lower_bound(PeriodHitsIndex.begin(), PeriodHitsIndex.end(), minKey, qHits) -
                         PeriodHitsIndex.begin();
                 } else if (m_SortOrder < 0) {
-                    //-- descending sortt
+                    //-- descending sort
                     TrimFrontOffset = my_upper_bound(PeriodHitsIndex.rbegin(), PeriodHitsIndex.rend(), minKey, qHits) -
                         PeriodHitsIndex.rbegin();
                     TrimFrontOffset = PeriodHitsIndex.size() - TrimFrontOffset;
@@ -1957,8 +1991,14 @@ void CConcSession::SaveToCache(const string &Query, vector<size_t>::const_iterat
 
 //----------------------------------------------------------------------
 DDCErrorEnum CConcSession::GetHits(const string &QueryStr, DWORD &EndHitNo) {
-    if (!(m_pQueryCompiler->ParseQuery(QueryStr) && m_pQueryCompiler->Compile()))
+    if (!m_pQueryCompiler->ParseQuery(QueryStr))
         return errParseError;
+
+    m_pQueryCompiler->CheckSatisfiable(); //-- just flag compiler unsatisfiable queries
+
+    if (!m_pQueryCompiler->Compile())
+        return errParseError;
+    
     return GetHits(m_pQueryCompiler->m_pQuery, EndHitNo, QueryStr);
 }
 
@@ -1979,7 +2019,12 @@ DDCErrorEnum CConcSession::GetHits(CQuery *QueryRoot, DWORD &EndHitNo, const str
     try {
         size_t StartHitNo = EndHitNo; //-- EndHitNo as input parameter
 
-        if (!TryToGetFromCache(QueryStr, EndHitNo)) {
+        if (QueryRoot->m_Compiler && !QueryRoot->m_Compiler->m_bSatisfiable) {
+            //-- unsatisfiable query : ignore
+            ddcLogDebug(Format("unsatisfiable query detected: %s", QueryStr.c_str()));
+            return errNone;
+        }
+        else if (!TryToGetFromCache(QueryStr, EndHitNo)) {
             //-- new query, cache-miss, or re-evaluation required (e.g. high-offset page request)
             DDCErrorEnum result = GetAllHits(QueryRoot, StartHitNo,
                                              max(StartHitNo + m_ResultLimit, m_pConcordance->m_MaxCachedHitsCount));
@@ -1994,7 +2039,13 @@ DDCErrorEnum CConcSession::GetHits(CQuery *QueryRoot, DWORD &EndHitNo, const str
             HIT_SORT_DEBUG(dumpHits(Format("DEBUG[pre-sort;order=%d]: m_Hits", m_SortOrder), m_Hits));
 
             //-- re-sort hits here, since they might be drawn from different corpus periods
-            if (m_SortOrder > 0) {
+            if (m_bPrune && m_SortOrder > 0) {
+                //-- ascending prune-sort
+                stable_sort(HitsIndex.begin(), HitsIndex.end(), IsLessByHitSortKeyStr(m_Hits));
+            } else if (m_bPrune && m_SortOrder < 0) {
+                //-- descending prune- sort
+                stable_sort(HitsIndex.rbegin(), HitsIndex.rend(), IsLessByHitSortKeyStr(m_Hits));
+            } else if (m_SortOrder > 0) {
                 //-- ascending sort
                 stable_sort(HitsIndex.begin(), HitsIndex.end(), IsLessByHitSortKey(m_Hits));
             } else if (m_SortOrder < 0) {

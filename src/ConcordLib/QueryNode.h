@@ -1,6 +1,6 @@
 //-*- Mode: C++ -*-
 //  DDC originally by Alexey Sokirko
-//  Changes and modifications 2011-2018 by Bryan Jurish
+//  Changes and modifications 2011-2020 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -342,6 +342,9 @@ public:
 
     //! create universal-match set
     bool CreateUniversalPattern(const CConcHolder *pHolder, const string& SourceStr="*");
+
+    //! create empty match-set
+    bool CreateNullPattern(const CConcHolder *pHolder, const string& IndexName="Token");
 
     //! create lemma-match pattern (old)
     bool CreateLemmaPattern(const CConcHolder* pHolder, const string& Value);

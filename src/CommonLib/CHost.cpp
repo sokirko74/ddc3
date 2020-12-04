@@ -1,7 +1,7 @@
 //-*- Mode: C++ -*-
 //
 //  DDC originally by Alexey Sokirko
-//  Changes and modifications 2011-2019 by Bryan Jurish
+//  Changes and modifications 2011-2020 by Bryan Jurish
 //
 //  This file is part of DDC (formerly in string_socket.cpp)
 // 
@@ -65,6 +65,7 @@ bool CHost::ReadFromString (string S)
         string Item = tok.val();
         if (ItemNo == 0) {
             m_CorpusName = Item;
+            InitShortName();
         }
         else if (ItemNo == 1) {
             m_SockAddr.ParseSocketAddr(Item, false);
@@ -391,11 +392,22 @@ const string&   CHost::GetLocalPathOfIndex() const
 };
 
 //--------------------------------------------------------------
+void CHost::InitShortName()
+{
+    if (m_CorpusName.find("server:")==0) {
+        m_ShortName = m_CorpusName.substr(7);
+    } else {
+        m_ShortName = m_CorpusName;
+    }
+};
+
+//--------------------------------------------------------------
 void CHost::CopyAddressParametersFrom(const CHost& X)
 {
     m_SockAddr = X.m_SockAddr;
     m_LocalPath = X.m_LocalPath;
     m_CorpusName = X.m_CorpusName;
+    m_ShortName = X.m_ShortName;
 };
 
 

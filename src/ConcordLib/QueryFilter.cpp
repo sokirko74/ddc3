@@ -1,6 +1,6 @@
 //-*- Mode: C++ -*-
 //
-//  Copyright 2011-2017 by Bryan Jurish
+//  Copyright 2011-2020 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -25,8 +25,53 @@
 //======================================================================
 // globals
 
+//==============================================================================
+//! comparison operator for hits on CHit::m_FileNo (for std::sort)
+struct IsLessByHitFileNo {
+    const vector<CHit> &m_Base;
+    
+    IsLessByHitFileNo(const vector<CHit> &Base)
+        : m_Base(Base)
+    {};
+
+    bool operator()(size_t i1, size_t i2) const {
+        return m_Base[i1].m_FileNo < m_Base[i2].m_FileNo;
+    };
+};
+
+struct IsLessByHitBreakNo {
+    const vector<CHit> &m_Base;
+    
+    IsLessByHitBreakNo(const vector<CHit> &Base)
+        : m_Base(Base)
+    {};
+
+    bool operator()(size_t i1, size_t i2) const {
+        return m_Base[i1].m_BreakNo < m_Base[i2].m_BreakNo;
+    };
+};
+
+struct IsLessByHitKeyStr {
+    const vector<CHit> &m_Base;
+    
+    IsLessByHitKeyStr(const vector<CHit> &Base)
+        : m_Base(Base)
+    {};
+
+    bool operator()(size_t i1, size_t i2) const {
+        return m_Base[i1].m_SortKey.s < m_Base[i2].m_SortKey.s;
+    };
+};
+
 //======================================================================
 // CQFilter
+
+//--------------------------------------------------------------
+bool CQFilter::CheckSatisfiable(CQueryCompiler *compiler, CQueryOptions *options)
+{
+    return true;
+}
+
 
 //--------------------------------------------------------------
 bool CQFilter::Compile(CQueryCompiler *compiler, CQueryOptions *options)
@@ -91,6 +136,7 @@ bool CQFSort::Compile(CQueryCompiler *compiler, CQueryOptions *options)
       assert(compiler->m_pQuery->m_Options!=NULL);
     */
     assert(options != NULL);
+    m_Filter.m_Parent = this;
     options->m_Filters.push_back(m_Filter);
     return true;
 }
@@ -113,6 +159,21 @@ string CQFSort::ResolveAttributeName(CQueryCompiler *compiler, const string& att
 
     return string("");
 }
+
+//--------------------------------------------------------------
+CFreeBiblIndex* CQFSort::GetBiblConstant(CQueryCompiler *compiler, const string &attrName, bool allowBiblExpander)
+{
+    string fqName = ResolveAttributeName(compiler, attrName, allowBiblExpander);
+    if (fqName.empty())
+        return NULL;
+
+    CFreeBiblIndex *fbi = compiler->m_pHolder->m_pConcordance->m_BiblIndex.GetFreeBiblIndex(fqName);
+    if (fbi && fbi->GetTypeId() == cfbiStringConstant)
+        return fbi;
+
+    return NULL;
+}
+
 
 //--------------------------------------------------------------
 string CQFSort::argString(const string &arg) const
@@ -247,7 +308,7 @@ bool CQFBiblSort::Compile(CQueryCompiler *compiler, CQueryOptions *options)
     }
 
     //-- guts: get filter bounds
-    if (!ix->m_BiblIndex.GetFilterBounds(m_Filter, m_arg1, m_arg2)) {
+    if (compiler->m_bSatisfiable && !ix->m_BiblIndex.GetFilterBounds(m_Filter, m_arg1, m_arg2)) {
         throw CExpc(errParseError,"Can't determine bound(s) for bibliographic sort operator `%s'", this->toString().c_str());
     }
 
@@ -296,7 +357,7 @@ bool CQFContextSort::Compile(CQueryCompiler *compiler, CQueryOptions *options)
     if (ixx == NULL)
         throw CExpc(errParseError,"Can't find index `%s' for context-sort operator `%s'", m_Filter.m_AttrName.c_str(), toString().c_str());
 
-    if (!ixx->GetContextBounds(m_Filter, m_arg1, m_arg2))
+    if (compiler->m_bSatisfiable && !ixx->GetContextBounds(m_Filter, m_arg1, m_arg2))
         throw CExpc(errParseError,"Can't determine bound(s) for context-sort operator `%s'", toString().c_str());
 
     return CQFSort::Compile(compiler,options);
@@ -384,6 +445,17 @@ string CQFHasField::jsonMinMax(void)
 //======================================================================
 // CQFHasFieldValue
 
+bool CQFHasFieldValue::CheckSatisfiable(CQueryCompiler *compiler, CQueryOptions *options)
+{
+    if (m_arg0.empty()) return false;
+
+    CFreeBiblIndex *fbi = GetBiblConstant(compiler, m_arg0);
+    if (!fbi) return false;
+
+    bool rc = ( fbi->GetStringValue(0) == m_arg1 );
+    return m_Negated ? (!rc) : rc;
+}
+
 bool CQFHasFieldValue::Compile(CQueryCompiler *compiler, CQueryOptions *options)
 {
     CQFHasField::Compile(compiler,options);
@@ -391,8 +463,9 @@ bool CQFHasFieldValue::Compile(CQueryCompiler *compiler, CQueryOptions *options)
     m_Filter.m_bNegated = m_Negated;
     CConcordance *ix = compiler->m_pHolder->m_pConcordance;
 
-    if (!ix->m_BiblIndex.GetFilterValue(m_Filter, m_arg1))
+    if (compiler->m_bSatisfiable && !ix->m_BiblIndex.GetFilterValue(m_Filter, m_arg1)) {
         throw CExpc(errParseError,"Can't compile literal filter condition `%s'", toString().c_str());
+    }
 
     return CQFSort::Compile(compiler,options);
 }
@@ -400,13 +473,22 @@ bool CQFHasFieldValue::Compile(CQueryCompiler *compiler, CQueryOptions *options)
 //======================================================================
 // CQFHasFieldRegex
 
+bool CQFHasFieldRegex::CheckSatisfiable(CQueryCompiler *compiler, CQueryOptions *options)
+{
+    if (m_arg0.empty()) return false;
+    if (!GetBiblConstant(compiler, m_arg0)) return false;
+
+    this->Compile(compiler,options);
+    return m_Negated ? m_Filter.m_SatisfiedValues.empty() : !m_Filter.m_SatisfiedValues.empty();
+}
+
 bool CQFHasFieldRegex::Compile(CQueryCompiler *compiler, CQueryOptions *options)
 {
     CQFHasField::Compile(compiler,options);
 
     m_Filter.m_bNegated = m_Negated;
     CConcordance *ix = compiler->m_pHolder->m_pConcordance;
-    if (!ix->m_BiblIndex.GetFilterValues(m_Filter, m_Regex))
+    if (compiler->m_bSatisfiable && !ix->m_BiblIndex.GetFilterValues(m_Filter, m_Regex))
         throw CExpc(errParseError,"Can't compile regex filter condition `%s'", toString().c_str());
 
     return CQFSort::Compile(compiler,options);
@@ -444,13 +526,22 @@ string CQFHasFieldInfix::valueString()
 //======================================================================
 // CQFHasFieldSet
 
+bool CQFHasFieldSet::CheckSatisfiable(CQueryCompiler *compiler, CQueryOptions *options)
+{
+    if (m_arg0.empty()) return false;
+    if (!GetBiblConstant(compiler, m_arg0)) return false;
+
+    this->Compile(compiler,options);
+    return m_Negated ? m_Filter.m_SatisfiedValues.empty() : !m_Filter.m_SatisfiedValues.empty();
+}
+
 bool CQFHasFieldSet::Compile(CQueryCompiler *compiler, CQueryOptions *options)
 {
     CQFHasField::Compile(compiler,options);
 
     m_Filter.m_bNegated = m_Negated;
     CConcordance *ix = compiler->m_pHolder->m_pConcordance;
-    if (!ix->m_BiblIndex.GetFilterValues(m_Filter, m_Values))
+    if (compiler->m_bSatisfiable && !ix->m_BiblIndex.GetFilterValues(m_Filter, m_Values))
         throw CExpc(errParseError,"Can't compile set-valued filter restriction `%s'", toString().c_str());
 
     return CQFSort::Compile(compiler,options);
@@ -482,6 +573,108 @@ string CQFHasFieldSet::jsonFieldValue()
     return s;
 }
 
+//======================================================================
+// CQFPrune
+
+CQFPrune::CQFPrune(HitSortEnum ftype, size_t Limit, CQCountKeyExprList* Keys)
+    : CQFSort(ftype), m_limit(Limit), m_keys(Keys)
+{
+    m_Filter.m_bSet       = false;
+    m_Filter.m_KeyLo      = INT_MIN;
+    m_Filter.m_KeyHi      = INT_MAX;
+}
+
+
+CQFPrune::~CQFPrune()
+{
+    if (m_keys) {
+        delete m_keys;
+        m_keys = NULL;
+    }
+};
+
+CQFilter* CQFPrune::Clone()
+{
+    CQFPrune* x = new CQFPrune(m_Filter.m_FilterType, m_limit, NULL);
+    x->m_Filter.m_Parent = x;
+    x->m_limit = m_limit;
+    if (m_keys)
+        x->m_keys  = new CQCountKeyExprList(*m_keys);
+    return x;
+};
+
+bool CQFPrune::Compile(CQueryCompiler *compiler, CQueryOptions *options)
+{
+    return (CQFSort::Compile(compiler, options)
+            && m_keys->Compile(compiler));
+};
+
+
+string CQFPrune::toString()
+{
+    string s = Format("#%s[%zd,", HitSortEnumStrings[m_Filter.m_FilterType], m_limit);
+    EngMakeUpper(s);
+    if (m_keys)
+        s += m_keys->toString();
+    s += "]";
+    return s;
+};
+
+string CQFPrune::jsonData()
+{
+    string s = Format("\"Limit\":%zd", m_limit);
+    if (m_keys && !m_keys->empty()) {
+        s += string(",\"Keys\":") + m_keys->toJson();
+    }
+    return s;
+};
+
+
+//-- see also CQCount::CountLocal()
+void CQFPrune::PruneHitsIndex(const CQuery *qRoot, vector<size_t>& PeriodHitsIndex)
+{
+    //-- sanity checks ~ CQCount::Evaluate()
+    assert(qRoot != NULL);
+    assert(qRoot->m_Node != NULL);
+    assert(qRoot->m_Compiler != NULL);
+    assert(qRoot->m_Compiler->m_pHolder != NULL);
+    assert(qRoot->m_Compiler->m_pHolder->m_pConcordance != NULL);
+
+    //-- common variables
+    //CQuery* qRoot = pQuery;
+    CQCountKeyExprList *keys = m_keys;
+    vector<CHit> &qHits = qRoot->m_Node->m_Hits;
+    vector<size_t> NewHitsIndex;
+    NewHitsIndex.reserve(PeriodHitsIndex.size());
+
+    //--  count-pruning guts
+    //-- count-pruning guts: token-level
+    string key;
+    CCountMap::iterator mapi;
+
+    for (vector<size_t>::const_iterator hxi=PeriodHitsIndex.begin(); hxi != PeriodHitsIndex.end(); ++hxi) {
+        string &key = keys->Evaluate(qHits[*hxi]);
+        if ((mapi=m_Counts.find(key)) == m_Counts.end()) {
+            mapi = m_Counts.insert(m_Counts.end(), std::make_pair(key,0));
+        }
+        if (mapi->second < m_limit) {
+            ++mapi->second;
+            NewHitsIndex.push_back(*hxi);
+            qHits[*hxi].m_SortKey = key;
+        }
+    }
+
+    //-- sort by prune-key
+    if (m_Filter.SortOrder() == hsoDescending) {
+        stable_sort(NewHitsIndex.rbegin(), NewHitsIndex.rend(), IsLessByHitKeyStr(qHits));
+    } else {
+        stable_sort(NewHitsIndex.begin(), NewHitsIndex.end(), IsLessByHitKeyStr(qHits));
+    }
+
+    //-- tweak hit-index
+    PeriodHitsIndex.swap(NewHitsIndex);
+};
+
 /*--- emacs style variables ---
  * Local Variables:
  *  mode: C++
@@ -491,3 +684,4 @@ string CQFHasFieldSet::jsonFieldValue()
  *  indent-tabs-mode: nil
  * End:
  */
+

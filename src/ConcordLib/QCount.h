@@ -1,6 +1,6 @@
 //-*- Mode: C++ -*-
 //  DDC originally by Alexey Sokirko
-//  Changes and modifications 2011-2018 by Bryan Jurish
+//  Changes and modifications 2011-2020 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -345,7 +345,7 @@ public:
 
 public:
     //! bison constructor
-    CQCount(CQuery *dtr_, CQCountKeyExprList* keys_, size_t sample_=DDCDefaultCountSampleSize, HitSortEnum sort_=NoSort, string lb="", string ub="")
+    CQCount(CQuery *dtr_=NULL, CQCountKeyExprList* keys_=NULL, size_t sample_=DDCDefaultCountSampleSize, HitSortEnum sort_=NoSort, string lb="", string ub="")
         : CQuery("count"),
           m_dtr(dtr_),
           m_sample(sample_),
@@ -364,6 +364,12 @@ public:
 public:
     //! get local match-id: keys > dtr
     virtual BYTE GetMatchId() const;
+
+    //! Compile index-dependent query properties
+    bool CompileLocal(CQueryCompiler *compiler, bool compileDtr=true, bool compileKeys=true);
+
+    //! Run optional unsatisfiability checks for query before Compile() is called.
+    virtual bool CheckSatisfiable(CQueryCompiler *compiler);
 
     //! Compile index-dependent query properties
     virtual bool Compile(CQueryCompiler *compiler);
@@ -385,7 +391,8 @@ public:
 
     //! evaluation guts: extend m_Counts[] with counts for current search period; formerly CConcHolder::GetPeriodCounts()
     //! \li should be called once per subcorpus search period
-    //! \li manipulates Result (clears local query-data, expected to correspond to m_dtr query for current period)
+    //! \li may (re-)sort Result.m_Hits 
+    //! \li also clears local query-data in Result (expected to correspond to m_dtr query for current period)
     //! \li ConvertCountsToHits() still needs to be called after all search-periods have been counted
     virtual void CountLocal(CQueryResult &Result, size_t Limit);
 

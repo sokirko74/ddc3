@@ -11,7 +11,7 @@
     <section name="overview" title="Overview">
       <p>
         This documentation describes the query language accepted by
-        DDC version 2.2.3.  Current sources for DDC should be available
+        DDC version 2.2.8.  Current sources for DDC should be available
         from
         <!--<a href="http://odo.dwds.de/code/viewvc.cgi/ddc/trunk/?root=dev">svn+ssh://odo.dwds.de/home/svn/dev/ddc/trunk</a>.-->
         <a href="http://sourceforge.net/projects/ddc-concordance">http://sourceforge.net/projects/ddc-concordance</a>.
@@ -67,9 +67,11 @@
           <rule lhs="query" cmt="Top-level rule (query root)">
             <rhs cmt="Traditional context-query">
               <n>query_conditions</n>
+	      <n>q_directives</n>
             </rhs>
             <rhs cmt="Count-query (histogram data)">
               <n>count_query</n>
+	      <n>q_directives</n>
             </rhs>
           </rule>
 
@@ -660,7 +662,7 @@
       <!-- Grammar: Query Filter Rules -->
       <subsection name="filters" title="Query Filter Rules">
         <rules>
-
+	  
           <!--~~~~~~~~ RULES: q_filters -->
           <rule lhs="q_filters" cmt="List of global query options">
             <rhs cmt="empty"/>
@@ -702,12 +704,17 @@
             </rhs>
           </rule>
 
+          <!--~~~~~~~~ RULES: q_directives -->
+          <rule lhs="q_directives" cmt="Global branch server directives">
+            <rhs cmt="empty"/>
+            <rhs cmt="subcorpus path selection">
+              <n>q_directives</n>
+              <n>qd_subcorpora</n>
+            </rhs>
+          </rule>
+
           <!--~~~~~~~~ RULES: q_flag -->
           <rule lhs="q_flag" cmt="Global query flags">
-            <rhs cmt="subcorporus selection">
-              <t>:</t>
-              <n>qf_subcorpora</n>
-            </rhs>
             <rhs cmt="hit context window (number of sentences; alias: #N)">
               <t>#CNTXT</t>
               <n>integer</n>
@@ -766,6 +773,17 @@
             </rhs>
             <rhs cmt="... sort hits pseudo-randomly">
               <n>qf_random_sort</n>
+            </rhs>
+            <rhs cmt="... sort and prune hits by metadata attributes">
+              <n>qf_prune_sort</n>
+            </rhs>
+          </rule>
+
+	  <!--~~~~~~~~ RULES: qd_subcorpora -->
+          <rule lhs="qd_subcorpora" cmt="Subcorpus selection directive">
+            <rhs cmt="... select all and only the specified subcorpus paths">
+              <t>:</t>
+              <n>l_subcorpora</n>
             </rhs>
           </rule>
 
@@ -945,7 +963,24 @@
             </rhs>
           </rule>
 
-
+          <!--~~~~~~~~ RULES: qf_prune_sort -->
+          <rule lhs="qf_prune_sort" cmt="Limit number of hits returned per key">
+            <rhs cmt="... sorting hits in ascending order by prune-key (#PRUNE, #PRUNE_ASC, #PRUNE_BY, #PRUNE_ASC_BY)">
+              <t>#PRUNE</t>
+              <t>[</t>
+              <xt>INTEGER</xt>
+              <n>l_prunekeys</n>
+              <t>]</t>
+            </rhs>
+            <rhs cmt="... sorting hits in descending order by prune-key (#PRUNE_DESC, #PRUNE_DESC_BY, #PRUNE_DSC, #PRUNE_DSC_BY">
+              <t>#PRUNE_DESC</t>
+              <t>[</t>
+              <xt>INTEGER</xt>
+              <n>l_prunekeys</n>
+              <t>]</t>
+            </rhs>
+          </rule>
+	  
           <!--~~~~~~~~ RULES: qfb_int -->
           <rule lhs="qfb_int" cmt="Optional integer bounds for query filters">
             <rhs cmt="... empty (full range)"/>
@@ -1249,7 +1284,7 @@
           </rule>
 
           <!--~~~~~~~~ RULES: l_countkeys -->
-          <rule lhs="l_countkeys" cmt="Tuple of bibliographic metadata fields">
+          <rule lhs="l_countkeys" cmt="Tuple of bibliographic metadata and/or token attributes for histogram bin">
             <rhs cmt="... empty"/>
             <rhs cmt="... singleton">
               <n>count_key</n>
@@ -1262,35 +1297,15 @@
           </rule>
 
           <!--~~~~~~~~ RULES: count_key -->
-          <rule lhs="count_key" cmt="Histogram bin component">
-            <rhs cmt="... constant string '*' (global counts only)">
-              <t>*</t>
+          <rule lhs="count_key" cmt="Histogram bin component for count-queries">
+            <rhs cmt="... constant expression">
+              <n>count_key_const</n>
             </rhs>
-            <rhs cmt="... constant user-defined string">
-              <t>@</t>
-              <n>symbol</n>
+            <rhs cmt="... bibliographic metadata attribute">
+              <n>count_key_meta</n>
             </rhs>
-            <rhs cmt="... subcorpus-local file-id (integer)">
-              <t>FILEID</t>
-            </rhs>
-            <rhs cmt="... filename">
-              <t>FILENAME</t>
-            </rhs>
-            <rhs cmt="... date string (YYYY-MM-DD)">
-              <t>DATE</t>
-            </rhs>
-            <rhs cmt="... date slice, computed as (i_slice*int(year/i_slice))">
-              <t>DATE</t>
-              <t>/</t>
-              <n>i_slice</n>
-            </rhs>
-            <rhs cmt="... bibliographic string-field value (e.g. textClass)">
-              <n>s_field</n>
-            </rhs>
-            <rhs cmt="... indexed token attribute, relative to some matched token (may be slow)">
-              <n>s_index</n>
-              <n>ck_matchid</n>
-              <n>ck_offset</n>
+            <rhs cmt="... token attribute">
+              <n>count_key_token</n>
             </rhs>
             <rhs cmt="... on-the-fly regex transformation (can be chained)">
               <n>count_key</n>
@@ -1303,6 +1318,68 @@
               <t>)</t>
             </rhs>
           </rule>
+
+          <!--~~~~~~~~ RULES: prune_key -->
+          <rule lhs="prune_key" cmt="Histogram bin component for pruning">
+            <rhs cmt="... constant expression">
+              <n>count_key_const</n>
+            </rhs>
+            <rhs cmt="... bibliographic metadata attribute">
+              <n>count_key_meta</n>
+            </rhs>
+            <rhs cmt="... on-the-fly regex transformation (can be chained)">
+              <n>prune_key</n>
+              <t>~</t>
+              <n>replace_regex</n>
+            </rhs>
+            <rhs cmt="... explicit grouping">
+              <t>(</t>
+              <n>prune_key</n>
+              <t>)</t>
+            </rhs>
+          </rule>
+
+	  <!--~~~~~~~~ RULES: count_key_const -->
+          <rule lhs="count_key_const" cmt="Constant histogram bin component">
+            <rhs cmt="... constant string '*' (global counts only)">
+              <t>*</t>
+            </rhs>
+            <rhs cmt="... constant user-defined string">
+              <t>@</t>
+              <n>symbol</n>
+            </rhs>
+          </rule>
+
+	  <!--~~~~~~~~ RULES: count_key_meta -->
+          <rule lhs="count_key_meta" cmt="Bibliographic metadata attribute(s) histogram bin component">
+            <rhs cmt="... by subcorpus-local file-id (integer)">
+              <t>FILEID</t>
+            </rhs>
+            <rhs cmt="... by filename">
+              <t>FILENAME</t>
+            </rhs>
+            <rhs cmt="... by date string (YYYY-MM-DD)">
+              <t>DATE</t>
+            </rhs>
+            <rhs cmt="... by date slice, computed as (i_slice*int(year/i_slice))">
+              <t>DATE</t>
+              <t>/</t>
+              <n>i_slice</n>
+            </rhs>
+            <rhs cmt="... by bibliographic attribute value (e.g. author, textClass)">
+              <n>s_field</n>
+            </rhs>
+          </rule>
+	  
+	  <!--~~~~~~~~ RULES: count_key_token -->
+          <rule lhs="count_key_token" cmt="Token attribute histogram bin component">
+            <rhs cmt="... indexed token attribute value, relative to some matched token (may be slow)">
+              <n>s_index</n>
+              <n>ck_matchid</n>
+              <n>ck_offset</n>
+            </rhs>
+          </rule>
+	  
 
           <!--~~~~~~~~ RULES: ck_matchid -->
           <rule lhs="ck_matchid" cmt="Match-ID back-reference for count-key context token">
@@ -1410,6 +1487,19 @@
             </rhs>
           </rule>
 
+          <!--~~~~~~~~ RULES: l_prunekeys -->
+          <rule lhs="l_prunekeys" cmt="Tuple of bibliographic metadata attributes for pruning bin">
+            <rhs cmt="... empty"/>
+            <rhs cmt="... singleton">
+              <n>prune_key</n>
+            </rhs>
+            <rhs cmt="... or comma-separated list">
+              <n>l_prunekeys</n>
+              <t>,</t>
+              <n>prune_key</n>
+            </rhs>
+          </rule>
+  
           <!--~~~~~~~~ RULES: l_indextuple -->
           <rule lhs="l_indextuple" cmt="Target token-attribute tuple for keys() queries">
             <rhs cmt="Empty list (uses default indices from count()-subquery #BY clause)"/>
@@ -1423,14 +1513,14 @@
             </rhs>
           </rule>
 
-          <!--~~~~~~~~ RULES: qf_subcorpora -->
-          <rule lhs="qf_subcorpora" cmt="Set of target subcorpus paths">
-            <rhs cmt="... empty subcorpus set"/>
-            <rhs cmt="... singleton subcorpus path (symbol)">
+          <!--~~~~~~~~ RULES: l_subcorpora -->
+          <rule lhs="l_subcorpora" cmt="List of target subcorpus paths">
+            <rhs cmt="... empty list queries full sub-tree"/>
+            <rhs cmt="... singleton subcorpus path (symbol with optional * and/or ** glob-style wildcards)">
               <n>s_subcorpus</n>
             </rhs>
             <rhs cmt="... multiple subcorpus paths are separated by commas">
-              <n>qf_subcorpora</n>
+              <n>l_subcorpora</n>
               <t>,</t>
               <n>s_subcorpus</n>
             </rhs>
@@ -1576,7 +1666,7 @@
 
           <!--~~~~~~~~ RULES: s_subcorpus -->
           <rule lhs="s_subcorpus" cmt="Named subcorpus path used by :... filter">
-            <rhs cmt="... can be any symbol, bare '/' and '*' are allowed">
+            <rhs cmt="... can be any symbol, bare '/', '*', and '**' are allowed">
               <xt>SUBCORPUS</xt>
             </rhs>
           </rule>
@@ -1796,6 +1886,8 @@ comment_text    (\\.|[^\]])*
 (?i:#((greater|de?sc)(_by)?_key))
 (?i:#((less|asc)(_by)?_(count|val(ue)?)))
 (?i:#((greater|de?sc)(_by)?_(count|val(ue)?)))
+(?i:#prune(_less|_asc)?(_by)?)
+(?i:#prune(_greater|_de?sc)(_by)?)
 </pre>
         <p>
           The scanner supports the various reserved words used in
@@ -2071,25 +2163,27 @@ comment_text    (\\.|[^\]])*
     <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
     <subsection name="term_SUBCORPUS" title="Subcorpus Paths">
 <pre>
-{corpus_text}                       /* bareword subcorpus path (including '/' and '*') */
+{corpus_text}                       /* bareword subcorpus path (including '/', '*', and '**') */
 \'{sq_text}\'                       /* single-quoted subcorpus path */
 </pre>
       <p>
         A branch-server query (see <a href="ddc_cfg.html">ddc_cfg(5)</a>)
         may be restricted to a subset of available sub*corpora
-        by means of the <a href="#rule_qf_subcorpora"><code>:</code> operator</a> (<code>:PATH1,PATH2,...,PATHn</code>).
+        by means of the <a href="#rule_qd_subcorpora"><code>:</code> directive</a> (<code>:PATH1,PATH2,...,PATHn</code>).
         Each subcorpus <tt>PATH</tt> in the list is parsed syntactically as an
         <a href="#term_SYMBOL">atomic symbol</a> (allowing un-escaped
-        "<code>/</code>" and "<code>*</code>" for convenience),
-        but is otherwise ignored by physical leaf servers.
+        "<code>/</code>", "<code>*</code>", and "<code>**</code>" for convenience),
+        but is otherwise ignored by physical leaf servers when queried directly.
       </p>
       <p>
         Prior to v2.2.0, each <tt>PATH</tt> in a branch-server query had to be the literal name of
         an immediate daughter node (see <a href="ddc_cfg.html">ddc_cfg(5)</a>),
         and only those daughters explicitly specified were queried.
         As of v2.2.0, branch servers allow slash-separated sub*corpus paths in <tt>PATH</tt>s
-        as well as (limited) wildcard strings <code>*</code> indicating all descendants
-        from the corresonding node:
+        as well as (limited) wildcard strings <code>*</code> indicating all immediate daughters
+        of the corresonding node.
+	As of v2.2.8, branch and leaf servers also allow path wildcard strings <code>**</code> indicating
+	any direct or indirect descendant of the current node:
         <table class="escTable">
             <tr><th>Paths</th><th style="text-align:left;">Description</th></tr>
             <tr><td class="monospace">:</td><td>all descendants (empty list: default)</td></tr>
@@ -2098,7 +2192,11 @@ comment_text    (\\.|[^\]])*
             <tr><td class="monospace">:foo/bar</td><td>granddaughter <code>bar</code>, which is a child of daughter <code>foo</code></td></tr>
             <tr><td class="monospace">:*/bar</td><td>all granddaughters named <code>bar</code></td></tr>
             <tr><td class="monospace">:*/bar,*/*/bar</td><td>all granddaughters or great-granddaughters named <code>bar</code></td></tr>
+	    <tr><td class="monospace">:**/baz</td><td>any node or descendant named <code>baz</code></td></tr>
+	    <tr><td class="monospace">:**/baz/**/bonk</td><td>any descendant named <code>bonk</code> which is descendend from a node named <code>baz</code></td></tr>
         </table>
+	For best results, individual server node labels themselves should <b>not</b> contain any
+	literal slashes (<code>/</code>), commas (<code>,</code>), or colons (<code>:</code>).
       </p>
     </subsection>
     <!--/terminals:subcorpus-->

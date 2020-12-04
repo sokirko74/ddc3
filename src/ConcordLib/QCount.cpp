@@ -1,7 +1,7 @@
 //-*- Mode: C++ -*-
 //
 //  DDC originally by Alexey Sokirko
-//  Changes and modifications 2011-2019 by Bryan Jurish
+//  Changes and modifications 2011-2020 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -471,32 +471,45 @@ BYTE CQCount::GetMatchId() const {
 }
 
 //--------------------------------------------------------------
+bool CQCount::CheckSatisfiable(CQueryCompiler *compiler) {
+    return (CQuery::CheckSatisfiable(compiler) && (m_dtr == NULL || m_dtr->CheckSatisfiable(compiler)));
+}
+
+//--------------------------------------------------------------
 bool CQCount::Compile(CQueryCompiler *compiler) {
+    return CompileLocal(compiler);
+}
+
+//--------------------------------------------------------------
+bool CQCount::CompileLocal(CQueryCompiler *compiler, bool compileDtr, bool compileKeys) {
     SetCompiler(compiler);
 
-    //-- sanity check(s)
-    if (!m_dtr)
-        throw CExpc(errParseError, "no argument conditions specified for count-query `%s'", this->toString().c_str());
+    if (compileDtr) {
+        //-- sanity check(s)
+        if (!m_dtr)
+            throw CExpc(errParseError, "no argument conditions specified for count-query `%s'", this->toString().c_str());
 
-    //-- compile daughter(s)
-    if (!m_dtr->CompileOptions(compiler) || !m_dtr->Compile(compiler))
-        throw CExpc(errParseError, "could not compile sub-query `%s' for count-query", m_dtr->toString().c_str());
+        //-- compile daughter(s)
+        if (!m_dtr->CompileOptions(compiler) || !m_dtr->Compile(compiler))
+            throw CExpc(errParseError, "could not compile sub-query `%s' for count-query", m_dtr->toString().c_str());
+    }
 
     //-- adopt daughter options if required (copy for count-by-break hack)
-    if (!m_Options && m_dtr->m_Options) {
+    if (!m_Options && m_dtr && m_dtr->m_Options) {
         m_Options = m_dtr->m_Options->Clone();
     }
 
     //-- adopt appropriate daughter options (for break-counting)
-    if (m_Options && m_dtr->m_Options) {
+    if (m_Options && m_dtr && m_dtr->m_Options) {
         m_Options->m_HitTypeStr = m_dtr->m_Options->m_HitTypeStr;
     }
 
     //-- compile key expression(s)
-    if (!m_keys) m_keys = new CQCountKeyExprList();
-    if (!m_keys->Compile(compiler))
-        throw CExpc(errParseError, "could not compile key expression(s) `%s' for count-query",
-                    m_keys->toString().c_str());
+    if (compileKeys) {
+        if (!m_keys) m_keys = new CQCountKeyExprList();
+        if (!m_keys->Compile(compiler))
+            throw CExpc(errParseError, "could not compile key expression(s) `%s' for count-query", m_keys->toString().c_str());
+    }
 
     //-- reset temporaries
     m_Counts.clear();
@@ -654,7 +667,7 @@ void CQCount::CountLocal(CQueryResult &Result, size_t Limit) {
 #if DEBUG_NCOUNT
         fprintf(stderr, "DEBUG_NCOUNT: count-by-break\n");
 #endif
-        CConcHolder *holder = (CConcHolder *) m_Compiler->m_pHolder;
+        //CConcHolder *holder = (CConcHolder *) m_Compiler->m_pHolder;
         set<string> bkeys;
         vector<CHit>::const_iterator hi, hj;
 
@@ -664,7 +677,7 @@ void CQCount::CountLocal(CQueryResult &Result, size_t Limit) {
 
         for (hi = Result.m_Hits.begin();
              hi != Result.m_Hits.end() && m_CountSample < m_sample; hi = hj, ++m_CountSample) {
-            //-- get set of all break keys
+            //-- get set of all break keys (workaround for mantis #17777, introduced in v2.0.51)
             for (hj = hi; hj != Result.m_Hits.end() && hj->m_BreakNo == hi->m_BreakNo; ++hj) {
                 try {
                     bkeys.insert(keys->Evaluate(*hj));
@@ -674,7 +687,7 @@ void CQCount::CountLocal(CQueryResult &Result, size_t Limit) {
                 }
             }
 
-            //-- increment counts for all instantiated keys
+            //-- prune if limit is exceeded for *any* break-key
             for (set<string>::const_iterator bki = bkeys.begin(); bki != bkeys.end(); ++bki) {
                 ++m_Counts[*bki];
             }

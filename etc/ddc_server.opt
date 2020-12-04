@@ -19,8 +19,10 @@ ThreadQueueSize		256
 NavCacheSize		3
 NavCacheStep		20
 
-# compat <= v2.1.8: disable navcache hints for 'get_first_hits' requests sent by server (4- and 5-argument forms of 'get_first_hits')
+# compat
+#  <= v2.1.8: disable navcache hints for 'get_first_hits' requests sent by server (4- and 5-argument forms of 'get_first_hits')
+#  <= v2.2.7: disable request path passing in 'get_first_hits' requests sent by server
 #VersionCompat		2.1.8
+#VersionCompat		2.2.7
 
-
-HitStringsParallel	1
+#HitStringsParallel	1

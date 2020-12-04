@@ -157,9 +157,16 @@ enum HitSortEnum {
     LessByCountValue = 18,
     //! sort by count()-value (descending)
     GreaterByCountValue = 19,
+    //! sort by #prune[]-key (ascending)
+    LessByPruneKey = 20,
+    //! sort by #prune[]-key (descending)
+    GreaterByPruneKey = 21,
     //! end-of-enum sentinel
-    HitSortsCount = 20
+    HitSortsCount = 22
 };
+
+inline bool IsPruneFilterType(HitSortEnum e)
+{ return e==LessByPruneKey || e==GreaterByPruneKey; }
 
 /*! symbolic hit sort order constants */
 enum HitSortOrderEnum {
@@ -206,7 +213,9 @@ static const char *HitSortEnumNames[HitSortsCount] =
     "LessByCountKey",
     "GreaterByCountKey",
     "LessByCountValue",
-    "GreaterByCountValue"
+    "GreaterByCountValue",
+    "LessByPruneKey",
+    "GreaterByPruneKey"
 };
 
 /*! symbolic names for HitSortEnum, for stringification */
@@ -230,7 +239,9 @@ static const char *HitSortEnumStrings[HitSortsCount] = {
     "asc_by_key",
     "desc_by_key",
     "asc_by_count",
-    "desc_by_count"
+    "desc_by_count",
+    "prune_asc",
+    "prune_desc"
 };
 
 
@@ -339,6 +350,9 @@ struct CDDCFilterWithBounds
     //! pointer to the CConcXml::CFreeBiblIndex responsible for populating this filter (only after compile)
     const CFreeBiblIndexInterface* m_BiblIndex;
 
+    //! pointer to parent CQFilter (if any)
+    class CQFilter * m_Parent;
+
     inline void clear()
     {
         m_SatisfiedValues.clear();
@@ -356,6 +370,7 @@ struct CDDCFilterWithBounds
             case GreaterByRightContext:
             case GreaterByCountKey:
             case GreaterByCountValue:
+            case GreaterByPruneKey:
                 return hsoDescending;
             case NoSort:
                 return hsoNone;
@@ -379,6 +394,9 @@ struct CDDCFilterWithBounds
             case GreaterByRank:
             case RandomSort:
                 return true; //-- non-filter operators are ignored
+            case LessByPruneKey:
+            case GreaterByPruneKey:
+                //return !m_Parent || !((CQFPrune*)m_Parent)->m_keys || ((CQFPrune*)m_Parent)->m_keys->canCountByFile(); //-- not declared here
             case LessBySize:
             case GreaterBySize:
             case LessByMiddleContext:
@@ -396,6 +414,10 @@ struct CDDCFilterWithBounds
     inline bool IsTrivialFilter(void) const
     { return m_FilterType == NoSort; };
 
+    //! returns true iff this is a pruning filter
+    inline bool IsPruneFilter(void) const
+    { return IsPruneFilterType(m_FilterType); };
+
 
     CDDCFilterWithBounds()
         : m_bSet(false),
@@ -405,7 +427,8 @@ struct CDDCFilterWithBounds
           m_ContextOffset(0),
           m_KeyLo(INT_MIN),
           m_KeyHi(INT_MAX),
-          m_BiblIndex(NULL)
+          m_BiblIndex(NULL),
+          m_Parent(NULL)
     {};
 };
 

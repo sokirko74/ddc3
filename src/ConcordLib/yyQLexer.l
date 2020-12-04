@@ -1,6 +1,6 @@
 /*-*- Mode: Flex; c-basic-offset: 8 -*-*/
 /*
-//  Copyright 2011-2019 by Bryan Jurish
+//  Copyright 2011-2020 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -79,6 +79,15 @@
  #define DDC_LEXER_COMMENT(x)
 #endif
 
+//-- YY_USER_ACTION
+// + user actions at every rule setup
+// + define this to increment new location-tracker yybyteno, see https://stackoverflow.com/questions/47094667/getting-the-current-index-in-the-input-string-flex-lexer
+#define YY_USER_ACTION yybyteno += yyleng;
+
+//-- YYX_ADD(textIncr,lengIncr)
+//  + wrapper for {yytext+=textIncr; yyleng+=lengIncr; yybyteno-=lengIncr}
+//  + required for maintaining correct yybyteno through e.g. sq_string ?
+#define YYX_ADD(textIncr,lengIncr) yytext+=(textIncr); yyleng+=(lengIncr); /*yybyteno-=(lengIncr);*/
 %}
 
 /*======================================================================
@@ -204,17 +213,19 @@ comment_text	(\\.|[^\]])*
 (?i:#((greater|de?sc)(_by)?_key))	{ return GREATER_BY_KEY; }
 (?i:#((less|asc)(_by)?_(count|val(ue)?)))	{ return LESS_BY_COUNT; }
 (?i:#((greater|de?sc)(_by)?_(count|val(ue)?)))	{ return GREATER_BY_COUNT; }
+(?i:#prune(_less|_asc)?(_by)?)		{ return PRUNE_ASC; }
+(?i:#prune(_greater|_de?sc)(_by)?)	{ return PRUNE_DESC; }
 
 
  /* regexes */
-"!/"{regex_text}"/"/{regex_modifier}		{ yytext+=2; yyleng-=3; BEGIN(Q_REGOPT); return NEG_REGEX; /* negated regex, +modifiers */ }
-"!/"{regex_text}"/"				{ yytext+=2; yyleng-=3;                  return NEG_REGEX; /* negated regex, -modifiers */ }
-"/"{regex_text}"/"/{regex_modifier}		{ yytext++;  yyleng-=2; BEGIN(Q_REGOPT); return REGEX; /* slash-quoted regex, +modifiers */ }
-"/"{regex_text}"/"				{ yytext++;  yyleng-=2;                  return REGEX; /* slash-quoted regex, -modifiers */ }
-"s/"{regex_text}"/"				{ yytext+=2; yyleng-=3; BEGIN(Q_REGREP); return REGEX_SEARCH;  /* search-replace pattern */ }
-<Q_REGREP>{regex_text}"/"/{regex_modifier}	{            yyleng--;  BEGIN(Q_REGOPT); return REGEX_REPLACE; /* search-replace replacement, +modifiers */ }
-<Q_REGREP>{regex_text}"/"			{            yyleng--;  BEGIN(INITIAL);  return REGEX_REPLACE; /* search-replace replacement, -modifiers */ }
-<Q_REGOPT>{regex_modifier}+			{                       BEGIN(INITIAL);  return REGOPT; }
+"!/"{regex_text}"/"/{regex_modifier}		{ YYX_ADD(2,-3); BEGIN(Q_REGOPT); return NEG_REGEX; /* negated regex, +modifiers */ }
+"!/"{regex_text}"/"				{ YYX_ADD(2,-3);                  return NEG_REGEX; /* negated regex, -modifiers */ }
+"/"{regex_text}"/"/{regex_modifier}		{ YYX_ADD(1,-2); BEGIN(Q_REGOPT); return REGEX; /* slash-quoted regex, +modifiers */ }
+"/"{regex_text}"/"				{ YYX_ADD(1,-2);                  return REGEX; /* slash-quoted regex, -modifiers */ }
+"s/"{regex_text}"/"				{ YYX_ADD(2,-3); BEGIN(Q_REGREP); return REGEX_SEARCH;  /* search-replace pattern */ }
+<Q_REGREP>{regex_text}"/"/{regex_modifier}	{ YYX_ADD(0,-1); BEGIN(Q_REGOPT); return REGEX_REPLACE; /* search-replace replacement, +modifiers */ }
+<Q_REGREP>{regex_text}"/"			{ YYX_ADD(0,-1); BEGIN(INITIAL);  return REGEX_REPLACE; /* search-replace replacement, -modifiers */ }
+<Q_REGOPT>{regex_modifier}+			{                BEGIN(INITIAL);  return REGOPT; }
 
  /* punctuation */
 "#="				{ return HASH_EQUAL; /* hash+equal: exact distance */ }
@@ -230,29 +241,29 @@ comment_text	(\\.|[^\]])*
 [\"]				{ return (int)yytext[0]; /* double-quotes */ }
 
  /* subcorpus lists */
-":"				{ BEGIN(Q_CORPORA); return ':'; }
-<Q_CORPORA>{corpus_text}	{ return SYMBOL;			/* corpora: bare subcorpus label */ }
-<Q_CORPORA>\'{sq_text}\'        { yytext++; yyleng-=2; return SYMBOL;	/* corpora: single-quoted symbol */ }
-<Q_CORPORA>","			{ return (int)yytext[0];		/* corpora: comma separator */ }
-<Q_CORPORA>{ws}+		{ ;					/* corpora: whitespace: skip */ }
-<Q_CORPORA>""/.			{ BEGIN(INITIAL); 			/* corpora: end of list */ }
+":"				{ BEGIN(Q_CORPORA); yyDtrsPos=yybyteno-yyleng; yyDtrsLen=0; return ':'; }
+<Q_CORPORA>{corpus_text}	{ yyDtrsLen=yybyteno-yyDtrsPos; return SYMBOL;			/* corpora: bare subcorpus label */ }
+<Q_CORPORA>\'{sq_text}\'        { yyDtrsLen=yybyteno-yyDtrsPos; YYX_ADD(1,-2); return SYMBOL;	/* corpora: single-quoted symbol */ }
+<Q_CORPORA>","			{ yyDtrsLen=yybyteno-yyDtrsPos; return (int)yytext[0];		/* corpora: comma separator */ }
+<Q_CORPORA>{ws}+		{ ;								/* corpora: whitespace: skip */ }
+<Q_CORPORA>""/.			{ BEGIN(INITIAL); /* corpora: end of list */ }
 
  /* truncated symbols */
-"*"\'{sq_text}\'"*"		{ yytext+=2; yyleng-=4; return INFIX;  /* dual-truncated quoted string (infix symbol) */ }
-\'{sq_text}\'"*"		{ yytext++;  yyleng-=3; return PREFIX; /* right-truncated quoted string (prefix symbol) */ }
-"*"\'{sq_text}\'		{ yytext+=2; yyleng-=3; return SUFFIX; /* left-truncated quoted string (suffix symbol) */ }
+"*"\'{sq_text}\'"*"		{ YYX_ADD(2,-4); return INFIX;  /* dual-truncated quoted string (infix symbol) */ }
+\'{sq_text}\'"*"		{ YYX_ADD(1,-3); return PREFIX; /* right-truncated quoted string (prefix symbol) */ }
+"*"\'{sq_text}\'		{ YYX_ADD(2,-3); return SUFFIX; /* left-truncated quoted string (suffix symbol) */ }
 
-"*"{symbol_text}"*"		{ yytext++; yyleng-=2; return INFIX;  /* dual-truncated bare string (infix symbol) */ }
-{symbol_text}"*"		{           yyleng--; return PREFIX; /* right-truncated bare string (prefix symbol) */ }
-"*"{symbol_text}		{ yytext++; yyleng--; return SUFFIX; /* left-truncated bare string (suffix symbol) */ }
+"*"{symbol_text}"*"		{ YYX_ADD(1,-2); return INFIX;  /* dual-truncated bare string (infix symbol) */ }
+{symbol_text}"*"		{ YYX_ADD(0,-1); return PREFIX; /* right-truncated bare string (prefix symbol) */ }
+"*"{symbol_text}		{ YYX_ADD(1,-1); return SUFFIX; /* left-truncated bare string (suffix symbol) */ }
 
  /* numeric tokens */
  /* + fix mantis bug #14812: put these AFTER truncated symbols so that e.g. (19*) is paresed as ('19'*) rather than ('19' && *) */
-\'[+-]?[0-9]+\'			{ yytext++; yyleng-=2; return INTEGER; }
+\'[+-]?[0-9]+\'			{ YYX_ADD(1,-2); return INTEGER; }
 [+-]?[0-9]+/{int_boundary}	{ return INTEGER; }
 [+-]?[0-9]+			{ return INTEGER; }
 
-\'[0-9\-]+\'			{ yytext++; yyleng-=2; return DATE; }
+\'[0-9\-]+\'			{ YYX_ADD(1,-2); return DATE; }
 {date_bare}/{int_boundary}	{ return DATE; /* bareword date: beware of mantis #19051 (symbol:"6-er") */ }
 
  /* single-term wildcard */
@@ -261,20 +272,20 @@ comment_text	(\\.|[^\]])*
  /* term expander pipelines */
 "|"				{ BEGIN(Q_XPIPE); }
 <Q_XPIPE>{ws}+			{ ; /* whitespace: skip */ }
-<Q_XPIPE>"-"			{ yyleng=0;            BEGIN(INITIAL); return EXPANDER; /* default term expander (alias "-" for "") */ }
-<Q_XPIPE>\'{sq_text}\'		{ yytext++; yyleng-=2; BEGIN(INITIAL); return EXPANDER; /* quoted term expander label */ }
-<Q_XPIPE>{symbol_text}		{                      BEGIN(INITIAL); return EXPANDER; /* bare term expander label */ }
-<Q_XPIPE><<EOF>>		{ yyleng=0;	       BEGIN(INITIAL); return EXPANDER; /* empty term expander label (default) */ }
-<Q_XPIPE>""			{ yyleng=0;	       BEGIN(INITIAL); return EXPANDER; /* empty term expander label (default) */ }
+<Q_XPIPE>"-"			{ YYX_ADD(0,-1); BEGIN(INITIAL); return EXPANDER; /* default term expander (alias "-" for "") */ }
+<Q_XPIPE>\'{sq_text}\'		{ YYX_ADD(1,-2); BEGIN(INITIAL); return EXPANDER; /* quoted term expander label */ }
+<Q_XPIPE>{symbol_text}		{                BEGIN(INITIAL); return EXPANDER; /* bare term expander label */ }
+<Q_XPIPE><<EOF>>		{ yyleng=0;	 BEGIN(INITIAL); return EXPANDER; /* empty term expander label (default) */ }
+<Q_XPIPE>""			{ yyleng=0;	 BEGIN(INITIAL); return EXPANDER; /* empty term expander label (default) */ }
 
  /* index names (special handling to allow count(foo) #by[$w+1] */
-"$"{index_name}			{ yytext++; yyleng--;   return INDEX; /* dollar-prefixed index name bareword */ }
-"$'"{sq_text}"'"		{ yytext+=2; yyleng-=3; return INDEX; /* dollar-prefixed index name, quoted */ }
-"$"				{ return '$';   		      /* bare dollar */ }
+"$"{index_name}			{ YYX_ADD(1,-1); return INDEX; /* dollar-prefixed index name bareword */ }
+"$'"{sq_text}"'"		{ YYX_ADD(2,-3); return INDEX; /* dollar-prefixed index name, quoted */ }
+"$"				{ return '$';  		       /* bare dollar */ }
 
  /* symbols (initial state only) */
-\'{sq_text}\'                   { yytext++; yyleng-=2; return SYMBOL; /* single-quoted symbol */ }
-<INITIAL>{symbol_text}		{ return SYMBOL;                      /* bareword symbol (initial state only; not in Q_MATCHID) */ }
+\'{sq_text}\'                   { YYX_ADD(1,-2); return SYMBOL; /* single-quoted symbol */ }
+<INITIAL>{symbol_text}		{ return SYMBOL;                /* bareword symbol (initial state only; not in Q_MATCHID) */ }
 
  /* misc */
 {ws}+    			{ ; /* whitespace: skip */ }

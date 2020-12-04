@@ -1,6 +1,6 @@
 //-*- Mode: C++ -*-
 //  DDC originally by Alexey Sokirko
-//  Changes and modifications 2011-2016 by Bryan Jurish
+//  Changes and modifications 2011-2020 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -197,13 +197,14 @@ void LoadDDCServer(string ServerConfigFile, const CDDCServerOptions& Options)
         if (bi->second==NULL) {
             BServers.erase(bi);
         } else if (bi->second != RootServer) {
+            bi->second->InitHostMap();
             bi->second->CreateListener();
         }
     }
 
     //-- finally, fire up the root server itself
+    RootServer->InitHostMap();
     RootServer->CreateListener();
-
 };
 
 

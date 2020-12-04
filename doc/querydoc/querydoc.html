@@ -70,7 +70,7 @@
 <h2><a name="overview">Overview</a></h2>
 <p>
         This documentation describes the query language accepted by
-        DDC version 2.2.3.  Current sources for DDC should be available
+        DDC version 2.2.8.  Current sources for DDC should be available
         from
         <!--<a href="http://odo.dwds.de/code/viewvc.cgi/ddc/trunk/?root=dev">svn+ssh://odo.dwds.de/home/svn/dev/ddc/trunk</a>.-->
         <a href="http://sourceforge.net/projects/ddc-concordance">http://sourceforge.net/projects/ddc-concordance</a>.
@@ -121,13 +121,13 @@
 <td></td>
 <td></td>
 <td class="ruleRHS1">
-<span class="ruleNonterminal"><a href="#rule_query_conditions">query_conditions</a></span> </td>
+<span class="ruleNonterminal"><a href="#rule_query_conditions">query_conditions</a></span> <span class="ruleNonterminal"><a href="#rule_q_directives">q_directives</a></span> </td>
 <td class="ruleComment">/* Traditional context-query */</td>
 </tr>
 <tr>
 <td></td>
 <td></td>
-<td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_count_query">count_query</a></span> </td>
+<td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_count_query">count_query</a></span> <span class="ruleNonterminal"><a href="#rule_q_directives">q_directives</a></span> </td>
 <td class="ruleComment">/* Count-query (histogram data) */</td>
 </tr>
 <tr>
@@ -1251,6 +1251,30 @@
 </tr>
 <tr></tr>
 <tr>
+<td><b><a name="rule_q_directives">q_directives</a></b></td>
+<td>::=</td>
+<td></td>
+<td class="ruleCommentTop">/* Global branch server directives */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS1"></td>
+<td class="ruleComment">/* empty */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_q_directives">q_directives</a></span> <span class="ruleNonterminal"><a href="#rule_qd_subcorpora">qd_subcorpora</a></span> </td>
+<td class="ruleComment">/* subcorpus path selection */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td><b>;</b></td>
+</tr>
+<tr></tr>
+<tr>
 <td><b><a name="rule_q_flag">q_flag</a></b></td>
 <td>::=</td>
 <td></td>
@@ -1260,13 +1284,7 @@
 <td></td>
 <td></td>
 <td class="ruleRHS1">
-<span class="ruleTerminal">:</span> <span class="ruleNonterminal"><a href="#rule_qf_subcorpora">qf_subcorpora</a></span> </td>
-<td class="ruleComment">/* subcorporus selection */</td>
-</tr>
-<tr>
-<td></td>
-<td></td>
-<td class="ruleRHS">| <span class="ruleTerminal">#CNTXT</span> <span class="ruleNonterminal"><a href="#rule_integer">integer</a></span> </td>
+<span class="ruleTerminal">#CNTXT</span> <span class="ruleNonterminal"><a href="#rule_integer">integer</a></span> </td>
 <td class="ruleComment">/* hit context window (number of sentences; alias: #N) */</td>
 </tr>
 <tr>
@@ -1371,6 +1389,31 @@
 <td></td>
 <td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_qf_random_sort">qf_random_sort</a></span> </td>
 <td class="ruleComment">/* ... sort hits pseudo-randomly */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_qf_prune_sort">qf_prune_sort</a></span> </td>
+<td class="ruleComment">/* ... sort and prune hits by metadata attributes */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td><b>;</b></td>
+</tr>
+<tr></tr>
+<tr>
+<td><b><a name="rule_qd_subcorpora">qd_subcorpora</a></b></td>
+<td>::=</td>
+<td></td>
+<td class="ruleCommentTop">/* Subcorpus selection directive */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS1">
+<span class="ruleTerminal">:</span> <span class="ruleNonterminal"><a href="#rule_l_subcorpora">l_subcorpora</a></span> </td>
+<td class="ruleComment">/* ... select all and only the specified subcorpus paths */</td>
 </tr>
 <tr>
 <td></td>
@@ -1624,6 +1667,31 @@
 <td></td>
 <td class="ruleRHS">| <span class="ruleTerminal">#RANDOM</span> <span class="ruleTerminal">[</span> <span class="ruleNonterminal"><a href="#rule_int_str">int_str</a></span> <span class="ruleTerminal">]</span> </td>
 <td class="ruleComment">/* ... with a user-specified random seed */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td><b>;</b></td>
+</tr>
+<tr></tr>
+<tr>
+<td><b><a name="rule_qf_prune_sort">qf_prune_sort</a></b></td>
+<td>::=</td>
+<td></td>
+<td class="ruleCommentTop">/* Limit number of hits returned per key */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS1">
+<span class="ruleTerminal">#PRUNE</span> <span class="ruleTerminal">[</span> <span class="ruleXTerminal"><a href="#term_INTEGER">INTEGER</a></span> <span class="ruleNonterminal"><a href="#rule_l_prunekeys">l_prunekeys</a></span> <span class="ruleTerminal">]</span> </td>
+<td class="ruleComment">/* ... sorting hits in ascending order by prune-key (#PRUNE, #PRUNE_ASC, #PRUNE_BY, #PRUNE_ASC_BY) */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleTerminal">#PRUNE_DESC</span> <span class="ruleTerminal">[</span> <span class="ruleXTerminal"><a href="#term_INTEGER">INTEGER</a></span> <span class="ruleNonterminal"><a href="#rule_l_prunekeys">l_prunekeys</a></span> <span class="ruleTerminal">]</span> </td>
+<td class="ruleComment">/* ... sorting hits in descending order by prune-key (#PRUNE_DESC, #PRUNE_DESC_BY, #PRUNE_DSC, #PRUNE_DSC_BY */</td>
 </tr>
 <tr>
 <td></td>
@@ -2171,7 +2239,7 @@
 <td><b><a name="rule_l_countkeys">l_countkeys</a></b></td>
 <td>::=</td>
 <td></td>
-<td class="ruleCommentTop">/* Tuple of bibliographic metadata fields */</td>
+<td class="ruleCommentTop">/* Tuple of bibliographic metadata and/or token attributes for histogram bin */</td>
 </tr>
 <tr>
 <td></td>
@@ -2201,7 +2269,87 @@
 <td><b><a name="rule_count_key">count_key</a></b></td>
 <td>::=</td>
 <td></td>
-<td class="ruleCommentTop">/* Histogram bin component */</td>
+<td class="ruleCommentTop">/* Histogram bin component for count-queries */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS1">
+<span class="ruleNonterminal"><a href="#rule_count_key_const">count_key_const</a></span> </td>
+<td class="ruleComment">/* ... constant expression */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_count_key_meta">count_key_meta</a></span> </td>
+<td class="ruleComment">/* ... bibliographic metadata attribute */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_count_key_token">count_key_token</a></span> </td>
+<td class="ruleComment">/* ... token attribute */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_count_key">count_key</a></span> <span class="ruleTerminal">~</span> <span class="ruleNonterminal"><a href="#rule_replace_regex">replace_regex</a></span> </td>
+<td class="ruleComment">/* ... on-the-fly regex transformation (can be chained) */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleTerminal">(</span> <span class="ruleNonterminal"><a href="#rule_count_key">count_key</a></span> <span class="ruleTerminal">)</span> </td>
+<td class="ruleComment">/* ... explicit grouping */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td><b>;</b></td>
+</tr>
+<tr></tr>
+<tr>
+<td><b><a name="rule_prune_key">prune_key</a></b></td>
+<td>::=</td>
+<td></td>
+<td class="ruleCommentTop">/* Histogram bin component for pruning */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS1">
+<span class="ruleNonterminal"><a href="#rule_count_key_const">count_key_const</a></span> </td>
+<td class="ruleComment">/* ... constant expression */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_count_key_meta">count_key_meta</a></span> </td>
+<td class="ruleComment">/* ... bibliographic metadata attribute */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_prune_key">prune_key</a></span> <span class="ruleTerminal">~</span> <span class="ruleNonterminal"><a href="#rule_replace_regex">replace_regex</a></span> </td>
+<td class="ruleComment">/* ... on-the-fly regex transformation (can be chained) */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleTerminal">(</span> <span class="ruleNonterminal"><a href="#rule_prune_key">prune_key</a></span> <span class="ruleTerminal">)</span> </td>
+<td class="ruleComment">/* ... explicit grouping */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td><b>;</b></td>
+</tr>
+<tr></tr>
+<tr>
+<td><b><a name="rule_count_key_const">count_key_const</a></b></td>
+<td>::=</td>
+<td></td>
+<td class="ruleCommentTop">/* Constant histogram bin component */</td>
 </tr>
 <tr>
 <td></td>
@@ -2219,50 +2367,64 @@
 <tr>
 <td></td>
 <td></td>
-<td class="ruleRHS">| <span class="ruleTerminal">FILEID</span> </td>
-<td class="ruleComment">/* ... subcorpus-local file-id (integer) */</td>
+<td><b>;</b></td>
+</tr>
+<tr></tr>
+<tr>
+<td><b><a name="rule_count_key_meta">count_key_meta</a></b></td>
+<td>::=</td>
+<td></td>
+<td class="ruleCommentTop">/* Bibliographic metadata attribute(s) histogram bin component */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS1">
+<span class="ruleTerminal">FILEID</span> </td>
+<td class="ruleComment">/* ... by subcorpus-local file-id (integer) */</td>
 </tr>
 <tr>
 <td></td>
 <td></td>
 <td class="ruleRHS">| <span class="ruleTerminal">FILENAME</span> </td>
-<td class="ruleComment">/* ... filename */</td>
+<td class="ruleComment">/* ... by filename */</td>
 </tr>
 <tr>
 <td></td>
 <td></td>
 <td class="ruleRHS">| <span class="ruleTerminal">DATE</span> </td>
-<td class="ruleComment">/* ... date string (YYYY-MM-DD) */</td>
+<td class="ruleComment">/* ... by date string (YYYY-MM-DD) */</td>
 </tr>
 <tr>
 <td></td>
 <td></td>
 <td class="ruleRHS">| <span class="ruleTerminal">DATE</span> <span class="ruleTerminal">/</span> <span class="ruleNonterminal"><a href="#rule_i_slice">i_slice</a></span> </td>
-<td class="ruleComment">/* ... date slice, computed as (i_slice*int(year/i_slice)) */</td>
+<td class="ruleComment">/* ... by date slice, computed as (i_slice*int(year/i_slice)) */</td>
 </tr>
 <tr>
 <td></td>
 <td></td>
 <td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_s_field">s_field</a></span> </td>
-<td class="ruleComment">/* ... bibliographic string-field value (e.g. textClass) */</td>
+<td class="ruleComment">/* ... by bibliographic attribute value (e.g. author, textClass) */</td>
 </tr>
 <tr>
 <td></td>
 <td></td>
-<td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_s_index">s_index</a></span> <span class="ruleNonterminal"><a href="#rule_ck_matchid">ck_matchid</a></span> <span class="ruleNonterminal"><a href="#rule_ck_offset">ck_offset</a></span> </td>
-<td class="ruleComment">/* ... indexed token attribute, relative to some matched token (may be slow) */</td>
+<td><b>;</b></td>
+</tr>
+<tr></tr>
+<tr>
+<td><b><a name="rule_count_key_token">count_key_token</a></b></td>
+<td>::=</td>
+<td></td>
+<td class="ruleCommentTop">/* Token attribute histogram bin component */</td>
 </tr>
 <tr>
 <td></td>
 <td></td>
-<td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_count_key">count_key</a></span> <span class="ruleTerminal">~</span> <span class="ruleNonterminal"><a href="#rule_replace_regex">replace_regex</a></span> </td>
-<td class="ruleComment">/* ... on-the-fly regex transformation (can be chained) */</td>
-</tr>
-<tr>
-<td></td>
-<td></td>
-<td class="ruleRHS">| <span class="ruleTerminal">(</span> <span class="ruleNonterminal"><a href="#rule_count_key">count_key</a></span> <span class="ruleTerminal">)</span> </td>
-<td class="ruleComment">/* ... explicit grouping */</td>
+<td class="ruleRHS1">
+<span class="ruleNonterminal"><a href="#rule_s_index">s_index</a></span> <span class="ruleNonterminal"><a href="#rule_ck_matchid">ck_matchid</a></span> <span class="ruleNonterminal"><a href="#rule_ck_offset">ck_offset</a></span> </td>
+<td class="ruleComment">/* ... indexed token attribute value, relative to some matched token (may be slow) */</td>
 </tr>
 <tr>
 <td></td>
@@ -2475,6 +2637,36 @@
 </tr>
 <tr></tr>
 <tr>
+<td><b><a name="rule_l_prunekeys">l_prunekeys</a></b></td>
+<td>::=</td>
+<td></td>
+<td class="ruleCommentTop">/* Tuple of bibliographic metadata attributes for pruning bin */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS1"></td>
+<td class="ruleComment">/* ... empty */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_prune_key">prune_key</a></span> </td>
+<td class="ruleComment">/* ... singleton */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_l_prunekeys">l_prunekeys</a></span> <span class="ruleTerminal">,</span> <span class="ruleNonterminal"><a href="#rule_prune_key">prune_key</a></span> </td>
+<td class="ruleComment">/* ... or comma-separated list */</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td><b>;</b></td>
+</tr>
+<tr></tr>
+<tr>
 <td><b><a name="rule_l_indextuple">l_indextuple</a></b></td>
 <td>::=</td>
 <td></td>
@@ -2505,27 +2697,27 @@
 </tr>
 <tr></tr>
 <tr>
-<td><b><a name="rule_qf_subcorpora">qf_subcorpora</a></b></td>
+<td><b><a name="rule_l_subcorpora">l_subcorpora</a></b></td>
 <td>::=</td>
 <td></td>
-<td class="ruleCommentTop">/* Set of target subcorpus paths */</td>
+<td class="ruleCommentTop">/* List of target subcorpus paths */</td>
 </tr>
 <tr>
 <td></td>
 <td></td>
 <td class="ruleRHS1"></td>
-<td class="ruleComment">/* ... empty subcorpus set */</td>
+<td class="ruleComment">/* ... empty list queries full sub-tree */</td>
 </tr>
 <tr>
 <td></td>
 <td></td>
 <td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_s_subcorpus">s_subcorpus</a></span> </td>
-<td class="ruleComment">/* ... singleton subcorpus path (symbol) */</td>
+<td class="ruleComment">/* ... singleton subcorpus path (symbol with optional * and/or ** glob-style wildcards) */</td>
 </tr>
 <tr>
 <td></td>
 <td></td>
-<td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_qf_subcorpora">qf_subcorpora</a></span> <span class="ruleTerminal">,</span> <span class="ruleNonterminal"><a href="#rule_s_subcorpus">s_subcorpus</a></span> </td>
+<td class="ruleRHS">| <span class="ruleNonterminal"><a href="#rule_l_subcorpora">l_subcorpora</a></span> <span class="ruleTerminal">,</span> <span class="ruleNonterminal"><a href="#rule_s_subcorpus">s_subcorpus</a></span> </td>
 <td class="ruleComment">/* ... multiple subcorpus paths are separated by commas */</td>
 </tr>
 <tr>
@@ -2889,7 +3081,7 @@
 <td></td>
 <td class="ruleRHS1">
 <span class="ruleXTerminal"><a href="#term_SUBCORPUS">SUBCORPUS</a></span> </td>
-<td class="ruleComment">/* ... can be any symbol, bare '/' and '*' are allowed */</td>
+<td class="ruleComment">/* ... can be any symbol, bare '/', '*', and '**' are allowed */</td>
 </tr>
 <tr>
 <td></td>
@@ -3248,6 +3440,8 @@ comment_text    (\\.|[^\]])*
 (?i:#((greater|de?sc)(_by)?_key))
 (?i:#((less|asc)(_by)?_(count|val(ue)?)))
 (?i:#((greater|de?sc)(_by)?_(count|val(ue)?)))
+(?i:#prune(_less|_asc)?(_by)?)
+(?i:#prune(_greater|_de?sc)(_by)?)
 </pre>
 <p>
           The scanner supports the various reserved words used in
@@ -3539,25 +3733,27 @@ comment_text    (\\.|[^\]])*
 <!--/terminals:expander--><!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ --><div class="subsection">
 <h3><a name="term_SUBCORPUS">Subcorpus Paths</a></h3>
 <pre>
-{corpus_text}                       /* bareword subcorpus path (including '/' and '*') */
+{corpus_text}                       /* bareword subcorpus path (including '/', '*', and '**') */
 \'{sq_text}\'                       /* single-quoted subcorpus path */
 </pre>
 <p>
         A branch-server query (see <a href="ddc_cfg.html">ddc_cfg(5)</a>)
         may be restricted to a subset of available sub*corpora
-        by means of the <a href="#rule_qf_subcorpora"><code>:</code> operator</a> (<code>:PATH1,PATH2,...,PATHn</code>).
+        by means of the <a href="#rule_qd_subcorpora"><code>:</code> directive</a> (<code>:PATH1,PATH2,...,PATHn</code>).
         Each subcorpus <tt>PATH</tt> in the list is parsed syntactically as an
         <a href="#term_SYMBOL">atomic symbol</a> (allowing un-escaped
-        "<code>/</code>" and "<code>*</code>" for convenience),
-        but is otherwise ignored by physical leaf servers.
+        "<code>/</code>", "<code>*</code>", and "<code>**</code>" for convenience),
+        but is otherwise ignored by physical leaf servers when queried directly.
       </p>
 <p>
         Prior to v2.2.0, each <tt>PATH</tt> in a branch-server query had to be the literal name of
         an immediate daughter node (see <a href="ddc_cfg.html">ddc_cfg(5)</a>),
         and only those daughters explicitly specified were queried.
         As of v2.2.0, branch servers allow slash-separated sub*corpus paths in <tt>PATH</tt>s
-        as well as (limited) wildcard strings <code>*</code> indicating all descendants
-        from the corresonding node:
+        as well as (limited) wildcard strings <code>*</code> indicating all immediate daughters
+        of the corresonding node.
+	As of v2.2.8, branch and leaf servers also allow path wildcard strings <code>**</code> indicating
+	any direct or indirect descendant of the current node:
         <table class="escTable">
             <tr>
 <th>Paths</th>
@@ -3590,7 +3786,19 @@ comment_text    (\\.|[^\]])*
 <td>all granddaughters or great-granddaughters named <code>bar</code>
 </td>
 </tr>
+	    <tr>
+<td class="monospace">:**/baz</td>
+<td>any node or descendant named <code>baz</code>
+</td>
+</tr>
+	    <tr>
+<td class="monospace">:**/baz/**/bonk</td>
+<td>any descendant named <code>bonk</code> which is descendend from a node named <code>baz</code>
+</td>
+</tr>
         </table>
+	For best results, individual server node labels themselves should <b>not</b> contain any
+	literal slashes (<code>/</code>), commas (<code>,</code>), or colons (<code>:</code>).
       </p>
 </div>
 <!--/terminals:subcorpus--><!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ --><div class="subsection">
@@ -4110,7 +4318,7 @@ ot-asi2 /* hyponyms/subclasses (depth=2); alias=ot-sub2 */
   </body></div>
 <div class="footers">
 <div class="footer_sig">
-<address><a href="mailto:jurish@bbaw.de">jurish@bbaw.de</a></address>Last modified: Thu, 02 Apr 2020 14:23:33 +0200</div>
+<address><a href="mailto:jurish@bbaw.de">jurish@bbaw.de</a></address>Last modified: Fri, 04 Dec 2020 09:48:08 +0100</div>
 <div class="footer_linkbar"><p class="nopad"><a class="navLink" href="/">Root</a><a class="navLink" href="./">Back</a><span class="navLinkDisabled">Help</span></p></div>
 <p class="dummy"></p>
 </div>

@@ -1,5 +1,5 @@
 //-*- Mode: bison; c-basic-offset: 8; -*-*/
-//  Copyright 2011-2018 by Bryan Jurish
+//  Copyright 2011-2020 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -25,11 +25,13 @@
 
 //2020-04-02/debian-buster: yyQParser.y:25.1-18: warning: deprecated directive, use ‘%define api.prefix {yyq}’ [-Wdeprecated]
 %name-prefix "yyq"
+// %define api.prefix {yyq}
 
 %output  "yyQParser.cpp"
 %defines "yyQParser.h"
 
- //-- expect 1 shift/reduce conflict for q_comment
+//-- expect conflicts
+// - 1 shift/reduce conflict for KW_COMMENT in "query_conditions: q_clause q_filters . (q_filters: q_filters . q_comment)"
 %expect 1
 
 /*%debug*/
@@ -101,6 +103,7 @@ int yylex (void*,  CQueryCompiler*);
 %type   <m_pfilt>	q_filters
 %type	<m_pfilt>	q_filter
 %type	<m_pfilt>	q_flag
+%type	<m_pfilt>	q_directives
 %type	<m_pfilt>	q_comment
 
 %type   <m_pfilt>	count_filters
@@ -112,7 +115,8 @@ int yylex (void*,  CQueryCompiler*);
 %type	<m_pfilt>	count_sort_op
 %type	<m_pfilt>	count_sort_minmax
 
-%type	<m_pfilt>	qf_subcorpora
+%type	<m_pfilt>	qd_subcorpora
+
 %type	<m_pfilt>	qf_has_field
 %type	<m_pfilt>	qf_rank_sort
 %type	<m_pfilt>	qf_context_sort
@@ -120,7 +124,8 @@ int yylex (void*,  CQueryCompiler*);
 %type	<m_pfilt>	qf_date_sort
 %type	<m_pfilt>	qf_bibl_sort
 %type	<m_pfilt>	qf_random_sort
-
+%type	<m_pfilt>	qf_prune_sort
+			
 %type	<m_pfilt>	qfb_int
 %type	<m_pfilt>	qfb_date
 %type	<m_pfilt>	qfb_bibl
@@ -145,10 +150,13 @@ int yylex (void*,  CQueryCompiler*);
 %type	<m_pnode>	qc_phrase
 
 //------------------------------------------------------
-// Types: count-queries
+// Types: count-queries and prune-keys
 
 %type	<m_pnode>	count_query
 %type	<m_pnode>	count_key
+%type	<m_pnode>	count_key_const
+%type	<m_pnode>	count_key_meta
+%type	<m_pnode>	count_key_token
 %type	<m_int>		ck_matchid
 %type	<m_int>		ck_offset
 
@@ -156,6 +164,8 @@ int yylex (void*,  CQueryCompiler*);
 %type	<m_pnode>	qwk_indextuple
 %type	<m_pnode>	qwk_countsrc
 %type	<m_pnode>	l_indextuple
+
+%type	<m_pnode>	prune_key
 
 //------------------------------------------------------
 // Types: Queries: Single-token queries
@@ -192,6 +202,8 @@ int yylex (void*,  CQueryCompiler*);
 %type	<m_pnode>	l_set
 %type	<m_pnode>	l_txchain
 %type	<m_pnode>	l_countkeys
+%type	<m_pnode>	l_prunekeys
+%type	<m_pnode>	l_subcorpora
 %type	<m_str>		l_comment
 
 //------------------------------------------------------
@@ -283,6 +295,8 @@ int yylex (void*,  CQueryCompiler*);
 %token	<m_str>	GREATER_BY_KEY
 %token	<m_str>	LESS_BY_COUNT
 %token	<m_str>	GREATER_BY_COUNT
+%token	<m_str>	PRUNE_ASC
+%token	<m_str>	PRUNE_DESC
 %token	<m_str>	CLIMIT
 
 %token	<m_str>	KW_DATE
@@ -331,8 +345,8 @@ int yylex (void*,  CQueryCompiler*);
   * query (query*): Top Level (Query Root)
   */
 query:
-		query_conditions	{ $$ = _qc->SetQuery($1); }
- 	|	count_query		{ $$ = _qc->SetQuery($1); }
+		query_conditions q_directives	{ $$ = _qc->SetQuery($1); }
+ 	|	count_query q_directives	{ $$ = _qc->SetQuery($1); }
 	;
 
  /*-------------------------------------------------------------
@@ -395,7 +409,7 @@ count_sort_minmax:
   * query_conditions (q*)
   */
 query_conditions:
-		q_clause q_filters		{ $$ = $1; }
+		q_clause q_filters 		{ $$ = $1; }
 	;
 
  /*-------------------------------------------------------------
@@ -416,8 +430,7 @@ q_comment:
 
 
 q_flag:	
-		':' qf_subcorpora 	{ $$=NULL; }
-	|	CNTXT integer 		{ $$=NULL; _qc->m_qOptions.m_ContextSentencesCount = (size_t)$2; }
+		CNTXT integer 		{ $$=NULL; _qc->m_qOptions.m_ContextSentencesCount = (size_t)$2; }
 	|	CNTXT '[' integer ']'	{ $$=NULL; _qc->m_qOptions.m_ContextSentencesCount = (size_t)$3; }
 	|	WITHIN s_breakname	{ $$=NULL; _qc->m_qOptions.m_Within.push_back(*$2); }
 	|	SEPARATE_HITS		{ $$=NULL; _qc->m_qOptions.m_bSeparateHits = 1; }
@@ -426,12 +439,6 @@ q_flag:
 	|	'!' FILENAMES_ONLY	{ $$=NULL; _qc->m_qOptions.m_bEnableBibliography = true;  }
 	|	DEBUG_RANK		{ $$=NULL; _qc->m_qOptions.m_bDebugRank = true;  }
 	|	'!' DEBUG_RANK		{ $$=NULL; _qc->m_qOptions.m_bDebugRank = false;  }
-	;
-
-qf_subcorpora:
-		/* empty */			{ $$=NULL; }
-	|	s_subcorpus			{ _qc->m_qOptions.m_Subcorpora.push_back(*$1); $$ = NULL; }
-	|	qf_subcorpora ',' s_subcorpus	{ _qc->m_qOptions.m_Subcorpora.push_back(*$3); $$ = $1; }
 	;
 
 
@@ -443,6 +450,7 @@ q_filter:
 	|	qf_date_sort	{ $$=$1; }
 	|	qf_bibl_sort	{ $$=$1; }
 	|	qf_random_sort	{ $$=$1; }
+	|	qf_prune_sort   { $$=$1; }
 	;
 
 qf_has_field:
@@ -493,6 +501,11 @@ qf_bibl_sort:
 	|	GREATER_BY '[' KW_DATE qfb_bibl ']'	{ $$ = _newFilter(CQFDateSort, GreaterByDate); }
 	|	LESS_BY    '[' s_biblname qfb_bibl ']'	{ $$ = _newBFilter(LessByFreeBiblField, *$3); }
 	|	GREATER_BY '[' s_biblname qfb_bibl ']'	{ $$ = _newBFilter(GreaterByFreeBiblField, *$3); }
+	;
+
+qf_prune_sort:
+		PRUNE_ASC '[' INTEGER l_prunekeys ']'	{ $$ = _qc->newPruneFilter(LessByPruneKey, *$3); }
+	| 	PRUNE_DESC '[' INTEGER l_prunekeys ']'	{ $$ = _qc->newPruneFilter(GreaterByPruneKey, *$3); }
 	;
 
  /*-------------------------------------------------------------
@@ -552,6 +565,19 @@ qfbc_offset:
 	|	integer		{ $$=$1; }
 	|	'+' integer	{ $$=$2; }
 	|	'-' integer	{ $$=-$2; }
+	;
+
+ /*-------------------------------------------------------------
+  * q_directives: global server directives
+  */
+
+q_directives:
+		/* empty */			{ $$=NULL; }
+	|	q_directives qd_subcorpora	{ $$=NULL; }
+	;
+
+qd_subcorpora:
+		':' 	l_subcorpora 	{ $$=NULL; }
 	;
 
  /*-------------------------------------------------------------
@@ -792,16 +818,16 @@ l_morph:
 	;
 
 l_phrase :
-		qc_word				{ $$ = _qc->PushQuery(new CQSeq((CQToken*)$1)); }
-	| 	l_phrase qc_word		{ ((CQSeq*)$1)->Append((CQToken*)$2); $$ = $1; }
-	|	l_phrase '#'           integer qc_word { ((CQSeq*)$1)->Append((CQToken*)$4,$3); $$ = $1; }
-	|	l_phrase HASH_LESS     integer qc_word { ((CQSeq*)$1)->Append((CQToken*)$4,$3,'<'); $$ = $1; }
-	|	l_phrase HASH_GREATER  integer qc_word { ((CQSeq*)$1)->Append((CQToken*)$4,$3,'>'); $$ = $1; }
-	|	l_phrase HASH_EQUAL    integer qc_word { ((CQSeq*)$1)->Append((CQToken*)$4,$3,'='); $$ = $1; }
+		qc_word					{ $$ = _qc->PushQuery(new CQSeq((CQToken*)$1)); }
+	| 	l_phrase qc_word			{ ((CQSeq*)$1)->Append((CQToken*)$2); $$ = $1; }
+	|	l_phrase '#'           integer qc_word	{ ((CQSeq*)$1)->Append((CQToken*)$4,$3); $$ = $1; }
+	|	l_phrase HASH_LESS     integer qc_word	{ ((CQSeq*)$1)->Append((CQToken*)$4,$3,'<'); $$ = $1; }
+	|	l_phrase HASH_GREATER  integer qc_word	{ ((CQSeq*)$1)->Append((CQToken*)$4,$3,'>'); $$ = $1; }
+	|	l_phrase HASH_EQUAL    integer qc_word	{ ((CQSeq*)$1)->Append((CQToken*)$4,$3,'='); $$ = $1; }
 	;
 
 l_txchain:
-	/* empty */			{ $$ = NULL; _qc->m_Expanders.clear(); }
+		/* empty */		{ $$ = NULL; _qc->m_Expanders.clear(); }
 	|	l_txchain s_expander	{ $$ = $1;   _qc->m_Expanders.push_back(*$2); }
 	;
 
@@ -811,6 +837,12 @@ l_countkeys:
 	|	l_countkeys ',' count_key	{ $$=$1; _qc->m_qCountKeys.PushKey((CQCountKeyExpr*)$3); }
 	;
 
+l_prunekeys:
+		/* empty */			{ $$=NULL; _qc->m_qCountKeys.Clear(); }
+	|	prune_key			{ $$=NULL; _qc->m_qCountKeys.Clear(); _qc->m_qCountKeys.PushKey((CQCountKeyExpr*)$1); }
+	|	l_prunekeys ',' prune_key	{ $$=$1; _qc->m_qCountKeys.PushKey((CQCountKeyExpr*)$3); }
+	;
+
 l_indextuple:
 		/* empty */					{ $$=NULL; _qc->m_IndexTuple.clear(); }
 	|	s_indextuple_item				{ $$=NULL; _qc->m_IndexTuple.clear(); _qc->m_IndexTuple.push_back(*$1); }
@@ -818,26 +850,52 @@ l_indextuple:
 	;
 
 l_comment:
-		  /* empty */			{ $$=_qc->newString(""); }
+		/* empty */			{ $$=_qc->newString(""); }
 	|	l_comment symbol		{ $$=$1; if (!$$->empty()) $$->push_back(' '); $$->append(*$2); };
 	;
 
+l_subcorpora:
+	        /* empty */			{ _qc->m_qOptions.m_Subcorpora.clear(); $$=NULL; }
+ 	|	s_subcorpus			{ _qc->m_qOptions.m_Subcorpora.clear(); _qc->m_qOptions.m_Subcorpora.push_back(*$1); $$=NULL; }
+	|	l_subcorpora ',' s_subcorpus	{ _qc->m_qOptions.m_Subcorpora.push_back(*$3); $$=$1; }
+	;
+
  /*-------------------------------------------------------------
-  * count_key: count-key expressions
+  * count_key, prune_key: count- and prune-key expressions
   */
 
 count_key:
+		count_key_const			{ $$=$1; }
+	|	count_key_meta			{ $$=$1; }
+	|	count_key_token			{ $$=$1; }
+ 	|	count_key '~' replace_regex	{ $$=new CQCountKeyExprRegex((CQCountKeyExpr*)$1,*$3,_qc->m_RegexReplacement,_qc->m_RegexModifiers); }
+	|	'(' count_key ')'		{ $$=$2; }
+	;
+
+prune_key:
+		count_key_const			{ $$=$1; }
+	|	count_key_meta			{ $$=$1; }
+ 	|	prune_key '~' replace_regex	{ $$=new CQCountKeyExprRegex((CQCountKeyExpr*)$1,*$3,_qc->m_RegexReplacement,_qc->m_RegexModifiers); }
+	|	'(' prune_key ')'		{ $$=$2; }
+	;
+
+count_key_const:
 		'*'				{ $$=new CQCountKeyExprConstant("*"); }
 	|	'@' symbol			{ $$=new CQCountKeyExprConstant(*$2); }
-	|	KW_FILEID			{ $$=new CQCountKeyExprFileId(*$1); }
+	;
+
+count_key_meta:	
+		KW_FILEID			{ $$=new CQCountKeyExprFileId(*$1); }
 	|	KW_FILENAME			{ $$=new CQCountKeyExprFileName(*$1); }
 	|	KW_DATE				{ $$=new CQCountKeyExprDate(*$1); }
 	|	KW_DATE '/' integer		{ $$=new CQCountKeyExprDateSlice(*$1,$3); }
 	|	s_biblname			{ $$=new CQCountKeyExprBibl(*$1); }
-	|	s_index ck_matchid ck_offset	{ $$=new CQCountKeyExprToken(*$1,$2,$3); }
- 	|	count_key '~' replace_regex	{ $$=new CQCountKeyExprRegex((CQCountKeyExpr*)$1,*$3,_qc->m_RegexReplacement,_qc->m_RegexModifiers); }
-	|	'(' count_key ')'		{ $$=$2; }
 	;
+
+count_key_token:
+		s_index ck_matchid ck_offset	{ $$=new CQCountKeyExprToken(*$1,$2,$3); }
+	;
+
 
 ck_matchid:
 		/* empty */	{ $$=0; }

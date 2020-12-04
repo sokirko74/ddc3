@@ -103,6 +103,16 @@ extern "C++" {
         int yyleng;
         int yylineno;       // only maintained if you use %option yylineno
         int yy_flex_debug;  // only has effect with -d or "%option debug"
+
+    public:
+        int yybyteno;       //-- moo: track absolute byte offset in input string (must be manually reset)
+        int byteno() { return yybyteno; }
+
+        //! moo: byte-offset in query-string of active qf_subcorpora component, or -1 for none
+        int yyDtrsPos;
+
+        //! moo: byte-length in query-string of active qf_subcorpora component, or 0 for none
+        int yyDtrsLen;
     };
 
 }

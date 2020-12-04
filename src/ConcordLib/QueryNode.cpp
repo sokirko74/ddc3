@@ -1,7 +1,7 @@
 //-*- Mode: C++ -*-
 //
 //  DDC originally by Alexey Sokirko
-//  Changes and modifications 2011-2018 by Bryan Jurish
+//  Changes and modifications 2011-2020 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -910,7 +910,6 @@ void CQueryTokenNode::MakeUnique(void)
     m_IndexItems.erase(endit,m_IndexItems.end());
 }
 
-
 //--------------------------------------------------------------
 bool CQueryTokenNode::CreateStringPattern(const CConcHolder* pHolder, const string& IndexName, const string& Value)
 {
@@ -1042,6 +1041,13 @@ bool CQueryTokenNode::CreateUniversalPattern(const CConcHolder* pHolder, const s
     return true;  //-- occurrences are assigned directly to m_Occurrences[] by CQueryTokenNode::EvaluateWithoutHits()
 };
 
+//--------------------------------------------------------------
+bool CQueryTokenNode::CreateNullPattern(const CConcHolder* pHolder, const string& IndexName)
+{
+    GetIndex(pHolder, IndexName);
+    m_IndexItems.clear();
+    return true;
+};
 
 //--------------------------------------------------------------
 bool CQueryTokenNode::CreateLemmaPattern(const CConcHolder* pHolder, const string& Value)

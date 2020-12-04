@@ -1,6 +1,6 @@
 //-*- Mode: C++ -*-
 //  DDC originally by Alexey Sokirko
-//  Changes and modifications 2011-2017 by Bryan Jurish
+//  Changes and modifications 2011-2020 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -94,6 +94,11 @@ bool CQueryCompiler::CompileFilters()
     return m_pQuery->CompileOptions(this);
 }
 
+bool CQueryCompiler::CheckSatisfiable(CQuery *query)
+{
+    return m_bSatisfiable = (query != NULL && query->CheckSatisfiable(this));
+}
+
 bool CQueryCompiler::Compile(CQuery *query)
 {
     assert(query != NULL);
@@ -156,6 +161,9 @@ bool CQueryCompiler::ParseQuery(const string &QueryStr)
 
     //-- actual parse
     yylineno = 1;
+    yybyteno = 0;
+    yyDtrsPos = -1;
+    yyDtrsLen = 0;
     int rc = yyqparse(this);
     if (rc != 0) {
         CleanParser();
@@ -167,6 +175,8 @@ bool CQueryCompiler::ParseQuery(const string &QueryStr)
 #if DEBUG_QSTRING
     fprintf(stderr, "\nCQueryCompiler::ParseQuery(): parsed final query: %s\n", QueryToString().c_str());
 #endif
+
+    //fprintf(stderr, "DEBUG: got subcorpora pos=%d ; len=%d -> \"%s\"\n", yyDtrsPos, yyDtrsLen, QueryStr.substr(yyDtrsPos,yyDtrsLen).c_str());
 
     return true;
 }
@@ -187,6 +197,7 @@ void CQueryCompiler::CleanParser()
     m_Labels.clear();
     DeleteTree();
     m_CurrentNodeIndex = 0;
+    m_bSatisfiable = true;
 
     //-- clear global query flags
     m_qCountKeys.Clear();
@@ -343,6 +354,14 @@ CQCount* CQueryCompiler::PushCountQuery(CQuery* qConditions)
     m_qCountLo.clear();
     m_qCountHi.clear();
     return (CQCount*)(this->PushQuery(qc));
+}
+
+CQFPrune* CQueryCompiler::newPruneFilter(HitSortEnum ftype, const string& limitStr)
+{
+    size_t limit = strtoul(limitStr.c_str(), NULL, 0);
+    CQFPrune *fp = new CQFPrune(ftype, limit, new CQCountKeyExprList(m_qCountKeys));
+    m_qCountKeys.m_Exprs.clear();
+    return fp;
 }
 
 CQKeys* CQueryCompiler::PushKeysQuery(CQCount *qCount)

@@ -101,26 +101,28 @@ extern int yyqdebug;
     GREATER_BY_KEY = 307,
     LESS_BY_COUNT = 308,
     GREATER_BY_COUNT = 309,
-    CLIMIT = 310,
-    KW_DATE = 311,
-    KW_FILEID = 312,
-    KW_FILENAME = 313,
-    BLOCK_COMMENT = 314,
-    LINE_COMMENT = 315,
-    OP_CLAUSE_MATCHID = 316,
-    OP_CLAUSE_CONCAT = 317,
-    OP_CLAUSE_BOOL = 318,
-    OP_CLAUSE_BASIC = 319,
-    OP_PHRASE = 320,
-    OP_WORD = 321,
-    OP_BOOL_AND = 322,
-    OP_BOOL_OR = 323,
-    COUNT = 324,
-    KEYS = 325,
-    NEAR = 326,
-    WITH = 327,
-    WITHOUT = 328,
-    WITHOR = 329
+    PRUNE_ASC = 310,
+    PRUNE_DESC = 311,
+    CLIMIT = 312,
+    KW_DATE = 313,
+    KW_FILEID = 314,
+    KW_FILENAME = 315,
+    BLOCK_COMMENT = 316,
+    LINE_COMMENT = 317,
+    OP_CLAUSE_MATCHID = 318,
+    OP_CLAUSE_CONCAT = 319,
+    OP_CLAUSE_BOOL = 320,
+    OP_CLAUSE_BASIC = 321,
+    OP_PHRASE = 322,
+    OP_WORD = 323,
+    OP_BOOL_AND = 324,
+    OP_BOOL_OR = 325,
+    COUNT = 326,
+    KEYS = 327,
+    NEAR = 328,
+    WITH = 329,
+    WITHOUT = 330,
+    WITHOR = 331
   };
 #endif
 
@@ -129,14 +131,14 @@ extern int yyqdebug;
 
 union YYSTYPE
 {
-#line 86 "yyQParser.y" /* yacc.c:1921  */
+#line 88 "yyQParser.y" /* yacc.c:1921  */
 
   std::string*	 	m_str;     /* For returning simple strings  */
   int                   m_int;     /* For returning integers */
   class CQuery*	 	m_pnode;   /* For returning basic query nodes */
   class CQFilter* 	m_pfilt;   /* For returning single query filters */
 
-#line 140 "yyQParser.h" /* yacc.c:1921  */
+#line 142 "yyQParser.h" /* yacc.c:1921  */
 };
 
 typedef union YYSTYPE YYSTYPE;

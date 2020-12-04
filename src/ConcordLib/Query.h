@@ -1,6 +1,6 @@
 //-*- Mode: C++ -*-
 //  DDC originally by Alexey Sokirko
-//  Changes and modifications 2011-2016 by Bryan Jurish
+//  Changes and modifications 2011-2020 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -69,6 +69,12 @@ public:
     //------------------------------------------------------------
     ///\name API
     //@{
+    //! Run fast (un)satisfiability checks for query before Compile() is called.
+    //! \li called via CQueryCompiler::CheckSatisfiable()
+    //! \li default implementation just wraps m_Options->CheckSatisfiable(compiler)
+    //! \returns false if this query is trivially unsatisfiable for \a compiler
+    virtual bool CheckSatisfiable(CQueryCompiler *compiler);
+    
     //! Compile index-dependent query properties (required for evaluation).  Required.
     //! \li called once per leaf-corpus query by CConcHolder::GetOccurrences() or CConcHolder::GetHits() via CQueryCompiler::Compile()
     virtual bool Compile(CQueryCompiler *compiler);

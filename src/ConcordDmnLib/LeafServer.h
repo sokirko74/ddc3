@@ -1,7 +1,7 @@
 //-*- Mode: C++ -*-
 //
 //  DDC originally by Alexey Sokirko
-//  Changes and modifications 2011-2018 by Bryan Jurish
+//  Changes and modifications 2011-2020 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -72,13 +72,13 @@ public:
     // DDCServer API: request handlers: required
 
     /** request handler: get_first_hits: required (leaf) */
-    virtual void handle__get_first_hits(string &Result, const char *Query, int TimeOut, size_t ResultLimit, const NavHint& Hint);
+    virtual void handle__get_first_hits(string &Result, const char *Query, int TimeOut, size_t ResultLimit, const string& ReqPath, const NavHint& Hint);
 
     /** request handler: get_hit_strings: required (leaf) */
     virtual void handle__get_hit_strings(string &Result, const char *ResultType, size_t StartHitNo, size_t ResultLimit);
 
     /* request handler: run_query: required (branch) */
-    virtual void handle__run_query(string &Result, const char *CorpusName, const char *Query, const char *ResultType, size_t StartHitNo, size_t ResultLimit, int TimeOut, const NavHint& Hint);
+    virtual void handle__run_query(string &Result, const char *CorpusName, const char *Query, const char *ResultType, size_t StartHitNo, size_t ResultLimit, int TimeOut, const string& ReqPath, const NavHint& Hint);
 
     /** request handler: expand_terms: required (leaf|branch) */
     virtual void handle__expand_terms(string &Result, const string& pipeline, const string& terms, int timeout, const string &corpus);
@@ -94,6 +94,9 @@ public:
 
     /** request handler: clear_cache: required (leaf|branch) */
     virtual void handle__clear_cache(string &Result, int depth=0);
+
+    /** request handler: nodes: required (leaf|branch; since v2.2.8) */
+    virtual void handle__nodes(string &Result, int depth=-1);
 
 public:
     //--------------------------------------------------------------

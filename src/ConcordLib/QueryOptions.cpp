@@ -48,7 +48,7 @@ void CQueryOptions::swap(CQueryOptions &o)
 }
 
 //--------------------------------------------------------------
-void CQueryOptions::assign(const CQueryOptions &src)
+void CQueryOptions::assign(const CQueryOptions &src, bool deep)
 {
     m_ContextSentencesCount = src.m_ContextSentencesCount;
     m_bEnableBibliography = src.m_bEnableBibliography;
@@ -58,18 +58,76 @@ void CQueryOptions::assign(const CQueryOptions &src)
 
     m_Within = src.m_Within;
     m_HitTypeStr = src.m_HitTypeStr;
-    //m_QFilters = src.m_QFilters;
-    m_Filters = src.m_Filters;
-    m_Subcorpora = src.m_Subcorpora;
-    m_Comments = src.m_Comments;
-    m_LexerComments = src.m_LexerComments;
 
-    m_QFilters.clear();
-    for (CQFilterList::const_iterator fi=src.m_QFilters.begin(); fi != src.m_QFilters.end(); ++fi) {
-        m_QFilters.push_back((*fi)->Clone());
+    if (deep) {
+        //m_QFilters = src.m_QFilters;
+        m_Filters = src.m_Filters;
+        m_Subcorpora = src.m_Subcorpora;
+        m_Comments = src.m_Comments;
+        m_LexerComments = src.m_LexerComments;
+
+        m_QFilters.clear();
+        for (CQFilterList::const_iterator fi=src.m_QFilters.begin(); fi != src.m_QFilters.end(); ++fi) {
+            m_QFilters.push_back((*fi)->Clone());
+        }
     }
 };
 
+//~~~~~~~~~~~~~~~~~~~~~~
+string SubcorpusRequestRegex(const string& req)
+{
+    string re("(?:");
+    vector<string> reqdirs = stringSplit(req.c_str(), "/");
+    for (vector<string>::const_iterator rdi=reqdirs.begin(); rdi != reqdirs.end(); ++rdi) {
+       if (*rdi == "*") {
+           //-- single node wildcard
+           re += "/+[^/]+(?=/|$)";
+       }
+       else if (*rdi == "**") {
+           //-- single path wildcard
+           re += "(?:/+[^/]+)*(?=/|$)";
+       }
+       else {
+           //-- literal node label
+           re += string("/+\\Q") + *rdi + "\\E(?=/|$)";
+       }
+    }
+    re += ")";
+    return re;
+}
+
+//--------------------------------------------------------------
+bool CQueryOptions::CheckSatisfiable(CQueryCompiler *compiler)
+{
+    if (!compiler
+        || !compiler->m_pHolder
+        || !compiler->m_pHolder->m_pConcordance)
+        return false;
+
+    //-- check for m_Subcorpora satisifiability (empty ReqPath should ensure compatibility with <= v2.2.7)
+    const string &ReqPath = compiler->m_pHolder->m_RequestPath;
+    if (!m_Subcorpora.empty() && !ReqPath.empty()) {
+        string restr("^(?:");
+        for (CQSubcorpusList::const_iterator sci=m_Subcorpora.begin(); sci!=m_Subcorpora.end(); ++sci) {
+            if (sci != m_Subcorpora.begin()) restr += "|";
+            restr += SubcorpusRequestRegex(*sci);
+        }
+        restr += ")";
+
+        RML_RE re(restr, compiler->m_pHolder->m_pConcordance->GetRegexOptions());
+        if (!re.PartialMatch(ReqPath))
+            return false;
+    }
+
+    //-- check for unsatisfiable filters over constant bibl attributes
+    for (CQFilterList::iterator fi=m_QFilters.begin(); fi != m_QFilters.end(); fi++) {
+        if (*fi && !(*fi)->CheckSatisfiable(compiler,this))
+            return false;
+    }
+
+    return true;
+};
+    
 //--------------------------------------------------------------
 bool CQueryOptions::Compile(CQueryCompiler *compiler)
 {
@@ -147,6 +205,23 @@ bool CQueryOptions::IsTrivialFilter() const
             return false;
     }
     return true;
+}
+
+//--------------------------------------------------------------
+CQFilter* CQueryOptions::PrimarySortFilter() const
+{
+    for (CQFilterList::const_reverse_iterator fi=m_QFilters.rbegin(); fi != m_QFilters.rend(); ++fi) {
+        if ((*fi)->FilterType() != NoSort)
+            return *fi;
+    }
+    return NULL;
+}
+
+//--------------------------------------------------------------
+bool CQueryOptions::IsPruneFilter() const
+{
+    CQFilter *f = PrimarySortFilter();
+    return (f && IsPruneFilterType(f->FilterType()));
 }
 
 //--------------------------------------------------------------

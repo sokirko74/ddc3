@@ -23,12 +23,22 @@
 #include "../CommonLib/ddcString.h"
 #include "../CommonLib/ddcTime.h"
 #include "../ConcordLib/QueryCompiler.h"
+#include "json/json.h"
 
 //==============================================================================
 // debugging
 
 //#define DEBUG_SERVER_THREADS 1
 #undef DEBUG_SERVER_THREADS
+
+//#define DEBUG_PRUNE 1
+#undef DEBUG_PRUNE
+
+#ifdef DEBUG_PRUNE
+# define PRUNE_DEBUG(x) x
+#else
+# define PRUNE_DEBUG(x)
+#endif
 
 #define DEEP_HINTS 1
 
@@ -99,6 +109,39 @@ void CFirstHitsQueryResult::CollectCounts()
         default:
             break;
     }
+}
+
+//----------------------------------------------------------------------
+void CFirstHitsQueryResult::PruneHits(size_t PruneLimit)
+{
+    vector<CHitToSort> newHits;
+    newHits.reserve(m_Hits.size());
+
+    CHitToSort *cur=NULL;
+    size_t      ncur=0;
+    for (vector<CHitToSort>::iterator hi=m_Hits.begin(); hi != m_Hits.end(); hi++) {
+        if (!cur || cur->m_SortKeyStr != hi->m_SortKeyStr) {
+            ncur = 0; //-- new key
+        }
+        if (ncur >= PruneLimit) {
+            //-- pruning limit exceeded for current key
+            --m_AllHitsCount;
+        }
+        else {
+            ++ncur;
+            newHits.push_back(CHitToSort());
+            cur = &(newHits.back());
+            cur->steal(*hi);
+        }
+    }
+    m_Hits.swap(newHits);
+}
+
+//----------------------------------------------------------------------
+size_t CFirstHitsQueryResult::HostHitsLimit(const vector<size_t>& HostHitIds)
+{
+    if (HostHitIds.empty()) return 0;
+    return 1 + m_Hits[HostHitIds.back()].m_HitNo - m_Hits[HostHitIds.front()].m_HitNo;
 }
 
 
@@ -173,6 +216,7 @@ void CDDCBranchServer::WorkerCloneInit(const CDDCServer *Parent, size_t WorkerId
 
     CDDCBranchServer *parent = (CDDCBranchServer*)Parent;
     m_Hosts = parent->m_Hosts;
+    m_HostMap = parent->m_HostMap;
     m_pNavCache = parent->m_pNavCache;
     m_bHitStringsParallel = parent->m_bHitStringsParallel;
 }
@@ -210,7 +254,7 @@ void CSelectedHosts::Insert(DWORD HostId, const string& SubPath)
 //----------------------------------------------------------------------
 void CSelectedHosts::InsertAll(DWORD nDtrs, const string &SubPath)
 {
-    m_vec.clear();
+    //m_vec.clear();
     m_vec.reserve(nDtrs);
     for (DWORD di=0; di<nDtrs; ++di) {
         Insert(di, SubPath);
@@ -271,7 +315,26 @@ string CSelectedHosts::toString() const
 // CRunQueryData
 
 //----------------------------------------------------------------------
-void CRunQueryData::Init(const string & _Query, const string& _ResultFormat, size_t _Start, size_t _Limit, int _TimeOut, string *_pErrorStr, const NavHint& _Hint)
+CRunQueryData::CRunQueryData(const string & _Query, const string& _ResultFormat, size_t _Start, size_t _Limit, int _TimeOut, string *_pErrorStr)
+    : sQuery(_Query), sResultFormat(_ResultFormat), StartHitNo(_Start), ResultLimit(_Limit), TimeOut(_TimeOut),
+      iInternalError(errNone), iNetworkError(neSuccess), EndHitNo(0), HitsCount(0), RelevantDocsCount(0), HitDistrib(""), DocDistrib(""),
+      HitsKey("hits_"), ResponseBody(""),
+      pErrorStr(_pErrorStr),
+      ReqPath("")
+{
+    Trim(sQuery);
+    Trim(sResultFormat);
+    pQCompiler = new CQueryCompiler();
+}
+
+//----------------------------------------------------------------------
+CRunQueryData::~CRunQueryData()
+{
+    if (pQCompiler) delete pQCompiler;
+}
+
+//----------------------------------------------------------------------
+void CRunQueryData::Init(const string & _Query, const string& _ResultFormat, size_t _Start, size_t _Limit, int _TimeOut, string *_pErrorStr, const string& _ReqPath, const NavHint& _Hint)
 {
     Clear();
     sQuery = _Query;
@@ -284,8 +347,21 @@ void CRunQueryData::Init(const string & _Query, const string& _ResultFormat, siz
     Trim(sQuery);
     Trim(sResultFormat);
 
+    ReqPath = _ReqPath;
+
     navKey.assign(sQuery,StartHitNo);
     navHint = _Hint;
+
+    try {
+        //-- compile query
+        if (!pQCompiler->ParseQuery(sQuery))
+            throw(CExpc("failed to parse input query"));
+    }
+    catch (exception &e) {
+        iInternalError = errParseError;
+        *pErrorStr = e.what();
+        throw;
+    }
 }
                          
 //----------------------------------------------------------------------
@@ -307,8 +383,10 @@ void CRunQueryData::Clear()
     HitsKey = "hits_";
     ClearString(ResponseBody);
     pErrorStr = NULL;
+    ReqPath.clear();
     navKey.clear();
     navHint.clear();
+    pQCompiler->CleanParser();
 }
 
 //----------------------------------------------------------------------
@@ -350,7 +428,7 @@ void CRunQueryData::toString(string &Response, size_t WorkerId, const DDCVersion
 }
 
 //==============================================================================
-// CDDCLeafServer: CHost API: overrides
+// CDDCBranchServer: CHost API: overrides
 
 //----------------------------------------------------------------------
 bool CDDCBranchServer::Close(SOCKET& rConnectedSocket, bool linger, int timeout)
@@ -380,11 +458,11 @@ bool CDDCBranchServer::CloseDtr(SOCKET& rConnectedSocket, bool linger, int timeo
 // CDDCBranchServer: handlers
 
 //----------------------------------------------------------------------
-void CDDCBranchServer::handle__get_first_hits(string &Result, const char *Query, int TimeOut, size_t ResultLimit, const NavHint& Hint)
+void CDDCBranchServer::handle__get_first_hits(string &Result, const char *Query, int TimeOut, size_t ResultLimit, const string& ReqPath, const NavHint& Hint)
 {
     CRunQueryData &runq = m_QueryData;
     CFirstHitsQueryResult& FHResult = m_FHResult;
-    runq.Init(Query, "", Hint.m_Offset, ResultLimit, TimeOut, &m_ErrorStr, Hint);
+    runq.Init(Query, "", Hint.m_Offset, ResultLimit, TimeOut, &m_ErrorStr, ReqPath, Hint);
 
     NetworkErrorsEnum rc = RunGetFirstHits();
     CheckFirstHitsResult(rc);
@@ -460,6 +538,10 @@ void CDDCBranchServer::handle__get_hit_strings(string &Result, const char *Resul
         //-- context-query must retrieve full hit strings (side-effect: updates runq.navKey, runq.navHint)
         GetHitContexts(FHResult, runq.sResultFormat, ResultTypeE, runq.SelectedHosts, runq.iInternalError, runq.TimeOut, runq.ResponseBody);
         runq.HitsKey = "hits_";
+        if (runq.IsPruneQuery()) {
+            runq.HitsCount = FHResult.m_AllHitsCount;
+            FHResult.m_HitsDistributionStr.insert(FHResult.m_HitsDistributionStr.size()-2, Format("~%d", runq.HitsCount));
+        }
     }
 
     //-- check for errors
@@ -521,17 +603,19 @@ void CDDCBranchServer::handle__get_hit_strings(string &Result, const char *Resul
 }
 
 //----------------------------------------------------------------------
-void CDDCBranchServer::handle__run_query(string &Result, const char *CorpusName, const char *Query, const char *ResultType, size_t StartHitNo, size_t ResultLimit, int TimeOut, const NavHint &Hint)
+void CDDCBranchServer::handle__run_query(string &Result, const char *CorpusName, const char *Query, const char *ResultType,
+                                         size_t StartHitNo, size_t ResultLimit, int TimeOut,
+                                         const string &ReqPath, const NavHint &Hint)
 {
     CRunQueryData& runq = m_QueryData;
-    runq.Init(Query, ResultType, StartHitNo, ResultLimit, TimeOut, &m_ErrorStr, Hint);
     
-    if ( runq.sQuery.empty() )
-        throw CExpc(errParseError, "CDDCBranchServer::handle__run_query(): cannot parse empty query string");
-
-    m_ErrorStr.clear();
-
     try {
+        runq.Init(Query, ResultType, StartHitNo, ResultLimit, TimeOut, &m_ErrorStr, ReqPath, Hint);
+
+        if ( runq.sQuery.empty() )
+            throw CExpc(errParseError, "CDDCBranchServer::handle__run_query(): cannot parse empty query string");
+        m_ErrorStr.clear();
+        
         RunDistributed();
     }
     catch (exception &e) {
@@ -565,12 +649,7 @@ void CDDCBranchServer::handle__expand_terms(string &Result, const string& pipeli
         h = &(m_Hosts[0]);
     } else {
         //-- user-specified expansion host: get matching name from m_Hosts
-        for (vector<CHost>::iterator hi=m_Hosts.begin(); hi != m_Hosts.end(); hi++) {
-            if (hi->m_CorpusName == corpus) {
-                h = &(*hi);
-                break;
-            }
-        }
+        h = FindHost(corpus);
         if (h==NULL)
             throw CExpc(errParseError, "unknown host `%s' in `expand_terms' request", corpus.c_str());
     }
@@ -617,7 +696,7 @@ void CDDCBranchServer::handle__status(string &Result, int timeout, bool verbose)
         //-- status: just get subcorpus names
         for (size_t i=0; i < m_Hosts.size(); ++i) {
             subResult += (i==0 ? '[' : ',');
-            subResult += jsonStr(m_Hosts[i].m_CorpusName);
+            subResult += jsonStr(m_Hosts[i].m_ShortName);
         }
         subResult += "]\n";
     }
@@ -707,6 +786,45 @@ void CDDCBranchServer::handle__clear_cache(string &Result, int depth)
 }
 
 //----------------------------------------------------------------------
+void CDDCBranchServer::handle__nodes(string &Result, int depth)
+{
+    vector<string> nodes; //-- flat list
+    nodes.push_back("/");
+    if (depth != 0) {
+        vector<string> Results(m_Hosts.size());
+        GetSubcorpusJsonStrings(Results, Format("nodes %d",depth-1));
+        Json::Reader jreader;
+        
+        for (size_t hi=0; hi < m_Hosts.size(); ++hi) {
+            Json::Value hval;
+            string dtrPath = string("/") + m_Hosts[hi].m_ShortName;
+            if (!jreader.parse(Results[hi],hval)) {
+                nodes.push_back(dtrPath + ": Error: " + jreader.getFormattedErrorMessages());
+            }
+            else if (hval.isArray()) {
+                //-- array: branch node
+                for (Json::Value::iterator hvi=hval.begin(); hvi!=hval.end(); ++hvi) {
+                    nodes.push_back(dtrPath + hvi->asString());
+                }
+            }
+            else {
+                //-- anything else: treat as leaf node
+                nodes.push_back(dtrPath);
+            }
+        }
+    }
+
+    //-- build result
+    Result = string("[");
+    for (vector<string>::const_iterator ni=nodes.begin(); ni != nodes.end(); ++ni) {
+        if (ni != nodes.begin()) Result += ",\n";
+        Result += jsonStr(*ni);
+    }
+    Result += "\n]";
+    m_bExpectMore = false;
+}
+
+//----------------------------------------------------------------------
 void CDDCBranchServer::handle__close_socket(string &Result, SOCKET &rConnectedSocket)
 {
     m_bRespond = false;
@@ -755,6 +873,10 @@ void CDDCBranchServer::RunDistributed()
         //-- context-query must retrieve full hit strings (and update runq.navKey, runq.navHint)
         GetHitContexts(FHResult, runq.sResultFormat, ResultTypeE, runq.SelectedHosts, runq.iInternalError, runq.TimeOut, runq.ResponseBody);
         runq.HitsKey = "hits_";
+        if (runq.IsPruneQuery()) {
+            runq.HitsCount = FHResult.m_AllHitsCount;
+            FHResult.m_HitsDistributionStr.insert(FHResult.m_HitsDistributionStr.size()-2, Format("~%d", runq.HitsCount));
+        }
     }
 
     CConcSession::DecorateQueryResults(runq.sResultFormat, runq.ResponseBody);
@@ -813,7 +935,7 @@ NetworkErrorsEnum CDDCBranchServer::RunGetFirstHits()
     string CleanQuery;
     // read "possible" hosts (e.g. user-specified hosts from query), using query where these hosts can be specified
     // SelectedHosts maps Host-IDs to selected sub-subcpora
-    if (!ReadSelectedHosts(runq.sQuery, CleanQuery, runq.SelectedHosts)) {
+    if (!ReadSelectedHosts(CleanQuery)) {
         runq.iNetworkError = neSubcorpusNotFound;
         return (NetworkErrorsEnum)runq.iNetworkError;
     }
@@ -854,6 +976,20 @@ NetworkErrorsEnum CDDCBranchServer::RunGetFirstHits()
             //-- sort: ascending or counts
             stable_sort (FHResult.m_Hits.begin(), FHResult.m_Hits.end());
         }
+    }
+
+    //-- prune-query: 
+    if (runq.IsPruneQuery()) {
+        size_t prune_limit = ((CQFPrune*)runq.QueryOptions()->PrimarySortFilter())->m_limit;
+#ifdef DEBUG_PRUNE
+        ddcLogDebug(Format("DEBUG: prune-filter detected with limit=%zd ; orig nhits=%zd ; AllHitsCount=%zd",
+                           prune_limit, FHResult.m_Hits.size(), FHResult.m_AllHitsCount));
+#endif
+        FHResult.PruneHits( prune_limit );
+#ifdef DEBUG_PRUNE        
+        ddcLogDebug(Format("DEBUG: prune-filter applied with limit=%zd ; new nhits=%zd ; AllHitsCount=%zd",
+                           prune_limit, FHResult.m_Hits.size(), FHResult.m_AllHitsCount));
+#endif
     }
 
     //-- count-query: aggregate by sort-keys (pre-trim)
@@ -965,18 +1101,22 @@ void CDDCBranchServer::UpdateNavCache()
 }
 
 //----------------------------------------------------------------------
-NetworkErrorsEnum CDDCBranchServer::SendGetHitStringsRequest(BYTE SelectedHostNo, const vector< vector<size_t> >& SortedHits, const vector<size_t>& FirstOffsets, const string& ResultType)
+NetworkErrorsEnum CDDCBranchServer::SendGetHitStringsRequest(BYTE SelectedHostNo,
+                                                             const vector< vector<size_t> >& SortedHits,
+                                                             const vector<size_t>& FirstOffsets,
+                                                             const string& ResultType)
 {
     BYTE HostNo              = m_QueryData.SelectedHosts.m_vec[SelectedHostNo];
     SOCKET&     CorpusSocket = m_FHResult.m_Sockets[SelectedHostNo];
     const vector<size_t>& V  = SortedHits[HostNo];
     size_t FirstHitNo        = (V.empty()) ? FirstOffsets[HostNo] : m_FHResult.m_Hits[V[0]].m_HitNo;
+    size_t HostLimit         = m_FHResult.HostHitsLimit(V);
     string ErrorStr;
 
     if (CorpusSocket == -1)
         return neNetworkError;
 
-    string Req = Format ("get_hit_strings %s\x01%zi %zi",  ResultType.c_str(), FirstHitNo,  V.size());
+    string Req = Format ("get_hit_strings %s\x01%zi %zi",  ResultType.c_str(), FirstHitNo, HostLimit);
     if (!SendString(CorpusSocket, Req, ErrorStr))  {
         ErrorMessage(Format("cannot send a string to socket %s : %s", m_Hosts[HostNo].GetAddressStr().c_str(), ErrorStr.c_str() ));
         if (!this->CloseDtr(CorpusSocket))
@@ -1065,9 +1205,10 @@ NetworkErrorsEnum CDDCBranchServer::GetHitContexts(CFirstHitsQueryResult& FHResu
         
         string S, dtrHint;
         size_t FirstHitNo = (V.empty()) ? FirstOffsets[HostNo] : FHResult.m_Hits[V[0]].m_HitNo;
+        size_t HostLimit  = m_FHResult.HostHitsLimit(V);
         InternalError = errNone;
         NetworkErrorsEnum Res = GetHitStringsFromOneCorpus
-            (m_Hosts[HostNo], ResultType, FirstHitNo, V.size(), TimeOut,FHResult.m_Sockets[i], InternalError, S, dtrHint);
+            (m_Hosts[HostNo], ResultType, FirstHitNo, HostLimit, TimeOut,FHResult.m_Sockets[i], InternalError, S, dtrHint);
         //-- should we be checking for (Res != neSuccess) here?
 
         NAVCACHE_DEBUG(ddcLogDebug(Format("GetHitContexts[host=%d]: Hint=`%s'", HostNo, dtrHint.c_str())));
@@ -1107,7 +1248,7 @@ NetworkErrorsEnum CDDCBranchServer::GetHitContexts(CFirstHitsQueryResult& FHResu
             }
         }
 
-        if (Results[HostNo].size() != V.size())
+        if (Results[HostNo].size() != HostLimit)
         {
             FHResult.CloseSockets();
             return neProtocolError;
@@ -1159,6 +1300,7 @@ void CDDCBranchServer::GetFirstHitsFromCorpora(const CSelectedHosts& SelectedHos
 
     //-- nav-hints
     bool compat_ge_v2_1_9 = (m_VersionCompat >= DDCVersionT(2,1,9)); //-- can we use v2.1.9 get_first_hits syntax?
+    bool compat_ge_v2_2_8 = (m_VersionCompat >= DDCVersionT(2,2,8)); //-- can we use v2.2.8 RequestPath syntax?
     const NavHint& Hint   = runq.navHint;
     size_t HintOffset     = Hint.OffsetTotal();
     if (StartHitNo < HintOffset)
@@ -1181,6 +1323,7 @@ void CDDCBranchServer::GetFirstHitsFromCorpora(const CSelectedHosts& SelectedHos
         };
 
         string dtrQuery(Query);
+        string dtrPath = runq.ReqPath + "/" + m_Hosts[HostNo].m_ShortName;
         if (qPathPos != string::npos)
             dtrQuery.replace(qPathPos,1, SelectedHosts.DtrPaths(HostNo));
 
@@ -1193,8 +1336,16 @@ void CDDCBranchServer::GetFirstHitsFromCorpora(const CSelectedHosts& SelectedHos
             size_t dtrLimit = StartHitNo + ResultLimit - HintOffset;
             //size_t dtrLimit = ResultLimit + (StartHitNo-min((size_t)StartHitNo,dtrStart));
             //size_t dtrLimit = ResultLimit - min((size_t)ResultLimit,max(dtrStart,HintOffset));
-            Req = Format("get_first_hits %s\x01%i %zi %zd%s %s",
-                         dtrQuery.c_str(), TimeOut, dtrLimit, dtrStart,dtrHintTail, Hint.m_SortKey.c_str());
+
+            if (compat_ge_v2_2_8) {
+                //-- compat >= v2.2.8: include dtrPath in request
+                Req = Format("get_first_hits %s\x01%i %zi %s %zd%s %s",
+                             dtrQuery.c_str(), TimeOut,dtrLimit, dtrPath.c_str(), dtrStart,dtrHintTail, Hint.m_SortKey.c_str());
+            } else {
+                //-- v2.1.9 <= compat < v2.2.8: use hints but no dtrPath in request
+                Req = Format("get_first_hits %s\x01%i %zi %zd%s %s",
+                             dtrQuery.c_str(), TimeOut,dtrLimit,                  dtrStart,dtrHintTail, Hint.m_SortKey.c_str());
+            }
         } else {
             //-- compat <  v2.1.9: use old get_first_hits syntax (highway-painting algorithm)
             Req = Format ("get_first_hits %s\x01%i %i", dtrQuery.c_str(), TimeOut,  StartHitNo+ResultLimit);
@@ -1239,7 +1390,8 @@ void CDDCBranchServer::GetFirstHitsFromCorpora(const CSelectedHosts& SelectedHos
         HitsDistribution[HostNo] = CorpusHitsCount;
         Result.m_AllRelevantDocsCount += RelevantDocumentsCount;
         RelevantDocsDistribution[HostNo] = RelevantDocumentsCount;
-        Result.m_SortOrder = (HitSortOrderEnum)iSort;
+        if (iSort != hsoNone)
+            Result.m_SortOrder = (HitSortOrderEnum)iSort;
         Result.m_DtrEnds[HostNo] = EndHitNo;
 
         //-- alow special handling for count()-query results
@@ -1279,7 +1431,7 @@ void CDDCBranchServer::GetFirstHitsFromCorpora(const CSelectedHosts& SelectedHos
                     Result.m_NetworkError = neProtocolError;
                     Result.m_ErrorStr = Format("could not parse get_first_hits result string #%zi from subcorpus `%s'",
                                                Result.m_Hits.size(),
-                                               m_Hosts[HostNo].m_CorpusName.c_str());
+                                               m_Hosts[HostNo].m_ShortName.c_str());
                     return;
                 }
                 else if (nscanned > 2 && strcmp(SortKeyBuf, "<empty>") != 0) {
@@ -1378,7 +1530,6 @@ NetworkErrorsEnum CDDCBranchServer::GetHitStringsFromOneCorpus(CHost& Host,
         ResultHint.assign(S, hintPos, dataPos-hintPos);
         Trim(ResultHint);
     }
-        
 
     return neSuccess;
 }
@@ -1386,90 +1537,125 @@ NetworkErrorsEnum CDDCBranchServer::GetHitStringsFromOneCorpus(CHost& Host,
 //----------------------------------------------------------------------
 size_t CDDCBranchServer::FindHostID(const string& CorpusName) const
 {
-    size_t hi=0;
-    for (; hi < m_Hosts.size() && m_Hosts[hi].m_CorpusName != CorpusName; ++hi)
-        ;
-    return hi;
+    CHostIdMap::const_iterator mapi = m_HostMap.find(CorpusName);
+    if (mapi != m_HostMap.end())
+        return mapi->second;
+    return m_Hosts.size();
 }
 
 //----------------------------------------------------------------------
-void CDDCBranchServer::ParseCorpusPath(const string& CorpusPath, string& Dtr, string& Rest)
+CHost* CDDCBranchServer::FindHost(const string& CorpusName)
+{
+    CHostIdMap::const_iterator mapi=m_HostMap.find(CorpusName);
+    if (mapi != m_HostMap.end())
+        return &m_Hosts[mapi->second];
+    return NULL;
+}
+
+//----------------------------------------------------------------------
+void CDDCBranchServer::AlignCorpusPath(const string& UserPath, string& Dtr, string& Rest)
 {
     Dtr.clear();
     Rest.clear();
+    
+    if (m_VersionCompat >= DDCVersionT(2,2,8)) {
+        //-- >=v2.2.8 : align with runq.ReqPath
+        const string& ReqPath = m_QueryData.ReqPath;
+        vector<string> ReqPathV = stringSplit(ReqPath.c_str(), "/");
+        vector<string> UserPathV = stringSplit(UserPath.c_str(), "/");
+        size_t i;
 
-   
-    size_t i = CorpusPath.find_first_not_of('/');
-    if (i == string::npos) return;
-
-    size_t j = CorpusPath.find('/',i+1);
-    if (j == string::npos) {
-        Dtr = CorpusPath.substr(i);
-        return;
+        for (i=0; i < ReqPathV.size() && i < UserPathV.size(); ++i) {
+            if (ReqPathV[i] != UserPathV[i] && UserPathV[i] != "*") break;
+        }
+        if (i == ReqPathV.size()) {
+            //-- full ReqPath alignment with UserPath prefix
+            //Rest = UserPath;
+            Dtr  = (i < UserPathV.size() ? UserPathV[i] : "*");
+        }
+        else if (i == UserPathV.size()) {
+            //-- full ReqPath prefix alignment with full UserPath
+            Dtr = "*";
+        }
+        else if (i < UserPathV.size() && UserPathV[i] == "**") {
+            //-- UserPath "**" wildcard encountered
+            //Rest = UserPath;
+            Dtr  = "*";
+        }
+        else {
+            ddcLogDebug(Format("path-mismatch: ReqPath=%s ; UserPath=%s", ReqPath.c_str(), UserPath.c_str()));
+        }
+        //-- path-mismatch: Dtr and Rest are both empty
     }
+    else  {
+        //-- ~v2.2.7 : parse relative corpus paths
+        size_t i = UserPath.find_first_not_of('/');
+        if (i == string::npos) return;
 
-    Dtr = CorpusPath.substr(i,j-i);
-    j   = CorpusPath.find_first_not_of('/',j+1);
-    if (j == string::npos) return;
+        size_t j = UserPath.find('/',i+1);
+        if (j == string::npos) {
+            Dtr = UserPath.substr(i);
+            return;
+        }
 
-    Rest = CorpusPath.substr(j);
+        Dtr = UserPath.substr(i,j-i);
+        j   = UserPath.find_first_not_of('/',j+1);
+        if (j == string::npos) return;
+
+        Rest = UserPath.substr(j);
+    }
 }
 
 //----------------------------------------------------------------------
-bool CDDCBranchServer::ReadSelectedHosts(const string& InputQuery, string& CleanQuery, CSelectedHosts& SelectedHosts)
+bool CDDCBranchServer::ReadSelectedHosts(string& CleanQuery)
 {
-    SelectedHosts.m_vec.reserve(m_Hosts.size());
+    CRunQueryData &runq = m_QueryData;
+    CSelectedHosts &SelectedHosts = runq.SelectedHosts;
+    CQSubcorpusList &qDtrs = runq.QueryOptions()->m_Subcorpora;
+    const string &InputQuery = runq.sQuery;
+    bool compat_ge_v2_2_8 = (m_VersionCompat >= DDCVersionT(2,2,8)); //-- can we use v2.2.8 RequestPath syntax?
+
+    runq.SelectedHosts.m_vec.reserve(m_Hosts.size());
     CleanQuery = InputQuery;
 
-    //-- scan backwards for ":CORPUS_LIST"
-    size_t Beg;
-    for (Beg=InputQuery.rfind(':'); Beg != string::npos; Beg=InputQuery.rfind(':',Beg-1)) {
-        if (Beg==0 || isspace(InputQuery[Beg-1])) break;
-    }
-    if (Beg==string::npos || InputQuery[Beg] != ':') {
-        //-- no corpus list found in input query: pass to all hosts
+    //-- check for empty daughtrs-list: pass to all hosts
+    if (qDtrs.empty()) {
         SelectedHosts.InsertAll(m_Hosts.size(), "*");
         return true;
     }
 
-    //-- find end of corpus list: scan forward from Beg for next whitespace character
-    size_t End = InputQuery.find_first_of(" \t\r\n",Beg+1);
-    CleanQuery.replace(Beg,End-Beg, "\x01");
+    //-- mark location ":SUBCORPORA" substring from parsed query with "\x01"
+    int Beg = runq.pQCompiler->yyDtrsPos;
+    int Len = runq.pQCompiler->yyDtrsLen;
+    if (Beg >= 0 && Beg < CleanQuery.size())
+        CleanQuery.replace(Beg,Len, "\x01");
     Trim(CleanQuery);
 
-    //-- read subcorpus labels from selected corpus-list substring
-    string s = InputQuery.substr(Beg+1, End-(Beg+1));
-    Trim(s);
-    if (s.empty()) {
-        //-- empty subcorpus list found in input query: pass to all hosts
-        SelectedHosts.InsertAll(m_Hosts.size(),"*");
-        return true;
-    }
-    StringTokenizer tok(s.c_str(),", ");
-    while (tok()) {
-        string CorpusPath = tok.val();
-        //-- hack for single-quoted paths
-        if (CorpusPath.size()>=2 && CorpusPath[0]=='\'' && CorpusPath[CorpusPath.size()-1]=='\'') {
-            //-- hack for single-quoted subcorpus paths
-            CorpusPath.erase(CorpusPath.size()-1,1);
-            CorpusPath.erase(0,1);
-        }
-
+    //-- read subcorpus paths from parsed query
+    for (CQSubcorpusList::const_iterator pathi=qDtrs.begin(); pathi!=qDtrs.end(); ++pathi) {
+        const string& UserPath = *pathi;
         string DtrName, DtrPath;        
-        ParseCorpusPath(CorpusPath, DtrName,DtrPath);
+
+        AlignCorpusPath(UserPath, DtrName,DtrPath);
         DtrName = unescapeCString(DtrName);
 
         if (DtrName == "*") {
-            SelectedHosts.InsertAll(m_Hosts.size(), DtrPath);
+            //-- "*/PATH" -> append to all dtrs
+            SelectedHosts.InsertAll(m_Hosts.size(), (compat_ge_v2_2_8 ? UserPath : DtrPath));
         }
-        else {
+        else if (compat_ge_v2_2_8 && DtrName == "**") {
+            //-- "**/PATH" -> append to all dtrs (>= v2.2.8 only)
+            SelectedHosts.InsertAll(m_Hosts.size(), UserPath);
+        }
+        else if (DtrName != "") {
+            //-- "DTR/...:" -> select daughter only (real restriction)
             size_t DtrId = FindHostID(DtrName);
             if (DtrId == m_Hosts.size()) {
-                ddcLogWarn(Format("ignoring unknown subcorpus `%s' for path `%s'", DtrName.c_str(), CorpusPath.c_str()));
-                //m_ErrorStr = Format("subcorpus `%s' not found for corpus path `%s'", DtrName.c_str(), CorpusPath.c_str());
+                ddcLogWarn(Format("ignoring unknown subcorpus `%s' for path `%s'", DtrName.c_str(), UserPath.c_str()));
+                //m_ErrorStr = Format("subcorpus `%s' not found for corpus path `%s'", DtrName.c_str(), UserPath.c_str());
                 //return false;
             } else {
-                SelectedHosts.Insert(DtrId, DtrPath);
+                SelectedHosts.Insert(DtrId, (compat_ge_v2_2_8 ? UserPath : DtrPath));
             }
         }
     }
@@ -1481,14 +1667,21 @@ bool CDDCBranchServer::ReadSelectedHosts(const string& InputQuery, string& Clean
     return true;
 }
 
+//----------------------------------------------------------------------
+void CDDCBranchServer::InitHostMap()
+{
+    for (size_t i=0; i < m_Hosts.size(); ++i) {
+        m_HostMap[m_Hosts[i].m_ShortName] = i;
+    }
+};
 
 //----------------------------------------------------------------------
-string CDDCBranchServer::GetSubcorpusJsonArray(const string& request, int timeout)
+void CDDCBranchServer::GetSubcorpusJsonStrings(vector<string>& Results, const string& request, int timeout)
 {
-    vector<string> Results(m_Hosts.size());
     vector<SOCKET> Sockets(m_Hosts.size(), -1);
     size_t i;
     string errorStr;
+    Results.resize(m_Hosts.size());
     if (timeout==0) timeout=10; //-- default timeout
 
     //-- send requests
@@ -1547,9 +1740,18 @@ string CDDCBranchServer::GetSubcorpusJsonArray(const string& request, int timeou
         this->CloseDtr(Sockets[i]);
     }
 
+    return;
+}
+
+//----------------------------------------------------------------------
+string CDDCBranchServer::GetSubcorpusJsonArray(const string& request, int timeout)
+{
+    vector<string> Results(m_Hosts.size());
+    GetSubcorpusJsonStrings(Results, request, timeout);
+
     //-- build result
     string Result("[");
-    for (i=0; i < m_Hosts.size(); ++i) {
+    for (int i=0; i < m_Hosts.size(); ++i) {
         if (i!=0) Result += ',';
         Result += string("\n\t") + (Results[i].empty() ? "null" : Results[i]);
     }
