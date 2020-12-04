@@ -450,7 +450,7 @@ bool CQFHasFieldValue::CheckSatisfiable(CQueryCompiler *compiler, CQueryOptions 
     if (m_arg0.empty()) return false;
 
     CFreeBiblIndex *fbi = GetBiblConstant(compiler, m_arg0);
-    if (!fbi) return false;
+    if (!fbi) return true; //-- assume non-constant fields are satisfiable
 
     bool rc = ( fbi->GetStringValue(0) == m_arg1 );
     return m_Negated ? (!rc) : rc;
@@ -476,7 +476,8 @@ bool CQFHasFieldValue::Compile(CQueryCompiler *compiler, CQueryOptions *options)
 bool CQFHasFieldRegex::CheckSatisfiable(CQueryCompiler *compiler, CQueryOptions *options)
 {
     if (m_arg0.empty()) return false;
-    if (!GetBiblConstant(compiler, m_arg0)) return false;
+    if (!GetBiblConstant(compiler, m_arg0))
+        return true; //-- assume non-constant fields are satisfiable
 
     this->Compile(compiler,options);
     return m_Negated ? m_Filter.m_SatisfiedValues.empty() : !m_Filter.m_SatisfiedValues.empty();
@@ -529,7 +530,8 @@ string CQFHasFieldInfix::valueString()
 bool CQFHasFieldSet::CheckSatisfiable(CQueryCompiler *compiler, CQueryOptions *options)
 {
     if (m_arg0.empty()) return false;
-    if (!GetBiblConstant(compiler, m_arg0)) return false;
+    if (!GetBiblConstant(compiler, m_arg0))
+        return true; //-- assume non-constant fields are satisfiable
 
     this->Compile(compiler,options);
     return m_Negated ? m_Filter.m_SatisfiedValues.empty() : !m_Filter.m_SatisfiedValues.empty();
