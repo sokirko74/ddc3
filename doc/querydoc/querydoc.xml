@@ -2193,7 +2193,7 @@ comment_text    (\\.|[^\]])*
             <tr><td class="monospace">:*/bar</td><td>all granddaughters named <code>bar</code></td></tr>
             <tr><td class="monospace">:*/bar,*/*/bar</td><td>all granddaughters or great-granddaughters named <code>bar</code></td></tr>
 	    <tr><td class="monospace">:**/baz</td><td>any node or descendant named <code>baz</code></td></tr>
-	    <tr><td class="monospace">:**/baz/**/bonk</td><td>any descendant named <code>bonk</code> which is descendend from a node named <code>baz</code></td></tr>
+	    <tr><td class="monospace">:**/baz/**/bonk</td><td>any descendant named <code>bonk</code> which is descended from a node named <code>baz</code></td></tr>
         </table>
 	For best results, individual server node labels themselves should <b>not</b> contain any
 	literal slashes (<code>/</code>), commas (<code>,</code>), or colons (<code>:</code>).
