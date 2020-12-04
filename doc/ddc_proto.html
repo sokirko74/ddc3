@@ -24,6 +24,7 @@
           <li><a href="#status">status</a></li>
           <li><a href="#vstatus">vstatus</a></li>
           <li><a href="#info">info</a></li>
+          <li><a href="#nodes">nodes</a></li>
           <li><a href="#reload">reload</a></li>
           <li><a href="#clear_cache">clear_cache</a></li>
           <li><a href="#expand_terms">expand_terms</a></li>
@@ -73,6 +74,7 @@
  status
  vstatus
  info
+ nodes DEPTH
  reload DEPTH
  clear_cache DEPTH
  
@@ -281,6 +283,13 @@
 
 <p>Since v2.0.18, &quot;periods&quot; attribute since v2.0.33, user-supplied info since v2.0.34, optional TIMEOUT parameter since v2.0.47, aliases and &quot;opdefault&quot; attribute since v2.1.5, &quot;mmap&quot; attribute since v2.1.12.</p>
 
+<h3 id="nodes">nodes</h3>
+
+<pre><code> nodes
+ nodes DEPTH</code></pre>
+
+<p>Returns a JSON array of all subcorpus nodes directly or indirectly accessible from the current server node, or <code>null</code> if the current server node is a leaf-server. For branch servers, each element of the returned array is a <code>/</code>-separated server-tree <code>PATH</code> string as for <a href="#HINT">&quot;HINT&quot;</a> and suitable for use with the <code>:</code> query directive.</p>
+
 <h3 id="reload">reload</h3>
 
 <pre><code> reload
@@ -394,17 +403,22 @@
 
 <p>As of DDC v2.1.9, the optional <code>HINT</code> parameter may be passed to specify a lower bound navigation hint for bandwidth and memory optimization of non-count queries. If specified, <code>HINT</code> is composed of a nested offset hint (<code>HINT_OFFSETS</code>) followed by a single space, followed by a primary sort-key lower bound (<code>HINT_SORTKEY</code>). The nested offset hint encodes the logical offset of the requested hint with respect to both the current server node (<code>OFFSET</code>) and any descendants (<code>DTR_OFFSETS</code>).</p>
 
-<pre><code> HINT         ::= HINT_OFFSETS (&quot; &quot; SORTKEY)
+<pre><code> HINT         ::= (PATH &quot; &quot;) HINT_OFFSETS (&quot; &quot; SORTKEY)
  HINT_OFFSETS ::= OFFSET DTR_OFFSETS?
  DTR_OFFSETS  ::= &quot;(&quot; HINT_OFFSETS (&quot;+&quot; HINT_OFFSETS)* &quot;)&quot;
  OFFSET       ::= &lt;unsigned integer&gt;
- SORTKEY      ::= &lt;string&gt;</code></pre>
+ SORTKEY      ::= &lt;string&gt;
+ 
+ PATH         ::= (&quot;/&quot; PATH_NODE)*
+ PATH_NODE    ::= &lt;string&gt;</code></pre>
 
 <p>The <code>HINT</code> parameter is ignored for count-queries.</p>
 
 <p>For context queries, each <code>OFFSET</code> should be the sum of the first level of <code>DTR_OFFSETS</code>, and <code>OFFSET</code> must be less than or equal to <code>START</code>, otherwise an exception may be thrown. If <code>QUERY</code> contains a non-trivial sort operation and <code>HINT</code> contains a non-empty <code>SORTKEY</code> component, only hits equal to or following <code>SORTKEY</code> in the requested primary sort order will be returned. If a <code>SORTKEY</code> was supplied which is inconsistent with the requested <code>OFFSET</code> or <code>START</code>, an exception will be thrown.</p>
 
-<p>Since v2.1.9, older DDC versions do not accept a <code>HINT</code> parameter.</p>
+<p>As of DDC v2.2.8, the <code>HINT</code> parameter may specify an optional initial <code>PATH</code> containing the labels of any superordinate branch servers(s) in the server-tree for the current request as a &quot;/&quot;-separated list, analogous to UNIX filesystem path notation. An empty <code>PATH</code> or indicates that the request was directly initiated by a client (e.g. a user). All other <code>PATH</code> parameters must begin with a slash (<code>/</code>). If you are writing a client, you probably don&#39;t want to specify <code>PATH</code> yourself; the DDC-internal code should take care of setting it sensibly.</p>
+
+<p>Since v2.1.9, older DDC versions do not accept a <code>HINT</code> parameter. <code>PATH</code> parameter since v2.2.8.</p>
 
 </dd>
 </dl>
@@ -423,6 +437,7 @@
    &quot;hint_&quot;: &quot;10(4(0+4)+1+5) foo&quot;, //-- navigation hint for next available hit
    &quot;hits_&quot; : [                    //-- list of hits
      {                                                  //-- each hit is an object
+       &quot;node_&quot; : &quot;/test/corpus1&quot;,                       //-- fully qualified subcorpus path (&gt;=v2.2.8)
        &quot;meta_&quot; : {                                      //-- hit.meta_: bibliographic metadata
             &quot;file_&quot; : &quot;busch_max_1865.xml&quot;,             //-- indexed filename
             &quot;indices_&quot; : [&quot;w&quot;,&quot;p&quot;,&quot;l&quot;],                 //-- indexed token fields for ctx_[1]
@@ -491,7 +506,7 @@
 </dd>
 </dl>
 
-<p>Since v1.x, JSON format and error messages since v2.0.0, leaf server support since v2.1.0, navigation hint support since v2.1.9.</p>
+<p>Since v1.x, JSON format and error messages since v2.0.0, leaf server support since v2.1.0, navigation hint support since v2.1.9, server-path support since v2.2.8.</p>
 
 <h2 id="Leaf-Server-Messages">Leaf Server Messages</h2>
 
@@ -528,7 +543,7 @@
 
 <p>As of v2.0.23, ddc supports aggregate count-queries (by means of the <code>count()</code> operator) in addition to traditional &quot;context&quot; queries. If the requested <code>QUERY</code> was such a count-query, then <code>ORDER_STRING</code> is a &quot;\x02&quot;-separated list of count-key components, and <code>INDEX</code> is the total count of the associated histogram bin.</p>
 
-<p>Since v1.x, error message strings since v2.0.0, count-queries since v2.0.23, branch-server support since v2.1.0, navigation hint support since v2.1.9.</p>
+<p>Since v1.x, error message strings since v2.0.0, count-queries since v2.0.23, branch-server support since v2.1.0, navigation hint support since v2.1.9, path support since v2.2.8.</p>
 
 <h3 id="get_hit_strings">get_hit_strings</h3>
 

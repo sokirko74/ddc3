@@ -71,7 +71,7 @@
 .\" ========================================================================
 .\"
 .IX Title "DDC_PROTO 5"
-.TH DDC_PROTO 5 "2020-03-16" "2.2.8-prune1" "DDC Corpus Indexing System"
+.TH DDC_PROTO 5 "2020-12-04" "2.2.8-rc1" "DDC Corpus Indexing System"
 .\" For nroff, turn off justification.  Always turn off hyphenation; it makes
 .\" way too many mistakes in technical documents.
 .if n .ad l
@@ -98,6 +98,7 @@ and \*(L" \*(R" represents a literal space character (\s-1ASCII\s0 byte with dec
 \& status
 \& vstatus
 \& info
+\& nodes DEPTH
 \& reload DEPTH
 \& clear_cache DEPTH
 \& 
@@ -348,6 +349,20 @@ optional \s-1TIMEOUT\s0 parameter since v2.0.47,
 aliases and \*(L"opdefault\*(R" attribute since v2.1.5,
 \&\*(L"mmap\*(R" attribute since v2.1.12.
 .PP
+\fInodes\fR
+.IX Subsection "nodes"
+.PP
+.Vb 2
+\& nodes
+\& nodes DEPTH
+.Ve
+.PP
+Returns a \s-1JSON\s0 array of all subcorpus nodes directly or indirectly accessible from
+the current server node, or \f(CW\*(C`null\*(C'\fR if the current server node is a leaf-server.
+For branch servers, each element of the returned array is a \f(CW\*(C`/\*(C'\fR\-separated
+server-tree \f(CW\*(C`PATH\*(C'\fR string as for \*(L"\s-1HINT\*(R"\s0 and suitable for use with the
+\&\f(CW\*(C`:\*(C'\fR query directive.
+.PP
 \fIreload\fR
 .IX Subsection "reload"
 .PP
@@ -492,11 +507,14 @@ The nested offset hint encodes the logical offset of the requested hint with res
 both the current server node (\f(CW\*(C`OFFSET\*(C'\fR) and any descendants (\f(CW\*(C`DTR_OFFSETS\*(C'\fR).
 .Sp
 .Vb 5
-\& HINT         ::= HINT_OFFSETS (" " SORTKEY)
+\& HINT         ::= (PATH " ") HINT_OFFSETS (" " SORTKEY)
 \& HINT_OFFSETS ::= OFFSET DTR_OFFSETS?
 \& DTR_OFFSETS  ::= "(" HINT_OFFSETS ("+" HINT_OFFSETS)* ")"
 \& OFFSET       ::= <unsigned integer>
 \& SORTKEY      ::= <string>
+\& 
+\& PATH         ::= ("/" PATH_NODE)*
+\& PATH_NODE    ::= <string>
 .Ve
 .Sp
 The \f(CW\*(C`HINT\*(C'\fR parameter is ignored for count-queries.
@@ -513,7 +531,17 @@ primary sort order will be returned.
 If a \f(CW\*(C`SORTKEY\*(C'\fR was supplied which is inconsistent with
 the requested \f(CW\*(C`OFFSET\*(C'\fR or \f(CW\*(C`START\*(C'\fR, an exception will be thrown.
 .Sp
+As of \s-1DDC\s0 v2.2.8, the \f(CW\*(C`HINT\*(C'\fR parameter may specify an optional
+initial \f(CW\*(C`PATH\*(C'\fR containing the labels of any superordinate branch
+servers(s) in the server-tree for the current request as a \*(L"/\*(R"\-separated
+list, analogous to \s-1UNIX\s0 filesystem path notation.  An empty \f(CW\*(C`PATH\*(C'\fR or
+indicates that the request was directly initiated by a client (e.g. a user).
+All other \f(CW\*(C`PATH\*(C'\fR parameters must begin with a slash (\f(CW\*(C`/\*(C'\fR).  If you are
+writing a client, you probably don't want to specify \f(CW\*(C`PATH\*(C'\fR yourself;
+the DDC-internal code should take care of setting it sensibly.
+.Sp
 Since v2.1.9, older \s-1DDC\s0 versions do not accept a \f(CW\*(C`HINT\*(C'\fR parameter.
+\&\f(CW\*(C`PATH\*(C'\fR parameter since v2.2.8.
 .PP
 Server response depends on \s-1FORMAT.\s0  In \f(CW\*(C`JSON\*(C'\fR mode, the response data
 for a traditional context-query is a \s-1JSON\s0 object of the form:
@@ -531,6 +559,7 @@ for a traditional context-query is a \s-1JSON\s0 object of the form:
 \&   "hint_": "10(4(0+4)+1+5) foo", //\-\- navigation hint for next available hit
 \&   "hits_" : [                    //\-\- list of hits
 \&     {                                                  //\-\- each hit is an object
+\&       "node_" : "/test/corpus1",                       //\-\- fully qualified subcorpus path (>=v2.2.8)
 \&       "meta_" : {                                      //\-\- hit.meta_: bibliographic metadata
 \&            "file_" : "busch_max_1865.xml",             //\-\- indexed filename
 \&            "indices_" : ["w","p","l"],                 //\-\- indexed token fields for ctx_[1]
@@ -611,7 +640,8 @@ are the key strings as requested in the \f(CW\*(C`QUERY\*(C'\fR \*(L"#BY\*(R"\-c
 Since v1.x,
 \&\s-1JSON\s0 format and error messages since v2.0.0,
 leaf server support since v2.1.0,
-navigation hint support since v2.1.9.
+navigation hint support since v2.1.9,
+server-path support since v2.2.8.
 .SS "Leaf Server Messages"
 .IX Subsection "Leaf Server Messages"
 This section describes the messages accepted by \s-1DDC\s0 \*(L"leaf\*(R" servers,
@@ -700,7 +730,8 @@ Since v1.x,
 error message strings since v2.0.0,
 count-queries since v2.0.23,
 branch-server support since v2.1.0,
-navigation hint support since v2.1.9.
+navigation hint support since v2.1.9,
+path support since v2.2.8.
 .PP
 \fIget_hit_strings\fR
 .IX Subsection "get_hit_strings"

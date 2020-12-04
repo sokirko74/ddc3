@@ -13,6 +13,8 @@ v2.2.8-rc1 Fri, 04 Dec 2020 10:38:13 +0100 moocow
           - added CHost::m_ShortName - without 'server:' prefix
           - added CDDCBranchServer::m_HostMap - for less painful daughter-selection
           - added CRunQueryData::ReqPath - for tracking request paths (for server VersionCompat >= 2.2.8)
+        * added CheckSatisfiable() methods for query objects (CQueryCompiler, CQuery, CQueryOptions CQFilter)
+          - fast (un)satisfiability checks for queries (e.g. :-operator wildcard matching, #HAS_FIELD for constant attributes)
         * added new server request "nodes" - return list of all reachable sub*corpus paths ()
 
 v2.2.7 Mon, 14 Sep 2020 15:45:56 +0200 moocow
