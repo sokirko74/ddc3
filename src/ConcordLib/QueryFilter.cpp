@@ -614,10 +614,12 @@ bool CQFPrune::Compile(CQueryCompiler *compiler, CQueryOptions *options)
 
 string CQFPrune::toString()
 {
-    string s = Format("#%s[%zd,", HitSortEnumStrings[m_Filter.m_FilterType], m_limit);
+    string s = Format("#%s[%zd", HitSortEnumStrings[m_Filter.m_FilterType], m_limit);
     EngMakeUpper(s);
-    if (m_keys)
+    if (m_keys && !m_keys.empty()) {
+        s.push_back(',');
         s += m_keys->toString();
+    }
     s += "]";
     return s;
 };
