@@ -913,7 +913,10 @@ bool CConcSession::GenerateOneHitStringJson(DWORD PageNumber, const CHit &Hit, c
                + ",\"page_\":" + pageStr
         );
     if (m_pQueryCompiler->m_pQuery->m_Options->m_bEnableBibliography && m_pConcordance->OutputBibliographyOfHits()) {
-        hitStr += "," + m_pConcordance->m_BiblIndex.GetFreeHeaderBiblAttributesJson(Hit.m_FileNo, utf8);
+        string freeBiblAttr = m_pConcordance->m_BiblIndex.GetFreeHeaderBiblAttributesJson(Hit.m_FileNo, utf8);
+        if (!freeBiblAttr.empty()) {
+            hitStr += "," + freeBiblAttr;
+        }
     }
 
     if (HasRankOrderOperator()) {
