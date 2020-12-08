@@ -633,6 +633,17 @@ string CQFPrune::jsonData()
     return s;
 };
 
+//--------------------------------------------------------------
+ddcObjectList CQFPrune::Children() const {
+    ddcObjectList kids(ddcObject::Children());
+    if (m_keys) kids.push_back(m_keys);
+    return kids;
+};
+
+//--------------------------------------------------------------
+void CQFPrune::DisownChildren() {
+    m_keys = NULL;
+};
 
 //-- see also CQCount::CountLocal()
 void CQFPrune::PruneHitsIndex(const CQuery *qRoot, vector<size_t>& PeriodHitsIndex)
@@ -678,6 +689,7 @@ void CQFPrune::PruneHitsIndex(const CQuery *qRoot, vector<size_t>& PeriodHitsInd
     //-- tweak hit-index
     PeriodHitsIndex.swap(NewHitsIndex);
 };
+
 
 /*--- emacs style variables ---
  * Local Variables:

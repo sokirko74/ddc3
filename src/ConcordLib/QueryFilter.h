@@ -493,6 +493,9 @@ public:
 
     virtual string jsonClass(void) { return "CQFPrune"; };
     virtual string jsonData(void);
+
+    virtual ddcObjectList Children() const;
+    virtual void DisownChildren();
     //@}
 
     //------------------------------------------------------------

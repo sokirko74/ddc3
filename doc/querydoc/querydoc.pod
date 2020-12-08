@@ -1079,7 +1079,7 @@ as well as (limited) wildcard strings * indicating all immediate daughters
 of the corresonding node.
 As of v2.2.8, branch and leaf servers also allow path wildcard strings ** indicating
 any direct or indirect descendant of the current node:
-PathsDescription:all descendants (empty list: default):*all descendants (explicit wildcard):foo,barimmediate daughters foo and bar only:foo/bargranddaughter bar, which is a child of daughter foo:*/barall granddaughters named bar:*/bar,*/*/barall granddaughters or great-granddaughters named bar:**/bazany node or descendant named baz:**/baz/**/bonkany descendant named bonk which is descendend from a node named baz
+PathsDescription:all descendants (empty list: default):*all descendants (explicit wildcard):foo,barimmediate daughters foo and bar only:foo/bargranddaughter bar, which is a child of daughter foo:*/barall granddaughters named bar:*/bar,*/*/barall granddaughters or great-granddaughters named bar:**/bazany node or descendant named baz:**/baz/**/bonkany descendant named bonk which is descended from a node named baz
 For best results, individual server node labels themselves should not contain any
 literal slashes (/), commas (,), or colons (:).
 
