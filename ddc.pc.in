@@ -18,7 +18,7 @@ pkgdocdir=@pkgdocdir@
 
 cflags=@CXXFLAGS@
 cppflags=-I@pkgincdir@/common -I@pkgincdir@/AgramtabLib -I@pkgincdir@/ConcordDmnLib -I@pkgincdir@/ConcordLib -I@pkgincdir@/GraphanLib -I@pkgincdir@/LemmatizerLib -I@pkgincdir@/MorphWizardLib -I@pkgincdir@/RmlTar -I@pkgincdir@/StructDictLib -I@pkgincdir@/tinyxml @CPPFLAGS@
-ldadd=-lDDCConcordDmn -lDDCConcord -lDDCGraphan -lDDCStructDict -lDDCTinyXml -lDDCLemmatizer -lDDCAgramtab -lDDCTinyXml -lDDCRmlTar -lDDCMorphWizard -lDDCCommon @LIBS@
+ldadd=-lDDCConcordDmn -lDDCConcord -lDDCGraphan -lDDCStructDict -lDDCTinyXml -lDDCLemmatizer -lDDCAgramtab -lDDCTinyXml -lDDCRmlTar -lDDCMorphWizard -lDDCCommon -lDDCjsoncpp @LIBS@
 
 
 Name: @PACKAGE@
