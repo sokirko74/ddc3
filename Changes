@@ -1,6 +1,6 @@
 ##-*- Mode: Change-Log; coding: utf-8; -*-
 
-v2.2.8-rc1 Fri, 04 Dec 2020 10:38:13 +0100 moocow
+v2.2.8 Wed, 09 Dec 2020 10:59:22 +0100 moocow
 	* added #PRUNE_ASC[N,KEY(s)] and #PRUNE_DESC[N,KEY(s)] filters
 	  - limit response to at most N hits per count-key given by KEY(s)
 	  - only metadata attributes allowed in KEY(s) (because token-attribute key evaluation needs more ConcSession data populated than we have or want)
@@ -16,6 +16,7 @@ v2.2.8-rc1 Fri, 04 Dec 2020 10:38:13 +0100 moocow
         * added CheckSatisfiable() methods for query objects (CQueryCompiler, CQuery, CQueryOptions CQFilter)
           - fast (un)satisfiability checks for queries (e.g. :-operator wildcard matching, #HAS_FIELD for constant attributes)
         * added new server request "nodes" - return list of all reachable sub*corpus paths ()
+	* (sokirko) fix bug in json generation (the free bibl string can be null)
 
 v2.2.7 Mon, 14 Sep 2020 15:45:56 +0200 moocow
 	* force BASE=10 for strtoul() calls in CBibliography::ConvertDateToInt()
