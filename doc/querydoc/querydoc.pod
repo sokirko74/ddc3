@@ -359,8 +359,8 @@ Comments in this document may appear after each rule in C notation
                    ;
  
  qf_prune_sort   ::=                                      /*-- Limit number of hits returned per key --*/
-                     #PRUNE [ INTEGER l_prunekeys ]       /* ... sorting hits in ascending order by prune-key (#PRUNE, #PRUNE_ASC, #PRUNE_BY, #PRUNE_ASC_BY) */
-                   | #PRUNE_DESC [ INTEGER l_prunekeys ]  /* ... sorting hits in descending order by prune-key (#PRUNE_DESC, #PRUNE_DESC_BY, #PRUNE_DSC, #PRUNE_DSC_BY */
+                     #PRUNE [ int_str , l_prunekeys ]     /* ... sorting hits in ascending order by prune-key (#PRUNE, #PRUNE_ASC, #PRUNE_BY, #PRUNE_ASC_BY) */
+                   | #PRUNE_DSC [ int_str , l_prunekeys ] /* ... sorting hits in descending order by prune-key (#PRUNE_DESC, #PRUNE_DESC_BY, #PRUNE_DSC, #PRUNE_DSC_BY) */
                    ;
  
  qfb_int         ::=                                      /*-- Optional integer bounds for query filters --*/
@@ -684,11 +684,11 @@ Comments in this document may appear after each rule in C notation
                      ;
  
  integer           ::=                              /*-- Non-negative decimal integer --*/
-                       int_str                      /* ... parsed as an integer */
+                       int_str                      /* ... parsed as a string */
                      ;
  
  int_str           ::=                              /*-- Non-negative decimal integer --*/
-                       INTEGER                      /* ... parsed as a string */
+                       INTEGER                      /* ... parsed as an integer */
                      ;
  
  i_slice           ::=                              /*-- Date interval for histogram bins --*/
