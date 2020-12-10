@@ -968,14 +968,16 @@
             <rhs cmt="... sorting hits in ascending order by prune-key (#PRUNE, #PRUNE_ASC, #PRUNE_BY, #PRUNE_ASC_BY)">
               <t>#PRUNE</t>
               <t>[</t>
-              <xt>INTEGER</xt>
+              <n>int_str</n>
+	      <t>,</t>
               <n>l_prunekeys</n>
               <t>]</t>
             </rhs>
             <rhs cmt="... sorting hits in descending order by prune-key (#PRUNE_DESC, #PRUNE_DESC_BY, #PRUNE_DSC, #PRUNE_DSC_BY">
               <t>#PRUNE_DESC</t>
               <t>[</t>
-              <xt>INTEGER</xt>
+              <n>int_str</n>
+	      <t>,</t>
               <n>l_prunekeys</n>
               <t>]</t>
             </rhs>
