@@ -1,5 +1,11 @@
 ##-*- Mode: Change-Log; coding: utf-8; -*-
 
+v2.2.9 Thu, 01 Apr 2021 13:32:36 +0200 moocow
+	* added CTokenNo underflow/overflow checks in CQOccurrenceIterator::bind(), CQTokenOccurrenceIterator::bind()
+	  - fixes catastrophic (unlogged) daemon crashes from failed assert()
+	    `QueryNode.cpp:320: void CQueryNode::ConvertOccurrencesToHitsForPatterns(bool): Assertion `break_it != Breaks.end()' failed.`
+	  - observed in dtak for (pathological) query `count("* $con=/front/" #sep) #by[date/1,textClass~s/:.*//]`
+
 v2.2.8 Wed, 09 Dec 2020 10:59:22 +0100 moocow
 	* added #PRUNE_ASC[N,KEY(s)] and #PRUNE_DESC[N,KEY(s)] filters
 	  - limit response to at most N hits per count-key given by KEY(s)

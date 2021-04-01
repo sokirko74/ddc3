@@ -1827,11 +1827,17 @@ void CQOccurrenceIterator::bind(CQueryTokenNode *node_, const CQOccurrenceIterat
     if (minOffset<=0 && maxOffset>=0) cnt -= src.cnt; //-- avoid dups: don't count zero-offsets
     node->ClearAndReserveOccurrences(cnt);
 
+    CTokenNo max_tok  = node_->m_pHolder->m_pConcordance->GetCorpusEndTokenNo();
     CTokenNo last_tok = (CTokenNo)-1;
     for (vector<CTokenNo>::const_iterator occi=src.node->m_Occurrences.begin(); occi!=src.node->m_Occurrences.end(); ++occi) {
         for (int off=minOffset; off<=maxOffset; ++off) {
             CTokenNo tok = *occi + off;
-            if (off==0 || (last_tok != (CTokenNo)-1 && last_tok >= tok)) continue; //-- avoid overlap
+            if (off==0                                           //-- avoid dups
+                || (last_tok != (CTokenNo)-1 && last_tok >= tok) //-- avoid overlap
+                || (-off > *occi)                                //-- avoid token-id underflow
+                || (tok >= max_tok)                              //-- avoid token-id overflow
+                )
+                continue; 
             node->m_Occurrences.push_back(tok);
             last_tok = tok;
         }
@@ -1868,13 +1874,20 @@ void CQTokenOccurrenceIterator::bind(CQueryTokenNode *node_, const CQTokenOccurr
 
     cnt = (1+maxOffset-minOffset) * src.cnt;
     if (minOffset<=0 && maxOffset>=0) cnt -= src.cnt; //-- avoid dups: don't count zero-offsets
+
     node->ClearAndReserveOccurrences(cnt);
 
+    CTokenNo max_tok  = node_->m_pHolder->m_pConcordance->GetCorpusEndTokenNo();
     CTokenNo last_tok = (CTokenNo)-1;
     for (vector<CTokenNo>::const_iterator occi=src.node->m_Occurrences.begin(); occi!=src.node->m_Occurrences.end(); ++occi) {
         for (int off=minOffset; off<=maxOffset; ++off) {
             CTokenNo tok = *occi + off;
-            if (off==0 || (last_tok != (CTokenNo)-1 && last_tok >= tok)) continue; //-- avoid overlap
+            if (off==0                                           //-- avoid dups
+                || (last_tok != (CTokenNo)-1 && last_tok >= tok) //-- avoid overlap
+                || (-off > *occi)                                //-- avoid token-id underflow
+                || (tok >= max_tok)                              //-- avoid token-id overflow
+                )
+                continue;
             node->m_Occurrences.push_back(tok);
             last_tok = tok;
         }

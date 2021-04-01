@@ -504,7 +504,7 @@ public:
 
 /*!
  * \brief CQOccurrenceIterator (formerly CQNearEvalItem) is used to iterate over query occurrences; used by near() queries
- *  + used by near()-queries, appropriate for iterating over single- or mulit-token query nodes
+ *  + used by near()-queries, appropriate for iterating over single- or multi-token query nodes
  *    (respects node->m_ChunkLengths)
  */
 struct CQOccurrenceIterator {
