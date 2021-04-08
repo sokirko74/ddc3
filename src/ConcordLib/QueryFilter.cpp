@@ -480,7 +480,9 @@ bool CQFHasFieldRegex::CheckSatisfiable(CQueryCompiler *compiler, CQueryOptions 
         return true; //-- assume non-constant fields are satisfiable
 
     this->Compile(compiler,options);
-    return m_Negated ? m_Filter.m_SatisfiedValues.empty() : !m_Filter.m_SatisfiedValues.empty();
+
+    //-- ignore m_Negated here, since CFreeBiblStringIndex::GetFilterValues() already handles it
+    return !m_Filter.m_SatisfiedValues.empty();
 }
 
 bool CQFHasFieldRegex::Compile(CQueryCompiler *compiler, CQueryOptions *options)
