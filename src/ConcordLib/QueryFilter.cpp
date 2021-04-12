@@ -1,6 +1,6 @@
 //-*- Mode: C++ -*-
 //
-//  Copyright 2011-2020 by Bryan Jurish
+//  Copyright 2011-2021 by Bryan Jurish
 //
 //  This file is part of DDC.
 // 
@@ -536,7 +536,9 @@ bool CQFHasFieldSet::CheckSatisfiable(CQueryCompiler *compiler, CQueryOptions *o
         return true; //-- assume non-constant fields are satisfiable
 
     this->Compile(compiler,options);
-    return m_Negated ? m_Filter.m_SatisfiedValues.empty() : !m_Filter.m_SatisfiedValues.empty();
+    //-- ignore m_Negated here, since CFreeBiblStringIndex::GetFilterValues() already handles it
+    //return m_Negated ? m_Filter.m_SatisfiedValues.empty() : !m_Filter.m_SatisfiedValues.empty();
+    return !m_Filter.m_SatisfiedValues.empty();
 }
 
 bool CQFHasFieldSet::Compile(CQueryCompiler *compiler, CQueryOptions *options)
