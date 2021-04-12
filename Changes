@@ -1,6 +1,6 @@
 ##-*- Mode: Change-Log; coding: utf-8; -*-
 
-v2.2.11 2021-04-12 10:11:20+0200 moocow
+v2.2.11 Mon, 12 Apr 2021 10:29:33 +0200 moocow
 	* fixed double-negation bug in CQFHasFieldSet::CheckSatisfiable(), analogous to v2.2.10 fix
 
 v2.2.10 Thu, 08 Apr 2021 08:13:39 +0200 moocow
