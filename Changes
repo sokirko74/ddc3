@@ -2,6 +2,7 @@
 
 v2.2.12-pre1 Wed, 16 Jun 2021 15:02:22 +0200 moocow
 	* fixed sort failure in `count(...) #by[date] #dsc_key` for branch-servers with only a single daughter
+	* demoted BiblIndex.cpp "multiple definition" warnings to debug messages
 
 v2.2.11 Mon, 12 Apr 2021 10:29:33 +0200 moocow
 	* fixed double-negation bug in CQFHasFieldSet::CheckSatisfiable(), analogous to v2.2.10 fix

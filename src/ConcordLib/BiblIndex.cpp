@@ -191,14 +191,13 @@ bool CBiblIndex::RegisterFreeBiblAttributes(string fields, string &ErrorStr) {
                 FreeBiblStringMap::iterator oldi = m_FreeBiblIndices.find(Name);
                 delete oldi->second;
                 m_FreeBiblIndices.erase(oldi);
-                ddcLogWarn(
-                    Format("Warning: bibliographic attribute alias `%s' -> `%s' overrides physical attribute `%s'",
-                           Name.c_str(), Xpath.c_str(), Name.c_str()));
+                ddcLogDebug(Format("DEBUG: bibliographic attribute alias `%s' -> `%s' overrides physical attribute `%s'",
+                                   Name.c_str(), Xpath.c_str(), Name.c_str()));
             }
             if (m_FreeBiblAlias.find(Name) != m_FreeBiblAlias.end()) {
                 //-- new alias clobbers old alias
-                ddcLogWarn(Format("Warning: multiple definitions for bibliographic alias `%s', using most recent",
-                                  Name.c_str()));
+                ddcLogDebug(Format("DEBUG: multiple definitions for bibliographic alias `%s', using most recent",
+                                   Name.c_str()));
             }
 
             m_FreeBiblAlias[Name] = Xpath;
@@ -221,14 +220,13 @@ bool CBiblIndex::RegisterFreeBiblAttributes(string fields, string &ErrorStr) {
                 FreeBiblStringMap::iterator oldi = m_FreeBiblIndices.find(Name);
                 delete oldi->second;
                 m_FreeBiblIndices.erase(oldi);
-                ddcLogWarn(
-                    Format("Warning: multiple definitions for free bibliographic attribute `%s', using most recent",
-                           Name.c_str()));
+                ddcLogDebug(Format("DEBUG: multiple definitions for free bibliographic attribute `%s', using most recent",
+                                   Name.c_str()));
             }
             if (m_FreeBiblAlias.find(Name) != m_FreeBiblAlias.end()) {
                 //-- just warn about clobbering an existng alias
-                ddcLogWarn(Format("Warning: physical free bibliographic attribute `%s' overrides alias `%s' -> `%s'",
-                                  Name.c_str(), Name.c_str(), m_FreeBiblAlias[Name].c_str()));
+                ddcLogDebug(Format("DEBUG: physical free bibliographic attribute `%s' overrides alias `%s' -> `%s'",
+                                   Name.c_str(), Name.c_str(), m_FreeBiblAlias[Name].c_str()));
                 m_FreeBiblAlias.erase(Name);
             }
 
