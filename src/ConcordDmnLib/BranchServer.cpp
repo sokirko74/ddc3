@@ -95,19 +95,22 @@ void CFirstHitsQueryResult::CollectCounts()
     m_Hits.swap(newHits);
 
     //-- v2.0.36: we might need to re-sort hits
-    switch (m_SortOrder) {
-        case hsoDescendingCountKeys:
-            reverse(m_Hits.begin(), m_Hits.end());
-            break;
-        case hsoAscendingCountValues:
-            stable_sort(m_Hits.begin(), m_Hits.end(), LessByHitNo());
-            break;
-        case hsoDescendingCountValues:
-            stable_sort(m_Hits.rbegin(), m_Hits.rend(), LessByHitNo());
-            break;
-        case hsoAscendingCountKeys:
-        default:
-            break;
+    //-- v2.2.12-pre1: ... but not if we've got only 1 daughter node
+    if (m_Sockets.size() > 1) {
+        switch (m_SortOrder) {
+            case hsoDescendingCountKeys:
+                reverse(m_Hits.begin(), m_Hits.end());
+                break;
+            case hsoAscendingCountValues:
+                stable_sort(m_Hits.begin(), m_Hits.end(), LessByHitNo());
+                break;
+            case hsoDescendingCountValues:
+                stable_sort(m_Hits.rbegin(), m_Hits.rend(), LessByHitNo());
+                break;
+            case hsoAscendingCountKeys:
+            default:
+                break;
+        }
     }
 }
 
@@ -725,10 +728,10 @@ void CDDCBranchServer::handle__status(string &Result, int timeout, bool verbose)
               + "\"xtavg\":" + Format("%g", m_ServerStats.m_xTimes.Average()) + ",\n" //-- pseudo-compat
               + "\"xtavgs\":" + m_ServerStats.m_xTimes.toJsonArray() + ",\n"
               + "\"nworkers\":" + Format("%zd", m_nWorkers) + ",\n"
-              + "\"hitstrings\":\"" + (m_bHitStringsParallel ? "parallel" : "serial") + "\",\n"
+              + "\"hitstrings\":\"" + string(m_bHitStringsParallel ? "parallel" : "serial") + "\",\n"
               + "\"navcachesize\":" + Format("%zd", (m_pNavCache ? m_pNavCache->size() : 0)) + ",\n"
               + "\"navcachestep\":" + Format("%zd", m_NavCacheStep) + ",\n"
-              + "\"memkb\":" + Format("%zd", pms.VmRSS) + ",\n" //-- compat           
+              + "\"memkb\":" + Format("%zd", pms.VmRSS) + ",\n" //-- compat
               + "\"vmem\":" + Format("{\"peak\":%zd,\"size\":%zd,\"hwm\":%zd,\"rss\":%zd,\"data\":%zd,\"stk\":%zd,\"exe\":%zd,\"lib\":%zd,\"swap\":%zd,\"file\":%zd,\"anon\":%zd}",
                                      pms.VmPeak, pms.VmSize, pms.VmHWM, pms.VmRSS, pms.VmData, pms.VmStk, pms.VmExe, pms.VmLib, pms.VmSwap, pms.RssFile, pms.RssAnon) + ",\n"
               + "\"nfd\":" + Format("%zd", nfd) + ",\n"
