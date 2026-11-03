@@ -350,7 +350,7 @@ string CQueryRunner::FormatResponse(string query, string recievedString) {
     int iInternalError;
     int iNetworkError;
 
-    DWORD HitsCount, EndHitNo, RelevantDocsCount;
+    uint32_t HitsCount, EndHitNo, RelevantDocsCount;
 
     int z = recievedString.find('\x1');
     if (z == -1) {

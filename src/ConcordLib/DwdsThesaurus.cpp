@@ -74,7 +74,7 @@ string CDwdsThesaurus::GetAllThesInterpetations(const char* Lemma) const
     for( ; !(it == LeavesLemmas.end()) && (!strcmp(it->GetString(), Lemma)); it++)
     {
         size_t  No = it -  LeavesLemmas.begin();
-        DWORD  Path = LeavesPathes[No];
+        uint32_t  Path = LeavesPathes[No];
         int start = 0;
         if ( Path > 0 )
             start = PathEndIndex[Path-1];
@@ -200,12 +200,12 @@ void CDwdsThesaurus::GetAllPathesWhichContainHyperTermNo (size_t HyperTermNo, Dw
     sub_pathes.clear();
     for (size_t i=0; i < PathEndIndex.size(); i++)
     {
-        vector<DWORD>::const_iterator start = Pathes.begin();
+        vector<uint32_t>::const_iterator start = Pathes.begin();
 
         if ( i > 0)
             start += PathEndIndex[i-1];
 
-        vector<DWORD>::const_iterator end  = Pathes.begin()+PathEndIndex[i];
+        vector<uint32_t>::const_iterator end  = Pathes.begin()+PathEndIndex[i];
 
         if ( find(start, end, HyperTermNo) != end) 
             sub_pathes.push_back(i);
@@ -219,7 +219,7 @@ bool  CDwdsThesaurus::ReadPathFromString(const string& TextPath, vector<int>& Hy
 {       
     HyperTermNos.clear();
     StringTokenizer tok(TextPath.c_str(), ":");
-    vector <DWORD> Path;
+    vector <uint32_t> Path;
     while (tok()) 
     {
         string Value =  tok.val();
@@ -237,12 +237,12 @@ void CDwdsThesaurus::GetAllPathesWhichStartFromThisSequence (const vector<int>& 
     Result.clear();
     for (size_t i=0; i < PathEndIndex.size(); i++)
     {
-        vector<DWORD>::const_iterator start = Pathes.begin();
+        vector<uint32_t>::const_iterator start = Pathes.begin();
 
         if ( i > 0)
             start += PathEndIndex[i-1];
 
-        vector<DWORD>::const_iterator end  = Pathes.begin()+PathEndIndex[i];
+        vector<uint32_t>::const_iterator end  = Pathes.begin()+PathEndIndex[i];
 
         if (end - start < HyperTermNos.size())
             continue;

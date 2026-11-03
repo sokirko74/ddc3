@@ -102,7 +102,7 @@ public:
 class CQCountKeyExprMeta : public CQCountKeyExpr {
 public:
     //! last file-number evaluated
-    DWORD  m_CurFile;
+    uint32_t  m_CurFile;
 
     //! last key generated
     std::string m_CurKey;

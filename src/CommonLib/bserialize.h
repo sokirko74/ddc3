@@ -23,19 +23,19 @@
 #include  "utilit.h"
         
 // ============== DWORD =====================
-inline size_t get_size_in_bytes (const DWORD& t)
+inline size_t get_size_in_bytes (const uint32_t& t)
 {
-    return sizeof(DWORD);
+    return sizeof(uint32_t);
 };
-inline size_t save_to_bytes(const DWORD& i, BYTE* buf)
+inline size_t save_to_bytes(const uint32_t& i, BYTE* buf)
 {
-    *((DWORD*)buf) = i;
+    *((uint32_t*)buf) = i;
     return get_size_in_bytes(i);
 }
 
-inline size_t restore_from_bytes(DWORD& i, const BYTE* buf)
+inline size_t restore_from_bytes(uint32_t& i, const BYTE* buf)
 {
-    i = *((DWORD*)buf);
+    i = *((uint32_t*)buf);
     return get_size_in_bytes(i);
 };
 
@@ -99,39 +99,39 @@ inline size_t restore_from_bytes(BYTE& i, const BYTE* buf)
 
 
 // ============== WORD =====================
-inline size_t get_size_in_bytes (const WORD& t)
+inline size_t get_size_in_bytes (const uint16_t& t)
 {
     return 2;
 };
 
-inline size_t save_to_bytes(const WORD& i, BYTE* buf)
+inline size_t save_to_bytes(const uint16_t& i, BYTE* buf)
 {
-    *((WORD*)buf) = i;
+    *((uint16_t*)buf) = i;
     return get_size_in_bytes(i);
 };
 
-inline size_t restore_from_bytes(WORD& i, const BYTE* buf)
+inline size_t restore_from_bytes(uint16_t& i, const BYTE* buf)
 {
-    i = *((WORD*)buf);
+    i = *((uint16_t*)buf);
     return get_size_in_bytes(i);
 };
 
 
 // ============== QWORD =====================
-inline size_t get_size_in_bytes (const QWORD& t)
+inline size_t get_size_in_bytes (const uint64_t& t)
 {
     return 8;
 };
 
-inline size_t save_to_bytes(const QWORD& i, BYTE* buf)
+inline size_t save_to_bytes(const uint64_t& i, BYTE* buf)
 {
-    *((QWORD*)buf) = i;
+    *((uint64_t*)buf) = i;
     return get_size_in_bytes(i);
 };
 
-inline size_t restore_from_bytes(QWORD& i, const BYTE* buf)
+inline size_t restore_from_bytes(uint64_t& i, const BYTE* buf)
 {
-    i = *((QWORD*)buf);
+    i = *((uint64_t*)buf);
     return get_size_in_bytes(i);
 };
 
@@ -182,13 +182,13 @@ inline size_t restore_from_bytes(std::pair<T, T>& t, const BYTE* buf)
 //
 // ============== PAIR =====================
 template <class T>
-inline size_t get_size_in_bytes (const std::pair<QWORD, T>& t)
+inline size_t get_size_in_bytes (const std::pair<uint64_t, T>& t)
 {
     return get_size_in_bytes(t.first) + get_size_in_bytes(t.second);
 };
 
 template <class T>
-inline size_t save_to_bytes(const std::pair<QWORD, T>& t, BYTE* buf)
+inline size_t save_to_bytes(const std::pair<uint64_t, T>& t, BYTE* buf)
 
 
 {
@@ -198,7 +198,7 @@ inline size_t save_to_bytes(const std::pair<QWORD, T>& t, BYTE* buf)
 };
 
 template <class T>
-inline size_t restore_from_bytes(std::pair<QWORD, T>& t, const BYTE* buf)
+inline size_t restore_from_bytes(std::pair<uint64_t, T>& t, const BYTE* buf)
 {
     buf += restore_from_bytes(t.first, buf);
     buf += restore_from_bytes(t.second, buf);

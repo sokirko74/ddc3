@@ -42,7 +42,7 @@ public:
     std::string m_Xpath;
 
     //! integer references to m_Values for each corpus file
-    ddcVecFile<DWORD> m_ValuesForEachFile;
+    ddcVecFile<uint32_t> m_ValuesForEachFile;
 
     //! should DDC show this field for each header?
     bool m_bShowInHeader;
@@ -57,19 +57,19 @@ public:
 
     std::string GetDescriptionStr() const;
 
-    virtual int GetIntegerValue(DWORD FileNo) const;
+    virtual int GetIntegerValue(uint32_t FileNo) const;
 
     virtual void clear();
 
-    virtual std::string GetStringValue(DWORD FileNo) const;
+    virtual std::string GetStringValue(uint32_t FileNo) const;
 
-    virtual void ReadFromDisk(std::string Path, DWORD FileBreaksSize, bool useMMap = false);
+    virtual void ReadFromDisk(std::string Path, uint32_t FileBreaksSize, bool useMMap = false);
 
     virtual void CreateUnion(const std::string &Path, const std::vector<const CFreeBiblIndex *> &Indices,
                              const std::vector<size_t> &FileCounts);
 
     virtual void CreatePartitions(std::vector<CFreeBiblIndex *> &Parts, const std::vector<std::string> &Paths,
-                                  const std::vector<DWORD> &EndFileNo) const;
+                                  const std::vector<uint32_t> &EndFileNo) const;
 
     virtual void RegisterBiblStringItemId(const std::string &Value);
 
@@ -104,21 +104,21 @@ public:
     virtual bool GetFilterValues(CDDCFilterWithBounds &Filter, const std::set<std::string> &Values) const;
 
     //! test whether a given file matches the filter condition (for count(*) queries)
-    virtual bool FileMatches(DWORD FileNo, const CDDCFilterWithBounds &Filter) const;
+    virtual bool FileMatches(uint32_t FileNo, const CDDCFilterWithBounds &Filter) const;
 
     //! for server info
     virtual size_t size(void) const { return 0; };
 
     //! for key-based pruning (v2.1.9): map a single value-string to its value-id
     //! \li default implementation just calls hex2int(Value)
-    virtual DWORD GetIntegerLowerBound(const std::string &Value) const;
+    virtual uint32_t GetIntegerLowerBound(const std::string &Value) const;
 };
 
 class CFreeBiblStringIndex : public CFreeBiblIndex {
 protected:
     struct CStringItem {
         std::string m_BiblString;
-        DWORD m_BiblId;
+        uint32_t m_BiblId;
 
         bool operator<(const CStringItem &X) const {
             return m_BiblString < X.m_BiblString;
@@ -133,7 +133,7 @@ protected:
     //! a list  that is used during building  this  bibl-index
     //! v2.2.2 : replace with map<>
     //list<CStringItem> m_BuildStringItems;
-    typedef std::map<std::string,DWORD> BuildStringItemsMapT;
+    typedef std::map<std::string,uint32_t> BuildStringItemsMapT;
     BuildStringItemsMapT m_BuildStringItemsMap;
     size_t m_BuildStringItemsSize;
     
@@ -159,19 +159,19 @@ public:
 
     virtual CFreeBiblIndexTypeId GetTypeId() const;
 
-    virtual std::string GetStringValue(DWORD FileNo) const;
+    virtual std::string GetStringValue(uint32_t FileNo) const;
 
     virtual void CreateUnion(const std::string &Path, const std::vector<const CFreeBiblIndex *> &Indices,
                              const std::vector<size_t> &FileCounts);
 
     virtual void CreatePartitions(std::vector<CFreeBiblIndex *> &Parts, const std::vector<std::string> &Paths,
-                                  const std::vector<DWORD> &EndFileNo) const;
+                                  const std::vector<uint32_t> &EndFileNo) const;
 
     virtual void RegisterBiblStringItemId(const std::string &Value);
 
     bool DeleteBiblFiles(std::string Path) const;
 
-    virtual void ReadFromDisk(std::string Path, DWORD FileBreaksSize, bool useMMap = false);
+    virtual void ReadFromDisk(std::string Path, uint32_t FileBreaksSize, bool useMMap = false);
 
     virtual bool ConvertAndSaveToDiskAfterIndexing(std::string Path);
 
@@ -198,7 +198,7 @@ public:
     virtual size_t size(void) const { return m_ValuesE.size(); };
 
     //! for key-based pruning (v2.1.9): map a single value-string to its value-id
-    virtual DWORD GetIntegerLowerBound(const std::string &Value) const;
+    virtual uint32_t GetIntegerLowerBound(const std::string &Value) const;
 };
 
 //--------------------------------------------------------------
@@ -218,11 +218,11 @@ public:
 
     virtual const std::string &GetXpathStr() const;
 
-    virtual std::string GetStringValue(DWORD FileNo) const;
+    virtual std::string GetStringValue(uint32_t FileNo) const;
 
-    virtual int GetIntegerValue(DWORD FileNo) const;
+    virtual int GetIntegerValue(uint32_t FileNo) const;
 
-    virtual void ReadFromDisk(std::string Path, DWORD FileBreaksSize, bool useMMap = false);
+    virtual void ReadFromDisk(std::string Path, uint32_t FileBreaksSize, bool useMMap = false);
 
     virtual bool ConvertAndSaveToDiskAfterIndexing(std::string Path);
 
@@ -230,7 +230,7 @@ public:
                              const std::vector<size_t> &FileCounts);
 
     virtual void CreatePartitions(std::vector<CFreeBiblIndex *> &Parts, const std::vector<std::string> &Paths,
-                                  const std::vector<DWORD> &EndFileNo) const;
+                                  const std::vector<uint32_t> &EndFileNo) const;
 
 public:
     //-- set constant value

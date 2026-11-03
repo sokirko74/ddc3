@@ -452,7 +452,7 @@ void CConcordance::DumpBibliography(FILE *f) const {
 }
 
 //----------------------------------------------------------------------
-string CConcordance::DumpFileBibliography(DWORD FileNo) const {
+string CConcordance::DumpFileBibliography(uint32_t FileNo) const {
     CBibliography B = m_BiblIndex.GetFullBibliographyOfHit(FileNo);
     string fb = (string("{")
                  + "\"n_\":" + Format("%u", FileNo)
@@ -468,7 +468,7 @@ string CConcordance::DumpFileBibliography(DWORD FileNo) const {
 }
 
 //----------------------------------------------------------------------
-void CConcordance::DumpFileIndexJson(DWORD FileNo, FILE *f) const {
+void CConcordance::DumpFileIndexJson(uint32_t FileNo, FILE *f) const {
     if (f == NULL) f = stdout;
 
     //-- dump: token range
@@ -537,7 +537,7 @@ void CConcordance::DumpFileIndexJson(DWORD FileNo, FILE *f) const {
 
 
 //----------------------------------------------------------------------
-void CConcordance::DumpFileIndexTabs(DWORD FileNo, FILE *f) const {
+void CConcordance::DumpFileIndexTabs(uint32_t FileNo, FILE *f) const {
     //-- dump: token range
     const char *cmt = "%%$DDC";
     CTokenNo tok_min = FileNo == 0 ? 0 : GetFileBreaks()[FileNo - 1];

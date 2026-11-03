@@ -28,9 +28,9 @@ using namespace std;
 //===========================================
 // globals
 
-const DWORD DefaultMaxTokenCountInOnePeriod = 5000000;
+const uint32_t DefaultMaxTokenCountInOnePeriod = 5000000;
 
-const DWORD DefaultMaxInputLoadIndexSize    =  400000;
+const uint32_t DefaultMaxInputLoadIndexSize    =  400000;
 
 
 //===========================================
@@ -167,14 +167,14 @@ void CConcIndexator::DestroyIndex() {
     m_MaskedFiles.clear();
 };
 
-DWORD CConcIndexator::GetMaxTokenCountInOnePeriod() const {
+uint32_t CConcIndexator::GetMaxTokenCountInOnePeriod() const {
     if (m_UserMaxTokenCountInOnePeriod != 0)
         return m_UserMaxTokenCountInOnePeriod;
     else
         return DefaultMaxTokenCountInOnePeriod;
 };
 
-DWORD CConcIndexator::GetMaxInputLoadIndexSize() const {
+uint32_t CConcIndexator::GetMaxInputLoadIndexSize() const {
     if (m_UserMaxInputLoadIndexSize != 0)
         return m_UserMaxInputLoadIndexSize;
     else
@@ -295,7 +295,7 @@ bool IsXmlFile(const string &FileName) {
 
 
 
-void CConcIndexator::CalculateSearchPeriods(DWORD MaxTokenCountInOnePeriod) {
+void CConcIndexator::CalculateSearchPeriods(uint32_t MaxTokenCountInOnePeriod) {
     if (GetFileBreaks().empty()) return;
 
     // Calculating Search Periods
@@ -493,7 +493,7 @@ void CConcIndexator::IndexTextOrHtmlFile(CIndexDocument* document) {
 
     int TextAreaNo = 0;
     int TextAreasCount = m_BiblIndex.GetTextAreasCount();
-    size_t TextAreaStarter = DWORD_MAX;
+    size_t TextAreaStarter = UINT32_MAX;
     int SentenceBreakCollection = GetBreakCollectionIndexByName("s");
     if ((SentenceBreakCollection == -1) && !m_bQueryOnlyFiles) {
         throw CDDCExpc("could not find sentence collection");

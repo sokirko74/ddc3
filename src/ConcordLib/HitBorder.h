@@ -48,9 +48,9 @@ struct CPageNumber {
     //! the starting position (in tokens) of the beginning of the page
     CTokenNo m_StartTokenNo;
     //! the page number itself (as it was mentioned in the source text)
-    DWORD m_PageNumber;
+    uint32_t m_PageNumber;
 
-    CPageNumber(CTokenNo StartTokenNo = 0, DWORD PageNumber = 0)
+    CPageNumber(CTokenNo StartTokenNo = 0, uint32_t PageNumber = 0)
         : m_StartTokenNo(StartTokenNo), m_PageNumber(PageNumber) {};
 
     inline bool operator<(const CPageNumber &X) const {
@@ -125,7 +125,7 @@ protected:
     std::string GetShortNameByName(const std::string &BreakName) const;
 
     //!
-    std::vector<DWORD> m_LastTextAreaBreaks;
+    std::vector<uint32_t> m_LastTextAreaBreaks;
 
 protected:
     //!    opens for writing all CBreakCollectionDescr::m_FileForIndexing from  m_Breaks
@@ -146,7 +146,7 @@ protected:
 
     int GetBreakCollectionIndexByName(std::string ShortName) const;
 
-    void AddBreakByIndex(DWORD BreakCollectionNo, const CTokenNo &B);
+    void AddBreakByIndex(uint32_t BreakCollectionNo, const CTokenNo &B);
 
 public:
     //! moo: get break collection by long or short name
@@ -181,7 +181,7 @@ public:
     CTokenNo GetFileStartTokenNo(size_t FileNo) const;
 
     //!returns m_PageBreaks[No].m_PageNumber (see CPageNumber)
-    DWORD GetPageNumber(size_t No) const;
+    uint32_t GetPageNumber(size_t No) const;
 
     //!returns true if a short name is found in  m_Breaks
     bool IsRegisteredBreak(const std::string &ShortName) const;
@@ -209,7 +209,7 @@ public:
     void StartTextAreaBorders();
 
     //!   must be called after indexing each text area in order to create at least on break in each text area
-    void EndTextAreaBorders(DWORD TextAreaEndTokenNo);
+    void EndTextAreaBorders(uint32_t TextAreaEndTokenNo);
 
 };
 

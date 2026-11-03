@@ -33,10 +33,10 @@
 #include "TabFormatIndexator.h"
 
 /// global default value (5000000) for CConcIndexator::m_UserMaxTokenCountInOnePeriod 
-extern const DWORD DefaultMaxTokenCountInOnePeriod;
+extern const uint32_t DefaultMaxTokenCountInOnePeriod;
 
 /// global default value for (400000) CConcIndexator::m_UserMaxInputLoadIndexSize (must be <= DefaultMaxTokenCountInOnePeriod)
-extern const DWORD DefaultMaxInputLoadIndexSize;
+extern const uint32_t DefaultMaxInputLoadIndexSize;
 
 /*!
   CConcIndexator is the class for corpus indexing.  The most of its  slots come from Concordance class.
@@ -101,7 +101,7 @@ public:
     void RollbackIndexOneFile(CTokenNo startTrimTokenNo);
 
     //! finds all \ref period_def "subcorpora"
-    void CalculateSearchPeriods(DWORD MaxTokenCountInOnePeriod);
+    void CalculateSearchPeriods(uint32_t MaxTokenCountInOnePeriod);
 
     //! creates new concordance as union of one or more concordances (new)
     bool CreateAsUnion(std::vector<CConcIndexator* > &X, bool inheritOptions = true);
@@ -119,10 +119,10 @@ public:
     bool CreateMorphIndexWrapper();
 
     //! returns the size of one \ref period_def "subcorpus"
-    DWORD GetMaxTokenCountInOnePeriod() const;
+    uint32_t GetMaxTokenCountInOnePeriod() const;
 
     //! returns the max size of input index in tokens must be less than GetMaxTokenCountInOnePeriod()
-    DWORD GetMaxInputLoadIndexSize() const;
+    uint32_t GetMaxInputLoadIndexSize() const;
 
 };
 

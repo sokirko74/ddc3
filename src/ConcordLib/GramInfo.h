@@ -26,9 +26,9 @@ struct CGramInfo
     //! the language of the pattern 
     MorphLanguageEnum       m_Language;
     //! the part of speech mask  (SUB, ART,ADJ...)
-    DWORD                           m_PartOfSpeechMask;
+    uint32_t                           m_PartOfSpeechMask;
     //! morphological features (plu, sig, nom...)
-    QWORD                           m_Grammems;
+    uint64_t                           m_Grammems;
 
     CGramInfo () {
         m_PartOfSpeechMask = 0;
@@ -36,7 +36,7 @@ struct CGramInfo
         m_Language = morphUnknown;
 
     };
-    CGramInfo (MorphLanguageEnum Language, DWORD PartOfSpeechMask, QWORD Grammems)
+    CGramInfo (MorphLanguageEnum Language, uint32_t PartOfSpeechMask, uint64_t Grammems)
     { 
         m_PartOfSpeechMask = PartOfSpeechMask;
         m_Grammems = Grammems;

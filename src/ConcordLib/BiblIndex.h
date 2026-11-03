@@ -11,7 +11,7 @@
 #include "Bibliography.h"
 #include "FreeBiblIndex.h"
 
-typedef ddcVecFile<DWORD> ddcDateVector;
+typedef ddcVecFile<uint32_t> ddcDateVector;
 
 
 const int UnknownTextAreaNo = -1;
@@ -198,7 +198,7 @@ public:
     GetFreeHeaderBiblAttributesTabsDump(size_t FileNo, bool assume_utf8 = true, bool include_invisible = false) const;
 
     //! test whether all compiled Filters match FileNo
-    bool FileMatches(DWORD FileNo, const std::vector<CDDCFilterWithBounds> &Filters) const;
+    bool FileMatches(uint32_t FileNo, const std::vector<CDDCFilterWithBounds> &Filters) const;
 
     //! add a new bibliographic expander to m_BiblExpanders, or replace an existing one; returns new expander
     CBiblExpander *AddBiblExpander(const std::string &spec);

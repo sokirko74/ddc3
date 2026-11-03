@@ -61,10 +61,10 @@ const std::string PredefinedFileBreakName = "file";
 const std::string PredefinedTextAreaBreakName = "textarea";
 
 //! integer type CTokenNo is used to  refer an index of a token in the corpus
-typedef DWORD CTokenNo;
+typedef uint32_t CTokenNo;
 
 //! integer type CFileNo is used to refer to a single document (file) in the corpus
-typedef DWORD CFileNo;
+typedef uint32_t CFileNo;
 
 //!  MaxShortOccurCacheSize is the upper bound  of  CShortOccurCache::m_Data.size() It is introduced to restrict memory usage.
 const size_t MaxShortOccurCacheSize = 1000000;
@@ -109,7 +109,7 @@ class CShortOccurCache
 public:
     void                            Clear();
     size_t                          AddNewIndexItemNoToCache(const CTokenNo* pStart, const CTokenNo* pEnd );
-    const CTokenNo*                 GetOccurrencesFromCache(const int CacheId, DWORD& Length) const;
+    const CTokenNo*                 GetOccurrencesFromCache(const int CacheId, uint32_t& Length) const;
     bool                            CouldContainMore() const;
 
 };
@@ -251,11 +251,11 @@ public:
     virtual ~CFreeBiblIndexInterface()
     {};
     
-    virtual std::string GetStringValue(DWORD FileNo) const = 0;
+    virtual std::string GetStringValue(uint32_t FileNo) const = 0;
 
     //! for key-based pruning (v2.1.9): map a single value-string to its value-id
     //! \li default implementation just calls hex2int(Value)
-    virtual DWORD GetIntegerLowerBound(const std::string &Value) const = 0;
+    virtual uint32_t GetIntegerLowerBound(const std::string &Value) const = 0;
 };
 
 /*! type for hit sort-keys and/or result filtering;
@@ -439,11 +439,11 @@ struct CDDCFilterWithBounds
 struct CHit 
 {
     //! the index of the \ref break_def "break", which this hit represents (in the break collection CConcHolder::GetBreaks)
-    DWORD   m_BreakNo;
+    uint32_t   m_BreakNo;
     //! the end offset of token occurrences to be highlighted in CQueryNode::m_Occurrences and later in CConcHolder::m_HighlightOccurs
-    DWORD   m_HighlightOccurrenceEnd;
+    uint32_t   m_HighlightOccurrenceEnd;
     //! the index of \ref corpus_file_def "coprus file", where this hit is found, it is equal to  m_BreakNo if user searches within files
-    DWORD   m_FileNo;
+    uint32_t   m_FileNo;
 
     union {
         //! the string which displays how the rank was calculated (for rank-sorted queries)
@@ -457,7 +457,7 @@ struct CHit
     //! formerly m_OrderId
     CHitSortKey m_SortKey;
 
-    CHit(DWORD BreakNo=0) : m_BreakNo(BreakNo), m_SortKey(0) { m_Value.m_Count=0; };
+    CHit(uint32_t BreakNo=0) : m_BreakNo(BreakNo), m_SortKey(0) { m_Value.m_Count=0; };
 };
 
 /*! \brief FormatTypeEnum defines the format of output hits:
@@ -503,7 +503,7 @@ struct CHitCompareByBreak
 {
     CHitCompareByBreak() {};
 
-    inline bool operator()(const CHit& h, const DWORD brkno) const
+    inline bool operator()(const CHit& h, const uint32_t brkno) const
     { return h.m_BreakNo < brkno; };
 };
 

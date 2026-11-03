@@ -86,20 +86,8 @@ extern void  operator delete(void* p, const char* lpszFileName, int nLine);
 
 
 
-#ifdef WIN32
-#include  <io.h>
-#include <fcntl.h>
-typedef __int64 QWORD;
-        
-#else
-#include  <unistd.h>
-//      typedef unsigned int    DWORD;  
-//      typedef unsigned short  WORD;
-typedef uint32_t        DWORD;
-typedef uint16_t        WORD;
-typedef uint64_t        QWORD;
-typedef unsigned int    UINT;  //-- unused
-#endif
+#include <unistd.h>
+#include <cstdint>
 
 //-- moo: branch prediction macros; see e.g. https://www.geeksforgeeks.org/branch-prediction-macros-in-gcc/
 #ifdef __GNUC__
@@ -114,27 +102,6 @@ typedef unsigned int    UINT;  //-- unused
 #include "../CommonLib/ddcLocale.h"
 #include "../CommonLib/ddcVersion.h"
 #include "../CommonLib/ddcString.h"
-
-//-- moo: replace UINT_MAX with DWORD_MAX
-//  + c++ chokes on fixed-width limit macros (UINT32_MAX) unless you #define __STDC_LIMIT_MACROS , which is unportable
-#ifndef DWORD_MAX
-//# define DWORD_MAX UINT32_MAX
-# define DWORD_MAX (0xffffffff)
-#endif
-
-#ifndef QWORD_MAX
-#ifdef WIN32
-#define QWORD_MAX  0xffffffffffffffff
-#else
-#define QWORD_MAX  0xffffffffffffffffULL
-#endif
-#endif
-
-//-- moo: ugly hack for gcc 4.7.2 (kaskade; debian wheezy)
-#ifndef SIZE_MAX
-# define SIZE_MAX ((size_t)-1)
-#endif
-
 
 //! morph_dict values reused by ddc
 const BYTE LowerJO_cp1251  = 184;

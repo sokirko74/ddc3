@@ -56,7 +56,7 @@ struct CSortedList : public pair<size_t, size_t>
   This last list is a sorted version of input vector  V, without duplicates.
 */
 
-void SortWithLists(vector<DWORD>& V,   DwordVector& Borders)
+void SortWithLists(vector<uint32_t>& V,   DwordVector& Borders)
 {
     size_t Size = V.size();
     if( Size <= 1  ) return;
@@ -85,8 +85,8 @@ void SortWithLists(vector<DWORD>& V,   DwordVector& Borders)
     sort (Lists.begin(), Lists.end());
 
     size_t EndListNo;
-    vector<DWORD>* pSaveV = &V;
-    vector<DWORD> Q;
+    vector<uint32_t>* pSaveV = &V;
+    vector<uint32_t> Q;
 
     while (ListsCount > 1)
     {
@@ -100,7 +100,7 @@ void SortWithLists(vector<DWORD>& V,   DwordVector& Borders)
         for (; ListNo+1 < ListsCount;ListNo+=2)
         {
 
-            vector<DWORD>::iterator end = set_union//_set_union_unbalanced // 
+            vector<uint32_t>::iterator end = set_union//_set_union_unbalanced // 
                 (
                     V.begin() + Lists[ListNo].first,                V.begin() + Lists[ListNo].second, 
                     V.begin() + Lists[ListNo+1].first,      V.begin() + Lists[ListNo+1].second,
@@ -163,9 +163,9 @@ void SortWithLists(vector<DWORD>& V,   DwordVector& Borders)
 */
 
 
-vector<BYTE>::iterator writeVInt(DWORD Value, vector<BYTE>::iterator out) 
+vector<BYTE>::iterator writeVInt(uint32_t Value, vector<BYTE>::iterator out) 
 {
-    DWORD i = Value;
+    uint32_t i = Value;
     while ((i & ~0x7F) != 0) 
     {
         BYTE b = (BYTE)((i & 0x7f) | 0x80);
@@ -179,7 +179,7 @@ vector<BYTE>::iterator writeVInt(DWORD Value, vector<BYTE>::iterator out)
 }
 
 
-void ConvertToVariableInteger(const vector<DWORD>& In, vector<DWORD>& Out)
+void ConvertToVariableInteger(const vector<uint32_t>& In, vector<uint32_t>& Out)
 {
     size_t count  = In.size();
     vector<BYTE> OutBytes;
@@ -207,11 +207,11 @@ void ConvertToVariableInteger(const vector<DWORD>& In, vector<DWORD>& Out)
     Out.reserve(count);
     for (size_t i =0; i < count; i+=4) 
     {
-        DWORD Value = 0;
+        uint32_t Value = 0;
         size_t shift = 24;
         for (size_t n=i; n < min (count, i+4); n++)
         {
-            Value |= ((DWORD)OutBytes[n]) << shift;
+            Value |= ((uint32_t)OutBytes[n]) << shift;
             shift -= 8;
 
         };
@@ -255,7 +255,7 @@ return start;
 }
 */
 
-inline void Go(DWORD& Value, const DWORD*& start, BYTE& OutBitNo, DWORD& shift, BYTE& b)
+inline void Go(uint32_t& Value, const uint32_t*& start, BYTE& OutBitNo, uint32_t& shift, BYTE& b)
 {
     if (OutBitNo == 0)
     {
@@ -275,13 +275,13 @@ inline void Go(DWORD& Value, const DWORD*& start, BYTE& OutBitNo, DWORD& shift, 
 // inline version of readVInt, it uses the fact that a cycle inside the non-inline
 //  version can iterate only 4 times  for DWORD
 
-inline const DWORD* readVInt(DWORD& Value, const DWORD* start, BYTE& OutBitNo) 
+inline const uint32_t* readVInt(uint32_t& Value, const uint32_t* start, BYTE& OutBitNo) 
 {
     BYTE b = *start>>OutBitNo;
     Value = b  & 0x7F;
     if ( (b & 0x80) != 0)
     {
-        DWORD shift = 7;
+        uint32_t shift = 7;
         Go(Value, start, OutBitNo, shift, b);
 
         if ( (b & 0x80) != 0)
@@ -313,9 +313,9 @@ inline const DWORD* readVInt(DWORD& Value, const DWORD* start, BYTE& OutBitNo)
 }
 
 
-void DeconvertFromVariableInteger(const DWORD* in_start, const DWORD* in_end,  DWORD* out_start, DWORD& OutCount)
+void DeconvertFromVariableInteger(const uint32_t* in_start, const uint32_t* in_end,  uint32_t* out_start, uint32_t& OutCount)
 {
-    DWORD* save_out_start = out_start;
+    uint32_t* save_out_start = out_start;
     size_t count  = in_end - in_start;
     if (count == 0) return;
 
@@ -335,7 +335,7 @@ void DeconvertFromVariableInteger(const DWORD* in_start, const DWORD* in_end,  D
     while (in_start != in_end)
     {
         assert (i < count);
-        DWORD Value;
+        uint32_t Value;
         in_start = readVInt(Value, in_start, OutBitNo);
         if (Value == 0) break;
                 

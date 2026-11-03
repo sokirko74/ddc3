@@ -78,7 +78,7 @@ void    CQueryNode::EnsureChunkOffsets()
 {
     if (m_ChunkOffsets.empty()) {
         m_ChunkOffsets.resize(m_ChunkLengths.size());
-        DWORD offset=0;
+        uint32_t offset=0;
         for (size_t i=0; i < m_ChunkLengths.size(); ++i) {
             m_ChunkOffsets[i] = offset;
             offset += m_ChunkLengths[i];
@@ -241,14 +241,14 @@ void CQueryNode::ConvertOccurrencesToHits (bool bSeparateHits)
         break_end = Breaks.end();
 
     //-- breakStride : average number of tokens per break-unit in Breaks[]
-    DWORD breakStride = VectorStride(Breaks);
+    uint32_t breakStride = VectorStride(Breaks);
 
     CQueryNode NewNode(m_bUseNodeIndices, m_bUseMatchIds);
     if (bTextAreaNo)
         NewNode.ClearAndReserveOccurrences(GetOccurrencesSize());
 
 
-    DWORD BreakNo;
+    uint32_t BreakNo;
     for (size_t i= 0;  i < cnt; i++)
     {
         // seek distance (tokens): d=(m_Occurrences[i] - *break_it)
@@ -314,7 +314,7 @@ void CQueryNode::ConvertOccurrencesToHitsForPatterns (bool bSeparateHits)
     size_t ChunkNo = 0;
     for (size_t i=0;  i < cnt; i += m_ChunkLengths[ChunkNo], ChunkNo++ )
     {
-        DWORD ItemsCount = m_ChunkLengths[ChunkNo];
+        uint32_t ItemsCount = m_ChunkLengths[ChunkNo];
 
         if (!bLongSequence)
         {
@@ -328,7 +328,7 @@ void CQueryNode::ConvertOccurrencesToHitsForPatterns (bool bSeparateHits)
             while(m_Occurrences[i] >= *break_it) break_it++;
         }
 
-        DWORD break_start = (break_it==Breaks.begin() ? 0 : *(break_it-1));
+        uint32_t break_start = (break_it==Breaks.begin() ? 0 : *(break_it-1));
         if (m_Occurrences[i] < break_start || m_Occurrences[i + ItemsCount - 1] >= *break_it)
         {
             //this period of m_Occurrences should be ignored since 
@@ -336,7 +336,7 @@ void CQueryNode::ConvertOccurrencesToHitsForPatterns (bool bSeparateHits)
             continue;
         };
 
-        DWORD BreakNo = break_it - Breaks.begin();
+        uint32_t BreakNo = break_it - Breaks.begin();
         if (bTextAreaNo) {
             if ( BreakNo%TextAreasCount != TextAreaNo ) {
                 continue;
@@ -367,38 +367,38 @@ void CQueryNode::ConvertOccurrencesToHitsForPatterns (bool bSeparateHits)
     SwapOccurrences(NewNode, true);
 };
 
-DWORD CQueryNode::GetFirstOccurrenceInHit(DWORD HitNo, BYTE MatchId) const
+uint32_t CQueryNode::GetFirstOccurrenceInHit(uint32_t HitNo, BYTE MatchId) const
 {
-    DWORD beg = HitOccurrencesBegin(HitNo);
-    DWORD end = HitOccurrencesEnd(HitNo);
-    for (DWORD i=beg; i < end; ++i) {
+    uint32_t beg = HitOccurrencesBegin(HitNo);
+    uint32_t end = HitOccurrencesEnd(HitNo);
+    for (uint32_t i=beg; i < end; ++i) {
         if (m_OccurrenceMatchIds[i] == MatchId) return i;
     }
-    return (DWORD)-1;
+    return (uint32_t)-1;
 }
 
-DWORD CQueryNode::GetLastOccurrenceInHit(DWORD HitNo, BYTE MatchId) const
+uint32_t CQueryNode::GetLastOccurrenceInHit(uint32_t HitNo, BYTE MatchId) const
 {
-    DWORD beg = HitOccurrencesBegin(HitNo);
-    DWORD end = HitOccurrencesEnd(HitNo);
-    for (DWORD i=end-1; i >= beg && i < end; --i) {
+    uint32_t beg = HitOccurrencesBegin(HitNo);
+    uint32_t end = HitOccurrencesEnd(HitNo);
+    for (uint32_t i=end-1; i >= beg && i < end; --i) {
         if (m_OccurrenceMatchIds[i] == MatchId) return i;
     }
-    return (DWORD)-1;
+    return (uint32_t)-1;
 }
 
-DWORD CQueryNode::GetMiddleOccurrenceInHit(DWORD HitNo, BYTE MatchId) const
+uint32_t CQueryNode::GetMiddleOccurrenceInHit(uint32_t HitNo, BYTE MatchId) const
 {
-    DWORD beg = HitOccurrencesBegin(HitNo);
-    DWORD end = HitOccurrencesEnd(HitNo);
-    DWORD width = (end-beg)/2;
-    DWORD mid = beg + width;
-    DWORD off, i;
+    uint32_t beg = HitOccurrencesBegin(HitNo);
+    uint32_t end = HitOccurrencesEnd(HitNo);
+    uint32_t width = (end-beg)/2;
+    uint32_t mid = beg + width;
+    uint32_t off, i;
     for (off=0; off <= width; ++off) {
         if      ((i=mid-off) >= beg && i < end && m_OccurrenceMatchIds[i]==MatchId) return i;
         else if ((i=mid+off) >= beg && i < end && m_OccurrenceMatchIds[i]==MatchId) return i;
     }
-    return (DWORD)-1;
+    return (uint32_t)-1;
 }
 
 // ================== CQueryBinaryOperationNode ==================
@@ -529,7 +529,7 @@ void CQueryBinaryOperationNode::hits_and_positions_union(bool bSeparateHits)
         }
         else {
             //-- child1 + child2 (separate-mode): insert daughter-occurrences independently
-            DWORD brkno = hit1i->m_BreakNo;
+            uint32_t brkno = hit1i->m_BreakNo;
             for ( ; hit1i != hit1j && hit1i->m_BreakNo==brkno; ++hit1i) {
                 AddOccurrences(*m_pChild1, occ1, hit1i->m_HighlightOccurrenceEnd);
                 pushHit(hit1i->m_BreakNo);
@@ -590,8 +590,8 @@ void CQueryBinaryOperationNode::hits_and_positions_intersection(bool bSeparateHi
     //-- binary- vs. linear-search heuristics
     CHitCompareByBreak CompareByBreak;
     //-- breakStride : average size of gap between breaks in m_pChildX (for binary-search vs batch-increment heuristics)
-    DWORD breakStride1 = m_pChild1->BreakStride();
-    DWORD breakStride2 = m_pChild2->BreakStride();
+    uint32_t breakStride1 = m_pChild1->BreakStride();
+    uint32_t breakStride2 = m_pChild2->BreakStride();
 
     size_t occ1=0, occ2=0;
     while (hit1i != hit1j && hit2i != hit2j) {
@@ -629,7 +629,7 @@ void CQueryBinaryOperationNode::hits_and_positions_intersection(bool bSeparateHi
             occ1 = hit1i==m_pChild1->m_Hits.begin() ? 0 : (hit1i-1)->m_HighlightOccurrenceEnd;
             occ2 = hit2i==m_pChild2->m_Hits.begin() ? 0 : (hit2i-1)->m_HighlightOccurrenceEnd;
                         
-            DWORD brkno = hit1i->m_BreakNo;
+            uint32_t brkno = hit1i->m_BreakNo;
             vector<CHit>::const_iterator resume_hit2i = hit2i;
             size_t resume_occ2 = occ2;
 
@@ -672,7 +672,7 @@ void CQueryBinaryOperationNode::hits_and_positions_difference(bool bSeparateHits
 
     //-- binary- vs. linear-search heuristics (see hits_and_positions_intersection())
     CHitCompareByBreak CompareByBreak;
-    DWORD breakStride2 = m_pChild2->BreakStride();
+    uint32_t breakStride2 = m_pChild2->BreakStride();
 
     size_t occ1=0;
     while ( hit1i != hit1j && hit2i != hit2j ) {
@@ -700,7 +700,7 @@ void CQueryBinaryOperationNode::hits_and_positions_difference(bool bSeparateHits
         }
         else {
             //-- hit1 == hit2: skip all (separate-mode)
-            DWORD brkno = hit1i->m_BreakNo;
+            uint32_t brkno = hit1i->m_BreakNo;
             for ( ; hit1i != hit1j && hit1i->m_BreakNo==brkno; ++hit1i )
                 occ1 = hit1i->m_HighlightOccurrenceEnd;
             for ( ; hit2i != hit2j && hit2i->m_BreakNo==brkno; ++hit2i )
@@ -788,7 +788,7 @@ bool CQueryTokenNode::IsUniversalWildcard() const
     return m_bAny;
 }
 
-bool CQueryTokenNode::BuildRegExp(string RegExpStr, vector<DWORD>& IndexItems, bool negated)
+bool CQueryTokenNode::BuildRegExp(string RegExpStr, vector<uint32_t>& IndexItems, bool negated)
 {
     //fprintf(stderr, "DEBUG: CQueryTokenNode::BuildRegExp(): /%s/\n", RegExpStr.c_str());
     const CStringIndexSet*  IndexSet =  m_pHolder->m_pConcordance->GetIndexByAlias(m_IndexName);
@@ -908,7 +908,7 @@ void CQueryTokenNode::MakeUnique(void)
 {
     //-- (?) sort results in m_IndexItems (snagged from old CreateTokenPattern())
     sort(m_IndexItems.begin(),  m_IndexItems.end());
-    vector<DWORD>::iterator endit = unique(m_IndexItems.begin(),  m_IndexItems.end());
+    vector<uint32_t>::iterator endit = unique(m_IndexItems.begin(),  m_IndexItems.end());
     m_IndexItems.erase(endit,m_IndexItems.end());
 }
 
@@ -1279,8 +1279,8 @@ void CQuerySequenceNode::EvaluateWithoutHits()
     //-- build minimum- and maximum-distance arrays
     //  + (min|max)Distance[i] is (min|max)imum distance between iters[i] and iters[i+1]
     //  + distances here are actual token-id differences (DDC "A #0 B" --> minDistance[0]=1)
-    vector<DWORD> minDistance(m_Distances.size());
-    vector<DWORD> maxDistance(m_Distances.size());
+    vector<uint32_t> minDistance(m_Distances.size());
+    vector<uint32_t> maxDistance(m_Distances.size());
     for (int i=0; i < m_Distances.size(); ++i) {
         switch (m_DistanceOps[i]) {
             default:
@@ -1297,7 +1297,7 @@ void CQuerySequenceNode::EvaluateWithoutHits()
                 maxDistance[i] = MaxDistanceForNear;
                 break;
         }
-        maxDistance[i] = min(maxDistance[i], (DWORD)MaxDistanceForNear);
+        maxDistance[i] = min(maxDistance[i], (uint32_t)MaxDistanceForNear);
     }
 
     //-- allocate local occurrences

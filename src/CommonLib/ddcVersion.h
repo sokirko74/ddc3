@@ -13,13 +13,13 @@ class DDCVersionT {
 
     //--------------------------------------------------------------
 public:
-    DWORD v_major;
-    DWORD v_minor;
-    DWORD v_micro;
+    uint32_t v_major;
+    uint32_t v_minor;
+    uint32_t v_micro;
 
 public:
     //--------------------------------------------------------------
-    DDCVersionT(DWORD vmajor=0, DWORD vminor=0, DWORD vmicro=0)
+    DDCVersionT(uint32_t vmajor=0, uint32_t vminor=0, uint32_t vmicro=0)
         : v_major(vmajor), v_minor(vminor), v_micro(vmicro)
     {};
 

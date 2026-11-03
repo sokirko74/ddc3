@@ -118,7 +118,7 @@ void RunQuery(string Command, string Query)
     if (CountOfCycles > 1)
         printf ("Count of profile cycles = %zi\n", CountOfCycles);
 
-    DWORD  EndHitNo = 0, HitsCount;         
+    uint32_t  EndHitNo = 0, HitsCount;         
                 
 
     time_t t1;

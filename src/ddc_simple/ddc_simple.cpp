@@ -106,7 +106,7 @@ int main(int argc, char *argv[]) {
         string OutFileName = "-";
         string ResultFormat = "GUESS";
         int ContextSize = -1;
-        DWORD StartFrom = 0;
+        uint32_t StartFrom = 0;
 
         for (size_t i = 1; i < argc; i++) {
             string s = argv[i];
@@ -272,8 +272,8 @@ int main(int argc, char *argv[]) {
             };
 
 
-            DWORD EndHitNo = StartFrom;
-            DWORD HitsCount = 0;
+            uint32_t EndHitNo = StartFrom;
+            uint32_t HitsCount = 0;
             clock_t AllStartTime = clock();
 
             for (int ProfileCycleNo = 0; ProfileCycleNo < CountOfCycles; ProfileCycleNo++) {

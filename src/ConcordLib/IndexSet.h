@@ -65,7 +65,7 @@ class CStringIndexSet : public CIndexSetForLoadingStage, public CIndexSetForQuer
 
     //! make concatenation of multiple storages (new)
     void CreateUnionTokenStorages(const std::vector<CStringIndexSet *> &IndexSets, const std::vector<size_t> &TokenCounts,
-                                  const std::vector<std::vector<DWORD> > &xlateItemId);
+                                  const std::vector<std::vector<uint32_t> > &xlateItemId);
 
     //!     open \ref storage_def "storage" file
     void OpenStorageFile();
@@ -129,7 +129,7 @@ public:
     //! \li basically a pared-down single-token version of GetTokensFromStorage()
     //! \li \returns integer \a ItemId such that <code>CIndexItem TokenItem = m_Index[ItemId]</code> is the indexed attribute for token number \a TokenNo,
     //!     or \a DWORD_MAX if an error occurs (e.g. no such token)
-    DWORD GetTokenIndexId(CTokenNo TokenNo) const;
+    uint32_t GetTokenIndexId(CTokenNo TokenNo) const;
 
     //! gets local m_Index iterator (lower-bound) for type \a ValueStr
     //! \li guts for  QueryTokenList(string& WordForm)
@@ -146,38 +146,38 @@ public:
     //! gets index-local item-id (lower bound) of string type \a ValueStr
     //! \li wrapper for GetTypeIndexIdLowerBoundIter(), returns item-id rather than iterator
     //! \returns lower-bound item-id for \a ValueStr
-    DWORD GetTypeIndexIdLowerBound(const std::string &ValueStr) const;
+    uint32_t GetTypeIndexIdLowerBound(const std::string &ValueStr) const;
 
     //! gets index-local item-id of string type \a ValueStr, or DWORD_MAX if not in index
-    DWORD GetTypeIndexId(const std::string &ValueStr) const;
+    uint32_t GetTypeIndexId(const std::string &ValueStr) const;
 
     //! populate bounds for context-sort operator
     bool GetContextBounds(CDDCFilterWithBounds &Filter, const std::string &LoValue, const std::string &HiValue) const;
 
     //! find all occurrences of index items  in \ref period_def "subcorpora" PeriodNo, using cache pCaches
-    void FindOccurrences(const std::vector<DWORD> &IndexItems, const size_t PeriodNo, std::vector<CTokenNo> &occurrences,
+    void FindOccurrences(const std::vector<uint32_t> &IndexItems, const size_t PeriodNo, std::vector<CTokenNo> &occurrences,
                          CShortOccurCacheMap *pCaches, std::vector<int> &CacheIds) const;
 
     //! find all occurrences of index items in \ref period_def "subcorpora" PeriodNo, using cache pCaches (if occurrences are written by chunks)
     void
-    FindChunkOccurrences(const std::vector<DWORD> &IndexItems, std::vector<CTokenNo> &occurrences, std::vector<DWORD> &ChunkLengths,
+    FindChunkOccurrences(const std::vector<uint32_t> &IndexItems, std::vector<CTokenNo> &occurrences, std::vector<uint32_t> &ChunkLengths,
                          size_t PeriodNo, CShortOccurCacheMap *pCaches, std::vector<int> &CacheIds) const;
 
     //! search for a string "WordForm", and add it to "MatchWords", if it is found
-    void QueryTokenList(const std::string &WordForm, std::vector<DWORD> &MatchWords) const;
+    void QueryTokenList(const std::string &WordForm, std::vector<uint32_t> &MatchWords) const;
 
     //! search for all strings, which begin with "Prefix", and add their IDs to "MatchWords"
-    void QueryTokenListWithRightTruncation(const std::string &Prefix, std::vector<DWORD> &MatchWords) const;
+    void QueryTokenListWithRightTruncation(const std::string &Prefix, std::vector<uint32_t> &MatchWords) const;
 
     //! search for all strings, which end with "Suffix", adding their IDs to "MatchWords" (requires m_rIndex, introduced in v2.1.21)
-    void QueryTokenListWithLeftTruncation(const std::string &Suffix, std::vector<DWORD> &MatchWords) const;
+    void QueryTokenListWithLeftTruncation(const std::string &Suffix, std::vector<uint32_t> &MatchWords) const;
 
     //! search for all index items, which satisfy regular expession "RegExp", and add them to "MatchWords"
-    void QueryTokenListUsingRegExp(RML_RE &RegExp, std::vector<DWORD> &MatchWords, bool negated = false,
+    void QueryTokenListUsingRegExp(RML_RE &RegExp, std::vector<uint32_t> &MatchWords, bool negated = false,
                                    bool ignore_diacritics = false) const;
 
     //! populate "MatchWords" with all index item indices
-    void QueryTokenListUniversal(std::vector<DWORD> &MatchWords) const;
+    void QueryTokenListUniversal(std::vector<uint32_t> &MatchWords) const;
 
     //! print the string representation of the whole \ref storage_def "storage" to stdout
     void DumpStorage(FILE *output) const;

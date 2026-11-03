@@ -74,18 +74,18 @@ ddcVecFile<CIndexItem>::const_iterator CStringIndexSet::GetTypeIndexIdUpperBound
     return upper_bound(m_Index.begin(), m_Index.end(), ValueStr.c_str(), Less);
 };
 
-DWORD CStringIndexSet::GetTypeIndexIdLowerBound(const string &ValueStr) const {
+uint32_t CStringIndexSet::GetTypeIndexIdLowerBound(const string &ValueStr) const {
     return GetTypeIndexIdLowerBoundIter(ValueStr) - m_Index.begin();
 };
 
-DWORD CStringIndexSet::GetTypeIndexId(const string &ValueStr) const {
+uint32_t CStringIndexSet::GetTypeIndexId(const string &ValueStr) const {
     ddcVecFile<CIndexItem>::const_iterator it = GetTypeIndexIdLowerBoundIter(ValueStr);
     if (it != m_Index.end() && (!strcmp(GetIndexItemStr(*it), ValueStr.c_str())))
         return it - m_Index.begin();
-    return DWORD_MAX;
+    return UINT32_MAX;
 }
 
-void CStringIndexSet::QueryTokenList(const string &WordForm, vector<DWORD> &MatchWords) const {
+void CStringIndexSet::QueryTokenList(const string &WordForm, vector<uint32_t> &MatchWords) const {
     ddcVecFile<CIndexItem>::const_iterator it = GetTypeIndexIdLowerBoundIter(WordForm);
 
     if (MatchWords.size() > m_pParent->m_MaxRegExpExpansionSize)
@@ -114,7 +114,7 @@ struct LessByPrefixIndex {
     };
 };
 
-void CStringIndexSet::QueryTokenListWithRightTruncation(const string &Prefix, vector<DWORD> &MatchWords) const {
+void CStringIndexSet::QueryTokenListWithRightTruncation(const string &Prefix, vector<uint32_t> &MatchWords) const {
     LessByPrefixIndex Less(m_StringBuffer.m_data, Prefix.size());
     ddcVecFile<CIndexItem>::const_iterator lb = lower_bound(m_Index.begin(), m_Index.end(), Prefix.c_str(), Less);
     ddcVecFile<CIndexItem>::const_iterator ub = upper_bound(lb, m_Index.end(), Prefix.c_str(), Less);
@@ -151,17 +151,17 @@ struct LessBySuffixIndex {
     };
 
     //! less-than operator (for suffix-indices lower_bound(); respects m_SuffixLen)
-    inline bool operator()(const DWORD ItemId, const char *Val) const {
+    inline bool operator()(const uint32_t ItemId, const char *Val) const {
         return less(m_pBuffer + m_pIndex[ItemId].GetIndexItemOffset(), Val);
     };
 
     //! less-than operator (for suffix-indices upper_bound(); respects m_SuffixLen)
-    inline bool operator()(const char *Val, const DWORD ItemId) const {
+    inline bool operator()(const char *Val, const uint32_t ItemId) const {
         return less(Val, m_pBuffer + m_pIndex[ItemId].GetIndexItemOffset());
     };
 
     //! less-than operator (for suffix-index creation; ignores m_SuffixLen)
-    inline bool operator()(const DWORD ItemIdA, const DWORD ItemIdB) const {
+    inline bool operator()(const uint32_t ItemIdA, const uint32_t ItemIdB) const {
         string A(m_pBuffer + m_pIndex[ItemIdA].GetIndexItemOffset()),
             B(m_pBuffer + m_pIndex[ItemIdB].GetIndexItemOffset());
         reverse(A.begin(), A.end());
@@ -170,7 +170,7 @@ struct LessBySuffixIndex {
     };
 };
 
-void CStringIndexSet::QueryTokenListWithLeftTruncation(const string &Suffix, vector<DWORD> &MatchWords) const {
+void CStringIndexSet::QueryTokenListWithLeftTruncation(const string &Suffix, vector<uint32_t> &MatchWords) const {
     if (!m_rIndex)
         throw CDDCExpc("ERROR: CStringIndexSet::QueryTokenListWithLeftTruncation() called but no suffix index is defined");
     //fprintf(stderr, "DEBUG: QueryTokenListWithLeftTruncation(%s)\n", Suffix.c_str());
@@ -187,7 +187,7 @@ void CStringIndexSet::QueryTokenListWithLeftTruncation(const string &Suffix, vec
 };
 
 
-void CStringIndexSet::QueryTokenListUsingRegExp(RML_RE &RegExp, vector<DWORD> &MatchWords, bool negated,
+void CStringIndexSet::QueryTokenListUsingRegExp(RML_RE &RegExp, vector<uint32_t> &MatchWords, bool negated,
                                                 bool ignore_diacritics) const {
     size_t Count = m_Index.size();
     if (!ignore_diacritics) {
@@ -220,10 +220,10 @@ void CStringIndexSet::QueryTokenListUsingRegExp(RML_RE &RegExp, vector<DWORD> &M
     }
 };
 
-void CStringIndexSet::QueryTokenListUniversal(vector<DWORD> &MatchWords) const {
-    DWORD Count = (DWORD) m_Index.size();
+void CStringIndexSet::QueryTokenListUniversal(vector<uint32_t> &MatchWords) const {
+    uint32_t Count = (uint32_t) m_Index.size();
     MatchWords.reserve(MatchWords.size() + Count);
-    for (DWORD i = 0; i < Count; ++i) {
+    for (uint32_t i = 0; i < Count; ++i) {
         MatchWords.push_back(i);
     }
 };
@@ -259,19 +259,19 @@ string CStringIndexSet::GetStorageFileName() const {
 
 
 
-void SaveOnePartOfUnionTokenStorage(string inputFileName, FILE *out_fp, const vector<DWORD> &Old2New) {
+void SaveOnePartOfUnionTokenStorage(string inputFileName, FILE *out_fp, const vector<uint32_t> &Old2New) {
     FILE *inputStream = fopen(inputFileName.c_str(), "rb");
     if (!inputStream) {
         throw CDDCExpc(Format("cannot open file %s", inputFileName.c_str()));
     }
-    DWORD Old;
+    uint32_t Old;
 
-    while (fread(&Old, sizeof(DWORD), 1, inputStream) == 1) {
+    while (fread(&Old, sizeof(uint32_t), 1, inputStream) == 1) {
         if (Old >= Old2New.size()) {
             fclose(inputStream);
             throw CDDCExpc(Format("cannot map token index for token storage %s", inputFileName.c_str()));
         }
-        if (fwrite(&(Old2New[Old]), sizeof(DWORD), 1, out_fp) != 1) {
+        if (fwrite(&(Old2New[Old]), sizeof(uint32_t), 1, out_fp) != 1) {
             fclose(inputStream);
             throw CDDCExpc(Format("cannot copy token storage %s, fwrite has failed", inputFileName.c_str()));
         }
@@ -281,7 +281,7 @@ void SaveOnePartOfUnionTokenStorage(string inputFileName, FILE *out_fp, const ve
 
 void
 CStringIndexSet::CreateUnionTokenStorages(const vector<CStringIndexSet *> &IndexSets, const vector<size_t> &TokenCounts,
-                                          const vector<vector<DWORD> > &xlateItemId) {
+                                          const vector<vector<uint32_t> > &xlateItemId) {
     assert(IndexSets.size() == xlateItemId.size());
     CloseStorageFile();
     FILE *out_fp = fopen(GetStorageFileName().c_str(), "wb");
@@ -291,9 +291,9 @@ CStringIndexSet::CreateUnionTokenStorages(const vector<CStringIndexSet *> &Index
     for (size_t ixi = 0; ixi < IndexSets.size(); ++ixi) {
         if (IndexSets[ixi] == NULL || !IndexSets[ixi]->m_bUseItemStorage) {
             //-- dummy storage
-            DWORD tmp = 0;
+            uint32_t tmp = 0;
             for (size_t n = 0; n < TokenCounts[ixi]; ++n)
-                fwrite(&tmp, sizeof(DWORD), 1, out_fp);
+                fwrite(&tmp, sizeof(uint32_t), 1, out_fp);
         } else {
             //-- real storage
             SaveOnePartOfUnionTokenStorage(IndexSets[ixi]->GetStorageFileName(), out_fp, xlateItemId[ixi]);
@@ -310,7 +310,7 @@ void CStringIndexSet::EnsureSuffixIndex() {
     //-- initialize index
     m_rIndex.ensureVec();
     m_rIndex.m_vec.resize(m_Index.size());
-    for (DWORD i = 0; i < m_rIndex.m_vec.size(); ++i)
+    for (uint32_t i = 0; i < m_rIndex.m_vec.size(); ++i)
         m_rIndex.m_vec[i] = i;
 
     //-- sort index by reverse value-string
@@ -322,7 +322,7 @@ void CStringIndexSet::EnsureSuffixIndex() {
 
 
 static void CreatePartitionStorage(string inputFileName, vector<CStringIndexSet *> &Partitions,
-                                   const vector<CTokenNo> &EndTokenNo, const vector<vector<DWORD> > &xlateItemId) {
+                                   const vector<CTokenNo> &EndTokenNo, const vector<vector<uint32_t> > &xlateItemId) {
     assert(Partitions.size() == EndTokenNo.size());
     assert(Partitions.size() == xlateItemId.size());
     FILE* inputStream =  fopen (inputFileName.c_str(), "rb");
@@ -333,22 +333,22 @@ static void CreatePartitionStorage(string inputFileName, vector<CStringIndexSet 
         for (size_t i = 0; i < Partitions.size(); ++i) {
             Partitions[i]->CloseStorageFile();
             FILE *fp = fopen(Partitions[i]->GetStorageFileName().c_str(), "wb");
-            DWORD itemIdOld, itemIdNew;
+            uint32_t itemIdOld, itemIdNew;
             size_t StartTokenNo = cur;
             if (fp == NULL)
                 throw CDDCExpc("CStringIndexSet::CreatePartitionStorage(): Error: open failed for file " +
                             Partitions[i]->GetStorageFileName());
             for (; cur < EndTokenNo[i]; ++cur) {
-                if (fread(&itemIdOld, sizeof(DWORD), 1, inputStream) != 1)
+                if (fread(&itemIdOld, sizeof(uint32_t), 1, inputStream) != 1)
                     throw CDDCExpc(
                         Format("CStringIndexSet::CreatePartitionStorage(): Error: failed to read token #%zd from storage file '%s'",
                                cur, inputFileName.c_str()));
                 itemIdNew = xlateItemId[i][itemIdOld];
-                if (itemIdNew == DWORD_MAX)
+                if (itemIdNew == UINT32_MAX)
                     throw CDDCExpc(
                         Format("CStringIndexSet::CreatePartitionStorage(): Error: token #%zd target itemId==DWORD_MAX==%zd for source itemId=#%zd, partition %zd",
                                cur, itemIdNew, itemIdOld, i));
-                if (fwrite(&itemIdNew, sizeof(DWORD), 1, fp) != 1)
+                if (fwrite(&itemIdNew, sizeof(uint32_t), 1, fp) != 1)
                     throw CDDCExpc(
                         Format("CStringIndexSet::CreatePartitionStorage(): Error: failed to write token #%zd to storage file '%s'",
                                (cur - StartTokenNo), Partitions[i]->GetStorageFileName().c_str()));
@@ -385,10 +385,10 @@ void CStringIndexSet::UnionIndexSets(const vector<CStringIndexSet *> &IndexSets,
                 ItemStrings.insert(s);
         }
     }
-    if (ItemStrings.size() >= DWORD_MAX)
+    if (ItemStrings.size() >= UINT32_MAX)
         throw CDDCExpc(
             "CStringIndexSet::UnionIndexSets(): Error: vocabulary size (%zd) too large for index %s %s (max=%zd)",
-            ItemStrings.size(), m_Name.c_str(), m_ShortName.c_str(), (size_t) DWORD_MAX - 1);
+            ItemStrings.size(), m_Name.c_str(), m_ShortName.c_str(), (size_t) UINT32_MAX - 1);
     ddcLogDebug(Format("found %zd value type(s) for attribute %s", ItemStrings.size(), m_Name.c_str()));
 
     //-- phase 2: adopt occurrences
@@ -401,12 +401,12 @@ void CStringIndexSet::UnionIndexSets(const vector<CStringIndexSet *> &IndexSets,
         throw CDDCExpc("CStringIndexSet::UnionIndexSets(): cannot initialize occurrences buffer");
     size_t CurrPositionInResFile = 0;
 
-    vector<vector<DWORD> > xlateItemId(IndexSets.size());
+    vector<vector<uint32_t> > xlateItemId(IndexSets.size());
     for (size_t i = 0; i < IndexSets.size(); ++i) {
         if (IndexSets[i] != NULL) xlateItemId[i].resize(IndexSets[i]->m_Index.size());
     }
     vector<CTokenNo> occurs;
-    DWORD outId = 0;
+    uint32_t outId = 0;
     for (set<string>::const_iterator si = ItemStrings.begin(); si != ItemStrings.end(); ++si, ++outId) {
         M.SetIndexItemOffset(m_StringBuffer.m_vec.size());
         M.GetOccurs()->clear();
@@ -416,8 +416,8 @@ void CStringIndexSet::UnionIndexSets(const vector<CStringIndexSet *> &IndexSets,
 
         size_t offset = 0;
         for (size_t ixi = 0; ixi < IndexSets.size(); ++ixi) {
-            DWORD ixId = (IndexSets[ixi] != NULL ? IndexSets[ixi]->GetTypeIndexId(*si) : DWORD_MAX);
-            if (ixId != DWORD_MAX) {
+            uint32_t ixId = (IndexSets[ixi] != NULL ? IndexSets[ixi]->GetTypeIndexId(*si) : UINT32_MAX);
+            if (ixId != UINT32_MAX) {
                 //-- type is present in sub-index: adopt occurrences
                 xlateItemId[ixi][ixId] = outId;
                 IndexSets[ixi]->ReadAllOccurrences(ixId, occurs);
@@ -474,7 +474,7 @@ CStringIndexSet::CreateSplitPartitions(vector<CStringIndexSet *> &Partitions, co
     vector<CItemIndexForLoading> M(Partitions.size());
     vector<FILE *> Mfp(Partitions.size());
     vector<size_t> Mpos(Partitions.size());
-    vector<vector<DWORD> > xlateItemId(Partitions.size()); //-- [partition][oldId] -> newId_or_DWORD_MAX
+    vector<vector<uint32_t> > xlateItemId(Partitions.size()); //-- [partition][oldId] -> newId_or_DWORD_MAX
     for (size_t i = 0; i < Partitions.size(); ++i) {
         Partitions[i]->m_Index.clear();
         Partitions[i]->m_StringBuffer.ensureVec();
@@ -490,13 +490,13 @@ CStringIndexSet::CreateSplitPartitions(vector<CStringIndexSet *> &Partitions, co
                         Partitions[i]->GetOccursFileName());
 
         Mpos[i] = 0;
-        xlateItemId[i].resize(m_Index.size(), DWORD_MAX);
+        xlateItemId[i].resize(m_Index.size(), UINT32_MAX);
     }
 
     //-- churn through value-types and split up occurrences
     ddcLogTrace(logname + ": split occurrences");
     vector<CTokenNo> occurs;
-    for (DWORD ItemId = 0; ItemId < m_Index.size(); ++ItemId) {
+    for (uint32_t ItemId = 0; ItemId < m_Index.size(); ++ItemId) {
         ReadAllOccurrences(ItemId, occurs);
         const char *ItemStr = GetIndexItemStr(m_Index[ItemId]);
         CTokenNo offset = 0;
@@ -567,13 +567,13 @@ bool CStringIndexSet::GetTokensFromStorage(const size_t start_offset, const size
     size_t count = end_offset - start_offset;
     Tokens.resize(count);
     if (count == 0) return true;
-    file_off_t read_offset = (QWORD) start_offset * (QWORD) sizeof(DWORD);
-    vector<DWORD> tokenNos(count);
-    if (!m_StorageFile.ReadBuffer(read_offset, count * sizeof(DWORD), (BYTE*)&tokenNos[0])) {
+    file_off_t read_offset = (uint64_t) start_offset * (uint64_t) sizeof(uint32_t);
+    vector<uint32_t> tokenNos(count);
+    if (!m_StorageFile.ReadBuffer(read_offset, count * sizeof(uint32_t), (BYTE*)&tokenNos[0])) {
         return false;
     }
     for (size_t i = 0; i < tokenNos.size(); i++) {
-        DWORD u = tokenNos[i];
+        uint32_t u = tokenNos[i];
         if (u > m_Index.size()) {
             return false;
         }
@@ -583,17 +583,17 @@ bool CStringIndexSet::GetTokensFromStorage(const size_t start_offset, const size
     return true;
 };
 
-DWORD CStringIndexSet::GetTokenIndexId(CTokenNo TokenNo) const {
-    if (!m_bUseItemStorage) return DWORD_MAX;
-    file_off_t read_offset = (QWORD) TokenNo * (QWORD) sizeof(DWORD);
-    DWORD u;
+uint32_t CStringIndexSet::GetTokenIndexId(CTokenNo TokenNo) const {
+    if (!m_bUseItemStorage) return UINT32_MAX;
+    file_off_t read_offset = (uint64_t) TokenNo * (uint64_t) sizeof(uint32_t);
+    uint32_t u;
 
-    if (!m_StorageFile.ReadBuffer(read_offset, sizeof(DWORD), (BYTE*)&u)) {
+    if (!m_StorageFile.ReadBuffer(read_offset, sizeof(uint32_t), (BYTE*)&u)) {
         return false;
     }
 
     if (u >= m_Index.size()) {
-        return DWORD_MAX;
+        return UINT32_MAX;
     }
     return u;
 };
@@ -634,7 +634,7 @@ void CStringIndexSet::DumpStorage(FILE *output) const {
     if  (!fp) {
         throw CDDCExpc(string("cannot open file ") + GetStorageFileName());
     }
-    DWORD u;
+    uint32_t u;
     while (fread(&u, sizeof(u), 1, fp) == 1) {
         fprintf(output, "%s\n", GetIndexItemStr(m_Index[u]));
     };
@@ -659,7 +659,7 @@ bool CStringIndexSet::ConvertTempStorageToPersistent() {
     if (!m_TempStorageFile) return true;
 
 
-    map<DWORD, DWORD> BufferOffset2TokenNo;
+    map<uint32_t, uint32_t> BufferOffset2TokenNo;
 
     m_Index.ensureVec();
     assert (!m_Index.empty());
@@ -672,9 +672,9 @@ bool CStringIndexSet::ConvertTempStorageToPersistent() {
     m_TempStorageFile = fopen(m_TempStorageFileName.c_str(), "rb");
     FILE *out_fp = fopen(GetStorageFileName().c_str(), "wb");
     if (!out_fp) return false;
-    DWORD BufferOffset;
+    uint32_t BufferOffset;
     while (fread(&BufferOffset, 4, 1, m_TempStorageFile) == 1) {
-        map<DWORD, DWORD>::const_iterator it = BufferOffset2TokenNo.find(BufferOffset);
+        map<uint32_t, uint32_t>::const_iterator it = BufferOffset2TokenNo.find(BufferOffset);
         if (it == BufferOffset2TokenNo.end()) {
             fclose(out_fp);
             return false;
@@ -719,7 +719,7 @@ static void SortOccurrences(vector<CTokenNo> &occurrences, size_t SortChunkCount
 // moved from ad-hoc ConcordQuery.cpp
 
 void
-CStringIndexSet::FindOccurrences(const vector<DWORD> &IndexItems, const size_t PeriodNo, vector<CTokenNo> &occurrences,
+CStringIndexSet::FindOccurrences(const vector<uint32_t> &IndexItems, const size_t PeriodNo, vector<CTokenNo> &occurrences,
                                  CShortOccurCacheMap *pCaches, vector<int> &CacheIds) const {
     vector<CTokenNo> TempBuffer;
 
@@ -755,13 +755,13 @@ CStringIndexSet::FindOccurrences(const vector<DWORD> &IndexItems, const size_t P
 };
 
 
-void CStringIndexSet::FindChunkOccurrences(const vector<DWORD> &IndexItems, vector<CTokenNo> &occurrences,
-                                           vector<DWORD> &ChunkLengths, size_t PeriodNo, CShortOccurCacheMap *pCaches,
+void CStringIndexSet::FindChunkOccurrences(const vector<uint32_t> &IndexItems, vector<CTokenNo> &occurrences,
+                                           vector<uint32_t> &ChunkLengths, size_t PeriodNo, CShortOccurCacheMap *pCaches,
                                            vector<int> &CacheIds) const {
 
     vector<CTokenNo> TempBuffer;
 
-    vector<pair<CTokenNo, DWORD> > pos_and_lengths;
+    vector<pair<CTokenNo, uint32_t> > pos_and_lengths;
 
     size_t Count = IndexItems.size();
 
@@ -800,14 +800,14 @@ void CStringIndexSet::FindChunkOccurrences(const vector<DWORD> &IndexItems, vect
                   pCacheByIndexSet,
                   CacheIds[i]);
         {
-            vector<pair<CTokenNo, DWORD> > curr_pos_and_lengths;
+            vector<pair<CTokenNo, uint32_t> > curr_pos_and_lengths;
             for (size_t k = 0; k < curr_positions.size(); k++)
                 curr_pos_and_lengths.push_back(make_pair(curr_positions[k], chunk_len));
 
             //add curr_pos_and_lengths to pos_and_lengths
-            vector<pair<CTokenNo, DWORD> > new_pos_and_lengths;
+            vector<pair<CTokenNo, uint32_t> > new_pos_and_lengths;
             new_pos_and_lengths.resize(curr_pos_and_lengths.size() + pos_and_lengths.size());
-            vector<pair<CTokenNo, DWORD> >::iterator it =
+            vector<pair<CTokenNo, uint32_t> >::iterator it =
                 set_union(curr_pos_and_lengths.begin(), curr_pos_and_lengths.end(), pos_and_lengths.begin(),
                           pos_and_lengths.end(), new_pos_and_lengths.begin());
             new_pos_and_lengths.resize(it - new_pos_and_lengths.begin());
@@ -817,7 +817,7 @@ void CStringIndexSet::FindChunkOccurrences(const vector<DWORD> &IndexItems, vect
 
     Count = pos_and_lengths.size();
     for (size_t i = 0; i < Count; i++) {
-        DWORD l = pos_and_lengths[i].second;
+        uint32_t l = pos_and_lengths[i].second;
         for (int k = 0; k < l; k++) {
             CTokenNo LastPositionOfChunk = pos_and_lengths[i].first;
             CTokenNo FirstPositionOfChunk = LastPositionOfChunk - l + 1;

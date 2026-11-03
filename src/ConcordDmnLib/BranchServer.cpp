@@ -244,7 +244,7 @@ void CSelectedHosts::Clear()
 }
 
 //----------------------------------------------------------------------
-void CSelectedHosts::Insert(DWORD HostId, const string& SubPath)
+void CSelectedHosts::Insert(uint32_t HostId, const string& SubPath)
 {
     if (SubPath.empty()) {
         Insert(HostId,"*");
@@ -257,17 +257,17 @@ void CSelectedHosts::Insert(DWORD HostId, const string& SubPath)
 }
 
 //----------------------------------------------------------------------
-void CSelectedHosts::InsertAll(DWORD nDtrs, const string &SubPath)
+void CSelectedHosts::InsertAll(uint32_t nDtrs, const string &SubPath)
 {
     //m_vec.clear();
     m_vec.reserve(nDtrs);
-    for (DWORD di=0; di<nDtrs; ++di) {
+    for (uint32_t di=0; di<nDtrs; ++di) {
         Insert(di, SubPath);
     }
 }
 
 //----------------------------------------------------------------------
-string CSelectedHosts::DtrPaths(DWORD HostId) const
+string CSelectedHosts::DtrPaths(uint32_t HostId) const
 {
     string paths;
     MapT::const_iterator mapi = m_map.find(HostId);

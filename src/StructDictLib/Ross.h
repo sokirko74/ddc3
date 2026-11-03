@@ -163,12 +163,12 @@ public:
     // ++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     void    BuildUnits();
-    WORD    GetUnitsSize() const { return (WORD)m_Units.size();     };
+    uint16_t    GetUnitsSize() const { return (uint16_t)m_Units.size();     };
     bool    ClearUnits();
-    void    ClearUnit(WORD UnitNo);
-    WORD    LocateUnit (const char * EntryStr, int MeanNum) const;
-    WORD    InsertUnit (CStructEntry& T);
-    WORD    InsertUnit(const char* EntryStr, BYTE MeanNum);
+    void    ClearUnit(uint16_t UnitNo);
+    uint16_t    LocateUnit (const char * EntryStr, int MeanNum) const;
+    uint16_t    InsertUnit (CStructEntry& T);
+    uint16_t    InsertUnit(const char* EntryStr, BYTE MeanNum);
 
 
     // ++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -176,9 +176,9 @@ public:
     // ++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     bool                    ReadUnitComments();
-    WORD                    InsertUnitComment (WORD m_EntryId);
-    TUnitComment*                   GetCommentsByUnitId(WORD m_EntryId);
-    const TUnitComment*             GetCommentsByUnitId(WORD EntryId)   const;
+    uint16_t                    InsertUnitComment (uint16_t m_EntryId);
+    TUnitComment*                   GetCommentsByUnitId(uint16_t m_EntryId);
+    const TUnitComment*             GetCommentsByUnitId(uint16_t EntryId)   const;
 
 
     // ++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -213,12 +213,12 @@ public:
     const char* GetRedactFieldName() const;
 
 
-    void SetUnitCommentStr(WORD UnitNo, const char* Str);
-    void SetUnitAuthor(WORD UnitNo, const char* Author);
-    void SetUnitModifTimeStr(WORD UnitNo, const char* TimeStr);
-    void SetUnitEditor(WORD UnitNo, const char* Editor);
-    std::string GetUnitModifTimeStr(WORD UnitNo) const;
-    std::string GetUnitTextHeader(WORD UnitNo) const;
+    void SetUnitCommentStr(uint16_t UnitNo, const char* Str);
+    void SetUnitAuthor(uint16_t UnitNo, const char* Author);
+    void SetUnitModifTimeStr(uint16_t UnitNo, const char* TimeStr);
+    void SetUnitEditor(uint16_t UnitNo, const char* Editor);
+    std::string GetUnitModifTimeStr(uint16_t UnitNo) const;
+    std::string GetUnitTextHeader(uint16_t UnitNo) const;
 
     bool    ReadConfig();
 
@@ -254,9 +254,9 @@ public:
         
     BYTE            GetCortegeFieldNo(size_t i) const;
     const char* GetDomItemStrInner(int ItemNo) const;
-    bool            IsEmptyArticle(WORD UnitNo) const;
-    int                     GetUnitStartPos(WORD UnitNo) const;
-    int                     GetUnitEndPos(WORD UnitNo) const;
+    bool            IsEmptyArticle(uint16_t UnitNo) const;
+    int                     GetUnitStartPos(uint16_t UnitNo) const;
+    int                     GetUnitEndPos(uint16_t UnitNo) const;
     BYTE            GetFieldNoByFieldStr(const char* Str) const;
     int                     GetCortegeItem(long CortegeNo, BYTE PositionInCortege) const;
     const char*     GetDomItemStr(int ItemNo) const;

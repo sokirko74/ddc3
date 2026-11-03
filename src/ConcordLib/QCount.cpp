@@ -65,14 +65,14 @@ struct HitLessByCountValue {
 
 //----------------------------------------------------------------------
 /** get initial occurrence number of \a Hit */
-static inline DWORD HitOccurrenceStart(const CHit &Hit, const CConcHolder *holder) {
-    DWORD hitno = &Hit - &*(holder->m_Hits.begin());
+static inline uint32_t HitOccurrenceStart(const CHit &Hit, const CConcHolder *holder) {
+    uint32_t hitno = &Hit - &*(holder->m_Hits.begin());
     return (hitno == 0 ? 0 : holder->m_Hits[hitno - 1].m_HighlightOccurrenceEnd);
 };
 
 //----------------------------------------------------------------------
 /** get first occurence offset after \a Hit (upper bound) */
-static inline DWORD HitOccurrenceEnd(const CHit &Hit, const CConcHolder *holder) {
+static inline uint32_t HitOccurrenceEnd(const CHit &Hit, const CConcHolder *holder) {
     //return Hit.m_HighlightOccurrenceEnd;
     const vector<CTokenNo> &occurrences = holder->m_HighlightOccurs;
     return Hit.m_HighlightOccurrenceEnd >= occurrences.size() ? occurrences.size() : Hit.m_HighlightOccurrenceEnd;
@@ -267,12 +267,12 @@ string &CQCountKeyExprToken::Evaluate(const CHit &Hit) {
     const vector<BYTE> &matchids = holder->m_HighlightIds;
 
     //-- get context anchor occurrence-index occur_i
-    DWORD occ = HitOccurrenceStart(Hit, holder);
+    uint32_t occ = HitOccurrenceStart(Hit, holder);
     if (m_MatchId != 0) {
-        DWORD occ_end = HitOccurrenceEnd(Hit, holder);
+        uint32_t occ_end = HitOccurrenceEnd(Hit, holder);
         for (; occ < occ_end && matchids[occ] != m_MatchId; ++occ);
         if (occ >= occ_end)
-            occ = (DWORD) -1;
+            occ = (uint32_t) -1;
     }
 
     //-- formerly EvaluateOccurrence()
@@ -282,12 +282,12 @@ string &CQCountKeyExprToken::Evaluate(const CHit &Hit) {
             throw CQCountKeyBadOccurrence("id-mismatch for occurrence in CQCountKeyExprToken::Evaluate()");
 
         //-- get break limits and token id
-        DWORD StartTokenNo = (Hit.m_BreakNo == 0) ? 0 : breaks[Hit.m_BreakNo - 1];
-        DWORD EndTokenNo = breaks[Hit.m_BreakNo];
+        uint32_t StartTokenNo = (Hit.m_BreakNo == 0) ? 0 : breaks[Hit.m_BreakNo - 1];
+        uint32_t EndTokenNo = breaks[Hit.m_BreakNo];
         CTokenNo tok = occurrences[occ] + m_Offset;
-        DWORD indexKey;
+        uint32_t indexKey;
 
-        if (tok >= StartTokenNo && tok < EndTokenNo && (indexKey = m_pIndex->GetTokenIndexId(tok)) != DWORD_MAX) {
+        if (tok >= StartTokenNo && tok < EndTokenNo && (indexKey = m_pIndex->GetTokenIndexId(tok)) != UINT32_MAX) {
             //-- usual case: within target break and with a valid item id
             m_CurKey = m_pIndex->GetIndexItemStr(m_pIndex->m_Index[indexKey]);
         } else {
@@ -556,7 +556,7 @@ void CQCount::CountUniversal(CQueryResult &Result, size_t Limit) {
     const ddcBreakVector &fbreaks = ix->GetFileBreaks();
     const CMaskedFileSet &fmasked = ix->m_MaskedFiles;
     CMaskedFileSet::const_iterator fmaski = fmasked.begin();
-    DWORD nfiles = ix->GetCorpusFilesCount();
+    uint32_t nfiles = ix->GetCorpusFilesCount();
     CHit hit;
     string key;
     size_t n;
@@ -627,7 +627,7 @@ void CQCount::CountLocal(CQueryResult &Result, size_t Limit) {
         fprintf(stderr, "DEBUG_NCOUNT: count-by-file\n");
 #endif
         bool isWithinFile = (qRoot->m_Options->m_HitTypeStr == PredefinedFileBreakName);
-        DWORD f = (DWORD) -1;
+        uint32_t f = (uint32_t) -1;
         size_t n = 0;
         string key;
 
@@ -943,7 +943,7 @@ bool CQKeys::Compile(CQueryCompiler *compiler) {
     //     since GetAllHits() does the sorting and filtering and evaluation of count-query daughter node
     assert(compiler->m_pHolder);
     CConcHolder *holder = (CConcHolder *) compiler->m_pHolder;
-    DWORD EndHitNo = 0;
+    uint32_t EndHitNo = 0;
     size_t ResultLimitTmp = holder->m_ResultLimit;
     holder->m_ResultLimit = m_CountLimit;
     if (holder->GetHits(m_qCount, EndHitNo) != errNone)

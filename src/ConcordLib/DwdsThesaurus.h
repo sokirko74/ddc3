@@ -27,15 +27,15 @@ class CDwdsThesaurus
     //  all possible supernodes of the thesaurus Adel, H...
     StringVector HyperTerms;
     // a buffer to store pathes from the leaf to the root
-    std::vector<DWORD> Pathes;
+    std::vector<uint32_t> Pathes;
 
     // an index which points to vector Pathes
     // the count of PathEndIndex  is equal to the count of leaves in the thesaurus
     // Pathes[ PathEndIndex[i-1].... PathEndIndex[i] ]  is a path number i
-    std::vector<DWORD> PathEndIndex;
+    std::vector<uint32_t> PathEndIndex;
 
     // an index which points to vector Pathes
-    std::vector<DWORD> LeavesPathes;
+    std::vector<uint32_t> LeavesPathes;
     CShortStringHolder LeavesLemmas;
 
     DwordVector m_AllPathes;

@@ -37,11 +37,11 @@ struct CDomen  {
     char Source;
     bool IsDelim;
     bool IsFree;
-    WORD ItemsCount;
+    uint16_t ItemsCount;
     BYTE Parts[MaxDomensUnionSize];
     BYTE PartsSize;
     int   DropDownCount;
-    DWORD Color;
+    uint32_t Color;
     char* m_Items;
     int    m_ItemsLength;
     TItemContainer*  m_pParent;

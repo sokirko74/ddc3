@@ -167,7 +167,7 @@ CTokenNo CHitBorders::GetFileStartTokenNo(size_t i) const
 };
 
 
-DWORD   CHitBorders::GetPageNumber(size_t No) const
+uint32_t   CHitBorders::GetPageNumber(size_t No) const
 {
     if (m_PageBreaks.empty()) 
         return UnknownPageNumber;
@@ -234,18 +234,18 @@ bool    CHitBorders::RemoveHitBordersFileAndClear(string Path)
 
 void CHitBorders::StartTextAreaBorders()
 {
-    m_LastTextAreaBreaks.resize(m_Breaks.size(), DWORD_MAX);
+    m_LastTextAreaBreaks.resize(m_Breaks.size(), UINT32_MAX);
 }
 
-void CHitBorders::EndTextAreaBorders(DWORD TextAreaEndTokenNo)
+void CHitBorders::EndTextAreaBorders(uint32_t TextAreaEndTokenNo)
 {
     for (size_t i=0; i < m_LastTextAreaBreaks.size(); i++)
         if (m_FileBreakCollectionNo != i)
-            if ( (m_LastTextAreaBreaks[i] == DWORD_MAX) || ( m_LastTextAreaBreaks[i] < TextAreaEndTokenNo))
+            if ( (m_LastTextAreaBreaks[i] == UINT32_MAX) || ( m_LastTextAreaBreaks[i] < TextAreaEndTokenNo))
                 AddBreakByIndex(i, TextAreaEndTokenNo);
 }
 
-void CHitBorders::AddBreakByIndex(DWORD BreakCollectionNo, const CTokenNo& B)
+void CHitBorders::AddBreakByIndex(uint32_t BreakCollectionNo, const CTokenNo& B)
 {
     if (m_LastTextAreaBreaks[BreakCollectionNo] == B) {
         return;
@@ -371,7 +371,7 @@ int CHitBorders::RegisterBreak(string ShortName, string LongName)
     };
     m_LongName2BreakCollection.insert(make_pair(T.m_LongName,m_Breaks.size()));
     m_Breaks.push_back(T);
-    m_LastTextAreaBreaks.push_back(DWORD_MAX);
+    m_LastTextAreaBreaks.push_back(UINT32_MAX);
     return m_Breaks.size() - 1;
 }
 

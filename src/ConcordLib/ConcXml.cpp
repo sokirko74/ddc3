@@ -303,7 +303,7 @@ bool CConcXml::UnionBibliographies(const vector<const CConcXml *> &Bibls) {
     return true;
 };
 
-bool CConcXml::SplitBibliography(vector<CConcXml *> &Bibls, const vector<DWORD> &EndFileNo) const {
+bool CConcXml::SplitBibliography(vector<CConcXml *> &Bibls, const vector<uint32_t> &EndFileNo) const {
     string logname("CConcXml::SplitBibliography()");
     assert(Bibls.size() == EndFileNo.size());
 

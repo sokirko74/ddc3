@@ -74,11 +74,11 @@ public:
 
     //! the division of m_Occurrences by chunks , so m_ChunkLengths[0]+m_ChunkLengths[1]... = m_Occurrences.size() ;
     //! used by near() queries.
-    std::vector<DWORD> m_ChunkLengths;
+    std::vector<uint32_t> m_ChunkLengths;
 
     //! chunk offsets, used by CQuerySequenceNode queries; use EnsureChunkOffsets() to populate if required
     /// \li introduced in v2.1.19; still unused (should probably be used to allow binary-search seek for NEAR queries
-    std::vector<DWORD> m_ChunkOffsets;
+    std::vector<uint32_t> m_ChunkOffsets;
 
     //! ???
     std::vector<int> m_CacheIds;
@@ -161,27 +161,27 @@ public:
     virtual size_t GetNodeFrequencyByNodeIndex(size_t NodeIndex) const;
 
     //! get the index of the first occurrence in m_Occurrences[] for hit number HitNo
-    inline DWORD HitOccurrencesBegin(DWORD HitNo) const
+    inline uint32_t HitOccurrencesBegin(uint32_t HitNo) const
     { return (HitNo == 0) ? 0 : m_Hits[HitNo-1].m_HighlightOccurrenceEnd; };
 
     //! get the index of the first occurrence in m_Occurrences[] after hit number HitNo
-    inline DWORD HitOccurrencesEnd(DWORD HitNo) const
+    inline uint32_t HitOccurrencesEnd(uint32_t HitNo) const
     { return m_Hits[HitNo].m_HighlightOccurrenceEnd >= m_Occurrences.size() ? m_Occurrences.size() : m_Hits[HitNo].m_HighlightOccurrenceEnd; };
 
     //! scan for first occurrence of match-id \a MatchId for hit \a HitNo in m_OccurrenceMatchIds[]; only valid if m_bUseMatchIds is true
     //! \returns least occurence-index \a i such that: occurrence \a i belongs to Hits[HitNo] and as match-id MatchId, or (DOWRD)-1 if none exists
-    DWORD GetFirstOccurrenceInHit(DWORD HitNo, BYTE MatchId) const;
+    uint32_t GetFirstOccurrenceInHit(uint32_t HitNo, BYTE MatchId) const;
 
     //! scan for last occurrence of match-id \a MatchId for hit \a HitNo in m_OccurrenceMatchIds[]; only valid if m_bUseMatchIds is true
     //! \returns greatest occurence-index \a i such that: occurrence \a i belongs to Hits[HitNo] and as match-id MatchId, or (DWORD)-1 if none exists
-    DWORD GetLastOccurrenceInHit(DWORD HitNo, BYTE MatchId) const;
+    uint32_t GetLastOccurrenceInHit(uint32_t HitNo, BYTE MatchId) const;
 
     //! scan for middle-most occurrence of match-id \a MatchId for hit \a HitNo in m_OccurrenceMatchIds[]; only valid if m_bUseMatchIds is true
     //! \returns middle-most occurence-index \a i such that: occurrence \a i belongs to Hits[HitNo] and as match-id MatchId, or (DWORD)-1 if none exists
-    DWORD GetMiddleOccurrenceInHit(DWORD HitNo, BYTE MatchId) const;
+    uint32_t GetMiddleOccurrenceInHit(uint32_t HitNo, BYTE MatchId) const;
 
     //! get average size of gap between breaks in m_Hits[]; returned value is always >= 1
-    inline DWORD BreakStride() const
+    inline uint32_t BreakStride() const
     { return m_Hits.empty() ? 1 : std::max((size_t)1, (m_Hits.back().m_BreakNo-m_Hits.front().m_BreakNo)/m_Hits.size()); };
 };
 
@@ -218,7 +218,7 @@ public:
     //! push a single hit onto m_Hits[]
     //! \li expects occurrences to already have been added; sets new hit's m_HighlightOccurrenceEnd=m_Occurrences.size()
     //! \li for use by hits_and_positions_intersection() etc.
-    inline void pushHit(DWORD BreakNo)
+    inline void pushHit(uint32_t BreakNo)
     {
         CHit H(BreakNo);
         H.m_HighlightOccurrenceEnd = m_Occurrences.size();
@@ -274,7 +274,7 @@ class CQueryTokenNode : public CQueryNode
 {
 public:
     //!  find index items  in the index which is called m_IndexName
-    std::vector<DWORD> m_IndexItems;
+    std::vector<uint32_t> m_IndexItems;
 
     //! the name of index or break collection on which this node is built (see  CQueryChunkNode and  CQueryTokenNode nodes)
     std::string m_IndexName;
@@ -365,7 +365,7 @@ public:
     bool CreateAnchorPattern(const CConcHolder *pHolder, const std::string& BreakName, int anchor);
 
     //! generic regex query utility
-    bool BuildRegExp(std::string RegExpStr, std::vector<DWORD>& IndexItems, bool negated=false);
+    bool BuildRegExp(std::string RegExpStr, std::vector<uint32_t>& IndexItems, bool negated=false);
 
     void    EvaluateWithoutHits();
     void    Evaluate(bool bSeparateHits=false);
@@ -511,7 +511,7 @@ struct CQOccurrenceIterator {
     CQueryNode *node; //!< (sub)query node
     int cnt;          //!< limit for  node->m_Occurrences[]
     int cur;          //!< index into node->m_Occurrences[]
-    DWORD chpos;      //!< index into node->m_ChunkLengths[] (match occurrence)
+    uint32_t chpos;      //!< index into node->m_ChunkLengths[] (match occurrence)
 
     /** default constructor */
     CQOccurrenceIterator(CQueryNode *node_=NULL)
@@ -579,7 +579,7 @@ struct CQOccurrenceIterator {
     {  return node->m_ChunkLengths[chpos]; };
 
     /* get token-id for occurrence-id \a occ */
-    inline CTokenNo tocc(DWORD occ) const
+    inline CTokenNo tocc(uint32_t occ) const
     { return node->m_Occurrences[occ]; };
         
     /* get first token-id of current occurrence; assumes iterator is valid */
@@ -630,7 +630,7 @@ struct CQOccurrenceIterator {
  */
 struct CQTokenOccurrenceIterator : public CQOccurrenceIterator
 {
-    DWORD stride; ///< average number of tokens between occurrences in node
+    uint32_t stride; ///< average number of tokens between occurrences in node
         
     /** default constructor */
     CQTokenOccurrenceIterator(CQueryNode *node_=NULL)

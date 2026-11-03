@@ -83,7 +83,7 @@ string GetGramInfoStr (string GramInfo, MorphLanguageEnum Langua)
     string Result;
     Result += pGramtab->GetPartOfSpeechStr(POS);
     Result += " ";
-    QWORD grammems = pGramtab->GetAllGrammems(GramInfo.c_str());
+    uint64_t grammems = pGramtab->GetAllGrammems(GramInfo.c_str());
     Result += pGramtab->GrammemsToStr(grammems);
     Result += " ";
     return Result;
@@ -105,7 +105,7 @@ string GetStringByParadigm (const CFormInfo*  piParadigm, MorphLanguageEnum Lang
     {
         const CAgramtab* pGramtab = GetGramtabByLanguage(Langua);
         try {
-            QWORD grammems = pGramtab->GetAllGrammems(TypeAncode.c_str());
+            uint64_t grammems = pGramtab->GetAllGrammems(TypeAncode.c_str());
             Result += " "+pGramtab->GrammemsToStr(grammems)+ " ";
         }
         catch (...)
@@ -172,7 +172,7 @@ bool GetParadigmCollection(string WordForm, vector<CFormInfo>&  Paradigms, Morph
 struct CFormAndGrammems {
     string m_Form;
     string m_POS;
-    QWORD  m_Grammems;
+    uint64_t  m_Grammems;
 
     bool operator  < (const CFormAndGrammems& X) const
     {
@@ -183,18 +183,18 @@ struct CFormAndGrammems {
 };
 
 struct CFormGroup {
-    QWORD                      m_IntersectGrammems;
+    uint64_t                      m_IntersectGrammems;
     vector<int>    m_FormNos;
 };
 
-int GetWidePOS (BYTE POS, QWORD Grammems, MorphLanguageEnum Langua)
+int GetWidePOS (BYTE POS, uint64_t Grammems, MorphLanguageEnum Langua)
 {
     return POS;
 
 };
 
 
-vector<CFormGroup> GetParadigmByGroups (const vector<CFormAndGrammems>& Forms, MorphLanguageEnum Langua, QWORD& CommonGrammems)
+vector<CFormGroup> GetParadigmByGroups (const vector<CFormAndGrammems>& Forms, MorphLanguageEnum Langua, uint64_t& CommonGrammems)
 {
     const CAgramtab* pGramtab = GetGramtabByLanguage(Langua);
     vector<CFormGroup> Results;
@@ -206,7 +206,7 @@ vector<CFormGroup> GetParadigmByGroups (const vector<CFormAndGrammems>& Forms, M
     for (long GroupNo=0; GroupNo < ParagigmGroupsCount; GroupNo++)
     {
         BYTE POS;
-        QWORD Grammems = 0;
+        uint64_t Grammems = 0;
         if (!pGramtab->ProcessPOSAndGrammems(ParagigmGroups[GroupNo].c_str(), POS, Grammems)) continue;;
         string strPOS  = pGramtab->GetPartOfSpeechStr(GetWidePOS(POS, Grammems, Langua));
         CFormGroup F;
@@ -314,7 +314,7 @@ string GetParadigmFromDictionary (CFormInfo* piParadigm, MorphLanguageEnum Langu
                 break;
         vector<CFormAndGrammems> FormAndGrammemsPart;
         FormAndGrammemsPart.insert (FormAndGrammemsPart.begin(), FormAndGrammems.begin()+FormNo, FormAndGrammems.begin()+EndFormNo);
-        QWORD CommonGrammems;
+        uint64_t CommonGrammems;
         vector<CFormGroup> FormGroups = GetParadigmByGroups(FormAndGrammemsPart, Langua, CommonGrammems);
 
         Result += "<TABLE BORDER=5>";

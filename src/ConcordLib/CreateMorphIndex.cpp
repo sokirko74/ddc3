@@ -47,7 +47,7 @@ vector<string> GetGramInfosFromWord(const char *GraLine, MorphLanguageEnum Langu
 
     size_t len = Codes.length();
     vector<string> Result;
-    QWORD CommonGrammems = 0;
+    uint64_t CommonGrammems = 0;
     bool bReadCommonGrammems = false;
     for (size_t i = 0; i < len; i += 2) {
         if (!bReadCommonGrammems) {
@@ -77,7 +77,7 @@ vector<string> GetGramInfosFromWord(const char *GraLine, MorphLanguageEnum Langu
                 Result.push_back(A->GetPartOfSpeechStr(pos));
         };
 
-        QWORD Grammems;
+        uint64_t Grammems;
         Grammems = A->GetAllGrammems(string(SrcCodesBuffer + i, 2).c_str());
 
         size_t GrammemsCount = A->GetGrammemsCount();

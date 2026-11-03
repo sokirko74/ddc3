@@ -142,7 +142,7 @@ struct CFirstHitsQueryResult  {
 struct CQueryStatistics 
 {
     DwordVector m_HitsEnds;
-    DWORD       m_FreqCount;
+    uint32_t       m_FreqCount;
 };
 
 //======================================================================
@@ -154,8 +154,8 @@ struct CQueryStatistics
  */
 struct CSelectedHosts
 {
-    typedef std::vector<DWORD>            VecT;
-    typedef std::map<DWORD, std::set<std::string> > MapT;
+    typedef std::vector<uint32_t>            VecT;
+    typedef std::map<uint32_t, std::set<std::string> > MapT;
 
     VecT m_vec;  ///< Host-IDs of selected daughter(s); empty for all daughters
     MapT m_map;  ///< sub-paths relative to each selected daugther, keyed by Host-ID
@@ -175,17 +175,17 @@ struct CSelectedHosts
     void Clear();
 
     ///< select sub-path \a "HostId/SubPath" (empty \a SubPath is treated as "*")
-    void Insert(DWORD HostId, const std::string& SubPath);
+    void Insert(uint32_t HostId, const std::string& SubPath);
 
     ///< alias for Insert(HostId,"*"): select all sub-paths for \a HostId
-    inline void Insert(DWORD HostId)
+    inline void Insert(uint32_t HostId)
     { Insert(HostId,"*"); };
 
     ///< alias for Insert(0 <= HostId < nDtrs, SubPath)
-    void InsertAll(DWORD nDtrs, const std::string &SubPath);
+    void InsertAll(uint32_t nDtrs, const std::string &SubPath);
     
     ///< returns a string suitable for use in query
-    std::string DtrPaths(DWORD HostId) const;
+    std::string DtrPaths(uint32_t HostId) const;
 
     ///< debug: convert to string
     std::string toString() const;

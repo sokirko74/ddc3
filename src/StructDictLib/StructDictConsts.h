@@ -20,15 +20,15 @@
 #ifndef StructDictsConsts
 #define StructDictsConsts
 
-const   DWORD   MaxDomensUnionSize = 20;
-const   DWORD   AuthorNameSize = 10;
+const   uint32_t   MaxDomensUnionSize = 20;
+const   uint32_t   AuthorNameSize = 10;
 
 // максимальное число актантов 
 const   BYTE    MaxNumAct = 7;
 
 // ошибочный номер словарного входа 
-const   WORD    ErrUnitNo  = 65000;
-const   DWORD   EntryStrSize = 40;
+const   uint16_t    ErrUnitNo  = 65000;
+const   uint32_t   EntryStrSize = 40;
 
 // »сходный материал доменов
 const   BYTE    dsUnion = 'O';

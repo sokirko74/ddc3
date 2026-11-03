@@ -27,14 +27,14 @@
 //======================================================================
 // ddcStringEnum
 /** convenience wrapper for file-based integer<->string mappings */
-template <typename OffT_=DWORD>
+template <typename OffT_=uint32_t>
 class ddcStringEnum
 {
 public:
     //----------------------------------------------------------
     // typedefs
     typedef OffT_  OffT; ///< typedef for offset values
-    typedef DWORD  IdT;  ///< typedef for integer IDs
+    typedef uint32_t  IdT;  ///< typedef for integer IDs
 
 public:
     //----------------------------------------------------------
@@ -140,7 +140,7 @@ public:
     //   "error: a function call cannot appear in a constant-expression"
     // + we don't have IdT parameterized yet anyway (it's all 32-bit at this point), so we can just use DWORD_MAX
     //static const IdT NO_ID = std::numeric_limits<IdT>::max();
-    static const IdT NO_ID = DWORD_MAX;
+    static const IdT NO_ID = UINT32_MAX;
 
     /// comparison helper struct for string-to-id search
     struct IdKeyLess {

@@ -397,7 +397,7 @@ void CBiblIndex::SetRegexOptions(const RML_RE::Options &opts) {
     }
 }
 
-bool CBiblIndex::FileMatches(DWORD FileNo, const vector<CDDCFilterWithBounds> &Filters) const {
+bool CBiblIndex::FileMatches(uint32_t FileNo, const vector<CDDCFilterWithBounds> &Filters) const {
     for (vector<CDDCFilterWithBounds>::const_iterator fi = Filters.begin(); fi != Filters.end(); ++fi) {
         CFreeBiblIndex *fbi = (CFreeBiblIndex *) (fi->m_BiblIndex);
         if (fbi && !fbi->FileMatches(FileNo, *fi)) {

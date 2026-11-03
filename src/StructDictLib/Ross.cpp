@@ -382,7 +382,7 @@ bool   TRoss::ClearUnits()
     return true;
 }
 
-void   TRoss::ClearUnit(WORD UnitNo)
+void   TRoss::ClearUnit(uint16_t UnitNo)
 {
     if (!m_Units[UnitNo].HasEmptyArticle())
         DelCorteges (m_Units[UnitNo].m_StartCortegeNo, m_Units[UnitNo].m_LastCortegeNo + 1);
@@ -393,7 +393,7 @@ void   TRoss::ClearUnit(WORD UnitNo)
 
 
 
-WORD TRoss::LocateUnit (const char * EntryStr, int MeanNum) const
+uint16_t TRoss::LocateUnit (const char * EntryStr, int MeanNum) const
 {
     CStructEntry T(EntryStr, MeanNum);
     vector<CStructEntry>::const_iterator It = lower_bound(m_Units.begin(), m_Units.end(), T);   
@@ -403,17 +403,17 @@ WORD TRoss::LocateUnit (const char * EntryStr, int MeanNum) const
 };
 
 
-WORD    TRoss::InsertUnit (CStructEntry& T)
+uint16_t    TRoss::InsertUnit (CStructEntry& T)
 {
     vector<CStructEntry>::iterator It = lower_bound(m_Units.begin() , m_Units.end(), T);
     T.m_EntryId =  (m_UnitComments.size() == 0)? 1 : m_UnitComments[m_UnitComments.size() - 1].m_EntryId +1;
-    WORD res = It - m_Units.begin();
+    uint16_t res = It - m_Units.begin();
     m_Units.insert(It, T); 
     InsertUnitComment(T.m_EntryId);
     return res;
 };
 
-WORD   TRoss::InsertUnit(const char* EntryStr, BYTE MeanNum)
+uint16_t   TRoss::InsertUnit(const char* EntryStr, BYTE MeanNum)
 {
     CStructEntry T;
     T.m_MeanNum = MeanNum;
@@ -539,7 +539,7 @@ bool   TRoss::ReadUnitComments()
     return true;
 };
 
-WORD    TRoss::InsertUnitComment (WORD EntryId)  
+uint16_t    TRoss::InsertUnitComment (uint16_t EntryId)  
 {
     try {
         TUnitComment C;
@@ -556,7 +556,7 @@ WORD    TRoss::InsertUnitComment (WORD EntryId)
     };
 };
 
-TUnitComment*  TRoss::GetCommentsByUnitId(WORD EntryId)  
+TUnitComment*  TRoss::GetCommentsByUnitId(uint16_t EntryId)  
 {
     vector<TUnitComment>::iterator It = lower_bound(m_UnitComments.begin() , m_UnitComments.end(), TUnitComment(EntryId));
     assert (   (It != m_UnitComments.end()) 
@@ -565,7 +565,7 @@ TUnitComment*  TRoss::GetCommentsByUnitId(WORD EntryId)
     return &(*It);
 };
 
-const TUnitComment*  TRoss::GetCommentsByUnitId(WORD EntryId)   const
+const TUnitComment*  TRoss::GetCommentsByUnitId(uint16_t EntryId)   const
 {
     vector<TUnitComment>::const_iterator It = lower_bound(m_UnitComments.begin() , m_UnitComments.end(), TUnitComment(EntryId));
     assert (   (It != m_UnitComments.end()) 
@@ -877,7 +877,7 @@ bool CDictionary::Load(const char* Path)
 };
 
 
-void TRoss::SetUnitCommentStr(WORD UnitNo, const char* Str)
+void TRoss::SetUnitCommentStr(uint16_t UnitNo, const char* Str)
 {
     TUnitComment* C = GetCommentsByUnitId(m_Units[UnitNo].m_EntryId);
     int l = strlen(Str);
@@ -887,7 +887,7 @@ void TRoss::SetUnitCommentStr(WORD UnitNo, const char* Str)
     C->Comments[l] = 0;
 }
 
-void TRoss::SetUnitAuthor(WORD UnitNo, const char* Author)
+void TRoss::SetUnitAuthor(uint16_t UnitNo, const char* Author)
 {
     int l = strlen(Author);
     if (l > AuthorNameSize - 1) 
@@ -905,7 +905,7 @@ tm Str2Tm (string TimeStr)
 };
 
 
-void TRoss::SetUnitModifTimeStr(WORD UnitNo, const char* TimeStr)
+void TRoss::SetUnitModifTimeStr(uint16_t UnitNo, const char* TimeStr)
 {
     try {
         TUnitComment* C = GetCommentsByUnitId(m_Units[UnitNo].m_EntryId);
@@ -917,7 +917,7 @@ void TRoss::SetUnitModifTimeStr(WORD UnitNo, const char* TimeStr)
     };
 }
 
-void TRoss::SetUnitEditor(WORD UnitNo, const char* Editor)
+void TRoss::SetUnitEditor(uint16_t UnitNo, const char* Editor)
 {
     try 
     {
@@ -930,7 +930,7 @@ void TRoss::SetUnitEditor(WORD UnitNo, const char* Editor)
     };
 }
 
-string TRoss::GetUnitModifTimeStr(WORD UnitNo) const
+string TRoss::GetUnitModifTimeStr(uint16_t UnitNo) const
 {
     try {
         char tmpbuf[128]; 
@@ -949,7 +949,7 @@ string TRoss::GetUnitModifTimeStr(WORD UnitNo) const
     };
 }
 
-string TRoss::GetUnitTextHeader(WORD UnitNo) const
+string TRoss::GetUnitTextHeader(uint16_t UnitNo) const
 {
     string R;
     const CStructEntry& U = m_Units[UnitNo];
@@ -1021,17 +1021,17 @@ const char*  CDictionary::GetDomItemStrInner(int ItemNo) const
     return TRoss::GetDomItemStr(m_DomItems[ItemNo]);
 };
 
-bool CDictionary::IsEmptyArticle(WORD UnitNo) const
+bool CDictionary::IsEmptyArticle(uint16_t UnitNo) const
 { 
     return m_Units[UnitNo].HasEmptyArticle();
 };
 
-int CDictionary::GetUnitStartPos(WORD UnitNo) const
+int CDictionary::GetUnitStartPos(uint16_t UnitNo) const
 {
     return m_Units[UnitNo].m_StartCortegeNo; 
 };
 
-int CDictionary::GetUnitEndPos(WORD UnitNo) const
+int CDictionary::GetUnitEndPos(uint16_t UnitNo) const
 {
     return  m_Units[UnitNo].m_LastCortegeNo; 
 };
@@ -1263,7 +1263,7 @@ bool CDictionary::ProcessOneArticle ( vector<CSourceLine>& L, int start, int las
         };
 
 
-    WORD UnitNo = LocateUnit(Lemma.c_str(), MeanNum);
+    uint16_t UnitNo = LocateUnit(Lemma.c_str(), MeanNum);
 
     if  (UnitNo != ErrUnitNo) 
         if (ConflictSolver == iceSkip)

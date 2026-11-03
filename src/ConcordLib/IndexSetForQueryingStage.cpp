@@ -38,7 +38,7 @@ const size_t MaxCompressRatio = 5;
 size_t AllBytesRead = 0;
 //!  the size of the buffer, which is used to read occurrences from the disk
 //const DWORD OccurBufferSize = 32;
-const DWORD OccurBufferSize = 512;
+const uint32_t OccurBufferSize = 512;
 
 
 CIndexSetForQueryingStage::CIndexSetForQueryingStage(const CStringIndexator *pParent) {
@@ -109,10 +109,10 @@ bool CIndexSetForQueryingStage::LoadIndexSet(bool bLoadHeaderOfOccurrences) {
 
 
 void
-DearchiveOccurrences(const DWORD *in_start, const DWORD *in_end, DWORD *out_start, DWORD &OutCount, bool bEnabled) {
+DearchiveOccurrences(const uint32_t *in_start, const uint32_t *in_end, uint32_t *out_start, uint32_t &OutCount, bool bEnabled) {
     if (!bEnabled) {
         OutCount = in_end - in_start;
-        memcpy(out_start, in_start, OutCount * sizeof(DWORD));
+        memcpy(out_start, in_start, OutCount * sizeof(uint32_t));
     } else {
         DeconvertFromVariableInteger(in_start, in_end, out_start, OutCount);
         //DearchiveSequence(in_start, in_end,  out_start, OutCount);
@@ -139,7 +139,7 @@ void CIndexSetForQueryingStage::ReadOccurrences(CTokenNo *OutBuffer, file_off_t 
 
 size_t CIndexSetForQueryingStage::GetStartOccurNo(size_t IndexNo) const {
     if (IndexNo == 0) return 0;
-    if (m_Index[IndexNo].HasOneOccurrence()) return DWORD_MAX;
+    if (m_Index[IndexNo].HasOneOccurrence()) return UINT32_MAX;
 
     // we should  pass all index items  which are occurred only one time in corpora (they take no space in m_OccursFp)
     for (IndexNo--; IndexNo > 0; IndexNo--) {
@@ -183,7 +183,7 @@ void CIndexSetForQueryingStage::AddOccurs(size_t PeriodDevId, const bool bOneOcc
             )
             Occurs.push_back(T);
     } else {
-        const DWORD *Periods = m_EndPeriodOffsets.find(PeriodDevId);
+        const uint32_t *Periods = m_EndPeriodOffsets.find(PeriodDevId);
         if (Periods != NULL) {
 #ifdef DEBUG_OCCURS
             PeriodsDivisionMapT::const_iterator epi = lower_bound(m_EndPeriodOffsets.begin(),m_EndPeriodOffsets.end(),PeriodDevId,PeriodsDivisionMapT::KeyLess());
@@ -197,19 +197,19 @@ void CIndexSetForQueryingStage::AddOccurs(size_t PeriodDevId, const bool bOneOcc
             //     but consistency with m_pParent->GetSearchPeriodsCount() should be checked at load-time by ddcRecFile::open()
             //assert (Periods.size() == m_pParent->GetSearchPeriodsCount());
 
-            const QWORD StartOfPeriod = (PeriodNo == 0) ? StartOccurNo : (QWORD) StartOccurNo + Periods[PeriodNo - 1];
-            const QWORD PeriodSize = (PeriodNo == 0) ? Periods[PeriodNo] : Periods[PeriodNo] - Periods[PeriodNo - 1];
+            const uint64_t StartOfPeriod = (PeriodNo == 0) ? StartOccurNo : (uint64_t) StartOccurNo + Periods[PeriodNo - 1];
+            const uint64_t PeriodSize = (PeriodNo == 0) ? Periods[PeriodNo] : Periods[PeriodNo] - Periods[PeriodNo - 1];
 
             if (PeriodSize == 0) return;
 
             // reading from the file
-            DWORD DearchivedSize;
+            uint32_t DearchivedSize;
             TempOccurrsBuffer.resize(PeriodSize);
 
-            ReadOccurrences(&TempOccurrsBuffer[0], StartOfPeriod * (QWORD) sizeof(CTokenNo), PeriodSize);
+            ReadOccurrences(&TempOccurrsBuffer[0], StartOfPeriod * (uint64_t) sizeof(CTokenNo), PeriodSize);
 
             // dearchiving 
-            DWORD old_size = Occurs.size();
+            uint32_t old_size = Occurs.size();
             Occurs.resize(Occurs.size() + PeriodSize * MaxCompressRatio);
             DearchiveOccurrences(&TempOccurrsBuffer[0], &TempOccurrsBuffer[0] + TempOccurrsBuffer.size(),
                                  &Occurs[0] + old_size, DearchivedSize, m_bCompressOccurrences);
@@ -221,8 +221,8 @@ void CIndexSetForQueryingStage::AddOccurs(size_t PeriodDevId, const bool bOneOcc
         {
             OCCDEBUG(fprintf(stderr, "DEBUG: AddOccurs(): Periods == NULL\n"));
 
-            QWORD End = EndOccurNo;
-            DWORD MaxCountToRead = EndOccurNo - StartOccurNo;
+            uint64_t End = EndOccurNo;
+            uint32_t MaxCountToRead = EndOccurNo - StartOccurNo;
 
             const CTokenNo *pBuffer;
             TempOccurrsBuffer.resize(MaxCountToRead);
@@ -230,7 +230,7 @@ void CIndexSetForQueryingStage::AddOccurs(size_t PeriodDevId, const bool bOneOcc
             if (pCacheByIndexSet && CacheId != -1) {
                 pBuffer = pCacheByIndexSet->GetOccurrencesFromCache(CacheId, MaxCountToRead);
             } else {
-                ReadOccurrences(&TempOccurrsBuffer[0], (QWORD) StartOccurNo * (QWORD) sizeof(CTokenNo), MaxCountToRead);
+                ReadOccurrences(&TempOccurrsBuffer[0], (uint64_t) StartOccurNo * (uint64_t) sizeof(CTokenNo), MaxCountToRead);
                 pBuffer = &TempOccurrsBuffer[0];
 
                 //-- moo: this assertion is catching if we query 'sein' (Mon, 06 Jun 2011 14:14:51 +0200)
@@ -325,7 +325,7 @@ file_off_t CIndexSetForQueryingStage::GetOccurrsFileSize() const {
 };
 
 
-void CompressOccurrences(const vector<DWORD> &In, vector<DWORD> &Out, bool bEnabled) {
+void CompressOccurrences(const vector<uint32_t> &In, vector<uint32_t> &Out, bool bEnabled) {
     if (!bEnabled)
         Out = In;
     else {
@@ -335,7 +335,7 @@ void CompressOccurrences(const vector<DWORD> &In, vector<DWORD> &Out, bool bEnab
 
 
 void
-CompressPortion(vector<DWORD> &Archive, const vector<DWORD> &Body, DWORD Start, DWORD End, bool bArchiveOccurrences) {
+CompressPortion(vector<uint32_t> &Archive, const vector<uint32_t> &Body, uint32_t Start, uint32_t End, bool bArchiveOccurrences) {
     vector<CTokenNo> NewPortion;
     NewPortion.insert(NewPortion.begin(), Body.begin() + Start, Body.begin() + End);
     vector<CTokenNo> ArchivedNewPortion;
@@ -352,7 +352,7 @@ CompressPortion(vector<DWORD> &Archive, const vector<DWORD> &Body, DWORD Start, 
   then  a should  be divided into 3 periods according to  the search periods i.e.
   " 1 | 34 45 46 | 89 |". These three  borders  should be saved to m_EndPeriodOffsets.
 */
-bool CIndexSetForQueryingStage::BuildPeriodsDivisionAndCompress(const DWORD PerDivId, vector<CTokenNo> &InputTokens) {
+bool CIndexSetForQueryingStage::BuildPeriodsDivisionAndCompress(const uint32_t PerDivId, vector<CTokenNo> &InputTokens) {
     if (m_pParent->GetSearchPeriodsCount() == 0) {
         fprintf(stderr, "Error! There are no search periods\n");
         return false;
@@ -371,7 +371,7 @@ bool CIndexSetForQueryingStage::BuildPeriodsDivisionAndCompress(const DWORD PerD
         return true;
     };
 
-    vector<DWORD> EndOffsets;
+    vector<uint32_t> EndOffsets;
     EndOffsets.resize(m_pParent->GetSearchPeriodsCount());
 
     size_t CurrentPeriod = 0;
@@ -500,7 +500,7 @@ bool CIndexSetForQueryingStage::WritePeriodsDivision() {
     m_EndPeriodOffsets.ensureMap();
     for (PeriodsDivisionMapR::const_iterator it = m_EndPeriodOffsets.m_map.begin();
          it != m_EndPeriodOffsets.m_map.end(); it++) {
-        DWORD t = it->first;
+        uint32_t t = it->first;
         if (fwrite(&t, sizeof(t), 1, fp) != 1) {
             fclose(fp);
             return false;

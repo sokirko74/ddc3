@@ -63,7 +63,7 @@ public:
      *  \param EndHitNo on call, index of first hit to retrieve; on return index of last hit retrieved
      *  \returns true on success, otherwise false
      */
-    bool CacheGet(CConcHolder& Holder, const std::string &Query, DWORD& EndHitNo);
+    bool CacheGet(CConcHolder& Holder, const std::string &Query, uint32_t& EndHitNo);
 
     /** store a result for \a Query in the cache
      *  \li formerly CConcHolder::SaveToCache()

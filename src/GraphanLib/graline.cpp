@@ -203,7 +203,7 @@ void CGraLine::SetDes(Descriptors d)
 
 
 
-void CGraLine::AddStatus(WORD add_state)
+void CGraLine::AddStatus(uint16_t add_state)
 {
     m_Status |= add_state;
 };
@@ -325,7 +325,7 @@ size_t CGraLine::LengthUntilDelimiters (const char *s, const CGraphmatFile* G)
 
 
 // read next word
-size_t CGraLine::ReadWord (size_t Offset, const CGraphmatFile* G, DWORD& PageNumber)
+size_t CGraLine::ReadWord (size_t Offset, const CGraphmatFile* G, uint32_t& PageNumber)
 {
     PageNumber = UnknownPageNumber;
     const char *s;

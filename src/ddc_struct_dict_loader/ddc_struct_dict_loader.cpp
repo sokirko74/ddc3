@@ -90,7 +90,7 @@ int main(int argc, char **argv)
         CTempArticle A;
         A.m_pRoss = &Dict;
 
-        for (WORD i = 0;  i < Dict.m_Units.size(); i++)
+        for (uint16_t i = 0;  i < Dict.m_Units.size(); i++)
         { 
             fprintf (fp,"============\r\n");
             fprintf (fp,"%s", Dict.GetUnitTextHeader(i).c_str());

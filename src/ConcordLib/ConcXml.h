@@ -68,7 +68,7 @@ public:
     bool UnionBibliographies(const std::vector<const CConcXml *> &Bibls);
 
     //! partition this object into multiple sub-objects (called by CConcIndexator::SplitProject())
-    bool SplitBibliography(std::vector<CConcXml *> &Bibls, const std::vector<DWORD> &EndFileNo) const;
+    bool SplitBibliography(std::vector<CConcXml *> &Bibls, const std::vector<uint32_t> &EndFileNo) const;
 
 
     

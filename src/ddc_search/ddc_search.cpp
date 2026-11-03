@@ -420,7 +420,7 @@ int cgiMain() {
         string Result;
         int iNetworkError;
         int InternalError;
-        DWORD HitsCount, EndHitNo, RelevantDocsCount;
+        uint32_t HitsCount, EndHitNo, RelevantDocsCount;
 
         if (S.empty()) {
             SocketDeinitialize();

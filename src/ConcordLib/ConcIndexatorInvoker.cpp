@@ -39,7 +39,7 @@ string ConcIndexatorInvoker::GetErrorLogFileName(string Path) const {
 
 
 
-void ConcIndexatorInvoker::WriteTimeStatistics(const CConcIndexator &Indexator, DWORD MaxTokenCountInOnePeriod) const {
+void ConcIndexatorInvoker::WriteTimeStatistics(const CConcIndexator &Indexator, uint32_t MaxTokenCountInOnePeriod) const {
     try {
         double AllClocksCount = m_Profiler.EndTimer("Indexing");
 
@@ -63,7 +63,7 @@ void ConcIndexatorInvoker::WriteTimeStatistics(const CConcIndexator &Indexator, 
     }
 };
 
-void ConcIndexatorInvoker::FinalizeIndex(CConcIndexator &Indexator, DWORD MaxTokenCountInOnePeriod) const {
+void ConcIndexatorInvoker::FinalizeIndex(CConcIndexator &Indexator, uint32_t MaxTokenCountInOnePeriod) const {
 
     if (!Indexator.SaveCorpusFileList()) {
         throw CDDCExpc(Format("Cannot save corpus file list %s\n", Indexator.GetFileNameForCorpusFileNames().c_str()));
@@ -164,7 +164,7 @@ void ConcIndexatorInvoker::BuildIndexStart(string ProjectFile, CConcIndexator& i
     time(&m_StartTime);
 }
 
-void ConcIndexatorInvoker::PrintProgress(DWORD saveCorpusEndTokenNo)
+void ConcIndexatorInvoker::PrintProgress(uint32_t saveCorpusEndTokenNo)
 {
     time_t speed_curr_time;
     time(&speed_curr_time);
@@ -194,7 +194,7 @@ void ConcIndexatorInvoker::SaveLoadIndexToDisk(CConcIndexator& Indexator) {
     m_Profiler.EndTimer("Intermediate Save to Disc");
 }
 
-DWORD ConcIndexatorInvoker::IndexFile(CConcIndexator& Indexator, CIndexDocument* document)
+uint32_t ConcIndexatorInvoker::IndexFile(CConcIndexator& Indexator, CIndexDocument* document)
 {
     string strError;
     m_Profiler.StartTimer("Indexator.IndexOneFile", 1);
@@ -208,7 +208,7 @@ DWORD ConcIndexatorInvoker::IndexFile(CConcIndexator& Indexator, CIndexDocument*
     };
 
     //Indexator.m_Indices[0]->PrintLoadIndexStats(stderr); //-- DEBUG
-    DWORD startFileTokenNo =  m_CorpusEndTokenNo;
+    uint32_t startFileTokenNo =  m_CorpusEndTokenNo;
     try {
         document->CorpusEndTokenNo = m_CorpusEndTokenNo;
         Indexator.IndexOneFile(document);
@@ -242,7 +242,7 @@ DWORD ConcIndexatorInvoker::IndexFile(CConcIndexator& Indexator, CIndexDocument*
 
     m_Profiler.EndTimer("Indexator.IndexOneFile");
 
-    DWORD tokensCount = m_CorpusEndTokenNo - startFileTokenNo;
+    uint32_t tokensCount = m_CorpusEndTokenNo - startFileTokenNo;
     if (tokensCount == 0) {
         string err = Format("skipping empty %s", CorpusFileName.c_str());
         SetCurrMessage(err);
@@ -292,7 +292,7 @@ void ConcIndexatorInvoker::ProcessTarOrSingleFile(CConcIndexator& Indexator, siz
             MemoryLoadIndexSize += InputLoadIndexSize;
             InputLoadIndexSize = 0;
         };
-        DWORD tokensCount = IndexFile(Indexator, &document);
+        uint32_t tokensCount = IndexFile(Indexator, &document);
         if (m_bStoppedByUser) {
             throw CDDCExpc("stopped by user");
         };

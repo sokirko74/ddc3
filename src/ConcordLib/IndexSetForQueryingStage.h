@@ -31,7 +31,7 @@
 
 //!  a type for mappping an index item no to its \ref perdiv_def "period division"
 //typedef map<DWORD, vector<DWORD> > PeriodsDivisionMap__OLD
-typedef ddcMapFile<DWORD, DWORD> PeriodsDivisionMapT;
+typedef ddcMapFile<uint32_t, uint32_t> PeriodsDivisionMapT;
 typedef PeriodsDivisionMapT::MapT PeriodsDivisionMapR;  ///< low-level resident std::map<> implementation in PeriodsDivisionMap::m_map
 typedef PeriodsDivisionMapT::RecFileT PeriodsDivisionMapV;  ///< low-level virtual mmap()-based implementation in PeriodsDivisionMap::m_rfile
 
@@ -40,11 +40,11 @@ typedef PeriodsDivisionMapT::RecFileT PeriodsDivisionMapV;  ///< low-level virtu
 /////////////////////////////////////////////////////////////////////////////
 // Flags for CIndexItem::m_IndexItemOffsetAndFlags
 
-const DWORD TheOnlyOccurIsInEndOccurNo = 1 << 31;
+const uint32_t TheOnlyOccurIsInEndOccurNo = 1 << 31;
 /*-- 2018-08-15: EndOfSentenceForBigrams flag is obsolete --*/
 //const DWORD EndOfSentenceForBigrams = 1<<30;
 //const DWORD AllFlags = TheOnlyOccurIsInEndOccurNo  | EndOfSentenceForBigrams;
-const DWORD AllFlags = TheOnlyOccurIsInEndOccurNo;
+const uint32_t AllFlags = TheOnlyOccurIsInEndOccurNo;
 
 /*!
   CIndexItem contains basic information about one index item. In the strict sense one index item
@@ -53,19 +53,19 @@ const DWORD AllFlags = TheOnlyOccurIsInEndOccurNo;
 */
 class CIndexItem {
     // pointer to CStringIndexSet::m_StringBuffer and flags;
-    DWORD m_IndexItemOffsetAndFlags;
+    uint32_t m_IndexItemOffsetAndFlags;
 
     // upper bound offset of occurrences in CIndexSetForQueryingStage::m_OccursFp
-    DWORD m_EndOccurOffset;
+    uint32_t m_EndOccurOffset;
 
 public:
     //! return m_IndexItemOffsetAndFlags for serialization
-    DWORD GetIndexItemOffsetAndFlags() const {
+    uint32_t GetIndexItemOffsetAndFlags() const {
         return m_IndexItemOffsetAndFlags;
     };
 
     //! set m_IndexItemOffsetAndFlags for serialization
-    void SetIndexItemOffsetAndFlags(DWORD Value) {
+    void SetIndexItemOffsetAndFlags(uint32_t Value) {
         m_IndexItemOffsetAndFlags = Value;
     };
 
@@ -74,33 +74,33 @@ public:
     };
 
     //! returns a reference of this index item to CStringIndexSet::m_StringBuffer
-    DWORD GetIndexItemOffset() const {
+    uint32_t GetIndexItemOffset() const {
         return m_IndexItemOffsetAndFlags & ~AllFlags;
     };
 
     //! sets a reference  of this index item to CStringIndexSet::m_StringBuffer
-    void SetIndexItemOffset(DWORD Value) {
+    void SetIndexItemOffset(uint32_t Value) {
         m_IndexItemOffsetAndFlags &= AllFlags;
         m_IndexItemOffsetAndFlags |= Value & ~AllFlags;
     };
 
     //! returns  flags of  this  index item
-    DWORD GetItemIndexFlags() const {
+    uint32_t GetItemIndexFlags() const {
         return m_IndexItemOffsetAndFlags & AllFlags;
     };
 
     //! set flags of  this  index item
-    void AddItemIndexFlags(DWORD Value) {
+    void AddItemIndexFlags(uint32_t Value) {
         m_IndexItemOffsetAndFlags |= Value & AllFlags;
     };
 
     //! return the upper bound offset of occurrences in CIndexSetForQueryingStage::m_OccursFp
-    DWORD GetEndOccurOffset() const {
+    uint32_t GetEndOccurOffset() const {
         return m_EndOccurOffset;
     };
 
     //! set the upper bound offset of occurrences in CIndexSetForQueryingStage::m_OccursFp
-    void SetEndOccurOffset(DWORD EndOccurOffset) {
+    void SetEndOccurOffset(uint32_t EndOccurOffset) {
         m_EndOccurOffset = EndOccurOffset;
     };
 
@@ -120,7 +120,7 @@ inline size_t save_to_bytes(const CIndexItem &i, BYTE *buf) {
 }
 
 inline size_t restore_from_bytes(CIndexItem &i, const BYTE *buf) {
-    DWORD d;
+    uint32_t d;
 
     buf += restore_from_bytes(d, buf);
     i.SetIndexItemOffsetAndFlags(d);
@@ -137,7 +137,7 @@ inline size_t restore_from_bytes(CIndexItem &i, const BYTE *buf) {
 /** CSuffixIndex is a vector of Item-IDs sorted in ascending order by reverse string-value,
  *  for fast binary search of string-suffixes.
  */
-typedef ddcVecFile<DWORD> CSuffixIndex;
+typedef ddcVecFile<uint32_t> CSuffixIndex;
 
 
 /////////////////////////////////////////////////////////////////////////////
@@ -195,7 +195,7 @@ protected:
     size_t GetStartOccurNo(size_t IndexNo) const;
 
     //!         build  a \ref perdiv_def "period division"  for one index item
-    bool BuildPeriodsDivisionAndCompress(const DWORD TokenId, std::vector<CTokenNo> &InputTokens);
+    bool BuildPeriodsDivisionAndCompress(const uint32_t TokenId, std::vector<CTokenNo> &InputTokens);
 
     //! write one index item to result file
     bool

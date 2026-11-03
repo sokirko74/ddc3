@@ -39,7 +39,7 @@ class CGraphmatFile  : public CUnitHolder
     int                     DealBulletsWithTwoBrackets (size_t StartPos, size_t EndPos);
     bool            DealEnglishStyleFIO (size_t StartPos, size_t EndPos);
     bool            DealAbbrev (size_t  StartPos, size_t EndPos);
-    size_t          FindOborotto (size_t i, size_t HB, short& OborotNo, std::vector<WORD>& OborortIds) const;
+    size_t          FindOborotto (size_t i, size_t HB, short& OborotNo, std::vector<uint16_t>& OborortIds) const;
     void            DealOborotto(size_t  HB);
     int                     DealReferences (size_t i,size_t HB);
     void            DealModifierKey (size_t LB, size_t HB);

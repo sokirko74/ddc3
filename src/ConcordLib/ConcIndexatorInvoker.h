@@ -20,28 +20,28 @@ class TAR;
 */
 class ConcIndexatorInvoker {
     time_t m_StartTime;
-    DWORD m_CorpusEndTokenNo;
+    uint32_t m_CorpusEndTokenNo;
     std::vector<std::string> m_ErrorCorpusFiles;
 
     std::string GetTimeStatisticsFileName(std::string Path) const;
 
     std::string GetErrorLogFileName(std::string Path) const;
 
-    void WriteTimeStatistics(const CConcIndexator &Indexator, DWORD MaxTokenCountInOnePeriod) const;
+    void WriteTimeStatistics(const CConcIndexator &Indexator, uint32_t MaxTokenCountInOnePeriod) const;
 
-    void FinalizeIndex(CConcIndexator &Indexator, DWORD MaxTokenCountInOnePeriod) const;
+    void FinalizeIndex(CConcIndexator &Indexator, uint32_t MaxTokenCountInOnePeriod) const;
 
     void BuildOnlyMorphIndex(std::string ProjectFile) const;
 
     void BuildIndexStart(std::string ProjectFile, CConcIndexator &indexator);
 
-    void PrintProgress(DWORD saveCorpusEndTokenNo);
+    void PrintProgress(uint32_t saveCorpusEndTokenNo);
 
     void IndexFiles(CConcIndexator &Indexator);
 
     void SaveLoadIndexToDisk(CConcIndexator &Indexator);
 
-    DWORD IndexFile(CConcIndexator &Indexator, CIndexDocument* document);
+    uint32_t IndexFile(CConcIndexator &Indexator, CIndexDocument* document);
 
     void AddInputLoadIndexToMemoryLoadIndexWrapper(CConcIndexator &Indexator);
 

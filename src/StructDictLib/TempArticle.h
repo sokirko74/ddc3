@@ -31,7 +31,7 @@ class CTempArticle
 public:
     char                                    m_EntryStr[EntryStrSize];
     BYTE                                    m_MeanNum;
-    WORD                                    m_UnitNo;
+    uint16_t                                    m_UnitNo;
     bool                                            m_ReadOnly;
     std::vector<CTextField>              m_Fields;
     CDictionary*                            m_pRoss;
@@ -57,7 +57,7 @@ public:
     bool            MarkUp();
     bool            BuildCortegeList();
     bool            WriteToDictionary();
-    void            ReadFromDictionary(WORD UnitNo, bool ReadOnly);
+    void            ReadFromDictionary(uint16_t UnitNo, bool ReadOnly);
     const std::string& GetArticleStr();
         
 };

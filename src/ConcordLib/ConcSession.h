@@ -30,7 +30,7 @@
 // Typedefs & Forward Declarations
 
 //! save trigger for ConcordPattern application
-typedef bool (*SaveTriggerType) (const std::string&,DWORD LParam);
+typedef bool (*SaveTriggerType) (const std::string&,uint32_t LParam);
 
 class  CConcSessionContext; //-- forward decl
 class  CQueryCompiler;      //-- forward decl
@@ -138,17 +138,17 @@ public:
     //! add a reference to FileNo according to m_ResultFormat
     void    AddFileReference(const long FileNo);
     //! add bibliographical information about Hit to m_QueryResultStr
-    void    ShowBibliographyForTextOrHtml(const CHit& Hit, DWORD PageNumber);
+    void    ShowBibliographyForTextOrHtml(const CHit& Hit, uint32_t PageNumber);
     //! add bibliographical information about Hit to m_QueryResultStr under TableFormat
-    bool    ShowBibliographyForTable(DWORD PageNumber, const CHit& Hit, const std::vector<COutputToken>& Tokens);
+    bool    ShowBibliographyForTable(uint32_t PageNumber, const CHit& Hit, const std::vector<COutputToken>& Tokens);
     //! add hit string built by  Hit to to m_QueryResultStr
-    bool    GenerateOneHitString(DWORD PageNumber, const CHit& Hit, const std::vector<COutputToken>& Tokens);
+    bool    GenerateOneHitString(uint32_t PageNumber, const CHit& Hit, const std::vector<COutputToken>& Tokens);
     //! json: add hit string built by  Hit to to m_QueryResultStr
-    bool    GenerateOneHitStringJson(DWORD PageNumber, const CHit& Hit, const std::vector<COutputToken>& Tokens);
+    bool    GenerateOneHitStringJson(uint32_t PageNumber, const CHit& Hit, const std::vector<COutputToken>& Tokens);
     //! add hit strings [StartBreakNo,  EndBreakNo) without highlighting to m_QueryResultStr
-    bool    GetContext(int  StartBreakNo, int  EndBreakNo, const DWORD CurrFileNo, const bool bConvertASCIIToHtmlSymbols, std::string& Result) const;
+    bool    GetContext(int  StartBreakNo, int  EndBreakNo, const uint32_t CurrFileNo, const bool bConvertASCIIToHtmlSymbols, std::string& Result) const;
     //! append json hit strings [StartBreakNo,  EndBreakNo) without highlighting to js
-    bool    GetContextJson(int  StartBreakNo, int  EndBreakNo, const DWORD CurrFileNo, std::string& js) const;
+    bool    GetContextJson(int  StartBreakNo, int  EndBreakNo, const uint32_t CurrFileNo, std::string& js) const;
 
     //! evaluate query on the corpus and initialize slots from CQueryResult
     //! \li backwards-compatible version assuming Query was already have been parsed
@@ -165,7 +165,7 @@ public:
     bool IsUniversalCountQuery(CQuery *QueryRoot) const;
 
     //! checks if Query  si already in the cache, and if true, it returns its hit results from the cache
-    bool    TryToGetFromCache(const std::string &Query,  DWORD& EndHitNo);
+    bool    TryToGetFromCache(const std::string &Query,  uint32_t& EndHitNo);
 
     //! stores Query  to the cache
     void    SaveToCache(const std::string& Query,  std::vector<size_t>::const_iterator start, std::vector<size_t>::const_iterator end);
@@ -176,7 +176,7 @@ public:
     //! creates snippets, concatenating contexts of  found words
     bool    GetFileSnippets(const int HitNo, std::vector<COutputToken>& Tokens)  const;
     //! saves current found hits using SaveTrigger, this function is only called from GetOccurrences
-    bool    SaveOccurrences(const std::vector<DWORD>& ChunkLengths,  int ContextSize, const std::vector<CTokenNo>& Occurrences,  const std::vector<CHit>& Hits, SaveTriggerType SaveTrigger,DWORD LParam); 
+    bool    SaveOccurrences(const std::vector<uint32_t>& ChunkLengths,  int ContextSize, const std::vector<CTokenNo>& Occurrences,  const std::vector<CHit>& Hits, SaveTriggerType SaveTrigger,uint32_t LParam); 
     //! initializes Tokens with words of hit BreakNo
     bool    GetTokensFromStorageByBreak(size_t IndexNo, size_t BreakNo, std::vector<COutputToken>& Tokens) const;
     //! initializes CHit::m_FileNo for each hit of Hits
@@ -260,7 +260,7 @@ public:
       For each found  occurrence it calls SaveTrigger, which normally should save all occurrences to a file.
       This function is called in application ConcordPattern.
     */
-    DDCErrorEnum            GetOccurrences(const std::string &Query, int ContextSize, SaveTriggerType SaveTrigger,DWORD LParam);
+    DDCErrorEnum            GetOccurrences(const std::string &Query, int ContextSize, SaveTriggerType SaveTrigger,uint32_t LParam);
                 
 
     //! SimpleQuery finds hits by the given query. EndHitNo is used as an input/output parameter.
@@ -275,20 +275,20 @@ public:
       - as an INPUT parameter, EndHitNo is the offset of the FIRST hit to return
       - as an OUTPUT parameter, EndHitNo is the offset of the offset of the first hit NOT returned (= upper bound; last hit returned + 1)
     */
-    DDCErrorEnum    SimpleQuery(const std::string &Query, DWORD& EndHitNo, DWORD& HitsCount);
+    DDCErrorEnum    SimpleQuery(const std::string &Query, uint32_t& EndHitNo, uint32_t& HitsCount);
 
     //! GetHits does the same as SimpleQuery does, but without GenerateHitStrings()
     //! \li see SimpleQuery() for semantics of EndHitNo
-    DDCErrorEnum    GetHits(const std::string &QueryStr, DWORD& EndHitNo);
+    DDCErrorEnum    GetHits(const std::string &QueryStr, uint32_t& EndHitNo);
 
     //! GetHits() variant for pre-parsed queries, cache key is generated as QueryRoot->toString() + QueryRoot->optionsToString()
     //! \li see SimpleQuery() for semantics of EndHitNo
-    DDCErrorEnum    GetHits(CQuery *QueryRoot,  DWORD& EndHitNo);
+    DDCErrorEnum    GetHits(CQuery *QueryRoot,  uint32_t& EndHitNo);
 
     //! GetHits() guts: pre-parsed QueryRoot and given string cache-key QueryStr
     //! \li see SimpleQuery() for semantics of EndHitNo
     //! \li may set m_ResultOffset and trim m_Hits[] accordingly (ddc >= v2.1.9)
-    DDCErrorEnum    GetHits(CQuery *QueryRoot,  DWORD& EndHitNo, const std::string &QueryStr);
+    DDCErrorEnum    GetHits(CQuery *QueryRoot,  uint32_t& EndHitNo, const std::string &QueryStr);
 
     //! initializes m_QueryResultStr using current m_Hits and m_HighlightOccurs (for context-queries)
     //! \li respects m_ResultOffset (generates strings for m_Hits[StartHitNo-m_ResultOffset .. StartHitNo-m_ResultOffset+m_ResultLimit-1])

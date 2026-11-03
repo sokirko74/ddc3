@@ -548,7 +548,7 @@ inline bool AreEqual (const vector<TCortege10>& L1,  const vector<TCortege10>& L
 };
 
 
-void CTempArticle::ReadFromDictionary(WORD UnitNo, bool ReadOnly)
+void CTempArticle::ReadFromDictionary(uint16_t UnitNo, bool ReadOnly)
 {
     m_UnitNo = UnitNo;
     m_ReadOnly = ReadOnly ? true : false;

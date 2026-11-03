@@ -27,14 +27,14 @@
 //======================================================================
 // ddcCorpusList
 /** high-level wrapper for corpus file lists (*._con) */
-template <typename OffT_=DWORD>
+template <typename OffT_=uint32_t>
 class ddcCorpusList
 {
 public:
     //----------------------------------------------------------
     // typedefs
     typedef OffT_  OffT; ///< typedef for offset values
-    typedef DWORD  IdT;  ///< typedef for integer IDs
+    typedef uint32_t  IdT;  ///< typedef for integer IDs
 
 public:
     //----------------------------------------------------------
@@ -163,7 +163,7 @@ public:
     /// constant returned by string-to-id search methods indicating no match was found
     //-- re numeric_limits<>::max(): see NO_ID comments in ddcStringEnum.h
     //static const IdT NO_ID = std::numeric_limits<IdT>::max();
-    static const IdT NO_ID = DWORD_MAX;
+    static const IdT NO_ID = UINT32_MAX;
 
     /// returns first id of \a key, or NO_ID if not found (linear search)
     inline IdT find(const std::string& key) const

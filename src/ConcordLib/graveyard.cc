@@ -62,7 +62,7 @@ bool	CQueryTokenNode::CreateTokenPattern(const CConcHolder* pHolder, const strin
 	}
 			
 	sort(m_IndexItems.begin(),  m_IndexItems.end());
-	vector<DWORD>::iterator endit = unique(m_IndexItems.begin(),  m_IndexItems.end());
+	vector<uint32_t>::iterator endit = unique(m_IndexItems.begin(),  m_IndexItems.end());
 	m_IndexItems.erase(endit,m_IndexItems.end());
 	
 	return true;	
@@ -100,7 +100,7 @@ bool	CQueryTokenNode::CreateItemSetPattern(const CConcHolder* pHolder, const str
 
 	//-- (?) sort results in m_IndexItems (snagged from CreateTokenPattern())
 	sort(m_IndexItems.begin(),  m_IndexItems.end());
-	vector<DWORD>::iterator endit = unique(m_IndexItems.begin(),  m_IndexItems.end());
+	vector<uint32_t>::iterator endit = unique(m_IndexItems.begin(),  m_IndexItems.end());
 	m_IndexItems.erase(endit,m_IndexItems.end());
 	
 	return true;	

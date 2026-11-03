@@ -237,7 +237,7 @@ size_t CShortOccurCache::AddNewIndexItemNoToCache(const CTokenNo *pStart, const 
 }
 
 //----------------------------------------------------------------------
-const CTokenNo *CShortOccurCache::GetOccurrencesFromCache(const int CacheId, DWORD &Length) const {
+const CTokenNo *CShortOccurCache::GetOccurrencesFromCache(const int CacheId, uint32_t &Length) const {
     const CDataReference &R = m_IndexItemNo2Occurrences[CacheId];
     Length = R.m_VectorLength;
     return &m_OccurrencesBody[R.m_VectorStartOffset];
@@ -370,7 +370,7 @@ void CConcSession::AddFileReference(const long posFile) {
 }
 
 //----------------------------------------------------------------------
-void CConcSession::ShowBibliographyForTextOrHtml(const CHit &Hit, DWORD PageNumber) {
+void CConcSession::ShowBibliographyForTextOrHtml(const CHit &Hit, uint32_t PageNumber) {
     // nothing to do for DDC_ResultTable!
     assert (m_ResultFormat != DDC_ResultTable);
 
@@ -630,7 +630,7 @@ string CConcSession::BuildJsonContextString(const vector<COutputToken> &Tokens, 
 
 
 //----------------------------------------------------------------------
-bool CConcSession::GetContext(int StartBreakNo, int EndBreakNo, const DWORD CurrFileNo,
+bool CConcSession::GetContext(int StartBreakNo, int EndBreakNo, const uint32_t CurrFileNo,
                               const bool bConvertASCIIToHtmlSymbols, string &Result) const {
     Result = "";
     if (m_pQueryCompiler->m_pQuery->m_Options->m_HitTypeStr == PredefinedFileBreakName) return true;
@@ -641,8 +641,8 @@ bool CConcSession::GetContext(int StartBreakNo, int EndBreakNo, const DWORD Curr
     };
 
     Result = "    ";
-    const DWORD FileStartTokenNo = m_pConcordance->GetFileStartTokenNo(CurrFileNo);
-    const DWORD FileEndTokenNo = m_pConcordance->GetFileBreaks()[CurrFileNo];
+    const uint32_t FileStartTokenNo = m_pConcordance->GetFileStartTokenNo(CurrFileNo);
+    const uint32_t FileEndTokenNo = m_pConcordance->GetFileBreaks()[CurrFileNo];
     const ddcBreakVector &Breaks = GetBreaks();
     for (int BreakNo = StartBreakNo; BreakNo < EndBreakNo; BreakNo++) {
         if (BreakNo < 0) continue;
@@ -672,7 +672,7 @@ bool CConcSession::GetContext(int StartBreakNo, int EndBreakNo, const DWORD Curr
 }
 
 //----------------------------------------------------------------------
-bool CConcSession::GetContextJson(int StartBreakNo, int EndBreakNo, const DWORD CurrFileNo, string &js) const {
+bool CConcSession::GetContextJson(int StartBreakNo, int EndBreakNo, const uint32_t CurrFileNo, string &js) const {
     js.clear();
     if (m_pQueryCompiler->m_pQuery->m_Options->m_HitTypeStr == PredefinedFileBreakName)
         return true;
@@ -680,8 +680,8 @@ bool CConcSession::GetContextJson(int StartBreakNo, int EndBreakNo, const DWORD 
     if (StartBreakNo == EndBreakNo)
         return true;
 
-    const DWORD FileStartTokenNo = m_pConcordance->GetFileStartTokenNo(CurrFileNo);
-    const DWORD FileEndTokenNo = m_pConcordance->GetFileBreaks()[CurrFileNo];
+    const uint32_t FileStartTokenNo = m_pConcordance->GetFileStartTokenNo(CurrFileNo);
+    const uint32_t FileEndTokenNo = m_pConcordance->GetFileBreaks()[CurrFileNo];
     const ddcBreakVector &Breaks = GetBreaks();
     for (int BreakNo = StartBreakNo; BreakNo < EndBreakNo; BreakNo++) {
         if (BreakNo < 0) continue;
@@ -730,7 +730,7 @@ bool CConcSession::GetContextJson(int StartBreakNo, int EndBreakNo, const DWORD 
 
 
 //----------------------------------------------------------------------
-bool CConcSession::ShowBibliographyForTable(DWORD PageNumber, const CHit &Hit, const vector<COutputToken> &Tokens) {
+bool CConcSession::ShowBibliographyForTable(uint32_t PageNumber, const CHit &Hit, const vector<COutputToken> &Tokens) {
     string KeyWords;
     for (int i = 0; i < Tokens.size(); i++)
         if (Tokens[i].m_Highlight
@@ -784,7 +784,7 @@ bool CConcSession::ShowBibliographyForTable(DWORD PageNumber, const CHit &Hit, c
 
 
 //----------------------------------------------------------------------
-bool CConcSession::GenerateOneHitString(DWORD PageNumber, const CHit &Hit, const vector<COutputToken> &Tokens) {
+bool CConcSession::GenerateOneHitString(uint32_t PageNumber, const CHit &Hit, const vector<COutputToken> &Tokens) {
     if (m_ResultFormat == DDC_ResultJson)
         return GenerateOneHitStringJson(PageNumber, Hit, Tokens);
 
@@ -873,7 +873,7 @@ bool CConcSession::GenerateOneHitString(DWORD PageNumber, const CHit &Hit, const
 
 
 //----------------------------------------------------------------------
-bool CConcSession::GenerateOneHitStringJson(DWORD PageNumber, const CHit &Hit, const vector<COutputToken> &Tokens) {
+bool CConcSession::GenerateOneHitStringJson(uint32_t PageNumber, const CHit &Hit, const vector<COutputToken> &Tokens) {
     bool utf8 = m_pConcordance->m_Utf8;
 
     //==================================================
@@ -987,8 +987,8 @@ bool CConcSession::GenerateOneHitStringJson(DWORD PageNumber, const CHit &Hit, c
 bool CConcSession::GetTokensFromStorageByBreak(size_t IndexNo, size_t BreakNo, vector<COutputToken> &Tokens) const {
     Tokens.clear();
 
-    DWORD StartTokenNo = (BreakNo == 0) ? 0 : GetBreaks()[BreakNo - 1];
-    DWORD EndTokenNo = GetBreaks()[BreakNo];
+    uint32_t StartTokenNo = (BreakNo == 0) ? 0 : GetBreaks()[BreakNo - 1];
+    uint32_t EndTokenNo = GetBreaks()[BreakNo];
     if (IndexNo > m_pConcordance->m_Indices.size()) return false;
     const CStringIndexSet &I = *m_pConcordance->m_Indices[IndexNo];
     if (!I.GetTokensFromStorage(StartTokenNo, EndTokenNo, Tokens))
@@ -1006,8 +1006,8 @@ bool CConcSession::GetFileSnippets(const int HitNo, vector<COutputToken> &Result
 
     const int BreakNo = m_Hits[HitNo].m_BreakNo;
 
-    DWORD StartTokenNo = (BreakNo == 0) ? 0 : GetBreaks()[BreakNo - 1];
-    DWORD EndTokenNo = GetBreaks()[BreakNo];
+    uint32_t StartTokenNo = (BreakNo == 0) ? 0 : GetBreaks()[BreakNo - 1];
+    uint32_t EndTokenNo = GetBreaks()[BreakNo];
 
     vector<CTokenNo> positions;
     {
@@ -1023,7 +1023,7 @@ bool CConcSession::GetFileSnippets(const int HitNo, vector<COutputToken> &Result
     {
         vector<COutputToken> TempTokens;
         set<string> DifferentWords;
-        DWORD CurrentStarter = StartTokenNo;
+        uint32_t CurrentStarter = StartTokenNo;
         set<CTokenNo> OtherKwicTokens;
 
         for (vector<CTokenNo>::const_iterator i = positions.begin(); i < positions.end(); i++) {
@@ -1099,7 +1099,7 @@ DDCErrorEnum CConcSession::GenerateHitStrings(const int StartHitNo, bool UseAddi
 
     int beg = StartHitNo - m_ResultOffset;
     int end = GetOffsetHint(StartHitNo) - m_ResultOffset;
-    for (DWORD HitNo = beg; HitNo < end; HitNo++) {
+    for (uint32_t HitNo = beg; HitNo < end; HitNo++) {
         const int BreakNo = m_Hits[HitNo].m_BreakNo;
 
         if (m_ResultFormat == DDC_ResultJson && HitNo == beg)
@@ -1141,7 +1141,7 @@ DDCErrorEnum CConcSession::GenerateHitStrings(const int StartHitNo, bool UseAddi
             size_t end_occ = m_Hits[HitNo].m_HighlightOccurrenceEnd;
             vector<CTokenNo>::const_iterator start = m_HighlightOccurs.begin() + start_occ;
             vector<CTokenNo>::const_iterator end = m_HighlightOccurs.begin() + end_occ;
-            const DWORD StartHitTokenNo = (BreakNo == 0) ? 0 : GetBreaks()[BreakNo - 1];
+            const uint32_t StartHitTokenNo = (BreakNo == 0) ? 0 : GetBreaks()[BreakNo - 1];
             const bool bUseMatchIds = !m_HighlightIds.empty();
 
             for (long line = 0; line < Tokens.size(); line++) {
@@ -1151,7 +1151,7 @@ DDCErrorEnum CConcSession::GenerateHitStrings(const int StartHitNo, bool UseAddi
             }
         }
 
-        const DWORD &PageNumber = m_pConcordance->GetPageNumber(PageBreaks[HitNo]);
+        const uint32_t &PageNumber = m_pConcordance->GetPageNumber(PageBreaks[HitNo]);
 
         if (!GenerateOneHitString(PageNumber, m_Hits[HitNo], Tokens))
             return errReadSourceFile;
@@ -1192,7 +1192,7 @@ DDCErrorEnum CConcSession::GenerateCountStrings(const int StartHitNo, bool UseAd
         dumpHits("DEBUG[generateCountStrings]: m_Hits", m_Hits);
         );
 
-    for (DWORD HitNo = beg; HitNo < end; HitNo++) {
+    for (uint32_t HitNo = beg; HitNo < end; HitNo++) {
         GenerateCountString(m_QueryResultStr, m_ResultFormat, m_Hits[HitNo]);
         if (m_ResultFormat == DDC_ResultJson) {
             m_QueryResultStr.push_back(HitNo < end - 1 ? ',' : ']');
@@ -1233,8 +1233,8 @@ void CConcSession::InitFileReferences(vector<CHit> &Hits) const {
 
 #ifdef DDC_FILEREF_BINSEARCH_COEF
     //-- binary-vs-linear dispatch
-    DWORD breakStride = VectorStride(Breaks);     //-- average number of tokens per break-unit in Breaks[]
-    DWORD fileStride  = VectorStride(FileBreaks); //-- average number of tokens per file-unit in FileBreaks[]
+    uint32_t breakStride = VectorStride(Breaks);     //-- average number of tokens per break-unit in Breaks[]
+    uint32_t fileStride  = VectorStride(FileBreaks); //-- average number of tokens per file-unit in FileBreaks[]
     ddcBreakVector::const_iterator
         fbi=FileBreaks.begin(),
         fbi_end=FileBreaks.end();
@@ -1305,18 +1305,18 @@ void GetHitRankLen(vector<COccurrenceAndQueryNodeIndex> &OccurrenceAndQueryNodeI
     sort(OccurrenceAndQueryNodeIndex.begin() + start_pos, OccurrenceAndQueryNodeIndex.begin() + end_pos);
 
     // PrevPositionOfNode[i] - the index of the prev node of the same type
-    vector<CTokenNo> PrevPositionOfNode(end_pos - start_pos, DWORD_MAX);
-    CTokenNo iFirstIndex = DWORD_MAX; // iFirstIndex is  the first element of the passage
+    vector<CTokenNo> PrevPositionOfNode(end_pos - start_pos, UINT32_MAX);
+    CTokenNo iFirstIndex = UINT32_MAX; // iFirstIndex is  the first element of the passage
 
     size_t QueryNodesCount = Result.m_QueryNodeFreqs.size();
     fill(Result.m_QueryNodeFreqs.begin(), Result.m_QueryNodeFreqs.end(), 0);
 
     {    // get PrevPositionOfNode and iFirstIndex
-        vector<CTokenNo> PrevNodes(QueryNodesCount, DWORD_MAX);
+        vector<CTokenNo> PrevNodes(QueryNodesCount, UINT32_MAX);
         for (size_t i = start_pos; i < end_pos; i++) {
             // take the previous node of the same type (of the same Node Index)
             CTokenNo &PrevNode = PrevNodes[OccurrenceAndQueryNodeIndex[i].m_NodeIndex];
-            if (PrevNode != DWORD_MAX) // it is not the first node of this type
+            if (PrevNode != UINT32_MAX) // it is not the first node of this type
                 PrevPositionOfNode[i - start_pos] = PrevNode; // set the previous node
             PrevNode = i - start_pos;
 
@@ -1324,11 +1324,11 @@ void GetHitRankLen(vector<COccurrenceAndQueryNodeIndex> &OccurrenceAndQueryNodeI
             Result.m_QueryNodeFreqs[OccurrenceAndQueryNodeIndex[i].m_NodeIndex]++;
         }
         for (size_t i = 0; i < PrevNodes.size(); i++)
-            if (PrevNodes[i] != DWORD_MAX) // PrevNodes[i] == DWORD_MAX, then this query node is not found for this hit
+            if (PrevNodes[i] != UINT32_MAX) // PrevNodes[i] == DWORD_MAX, then this query node is not found for this hit
                 iFirstIndex = min(iFirstIndex, OccurrenceAndQueryNodeIndex[PrevNodes[i] + start_pos].m_TokenNo);
     }
 
-    size_t MinPassageLen = DWORD_MAX;
+    size_t MinPassageLen = UINT32_MAX;
     for (size_t i = end_pos - 1; i >= start_pos; i--) {
         size_t len = OccurrenceAndQueryNodeIndex[i].m_TokenNo - iFirstIndex;
         if (len <= MinPassageLen) // the closer to the beginning, the better, that's why here we use <= (not  <)
@@ -1339,7 +1339,7 @@ void GetHitRankLen(vector<COccurrenceAndQueryNodeIndex> &OccurrenceAndQueryNodeI
             Result.m_PassageEnd = OccurrenceAndQueryNodeIndex[i].m_TokenNo + 1;
         }
         CTokenNo PrevNode = PrevPositionOfNode[i - start_pos];
-        if (PrevNode == DWORD_MAX)
+        if (PrevNode == UINT32_MAX)
             break;
         if (OccurrenceAndQueryNodeIndex[PrevNode + start_pos].m_TokenNo < iFirstIndex)
             iFirstIndex = OccurrenceAndQueryNodeIndex[PrevNode + start_pos].m_TokenNo;
@@ -1390,7 +1390,7 @@ void CConcSession::InitSortByRank(const CQuery *pQuery) const {
 
     for (size_t HitNo = 0; HitNo < HitsCount; HitNo++) {
         CHit &H = Hits[HitNo];
-        DWORD StartTokenNo = (H.m_BreakNo == 0) ? 0 : GetBreaks()[H.m_BreakNo - 1];
+        uint32_t StartTokenNo = (H.m_BreakNo == 0) ? 0 : GetBreaks()[H.m_BreakNo - 1];
         int start_occur = (HitNo == 0) ? 0 : Hits[HitNo - 1].m_HighlightOccurrenceEnd;
         int end_occur = Hits[HitNo].m_HighlightOccurrenceEnd;
         GetHitRankLen(OccurrenceAndQueryNodeIndex, start_occur, end_occur, HitRank);
@@ -1430,7 +1430,7 @@ void CConcSession::InitSortBySize(const CQuery *pQuery) const {
     size_t HitsCount = pQuery->m_Node->m_Hits.size();
     for (size_t HitNo = 0; HitNo < HitsCount; HitNo++) {
         CHit &H = pQuery->m_Node->m_Hits[HitNo];
-        DWORD BreakNo = H.m_BreakNo;
+        uint32_t BreakNo = H.m_BreakNo;
         H.m_SortKey = (BreakNo == 0) ? Breaks[BreakNo] : Breaks[BreakNo] - Breaks[BreakNo - 1];
     }
 }
@@ -1453,7 +1453,7 @@ void CConcSession::InitSortByContext(const CQuery *pQuery, const CDDCFilterWithB
                              : m_pConcordance->GetIndexByAlias(F.m_AttrName));
     CQueryNode *qnod = pQuery->m_Node;
     vector<CHit> &Hits = qnod->m_Hits;
-    DWORD HitsCount = qnod->m_Hits.size();
+    uint32_t HitsCount = qnod->m_Hits.size();
     const ddcBreakVector &Breaks = GetBreaks();
     const vector<BYTE> &occur_ids = qnod->m_OccurrenceMatchIds;
 
@@ -1462,13 +1462,13 @@ void CConcSession::InitSortByContext(const CQuery *pQuery, const CDDCFilterWithB
                     Format("CConcSession::InitSortByContext(): Error: could not find index `%s' for context sort",
                            F.m_AttrName.c_str()));
 
-    for (DWORD HitNo = 0; HitNo < HitsCount; HitNo++) {
+    for (uint32_t HitNo = 0; HitNo < HitsCount; HitNo++) {
         CHit &H = Hits[HitNo];
-        DWORD StartTokenNo = (H.m_BreakNo == 0) ? 0 : Breaks[H.m_BreakNo - 1];
-        DWORD EndTokenNo = Breaks[H.m_BreakNo];
+        uint32_t StartTokenNo = (H.m_BreakNo == 0) ? 0 : Breaks[H.m_BreakNo - 1];
+        uint32_t EndTokenNo = Breaks[H.m_BreakNo];
 
         //-- get context anchor occurrence-index occur_i
-        DWORD occur_i;
+        uint32_t occur_i;
         if (qnod->m_bUseMatchIds && F.m_ContextMatchId != 0) {
             //-- get occur_i: WITH match-ids
             switch (F.m_FilterType) {
@@ -1511,8 +1511,8 @@ void CConcSession::InitSortByContext(const CQuery *pQuery, const CDDCFilterWithB
                 default:
                     //-- #middle : stick to MIDDLE match-token of each hit
                 {
-                    DWORD occur_li = occur_i = (HitNo == 0) ? 0 : Hits[HitNo - 1].m_HighlightOccurrenceEnd;
-                    DWORD occur_ri = H.m_HighlightOccurrenceEnd - 1;
+                    uint32_t occur_li = occur_i = (HitNo == 0) ? 0 : Hits[HitNo - 1].m_HighlightOccurrenceEnd;
+                    uint32_t occur_ri = H.m_HighlightOccurrenceEnd - 1;
                     occur_i = occur_li + (occur_ri - occur_li) / 2;
                 }
                 break;
@@ -1523,7 +1523,7 @@ void CConcSession::InitSortByContext(const CQuery *pQuery, const CDDCFilterWithB
         CTokenNo keyId = (occur_i >= qnod->m_Occurrences.size() ? EndTokenNo : (qnod->m_Occurrences[occur_i] +
                                                                                 F.m_ContextOffset));
         if (keyId >= StartTokenNo && keyId < EndTokenNo &&
-            (H.m_SortKey.i = pIdx->GetTokenIndexId(keyId)) != DWORD_MAX) {
+            (H.m_SortKey.i = pIdx->GetTokenIndexId(keyId)) != UINT32_MAX) {
             //-- usual case: within target break and with a valid item id
             H.m_SortKey.s = pIdx->GetIndexItemStr(pIdx->m_Index[H.m_SortKey.i]);
         } else {
@@ -1793,7 +1793,7 @@ DDCErrorEnum CConcSession::GetAllHits(CQuery *QueryRoot, size_t Start, size_t Li
         if (m_pConcordance->m_bShowNumberOfRelevantDocuments) {
             size_t Count = PeriodHitsIndex.size();
             for (size_t i = 0; i < Count; i++) {
-                DWORD FileNo = qHits[PeriodHitsIndex[i]].m_FileNo;
+                uint32_t FileNo = qHits[PeriodHitsIndex[i]].m_FileNo;
                 if (!bFilesUses[FileNo]) {
                     bFilesUses[FileNo] = true;
                     m_RelevantDocumentCount++;
@@ -1983,7 +1983,7 @@ string CConcSession::GetCountIds() const {
 }
 
 //----------------------------------------------------------------------
-bool CConcSession::TryToGetFromCache(const string &Query, DWORD &EndHitNo) {
+bool CConcSession::TryToGetFromCache(const string &Query, uint32_t &EndHitNo) {
     return m_pSessionContext ? m_pSessionContext->CacheGet(*this, Query, EndHitNo) : false;
 }
 
@@ -1995,7 +1995,7 @@ void CConcSession::SaveToCache(const string &Query, vector<size_t>::const_iterat
 }
 
 //----------------------------------------------------------------------
-DDCErrorEnum CConcSession::GetHits(const string &QueryStr, DWORD &EndHitNo) {
+DDCErrorEnum CConcSession::GetHits(const string &QueryStr, uint32_t &EndHitNo) {
     if (!m_pQueryCompiler->ParseQuery(QueryStr))
         return errParseError;
 
@@ -2008,13 +2008,13 @@ DDCErrorEnum CConcSession::GetHits(const string &QueryStr, DWORD &EndHitNo) {
 }
 
 //----------------------------------------------------------------------
-DDCErrorEnum CConcSession::GetHits(CQuery *QueryRoot, DWORD &EndHitNo) {
+DDCErrorEnum CConcSession::GetHits(CQuery *QueryRoot, uint32_t &EndHitNo) {
     string QueryStr = QueryRoot ? (QueryRoot->toString() + QueryRoot->optionsToString()) : string();
     return GetHits(QueryRoot, EndHitNo, QueryStr);
 }
 
 //----------------------------------------------------------------------
-DDCErrorEnum CConcSession::GetHits(CQuery *QueryRoot, DWORD &EndHitNo, const string &QueryStr) {
+DDCErrorEnum CConcSession::GetHits(CQuery *QueryRoot, uint32_t &EndHitNo, const string &QueryStr) {
     ClearQueryResults();
     if (!QueryRoot)
         return errParseError;
@@ -2122,8 +2122,8 @@ DDCErrorEnum CConcSession::GetHits(CQuery *QueryRoot, DWORD &EndHitNo, const str
 
 //----------------------------------------------------------------------
 /////////////////////////////////////////////////////////////////////////////
-DDCErrorEnum CConcSession::SimpleQuery(const string &Query, DWORD &EndHitNo, DWORD &HitsCount) {
-    DWORD StartHitNo = EndHitNo;
+DDCErrorEnum CConcSession::SimpleQuery(const string &Query, uint32_t &EndHitNo, uint32_t &HitsCount) {
+    uint32_t StartHitNo = EndHitNo;
     try {
         DDCErrorEnum result = GetHits(Query, EndHitNo);
         if (result != errNone)
@@ -2165,8 +2165,8 @@ DDCErrorEnum CConcSession::SimpleQuery(const string &Query, DWORD &EndHitNo, DWO
 
 //----------------------------------------------------------------------
 bool
-CConcSession::SaveOccurrences(const vector<DWORD> &ChunkLengths, int ContextSize, const vector<CTokenNo> &Occurrences,
-                              const vector<CHit> &Hits, SaveTriggerType SaveTrigger, DWORD LParam) {
+CConcSession::SaveOccurrences(const vector<uint32_t> &ChunkLengths, int ContextSize, const vector<CTokenNo> &Occurrences,
+                              const vector<CHit> &Hits, SaveTriggerType SaveTrigger, uint32_t LParam) {
     if (m_pConcordance->m_Indices.empty()) return false;
     assert (Hits.size() == ChunkLengths.size());
 
@@ -2185,13 +2185,13 @@ CConcSession::SaveOccurrences(const vector<DWORD> &ChunkLengths, int ContextSize
     size_t PosOffset = 0;
     for (int HitNo = 0; HitNo < Hits.size(); HitNo++) {
         size_t ItemsCount = ChunkLengths[HitNo];
-        const DWORD BreakNo = Hits[HitNo].m_BreakNo;
+        const uint32_t BreakNo = Hits[HitNo].m_BreakNo;
 
         CTokenNo PositionStart = Occurrences[PosOffset];
         CTokenNo PositionEnd = Occurrences[PosOffset + ItemsCount - 1] + 1;
         string Postfix;
         if (ContextSize != -1) {
-            const DWORD StartHitTokenNo = (BreakNo == 0) ? 0 : GetBreaks()[BreakNo - 1];
+            const uint32_t StartHitTokenNo = (BreakNo == 0) ? 0 : GetBreaks()[BreakNo - 1];
             if (StartHitTokenNo + ContextSize <= PositionStart)
                 PositionStart -= ContextSize;
             else {
@@ -2246,7 +2246,7 @@ CConcSession::SaveOccurrences(const vector<DWORD> &ChunkLengths, int ContextSize
 
 //----------------------------------------------------------------------
 DDCErrorEnum
-CConcSession::GetOccurrences(const string &Query, int ContextSize, SaveTriggerType SaveTrigger, DWORD LParam) {
+CConcSession::GetOccurrences(const string &Query, int ContextSize, SaveTriggerType SaveTrigger, uint32_t LParam) {
     try {
         if (!(m_pQueryCompiler->ParseQuery(Query) && m_pQueryCompiler->Compile()))
             return errParseError;

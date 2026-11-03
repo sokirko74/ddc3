@@ -530,7 +530,7 @@ bool    CIndexSetForLoadingStage::AddMemoryLoadIndexToMainLoadIndex()
 //-- maximum size of value-type string-buffer
 //  + formerly hard-coded at 500MB
 //  + should now be 2GB (2018-09-24 12:55:49+0200 moo)
-#define MAX_STRINGBUFFER_SIZE (DWORD_MAX & (~AllFlags))
+#define MAX_STRINGBUFFER_SIZE (UINT32_MAX & (~AllFlags))
 
 size_t CIndexSetForLoadingStage::AddItemStrToBuffer(const char* Str, size_t StrLen)
 {
@@ -568,7 +568,7 @@ void CIndexSetForLoadingStage::InsertToInputLoadIndex(const char* Str, size_t St
     };
 
     vector<CItemIndexForLoading>::iterator it;
-    DWORD IndexItemOffset;
+    uint32_t IndexItemOffset;
 
     if (!FindIndexItem(Str, it) )
     {
@@ -600,7 +600,7 @@ void CIndexSetForLoadingStage::InsertToInputLoadIndex(const char* Str, size_t St
     }
 
     if (m_bUseItemStorage) {
-        if (fwrite(&IndexItemOffset,sizeof(DWORD),1, m_TempStorageFile) != 1) 
+        if (fwrite(&IndexItemOffset,sizeof(uint32_t),1, m_TempStorageFile) != 1) 
             throw CDDCExpc ("Cannot write to temporary storage file");
     };
 };
@@ -656,9 +656,9 @@ void CIndexSetForLoadingStage::RollbackLoadIndex(CTokenNo startTrimTokenNo)
     RollbackLoadIndexHash(m_InputLoadIndexHash, startTrimTokenNo);
     
     if (m_bUseItemStorage) {
-        off_t truncate_offset = ((off_t)startTrimTokenNo) * sizeof(DWORD);
+        off_t truncate_offset = ((off_t)startTrimTokenNo) * sizeof(uint32_t);
         fflush(m_TempStorageFile);
-        if (ftruncate(fileno(m_TempStorageFile), ((off_t)startTrimTokenNo) * sizeof(DWORD)) != 0)
+        if (ftruncate(fileno(m_TempStorageFile), ((off_t)startTrimTokenNo) * sizeof(uint32_t)) != 0)
             throw CDDCExpc(Format("failed to truncate temporary storage file '%s' during rollback", m_TempStorageFileName.c_str()));
         if (!FSeek(m_TempStorageFile, truncate_offset, SEEK_SET))
             throw CDDCExpc(Format("failed to re-seek to end of temporary storage file '%s' during rollback", m_TempStorageFileName.c_str()));

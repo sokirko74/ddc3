@@ -16,16 +16,16 @@ void CFreeBiblIndex::clear() {
     m_ValuesForEachFile.clear();
 }
 
-string CFreeBiblIndex::GetStringValue(DWORD FileNo) const {
+string CFreeBiblIndex::GetStringValue(uint32_t FileNo) const {
     return Format("%i", (int) m_ValuesForEachFile[FileNo]);
 }
 
-int CFreeBiblIndex::GetIntegerValue(DWORD FileNo) const {
+int CFreeBiblIndex::GetIntegerValue(uint32_t FileNo) const {
     return m_ValuesForEachFile[FileNo];
 }
 
 
-void CFreeBiblIndex::ReadFromDisk(string Path, DWORD FileBreaksSize, bool useMMap) {
+void CFreeBiblIndex::ReadFromDisk(string Path, uint32_t FileBreaksSize, bool useMMap) {
     m_ValuesForEachFile.open(GetIndexFileName(Path), useMMap);
 
 
@@ -63,7 +63,7 @@ void CFreeBiblIndex::CreateUnion(const string &Path, const vector<const CFreeBib
 }
 
 void CFreeBiblIndex::CreatePartitions(vector<CFreeBiblIndex *> &Parts, const vector<string> &Paths,
-                                      const vector<DWORD> &EndFileNo) const {
+                                      const vector<uint32_t> &EndFileNo) const {
     assert(Parts.size() == Paths.size());
     assert(Parts.size() == EndFileNo.size());
     for (size_t i = 0; i < Parts.size(); ++i) {
@@ -106,7 +106,7 @@ bool CFreeBiblIndex::GetFilterValues(CDDCFilterWithBounds &Filter, const set<str
     return false;
 }
 
-bool CFreeBiblIndex::FileMatches(DWORD FileNo, const CDDCFilterWithBounds &Filter) const {
+bool CFreeBiblIndex::FileMatches(uint32_t FileNo, const CDDCFilterWithBounds &Filter) const {
     // + 2019-08-15 moocow
     //   - val: cast to int so it jives with CHitSortKey::i (avoid signed/unsigned comparison)
     //   - should fixes bogus empty responses from e.g. "count(* #asc[author]) #by[textClass]"
@@ -145,7 +145,7 @@ const string &CFreeBiblIndex::GetXpathStr() const {
     return m_Xpath;
 }
 
-DWORD CFreeBiblIndex::GetIntegerLowerBound(const string &Value) const {
+uint32_t CFreeBiblIndex::GetIntegerLowerBound(const string &Value) const {
     return Value.empty() ? 0 : hex2int(Value);
 }
 
@@ -165,7 +165,7 @@ void CFreeBiblStringIndex::clear() {
     m_ValuesE.clear();
 };
 
-string CFreeBiblStringIndex::GetStringValue(DWORD FileNo) const {
+string CFreeBiblStringIndex::GetStringValue(uint32_t FileNo) const {
     return m_ValuesE[m_ValuesForEachFile[FileNo]];
 };
 
@@ -219,7 +219,7 @@ CFreeBiblIndexTypeId CFreeBiblStringIndex::GetTypeId() const {
 };
 
 
-void CFreeBiblStringIndex::ReadFromDisk(string Path, DWORD FileBreaksSize, bool useMMap) {
+void CFreeBiblStringIndex::ReadFromDisk(string Path, uint32_t FileBreaksSize, bool useMMap) {
     ReadBiblStringItems(GetStringFileName(Path), useMMap);
     CFreeBiblIndex::ReadFromDisk(Path, FileBreaksSize, useMMap);
 }
@@ -252,7 +252,7 @@ void CFreeBiblStringIndex::CreateUnion(const string &Path, const vector<const CF
     //-- populate m_ValuesE and build translation tables
     m_ValuesE.clear();
     m_ValuesE.ensureVec();
-    vector<vector<DWORD> > xlateId(sIndices.size());
+    vector<vector<uint32_t> > xlateId(sIndices.size());
     for (size_t i = 0; i < sIndices.size(); ++i) {
         if (sIndices[i] != NULL) xlateId[i].resize(sIndices[i]->m_ValuesE.size());
     }
@@ -260,7 +260,7 @@ void CFreeBiblStringIndex::CreateUnion(const string &Path, const vector<const CF
         m_ValuesE.m_strings.push_back(*si);
         for (size_t i = 0; i < sIndices.size(); ++i) {
             if (sIndices[i] == NULL) continue;
-            DWORD oldId = sIndices[i]->m_ValuesE.find(*si);
+            uint32_t oldId = sIndices[i]->m_ValuesE.find(*si);
             if (oldId != sIndices[i]->m_ValuesE.NO_ID)
                 xlateId[i][oldId] = m_ValuesE.m_strings.size() - 1;
         }
@@ -285,7 +285,7 @@ void CFreeBiblStringIndex::CreateUnion(const string &Path, const vector<const CF
 
 
 void CFreeBiblStringIndex::CreatePartitions(vector<CFreeBiblIndex *> &Parts, const vector<string> &Paths,
-                                            const vector<DWORD> &EndFileNo) const {
+                                            const vector<uint32_t> &EndFileNo) const {
     assert(Parts.size() == Paths.size());
     assert(Parts.size() == EndFileNo.size());
 
@@ -294,21 +294,21 @@ void CFreeBiblStringIndex::CreatePartitions(vector<CFreeBiblIndex *> &Parts, con
             Format("CFreeBiblStringIndex::CreatePartitions(%s): creating partition #%zd", m_Name.c_str(),
                    i));
         CFreeBiblStringIndex *Part = (CFreeBiblStringIndex *) Parts[i];
-        DWORD f_begin = (i == 0 ? 0 : EndFileNo[i - 1]);
-        DWORD f_end = EndFileNo[i];
+        uint32_t f_begin = (i == 0 ? 0 : EndFileNo[i - 1]);
+        uint32_t f_end = EndFileNo[i];
 
         //-- get item-set for this partition
-        set<DWORD> PartItems;
-        for (DWORD fi = f_begin; fi < f_end; ++fi) {
-            DWORD itemId = m_ValuesForEachFile[fi];
+        set<uint32_t> PartItems;
+        for (uint32_t fi = f_begin; fi < f_end; ++fi) {
+            uint32_t itemId = m_ValuesForEachFile[fi];
             if (PartItems.find(itemId) == PartItems.end()) PartItems.insert(itemId);
         }
 
         //-- populate m_ValuesE, build translation table
         Part->m_ValuesE.clear();
         Part->m_ValuesE.ensureVec();
-        vector<DWORD> xlateId(m_ValuesE.size(), DWORD_MAX); //-- [oldId] => newId_or_DWORD_MAX
-        for (set<DWORD>::const_iterator itemi = PartItems.begin(); itemi != PartItems.end(); ++itemi) {
+        vector<uint32_t> xlateId(m_ValuesE.size(), UINT32_MAX); //-- [oldId] => newId_or_DWORD_MAX
+        for (set<uint32_t>::const_iterator itemi = PartItems.begin(); itemi != PartItems.end(); ++itemi) {
             xlateId[*itemi] = Part->m_ValuesE.m_strings.size();
             Part->m_ValuesE.m_strings.push_back(m_ValuesE[*itemi]);
         }
@@ -320,7 +320,7 @@ void CFreeBiblStringIndex::CreatePartitions(vector<CFreeBiblIndex *> &Parts, con
         Part->m_ValuesForEachFile.ensureVec();
         Part->m_ValuesForEachFile.m_vec.assign(m_ValuesForEachFile.begin() + f_begin,
                                                m_ValuesForEachFile.begin() + f_end);
-        for (vector<DWORD>::iterator vali = Part->m_ValuesForEachFile.m_vec.begin();
+        for (vector<uint32_t>::iterator vali = Part->m_ValuesForEachFile.m_vec.begin();
              vali != Part->m_ValuesForEachFile.m_vec.end(); ++vali)
             *vali = xlateId[*vali];
         Part->m_ValuesForEachFile.ensureData();
@@ -336,25 +336,25 @@ bool CFreeBiblStringIndex::GetFilterBounds(CDDCFilterWithBounds &Filter, const s
     //-- lower bound
     Filter.m_KeyLo.assign(INT_MIN, LoValue);
     if (!LoValue.empty()) {
-        DWORD ilo = m_ValuesE.lower_bound(LoValue);
+        uint32_t ilo = m_ValuesE.lower_bound(LoValue);
         Filter.m_KeyLo.i = (ilo != m_ValuesE.NO_ID ? ilo : INT_MAX);
     }
 
     //-- upper bound
     Filter.m_KeyHi.assign(INT_MAX, HiValue);
     if (!HiValue.empty()) {
-        DWORD ihi = m_ValuesE.upper_bound(HiValue);
+        uint32_t ihi = m_ValuesE.upper_bound(HiValue);
         Filter.m_KeyHi.i = (ihi != m_ValuesE.NO_ID ? ihi : m_ValuesE.size());
     }
 
     return true;
 }
 
-DWORD CFreeBiblStringIndex::GetIntegerLowerBound(const string &Value) const {
+uint32_t CFreeBiblStringIndex::GetIntegerLowerBound(const string &Value) const {
     if (Value.empty())
         return INT_MIN;
 
-    DWORD ilo = m_ValuesE.lower_bound(Value);
+    uint32_t ilo = m_ValuesE.lower_bound(Value);
     return (ilo != m_ValuesE.NO_ID ? ilo : INT_MAX);
 }
 
@@ -364,7 +364,7 @@ bool CFreeBiblStringIndex::GetFilterValue(CDDCFilterWithBounds &Filter, const st
 
     if (Value.empty()) return true; //-- compatibility
 
-    DWORD id = m_ValuesE.find(Value);
+    uint32_t id = m_ValuesE.find(Value);
     if (!Filter.m_bNegated) {
         //-- positive filter condition (literal)
         if (id == m_ValuesE.NO_ID) {
@@ -382,7 +382,7 @@ bool CFreeBiblStringIndex::GetFilterValue(CDDCFilterWithBounds &Filter, const st
             Filter.m_KeyHi.assign(m_ValuesE.size(), m_ValuesE[m_ValuesE.size()-1]);
         } else {
             Filter.m_bSet = true;
-            for (DWORD it=0; it < m_ValuesE.size(); ++it) {
+            for (uint32_t it=0; it < m_ValuesE.size(); ++it) {
                 if (it != id) Filter.m_SatisfiedValues.insert(Filter.m_SatisfiedValues.end(), it);
             }
             if (Filter.m_SatisfiedValues.empty()) {
@@ -438,7 +438,7 @@ bool CFreeBiblStringIndex::GetFilterValues(CDDCFilterWithBounds &Filter, const s
     if (!Filter.m_bNegated) {
         //-- set-valued condition: positive: iterate over argument values (assume |Values| << |m_Values|)
         for (set<string>::const_iterator vali = Values.begin(); vali != Values.end(); ++vali) {
-            DWORD it = m_ValuesE.find(*vali);
+            uint32_t it = m_ValuesE.find(*vali);
             if (it != m_ValuesE.NO_ID)
                 Filter.m_SatisfiedValues.insert(it);
         }
@@ -487,7 +487,7 @@ void CFreeBiblStringIndex::RegisterBiblStringItemId(const string &ValueStr) {
 
 
     string BiblString(ValueStr);
-    DWORD  BiblId = (DWORD)-1;
+    uint32_t  BiblId = (uint32_t)-1;
     for (size_t i = 0; i < BiblString.length(); i++)  // delete all \x1, since it is used as a delimeter
         if ((BYTE) BiblString[i] == 1)
             BiblString[i] = ' ';
@@ -506,9 +506,9 @@ void CFreeBiblStringIndex::RegisterBiblStringItemId(const string &ValueStr) {
         //   + thrown CExpc exceptions will be caught by ConcIndexatorInvoker::IndexFile() (~ line 213)
         //   + throwing CFatalExpc will cause immediate termination, but core dump won't point us here
         //   + calling ddcLogDie() will print error message and abort here (but won't tell us which input file was wonky)
-        if (m_BuildStringItemsSize >= DWORD_MAX) {
+        if (m_BuildStringItemsSize >= UINT32_MAX) {
             //-- v2.0.40: moo Mon, 07 Dec 2015 11:16:00 +0100 moocow: bail out here rather than creating a corrupt index
-            throw CFatalExpc(Format("Too many values for bibl field `%s'. Cannot be more than %u\n", m_Name.c_str(), DWORD_MAX));
+            throw CFatalExpc(Format("Too many values for bibl field `%s'. Cannot be more than %u\n", m_Name.c_str(), UINT32_MAX));
         }
 
         BiblId = m_BuildStringItemsSize++;
@@ -524,7 +524,7 @@ void CFreeBiblStringIndex::RegisterBiblStringItemId(const string &ValueStr) {
 bool CFreeBiblStringIndex::ConvertAndSaveToDiskAfterIndexing(string m_Path) {
     fprintf(stderr, "sorting and saving index for %s\n", m_Name.c_str());
     { // converting
-        vector<DWORD> Old2New(m_BuildStringItemsMap.size());
+        vector<uint32_t> Old2New(m_BuildStringItemsMap.size());
         size_t newId = 0;
         for (BuildStringItemsMapT::const_iterator mi=m_BuildStringItemsMap.begin(); mi != m_BuildStringItemsMap.end(); ++mi, ++newId) {
             Old2New[mi->second] = newId;
@@ -620,15 +620,15 @@ const string &CFreeBiblStringConstant::GetXpathStr() const {
 };
 
 
-string CFreeBiblStringConstant::GetStringValue(DWORD FileNo) const {
+string CFreeBiblStringConstant::GetStringValue(uint32_t FileNo) const {
     return m_Value;
 };
 
-int CFreeBiblStringConstant::GetIntegerValue(DWORD FileNo) const {
+int CFreeBiblStringConstant::GetIntegerValue(uint32_t FileNo) const {
     return 0;
 };
 
-void CFreeBiblStringConstant::ReadFromDisk(string Path, DWORD FileBreaksSize, bool useMMap) {
+void CFreeBiblStringConstant::ReadFromDisk(string Path, uint32_t FileBreaksSize, bool useMMap) {
     return;
 };
 
@@ -660,7 +660,7 @@ void CFreeBiblStringConstant::CreateUnion(const string &Path, const vector<const
 };
 
 void CFreeBiblStringConstant::CreatePartitions(vector<CFreeBiblIndex *> &Parts, const vector<string> &Paths,
-                                               const vector<DWORD> &EndFileNo) const {
+                                               const vector<uint32_t> &EndFileNo) const {
     ddcLogDebug("CFreeBiblStringConstant::CreatePartitions(): ignoring bibl string constant " + m_Name);
 };
 

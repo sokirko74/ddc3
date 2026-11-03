@@ -18,7 +18,7 @@ struct CBibliography {
     //! issue date
     std::string m_DateStr;
     //! starting page
-    DWORD m_StartPageInfo;
+    uint32_t m_StartPageInfo;
     //! free bibbliographical attributes
     std::vector<std::string> m_BiblAttribs;
 

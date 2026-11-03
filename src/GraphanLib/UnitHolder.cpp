@@ -34,7 +34,7 @@ CUnitHolder::CUnitHolder()
 
 
 
-void CUnitHolder::SetState (size_t LB, size_t HB, WORD state) 
+void CUnitHolder::SetState (size_t LB, size_t HB, uint16_t state) 
 {
     for (size_t i=LB; i<HB; i++)
         m_Units[i].AddStatus(state);
@@ -276,13 +276,13 @@ const char*     CUnitHolder::GetUnitUpperBufferStart() const
     return &(*(m_UnitBufUpper.begin())); 
 };
 
-const char*     CUnitHolder::GetUppercaseToken(DWORD LineNo) const 
+const char*     CUnitHolder::GetUppercaseToken(uint32_t LineNo) const 
 { 
     size_t Offset = ( (GetUnits()[LineNo].GetToken()+LineNo) - GetUnitBufferStart());
     return GetUnitUpperBufferStart() + Offset; 
 };
 
-string  CUnitHolder::GetToken(DWORD LineNo) const 
+string  CUnitHolder::GetToken(uint32_t LineNo) const 
 {
     char s[CriticalTokenLength+1];
     strncpy (s,GetUnits()[LineNo].GetToken(), GetUnits()[LineNo].GetTokenLength());
@@ -296,12 +296,12 @@ size_t  CUnitHolder::GetTokensCount() const
     return GetUnits().size();
 }
 
-DWORD   CUnitHolder::GetTokenInputOffset(DWORD LineNo) const 
+uint32_t   CUnitHolder::GetTokenInputOffset(uint32_t LineNo) const 
 {
     return GetUnits()[LineNo].GetInputOffset(); 
 }
 
-BYTE    CUnitHolder::GetTokenLength(DWORD LineNo) const 
+BYTE    CUnitHolder::GetTokenLength(uint32_t LineNo) const 
 {       
     return GetUnits()[LineNo].GetTokenLength(); 
 };
@@ -386,7 +386,7 @@ short CUnitHolder::GetOborotNo(size_t LineNo) const
         return it->second;
 }
 
-void    CUnitHolder::SetPageNumber(size_t LineNo, DWORD PageNumber)
+void    CUnitHolder::SetPageNumber(size_t LineNo, uint32_t PageNumber)
 {
     if (PageNumber == UnknownPageNumber)
         m_FoundPageBreaks.erase(m_Units[LineNo].GetInputOffset());
@@ -395,9 +395,9 @@ void    CUnitHolder::SetPageNumber(size_t LineNo, DWORD PageNumber)
 
 }
 
-DWORD   CUnitHolder::GetPageNumber(size_t LineNo) const
+uint32_t   CUnitHolder::GetPageNumber(size_t LineNo) const
 {
-    map<size_t, DWORD>::const_iterator it = m_FoundPageBreaks.find(m_Units[LineNo].GetInputOffset());
+    map<size_t, uint32_t>::const_iterator it = m_FoundPageBreaks.find(m_Units[LineNo].GetInputOffset());
     if ( it == m_FoundPageBreaks.end() )
         return UnknownPageNumber;
     else

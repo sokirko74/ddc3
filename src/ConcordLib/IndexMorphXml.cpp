@@ -39,7 +39,7 @@ void    CConcIndexator::IndexMorphXml   (CIndexDocument* document)
     int SentNo = 0;
     bool bTheFirstPageBreakIsFound = false;
     char OneIndexLine[2048];
-    DWORD LastSentenceBreak = document->CorpusEndTokenNo;
+    uint32_t LastSentenceBreak = document->CorpusEndTokenNo;
     for (long GraLineNo = 0; GraLineNo<GraLinesCount; GraLineNo++)
     {
         const CXmlToken& W = GraTable[GraLineNo];

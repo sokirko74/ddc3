@@ -161,7 +161,7 @@ class CConcordance : public CStringIndexator, public CHitBorders, public CSource
     bool ReadIndexTypeFromStr(const std::string &s);
 
     //! dump file data to a file (tabs)
-    void DumpFileIndexTabs(DWORD FileNo, FILE *f) const;
+    void DumpFileIndexTabs(uint32_t FileNo, FILE *f) const;
 
 protected:
     /*! \brief  enum DDCIndexTypeEnum contains index types. Each index type determines DDC indices and
@@ -202,9 +202,9 @@ protected:
     //! if m_bUseIndention is on, the  program tries to find paragraphs using indentions
     bool m_bUseIndention;
     //! The maximal number of occurrences in one \ref period_def "subcorpora" (defined by user)
-    DWORD m_UserMaxTokenCountInOnePeriod;
+    uint32_t m_UserMaxTokenCountInOnePeriod;
     //! The maximal number of occurrences in the input load index,  by default 400000
-    DWORD m_UserMaxInputLoadIndexSize;
+    uint32_t m_UserMaxInputLoadIndexSize;
     //! Enables indexing and querying using  DWDS Thesaurus
     bool m_bUseDwdsThesaurus;
 
@@ -407,10 +407,10 @@ public:
     void DumpBibliography(FILE *f = stdout) const;
 
     //! dump file metadata to a string (JSON)
-    std::string DumpFileBibliography(DWORD FileNo) const;
+    std::string DumpFileBibliography(uint32_t FileNo) const;
 
     //! dump file data to a file (JSON)
-    void DumpFileIndexJson(DWORD FileNo, FILE *f = stdout) const;
+    void DumpFileIndexJson(uint32_t FileNo, FILE *f = stdout) const;
 
 
     //! dump index data to a directory (format-dependent)

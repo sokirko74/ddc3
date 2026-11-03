@@ -80,7 +80,7 @@ void CDDCLeafServer::handle__get_first_hits(string &Result, const char *Query, i
 
     NAVCACHE_DEBUG(ddcLogDebug(Format("DEBUG: get_first_hits: got Hint=%s", Hint.toJson().c_str())));
 
-    DWORD EndHitNo = Hint.m_Offset;
+    uint32_t EndHitNo = Hint.m_Offset;
     int Error = m_pHolder->GetHits(Query, EndHitNo);
     if (Error != errNone)
         throw CDDCExpc(Error, m_pHolder->m_ErrorStr.empty() ? GetDDCErrorString((DDCErrorEnum) Error)
@@ -155,7 +155,7 @@ CDDCLeafServer::handle__run_query(string &Result, const char *CorpusName, const 
                                           runq.navHint.toJson().c_str())));
 
         //-- get_first_hits
-        DWORD EndHitNo = runq.EndHitNo;
+        uint32_t EndHitNo = runq.EndHitNo;
         int Error = m_pHolder->GetHits(Query, EndHitNo);
         runq.EndHitNo = EndHitNo;
         if (Error != errNone)

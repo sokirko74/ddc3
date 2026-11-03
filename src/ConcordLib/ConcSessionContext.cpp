@@ -42,7 +42,7 @@ using namespace std;
 // API: caching
 
 //----------------------------------------------------------------------
-bool CConcSessionContext::CacheGet(CConcHolder& Holder, const string &Query, DWORD& EndHitNo)
+bool CConcSessionContext::CacheGet(CConcHolder& Holder, const string &Query, uint32_t& EndHitNo)
 {
     lock();
     try {
