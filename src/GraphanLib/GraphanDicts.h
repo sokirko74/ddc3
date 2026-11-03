@@ -83,8 +83,8 @@ public:
         char m_SpacedWord[MaxSpaceWordLen];
         int  m_SpacedWordLen; 
     };
-    vector<CSpacedWord> m_Spaces;
-    bool   ReadSpaces (string FileName);
+    std::vector<CSpacedWord> m_Spaces;
+    bool   ReadSpaces (std::string FileName);
     const char*  SearchSpace (const char *In ,int *len ) const;
 
 
@@ -93,12 +93,12 @@ public:
     // ���� C++, TCP/IP.
     StringVector                    m_Idents[256];
     bool FindInIdents (const char* s, BYTE& ResultLen) const;
-    bool ReadIdents (string FileName);
+    bool ReadIdents (std::string FileName);
 
 
     // John, Bill
-    vector<CEnglishName>    m_EnglishNames;
-    bool            ReadENames (string FileName);
+    std::vector<CEnglishName>    m_EnglishNames;
+    bool            ReadENames (std::string FileName);
         
 
     PtrHolder<CDictionary>          m_pOborDic;
@@ -109,17 +109,17 @@ public:
 
 
         
-    map<WORD, vector<WORD> >                m_OborottosFirstWordIndex;
-    vector<CGraphemOborot>                  m_Oborottos;
+    std::map<WORD, std::vector<WORD> >                m_OborottosFirstWordIndex;
+    std::vector<CGraphemOborot>                  m_Oborottos;
     StringVector                                    m_OborotTokens;
         
 
         
         
-    void            BuildOborot (const string& s, int OborotNo);
+    void            BuildOborot (const std::string& s, int OborotNo);
     void            BuildOborottos ();
     
-    vector<CAbbrev>         m_Abbrevs;
+    std::vector<CAbbrev>         m_Abbrevs;
     bool            ReadAbbrevations();
 
     
@@ -128,12 +128,12 @@ public:
     bool            IsRegisteredKeyModifier(const char* Str, size_t Len) const;
 
     StringVector m_Keys;
-    bool            ReadKeyboard(string FileName);
+    bool            ReadKeyboard(std::string FileName);
         
 
     StringVector m_Extensions;
     bool                    IsExtension(const char * UpperStr, BYTE Len) const;
-    bool              ReadExtensions(string FileName);
+    bool              ReadExtensions(std::string FileName);
         
 
 

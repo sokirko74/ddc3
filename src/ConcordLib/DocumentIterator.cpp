@@ -11,6 +11,8 @@
 #include "../CommonLib/bserialize.h"
 
 
+using namespace std;
+
 bool CIndexDocument::IsEmpty() const {
     return DocumentLines.empty() && DocumentBuffer.empty();
 }

@@ -91,31 +91,31 @@ public:
     HitSortEnum m_qCountSort;
 
     //! count()-query lower bound
-    string m_qCountLo;
+    std::string m_qCountLo;
 
     //! count()-query upper bound
-    string m_qCountHi;
+    std::string m_qCountHi;
 
     //! keys()-query tuple
-    vector<string> m_IndexTuple;
+    std::vector<std::string> m_IndexTuple;
 
     //! temporary for $i={w1,w2,...,wN} word-set queries
-    set<string> m_WordSet;
+    std::set<std::string> m_WordSet;
 
     //! temporary for "% X1 % X2 ..." expansion queries
-    vector<string> m_Expanders;
+    std::vector<std::string> m_Expanders;
 
     //! temporary for [m1,m2,...,mN] morph-pattern queries
-    vector<string> m_MorphItems;
+    std::vector<std::string> m_MorphItems;
 
     //! temporary for filter field (#less_by_xyz, #greater_by_xyz)
-    string m_FilterField;
+    std::string m_FilterField;
 
     //! temporary for filter lower bound (#less_by_xyz, #greater_by_xyz)
-    string m_FilterLB;
+    std::string m_FilterLB;
 
     //! temporary for filter upper bound (#less_by_xyz, #greater_by_xyz)
-    string m_FilterUB;
+    std::string m_FilterUB;
 
     //! temporary for filter reference match-id (#left, #right, #mid; default=0:any)
     BYTE m_FilterMatchId;
@@ -124,13 +124,13 @@ public:
     int m_FilterOffset;
 
     //! temporary for regex patterns
-    string m_RegexPattern;
+    std::string m_RegexPattern;
 
     //! temporary for regex replacement strings (used by count-keys)
-    string m_RegexReplacement;
+    std::string m_RegexReplacement;
 
     //! temporary for regex modifiers
-    string m_RegexModifiers;
+    std::string m_RegexModifiers;
 
     //--------------------------------------------------------------
     // administrivia
@@ -139,10 +139,10 @@ public:
     int m_CurrentNodeIndex;
 
     //! set of all query nodes allocated during current parse
-    vector<CQuery*> m_Queries;
+    std::vector<CQuery*> m_Queries;
 
     //! a special slot for YACC (which contains all string leaves of the parse tree)
-    list<string> m_Labels;
+    std::list<std::string> m_Labels;
 
     //! enable collection of lexer comments in m_pQuery->m_Options->m_LexerComments (default=false)
     bool m_KeepLexerComments;
@@ -162,11 +162,11 @@ public:
     int yyqlex (void* valp);
 
     //! wrapper to push a new string pointer onto the m_Labels stack (to be freed on CleanParser())
-    string* newString(const string &s=string(""));
+    std::string* newString(const std::string &s=std::string(""));
 
     //! wrapper for regexes, similar to "(?" + modifers + ":" + pattern + ")"
     //! \param isMatch if true (default), /g modifier will cause regex to be wrapped in '^' and '$' anchors (match whole string)
-    string* newRegex(const string &pattern, const string &modifiers=string(""), bool isMatch=true);
+    std::string* newRegex(const std::string &pattern, const std::string &modifiers=std::string(""), bool isMatch=true);
 
     //! flex convenience wrapper
     inline const char* yytext() const { return YYText(); };
@@ -175,7 +175,7 @@ public:
     inline int yyleng() const { return YYLeng(); };
 
     //! flex convenience wrapper
-    inline string yystring() const { return string(YYText(),YYLeng()); };
+    inline std::string yystring() const { return std::string(YYText(),YYLeng()); };
 
     //! wrapper for protected yyFlexLexer::yy_begin()
     void yybegin(int new_state);
@@ -186,7 +186,7 @@ public:
     //! parse \c QueryStr and build a parse tree for it in \c m_pQuery
     //! \li moo: this method should be safe to call even if (m_pHolder==NULL).
     //! \returns false on failure (and may throw an exception)
-    bool ParseQuery(const string &QueryStr);
+    bool ParseQuery(const std::string &QueryStr);
 
     //! moo: compile and apply filters in m_pQuery->m_Options->m_QFilters
     //! \b OBSOLETE : now just a wrapper for m_pQuery->CompileOptions(this)
@@ -248,19 +248,19 @@ public:
 
     //!  allocated CQFPrune* filter onto 
     //! Called by bison during the parse.
-    CQFPrune* newPruneFilter(HitSortEnum ftype, const string& limitStr="-1");
+    CQFPrune* newPruneFilter(HitSortEnum ftype, const std::string& limitStr="-1");
     
     //! set string bounds for current filter (called by bison parser)
-    void SetFilterBounds(const string& lb="", const string& ub="");
+    void SetFilterBounds(const std::string& lb="", const std::string& ub="");
 
     //! set context-filter key
-    void SetFilterKey(const string &field="", BYTE matchid=0, int offset=INT_MIN);
+    void SetFilterKey(const std::string &field="", BYTE matchid=0, int offset=INT_MIN);
 
     //! debug: return a string form for the current query; wraps m_pQuery->toString() + m_pQuery->optionsToString()
-    string QueryToString(void);
+    std::string QueryToString(void);
 
     //! return a json string form for the current query; wraps m_pQuery->toJson() + m_pQuery->optionsToJson()
-    string QueryToJson(void);
+    std::string QueryToJson(void);
 
     //! error reporting: throws a errParseError exception
     void barf(const std::string &msg) const;  //throw(CExpc)
@@ -275,8 +275,8 @@ public:
     //-- ddcObject API
     virtual ddcObjectList Children() const;
     virtual void DisownChildren();
-    virtual string jsonClass() { return "CQueryCompiler"; };
-    virtual string jsonData()  { return string("\"Query\":" + jsonStr(m_pQuery)); };
+    virtual std::string jsonClass() { return "CQueryCompiler"; };
+    virtual std::string jsonData()  { return std::string("\"Query\":" + jsonStr(m_pQuery)); };
 };
 
 #endif

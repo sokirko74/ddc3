@@ -20,6 +20,8 @@
 
 #include "QueryResult.h"
 
+using namespace std;
+
 //==============================================================================
 // CQueryResult
 

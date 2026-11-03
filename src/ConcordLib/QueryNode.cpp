@@ -30,6 +30,8 @@
 #include "../PCRE/pcre_rml.h"
 
 
+using namespace std;
+
 //#pragma intrinsic(memcpy, memcmp, memset, strlen,strcpy)
 
 

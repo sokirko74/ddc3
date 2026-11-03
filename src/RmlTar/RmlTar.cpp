@@ -4,6 +4,8 @@
 #include <string.h>
 
 
+using namespace std;
+
 const char GNU_LONGNAME_TYPE    = 'L';
 const char GNU_LONGLINK_TYPE    = 'K';
 const size_t T_BLOCKSIZE                = 512;

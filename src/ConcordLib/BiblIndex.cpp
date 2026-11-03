@@ -7,6 +7,8 @@
 
 
 
+using namespace std;
+
 bool CheckXPath(string XPath, string &ErrStr) {
     ErrStr = "";
     if (XPath.empty()) {

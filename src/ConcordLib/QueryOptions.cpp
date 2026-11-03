@@ -21,6 +21,8 @@
 #include "QueryOptions.h"
 #include "QueryCompiler.h"
 
+using namespace std;
+
 //======================================================================
 // CQueryOptions
 

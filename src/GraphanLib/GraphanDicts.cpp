@@ -21,6 +21,8 @@
 #include "GraphanDicts.h"
 
 
+using namespace std;
+
 #define RD_MODE    (unsigned) 'r'
 #define WR_MODE    (unsigned) 'w'
 

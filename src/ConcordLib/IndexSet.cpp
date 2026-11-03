@@ -24,6 +24,8 @@
 #include "ConcordAlgorithm.h"
 
 
+using namespace std;
+
 //#define DDC_DEBUG_UNION 1
 
 #ifdef DDC_DEBUG_UNION

@@ -26,6 +26,8 @@
 #include "Consent.h"
 
 
+using namespace std;
+
 bool  CConSent :: IsSoft()   const
 {
     return m_HardGraphEndNo == 0;

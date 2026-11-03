@@ -29,6 +29,8 @@
 #include "../CommonLib/ddcString.h"
 
 
+using namespace std;
+
 //==============================================================================
 const time_t TheEndOfTheWorld = 0xffffffff;
 

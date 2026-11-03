@@ -33,33 +33,33 @@
 class CTermExpander {
 public:
     //! class name for this expander
-    string m_Class;
+    std::string m_Class;
 
     //! unique name for this expander
-    string m_Label;
+    std::string m_Label;
 
     //! string argument(s) for this expander (parameters, for stringification)
-    string m_Param;
+    std::string m_Param;
 
 public:
     //------------------------------------------------------------
     ///\name Constructors etc.
     //@{
     //! Full constructor (abstract base classes only)
-    CTermExpander(const string &cls, const string& label, const string& param)
+    CTermExpander(const std::string &cls, const std::string& label, const std::string& param)
         : m_Class(cls), m_Label(label), m_Param(param)
     {};
 
     //! Default constructor, to be overridden by subclasses
-    CTermExpander(const string &label=string("NoLabel"), const string& param=string(""))
+    CTermExpander(const std::string &label=std::string("NoLabel"), const std::string& param=std::string(""))
         : m_Class("None"), m_Label(label), m_Param(param)
     {};
 
     //! clone constructor, handles sub-object cloning according to \a xlate map */
-    virtual CTermExpander* mapClone(map<CTermExpander*,CTermExpander*>& xlate) const;
+    virtual CTermExpander* mapClone(std::map<CTermExpander*,CTermExpander*>& xlate) const;
 
     //! clone constructor to create a new expansion object (override this for derived classes) */
-    virtual CTermExpander* clone(map<CTermExpander*,CTermExpander*>& xlate) const
+    virtual CTermExpander* clone(std::map<CTermExpander*,CTermExpander*>& xlate) const
     { return new CTermExpander(m_Class, m_Label, m_Param); };
 
     //! Default destructor.
@@ -74,13 +74,13 @@ public:
     ///\name API
     //@{
     //! String form of this expander. Default is m_Class + " " + m_Label + " " + m_Param
-    virtual string configString(void) const;
+    virtual std::string configString(void) const;
 
     //! Expand a single term \a term to a set of terms \a dst
-    virtual void expand(const string& src, set<string>& dst);
+    virtual void expand(const std::string& src, std::set<std::string>& dst);
 
     //! Expand a set of terms \a src to a set of terms \a dst
-    virtual void expand(const set<string>& src, set<string>& dst);
+    virtual void expand(const std::set<std::string>& src, std::set<std::string>& dst);
     //@}
 };
 
@@ -88,20 +88,20 @@ public:
 //! TxId: identity expander (null-op): params: none
 class TxId : public CTermExpander {
 public:
-    TxId(const string &label=string("Id"), const string& param=string(""))
+    TxId(const std::string &label=std::string("Id"), const std::string& param=std::string(""))
         : CTermExpander("Id",label,param)
     {};
     virtual ~TxId(void) {};
 
-    virtual CTermExpander* clone(map<CTermExpander*,CTermExpander*>& xlate) const
+    virtual CTermExpander* clone(std::map<CTermExpander*,CTermExpander*>& xlate) const
     { return new TxId(m_Label,m_Param); };
     
-    virtual void expand(const set<string>& src, set<string>& dst);
+    virtual void expand(const std::set<std::string>& src, std::set<std::string>& dst);
 };
 
 //======================================================================
 //! TxChain: serial chain of (multiple) expanders
-typedef vector<CTermExpander*> TxList;
+typedef std::vector<CTermExpander*> TxList;
 
 class TxChain : public CTermExpander {
 public:
@@ -110,12 +110,12 @@ public:
 
 public:
     //! default constructor
-    TxChain(const string &label=string("Chain"), const string& param=string(""))
+    TxChain(const std::string &label=std::string("Chain"), const std::string& param=std::string(""))
         : CTermExpander("Chain",label,param)
     {};
 
     //! clone constructor
-    virtual CTermExpander* clone(map<CTermExpander*,CTermExpander*>& xlate) const;
+    virtual CTermExpander* clone(std::map<CTermExpander*,CTermExpander*>& xlate) const;
 
     //! Destructor: sub-expanders are NOT implicitly destroyed!
     virtual ~TxChain(void) {};
@@ -130,10 +130,10 @@ public:
     void append(CTermExpander *tx);
 
     //! stringification for query canonicalization: joins chained labels on \a joinstr
-    string chainString(const string& joinstr=string("|"));
+    std::string chainString(const std::string& joinstr=std::string("|"));
 
     //! expand() calls each chained expander on the output of the previous expander
-    virtual void expand(const set<string>& src, set<string>& dst);
+    virtual void expand(const std::set<std::string>& src, std::set<std::string>& dst);
 };
 
 //======================================================================
@@ -145,10 +145,10 @@ public:
 
 public:
     //! param: language name supported by GetLanguageByString()
-    TxLang(const string& cls=string("Lang"), const string &label=string("Lang"), const string& param=string("Generic"));
+    TxLang(const std::string& cls=std::string("Lang"), const std::string &label=std::string("Lang"), const std::string& param=std::string("Generic"));
     virtual ~TxLang(void) {};
 
-    virtual CTermExpander* clone(map<CTermExpander*,CTermExpander*>& xlate) const
+    virtual CTermExpander* clone(std::map<CTermExpander*,CTermExpander*>& xlate) const
     { return (CTermExpander*)new TxLang(*this); };
   
     //virtual void expand(const set<string>& src, set<string>& dst);
@@ -159,7 +159,7 @@ public:
     //! Set language by string identifier using GetLanguageByString()
     //! \li calls setLanguage(MorphLanguageEnum l)
     //! \li throws CExpc if langugage is unknown
-    virtual void setLanguage(const string &lang);
+    virtual void setLanguage(const std::string &lang);
 };
 
 //======================================================================
@@ -167,16 +167,16 @@ public:
 class TxMorph : public TxLang {
 public:
     //! param: language name, passed to GetLanguageByString()
-    TxMorph(const string &label=string("Morph"), const string& param=string(""))
+    TxMorph(const std::string &label=std::string("Morph"), const std::string& param=std::string(""))
         : TxLang("Morph",label,param)
     {};
     virtual ~TxMorph(void) {};
 
-    virtual CTermExpander* clone(map<CTermExpander*,CTermExpander*>& xlate) const
+    virtual CTermExpander* clone(std::map<CTermExpander*,CTermExpander*>& xlate) const
     { return (CTermExpander*)new TxMorph(*this); };
 
     //! modified version of GetWordForms() from QueryNode.cpp
-    virtual void expand(const set<string>& src, set<string>& dst);
+    virtual void expand(const std::set<std::string>& src, std::set<std::string>& dst);
 };
 
 //======================================================================
@@ -184,16 +184,16 @@ public:
 class TxToLower : public TxLang {
 public:
     //! param: language name, passed to GetLanguageByString()
-    TxToLower(const string &label=string("ToLower"), const string& param=string(""))
+    TxToLower(const std::string &label=std::string("ToLower"), const std::string& param=std::string(""))
         : TxLang("ToLower",label,param)
     {};
     virtual ~TxToLower(void) {};
 
-    virtual CTermExpander* clone(map<CTermExpander*,CTermExpander*>& xlate) const
+    virtual CTermExpander* clone(std::map<CTermExpander*,CTermExpander*>& xlate) const
     { return (CTermExpander*)new TxToLower(*this); };
   
     //! wraps RmlMakeLower()
-    virtual void expand(const set<string>& src, set<string>& dst);
+    virtual void expand(const std::set<std::string>& src, std::set<std::string>& dst);
 };
 
 //======================================================================
@@ -201,16 +201,16 @@ public:
 class TxToUpper : public TxLang {
 public:
     //! param: language name, passed to GetLanguageByString()
-    TxToUpper(const string &label=string("ToUpper"), const string& param=string(""))
+    TxToUpper(const std::string &label=std::string("ToUpper"), const std::string& param=std::string(""))
         : TxLang("ToUpper",label,param)
     {};
     virtual ~TxToUpper(void) {};
 
-    virtual CTermExpander* clone(map<CTermExpander*,CTermExpander*>& xlate) const
+    virtual CTermExpander* clone(std::map<CTermExpander*,CTermExpander*>& xlate) const
     { return (CTermExpander*)new TxToUpper(*this); };
   
     //! wraps RmlMakeUpper()
-    virtual void expand(const set<string>& src, set<string>& dst);
+    virtual void expand(const std::set<std::string>& src, std::set<std::string>& dst);
 };
 
 //======================================================================
@@ -218,16 +218,16 @@ public:
 class TxCase : public TxLang {
 public:
     //! param: language name, passed to GetLanguageByString()
-    TxCase(const string &label=string("Case"), const string& param=string(""))
+    TxCase(const std::string &label=std::string("Case"), const std::string& param=std::string(""))
         : TxLang("Case",label,param)
     {};
     virtual ~TxCase(void) {};
 
-    virtual CTermExpander* clone(map<CTermExpander*,CTermExpander*>& xlate) const
+    virtual CTermExpander* clone(std::map<CTermExpander*,CTermExpander*>& xlate) const
     { return (CTermExpander*)new TxCase(*this); };
   
     //! modified version of AddFormsWithDifferentRegisters() from QueryNode.cpp
-    virtual void expand(const set<string>& src, set<string>& dst);
+    virtual void expand(const std::set<std::string>& src, std::set<std::string>& dst);
 };
 
 
@@ -240,7 +240,7 @@ public:
 
 public:
     //! default constructor; no implicit compilation
-    TxCurl(const string &cls=string("Curl"), const string &label=string("Curl"), const string& param=string(""))
+    TxCurl(const std::string &cls=std::string("Curl"), const std::string &label=std::string("Curl"), const std::string& param=std::string(""))
         : CTermExpander(cls,label,param)
     {};
 
@@ -248,7 +248,7 @@ public:
     virtual ~TxCurl(void) {};
 
     //! clone constructor calls default constructor
-    virtual CTermExpander* clone(map<CTermExpander*,CTermExpander*>& xlate) const;
+    virtual CTermExpander* clone(std::map<CTermExpander*,CTermExpander*>& xlate) const;
   
     //--------------------------------------------------------------
     //\name Subclass API
@@ -275,7 +275,7 @@ public:
 class TxCab : public TxCurl {
 public:
     //! base URL; newline-separated query argument(s) will be appended for each expansion query
-    string m_UrlBase;
+    std::string m_UrlBase;
 
     //! debug?
     int m_Debug;
@@ -286,12 +286,12 @@ public:
 
 public:
     //------------------------------------------------------------
-    TxCab(const string &label=string("Cab"), const string& param=string(""), int Debug=0, int MapMode=0)
+    TxCab(const std::string &label=std::string("Cab"), const std::string& param=std::string(""), int Debug=0, int MapMode=0)
         : TxCurl("Cab",label,param), m_Debug(Debug), m_MapMode(MapMode)
     {};
     virtual ~TxCab(void) {};
 
-    virtual CTermExpander* clone(map<CTermExpander*,CTermExpander*>& xlate) const;
+    virtual CTermExpander* clone(std::map<CTermExpander*,CTermExpander*>& xlate) const;
   
     //! Setup m_Curl object based on object parameters
     //! Default parses space-separated m_Param to set m_UrlBase and m_CCurl->timeout()
@@ -301,7 +301,7 @@ public:
     //! \li 4th param: map-mode (int~bool)
     virtual void compile(void);
 
-    virtual void expand(const set<string>& src, set<string>& dst);
+    virtual void expand(const std::set<std::string>& src, std::set<std::string>& dst);
 };
 
 //======================================================================
@@ -309,14 +309,14 @@ public:
 class TxCabMap : public TxCab {
 public:
     //------------------------------------------------------------
-    TxCabMap(const string &label=string("CabMap"), const string& param=string(""), int Debug=0, int MapMode=1)
+    TxCabMap(const std::string &label=std::string("CabMap"), const std::string& param=std::string(""), int Debug=0, int MapMode=1)
         : TxCab(label,param,Debug,MapMode)
     {
         m_Class = "CabMap";
     };
     virtual ~TxCabMap(void) {};
 
-    virtual CTermExpander* clone(map<CTermExpander*,CTermExpander*>& xlate) const;
+    virtual CTermExpander* clone(std::map<CTermExpander*,CTermExpander*>& xlate) const;
 };
 
 
@@ -325,13 +325,13 @@ public:
 class TxDispatcher {
 public:
     //! typedef for label->expander map
-    typedef map<string,CTermExpander*> TxMap;
+    typedef std::map<std::string,CTermExpander*> TxMap;
 
     //! maps expander labels to expanders (label keys are case-sensitive!)
     TxMap m_tx;
 
     //! list of defined expander names in definition order (for config-string generation)
-    list<string> m_txlist;
+    std::list<std::string> m_txlist;
 
 public:
     //--------------------------------------------------------------
@@ -370,14 +370,14 @@ public:
     //! \li calls newTermExpander() to allocate the new expander
     //! \li does NOT add expander to the map
     //! \returns newly created expander
-    CTermExpander *addExpander(const string &spec);
+    CTermExpander *addExpander(const std::string &spec);
 
     //! compile all defined expanders
     void compile(void);
 
     //! dump dispatcher specifications in a form parseable by parseExpanderSpec() to a string
     //! \param prefix if specified gives a string prefix for the dump
-    string configString(const string &prefix="") const;
+    std::string configString(const std::string &prefix="") const;
     //@}
 
 public:
@@ -385,22 +385,22 @@ public:
     //\name Runtime API
     //@{
     //! insert or override a label->tx mapping (implicitly sets tx->m_Label=label)
-    void insert(const string &label, CTermExpander *tx);
+    void insert(const std::string &label, CTermExpander *tx);
 
     //! insert or override a label->tx mapping; uses tx->m_Label as label
     void insert(CTermExpander *tx);
 
     //! delete and remove any expander or alias labelled by \a label
-    void remove(const string &label);
+    void remove(const std::string &label);
 
     //! lookup the expander for \a label; returns NULL if no such expander exists
-    CTermExpander *get(const string &label) const;
+    CTermExpander *get(const std::string &label) const;
 
     //! extended lookup for an expansion chain; throws CExpc on unknown label
-    TxChain getChain(const vector<string> &labels);
+    TxChain getChain(const std::vector<std::string> &labels);
 
     //! extended lookup for an expansion chain; splits \a spec on " \t\r\n|"
-    TxChain getChain(const string& spec);
+    TxChain getChain(const std::string& spec);
     //@}
 };
 
@@ -409,10 +409,10 @@ public:
 // Utilities
 
 //! parse a term expander specification as a space-separated (" \t\n\r") list "LABEL [CLASS=LABEL [PARAM='']]"
-void parseTermExpanderSpec(const string &spec, string &txclass, string &txlabel, string &txparam);
+void parseTermExpanderSpec(const std::string &spec, std::string &txclass, std::string &txlabel, std::string &txparam);
 
 //! create a new TermExpander from a parsed specification
-CTermExpander *newTermExpander(const string& class_="Id", const string& label=string(""), const string& param=string(""));
+CTermExpander *newTermExpander(const std::string& class_="Id", const std::string& label=std::string(""), const std::string& param=std::string(""));
 
 #endif /* DDC_TERM_EXPANDER_H */
 

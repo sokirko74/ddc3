@@ -24,6 +24,8 @@
 #include "GraphanDicts.h"
 
 
+using namespace std;
+
 CGraLine::CGraLine()  
 {
     m_Status = 0;

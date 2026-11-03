@@ -24,6 +24,8 @@
 
 
 
+using namespace std;
+
 CTempArticle::CTempArticle()
 {
     m_pRoss = NULL;

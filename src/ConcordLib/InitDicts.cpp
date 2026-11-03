@@ -21,6 +21,8 @@
 #include "ConcCommon.h"
 #include "../CommonLib/ddcIconv.h"
 
+using namespace std;
+
 bool bEnglishMorph = false;
 bool bRussianMorph = false;
 bool bGermanMorph = false;

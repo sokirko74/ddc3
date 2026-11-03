@@ -22,6 +22,8 @@
 #include "GraphmatFile.h"
 #include "GraphanDicts.h"
 
+using namespace std;
+
 void CGraphmatFile :: InitNonContextDescriptors (CGraLine& L)
 {
     bool    fl_ra=false,  /* rus alpha */

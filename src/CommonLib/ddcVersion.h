@@ -95,7 +95,7 @@ public:
     //--------------------------------------------------------------
     inline void toString(std::string &s) const
     {
-        ostringstream os;
+        std::ostringstream os;
         os << *this;
         s = os.str();
     };
@@ -111,7 +111,7 @@ public:
     //--------------------------------------------------------------
     inline void fromString(const std::string &s)
     {
-        istringstream is(s);
+        std::istringstream is(s);
         clear();
         is >> *this;
     };

@@ -51,6 +51,8 @@
 //-- we need export  constants from yacc, like "SYMBOL"
 #include "QueryCompiler.h"
 
+using namespace std;
+
 #ifdef DETECT_MEMORY_LEAK
 	#ifdef _DEBUG
 	#define new DEBUG_NEW

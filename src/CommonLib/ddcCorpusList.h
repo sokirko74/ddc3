@@ -41,8 +41,8 @@ public:
     // data
     ddcVecFile<char>  m_cdata;    ///< underlying character data, including initial version string
     ddcVecFile<OffT>  m_offsets;  ///< offsets in m_cdata[] of "\n"-terminated filenames (in corpus order)
-    vector<string>    m_strings;  ///< backwards-compatible vector<string> implementation, for read/write access
-    string            m_verstr;   ///< version string (1st line of *._con file)
+    std::vector<std::string>    m_strings;  ///< backwards-compatible vector<string> implementation, for read/write access
+    std::string            m_verstr;   ///< version string (1st line of *._con file)
 
     size_t            m_bufsize;  ///< buffer size for fallback (default is old value for MaxBiblStringLen from Bibliography.cpp)
 
@@ -56,7 +56,7 @@ public:
     {};
 
     /// construct and open
-    ddcCorpusList(const string& conFile, const string& cdataFile="", const string& offsetsFile="", bool useMMap=false)
+    ddcCorpusList(const std::string& conFile, const std::string& cdataFile="", const std::string& offsetsFile="", bool useMMap=false)
         : m_bufsize(20000)
     { open(conFile,cdataFile,offsetsFile,useMMap); };
 
@@ -85,7 +85,7 @@ public:
     { return m_offsets.opened() || !m_strings.empty(); };
 
     /// version string
-    const string& VersionString() const
+    const std::string& VersionString() const
     { return m_verstr; };
 
     /// get start-offset of string by index (mmap variant only)
@@ -97,7 +97,7 @@ public:
     { return ((idx+1)>=size() ? m_cdata.size() : m_offsets[idx+1]) - 1; };
 
     /// pseudo-indexing operator
-    inline void itemGet(IdT idx, string& str) const
+    inline void itemGet(IdT idx, std::string& str) const
     {
         OffT i = itemStartOffset(idx);
         OffT j = itemEndOffset(idx);
@@ -114,26 +114,26 @@ public:
     { return opened(); };
 
     /// indexing operator (copies)
-    inline string operator[](IdT idx) const
+    inline std::string operator[](IdT idx) const
     {
         if (!m_offsets) return m_strings[idx];
         OffT i = itemStartOffset(idx);
         OffT j = itemEndOffset(idx);
-        return string( &m_cdata[i], j-i );
+        return std::string( &m_cdata[i], j-i );
     };
 
     //----------------------------------------------------------
     // read/write access (auto-demote)
 
     /// simulate vector::push_back(): used by indexing routines
-    inline void push_back(const string& value)
+    inline void push_back(const std::string& value)
     {
         ensureVec();
         m_strings.push_back(value);
     };
 
     /// populate \a v with an equivalent vector-implementation (for compile-time compatibility)
-    void append_vector(vector<string>& v) const
+    void append_vector(std::vector<std::string>& v) const
     {
         v.reserve(v.size()+size());
         if (m_offsets) {
@@ -166,10 +166,10 @@ public:
     static const IdT NO_ID = DWORD_MAX;
 
     /// returns first id of \a key, or NO_ID if not found (linear search)
-    inline IdT find(const string& key) const
+    inline IdT find(const std::string& key) const
     {
         if (m_offsets) {
-            string tmp;
+            std::string tmp;
             for (IdT idx=0; idx < size(); ++idx) {
                 itemGet(idx,tmp);
                 if (tmp == key)
@@ -177,7 +177,7 @@ public:
             }
         }
         else {
-            vector<string>::const_iterator it = std::find(m_strings.begin(), m_strings.end(), key);
+            std::vector<std::string>::const_iterator it = std::find(m_strings.begin(), m_strings.end(), key);
             if (it != m_strings.end())
                 return (it - m_strings.begin());
         }
@@ -185,11 +185,11 @@ public:
     };
 
     /// returns last id of \a key, or NO_ID if not found (linear search)
-    inline IdT rfind(const string& key) const
+    inline IdT rfind(const std::string& key) const
     {
         if (m_offsets) {
             if (empty()) return NO_ID;
-            string tmp;
+            std::string tmp;
             IdT idx = size()-1;
             do {
                 itemGet(idx,tmp);
@@ -199,7 +199,7 @@ public:
             } while (idx != 0);
         }
         else {
-            vector<string>::const_reverse_iterator it = std::find(m_strings.rbegin(), m_strings.rend(), key);
+            std::vector<std::string>::const_reverse_iterator it = std::find(m_strings.rbegin(), m_strings.rend(), key);
             if (it != m_strings.rend())
                 return (m_strings.size()-1) - (it - m_strings.rbegin());
         }
@@ -211,7 +211,7 @@ public:
     // guts
 
     /// map a named file \a filename
-    ddcCorpusList& open(const string& conFile, const string& cdataFile="", const string& offsetsFile="", bool useMMap=false)
+    ddcCorpusList& open(const std::string& conFile, const std::string& cdataFile="", const std::string& offsetsFile="", bool useMMap=false)
     {
         if (opened()) close();
 
@@ -231,22 +231,22 @@ public:
     };
 
     /// open in compatibility-mode; lifted from CConcIndexator::LoadCorpusFiles()
-    void openCompat(const string& filename, bool slurpList=true)
+    void openCompat(const std::string& filename, bool slurpList=true)
     {
         if (opened()) close();
 
         FILE * fp = fopen(filename.c_str(), "rb");
         if (!fp)
-            throw invalid_argument(Format("ddcCorpusList::openCompat(): open failed for '%s': %s'", filename.c_str(), strerror(errno)));
+            throw std::invalid_argument(Format("ddcCorpusList::openCompat(): open failed for '%s': %s'", filename.c_str(), strerror(errno)));
 
         char buf[m_bufsize+1];
         if (!fgets(buf, m_bufsize, fp))
-            throw invalid_argument("ddcCorpusList::openCompat(): failed to read version information from '"+filename+"'");
+            throw std::invalid_argument("ddcCorpusList::openCompat(): failed to read version information from '"+filename+"'");
         m_verstr = buf;
         Trim(m_verstr);
 
         if (slurpList) {
-            string tmp;
+            std::string tmp;
             while (fgets(buf, m_bufsize, fp)) {
                 tmp = buf;
                 Trim(tmp);

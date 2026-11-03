@@ -21,6 +21,8 @@
 #include "assert.h"
 #include "HTMLConv.h"
 
+using namespace std;
+
 /*
  * Return offset...
  */

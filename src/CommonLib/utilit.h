@@ -78,20 +78,12 @@ extern void  operator delete(void* p, const char* lpszFileName, int nLine);
 #endif
                 
 
-#ifdef STLPORT
-using namespace stlport;
-#else
-using namespace std;
-#endif
 
 
 
 //-- common utilities shared with RML (git submodule src/morph_dict)
 #include "morph_dict/common/utilit.h"
 
-//#if !defined (STLPORT) || defined(__STL_USE_NAMESPACES)
-//using namespace std;
-//#endif
 
 
 #ifdef WIN32
@@ -158,12 +150,12 @@ public:
     int m_ErrorCode;
 
     //! symbolic error message (also returned by what())
-    string m_strCause;
+    std::string m_strCause;
 
 public:
     CDDCExpc(int ErrorCode);
-    CDDCExpc(int ErrorCode, const string& Cause);
-    CDDCExpc(const string& Cause);
+    CDDCExpc(int ErrorCode, const std::string& Cause);
+    CDDCExpc(const std::string& Cause);
 
     CDDCExpc(int ErrorCode, const char* format, ... );
     CDDCExpc(const char* format, ... );
@@ -188,8 +180,8 @@ class CFatalExpc : public CDDCExpc
 {
 public:
     CFatalExpc(int ErrorCode) : CDDCExpc(ErrorCode) {};
-    CFatalExpc(int ErrorCode, const string& Cause) : CDDCExpc(ErrorCode, Cause) {};
-    CFatalExpc(const string& Cause) : CDDCExpc(Cause) {};
+    CFatalExpc(int ErrorCode, const std::string& Cause) : CDDCExpc(ErrorCode, Cause) {};
+    CFatalExpc(const std::string& Cause) : CDDCExpc(Cause) {};
     virtual ~CFatalExpc() {};
 };
 
@@ -199,15 +191,15 @@ extern int ddcExpcCode(const std::exception& e);
 
 // working with files
 extern bool             FileExists (const char *FName);
-inline bool             FileExists (const string& FName)
+inline bool             FileExists (const std::string& FName)
 { return FileExists(FName.c_str()); };
 
 extern bool             IsDirectory(const char* DirName);
-inline bool             IsDirectory(const string& DirName)
+inline bool             IsDirectory(const std::string& DirName)
 { return IsDirectory(DirName.c_str()); };
 
 extern file_off_t       FileSize (const char *filename);
-inline file_off_t       FileSize (const string& filename)
+inline file_off_t       FileSize (const std::string& filename)
 { return FileSize(filename.c_str()); };
 
 extern time_t           FileMTime (const char *filename);
@@ -215,40 +207,40 @@ extern bool             FSeek(FILE* fp, file_off_t pos, int origin);
 extern file_off_t       FTell(FILE* fp);
 
 
-extern void     ErrorMessage (const string& Label, const string& Message);
-extern void     ErrorMessage (const string& Message);
-extern string   MakeFName ( const string& InpitFileName,  const string& Ext);
+extern void     ErrorMessage (const std::string& Label, const std::string& Message);
+extern void     ErrorMessage (const std::string& Message);
+extern std::string   MakeFName ( const std::string& InpitFileName,  const std::string& Ext);
 extern bool     MakePath (const char* RossPath, const char* FileName, char* FullPath);
-extern string   GetPathByFile (string FileName);
+extern std::string   GetPathByFile (std::string FileName);
 extern bool     IsBinFile (const char* FileName);
 extern bool     IsEmptyLine ( const char *t);
 
 //-- filename stuff
-extern bool     IsHtmlFile (const string& FileName);
-extern bool     IsTableFile (const string& FileName);
-extern bool     IsJsonFile (const string& FileName);
-extern string   FileExtension (const string& FileName);
+extern bool     IsHtmlFile (const std::string& FileName);
+extern bool     IsTableFile (const std::string& FileName);
+extern bool     IsJsonFile (const std::string& FileName);
+extern std::string   FileExtension (const std::string& FileName);
 
 //! Returns directory part of \a FileName, or "." if FileName is a bare filename, like dirname(3)
-extern string   FileDirectory (const string& FileName);
+extern std::string   FileDirectory (const std::string& FileName);
 
 //! Returns file part of \a FileName, like basename(3)
-extern string   FileBasename  (const string& FileName);
+extern std::string   FileBasename  (const std::string& FileName);
 
 //! Returns basename \a FileName, removing any trailing extension \a FileExtension
-extern string   FileBasename  (const string& FileName, const string& FileExtension);
+extern std::string   FileBasename  (const std::string& FileName, const std::string& FileExtension);
 
 //! Wrapper for getcwd(); returns current working directory of current process
-extern string   CurrentDirectory(void);
+extern std::string   CurrentDirectory(void);
 
 //! Returns true iff PathName is an absolute path (simple string heuristics)
-extern bool     IsAbsolutePath (const string& PathName);
+extern bool     IsAbsolutePath (const std::string& PathName);
 
 //! If PathName is absolute, it is returned; otherwise returns (RefDir + "/" + PathName)
-extern string   RelativePathName(const string &RefDir, const string &PathName);
+extern std::string   RelativePathName(const std::string &RefDir, const std::string &PathName);
 
 //! If PathName is absolute, it is returned; otherwise returns (FileDirectory(RefFile) + "/" + PathName)
-extern string   RelativeFileName(const string &RefFile, const string &PathName);
+extern std::string   RelativeFileName(const std::string &RefFile, const std::string &PathName);
 
 //! AddFile(): old ugly file-append hack using system("cat...")
 extern void     AddFile(const char* MainFile, const char* ToAdd);
@@ -256,17 +248,17 @@ extern void     AddFile(const char* MainFile, const char* ToAdd);
 //! FileAppend(): newer better replacement for AddFile()
 extern void     FileAppend(FILE *src, FILE *dst);
 extern void     FileAppend(const char* srcFile, const char* dstFile);
-extern void     FileAppend(const string& srcFile, const string& dstFile);
+extern void     FileAppend(const std::string& srcFile, const std::string& dstFile);
 
 //! FileAppendPartial(): append a substring of \a src to \a dst
 extern void     FileAppendPartial(FILE *src, FILE *dst, size_t nBytes);
                            
 extern bool     RmlMoveFile(const char *oldpath, const char *newpath);
 extern bool     RmlCopyFile(const char *oldpath, const char *newpath);
-extern string   CreateTempFileName();
-extern bool     MakeDir(const string& DirName);
-extern bool     MakeDirP(const string& DirName);
-extern bool     RemoveWithPrint (const string& FileName);
+extern std::string   CreateTempFileName();
+extern bool     MakeDir(const std::string& DirName);
+extern bool     MakeDirP(const std::string& DirName);
+extern bool     RemoveWithPrint (const std::string& FileName);
 
 
 //======================================================================
@@ -319,12 +311,12 @@ size_t GetNumberOfOpenFiles(pid_t pid=0);
 
 //======================================================================
 // working with registry 
-extern string   GetRegistryString (string RegistryPath);
-extern bool     CanGetRegistryString (string RegistryPath);
-extern bool  IsRmlRegistered(string& Error);
+extern std::string   GetRegistryString (std::string RegistryPath);
+extern bool     CanGetRegistryString (std::string RegistryPath);
+extern bool  IsRmlRegistered(std::string& Error);
 extern struct tm  RmlGetCurrentTime ();
-extern string   GetIniFilePath();
-extern string   GetRmlVariable();
+extern std::string   GetIniFilePath();
+extern std::string   GetRmlVariable();
 
 //======================================================================
 // working with strings
@@ -334,32 +326,32 @@ extern int      CompareWithoutRegister ( const char *s1, const char *s2, size_t 
 extern BYTE     force_rus_char (BYTE ch);
 extern bool     force_to_rus (char* dest, const char* sour, size_t len);
 extern char*    IntToStr (int Value, char* Buffer);
-extern string&  IntToStr (int Value, string& oBuffer);
-extern string&  TrimLeft (string& str);
-extern string&  TrimRight (string& str);
-extern string&  Trim (string& str);
-extern bool             LoadFileToString(string FileName, string& Result, bool clobber=true);
-extern bool             SaveStringToFile(const string& Str, const string& FileName);
-extern void             KOI8ToWin (string& s);
-extern void             WinToKOI8 (string& s);
-extern void             WinToKOI8 (string& s);
-extern bool     StartsWith(const string& body, const string& prefix);
+extern std::string&  IntToStr (int Value, std::string& oBuffer);
+extern std::string&  TrimLeft (std::string& str);
+extern std::string&  TrimRight (std::string& str);
+extern std::string&  Trim (std::string& str);
+extern bool             LoadFileToString(std::string FileName, std::string& Result, bool clobber=true);
+extern bool             SaveStringToFile(const std::string& Str, const std::string& FileName);
+extern void             KOI8ToWin (std::string& s);
+extern void             WinToKOI8 (std::string& s);
+extern void             WinToKOI8 (std::string& s);
+extern bool     StartsWith(const std::string& body, const std::string& prefix);
 
 //======================================================================
 //! moo: timestamp stuff
-extern string timestampLocal(time_t timeval);
-extern string timestampUTC(time_t timeval);
+extern std::string timestampLocal(time_t timeval);
+extern std::string timestampUTC(time_t timeval);
 
 //! moo: convenience wrapper for string-to-vector tokenization using StringTokenizer
-vector<string> stringSplit(const char *s, const char *delims);
+std::vector<std::string> stringSplit(const char *s, const char *delims);
 
 //! moo: split a string using std::string() methods only, allowing empty tokens
 //! \li appends token-strings to argument \a tokens
 //! \li \a tokens is not implicitly cleared
-void stringSplitE(const string& s, const string& delims, vector<string>& tokens);
+void stringSplitE(const std::string& s, const std::string& delims, std::vector<std::string>& tokens);
 
 //! moo: stringSplitE() variant returning token-vector
-vector<string> stringSplitE(const string& s, const string& delims);
+std::vector<std::string> stringSplitE(const std::string& s, const std::string& delims);
 
 //! moo: date-to-int encoding (v2.2.4: use signed years)
 extern uint32_t date2int(  signed int y, unsigned int m=1, unsigned int d=1);
@@ -368,10 +360,10 @@ extern uint32_t date2int(  signed int y, unsigned int m=1, unsigned int d=1);
 extern void int2date(uint32_t i, signed int *y, unsigned int *m=NULL, unsigned int *d=NULL);
 
 //! moo: int-to-hexidecimal string encoding; encoding preserves sort order (for subcorpus->server communications)
-extern string int2hex(int32_t i);
+extern std::string int2hex(int32_t i);
 
 //! moo: int-to-hexidecimal string deccoding; ; encoding preserves sort order
-extern int32_t hex2int(const string& s);
+extern int32_t hex2int(const std::string& s);
 
 //! register a thread-local log prefix (unix only)
 extern       void  ddc_thread_init(const char *log_label=NULL);
@@ -383,9 +375,9 @@ extern const char *ddc_log_label(void);
 extern const char *ddc_set_log_label(const char *log_label);
 
 
-extern int GetPredictionPartOfSpeech(const string& PartOfSpeech, MorphLanguageEnum langua);
-extern bool GetLanguageByString (string s, MorphLanguageEnum& Result);
-extern string GetStringByLanguage (MorphLanguageEnum Langua);
+extern int GetPredictionPartOfSpeech(const std::string& PartOfSpeech, MorphLanguageEnum langua);
+extern bool GetLanguageByString (std::string s, MorphLanguageEnum& Result);
+extern std::string GetStringByLanguage (MorphLanguageEnum Langua);
 
 //======================================================================
 // integer utilities
@@ -425,7 +417,7 @@ inline uint32_t log2u32(uint32_t v)
 template <class VecT>
 inline size_t VectorStride(const VecT& v)
 {
-    return v.empty() ? 1 : max((size_t)1, (size_t)v[v.size()-1]/v.size());
+    return v.empty() ? 1 : std::max((size_t)1, (size_t)v[v.size()-1]/v.size());
 };
 
 //======================================================================
@@ -450,11 +442,11 @@ void ClearContainer(ContainerT& C)
 
 /* also clears capacity */
 template <class T> 
-inline void ClearVector(vector<T>& V)
+inline void ClearVector(std::vector<T>& V)
 { ClearContainer(V); };
 
 /* also clears capacity */
-inline void ClearString(string& S)
+inline void ClearString(std::string& S)
 { ClearContainer(S); };
 
 
@@ -530,13 +522,13 @@ extern  BYTE rtolower (BYTE ch);
 extern  BYTE gtoupper (BYTE ch); 
 extern  BYTE gtolower (BYTE ch); 
 extern  BYTE ReverseChar (BYTE ch, MorphLanguageEnum langua);
-extern string& EngMakeUpper (string& word);
-extern string& EngMakeLower (string& word);
-extern string& EngRusMakeLower (string& word);
+extern std::string& EngMakeUpper (std::string& word);
+extern std::string& EngMakeLower (std::string& word);
+extern std::string& EngRusMakeLower (std::string& word);
 extern char* RmlMakeUpper (char *word, MorphLanguageEnum langua);
-extern string& RmlMakeUpper (string& word, MorphLanguageEnum langua);
-extern string& RmlMakeLower (string& word, MorphLanguageEnum langua);
-extern string&  EngRusMakeUpper (string& word);
+extern std::string& RmlMakeUpper (std::string& word, MorphLanguageEnum langua);
+extern std::string& RmlMakeLower (std::string& word, MorphLanguageEnum langua);
+extern std::string&  EngRusMakeUpper (std::string& word);
 extern char*  EngRusMakeUpper (char* word);
 
 
@@ -546,9 +538,9 @@ extern bool CheckLanguage (const char *word, MorphLanguageEnum langua);
 
 
 
-extern void ConvertJO2Je(string& src);
+extern void ConvertJO2Je(std::string& src);
 extern void ConvertJO2Je(char* src, size_t Length);
-extern string ConvertASCIIToHtmlSymbols(const string& txt);
+extern std::string ConvertASCIIToHtmlSymbols(const std::string& txt);
 
 
 template <class T, class Pred, class Conv>

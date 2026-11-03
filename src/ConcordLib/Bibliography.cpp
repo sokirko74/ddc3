@@ -7,6 +7,8 @@
 #include "../CommonLib/ddcLog.h"
 #include "../GraphanLib/graline.h"
 
+using namespace std;
+
 CBibliography::CBibliography() {
     m_StartPageInfo = UnknownPageNumber;
 }

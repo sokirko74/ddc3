@@ -24,6 +24,8 @@
 #include <stdlib.h>
 #include <wctype.h>
 
+using namespace std;
+
 //======================================================================
 // CBiblExpander
 

@@ -42,7 +42,7 @@ public:
     size_t      m_ThreadId;
 
     /** thread label "CORPUS#TID"; set on run() */
-    string       m_Label;
+    std::string       m_Label;
 
     /** parent server (read-only) */
     CDDCServer  *m_Parent;
@@ -79,7 +79,7 @@ public:
     ddcThreadQueue<SOCKET> m_Queue;
 
     /** worker threads for thread-pool mode */
-    vector<CDDCServerThread*> m_Workers;
+    std::vector<CDDCServerThread*> m_Workers;
 
     /** pthread mutex for locking parent access */
     pthread_mutex_t m_mutex;

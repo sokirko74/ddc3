@@ -24,6 +24,8 @@
 #include "gra_descr_primitives.h"
 
 
+using namespace std;
+
 void CGraphmatFile :: GetGraphematicalLine (char* line, size_t LineNo) const
 {
     const CGraLine& L = GetUnits()[LineNo];

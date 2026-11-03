@@ -27,8 +27,8 @@
 //! This less operator provides quite "normal" less and equal operators for stings. The only 
 //! difference is that the first compared item is obtained not by a pointer, but by an offset to 
 //! LessIndexString1::m_pBuffer.
-template <class IndexType, typename VectorType=vector<char> >
-class LessIndexString1 : public binary_function<bool, const IndexType&, const char&> 
+template <class IndexType, typename VectorType=std::vector<char> >
+class LessIndexString1 : public std::binary_function<bool, const IndexType&, const char&> 
 {
     const VectorType* m_pBuffer;
 
@@ -71,8 +71,8 @@ public:
 //! This less operator provides quite "normal" less and greater operators for stings. The only 
 //! difference is that the compared items are obtained not by a pointer, but by an offset to 
 //! LessIndexString2::m_pBuffer1 and  LessIndexString2::m_pBuffer2 accordingly.
-template <class IndexType, typename VectorType=vector<char> >
-class LessIndexString2 : public binary_function<bool, const IndexType&, const IndexType&>
+template <class IndexType, typename VectorType=std::vector<char> >
+class LessIndexString2 : public std::binary_function<bool, const IndexType&, const IndexType&>
 {
     const VectorType* m_pBuffer1;
     const VectorType* m_pBuffer2;

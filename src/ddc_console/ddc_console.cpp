@@ -28,6 +28,8 @@
 #include "../ConcordLib/QueryNode.h"
 
 
+using namespace std;
+
 void PrintHelp()
 {
                 

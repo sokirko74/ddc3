@@ -55,6 +55,8 @@
 #include "../CommonLib/ddcString.h"
 #include <sstream>
 
+using namespace std;
+
 #ifndef YYDEBUG
 # define YYDEBUG 1
 #endif

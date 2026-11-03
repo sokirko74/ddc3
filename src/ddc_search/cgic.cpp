@@ -18,6 +18,8 @@
 //
 #if CGICDEBUG
 #define CGICDEBUGSTART                                          \
+using namespace std;
+
     {                                                           \
         FILE *dout;                                             \
         dout = fopen("/home/boutell/public_html/debug", "a");   \

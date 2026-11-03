@@ -53,7 +53,7 @@ public:
     void DeleteFiles();
 
     //! initialize building bibliography for corpus ProjectFileName
-    bool Start(string ProjectFileName);
+    bool Start(std::string ProjectFileName);
 
     //! add  one record Bibliography
     bool AddIndexItem(const CBibliography &Bibliography);
@@ -65,10 +65,10 @@ public:
     void ExitWithoutSave();
 
     //! union of multiple (heterogeneous) bibliographies (new)
-    bool UnionBibliographies(const vector<const CConcXml *> &Bibls);
+    bool UnionBibliographies(const std::vector<const CConcXml *> &Bibls);
 
     //! partition this object into multiple sub-objects (called by CConcIndexator::SplitProject())
-    bool SplitBibliography(vector<CConcXml *> &Bibls, const vector<DWORD> &EndFileNo) const;
+    bool SplitBibliography(std::vector<CConcXml *> &Bibls, const std::vector<DWORD> &EndFileNo) const;
 
 
     
@@ -76,7 +76,7 @@ public:
     void LoadXmlAndReadBibliography(TiXmlDocument &doc, const char *pFileBuffer, CBibliography &Bibl);
 
     //! load xml file under  MorphXML_Index into vector<CXmlToken>& GraTable
-    void ReadMorphXmlFileIntoGraTable(string FileName, const char *pFileBuffer, vector<CXmlToken> &GraTable,
+    void ReadMorphXmlFileIntoGraTable(std::string FileName, const char *pFileBuffer, std::vector<CXmlToken> &GraTable,
                                       CBibliography &Bibl);
 
 
@@ -84,7 +84,7 @@ public:
     void SetFreeBiblAttribsEmpty(CBibliography &Bibl) const;
 
 
-    void SetFreeBiblByName(const string &name, const string &value, CBibliography &result) const;
+    void SetFreeBiblByName(const std::string &name, const std::string &value, CBibliography &result) const;
 
 
 };

@@ -68,10 +68,10 @@ public:
     bool m_bLogRequests;
 
     /* set of request commands NOT to be logged (e.g. "status", "info", etc.) */
-    set<string> m_noLogCommands;
+    std::set<std::string> m_noLogCommands;
 
     /* FQDN if available, otherwise symbolic hostname as returned by gethostname() */
-    string m_FQHostName;
+    std::string m_FQHostName;
 
     /** number of client-thread workers for thread pool (default=0: serial mode) */
     size_t m_nWorkers;
@@ -156,63 +156,63 @@ public:
     virtual void HandleClientConnection(SOCKET& rConnectedSocket);
     
     /** CHost API: maintains m_Stats and calls appropriate handle__() methods */
-    virtual string ProcessSocketString(const string& SocketInput, SOCKET& rConnectedSocket);
+    virtual std::string ProcessSocketString(const std::string& SocketInput, SOCKET& rConnectedSocket);
 
 public:
     //--------------------------------------------------------------
     // DDCServer API: request handlers: required
 
     /** request handler: get_first_hits: required (leaf) */
-    virtual void handle__get_first_hits(string &Result, const char *Query, int TimeOut, size_t ResultLimit, const string& ReqPath, const NavHint& Hint);
+    virtual void handle__get_first_hits(std::string &Result, const char *Query, int TimeOut, size_t ResultLimit, const std::string& ReqPath, const NavHint& Hint);
 
     /** request handler: get_hit_strings: required (leaf) */
-    virtual void handle__get_hit_strings(string &Result, const char *ResultType, size_t StartHitNo, size_t ResultLimit);
+    virtual void handle__get_hit_strings(std::string &Result, const char *ResultType, size_t StartHitNo, size_t ResultLimit);
 
     /** request handler: run_query: required (branch) */
-    virtual void handle__run_query(string &Result, const char *CorpusName, const char *Query, const char *ResultType, size_t StartHitNo, size_t ResultLimit, int TimeOut, const string& ReqPath, const NavHint& Hint);
+    virtual void handle__run_query(std::string &Result, const char *CorpusName, const char *Query, const char *ResultType, size_t StartHitNo, size_t ResultLimit, int TimeOut, const std::string& ReqPath, const NavHint& Hint);
 
     /** request handler: expand_terms: required (leaf|branch) */
-    virtual void handle__expand_terms(string &Result, const string& pipeline, const string& terms, int timeout, const string &corpus);
+    virtual void handle__expand_terms(std::string &Result, const std::string& pipeline, const std::string& terms, int timeout, const std::string &corpus);
 
     /** request handler: status: required (leaf|branch) */
-    virtual void handle__status(string &Result, int timeout=10, bool verbose=false);
+    virtual void handle__status(std::string &Result, int timeout=10, bool verbose=false);
 
     /** request handler: info: required (leaf|branch) */
-    virtual void handle__info(string &Result, int timeout=10, bool verbose=false);
+    virtual void handle__info(std::string &Result, int timeout=10, bool verbose=false);
 
     /** request handler: reload: required (leaf|branch) */
-    virtual void handle__reload(string &Result, int depth=0);
+    virtual void handle__reload(std::string &Result, int depth=0);
 
     /** request handler: clear_cache: required (leaf|branch) */
-    virtual void handle__clear_cache(string &Result, int depth=0);
+    virtual void handle__clear_cache(std::string &Result, int depth=0);
 
     /** request handler: nodes: required (leaf|branch; since v2.2.8) */
-    virtual void handle__nodes(string &Result, int depth=-1);
+    virtual void handle__nodes(std::string &Result, int depth=-1);
 
 public:
     //--------------------------------------------------------------
     // DDCServer API: request handlers: optional
 
     /** request handler: get_first_hits, 3-argument form (no path or hint) */
-    virtual void handle__get_first_hits(string &Result, const char *Query, int TimeOut, size_t ResultLimit);
+    virtual void handle__get_first_hits(std::string &Result, const char *Query, int TimeOut, size_t ResultLimit);
 
     /** request handler: get_first_hits, 7-argument form (no path or hint) */
-    virtual void handle__run_query(string &Result, const char *CorpusName, const char *Query, const char *ResultType, size_t StartHitNo, size_t ResultLimit, int TimeOut);
+    virtual void handle__run_query(std::string &Result, const char *CorpusName, const char *Query, const char *ResultType, size_t StartHitNo, size_t ResultLimit, int TimeOut);
 
     /** request handler: get_paradigm: optional (leaf|branch) */
-    virtual void handle__get_paradigm(string &Result, const char *Word, int iLemmatizeOnly, int iLang);
+    virtual void handle__get_paradigm(std::string &Result, const char *Word, int iLemmatizeOnly, int iLang);
 
     /** request handler: close_socket: optional (leaf|branch) */
-    virtual void handle__close_socket(string &Result, SOCKET &rConnectedSocket);
+    virtual void handle__close_socket(std::string &Result, SOCKET &rConnectedSocket);
 
     /** request handler: close_socket: optional (leaf|branch) */
-    virtual void handle__version(string &Result);
+    virtual void handle__version(std::string &Result);
 
     /** request handler: vstatus: optional (leaf|branch): default wraps handle__status(Result,timeout,true) */
-    virtual void handle__vstatus(string &Result, int timeout=10);
+    virtual void handle__vstatus(std::string &Result, int timeout=10);
 
     /** request handler: vinfo: optional (leaf|branch): default wraps handle__info(Result,timeout,true) */
-    virtual void handle__vinfo(string &Result, int timeout=10);
+    virtual void handle__vinfo(std::string &Result, int timeout=10);
 
 public:
     //--------------------------------------------------------------
@@ -227,7 +227,7 @@ public:
     virtual size_t totalMemorySize(void) const;
 
     /** find offsets of server-path and navigation hint from \a ReqStr starting at \a StartPos */
-    void findPathHint(const string& ReqStr, size_t StartPos, size_t &PathPos, size_t &HintPos);
+    void findPathHint(const std::string& ReqStr, size_t StartPos, size_t &PathPos, size_t &HintPos);
 };
 
 #endif /* DDC_SERVER_H */

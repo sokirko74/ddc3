@@ -19,6 +19,8 @@
 #include "../CommonLib/util_classes.h"
 #include "gra_descr.h"
 
+using namespace std;
+
 const int ODesLen    = 9;                   /* the length of unit's descriptor */
 
 const char DesArray[NumberOfGraphematicalDescriptors][ODesLen] = 

@@ -26,6 +26,8 @@
 #include "../ConcordLib/ConcCommon.h"
 #include "../ConcordLib/ConcIndexatorInvoker.h"
 
+using namespace std;
+
 const char *prog = "ddc_index";
 void  PrintUsageAndExit()
 {

@@ -109,8 +109,8 @@
 const char ddc_archive_stub[] = "";
 
 struct CTokenIndexator {
-    vector<CStringIndexSet*> ColumnMap;
-    vector<CStringIndexSet*> AbsentIndices;
+    std::vector<CStringIndexSet*> ColumnMap;
+    std::vector<CStringIndexSet*> AbsentIndices;
     CTokenNo CorpusEndTokenNo;
 };
 
@@ -123,12 +123,12 @@ class CStringIndexator {
 protected:
         
     //! \ref period_def "search periods" of the corpus  
-    vector<CTokenNo>        m_SearchPeriods;
+    std::vector<CTokenNo>        m_SearchPeriods;
 
     //! register chunk index (chunks:NP, VP etc)    
     bool    RegisterChunkIndex();
     //! return the file name for \ref period_def "search periods"
-    string  GetSearchPeriodsFileName() const;
+    std::string  GetSearchPeriodsFileName() const;
     //! call DestroyIndexSet for all registered indices
     bool    DestroyIndices();
     //!  call ReadFromTheDisk for all registered indices
@@ -151,20 +151,20 @@ protected:
 
 public:
     //! typedef for index alias maps
-    typedef map<string,string> IndexAliasMap;
+    typedef std::map<std::string,std::string> IndexAliasMap;
 
     //! typedef for index symbol table
-    typedef map<string,CStringIndexSet*> IndexMap;
+    typedef std::map<std::string,CStringIndexSet*> IndexMap;
         
 public:
     //! where all indices are stored
-    string                                  m_Path;
+    std::string                                  m_Path;
 
     //! whether to directly mmap() index file data (default=false)
     bool                                    m_bMemoryMap;
 
     //! the registered indices, by positional index
-    vector<CStringIndexSet*>                m_Indices;
+    std::vector<CStringIndexSet*>                m_Indices;
 
     //! declared index aliases (FROM -> TO); not really used at runtime
     IndexAliasMap                           m_IndexAlias;
@@ -182,23 +182,23 @@ public:
     ~CStringIndexator();
 
     //! read index declarations  from a string and register  them
-    bool RegisterStringIndices(const string& IndicesStr);
+    bool RegisterStringIndices(const std::string& IndicesStr);
 
     //! read index alias declarations from a string and register them; returns true iff all registrations were successful
-    bool RegisterIndexAliases(const string& IndexAliasStr);
+    bool RegisterIndexAliases(const std::string& IndexAliasStr);
 
     //! register a single index alias (low-level); returns true iff AliasTo resolves to a known index according to m_AliasMap
-    bool RegisterIndexAlias(const string& AliasFrom, const string& AliasTo);
+    bool RegisterIndexAlias(const std::string& AliasFrom, const std::string& AliasTo);
 
     //! register a single index label or alias (lowest-level); if \a idx is NULL, any existing entry for \a AliasFrom will be deleted
-    void RegisterIndexAlias(const string& AliasFrom, CStringIndexSet* idx);
+    void RegisterIndexAlias(const std::string& AliasFrom, CStringIndexSet* idx);
 
     //! set  the path to the indices
-    void SetPath(string Path);
+    void SetPath(std::string Path);
     //! return all registered index declarations, in opt-file syntax
-    string GetIndicesString() const;
+    std::string GetIndicesString() const;
     //! return all registered index aliases, in opt-file syntax
-    string GetIndexAliasString() const;
+    std::string GetIndexAliasString() const;
         
     //! return the number of \ref period_def "corpus periods"
     size_t  GetSearchPeriodsCount() const;
@@ -206,7 +206,7 @@ public:
     const CTokenNo&  GetSearchPeriod(size_t i) const { return m_SearchPeriods[i]; };
 
     //! call CreateTempFiles for all registered indices
-    bool    StartIndexing(string Path);
+    bool    StartIndexing(std::string Path);
     //! call DeleteTempFiles for all registered indices
     void    TerminateIndexing();
     //! final saving all indices to disk (converting temp files to persistent)
@@ -218,11 +218,11 @@ public:
     //! store memory load index on the disk
     bool    SaveMemoryLoadIndex();
     //! return a pointer to the index by CStringIndexSet::m_Name (linear search)
-    CStringIndexSet*  GetIndexByName(const string& Name);
+    CStringIndexSet*  GetIndexByName(const std::string& Name);
     //! return a pointer to the index by CStringIndexSet::m_Name or CStringIndexSet::m_ShortName (linear search)
-    CStringIndexSet*  GetIndexByNameOrShortName(const string& Name);
+    CStringIndexSet*  GetIndexByNameOrShortName(const std::string& Name);
     //! return a pointer to the index by long-name, short-name, or alias (most abstract, uses m_IndexMap)
-    CStringIndexSet*  GetIndexByAlias(const string &Alias) const;
+    CStringIndexSet*  GetIndexByAlias(const std::string &Alias) const;
     //! return the first index that normally contains tokens themselves
     CStringIndexSet* GetTokenIndex();
     //! return the first index that normally contains tokens themselves

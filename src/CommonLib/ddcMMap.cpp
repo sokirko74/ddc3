@@ -21,6 +21,8 @@
 #include "ddcMMap.h"
 #include "utilit.h"
 
+using namespace std;
+
 //======================================================================
 // ddcFileOrMmap
 

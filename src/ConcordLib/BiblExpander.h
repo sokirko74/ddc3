@@ -31,19 +31,19 @@
 class CBiblExpander {
 public:
     //! unique label for this expander
-    string m_BxLabel;
+    std::string m_BxLabel;
 
     //! physically indexed target bibliographic field name
-    string m_BxTarget;
+    std::string m_BxTarget;
 
     //! string parameters (for stringification)
-    string m_BxParam;
+    std::string m_BxParam;
 
 public:
     //------------------------------------------------------------
     ///\name Constructors etc.
     //@{
-    CBiblExpander(const string& label=string("NoLabel"), const string& target=string("NoTarget"), const string& param=string(""))
+    CBiblExpander(const std::string& label=std::string("NoLabel"), const std::string& target=std::string("NoTarget"), const std::string& param=std::string(""))
         : m_BxLabel(label), m_BxTarget(target), m_BxParam(param)
     {};
 
@@ -59,13 +59,13 @@ public:
     ///\name API
     //@{
     //! String form of this expander. Default is m_BxLabel + " " + m_BxTarget + " " + m_BxParam
-    virtual string configString(void) const;
+    virtual std::string configString(void) const;
 
     //! Expand a single term \a term to a set of terms \a dst ; default just calls expand(const set<string>&, set<string>&) for temporary singleton source-set
-    virtual void expand(const string& src, set<string>& dst);
+    virtual void expand(const std::string& src, std::set<std::string>& dst);
 
     //! Expand a set of terms \a src to a set of terms \a dst ; must be overridden by subclass
-    virtual void expand(const set<string>& src, set<string>& dst);
+    virtual void expand(const std::set<std::string>& src, std::set<std::string>& dst);
     //@}
 };
 
@@ -81,10 +81,10 @@ public:
 
 public:
     //! parses term-expander args as "CLASS PARAM...", uses term-expander label = bibl-expander label
-    BxTermWrapper(const string& label=string("NoLabel"), const string& target=string("NoTarget"), const string& param=string(""));
+    BxTermWrapper(const std::string& label=std::string("NoLabel"), const std::string& target=std::string("NoTarget"), const std::string& param=std::string(""));
     virtual ~BxTermWrapper(void);
     virtual void compile(void);
-    virtual void expand(const set<string>& src, set<string>& dst);
+    virtual void expand(const std::set<std::string>& src, std::set<std::string>& dst);
 }; 
 
 #endif /* DDC_BIBL_EXPANDER_H */

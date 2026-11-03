@@ -21,8 +21,8 @@
 
 #include "../CommonLib/utilit.h"
 
-void SortWithLists(vector<DWORD>& V, DwordVector& Borders);
-void ConvertToVariableInteger(const vector<DWORD>& In,vector<DWORD>& Out);
+void SortWithLists(std::vector<DWORD>& V, DwordVector& Borders);
+void ConvertToVariableInteger(const std::vector<DWORD>& In,std::vector<DWORD>& Out);
 void DeconvertFromVariableInteger(const DWORD* in_start, const DWORD* in_end,  DWORD* out_start, DWORD& OutCount);
 
 #endif

@@ -226,13 +226,13 @@ template<typename T>
 class ddcVecFile {
 public:
     typedef ddcMMap<T> MMapT;
-    typedef vector<T> VecT;
+    typedef std::vector<T> VecT;
     typedef T EltT;
 
 public:
-    string m_file;      ///< filename (if any)
+    std::string m_file;      ///< filename (if any)
     ddcMMap<T> m_mmap;      ///< data (mmap)
-    vector<T> m_vec;       ///< data (slurp)
+    std::vector<T> m_vec;       ///< data (slurp)
     T *m_data;      ///< data (pointer to m_mmap or m_vec data)
 
     //----------------------------------------------------------
@@ -256,7 +256,7 @@ public:
     // accessors & high-level properties
 
     /// returns filename of last open(), or NULL
-    inline const string &filename() const { return m_file; };
+    inline const std::string &filename() const { return m_file; };
 
     /// returns a pointer to the mmap()ed file data, or NULL
     inline T *data() const { return m_data; };
@@ -356,7 +356,7 @@ public:
     void save(FILE *fp) const { save(fp, Format("<FILE=%p>", fp)); };
 
     /// dump to a named file
-    void save(const string &FileName) const {
+    void save(const std::string &FileName) const {
         FILE *fp = fopen(FileName.c_str(), "wb");
         if (!fp)
             throw CDDCExpc("ddcVecFile<>::save(): open failed for file " + FileName);
@@ -366,7 +366,7 @@ public:
     };
 
     /// dump data to a FILE* with a symbolic name
-    void save(FILE *fp, const string &name) const {
+    void save(FILE *fp, const std::string &name) const {
         if (!fp)
             throw CDDCExpc("ddcVecFile<>::save(): invalid file pointer for " + name);
         const T *datap = m_mmap ? m_mmap.m_data : m_vec.data();
@@ -441,7 +441,7 @@ public:
     ddcRecFile &open(const std::string &filename, size_t recsize, bool useMMap = false) {
         VecFileT::open(filename, useMMap);
         if ((VecFileT::size() % recsize) != 0)
-            throw invalid_argument(
+            throw std::invalid_argument(
                 Format("ddcRecFile::open(): error opening '%s': file size (%zd) is not a multiple of record size (%zd)",
                        filename.c_str(), VecFileT::size(), recsize));
         m_recsize = recsize;
@@ -497,12 +497,12 @@ public:
         };
 
         inline iteratorT &operator++() {
-            m_cur = min(m_cur + recsize_(), end_());
+            m_cur = std::min(m_cur + recsize_(), end_());
             return *this;
         };
 
         inline iteratorT &operator--() {
-            m_cur = max(m_cur - recsize_(), beg_());
+            m_cur = std::max(m_cur - recsize_(), beg_());
             return *this;
         };
 
@@ -539,12 +539,12 @@ public:
         inline bool operator>=(const iteratorT &i) { return m_cur >= i.m_cur; };
 
         inline iteratorT &operator+=(size_t n) {
-            m_cur = min(m_cur + n * recsize_(), end_());
+            m_cur = std::min(m_cur + n * recsize_(), end_());
             return *this;
         };
 
         inline iteratorT &operator-=(size_t n) {
-            m_cur = max(m_cur - n * recsize_(), beg_());
+            m_cur = std::max(m_cur - n * recsize_(), beg_());
             return *this;
         };
 
@@ -587,12 +587,12 @@ public:
     //----------------------------------------------------------
     // typedefs
     typedef ddcRecFile RecFileT;
-    typedef vector<ValT> VecT;
-    typedef map<KeyT, VecT> MapT;
+    typedef std::vector<ValT> VecT;
+    typedef std::map<KeyT, VecT> MapT;
 
     typedef KeyT key_type;
     typedef VecT mapped_type;
-    typedef pair<KeyT, VecT> value_type;
+    typedef std::pair<KeyT, VecT> value_type;
 
 public:
     //----------------------------------------------------------
@@ -688,7 +688,7 @@ public:
     /// simulate std::map::find(), returns NULL on error
     inline const ValT *find(const KeyT &key_) const {
         if (m_rfile) {
-            const_iterator lb = lower_bound(begin(), end(), key_, KeyLess());
+            const_iterator lb = std::lower_bound(begin(), end(), key_, KeyLess());
             return (lb != end() && key(lb) == key_) ? val(lb) : NULL;
         } else {
             typename MapT::const_iterator lb = m_map.find(key_);
@@ -721,7 +721,7 @@ public:
             for (const_iterator i = begin(); i != end(); ++i) {
                 const KeyT &key_ = key(i);
                 const ValT *val_ = val(i);
-                typename MapT::iterator it = m_map.insert(make_pair(key_, VecT())).first;
+                typename MapT::iterator it = m_map.insert(std::make_pair(key_, VecT())).first;
                 it->second.reserve(m_vsize);
                 it->second.assign(val_, val_ + m_vsize);
             }

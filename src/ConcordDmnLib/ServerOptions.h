@@ -83,13 +83,13 @@ public:
     // I/O
 
     /** load server-options file file RCFILE */
-    void LoadFile(const string& Filename);
+    void LoadFile(const std::string& Filename);
 
     /** set server-options from a monolithic string */
-    void LoadString(const string& Options, const string& srcName="String");
+    void LoadString(const std::string& Options, const std::string& srcName="String");
 
     /** set server-options from a c++ vector */
-    void LoadLines(const vector<string>& Lines, const string& srcName="Lines");
+    void LoadLines(const std::vector<std::string>& Lines, const std::string& srcName="Lines");
 
     /** set a single option value
      *  \param Option name of the option to set
@@ -98,10 +98,10 @@ public:
      *  \param LineNo source line number
      *  \returns true on success, false for unknown options
      */
-    bool Set(const string& Option, const string& Value="", const string& srcName="Option");
+    bool Set(const std::string& Option, const std::string& Value="", const std::string& srcName="Option");
 
     /** convert to a string representation */
-    string toString() const;
+    std::string toString() const;
 };
 
 #endif /* DDC_SERVER_OPTIONS_H */

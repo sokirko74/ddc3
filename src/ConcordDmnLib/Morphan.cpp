@@ -21,6 +21,8 @@
 #include "Morphan.h"
 
 
+using namespace std;
+
 const int ParagigmGroupsCount = 45;
 const string  ParagigmGroups [ParagigmGroupsCount] = {
     "\xcf \xe5\xe4,\xec\xf0",

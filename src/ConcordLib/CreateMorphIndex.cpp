@@ -21,6 +21,8 @@
 #include "ConcCommon.h"
 #include "StringIndexator.h"
 
+using namespace std;
+
 vector<string> GetGramInfosFromWord(const char *GraLine, MorphLanguageEnum Langua, bool bCapital) {
 
     const CLemmatizer *Lemmatizer = GetLemmatizerByLanguage(Langua);

@@ -23,6 +23,8 @@
 #include "Consent.h"
 
 
+using namespace std;
+
 bool ParagraphTagBeforeGraph(const CGraphmatFile &C, size_t i, size_t HB) {
     if (i == 0) return false;
 

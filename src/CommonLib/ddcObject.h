@@ -26,7 +26,7 @@
 #include <list>
 
 class ddcObject;                         //-- forward decl
-typedef list<ddcObject*> ddcObjectList;  //-- for child- and descendant-lists
+typedef std::list<ddcObject*> ddcObjectList;  //-- for child- and descendant-lists
 
 //-- visitor struct for ddcObject::Descendants() method
 struct ddcObjectDescendantsVisitor
@@ -184,28 +184,28 @@ public:
     //@{
     //! convert object to a canonical string ()
     //! \li default implementation just returns "CLASSNAME=PTRVAL"
-    virtual string toString()
+    virtual std::string toString()
     { return Format("%s=%p", typeid(*this).name(), this); };
 
     //! convert object to a json representation
     //! \li default implementation returns a json object {"class":this->jsonClass(), this->jsonData()}
-    virtual string toJson()
-    { return string("{\"class\":")+jsonStr(this->jsonClass())+","+this->jsonData()+"}"; };
+    virtual std::string toJson()
+    { return std::string("{\"class\":")+jsonStr(this->jsonClass())+","+this->jsonData()+"}"; };
 
     //! class-name for json strinfication
     //! \li default implementation returns C++ class name
-    virtual string jsonClass()
-    { string cls(typeid(*this).name()); return cls; };
+    virtual std::string jsonClass()
+    { std::string cls(typeid(*this).name()); return cls; };
 
     //! instance data for json stringification
     //! \li default implementation returns "NODATA":1, for strict syntax compliance
-    virtual string jsonData()
+    virtual std::string jsonData()
     { return "\"NODATA\":1"; };
     //@}
 };
 
 //! json strinfication wrapper
-inline string jsonStr(ddcObject *o)
+inline std::string jsonStr(ddcObject *o)
 { return o==NULL ? "null" : o->toJson(); };
 
 

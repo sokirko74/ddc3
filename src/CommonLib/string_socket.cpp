@@ -27,6 +27,8 @@
 #include <errno.h>
 #include <sys/un.h>
 
+using namespace std;
+
 const int ddcSocketChunkSize = DDC_STATIC_BUFLEN;
 
 

@@ -22,6 +22,8 @@
 #include "LeafServer.h"
 #include "../CommonLib/ddcString.h"
 
+using namespace std;
+
 //==============================================================================
 // CDDCLeafServer: constructors etc
 

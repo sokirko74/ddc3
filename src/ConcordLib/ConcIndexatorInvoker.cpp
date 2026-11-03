@@ -7,6 +7,8 @@
 #include "DocumentIterator.h"
 
 
+using namespace std;
+
 ConcIndexatorInvoker::ConcIndexatorInvoker() {
     m_bStoppedByUser = false;
     m_bStdout = false;

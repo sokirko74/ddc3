@@ -25,8 +25,8 @@
 #include "../CommonLib/string_socket.h"
 #include "ServerOptions.h"
 
-extern void LoadDDCServer (string ServerConfigFile, const CDDCServerOptions& Options);
-extern void LoadLocalCorpora(string ConfigFile, const CDDCServerOptions& Options);
+extern void LoadDDCServer (std::string ServerConfigFile, const CDDCServerOptions& Options);
+extern void LoadLocalCorpora(std::string ConfigFile, const CDDCServerOptions& Options);
 extern void UnloadLocalCorporaAndServer ();
 extern void ShutdownDDCServer();
 extern void ShutdownLocalCorpora();

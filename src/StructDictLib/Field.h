@@ -28,7 +28,7 @@ struct  CField
 {
     int                              FieldId;
     char                             FieldStr[FieldStrLen];
-    vector<CSignat>      m_Signats;
+    std::vector<CSignat>      m_Signats;
     char                             TypeRes;
     int                              OrderId;
     bool                         IsApplicToActant;

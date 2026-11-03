@@ -78,16 +78,16 @@ class TItemContainer
 public :
     MorphLanguageEnum       m_Language;
     char RossPath[_MAX_PATH];
-    vector<TDomItem>  m_DomItems;
+    std::vector<TDomItem>  m_DomItems;
     char DomItemsFile[_MAX_PATH];
     char DomItemsTextFile[_MAX_PATH];
     char ItemsFile[_MAX_PATH];
-    vector <CDomen> m_Domens;
+    std::vector <CDomen> m_Domens;
     char DomensFile[_MAX_PATH];
-    vector<CField> Fields;
+    std::vector<CField> Fields;
     char FieldsFile[_MAX_PATH];
     bool    m_bDontLoadExamples;
-    map<string,string>      m_Russian2EnglishFields;
+    std::map<std::string,std::string>      m_Russian2EnglishFields;
         
 
     BYTE ActantsDomNo;
@@ -101,7 +101,7 @@ public :
     BYTE IllDomNo;
     BYTE IntegerDomNo;
     int WildCardDomItemNo;
-    string m_LastError;
+    std::string m_LastError;
 
 
     TItemContainer();
@@ -113,7 +113,7 @@ public :
         return m_Domens[Item.GetDomNo()].m_Items+Item.GetItemStrNo();
     };
 
-    void                    ErrorMessage (string s ) const;
+    void                    ErrorMessage (std::string s ) const;
     bool                    InitDomensConsts();
     int                             GetItemNoByItemStr (const char*  ItemStr, BYTE DomNo) const;
     int                             GetItemNoByItemStr (const char*  ItemStr, const char* DomStr) const;
@@ -134,7 +134,7 @@ public :
     bool            WriteFields() const;
     bool            BuildFormats(BYTE MaxNumDom);
     bool            BuildOneFieldFormat (CSignat& Sgn, char* Frmt, char* Name, BYTE MaxNumDom);
-    virtual bool    UpdateSignatsOfTheFieldInCorteges (BYTE FieldNo, vector<CSignat>& Signats)= 0; 
+    virtual bool    UpdateSignatsOfTheFieldInCorteges (BYTE FieldNo, std::vector<CSignat>& Signats)= 0; 
     bool            WriteDomens () const;
     size_t          GetDomItemsSize() const {return m_DomItems.size();};
     bool            WriteDomItems() const ;

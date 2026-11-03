@@ -22,6 +22,8 @@
 #include <cassert>
 #include <cctype>
 
+using namespace std;
+
 /*======================================================================
  * Character tables
  *

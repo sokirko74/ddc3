@@ -29,7 +29,7 @@
 
 //! Build PCRE2 character tables for a single-byte encoding of language \c Langua.
 //! The resulting vector must outlive every RML_RE compiled with it.
-extern void RmlPcreMakeTables(vector<BYTE>& character_table, MorphLanguageEnum Langua);
+extern void RmlPcreMakeTables(std::vector<BYTE>& character_table, MorphLanguageEnum Langua);
 
 //! Pre-compiled regular expression (thin wrapper around PCRE2).
 //! A compiled RML_RE is safe for concurrent matching by multiple threads.
@@ -59,26 +59,26 @@ public:
     };
 
 protected:
-    string        pattern_;
+    std::string        pattern_;
     Options       opts_;          // regex options, table pointer
     pcre2_code*   re_;            // compiled pattern (NULL on error)
-    string        error_;         // Error indicator (empty for no error)
+    std::string        error_;         // Error indicator (empty for no error)
 
 public:
     RML_RE(void)
         : re_(NULL)
     {};
 
-    RML_RE(const string& pat)
+    RML_RE(const std::string& pat)
         : re_(NULL)
     { Init(pat); };
 
-    RML_RE(const string& pat, const Options &opts)
+    RML_RE(const std::string& pat, const Options &opts)
         : opts_(opts), re_(NULL)
     { Init(pat); };
 
     //-- used by legacy ddc code (e.g. by MorphoWizard::find_lemm in MorphWizardLib/wizard.cpp)
-    RML_RE(const string& pat, const vector<BYTE>& RegExpTables)
+    RML_RE(const std::string& pat, const std::vector<BYTE>& RegExpTables)
         : re_(NULL)
     {
         opts_.tableptr_ = RegExpTables.data();
@@ -104,40 +104,40 @@ public:
 
     ~RML_RE() { clear(); }
 
-    const string& pattern() const { return pattern_; }
+    const std::string& pattern() const { return pattern_; }
 
     // Re-compile the regex with a new pattern but same options and table pointer
-    void pattern(const string &pattern) { clear(); Init(pattern); }
+    void pattern(const std::string &pattern) { clear(); Init(pattern); }
 
     // If RE could not be created properly, returns an error string, else the empty string.
-    const string& error() const { return error_; }
+    const std::string& error() const { return error_; }
 
     /***** matching interface *****/
 
     //! true iff the whole of \c text matches
     bool FullMatch(const char *text, size_t len) const
     { return TryMatch(text, len, 0, ANCHOR_BOTH, NULL, 0) > 0; };
-    bool FullMatch(const string& text) const { return FullMatch(text.data(), text.size()); };
+    bool FullMatch(const std::string& text) const { return FullMatch(text.data(), text.size()); };
     bool FullMatch(const char *text) const { return FullMatch(text, strlen(text)); };
 
     //! true iff some substring of \c text matches
     bool PartialMatch(const char *text, size_t len) const
     { return TryMatch(text, len, 0, UNANCHORED, NULL, 0) > 0; };
-    bool PartialMatch(const string& text) const { return PartialMatch(text.data(), text.size()); };
+    bool PartialMatch(const std::string& text) const { return PartialMatch(text.data(), text.size()); };
     bool PartialMatch(const char *text) const { return PartialMatch(text, strlen(text)); };
 
     //! Replace the first match in \c *str by \c rewrite (\\0..\\9 or $0..$9 refer to groups)
-    bool Replace(const string& rewrite, string *str) const;
+    bool Replace(const std::string& rewrite, std::string *str) const;
 
     //! Replace all matches in \c *str by \c rewrite; returns number of replacements
-    int GlobalReplace(const string& rewrite, string *str) const;
+    int GlobalReplace(const std::string& rewrite, std::string *str) const;
 
     // Return the number of capturing subpatterns, or -1 if the
     // regexp wasn't valid on construction.
     int NumberOfCapturingGroups() const;
 
 protected:
-    void Init(const string& pattern);
+    void Init(const std::string& pattern);
 
     // Match against "text" starting at "startpos", filling in "vec" (up to
     // "vecsize" pairs) with begin/end offsets of the match and of the captured
@@ -151,9 +151,9 @@ protected:
 
     // Append the "rewrite" string, with backslash subsitutions from "text"
     // and "vec", to string "out".
-    bool Rewrite(string *out,
-                 const string& rewrite,
-                 const string& text,
+    bool Rewrite(std::string *out,
+                 const std::string& rewrite,
+                 const std::string& text,
                  const size_t *vec,
                  int veclen) const;
 

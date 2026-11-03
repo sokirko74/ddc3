@@ -33,10 +33,10 @@ class CConcSessionContext : public ddcLockable
 {
 public:
     //! hit results for the last MaxQueryCacheSize queries 
-    map<string, CQueryResult>       m_QueryCache;
+    std::map<std::string, CQueryResult>       m_QueryCache;
 
     //! a deque for last MaxQueryCacheSize queries; m_Queries.last() is the last given query 
-    deque<string>                   m_Queries;
+    std::deque<std::string>                   m_Queries;
 
 public:
     //----------------------------------------------------------------------
@@ -63,7 +63,7 @@ public:
      *  \param EndHitNo on call, index of first hit to retrieve; on return index of last hit retrieved
      *  \returns true on success, otherwise false
      */
-    bool CacheGet(CConcHolder& Holder, const string &Query, DWORD& EndHitNo);
+    bool CacheGet(CConcHolder& Holder, const std::string &Query, DWORD& EndHitNo);
 
     /** store a result for \a Query in the cache
      *  \li formerly CConcHolder::SaveToCache()
@@ -73,7 +73,7 @@ public:
      *  \param start hit-index iterator wrt Holder.m_Hits[] of first hit to be stored
      *  \param end hit-index iterator wrt Holder.m_Hits[] of first hit NOT to store
      */
-    void CacheSet(CConcHolder& Holder, const string& Query, vector<size_t>::const_iterator start, vector<size_t>::const_iterator end);
+    void CacheSet(CConcHolder& Holder, const std::string& Query, std::vector<size_t>::const_iterator start, std::vector<size_t>::const_iterator end);
 
     /** clear the query cache; implicitly handles locking */
     void CacheClear();

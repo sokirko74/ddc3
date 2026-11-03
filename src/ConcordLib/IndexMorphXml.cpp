@@ -22,6 +22,8 @@
 #include "DocumentIterator.h"
 
 
+using namespace std;
+
 void    CConcIndexator::IndexMorphXml   (CIndexDocument* document)
 {
     vector<CXmlToken> GraTable;

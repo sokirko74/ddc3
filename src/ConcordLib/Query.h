@@ -36,7 +36,7 @@ extern const BYTE DefaultMatchId;
 class CQuery : public ddcObject {
 public:
     //! arbitrary name for this query node (e.g. string from which it was parsed)
-    string m_Label;
+    std::string m_Label;
 
     //! associated query compiler (only set on Compile())
     CQueryCompiler *m_Compiler;
@@ -52,7 +52,7 @@ public:
     ///\name Constructors etc.
     //@{
     //! Default constructor
-    CQuery(const string &label=string(""))
+    CQuery(const std::string &label=std::string(""))
         : m_Label(label),
           m_Compiler(NULL),
           m_Node(NULL),
@@ -123,20 +123,20 @@ public:
     ///\name Stringification (ddcObject API & associated utilities)
     //@{
     //! \b DEBUG: return a canonical string form for this query (default just returns m_Label)
-    virtual string toString() { return m_Label; };
+    virtual std::string toString() { return m_Label; };
 
     //! \b DEBUG: return canonical option string
-    virtual string optionsToString();
+    virtual std::string optionsToString();
 
     //! return json format option string
-    virtual string optionsToJson();
+    virtual std::string optionsToJson();
 
     //! return a JSON representation of this query
     //! \li default just returns this->toString()
     //! \li JSON query structures relflect C++ class structures with an additional "class" key
-    virtual string toJson() { return string("{\"class\":"+jsonStr(this->jsonClass())+","+this->jsonData()+"}"); };
-    virtual string jsonClass() { return "CQuery"; };
-    virtual string jsonData()  { return ""; };
+    virtual std::string toJson() { return std::string("{\"class\":"+jsonStr(this->jsonClass())+","+this->jsonData()+"}"); };
+    virtual std::string jsonClass() { return "CQuery"; };
+    virtual std::string jsonData()  { return ""; };
     //@}
 
     //------------------------------------------------------------
@@ -170,7 +170,7 @@ public:
 
 public:
     //! Default constructor
-    CQNegatable(const string &label=string(""), bool negated=false)
+    CQNegatable(const std::string &label=std::string(""), bool negated=false)
         : CQuery(label), m_Negated(negated)
     {};
     CQNegatable(bool negated)
@@ -186,14 +186,14 @@ public:
     virtual bool Negated() { return m_Negated; };
 
     //! string creation utility
-    virtual string NegString(const std::string &s);
+    virtual std::string NegString(const std::string &s);
 
     //! override just calls m_Node->SetNegation(m_Negated)
     virtual bool Compile(CQueryCompiler *compiler);
 
     //-- ddcObject API
-    virtual string jsonClass() { return "CQNegatable"; };
-    virtual string jsonData()  { return string("\"Negated\":")+(m_Negated ? "1" : "0"); };
+    virtual std::string jsonClass() { return "CQNegatable"; };
+    virtual std::string jsonData()  { return std::string("\"Negated\":")+(m_Negated ? "1" : "0"); };
 };
 
 //======================================================================
@@ -201,13 +201,13 @@ public:
 class CQAtomic : public CQNegatable {
 public:
     //! Default constructor
-    CQAtomic(const string &label=string(""), bool negated=false)
+    CQAtomic(const std::string &label=std::string(""), bool negated=false)
         : CQNegatable(label,negated)
     {};
     virtual ~CQAtomic() {};
 
     //-- ddcObject API
-    virtual string jsonClass() { return "CQAtomic"; };
+    virtual std::string jsonClass() { return "CQAtomic"; };
 };
 
 
@@ -225,10 +225,10 @@ public:
     CQuery *m_dtr2;
 
     //! convenience: operation name
-    string m_OpName;
+    std::string m_OpName;
 
 public:
-    CQBinOp(CQuery *dtr1=NULL, CQuery *dtr2=NULL, const string &opName="", bool negated=false)
+    CQBinOp(CQuery *dtr1=NULL, CQuery *dtr2=NULL, const std::string &opName="", bool negated=false)
         : CQNegatable(opName,negated), m_dtr1(dtr1), m_dtr2(dtr2), m_OpName(opName)
     {};
 
@@ -253,9 +253,9 @@ public:
     //-- ddcObject API
     virtual ddcObjectList Children() const;
     virtual void DisownChildren();
-    virtual string toString();
-    virtual string jsonClass() { return "CQBinOp"; };
-    virtual string jsonData();
+    virtual std::string toString();
+    virtual std::string jsonClass() { return "CQBinOp"; };
+    virtual std::string jsonData();
 };
 
 //------------------------------------------------------------
@@ -269,7 +269,7 @@ public:
 
     virtual bool RootOK() { return true; };
     virtual bool Compile(CQueryCompiler *compiler);
-    virtual string jsonClass() { return "CQAnd"; };
+    virtual std::string jsonClass() { return "CQAnd"; };
 };
 
 //------------------------------------------------------------
@@ -284,7 +284,7 @@ public:
 
     virtual ~CQAndImplicit() {};
 
-    virtual string jsonClass() { return "CQAndImplicit"; };
+    virtual std::string jsonClass() { return "CQAndImplicit"; };
 };
 
 //------------------------------------------------------------
@@ -298,7 +298,7 @@ public:
 
     virtual bool RootOK() { return true; };
     virtual bool Compile(CQueryCompiler *compiler);
-    virtual string jsonClass() { return "CQOr"; };
+    virtual std::string jsonClass() { return "CQOr"; };
 };
 
 //------------------------------------------------------------
@@ -324,9 +324,9 @@ public:
     virtual bool Compile(CQueryCompiler *compiler);
 
     //-- ddcObject API
-    virtual string jsonClass() { return "CQWith"; };
-    virtual string jsonData();
-    virtual string toString();
+    virtual std::string jsonClass() { return "CQWith"; };
+    virtual std::string jsonData();
+    virtual std::string toString();
 };
 
 //------------------------------------------------------------
@@ -341,7 +341,7 @@ public:
     virtual ~CQWithout() {};
 
     virtual bool Compile(CQueryCompiler *compiler);
-    virtual string jsonClass() { return "CQWithout"; };
+    virtual std::string jsonClass() { return "CQWithout"; };
 };
 
 //------------------------------------------------------------
@@ -356,7 +356,7 @@ public:
     virtual ~CQWithor() {};
 
     virtual bool Compile(CQueryCompiler *compiler);
-    virtual string jsonClass() { return "CQWithor"; };
+    virtual std::string jsonClass() { return "CQWithor"; };
 };
 
 
@@ -368,17 +368,17 @@ public:
 class CQToken : public CQAtomic {
 public:
     //! name of index to be queried (default="" (->"Token"))
-    string m_IndexName;
+    std::string m_IndexName;
 
     //! value to be searched for (default="")
-    string m_Value;
+    std::string m_Value;
 
     //! match-id for highlighting (TODO: and context-sort reference)
     //! initialized to 0; anything other than 0 is considered a non-trivial user-specified match-id
     BYTE m_MatchId;
 
 public:
-    CQToken(const string &indexName=string(""), const string &value=string(""), const BYTE matchId=0)
+    CQToken(const std::string &indexName=std::string(""), const std::string &value=std::string(""), const BYTE matchId=0)
         : CQAtomic(value), m_IndexName(indexName), m_Value(value), m_MatchId(matchId)
     {};
     virtual ~CQToken() {};
@@ -402,59 +402,59 @@ public:
     virtual const char *OperatorKey(void) const { return "_"; };
 
     //! Compilation utility: get long index name (requires non-NULL compiler), empty string is returned if not found
-    string IndexName(const string& DefaultIndexName=string(""));
+    std::string IndexName(const std::string& DefaultIndexName=std::string(""));
 
     //! Compilation utility: get long break name (requires non-NULL compiler), empty string is returned if not found
-    string BreakName(const string& DefaultBreakName=string(""));
+    std::string BreakName(const std::string& DefaultBreakName=std::string(""));
 
     //! Stringification utility for use by subclasses; returns string "$INDEX=" or empty
-    virtual string IndexString(void);
+    virtual std::string IndexString(void);
 
     //! Stringification utility for use by subclasses; default returns sqString(m_Value)
-    virtual string ValueString(void);
+    virtual std::string ValueString(void);
 
     //! Stringification utility for use by subclasses; default should be sensible
-    virtual string MatchIdString(void);
+    virtual std::string MatchIdString(void);
 
     //-- ddcObject API & utilities
     //! Default stringification: NegString(IndexString() + ValueString())
-    virtual string toString(void);
+    virtual std::string toString(void);
 
     //! json stringification utility
-    virtual string jsonValue(void);
+    virtual std::string jsonValue(void);
 
-    virtual string jsonClass() { return "CQToken"; };
-    virtual string jsonData();
+    virtual std::string jsonClass() { return "CQToken"; };
+    virtual std::string jsonData();
 };
 
 //------------------------------------------------------------
 //! single-token query: exact full-string match
 class CQTokExact : public CQToken {
 public:
-    CQTokExact(const string &indexName=string(""), const string &value=string(""))
+    CQTokExact(const std::string &indexName=std::string(""), const std::string &value=std::string(""))
         : CQToken(indexName,value)
     {};
     virtual ~CQTokExact() {};
 
     virtual const char *OperatorKey(void) const { return "@_"; };
-    virtual string ValueString();
+    virtual std::string ValueString();
 
-    virtual string jsonClass() { return "CQTokExact"; };
+    virtual std::string jsonClass() { return "CQTokExact"; };
 };
 
 //------------------------------------------------------------
 //! single-token query: arbitrary token (indexName and value are ignored)
 class CQTokAny : public CQToken {
 public:
-    CQTokAny(const string &indexName=string(""), const string &value=string("*"))
+    CQTokAny(const std::string &indexName=std::string(""), const std::string &value=std::string("*"))
         : CQToken(indexName,value)
     {};
     virtual ~CQTokAny() {};
 
     virtual const char *OperatorKey(void) const { return "*"; };
     virtual bool Create(CQueryTokenNode *pNode);
-    virtual string ValueString();
-    virtual string jsonClass() { return "CQTokAny"; };
+    virtual std::string ValueString();
+    virtual std::string jsonClass() { return "CQTokAny"; };
 };
 
 
@@ -465,7 +465,7 @@ public:
     int m_ValueInt;
 
 public:
-    CQTokAnchor(const string &indexName=string(""), const string &value=string(""))
+    CQTokAnchor(const std::string &indexName=std::string(""), const std::string &value=std::string(""))
         : CQToken(indexName,value)
     {
         m_ValueInt = strtol(value.c_str(), NULL, 0);
@@ -474,10 +474,10 @@ public:
 
     virtual const char *OperatorKey(void) const { return "."; };
     virtual bool Create(CQueryTokenNode *pNode);
-    virtual string IndexString(void);
-    virtual string ValueString();
-    virtual string jsonClass() { return "CQTokAnchor"; };
-    virtual string jsonValue() { return Format("%d", m_ValueInt); };
+    virtual std::string IndexString(void);
+    virtual std::string ValueString();
+    virtual std::string jsonClass() { return "CQTokAnchor"; };
+    virtual std::string jsonValue() { return Format("%d", m_ValueInt); };
 };
 
 //------------------------------------------------------------
@@ -486,15 +486,15 @@ class CQTokRegex : public CQToken {
 public:
     bool m_bRegexNegated;
 public:
-    CQTokRegex(const string &indexName=string(""), const string &regex=string(""), bool negated=false)
+    CQTokRegex(const std::string &indexName=std::string(""), const std::string &regex=std::string(""), bool negated=false)
         : CQToken(indexName,regex), m_bRegexNegated(negated)
     {};
     virtual ~CQTokRegex() {};
 
     virtual const char *OperatorKey(void) const { return "/_/"; };
     virtual bool Create(CQueryTokenNode *pNode);
-    virtual string ValueString();
-    virtual string jsonClass() { return "CQTokRegex"; };
+    virtual std::string ValueString();
+    virtual std::string jsonClass() { return "CQTokRegex"; };
 };
 
 //------------------------------------------------------------
@@ -502,10 +502,10 @@ public:
 class CQTokSet : public CQToken {
 public:
     //! set of user-specified target forms
-    set<string> m_Values;
+    std::set<std::string> m_Values;
 
 public:
-    CQTokSet(const string &indexName=string(""), const string& rawValue=string(""), const set<string>& values=set<string>())
+    CQTokSet(const std::string &indexName=std::string(""), const std::string& rawValue=std::string(""), const std::set<std::string>& values=std::set<std::string>())
         : CQToken(indexName,rawValue), m_Values(values)
     {};
     virtual ~CQTokSet() {};
@@ -514,19 +514,19 @@ public:
     virtual const char *OperatorKey(void) const { return "@_"; };
 
     //! utility for use by subclasses: comma-separated list of strings in \a values
-    string SetValueString(const set<string> &values);
+    std::string SetValueString(const std::set<std::string> &values);
 
     //! wrapper for SetValueString(m_Values)
-    inline string SetValueString(void) { return SetValueString(m_Values); };
+    inline std::string SetValueString(void) { return SetValueString(m_Values); };
 
     //! wrapper for jsonArray(m_Values)
-    inline string jsonValues(void) { return jsonArray(m_Values); };
+    inline std::string jsonValues(void) { return jsonArray(m_Values); };
 
     //! ValueString() returns "@{" + SetValueString() + "}"
-    virtual string ValueString(void);
+    virtual std::string ValueString(void);
 
-    virtual string jsonClass() { return "CQTokSet"; };
-    virtual string jsonValue() { return jsonValues(); };
+    virtual std::string jsonClass() { return "CQTokSet"; };
+    virtual std::string jsonValue() { return jsonValues(); };
 };
 
 //------------------------------------------------------------
@@ -534,18 +534,18 @@ public:
 class CQTokInfl : public CQTokSet {
 public:
     //! expansion chain labels (empty list uses default expander for current index or identity)
-    vector<string> m_Expanders;
+    std::vector<std::string> m_Expanders;
 
     //! expansion chain; see TermExpander.h
     TxChain m_Txc;
 
 public:
-    CQTokInfl(const string &indexName=string(""), const string &value=string(""), const vector<string> expanders=vector<string>())
+    CQTokInfl(const std::string &indexName=std::string(""), const std::string &value=std::string(""), const std::vector<std::string> expanders=std::vector<std::string>())
         : CQTokSet(indexName,value), m_Expanders(expanders), m_Txc("(CQTokInfl)")
     {};
 
-    CQTokInfl(const string &indexName=string(""), const set<string> &values=set<string>(), const vector<string> expanders=vector<string>())
-        : CQTokSet(indexName,string(""),values), m_Expanders(expanders), m_Txc("(CQTokInfl)")
+    CQTokInfl(const std::string &indexName=std::string(""), const std::set<std::string> &values=std::set<std::string>(), const std::vector<std::string> expanders=std::vector<std::string>())
+        : CQTokSet(indexName,std::string(""),values), m_Expanders(expanders), m_Txc("(CQTokInfl)")
     {};
 
     virtual ~CQTokInfl() {};
@@ -560,15 +560,15 @@ public:
 
     virtual const char *OperatorKey(void) const { return "_"; };
     virtual bool Create(CQueryTokenNode *pNode);
-    virtual string ValueString(void);
+    virtual std::string ValueString(void);
 
     //! Stringification utility: returns string "%X1%X2%X3..." for m_Expanders
-    virtual string ExpanderString(void);
-    virtual string ExpanderJson(void);
+    virtual std::string ExpanderString(void);
+    virtual std::string ExpanderJson(void);
 
-    virtual string jsonClass() { return "CQTokInfl"; };
-    virtual string jsonValue() { return CQToken::jsonValue(); };
-    virtual string jsonData();
+    virtual std::string jsonClass() { return "CQTokInfl"; };
+    virtual std::string jsonValue() { return CQToken::jsonValue(); };
+    virtual std::string jsonData();
 };
 
 //------------------------------------------------------------
@@ -576,27 +576,27 @@ public:
 class CQTokSetInfl : public CQTokInfl {
 public:
     //! raw input values
-    set<string> m_RawValues;
+    std::set<std::string> m_RawValues;
 
 public:
-    CQTokSetInfl(const string &indexName=string(""), const set<string> &values=set<string>(), const vector<string> expanders=vector<string>())
+    CQTokSetInfl(const std::string &indexName=std::string(""), const std::set<std::string> &values=std::set<std::string>(), const std::vector<std::string> expanders=std::vector<std::string>())
         : CQTokInfl(indexName,values,expanders)
     { m_RawValues = m_Values; };
 
     virtual ~CQTokSetInfl() {};
 
     virtual bool Create(CQueryTokenNode *pNode);
-    virtual string ValueString(void);
+    virtual std::string ValueString(void);
 
-    virtual string jsonClass() { return "CQTokSetInfl"; };
-    virtual string jsonValue() { return CQTokSet::jsonValue(); };
+    virtual std::string jsonClass() { return "CQTokSetInfl"; };
+    virtual std::string jsonValue() { return CQTokSet::jsonValue(); };
 };
 
 //------------------------------------------------------------
 //! single-token query: prefix (right-truncated) query PREFIX*
 class CQTokPrefix : public CQToken {
 public:
-    CQTokPrefix(const string &indexName=string(""), const string &prefix=string(""))
+    CQTokPrefix(const std::string &indexName=std::string(""), const std::string &prefix=std::string(""))
         : CQToken(indexName,prefix)
     {};
 
@@ -604,79 +604,79 @@ public:
 
     virtual const char *OperatorKey(void) const { return "/_/"; };
     virtual bool Create(CQueryTokenNode *pNode);
-    virtual string ValueString();
+    virtual std::string ValueString();
 
-    virtual string jsonClass() { return "CQTokPrefix"; };
+    virtual std::string jsonClass() { return "CQTokPrefix"; };
 };
 
 //------------------------------------------------------------
 //! single-token query: suffix (left-truncated) query *SUFFIX
 class CQTokSuffix : public CQToken {
 public:
-    CQTokSuffix(const string &indexName=string(""), const string &suffix=string(""))
+    CQTokSuffix(const std::string &indexName=std::string(""), const std::string &suffix=std::string(""))
         : CQToken(indexName,suffix)
     {};
     virtual ~CQTokSuffix() {};
     virtual const char *OperatorKey(void) const { return "/_/"; };
     virtual bool Create(CQueryTokenNode *pNode);
-    virtual string ValueString();
-    virtual string jsonClass() { return "CQTokSuffix"; };
+    virtual std::string ValueString();
+    virtual std::string jsonClass() { return "CQTokSuffix"; };
 };
 
 //------------------------------------------------------------
 //! single-token query: infix (substring) query *INFIX*
 class CQTokInfix : public CQToken {
 public:
-    CQTokInfix(const string &indexName=string(""), const string &infix=string(""))
+    CQTokInfix(const std::string &indexName=std::string(""), const std::string &infix=std::string(""))
         : CQToken(indexName,infix)
     {};
     virtual ~CQTokInfix() {};
     virtual const char *OperatorKey(void) const { return "/_/"; };
     virtual bool Create(CQueryTokenNode *pNode);
-    virtual string ValueString();
-    virtual string jsonClass() { return "CQTokInfix"; };
+    virtual std::string ValueString();
+    virtual std::string jsonClass() { return "CQTokInfix"; };
 };
 
 //------------------------------------------------------------
 //! single-token query: prefix-set (right-truncated) query {PREFIX,...}*
 class CQTokPrefixSet : public CQTokSet {
 public:
-    CQTokPrefixSet(const string &indexName=string(""), const set<string> &prefixes=set<string>())
+    CQTokPrefixSet(const std::string &indexName=std::string(""), const std::set<std::string> &prefixes=std::set<std::string>())
         : CQTokSet(indexName,"",prefixes)
     {};
     virtual ~CQTokPrefixSet() {};
     virtual const char *OperatorKey(void) const { return "/_/"; };
     virtual bool Create(CQueryTokenNode *pNode);
-    virtual string ValueString();
-    virtual string jsonClass() { return "CQTokPrefixSet"; };
+    virtual std::string ValueString();
+    virtual std::string jsonClass() { return "CQTokPrefixSet"; };
 };
 
 //------------------------------------------------------------
 //! single-token query: suffix-set (left-truncated) query *{SUFFIX,...}
 class CQTokSuffixSet : public CQTokSet {
 public:
-    CQTokSuffixSet(const string &indexName=string(""), const set<string> &suffixes=set<string>())
+    CQTokSuffixSet(const std::string &indexName=std::string(""), const std::set<std::string> &suffixes=std::set<std::string>())
         : CQTokSet(indexName,"",suffixes)
     {};
     virtual ~CQTokSuffixSet() {};
     virtual const char *OperatorKey(void) const { return "/_/"; };
     virtual bool Create(CQueryTokenNode *pNode);
-    virtual string ValueString();
-    virtual string jsonClass() { return "CQTokSuffixSet"; };
+    virtual std::string ValueString();
+    virtual std::string jsonClass() { return "CQTokSuffixSet"; };
 };
 
 //------------------------------------------------------------
 //! single-token query: infix-set (substring) query *{INFIX,...}*
 class CQTokInfixSet : public CQTokSet {
 public:
-    CQTokInfixSet(const string &indexName=string(""), const set<string> &infixes=set<string>())
+    CQTokInfixSet(const std::string &indexName=std::string(""), const std::set<std::string> &infixes=std::set<std::string>())
         : CQTokSet(indexName,"",infixes)
     {};
     virtual ~CQTokInfixSet() {};
     virtual const char *OperatorKey(void) const { return "/_/"; };
     virtual bool Create(CQueryTokenNode *pNode);
-    virtual string ValueString();
-    virtual string jsonClass() { return "CQTokInfixSet"; };
+    virtual std::string ValueString();
+    virtual std::string jsonClass() { return "CQTokInfixSet"; };
 };
 
 //------------------------------------------------------------
@@ -684,87 +684,87 @@ public:
 class CQTokMorph : public CQToken {
 public:
     //! morph query items
-    vector<string> m_Items;
+    std::vector<std::string> m_Items;
 
 public:
-    CQTokMorph(const string &indexName=string("MorphPattern"), const vector<string>& items=vector<string>())
+    CQTokMorph(const std::string &indexName=std::string("MorphPattern"), const std::vector<std::string>& items=std::vector<std::string>())
         : CQToken(indexName), m_Items(items)
     { if (!m_Items.empty()) m_Value=m_Items[0]; };
 
     virtual ~CQTokMorph() {};
 
     //! append an item to the current list
-    void Append(const string &item) { m_Items.push_back(item); };
+    void Append(const std::string &item) { m_Items.push_back(item); };
 
     virtual const char *OperatorKey(void) const { return "[_]"; };
     virtual bool Create(CQueryTokenNode *pNode);
-    virtual string ValueString();
+    virtual std::string ValueString();
 
-    virtual string jsonClass() { return "CQTokMorph"; };
-    virtual string jsonValue() { return jsonArray(m_Items); };
+    virtual std::string jsonClass() { return "CQTokMorph"; };
+    virtual std::string jsonValue() { return jsonArray(m_Items); };
 };
 
 //------------------------------------------------------------
 //! single-token query: lemma-search "%LEMMA" (UNTESTED under LemmaQueryUsesMorphPattern=true (default))
 class CQTokLemma : public CQTokMorph {
 public:
-    CQTokLemma(const string &indexName=string("Lemma"), const string &value=string(""))
-        : CQTokMorph(indexName,vector<string>(1,value))
+    CQTokLemma(const std::string &indexName=std::string("Lemma"), const std::string &value=std::string(""))
+        : CQTokMorph(indexName,std::vector<std::string>(1,value))
     {};
     virtual ~CQTokLemma() {};
 
     virtual const char *OperatorKey(void) const { return "%_"; };
     virtual bool Create(CQueryTokenNode *pNode);
-    virtual string ValueString();
+    virtual std::string ValueString();
 
-    virtual string jsonClass() { return "CQTokLemma"; };
-    virtual string jsonValue() { return CQToken::jsonValue(); };
+    virtual std::string jsonClass() { return "CQTokLemma"; };
+    virtual std::string jsonValue() { return CQToken::jsonValue(); };
 };
 
 //------------------------------------------------------------
 //! single-token query: thesaurus (compiles, but UNTESTED)
 class CQTokThes : public CQToken {
 public:
-    CQTokThes(const string &indexName=string("Thes"), const string &value=string(""))
+    CQTokThes(const std::string &indexName=std::string("Thes"), const std::string &value=std::string(""))
         : CQToken(indexName,value)
     {};
     virtual ~CQTokThes() {};
 
     virtual const char *OperatorKey(void) const { return ":{_}"; };
     virtual bool Create(CQueryTokenNode *pNode);
-    virtual string ValueString();
+    virtual std::string ValueString();
 
-    virtual string jsonClass() { return "CQTokThes"; };
+    virtual std::string jsonClass() { return "CQTokThes"; };
 };
 
 //------------------------------------------------------------
 //! single-token query: chunk (compiles, but UNTESTED)
 class CQTokChunk : public CQToken {
 public:
-    CQTokChunk(const string &indexName=string(""), const string &value=string(""))
+    CQTokChunk(const std::string &indexName=std::string(""), const std::string &value=std::string(""))
         : CQToken(indexName,value)
     {};
     virtual ~CQTokChunk() {};
 
     virtual const char *OperatorKey(void) const { return "^_"; };
     virtual bool Create(CQueryTokenNode *pNode);
-    virtual string ValueString();
-    virtual string jsonClass() { return "CQTokChunk"; };
+    virtual std::string ValueString();
+    virtual std::string jsonClass() { return "CQTokChunk"; };
 };
 
 //------------------------------------------------------------
 //! single-token query: file list (UNSAFE)
 class CQTokFile : public CQToken {
 public:
-    CQTokFile(const string &indexName=string(""), const string &fileName=string(""))
+    CQTokFile(const std::string &indexName=std::string(""), const std::string &fileName=std::string(""))
         : CQToken(indexName,fileName)
     {};
     virtual ~CQTokFile() {};
 
     virtual const char *OperatorKey(void) const { return "<_"; };
     virtual bool Create(CQueryTokenNode *pNode);
-    virtual string ValueString();
-    virtual string jsonClass() { return "CQTokFile"; };
+    virtual std::string ValueString();
+    virtual std::string jsonClass() { return "CQTokFile"; };
 };
 
 
@@ -817,10 +817,10 @@ public:
     //! Compile() method implicitly compiles daughter nodes
     virtual bool Compile(CQueryCompiler *compiler);
 
-    virtual string toString();
+    virtual std::string toString();
 
-    virtual string jsonClass() { return "CQNear"; };
-    virtual string jsonData();
+    virtual std::string jsonClass() { return "CQNear"; };
+    virtual std::string jsonData();
 };
 
 //------------------------------------------------------------
@@ -833,17 +833,17 @@ public:
 class CQSeq : public CQAtomic {
 public:
     //! items to be queried (must be token nodes)
-    vector<CQToken*> m_Items;
+    std::vector<CQToken*> m_Items;
 
     //! distances between items
-    vector<BYTE>  m_Dists;
+    std::vector<BYTE>  m_Dists;
 
     //! distance constraint relations
-    vector<BYTE>  m_DistOps;
+    std::vector<BYTE>  m_DistOps;
 
 public:
     //! literal constructor (unused)
-    CQSeq(const vector<CQToken*> &items, const vector<BYTE> &dists, const vector<BYTE> &distops)
+    CQSeq(const std::vector<CQToken*> &items, const std::vector<BYTE> &dists, const std::vector<BYTE> &distops)
         : m_Items(items), m_Dists(dists), m_DistOps(distops)
     {};
 
@@ -877,9 +877,9 @@ public:
     //-- ddcObject API
     virtual ddcObjectList Children() const;
     virtual void DisownChildren();
-    virtual string toString();
-    virtual string jsonClass() { return "CQSeq"; };
-    virtual string jsonData();
+    virtual std::string toString();
+    virtual std::string jsonClass() { return "CQSeq"; };
+    virtual std::string jsonData();
 };
 
 

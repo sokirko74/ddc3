@@ -25,6 +25,8 @@
 #include "../ConcordLib/QueryCompiler.h"
 #include "json/json.h"
 
+using namespace std;
+
 //==============================================================================
 // debugging
 

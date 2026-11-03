@@ -49,11 +49,11 @@ class CGraphmatFile;
 
 
 struct  CGraphemOborot {
-    string m_UnitStr;
+    std::string m_UnitStr;
     WORD m_UnitNo;
-    vector<WORD> m_TokenIds;
+    std::vector<WORD> m_TokenIds;
 
-    bool operator == (const string& s)
+    bool operator == (const std::string& s)
     {
         return s == m_UnitStr;
     };

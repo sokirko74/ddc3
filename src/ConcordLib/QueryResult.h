@@ -27,7 +27,7 @@
 // Typedefs
 
 //! type for count-query maps
-typedef map<string,size_t> CCountMap;
+typedef std::map<std::string,size_t> CCountMap;
 
 //==============================================================================
 // Class Definitions
@@ -43,13 +43,13 @@ typedef map<string,size_t> CCountMap;
 struct CQueryResult 
 {
     //! found hits (not more than m_pConcordance->m_MaxCachedHitsCount).
-    vector<CHit>            m_Hits;
+    std::vector<CHit>            m_Hits;
 
     //! words that should be highlighted in hits; m_HighlightOccurs is the concatenation of CQueryNode::m_Occurrences for all \ref period_def "subcorpora"
-    vector<CTokenNo>        m_HighlightOccurs;
+    std::vector<CTokenNo>        m_HighlightOccurs;
 
     //! highlighting match-ids for m_HighlightOccurs
-    vector<BYTE>            m_HighlightIds;
+    std::vector<BYTE>            m_HighlightIds;
 
     //! the number of all found hits (if m_AllHitsCount < m_pConcordance->m_MaxCachedHitsCount, then m_Hits.size() == m_AllHitsCount)
     size_t                  m_AllHitsCount;
@@ -67,7 +67,7 @@ struct CQueryResult
     HitSortOrderEnum        m_SortOrder : 4;
 
     //! ?
-    mutable vector<BYTE>    m_DebugInfo;
+    mutable std::vector<BYTE>    m_DebugInfo;
 
     //! clears CQueryResult fields
     void ClearQueryResults();
@@ -132,7 +132,7 @@ struct CQueryResultIndex
     const CQueryResult& m_Result;
 
     //! hit index: elements are indices into m_Result.m_Hits, sorted in "logical" order
-    vector<size_t>*     m_pHitIndex;
+    std::vector<size_t>*     m_pHitIndex;
 
     //! whether m_pHitIndex was created locally (if true, it will be destroyed with this object)
     bool                m_bLocalIndex;
@@ -144,13 +144,13 @@ struct CQueryResultIndex
 
     //! Constructor for an existing hit index pHitIndex (pointer version)
     //! \li caller is responsible for destroying pHitIndex when it is no longer needed
-    CQueryResultIndex(const CQueryResult& Result, vector<size_t>* HitIndex)
+    CQueryResultIndex(const CQueryResult& Result, std::vector<size_t>* HitIndex)
         : m_Result(Result), m_pHitIndex(HitIndex), m_bLocalIndex(false)
     {};
 
     //! Constructor for an existing hit index HitIndex (reference version)
     //! \li caller is responsible for destroying HitIndex when it is no longer needed
-    CQueryResultIndex(const CQueryResult& Result, vector<size_t>& HitIndex)
+    CQueryResultIndex(const CQueryResult& Result, std::vector<size_t>& HitIndex)
         : m_Result(Result), m_pHitIndex(&HitIndex), m_bLocalIndex(false)
     {};
 
@@ -170,7 +170,7 @@ struct CQueryResultIndex
     //!       returning true iff <code>m_Result.m_Hits[a] < m_Result.m_Hits[b]</code>
     template <typename HitIndexLessThanT>
     inline void SortByIndex(HitIndexLessThanT& HitIndexLess)
-    { stable_sort(m_pHitIndex->begin(), m_pHitIndex->end(), HitIndexLess); };
+    { std::stable_sort(m_pHitIndex->begin(), m_pHitIndex->end(), HitIndexLess); };
 
     //! sort hits by generic hit-comparison function
     //!  \li HitLessThanT must support an <code>operator() (CHit& a, CHit& b)</code>

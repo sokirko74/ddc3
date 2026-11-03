@@ -25,6 +25,8 @@
 #include <wctype.h>
 #include <algorithm> //-- for std::min
 
+using namespace std;
+
 //======================================================================
 // CTermExpander
 

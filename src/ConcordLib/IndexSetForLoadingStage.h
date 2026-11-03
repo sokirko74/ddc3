@@ -46,7 +46,7 @@ extern bool ddcEnableAnonymousTokens;
 class CItemIndexForLoading
 { 
     //! current vector of  occurrences 
-    vector< CTokenNo >*     m_pCurrOccurs;
+    std::vector< CTokenNo >*     m_pCurrOccurs;
 
     //! a reference to CStringIndexSet::m_StringBuffer 
     size_t                          m_IndexItemOffset;
@@ -65,14 +65,14 @@ public:
     };
 
     //! gets vector of occurrences
-    vector<CTokenNo>* GetOccurs() 
+    std::vector<CTokenNo>* GetOccurs() 
     {
         assert (m_pCurrOccurs);
         return m_pCurrOccurs;
     };
 
     //! gets vector of occurrences (const)
-    const vector<CTokenNo>* GetOccurs() const 
+    const std::vector<CTokenNo>* GetOccurs() const 
     {
         assert (m_pCurrOccurs);
         return m_pCurrOccurs;
@@ -133,33 +133,33 @@ class CIndexSetForLoadingStage
 
 
     //! a temporary file, where the memory index set is stored
-    string  m_CurrOccurTempFileName;
+    std::string  m_CurrOccurTempFileName;
 
     //! return the name of the index (CStringIndexSet::m_Name) 
-    virtual string GetName() const = 0;
+    virtual std::string GetName() const = 0;
 
     //! memory index set (hashed by ASCII)
-    vector<CItemIndexForLoading  >                  m_MemoryLoadIndexHash[256] ;
+    std::vector<CItemIndexForLoading  >                  m_MemoryLoadIndexHash[256] ;
 
     //! input memory index set   (hashed by ASCII)
-    vector<CItemIndexForLoading  >                  m_InputLoadIndexHash[256] ;
+    std::vector<CItemIndexForLoading  >                  m_InputLoadIndexHash[256] ;
 
     //! find a string in vector "V", returning iterator "it", using  m_LoadLess1
-    bool FindIndexItemInVector (const char* Item, vector<CItemIndexForLoading>::iterator& it, vector<CItemIndexForLoading>& V);
+    bool FindIndexItemInVector (const char* Item, std::vector<CItemIndexForLoading>::iterator& it, std::vector<CItemIndexForLoading>& V);
 
     // finds an item in the swap index set, if it is not found, finds the item in the file index  set
-    bool FindIndexItem (const char* Item, vector<CItemIndexForLoading>::iterator& it);
+    bool FindIndexItem (const char* Item, std::vector<CItemIndexForLoading>::iterator& it);
 
-    bool    AddToMemoryLoadIndexAndClear(vector<CItemIndexForLoading>& Body, vector<CItemIndexForLoading>& FileIndexSet);
+    bool    AddToMemoryLoadIndexAndClear(std::vector<CItemIndexForLoading>& Body, std::vector<CItemIndexForLoading>& FileIndexSet);
     int     GetHashNo(const char* Str) const;
 
 protected:
     //! a temporal file for \ref storage_def "index storage"
     FILE*           m_TempStorageFile;
     //! a temporary file, where the \ref storage_def "index storage" is stored
-    string      m_TempStorageFileName;
+    std::string      m_TempStorageFileName;
     //! a temporary file, where the main index is stored
-    string  m_MainOccurTempFileName;
+    std::string  m_MainOccurTempFileName;
 
     //! add a string to m_StringBuffer
     size_t                  AddItemStrToBuffer(const char* Str, size_t StrLen);
@@ -177,7 +177,7 @@ public:
     virtual ~CIndexSetForLoadingStage ();
 
     //! creates temporary files  for indexing
-    bool    CreateTempFiles (string Path);
+    bool    CreateTempFiles (std::string Path);
     //! deletes temporary files  after indexing
     bool    DeleteTempFiles();
     //! gets the number  of items in memory load index 
@@ -191,7 +191,7 @@ public:
     //! add the memory load index to the main load index and clear the memory load index 
     bool    AddMemoryLoadIndexToMainLoadIndex();
     //! updates input or memory load index with one string
-    void    InsertToInputLoadIndex(const char* Str, size_t StrLen, const vector<CTokenNo>& occurrences);
+    void    InsertToInputLoadIndex(const char* Str, size_t StrLen, const std::vector<CTokenNo>& occurrences);
 
     //! rolls back buffered index data starting at startTrimTokenNo
     void    RollbackLoadIndex(CTokenNo startTrimTokenNo);

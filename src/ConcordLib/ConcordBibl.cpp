@@ -20,6 +20,8 @@
 #include "ConcCommon.h"
 #include "ConcIndexator.h"
 
+using namespace std;
+
 /*--- emacs style variables ---
  * Local Variables:
  *  mode: C++

@@ -34,6 +34,8 @@
 #include <syslog.h>
 #endif
 
+using namespace std;
+
 //-- suppress gcc warnings of the form "ignoring return value of `fread', declared with attribute warn_unused_result [-Wunused-result]"
 #pragma GCC diagnostic ignored "-Wunused-result"
 

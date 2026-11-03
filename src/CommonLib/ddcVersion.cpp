@@ -18,6 +18,8 @@
 #include "ddcVersion.h"
 #include "utilit.h"
 
+using namespace std;
+
 //--------------------------------------------------------------
 const char *DDCVersionString()
 {

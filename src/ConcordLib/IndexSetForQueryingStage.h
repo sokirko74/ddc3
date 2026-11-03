@@ -169,24 +169,24 @@ protected:
 
     //!  a function for reading occurrences for one index item
     void AddOccurs(size_t IndexItemNo, const bool bOneOccurrence, const size_t StartOccurNo, const size_t EndOccurNo,
-                   vector<CTokenNo> &Occurs, size_t PeriodNo, COccurrBuffer &OccursBuffer,
+                   std::vector<CTokenNo> &Occurs, size_t PeriodNo, COccurrBuffer &OccursBuffer,
                    CShortOccurCache *pCacheByIndexSet, int &CacheId) const;
 
     //!  return the file name  for the file occurrences
-    string GetOccursFileName() const;
+    std::string GetOccursFileName() const;
 
     //!  return the name  of file for m_Index
-    string GetOccHdrFileName() const;
+    std::string GetOccHdrFileName() const;
 
     //!  return the name  of file for m_rIndex (for suffix-queries)
-    string GetSuffixFileName() const;
+    std::string GetSuffixFileName() const;
 
 
     //!  return the name  of file for occurrences \ref perdiv_def "period division"
-    string GetPeriodsDivisionFileName() const;
+    std::string GetPeriodsDivisionFileName() const;
 
     //!  return the name  of file for CIndexSetForLoadingStage::m_StringBuffer
-    string GetFileNameForInfos() const;
+    std::string GetFileNameForInfos() const;
 
     //! return the size of the file for occurrences
     file_off_t GetOccurrsFileSize() const;
@@ -195,7 +195,7 @@ protected:
     size_t GetStartOccurNo(size_t IndexNo) const;
 
     //!         build  a \ref perdiv_def "period division"  for one index item
-    bool BuildPeriodsDivisionAndCompress(const DWORD TokenId, vector<CTokenNo> &InputTokens);
+    bool BuildPeriodsDivisionAndCompress(const DWORD TokenId, std::vector<CTokenNo> &InputTokens);
 
     //! write one index item to result file
     bool
@@ -230,13 +230,13 @@ public:
     virtual ~CIndexSetForQueryingStage();
 
     //! return the name of the index (CStringIndexSet::m_Name)
-    virtual string GetName() const = 0;
+    virtual std::string GetName() const = 0;
 
     //! destroy index set and remove index files
     bool DestroyIndexSet();
 
     //! reads all occurrences of IndexItemNo (this function can allocate much memory; it should be used carefully)
-    void ReadAllOccurrences(size_t IndexItemNo, vector<CTokenNo> &Occurs) const;
+    void ReadAllOccurrences(size_t IndexItemNo, std::vector<CTokenNo> &Occurs) const;
 
 };
 

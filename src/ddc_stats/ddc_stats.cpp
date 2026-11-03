@@ -26,6 +26,8 @@
 #include "../ConcordLib/ConcHolder.h"
 
 
+using namespace std;
+
 MorphLanguageEnum langua = morphUnknown;
 
 

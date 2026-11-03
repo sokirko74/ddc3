@@ -20,6 +20,8 @@
 #include "../StructDictLib/Ross.h"
 #include "../StructDictLib/TempArticle.h"
 
+using namespace std;
+
 void PrintUsage()
 {
     printf ("StructDict Loader (www.aot.ru)\n");

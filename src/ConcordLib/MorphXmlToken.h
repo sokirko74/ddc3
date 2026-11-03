@@ -21,18 +21,18 @@
 
 #include "../CommonLib/utilit.h"
 
-const string XmlPunctType = "pun";
-const string XmlWordType = "w";
+const std::string XmlPunctType = "pun";
+const std::string XmlWordType = "w";
 //! CXmlMorphAnnot holds one morphological interpretation, which is read from xml under CConcIndexator::m_IndexType == MorphXML_Index
 struct  CXmlMorphAnnot
 {
     //! lemma
-    string                          m_Lemma;
+    std::string                          m_Lemma;
     //! other morphological features
-    string                          m_GrammemsStr;
+    std::string                          m_GrammemsStr;
     //! reference to xml node
     //! return the structure as a set of token properties
-    void        GetAsSetOfProperties(vector<string>& Result)  const
+    void        GetAsSetOfProperties(std::vector<std::string>& Result)  const
     {
         Result.clear();
 
@@ -40,7 +40,7 @@ struct  CXmlMorphAnnot
         while (tok2())
             Result.push_back(tok2.val());
 
-        sort(Result.begin(), Result.end());
+        std::sort(Result.begin(), Result.end());
 
     };
 };
@@ -49,11 +49,11 @@ struct  CXmlMorphAnnot
 struct CXmlToken 
 {
     //! type of token (a word, a punctuation mark)
-    string                                          m_Type;
+    std::string                                          m_Type;
     //! the string itself
-    string                                          m_WordStr;
+    std::string                                          m_WordStr;
     //! all morphological annotations
-    vector<CXmlMorphAnnot>          m_Annots;
+    std::vector<CXmlMorphAnnot>          m_Annots;
     //! true if the token is last in the sentence
     bool                                            m_bLastInSentence;
     CXmlToken()

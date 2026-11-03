@@ -81,11 +81,11 @@ extern const int ddcSocketChunkSize;
 struct CSocketAddr
 {
     SocketTypeEnum m_Type;	///< socket domain
-    string         m_Addr;	///< unix:filesystem path, tcp:host address
+    std::string         m_Addr;	///< unix:filesystem path, tcp:host address
     int            m_Port;      ///< unix:filler, tcp:port number
 
     /** default constructor */
-    CSocketAddr(SocketTypeEnum sockType=stUnknown, const string& sockAddr="", int sockPort=-1)
+    CSocketAddr(SocketTypeEnum sockType=stUnknown, const std::string& sockAddr="", int sockPort=-1)
         : m_Type(sockType), m_Addr(sockAddr), m_Port(sockPort)
     {};
 
@@ -95,7 +95,7 @@ struct CSocketAddr
     {};
 
     /** constructor from string */
-    CSocketAddr(const string& Str, bool parsePort=true)
+    CSocketAddr(const std::string& Str, bool parsePort=true)
         : m_Type(stUnknown), m_Addr(), m_Port(-1)
     { ParseSocketAddr(Str, parsePort); };
 
@@ -127,7 +127,7 @@ struct CSocketAddr
      *  \li unix://PATH - UNIX socket on PATH
      *  \li unix:PATH - ditto
      */
-    void ParseSocketAddr(const string& Str, bool parsePort=true);
+    void ParseSocketAddr(const std::string& Str, bool parsePort=true);
 
     /** extract \a m_Port from \a m_Addr.  Supported notation:
      *  \li ADDR:PORT - INET socket on ADDR:PORT
@@ -136,7 +136,7 @@ struct CSocketAddr
     void ParseAddrPort();
 
     /** return a URL-style string representation of this address */
-    string toString() const;
+    std::string toString() const;
 };
 
 
@@ -149,10 +149,10 @@ struct CSocketAddr
 extern uint32_t size_to_lsb(uint32_t sz);
 extern uint32_t lsb_to_size(uint32_t sz_lsb);
 
-extern SOCKET create_socket (const CSocketAddr& Addr, bool bBind, mode_t bindPerms, string& strError); //-- generic
-extern SOCKET create_inet_socket (const char* HostAddr, int Port, bool bBind, string& strError); 
-extern SOCKET create_unix_socket(const string& socket_path,  bool bBind, mode_t bindPerms, string& strError);
-extern SOCKET create_socket(const char* HostAddr, int Port, bool bBind, string& strError);  //-- compatibility wrapper for create_inet_socket() 
+extern SOCKET create_socket (const CSocketAddr& Addr, bool bBind, mode_t bindPerms, std::string& strError); //-- generic
+extern SOCKET create_inet_socket (const char* HostAddr, int Port, bool bBind, std::string& strError); 
+extern SOCKET create_unix_socket(const std::string& socket_path,  bool bBind, mode_t bindPerms, std::string& strError);
+extern SOCKET create_socket(const char* HostAddr, int Port, bool bBind, std::string& strError);  //-- compatibility wrapper for create_inet_socket() 
 
 extern void flush_socket (SOCKET sock);
 extern bool SocketInitialize(bool bReadFromLocalFile);
@@ -164,15 +164,15 @@ extern bool CloseSocket(int l_socket, bool linger=false, int timeout=5);
 /** wrapper for CloseSocket() on a reference */
 extern bool CloseSocketRef(SOCKET& rConnectedSocket, bool linger=false, int timeout=5);
 
-extern string GetNetworkErrorString(const NetworkErrorsEnum& t);
+extern std::string GetNetworkErrorString(const NetworkErrorsEnum& t);
 
 //-- generic socket protocol utilities (pure-functions, used by ddc_daemon via CHost and ddc_search)
-extern void SocketPeer(SOCKET sock, string& PeerAddr, int& PeerPort);
-extern string SocketPeer(SOCKET sock);
-extern bool SendString (int client_fd, const char* Str, uint32_t StrLen, string& ErrorStr);
-extern bool SendString (int client_fd, const std::string &str, string& ErrorStr);
+extern void SocketPeer(SOCKET sock, std::string& PeerAddr, int& PeerPort);
+extern std::string SocketPeer(SOCKET sock);
+extern bool SendString (int client_fd, const char* Str, uint32_t StrLen, std::string& ErrorStr);
+extern bool SendString (int client_fd, const std::string &str, std::string& ErrorStr);
 extern NetworkErrorsEnum receive_buffer(int client_fd, char* Buffer,int Length, int& have_read, int TimeOut);
-extern NetworkErrorsEnum ReceiveString (int  client_fd, string& Result, int TimeOut, uint32_t maxPacketLength=0);
+extern NetworkErrorsEnum ReceiveString (int  client_fd, std::string& Result, int TimeOut, uint32_t maxPacketLength=0);
 
 
 #endif

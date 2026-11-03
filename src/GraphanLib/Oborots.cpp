@@ -23,6 +23,8 @@
 
 
 
+using namespace std;
+
 const char OborotDels[] = " \t";
 
 

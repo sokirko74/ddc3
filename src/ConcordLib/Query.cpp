@@ -22,6 +22,8 @@
 #include "Query.h"
 #include "QueryCompiler.h"
 
+using namespace std;
+
 const BYTE DefaultMatchId = 255;
 
 //======================================================================

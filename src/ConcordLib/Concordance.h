@@ -42,19 +42,19 @@ struct CHighlightTags {
     //! true, if members were initialized from string (via CHighlightTags::ReadFromString)
     bool m_bWasReadFromString;
     //! the start tag which should highlight the first found occurrence in a hit
-    string m_FirstOpener;
+    std::string m_FirstOpener;
     //! the end tag which should highlight the first found occurrence in a hit
-    string m_FirstCloser;
+    std::string m_FirstCloser;
     //! the start tag which should highlight the next found occurrences in a hit (except the first occurrence)
-    string m_RestOpener;
+    std::string m_RestOpener;
     //! the end tag which should highlight the next found occurrences in a hit (except the first occurrence)
-    string m_RestCloser;
+    std::string m_RestCloser;
 
     CHighlightTags();
 
-    bool ReadFromString(const string &s);
+    bool ReadFromString(const std::string &s);
 
-    string ToString() const;
+    std::string ToString() const;
 };
 
 
@@ -65,14 +65,14 @@ struct CHighlightTags {
 class CSourceFileHolder {
 protected:
     //! \ref source_file_def "Source files"
-    vector<string> m_SourceFiles;
+    std::vector<std::string> m_SourceFiles;
     bool m_bModifiedListOfFiles;
 
 public:
     CSourceFileHolder();
 
     //! Saves the list of  \ref source_file_def "source files" to file *.con
-    bool SaveSourceFileList(string FileName);
+    bool SaveSourceFileList(std::string FileName);
 
     //! Deletes a \ref source_file_def "source file"
     void DeleteSourceFile(long ItemNo);
@@ -89,11 +89,11 @@ public:
     size_t GetSourceFilesCount() const;
 
     //! get the source file by the index
-    string GetSourceFile(size_t FileNo) const;
+    std::string GetSourceFile(size_t FileNo) const;
 
     void AddSourceFilesFrom(const CSourceFileHolder &X);
 
-    void ReadSourceFileList(string FileName);
+    void ReadSourceFileList(std::string FileName);
 
     //! finds a  \ref source_file_def "source file" which does not  exist, if there is no such file, returns -1
     int FoundNotExistedFile() const;
@@ -115,7 +115,7 @@ typedef enum CIndexDumpFormatE {
 } CIndexDumpFormat;
 
 /* CMaskedFileSet : type for CConcIndexator::m_MaskedFiles */
-typedef set<CFileNo> CMaskedFileSet;
+typedef std::set<CFileNo> CMaskedFileSet;
 
 /*!
   CConcordance is the central class of DDC technology.  The most of its  slots come from the
@@ -127,7 +127,7 @@ class CConcordance : public CStringIndexator, public CHitBorders, public CSource
 
 
     //! a table of character properties for regular expressions which depend on CConcIndexator::m_Language
-    vector<BYTE> m_PcreCharacterTables;
+    std::vector<BYTE> m_PcreCharacterTables;
 
     //! if m_bDwdsCorpusInterface is on, the program outputs results in DWDS format
     bool m_bDwdsCorpusInterface;
@@ -138,16 +138,16 @@ class CConcordance : public CStringIndexator, public CHitBorders, public CSource
     //! Should we show bibliography of the hits instead of filename
     bool m_bOutputBibliographyOfHits;
 
-    string m_InternetPathPrefix;
-    string m_LocalPathPrefix;
-    string m_CommonFilePrefix;
+    std::string m_InternetPathPrefix;
+    std::string m_LocalPathPrefix;
+    std::string m_CommonFilePrefix;
 
 
 
 
-    string GetBiblIndexFileName() const;
+    std::string GetBiblIndexFileName() const;
 
-    string GetBiblFileName() const;
+    std::string GetBiblFileName() const;
 
 
 
@@ -158,7 +158,7 @@ class CConcordance : public CStringIndexator, public CHitBorders, public CSource
     const char *GetIndexTypeStr() const;
 
     //! read the index type from a string
-    bool ReadIndexTypeFromStr(const string &s);
+    bool ReadIndexTypeFromStr(const std::string &s);
 
     //! dump file data to a file (tabs)
     void DumpFileIndexTabs(DWORD FileNo, FILE *f) const;
@@ -211,11 +211,11 @@ protected:
     void AssertHasPath() const;
 
     //! loads options from a string
-    void LoadOptionsFromString(string Options);
+    void LoadOptionsFromString(std::string Options);
 
     void InitDefaultOptions();
     //! saves options to a string
-    string SaveOptionsToString() const;
+    std::string SaveOptionsToString() const;
 
 public:
     //! the language of the corpus
@@ -267,9 +267,9 @@ public:
     //! the parameter for Position ranking
     double m_PositionRank;
     //! delimiter to use between token index fields in output
-    string m_InterpDelimiter;
+    std::string m_InterpDelimiter;
     //! delimiter to use between tokens in output
-    string m_TokenDelimiter;
+    std::string m_TokenDelimiter;
 
     //! whether to assume indexed data is utf8 encoded (default=no)
     bool m_Utf8;
@@ -284,7 +284,7 @@ public:
     bool m_bLemmaQueryUsesMorphPattern;
 
     //! indices to show for Free_Index
-    vector<size_t> m_IndicesToShow;
+    std::vector<size_t> m_IndicesToShow;
 
     //! moo: timestamp of project *._con file
     time_t m_Timestamp;
@@ -311,23 +311,23 @@ public:
      * \li "." ~ CQTokAnchor (sentence: should resolve to a break name rather than a token-level index name)
      * \li "*" ~ generic fallback (Token)
      */
-    map<string, string> m_OpDefaultIndexNames;
+    std::map<std::string, std::string> m_OpDefaultIndexNames;
 
     /** \brief maps symbolic keys to string constants to be included in corpus 'info' response as info.user.KEY=VAL
      * \detail
      * values are pairs (isFile,Value) s.t. Value is filename iff isFile is a true value, otherwise a literal value
      */
-    map<string, pair<bool, string> > m_ServerInfo;
+    std::map<std::string, std::pair<bool, std::string> > m_ServerInfo;
 
     CConcordance();
 
     ~CConcordance();
 
     //! wrapper for IndicesToShow option; now accepts integer position (min=1), long name, short name, or alias
-    void RegisterIndicesToShow(const string &IndexListStr);
+    void RegisterIndicesToShow(const std::string &IndexListStr);
 
     //! get opt-style string declaration for IndicesToShow (empty if default)
-    string GetIndicesToShowStr(bool Positional = false) const;
+    std::string GetIndicesToShowStr(bool Positional = false) const;
 
     //! return default pcre regex options
     RML_RE::Options GetRegexOptions() const {
@@ -356,49 +356,49 @@ public:
     bool IndexPunctuation() const { return m_bIndexPunctuation; };
 
     //! get an HTML formatted reference to a \ref corpus_file_def "corpus file"
-    string GetHtmlReference(size_t posFile) const;
+    std::string GetHtmlReference(size_t posFile) const;
 
     //! get a reference to a \ref corpus_file_def "corpus file" without the common left prefix
-    string GetShortFilename(size_t posFile) const;
+    std::string GetShortFilename(size_t posFile) const;
 
     //! get file name for storing \ref corpus_file_def "corpus file" names
-    string GetFileNameForCorpusFileNames() const;
+    std::string GetFileNameForCorpusFileNames() const;
 
     //! get file name for masked files (strings)
-    string GetFileNameForMaskedFiles() const;
+    std::string GetFileNameForMaskedFiles() const;
 
     //! get file name for masked files (IDs, binary)
-    string GetFileNameForMaskedFileIds() const;
+    std::string GetFileNameForMaskedFileIds() const;
 
     //! parse a delimited token into fields by splitting on m_InterpDelimiter
-    vector<string> GetTokenFields(const COutputToken &tok);
+    std::vector<std::string> GetTokenFields(const COutputToken &tok);
 
     //! get the number of indexed corpus files
     inline size_t GetCorpusFilesCount() const { return m_CorpusFiles.size(); };
 
     //! get corpus file by index
-    inline string GetCorpusFile(CFileNo FileNo) const { return m_CorpusFiles[FileNo]; };
+    inline std::string GetCorpusFile(CFileNo FileNo) const { return m_CorpusFiles[FileNo]; };
 
     //! get count of masked files
     inline size_t GetMaskedFilesCount() const { return m_MaskedFiles.size(); };
 
     //! load list of \ref source_file_def "source files" and parses option file (*.opt)
-    void LoadSourceFilesAndOptions(string FileName, bool reallyReadSourceFiles = true);
+    void LoadSourceFilesAndOptions(std::string FileName, bool reallyReadSourceFiles = true);
 
     //! load list of \ref corpus_file_def "corpus files" (*.con)
     void LoadCorpusFiles();
 
     //! (re-)compute common prefix of corpus files in m_CorpusFiles
-    string GetCommonFilePrefix() const;
+    std::string GetCommonFilePrefix() const;
 
     //! load list of masked (deleted)\ref corpus_file_def
     void LoadMaskedFiles();
 
     //! loads options from a named file (calls LoadOptionsFromString())
-    void LoadOptionsFromFile(const string &OptFile);
+    void LoadOptionsFromFile(const std::string &OptFile);
 
     //! loads  everything
-    void LoadProject(string FileName, bool includeSourceFiles = true);
+    void LoadProject(std::string FileName, bool includeSourceFiles = true);
 
     //! update m_Timestamp to mtime of Filename if it is newer than the current m_Timestamp; \returns new m_Timestamp
     time_t UpdateTimestamp(const char *filename);
@@ -407,26 +407,26 @@ public:
     void DumpBibliography(FILE *f = stdout) const;
 
     //! dump file metadata to a string (JSON)
-    string DumpFileBibliography(DWORD FileNo) const;
+    std::string DumpFileBibliography(DWORD FileNo) const;
 
     //! dump file data to a file (JSON)
     void DumpFileIndexJson(DWORD FileNo, FILE *f = stdout) const;
 
 
     //! dump index data to a directory (format-dependent)
-    void DumpIndex(string dirname, CIndexDumpFormat fmt = idfJson) const;
+    void DumpIndex(std::string dirname, CIndexDumpFormat fmt = idfJson) const;
 
     //! dump index data to a single tab formatted file
     void DumpIndexToSingleTabFile(FILE *outfp) const;
 
     //! saves options to option file (*.opt)
-    bool SaveOptions(string FileName) const;
+    bool SaveOptions(std::string FileName) const;
 
     //! moo: get a vector of all occurrences in a given search period; used by universal wildcard (*) queries
-    bool GetAllOccurrences(vector<CTokenNo> &occurrences, size_t searchPeriodNo) const;
+    bool GetAllOccurrences(std::vector<CTokenNo> &occurrences, size_t searchPeriodNo) const;
 
     //! moo: search named break collection for matching positions, used by anchor queries
-    bool GetOccurrencesByPosition(const string &BreakName, int anchor, vector<CTokenNo> &occurrences,
+    bool GetOccurrencesByPosition(const std::string &BreakName, int anchor, std::vector<CTokenNo> &occurrences,
                                   size_t searchPeriodNo) const;
     bool UseTabFormatForLoading () const {return m_IndexType == TabFormat_Index;}
 };

@@ -12,15 +12,15 @@
 */
 struct CBibliography {
     //! original bibliography
-    string m_OrigBibl;
+    std::string m_OrigBibl;
     //! scanned bibliography
-    string m_ScanBibl;
+    std::string m_ScanBibl;
     //! issue date
-    string m_DateStr;
+    std::string m_DateStr;
     //! starting page
     DWORD m_StartPageInfo;
     //! free bibbliographical attributes
-    vector<string> m_BiblAttribs;
+    std::vector<std::string> m_BiblAttribs;
 
 
     CBibliography();
@@ -29,10 +29,10 @@ struct CBibliography {
     void CleanBibliography();
 
     //! read structure's members  from a string
-    void ReadFromString(const string &S);
+    void ReadFromString(const std::string &S);
 
     //! write structure's members  to a string
-    string WriteToString() const;
+    std::string WriteToString() const;
 
     //! convert m_DateStr to an integer
     bool ConvertDateToInt(int &Result) const;

@@ -21,6 +21,8 @@
 #include "GraphmatFile.h"
 #include "GraphanDicts.h"
 
+using namespace std;
+
 static size_t  FindSentEndAfterParagraph (const CGraphmatFile &F, size_t StartPos, size_t EndPos)
 {
     // pass  paragraph indention, if it exists

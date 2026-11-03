@@ -30,7 +30,7 @@
 // Typedefs & Forward Declarations
 
 //! save trigger for ConcordPattern application
-typedef bool (*SaveTriggerType) (const string&,DWORD LParam);
+typedef bool (*SaveTriggerType) (const std::string&,DWORD LParam);
 
 class  CConcSessionContext; //-- forward decl
 class  CQueryCompiler;      //-- forward decl
@@ -93,10 +93,10 @@ public:
     mutable CShortOccurCacheMap             m_ShortOccurCaches;
 
     //! the result of the query (its format depends  upon m_ResultFormat)
-    string                                  m_QueryResultStr;
+    std::string                                  m_QueryResultStr;
 
     //! most recent error message (if applicable)
-    string                                  m_ErrorStr;
+    std::string                                  m_ErrorStr;
 
     /*! \brief
      * m_pConcordance is the main (and the only) pointer to corpus indices and break collections.
@@ -118,16 +118,16 @@ public:
     //! minimum final sort-key of hits to be retrieved by GetAllHits()
     //! \li applied independently for each corpus period to save memory
     //! \li assumed to be set explicitly by user
-    string                                  m_ResultMinKey;
+    std::string                                  m_ResultMinKey;
 
     //! full request path leading to this session (used by CDDCLeafServer)
-    string                                  m_RequestPath;
+    std::string                                  m_RequestPath;
 
     //! The index of the current \ref period_def "subcorpora", which is now  being processed
     size_t                                  m_CurrentSearchPeriodNo;
 
     //! a delimiter which should be used between hits in m_QueryResultStr in the distributed model
-    string                                  m_AdditionalHitDelimiter;
+    std::string                                  m_AdditionalHitDelimiter;
 
     //@}
 
@@ -140,19 +140,19 @@ public:
     //! add bibliographical information about Hit to m_QueryResultStr
     void    ShowBibliographyForTextOrHtml(const CHit& Hit, DWORD PageNumber);
     //! add bibliographical information about Hit to m_QueryResultStr under TableFormat
-    bool    ShowBibliographyForTable(DWORD PageNumber, const CHit& Hit, const vector<COutputToken>& Tokens);
+    bool    ShowBibliographyForTable(DWORD PageNumber, const CHit& Hit, const std::vector<COutputToken>& Tokens);
     //! add hit string built by  Hit to to m_QueryResultStr
-    bool    GenerateOneHitString(DWORD PageNumber, const CHit& Hit, const vector<COutputToken>& Tokens);
+    bool    GenerateOneHitString(DWORD PageNumber, const CHit& Hit, const std::vector<COutputToken>& Tokens);
     //! json: add hit string built by  Hit to to m_QueryResultStr
-    bool    GenerateOneHitStringJson(DWORD PageNumber, const CHit& Hit, const vector<COutputToken>& Tokens);
+    bool    GenerateOneHitStringJson(DWORD PageNumber, const CHit& Hit, const std::vector<COutputToken>& Tokens);
     //! add hit strings [StartBreakNo,  EndBreakNo) without highlighting to m_QueryResultStr
-    bool    GetContext(int  StartBreakNo, int  EndBreakNo, const DWORD CurrFileNo, const bool bConvertASCIIToHtmlSymbols, string& Result) const;
+    bool    GetContext(int  StartBreakNo, int  EndBreakNo, const DWORD CurrFileNo, const bool bConvertASCIIToHtmlSymbols, std::string& Result) const;
     //! append json hit strings [StartBreakNo,  EndBreakNo) without highlighting to js
-    bool    GetContextJson(int  StartBreakNo, int  EndBreakNo, const DWORD CurrFileNo, string& js) const;
+    bool    GetContextJson(int  StartBreakNo, int  EndBreakNo, const DWORD CurrFileNo, std::string& js) const;
 
     //! evaluate query on the corpus and initialize slots from CQueryResult
     //! \li backwards-compatible version assuming Query was already have been parsed
-    DDCErrorEnum GetAllHits(const string &Query, size_t Start, size_t Limit);
+    DDCErrorEnum GetAllHits(const std::string &Query, size_t Start, size_t Limit);
 
     //! evaluate query on the corpus and initialize slots from CQueryResult, given a pre-parsed query
     //! \li CQuery* version added in ddc-2.0.23
@@ -165,26 +165,26 @@ public:
     bool IsUniversalCountQuery(CQuery *QueryRoot) const;
 
     //! checks if Query  si already in the cache, and if true, it returns its hit results from the cache
-    bool    TryToGetFromCache(const string &Query,  DWORD& EndHitNo);
+    bool    TryToGetFromCache(const std::string &Query,  DWORD& EndHitNo);
 
     //! stores Query  to the cache
-    void    SaveToCache(const string& Query,  vector<size_t>::const_iterator start, vector<size_t>::const_iterator end);
+    void    SaveToCache(const std::string& Query,  std::vector<size_t>::const_iterator start, std::vector<size_t>::const_iterator end);
 
     //! sets hit type, initializing m_pBreaks
     void    SetHitType();
 
     //! creates snippets, concatenating contexts of  found words
-    bool    GetFileSnippets(const int HitNo, vector<COutputToken>& Tokens)  const;
+    bool    GetFileSnippets(const int HitNo, std::vector<COutputToken>& Tokens)  const;
     //! saves current found hits using SaveTrigger, this function is only called from GetOccurrences
-    bool    SaveOccurrences(const vector<DWORD>& ChunkLengths,  int ContextSize, const vector<CTokenNo>& Occurrences,  const vector<CHit>& Hits, SaveTriggerType SaveTrigger,DWORD LParam); 
+    bool    SaveOccurrences(const std::vector<DWORD>& ChunkLengths,  int ContextSize, const std::vector<CTokenNo>& Occurrences,  const std::vector<CHit>& Hits, SaveTriggerType SaveTrigger,DWORD LParam); 
     //! initializes Tokens with words of hit BreakNo
-    bool    GetTokensFromStorageByBreak(size_t IndexNo, size_t BreakNo, vector<COutputToken>& Tokens) const;
+    bool    GetTokensFromStorageByBreak(size_t IndexNo, size_t BreakNo, std::vector<COutputToken>& Tokens) const;
     //! initializes CHit::m_FileNo for each hit of Hits
-    void InitFileReferences(vector<CHit>&   Hits) const;
+    void InitFileReferences(std::vector<CHit>&   Hits) const;
 
     //! initializes CHit::m_SortKey for each in m_pQueryCompiler->m_pQueryTree->m_Hits.
     //! Also sets m_bSortDescending=Filter.isDescending(), m_bSortByString, m_bPrune appropriately
-    void    InitSortKeyForHits(const CQuery *pQuery, const CDDCFilterWithBounds& Filter, vector<size_t>& PeriodHitsIndex);
+    void    InitSortKeyForHits(const CQuery *pQuery, const CDDCFilterWithBounds& Filter, std::vector<size_t>& PeriodHitsIndex);
     void    InitSortByRank(const CQuery *pQuery) const;
     void    InitSortBySize(const CQuery *pQuery) const;
     void    InitSortByRandom(const CQuery *pQuery) const;
@@ -251,16 +251,16 @@ public:
     DDCFormatTypeEnum       GetResultFormat() const { return m_ResultFormat; };
 
     //! return string representation of m_ResultFormat
-    string                  GetResultFormatStr() const;
+    std::string                  GetResultFormatStr() const;
 
     //! set the current format of hit
-    void                    SetResultFormat(string ResultTypeStr);
+    void                    SetResultFormat(std::string ResultTypeStr);
 
     /*! \brief Finds all occurrences of \b Query(only occurrences , not hits!), if \b Query is an atomic query (CQueryNode::m_bAtomic),  
       For each found  occurrence it calls SaveTrigger, which normally should save all occurrences to a file.
       This function is called in application ConcordPattern.
     */
-    DDCErrorEnum            GetOccurrences(const string &Query, int ContextSize, SaveTriggerType SaveTrigger,DWORD LParam);
+    DDCErrorEnum            GetOccurrences(const std::string &Query, int ContextSize, SaveTriggerType SaveTrigger,DWORD LParam);
                 
 
     //! SimpleQuery finds hits by the given query. EndHitNo is used as an input/output parameter.
@@ -275,11 +275,11 @@ public:
       - as an INPUT parameter, EndHitNo is the offset of the FIRST hit to return
       - as an OUTPUT parameter, EndHitNo is the offset of the offset of the first hit NOT returned (= upper bound; last hit returned + 1)
     */
-    DDCErrorEnum    SimpleQuery(const string &Query, DWORD& EndHitNo, DWORD& HitsCount);
+    DDCErrorEnum    SimpleQuery(const std::string &Query, DWORD& EndHitNo, DWORD& HitsCount);
 
     //! GetHits does the same as SimpleQuery does, but without GenerateHitStrings()
     //! \li see SimpleQuery() for semantics of EndHitNo
-    DDCErrorEnum    GetHits(const string &QueryStr, DWORD& EndHitNo);
+    DDCErrorEnum    GetHits(const std::string &QueryStr, DWORD& EndHitNo);
 
     //! GetHits() variant for pre-parsed queries, cache key is generated as QueryRoot->toString() + QueryRoot->optionsToString()
     //! \li see SimpleQuery() for semantics of EndHitNo
@@ -288,7 +288,7 @@ public:
     //! GetHits() guts: pre-parsed QueryRoot and given string cache-key QueryStr
     //! \li see SimpleQuery() for semantics of EndHitNo
     //! \li may set m_ResultOffset and trim m_Hits[] accordingly (ddc >= v2.1.9)
-    DDCErrorEnum    GetHits(CQuery *QueryRoot,  DWORD& EndHitNo, const string &QueryStr);
+    DDCErrorEnum    GetHits(CQuery *QueryRoot,  DWORD& EndHitNo, const std::string &QueryStr);
 
     //! initializes m_QueryResultStr using current m_Hits and m_HighlightOccurs (for context-queries)
     //! \li respects m_ResultOffset (generates strings for m_Hits[StartHitNo-m_ResultOffset .. StartHitNo-m_ResultOffset+m_ResultLimit-1])
@@ -304,15 +304,15 @@ public:
     size_t GetOffsetHint(const size_t StartHitNo) const;
 
     //! get sortkey-hint appropriate for next page (after GenerateHitStrings()); used by CDDCLeafServer
-    string GetSortKeyHint(const size_t StartHitNo) const;
+    std::string GetSortKeyHint(const size_t StartHitNo) const;
 
     //! stores sort-keys (CHit::m_SortKey) of current m_Hits to a string
     //! \li adds m_ResultOffset to reported (logical) hit offsets
-    string GetHitIds()  const;
+    std::string GetHitIds()  const;
 
     //! GetHidIds() variant for count-queries; returns count-IDs of all hits in m_Hits[]
     //! \li m_ResultOffset is not relevant here, since hit offsets are not reported
-    string GetCountIds()  const;
+    std::string GetCountIds()  const;
 
     //! get logical hit sort order; replaces HitsShouldBeSorted()
     HitSortOrderEnum HitSortOrder() const;
@@ -330,10 +330,10 @@ public:
     void ClearQueryResults();
 
     //! converts a string to a FormatTypeEnum
-    static DDCFormatTypeEnum GetResultFormatByString(const string& ResultTypeStr );
+    static DDCFormatTypeEnum GetResultFormatByString(const std::string& ResultTypeStr );
 
     //! adds header and footer to QueryResultStr according to format ResultTypeStr
-    static void DecorateQueryResults(const string& ResultTypeStr, string& QueryResultString);
+    static void DecorateQueryResults(const std::string& ResultTypeStr, std::string& QueryResultString);
 
     //! return true, if the input query contains #less_by_rank or #greater_by_rank
     //! moo: sick, bad, ugly, and wrong!
@@ -347,13 +347,13 @@ public:
     int GetBreakStarterLength() const;
 
     //! moo: build a json context string by parsing delimited token data
-    string BuildJsonContextString (const vector<COutputToken>& Tokens, bool doHighlight=true) const;
+    std::string BuildJsonContextString (const std::vector<COutputToken>& Tokens, bool doHighlight=true) const;
 
     //! moo: return a canonical representation of the query string \c Query (implicitly parses)
-    string CanonicalQueryString(const string &Query);
+    std::string CanonicalQueryString(const std::string &Query);
 
     //! moo: return a JSONr epresentation of the query string \c Query (implicitly parses)
-    string JsonQueryString(const string &Query);
+    std::string JsonQueryString(const std::string &Query);
 
     //! moo: set internal random seed to m_RandomSeed+seed1
     void SetRandomSeed(unsigned int seed1=0) const;

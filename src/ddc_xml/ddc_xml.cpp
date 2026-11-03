@@ -33,6 +33,8 @@
 
 
 
+using namespace std;
+
 void ConvertToVector(const string &Str, list<map<string, string> > &Hits) {
     Hits.clear();
     StringTokenizer lines(Str.c_str(), "\n");

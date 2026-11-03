@@ -22,6 +22,8 @@
 #include "Concordance.h"
 
 
+using namespace std;
+
 string GetIndexItemSetByVectorString(const vector<string> &TokenProperties, bool bRegexp) {
     string Result;
     if (bRegexp)

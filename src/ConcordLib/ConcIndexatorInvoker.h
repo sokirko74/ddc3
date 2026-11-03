@@ -21,19 +21,19 @@ class TAR;
 class ConcIndexatorInvoker {
     time_t m_StartTime;
     DWORD m_CorpusEndTokenNo;
-    vector<string> m_ErrorCorpusFiles;
+    std::vector<std::string> m_ErrorCorpusFiles;
 
-    string GetTimeStatisticsFileName(string Path) const;
+    std::string GetTimeStatisticsFileName(std::string Path) const;
 
-    string GetErrorLogFileName(string Path) const;
+    std::string GetErrorLogFileName(std::string Path) const;
 
     void WriteTimeStatistics(const CConcIndexator &Indexator, DWORD MaxTokenCountInOnePeriod) const;
 
     void FinalizeIndex(CConcIndexator &Indexator, DWORD MaxTokenCountInOnePeriod) const;
 
-    void BuildOnlyMorphIndex(string ProjectFile) const;
+    void BuildOnlyMorphIndex(std::string ProjectFile) const;
 
-    void BuildIndexStart(string ProjectFile, CConcIndexator &indexator);
+    void BuildIndexStart(std::string ProjectFile, CConcIndexator &indexator);
 
     void PrintProgress(DWORD saveCorpusEndTokenNo);
 
@@ -56,7 +56,7 @@ public:
     bool m_bSkipInitialFileChecking;
 
     //! the last message from indexing process
-    mutable string m_CurrMessage;
+    mutable std::string m_CurrMessage;
 
     //! should  DDC  send all messages to stdout
     bool m_bStdout;
@@ -68,7 +68,7 @@ public:
     int m_SourceFilesNumber;
 
     //! the name of file
-    string m_CurrentSourceFileName;
+    std::string m_CurrentSourceFileName;
 
     //! a slot to gather profiling information  for loading stage
     mutable CMyTimeSpanHolder m_Profiler;
@@ -77,10 +77,10 @@ public:
     ConcIndexatorInvoker();
 
     //! outputs a message to stdout or to GUI
-    void SetCurrMessage(string Message) const;
+    void SetCurrMessage(std::string Message) const;
 
     //! builds index files for project ProjectFile
-    bool BuildIndex(string ProjectFile);
+    bool BuildIndex(std::string ProjectFile);
 };
 
 

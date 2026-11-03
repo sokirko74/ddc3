@@ -29,13 +29,13 @@ enum AbbrevItemTypeEnum  {abString, abNumber, abUpperCase, abAny};
 struct  CAbbrevItem 
 {
     AbbrevItemTypeEnum      m_Type;
-    string                          m_ItemStr;
+    std::string                          m_ItemStr;
     bool operator == (const CAbbrevItem X) const;
     bool operator < (const CAbbrevItem X) const;
 
         
 };
-typedef list<CAbbrevItem> CAbbrev;
+typedef std::list<CAbbrevItem> CAbbrev;
 
 
 

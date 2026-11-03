@@ -32,12 +32,12 @@ public:
     {
         m_bCollectOffsets = false;
     };
-    string GetTextFromHtmlFile(string FileName);
-    string GetTextFromHTMLBuffer(const char* Buffer, size_t BufferLen);
+    std::string GetTextFromHtmlFile(std::string FileName);
+    std::string GetTextFromHTMLBuffer(const char* Buffer, size_t BufferLen);
     unsigned long getOffset(unsigned long off);
 
 private:
-    bool checkTag(const string& str, const char* tag);
+    bool checkTag(const std::string& str, const char* tag);
     void addOffset(unsigned long);
       
     struct offset_range
@@ -47,7 +47,7 @@ private:
         offset_range(unsigned long l = 0L, unsigned long h = 0L) : low(l), high(h){};
     };
 
-    vector<offset_range> offsets;
+    std::vector<offset_range> offsets;
 };
 
 

@@ -24,6 +24,8 @@
 #include "StringIndexator.h"
 #include <fcntl.h>
 
+using namespace std;
+
 #ifdef DETECT_MEMORY_LEAK
 #ifdef _DEBUG
 #define new DEBUG_NEW

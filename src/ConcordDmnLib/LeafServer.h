@@ -72,31 +72,31 @@ public:
     // DDCServer API: request handlers: required
 
     /** request handler: get_first_hits: required (leaf) */
-    virtual void handle__get_first_hits(string &Result, const char *Query, int TimeOut, size_t ResultLimit, const string& ReqPath, const NavHint& Hint);
+    virtual void handle__get_first_hits(std::string &Result, const char *Query, int TimeOut, size_t ResultLimit, const std::string& ReqPath, const NavHint& Hint);
 
     /** request handler: get_hit_strings: required (leaf) */
-    virtual void handle__get_hit_strings(string &Result, const char *ResultType, size_t StartHitNo, size_t ResultLimit);
+    virtual void handle__get_hit_strings(std::string &Result, const char *ResultType, size_t StartHitNo, size_t ResultLimit);
 
     /* request handler: run_query: required (branch) */
-    virtual void handle__run_query(string &Result, const char *CorpusName, const char *Query, const char *ResultType, size_t StartHitNo, size_t ResultLimit, int TimeOut, const string& ReqPath, const NavHint& Hint);
+    virtual void handle__run_query(std::string &Result, const char *CorpusName, const char *Query, const char *ResultType, size_t StartHitNo, size_t ResultLimit, int TimeOut, const std::string& ReqPath, const NavHint& Hint);
 
     /** request handler: expand_terms: required (leaf|branch) */
-    virtual void handle__expand_terms(string &Result, const string& pipeline, const string& terms, int timeout, const string &corpus);
+    virtual void handle__expand_terms(std::string &Result, const std::string& pipeline, const std::string& terms, int timeout, const std::string &corpus);
 
     /** request handler: status: required (leaf|branch) */
-    virtual void handle__status(string &Result, int timeout=10, bool verbose=false);
+    virtual void handle__status(std::string &Result, int timeout=10, bool verbose=false);
 
     /** request handler: info: required (leaf|branch) */
-    virtual void handle__info(string &Result, int timeout=10, bool verbose=false);
+    virtual void handle__info(std::string &Result, int timeout=10, bool verbose=false);
 
     /** request handler: info: required (leaf|branch) */
-    virtual void handle__reload(string &Result, int depth=0);
+    virtual void handle__reload(std::string &Result, int depth=0);
 
     /** request handler: clear_cache: required (leaf|branch) */
-    virtual void handle__clear_cache(string &Result, int depth=0);
+    virtual void handle__clear_cache(std::string &Result, int depth=0);
 
     /** request handler: nodes: required (leaf|branch; since v2.2.8) */
-    virtual void handle__nodes(string &Result, int depth=-1);
+    virtual void handle__nodes(std::string &Result, int depth=-1);
 
 public:
     //--------------------------------------------------------------

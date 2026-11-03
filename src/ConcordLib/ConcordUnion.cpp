@@ -20,6 +20,8 @@
 #include "../ConcordLib/ConcIndexator.h"
 #include "../ConcordLib/IndexSetForLoadingStage.h"
 
+using namespace std;
+
 //----------------------------------------------------------------------
 bool CConcIndexator::CreateAsUnion(vector<CConcIndexator* > &X, bool inheritOptions) {
     //---------------------------------------

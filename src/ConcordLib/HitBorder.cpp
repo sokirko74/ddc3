@@ -23,6 +23,8 @@
 #include "../CommonLib/bserialize.h"
 
 
+using namespace std;
+
 inline size_t get_size_in_bytes (const CPageNumber& t)
 {
     return sizeof(t.m_StartTokenNo) + sizeof(t.m_PageNumber);

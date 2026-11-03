@@ -6,6 +6,8 @@
 
 #include "StdGraph.h"
 
+using namespace std;
+
 /*--- emacs style variables ---
  * Local Variables:
  *  mode: C++

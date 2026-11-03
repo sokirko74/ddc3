@@ -20,6 +20,8 @@
 #include "../ConcordLib/ConcIndexator.h"
 #include "../ConcordLib/IndexSetForLoadingStage.h"
 
+using namespace std;
+
 //----------------------------------------------------------------------
 bool CConcIndexator::SplitProject(vector<CConcIndexator *> &Subs) const {
     return SplitProject(Subs, SaveOptionsToString());

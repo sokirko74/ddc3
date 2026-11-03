@@ -21,6 +21,8 @@
 #include "../CommonLib/util_classes.h"
 #include "../CommonLib/bserialize.h"
 
+using namespace std;
+
 int ReferenceCount = 0;
 CDwdsThesaurus* pDwdsThesaurus = 0;
         

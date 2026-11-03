@@ -5,6 +5,8 @@
 #include "TabFormatIndexator.h"
 #include "DocumentIterator.h"
 
+using namespace std;
+
 const string COMMENT_STARTER = "%%";
 const string CMD_STARTER = "%%$DDC:";
 const string META_STARTER = "%%$DDC:meta.";

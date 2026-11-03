@@ -21,6 +21,8 @@
 
 #include "NavHint.h"
 
+using namespace std;
+
 //======================================================================
 // NavHintKey
 

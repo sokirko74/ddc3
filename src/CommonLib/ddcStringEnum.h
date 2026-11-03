@@ -41,7 +41,7 @@ public:
     // data
     ddcVecFile<char>  m_cdata;    ///< underlying character data
     ddcVecFile<OffT>  m_offsets;  ///< offsets in m_cdata[] of NUL-terminated item strings; associated strings must be sorted in lexicographic order
-    vector<string>    m_strings;  ///< backwards-compatible vector<string> implementation, for read/write access
+    std::vector<std::string>    m_strings;  ///< backwards-compatible vector<string> implementation, for read/write access
 
     size_t            m_bufsize;  ///< buffer size for fallback loading (default=20000: old value for MaxBiblStringLen from Bibliography.cpp)
 
@@ -55,7 +55,7 @@ public:
     {};
 
     /// construct and open
-    ddcStringEnum(const string& cdataFile, const string& offsetsFile, const string& fallbackFile="", bool useMMap=false)
+    ddcStringEnum(const std::string& cdataFile, const std::string& offsetsFile, const std::string& fallbackFile="", bool useMMap=false)
         : m_bufsize(20000)
     { open(cdataFile,offsetsFile,fallbackFile,useMMap); };
 
@@ -99,14 +99,14 @@ public:
     // read/write access (auto-demote)
 
     /// simulate vector::push_back(): used by indexing routines
-    inline void push_back(const string& value)
+    inline void push_back(const std::string& value)
     {
         ensureVec();
         m_strings.push_back(value);
     };
 
     /// populate \a v with an equivalent vector-implementation (for compile-time compatibility)
-    void to_vector(vector<string>& v) const
+    void to_vector(std::vector<std::string>& v) const
     {
         ClearVector(v);
         v.reserve(size());
@@ -154,14 +154,14 @@ public:
         {};
 
         
-        inline bool operator()(const OffT off, const string& key)
+        inline bool operator()(const OffT off, const std::string& key)
         { return (m_buf+off) < key; };
-        inline bool operator()(const string& key, const OffT off)
+        inline bool operator()(const std::string& key, const OffT off)
         { return key < (m_buf+off); };
     };
 
     /// returns id of lower-bound for \a key, or NO_ID if not found
-    IdT lower_bound(const string& key) const
+    IdT lower_bound(const std::string& key) const
     {
         if (m_offsets) {
             //-- ddc-v2.1.12 version
@@ -169,14 +169,14 @@ public:
             if (lb != m_offsets.end()) return (lb - m_offsets.begin());
         } else {
             //-- backwards-compatible implementation using m_strings
-            vector<string>::const_iterator lb = std::lower_bound(m_strings.begin(), m_strings.end(), key);
+            std::vector<std::string>::const_iterator lb = std::lower_bound(m_strings.begin(), m_strings.end(), key);
             if (lb != m_strings.end()) return (lb - m_strings.begin());
         }
         return NO_ID;
     };
 
     /// returns id of upper-bound for \a key, or NO_ID if not found
-    inline IdT upper_bound(const string& key) const
+    inline IdT upper_bound(const std::string& key) const
     {
         if (m_offsets) {
             //-- ddc-v2.1.12 version
@@ -184,14 +184,14 @@ public:
             if (ub != m_offsets.end()) return (ub - m_offsets.begin());
         } else {
             //-- backwards-compatible implementation using m_strings
-            vector<string>::const_iterator ub = std::upper_bound(m_strings.begin(), m_strings.end(), key);
+            std::vector<std::string>::const_iterator ub = std::upper_bound(m_strings.begin(), m_strings.end(), key);
             if (ub != m_strings.end()) return (ub - m_strings.begin());
         }
         return NO_ID;
     };
 
     /// returns id of \a key, or NO_ID if not found; wraps lower_bound()
-    inline IdT find(const string& key) const
+    inline IdT find(const std::string& key) const
     {
         IdT lbid = lower_bound(key);
         return (lbid != NO_ID && operator[](lbid) == key) ? lbid : NO_ID;
@@ -202,7 +202,7 @@ public:
     // guts
 
     /// map a named file \a filename
-    ddcStringEnum& open(const string& cdataFile, const string& offsetsFile, const string& fallbackFile, bool useMMap=false)
+    ddcStringEnum& open(const std::string& cdataFile, const std::string& offsetsFile, const std::string& fallbackFile, bool useMMap=false)
     {
         if (opened()) close();
 
@@ -216,23 +216,23 @@ public:
             openCompat(fallbackFile);
             ddcLogDebug(Format("ddcStringEnum[compat]::open(): read %zi item(s) from %s", size(), fallbackFile.c_str()));
         } else {
-            throw invalid_argument("ddcStringEnum::open(\""+cdataFile+"\",\""+offsetsFile+"\",\""+fallbackFile+"\"): no file(s) found!");
+            throw std::invalid_argument("ddcStringEnum::open(\""+cdataFile+"\",\""+offsetsFile+"\",\""+fallbackFile+"\"): no file(s) found!");
         }
         return *this;
     };
 
     /// open in compatibility-mode; lifted from CConcXml::CFreeBiblStringIndex::ReadBiblStringItems (vector<string>&  Set, string FileName)
-    void openCompat(const string& filename)
+    void openCompat(const std::string& filename)
     {
         if (opened()) close();
 
         FILE * fp = fopen(filename.c_str(), "rb");
         if (!fp)
-            throw invalid_argument(Format("ddcStringEnum::openCompat(): open failed for '%s': %s'", filename.c_str(), strerror(errno)));
+            throw std::invalid_argument(Format("ddcStringEnum::openCompat(): open failed for '%s': %s'", filename.c_str(), strerror(errno)));
         
         char buf[m_bufsize+1];
         while (fgets(buf, m_bufsize, fp)) {
-            string q(buf);
+            std::string q(buf);
             Trim(q);
             m_strings.push_back(q);
         }

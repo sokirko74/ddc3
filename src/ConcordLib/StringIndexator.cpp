@@ -23,6 +23,8 @@
 #include "StringIndexator.h"
 
 
+using namespace std;
+
 CStringIndexator::CStringIndexator() {
     m_Path = "#empty_path";
     m_bMemoryMap = false;

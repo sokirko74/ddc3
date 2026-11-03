@@ -112,8 +112,8 @@ class TCortegeContainer
     typedef TBasicCortege<3> CortegeType3;
     typedef TBasicCortege<10> CortegeType10;
 
-    vector<CortegeType3>      m_Corteges3;
-    vector<CortegeType10>     m_Corteges10;
+    std::vector<CortegeType3>      m_Corteges3;
+    std::vector<CortegeType10>     m_Corteges10;
 public :
     BYTE m_MaxNumDom;
 
@@ -144,10 +144,10 @@ class TRoss  : public TCortegeContainer, public TItemContainer
 
 public:
     BYTE                                    m_MaxMeanNum;
-    string                                  m_DictName;
+    std::string                                  m_DictName;
         
-    vector<CStructEntry>    m_Units;
-    vector<TUnitComment>    m_UnitComments;
+    std::vector<CStructEntry>    m_Units;
+    std::vector<TUnitComment>    m_UnitComments;
     bool                                    m_bShouldSaveComments;
 
 
@@ -186,7 +186,7 @@ public:
     // ++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     bool                    BuildCorteges();
-    virtual bool    UpdateSignatsOfTheFieldInCorteges (BYTE FieldNo, vector<CSignat>& Signats);
+    virtual bool    UpdateSignatsOfTheFieldInCorteges (BYTE FieldNo, std::vector<CSignat>& Signats);
     void                    DelCorteges (size_t start, size_t last);
                                                  
     // ++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -217,8 +217,8 @@ public:
     void SetUnitAuthor(WORD UnitNo, const char* Author);
     void SetUnitModifTimeStr(WORD UnitNo, const char* TimeStr);
     void SetUnitEditor(WORD UnitNo, const char* Editor);
-    string GetUnitModifTimeStr(WORD UnitNo) const;
-    string GetUnitTextHeader(WORD UnitNo) const;
+    std::string GetUnitModifTimeStr(WORD UnitNo) const;
+    std::string GetUnitTextHeader(WORD UnitNo) const;
 
     bool    ReadConfig();
 
@@ -229,9 +229,9 @@ typedef enum {  iceOverwrite = 0, iceSkip = 1, iceAppend = 2} ImportConflictEnum
 
 struct CSourceLine 
 {
-    string m_Line;
+    std::string m_Line;
     int m_SourceLineNo;
-    CSourceLine (string Line,  int  SourceLineNo)
+    CSourceLine (std::string Line,  int  SourceLineNo)
     {
         m_Line = Line;
         m_SourceLineNo = SourceLineNo;
@@ -248,7 +248,7 @@ public:
       By default  TCortegeContainer::m_MaxNumDom is equal to 3.
       Before invoking TRoss::Load it can be adjusted.
     */
-    vector<CStructEntry>& GetUnits();
+    std::vector<CStructEntry>& GetUnits();
 
     CDictionary();
         
@@ -262,8 +262,8 @@ public:
     const char*     GetDomItemStr(int ItemNo) const;
 
     bool            Load(const char* Path);
-    bool            ProcessOneArticle ( vector<CSourceLine>& L, int start, int last, bool bSimulating, ImportConflictEnum ConflictSolver, string& Messages);
-    bool            ImportFromText(string FileName, bool bSimulating, ImportConflictEnum ConflictSolver, int StartEntry,string& Messages);
+    bool            ProcessOneArticle ( std::vector<CSourceLine>& L, int start, int last, bool bSimulating, ImportConflictEnum ConflictSolver, std::string& Messages);
+    bool            ImportFromText(std::string FileName, bool bSimulating, ImportConflictEnum ConflictSolver, int StartEntry,std::string& Messages);
 
 };      
 

@@ -38,20 +38,20 @@ protected:
     bool            m_bExpectMore;  ///< moo: whether to expect more requests from current client
     bool            m_bRespond;     ///< moo: whether current request has a real (possibly empty) response
     bool            m_bLogFinish;   ///< moo: whether to log connection completion
-    string          m_LocalPath;    ///< path to local project-file (ddc_local_corpora.cfg) or label of parent branch node (ddc_server.cfg)
+    std::string          m_LocalPath;    ///< path to local project-file (ddc_local_corpora.cfg) or label of parent branch node (ddc_server.cfg)
     uint32_t        m_maxReceiveBytes; ///< maximum receivable packet length (default=0: no limit)
     mode_t          m_UnixSocketPerms; ///< permissions mask for unix socket (defualt=0: OS-default = 0777&~umask())
 
-    int             CreateSocket(bool bBind, string& strError) const;
+    int             CreateSocket(bool bBind, std::string& strError) const;
     bool            CheckValidAddr() const;
     void            StopListening ();
 public:
-    string          m_CorpusName;	///< full node label, including optional "server:" prefix
-    string	    m_ShortName;	///< short node label, without optional "server:" prefix
+    std::string          m_CorpusName;	///< full node label, including optional "server:" prefix
+    std::string	    m_ShortName;	///< short node label, without optional "server:" prefix
         
     CHost();
     virtual ~CHost();
-    bool                    ReadFromString (string S);
+    bool                    ReadFromString (std::string S);
 
     /** top-level call to start accept-process-respond loop; run in main thread */
     virtual void            CreateListener();
@@ -61,12 +61,12 @@ public:
     /** main accept - process - respond loop; called in its own thread */
     virtual void            RunThread();
         
-    int                     CreateAndConnectSocket(string& strError) const;
-    string                  GetAddressStr() const;
-    const string&           GetLocalPathOfIndex() const;
+    int                     CreateAndConnectSocket(std::string& strError) const;
+    std::string                  GetAddressStr() const;
+    const std::string&           GetLocalPathOfIndex() const;
     
     inline const CSocketAddr& SocketAddr() const { return m_SockAddr; };
-    inline const string&    HostAddr() const { return m_SockAddr.m_Addr; };
+    inline const std::string&    HostAddr() const { return m_SockAddr.m_Addr; };
     inline const int        Port() const { return m_SockAddr.m_Port; };
 
     
@@ -86,17 +86,17 @@ public:
      * \param Request holds request on return
      * \returns true on success
      */
-    bool GetRequest   (SOCKET& rConnectedSocket, int TimeOut, string &Request);
+    bool GetRequest   (SOCKET& rConnectedSocket, int TimeOut, std::string &Request);
 
     /** send a response string to a connected socket; handles low-level errors
      * \li closes socket unless \a m_bExpectMore is true
      * \param rConnectedSocket socket to which response is to be sent
      * \param Result response string to be sent (without size prefix)
      */
-    void SendResponse (SOCKET& rConnectedSocket, const string& Result);
+    void SendResponse (SOCKET& rConnectedSocket, const std::string& Result);
 
     /** handle a socket-level error for a client connection, no response sent to client */
-    void HandleSocketError(SOCKET& rConnectedSocket, const string& ErrorStr="ERROR", const string& Where="CHost::HandleSocketError()");
+    void HandleSocketError(SOCKET& rConnectedSocket, const std::string& ErrorStr="ERROR", const std::string& Where="CHost::HandleSocketError()");
 
     /** handle a single client request (formerly AnswerByRequest())
      *  \li wraps a single iteration of GetRequest(), ProcessSocketString(), and SendResponse()
@@ -120,21 +120,21 @@ public:
     virtual bool Close(SOCKET& rConnectedSocket, bool linger=false, int timeout=5);
 
     /** guts for request handling; override in subclasses */
-    virtual string  ProcessSocketString(const string& S, SOCKET& rConnectedSocket);
+    virtual std::string  ProcessSocketString(const std::string& S, SOCKET& rConnectedSocket);
 
     /** close a client connection in case of error, for use by derived classes
      * \li logs and sends an error messaage to the client
      * \li \c code should be nonzero to indicate a 'real' error
      * \li implicitly closes \c clientSocket if !=-1 (default)
      */
-    virtual void    ClientError(int code=-1, const string& msg="");
-    virtual void    ClientError(int code,    const string& msg, SOCKET& clientSocket);
+    virtual void    ClientError(int code=-1, const std::string& msg="");
+    virtual void    ClientError(int code,    const std::string& msg, SOCKET& clientSocket);
 
 };
 
 //======================================================================
 // load a DDC server config file
-extern bool LoadHosts (string Path, vector<CHost>& Hosts);
+extern bool LoadHosts (std::string Path, std::vector<CHost>& Hosts);
 
         
 #endif /* DDC_CHOST_H */

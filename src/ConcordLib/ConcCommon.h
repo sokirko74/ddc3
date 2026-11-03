@@ -52,13 +52,13 @@ inline void ddcInitGlobal(void) {
 //! a globally defined delimeter, which is used to delimit fields in one record (the first field is always a token)
 const char globalFieldDelimeter = '\t';
 //! a globally defined xml-tag, which is used to separate records if CConcIndexator::m_IndexType is Free_Index
-const string PredefinedTableLineTag = "l";
+const std::string PredefinedTableLineTag = "l";
 //! a globally defined index name for chunks
-const string ChunkIndexName = "chunk";
+const std::string ChunkIndexName = "chunk";
 //! a globally defined break collection name for \ref corpus_file_def "corpus files"
-const string PredefinedFileBreakName = "file";
+const std::string PredefinedFileBreakName = "file";
 //! a globally defined break collection name for \ref text areas
-const string PredefinedTextAreaBreakName = "textarea";
+const std::string PredefinedTextAreaBreakName = "textarea";
 
 //! integer type CTokenNo is used to  refer an index of a token in the corpus
 typedef DWORD CTokenNo;
@@ -102,10 +102,10 @@ class CShortOccurCache
     };
     //!this map contains a relation from index item No to the address of its occurrences
     //map<CTokenNo, CDataReference> m_IndexItemNo2Occurrences;
-    vector <CDataReference> m_IndexItemNo2Occurrences;
+    std::vector <CDataReference> m_IndexItemNo2Occurrences;
 
     //!this vector contains all occurrences for this cache
-    vector<CTokenNo>                        m_OccurrencesBody;
+    std::vector<CTokenNo>                        m_OccurrencesBody;
 public:
     void                            Clear();
     size_t                          AddNewIndexItemNoToCache(const CTokenNo* pStart, const CTokenNo* pEnd );
@@ -251,11 +251,11 @@ public:
     virtual ~CFreeBiblIndexInterface()
     {};
     
-    virtual string GetStringValue(DWORD FileNo) const = 0;
+    virtual std::string GetStringValue(DWORD FileNo) const = 0;
 
     //! for key-based pruning (v2.1.9): map a single value-string to its value-id
     //! \li default implementation just calls hex2int(Value)
-    virtual DWORD GetIntegerLowerBound(const string &Value) const = 0;
+    virtual DWORD GetIntegerLowerBound(const std::string &Value) const = 0;
 };
 
 /*! type for hit sort-keys and/or result filtering;
@@ -266,14 +266,14 @@ struct CHitSortKey {
     int     i;
 
     //! secondary sort key, new for v2.0.19
-    string  s;
+    std::string  s;
 
     //! default constructor
     CHitSortKey(int i_=0) : i(i_)
     {};
 
     //! constructor given integer and string
-    CHitSortKey(int i_, const string& s_) : i(i_), s(s_)
+    CHitSortKey(int i_, const std::string& s_) : i(i_), s(s_)
     {};
 
     //! clear key
@@ -293,11 +293,11 @@ struct CHitSortKey {
     { i=i_; s.clear(); };
 
     //! assignment given integer + string
-    inline void assign(int i_, const string &s_)
+    inline void assign(int i_, const std::string &s_)
     { i=i_; s=s_; };
 
     //! assignment to std::pair
-    inline void operator= (const std::pair<int,string>& p)
+    inline void operator= (const std::pair<int,std::string>& p)
     { i=p.first; s=p.second; };
 
     //! assignment to integer, alias for assign(i,"")
@@ -305,7 +305,7 @@ struct CHitSortKey {
     { i=i_; s.clear(); };
 
     //! assignment to string, alias for assign(0,s)
-    inline void operator= (const string &s_)
+    inline void operator= (const std::string &s_)
     { i=0; s=s_; };
 };
 
@@ -323,7 +323,7 @@ struct CDDCFilterWithBounds
 
     //! the name of the free bibliographical field for bibliographic filters (#asc[FIELD], #desc[FIELD], #has[FIELD]),  or the name of a token field for context-sort filters (#left, #right, etc)
     //! \note formerly m_AttrName
-    string                  m_AttrName;
+    std::string                  m_AttrName;
 
     //! \li true if DDC should use CDDCFilterWithBounds::m_SatisfiedValues
     //! \li false if DDC should use range defined by CDDCFilterWithBounds::m_LevelStart and CDDCFilterWithBounds::m_LevelEnd slots
@@ -346,7 +346,7 @@ struct CDDCFilterWithBounds
     CHitSortKey m_KeyHi;
 
     //!  the possible (integer) values for this bibliographical field,  valid only if m_bSet==true
-    set<int> m_SatisfiedValues;
+    std::set<int> m_SatisfiedValues;
 
     //! pointer to the CConcXml::CFreeBiblIndex responsible for populating this filter (only after compile)
     const CFreeBiblIndexInterface* m_BiblIndex;
@@ -475,15 +475,15 @@ enum DDCFormatTypeEnum {
 };
 
 //!  a type for index string to its occurrences
-typedef map<string,CShortOccurCache> CShortOccurCacheMap;
+typedef std::map<std::string,CShortOccurCache> CShortOccurCacheMap;
 
 //!  a type for holding occurrences during reading from the disk
-typedef vector<CTokenNo> COccurrBuffer;
+typedef std::vector<CTokenNo> COccurrBuffer;
 
 //! a delimiter between morphological annotations
-const string MorphAnnotationsDelim = "#";
+const std::string MorphAnnotationsDelim = "#";
 //! a regular expression, which passes everything within one morphological annotation
-const string MorphAnnotationsDelimRegExp = "[^#]*";
+const std::string MorphAnnotationsDelimRegExp = "[^#]*";
 
 //! initializes morphology dictionaries
 extern bool InitConcordDicts();
@@ -495,8 +495,8 @@ extern const CLemmatizer* GetLemmatizerByLanguage (MorphLanguageEnum Langua);
 extern const CAgramtab* GetGramtabByLanguage (MorphLanguageEnum Langua);
 //! recode a word from the user (corpus) encoding to the internal encoding of the morphology (and back);
 //! identity except for German, see "Software\\Dialing\\Lemmatizer\\German\\ExtEncoding" in rml.ini
-extern string MorphRecodeExt2Int (MorphLanguageEnum Langua, const string& s);
-extern string MorphRecodeInt2Ext (MorphLanguageEnum Langua, const string& s);
+extern std::string MorphRecodeExt2Int (MorphLanguageEnum Langua, const std::string& s);
+extern std::string MorphRecodeInt2Ext (MorphLanguageEnum Langua, const std::string& s);
 
 //! compare hits by break-number (for query evaluation, e.g. CQueryBinaryOperationNode::hits_and_positions_intersection())
 struct CHitCompareByBreak
@@ -508,7 +508,7 @@ struct CHitCompareByBreak
 };
 
 //! return a string representation of a set of token properties (in the format which is used in the index)
-string GetIndexItemSetByVectorString(const vector<string> &TokenProperties, bool bRegexp);
+std::string GetIndexItemSetByVectorString(const std::vector<std::string> &TokenProperties, bool bRegexp);
 
 #endif
 

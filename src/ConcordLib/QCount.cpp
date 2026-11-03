@@ -22,6 +22,8 @@
 #include "QueryCompiler.h"
 #include "ConcHolder.h"
 
+using namespace std;
+
 //#define DEBUG_NCOUNT 1
 //#undef DEBUG_NCOUNT
 

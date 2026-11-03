@@ -23,6 +23,8 @@
 #include "ConcIndexator.h"
 #include "DocumentIterator.h"
 
+using namespace std;
+
 //===========================================
 // globals
 

@@ -19,7 +19,7 @@ int tar_open(TAR **t, const char *pathname);
 /* close tarfile handle */
 int tar_close(TAR *t);
 /* get next file, it returns false, if Result contains a file, otherwise there is no more files in the tar archive  */
-bool tar_get_next_file(TAR *t, string& FileName, vector<char>& Result);
+bool tar_get_next_file(TAR *t, std::string& FileName, std::vector<char>& Result);
 
 
 #endif /* ! LIBTAR_H */

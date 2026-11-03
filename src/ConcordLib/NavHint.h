@@ -55,11 +55,11 @@
 //======================================================================
 //! navigation hint-key for branch server get_first_hits() "paging" 
 struct NavHintKey {
-    string m_QueryStr;    ///< original query string
+    std::string m_QueryStr;    ///< original query string
     size_t m_HitNo;       ///< maximum logical hit number covered w.r.t. local corpus
 
     //! default constructor
-    NavHintKey(const string& qstr="", const size_t hitno=0)
+    NavHintKey(const std::string& qstr="", const size_t hitno=0)
         : m_QueryStr(qstr), m_HitNo(hitno)
     {};
 
@@ -85,7 +85,7 @@ struct NavHintKey {
     { return m_HitNo == X.m_HitNo && m_QueryStr == X.m_QueryStr; };
 
     //! verbose assignment
-    inline void assign(const string& qstr, const size_t hitno=0)
+    inline void assign(const std::string& qstr, const size_t hitno=0)
     {
         m_QueryStr = qstr;
         m_HitNo    = hitno;
@@ -99,23 +99,23 @@ struct NavHintKey {
     };
 
     //! debug: native stringification
-    inline string toString() const
+    inline std::string toString() const
     { return Format("%zd %s", m_HitNo, m_QueryStr.c_str()); };
 
     //! debug: native decoding from string
     void fromString(const char *s);
   
     //! debug: JSON stringification
-    string toJson() const;
+    std::string toJson() const;
 };
 
 
 //======================================================================
 //! navigation hint with respect to local subcorpus tree, for get_first_hits "paging"
 struct NavHint {
-    string         m_SortKey;  ///< minimum sort key from this node or any subcorpus
+    std::string         m_SortKey;  ///< minimum sort key from this node or any subcorpus
     size_t         m_Offset;   ///< minimum offset for local corpus node
-    vector<string> m_DtrHints; ///< offset hints for immediate daughter subcorpora
+    std::vector<std::string> m_DtrHints; ///< offset hints for immediate daughter subcorpora
 
     //! default constructor
     //! \param nDtrs number of immediate subcorpora
@@ -129,17 +129,17 @@ struct NavHint {
     {};
 
     //! constructor given sort key, offset, and number of subcorpora
-    NavHint(const string& SortKey, size_t Offset, size_t nDtrs)
+    NavHint(const std::string& SortKey, size_t Offset, size_t nDtrs)
         : m_SortKey(SortKey), m_Offset(Offset), m_DtrHints(nDtrs,"")
     {};
 
     //! full constructor
-    NavHint(const string& SortKey, size_t Offset, const vector<string> DtrHints)
+    NavHint(const std::string& SortKey, size_t Offset, const std::vector<std::string> DtrHints)
         : m_SortKey(SortKey), m_Offset(Offset), m_DtrHints(DtrHints)
     {};
 
     //! constructor from string
-    NavHint(const string& HintStr)
+    NavHint(const std::string& HintStr)
     { fromString(HintStr); };
 
     //! clear the hint
@@ -179,14 +179,14 @@ struct NavHint {
     };
 
     //! string assignment wraps fromString()
-    inline NavHint& operator= (const string& S)
+    inline NavHint& operator= (const std::string& S)
     {
         fromString(S);
         return *this;
     };
 
     //! assigns \a SortKey and \a Offset and resize \a DtrHints 
-    inline void update(const string& SortKey, size_t Offset, size_t nDtrs)
+    inline void update(const std::string& SortKey, size_t Offset, size_t nDtrs)
     {
         m_SortKey = SortKey;
         m_Offset  = Offset;
@@ -201,13 +201,13 @@ struct NavHint {
     //!     and each <code>DTR_OFFSET_i</code> item is a nested hint <code>DTR_OFFSET ("(" DTR_DTR_OFFSETS ")")?</code> appropriate for
     //!     the respective daughter subcorpus.
     //! \li if \a m_SortKey is empty, the <code>"\t" SORTKEY</code> suffix is omitted.
-    string toString(bool includeSortKey=true) const;
+    std::string toString(bool includeSortKey=true) const;
 
     //! de-serialization: parses a string hint as returned by the toString() method, which see for details on the accepted syntax.
-    void fromString(const string& Str);
+    void fromString(const std::string& Str);
 
     //! debug: JSON stringification
-    string toJson() const;
+    std::string toJson() const;
 };
 
 //======================================================================
@@ -331,17 +331,17 @@ public:
     // convenience API
 
     //! wrapper for lower_bound(KeyT(QueryStr, HitNo))
-    inline ValT lower_bound(const string& QueryStr, size_t HitNo)
+    inline ValT lower_bound(const std::string& QueryStr, size_t HitNo)
     { return lower_bound(KeyT(QueryStr,HitNo)); };
 
     //! wrapper for insert(KeyT(QueryStr, HitNo), ValT(SortKey,Offset,DtrHints))
-    inline void insert(const string& QueryStr, size_t HitNo, const string& SortKey, const size_t Offset, const vector<string>& DtrHints)
+    inline void insert(const std::string& QueryStr, size_t HitNo, const std::string& SortKey, const size_t Offset, const std::vector<std::string>& DtrHints)
     { insert(KeyT(QueryStr,HitNo), ValT(SortKey,Offset,DtrHints)); };
 
     //------------------------------------------------------------
     // debugging
     //! debug: stringification
-    string toJson() const;
+    std::string toJson() const;
 };
 
 

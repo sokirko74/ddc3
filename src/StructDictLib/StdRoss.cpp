@@ -5,6 +5,8 @@
 
 #include "StdRoss.h"
 
+using namespace std;
+
 /*--- emacs style variables ---
  * Local Variables:
  *  mode: C++

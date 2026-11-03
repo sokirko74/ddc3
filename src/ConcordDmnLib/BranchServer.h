@@ -30,7 +30,7 @@ struct CHitToSort
 {
     BYTE        m_HostNo;       ///< subcorpus id
     size_t      m_HitNo;        ///< subcorpus-local hit-number for context queries OR hit count for count-queries
-    string      m_SortKeyStr;   ///< hit sort-string
+    std::string      m_SortKeyStr;   ///< hit sort-string
 
     CHitToSort(BYTE HostNo=0)
         : m_HostNo(HostNo)
@@ -49,7 +49,7 @@ struct CHitToSort
     };
 
     /** string form of hit, for debugging messages */
-    inline string debugStr(void) const
+    inline std::string debugStr(void) const
     {
         return Format("{HostNo=%d,HitNo=%zd,SortKey=%s}", m_HostNo, m_HitNo, jsonStr(m_SortKeyStr).c_str());
     };
@@ -72,15 +72,15 @@ struct LessByHitNo {
 struct CFirstHitsQueryResult  {
     size_t                      m_AllHitsCount;
     size_t                      m_AllRelevantDocsCount; 
-    string                      m_HitsDistributionStr;
-    string                      m_RelevantDocsDistributionStr;
+    std::string                      m_HitsDistributionStr;
+    std::string                      m_RelevantDocsDistributionStr;
     int                         m_InternalError;
     HitSortOrderEnum            m_SortOrder;            //< hit sort order; formerly bool m_bSort
     NetworkErrorsEnum           m_NetworkError;
-    string                      m_ErrorStr;
-    vector<CHitToSort>          m_Hits;
-    vector<size_t>              m_DtrEnds;              //< EndHitNo components scanned from each immediate daughter subcorpus
-    vector<SOCKET>              m_Sockets;
+    std::string                      m_ErrorStr;
+    std::vector<CHitToSort>          m_Hits;
+    std::vector<size_t>              m_DtrEnds;              //< EndHitNo components scanned from each immediate daughter subcorpus
+    std::vector<SOCKET>              m_Sockets;
     size_t                      m_Offset;               //< logical offset of m_Hits[0] (sum over number of front-trimmed hits for all subcorpora)
     
     /** destructor implicitly calls CloseSockets() */
@@ -113,7 +113,7 @@ struct CFirstHitsQueryResult  {
      * \li all hits in \a m_Hits[HostHitIds[]] should share the same \a m_HostNo
      * \li hits \a m_Hits[HistHitIds[]] should be sorted by \a m_HitNo , but may contain gaps
      */
-    size_t HostHitsLimit(const vector<size_t>& HostHitIds);
+    size_t HostHitsLimit(const std::vector<size_t>& HostHitIds);
 
     /** convert a logical branch-level hit offset to a physical index in m_Hits[] (no boundary-checking, underflow possible) */
     inline size_t PhysicalOffset(size_t LogicalHitNo) const
@@ -125,7 +125,7 @@ struct CFirstHitsQueryResult  {
 
     /** returns the logical upper bound hit offset for LogicalHitNo, with boundary-checking */
     inline size_t LogicalMax(size_t LogicalHitNo) const
-    { return min(LogicalHitNo, LogicalOffset(m_Hits.size())); };
+    { return std::min(LogicalHitNo, LogicalOffset(m_Hits.size())); };
 
     /** returns the physical upper bound hit offset LogicalHitNo, with boundary-checking */
     inline size_t PhysicalMax(size_t LogicalHitNo) const
@@ -154,8 +154,8 @@ struct CQueryStatistics
  */
 struct CSelectedHosts
 {
-    typedef vector<DWORD>            VecT;
-    typedef map<DWORD, set<string> > MapT;
+    typedef std::vector<DWORD>            VecT;
+    typedef std::map<DWORD, std::set<std::string> > MapT;
 
     VecT m_vec;  ///< Host-IDs of selected daughter(s); empty for all daughters
     MapT m_map;  ///< sub-paths relative to each selected daugther, keyed by Host-ID
@@ -175,20 +175,20 @@ struct CSelectedHosts
     void Clear();
 
     ///< select sub-path \a "HostId/SubPath" (empty \a SubPath is treated as "*")
-    void Insert(DWORD HostId, const string& SubPath);
+    void Insert(DWORD HostId, const std::string& SubPath);
 
     ///< alias for Insert(HostId,"*"): select all sub-paths for \a HostId
     inline void Insert(DWORD HostId)
     { Insert(HostId,"*"); };
 
     ///< alias for Insert(0 <= HostId < nDtrs, SubPath)
-    void InsertAll(DWORD nDtrs, const string &SubPath);
+    void InsertAll(DWORD nDtrs, const std::string &SubPath);
     
     ///< returns a string suitable for use in query
-    string DtrPaths(DWORD HostId) const;
+    std::string DtrPaths(DWORD HostId) const;
 
     ///< debug: convert to string
-    string toString() const;
+    std::string toString() const;
 };
 
 
@@ -196,8 +196,8 @@ struct CSelectedHosts
 /** DDC branch server 'run_query' paramter & intermediate result-type */
 class CRunQueryData {
 public:
-    string sQuery;                      ///< query string
-    string sResultFormat;               ///< result format (string)
+    std::string sQuery;                      ///< query string
+    std::string sResultFormat;               ///< result format (string)
     size_t StartHitNo;                  ///< first hit to return
     size_t ResultLimit;                 ///< max number of hits to return
     int TimeOut;                        ///< query timeout (seconds)
@@ -208,25 +208,25 @@ public:
     size_t RelevantDocsCount;           ///< ?
     //DwordVector PossibleHosts;          ///< indices of selected immediate subcorpora
     CSelectedHosts SelectedHosts;       ///< maps immediate subcorpora to selected sub-subcorpora
-    string HitDistrib;                  ///< ?
-    string DocDistrib;                  ///< ?
-    string HitsKey;                     ///< key for response body data (json only)
-    string ResponseBody;                ///< response body data
-    string *pErrorStr;                  ///< error string pointer (empty or NULL for success)
-    string     ReqPath;                 ///< request path (>=v2.2.8)
+    std::string HitDistrib;                  ///< ?
+    std::string DocDistrib;                  ///< ?
+    std::string HitsKey;                     ///< key for response body data (json only)
+    std::string ResponseBody;                ///< response body data
+    std::string *pErrorStr;                  ///< error string pointer (empty or NULL for success)
+    std::string     ReqPath;                 ///< request path (>=v2.2.8)
     NavHintKey navKey;                  ///< navigation hint key
     NavHint    navHint;                 ///< user- or cache-supplied navigation hint
     CQueryCompiler *pQCompiler;		///< query compiler for parsing input queries (parsed query is pQCompiler->m_pQuery)
    
 public:
     /** constructor */
-    CRunQueryData(const string & _Query="", const string& _ResultFormat="JSON", size_t _Start=0, size_t _Limit=10, int _TimeOut=10, string *_pErrorStr=NULL);
+    CRunQueryData(const std::string & _Query="", const std::string& _ResultFormat="JSON", size_t _Start=0, size_t _Limit=10, int _TimeOut=10, std::string *_pErrorStr=NULL);
 
     /** destructor */
     virtual ~CRunQueryData();
 
     /** (re-)initialize with parameters */
-    void Init(const string & _Query="", const string& _ResultFormat="JSON", size_t _Start=0, size_t _Limit=10, int _TimeOut=10, string *_pErrorStr=NULL, const string& _ReqPath="", const NavHint& _Hint=NavHint());
+    void Init(const std::string & _Query="", const std::string& _ResultFormat="JSON", size_t _Start=0, size_t _Limit=10, int _TimeOut=10, std::string *_pErrorStr=NULL, const std::string& _ReqPath="", const NavHint& _Hint=NavHint());
 
     /** clear object */
     void Clear();
@@ -244,13 +244,13 @@ public:
     { return QueryOptions()->IsPruneFilter(); };
 
     /** populate response string \a Response */
-    void toString(string &Response, size_t WorkerId=0, const DDCVersionT& vCompat=DDCVersion);
+    void toString(std::string &Response, size_t WorkerId=0, const DDCVersionT& vCompat=DDCVersion);
 
 };
 
 //======================================================================
 /** utility typedef for CDDCBranchServer::m_HostMap */
-typedef map<string,size_t> CHostIdMap;
+typedef std::map<std::string,size_t> CHostIdMap;
 
 //======================================================================
 /** DDC branch server node, formerly CDDCCorpusListenHost */
@@ -261,11 +261,11 @@ public:
 public:
     //--------------------------------------------------------------
     // local data
-    map<string, CQueryStatistics>       m_QueryToStatis; //-- unused?
-    vector<CHost>                       m_Hosts;
+    std::map<std::string, CQueryStatistics>       m_QueryToStatis; //-- unused?
+    std::vector<CHost>                       m_Hosts;
     CHostIdMap				m_HostMap;       ///< maps short daughter labels (without "server:" prefix) to m_Hosts[] offsets
-    string                              m_QueryResultString;
-    string                              m_ErrorStr;     //-- subcorpus error
+    std::string                              m_QueryResultString;
+    std::string                              m_ErrorStr;     //-- subcorpus error
 
     //-- low-level data
     CFirstHitsQueryResult               m_FHResult;   //< first-hits result
@@ -323,34 +323,34 @@ public:
     // DDCServer API: request handlers: required
 
     /* request handler: get_first_hits: required (leaf) */
-    virtual void handle__get_first_hits(string &Result, const char *Query, int TimeOut, size_t ResultLimit, const string& ReqPath, const NavHint& Hint);
+    virtual void handle__get_first_hits(std::string &Result, const char *Query, int TimeOut, size_t ResultLimit, const std::string& ReqPath, const NavHint& Hint);
 
     /* request handler: get_hit_strings: required (leaf) */
-    virtual void handle__get_hit_strings(string &Result, const char *ResultType, size_t StartHitNo, size_t ResultLimit);
+    virtual void handle__get_hit_strings(std::string &Result, const char *ResultType, size_t StartHitNo, size_t ResultLimit);
 
     /* request handler: run_query: required (branch) */
-    virtual void handle__run_query(string &Result, const char *CorpusName, const char *Query, const char *ResultType, size_t StartHitNo, size_t ResultLimit, int TimeOut, const string& ReqPath, const NavHint& Hint);
+    virtual void handle__run_query(std::string &Result, const char *CorpusName, const char *Query, const char *ResultType, size_t StartHitNo, size_t ResultLimit, int TimeOut, const std::string& ReqPath, const NavHint& Hint);
 
     /** request handler: expand_terms: required (leaf|branch) */
-    virtual void handle__expand_terms(string &Result, const string& pipeline, const string& terms, int timeout, const string &corpus);
+    virtual void handle__expand_terms(std::string &Result, const std::string& pipeline, const std::string& terms, int timeout, const std::string &corpus);
 
     /** request handler: status: required (leaf|branch) */
-    virtual void handle__status(string &Result, int timeout=10, bool verbose=false);
+    virtual void handle__status(std::string &Result, int timeout=10, bool verbose=false);
 
     /** request handler: info: required (leaf|branch) */
-    virtual void handle__info(string &Result, int timeout=10, bool verbose=false);
+    virtual void handle__info(std::string &Result, int timeout=10, bool verbose=false);
 
     /** request handler: reload: required (leaf|branch) */
-    virtual void handle__reload(string &Result, int depth=0);
+    virtual void handle__reload(std::string &Result, int depth=0);
 
     /** request handler: clear_cache: required (leaf|branch) */
-    virtual void handle__clear_cache(string &Result, int depth=0);
+    virtual void handle__clear_cache(std::string &Result, int depth=0);
 
     /** request handler: nodes: required (leaf|branch; since v2.2.8) */
-    virtual void handle__nodes(string &Result, int depth=-1);
+    virtual void handle__nodes(std::string &Result, int depth=-1);
 
     /** request handler: ddc_close_socket: required (leaf|branch) */
-    virtual void handle__close_socket(string &Result, SOCKET &rConnectedSocket);
+    virtual void handle__close_socket(std::string &Result, SOCKET &rConnectedSocket);
 
 public:
     //--------------------------------------------------------------
@@ -360,10 +360,10 @@ public:
     void InitHostMap();
 
     /** pass request to each subcorpus host and fetch results into a vector<> */
-    void GetSubcorpusJsonStrings(vector<string>& Results, const string &request, int timeout=10);
+    void GetSubcorpusJsonStrings(std::vector<std::string>& Results, const std::string &request, int timeout=10);
 
     /** pass request to each subcorpus host, fetch results, and collect into a single JSON array */
-    string GetSubcorpusJsonArray(const string &request, int timeout=10);
+    std::string GetSubcorpusJsonArray(const std::string &request, int timeout=10);
 
     /** new top-level guts for handle__run_query(); uses m_FHResult and m_QueryData */
     void RunDistributed();
@@ -378,19 +378,19 @@ public:
     NetworkErrorsEnum RunGetHitStrings();
 
     /** backwards-compatible guts for handle__run_query() */
-    NetworkErrorsEnum RunDistributed(string Query,
-                                     const string& ResultType,
+    NetworkErrorsEnum RunDistributed(std::string Query,
+                                     const std::string& ResultType,
                                      size_t   StartHitNo,
                                      size_t   ResultLimit,
                                      int&     iInternalError,
                                      size_t&  EndHitNo,
                                      size_t&  HitsCount,
                                      int      TimeOut,
-                                     string&  ResultString,
+                                     std::string&  ResultString,
                                      size_t&  RelevantDocsCount,
-                                     string&  HitDistrib,
-                                     string&  DocDistrib,
-                                     string&  HitsKey);
+                                     std::string&  HitDistrib,
+                                     std::string&  DocDistrib,
+                                     std::string&  HitsKey);
 
     /** mid-level: update the navigation cache from runq.navHint, runq.navKey if applicable */
     void UpdateNavCache();
@@ -399,20 +399,20 @@ public:
      *  \li updates runq.m_navKey and runq.m_navHint to point to the next available hit
      */
     NetworkErrorsEnum GetHitContexts(CFirstHitsQueryResult& FHResult,
-                                     const string& ResultType,
+                                     const std::string& ResultType,
                                      DDCFormatTypeEnum ResultTypeE,
                                      CSelectedHosts& SelectedHosts,
                                      int&    InternalError,
                                      int     TimeOut,
-                                     string& ResultString
+                                     std::string& ResultString
         );
 
     /** mid-level guts for handle__run_query() , count-queries only */
-    NetworkErrorsEnum GetHitCounts(CFirstHitsQueryResult& FHResult, DDCFormatTypeEnum ResultTypeE, string& ResultString);
+    NetworkErrorsEnum GetHitCounts(CFirstHitsQueryResult& FHResult, DDCFormatTypeEnum ResultTypeE, std::string& ResultString);
 
     /** old guts for handle__run_query() phase 1 */
     void GetFirstHitsFromCorpora(const CSelectedHosts& SelectedHosts,
-                                 const string  Query,
+                                 const std::string  Query,
                                  const size_t  StartHitNo,
                                  const size_t  ResultLimit,
                                  const int     TimeOut,
@@ -420,40 +420,40 @@ public:
 
     /** send a single get_hit_strings request (used by both parallel and serial modes) */
     NetworkErrorsEnum SendGetHitStringsRequest(BYTE SelectedHostNo,
-                                               const vector< vector<size_t> >& SortedHits,
-                                               const vector<size_t>& FirstOffsets,
-                                               const string& ResultType);
+                                               const std::vector< std::vector<size_t> >& SortedHits,
+                                               const std::vector<size_t>& FirstOffsets,
+                                               const std::string& ResultType);
     
     /** old guts for handle__run_query() phase 2 */
     NetworkErrorsEnum GetHitStringsFromOneCorpus(CHost& Host,
-                                                 const string& ResultType,
+                                                 const std::string& ResultType,
                                                  size_t StartHitNo,
                                                  size_t ResultLimit,
                                                  int   TimeOut,
                                                  SOCKET& CorpusSocket,
                                                  int&    InternalError,
-                                                 string& Result,
-                                                 string& ResultHint);
+                                                 std::string& Result,
+                                                 std::string& ResultHint);
 
     /** heuristically extract user-specified subcorpora from ":CORPORA" clause of current query, called by RunDistributed()
      * \li uses (parsed) input query from m_QueryData
      * \li appends parsed daughter paths to \a m_QueryData.SelectedHosts (which is assumed to be empty when this method is called)
      * \li returns false only when a network error occurs
      */
-    bool   ReadSelectedHosts(string& CleanQuery);
+    bool   ReadSelectedHosts(std::string& CleanQuery);
 
     /** find Host-ID (index in m_Hosts[]) for a given CorpusName (short form, uses m_HostIdMap[])
      *  \returns host-ID for \a CorpusName on success, otherwise m_Hosts.size()
      */
-    size_t FindHostID(const string& CorpusName) const;
+    size_t FindHostID(const std::string& CorpusName) const;
 
     /** find pointer to host in m_Hosts[] for a given CorpusName
      * \returns pointer into m_Hosts[] for \a CorpusName on success, otherwise NULL
      */
-    CHost* FindHost(const string& CorpusName);
+    CHost* FindHost(const std::string& CorpusName);
 
     /** aligns user-request CorpusPath into shared (~runq.ReqPath), initial (immediate daughter), and non-initial (grandchildren etc.) components */
-    void AlignCorpusPath(const string& UserPath, string& Dtr, string& Rest);
+    void AlignCorpusPath(const std::string& UserPath, std::string& Dtr, std::string& Rest);
 };
 
 /** compatibility typedef for ddc < v2.0.23 */

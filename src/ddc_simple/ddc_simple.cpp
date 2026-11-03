@@ -30,6 +30,8 @@
 #include "../jsoncpp/include/json/json.h"
 
 
+using namespace std;
+
 extern size_t AllBytesRead;;
 
 #ifdef DETECT_MEMORY_LEAK

@@ -49,39 +49,39 @@ public:
     bool m_bNegated;
 
     //! the string from which this node was created
-    string m_Source;
+    std::string m_Source;
 
     //! all occurrences of this node in the current \ref period_def "subcorpus", which should be highlighted
-    vector<CTokenNo> m_Occurrences;
+    std::vector<CTokenNo> m_Occurrences;
 
     //! should DDC uses m_OccurrenceNodeIndices (m_OccurrenceNodeIndices is necessary only for #less_by_rank)
     bool m_bUseNodeIndices;
 
     //! query node indices for each occurrence (the origin for each occurrence)
-    vector<BYTE> m_OccurrenceNodeIndices;
+    std::vector<BYTE> m_OccurrenceNodeIndices;
 
     //! should DDC use m_OccurrenceMatchIds to track match-ids?
     bool m_bUseMatchIds;
 
     //! match-ids for each occurrence in m_Occurrences (only if m_bUseMatchIds is true)
-    vector<BYTE> m_OccurrenceMatchIds;
+    std::vector<BYTE> m_OccurrenceMatchIds;
 
     //! all hits of this node in the current \ref period_def "subcorpora"
-    vector<CHit> m_Hits;
+    std::vector<CHit> m_Hits;
 
     //! a reference to the parent holder (moo: should be unused until evaluation time, but isn't!)
     const CConcHolder* m_pHolder;
 
     //! the division of m_Occurrences by chunks , so m_ChunkLengths[0]+m_ChunkLengths[1]... = m_Occurrences.size() ;
     //! used by near() queries.
-    vector<DWORD> m_ChunkLengths;
+    std::vector<DWORD> m_ChunkLengths;
 
     //! chunk offsets, used by CQuerySequenceNode queries; use EnsureChunkOffsets() to populate if required
     /// \li introduced in v2.1.19; still unused (should probably be used to allow binary-search seek for NEAR queries
-    vector<DWORD> m_ChunkOffsets;
+    std::vector<DWORD> m_ChunkOffsets;
 
     //! ???
-    vector<int> m_CacheIds;
+    std::vector<int> m_CacheIds;
 
 
     //! Constructor
@@ -182,7 +182,7 @@ public:
 
     //! get average size of gap between breaks in m_Hits[]; returned value is always >= 1
     inline DWORD BreakStride() const
-    { return m_Hits.empty() ? 1 : max((size_t)1, (m_Hits.back().m_BreakNo-m_Hits.front().m_BreakNo)/m_Hits.size()); };
+    { return m_Hits.empty() ? 1 : std::max((size_t)1, (m_Hits.back().m_BreakNo-m_Hits.front().m_BreakNo)/m_Hits.size()); };
 };
 
 //----------------------------------------------------------------------
@@ -194,7 +194,7 @@ public:
 class CQueryBinaryOperationNode : public CQueryNode 
 {
     //! add the hit list of "NodeFrom" to the back of "First"
-    void hits_add(const CQueryNode& NodeFrom, vector<CHit>::const_iterator First);
+    void hits_add(const CQueryNode& NodeFrom, std::vector<CHit>::const_iterator First);
 
 public:
     //! the first operation member
@@ -211,7 +211,7 @@ public:
         : CQueryNode(false), m_pChild1(dtr1), m_pChild2(dtr2)
     {};
 
-    void Create(const CConcHolder*  pHolder, CQueryNode* child1, CQueryNode* child2, string Operation);
+    void Create(const CConcHolder*  pHolder, CQueryNode* child1, CQueryNode* child2, std::string Operation);
 
     virtual ~CQueryBinaryOperationNode();
 
@@ -274,10 +274,10 @@ class CQueryTokenNode : public CQueryNode
 {
 public:
     //!  find index items  in the index which is called m_IndexName
-    vector<DWORD> m_IndexItems;
+    std::vector<DWORD> m_IndexItems;
 
     //! the name of index or break collection on which this node is built (see  CQueryChunkNode and  CQueryTokenNode nodes)
-    string m_IndexName;
+    std::string m_IndexName;
 
     //! true, if it is a chunk (NP, VP and so on)
     bool m_bChunk;
@@ -308,64 +308,64 @@ public:
     virtual bool IsUniversalWildcard() const;
 
     //! low-level: populates m_IndexName and returns appropriate index; throws exception if no appropriate index is found
-    CStringIndexSet* GetIndex(const CConcHolder* pHolder, const string &IndexName);
+    CStringIndexSet* GetIndex(const CConcHolder* pHolder, const std::string &IndexName);
 
     //! low-level: makes m_IndexItems unique
     void MakeUnique(void);
 
     //! create pattern for matching literal index values (`$INDEX=@STRING' queries)
-    bool CreateStringPattern(const CConcHolder* pHolder, const string& IndexName, const string& Value);
+    bool CreateStringPattern(const CConcHolder* pHolder, const std::string& IndexName, const std::string& Value);
 
     //! create pattern for matching literal index values (`$INDEX=/REGEX/' queries)
-    bool CreateRegexPattern(const CConcHolder* pHolder, const string& IndexName, const string& Regex, bool negated=false);
+    bool CreateRegexPattern(const CConcHolder* pHolder, const std::string& IndexName, const std::string& Regex, bool negated=false);
 
     //! create pattern for matching literal index values (`$INDEX=@{VAL1,...}' queries)
-    bool CreateSetPattern(const CConcHolder* pHolder, const string& IndexName, const set<string>& Values);
+    bool CreateSetPattern(const CConcHolder* pHolder, const std::string& IndexName, const std::set<std::string>& Values);
 
     //! create pattern for matching set-valued right-truncated (prefix-set) queries (`$INDEX={PREFIX,...}*')
-    bool CreatePrefixSetPattern(const CConcHolder* pHolder, const string& IndexName, const set<string>& Prefixes);
+    bool CreatePrefixSetPattern(const CConcHolder* pHolder, const std::string& IndexName, const std::set<std::string>& Prefixes);
 
     //! create pattern for matching simple right-truncated (prefix) queries (`$INDEX=PREFIX*')
-    bool CreatePrefixPattern(const CConcHolder* pHolder, const string& IndexName, const string& Prefix);
+    bool CreatePrefixPattern(const CConcHolder* pHolder, const std::string& IndexName, const std::string& Prefix);
 
     //! create pattern for matching set-valued left-truncated (suffix-set) queries (`$INDEX=*{SUFFIX,...}'): uses regex
-    bool CreateSuffixSetPattern(const CConcHolder* pHolder, const string& IndexName, const set<string>& Suffixes);
+    bool CreateSuffixSetPattern(const CConcHolder* pHolder, const std::string& IndexName, const std::set<std::string>& Suffixes);
 
     //! create pattern for matching set-valued left-truncated (suffix-set) queries (`$INDEX=*SUFFIX'): uses regex
-    bool CreateSuffixPattern(const CConcHolder* pHolder, const string& IndexName, const string& Suffix);
+    bool CreateSuffixPattern(const CConcHolder* pHolder, const std::string& IndexName, const std::string& Suffix);
 
     //! create pattern for matching set-valued substring (infix-set) queries (`$INDEX=*{INFIX,...}*'): uses regex
-    bool CreateInfixSetPattern(const CConcHolder* pHolder, const string& IndexName, const set<string>& Infixes);
+    bool CreateInfixSetPattern(const CConcHolder* pHolder, const std::string& IndexName, const std::set<std::string>& Infixes);
 
     //! create pattern for matching simple substring (infix) queries (`$INDEX=*INFIX*'): uses regex
-    bool CreateInfixPattern(const CConcHolder* pHolder, const string& IndexName, const string& Infix);
+    bool CreateInfixPattern(const CConcHolder* pHolder, const std::string& IndexName, const std::string& Infix);
 
     //! create universal-match set
-    bool CreateUniversalPattern(const CConcHolder *pHolder, const string& SourceStr="*");
+    bool CreateUniversalPattern(const CConcHolder *pHolder, const std::string& SourceStr="*");
 
     //! create empty match-set
-    bool CreateNullPattern(const CConcHolder *pHolder, const string& IndexName="Token");
+    bool CreateNullPattern(const CConcHolder *pHolder, const std::string& IndexName="Token");
 
     //! create lemma-match pattern (old)
-    bool CreateLemmaPattern(const CConcHolder* pHolder, const string& Value);
+    bool CreateLemmaPattern(const CConcHolder* pHolder, const std::string& Value);
 
     //! create pattern which is associated with "Thes" index (old)
-    bool CreateThesPattern(const CConcHolder* pHolder, const string& IndexName, const string& src);
+    bool CreateThesPattern(const CConcHolder* pHolder, const std::string& IndexName, const std::string& src);
 
     //! create pattern which is associated with "MorphPattern" or "Lemma" index (old)
-    bool CreateMorphAnnotationPattern(const CConcHolder* pHolder, const string& IndexName, const vector<string> &Items);
+    bool CreateMorphAnnotationPattern(const CConcHolder* pHolder, const std::string& IndexName, const std::vector<std::string> &Items);
 
     //! create pattern which loads target values from the file \a FileName
-    bool CreateFileList(const CConcHolder* pHolder, const string &IndexName, const string& FileName);
+    bool CreateFileList(const CConcHolder* pHolder, const std::string &IndexName, const std::string& FileName);
 
     //! create pattern which is associated with "Chunk" index 
-    bool CreateChunkPattern(const CConcHolder* pHolder, const string& IndexName, const string& ChunkTypeStr);
+    bool CreateChunkPattern(const CConcHolder* pHolder, const std::string& IndexName, const std::string& ChunkTypeStr);
 
     //! create an anchor pattern
-    bool CreateAnchorPattern(const CConcHolder *pHolder, const string& BreakName, int anchor);
+    bool CreateAnchorPattern(const CConcHolder *pHolder, const std::string& BreakName, int anchor);
 
     //! generic regex query utility
-    bool BuildRegExp(string RegExpStr, vector<DWORD>& IndexItems, bool negated=false);
+    bool BuildRegExp(std::string RegExpStr, std::vector<DWORD>& IndexItems, bool negated=false);
 
     void    EvaluateWithoutHits();
     void    Evaluate(bool bSeparateHits=false);
@@ -383,13 +383,13 @@ public:
 class CQuerySequenceNode : public CQueryNode
 {
 public:
-    vector<BYTE>                    m_DistanceOps;  
-    vector<BYTE>                    m_Distances;    
-    vector<CQueryTokenNode*>        m_Items;
+    std::vector<BYTE>                    m_DistanceOps;  
+    std::vector<BYTE>                    m_Distances;    
+    std::vector<CQueryTokenNode*>        m_Items;
 
     //! add a distance to m_Distances, return false if the value is too large
     //! \deprecated
-    bool AddDistance(const string& s, char op='<');
+    bool AddDistance(const std::string& s, char op='<');
         
 public:
         
@@ -398,10 +398,10 @@ public:
 
     //! create the node during yacc parsing
     //! \deprecated in favor of second form  Create(const CConcHolder* pHolder, const vector<const CQueryTokenNode*>& Items, const vector<BYTE>& Distances);
-    bool    Create(const CConcHolder* pHolder, const vector<const CQueryNode*>& SequenceObj, const vector<string>& DistanceStrings);
+    bool    Create(const CConcHolder* pHolder, const std::vector<const CQueryNode*>& SequenceObj, const std::vector<std::string>& DistanceStrings);
 
     //! moo: create the node after initial parsing (compile-time)
-    bool    Create(const CConcHolder* pHolder, const vector<CQueryTokenNode*>& Items, const vector<BYTE>& Distances, const vector<BYTE>& DistanceOps);
+    bool    Create(const CConcHolder* pHolder, const std::vector<CQueryTokenNode*>& Items, const std::vector<BYTE>& Distances, const std::vector<BYTE>& DistanceOps);
 
     void    EvaluateWithoutHits();
     void    Evaluate(bool bSeparateHits=false);
@@ -614,7 +614,7 @@ struct CQOccurrenceIterator {
 
 /**
  * DDC_OCCITER_LB_COEF
- *  + minimum coefficient for deciding between linear increment and std::lower_bound() on CQTokenOccurrenceIterator::seek()
+ *  + minimum coefficient for deciding between linear increment and lower_bound() on CQTokenOccurrenceIterator::seek()
 //  + heuristic for approximating number of linear-search ops per binary-search visitation (empirically set to 4)
 //  + speeds up phrase-, WITH-, and WITHOUT-queries by up to 69%,  e.g. ("@das @Haus")
 //  + can hurt up to 5% for "very simple" &&-queries, e.g. (@Haus && @Garten)
@@ -667,7 +667,7 @@ struct CQTokenOccurrenceIterator : public CQOccurrenceIterator
     inline void assign(CQueryNode *node_)
     {
         CQOccurrenceIterator::assign(node_);
-        stride = node && cnt ? max((CTokenNo)1, (node->m_Occurrences.back()-node->m_Occurrences.front())/cnt) : 1;
+        stride = node && cnt ? std::max((CTokenNo)1, (node->m_Occurrences.back()-node->m_Occurrences.front())/cnt) : 1;
     };
 
     /* node-assignment operator; wraps assign() */
@@ -711,7 +711,7 @@ struct CQTokenOccurrenceIterator : public CQOccurrenceIterator
     {
         if (valid() && tmin() < Tok) {
             if ((Tok-tmin())/stride > DDC_OCCITER_LB_COEF*log2u32(cnt-cur)) {
-                cur = lower_bound(node->m_Occurrences.begin()+cur, node->m_Occurrences.end(), Tok) - node->m_Occurrences.begin();
+                cur = std::lower_bound(node->m_Occurrences.begin()+cur, node->m_Occurrences.end(), Tok) - node->m_Occurrences.begin();
             } else {
                 do { ++cur; } while (valid() && tmin() < Tok);
             }
@@ -735,7 +735,7 @@ struct CQTokenOccurrenceIterator : public CQOccurrenceIterator
  *
  *  Formerly a hidden function in QueryNode.cpp.
  */
-extern void GetWordForms (const MorphLanguageEnum Langua, const string& src, set<string>& WordForms);
+extern void GetWordForms (const MorphLanguageEnum Langua, const std::string& src, std::set<std::string>& WordForms);
 
 #endif /* QUERY_NODE_H */
 

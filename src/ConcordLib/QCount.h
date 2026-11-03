@@ -29,17 +29,17 @@
 /** default count()-query sample size */
 const size_t DDCDefaultCountSampleSize = (size_t)-1;
 
-// workaround for "error: overriding ‘virtual std::invalid_argument::~invalid_argument() throw ()’" under g++-5.4.0 / ubuntu 16.04.6
+// workaround for "error: overriding ‘virtual std::invalid_argument::~std::invalid_argument() throw ()’" under g++-5.4.0 / ubuntu 16.04.6
 #ifndef _GLIBCXX_USE_NOEXCEPT
 # define _GLIBCXX_USE_NOEXCEPT
 #endif
 
 /*! exception type used for aligning count-keys */
-class CQCountKeyBadOccurrence : public invalid_argument
+class CQCountKeyBadOccurrence : public std::invalid_argument
 {
 public:
-    CQCountKeyBadOccurrence(const string& what_arg)
-        : invalid_argument(what_arg)
+    CQCountKeyBadOccurrence(const std::string& what_arg)
+        : std::invalid_argument(what_arg)
     {};
     virtual ~CQCountKeyBadOccurrence() _GLIBCXX_USE_NOEXCEPT {};
 };
@@ -56,7 +56,7 @@ class CQCountKeyExpr : public CQuery
 {
 public:
     /** default constructor */
-    CQCountKeyExpr(const string& label="")
+    CQCountKeyExpr(const std::string& label="")
         : CQuery(label)
     {};
 
@@ -74,27 +74,27 @@ public:
     virtual bool Compile(CQueryCompiler *compiler);
 
     /** get string key for the hit \a Hit ; default just throws an exception */
-    virtual string& Evaluate(const CHit &Hit);
+    virtual std::string& Evaluate(const CHit &Hit);
 
     /** stringification (default returns m_Label) */
-    virtual string toString() { return m_Label; };
+    virtual std::string toString() { return m_Label; };
 
     /** json stringification: class */
-    string jsonClass() { return "CQCountKeyExpr"; };
+    std::string jsonClass() { return "CQCountKeyExpr"; };
 
     /** json stringification: data */
-    string jsonData() { return "\"label\":" + jsonStr(m_Label); };
+    std::string jsonData() { return "\"label\":" + jsonStr(m_Label); };
 };
 
 //----------------------------------------------------------------------
 /*! count-key expression: constant */
 class CQCountKeyExprConstant : public CQCountKeyExpr {
 public:
-    CQCountKeyExprConstant(const string &label="*") : CQCountKeyExpr(label) {};
+    CQCountKeyExprConstant(const std::string &label="*") : CQCountKeyExpr(label) {};
     virtual ~CQCountKeyExprConstant() {};
-    virtual string& Evaluate(const CHit &Hit) { return m_Label; };
-    virtual string jsonClass() { return "CQCountKeyExprConstant"; };
-    virtual string toString() { return string("@'") + escapeChars(m_Label,"\\'") + "'"; };
+    virtual std::string& Evaluate(const CHit &Hit) { return m_Label; };
+    virtual std::string jsonClass() { return "CQCountKeyExprConstant"; };
+    virtual std::string toString() { return std::string("@'") + escapeChars(m_Label,"\\'") + "'"; };
 };
 
 //----------------------------------------------------------------------
@@ -105,10 +105,10 @@ public:
     DWORD  m_CurFile;
 
     //! last key generated
-    string m_CurKey;
+    std::string m_CurKey;
 
 public:
-    CQCountKeyExprMeta(const string &label="*") : CQCountKeyExpr(label), m_CurFile(-1), m_CurKey("") {};
+    CQCountKeyExprMeta(const std::string &label="*") : CQCountKeyExpr(label), m_CurFile(-1), m_CurKey("") {};
     virtual ~CQCountKeyExprMeta() {};
 };
 
@@ -118,10 +118,10 @@ class CQCountKeyExprFileId : public CQCountKeyExprMeta {
 private:
     char buf[16];
 public:
-    CQCountKeyExprFileId(const string &label="fileid") : CQCountKeyExprMeta(label) {};
+    CQCountKeyExprFileId(const std::string &label="fileid") : CQCountKeyExprMeta(label) {};
     virtual ~CQCountKeyExprFileId() {};
-    virtual string& Evaluate(const CHit &Hit);
-    virtual string jsonClass() { return "CQCountKeyExprFileId"; };
+    virtual std::string& Evaluate(const CHit &Hit);
+    virtual std::string jsonClass() { return "CQCountKeyExprFileId"; };
 };
 
 //----------------------------------------------------------------------
@@ -130,20 +130,20 @@ class CQCountKeyExprIndexed : public CQCountKeyExprMeta {
 public:
     class CConcordance* m_pConcordance;
 public:
-    CQCountKeyExprIndexed(const string &label="file") : CQCountKeyExprMeta(label) {};
+    CQCountKeyExprIndexed(const std::string &label="file") : CQCountKeyExprMeta(label) {};
     virtual ~CQCountKeyExprIndexed() {};
     virtual bool Compile(CQueryCompiler *compiler);
-    virtual string jsonClass() { return "CQCountKeyExprIndexed"; };
+    virtual std::string jsonClass() { return "CQCountKeyExprIndexed"; };
 };
 
 //----------------------------------------------------------------------
 /*! count-key expression: filename */
 class CQCountKeyExprFileName : public CQCountKeyExprIndexed {
 public:
-    CQCountKeyExprFileName(const string &label="filename") : CQCountKeyExprIndexed(label) {};
+    CQCountKeyExprFileName(const std::string &label="filename") : CQCountKeyExprIndexed(label) {};
     virtual ~CQCountKeyExprFileName() {};
-    virtual string& Evaluate(const CHit &Hit);
-    virtual string jsonClass() { return "CQCountKeyExprFileName"; };
+    virtual std::string& Evaluate(const CHit &Hit);
+    virtual std::string jsonClass() { return "CQCountKeyExprFileName"; };
 };
 
 //----------------------------------------------------------------------
@@ -158,11 +158,11 @@ public:
     char                 buf[16];
 
 public:
-    CQCountKeyExprDate(const string &label="date") : CQCountKeyExprIndexed(label), m_pDates(NULL) {};
+    CQCountKeyExprDate(const std::string &label="date") : CQCountKeyExprIndexed(label), m_pDates(NULL) {};
     virtual ~CQCountKeyExprDate() {};
     virtual bool Compile(CQueryCompiler *compiler);
-    virtual string& Evaluate(const CHit &Hit);
-    virtual string jsonClass() { return "CQCountKeyExprDate"; };
+    virtual std::string& Evaluate(const CHit &Hit);
+    virtual std::string jsonClass() { return "CQCountKeyExprDate"; };
 };
 
 //----------------------------------------------------------------------
@@ -172,13 +172,13 @@ class CQCountKeyExprDateSlice : public CQCountKeyExprDate
 public:
     unsigned int m_slice;
 public:
-    CQCountKeyExprDateSlice(const string &label="date", int slice=1) : CQCountKeyExprDate(label), m_slice(slice) {};
+    CQCountKeyExprDateSlice(const std::string &label="date", int slice=1) : CQCountKeyExprDate(label), m_slice(slice) {};
     virtual ~CQCountKeyExprDateSlice() {};
     virtual bool Compile(CQueryCompiler *compiler);
-    virtual string& Evaluate(const CHit &Hit);
-    virtual string toString() { return m_Label + Format("/%d",m_slice); };
-    virtual string jsonClass() { return "CQCountKeyExprDateSlice"; };
-    virtual string jsonData() { return CQCountKeyExprDate::jsonData() + Format(",\"slice\":%d",m_slice); };
+    virtual std::string& Evaluate(const CHit &Hit);
+    virtual std::string toString() { return m_Label + Format("/%d",m_slice); };
+    virtual std::string jsonClass() { return "CQCountKeyExprDateSlice"; };
+    virtual std::string jsonData() { return CQCountKeyExprDate::jsonData() + Format(",\"slice\":%d",m_slice); };
 };
 
 //----------------------------------------------------------------------
@@ -188,12 +188,12 @@ class CQCountKeyExprBibl : public CQCountKeyExprIndexed
 public:
     const CFreeBiblIndexInterface *m_Bibl;
 public:
-    CQCountKeyExprBibl(const string &attrName="") : CQCountKeyExprIndexed(attrName) {};
+    CQCountKeyExprBibl(const std::string &attrName="") : CQCountKeyExprIndexed(attrName) {};
     virtual ~CQCountKeyExprBibl() {};
     virtual bool Compile(CQueryCompiler *compiler);
-    virtual string& Evaluate(const CHit &Hit);
-    virtual string jsonClass() { return "CQCountKeyExprBibl"; };
-    virtual string toString() { return string("'") + escapeChars(m_Label,"\\'") + "'"; };
+    virtual std::string& Evaluate(const CHit &Hit);
+    virtual std::string jsonClass() { return "CQCountKeyExprBibl"; };
+    virtual std::string toString() { return std::string("'") + escapeChars(m_Label,"\\'") + "'"; };
 };
 
 //----------------------------------------------------------------------
@@ -202,21 +202,21 @@ class CQCountKeyExprRegex : public CQCountKeyExprIndexed
 {
 public:
     CQCountKeyExpr *m_Src;
-    string      m_Pattern;
-    string      m_Replacement;
-    string      m_Modifiers;
+    std::string      m_Pattern;
+    std::string      m_Replacement;
+    std::string      m_Modifiers;
     bool        isGlobal;
     RML_RE     *m_Regex;
 
 public:
-    CQCountKeyExprRegex(CQCountKeyExpr *src, const string& pattern, const string &replacement, const string& modifiers=string(""))
+    CQCountKeyExprRegex(CQCountKeyExpr *src, const std::string& pattern, const std::string &replacement, const std::string& modifiers=std::string(""))
         : CQCountKeyExprIndexed("regex"), m_Src(src), m_Pattern(pattern), m_Replacement(replacement), m_Modifiers(modifiers), isGlobal(false), m_Regex(NULL) {};
     virtual ~CQCountKeyExprRegex();
     virtual void DisownChildren();
     virtual bool CanCountByFile() const { return m_Src->CanCountByFile(); };
     virtual bool Compile(CQueryCompiler *compiler);
-    virtual string& Evaluate(const CHit &Hit);
-    inline void EvaluateRegex(const CHit &Hit, const string& srcKey)
+    virtual std::string& Evaluate(const CHit &Hit);
+    inline void EvaluateRegex(const CHit &Hit, const std::string& srcKey)
     {
         m_CurKey = srcKey;
         if (isGlobal)
@@ -228,9 +228,9 @@ public:
   
     //-- ddcObject API
     virtual ddcObjectList Children() const;
-    virtual string toString();
-    virtual string jsonClass() { return "CQCountKeyExprRegex"; };
-    virtual string jsonData();
+    virtual std::string toString();
+    virtual std::string jsonClass() { return "CQCountKeyExprRegex"; };
+    virtual std::string jsonData();
 };
 
 //----------------------------------------------------------------------
@@ -239,7 +239,7 @@ class CQCountKeyExprToken : public CQCountKeyExprIndexed
 {
 public:
     //! name of token index attribute
-    string m_IndexName;
+    std::string m_IndexName;
 
     //! match-id of anchor token (0 for any)
     BYTE   m_MatchId;
@@ -251,7 +251,7 @@ public:
     CStringIndexSet *m_pIndex;
 
 public:
-    CQCountKeyExprToken(const string &IndexName="Token", BYTE MatchId=0, int Offset=0)
+    CQCountKeyExprToken(const std::string &IndexName="Token", BYTE MatchId=0, int Offset=0)
         : CQCountKeyExprIndexed("token"), m_IndexName(IndexName), m_MatchId(MatchId), m_Offset(Offset), m_pIndex(NULL)
     {};
     virtual ~CQCountKeyExprToken() {};
@@ -259,10 +259,10 @@ public:
     virtual BYTE SetMatchId(BYTE matchId) { return m_MatchId = matchId; };
     virtual bool CanCountByFile() const { return false; };
     virtual bool Compile(CQueryCompiler *compiler);
-    virtual string& Evaluate(const CHit &Hit);
-    virtual string toString();
-    virtual string jsonClass() { return "CQCountKeyExprToken"; };
-    virtual string jsonData();
+    virtual std::string& Evaluate(const CHit &Hit);
+    virtual std::string toString();
+    virtual std::string jsonClass() { return "CQCountKeyExprToken"; };
+    virtual std::string jsonData();
 };
 
 //----------------------------------------------------------------------
@@ -271,10 +271,10 @@ class CQCountKeyExprList : public CQCountKeyExpr
 {
 public:
     /** underlying expression list */
-    vector<CQCountKeyExpr*> m_Exprs;
+    std::vector<CQCountKeyExpr*> m_Exprs;
 
     /** temporary key */
-    string m_Key;
+    std::string m_Key;
 
 public:
     CQCountKeyExprList() : m_Key("") {};
@@ -301,14 +301,14 @@ public:
     virtual BYTE GetMatchId() const;
 
     virtual bool Compile(CQueryCompiler *compiler);
-    virtual string& Evaluate(const CHit &Hit);
+    virtual std::string& Evaluate(const CHit &Hit);
 
     //-- ddcObject API
     virtual ddcObjectList Children() const;
     virtual void DisownChildren();
-    virtual string toString();
-    virtual string jsonClass() { return "CQCountKeyExprList"; };
-    virtual string jsonData();
+    virtual std::string toString();
+    virtual std::string jsonClass() { return "CQCountKeyExprList"; };
+    virtual std::string jsonData();
 
 };
 
@@ -329,10 +329,10 @@ public:
     HitSortEnum m_sort;
 
     //! maximum sort-key to return (empty for none)
-    string m_lo;
+    std::string m_lo;
 
     //! minimum sort-key to return (empty for none)
-    string m_hi;
+    std::string m_hi;
 
     //! list of count-bin metadata key expressions
     CQCountKeyExprList* m_keys;
@@ -345,7 +345,7 @@ public:
 
 public:
     //! bison constructor
-    CQCount(CQuery *dtr_=NULL, CQCountKeyExprList* keys_=NULL, size_t sample_=DDCDefaultCountSampleSize, HitSortEnum sort_=NoSort, string lb="", string ub="")
+    CQCount(CQuery *dtr_=NULL, CQCountKeyExprList* keys_=NULL, size_t sample_=DDCDefaultCountSampleSize, HitSortEnum sort_=NoSort, std::string lb="", std::string ub="")
         : CQuery("count"),
           m_dtr(dtr_),
           m_sample(sample_),
@@ -403,12 +403,12 @@ public:
     virtual void ConvertCountsToHits(CQueryResult &Result, size_t Limit);
 
     //! \b DEBUG: return a canonical string form for this query
-    virtual string toString();
+    virtual std::string toString();
     //virtual string optionsToString() { return ""; };
-    virtual string countOptionsToString();
+    virtual std::string countOptionsToString();
 
-    virtual string jsonClass() { return "CQCount"; };
-    virtual string jsonData();
+    virtual std::string jsonClass() { return "CQCount"; };
+    virtual std::string jsonData();
     //virtual string optionsToJson() { return "null"; };
 
     //! wrapper for m_dtr->ClearNode()
@@ -436,7 +436,7 @@ public:
 class CQKeys : public CQuery {
 public:
     //! typedef for target value-tuples
-    typedef set< vector<string> > StringTupleSet;
+    typedef std::set< std::vector<std::string> > StringTupleSet;
   
 public:
     //! underlying count() query supplying keys
@@ -446,13 +446,13 @@ public:
     size_t m_CountLimit;
 
     //! target index-tuple
-    vector<string> m_IndexNames;
+    std::vector<std::string> m_IndexNames;
 
     //! match-id of anchor token (0 for any)
     BYTE   m_MatchId;
 
     //! pseudo-private: temporary sub-queries for each CQCountKeyExprToken key-expression in m_qCount->m_keys->m_Exprs
-    vector<CQTokSet*> m_dtrs;
+    std::vector<CQTokSet*> m_dtrs;
 
     //! pseudo-private: proxy query for join of independent attributes (WITH)
     CQuery *m_proxy;
@@ -467,7 +467,7 @@ public:
     {};
 
     //! bison constructor
-    CQKeys(CQCount *qCount, size_t CountLimit, const vector<string>& IndexNames)
+    CQKeys(CQCount *qCount, size_t CountLimit, const std::vector<std::string>& IndexNames)
         : CQuery("keys"), m_qCount(qCount), m_CountLimit(CountLimit), m_IndexNames(IndexNames), m_MatchId(0), m_proxy(NULL)
     {};
 
@@ -489,10 +489,10 @@ public:
     { return m_MatchId = matchId; };
 
     //! \b DEBUG: return a canonical string form for this query
-    virtual string toString();
+    virtual std::string toString();
 
-    virtual string jsonClass() { return "CQKeys"; };
-    virtual string jsonData();
+    virtual std::string jsonClass() { return "CQKeys"; };
+    virtual std::string jsonData();
 
     //! clears all daugher nodes
     virtual void ClearNode();
@@ -510,10 +510,10 @@ public:
 // functions
 
 /** generate a single count string from a (key,count)-pair */
-void GenerateCountString(string &ResultStr, DDCFormatTypeEnum fmt, const string& key, size_t count);
+void GenerateCountString(std::string &ResultStr, DDCFormatTypeEnum fmt, const std::string& key, size_t count);
 
 /** generate a single count string from a CHit */
-inline void GenerateCountString(string &ResultStr, DDCFormatTypeEnum fmt, const CHit &hit)
+inline void GenerateCountString(std::string &ResultStr, DDCFormatTypeEnum fmt, const CHit &hit)
 { GenerateCountString(ResultStr, fmt, hit.m_SortKey.s, hit.m_Value.m_Count); };
 
 

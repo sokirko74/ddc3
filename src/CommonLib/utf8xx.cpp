@@ -48,6 +48,8 @@
 
 #include "utf8xx.h"
 
+using namespace std;
+
 static const u_int32_t offsetsFromUTF8[6] = {
     0x00000000UL, 0x00003080UL, 0x000E2080UL,
     0x03C82080UL, 0xFA082080UL, 0x82082080UL

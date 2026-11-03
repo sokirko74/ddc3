@@ -17,8 +17,8 @@
 //  along with DDC.  If not, see <http://www.gnu.org/licenses/>.
 //
 #include "../ConcordLib/ConcCommon.h"
-extern string GetParadigm(string WordForm, int LemmaNo, MorphLanguageEnum Langua);
-extern string Lemmatize(string WordForm, MorphLanguageEnum Langua, int& LemmasCount);
+extern std::string GetParadigm(std::string WordForm, int LemmaNo, MorphLanguageEnum Langua);
+extern std::string Lemmatize(std::string WordForm, MorphLanguageEnum Langua, int& LemmasCount);
 
 /*--- emacs style variables ---
  * Local Variables:

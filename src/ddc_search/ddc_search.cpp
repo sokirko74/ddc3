@@ -32,6 +32,8 @@
 #include <fstream>
 #include <string>
 
+using namespace std;
+
 string HeaderFormat;
 int ReceiveTimeOut = 100;
 

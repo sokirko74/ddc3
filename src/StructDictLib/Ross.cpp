@@ -27,6 +27,8 @@
 #include "TempArticle.h"
 
 
+using namespace std;
+
 inline size_t get_size_in_bytes (const CStructEntry& t)
 {
     BYTE b;

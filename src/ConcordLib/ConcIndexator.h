@@ -56,15 +56,15 @@ class CConcIndexator : public CTabFormatIndexator {
 
     void IndexFreeIndex(CIndexDocument* document);
 
-    void IndexOneTableTextArea(const string &Text, const CPageNumber &StartPageFromHeader, size_t &page_breaks_count,
+    void IndexOneTableTextArea(const std::string &Text, const CPageNumber &StartPageFromHeader, size_t &page_breaks_count,
                                CIndexDocument* document);
 
     //!  graphematical definition of a token for DWDSIndex
     bool IsDWDSToken(long GraLine) const;
 
-    void LoadXmlFile(string FileName, const char *pFileBuffer, CBibliography &Bibl);
+    void LoadXmlFile(std::string FileName, const char *pFileBuffer, CBibliography &Bibl);
 
-    void LoadFileIntoGraphan(string FileName, const char *pFileBuffer, CBibliography &Bibl);
+    void LoadFileIntoGraphan(std::string FileName, const char *pFileBuffer, CBibliography &Bibl);
 
 
 public:
@@ -104,16 +104,16 @@ public:
     void CalculateSearchPeriods(DWORD MaxTokenCountInOnePeriod);
 
     //! creates new concordance as union of one or more concordances (new)
-    bool CreateAsUnion(vector<CConcIndexator* > &X, bool inheritOptions = true);
+    bool CreateAsUnion(std::vector<CConcIndexator* > &X, bool inheritOptions = true);
 
     //! creates new concordance as union of one or more concordances (new, filename-based)
-    bool CreateAsUnion(const vector<string> &Xfiles, bool inheritOptions = true);
+    bool CreateAsUnion(const std::vector<std::string> &Xfiles, bool inheritOptions = true);
 
     //! split project uniformly into sub-projects (new; sub-projects inherit parent options)
-    bool SplitProject(vector<CConcIndexator*> &Subs) const;
+    bool SplitProject(std::vector<CConcIndexator*> &Subs) const;
 
     //! split project uniformly into sub-projects (guts, given sub-options as string)
-    bool SplitProject(vector<CConcIndexator*> &Subs, const string &SubOptions) const;
+    bool SplitProject(std::vector<CConcIndexator*> &Subs, const std::string &SubOptions) const;
 
     //! creates morphology index
     bool CreateMorphIndexWrapper();

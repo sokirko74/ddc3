@@ -4,6 +4,8 @@
 #pragma warning (disable : 4786)
 #include "StdConc.h"
 
+using namespace std;
+
 /*--- emacs style variables ---
  * Local Variables:
  *  mode: C++

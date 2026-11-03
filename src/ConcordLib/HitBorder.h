@@ -71,9 +71,9 @@ public:
     */
     struct CBreakCollection {
         //!  short name  of this break collection
-        string m_ShortName;
+        std::string m_ShortName;
         //!  long name  of this break collection
-        string m_LongName;
+        std::string m_LongName;
 
         //! a file for temporally storing \ref break_def "breaks" during indexing
         mutable FILE *m_FileForIndexing;
@@ -81,14 +81,14 @@ public:
         //! the breaks themselves
         ddcBreakVector m_BreakOffsets;
 
-        CBreakCollection(const string &ShortName, const string &LongName);
+        CBreakCollection(const std::string &ShortName, const std::string &LongName);
 
         //! returns the file name for a break collection
-        string GetBreakFileName(string Path) const;
+        std::string GetBreakFileName(std::string Path) const;
 
-        void ReadFromDisk(string Path, bool useMMap = false);
+        void ReadFromDisk(std::string Path, bool useMMap = false);
 
-        bool ClearAll(string Path);
+        bool ClearAll(std::string Path);
 
         void CloseFileForIndexing();
 
@@ -96,80 +96,80 @@ public:
         void AppendBreaks(const ddcBreakVector &From, CTokenNo Offset = 0);
 
         //! for new union: save to file
-        void SaveToFile(const string &FileName);
+        void SaveToFile(const std::string &FileName);
     };
 
 protected:
     //! all breaks
-    vector<CBreakCollection> m_Breaks;
+    std::vector<CBreakCollection> m_Breaks;
 
     //! the map from CBreakCollection.m_ShortName to the index in m_Breaks
-    map<string, int> m_ShortName2BreakCollection;
+    std::map<std::string, int> m_ShortName2BreakCollection;
 
     //! the map from CBreakCollection.m_LongName to the index in m_Breaks
-    map<string, int> m_LongName2BreakCollection;
+    std::map<std::string, int> m_LongName2BreakCollection;
 
     //! a quick reference to file \ref break_def "breaks" (which are also stored in m_Breaks)
     int m_FileBreakCollectionNo;
     //! The name of the default break collection (written in the options file)
-    string m_DefaultBreakName;
+    std::string m_DefaultBreakName;
 
     //!  page number collection
     ddcVecFile<CPageNumber> m_PageBreaks;
 
 
     //! returns the file name for page breaks
-    string GetPageBreaksFileName(string Path) const;
+    std::string GetPageBreaksFileName(std::string Path) const;
 
     //! returns the short name of a break collection by the long or the short name
-    string GetShortNameByName(const string &BreakName) const;
+    std::string GetShortNameByName(const std::string &BreakName) const;
 
     //!
-    vector<DWORD> m_LastTextAreaBreaks;
+    std::vector<DWORD> m_LastTextAreaBreaks;
 
 protected:
     //!    opens for writing all CBreakCollectionDescr::m_FileForIndexing from  m_Breaks
-    bool StartIndexing(string Path);
+    bool StartIndexing(std::string Path);
 
     //!    deletes all \ref break_def "break"  files
-    bool RemoveHitBordersFileAndClear(string Path);
+    bool RemoveHitBordersFileAndClear(std::string Path);
 
     //!    adds one page break
     void AddPageBreak(const CPageNumber &P);
 
     //!    save page break file
-    void SavePageBreaks(const string &ProjectPath);
+    void SavePageBreaks(const std::string &ProjectPath);
 
-    int RegisterBreak(string ShortName, string LongName);
+    int RegisterBreak(std::string ShortName, std::string LongName);
 
-    int EnsureRegisteredBreak(string ShortName, string LongName);
+    int EnsureRegisteredBreak(std::string ShortName, std::string LongName);
 
-    int GetBreakCollectionIndexByName(string ShortName) const;
+    int GetBreakCollectionIndexByName(std::string ShortName) const;
 
     void AddBreakByIndex(DWORD BreakCollectionNo, const CTokenNo &B);
 
 public:
     //! moo: get break collection by long or short name
-    const CBreakCollection *GetBreakCollectionByName(const string &Name) const;
+    const CBreakCollection *GetBreakCollectionByName(const std::string &Name) const;
 
 
     //! moo: get break collection map (dangerous)
-    const vector<CBreakCollection> &GetBreaks(void) const { return m_Breaks; };
+    const std::vector<CBreakCollection> &GetBreaks(void) const { return m_Breaks; };
 
 public:
 
     CHitBorders();
 
     //!return the string representation of break collection descriptions
-    string GetBorderIndicesString() const;
+    std::string GetBorderIndicesString() const;
 
     //! returns the short name of the last valid break collection (long or short) in \c Within
     //! \li if no valid break collection is found, returns m_DefaultBreakName
     //! \li replaces old ProcessHitTypeStrInQueryStr(string& Query)
-    string WithinBreakName(const vector<string> &Within) const;
+    std::string WithinBreakName(const std::vector<std::string> &Within) const;
 
     //!returns a break collection by a short name
-    const ddcBreakVector *GetBreaksByName(const string &ShortName) const;
+    const ddcBreakVector *GetBreaksByName(const std::string &ShortName) const;
 
     //!returns the value of the last file \ref break_def "break" (which should be equal to the last value of any break collection)
     CTokenNo GetCorpusEndTokenNo() const;
@@ -184,26 +184,26 @@ public:
     DWORD GetPageNumber(size_t No) const;
 
     //!returns true if a short name is found in  m_Breaks
-    bool IsRegisteredBreak(const string &ShortName) const;
+    bool IsRegisteredBreak(const std::string &ShortName) const;
 
     //!creates empty elements of m_Breaks by its string descriptions
     void RegisterBorderIndices(const char *IndicesStr);
 
     //!load break collections from the disk
-    bool LoadHitBorders(string Path, bool useMMap = false);
+    bool LoadHitBorders(std::string Path, bool useMMap = false);
 
     //! converts hits to page breaks, which contains this breaks
-    void ConvertHitsToPageBreaks(vector<CHit>::const_iterator hits_begin, vector<CHit>::const_iterator hits_end,
+    void ConvertHitsToPageBreaks(std::vector<CHit>::const_iterator hits_begin, std::vector<CHit>::const_iterator hits_end,
                                  const ddcBreakVector &Breaks, DwordVector &PageBreaks) const;
 
     //! get page break for a given token number as an interator into m_PageBreaks
     ddcVecFile<CPageNumber>::const_iterator GetTokenPageBreak(CTokenNo tok) const;
 
     //! adds one break to a collection identified by a short name (during indexing)
-    void AddBreakByName(const string &ShortName, const CTokenNo &B);
+    void AddBreakByName(const std::string &ShortName, const CTokenNo &B);
 
     //!   closes all CBreakCollectionDescr::m_FileForIndexing from  m_Breaks (during indexing)
-    void BordersEndIndexing(string Path);
+    void BordersEndIndexing(std::string Path);
 
     //!   must be called before indexing each text area in order to create at least on break in each text area
     void StartTextAreaBorders();

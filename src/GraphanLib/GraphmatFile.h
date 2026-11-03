@@ -27,7 +27,7 @@ class CDictionary;
 
 class CGraphmatFile  : public CUnitHolder
 {
-    string                                  m_LastError;
+    std::string                                  m_LastError;
         
 
 
@@ -39,7 +39,7 @@ class CGraphmatFile  : public CUnitHolder
     int                     DealBulletsWithTwoBrackets (size_t StartPos, size_t EndPos);
     bool            DealEnglishStyleFIO (size_t StartPos, size_t EndPos);
     bool            DealAbbrev (size_t  StartPos, size_t EndPos);
-    size_t          FindOborotto (size_t i, size_t HB, short& OborotNo, vector<WORD>& OborortIds) const;
+    size_t          FindOborotto (size_t i, size_t HB, short& OborotNo, std::vector<WORD>& OborortIds) const;
     void            DealOborotto(size_t  HB);
     int                     DealReferences (size_t i,size_t HB);
     void            DealModifierKey (size_t LB, size_t HB);
@@ -70,7 +70,7 @@ public:
     size_t                                  m_MaxParOfs;
     size_t                                  m_TabSize;
     // file for graphematical table
-    string                                  m_GraOutputFile;
+    std::string                                  m_GraOutputFile;
     // Нужно ли запускать делилку на предложения.
     bool                                    m_bSentBreaker;
     // нужно ли конвертировать латиницу в кириллицу внутри русского слова, если это возможно
@@ -98,8 +98,8 @@ public:
         
     // processing 
     bool            LoadDicts();
-    bool            LoadStringToGraphan(const string& szBuffer);
-    const string&   GetLastError() const;
+    bool            LoadStringToGraphan(const std::string& szBuffer);
+    const std::string&   GetLastError() const;
         
     //  browsing results 
         

@@ -22,6 +22,8 @@
 #include "QueryCompiler.h"
 #include "../CommonLib/utilit.h"
 
+using namespace std;
+
 //======================================================================
 // globals
 

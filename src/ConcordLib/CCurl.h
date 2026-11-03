@@ -89,13 +89,13 @@ public:
     CurlHandle m_Curl;
 
     //! current url (maybe UNIX-socket URL)
-    string m_Url;
+    std::string m_Url;
 
     //! current request URL (passed to libcurl)
-    string m_RequestUrl;
+    std::string m_RequestUrl;
 
     //! unix socket path (override)
-    string m_UnixSocketPath;
+    std::string m_UnixSocketPath;
 
     //! current timeout (seconds; default=60)
     long m_Timeout;
@@ -107,14 +107,14 @@ public:
     char m_CurlErr[CURL_ERROR_SIZE];
 
     //! response content buffer (used by default write callback)
-    string m_Response;
+    std::string m_Response;
 
     //! response headers (used by default header callback)
-    vector<string> m_Headers;
+    std::vector<std::string> m_Headers;
 
 public:
     //! constructor implicitly calls url(url)
-    CCurl(const string &url_=string(""), long timeout_=60, long redirects_=10);
+    CCurl(const std::string &url_=std::string(""), long timeout_=60, long redirects_=10);
 
     //! destructor implicitly frees m_Curl
     ~CCurl(void);
@@ -140,7 +140,7 @@ public:
 
     //--------
     //! get current URL
-    inline const string& url(void) const
+    inline const std::string& url(void) const
     { return m_Url; };
 
     //! set current URL (sets m_Url, calls requestUrl(URL) and unixSocketPath(PATH)); auto-detects UNIX socket URLs of the form:
@@ -148,30 +148,30 @@ public:
     //!  - "unix:/path/to/unix/socket|http:///uri/path" (apache mod_proxy style)
     //!  - "http+unix:/path/to/unix/socket//uri/path"   (native)
     //!  - "http+unix:/path/to/unix/socket|/uri/path"   (native)
-    void url(const string &url);
+    void url(const std::string &url);
 
     //! guts for parsing unix socket URLs, called by url(url)
     //! \param[in]  url         user-specified URL to parse
     //! \param[out] unixPath    parsed unix socket path (empty on failure)
     //! \param[out] requestUrl  parsed request URL (empty on failure)
     //! \returns true iff a unix socket URL was detected, in which case unixPath is empty and requestUrl==url
-    static bool parseUnixSocketUrl(const string& url, string& unixPath, string& requestUrl);
+    static bool parseUnixSocketUrl(const std::string& url, std::string& unixPath, std::string& requestUrl);
   
     //--------
     //! get low-level curl request URL
-    inline const string& requestUrl(void) const
+    inline const std::string& requestUrl(void) const
     { return m_RequestUrl; };
 
     //! set low-level curl request URL (wraps CURLOPT_URL)
-    void requestUrl(const string& url);
+    void requestUrl(const std::string& url);
 
     //--------
     //! get low-level unix socket path
-    inline const string& unixSocketPath(void) const
+    inline const std::string& unixSocketPath(void) const
     { return m_UnixSocketPath; };
 
     //! set unix socket path (m_UnixSocketPath); calls setUnixSocketPath()
-    void unixSocketPath(const string& path);
+    void unixSocketPath(const std::string& path);
 
     //--------
     //! get current timeout (seconds)
@@ -220,11 +220,11 @@ public:
 
     //--------
     //! default response data callback (cast to CurlWriteCallback for use with CURLOPT_WRITEFUNCTION)
-    static size_t cbWriteData_(char *ptr, size_t size, size_t n, string *bufp);
+    static size_t cbWriteData_(char *ptr, size_t size, size_t n, std::string *bufp);
 
     //--------
     //! default response header callback
-    static size_t cbWriteHeader_(void *ptr, size_t size, size_t n, vector<string> *bufvp);
+    static size_t cbWriteHeader_(void *ptr, size_t size, size_t n, std::vector<std::string> *bufvp);
 
     //--------
     //! setup UNIX socket callbacks for m_UnixSocketPath (for libcurl < 7.40.0)

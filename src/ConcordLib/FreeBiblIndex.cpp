@@ -5,6 +5,8 @@
 #include "FreeBiblIndex.h"
 
 
+using namespace std;
+
 CFreeBiblIndex::CFreeBiblIndex() {}
 
 CFreeBiblIndex::~CFreeBiblIndex() {}

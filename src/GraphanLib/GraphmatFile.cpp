@@ -28,6 +28,8 @@
 #include <sys/stat.h> 
 
 
+using namespace std;
+
 CGraphmatFile :: CGraphmatFile() 
 {
     m_pDicts = new CGraphanDicts (morphUnknown);

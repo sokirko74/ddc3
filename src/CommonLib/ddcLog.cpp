@@ -29,6 +29,8 @@
 #include <syslog.h>
 #endif
 
+using namespace std;
+
 //======================================================================
 // Constants
 

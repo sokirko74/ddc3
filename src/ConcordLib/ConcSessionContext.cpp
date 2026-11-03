@@ -21,6 +21,8 @@
 
 #include "ConcSessionContext.h"
 
+using namespace std;
+
 //#define DEBUG_CACHE
 #undef DEBUG_CACHE
 

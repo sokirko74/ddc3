@@ -1,5 +1,7 @@
 #include "../PCRE/pcre_rml.cpp"
 
+using namespace std;
+
 /*--- emacs style variables ---
  * Local Variables:
  *  mode: C++

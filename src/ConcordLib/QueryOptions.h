@@ -28,9 +28,9 @@
 
 class CQueryCompiler;  //-- forward decl
 
-typedef vector<CQFilter*>       CQFilterList;
-typedef vector<string>          CQSubcorpusList;
-typedef list<string>            CQCommentList;
+typedef std::vector<CQFilter*>       CQFilterList;
+typedef std::vector<std::string>          CQSubcorpusList;
+typedef std::list<std::string>            CQCommentList;
 
 //======================================================================
 /*!
@@ -56,16 +56,16 @@ public:
     int m_TextAreaNo;
 
     //! list of all '#WITHIN' arguments (break collections or text areas) from currently parsed query 
-    vector<string> m_Within;
+    std::vector<std::string> m_Within;
 
     //! the break collection name which should be used while querying
-    string m_HitTypeStr;
+    std::string m_HitTypeStr;
   
     //! (abstract) filters and sort operators which should be applied to the resulted hit set
     CQFilterList m_QFilters;
 
     //! (runtime) filters and sort operators which should be applied to the resulted hit set (available after Compile())
-    vector<CDDCFilterWithBounds> m_Filters; 
+    std::vector<CDDCFilterWithBounds> m_Filters; 
 
     //! selected subcorpora for this query
     CQSubcorpusList m_Subcorpora;
@@ -154,9 +154,9 @@ public:
     //@{
     virtual ddcObjectList Children() const;
     virtual void DisownChildren();
-    virtual string toString();
-    virtual string jsonClass() { return "CQueryOptions"; };
-    virtual string jsonData();
+    virtual std::string toString();
+    virtual std::string jsonClass() { return "CQueryOptions"; };
+    virtual std::string jsonData();
     //@}
 };
 

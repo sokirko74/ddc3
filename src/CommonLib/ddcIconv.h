@@ -39,7 +39,6 @@
 
 #include <iconv.h>
 
-using namespace std;
 
 /** \brief default buffer length (in bytes) for iconv conversions */
 #define DDC_ICONV_BUFLEN 256
@@ -60,8 +59,8 @@ public:
     //--------------------------------------------------------------
     /// \name User-level data
     //@{
-    string enc_src; ///< source encoding
-    string enc_dst; ///< destination encoding
+    std::string enc_src; ///< source encoding
+    std::string enc_dst; ///< destination encoding
     //@}
 
 public:
@@ -159,7 +158,7 @@ public:
     /// \name Conversions
     //@{
     /** Perform selected conversion from \c in to \c out (low-level) */
-    inline bool convert(const char *idata, const size_t ilen, string &out)
+    inline bool convert(const char *idata, const size_t ilen, std::string &out)
     {
         if (!idata || !*idata) {
             out.clear();
@@ -220,7 +219,7 @@ public:
     };
   
     /** Perform selected conversion from \c in to \c out */
-    inline bool convert(const string &in, string &out)
+    inline bool convert(const std::string &in, std::string &out)
     {
         if (empty()) {
             out = in;

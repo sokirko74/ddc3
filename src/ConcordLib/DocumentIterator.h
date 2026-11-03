@@ -13,9 +13,9 @@ class CConcIndexator;
 class CConcordance;
 
 struct CIndexDocument : public CTokenIndexator {
-    string CorpusFileName; // = document name
-    vector<char> DocumentBuffer; // read to chars or
-    vector<string> DocumentLines; // or to lines
+    std::string CorpusFileName; // = document name
+    std::vector<char> DocumentBuffer; // read to chars or
+    std::vector<std::string> DocumentLines; // or to lines
     size_t DroppedLinesCount;
 
     bool IsEmpty() const;
@@ -23,23 +23,23 @@ struct CIndexDocument : public CTokenIndexator {
     void ReplaceZeroCharWithSpace();
     void NormalizeDocumentBuffer();
     void DefaultColumnMap(const CConcIndexator* parent);
-    void CustomColumnMap(const CConcordance* parent, vector<CStringIndexSet*>& columnMap);
+    void CustomColumnMap(const CConcordance* parent, std::vector<CStringIndexSet*>& columnMap);
 };
 
 class CDocumentIterator {
     const CConcIndexator* Parent;
 
     TAR *Tar;
-    string ContainerPath;
+    std::string ContainerPath;
     bool Finished;
 
     bool IsStdin;
-    string LastReadCorpusFileName;
+    std::string LastReadCorpusFileName;
     FILE* TabFormatStream;
     void ReadTabFormatDocument(CIndexDocument& doc);
 
 public:
-    CDocumentIterator (const CConcIndexator* parent, const string& containerPath);
+    CDocumentIterator (const CConcIndexator* parent, const std::string& containerPath);
     bool NextDocument(CIndexDocument& doc);
 };
 

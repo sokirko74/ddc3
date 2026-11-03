@@ -25,6 +25,8 @@
 #include <typeinfo>    //-- for typeid()
 
 
+using namespace std;
+
 string &DeleteEoln(string &s) {
     for (size_t i = 0; i < s.length(); i++)
         if ((s[i] == '\n')

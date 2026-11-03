@@ -1,5 +1,7 @@
 #include "../CommonLib/utf8xx.cpp"
 
+using namespace std;
+
 /*--- emacs style variables ---
  * Local Variables:
  *  mode: C++

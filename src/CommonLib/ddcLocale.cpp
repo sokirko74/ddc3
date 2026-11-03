@@ -24,6 +24,8 @@
 #include <wctype.h>
 #include <limits.h>
 
+using namespace std;
+
 //--------------------------------------------------------------
 bool ddcLocaleInitialized = false;
 

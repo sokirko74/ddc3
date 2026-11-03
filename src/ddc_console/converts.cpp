@@ -3,6 +3,8 @@
 #include <string.h>
 #include "../CommonLib/utilit.h"
 
+using namespace std;
+
 typedef unsigned char uchar;
 
 uchar kw[] = {128,129,130,131,132,133,134,135,136,137,138,139,140,141,142,143,

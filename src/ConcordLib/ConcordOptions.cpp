@@ -24,6 +24,8 @@
 #include "../CommonLib/ddcString.h"
 #include "ConcIndexator.h"
 
+using namespace std;
+
 const int DefaultKwicContextSize = 4;
 
 // LC_CTYPE_UTF8_DEFAULT : default LC_CTYPE to use for Utf8 mode if no utf8 locale is detected

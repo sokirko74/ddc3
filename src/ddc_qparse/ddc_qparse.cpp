@@ -25,6 +25,8 @@
 #include "../ConcordLib/ConcCommon.h"
 #include "../ConcordLib/QueryCompiler.h"
 
+using namespace std;
+
 const char *prog = "ddc_qparse";
 bool outputJson = false;
 bool outputComments = false;
