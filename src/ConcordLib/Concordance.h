@@ -329,20 +329,12 @@ public:
     //! get opt-style string declaration for IndicesToShow (empty if default)
     string GetIndicesToShowStr(bool Positional = false) const;
 
-    /*
-    //! return tables of character properties for regular expressions for the current m_Language
-    //const vector<BYTE>& GetRegExpTables() const { if (m_Utf8) return NULL; return m_PcreCharacterTables; };
-    const BYTE* GetRegexTables() const { if (m_Utf8) return NULL; return m_PcreCharacterTables.data(); };
-
-    //! return default pcre regex options
-    const pcrecpp::RE_Options GetRegexOptions() const { if (m_Utf8) return pcrecpp::UTF8(); return pcrecpp::RE_Options(); }
-    */
     //! return default pcre regex options
     RML_RE::Options GetRegexOptions() const {
         if (m_Utf8)
-            return RML_RE::Options(pcrecpp::UTF8(), NULL);
+            return RML_RE::Options(true, NULL);
         else
-            return RML_RE::Options(pcrecpp::RE_Options(), m_PcreCharacterTables.data());
+            return RML_RE::Options(false, m_PcreCharacterTables.data());
     };
 
     //! return true, if DDC outputs results in DWDS format

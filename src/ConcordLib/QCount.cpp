@@ -213,7 +213,6 @@ bool CQCountKeyExprRegex::Compile(CQueryCompiler *compiler) {
     if (!m_Src || !m_Src->Compile(compiler)) return false;
     CQCountKeyExprIndexed::Compile(compiler);
     m_Regex = new RML_RE(m_Pattern, m_pConcordance->GetRegexOptions());
-    //m_Pcre  = m_Regex->Compile(RML_RE::UNANCHORED);
     isGlobal = (m_Modifiers.find('g') != m_Modifiers.npos);
     return true;
 }

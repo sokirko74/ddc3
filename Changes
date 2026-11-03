@@ -1,5 +1,13 @@
 ##-*- Mode: Change-Log; coding: utf-8; -*-
 
+v3.0 Tue, 03 Nov 2026
+	* removed autotools build system (configure.ac, Makefile.am, m4/, ...): build with CMake only (see README)
+	* ported regex wrapper RML_RE (src/PCRE) from libpcre/pcrecpp to PCRE2 (with JIT)
+	  - FullMatch() now uses PCRE2_ENDANCHORED (fixes lazy quantifiers, e.g. /a+?/ vs "aaa")
+	  - dropped unused pcrecpp-style API (Arg, StringPiece, Consume, FindAndConsume, Extract, DoMatch)
+	* CMake fixes: ddcMMap.cpp in CommonLib, jsoncpp include path for ConcordDmnLib,
+	  local FlexLexer.h for the generated lexer, build without libcurl
+
 v2.2.12 Wed, 16 Jun 2021 15:21:24 +0200 moocow
 	* fixed sort failure in `count(...) #by[date] #dsc_key` for branch-servers with only a single daughter
 	* demoted BiblIndex.cpp "multiple definition" warnings to debug messages

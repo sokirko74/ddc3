@@ -4,7 +4,6 @@
  * the autoheader-generated preprocessor symbols (e.g. after
  * (#include)ing in some config.h from another autoheader package
  */
-#include "ddcConfigNoAuto.h"
 #include "ddcConfigAuto.h"
 
 /* 

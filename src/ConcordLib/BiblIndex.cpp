@@ -41,7 +41,7 @@ void CBiblIndex::FreeBiblExpanders() {
 
 void CBiblIndex::SetPath(string ProjectFileName) {
     m_Path = ProjectFileName;
-    m_RegexOpts = RML_RE::Options(pcrecpp::UTF8(), NULL); //-- default
+    m_RegexOpts = RML_RE::Options(true, NULL); //-- default
 
 };
 

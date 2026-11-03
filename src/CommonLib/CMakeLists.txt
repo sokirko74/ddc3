@@ -4,6 +4,7 @@ add_library(CommonLib
 CHost.cpp
 ddcLocale.cpp
 ddcLog.cpp
+ddcMMap.cpp
 ddcString.cpp
 ddcThread.cpp
 ddcTime.cpp

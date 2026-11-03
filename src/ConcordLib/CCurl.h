@@ -39,6 +39,7 @@ typedef struct curl_sockaddr struct_curl_sockaddr;
 //! dummy typedef for missing libcurl
 typedef void* CurlHandle;
 typedef int curlsocktype;
+typedef int curl_socket_t;
 typedef void struct_curl_sockaddr;
 
 #define CURL_ERROR_SIZE 64

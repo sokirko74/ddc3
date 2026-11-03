@@ -1,0 +1,98 @@
+# ddc
+
+The ddc package contains core C++ utilities for the DWDS/Dialing Concordance
+document indexing system.
+
+Source code: <https://github.com/sokirko74/ddc3>
+
+The DDC-2.x branch was maintained in SVN under:
+
+    svn+ssh://svn.code.sf.net/p/ddc-concordance/code/ddc/
+    https://svn.code.sf.net/p/ddc-concordance/code/ddc/
+    svn://svn.code.sf.net/p/ddc-concordance/code/ddc/
+
+## Dependencies
+
+- **ddc-morph >= v2.0.0** — morphology data.
+
+  In order to use most of the runtime utilities, you will also need a set of
+  morphology data files available in the ddc-morph package, which should be
+  available wherever you downloaded these sources.
+
+  You should build this package **before** attempting to build ddc-morph.
+
+  The ddc-morph sources are maintained in SVN under:
+  <https://ddc-concordance.svn.sourceforge.net/svnroot/ddc-morph>
+
+- **PCRE2** (8-bit library, e.g. Debian/Ubuntu package `libpcre2-dev`) —
+  Perl-compatible regular expressions. URL: <https://www.pcre.org/>.
+  Tested version(s): 10.46.
+
+- **libcurl** (optional) — if available, libcurl can be used for accessing
+  external HTTP-based term expanders from within a running DDC process. DDC
+  should still compile and run even if libcurl is unavailable, but e.g.
+  external HTTP-based term expanders will be unusable.
+  URL: <http://curl.haxx.se/>.
+  Tested version(s): 7.21.0, 7.38.0, 7.52.1.
+
+- **GNU bison** — tested version(s): 2.4.1, 3.0.2, 3.0.4.
+
+  If you get errors compiling `src/ConcordLib/yyQParser.o`, try re-extracting
+  the sources and call
+
+      touch src/ConcordLib/yyQParser.cpp src/ConcordLib/yyQParser.h
+
+  before re-compiling.
+
+- **GNU flex** — tested version(s): 2.5.35, 2.5.39, 2.6.1.
+
+  If you get errors compiling `src/ConcordLib/yyQLexer.o`, try re-extracting
+  the sources and call
+
+      touch src/ConcordLib/yyQLexer.cpp src/ConcordLib/yyQLexer.h
+
+  before re-compiling.
+
+## Building
+
+DDC is built with CMake from the `src/` directory:
+
+    cmake -S src -B build -DCMAKE_BUILD_TYPE=Release
+    cmake --build build -j
+
+Binaries are left in the build directory (e.g. `build/ddc_daemon/ddc_daemon`);
+there is no install target.
+
+Set the (legacy) environment variable `RML` to the directory containing the
+`dict/` morphology data (see [Dependencies](#dependencies)):
+
+    export RML=/path/to/ddc
+
+Take a look at the configuration files in `etc/` and the example corpora in
+`Test/` to get started.
+
+## Build options
+
+The following CMake options (`-DNAME=VALUE`) are supported:
+
+| Option | Description |
+|---|---|
+| `CMAKE_BUILD_TYPE=Debug` | Build with debugging flags. |
+| `DDC_USE_HIRES_CLOCK=ON` | Enable high-resolution clock if available. Requires `clock_gettime()`. ON by default for Debug builds, otherwise OFF. |
+| `DDC_JSON_DEEP_CONTEXT=ON` | Enable deep encoding of extra-sentential context tokens in JSON output strings. OFF by default, since it breaks strict backwards-compatibility. |
+| `DDC_ENABLE_MMAP=OFF` | Disable mmap virtual memory support (ON by default if available). |
+| `DDC_ENABLE_CURL_UNIX_URLS=OFF` | Disable UNIX socket URL conventions for CCurl. |
+| `DDC_STATIC_BUFLEN=SIZE` | Size in bytes of large static internal string buffers (default 4096). |
+
+CURL support is enabled automatically if libcurl development files are found.
+
+## Known bugs
+
+Many.
+
+## Authors
+
+Alexey Sokirko wrote DDC.
+
+Bryan Jurish <jurish@bbaw.de> made various improvements and maintained the
+DDC-2.x branch.

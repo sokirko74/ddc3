@@ -2,8 +2,6 @@ cmake_minimum_required(VERSION 3.5)
 
 project(ConcordLib)
 
-find_library(CURL_LIBRARY curl)
-
 add_library(ConcordLib
     NavHint.cpp
     CCurl.cpp
@@ -52,9 +50,14 @@ target_link_libraries(ConcordLib
     GraphanLib
     MorphWizardLib
     LemmatizerLib
-    ${CURL_LIBRARY}
     RmlTar
 )
+if(CURL_FOUND)
+    target_link_libraries(ConcordLib ${CURL_LIBRARIES})
+endif()
+
+# the generated lexer must pick up our patched FlexLexer.h, not the system one
+target_include_directories(ConcordLib PRIVATE ${PROJECT_SOURCE_DIR})
 
 
 message ("bison_tool = " ${BISON_TOOL})
