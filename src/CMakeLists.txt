@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.5)
 
-set (CMAKE_CXX_STANDARD 98)
+set (CMAKE_CXX_STANDARD 17)
 
 SET (CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -pthread")
 SET (FLEX_TOOL flex) 
