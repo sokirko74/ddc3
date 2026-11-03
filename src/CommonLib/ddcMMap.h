@@ -320,7 +320,7 @@ public:
             //-- slurp mode
             ddcLogTrace("ddcVecFile[slurp]::open(" + filename + ")");
             ReadVector(filename, m_vec);
-            m_data = &(m_vec[0]);
+            m_data = m_vec.data();
         }
         m_file = filename;
         return *this;
@@ -343,13 +343,13 @@ public:
             m_vec.reserve(size());
             m_vec.insert(m_vec.begin(), m_mmap.m_data, m_mmap.m_data + m_mmap.size());
             m_mmap.close();
-            m_data = &(m_vec[0]); //-- always update this
+            m_data = m_vec.data(); //-- always update this
         }
     };
 
     /// ensure data is a valid pointer
     inline void ensureData() {
-        m_data = m_mmap ? m_mmap.m_data : &(m_vec[0]);
+        m_data = m_mmap ? m_mmap.m_data : m_vec.data();
     };
 
     /// dump data to a FILE*
@@ -369,7 +369,7 @@ public:
     void save(FILE *fp, const string &name) const {
         if (!fp)
             throw CExpc("ddcVecFile<>::save(): invalid file pointer for " + name);
-        const T *datap = m_mmap ? m_mmap.m_data : &(m_vec[0]);
+        const T *datap = m_mmap ? m_mmap.m_data : m_vec.data();
         if (fwrite(datap, sizeof(T), (m_mmap ? m_mmap.size() : m_vec.size()), fp) != size())
             throw CExpc("ddcVecFile<>::save(): failed to write data to " + name);
     };
