@@ -26,72 +26,8 @@
 #include "ddcThread.h"
 
 
-class CShortString
-{
-    vector<char>::const_iterator m_pStringPointer;
-public:
-    CShortString(vector<char>::const_iterator pData);
-
-    BYTE GetLength() const;
-    vector<char>::const_iterator GetData() const;
-    const char*     GetString() const;
-    //bool  operator <(const CShortString& s) const;
-};
-
-class IsLessShortString : public std::binary_function<const CShortString&, const char*, bool>
-{
-public:
-    bool operator()(const CShortString& Item1,      const char* Item2) const;
-    bool operator()(const char* Item1,                      const CShortString& Item2) const;
-    bool operator()(const CShortString& Item1,      const CShortString& Item2) const;
-};
-
-
-class CShortStringHolder : public vector<CShortString> 
-{
-    vector<char> m_Buffer;
-    template<class T>
-    bool CreateFromSequence(T begin, T end);
-public: 
-    void    ReadShortStringHolder(string filename);
-    bool    WriteShortStringHolder(const string& FileName) const;
-    bool    CreateFromVector(const StringVector& in);
-    bool    CreateFromSet(const StringSet& in);
-};
-
-
-
-struct CMyTimeSpan 
-{
-    clock_t     m_StartTime;
-    double      m_TimeSpan;
-    long            m_InterfaceNestId;
-    long            m_SequenceId;
-    long        m_InvokeCount;
-    CMyTimeSpan (long SequenceId = 0, long InterfaceNestId = 0);
-    void GetStrRepresentation(const char* Name, char* buffer, double AllClocksCount) const;
-};
-
-
-class CMyTimeSpanHolder 
-{
-    map<string, CMyTimeSpan>        m_TimeSpans;
-    long                                            m_SequenceId;
-        
-public:
-    bool                                            m_bTimeSpanHolderEnabled;
-
-    typedef map<string, CMyTimeSpan>::const_iterator        ConstIterator;
-    typedef map<string, CMyTimeSpan>::iterator                      Iterator;
-
-    CMyTimeSpanHolder();
-    void StartTimer(const string& Name, long NestId);
-    double EndTimer(const string& Name);
-    string GetStrRepresentation (double AllClocksCount = 0) const;
-    void ClearTimers();
-};
-
-
+//-- CShortString, CShortStringHolder, CMyTimeSpan(Holder) live in morph_dict
+#include "morph_dict/common/util_classes.h"
 
 #endif
 

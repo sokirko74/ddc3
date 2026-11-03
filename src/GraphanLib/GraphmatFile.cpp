@@ -108,7 +108,7 @@ bool CGraphmatFile::LoadDicts ()
     }
     catch (CExpc& C)
     {
-        m_LastError = C.m_strCause;
+        m_LastError = C.what();
         return false;
     }
     catch (...)
@@ -254,7 +254,7 @@ bool CGraphmatFile::LoadStringToGraphan(const string& szBuffer)
     }
     catch (CExpc& C)
     {
-        m_LastError = C.m_strCause;
+        m_LastError = C.what();
         return false;
     }
     catch (...)

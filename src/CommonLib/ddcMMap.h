@@ -359,19 +359,19 @@ public:
     void save(const string &FileName) const {
         FILE *fp = fopen(FileName.c_str(), "wb");
         if (!fp)
-            throw CExpc("ddcVecFile<>::save(): open failed for file " + FileName);
+            throw CDDCExpc("ddcVecFile<>::save(): open failed for file " + FileName);
         save(fp, FileName);
         if (fclose(fp) != 0)
-            throw CExpc("ddcVecFile<>::save(): close failed for file " + FileName);
+            throw CDDCExpc("ddcVecFile<>::save(): close failed for file " + FileName);
     };
 
     /// dump data to a FILE* with a symbolic name
     void save(FILE *fp, const string &name) const {
         if (!fp)
-            throw CExpc("ddcVecFile<>::save(): invalid file pointer for " + name);
+            throw CDDCExpc("ddcVecFile<>::save(): invalid file pointer for " + name);
         const T *datap = m_mmap ? m_mmap.m_data : m_vec.data();
         if (fwrite(datap, sizeof(T), (m_mmap ? m_mmap.size() : m_vec.size()), fp) != size())
-            throw CExpc("ddcVecFile<>::save(): failed to write data to " + name);
+            throw CDDCExpc("ddcVecFile<>::save(): failed to write data to " + name);
     };
 
 };

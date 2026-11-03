@@ -138,7 +138,7 @@ static void EchoOption(const char *format, ...) {
 
 static void EchoOptionLines(const std::string &Lines) {
     if (ddcLogLevel >= ddcLLDebug) {
-        StringTokenizer tok(Lines.c_str(), "\n\r");
+        ddcStringTokenizer tok(Lines.c_str(), "\n\r");
         string l;
         while (tok()) {
             l = "  ";
@@ -154,12 +154,12 @@ void CConcordance::LoadOptionsFromFile(const string &OptFile) {
         LoadFileToString(OptFile, AllOptions);
         LoadOptionsFromString(AllOptions);
     } catch  (exception& e) {
-        throw CExpc(Format("failed to load options from '%s': %s", OptFile.c_str(), e.what()));
+        throw CDDCExpc(Format("failed to load options from '%s': %s", OptFile.c_str(), e.what()));
     }
 }
 
 void CConcordance::LoadOptionsFromString(string Options) {
-    StringTokenizer lines (Options.c_str(), "\n\r");
+    ddcStringTokenizer lines (Options.c_str(), "\n\r");
     MorphLanguageEnum langua;
     string IndicesStr, IndexAliasStr, IndexShowStr, HitTypesStr, FreeBiblDescr, TextAreasDescr;
     m_Language = morphUnknown;
@@ -169,7 +169,7 @@ void CConcordance::LoadOptionsFromString(string Options) {
         char s[1024];
         strcpy(s, lines.val());
                 
-        StringTokenizer fields(s, " \t\r\n");
+        ddcStringTokenizer fields(s, " \t\r\n");
         if (!fields()) continue;
         string q = fields.val();
         string q_lower = q;
@@ -178,14 +178,14 @@ void CConcordance::LoadOptionsFromString(string Options) {
         if (q == "#include" || q == "include") {
             q = fields.get_rest_trim();
             if ((q.length() < 2) || (q[0] != '\"') || (q[q.length() -1] != '\"'))
-                throw CExpc("could not parse opt-file directive `%s'", s);
+                throw CDDCExpc("could not parse opt-file directive `%s'", s);
             string AddOptions;
 
             //-- moo: interpret relative #include filenames wrt the directory containing the main .con file
             string IncFileName = q.substr(1,q.length()-2);
             string IncFileRelative = RelativeFileName(m_Path, IncFileName);
             if (!LoadFileToString(IncFileRelative, AddOptions))
-                throw CExpc("failed to load included opt-file `%s'", IncFileRelative.c_str());
+                throw CDDCExpc("failed to load included opt-file `%s'", IncFileRelative.c_str());
 
             EchoOption("include \"%s\"", IncFileName.c_str());
             Options = AddOptions+"\n"+lines.get_rest();
@@ -196,12 +196,12 @@ void CConcordance::LoadOptionsFromString(string Options) {
         } else if (q == "LocalPathPrefix") {
             q = fields.next_token();
             if (q.empty() )
-                throw CExpc("bad syntax opt-file: %s!", s);
+                throw CDDCExpc("bad syntax opt-file: %s!", s);
             m_LocalPathPrefix = q;
         } else if (q == "InternetPathPrefix") {
             q = fields.next_token();
             if (q.empty() )
-                throw CExpc("bad syntax opt-file: %s!", s);
+                throw CDDCExpc("bad syntax opt-file: %s!", s);
 
             m_InternetPathPrefix = q;
         } else if (GetLanguageByString(q, langua)) {
@@ -212,15 +212,15 @@ void CConcordance::LoadOptionsFromString(string Options) {
             EchoOption("CaseInsensitive %s", BoolToString(m_bCaseSensitive));
         } else if (q == "HtmlHighlighting") {
             if (!m_HtmlHighlighting.ReadFromString(fields.get_rest()))
-                throw CExpc("Cannot parse HtmlHighlighting declaration in opt-file");
+                throw CDDCExpc("Cannot parse HtmlHighlighting declaration in opt-file");
             EchoOption("HtmlHighlighting = \"%s\"", m_HtmlHighlighting.ToString().c_str());
         } else if (q == "TextHighlighting") {
             if (!m_TextHighlighting.ReadFromString(fields.get_rest()))
-                throw CExpc("Cannot parse TextHighlighting declaration in opt-file");
+                throw CDDCExpc("Cannot parse TextHighlighting declaration in opt-file");
             EchoOption("TextHighlighting = \"%s\"", m_TextHighlighting.ToString().c_str());
         } else if (q == "TableHighlighting") {
             if (!m_TableHighlighting.ReadFromString(fields.get_rest()))
-                throw CExpc("Cannot parse TableHighlighting declaration in opt-file");
+                throw CDDCExpc("Cannot parse TableHighlighting declaration in opt-file");
             EchoOption("TableHighlighting = \"%s\"", m_TableHighlighting.ToString().c_str());
         } else if (q == "ShowNumberOfRelevantDocuments") {
             m_bShowNumberOfRelevantDocuments = StringToBool(fields.next_token());
@@ -268,7 +268,7 @@ void CConcordance::LoadOptionsFromString(string Options) {
                 m_RightKwicContextSize = atoi(q.c_str());
                 EchoOption("RightKwicContextSize = %i", m_RightKwicContextSize);
             } else {
-                throw CExpc  ("RightKwicContextSize: value is not set");
+                throw CDDCExpc  ("RightKwicContextSize: value is not set");
             }
         } else if (q == "LeftKwicContextSize") {
             q = fields.next_token();
@@ -276,7 +276,7 @@ void CConcordance::LoadOptionsFromString(string Options) {
                 m_LeftKwicContextSize = atoi(q.c_str());
                 EchoOption("LeftKwicContextSize = %i", m_LeftKwicContextSize);
             } else {
-                throw CExpc  ("LeftKwicContextSize: value is not set");
+                throw CDDCExpc  ("LeftKwicContextSize: value is not set");
             }
         } else if (q == "NumberOfKwicLinesInSnippets") {
             q = fields.next_token();
@@ -284,7 +284,7 @@ void CConcordance::LoadOptionsFromString(string Options) {
                 m_NumberOfKwicLinesInSnippets = atoi(q.c_str());
                 EchoOption("NumberOfKwicLinesInSnippets = %i", m_NumberOfKwicLinesInSnippets);
             } else {
-                throw CExpc  ("NumberOfKwicLinesInSnippets: value is not set");
+                throw CDDCExpc  ("NumberOfKwicLinesInSnippets: value is not set");
             }
         } else if (q == "TfIdfRank") {
             q = fields.next_token();
@@ -292,7 +292,7 @@ void CConcordance::LoadOptionsFromString(string Options) {
                 m_TfIdfRank = atof(q.c_str());
                 EchoOption("TfIdfRank = %f", m_TfIdfRank);
             } else {
-                throw CExpc  ("TfIdfRank: value is not set");
+                throw CDDCExpc  ("TfIdfRank: value is not set");
             }
         } else if (q == "PositionRank") {
             q = fields.next_token();
@@ -300,18 +300,18 @@ void CConcordance::LoadOptionsFromString(string Options) {
                 m_PositionRank = atof(q.c_str());
                 EchoOption("PositionRank = %f", m_PositionRank);
             }  else {
-                throw CExpc  ("PositionRank: value is not set");
+                throw CDDCExpc  ("PositionRank: value is not set");
             }
         } else if (q == "InterpDelimiter" || q == "InterpDelimeter") {
             q = fields.next_token();
             if (q.empty())
-                throw CExpc("Cannot parse InterpDelimiter declaration in opt-file: %s", s);
+                throw CDDCExpc("Cannot parse InterpDelimiter declaration in opt-file: %s", s);
             m_InterpDelimiter = unescapeCString(q);
             EchoOption("InterpDelimiter = \"%s\"", m_InterpDelimiter.c_str());
         } else if (q == "TokenDelimiter" || q == "TokenDelimeter") {
             q = fields.next_token();
             if (q.empty())
-                throw CExpc("Cannot parse TokenDelimiter declaration in opt-file: %s", s);
+                throw CDDCExpc("Cannot parse TokenDelimiter declaration in opt-file: %s", s);
             m_TokenDelimiter = unescapeCString(q);
             EchoOption("TokenDelimiter = \"%s\"", m_TokenDelimiter.c_str());
         } else if (q == "Utf8") {
@@ -342,12 +342,12 @@ void CConcordance::LoadOptionsFromString(string Options) {
                 m_NearRank = atof(q.c_str());
                 EchoOption("NearRank = %f", m_NearRank);
             } else {
-                throw CExpc  ("NearRank: value is not set");
+                throw CDDCExpc  ("NearRank: value is not set");
             }
         } else if (q == "IndexType") {
             q = fields.next_token();
             if (!ReadIndexTypeFromStr(q)) 
-                throw CExpc("Unknown value `%s' for IndexType in opt-file", q.c_str());
+                throw CDDCExpc("Unknown value `%s' for IndexType in opt-file", q.c_str());
             EchoOption("IndexType %s", GetIndexTypeStr());
         } else if (q == "GutenbergInterface") {
             m_bGutenbergInterface = StringToBool(fields.next_token());
@@ -397,7 +397,7 @@ void CConcordance::LoadOptionsFromString(string Options) {
                                         
                 EchoOption("UserMaxTokenCountInOnePeriod = %i", m_UserMaxTokenCountInOnePeriod);
                 if (m_UserMaxTokenCountInOnePeriod == 0)
-                    throw CExpc("UserMaxTokenCountInOnePeriod must be > 0, but got `%s' (==0)!", q.c_str());
+                    throw CDDCExpc("UserMaxTokenCountInOnePeriod must be > 0, but got `%s' (==0)!", q.c_str());
             };
                                 
         } else if (q == "UserMaxInputLoadIndexSize") {
@@ -407,7 +407,7 @@ void CConcordance::LoadOptionsFromString(string Options) {
 
                 EchoOption("UserMaxInputLoadIndexSize = %i", m_UserMaxInputLoadIndexSize);
                 if (m_UserMaxInputLoadIndexSize == 0)
-                    throw CExpc("UserMaxInputLoadIndexSize must be > 0, but got `%s' (==0)!", q.c_str());
+                    throw CDDCExpc("UserMaxInputLoadIndexSize must be > 0, but got `%s' (==0)!", q.c_str());
             };
 
         } else if (q == "Expand") {
@@ -415,7 +415,7 @@ void CConcordance::LoadOptionsFromString(string Options) {
             string tx_spec(fields.get_rest_trim());
             CTermExpander *tx = m_Txd.addExpander(tx_spec);
             if (tx==NULL)
-                throw CExpc("could not create term-expander for spec `%s'", tx_spec.c_str());
+                throw CDDCExpc("could not create term-expander for spec `%s'", tx_spec.c_str());
             tx->compile();
             EchoOption("Expand %s", tx->configString().c_str());
         } else if (q == "ExpandBibl") {
@@ -423,7 +423,7 @@ void CConcordance::LoadOptionsFromString(string Options) {
             string bx_spec(fields.get_rest_trim());
             CBiblExpander *bx = m_BiblIndex.AddBiblExpander(bx_spec);
             if (bx==NULL)
-                throw CExpc("could not create bibliographic expander for spec `%s'", bx_spec.c_str());
+                throw CDDCExpc("could not create bibliographic expander for spec `%s'", bx_spec.c_str());
             bx->compile();
             EchoOption("ExpandBibl %s", bx->configString().c_str());
         } else if (q == "DefaultQueryIndex") {
@@ -442,12 +442,12 @@ void CConcordance::LoadOptionsFromString(string Options) {
             string info_val = unescapeCString(fields.get_rest_trim());
             m_ServerInfo[info_key] = make_pair(true,info_val);
         } else {
-            throw CExpc("bad syntax in opt-file : %s!", q.c_str());
+            throw CDDCExpc("bad syntax in opt-file : %s!", q.c_str());
         }
     }
 
     if (m_Language == morphUnknown)
-        throw CExpc("no language definition found in the options file");
+        throw CDDCExpc("no language definition found in the options file");
 
     //-- set utf-8 flag
     if (m_Utf8) {
@@ -501,18 +501,18 @@ void CConcordance::LoadOptionsFromString(string Options) {
         case TabFormat_Index:
         case Free_Index:
             if (IndicesStr.empty())
-                throw CExpc("Error! Cannot find an index definition in the options file.");
+                throw CDDCExpc("Error! Cannot find an index definition in the options file.");
             break;
     };
 
     if (!RegisterStringIndices(IndicesStr))
-        throw CExpc("cannot parse index definition `%s'", IndicesStr.c_str());
+        throw CDDCExpc("cannot parse index definition `%s'", IndicesStr.c_str());
     RegisterIndexAliases(IndexAliasStr);
 
 
     if (m_bIndexChunks)
         if (!RegisterChunkIndex())
-            throw CExpc("cannot register predefined chunk index!");
+            throw CDDCExpc("cannot register predefined chunk index!");
 
     EchoOption("Indices %s", GetIndicesString().c_str());
     EchoOptionLines(GetIndexAliasString());
@@ -530,7 +530,7 @@ void CConcordance::LoadOptionsFromString(string Options) {
         case TabFormat_Index:
         case Free_Index:
             if (HitTypesStr.empty())
-                throw CExpc("Error! Cannot find a hit types definition in the options file.");
+                throw CDDCExpc("Error! Cannot find a hit types definition in the options file.");
             break;
 
         default: break; //-- unhandled
@@ -539,14 +539,14 @@ void CConcordance::LoadOptionsFromString(string Options) {
 
     string ErrorStr;
     if (!m_BiblIndex.RegisterFreeBiblAttributes(FreeBiblDescr, ErrorStr))
-        throw CExpc("Cannot parse Bibl declaration `%s' (%s)", FreeBiblDescr.c_str(), ErrorStr.c_str());
+        throw CDDCExpc("Cannot parse Bibl declaration `%s' (%s)", FreeBiblDescr.c_str(), ErrorStr.c_str());
     EchoOptionLines(m_BiblIndex.GetFreeBibiAttributesDescr());
         
     if (!m_BiblIndex.m_DefaultAttrName.empty() && !m_BiblIndex.IsRegisteredBiblField(m_BiblIndex.m_DefaultAttrName))
-        throw CExpc("DefaultBibl target field `%s' is undefined", m_BiblIndex.m_DefaultAttrName.c_str());
+        throw CDDCExpc("DefaultBibl target field `%s' is undefined", m_BiblIndex.m_DefaultAttrName.c_str());
 
     if (!m_BiblIndex.RegisterTextAreas(TextAreasDescr, ErrorStr))
-        throw CExpc("Cannot parse TextArea declaration `%s' (%s)", TextAreasDescr.c_str(), ErrorStr.c_str());
+        throw CDDCExpc("Cannot parse TextArea declaration `%s' (%s)", TextAreasDescr.c_str(), ErrorStr.c_str());
     EchoOptionLines(m_BiblIndex.GetTextAreasDescr());
 
     RegisterBorderIndices(HitTypesStr.c_str());

@@ -165,7 +165,7 @@ char* StrError(int ErrorNo);
    }
    </code>
 */
-class StringTokenizer {
+class ddcStringTokenizer {
 protected:
     char *text_ptr;
     char *text;
@@ -181,13 +181,13 @@ protected:
 public:
     //-------------------------------------------------------
     // constructors etc.
-    StringTokenizer(const char *_text, const char *_delims=" \t\r\n");
+    ddcStringTokenizer(const char *_text, const char *_delims=" \t\r\n");
 
     ///! moo: constructor from std::string (implicitly calls c_str() on arguments)
-    StringTokenizer(const std::string& _text, const std::string& _delims)
+    ddcStringTokenizer(const std::string& _text, const std::string& _delims)
     { initialize(_text,_delims); };
 
-    ~StringTokenizer();
+    ~ddcStringTokenizer();
 
     void initialize(const char *_text, const char *_delims=" \t\r\n");
     void reinitialize(const char *_text, const char *_delims=" \t\r\n");
@@ -222,7 +222,7 @@ public:
 
 
 //--------------------------------------------------------------
-/** pseudo-replacement for StringTokenizer (from utilit.h) which allows empty tokens
+/** pseudo-replacement for ddcStringTokenizer (from utilit.h) which allows empty tokens
  * \detail see also stringSplitE() from utilit.cpp
  */
 class StringSplitter {

@@ -696,7 +696,7 @@ bool CConcSession::GetContextJson(int StartBreakNo, int EndBreakNo, const DWORD 
             for (size_t ixno=0; ixno < m_pConcordance->m_IndicesToShow.size(); ++ixno) {
                 vector<COutputToken> ixTokens;
                 if (!GetTokensFromStorageByBreak(m_pConcordance->m_IndicesToShow[ixno], BreakNo, ixTokens)) {
-                    throw CExpc(errOther, Format("CConcSession::GetContextJson(): could not get index items for IndexNo=%i, BreakNo=%i\n",
+                    throw CDDCExpc(errOther, Format("CConcSession::GetContextJson(): could not get index items for IndexNo=%i, BreakNo=%i\n",
                                                  m_pConcordance->m_IndicesToShow[ixno], BreakNo));
                     return false;
                 }
@@ -990,7 +990,7 @@ bool CConcSession::GetTokensFromStorageByBreak(size_t IndexNo, size_t BreakNo, v
     if (IndexNo > m_pConcordance->m_Indices.size()) return false;
     const CStringIndexSet &I = *m_pConcordance->m_Indices[IndexNo];
     if (!I.GetTokensFromStorage(StartTokenNo, EndTokenNo, Tokens))
-        throw CExpc(errReadSourceFile,
+        throw CDDCExpc(errReadSourceFile,
                     "CConcSession::GetTokensFromStorageByBreak(): cannot read $%s storage data for break #%i",
                     I.m_Name.c_str(), BreakNo);
     return true;
@@ -1028,7 +1028,7 @@ bool CConcSession::GetFileSnippets(const int HitNo, vector<COutputToken> &Result
             CTokenNo pos = *i;
             if (CurrentStarter > pos) continue;
             if (!m_pConcordance->GetTokenIndex()->GetTokensFromStorage(pos, pos + 1, TempTokens))
-                throw CExpc(errReadSourceFile, "CConcSession::GetFileSnippets(): cannot read data for break #%i",
+                throw CDDCExpc(errReadSourceFile, "CConcSession::GetFileSnippets(): cannot read data for break #%i",
                             BreakNo);
             if (DifferentWords.insert(TempTokens[0].m_TokenStr).second) {
                 DifferentTokens.insert(pos);
@@ -1064,7 +1064,7 @@ bool CConcSession::GetFileSnippets(const int HitNo, vector<COutputToken> &Result
         int end_kwic_line = min(pos + m_pConcordance->m_RightKwicContextSize + 1, EndTokenNo);
         vector<COutputToken> CurrTokens;
         if (!m_pConcordance->GetTokenIndex()->GetTokensFromStorage(start_kwic_line, end_kwic_line, CurrTokens))
-            throw CExpc(errReadSourceFile, "CConcSession::GetFileSnippets(): cannot read kwic data for break #%i",
+            throw CDDCExpc(errReadSourceFile, "CConcSession::GetFileSnippets(): cannot read kwic data for break #%i",
                         BreakNo);
 
         for (size_t i = 0; i < end_kwic_line - start_kwic_line; i++) {
@@ -1081,7 +1081,7 @@ bool CConcSession::GetFileSnippets(const int HitNo, vector<COutputToken> &Result
 DDCErrorEnum CConcSession::GenerateHitStrings(const int StartHitNo, bool UseAdditionalHitDelimiter) {
     assert(m_pQueryCompiler != NULL);
     if (m_pQueryCompiler->m_pQuery == NULL)
-        throw CExpc(errRuntime, "CConcSession::GenerateHitStrings(): no compiled query available!");
+        throw CDDCExpc(errRuntime, "CConcSession::GenerateHitStrings(): no compiled query available!");
 
     if (IsCountSort(m_SortOrder))
         return GenerateCountStrings(StartHitNo, UseAdditionalHitDelimiter);
@@ -1093,7 +1093,7 @@ DDCErrorEnum CConcSession::GenerateHitStrings(const int StartHitNo, bool UseAddi
     m_ErrorStr = "";
 
     if (StartHitNo < m_ResultOffset)
-        throw CExpc("GenerateHitStrings(): m_ResultOffset=%zd exceeds requested StartHitNo=%d", StartHitNo, m_ResultOffset);
+        throw CDDCExpc("GenerateHitStrings(): m_ResultOffset=%zd exceeds requested StartHitNo=%d", StartHitNo, m_ResultOffset);
 
     int beg = StartHitNo - m_ResultOffset;
     int end = GetOffsetHint(StartHitNo) - m_ResultOffset;
@@ -1116,7 +1116,7 @@ DDCErrorEnum CConcSession::GenerateHitStrings(const int StartHitNo, bool UseAddi
             for (size_t indno = 1; indno < m_pConcordance->m_IndicesToShow.size(); indno++) {
                 vector<COutputToken> Interps;
                 if (!GetTokensFromStorageByBreak(m_pConcordance->m_IndicesToShow[indno], BreakNo, Interps))
-                    throw CExpc(errReadSourceFile,
+                    throw CDDCExpc(errReadSourceFile,
                                 "CConcSession::GenerateHitStrings(): cannot get sentence: IndexNo=%u, BreakNo=%i",
                                 m_pConcordance->m_IndicesToShow[indno], BreakNo);
                 assert (Interps.size() == Tokens.size());
@@ -1456,7 +1456,7 @@ void CConcSession::InitSortByContext(const CQuery *pQuery, const CDDCFilterWithB
     const vector<BYTE> &occur_ids = qnod->m_OccurrenceMatchIds;
 
     if (!pIdx)
-        throw CExpc(errOther,
+        throw CDDCExpc(errOther,
                     Format("CConcSession::InitSortByContext(): Error: could not find index `%s' for context sort",
                            F.m_AttrName.c_str()));
 
@@ -1608,7 +1608,7 @@ void CConcSession::SortKeyLB(CHitSortKey &Key, const CDDCFilterWithBounds &Filte
                                      ? m_pConcordance->GetTokenIndex()
                                      : m_pConcordance->GetIndexByAlias(Filter.m_AttrName));
             if (!pIdx)
-                throw CExpc(errOther,
+                throw CDDCExpc(errOther,
                             Format("CConcSession::SortKeyLB(): could not find index `%s' for context-key pruning",
                                    Filter.m_AttrName.c_str()));
 
@@ -2067,7 +2067,7 @@ DDCErrorEnum CConcSession::GetHits(CQuery *QueryRoot, DWORD &EndHitNo, const str
 
             //-- sanity check
             if (StartHitNo < m_ResultOffset)
-                throw CExpc(errRuntime, "StartHitNo=%zd not available (pre-pruning overtrimmed m_ResultOffset=%zd)",
+                throw CDDCExpc(errRuntime, "StartHitNo=%zd not available (pre-pruning overtrimmed m_ResultOffset=%zd)",
                             StartHitNo, m_ResultOffset);
 
             //-- trim front of HitsIndex for non-trivial StartHitNo (this probably won't really help much except for bandwidth)
@@ -2095,11 +2095,11 @@ DDCErrorEnum CConcSession::GetHits(CQuery *QueryRoot, DWORD &EndHitNo, const str
 
     }
     catch (CExpc &C) {
-        m_ErrorStr = string("Error: ") + C.m_strCause;
+        m_ErrorStr = string("Error: ") + string(C.what());
         ErrorMessage(m_ErrorStr);
         ddcLogError(m_ErrorStr);
         throw;
-        //return (DDCErrorEnum)C.m_ErrorCode==errNone ? errRuntime : (DDCErrorEnum)C.m_ErrorCode;
+        //return (DDCErrorEnum)ddcExpcCode(C)==errNone ? errRuntime : (DDCErrorEnum)ddcExpcCode(C);
     }
     catch (exception &e) {
         m_ErrorStr = string("Exception: ") + e.what();
@@ -2151,11 +2151,11 @@ DDCErrorEnum CConcSession::SimpleQuery(const string &Query, DWORD &EndHitNo, DWO
 
     }
     catch (CExpc &C) {
-        m_ErrorStr = string("Error: ") + C.m_strCause;
+        m_ErrorStr = string("Error: ") + string(C.what());
         ErrorMessage(m_ErrorStr);
         ddcLogError(m_ErrorStr);
         throw;
-        //return (DDCErrorEnum)C.m_ErrorCode;
+        //return (DDCErrorEnum)ddcExpcCode(C);
     }
 
 };
@@ -2282,10 +2282,10 @@ CConcSession::GetOccurrences(const string &Query, int ContextSize, SaveTriggerTy
         return errNone;
     }
     catch (CExpc &C) {
-        m_ErrorStr = string("Error: ") + C.m_strCause;
+        m_ErrorStr = string("Error: ") + string(C.what());
         ErrorMessage(m_ErrorStr);
         ddcLogError(m_ErrorStr);
-        return (DDCErrorEnum) C.m_ErrorCode;
+        return (DDCErrorEnum) ddcExpcCode(C);
     }
 };
 

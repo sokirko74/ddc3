@@ -60,7 +60,7 @@ void copyOptionsFile(const string &srcFile, const string &dstFile) {
     if (FileExists(dstFile))
         ddcLogWarn("copyOptionsFile(): Warning: destination file '" + dstFile + "' will be overwritten");
     if (!RmlCopyFile(srcFile.c_str(), dstFile.c_str()))
-        throw CExpc("copyOptionsFile(): failed to copy options options from " + srcFile + " to " + dstFile);
+        throw CDDCExpc("copyOptionsFile(): failed to copy options options from " + srcFile + " to " + dstFile);
 }
 
 //======================================================================

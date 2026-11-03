@@ -111,7 +111,7 @@ void CDDCServerThreadPool::start(CDDCServer *Server, size_t nWorkers, size_t max
     
     //-- +pthread
     if (!m_Workers.empty())
-        throw CExpc( Format("CDDCServerThreadPool::start(): ERROR: thread-pool seems to be already running!") );
+        throw CDDCExpc( Format("CDDCServerThreadPool::start(): ERROR: thread-pool seems to be already running!") );
 
     if (nWorkers == 0)
         nWorkers = 1; //-- if we get here, we need at least 1 worker thread

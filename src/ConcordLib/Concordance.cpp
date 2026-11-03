@@ -63,7 +63,7 @@ bool CSourceFileHolder::SaveSourceFileList(string FileName) {
 void CSourceFileHolder::ReadSourceFileList(string FileName) {
     FILE *fp = fopen(FileName.c_str(), "rb");
     if (!fp) {
-        throw CExpc(Format("could not open %s\n", FileName.c_str()));
+        throw CDDCExpc(Format("could not open %s\n", FileName.c_str()));
     }
 
     char s[1024];
@@ -131,7 +131,7 @@ CHighlightTags::CHighlightTags() {
 
 bool CHighlightTags::ReadFromString(const string &s) {
     string q = s;
-    StringTokenizer tok(Trim(q).c_str(), ";");
+    ddcStringTokenizer tok(Trim(q).c_str(), ";");
     vector<string> tokens;
     while (tok()) {
         string l = tok.val();
@@ -174,7 +174,7 @@ void CConcordance::AssertHasPath() const {
     assert(m_Path != "#empty_path");
     if (m_Path == "#empty_path") {
         ErrorMessage("Uninitialized path");
-        throw CExpc(errNonePath, "Exception: Uninitialized path for index files");
+        throw CDDCExpc(errNonePath, "Exception: Uninitialized path for index files");
     };
 };
 
@@ -328,7 +328,7 @@ bool CConcordance::GetOccurrencesByPosition(const string &BreakName, int anchor,
                                             size_t searchPeriodNo) const {
     const CHBreakCollection *bcol = GetBreakCollectionByName(BreakName);
     if (!bcol)
-        throw CExpc(errRuntime, "CConcordance::GetOccurrencesByPosition(): unknown break collection `%s'",
+        throw CDDCExpc(errRuntime, "CConcordance::GetOccurrencesByPosition(): unknown break collection `%s'",
                     BreakName.c_str());
 
     CTokenNo PeriodBegin = (searchPeriodNo == 0) ? 0 : GetSearchPeriod(searchPeriodNo - 1);
@@ -424,12 +424,12 @@ void CConcordance::LoadProject(string FileName, bool includeSourceFiles) {
         ReadIndicesFromTheDisk();
 
         if (GetFileBreaks().size() != m_CorpusFiles.size()) {
-            throw CExpc(Format("The number of files in %s is not equal to the number of files in the index", FileName.c_str()));
+            throw CDDCExpc(Format("The number of files in %s is not equal to the number of files in the index", FileName.c_str()));
         }
 
         m_BiblIndex.LoadBibl(FileName, GetFileBreaks().size(), m_bMemoryMap);
     } catch (exception& e) {
-        throw CExpc(Format("cannot load index of project %s: %s", FileName.c_str(), e.what()));
+        throw CDDCExpc(Format("cannot load index of project %s: %s", FileName.c_str(), e.what()));
     }
 }
 
@@ -632,7 +632,7 @@ void CConcordance::DumpIndex(string dirname, CIndexDumpFormat fmt) const {
     } else if (fmt == idfTabs) {
         file_ext = "tabs";
     } else {
-        throw CExpc(errRuntime, "CConcordance::DumpIndex(): index dump-format %u", (uint) fmt);
+        throw CDDCExpc(errRuntime, "CConcordance::DumpIndex(): index dump-format %u", (uint) fmt);
     }
     size_t nfiles = m_CorpusFiles.size();
     for (size_t fn = 0; fn < nfiles; ++fn) {
@@ -640,7 +640,7 @@ void CConcordance::DumpIndex(string dirname, CIndexDumpFormat fmt) const {
         string dumpfile = Format("%s/%d.%s", dirname.c_str(), fn, file_ext);
         FILE *dumpfh = fopen(dumpfile.c_str(), "wb");
         if (!dumpfh)
-            throw CExpc(errRuntime, "Error: open failed for dump file '%s': %s", dumpfile.c_str(), StrError(errno));
+            throw CDDCExpc(errRuntime, "Error: open failed for dump file '%s': %s", dumpfile.c_str(), StrError(errno));
         fprintf(stderr, "dumping %s ~ %s\n", dumpfile.c_str(), m_CorpusFiles[fn].c_str());
         switch (fmt) {
             case idfJson:
@@ -667,7 +667,7 @@ void CConcordance::DumpIndexToSingleTabFile(FILE *outfp) const {
 
 //----------------------------------------------------------------------
 void CConcordance::RegisterIndicesToShow(const string &IndexListStr) {
-    StringTokenizer tok(IndexListStr.c_str(), " \t\r\n,;");
+    ddcStringTokenizer tok(IndexListStr.c_str(), " \t\r\n,;");
     m_IndicesToShow.clear();
 
     while (tok()) {
@@ -690,14 +690,14 @@ void CConcordance::RegisterIndicesToShow(const string &IndexListStr) {
             //-- decimal integer: convert to size_t
             ipos = strtoul(s.c_str(), NULL, 0);
             if (ipos < 1)
-                throw CExpc("minimum positional index value for IndicesToShow is 1 (one)");
+                throw CDDCExpc("minimum positional index value for IndicesToShow is 1 (one)");
             else if (ipos > m_Indices.size())
-                throw CExpc(Format("positional index `%zi' in IndicesToShow out of bounds (max=%zi)", ipos,
+                throw CDDCExpc(Format("positional index `%zi' in IndicesToShow out of bounds (max=%zi)", ipos,
                                    m_Indices.size()));
             --ipos; //-- convert to zero-based indces
         } else {
             //-- unknown: oops
-            throw CExpc(Format("unknown index label `%s' in IndicesToShow", s.c_str()));
+            throw CDDCExpc(Format("unknown index label `%s' in IndicesToShow", s.c_str()));
         }
 
         m_IndicesToShow.push_back(ipos);
@@ -710,7 +710,7 @@ void CConcordance::RegisterIndicesToShow(const string &IndexListStr) {
     //-- global sanity checks
     for (size_t i = 0; i < m_IndicesToShow.size(); ++i) {
         if (!m_Indices[m_IndicesToShow[i]]->m_bUseItemStorage)
-            throw CExpc("index #%zi (%s) in IndicesToShow has no storage class", i,
+            throw CDDCExpc("index #%zi (%s) in IndicesToShow has no storage class", i,
                         m_Indices[m_IndicesToShow[i]]->m_Name.c_str());
     }
 }

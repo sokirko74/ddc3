@@ -85,7 +85,7 @@ CDocumentIterator::CDocumentIterator(const CConcIndexator* parent, const string 
     if (IsTarFile(containerPath)) {
         tar_open(&Tar, containerPath.c_str());
         if (!Tar) {
-            throw CExpc(Format("Error! Cannot open %s", containerPath.c_str()));
+            throw CDDCExpc(Format("Error! Cannot open %s", containerPath.c_str()));
         };
     }
     else if (containerPath == "-"){
@@ -99,7 +99,7 @@ void CDocumentIterator::ReadTabFormatDocument(CIndexDocument& doc) {
     if (TabFormatStream == NULL) {
         assert (!IsTarFile(ContainerPath));
         TabFormatStream = IsStdin ? stdin : fopen(ContainerPath.c_str(), "rb");
-        if (!TabFormatStream) throw CExpc (Format("Cannot open file \"%s\"", ContainerPath.c_str()));
+        if (!TabFormatStream) throw CDDCExpc (Format("Cannot open file \"%s\"", ContainerPath.c_str()));
     }
 
     const size_t MaxTabFormatLine = MaxBiblStringLen  + 255; // 20000 + 250

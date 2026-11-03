@@ -278,7 +278,7 @@ void CCurl::setUnixSocketCallbacks(void)
 #elif defined(DDC_HAVE_CURL_UNIX_SUPPORT)
     curl_easy_setopt(m_Curl, CURLOPT_UNIX_SOCKET_PATH, m_UnixSocketPath.c_str());
 #else
-    throw CExpc(errOther, "CCurl::setUnixSocketCallbacks(): UNIX socket handlers disabled");
+    throw CDDCExpc(errOther, "CCurl::setUnixSocketCallbacks(): UNIX socket handlers disabled");
 #endif
 }
 

@@ -48,7 +48,7 @@ void CDDCServerOptions::LoadFile(const string& Filename)
 {
     string buf;
     if (!LoadFileToString(Filename, buf))
-        throw CExpc( Format("CDDCServerOptions::LoadFile(): failed to load file %s: %s", Filename.c_str(), StrError(errno)) );
+        throw CDDCExpc( Format("CDDCServerOptions::LoadFile(): failed to load file %s: %s", Filename.c_str(), StrError(errno)) );
     LoadString(buf,Filename);
 }
 
@@ -78,7 +78,7 @@ void CDDCServerOptions::LoadLines(const vector<string>& Lines, const string& src
 //--------------------------------------------------------------
 bool CDDCServerOptions::Set(const string& Option, const string& Value, const string& srcName)
 {
-    StringTokenizer fields(Value.c_str(), " \t\r\n");
+    ddcStringTokenizer fields(Value.c_str(), " \t\r\n");
     string opt(Option);
     EngMakeLower(opt);
 

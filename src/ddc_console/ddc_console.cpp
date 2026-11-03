@@ -65,7 +65,7 @@ void LoadCorpus(string FileName)
     Trim(FileName);
     if (FileName.empty())
     {
-        throw CExpc ("File name is empty\n");
+        throw CDDCExpc ("File name is empty\n");
     }
     FreeCorpus();
     Holder.m_pConcordance = new CConcIndexator;
@@ -241,7 +241,7 @@ void RunCommand(string line)
         PrintHelp();
         return;
     };
-    StringTokenizer tok(line.c_str(), " ");
+    ddcStringTokenizer tok(line.c_str(), " ");
     string command = tok.next_token();
     if (command.empty()) return;
     if (command == "load")

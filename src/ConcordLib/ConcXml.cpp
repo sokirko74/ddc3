@@ -180,7 +180,7 @@ void CConcXml::DeleteFiles() {
 void CConcXml::SetFreeBiblByName(const string &name, const string &value, CBibliography &result) const {
     map<string, size_t>::const_iterator it = m_FreeBiblNameToPosition.find(name);
     if (it == m_FreeBiblNameToPosition.end())
-        throw CExpc(Format("Free bibliographical index \"%s\" is not registered", name.c_str()));
+        throw CDDCExpc(Format("Free bibliographical index \"%s\" is not registered", name.c_str()));
     result.m_BiblAttribs[it->second] = value;
 }
 
@@ -200,21 +200,21 @@ void CConcXml::FinalSaveBibliography() {
 
     for (FreeBiblStringMap::iterator bibl_it = m_FreeBiblIndices.begin(); bibl_it != m_FreeBiblIndices.end(); bibl_it++)
         if (!bibl_it->second->ConvertAndSaveToDiskAfterIndexing(m_Path))
-            throw CExpc("ConvertAndSaveToDiskAfterIndexing failed");;
+            throw CDDCExpc("ConvertAndSaveToDiskAfterIndexing failed");;
 
     string BiblIndexFileName = GetBiblIndexFileName();
     remove(BiblIndexFileName.c_str());
     if (FileExists(BiblIndexFileName.c_str())) {
-        throw CExpc(Format("Cannot delete %s!\n", BiblIndexFileName.c_str()));
+        throw CDDCExpc(Format("Cannot delete %s!\n", BiblIndexFileName.c_str()));
     };
 
     m_EndOffsetsInBiblFile.ensureVec();
     if (!WriteVector(BiblIndexFileName, m_EndOffsetsInBiblFile.m_vec))
-        throw CExpc(
+        throw CDDCExpc(
             Format("Cannot write index in CConcXml::FinalSaveBibliography, file %s!\n", BiblIndexFileName.c_str()));
 
     if (!FileExists(BiblIndexFileName.c_str())) {
-        throw CExpc(Format("Cannot create %s!\n", BiblIndexFileName.c_str()));
+        throw CDDCExpc(Format("Cannot create %s!\n", BiblIndexFileName.c_str()));
     };
 
     {
@@ -222,9 +222,9 @@ void CConcXml::FinalSaveBibliography() {
         remove(DatesFName.c_str());
         m_Dates.ensureVec();
         if (!WriteVector(DatesFName, m_Dates.m_vec))
-            throw CExpc("WriteVector failed");
+            throw CDDCExpc("WriteVector failed");
         if (!FileExists(DatesFName.c_str())) {
-            throw CExpc(Format("Cannot create %s!\n", DatesFName.c_str()));
+            throw CDDCExpc(Format("Cannot create %s!\n", DatesFName.c_str()));
         };
     }
 };
@@ -264,7 +264,7 @@ bool CConcXml::UnionBibliographies(const vector<const CConcXml *> &Bibls) {
 
     //-- sanity check: *._bibl <-> *._bibl_idx
     if (FileExists(GetBiblFileName()) && FileSize(GetBiblFileName()) != boffset)
-        throw CExpc(Format("%s: Error: bibl index size mismatch (*._bibl_idx ~ %zd != %zd ~ *._bibl)",
+        throw CDDCExpc(Format("%s: Error: bibl index size mismatch (*._bibl_idx ~ %zd != %zd ~ *._bibl)",
                            logname.c_str(), (size_t) boffset, FileSize(GetBiblFileName())));
 
     //-- populate: *._bibl_date
@@ -335,20 +335,20 @@ bool CConcXml::SplitBibliography(vector<CConcXml *> &Bibls, const vector<DWORD> 
 
             FILE *bf_out = fopen(Bibls[i]->GetBiblFileName().c_str(), "wb");
             if (bf_out == NULL)
-                throw CExpc(Format("%s: Error: open failed for partition #%zd bibl file: %s", logname.c_str(), i,
+                throw CDDCExpc(Format("%s: Error: open failed for partition #%zd bibl file: %s", logname.c_str(), i,
                                    strerror(errno)));
             if (!FSeek(mainBodyFile, bf_begin, SEEK_SET))
-                throw CExpc(Format("%s: Error: seek failed for %s to position %zd", GetBiblFileName().c_str(),
+                throw CDDCExpc(Format("%s: Error: seek failed for %s to position %zd", GetBiblFileName().c_str(),
                                    (size_t) bf_begin));
 
             FileAppendPartial(mainBodyFile, bf_out, bf_end - bf_begin);
             if (fclose(bf_out) != 0)
-                throw CExpc(Format("%s: Error: close failed for partition #%zd bibl file: %s", logname.c_str(), i,
+                throw CDDCExpc(Format("%s: Error: close failed for partition #%zd bibl file: %s", logname.c_str(), i,
                                    strerror(errno)));
 
             //-- sanity check: *._bibl <-> *._bibl_idx
             if (FileSize(Bibls[i]->GetBiblFileName()) != Bibls[i]->m_EndOffsetsInBiblFile.m_vec.back())
-                throw CExpc(
+                throw CDDCExpc(
                     Format("%s: Error: bibl index size mismatch for patition #%zd (*._bibl_idx ~ %zd != %zd ~ *._bibl)",
                            logname.c_str(), i,
                            (size_t) Bibls[i]->m_EndOffsetsInBiblFile.m_vec.back(),
@@ -407,7 +407,7 @@ void CConcXml::LoadXmlAndReadBibliography(TiXmlDocument &doc, const char *pFileB
     doc.Parse(Buffer.c_str());
 
     if (doc.Error()) {
-        throw CExpc(Format("cannot open or parse Col=%i,  Row=%i, Error=%s", doc.ErrorCol(), doc.ErrorRow(),
+        throw CDDCExpc(Format("cannot open or parse Col=%i,  Row=%i, Error=%s", doc.ErrorCol(), doc.ErrorRow(),
                            doc.ErrorDesc()));
     };
     Bibl.CleanBibliography();
@@ -423,9 +423,9 @@ void CConcXml::LoadXmlAndReadBibliography(TiXmlDocument &doc, const char *pFileB
         int Date;
         if (!Bibl.ConvertDateToInt(Date)) {
             if (Bibl.m_DateStr.empty())
-                throw CExpc(Format("Empty date!", Bibl.m_DateStr.c_str()));
+                throw CDDCExpc(Format("Empty date!", Bibl.m_DateStr.c_str()));
             else
-                throw CExpc(Format("Bad date format (\"%s\")", Bibl.m_DateStr.c_str()));
+                throw CDDCExpc(Format("Bad date format (\"%s\")", Bibl.m_DateStr.c_str()));
         };
     }
 
@@ -492,7 +492,7 @@ void CConcXml::ReadMorphXmlFileIntoGraTable(string FileName, const char *pFileBu
                             GraTable.push_back(Word);
                             continue;
                         } else {
-                            throw CExpc(Format("bad page break; cannot parse the input [WordNo=%i LastReadWord=%s]",
+                            throw CDDCExpc(Format("bad page break; cannot parse the input [WordNo=%i LastReadWord=%s]",
                                                AllWordsCount, LastReadWord.c_str()));
                         };
                     };
@@ -500,7 +500,7 @@ void CConcXml::ReadMorphXmlFileIntoGraTable(string FileName, const char *pFileBu
                     {
                         TiXmlNode *xml_word_str = xml_word->FirstChild();
                         if (!xml_word_str) {
-                            throw CExpc(Format("cannot get the next word [WordNo=%i LastReadWord=%s]", AllWordsCount,
+                            throw CDDCExpc(Format("cannot get the next word [WordNo=%i LastReadWord=%s]", AllWordsCount,
                                                LastReadWord.c_str()));
                         };
                         Word.m_WordStr = xml_word_str->Value();
@@ -544,7 +544,7 @@ void CConcXml::ReadMorphXmlFileIntoGraTable(string FileName, const char *pFileBu
             };
         }
         catch (...) {
-            throw CExpc(Format("an exception while reading xml WordNo=%i LastReadWord=%s", AllWordsCount,
+            throw CDDCExpc(Format("an exception while reading xml WordNo=%i LastReadWord=%s", AllWordsCount,
                                LastReadWord.c_str()));
 
         };

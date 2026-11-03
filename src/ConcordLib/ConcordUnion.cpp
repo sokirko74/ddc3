@@ -28,7 +28,7 @@ bool CConcIndexator::CreateAsUnion(vector<CConcIndexator* > &X, bool inheritOpti
 
     //-- sanity check(s)
     if (X.empty())
-        throw CExpc(logname + ": Error: no source indices specified");
+        throw CDDCExpc(logname + ": Error: no source indices specified");
 
     string path = X[0]->m_Path;
     //---------------------------------------
@@ -41,9 +41,9 @@ bool CConcIndexator::CreateAsUnion(vector<CConcIndexator* > &X, bool inheritOpti
         AddSourceFilesFrom(**xi);
     }
     if (!SaveSourceFileList(m_Path))
-        throw CExpc(logname + ": failed to save source file list " + m_Path);
+        throw CDDCExpc(logname + ": failed to save source file list " + m_Path);
     if (!SaveCorpusFileList())
-        throw CExpc(logname + ": failed to save corpus file list " + GetFileNameForCorpusFileNames());
+        throw CDDCExpc(logname + ": failed to save corpus file list " + GetFileNameForCorpusFileNames());
 
     //---------------------------------------
     // populate: options (unless explicitly disabled by user)
@@ -53,7 +53,7 @@ bool CConcIndexator::CreateAsUnion(vector<CConcIndexator* > &X, bool inheritOpti
         LoadOptionsFromString(X[0]->SaveOptionsToString());
         ddcLogInfo(logname + ": saving options to " + MakeFName(m_Path, "opt"));
         if (!SaveOptions(m_Path))
-            throw CExpc(logname + ": Error: failed to save options for project " + m_Path);
+            throw CDDCExpc(logname + ": Error: failed to save options for project " + m_Path);
     }
 
     //---------------------------------------
@@ -90,7 +90,7 @@ bool CConcIndexator::CreateAsUnion(vector<CConcIndexator* > &X, bool inheritOpti
 
             //-- sanity checks
             if (offset >= (size_t) CIndexItem::GetMaximalNumberOfRunningTokens())
-                throw CExpc(Format("%s: Error: maximum token count (=%zd) exceeded", logname.c_str(),
+                throw CDDCExpc(Format("%s: Error: maximum token count (=%zd) exceeded", logname.c_str(),
                                    (size_t) CIndexItem::GetMaximalNumberOfRunningTokens()));
         }
         //-- dump
@@ -99,7 +99,7 @@ bool CConcIndexator::CreateAsUnion(vector<CConcIndexator* > &X, bool inheritOpti
             m_FileBreakCollectionNo = (brki - m_Breaks.begin());
     }
     if (m_FileBreakCollectionNo == -1)
-        throw CExpc(logname + ": Error: no builtin '" + PredefinedFileBreakName + "' break collection found");
+        throw CDDCExpc(logname + ": Error: no builtin '" + PredefinedFileBreakName + "' break collection found");
 
     //-- count total tokens
     ddcLogInfo(Format("%s: output corpus will contain %zd tokens", logname.c_str(), GetCorpusEndTokenNo()));
@@ -160,7 +160,7 @@ bool CConcIndexator::CreateAsUnion(vector<CConcIndexator* > &X, bool inheritOpti
     // populate: finalize indices
     ddcLogInfo(logname + ": saving index item buffers");
     if (!FinalSaveAllIndices(false))
-        throw CExpc(logname + ": Error: failed to save index to disk - do you have enough free disk space?");
+        throw CDDCExpc(logname + ": Error: failed to save index to disk - do you have enough free disk space?");
 
     //---------------------------------------
     // populate: bibl
@@ -175,7 +175,7 @@ bool CConcIndexator::CreateAsUnion(vector<CConcIndexator* > &X, bool inheritOpti
 
     //---------------------------------------
     // what now?
-    //throw CExpc(logname+": so far so good -- what now?");
+    //throw CDDCExpc(logname+": so far so good -- what now?");
     return true;
 }
 

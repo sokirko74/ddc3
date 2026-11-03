@@ -32,10 +32,10 @@ void CTabFormatIndexator::AddColumnMap (const string& field, const string& value
         int indexInBrackets;
         size_t afterBrackets = field.find('[');
         if (afterBrackets == string::npos || afterBrackets + 1 == field.size())
-            throw CExpc(Format("bad format at line starting with %s", field.c_str()));
+            throw CDDCExpc(Format("bad format at line starting with %s", field.c_str()));
         indexInBrackets = atoi (field.c_str() + afterBrackets + 1);
         if (indexInBrackets != params->FoundDocColumnDeclarations.size()) {
-            throw CExpc(Format("Bad order in index declaration %s ", field.c_str()));
+            throw CDDCExpc(Format("Bad order in index declaration %s ", field.c_str()));
         }
     }
     string indexName;
@@ -44,7 +44,7 @@ void CTabFormatIndexator::AddColumnMap (const string& field, const string& value
         indexName = value.substr(0, i);
     }
     CStringIndexSet* indexSet = GetIndexByNameOrShortName(indexName);
-    if (!indexSet) throw CExpc(Format("Cannot find index %s in opt file", value.c_str()));
+    if (!indexSet) throw CDDCExpc(Format("Cannot find index %s in opt file", value.c_str()));
     params->FoundDocColumnDeclarations.push_back(indexSet);
 }
 
@@ -66,7 +66,7 @@ void CTabFormatIndexator::ProcessMetaField (CIndexDocument* document, const stri
     int equDelim = line.find(EQU_CHAR);
 
     if (equDelim == -1) {
-        throw CExpc(Format("In line %s cannot find '%c' ", line.c_str(), EQU_CHAR));
+        throw CDDCExpc(Format("In line %s cannot find '%c' ", line.c_str(), EQU_CHAR));
     }
     string field = line.substr(0, equDelim);
     string value =  line.substr(equDelim + 1);
@@ -92,7 +92,7 @@ void CTabFormatIndexator::ProcessMetaField (CIndexDocument* document, const stri
         CPageNumber p;
         p.m_PageNumber = atoi (value.c_str());
         if (p.m_PageNumber  == 0) {
-            throw CExpc(Format("In line %s cannot parse page number (0 is not allowed) ", line.c_str()));
+            throw CDDCExpc(Format("In line %s cannot parse page number (0 is not allowed) ", line.c_str()));
         }
         p.m_StartTokenNo = document->CorpusEndTokenNo;
         AddPageBreak(p);
@@ -129,7 +129,7 @@ void CTabFormatIndexator::ProcessToken (CIndexDocument* document, const string& 
 string ReadTabFormatDocumentName(const string& line) {
     if (StartsWith(line, META_FILE_DELIMITER)) {
         int index = line.find(EQU_CHAR);
-        if (index == string::npos) throw CExpc(Format("bad format at line %s", line.c_str()));
+        if (index == string::npos) throw CDDCExpc(Format("bad format at line %s", line.c_str()));
         string s = line.substr(index  + 1);
         Trim(s);
         return s;

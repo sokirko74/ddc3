@@ -390,29 +390,6 @@ string escapeRegex(const std::string &re)
 // printf-style formatting
 
 //--------------------------------------------------------------
-string Format( const char* format, ... )
-{
-    va_list arglst;
-    const size_t  SmallBufferSize = DDC_STATIC_BUFLEN;
-    char SmallBuffer[SmallBufferSize];
-
-    va_start( arglst, format );
-    int OutputLength = 1 + vsnprintf( SmallBuffer, SmallBufferSize, format, arglst) ;
-    va_end( arglst );
-
-    if ((OutputLength == 0) || (OutputLength < SmallBufferSize))
-        return string(SmallBuffer,OutputLength-1);
-
-    char * pBuffer = new char[OutputLength];
-    if (!pBuffer)
-        return string(SmallBuffer,SmallBufferSize);
-    va_start( arglst, format );
-    vsnprintf( pBuffer, OutputLength, format, arglst);
-    va_end( arglst );
-    string Result(pBuffer,OutputLength-1);
-    delete[] pBuffer;
-    return   Result;
-};
 
 
 //--------------------------------------------------------------
@@ -454,7 +431,7 @@ char* StrError(int ErrorNo)
 // string tokenization
 
 //--------------------------------------------------------------
-void StringTokenizer::initialize(const char *_text, const char *_delims)
+void ddcStringTokenizer::initialize(const char *_text, const char *_delims)
 {
     delims = _delims;
     i = -1;
@@ -465,7 +442,7 @@ void StringTokenizer::initialize(const char *_text, const char *_delims)
     text[leng+1] = 0;
 }
 
-void StringTokenizer::reinitialize(const char *_text, const char *_delims)
+void ddcStringTokenizer::reinitialize(const char *_text, const char *_delims)
 {
     assert (text_ptr);
     delete[] text_ptr;
@@ -473,19 +450,19 @@ void StringTokenizer::reinitialize(const char *_text, const char *_delims)
 }
 
 //--------------------------------------------------------------
-StringTokenizer::StringTokenizer(const char *_text, const char *_delims)
+ddcStringTokenizer::ddcStringTokenizer(const char *_text, const char *_delims)
 {
     initialize(_text, _delims);
 }
 
 //--------------------------------------------------------------
-StringTokenizer::~StringTokenizer()
+ddcStringTokenizer::~ddcStringTokenizer()
 {
     delete[] text_ptr;
 }
 
 //--------------------------------------------------------------
-const char * StringTokenizer::operator()()
+const char * ddcStringTokenizer::operator()()
 {
     ++i;
     // skip delims
@@ -502,13 +479,13 @@ const char * StringTokenizer::operator()()
     _val = ret_val;
 
     if (_val == NULL)
-        throw CExpc ("Exception in StringTokenizer::operator ()");
+        throw CDDCExpc ("Exception in ddcStringTokenizer::operator ()");
   
     return ret_val;
 }
 
 //--------------------------------------------------------------
-std::string StringTokenizer::next_token ()
+std::string ddcStringTokenizer::next_token ()
 {
     const char* s = operator()();
     if (s) 
@@ -518,14 +495,14 @@ std::string StringTokenizer::next_token ()
 }
 
 //--------------------------------------------------------------
-void StringTokenizer::get_tokens(std::vector<std::string> &tokens)
+void ddcStringTokenizer::get_tokens(std::vector<std::string> &tokens)
 {
     while ( operator()() )
         tokens.push_back(_val);
 }
 
 //--------------------------------------------------------------
-const char* StringTokenizer::get_rest_trim()
+const char* ddcStringTokenizer::get_rest_trim()
 {
     char *s = text;
     while (*s && is_delim(*s)) ++s;

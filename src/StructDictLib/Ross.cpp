@@ -287,13 +287,13 @@ bool    TRoss::ReadConfig()
         fclose (fp);
     };
 
-    StringTokenizer lines(Config.c_str(), "\n\r");
+    ddcStringTokenizer lines(Config.c_str(), "\n\r");
     while (lines())
     {
         string Line = lines.val();
         Trim(Line);
         if (Line.empty()) continue;
-        StringTokenizer Items(Line.c_str(), " \t\n\r");
+        ddcStringTokenizer Items(Line.c_str(), " \t\n\r");
 
         string Field = Items.next_token();
         string Value = Items.next_token();
@@ -676,7 +676,7 @@ bool   TRoss::ReadFromStrWithOneSignatura (const char* s, TCortege10& C, BYTE Si
 
         if (IsMult)
         {
-            StringTokenizer tok(ItemStr," ,");
+            ddcStringTokenizer tok(ItemStr," ,");
             while (tok())
                 if (GetItemNoByItemStr (tok.val(), DomNo) == -1)
                     return false;
@@ -1095,7 +1095,7 @@ int NumArt (vector<CSourceLine>& L)
 
 bool GetValue (string Pair, string FldName, string& Value)
 {
-    StringTokenizer tok(Pair.c_str(), " \t");
+    ddcStringTokenizer tok(Pair.c_str(), " \t");
     if (tok.next_token() != FldName) return false;
     if (tok.next_token() != "=") return false;
     Value = tok.get_rest();

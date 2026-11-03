@@ -88,7 +88,7 @@ bool CQCountKeyExpr::Compile(CQueryCompiler *compiler) {
 
 //----------------------------------------------------------------------
 string &CQCountKeyExpr::Evaluate(const CHit &Hit) {
-    throw CExpc(errRuntime,
+    throw CDDCExpc(errRuntime,
                 Format("abstract method CQCountKeyExpr::Evaluate() called for class %s", typeid(*this).name()));
 };
 
@@ -171,7 +171,7 @@ bool CQCountKeyExprBibl::Compile(CQueryCompiler *compiler) {
     CQCountKeyExprIndexed::Compile(compiler);
     m_Bibl = m_pConcordance->m_BiblIndex.GetFreeBiblIndexConst(m_Label);
     if (m_Bibl == NULL)
-        throw CExpc(errRuntime,
+        throw CDDCExpc(errRuntime,
                     Format("CQCountKeyExprBibl()::Compile(): cannot use unknown bibliographic attribute `%s' as count-key",
                            m_Label.c_str()));
     return true;
@@ -244,7 +244,7 @@ bool CQCountKeyExprToken::Compile(CQueryCompiler *compiler) {
 
     /* sanity check */
     if (!compiler->m_pHolder->m_pConcordance->m_bAllowCountByTokenAttributes)
-        throw CExpc(errParseError, "counting by token attribute `%s' disabled", this->toString().c_str());
+        throw CDDCExpc(errParseError, "counting by token attribute `%s' disabled", this->toString().c_str());
 
     /* get index */
     if (m_IndexName.empty())
@@ -252,7 +252,7 @@ bool CQCountKeyExprToken::Compile(CQueryCompiler *compiler) {
 
     m_pIndex = compiler->m_pHolder->m_pConcordance->GetIndexByAlias(m_IndexName);
     if (!m_pIndex)
-        throw CExpc(errParseError, "CQCountKeyExprToken::Compile(): unknown index `%s'", m_IndexName.c_str());
+        throw CDDCExpc(errParseError, "CQCountKeyExprToken::Compile(): unknown index `%s'", m_IndexName.c_str());
 
     return true;
 }
@@ -486,11 +486,11 @@ bool CQCount::CompileLocal(CQueryCompiler *compiler, bool compileDtr, bool compi
     if (compileDtr) {
         //-- sanity check(s)
         if (!m_dtr)
-            throw CExpc(errParseError, "no argument conditions specified for count-query `%s'", this->toString().c_str());
+            throw CDDCExpc(errParseError, "no argument conditions specified for count-query `%s'", this->toString().c_str());
 
         //-- compile daughter(s)
         if (!m_dtr->CompileOptions(compiler) || !m_dtr->Compile(compiler))
-            throw CExpc(errParseError, "could not compile sub-query `%s' for count-query", m_dtr->toString().c_str());
+            throw CDDCExpc(errParseError, "could not compile sub-query `%s' for count-query", m_dtr->toString().c_str());
     }
 
     //-- adopt daughter options if required (copy for count-by-break hack)
@@ -507,7 +507,7 @@ bool CQCount::CompileLocal(CQueryCompiler *compiler, bool compileDtr, bool compi
     if (compileKeys) {
         if (!m_keys) m_keys = new CQCountKeyExprList();
         if (!m_keys->Compile(compiler))
-            throw CExpc(errParseError, "could not compile key expression(s) `%s' for count-query", m_keys->toString().c_str());
+            throw CDDCExpc(errParseError, "could not compile key expression(s) `%s' for count-query", m_keys->toString().c_str());
     }
 
     //-- reset temporaries
@@ -888,11 +888,11 @@ bool CQKeys::Compile(CQueryCompiler *compiler) {
 
     //-- sanity check(s)
     if (!m_qCount)
-        throw CExpc(errParseError, "no underlying count-query for keys-query `%s'", this->toString().c_str());
+        throw CDDCExpc(errParseError, "no underlying count-query for keys-query `%s'", this->toString().c_str());
 
     //-- compile count-subquerx
     if (!m_qCount->Compile(compiler))
-        throw CExpc(errParseError, "could not compile count-query `%s' for keys-query `%s'",
+        throw CDDCExpc(errParseError, "could not compile count-query `%s' for keys-query `%s'",
                     m_qCount->toString().c_str(), this->toString().c_str());
 
     //-- set default index-names
@@ -909,7 +909,7 @@ bool CQKeys::Compile(CQueryCompiler *compiler) {
         }
     }
     if (m_IndexNames.empty())
-        throw CExpc(errParseError, "can't handle empty index-tuple in keys-query `%s'", this->toString().c_str());
+        throw CDDCExpc(errParseError, "can't handle empty index-tuple in keys-query `%s'", this->toString().c_str());
 
     //-- create attribute-wise value-set queries
     m_dtrs.clear();
@@ -934,7 +934,7 @@ bool CQKeys::Compile(CQueryCompiler *compiler) {
             m_proxy = new CQWith(m_proxy, *di);
     }
     if (m_proxy == NULL)
-        throw CExpc(errParseError, "no attributes proxied by keys-query `%s'", this->toString().c_str());
+        throw CDDCExpc(errParseError, "no attributes proxied by keys-query `%s'", this->toString().c_str());
 
     //-- evaluate count subquery using CConcHolder::GetAllHits() (via public CConcHolder::GetHits())
     //   + this is annoying, but otherwise we're in a double-bind calling Evaluate() from CConcHolder::GetHits() in the period-loop,
@@ -945,7 +945,7 @@ bool CQKeys::Compile(CQueryCompiler *compiler) {
     size_t ResultLimitTmp = holder->m_ResultLimit;
     holder->m_ResultLimit = m_CountLimit;
     if (holder->GetHits(m_qCount, EndHitNo) != errNone)
-        throw CExpc(errParseError, "could not evaluate count-query `%s' for keys-query `%s'",
+        throw CDDCExpc(errParseError, "could not evaluate count-query `%s' for keys-query `%s'",
                     m_qCount->toString().c_str(), this->toString().c_str());
 
     //-- populate attribute-wise value sets
@@ -975,7 +975,7 @@ bool CQKeys::Compile(CQueryCompiler *compiler) {
 
     //-- compile proxy query
     if (!m_proxy->Compile(compiler))
-        throw CExpc(errParseError, "could not compile subquery `%s' for keys-query `%s'", m_proxy->toString().c_str(),
+        throw CDDCExpc(errParseError, "could not compile subquery `%s' for keys-query `%s'", m_proxy->toString().c_str(),
                     this->toString().c_str());
 
     KEYSDEBUG(fprintf(stderr, "[DEBUG:keys:proxy] %s\n", (m_proxy->toString() + m_proxy->optionsToString()).c_str()));

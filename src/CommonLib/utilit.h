@@ -86,12 +86,13 @@ using namespace std;
 
 
 
+//-- common utilities shared with RML (git submodule src/morph_dict)
+#include "morph_dict/common/utilit.h"
+
 //#if !defined (STLPORT) || defined(__STL_USE_NAMESPACES)
 //using namespace std;
 //#endif
 
-
-typedef unsigned char BYTE;
 
 #ifdef WIN32
 #include  <io.h>
@@ -106,7 +107,6 @@ typedef uint32_t        DWORD;
 typedef uint16_t        WORD;
 typedef uint64_t        QWORD;
 typedef unsigned int    UINT;  //-- unused
-const   unsigned int _MAX_PATH = 512;
 #endif
 
 //-- moo: branch prediction macros; see e.g. https://www.geeksforgeeks.org/branch-prediction-macros-in-gcc/
@@ -143,97 +143,58 @@ const   unsigned int _MAX_PATH = 512;
 # define SIZE_MAX ((size_t)-1)
 #endif
 
-typedef vector<string> StringVector;
-typedef set<string> StringSet;
-typedef vector<DWORD> DwordVector;
 
-inline QWORD GetMaxQWORD ()
-{ return QWORD_MAX; }
+//! morph_dict values reused by ddc
+const BYTE LowerJO_cp1251  = 184;
+const BYTE UpperJO_cp1251  = 168;
 
-const BYTE   cHyphenChar   = (BYTE) '-';
-const BYTE   cParagraph    = (BYTE) 21;
-const BYTE   cCompanyChar  = (BYTE) 176;
-const BYTE   cIonChar      = (BYTE) 183;
-const BYTE   cNumberChar   = (BYTE) 0xB9;
-const BYTE   cPiChar       = (BYTE) 182;
-const BYTE   cEllipseChar  = (BYTE) 133;
-
-// morphology&syntax
-typedef enum {
-    morphUnknown = 0,
-    morphRussian = 1,
-    morphEnglish = 2,
-    morphGerman = 3,
-    morphGeneric = 4,
-    morphURL=5,
-    morphDigits=6
-} MorphLanguageEnum;
-
-template <class T1, class T2, class T3>
-struct  troika : public pair<T1, T2>
-{
-    T3 third;
-};
-
-
-typedef QWORD file_off_t;
-
-//! \brief generic local exception class
-//! \detail moo: derived from stdexcept runtime_error
-class CExpc : public runtime_error
+//! \brief ddc exception class: morph_dict's CExpc plus an internal error code
+//! \detail the error code is part of the ddc server protocol (see ../CommonLib/DDCInternalError.h);
+//!  catch the base class CExpc (also thrown by morph_dict) and use ddcExpcCode() to get the code
+class CDDCExpc : public CExpc
 {
 public:
     //! internal error code (see ../CommonLib/DDCInternalError.h)
-    int m_ErrorCode; 
+    int m_ErrorCode;
 
-    //! symbolic error message (should also be returned by what() method)
+    //! symbolic error message (also returned by what())
     string m_strCause;
 
 public:
-    CExpc(int ErrorCode) throw();
-    CExpc(int ErrorCode, const string& Cause) throw();
-    CExpc(const string& Cause) throw();
+    CDDCExpc(int ErrorCode);
+    CDDCExpc(int ErrorCode, const string& Cause);
+    CDDCExpc(const string& Cause);
 
-    CExpc(int ErrorCode, const char* format, ... ) throw();
-    CExpc(const char* format, ... ) throw();
+    CDDCExpc(int ErrorCode, const char* format, ... );
+    CDDCExpc(const char* format, ... );
 
-    //! copy constructor
-    CExpc(const CExpc& from) throw();
-
-    //! destructor
-    virtual ~CExpc() throw() {};
+    virtual ~CDDCExpc() {};
 
     //! set m_strCause with a printf() format
-    void Set(const char* format, ... ) throw();
+    void Set(const char* format, ... );
 
     //! set m_strCause with a vprintf() format
-    void vSet(const char *format, va_list& arglst) throw();
-
-    //! assignment constructor
-    CExpc& operator= (const CExpc& from) throw();
+    void vSet(const char *format, va_list& arglst);
 
     //! stdexcept interface
-    virtual const char* what() const throw();
+    virtual const char* what() const noexcept override;
 
     //! error code interface
-    virtual int code() const throw();
+    virtual int code() const;
 };
 
 //! \brief local exception class, fatal (can be used to force immediate bail-out)
-class CFatalExpc : public CExpc
+class CFatalExpc : public CDDCExpc
 {
 public:
-    CFatalExpc(int ErrorCode) throw() : CExpc(ErrorCode) {};
-    CFatalExpc(int ErrorCode, const string& Cause) throw() : CExpc(ErrorCode, Cause) {};
-    CFatalExpc(const string& Cause) throw() : CExpc(Cause) {};
-
-    //! copy constructor
-    CFatalExpc(const CFatalExpc& from) throw() : CExpc(from) {};
-
-    //! destructor
-    virtual ~CFatalExpc() throw() {};
+    CFatalExpc(int ErrorCode) : CDDCExpc(ErrorCode) {};
+    CFatalExpc(int ErrorCode, const string& Cause) : CDDCExpc(ErrorCode, Cause) {};
+    CFatalExpc(const string& Cause) : CDDCExpc(Cause) {};
+    virtual ~CFatalExpc() {};
 };
 
+//! error code of any exception: CDDCExpc::code(), errOther otherwise (e.g. CExpc thrown by morph_dict)
+extern int ddcExpcCode(const std::exception& e);
 
 
 // working with files
@@ -389,7 +350,7 @@ extern bool     StartsWith(const string& body, const string& prefix);
 extern string timestampLocal(time_t timeval);
 extern string timestampUTC(time_t timeval);
 
-//! moo: convenience wrapper for string-to-vector tokenization using StringTokenizer
+//! moo: convenience wrapper for string-to-vector tokenization using ddcStringTokenizer
 vector<string> stringSplit(const char *s, const char *delims);
 
 //! moo: split a string using std::string() methods only, allowing empty tokens
@@ -421,7 +382,6 @@ extern const char *ddc_log_label(void);
 //! set thread-local log prefix; returns old label (if any)
 extern const char *ddc_set_log_label(const char *log_label);
 
-const BYTE      UnknownPartOfSpeech             = 0xff;
 
 extern int GetPredictionPartOfSpeech(const string& PartOfSpeech, MorphLanguageEnum langua);
 extern bool GetLanguageByString (string s, MorphLanguageEnum& Result);
@@ -511,6 +471,22 @@ extern  bool is_spc_fill (BYTE x);
 extern  bool is_english_upper(BYTE x);
 extern  bool is_english_lower(BYTE x);
 
+//-- defined in morph_dict/common/single_byte_encoding.cpp, not declared in its headers
+extern  bool is_english_lower_vowel(BYTE x);
+extern  bool is_english_upper_vowel(BYTE x);
+extern  bool is_german_lower_vowel(BYTE x);
+extern  bool is_german_upper_vowel(BYTE x);
+extern  bool is_russian_lower_vowel(BYTE x);
+extern  bool is_russian_upper_vowel(BYTE x);
+extern  bool is_russian_consonant(BYTE x);
+extern  bool is_russian_lower_consonant(BYTE x);
+extern  bool is_russian_upper_consonant(BYTE x);
+extern  bool is_generic_alpha(BYTE x);
+extern  bool is_generic_lower(BYTE x);
+extern  bool is_generic_upper(BYTE x);
+extern  bool is_URL_alpha(BYTE x);
+extern  bool is_arab_digit(BYTE x);
+
 // Windows-1252
 const BYTE Auml  = 196;
 const BYTE auml  = 228;
@@ -518,18 +494,12 @@ const BYTE Uuml  = 220;
 const BYTE uuml  = 252;
 const BYTE Ouml  = 214;
 const BYTE ouml  = 246;
-const BYTE szlig  = 223;
-const BYTE Nu  = 181;
 const BYTE agrave  = 224;
 const BYTE egrave  = 232;
 const BYTE eacute  = 233;
 
-
-const BYTE LowerJO_cp1251  = 184;
-const BYTE UpperJO_cp1251  = 168;
 const BYTE LowerE_cp1251  = 229;
 const BYTE UpperE_cp1251  = 197;
-const BYTE Apostrophe  = 39;
 
 
 extern  bool is_german_upper(BYTE x);
@@ -612,10 +582,7 @@ T& GerEngRusMakeUpperTemplate (T& word, MorphLanguageEnum Langua, size_t Len )
 
 
 
-//  QWORD mask
-#define _QM(X) (((QWORD)1)<<X)
 
-enum RegisterEnum {AnyRegister=0, LowLow=1, UpLow=2, UpUp=3};
 
 
 #endif

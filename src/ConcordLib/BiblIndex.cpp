@@ -47,12 +47,12 @@ void CBiblIndex::SetPath(string ProjectFileName) {
 
 bool CBiblIndex::RegisterTextAreas(string fields, string &ErrorStr) {
     m_TextAreas.clear();
-    StringTokenizer lines(fields.c_str(), "\n\r");
+    ddcStringTokenizer lines(fields.c_str(), "\n\r");
     while (lines()) {
         string OneField = lines.val();
         Trim(OneField);
         if (OneField.empty()) continue;
-        StringTokenizer tok(OneField.c_str(), " \t");
+        ddcStringTokenizer tok(OneField.c_str(), " \t");
         if (!tok()) {
             ErrorStr = "Error! Bad syntax in free bibliographical attribute description";
             return false;
@@ -98,12 +98,12 @@ bool CBiblIndex::RegisterFreeBiblAttributes(string fields, string &ErrorStr) {
     m_StartPageXPath = "";
 
 
-    StringTokenizer lines(fields.c_str(), "\n\r");
+    ddcStringTokenizer lines(fields.c_str(), "\n\r");
     while (lines()) {
         string OneField = lines.val();
         Trim(OneField);
         if (OneField.empty()) continue;
-        StringTokenizer tok(OneField.c_str(), " \t");
+        ddcStringTokenizer tok(OneField.c_str(), " \t");
 
         if (!tok()) {
             ErrorStr = "Error! Bad syntax in free bibliographical attribute description";
@@ -328,12 +328,12 @@ void CBiblIndex::LoadBibl(string Path, size_t FileBreaksSize, bool useMMap) {
             GetBiblIndexFileName().c_str());
         s += Format("\nnumber of corpus files = %zi", FileBreaksSize);
         s += Format("\nnumber of bibliographical records = %zi", m_EndOffsetsInBiblFile.size());
-        throw CExpc(s);
+        throw CDDCExpc(s);
     };
 
     m_Dates.open(GetBiblDateIndexFileName(), useMMap);
     if (m_Dates.size() != FileBreaksSize) {
-        throw CExpc(Format("Corrupt bibliograpical index file for dates (%s)", GetBiblDateIndexFileName().c_str()));
+        throw CDDCExpc(Format("Corrupt bibliograpical index file for dates (%s)", GetBiblDateIndexFileName().c_str()));
     };
 
     for (FreeBiblStringMap::iterator bibl_it = m_FreeBiblIndices.begin(); bibl_it != m_FreeBiblIndices.end(); bibl_it++)
@@ -417,7 +417,7 @@ bool CBiblIndex::FileMatches(DWORD FileNo, const vector<CDDCFilterWithBounds> &F
 
 CBiblExpander *CBiblIndex::AddBiblExpander(const string &spec) {
     const char *delims = " \t\r\n";
-    StringTokenizer stok(spec.c_str(), delims);
+    ddcStringTokenizer stok(spec.c_str(), delims);
     string s_label(""), s_target(""), s_cls(""), s_param("");
     CBiblExpander *bx = NULL;;
 
@@ -431,7 +431,7 @@ CBiblExpander *CBiblIndex::AddBiblExpander(const string &spec) {
     Trim(cls);
     EngMakeLower(cls);
     if (cls.empty()) {
-        throw CExpc(errLogic, "unknown BiblExpander class `%s'", s_cls.c_str());
+        throw CDDCExpc(errLogic, "unknown BiblExpander class `%s'", s_cls.c_str());
     } else {
         //-- default: BxTermWrapper
         bx = new BxTermWrapper(s_label, s_target, s_cls + " " + s_param);
@@ -439,12 +439,12 @@ CBiblExpander *CBiblIndex::AddBiblExpander(const string &spec) {
         //-- check for chains (not yet implemented)
         CTermExpander *tx = ((BxTermWrapper *) bx)->m_BxTx;
         if (tx && tx->m_Class == "Chain")
-            throw CExpc(errLogic, "chained bibliographic expanders not yet supported for `%s'", s_label.c_str());
+            throw CDDCExpc(errLogic, "chained bibliographic expanders not yet supported for `%s'", s_label.c_str());
     }
 
     //-- sanity check(s)
     if (bx == NULL)
-        throw CExpc(errRuntime, "could not create BiblExpander of class `%s'", s_cls.c_str());
+        throw CDDCExpc(errRuntime, "could not create BiblExpander of class `%s'", s_cls.c_str());
 
     //-- check for existing expander
     BiblExpanderMap::iterator bi = m_BiblExpanders.find(s_label);
@@ -531,7 +531,7 @@ void CBiblIndex::GetTextAreaElements(const TiXmlDocument &doc, vector<TiXmlEleme
     for (size_t i = 0; i < m_TextAreas.size(); i++) {
         TiXmlNode *text = TinyXPath::XNp_xpath_node(doc.RootElement(), m_TextAreas[i].m_Xpath.c_str());
         if (!text) {
-            throw CExpc(Format("Cannot find %s in the source document using XPath \"%s\"!",
+            throw CDDCExpc(Format("Cannot find %s in the source document using XPath \"%s\"!",
                                m_TextAreas[i].m_TextAreaName.c_str(),
                                m_TextAreas[i].m_Xpath.c_str()));
         };
@@ -629,7 +629,7 @@ CFreeBiblIndex *CBiblIndex::GetFreeBiblIndex(const string &FreeBiblAttribNameOrA
     FreeBiblAliasMap::const_iterator ai = m_FreeBiblAlias.find(name);
     for (size_t n = 0; ai != m_FreeBiblAlias.end(); ++n, ai = m_FreeBiblAlias.find(name)) {
         if (n >= MAX_ALIAS_REDIR)
-            throw (CExpc(errRuntime, "too many alias redirections (%zi) for metadata label `%s'", n,
+            throw (CDDCExpc(errRuntime, "too many alias redirections (%zi) for metadata label `%s'", n,
                          FreeBiblAttribNameOrAlias.c_str()));
         name = ai->second;
     }

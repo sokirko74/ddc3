@@ -103,7 +103,7 @@ bool CQueryCompiler::Compile(CQuery *query)
 {
     assert(query != NULL);
     if (!query->RootOK())
-        throw CExpc(errParseError, "unsupported negation or invalid query root `%s'", query->toString().c_str());
+        throw CDDCExpc(errParseError, "unsupported negation or invalid query root `%s'", query->toString().c_str());
 
     return query->CompileOptions(this) && query->Compile(this);
 }
@@ -251,7 +251,7 @@ int CQueryCompiler::yyqlex(void* valp)
         //-- sanity check
         if (yyleng() >= DDC_STATIC_BUFLEN) {
             //assert (yyleng() < DDC_STATIC_BUFLEN);
-            throw CExpc(errParseError, "CQueryCompiler::yyqlex(): query string exceeds maximum static buffer length (%d)", DDC_STATIC_BUFLEN);
+            throw CDDCExpc(errParseError, "CQueryCompiler::yyqlex(): query string exceeds maximum static buffer length (%d)", DDC_STATIC_BUFLEN);
         }
         
         string s(yytext(), yyleng()); //-- temporary
@@ -408,7 +408,7 @@ string CQueryCompiler::QueryToJson(void)
 
 void CQueryCompiler::barf(const std::string& msg) const //throw(CExpc)
 {
-    throw CExpc(errParseError, msg);
+    throw CDDCExpc(errParseError, msg);
 }
 
 #define BARFSIZE 1024
@@ -420,7 +420,7 @@ void CQueryCompiler::barf(const char *fmt, ...) const //throw(CExpc)
     vsnprintf(buf, BARFSIZE, fmt, arglst);
     va_end(arglst);
 
-    throw CExpc(errParseError, buf);
+    throw CDDCExpc(errParseError, buf);
 }
 
 void CQueryCompiler::yybarf(const char *yymsg) const //throw(CExpc)

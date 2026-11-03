@@ -337,7 +337,7 @@ int main(int argc, char *argv[]) {
                             };
                         }
                         catch (CExpc &e) {
-                            fprintf(stderr, "Exception[%d]: %s\n", e.code(), e.what());
+                            fprintf(stderr, "Exception[%d]: %s\n", ddcExpcCode(e), e.what());
                             return -1;
                         }
                         catch (exception &e) {

@@ -260,12 +260,12 @@ void ReadVectorInner (FILE* fp, vector<T>& V, size_t Count)
 
         V.reserve(V.size() + Count);
         if (V.capacity() < Count) 
-            throw CExpc(Format("cannot allocate %u bytes in ReadVectorInner",size_of_t*Count));
+            throw CDDCExpc(Format("cannot allocate %u bytes in ReadVectorInner",size_of_t*Count));
 
         for (int i = 0; i < Count; i++)
         {
             if (fread ((void*)buffer, size_of_t, 1, fp)!=1)
-                throw CExpc(Format("cannot read %i item in ReadVectorInner",i));
+                throw CDDCExpc(Format("cannot read %i item in ReadVectorInner",i));
             restore_from_bytes (dummy, buffer);
             V.push_back(dummy);
         };

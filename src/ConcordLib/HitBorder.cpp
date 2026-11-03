@@ -170,7 +170,7 @@ DWORD   CHitBorders::GetPageNumber(size_t No) const
     if (m_PageBreaks.empty()) 
         return UnknownPageNumber;
     else if (No >= m_PageBreaks.size())
-        //throw CExpc(errRuntime, "CHitBorders::GetPageNumber(): requested item #%u not present (we only have %u)", No, m_PageBreaks.size());
+        //throw CDDCExpc(errRuntime, "CHitBorders::GetPageNumber(): requested item #%u not present (we only have %u)", No, m_PageBreaks.size());
         return UnknownPageNumber; //-- this should never really happen, but sometimes it does...
     else
         return m_PageBreaks[No].m_PageNumber;
@@ -251,7 +251,7 @@ void CHitBorders::AddBreakByIndex(DWORD BreakCollectionNo, const CTokenNo& B)
     CBreakCollection& C = m_Breaks[BreakCollectionNo];
     BYTE TextBreakBuffer[sizeof(CTokenNo)];
     if (fwrite(TextBreakBuffer, save_to_bytes(B, TextBreakBuffer), 1, C.m_FileForIndexing) != 1) {
-        throw CExpc(Format("cannot write to break collection %i, name=%s", BreakCollectionNo, C.m_LongName.c_str()));
+        throw CDDCExpc(Format("cannot write to break collection %i, name=%s", BreakCollectionNo, C.m_LongName.c_str()));
     }
     m_LastTextAreaBreaks[BreakCollectionNo] = B;
 };
@@ -260,7 +260,7 @@ void CHitBorders::AddBreakByName(const string& ShortName, const CTokenNo& B)
 {
     map<string,int>::iterator it = m_ShortName2BreakCollection.find(ShortName);
     if (it == m_ShortName2BreakCollection.end())
-        throw CExpc("Cannot find break name=" + ShortName);
+        throw CDDCExpc("Cannot find break name=" + ShortName);
     AddBreakByIndex(it->second, B);
 };
 
@@ -365,7 +365,7 @@ int CHitBorders::RegisterBreak(string ShortName, string LongName)
     pair<map<string,int>::iterator, bool> it = m_ShortName2BreakCollection.insert(make_pair(T.m_ShortName,m_Breaks.size()));
     if (!it.second)
     {
-        throw CExpc("Error! A duplicate hit type name is found: "+T.m_LongName);
+        throw CDDCExpc("Error! A duplicate hit type name is found: "+T.m_LongName);
     };
     m_LongName2BreakCollection.insert(make_pair(T.m_LongName,m_Breaks.size()));
     m_Breaks.push_back(T);
@@ -382,27 +382,27 @@ void CHitBorders::RegisterBorderIndices(const char* IndicesStr)
     m_DefaultBreakName = "";
     if (IndicesStr)
     {
-        StringTokenizer tok(IndicesStr,";");
+        ddcStringTokenizer tok(IndicesStr,";");
         while (tok())
         {
             string Item = tok.val();
             Trim(Item);
             if ((Item.empty())  || (Item[0] != '[') || (Item[Item.length()-1] != ']'))
             {
-                throw CExpc(Format("Error! A bad format of the hit type definition (%s)!",IndicesStr));
+                throw CDDCExpc(Format("Error! A bad format of the hit type definition (%s)!",IndicesStr));
             };
             Item = Item.substr(1, Item.length() - 2);
-            StringTokenizer item_tok(Item.c_str(), ":");
+            ddcStringTokenizer item_tok(Item.c_str(), ":");
             string ShortName = item_tok.next_token(); 
             if (ShortName == PredefinedTableLineTag)
             {
-                throw  CExpc(("Error! Using of the predefined hit type \"l\" is prohibited"));
+                throw  CDDCExpc(("Error! Using of the predefined hit type \"l\" is prohibited"));
             };
                         
 
             if (ShortName.empty())
             {
-                throw  CExpc ("Am empty short name in the hit type definition: "+Item);
+                throw  CDDCExpc ("Am empty short name in the hit type definition: "+Item);
             };
             RegisterBreak(ShortName, item_tok.next_token());
             if (item_tok.next_token() == "default")

@@ -19,6 +19,7 @@
 //  along with DDC.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "ConcCommon.h"
+#include "../CommonLib/ddcIconv.h"
 
 bool bEnglishMorph = false;
 bool bRussianMorph = false;
@@ -31,43 +32,62 @@ CEngGramTab *engGramTab = 0;
 CRusGramTab *rusGramTab = 0;
 CGerGramTab *gerGramTab = 0;
 
+//! German I/O recoding (internal morphology encoding is LATIN1)
+ddcIconv *gerExt2Int = 0;
+ddcIconv *gerInt2Ext = 0;
+
 //! global mutex for non-thread-safe curl operations (global init, lru-cached proxy)
 pthread_mutex_t ddcMorphMutex = PTHREAD_MUTEX_INITIALIZER;
 
+static void InitGermanRecoding() {
+    string extEncoding;
+    try {
+        extEncoding = ::GetRegistryString("Software\\Dialing\\Lemmatizer\\German\\ExtEncoding");
+    }
+    catch (...) {}
+    if (extEncoding.empty())
+        extEncoding = "UTF8"; //-- moo: expect UTF8 I/O for German by default
+    if (extEncoding != "LATIN1") {
+        gerExt2Int = new ddcIconv(extEncoding, "LATIN1//TRANSLIT");
+        gerInt2Ext = new ddcIconv("LATIN1", extEncoding + "//TRANSLIT");
+    }
+}
+
+string MorphRecodeExt2Int(MorphLanguageEnum Langua, const string& s) {
+    return (Langua == morphGerman && gerExt2Int) ? gerExt2Int->convert(s) : s;
+}
+
+string MorphRecodeInt2Ext(MorphLanguageEnum Langua, const string& s) {
+    return (Langua == morphGerman && gerInt2Ext) ? gerInt2Ext->convert(s) : s;
+}
+
 template<class T, class Y>
 void InitMorphologySystem(T *&Lemmatizer, Y *&Gramtab) {
-    Lemmatizer = new T;
-    if (!Lemmatizer)
-        return;
-
     pthread_mutex_lock(&ddcMorphMutex);
+    Lemmatizer = new T;
+    string l = GetStringByLanguage(Lemmatizer->GetLanguage());
     try {
-        string l = GetStringByLanguage(Lemmatizer->GetLanguage());
         ddcLogDebug("   dictionary");
-        string strError;
-        if (!Lemmatizer->LoadDictionariesRegistry(strError)) {
-            ddcLogError(Format("Cannot load %s  morphological dictionary: %s", l.c_str(), strError.c_str()));
-            delete Lemmatizer;
-            Lemmatizer = 0;
-        }
+        Lemmatizer->LoadDictionariesRegistry();
+    }
+    catch (std::exception& e) {
+        ddcLogError(Format("Cannot load %s  morphological dictionary: %s", l.c_str(), e.what()));
+        delete Lemmatizer;
+        Lemmatizer = 0;
+    }
 
+    try {
         ddcLogDebug("   gramtab");
         Gramtab = new Y;
-        if (!Gramtab) {
-            pthread_mutex_unlock(&ddcMorphMutex);
-            return;
-        }
-        if (!Gramtab->LoadFromRegistry()) {
-            ddcLogError(Format("Cannot load %s  gramtab", l.c_str()));
-            delete Gramtab;
-            Gramtab = 0;
-        }
+        Gramtab->LoadFromRegistry();
     }
-    catch (...) {
-        pthread_mutex_unlock(&ddcMorphMutex);
-        throw;
+    catch (std::exception& e) {
+        ddcLogError(Format("Cannot load %s  gramtab: %s", l.c_str(), e.what()));
+        delete Gramtab;
+        Gramtab = 0;
     }
-
+    if (Lemmatizer && Lemmatizer->GetLanguage() == morphGerman && !gerExt2Int)
+        InitGermanRecoding();
     pthread_mutex_unlock(&ddcMorphMutex);
 };
 
@@ -99,26 +119,11 @@ const CLemmatizer *GetLemmatizerByLanguage(MorphLanguageEnum Langua) {
 
 
 const CAgramtab *GetGramtabByLanguage(MorphLanguageEnum Langua) {
-    if (Langua == morphEnglish) {
-        if (!bEnglishMorph) {
-            InitMorphologySystem(engLemmatizer, engGramTab);
-            bEnglishMorph = true;
-        };
-        return engGramTab;
-    } else if (Langua == morphRussian) {
-        if (!bRussianMorph) {
-            InitMorphologySystem(rusLemmatizer, rusGramTab);
-            bRussianMorph = true;
-        };
-        return rusGramTab;
-    } else if (Langua == morphGerman) {
-        if (!bGermanMorph) {
-            InitMorphologySystem(gerLemmatizer, gerGramTab);
-            bGermanMorph = true;
-        };
-        return gerGramTab;
-    } else
-        return 0;
+    GetLemmatizerByLanguage(Langua); //-- lazy init
+    if (Langua == morphEnglish) return engGramTab;
+    if (Langua == morphRussian) return rusGramTab;
+    if (Langua == morphGerman) return gerGramTab;
+    return 0;
 };
 
 
@@ -138,8 +143,8 @@ bool InitConcordDicts() {
 
         return true;
     }
-    catch (CExpc c) {
-        fprintf(stderr, "Exception %s \n", c.m_strCause.c_str());
+    catch (std::exception& c) {
+        fprintf(stderr, "Exception %s \n", c.what());
         return false;
     }
     catch (...) {
@@ -155,6 +160,12 @@ void FreeConcordDicts() {
     if (rusGramTab) delete rusGramTab;
     if (engGramTab) delete engGramTab;
     if (gerGramTab) delete gerGramTab;
+    if (gerExt2Int) delete gerExt2Int;
+    if (gerInt2Ext) delete gerInt2Ext;
+    rusLemmatizer = 0; engLemmatizer = 0; gerLemmatizer = 0;
+    rusGramTab = 0; engGramTab = 0; gerGramTab = 0;
+    gerExt2Int = 0; gerInt2Ext = 0;
+    bRussianMorph = bEnglishMorph = bGermanMorph = false;
 
 
 };

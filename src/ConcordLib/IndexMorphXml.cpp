@@ -111,7 +111,7 @@ void    CConcIndexator::IndexMorphXml   (CIndexDocument* document)
         // if at least one token is found, then add a bibliographical record
         if (!m_BiblIndex.AddIndexItem(Bibliography))
         {
-            throw CExpc( "Cannot index bibliography " + Bibliography.WriteToString() );
+            throw CDDCExpc( "Cannot index bibliography " + Bibliography.WriteToString() );
         }
     };
 };

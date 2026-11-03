@@ -121,7 +121,7 @@ bool CItemIndexForLoading::ReadFromTemporalFile (FILE* fp)
     // reads the number  of  occurrences 
     size_t OccCount;
     if ( fread(&OccCount, sizeof(size_t), 1, fp) != 1) 
-        throw CExpc("Exception in CItemIndexForLoading::ReadFromTemporalFile: offset %u\n",FTell(fp));
+        throw CDDCExpc("Exception in CItemIndexForLoading::ReadFromTemporalFile: offset %u\n",FTell(fp));
 
     m_pCurrOccurs->clear();
 
@@ -136,15 +136,15 @@ bool CItemIndexForLoading::ReadFromTemporalFile (FILE* fp)
 void CItemIndexForLoading::WriteToTemporalFile (FILE* fp) const
 {
     if (fwrite(&m_IndexItemOffset, sizeof(m_IndexItemOffset), 1 , fp) != 1) 
-        throw CExpc ("Exception in CItemIndexForLoading::WriteToTemporalFile(1)");
+        throw CDDCExpc ("Exception in CItemIndexForLoading::WriteToTemporalFile(1)");
 
     size_t OccCount;
     OccCount = m_pCurrOccurs->size();
     if (fwrite(&OccCount, sizeof(size_t), 1, fp) != 1) 
-        throw CExpc ("Exception in CItemIndexForLoading::WriteToTemporalFile(2)");
+        throw CDDCExpc ("Exception in CItemIndexForLoading::WriteToTemporalFile(2)");
 
     if (!WriteVectorInner(fp, *m_pCurrOccurs)) 
-        throw CExpc ("Exception in CItemIndexForLoading::WriteToTemporalFile while writing %i tokens", m_pCurrOccurs->size());
+        throw CDDCExpc ("Exception in CItemIndexForLoading::WriteToTemporalFile while writing %i tokens", m_pCurrOccurs->size());
 };
 
 
@@ -270,7 +270,7 @@ bool    CIndexSetForLoadingStage::SaveMemoryLoadIndex()
     }
     catch (CExpc c)
     {
-        fprintf (stderr, "Exception %s in CIndexSetForLoadingStage::SaveMemoryLoadIndex; Index name=%s\n", c.m_strCause.c_str(), GetName().c_str());
+        fprintf (stderr, "Exception %s in CIndexSetForLoadingStage::SaveMemoryLoadIndex; Index name=%s\n", c.what(), GetName().c_str());
         return false;
     }
     catch(...)
@@ -511,7 +511,7 @@ bool    CIndexSetForLoadingStage::AddMemoryLoadIndexToMainLoadIndex()
     }
     catch (CExpc c) 
     {
-        fprintf (stderr, "Exception %s in CIndexSetForLoadingStage::AddMemoryLoadIndexToMainLoadIndex; Index name=%s; iteration=%i\n",c.m_strCause.c_str(), GetName().c_str(), iteration);
+        fprintf (stderr, "Exception %s in CIndexSetForLoadingStage::AddMemoryLoadIndexToMainLoadIndex; Index name=%s; iteration=%i\n",c.what(), GetName().c_str(), iteration);
     }
     catch (...) 
     {
@@ -536,7 +536,7 @@ size_t CIndexSetForLoadingStage::AddItemStrToBuffer(const char* Str, size_t StrL
     size_t buf_len = m_StringBuffer.size();
     if ((m_StringBuffer.size()+StrLen+1) >= MAX_STRINGBUFFER_SIZE)
     {
-        throw CExpc("index set(name = \"%s\") cannot contain more than %zd bytes of string type data", this->GetName().c_str(), MAX_STRINGBUFFER_SIZE);
+        throw CDDCExpc("index set(name = \"%s\") cannot contain more than %zd bytes of string type data", this->GetName().c_str(), MAX_STRINGBUFFER_SIZE);
     }
 
     for (long i=0; i <= StrLen; i++)
@@ -573,7 +573,7 @@ void CIndexSetForLoadingStage::InsertToInputLoadIndex(const char* Str, size_t St
         // creating new index item
         CItemIndexForLoading word;
         if (!word.InitOccurs())
-            throw CExpc ("cannot allocate new vector of occurrences in CItemIndexForLoading::InitOccurs");
+            throw CDDCExpc ("cannot allocate new vector of occurrences in CItemIndexForLoading::InitOccurs");
 
         if (!bHasAnonymousFlag)
             *word.GetOccurs() = occurrences;
@@ -599,7 +599,7 @@ void CIndexSetForLoadingStage::InsertToInputLoadIndex(const char* Str, size_t St
 
     if (m_bUseItemStorage) {
         if (fwrite(&IndexItemOffset,sizeof(DWORD),1, m_TempStorageFile) != 1) 
-            throw CExpc ("Cannot write to temporary storage file");
+            throw CDDCExpc ("Cannot write to temporary storage file");
     };
 };
 
@@ -657,9 +657,9 @@ void CIndexSetForLoadingStage::RollbackLoadIndex(CTokenNo startTrimTokenNo)
         off_t truncate_offset = ((off_t)startTrimTokenNo) * sizeof(DWORD);
         fflush(m_TempStorageFile);
         if (ftruncate(fileno(m_TempStorageFile), ((off_t)startTrimTokenNo) * sizeof(DWORD)) != 0)
-            throw CExpc(Format("failed to truncate temporary storage file '%s' during rollback", m_TempStorageFileName.c_str()));
+            throw CDDCExpc(Format("failed to truncate temporary storage file '%s' during rollback", m_TempStorageFileName.c_str()));
         if (!FSeek(m_TempStorageFile, truncate_offset, SEEK_SET))
-            throw CExpc(Format("failed to re-seek to end of temporary storage file '%s' during rollback", m_TempStorageFileName.c_str()));
+            throw CDDCExpc(Format("failed to re-seek to end of temporary storage file '%s' during rollback", m_TempStorageFileName.c_str()));
         //fprintf(stderr, "DEBUG/ROLLBACK: truncate_offset=%zd ; new_offset=%zd\n", truncate_offset, ftell(m_TempStorageFile)); //-- DEBUG
     }
 };

@@ -19,7 +19,7 @@
 //  along with DDC.  If not, see <http://www.gnu.org/licenses/>.
 //
 
-//-- StringTokenizer now lives in ../CommonLib/ddcString.*
+//-- ddcStringTokenizer now lives in ../CommonLib/ddcString.*
 #include "ddcString.h"
 
 /*--- emacs style variables ---

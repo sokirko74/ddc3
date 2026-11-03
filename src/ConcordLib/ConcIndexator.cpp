@@ -83,7 +83,7 @@ void CConcIndexator::InitGraphan()  {
     Graphmat.m_bConvertRussianJo2Je = true;
     Graphmat.m_bFilterUnprintableSymbols = false;
     if (!Graphmat.LoadDicts()) {
-        throw CExpc(Format("Graphan::LoadDicts failed! Error: %s", Graphmat.GetLastError().c_str()));
+        throw CDDCExpc(Format("Graphan::LoadDicts failed! Error: %s", Graphmat.GetLastError().c_str()));
     }
 };
 
@@ -140,28 +140,28 @@ void CConcIndexator::DestroyIndex() {
     AssertHasPath();
 
     if (!RemoveHitBordersFileAndClear(m_Path))
-        throw CExpc("RemoveHitBordersFileAndClear failed, cannot destroy index, this corpus is possibly already used");
+        throw CDDCExpc("RemoveHitBordersFileAndClear failed, cannot destroy index, this corpus is possibly already used");
 
     if (!DestroyIndices())
-        throw CExpc("DestroyIndices failed, cannot destroy index, this corpus is possibly already used");
+        throw CDDCExpc("DestroyIndices failed, cannot destroy index, this corpus is possibly already used");
 
     if (FileExists(GetSearchPeriodsFileName().c_str()))
         if (remove(GetSearchPeriodsFileName().c_str()))
-            throw CExpc("remove(GetSearchPeriodsFileName failed");
+            throw CDDCExpc("remove(GetSearchPeriodsFileName failed");
 
     if (FileExists(GetFileNameForCorpusFileNames().c_str()))
         if (remove(GetFileNameForCorpusFileNames().c_str()))
-            throw CExpc("remove GetFileNameForCorpusFileNames failed");
+            throw CDDCExpc("remove GetFileNameForCorpusFileNames failed");
 
     m_CorpusFiles.clear();
 
     if (FileExists(GetFileNameForMaskedFiles().c_str()))
         if (remove(GetFileNameForMaskedFiles().c_str()))
-            throw CExpc("remove GetFileNameForMaskedFiles failed");
+            throw CDDCExpc("remove GetFileNameForMaskedFiles failed");
     ;
     if (FileExists(GetFileNameForMaskedFileIds().c_str()))
         if (remove(GetFileNameForMaskedFileIds().c_str()))
-            throw CExpc("remove GetFileNameForMaskedFileIds failed");
+            throw CDDCExpc("remove GetFileNameForMaskedFileIds failed");
     m_MaskedFiles.clear();
 };
 
@@ -192,7 +192,7 @@ void GetTextFromXMLRecursive(TiXmlNode *parent, string &Result) {
         if (type == "pb") {
             const char *pb_str = ((TiXmlElement *) parent)->Attribute("n");
             if (!pb_str) {
-                throw CExpc("Cannot parse page break element");
+                throw CDDCExpc("Cannot parse page break element");
             };
             Result += Format("\n<pb %s>\n", pb_str);
         } else {
@@ -205,7 +205,7 @@ void GetTextFromXMLRecursive(TiXmlNode *parent, string &Result) {
     } else if (parent->Type() == TiXmlNode::COMMENT) {
         // skipping comments
     } else {
-        throw CExpc((Format("Unknown xml-node:%s. Some parts of file cannot be parsed!", parent->Value())));
+        throw CDDCExpc((Format("Unknown xml-node:%s. Some parts of file cannot be parsed!", parent->Value())));
     };
 };
 
@@ -223,7 +223,7 @@ void GetCWBFormattedStringRecursive(const TiXmlNode *parent, string &Result) {
                 Result += Format("<pb %s>\n", page_number);
                 return;
             } else {
-                throw CExpc("bad page break");
+                throw CDDCExpc("bad page break");
             };
         } else if (bNotLineBreak)
             Result += Format("\n<%s>\n", type.c_str());
@@ -240,7 +240,7 @@ void GetCWBFormattedStringRecursive(const TiXmlNode *parent, string &Result) {
         //-- moo: skip comments in document body
         ;
     } else {
-        throw CExpc(Format("Unknown xml-node:%s. Some parts of file cannot be parsed!", parent->Value()));
+        throw CDDCExpc(Format("Unknown xml-node:%s. Some parts of file cannot be parsed!", parent->Value()));
     };
 };
 
@@ -248,7 +248,7 @@ void GetCWBFormattedStringRecursive(const TiXmlNode *parent, string &Result) {
 void
 CConcIndexator::LoadXmlFile(string FileName, const char *pFileBuffer, CBibliography &Bibl) {
     if (m_BiblIndex.GetTextAreasCount() == 0) {
-        throw CExpc(Format("Error! Cannot index xml files, since no text areas defined in the options file!"));
+        throw CDDCExpc(Format("Error! Cannot index xml files, since no text areas defined in the options file!"));
     }
 
     TiXmlDocument doc(FileName.c_str());
@@ -271,7 +271,7 @@ CConcIndexator::LoadXmlFile(string FileName, const char *pFileBuffer, CBibliogra
             GetTextFromXMLRecursive(body, SourceText);
         }
         catch (CExpc e) {
-            throw CExpc (Format("Cannot get text from file %s, error=%s", FileName.c_str(), e.m_strCause.c_str()));
+            throw CDDCExpc (Format("Cannot get text from file %s, error=%s", FileName.c_str(), e.what()));
         };
 
         AllTexts += SourceText;
@@ -279,7 +279,7 @@ CConcIndexator::LoadXmlFile(string FileName, const char *pFileBuffer, CBibliogra
     }
 
     if (!Graphmat.LoadStringToGraphan(AllTexts))
-        throw CExpc(Format("Graphmat.LoadStringToGraphan failed for file %s, Error:%s", FileName.c_str(),
+        throw CDDCExpc(Format("Graphmat.LoadStringToGraphan failed for file %s, Error:%s", FileName.c_str(),
                            Graphmat.GetLastError().c_str()));
 
 };
@@ -315,7 +315,7 @@ void CConcIndexator::CalculateSearchPeriods(DWORD MaxTokenCountInOnePeriod) {
 
 void CConcIndexator::IndexOneTableTextArea(const string &Text, const CPageNumber &StartPageFromHeader,
                                            size_t &page_breaks_count, CIndexDocument* document) {
-    StringTokenizer tok(Text.c_str(), "\r\n");
+    ddcStringTokenizer tok(Text.c_str(), "\r\n");
     deque<pair<string, CTokenNo> > start_chunk_tags_str_and_pos;
     StartTextAreaBorders();
     try {
@@ -323,7 +323,7 @@ void CConcIndexator::IndexOneTableTextArea(const string &Text, const CPageNumber
             string q = tok.val();
             Trim(q);
             if (q.empty()) {
-                throw CExpc("Empty lines in CWB format!");
+                throw CDDCExpc("Empty lines in CWB format!");
             }
             size_t len = q.length();
             if ((len < 100)
@@ -350,7 +350,7 @@ void CConcIndexator::IndexOneTableTextArea(const string &Text, const CPageNumber
                             AddPageBreak(Page);
                             page_breaks_count++;
                         } else {
-                            throw CExpc( Format("bad page break (%s)", q.c_str()));
+                            throw CDDCExpc( Format("bad page break (%s)", q.c_str()));
                         };
                     } else if (!IsRegisteredBreak(tag_name)) {
                         if (m_bIndexChunks)
@@ -372,7 +372,7 @@ void CConcIndexator::IndexOneTableTextArea(const string &Text, const CPageNumber
                             if (start_chunk_tags_str_and_pos.empty()
                                 || (start_chunk_tags_str_and_pos.back().first != tag_name)
                                 ) {
-                                throw CExpc(Format("Error! An end tag without a start tag is found (%s<>%s)",
+                                throw CDDCExpc(Format("Error! An end tag without a start tag is found (%s<>%s)",
                                                    start_chunk_tags_str_and_pos.back().first.c_str(), tag_name.c_str()));
                             }
                             if (document->CorpusEndTokenNo > 0) {
@@ -400,7 +400,7 @@ void CConcIndexator::IndexOneTableTextArea(const string &Text, const CPageNumber
         throw err;
     }
     catch (...) {
-        throw CExpc (Format("General exception while processing \"%s\"\n", tok.val()));
+        throw CDDCExpc (Format("General exception while processing \"%s\"\n", tok.val()));
     };
 }
 
@@ -452,9 +452,9 @@ void CConcIndexator::LoadFileIntoGraphan(string FileName, const char *pFileBuffe
         } else {
             if (!Graphmat.LoadStringToGraphan(pFileBuffer)) {
                 if (!Graphmat.GetLastError().empty())
-                    throw CExpc( Graphmat.GetLastError());
+                    throw CDDCExpc( Graphmat.GetLastError());
                 else
-                    throw CExpc("CGraphmat::LoadStringToGraphan has crushed! ");
+                    throw CDDCExpc("CGraphmat::LoadStringToGraphan has crushed! ");
             }
             m_BiblIndex.SetFreeBiblAttribsEmpty(Bibl);
         };
@@ -462,10 +462,10 @@ void CConcIndexator::LoadFileIntoGraphan(string FileName, const char *pFileBuffe
 
     }
     catch (CExpc c) {
-        throw CExpc( Format("Exception %s in CConcIndexator::LoadFileIntoGraphan\n", c.m_strCause.c_str()));
+        throw CDDCExpc( Format("Exception %s in CConcIndexator::LoadFileIntoGraphan\n", c.what()));
     }
     catch (...) {
-        throw CExpc( "An exception occurred in CConcIndexator::LoadFileIntoGraphan while processing " + FileName);;
+        throw CDDCExpc( "An exception occurred in CConcIndexator::LoadFileIntoGraphan while processing " + FileName);;
     }
 }
 
@@ -494,7 +494,7 @@ void CConcIndexator::IndexTextOrHtmlFile(CIndexDocument* document) {
     size_t TextAreaStarter = DWORD_MAX;
     int SentenceBreakCollection = GetBreakCollectionIndexByName("s");
     if ((SentenceBreakCollection == -1) && !m_bQueryOnlyFiles) {
-        throw CExpc("could not find sentence collection");
+        throw CDDCExpc("could not find sentence collection");
     }
 
     for (long GraLineNo = 1; GraLineNo < GraLinesCount; GraLineNo++) {
@@ -503,13 +503,13 @@ void CConcIndexator::IndexTextOrHtmlFile(CIndexDocument* document) {
         if (bToken) {
             BYTE TokenLen = Graphmat.GetUnits()[GraLineNo].GetTokenLength();
             if (TokenLen == 0) {
-                throw CExpc(Format("Fatal error: An empty word is found!\nGraph.Word No %i from %i \n", GraLineNo,
+                throw CDDCExpc(Format("Fatal error: An empty word is found!\nGraph.Word No %i from %i \n", GraLineNo,
                                    GraLinesCount));
             };
 
             const char *Token = Graphmat.GetUnits()[GraLineNo].GetToken();
             if ((BYTE) Token[0] == globalFieldDelimeter) {
-                throw CExpc(Format("Error! An input word(LineNo=%i) cannot contain symbol \"%c\"(%i) \n", GraLineNo,
+                throw CDDCExpc(Format("Error! An input word(LineNo=%i) cannot contain symbol \"%c\"(%i) \n", GraLineNo,
                                    (int) globalFieldDelimeter, (unsigned int) globalFieldDelimeter));
             };
 
@@ -598,16 +598,16 @@ void CConcIndexator::IndexTextOrHtmlFile(CIndexDocument* document) {
     };
 
     if (TextAreaNo != TextAreasCount) {
-        throw CExpc( Format("Some text areas are not present in this document"));
+        throw CDDCExpc( Format("Some text areas are not present in this document"));
     }
     Graphmat.FreeTable();
 };
 
 void CConcIndexator::StartIndexing() {
-    if (!CStringIndexator::StartIndexing(m_Path)) throw CExpc("CStringIndexator::StartIndexing failed, possibly cannot create temp files in the catalog of the corpus!");
-    if (!CHitBorders::StartIndexing(m_Path)) throw CExpc("CHitBorders::StartIndexing failed, possibly cannot create temp files in the catalog of the corpus!");
+    if (!CStringIndexator::StartIndexing(m_Path)) throw CDDCExpc("CStringIndexator::StartIndexing failed, possibly cannot create temp files in the catalog of the corpus!");
+    if (!CHitBorders::StartIndexing(m_Path)) throw CDDCExpc("CHitBorders::StartIndexing failed, possibly cannot create temp files in the catalog of the corpus!");
     if (!m_BiblIndex.Start(m_Path)) {
-        throw CExpc("Cannot start bibl indexator");
+        throw CDDCExpc("Cannot start bibl indexator");
     };
     InitGraphan();
     m_pDwdsThesaurus = 0;

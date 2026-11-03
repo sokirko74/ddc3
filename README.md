@@ -13,16 +13,21 @@ The DDC-2.x branch was maintained in SVN under:
 
 ## Dependencies
 
-- **ddc-morph >= v2.0.0** — morphology data.
+- **morph_dict** (git submodule `src/morph_dict`,
+  <https://github.com/sokirko74/morph_dict>) — morphology library and
+  dictionary sources shared with RML. Fetch it with
 
-  In order to use most of the runtime utilities, you will also need a set of
-  morphology data files available in the ddc-morph package, which should be
-  available wherever you downloaded these sources.
+      git submodule update --init
 
-  You should build this package **before** attempting to build ddc-morph.
+  (or clone with `git clone --recursive`). The morphology dictionaries are
+  built from it automatically (`build/dict/Morph/{Russian,English,German}`).
 
+- **ddc-morph >= v2.0.0** — graphematical data (`dict/GraphAn`, `dict/Obor`,
+  `dict/GerObor`). Its morphology dictionaries are no longer used.
   The ddc-morph sources are maintained in SVN under:
   <https://ddc-concordance.svn.sourceforge.net/svnroot/ddc-morph>
+
+- **zlib** (e.g. Debian/Ubuntu package `zlib1g-dev`) — required by morph_dict.
 
 - **PCRE2** (8-bit library, e.g. Debian/Ubuntu package `libpcre2-dev`) —
   Perl-compatible regular expressions. URL: <https://www.pcre.org/>.
@@ -63,10 +68,18 @@ DDC is built with CMake from the `src/` directory:
 Binaries are left in the build directory (e.g. `build/ddc_daemon/ddc_daemon`);
 there is no install target.
 
-Set the (legacy) environment variable `RML` to the directory containing the
-`dict/` morphology data (see [Dependencies](#dependencies)):
+Set the (legacy) environment variable `RML` to a directory with the following
+layout (see [Dependencies](#dependencies)):
 
-    export RML=/path/to/ddc
+    $RML/Bin/rml.ini     <- Bin/rml.ini from this repository
+    $RML/dict/Morph      <- build/dict/Morph (built from morph_dict)
+    $RML/dict/GraphAn    <- from ddc-morph
+    $RML/dict/Obor       <- from ddc-morph
+    $RML/dict/GerObor    <- from ddc-morph
+
+    export RML=/path/to/rml
+
+Note that `rml.ini` now lives in `$RML/Bin` (formerly `$RML/etc`).
 
 Take a look at the configuration files in `etc/` and the example corpora in
 `Test/` to get started.

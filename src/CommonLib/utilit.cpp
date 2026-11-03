@@ -332,22 +332,7 @@ const WORD ASCII[256] = {
 };
 
 
-bool FileExists (const char *FName)
-{
-    return (access(FName, 0) == 0);
-}
 
-file_off_t FileSize (const char *filename)
-{
-    FILE * fp = fopen (filename,"rb");
-    if (fp == NULL) return 0;
-    if (!FSeek(fp, 0,  SEEK_END)) 
-        throw CExpc ("Cannot move to the begining of the file: %s", filename);;
-
-    file_off_t size = FTell (fp);
-    fclose (fp);
-    return size;
-}
 
 time_t FileMTime (const char *filename)
 {
@@ -397,29 +382,8 @@ file_off_t FTell(FILE* fp)
 }
 
 
-void ErrorMessage (const string& label, const string& message)
-{
-    fprintf(stderr, "%s: %s", label.c_str(), message.c_str());
 
-    if (message.empty() || (message[message.length() - 1] !='\n'))
-        fprintf(stderr,"\n");
-};
 
-void ErrorMessage (const string& Message)
-{
-    ErrorMessage("error", Message);
-};
-
-string MakeFName ( const string& InpitFileName,  const string& Ext)
-{
-    string Result = InpitFileName;
-    size_t i = Result.find_last_of('.'); // \xed\xe0\xe9\xf2\xe8 \xef\xee\xf1\xeb\xe5\xe4\xed\xe5\xe5 \xf0\xe0\xf1\xf8\xe8\xf0\xe5\xed\xe8\xe5
-    if ( i  != string::npos) 
-        Result.erase(i);        
-    Result += string(".") ;
-    Result += Ext;
-    return Result;
-}
 
 
 
@@ -505,7 +469,7 @@ string  CreateTempFileName()
                 
     int fd = mkstemp(tmpfilename);
     if (fd == -1)
-        throw CExpc ("Cannot create temp file");
+        throw CDDCExpc ("Cannot create temp file");
     close (fd);
 #endif
 
@@ -529,16 +493,6 @@ bool IsEmptyLine ( const char *t)
     return true;
 }
 
-char* rtrim (char* s)
-{
-    size_t len = strlen(s);
-
-    while ( len > 0 && isspace((BYTE)s[len-1]))
-        s[--len] = 0;
-
-    return s;
-
-}
 
 
 
@@ -546,42 +500,6 @@ char* rtrim (char* s)
 
 // ================== IsSuperEqualChar \xef\xf0\xee\xe2\xe5\xf0\xff\xe5\xf2, \xf7\xf2\xee \xf1\xe8\xec\xe2\xee\xeb\xfb \xf0\xe0\xe2\xed\xfb \xf1 \xf2\xee\xf7\xed\xee\xf1\xf2\xfc\xfe \xe4\xee \xf0\xe5\xe3\xe8\xf1\xf2\xf0\xe0
 //  \xe8 \xf1 \xf2\xee\xf7\xed\xee\xf1\xf2\xfc\xfe \xe4\xee "\xff\xe7\xfb\xea\xe0", m.\xe5. \xeb\xe0\xf2\xe8\xed\xf1\xea\xee\xe5 "a" \xe1\xf3\xe4\xe5\xf2 \xf0\xe0\xe2\xed\xee  \xf0\xf3\xf1\xf1\xea\xee\xec\xf3 "\xe0".
-bool IsSuperEqualChar (BYTE ch1, BYTE ch2, MorphLanguageEnum langua)
-{
-    if      (               (ch1 == ch2) 
-                            ||      (ch1 == ReverseChar(ch2, langua))
-        ) 
-        return true;
-
-    const size_t LenEF    = 53;
-    //  \xef\xe5\xf0\xe2\xe0\xff \xe1\xf3\xea\xe2\xe0 - \xef\xf0\xee\xef\xe8\xf1\xed\xe0\xff  \xea\xe8\xf0\xe8\xeb\xeb\xe8\xf7\xe5\xf1\xea\xe0\xff \xe1\xf3\xea\xe2\xe0, \xf7\xf2\xee \xed\xe5\xee\xe1\xf5\xee\xe4\xe8\xec\xee,
-    // \xf7\xf2\xee\xe1\xfb \xf3\xf1\xf2\xe0\xed\xee\xe2\xe8\xf2\xfc \xef\xee\xf0\xff\xe4\xee\xea \xed\xe0 \xef\xee\xeb\xff\xf5 \xfd\xea\xe2\xe8\xe2\xe0\xeb\xe5\xed\xf2\xed\xee\xf1\xf2\xe8 \xe1\xf3\xea\xe2
-    char const EF[LenEF+1] = "\000\340\300aA\000\345\305Ee\000\347\3073\000\352\312Kk\000\354\314M\000\355\315H\000\356\316Oo0\000\360\320pP\000\361\321Cc\000\363\323y\000\365\325Xx";
-
-    size_t i = 0, k=0;
-    for (i=0; i<LenEF; i++)
-        if (!EF[i]) 
-            k = i+1;
-        else
-        {
-            if (ch1 == (BYTE)EF[i]) ch1 = (BYTE)EF[k];
-            if (ch2 == (BYTE)EF[i]) ch2 = (BYTE)EF[k];
-        }
-
-    if (is_russian_upper(ch1))
-        ch1 = rtolower(ch1);
-
-    if (is_russian_upper(ch2))
-        ch2 = rtolower(ch2);
-
-    if (is_english_upper (ch1))
-        ch1 = tolower (ch1);
-
-    if (is_english_upper (ch2))
-        ch2 = tolower (ch2);
-
-    return ch1 == ch2;
-}
 
 
 
@@ -648,19 +566,7 @@ bool force_to_rus (char* dest, const char* sour, size_t len)
     return true;
 }
 
-char* IntToStr (int Value, char* Buffer)
-{
-    sprintf (Buffer, "%i", Value);
-    return Buffer;
-};
 
-string& IntToStr (int Value, string& oBuffer)
-{
-    char Buffer[256];
-    sprintf (Buffer, "%i", Value);
-    oBuffer = Buffer;
-    return oBuffer;
-};
 
 string FileExtension (const string& FileName)
 {
@@ -801,8 +707,8 @@ void AddFile(const char* MainFile, const char* ToAdd)
 
 void FileAppend(FILE *src, FILE *dst)
 {
-    if (!src) throw CExpc("FileAppend(): no source file specified");
-    if (!dst) throw CExpc("FileAppend(): no destination file specified");
+    if (!src) throw CDDCExpc("FileAppend(): no source file specified");
+    if (!dst) throw CDDCExpc("FileAppend(): no destination file specified");
 
     char buf[DDC_STATIC_BUFLEN];
     size_t nread;
@@ -810,7 +716,7 @@ void FileAppend(FILE *src, FILE *dst)
         if ( (nread=fread(buf, 1, DDC_STATIC_BUFLEN, src)) > 0
              &&
              fwrite(buf, 1, nread, dst) != nread )
-            throw CExpc("FileAppend(): failed to copy data");
+            throw CDDCExpc("FileAppend(): failed to copy data");
     }
     while (nread  > 0 && !feof(src));
 };
@@ -820,8 +726,8 @@ void FileAppend(const char *srcFile, const char *dstFile)
     FILE *src = fopen(srcFile,"rb");
     FILE *dst = fopen(dstFile,"ab");
     try {
-        if (!src) throw CExpc(Format("FileAppend(): open failed for source file '%s': %s", srcFile, strerror(errno)));
-        if (!dst) throw CExpc(Format("FileAppend(): open failed for destination file '%s': %s", dstFile, strerror(errno)));
+        if (!src) throw CDDCExpc(Format("FileAppend(): open failed for source file '%s': %s", srcFile, strerror(errno)));
+        if (!dst) throw CDDCExpc(Format("FileAppend(): open failed for destination file '%s': %s", dstFile, strerror(errno)));
         FileAppend(src,dst);
     }
     catch (exception &e) {
@@ -840,8 +746,8 @@ void FileAppend(const string& srcFile, const string& dstFile)
 
 void FileAppendPartial(FILE *src, FILE *dst, size_t nBytes)
 {
-    if (!src) throw CExpc("FileAppendPartial(): no source file specified");
-    if (!dst) throw CExpc("FileAppendPartial(): no destination file specified");
+    if (!src) throw CDDCExpc("FileAppendPartial(): no source file specified");
+    if (!dst) throw CDDCExpc("FileAppendPartial(): no destination file specified");
         
     char buf[DDC_STATIC_BUFLEN];
     size_t nPending=nBytes;
@@ -849,9 +755,9 @@ void FileAppendPartial(FILE *src, FILE *dst, size_t nBytes)
         size_t nwant = (nPending > DDC_STATIC_BUFLEN ? DDC_STATIC_BUFLEN : nPending);
         size_t nread = fread(buf, 1, nwant, src);
         if (nread != nwant)
-            throw CExpc(Format("FileAppendPartial(): tried to read %zd byte(s) but got only %zd", nwant, nread));
+            throw CDDCExpc(Format("FileAppendPartial(): tried to read %zd byte(s) but got only %zd", nwant, nread));
         if (fwrite(buf, 1, nread, dst) != nread)
-            throw CExpc(Format("FileAppendPartial(): failed to write %zd byte(s)", nread));
+            throw CDDCExpc(Format("FileAppendPartial(): failed to write %zd byte(s)", nread));
         nPending -= nread;
     }
     while (nPending > 0);
@@ -865,110 +771,25 @@ string TryReadRMLFromRegistry()
     LONG res; 
     res = RegOpenKeyEx( HKEY_LOCAL_MACHINE, "SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Environment",  0, KEY_ALL_ACCESS, &hKeyResult ); 
     if(res != ERROR_SUCCESS)
-        throw CExpc("Error! Environment variable \"RML\"is not set!");
+        throw CDDCExpc("Error! Environment variable \"RML\"is not set!");
     else
     { 
         char buf[512]; 
         DWORD dwBytes = sizeof(buf); 
         res = RegQueryValueEx( hKeyResult, "RML", 0, NULL, reinterpret_cast <PBYTE> (buf), &dwBytes); 
         if(res != ERROR_SUCCESS) 
-            throw CExpc("Error! Environment variable \"RML\"is not set!");
+            throw CDDCExpc("Error! Environment variable \"RML\"is not set!");
         return buf;
     }
 } 
 #endif
 
-string GetRmlVariable()
-{
-    const char* rml = getenv("RML");
-    string s;
-    if (rml)
-        s = rml;
-    else
-    {
-#ifndef WIN32
-        throw CExpc("Error! Environment variable \"RML\"is not set!");
-#else
-        s = TryReadRMLFromRegistry();
-#endif
-                
-    }
-         
-    Trim(s);
-    for (size_t  i=0; i<s.length(); i++)
-        if (s[i] == '\\')
-            s[i] = '/';
-    if (!s.empty() &&  (s[0] == '\"'))
-        s.erase(0, 1);
-    if (!s.empty() && (s[s.length() - 1] == '\"'))
-        s.erase(s.length() - 1);
-    if (!s.empty() &&  (s[s.length() - 1] == '/'))
-        s.erase(s.length() - 1);
-    if (s.empty())
-        throw CExpc ("Environment variable \"RML\" is not properly initialized!");
-    return s;
-}
 
 
 const char RML_REGISTRY_FILENAME[] = "rml.ini";
 
 
-static string GetStringInnerFromTheFile (string RegistryPath, string MainPath, string RmlPath) 
-{
-    string FileName =       MainPath +  "/" + RML_REGISTRY_FILENAME;
-    if (access  (FileName.c_str(),04) != 0)
-    {
-        //fprintf (stderr, "Cannot read %s\n", FileName.c_str());
-        throw CExpc ("Cannot read "+FileName);          
-    };
-    FILE* fp;
-    try 
-    {
-        fp = fopen (FileName.c_str(), "r");
-        if (fp == 0)
-            throw CExpc ("Cannot open "+FileName);
-    }
-    catch (...)
-    {
-        throw CExpc ("Cannot open "+FileName);
-    }
-    char buffer[2048];
-    while (fgets(buffer,2048,fp))
-    {
-        string s = buffer;
-        Trim(s);
-        if (s.empty()) continue;
-        size_t end_field_name = strcspn(s.c_str(), " \t");
-        if (end_field_name == s.length())
-        {
-            fclose(fp);
-            throw CExpc ("Cannot parse line "+s);
-        };
-        string Key = s.substr(0,end_field_name);
-        if (RegistryPath == Key)
-        {
-            string Value = s.substr(end_field_name);
-            Trim(Value);
-            if (Value.substr(0, 4) == "$RML")
-                Value.replace(0,4, RmlPath);
 
-            fclose(fp);
-            return Value;
-        };
-    };
-    fclose (fp);
-
-    return "";
-};
-
-string GetIniFilePath()
-{
-    /*-- moo (Tue, 10 May 2011 11:02:43 +0200)
-     * + changing annoying upper-case paths to lower-case
-     * + moving ini file (and others) to 'etc' subdirectory (vs. bin)
-     */
-    return GetRmlVariable()+"/etc";
-};
 
 //======================================================================
 // moo: get memory statistics using /proc/PID/status (linux only)
@@ -1034,60 +855,10 @@ size_t GetNumberOfOpenFiles(pid_t pid)
 //======================================================================
 // working with registry 
 
-string GetRegistryString (string RegistryPath)
-{
-    string Result = GetStringInnerFromTheFile(RegistryPath, GetIniFilePath(), GetRmlVariable().c_str());
-    return Result;
-        
-};
-
-bool CanGetRegistryString (string RegistryPath)
-{
-    try {
-        string s = GetRegistryString(RegistryPath);
-        return  s != "";
-    }
-    catch (...)
-    {
-        return false;
-    };
-}
 
 
-bool    IsRmlRegistered(string& Error)
-{
-    try 
-    {
-        string IniFile = GetIniFilePath() +  "/" + RML_REGISTRY_FILENAME;
-        
-        if (!FileExists(IniFile.c_str() ))
-        {
-            Error = "ini file not found: " + IniFile;
-            return false;
-        };
-        if (access  (IniFile.c_str(),04) != 0)
-        {
-            Error = "ini file exists but cannot be read: " + IniFile;
-            return false;
-        };
 
-    }
-    catch (CExpc c)
-    {
-        Error = c.m_strCause;
-        return false;
-    }
-    catch (...)
-    {
-        return false;
-    }
-    return true;
-};
 
-struct tm  RmlGetCurrentTime ()
-{
-    return DDCTime::Now().CalendarTime();
-};
 
 
 //=======================           Morphology  =======================
@@ -1149,45 +920,7 @@ int GetPredictionPartOfSpeech(const string& PartOfSpeech, MorphLanguageEnum lang
 };
 
 
-bool GetLanguageByString (string s, MorphLanguageEnum& Result)
-{
-        
-    EngRusMakeUpper(s);
 
-    if(s == "RUSSIAN"){
-        Result = morphRussian;
-        return true;
-    }else if(s == "ENGLISH"){
-        Result = morphEnglish;
-        return true;
-    }
-    else if(s == "GERMAN"){
-        Result = morphGerman;
-        return true;
-    }
-    else if(s == "GENERIC"){
-        Result = morphGeneric;
-        return true;
-    }
-    else if(s == "URL_ABC"){
-        Result = morphURL;
-        return true;
-    }else 
-        return false;
-        
-};
-
-string GetStringByLanguage (MorphLanguageEnum Langua)
-{
-    switch (Langua) {
-        case morphRussian: return  "Russian";
-        case morphEnglish: return  "English";
-        case morphGerman: return  "German";
-        case morphGeneric: return  "Generic";
-        case morphURL: return  "URL_ABC";
-        default :return "unk";
-    }
-};
 
 //=================================================================
 //===================  STRINGS =====================================
@@ -1196,10 +929,6 @@ string GetStringByLanguage (MorphLanguageEnum Langua)
 
 
 //  =============  Punctuation Letters ======================
-bool is_spc_fill (BYTE x)
-{
-    return ((x)==' '||(x)=='_'); 
-};
 
 //====================================================
 //============= ENGLISH                   ============
@@ -1223,224 +952,45 @@ const BYTE  ntilda = 241;
 const BYTE  eakut = 233;
 const BYTE  uzirkun = 251;
 
-bool is_generic_upper(BYTE x)     
-{
-    // why ,,
-    return          (ASCII[x]&EngUpper)>0;
-}; 
  
-bool is_generic_lower(BYTE x)     
-{
-    return          (ASCII[x]&EngLower)>0 || x>=128;
-};
-
-bool is_generic_alpha(BYTE x)      
-{
-    return is_english_alpha(x) || x>=128; 
-};
-
-bool is_URL_alpha(BYTE x)      
-{
-    return (ASCII[x]&URL_CHAR)>0; 
-};
 
 
-bool is_english_upper(BYTE x)     
-{
-    return          (ASCII[x]&EngUpper)>0;
-}; 
-
-bool is_english_upper_vowel(BYTE x)
-{
-    return                  ((ASCII[x] & EngUpper)>0)
-        &&      ((ASCII[x] & LatinVowel)>0);
-};
 
 
-bool is_english_lower(BYTE x)     
-{
-    return          (ASCII[x]&EngLower)>0;
-}; 
-
-bool is_english_lower_vowel(BYTE x)     
-{
-    return                  ( (ASCII[x] & EngLower)>0)
-        &&      ( (ASCII[x] & LatinVowel)>0);
-};
-
-bool is_english_alpha(BYTE x)      
-{
-    return is_english_lower(x) || is_english_upper(x); 
-};
-
-BYTE etoupper (BYTE ch)
-{
-    if (ch>=(BYTE) 'a' && ch<= (BYTE) 'z')
-        return ch -= 'a'-'A';
-    else
-        switch (ch) {
-            case ccedille : return Ccedille; // C with cedille
-            case egravis : return Egravis;  // E with gravis
-            case ezirkun : return Ezirkun;  // E with zirkun
-            case azirkun : return Azirkun;  // A with zirkun
-            case ozirkun : return Ozirkun;  // O with zirkun
-            case ouml : return Ouml;  // O umlaut
-            case ntilda : return Ntilda;  // N with tilda
-            case uzirkun : return Uzirkun;  // U with zirkun
-            case eakut : return Eakut;  // E acut
-            default : return ch;
-        };
-};
 
 
-BYTE etolower (BYTE ch)
-{
-    if (ch>=(BYTE) 'A' && ch<= (BYTE) 'Z')
-        return ch += 'a'-'A';
-    else
-        switch (ch) {
-            case Ccedille : return ccedille; // C with cedille
-            case Egravis : return egravis;  // E with gravis
-            case Ezirkun : return ezirkun;  // E with zirkun
-            case Azirkun : return azirkun;  // A with zirkun
-            case Ozirkun : return ozirkun;  // O with zirkun
-            case Ouml : return ouml;  // O umlaut
-            case Ntilda : return ntilda;  // N with tilda
-            case Uzirkun : return uzirkun;  // U with zirkun
-            case Eakut : return eakut;  // E acut
-            default : return ch;
-        };
-};
+
+
+
+
+
+
 
 
 //====================================================
 //============= GERMAN                  ============
 //====================================================
  
-bool is_german_upper(BYTE x)     
-{
-    return          (ASCII[x]&GerUpper) > 0;
-}; 
-
-bool is_german_lower(BYTE x)     
-{
-    return          (ASCII[x]&GerLower) > 0;
-}; 
 
 
 
 
-bool is_german_lower_vowel(BYTE x)     
-{
-    return                  (ASCII[x] & GerLower)
-        &&      (ASCII[x] & LatinVowel);
-};
 
-bool is_german_upper_vowel(BYTE x)
-{
-    return                  (ASCII[x] & GerUpper)
-        &&      (ASCII[x] & LatinVowel);
 
-};
 
-bool is_german_alpha(BYTE x)      
-{
-    return is_german_lower(x) || is_german_upper(x); 
-};
 
-BYTE gtoupper (BYTE ch) 
-{ 
-    if (is_english_lower (ch)) 
-        return etoupper (ch);
-    else
-        switch (ch )
-        {
-            case auml  : return Auml;;
-            case uuml  : return Uuml;
-            case ouml : return Ouml;
-            default : return ch;
-        };
-};
-BYTE gtolower (BYTE ch) 
-{ 
-    if (is_english_upper (ch)) 
-        return etolower (ch);
-    else
-        switch (ch )
-        {
-            case Auml : return auml;;
-            case Uuml  : return uuml;
-            case Ouml  : return ouml;
-            default : return ch;
-        };
-};
 
 //====================================================
 //============= RUSSIAN                  ============
 //====================================================
 
-bool is_russian_upper(BYTE x)     
-{
-    return          (ASCII[x]&RusUpper) > 0;
-};
-
-bool is_russian_lower(BYTE x)     
-{
-    return          (ASCII[x]&RusLower) > 0;
-};
-
-bool is_russian_lower_vowel(BYTE x)     
-{
-    return                  ( (ASCII[x] & RusLower) > 0)
-        &&      ( (ASCII[x] & RussianVowel) > 0);
-
-};
-bool is_russian_upper_vowel(BYTE x)
-{
-    return                  ((ASCII[x] & RusUpper) > 0)
-        &&      ((ASCII[x] & RussianVowel) > 0);
-};
-
-bool is_russian_lower_consonant(BYTE x) 
-{
-    return !is_russian_lower_vowel(x) &&  is_russian_lower(x);
-}
-bool is_russian_upper_consonant(BYTE x) 
-{
-    return !is_russian_upper_vowel(x) &&  is_russian_upper(x);
-}
-bool is_russian_consonant(BYTE x)  
-{
-    return is_russian_lower_consonant(x) || is_russian_upper_consonant(x);
-}
 
 
-bool is_russian_alpha(BYTE x)      
-{
-    return is_russian_lower(x) || is_russian_upper(x); 
-};
 
-BYTE rtoupper (BYTE ch) 
-{ 
-    if (ch == LowerJO_cp1251) return UpperJO_cp1251;
-    if (ch == Apostrophe ) return Apostrophe;
 
-    if ( is_russian_lower(ch) )
-        return  ch -= '\xe0'-'\xc0';
-    else
-        return ch;
-};
 
-BYTE rtolower (BYTE ch) 
-{ 
-    if (ch == UpperJO_cp1251) return LowerJO_cp1251;
-    if (ch == Apostrophe ) return Apostrophe;
 
-    if ( is_russian_upper(ch) )
-        return ch += '\xe0'-'\xc0';
-    else
-        return ch;
-};
+
 
 
 //========================================= ===========
@@ -1460,29 +1010,8 @@ bool is_lower_vowel(BYTE x, MorphLanguageEnum Langua)
     return false;
 };
 
-bool is_upper_vowel(BYTE x, MorphLanguageEnum Langua)
-{
-    switch (Langua)
-    {
-        case morphRussian : return is_russian_upper_vowel(x);
-        case morphEnglish : return is_english_upper_vowel(x);
-        case morphGerman : return is_german_upper_vowel(x);
-        default: break;
-    };
-    assert (false);
-    return false;
-};
 
-bool is_upper_consonant(BYTE x, MorphLanguageEnum Langua)
-{
-    if (!is_upper_alpha(x, Langua)) return false;
-    return !is_upper_vowel(x,Langua);
-};
 
-bool is_alpha (BYTE x)       
-{
-    return is_russian_alpha(x) || is_german_alpha(x); 
-};
 
 
 bool is_alpha (BYTE x, MorphLanguageEnum Langua)
@@ -1500,78 +1029,11 @@ bool is_alpha (BYTE x, MorphLanguageEnum Langua)
     return false;
 };
 
-bool is_lower_alpha(BYTE x, MorphLanguageEnum Langua)
-{
-    switch (Langua)
-    {
-        case morphRussian : return is_russian_lower(x);
-        case morphEnglish : return is_english_lower(x);
-        case morphGerman : return is_german_lower(x);
-        case morphGeneric : return is_generic_lower(x);
-        case morphURL : return false;
-        default: break;
-    };
-    assert (false);
-    return false;
-};
-
-bool is_upper_alpha(BYTE x, MorphLanguageEnum Langua)
-{
-    switch (Langua)
-    {
-        case morphRussian : return is_russian_upper(x);
-        case morphEnglish : return is_english_upper(x);
-        case morphGerman : return is_german_upper(x);
-        case morphGeneric : return is_generic_upper(x);
-        case morphURL : return false;
-        default: break;
-    };
-    assert (false);
-    return false;
-};
-
-bool isnspace(BYTE x)    
-{
-    return x==' ' || x=='\t';
-};
 
 
 
-BYTE ReverseChar (BYTE ch, MorphLanguageEnum langua)
-{
-    if  (langua == morphGerman)
-    {
-        if (is_english_lower (ch))
-            return etoupper (ch);
-        else if (is_english_upper (ch))
-            return etolower (ch);
-        else
-            switch (ch ) {
-                case Auml  : return auml;
-                case auml  : return Auml;;
-                case Uuml  : return uuml;
-                case uuml  : return Uuml;
-                case Ouml  : return ouml;
-                case ouml  : return Ouml;
-                default : return ch;
-            };
-    }
-    else if (langua == morphEnglish || langua == morphGeneric) {
-        if (is_english_lower (ch))
-            return etoupper (ch);
-        else if (is_english_upper (ch))
-            return etolower (ch);
-    }
-    else if (is_russian_lower(ch))
-        return rtoupper (ch);
-    else if (is_russian_upper(ch))
-        return rtolower(ch);
-    else if (is_english_lower (ch))
-        return etoupper (ch);
-    else if (is_english_upper (ch))
-        return etolower (ch);
-    return ch;
-};
+
+
 
 
 
@@ -1586,10 +1048,6 @@ string& EngMakeLower (string& word)
 }
 
 
-bool is_arab_digit (BYTE c)
-{
-    return isdigit(c)!= 0;
-}
 
 
 typedef bool (*SymbolCheckerFunc) (BYTE);
@@ -1628,18 +1086,6 @@ bool CheckLanguage (const char *word, MorphLanguageEnum langua)
 
 
 
-string& EngRusMakeLower (string& word)
-{
-    size_t len = word.length();
-
-    for( size_t i = 0 ; i < len; i++ )
-        if ( is_russian_upper((BYTE)word[i]) )
-            word[i] = rtolower ((BYTE)word[i]);
-        else
-            word[i] = etolower ((BYTE) word[i]);
-
-    return word;
-}
 
 
 char* RmlMakeUpper (char *word, MorphLanguageEnum langua)
@@ -1652,15 +1098,6 @@ char* RmlMakeUpper (char *word, MorphLanguageEnum langua)
     return GerEngRusMakeUpperTemplate(word, langua, strlen(word));
 };      
 
-string& RmlMakeUpper (string& word, MorphLanguageEnum langua)
-{
-    if (langua==morphGeneric) {
-        word = stoupper(string(word));
-    } else {
-        GerEngRusMakeUpperTemplate(word, langua, word.length());
-    }
-    return word;
-};      
 
 string& RmlMakeLower (string& word, MorphLanguageEnum langua)
 {
@@ -1708,34 +1145,13 @@ char*  EngRusMakeUpper (char* word)
 }
 
 
-template<class T>
-void ConvertJO2JeTemplate(T& src, size_t Length)
-{
-    for (size_t i = 0; i < Length; i++)
-    {
-        if ( ((BYTE)src[i]) == LowerJO_cp1251 )
-            src[i] = LowerE_cp1251;
-        else if ( ( (BYTE)src[i]) == UpperJO_cp1251 )
-            src[i] = UpperE_cp1251;
-    }
-
-};
-
-void ConvertJO2Je(char* src, size_t Length)
-{
-    ConvertJO2JeTemplate(src, Length);
-};
 
 
 
-void ConvertJO2Je(string& src) 
-{
 
-    ConvertJO2JeTemplate(src, src.length());
-};
 void ConvertJO2Je(char* src) 
 {
-    ConvertJO2JeTemplate(src, strlen(src));
+    ConvertJO2Je(src, strlen(src));
 };
 
 
@@ -1743,28 +1159,8 @@ void ConvertJO2Je(char* src)
 
 
 
-string&  TrimLeft (string& str)
-{
-    if (str.size() == 0) return str;
-    size_t i = str.find_first_not_of(" \t\n\r");
-    str.erase (0, i);
-    return str;
-};
 
-string&  TrimRight (string& str)
-{
-    if (str.size() == 0) return str;
-    size_t i = str.find_last_not_of(" \t\n\r");
-    str.erase (i+1);
-    return str;
-};
 
-string& Trim (string& str)
-{
-    TrimLeft(str);
-    TrimRight(str);
-    return str;
-};
 
 bool StartsWith(const string& body, const string& prefix)
 {
@@ -1780,289 +1176,46 @@ const string all_brackets = open_brackets+close_brackets;
 
 
 
-int isbracket  (BYTE x)
-{
-    if (open_brackets.find(x) != string::npos)      return 1; //\xee\xf2\xea\xf0\xfb\xe2\xe0\xfe\xf9\xe8\xe5 \xf1\xea\xee\xe1\xea\xe8
-    if (close_brackets.find(x) != string::npos)     return 2; // \xe7\xe0\xea\xf0\xfb\xe2\xe0\xfe\xf9\xe8\xe5
-    return 0; 
-}
 
 // \xe2\xfb\xe4\xe0\xe5\xf2 \xf1\xee\xee\xf2\xe2\xe5\xf2\xf1\xf2\xe2\xf3\xfe\xf9\xf3\xfe \xf1\xea\xee\xe1\xea\xf3 
-size_t dual_bracket (BYTE x)
-{
-    size_t i = all_brackets.find(x);
-    if (i == string::npos) return x;
-    size_t s = open_brackets.length();
-    if (i >= s)
-        return all_brackets[i-s];
-    else
-        return all_brackets[i+s];
-}
 
 
 
 // ============     CShortString and  CShortStringHolder =========================
 
-CShortString::CShortString(vector<char>::const_iterator pData)
-{
-    m_pStringPointer = pData;
-};
-BYTE CShortString::GetLength() const
-{       
-    return  (BYTE)m_pStringPointer[0];      
-}
-
-vector<char>::const_iterator    CShortString::GetData() const
-{       
-    return  m_pStringPointer;       
-}
-
-const char*     CShortString::GetString() const
-{       
-    return  &(m_pStringPointer[1]); 
-}
-
-
-bool  IsLessShortString::operator ()(const CShortString& Item1, const char* Item2) const
-{
-    return strcmp(Item1.GetString(), Item2) < 0;
-}
-
-bool  IsLessShortString::operator ()(const char* Item1, const CShortString& Item2) const
-{
-    return strcmp(Item1, Item2.GetString() ) < 0;
-}
-
-bool  IsLessShortString::operator ()(const CShortString& Item1, const CShortString& Item2) const
-{
-    return strcmp(Item1.GetString(), Item2.GetString()) < 0;
-}
 
 
 
 
 
 
-void CShortStringHolder::ReadShortStringHolder(string filename)
-{
-    clear();
-    file_off_t BufferSize = (int)FileSize(filename.c_str()) - sizeof(size_t);
-
-    FILE* fp = fopen(filename.c_str(), "rb");
-    if (!fp) return;
-    size_t Count;
-    fread ((void *)&Count, 1, sizeof(size_t), fp);
-    try {
-        m_Buffer.clear();
-        ReadVectorInner(fp, m_Buffer, BufferSize);
-        fclose(fp);
-        fp = 0;
-    }
-    catch (...)
-    {
-        if (fp) fclose(fp);
-        throw;
-    }
-
-    reserve(Count);
-    int Offset = 0;
-    for (DWORD i=0; i < Count; i++)
-    {
-        CShortString R(m_Buffer.begin()+Offset);
-        push_back(R);
-        Offset +=   R.GetLength() + 2;
-    };
-        
 
 
-};
-
-template<class T>
-bool CShortStringHolder::CreateFromSequence(T begin, T end)
-{
-        
-    m_Buffer.clear();
-    size_t Count = 0;
-    for (; begin != end; begin++)
-    {
-        size_t length = begin->length();
-        if (length > 254)
-        {
-            string s = *begin + " - too long";
-            ErrorMessage(s.c_str(), "Short string convertor");
-            return false;
-        };
-
-        m_Buffer.push_back((BYTE)length);
-        // add with terminating null 
-        m_Buffer.insert(m_Buffer.end(), begin->c_str(), begin->c_str() + length+1);
-
-        Count++;
-    }
-
-        
-    size_t Offset = 0;
-    clear();
-    for (DWORD i=0; i < Count; i++)
-    {
-        CShortString R(m_Buffer.begin()+Offset);
-        push_back(R);
-        Offset +=   R.GetLength() + 2;
-    };
-
-    return true;
-}
 
 
-bool CShortStringHolder::CreateFromVector(const StringVector& in)
-{
-    return CreateFromSequence<StringVector::const_iterator>(in.begin(), in.end());
-}
 
-bool CShortStringHolder::CreateFromSet(const StringSet& in)
-{
-    return CreateFromSequence<StringSet::const_iterator>(in.begin(), in.end());
-}
 
-bool CShortStringHolder::WriteShortStringHolder(const string& FileName) const
-{
-    FILE* fp = fopen (FileName.c_str(), "wb");
-    if (!fp)        return false;
-    try
-    {
-        size_t nLength = size();
-        if (fwrite((void*)&nLength, sizeof(size_t), 1,  fp) != 1)
-        {
-            fclose(fp);
-            return false;
-        }
-        if (!WriteVectorInner(fp, m_Buffer))
-        {
-            fclose(fp);
-            return false;
-        }
-        if (fclose(fp)) return false;
-    }
-    catch(...)
-    {
-        return false;
-    }
-    return true;
-}
+
+
+
+
+
 
 
 // ============     CMyTimeSpan and  CMyTimeSpanHolder =========================
 
 
-CMyTimeSpan::CMyTimeSpan (long SequenceId, long InterfaceNestId)
-{
-    m_TimeSpan = 0;
-    m_InterfaceNestId = InterfaceNestId;
-    m_SequenceId = SequenceId;
-    m_InvokeCount = 0;
-};
-
-void CMyTimeSpan::GetStrRepresentation(const char* Name, char* buffer, double AllClocksCount) const
-{
-    buffer[0] = 0;
-    for (long i=0; i<m_InterfaceNestId; i++)
-        strcat(buffer,"\t");
-    char t[300];
-    sprintf (t, "%s  = %6.0f seconds;%6.0f ticks ;%zi calls", 
-             Name, 
-             m_TimeSpan/(double)CLOCKS_PER_SEC, 
-             m_TimeSpan, 
-             m_InvokeCount
-        );      
-    strcat (buffer, t);
-    if (AllClocksCount > 0)
-    {
-        char q[50];
-        double dd = (AllClocksCount== 0)? 0 : (m_TimeSpan/AllClocksCount)*100;
-        sprintf (q, "; %6.0f %%", dd);
-        strcat (buffer, q);
-
-    };
-
-};
 
 
 
-CMyTimeSpanHolder::CMyTimeSpanHolder()
-{
-    m_SequenceId = 0;
-    m_bTimeSpanHolderEnabled = true;
-};
 
-void CMyTimeSpanHolder::StartTimer(const string& Name, long NestId)
-{
-    if (!m_bTimeSpanHolderEnabled)  return ;
-    Iterator it = m_TimeSpans.find(Name);
 
-    if(it == m_TimeSpans.end())
-    {
-        CMyTimeSpan X (m_SequenceId, NestId);
-
-        pair<Iterator, bool> p = m_TimeSpans.insert(pair<string, CMyTimeSpan>(Name, X));
-
-        it = p.first;
-    };
-
-    it->second.m_StartTime = clock();
-    it->second.m_InvokeCount++;
-
-    m_SequenceId++;
-};
 
 //  finish timer "Name" and returns the elapsed time in ticks
-double CMyTimeSpanHolder::EndTimer(const string& Name)
-{
-    if (!m_bTimeSpanHolderEnabled)  return 0;
-
-    Iterator it = m_TimeSpans.find(Name);
-
-    if(it == m_TimeSpans.end()) 
-    {
-        ErrorMessage (Format("Profiler error: no timer with name %s", Name.c_str()) );
-        return 0;
-    };
-
-    it->second.m_TimeSpan += (double)(clock() - it->second.m_StartTime) ;
-
-        
-    return it->second.m_TimeSpan;
-};
 
 
-string CMyTimeSpanHolder::GetStrRepresentation (double AllClocksCount) const
-{
-    string Result;
-
-    if (!m_bTimeSpanHolderEnabled)  return "profiler is disabled\n";
-
-        
-    map<int, ConstIterator>                 TimerSequence;
-
-    for (ConstIterator It = m_TimeSpans.begin(); It != m_TimeSpans.end();It++)
-        TimerSequence[It->second.m_SequenceId] = It;
-
-    for (map<int, ConstIterator>::const_iterator It1 = TimerSequence.begin(); It1 != TimerSequence.end();It1++)
-    {
-        char s[1000];
-        ConstIterator It = It1->second;
-        It->second.GetStrRepresentation(It->first.c_str(), s, AllClocksCount);
-        Result += s;
-        Result += '\n';
-    };
-    return Result;
-};
 
 
-void CMyTimeSpanHolder::ClearTimers() 
-{
-    m_TimeSpans.clear();
-    m_SequenceId = 0;
-};
 
 string timestampLocal(time_t timeval)
 {
@@ -2084,7 +1237,7 @@ string timestampUTC(time_t timeval)
 
 vector<string> stringSplit(const char *s, const char *delims)
 {
-    StringTokenizer tok(s,delims);
+    ddcStringTokenizer tok(s,delims);
     vector<string> tokens;
     tok.get_tokens(tokens);
     return tokens;
@@ -2225,38 +1378,23 @@ bool SaveStringToFile(const string& Str, const string& FileName)
 
 
 
-bool is_pseudo_graph(BYTE x)    
-{
-    return  (x==134) 
-        ||(x==135) 
-        ||(x==128) 
-        ||(x==131) 
-        ||(x==136) 
-        ||(x==137) 
-        ||((x>=139) && (x<=175))
-        ||((x>=176) && (x<=181))
-        ||((x>=186) && (x<=191));
-};
 
 
-// ======================== CExcp ================
-CExpc::CExpc(int ErrorCode) throw()
-    : runtime_error(""), m_ErrorCode(ErrorCode)
-{
-    m_strCause = GetDDCErrorString((DDCErrorEnum)ErrorCode);
-    runtime_error::operator=(runtime_error(m_strCause));
-}
-
-CExpc::CExpc(int ErrorCode, const string& Cause) throw()
-    : runtime_error(Cause), m_ErrorCode(ErrorCode), m_strCause(Cause)
+// ======================== CDDCExpc ================
+CDDCExpc::CDDCExpc(int ErrorCode)
+    : CExpc(string("")), m_ErrorCode(ErrorCode), m_strCause(GetDDCErrorString((DDCErrorEnum)ErrorCode))
 {}
 
-CExpc::CExpc(const string& Cause) throw()
-    : runtime_error(Cause), m_ErrorCode(errOther), m_strCause(Cause)
+CDDCExpc::CDDCExpc(int ErrorCode, const string& Cause)
+    : CExpc(Cause), m_ErrorCode(ErrorCode), m_strCause(Cause)
 {}
 
-CExpc::CExpc(int ErrorCode, const char* format, ... ) throw()
-    : runtime_error(string("")), m_ErrorCode(ErrorCode)
+CDDCExpc::CDDCExpc(const string& Cause)
+    : CExpc(Cause), m_ErrorCode(errOther), m_strCause(Cause)
+{}
+
+CDDCExpc::CDDCExpc(int ErrorCode, const char* format, ... )
+    : CExpc(string("")), m_ErrorCode(ErrorCode)
 {
     va_list arglst;
     va_start( arglst, format );
@@ -2264,8 +1402,8 @@ CExpc::CExpc(int ErrorCode, const char* format, ... ) throw()
     va_end( arglst );
 }
 
-CExpc::CExpc(const char* format, ... ) throw()
-    : runtime_error(string("")), m_ErrorCode(errOther)
+CDDCExpc::CDDCExpc(const char* format, ... )
+    : CExpc(string("")), m_ErrorCode(errOther)
 {
     va_list arglst;
     va_start( arglst, format );
@@ -2273,45 +1411,36 @@ CExpc::CExpc(const char* format, ... ) throw()
     va_end( arglst );
 }
 
-void CExpc::Set(const char* format, ... ) throw()
+void CDDCExpc::Set(const char* format, ... )
 {
     va_list arglst;
     va_start(arglst, format);
     vSet(format, arglst);
     va_end( arglst );
 }
-void CExpc::vSet(const char *format, va_list& arglst) throw()
+
+void CDDCExpc::vSet(const char *format, va_list& arglst)
 {
     const size_t SmallBufferSize = DDC_STATIC_BUFLEN;
     char SmallBuffer[SmallBufferSize+1];
     vsnprintf( SmallBuffer, SmallBufferSize, format, arglst );
     m_strCause = SmallBuffer;
-    runtime_error::operator=(runtime_error(m_strCause));
 }
 
-
-CExpc::CExpc(const CExpc& from) throw()
-    : runtime_error(from.m_strCause)
-{
-    *this = from;
-};
-
-CExpc& CExpc::operator= (const CExpc& from) throw()
-{
-    runtime_error::operator=(runtime_error(from.m_strCause));
-    m_strCause  = from.m_strCause;
-    m_ErrorCode = from.m_ErrorCode;
-    return *this;
-}
-
-const char* CExpc::what() const throw()
+const char* CDDCExpc::what() const noexcept
 {
     return m_strCause.c_str();
 }
 
-int CExpc::code() const throw()
+int CDDCExpc::code() const
 {
     return m_ErrorCode;
+}
+
+int ddcExpcCode(const std::exception& e)
+{
+    const CDDCExpc* p = dynamic_cast<const CDDCExpc*>(&e);
+    return p ? p->code() : errOther;
 }
 
 
@@ -2378,40 +1507,6 @@ void KOI8ToWin (string& s)
 
 
 
-string ConvertASCIIToHtmlSymbols(const string& txt)
-{
-    string out;
-    char asciiCode[2];
-    asciiCode[1] = 0;
-    for( int i=0; i<txt.length(); i++ )
-    {
-        asciiCode[0] = txt[i];
-        switch (asciiCode[0])
-        {
-            case ' ':
-                out += " ";
-                break;
-            case '\t':
-                out += "    ";
-                break;
-            case '"':
-                out += "&quot;";
-                break;
-            case '&':
-                out += "&amp;";
-                break;
-            case '<':
-                out += "&lt;";
-                break;
-            case '>':
-                out += "&gt;";
-                break;
-            default:
-                out += asciiCode;
-        }
-    }
-    return out;
-}
 
 
 bool  MakeDir(const string& DirName)
@@ -2430,7 +1525,7 @@ bool  MakeDirP(const string& DirName)
     if (!MakeDirP(FileDirectory(DirName)))
         return false;
     if (!MakeDir(DirName))
-        throw CExpc(Format("MakeDirP(): failed to create directory '%s': %s", DirName.c_str(), strerror(errno)));
+        throw CDDCExpc(Format("MakeDirP(): failed to create directory '%s': %s", DirName.c_str(), strerror(errno)));
     return true;
 };
 
@@ -2450,25 +1545,6 @@ bool RemoveWithPrint (const string& FileName)
     return true;
 }
 
-size_t HashValue(const char *pc) 
-{
-    static const DWORD mask[sizeof(DWORD)] = {
-        0x00000000, 0x000000FF, 0x0000FFFF, 0x00FFFFFF
-    };
-    size_t len =     strlen(pc);
-    size_t h = len;
-    size_t i = len / sizeof(DWORD);
-    const DWORD *c = (const DWORD *)pc;
-
-    while (i--)
-        h ^= *c++;
-
-    i = len % sizeof(DWORD);
-    if (i > 0)
-        h ^= (*c & mask[i]); 
-
-    return h;
-}
 
 
 

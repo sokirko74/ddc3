@@ -110,7 +110,7 @@ void CreateWaitFile()
     if (!WaitFileName.empty()) {
         FILE *fp = fopen(WaitFileName.c_str(), "w");
         if (fp==NULL)
-            throw( CExpc("could not open wait file `%s': %s", WaitFileName.c_str(), StrError(errno)) );
+            throw( CDDCExpc("could not open wait file `%s': %s", WaitFileName.c_str(), StrError(errno)) );
         fclose(fp);
     }
 }
@@ -345,7 +345,7 @@ int do_start(bool clientMode=false)
         }
     }
     catch (CExpc& e) {
-        return puke(Format("Exception[%d]: %s", e.code(), e.what()));
+        return puke(Format("Exception[%d]: %s", ddcExpcCode(e), e.what()));
     }
     catch (exception &e) {
         return puke(Format("Exception: %s", e.what()));

@@ -62,7 +62,7 @@ void copyOptionsFile(const string &srcFile, const string &dstFile) {
     if (FileExists(dstFile))
         ddcLogWarn("copyOptionsFile(): Warning: destination file '" + dstFile + "' will be overwritten");
     if (!RmlCopyFile(srcFile.c_str(), dstFile.c_str()))
-        throw CExpc("copyOptionsFile(): failed to copy options options from " + srcFile + " to " + dstFile);
+        throw CDDCExpc("copyOptionsFile(): failed to copy options options from " + srcFile + " to " + dstFile);
 }
 
 //======================================================================
@@ -139,7 +139,7 @@ int main(int argc, char *argv[]) {
         //-- load output options
         string OutputOptions;
         if (!optfilename.empty() && !LoadFileToString(optfilename, OutputOptions))
-            throw CExpc(Format("%s: Error: failed to load options from '%s'", prog, optfilename.c_str()));
+            throw CDDCExpc(Format("%s: Error: failed to load options from '%s'", prog, optfilename.c_str()));
 
         //-- create output projects
         vector<CConcIndexator *> Splits(n_splits);

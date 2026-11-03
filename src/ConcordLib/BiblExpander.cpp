@@ -44,7 +44,7 @@ void CBiblExpander::expand(const string& src, set<string>& dst)
 //--------------------------------------------------------------
 void CBiblExpander::expand(const set<string>& src, set<string>& dst)
 {
-    throw CExpc(errOther,"abstract method CBiblExpander::expand() called for expander `%s'", m_BxLabel.c_str());
+    throw CDDCExpc(errOther,"abstract method CBiblExpander::expand() called for expander `%s'", m_BxLabel.c_str());
 }
 
 //======================================================================
@@ -55,7 +55,7 @@ BxTermWrapper::BxTermWrapper(const string& label, const string& target, const st
     : CBiblExpander(label,target,param), m_BxTx(NULL)
 {
     const char *delims = " \t\r\n";
-    StringTokenizer stok(param.c_str(), delims);
+    ddcStringTokenizer stok(param.c_str(), delims);
     string txclass("Id"), txparam("");
 
     if (stok.has_next()) txclass = stok.next_token();
@@ -81,7 +81,7 @@ void BxTermWrapper::compile(void)
 void BxTermWrapper::expand(const set<string>& src, set<string>& dst)
 {
     if (!m_BxTx)
-        throw CExpc(errOther,"BxTermWrapper::expand() called with no underlying CTermExpander for expander `%s'", m_BxLabel.c_str());
+        throw CDDCExpc(errOther,"BxTermWrapper::expand() called with no underlying CTermExpander for expander `%s'", m_BxLabel.c_str());
 
     m_BxTx->expand(src,dst);
 }

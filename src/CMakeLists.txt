@@ -91,19 +91,56 @@ else()
 endif()
 
 
+#-----------------------------------------------------------------------
+# morph_dict (git submodule): morphology + common utilities shared with RML
+macro (declare_cmake_min_version)
+    cmake_minimum_required(VERSION 3.24)
+endmacro()
+if(NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/morph_dict/CMakeLists.txt)
+    message(FATAL_ERROR "src/morph_dict is empty: run 'git submodule update --init'")
+endif()
+find_package(ZLIB REQUIRED)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/morph_dict/contrib/plog)
+add_subdirectory (morph_dict/contrib/iconv_subset)
+add_subdirectory (morph_dict/common)
+add_subdirectory (morph_dict/agramtab)
+add_subdirectory (morph_dict/morph_wizard)
+add_subdirectory (morph_dict/lemmatizer_base_lib)
+
+#-- morphology dictionaries: built from morph_dict/data into ${CMAKE_BINARY_DIR}/dict/Morph/<Language>
+#   ($RML/dict/Morph should point there; see Bin/rml.ini)
+add_executable(morph_gen morph_dict/morph_gen/morph_gen.cpp)
+target_link_libraries(morph_gen lemmatizer_base_lib)
+set(DDC_MORPH_DICTS_DIR ${CMAKE_BINARY_DIR}/dict/Morph)
+set(_ddc_morph_outputs)
+foreach(_lang Russian English German)
+    set(_in  ${CMAKE_CURRENT_SOURCE_DIR}/morph_dict/data/${_lang})
+    set(_out ${DDC_MORPH_DICTS_DIR}/${_lang})
+    set(_files ${_out}/morph.bases ${_out}/morph.annot ${_out}/morph.forms_autom ${_out}/gramtab.json)
+    add_custom_command(
+        OUTPUT ${_files}
+        COMMAND ${CMAKE_COMMAND} -E make_directory ${_out}
+        COMMAND ${CMAKE_COMMAND} -E copy ${_in}/gramtab.json ${_out}/gramtab.json
+        COMMAND morph_gen --input project.mwz --output-folder ${_out} --postfix-len 5 --min-freq 3
+        DEPENDS morph_gen ${_in}/morphs.json ${_in}/project.mwz ${_in}/gramtab.json
+        WORKING_DIRECTORY ${_in}
+        COMMENT "Building ${_lang} morphology dictionary"
+        VERBATIM
+    )
+    list(APPEND _ddc_morph_outputs ${_files})
+endforeach()
+add_custom_target(ddc_morph_dicts ALL DEPENDS ${_ddc_morph_outputs})
+
 add_subdirectory (tinyxml)
 add_subdirectory (PCRE)
 add_subdirectory (CommonLib)
 add_subdirectory (StructDictLib)
-add_subdirectory (AgramtabLib)
 add_subdirectory (GraphanLib)
-add_subdirectory (MorphWizardLib)
-add_subdirectory (LemmatizerLib)
 add_subdirectory (RmlTar)
 add_subdirectory (ConcordLib)
 add_subdirectory (ConcordDmnLib)
 
-add_subdirectory (ddc_morph_gen)
 add_subdirectory (ddc_console)
 add_subdirectory (ddc_daemon)
 add_subdirectory (ddc_dump)
@@ -116,6 +153,5 @@ add_subdirectory (ddc_stats)
 add_subdirectory (ddc_struct_dict_loader)
 add_subdirectory (ddc_union)
 add_subdirectory (ddc_xml)
-add_subdirectory (ddc_test_lem)
 add_subdirectory (tests)
 add_subdirectory (jsoncpp)

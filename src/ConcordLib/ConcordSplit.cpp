@@ -34,9 +34,9 @@ bool CConcIndexator::SplitProject(vector<CConcIndexator *> &Subs, const string &
     //---------------------------------------
     // sanity check(s)
     if (Subs.empty())
-        throw CExpc(logname + ": Error: no destination project(s) specified");
+        throw CDDCExpc(logname + ": Error: no destination project(s) specified");
     if (Subs.size() > GetCorpusFilesCount())
-        throw CExpc(Format("%s: Error: number of output corpora exceeds number of indexed files (%zd > %zd)",
+        throw CDDCExpc(Format("%s: Error: number of output corpora exceeds number of indexed files (%zd > %zd)",
                            logname.c_str(), Subs.size(), GetCorpusFilesCount()));
 
     //---------------------------------------
@@ -57,7 +57,7 @@ bool CConcIndexator::SplitProject(vector<CConcIndexator *> &Subs, const string &
             fbj = fbreaks.end() - 1;
         } else if (fbj >= fbreaks.end()) {
             //-- this should never happen
-            throw CExpc(
+            throw CDDCExpc(
                 Format("%s: Error: no file break found for split index=%zd, target token=%zd", logname.c_str(), i,
                        tok_want));
         } else if (fbj > fbi) {
@@ -88,7 +88,7 @@ bool CConcIndexator::SplitProject(vector<CConcIndexator *> &Subs, const string &
         string SubOptFile = MakeFName(Subs[i]->m_Path, "opt");
         MakeDirP(FileDirectory(Subs[i]->m_Path));
         if (!SaveStringToFile(*_SubOpts, SubOptFile))
-            throw CExpc(logname + ": Error: failed to save options to '" + SubOptFile + "'");
+            throw CDDCExpc(logname + ": Error: failed to save options to '" + SubOptFile + "'");
         Subs[i]->LoadOptionsFromFile(SubOptFile);
     }
 
@@ -104,7 +104,7 @@ bool CConcIndexator::SplitProject(vector<CConcIndexator *> &Subs, const string &
         // + looks like "empty" m_SourceFiles[] items (from *.con, indexing time) don't have a m_CorpusFiles[] equivalent)
         // + hack for SplitProject() just treats m_CorpusFiles[] as "source files"
         if (m_SourceFiles.size() != m_CorpusFiles.size())
-            throw CExpc(Format("%s: Error: number of source files (%zd) is not identical to number of indexed files (%zd)",
+            throw CDDCExpc(Format("%s: Error: number of source files (%zd) is not identical to number of indexed files (%zd)",
                                logname.c_str(), m_SourceFiles.size(), m_CorpusFiles.size()));
 #endif
         for (size_t fi = (i == 0 ? 0 : splitFileBreaks[i - 1]); fi < splitFileBreaks[i]; ++fi) {
@@ -112,9 +112,9 @@ bool CConcIndexator::SplitProject(vector<CConcIndexator *> &Subs, const string &
             Subs[i]->m_SourceFiles.push_back(m_CorpusFiles[fi]);
         }
         if (!Subs[i]->SaveSourceFileList(Subs[i]->m_Path))
-            throw CExpc(logname + ": failed to save source file list " + Subs[i]->m_Path);
+            throw CDDCExpc(logname + ": failed to save source file list " + Subs[i]->m_Path);
         if (!Subs[i]->SaveCorpusFileList())
-            throw CExpc(logname + ": failed to save corpus file list " + Subs[i]->GetFileNameForCorpusFileNames());
+            throw CDDCExpc(logname + ": failed to save corpus file list " + Subs[i]->GetFileNameForCorpusFileNames());
     }
 
 
@@ -226,7 +226,7 @@ bool CConcIndexator::SplitProject(vector<CConcIndexator *> &Subs, const string &
     ddcLogInfo(logname + ": saving index item buffers");
     for (size_t i = 0; i < Subs.size(); ++i) {
         if (!Subs[i]->FinalSaveAllIndices(false))
-            throw CExpc(logname + ": Error: failed to save index to disk - do you have enough free disk space?");
+            throw CDDCExpc(logname + ": Error: failed to save index to disk - do you have enough free disk space?");
     }
 
     //---------------------------------------

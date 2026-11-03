@@ -155,7 +155,7 @@ bool CQueryOptions::Compile(CQueryCompiler *compiler)
     }
     //-- sanity checks for query-global flags
     if (m_ContextSentencesCount > CQueryCompiler::m_MaxContextSentencesCount)
-        throw CExpc(errParseError, "Requested context window of length=%d exceeds maximum context size=%d", m_ContextSentencesCount, CQueryCompiler::m_MaxContextSentencesCount);
+        throw CDDCExpc(errParseError, "Requested context window of length=%d exceeds maximum context size=%d", m_ContextSentencesCount, CQueryCompiler::m_MaxContextSentencesCount);
 
     //-- index-dependent flag-setting from old CQueryParser::ParseQuery()
     assert(compiler->m_pHolder!=NULL);

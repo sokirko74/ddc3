@@ -297,12 +297,12 @@ NetworkErrorsEnum receive_buffer(int client_fd, char* Buffer,int Length, int& ha
         return neTimeout;
                 
     if (!FD_ISSET(client_fd,&fds))
-        throw CExpc(errOther, "FD_ISSET() failed for client socket after select(): %s", StrError(errno));
+        throw CDDCExpc(errOther, "FD_ISSET() failed for client socket after select(): %s", StrError(errno));
 
     have_read = recv (client_fd, Buffer, Length, MSG_NOSIGNAL);
 
     if (have_read <= 0)
-        throw CExpc(errOther, "receive_buffer() failed: expected %d byte(s) from recv(), but got only %d: %s", Length, have_read, StrError(errno));
+        throw CDDCExpc(errOther, "receive_buffer() failed: expected %d byte(s) from recv(), but got only %d: %s", Length, have_read, StrError(errno));
 
     return neSuccess;
 };
@@ -363,7 +363,7 @@ SOCKET create_socket(const CSocketAddr& Addr, bool bBind, mode_t bindPerms, stri
         case stINET:
             return create_inet_socket(Addr.m_Addr.c_str(), Addr.m_Port, bBind, strError);
         default:
-            throw CExpc("ERROR: create_socket(): unknown socket type");
+            throw CDDCExpc("ERROR: create_socket(): unknown socket type");
     }
     return -1;
 }
@@ -375,7 +375,7 @@ SOCKET create_unix_socket(const string& socket_path,  bool bBind, mode_t bindPer
     if (bBind) {
         if (unlink(socket_path.c_str()) != 0) {
             if (errno != ENOENT)
-                throw CExpc(Format("failed to remove stale UNIX socket %s: %s\n",
+                throw CDDCExpc(Format("failed to remove stale UNIX socket %s: %s\n",
                                    socket_path.c_str(), StrError(errno)));
         } else {
             ddcLogWarn("removed stale UNIX socket "+socket_path);
@@ -385,7 +385,7 @@ SOCKET create_unix_socket(const string& socket_path,  bool bBind, mode_t bindPer
     l_socket = socket(AF_UNIX, SOCK_STREAM, 0);
     if ( l_socket  == -1) {
         strError = Format("Could not create UNIX socket %s: %s", socket_path.c_str(), StrError(errno));
-        throw CExpc(errRuntime, strError);
+        throw CDDCExpc(errRuntime, strError);
     }
     sockaddr_un addr;
     memset(&addr, 0, sizeof(addr));
@@ -418,7 +418,7 @@ SOCKET create_unix_socket(const string& socket_path,  bool bBind, mode_t bindPer
     if (l_socket == -1) {
         if (strError.empty())
             strError = Format("error for UNIX socket %s: %s\n", socket_path.c_str(), StrError(errno));
-        throw CExpc(errRuntime, strError);
+        throw CDDCExpc(errRuntime, strError);
     }
     
     return l_socket;
@@ -441,7 +441,7 @@ SOCKET create_inet_socket (const char* HostAddr, int Port, bool bBind, string& s
     int error = getaddrinfo(HostAddr, Format("%i",Port).c_str(), &hints, &res0);
     if (error) {
         strError = Format("Socket Error! %s", gai_strerror(error)); /*NOTREACHED*/
-        throw CExpc(errRuntime, strError);
+        throw CDDCExpc(errRuntime, strError);
     }
     string cause  = "no addresses";
     for (addrinfo* res = res0; res; res = res->ai_next)
@@ -495,7 +495,7 @@ SOCKET create_inet_socket (const char* HostAddr, int Port, bool bBind, string& s
     if (l_socket == -1)
     {
         strError = Format("%s for %s:%i\n", cause.c_str(), HostAddr, Port);
-        throw CExpc(errRuntime, strError);
+        throw CDDCExpc(errRuntime, strError);
         /*NOTREACHED*/
     }
     else {

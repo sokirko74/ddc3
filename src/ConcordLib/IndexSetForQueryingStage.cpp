@@ -52,7 +52,7 @@ void CIndexSetForQueryingStage::AssertHasPath() const {
     assert(m_pParent->m_Path != "#empty_path");
     if (m_pParent->m_Path == "#empty_path") {
         ErrorMessage("Uninitialized path for index files");;
-        throw CExpc(errNonePath, "Exception: Uninitialized path for index files");
+        throw CDDCExpc(errNonePath, "Exception: Uninitialized path for index files");
     };
 
 };
@@ -522,7 +522,7 @@ bool CIndexSetForQueryingStage::LoadPeriodDivision() {
                                 m_pParent->m_bMemoryMap);
     }
     catch (CExpc &e) {
-        fprintf(stderr, "Exception[%d] in CIndexSetForQueryingStage::LoadPeriodDivision(): %s\n", e.code(), e.what());
+        fprintf(stderr, "Exception[%d] in CIndexSetForQueryingStage::LoadPeriodDivision(): %s\n", ddcExpcCode(e), e.what());
         return false;
     }
     catch (exception &e) {

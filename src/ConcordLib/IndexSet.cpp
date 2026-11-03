@@ -87,7 +87,7 @@ void CStringIndexSet::QueryTokenList(const string &WordForm, vector<DWORD> &Matc
     ddcVecFile<CIndexItem>::const_iterator it = GetTypeIndexIdLowerBoundIter(WordForm);
 
     if (MatchWords.size() > m_pParent->m_MaxRegExpExpansionSize)
-        throw CExpc("too many expansions for query word `%s' (MaxRegExpExpansionSize=%zd)", WordForm.c_str(),
+        throw CDDCExpc("too many expansions for query word `%s' (MaxRegExpExpansionSize=%zd)", WordForm.c_str(),
                     m_pParent->m_MaxRegExpExpansionSize);
 
     if ((it != m_Index.end()) && (!strcmp(GetIndexItemStr(*it), WordForm.c_str())))
@@ -117,7 +117,7 @@ void CStringIndexSet::QueryTokenListWithRightTruncation(const string &Prefix, ve
     ddcVecFile<CIndexItem>::const_iterator lb = lower_bound(m_Index.begin(), m_Index.end(), Prefix.c_str(), Less);
     ddcVecFile<CIndexItem>::const_iterator ub = upper_bound(lb, m_Index.end(), Prefix.c_str(), Less);
     if ((ub - lb) > m_pParent->m_MaxRegExpExpansionSize)
-        throw CExpc("too many expansions for query prefix `%s' (MaxRegExpExpansionSize=%zd)", Prefix.c_str(),
+        throw CDDCExpc("too many expansions for query prefix `%s' (MaxRegExpExpansionSize=%zd)", Prefix.c_str(),
                     m_pParent->m_MaxRegExpExpansionSize);
 
     size_t offset = lb - m_Index.begin(), count = (ub - lb), moffset = MatchWords.size();
@@ -170,7 +170,7 @@ struct LessBySuffixIndex {
 
 void CStringIndexSet::QueryTokenListWithLeftTruncation(const string &Suffix, vector<DWORD> &MatchWords) const {
     if (!m_rIndex)
-        throw CExpc("ERROR: CStringIndexSet::QueryTokenListWithLeftTruncation() called but no suffix index is defined");
+        throw CDDCExpc("ERROR: CStringIndexSet::QueryTokenListWithLeftTruncation() called but no suffix index is defined");
     //fprintf(stderr, "DEBUG: QueryTokenListWithLeftTruncation(%s)\n", Suffix.c_str());
 
     //-- LessBySuffixIndex: v2.1.21/1d-index,cstr+strlen
@@ -178,7 +178,7 @@ void CStringIndexSet::QueryTokenListWithLeftTruncation(const string &Suffix, vec
     CSuffixIndex::const_iterator lb = lower_bound(m_rIndex.begin(), m_rIndex.end(), Suffix.c_str(), Less);
     CSuffixIndex::const_iterator ub = upper_bound(lb, m_rIndex.end(), Suffix.c_str(), Less);
     if ((ub - lb) > m_pParent->m_MaxRegExpExpansionSize)
-        throw CExpc("too many expansions for query suffix `%s' (MaxRegExpExpansionSize=%zd)", Suffix.c_str(),
+        throw CDDCExpc("too many expansions for query suffix `%s' (MaxRegExpExpansionSize=%zd)", Suffix.c_str(),
                     m_pParent->m_MaxRegExpExpansionSize);
 
     MatchWords.insert(MatchWords.end(), lb, ub);
@@ -195,7 +195,7 @@ void CStringIndexSet::QueryTokenListUsingRegExp(RML_RE &RegExp, vector<DWORD> &M
             bool ismatch = RegExp.PartialMatch(str);
             if (negated ? (!ismatch) : ismatch) {
                 if (MatchWords.size() > m_pParent->m_MaxRegExpExpansionSize)
-                    throw CExpc("too many expansions for regex /%s/ (MaxRegExpExpansionSize=%zd)",
+                    throw CDDCExpc("too many expansions for regex /%s/ (MaxRegExpExpansionSize=%zd)",
                                 RegExp.pattern().c_str(), m_pParent->m_MaxRegExpExpansionSize);
                 MatchWords.push_back(i);
             }
@@ -210,7 +210,7 @@ void CStringIndexSet::QueryTokenListUsingRegExp(RML_RE &RegExp, vector<DWORD> &M
             bool ismatch = RegExp.PartialMatch(tmp);
             if (negated ? (!ismatch) : ismatch) {
                 if (MatchWords.size() > m_pParent->m_MaxRegExpExpansionSize)
-                    throw CExpc("too many expansions for regex /%s/d (MaxRegExpExpansionSize=%zd)",
+                    throw CDDCExpc("too many expansions for regex /%s/d (MaxRegExpExpansionSize=%zd)",
                                 RegExp.pattern().c_str(), m_pParent->m_MaxRegExpExpansionSize);
                 MatchWords.push_back(i);
             }
@@ -260,18 +260,18 @@ string CStringIndexSet::GetStorageFileName() const {
 void SaveOnePartOfUnionTokenStorage(string inputFileName, FILE *out_fp, const vector<DWORD> &Old2New) {
     FILE *inputStream = fopen(inputFileName.c_str(), "rb");
     if (!inputStream) {
-        throw CExpc(Format("cannot open file %s", inputFileName.c_str()));
+        throw CDDCExpc(Format("cannot open file %s", inputFileName.c_str()));
     }
     DWORD Old;
 
     while (fread(&Old, sizeof(DWORD), 1, inputStream) == 1) {
         if (Old >= Old2New.size()) {
             fclose(inputStream);
-            throw CExpc(Format("cannot map token index for token storage %s", inputFileName.c_str()));
+            throw CDDCExpc(Format("cannot map token index for token storage %s", inputFileName.c_str()));
         }
         if (fwrite(&(Old2New[Old]), sizeof(DWORD), 1, out_fp) != 1) {
             fclose(inputStream);
-            throw CExpc(Format("cannot copy token storage %s, fwrite has failed", inputFileName.c_str()));
+            throw CDDCExpc(Format("cannot copy token storage %s, fwrite has failed", inputFileName.c_str()));
         }
     };
     fclose(inputStream);
@@ -284,7 +284,7 @@ CStringIndexSet::CreateUnionTokenStorages(const vector<CStringIndexSet *> &Index
     CloseStorageFile();
     FILE *out_fp = fopen(GetStorageFileName().c_str(), "wb");
     if (!out_fp) {
-        throw CExpc (Format("CStringIndexSet::CreateUnionTokenStorages, cannot write to file %s ", GetStorageFileName().c_str()));
+        throw CDDCExpc (Format("CStringIndexSet::CreateUnionTokenStorages, cannot write to file %s ", GetStorageFileName().c_str()));
     }
     for (size_t ixi = 0; ixi < IndexSets.size(); ++ixi) {
         if (IndexSets[ixi] == NULL || !IndexSets[ixi]->m_bUseItemStorage) {
@@ -325,7 +325,7 @@ static void CreatePartitionStorage(string inputFileName, vector<CStringIndexSet 
     assert(Partitions.size() == xlateItemId.size());
     FILE* inputStream =  fopen (inputFileName.c_str(), "rb");
     if (!inputStream)
-        throw CExpc(string("cannot open ") + inputFileName);
+        throw CDDCExpc(string("cannot open ") + inputFileName);
     try {
         size_t cur = 0;
         for (size_t i = 0; i < Partitions.size(); ++i) {
@@ -334,25 +334,25 @@ static void CreatePartitionStorage(string inputFileName, vector<CStringIndexSet 
             DWORD itemIdOld, itemIdNew;
             size_t StartTokenNo = cur;
             if (fp == NULL)
-                throw CExpc("CStringIndexSet::CreatePartitionStorage(): Error: open failed for file " +
+                throw CDDCExpc("CStringIndexSet::CreatePartitionStorage(): Error: open failed for file " +
                             Partitions[i]->GetStorageFileName());
             for (; cur < EndTokenNo[i]; ++cur) {
                 if (fread(&itemIdOld, sizeof(DWORD), 1, inputStream) != 1)
-                    throw CExpc(
+                    throw CDDCExpc(
                         Format("CStringIndexSet::CreatePartitionStorage(): Error: failed to read token #%zd from storage file '%s'",
                                cur, inputFileName.c_str()));
                 itemIdNew = xlateItemId[i][itemIdOld];
                 if (itemIdNew == DWORD_MAX)
-                    throw CExpc(
+                    throw CDDCExpc(
                         Format("CStringIndexSet::CreatePartitionStorage(): Error: token #%zd target itemId==DWORD_MAX==%zd for source itemId=#%zd, partition %zd",
                                cur, itemIdNew, itemIdOld, i));
                 if (fwrite(&itemIdNew, sizeof(DWORD), 1, fp) != 1)
-                    throw CExpc(
+                    throw CDDCExpc(
                         Format("CStringIndexSet::CreatePartitionStorage(): Error: failed to write token #%zd to storage file '%s'",
                                (cur - StartTokenNo), Partitions[i]->GetStorageFileName().c_str()));
             }
             if (fclose(fp) != 0)
-                throw CExpc("CStringIndexSet::CreatePartitionStorage(): Error: close failed for file " +
+                throw CDDCExpc("CStringIndexSet::CreatePartitionStorage(): Error: close failed for file " +
                             Partitions[i]->GetStorageFileName());
         }
     }
@@ -384,7 +384,7 @@ void CStringIndexSet::UnionIndexSets(const vector<CStringIndexSet *> &IndexSets,
         }
     }
     if (ItemStrings.size() >= DWORD_MAX)
-        throw CExpc(
+        throw CDDCExpc(
             "CStringIndexSet::UnionIndexSets(): Error: vocabulary size (%zd) too large for index %s %s (max=%zd)",
             ItemStrings.size(), m_Name.c_str(), m_ShortName.c_str(), (size_t) DWORD_MAX - 1);
     ddcLogDebug(Format("found %zd value type(s) for attribute %s", ItemStrings.size(), m_Name.c_str()));
@@ -392,11 +392,11 @@ void CStringIndexSet::UnionIndexSets(const vector<CStringIndexSet *> &IndexSets,
     //-- phase 2: adopt occurrences
     FILE *res_fp = fopen(GetOccursFileName().c_str(), "wb");
     if (!res_fp)
-        throw CExpc("CStringIndexSet::UnionIndexSets(): cannot open occurrences file %s", GetOccursFileName().c_str());
+        throw CDDCExpc("CStringIndexSet::UnionIndexSets(): cannot open occurrences file %s", GetOccursFileName().c_str());
 
     CItemIndexForLoading M;
     if (!M.InitOccurs())
-        throw CExpc("CStringIndexSet::UnionIndexSets(): cannot initialize occurrences buffer");
+        throw CDDCExpc("CStringIndexSet::UnionIndexSets(): cannot initialize occurrences buffer");
     size_t CurrPositionInResFile = 0;
 
     vector<vector<DWORD> > xlateItemId(IndexSets.size());
@@ -430,7 +430,7 @@ void CStringIndexSet::UnionIndexSets(const vector<CStringIndexSet *> &IndexSets,
         //-- format the occurrences accordingly
         utrace(Format("-> found %zd total occurrences", M.GetOccurs()->size()));
         if (!AddOneIndexItem(M, res_fp, CurrPositionInResFile, offset))
-            throw CExpc("CStringIndexSet::UnionIndexSets(): Error: failed to add index item for string '" + *si + "'");
+            throw CDDCExpc("CStringIndexSet::UnionIndexSets(): Error: failed to add index item for string '" + *si + "'");
     }
 
     //-- cleanup
@@ -446,7 +446,7 @@ void CStringIndexSet::UnionIndexSets(const vector<CStringIndexSet *> &IndexSets,
 
     //-- store "period division" map
     if (!WritePeriodsDivision())
-        throw CExpc("CStringIndexSet::UnionIndexSets(): Error: failed to write period division");
+        throw CDDCExpc("CStringIndexSet::UnionIndexSets(): Error: failed to write period division");
 
     //-- merge storage files
     if (m_bUseItemStorage) {
@@ -478,13 +478,13 @@ CStringIndexSet::CreateSplitPartitions(vector<CStringIndexSet *> &Partitions, co
         Partitions[i]->m_StringBuffer.ensureVec();
 
         if (!M[i].InitOccurs())
-            throw CExpc(
+            throw CDDCExpc(
                 Format("CStringIndexSet::CreateSpltPartitions(): cannot initialize occurrences buffer for partition #%zd",
                        i));
 
 
         if (!(Mfp[i] = fopen(Partitions[i]->GetOccursFileName().c_str(), "wb")))
-            throw CExpc("CStringIndexSet::CreateSpltPartitions(): cannot open occurrences file " +
+            throw CDDCExpc("CStringIndexSet::CreateSpltPartitions(): cannot open occurrences file " +
                         Partitions[i]->GetOccursFileName());
 
         Mpos[i] = 0;
@@ -520,7 +520,7 @@ CStringIndexSet::CreateSplitPartitions(vector<CStringIndexSet *> &Partitions, co
 
                 //-- format occurrences
                 if (!Partitions[i]->AddOneIndexItem(M[i], Mfp[i], Mpos[i], EndTokenNo[i]))
-                    throw CExpc(
+                    throw CDDCExpc(
                         Format("CStringIndexSet::CreateSpltPartitions(): Error: failed to add index item for string '%s', partition #%zd",
                                ItemStr, i));
 
@@ -539,7 +539,7 @@ CStringIndexSet::CreateSplitPartitions(vector<CStringIndexSet *> &Partitions, co
     for (size_t i = 0; i < Partitions.size(); ++i) {
         M[i].FreeOccurs();
         if (Mfp[i] != NULL && fclose(Mfp[i]) != 0)
-            throw CExpc("CStringIndexSet::CreateSpltPartitions(): Error: failed to close occurrences file " +
+            throw CDDCExpc("CStringIndexSet::CreateSpltPartitions(): Error: failed to close occurrences file " +
                         Partitions[i]->GetOccursFileName());
     }
 
@@ -547,7 +547,7 @@ CStringIndexSet::CreateSplitPartitions(vector<CStringIndexSet *> &Partitions, co
     ddcLogTrace(logname + ": store period divisions");
     for (size_t i = 0; i < Partitions.size(); ++i) {
         if (!Partitions[i]->WritePeriodsDivision())
-            throw CExpc(
+            throw CDDCExpc(
                 Format("CStringIndexSet::CreateSpltPartitions(): Error: failed to write period division map for partition #%zd",
                        i));
     }
@@ -626,11 +626,11 @@ CStringIndexSet::GetContextBounds(CDDCFilterWithBounds &Filter, const string &Lo
 
 void CStringIndexSet::DumpStorage(FILE *output) const {
     if (!m_bUseItemStorage) {
-        throw CExpc("Error! This index has no item storage!\n");
+        throw CDDCExpc("Error! This index has no item storage!\n");
     };
     FILE * fp = fopen (GetStorageFileName().c_str(), "rb");
     if  (!fp) {
-        throw CExpc(string("cannot open file ") + GetStorageFileName());
+        throw CDDCExpc(string("cannot open file ") + GetStorageFileName());
     }
     DWORD u;
     while (fread(&u, sizeof(u), 1, fp) == 1) {

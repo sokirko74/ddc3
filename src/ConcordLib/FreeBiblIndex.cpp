@@ -28,7 +28,7 @@ void CFreeBiblIndex::ReadFromDisk(string Path, DWORD FileBreaksSize, bool useMMa
 
 
     if (m_ValuesForEachFile.size() != FileBreaksSize) {
-        throw CExpc(
+        throw CDDCExpc(
             Format("The number of corpus files (%zi) should be equal to the number of bibliographical records (%zi; index name = %s)",
                    FileBreaksSize, m_ValuesForEachFile.size(), m_Name.c_str()));
     };
@@ -93,13 +93,13 @@ bool CFreeBiblIndex::GetFilterValue(CDDCFilterWithBounds &Filter, const string &
 }
 
 bool CFreeBiblIndex::GetFilterValues(CDDCFilterWithBounds &Filter, const string &Regex) const {
-    throw CExpc(errLogic, "%s::GetFilterValues(): field `%s' doesn't support regular expressions", typeid(*this).name(),
+    throw CDDCExpc(errLogic, "%s::GetFilterValues(): field `%s' doesn't support regular expressions", typeid(*this).name(),
                 m_Name.c_str());
     return false;
 }
 
 bool CFreeBiblIndex::GetFilterValues(CDDCFilterWithBounds &Filter, const set<string> &Values) const {
-    throw CExpc(errLogic, "%s::GetFilterValues(): field `%s' doesn't support set values", typeid(*this).name(),
+    throw CDDCExpc(errLogic, "%s::GetFilterValues(): field `%s' doesn't support set values", typeid(*this).name(),
                 m_Name.c_str());
     return false;
 }

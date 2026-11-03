@@ -28,11 +28,22 @@ vector<string> GetGramInfosFromWord(const char *GraLine, MorphLanguageEnum Langu
 
     const CAgramtab *A = GetGramtabByLanguage(Langua);
 
-    char SrcCodesBuffer[2000];
+    //-- "<common ancode or ??><form ancodes>;" for each homonym (formerly CLemmatizer::GetAllAncodesQuick())
+    string Codes;
+    {
+        string Word = GraLine;
+        vector<CFormInfo> Paradigms;
+        Lemmatizer->CreateParadigmCollection(false, Word, bCapital, true, Paradigms, false);
+        for (const CFormInfo& F : Paradigms) {
+            string Common = F.GetCommonAncode();
+            Codes += Common.empty() ? string("??") : Common.substr(0, 2);
+            Codes += F.GetSrcAncode();
+            Codes += ";";
+        }
+    }
+    const char* SrcCodesBuffer = Codes.c_str();
 
-    Lemmatizer->GetAllAncodesQuick((BYTE *) GraLine, bCapital, (BYTE *) SrcCodesBuffer, true);
-
-    size_t len = strlen(SrcCodesBuffer);
+    size_t len = Codes.length();
     vector<string> Result;
     QWORD CommonGrammems = 0;
     bool bReadCommonGrammems = false;
@@ -41,7 +52,7 @@ vector<string> GetGramInfosFromWord(const char *GraLine, MorphLanguageEnum Langu
             if (SrcCodesBuffer[i] == '?')
                 CommonGrammems = 0;
             else
-                A->GetGrammems(SrcCodesBuffer + i, CommonGrammems);
+                CommonGrammems = A->GetAllGrammems(string(SrcCodesBuffer + i, 2).c_str());
             bReadCommonGrammems = true;
             continue;
         };
@@ -65,7 +76,7 @@ vector<string> GetGramInfosFromWord(const char *GraLine, MorphLanguageEnum Langu
         };
 
         QWORD Grammems;
-        A->GetGrammems(SrcCodesBuffer + i, Grammems);
+        Grammems = A->GetAllGrammems(string(SrcCodesBuffer + i, 2).c_str());
 
         size_t GrammemsCount = A->GetGrammemsCount();
         for (int k = 0; k < GrammemsCount; k++)

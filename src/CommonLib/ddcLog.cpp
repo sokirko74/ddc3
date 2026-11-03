@@ -93,7 +93,7 @@ DDCLogLevel GetLogLevel(const std::string& Name)
 
     //-- oops
     else
-        throw CExpc( Format("GetLogLevel(): unknown log-level name '%s'", s.c_str()) );
+        throw CDDCExpc( Format("GetLogLevel(): unknown log-level name '%s'", s.c_str()) );
 }
 
 //----------------------------------------------------------------------

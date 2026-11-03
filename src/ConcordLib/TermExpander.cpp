@@ -52,7 +52,7 @@ void CTermExpander::expand(const string &src, set<string> &dst) {
 
 //--------------------------------------------------------------
 void CTermExpander::expand(const set<string> &src, set<string> &dst) {
-    throw CExpc(errOther, "abstract method CTermExpander::expand() called for expander `%s' of class `%s'",
+    throw CDDCExpc(errOther, "abstract method CTermExpander::expand() called for expander `%s' of class `%s'",
                 m_Label.c_str(), m_Class.c_str());
 }
 
@@ -142,7 +142,7 @@ void TxLang::setLanguage(const string &lang) {
     }
     if (!GetLanguageByString(lang_, m_Lang)) {
         this->setLanguage(morphUnknown);
-        throw CExpc(errProcessMorphology, "unsupported language `%s'", lang.c_str());
+        throw CDDCExpc(errProcessMorphology, "unsupported language `%s'", lang.c_str());
     }
 }
 
@@ -163,13 +163,13 @@ void TxMorph::expand(const set<string> &src, set<string> &dst) {
         const string& w = *si;
         vector<CFormInfo> Paradigms;
 
-        string w_ = pLemmatizer->recode_ext2int(w);
+        string w_ = MorphRecodeExt2Int(m_Lang, w);
         const bool bCapital = is_upper_alpha((BYTE)w_[0],m_Lang);
         try {
             pLemmatizer->CreateParadigmCollection(false, w_, bCapital, true, Paradigms);
         }
         catch (...) {
-            throw CExpc(errProcessMorphology, Format("TxMorph::expand(): morphology crashed for `%s'", w.c_str()));
+            throw CDDCExpc(errProcessMorphology, Format("TxMorph::expand(): morphology crashed for `%s'", w.c_str()));
         }
 
         // adopt all paradigms
@@ -184,7 +184,7 @@ void TxMorph::expand(const set<string> &src, set<string> &dst) {
                     // make the first word upper-case (ugly hack)
                     form[0] = ReverseChar((BYTE)form[0], m_Lang);
                 }
-                dst.insert(pLemmatizer->recode_int2ext(form));
+                dst.insert(MorphRecodeInt2Ext(m_Lang, form));
             }
         }
     }
@@ -360,7 +360,7 @@ void TxCab::expand(const set<string> &src, set<string> &dst) {
         if (!this->perform() || m_CCurl.m_Response.empty()) {
             //-- query failed: silently do identity expansion
 #if 0
-            throw CExpc(errRuntime, "TxCab::expand(): ERROR: %s", m_CCurl.m_CurlErr);
+            throw CDDCExpc(errRuntime, "TxCab::expand(): ERROR: %s", m_CCurl.m_CurlErr);
 #else
             concord_daemon_log(Format("TxCab::expand(%s) failed: %s", url.c_str(), m_CCurl.m_CurlErr));
             if (m_MapMode) dst = src; //-- fallback to literal search in map mode
@@ -370,7 +370,7 @@ void TxCab::expand(const set<string> &src, set<string> &dst) {
         }
 
         //-- parse response
-        StringTokenizer rtok(m_CCurl.m_Response.c_str(), "\t\r\n");
+        ddcStringTokenizer rtok(m_CCurl.m_Response.c_str(), "\t\r\n");
         while (rtok()) {
             dst.insert(rtok.val());
         }
@@ -543,7 +543,7 @@ TxChain TxDispatcher::getChain(const vector<string> &labels) {
     for (vector<string>::const_iterator li=labels.begin(); li!=labels.end(); li++) {
         CTermExpander *tx = get(*li);
         if (tx == NULL)
-            throw CExpc(errRuntime, "TxDispatcher::getList(): unknown term expander label `%s'", li->c_str());
+            throw CDDCExpc(errRuntime, "TxDispatcher::getList(): unknown term expander label `%s'", li->c_str());
         chain.append(tx);
     }
     chain.m_Param = string("|") + chain.chainString();
@@ -568,7 +568,7 @@ void parseTermExpanderSpec(const string &spec, string &txclass, string &txlabel,
     txparam.clear();
 
     const char *delims = " \t\r\n";
-    StringTokenizer stok(spec.c_str(), delims);
+    ddcStringTokenizer stok(spec.c_str(), delims);
 
     if (!stok.has_next()) return;
     txlabel = stok.next_token();
@@ -598,7 +598,7 @@ CTermExpander *newTermExpander(const string &class_, const string &label, const 
     else if (cls=="cab")                          { return new TxCab(label,param); }
     else if (cls=="cabmap")                       { return new TxCabMap(label,param); }
 
-    throw CExpc(errLogic, "unknown TermExpander class `%s'", class_.c_str());
+    throw CDDCExpc(errLogic, "unknown TermExpander class `%s'", class_.c_str());
     return NULL;
 }
 

@@ -35,13 +35,13 @@
 
 void ConvertToVector(const string &Str, list<map<string, string> > &Hits) {
     Hits.clear();
-    StringTokenizer lines(Str.c_str(), "\n");
+    ddcStringTokenizer lines(Str.c_str(), "\n");
     while (lines()) {
         string line = lines.val();
         map<string, string> H;
         int prev_i = 0;
         for (int i = 0; i + 1 < line.length(); i++)
-            if (line[i] == globalTableItemsDelim) // we canno use  StringTokenizer since values can be empty
+            if (line[i] == globalTableItemsDelim) // we canno use  ddcStringTokenizer since values can be empty
             {
                 string Field = line.substr(prev_i, i - prev_i);;
                 prev_i = i + 1;
@@ -242,12 +242,12 @@ SOCKET CQueryRunner::OpenSocket()
             break;
 
     if (i == Hosts.size()) {
-        throw CExpc(Format("Cannot find  \"server\"-record in %s\n", CfgPath.c_str()));
+        throw CDDCExpc(Format("Cannot find  \"server\"-record in %s\n", CfgPath.c_str()));
     };
     string strError;
     SOCKET s = Hosts[i].CreateAndConnectSocket(strError);
     if (s == -1) {
-        throw CExpc(Format("Error while opening server socket: %s\n", strError.c_str()));
+        throw CDDCExpc(Format("Error while opening server socket: %s\n", strError.c_str()));
     };
     lock();
     OpenSockets.push_back(s);
@@ -313,13 +313,13 @@ string CQueryRunner::RunQuery(string query) {
 
         string ErrorStr;
         if (!SendString(socket, networkString.c_str(), networkString.length(), ErrorStr)) {
-            throw(CExpc(Format("Send error: %s\n", ErrorStr.c_str())));
+            throw(CDDCExpc(Format("Send error: %s\n", ErrorStr.c_str())));
         };
 
         NetworkErrorsEnum res = ReceiveString(socket, recievedString, TimeOut);
 
         if (res != neSuccess) {
-            throw(CExpc(Format("Error: %s\n", GetNetworkErrorString(res).c_str())));
+            throw(CDDCExpc(Format("Error: %s\n", GetNetworkErrorString(res).c_str())));
         };
     }
     catch (...) {
@@ -336,7 +336,7 @@ string CQueryRunner::RunQuery(string query) {
         throw;
     }
     catch (...) {
-        throw CExpc("An exception occurred while writting to the output file \n");
+        throw CDDCExpc("An exception occurred while writting to the output file \n");
     };
 }
 
@@ -353,9 +353,9 @@ string CQueryRunner::FormatResponse(string query, string recievedString) {
     int z = recievedString.find('\x1');
     if (z == -1) {
         if (recievedString.empty())
-            throw CExpc("ddc_xml received an empty string from the server, empty string recieved!");
+            throw CDDCExpc("ddc_xml received an empty string from the server, empty string recieved!");
         else
-            throw CExpc(Format("cannot  get information from the network host: %s", recievedString.c_str()));
+            throw CDDCExpc(Format("cannot  get information from the network host: %s", recievedString.c_str()));
     };
     string response = recievedString.substr(0, z);
 
@@ -363,15 +363,15 @@ string CQueryRunner::FormatResponse(string query, string recievedString) {
 
     if (sscanf(recievedString.c_str(), "%i %i %i %i %i", &iInternalError, &iNetworkError, &EndHitNo, &HitsCount,
                &RelevantDocsCount) != 5) {
-        throw CExpc("Bad protocol header\n");
+        throw CDDCExpc("Bad protocol header\n");
     };
 
     if (iNetworkError != neSuccess) {
-        throw CExpc(Format("Network error : %s\n", GetNetworkErrorString((NetworkErrorsEnum) iNetworkError).c_str()));
+        throw CDDCExpc(Format("Network error : %s\n", GetNetworkErrorString((NetworkErrorsEnum) iNetworkError).c_str()));
     };
 
     if (iInternalError != errNone) {
-        throw CExpc(Format("Internal error: %s\n", GetDDCErrorString((DDCErrorEnum) iInternalError)));
+        throw CDDCExpc(Format("Internal error: %s\n", GetDDCErrorString((DDCErrorEnum) iInternalError)));
     };
     if (OutputFormat == "text") {
         return response;
@@ -390,7 +390,7 @@ string CQueryRunner::FormatResponse(string query, string recievedString) {
         string EntryPart;
         ReadTemplate(TemplateFile, StartPart, EndPart, EntryPart);
         if (!Prototype.Initialize(EntryPart)) {
-            throw  CExpc("Cannot initialie template");
+            throw  CDDCExpc("Cannot initialie template");
         };
     }
 
@@ -460,7 +460,7 @@ bool ThreadPool::RunJobIfExists()
         result = QueryRunner->RunQuery(query);
     }
     catch (CExpc e) {
-        result = e.m_strCause;
+        result = string(e.what());
     }
 
     pthread_mutex_lock(&JobEndLock);
@@ -536,7 +536,7 @@ int main(int argc, char **argv) {
                 fprintf(stderr, "Error! No integer number after  \"-limit\" parameter!\n");
                 PrintUsageAndExit();
             } else {
-                StringTokenizer tok(argv[i + 1], ",");
+                ddcStringTokenizer tok(argv[i + 1], ",");
                 if (!tok())
                     PrintUsageAndExit();
                 StartHitNo = atoi(tok.val());
@@ -592,7 +592,7 @@ int main(int argc, char **argv) {
         }
     }
     catch (CExpc C) {
-        fprintf(stderr, "%s\n", C.m_strCause.c_str());
+        fprintf(stderr, "%s\n", C.what());
         return 1;
     };
     if (Queries.empty()) {
@@ -650,7 +650,7 @@ int main(int argc, char **argv) {
         }
     }
     catch (CExpc e) {
-        fprintf(stderr, "Error! %s\n", e.m_strCause.c_str());
+        fprintf(stderr, "Error! %s\n", e.what());
         QueryRunner->CloseSocketsOnError();
         resultCode = 1;
     }

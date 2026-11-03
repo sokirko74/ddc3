@@ -15,3 +15,7 @@ utilit.cpp
 )
 
 
+
+target_link_libraries(CommonLib
+    morphology_common
+)

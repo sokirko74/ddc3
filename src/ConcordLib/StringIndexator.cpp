@@ -66,7 +66,7 @@ const CStringIndexSet *CStringIndexator::GetTokenIndex() const {
 bool CStringIndexator::RegisterStringIndices(const string &IndicesStr) {
     ClearStringIndices();
     // to be done[name,short,archive]
-    StringTokenizer tok(IndicesStr.c_str(), ";");
+    ddcStringTokenizer tok(IndicesStr.c_str(), ";");
     while (tok()) {
         string Item = tok.val();
         Trim(Item);
@@ -75,7 +75,7 @@ bool CStringIndexator::RegisterStringIndices(const string &IndicesStr) {
             return false;
         };
         Item = Item.substr(1, Item.length() - 2);
-        StringTokenizer item_tok(Item.c_str(), " \t,");
+        ddcStringTokenizer item_tok(Item.c_str(), " \t,");
         string Name = item_tok.next_token();
         string Short = item_tok.next_token();
         string CompressedStr = item_tok.next_token();
@@ -129,12 +129,12 @@ bool CStringIndexator::RegisterStringIndices(const string &IndicesStr) {
 
 bool CStringIndexator::RegisterIndexAliases(const string &IndexAliasStr) {
     bool rc = true;
-    StringTokenizer lines(IndexAliasStr.c_str(), "\n");
+    ddcStringTokenizer lines(IndexAliasStr.c_str(), "\n");
     while (lines()) {
         string Item = lines.val();
         Trim(Item);
         if (Item.empty()) continue;
-        StringTokenizer fields(Item.c_str(), " \t\r\n");
+        ddcStringTokenizer fields(Item.c_str(), " \t\r\n");
         string AliasOp = fields.next_token();
         string AliasFrom = fields.next_token();
         string AliasTo = fields.next_token();
@@ -274,7 +274,7 @@ void CStringIndexator::IndexOneToken(CTokenIndexator *document, const char *Inpu
 
     size_t length = strlen(InputLine);
     if (length == 0) {
-        throw CExpc("Error! CStringIndexator::IndexOneToken cannot index empty lines");
+        throw CDDCExpc("Error! CStringIndexator::IndexOneToken cannot index empty lines");
     };
 
     const size_t MaxIndexLineLength = DDC_STATIC_BUFLEN;
@@ -282,7 +282,7 @@ void CStringIndexator::IndexOneToken(CTokenIndexator *document, const char *Inpu
 
     if (length >= MaxIndexLineLength) {
         if (!tryFixErrors)
-            throw CExpc(Format("Error! Line \"%s\" is too long! It cannot be more than %zi chars", InputLine, MaxIndexLineLength));
+            throw CDDCExpc(Format("Error! Line \"%s\" is too long! It cannot be more than %zi chars", InputLine, MaxIndexLineLength));
 
         ddcLogWarn(Format("Warning: truncating greedy colums for input line \"%s\" (length=%zd > max=%zd)", InputLine, length, MaxIndexLineLength));
         IndexTokenFixLongColumns(MaxIndexLineLength, document->ColumnMap.size(), InputLine, Line);
@@ -299,7 +299,7 @@ void CStringIndexator::IndexOneToken(CTokenIndexator *document, const char *Inpu
     for (size_t start = 0; start < length; start++) {
         if (columnNo == document->ColumnMap.size()) {
             if (!tryFixErrors)
-                throw CExpc(Format("Too many columns at line at line \"%s\", starting at \"%s\"", Line, Line+start));
+                throw CDDCExpc(Format("Too many columns at line at line \"%s\", starting at \"%s\"", Line, Line+start));
             ddcLogWarn(Format("Warning: ignoring extra column(s) in line \"%s\" starting at \"%s\"", Line, Line+start));
             break;
         };

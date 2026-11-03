@@ -69,7 +69,7 @@ void    CQueryNode::EvaluateWithoutHits()
 
 void    CQueryNode::Evaluate(bool bSeparateHits)
 {
-    throw  CExpc (errParseError, "not implemented!");
+    throw  CDDCExpc (errParseError, "not implemented!");
 };      
 
 void    CQueryNode::EnsureChunkOffsets()
@@ -894,7 +894,7 @@ CStringIndexSet* CQueryTokenNode::GetIndex(const CConcHolder* pHolder, const str
                 
         pIndexSet = pHolder->m_pConcordance->GetIndexByAlias(name);
         if (!pIndexSet)
-            throw CExpc(errParseError,"GetIndex(): unknown index `%s'", IndexName.c_str());
+            throw CDDCExpc(errParseError,"GetIndex(): unknown index `%s'", IndexName.c_str());
 
         m_IndexName = pIndexSet->m_Name;
     };
@@ -927,7 +927,7 @@ bool CQueryTokenNode::CreateRegexPattern(const CConcHolder* pHolder, const strin
     m_Source = string("$") + IndexName + "=/" + Regex + "/";
     CStringIndexSet* pIndexSet = GetIndex(pHolder,IndexName);
     if (Regex.empty())
-        throw CExpc(errParseError,"Empty regular expression not allowed in query for index `%s'", IndexName.c_str());
+        throw CDDCExpc(errParseError,"Empty regular expression not allowed in query for index `%s'", IndexName.c_str());
 
     m_IndexItems.clear();
     return BuildRegExp(Regex, m_IndexItems, negated);
@@ -1405,15 +1405,15 @@ size_t CQueryNearNode::GetNodeFrequencyByNodeIndex(size_t NodeIndex) const
 bool CQueryNearNode::Create(const CConcHolder* pHolder, BYTE distance, CQueryNode* child1, CQueryNode* child2, CQueryNode* child3)
 {
     if (distance > MaxDistanceForNear)
-        throw CExpc(errParseError, "distance #%d too large (max=%d) in near query", distance, MaxDistanceForNear);
+        throw CDDCExpc(errParseError, "distance #%d too large (max=%d) in near query", distance, MaxDistanceForNear);
     m_Distance = distance;
 
     if (!child1 || !child1->m_bAtomic)
-        throw CExpc(errParseError, "child1 not atomic in near query");
+        throw CDDCExpc(errParseError, "child1 not atomic in near query");
     if (!child2 || !child2->m_bAtomic)
-        throw CExpc(errParseError, "child2 not atomic in near query");
+        throw CDDCExpc(errParseError, "child2 not atomic in near query");
     if (child3 && !child3->m_bAtomic)
-        throw CExpc(errParseError, "child3 not atomic in near query");
+        throw CDDCExpc(errParseError, "child3 not atomic in near query");
 
     m_pChild1 = child1;
     m_pChild2 = child2;

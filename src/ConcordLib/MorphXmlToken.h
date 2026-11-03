@@ -36,7 +36,7 @@ struct  CXmlMorphAnnot
     {
         Result.clear();
 
-        StringTokenizer tok2(m_GrammemsStr.c_str(), " \t,|; ");
+        ddcStringTokenizer tok2(m_GrammemsStr.c_str(), " \t,|; ");
         while (tok2())
             Result.push_back(tok2.val());
 

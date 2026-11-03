@@ -47,13 +47,13 @@ void ddc_format_version_check(const char *s, const char *label)
     ddc_parse_format_version(s,version,version_min);
     //std::string sv_str=version.str(), svmin_str=version_min.str(), ddcv_str=DDCVersion.str(), ddcvmin_str=DDCVersionMinR.str();
     if (version.empty() && version_min.empty())
-        throw CExpc(errLogic,
+        throw CDDCExpc(errLogic,
                     std::string("could not parse format version from `") + label + "'");
     if (version < DDCVersionMinR)
-        throw CExpc(errLogic,
+        throw CDDCExpc(errLogic,
                     std::string(label) + ": format version "+version.str()+" is obsolete (need format >= v" + DDCVersionMinR.str() + ")");
     if (DDCVersion < version_min)
-        throw CExpc(errLogic,
+        throw CDDCExpc(errLogic,
                     std::string(label) + ": DDC v"+DDCVersion.str()+" is too old to read format (need at least DDC v"+version_min.str()+")");
 }
 

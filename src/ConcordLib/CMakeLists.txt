@@ -45,11 +45,9 @@ add_library(ConcordLib
 
 target_link_libraries(ConcordLib
     tinyxml
-    AgramtabLib
     PCRE
     GraphanLib
-    MorphWizardLib
-    LemmatizerLib
+    lemmatizer_base_lib
     RmlTar
 )
 if(CURL_FOUND)

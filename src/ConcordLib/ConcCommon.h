@@ -31,11 +31,12 @@
 
 
 #include "../GraphanLib/GraphmatFile.h"
-#include "../LemmatizerLib/Lemmatizers.h"
-
-#include "../AgramtabLib/EngGramTab.h"
-#include "../AgramtabLib/RusGramTab.h"
-#include "../AgramtabLib/GerGramTab.h"
+#include "../CommonLib/ddcIconv.h"
+#include "../CommonLib/ptrholder.h"
+#include "morph_dict/lemmatizer_base_lib/Lemmatizers.h"
+#include "morph_dict/agramtab/EngGramTab.h"
+#include "morph_dict/agramtab/RusGramTab.h"
+#include "morph_dict/agramtab/GerGramTab.h"
 #include "../CommonLib/DDC_common.h"
 #include "../CommonLib/ddcObject.h"
 #include "../tinyxml/tinyxml.h"
@@ -492,6 +493,10 @@ extern void FreeConcordDicts();
 extern const CLemmatizer* GetLemmatizerByLanguage (MorphLanguageEnum Langua);
 //! return a grammatical table  by a language indentifier
 extern const CAgramtab* GetGramtabByLanguage (MorphLanguageEnum Langua);
+//! recode a word from the user (corpus) encoding to the internal encoding of the morphology (and back);
+//! identity except for German, see "Software\\Dialing\\Lemmatizer\\German\\ExtEncoding" in rml.ini
+extern string MorphRecodeExt2Int (MorphLanguageEnum Langua, const string& s);
+extern string MorphRecodeInt2Ext (MorphLanguageEnum Langua, const string& s);
 
 //! compare hits by break-number (for query evaluation, e.g. CQueryBinaryOperationNode::hits_and_positions_intersection())
 struct CHitCompareByBreak

@@ -113,7 +113,7 @@ static bool ReadAbbrevationsFromOneFile(string FileName, vector<CAbbrev>& V, Mor
 
         CAbbrev Abbrev;
 
-        StringTokenizer tok(s.c_str(), " ");
+        ddcStringTokenizer tok(s.c_str(), " ");
         while (tok())
         {
             CAbbrevItem item;

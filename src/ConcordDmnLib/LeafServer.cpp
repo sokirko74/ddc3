@@ -81,7 +81,7 @@ void CDDCLeafServer::handle__get_first_hits(string &Result, const char *Query, i
     DWORD EndHitNo = Hint.m_Offset;
     int Error = m_pHolder->GetHits(Query, EndHitNo);
     if (Error != errNone)
-        throw CExpc(Error, m_pHolder->m_ErrorStr.empty() ? GetDDCErrorString((DDCErrorEnum) Error)
+        throw CDDCExpc(Error, m_pHolder->m_ErrorStr.empty() ? GetDDCErrorString((DDCErrorEnum) Error)
                     : m_pHolder->m_ErrorStr); //-- error
     Result = Format("%i %i %i %i %i", Error, EndHitNo, m_pHolder->m_AllHitsCount, m_pHolder->m_RelevantDocumentCount,
                     m_pHolder->HitSortOrder());
@@ -104,7 +104,7 @@ CDDCLeafServer::handle__get_hit_strings(string &Result, const char *ResultType, 
 
     int Error = m_pHolder->GenerateHitStrings(StartHitNo);
     if (Error != errNone)
-        throw CExpc(Error, m_pHolder->m_ErrorStr.empty() ? GetDDCErrorString((DDCErrorEnum) Error)
+        throw CDDCExpc(Error, m_pHolder->m_ErrorStr.empty() ? GetDDCErrorString((DDCErrorEnum) Error)
                     : m_pHolder->m_ErrorStr); //-- error
 
     //-- no error
@@ -157,7 +157,7 @@ CDDCLeafServer::handle__run_query(string &Result, const char *CorpusName, const 
         int Error = m_pHolder->GetHits(Query, EndHitNo);
         runq.EndHitNo = EndHitNo;
         if (Error != errNone)
-            throw CExpc(Error, m_pHolder->m_ErrorStr.empty() ? GetDDCErrorString((DDCErrorEnum) Error) : m_pHolder->m_ErrorStr); //-- error
+            throw CDDCExpc(Error, m_pHolder->m_ErrorStr.empty() ? GetDDCErrorString((DDCErrorEnum) Error) : m_pHolder->m_ErrorStr); //-- error
         runq.HitsCount = m_pHolder->m_AllHitsCount;
         runq.HitDistrib = Format("=%d", runq.HitsCount);
         if (IsCountSort(m_pHolder->HitSortOrder()))
@@ -168,7 +168,7 @@ CDDCLeafServer::handle__run_query(string &Result, const char *CorpusName, const 
         //-- get_hit_strings
         Error = m_pHolder->GenerateHitStrings(StartHitNo, false);
         if (Error != errNone)
-            throw CExpc(Error, m_pHolder->m_ErrorStr.empty() ? GetDDCErrorString((DDCErrorEnum) Error) : m_pHolder->m_ErrorStr); //-- error
+            throw CDDCExpc(Error, m_pHolder->m_ErrorStr.empty() ? GetDDCErrorString((DDCErrorEnum) Error) : m_pHolder->m_ErrorStr); //-- error
         if (m_pHolder->m_QueryResultStr.empty()) {
             if (m_pHolder->GetResultFormatStr() == "html")
                 if (m_pHolder->m_ResultLimit > 0)
@@ -196,7 +196,7 @@ CDDCLeafServer::handle__run_query(string &Result, const char *CorpusName, const 
                                           runq.navHint.toJson().c_str())));
     }
     catch (CExpc &e) {
-        if (runq.iInternalError==errNone) runq.iInternalError = e.code();
+        if (runq.iInternalError==errNone) runq.iInternalError = ddcExpcCode(e);
         if (runq.pErrorStr->empty()) *runq.pErrorStr = e.what();
     }
     catch (exception &e) {
@@ -470,7 +470,7 @@ void CDDCLeafServer::handle__reload(string &Result, int depth) {
 #if 0 /* BROKEN */
     CConcHolder *pHolder = NULL;
     if (!LoadHolder(&pHolder))
-        throw CExpc(errOther, Format("reload failed for %s", GetLocalPathOfIndex().c_str()));
+        throw CDDCExpc(errOther, Format("reload failed for %s", GetLocalPathOfIndex().c_str()));
     if (m_pHolder) {
         if (m_pHolder->m_pConcordance) delete m_pHolder->m_pConcordance;
         delete m_pHolder;

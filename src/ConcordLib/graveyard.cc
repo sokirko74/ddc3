@@ -14,19 +14,19 @@ bool	CQueryTokenNode::CreateTokenPattern(const CConcHolder* pHolder, const strin
 
 	if (bRegex) {
 		if (str.empty())
-			throw CExpc(errParseError, "Empty regular expression not allowed in token sub-query //");
+			throw CDDCExpc(errParseError, "Empty regular expression not allowed in token sub-query //");
 		return BuildRegExp(str, m_IndexItems);
 	}
 
 	//--  exact or re-inflected query
 	const CStringIndexSet* IndexSet = m_pHolder->m_pIndexator->GetIndexByName(m_IndexName);
 	if (!IndexSet)
-		throw CExpc(errParseError, "Unknown index `%s' in token sub-query `%s'", m_IndexName.c_str(), Value.c_str());
+		throw CDDCExpc(errParseError, "Unknown index `%s' in token sub-query `%s'", m_IndexName.c_str(), Value.c_str());
 
 	//-- moo: original code tokenized string here on "/": looks like a token-internal disjunction operator to me
 	const string &word = Value;
 	if (word.empty())
-		throw CExpc(errParseError, "Empty value not allowed `%s' in token sub-query", word.c_str());
+		throw CDDCExpc(errParseError, "Empty value not allowed `%s' in token sub-query", word.c_str());
 
 	if (word[word.length() - 1] == '*') {
 		//-- WORD* : right truncation (prefix condition)
@@ -43,7 +43,7 @@ bool	CQueryTokenNode::CreateTokenPattern(const CConcHolder* pHolder, const strin
 	else if (word[0] == '*') {
 		//-- WORD* : left truncation (suffix condition)
 		if (!BuildRegExp(word.substr(1)+"$", m_IndexItems))
-			throw CExpc(errParseError, "Could not construct regex for left-truncated query `%s'", word.c_str());
+			throw CDDCExpc(errParseError, "Could not construct regex for left-truncated query `%s'", word.c_str());
 	}
 	else {
 		//-- WORD or @WORD : re-inflected or literal match
@@ -78,7 +78,7 @@ bool	CQueryTokenNode::CreateItemSetPattern(const CConcHolder* pHolder, const str
 	//--  exact or re-inflected query
 	const CStringIndexSet* IndexSet = m_pHolder->m_pIndexator->GetIndexByNameOrShortName(IndexName);
 	if (!IndexSet)
-		throw CExpc(errParseError, "Unknown index `%s' in item-set sub-query", IndexName.c_str());
+		throw CDDCExpc(errParseError, "Unknown index `%s' in item-set sub-query", IndexName.c_str());
 	m_IndexName = IndexSet->m_Name;
 
 	set<string> WordForms(Values);
@@ -125,7 +125,7 @@ void GetWordForms (const MorphLanguageEnum Langua, const string& src, set<string
 	}
 	catch(...)
 	{
-		throw CExpc (errProcessMorphology, Format("Morphology has crushed on %s ", src.c_str()));
+		throw CDDCExpc (errProcessMorphology, Format("Morphology has crushed on %s ", src.c_str()));
 	}
 
 	//	print out all paradigms

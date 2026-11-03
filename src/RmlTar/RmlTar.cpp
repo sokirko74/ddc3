@@ -235,7 +235,7 @@ int TAR::th_read()
 bool mkdirhier(const char *path)
 {
     string dst;
-    StringTokenizer tok(path, "/\\");
+    ddcStringTokenizer tok(path, "/\\");
     bool bResult = true;
     while (tok())
     {
@@ -390,7 +390,7 @@ bool tar_get_next_file(TAR *t, string& FileName, vector<char>& Result)
             FileName = t->th_buf.th_get_pathname();
             if (t->tar_extract_regfile_to_buffer(Result) != 0)
             {
-                throw CExpc (Format("cannot read tar %s ,  %s ", t->pathname.c_str(), FileName.c_str()));
+                throw CDDCExpc (Format("cannot read tar %s ,  %s ", t->pathname.c_str(), FileName.c_str()));
             }
             else
                 return true;

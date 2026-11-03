@@ -75,7 +75,7 @@ void DumpStorage(const CConcHolder& R, string IndexName, FILE* output)
     const CStringIndexSet* SI = R.m_pConcordance->GetIndexByName(IndexName);
     if (!SI)
     {
-        throw CExpc(Format("Cannot find index name `%s'!\n", IndexName.c_str()));
+        throw CDDCExpc(Format("Cannot find index name `%s'!\n", IndexName.c_str()));
     };
     SI->DumpStorage(output);
 };

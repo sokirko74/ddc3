@@ -78,7 +78,7 @@ bool CQFilter::Compile(CQueryCompiler *compiler, CQueryOptions *options)
 {
     assert(compiler!=NULL);
     assert(options!=NULL);
-    throw CExpc(errParseError,"CQFilter::Compile(): abstract method called!");
+    throw CDDCExpc(errParseError,"CQFilter::Compile(): abstract method called!");
     return false;
 }
 
@@ -299,17 +299,17 @@ bool CQFBiblSort::Compile(CQueryCompiler *compiler, CQueryOptions *options)
     assert(ix != NULL);
 
     if (m_arg0.empty())
-        throw CExpc(errParseError,"Empty bibliographic field not allowed in sort operator `%s'", this->toString().c_str());
+        throw CDDCExpc(errParseError,"Empty bibliographic field not allowed in sort operator `%s'", this->toString().c_str());
 
     //-- resolve attribute name (fallback to DefaultBibl)
     m_Filter.m_AttrName = ResolveAttributeName(compiler, m_arg0);
     if (m_Filter.m_AttrName.empty()) {
-        throw CExpc(errParseError,"Can't resolve attribute name `%s' for bibliographic sort operator `%s'", m_arg0.c_str(), this->toString().c_str());
+        throw CDDCExpc(errParseError,"Can't resolve attribute name `%s' for bibliographic sort operator `%s'", m_arg0.c_str(), this->toString().c_str());
     }
 
     //-- guts: get filter bounds
     if (compiler->m_bSatisfiable && !ix->m_BiblIndex.GetFilterBounds(m_Filter, m_arg1, m_arg2)) {
-        throw CExpc(errParseError,"Can't determine bound(s) for bibliographic sort operator `%s'", this->toString().c_str());
+        throw CDDCExpc(errParseError,"Can't determine bound(s) for bibliographic sort operator `%s'", this->toString().c_str());
     }
 
     return CQFSort::Compile(compiler, options);
@@ -355,10 +355,10 @@ bool CQFContextSort::Compile(CQueryCompiler *compiler, CQueryOptions *options)
     m_Filter.m_AttrName  = m_arg0.empty() ? ix->GetTokenIndex()->m_Name : m_arg0;
     CStringIndexSet* ixx = ix->GetIndexByAlias(m_Filter.m_AttrName);
     if (ixx == NULL)
-        throw CExpc(errParseError,"Can't find index `%s' for context-sort operator `%s'", m_Filter.m_AttrName.c_str(), toString().c_str());
+        throw CDDCExpc(errParseError,"Can't find index `%s' for context-sort operator `%s'", m_Filter.m_AttrName.c_str(), toString().c_str());
 
     if (compiler->m_bSatisfiable && !ixx->GetContextBounds(m_Filter, m_arg1, m_arg2))
-        throw CExpc(errParseError,"Can't determine bound(s) for context-sort operator `%s'", toString().c_str());
+        throw CDDCExpc(errParseError,"Can't determine bound(s) for context-sort operator `%s'", toString().c_str());
 
     return CQFSort::Compile(compiler,options);
 }
@@ -404,15 +404,15 @@ void CQFHasField::Negate(void)
 bool CQFHasField::Compile(CQueryCompiler *compiler, CQueryOptions *options)
 {
     if (m_arg0.empty())
-        throw CExpc(errParseError,"Empty bibliographic field not allowed in filter operator `%s'", toString().c_str());
+        throw CDDCExpc(errParseError,"Empty bibliographic field not allowed in filter operator `%s'", toString().c_str());
 
     if (m_arg1.empty())
-        throw CExpc(errParseError,"Empty value field not allowed in filter operator `%s'", toString().c_str());
+        throw CDDCExpc(errParseError,"Empty value field not allowed in filter operator `%s'", toString().c_str());
 
     //-- resolve attribute name (allow expanders, fallback to DefaultBibl)
     m_Filter.m_AttrName = ResolveAttributeName(compiler, m_arg0, true);
     if (m_Filter.m_AttrName.empty()) {
-        throw CExpc(errParseError,"Can't resolve attribute name `%s' in bibliographic filter operator `%s'", m_arg0.c_str(), this->toString().c_str());
+        throw CDDCExpc(errParseError,"Can't resolve attribute name `%s' in bibliographic filter operator `%s'", m_arg0.c_str(), this->toString().c_str());
     }
 
     return true;
@@ -464,7 +464,7 @@ bool CQFHasFieldValue::Compile(CQueryCompiler *compiler, CQueryOptions *options)
     CConcordance *ix = compiler->m_pHolder->m_pConcordance;
 
     if (compiler->m_bSatisfiable && !ix->m_BiblIndex.GetFilterValue(m_Filter, m_arg1)) {
-        throw CExpc(errParseError,"Can't compile literal filter condition `%s'", toString().c_str());
+        throw CDDCExpc(errParseError,"Can't compile literal filter condition `%s'", toString().c_str());
     }
 
     return CQFSort::Compile(compiler,options);
@@ -492,7 +492,7 @@ bool CQFHasFieldRegex::Compile(CQueryCompiler *compiler, CQueryOptions *options)
     m_Filter.m_bNegated = m_Negated;
     CConcordance *ix = compiler->m_pHolder->m_pConcordance;
     if (compiler->m_bSatisfiable && !ix->m_BiblIndex.GetFilterValues(m_Filter, m_Regex))
-        throw CExpc(errParseError,"Can't compile regex filter condition `%s'", toString().c_str());
+        throw CDDCExpc(errParseError,"Can't compile regex filter condition `%s'", toString().c_str());
 
     return CQFSort::Compile(compiler,options);
 }
@@ -548,7 +548,7 @@ bool CQFHasFieldSet::Compile(CQueryCompiler *compiler, CQueryOptions *options)
     m_Filter.m_bNegated = m_Negated;
     CConcordance *ix = compiler->m_pHolder->m_pConcordance;
     if (compiler->m_bSatisfiable && !ix->m_BiblIndex.GetFilterValues(m_Filter, m_Values))
-        throw CExpc(errParseError,"Can't compile set-valued filter restriction `%s'", toString().c_str());
+        throw CDDCExpc(errParseError,"Can't compile set-valued filter restriction `%s'", toString().c_str());
 
     return CQFSort::Compile(compiler,options);
 }

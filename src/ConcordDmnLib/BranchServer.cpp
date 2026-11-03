@@ -358,7 +358,7 @@ void CRunQueryData::Init(const string & _Query, const string& _ResultFormat, siz
     try {
         //-- compile query
         if (!pQCompiler->ParseQuery(sQuery))
-            throw(CExpc("failed to parse input query"));
+            throw(CDDCExpc("failed to parse input query"));
     }
     catch (exception &e) {
         iInternalError = errParseError;
@@ -508,11 +508,11 @@ void CDDCBranchServer::handle__get_hit_strings(string &Result, const char *Resul
 
     //-- sanity check(s)
     if (FHResult.m_HitsDistributionStr.empty())
-        throw CExpc(errRuntime, "CDDCBranchServer::handle__get_hit_strings(): FHResult is uninitialized!");
+        throw CDDCExpc(errRuntime, "CDDCBranchServer::handle__get_hit_strings(): FHResult is uninitialized!");
     if (StartHitNo < runq.StartHitNo)
-        throw CExpc(errRuntime, "CDDCBranchServer::handle__get_hit_strings(): requested StartHitNo=%zi < cached=%zi", StartHitNo, runq.StartHitNo);
+        throw CDDCExpc(errRuntime, "CDDCBranchServer::handle__get_hit_strings(): requested StartHitNo=%zi < cached=%zi", StartHitNo, runq.StartHitNo);
     if (ResultLimit > runq.ResultLimit)
-        throw CExpc(errRuntime, "CDDCBranchServer::handle__get_hit_strings(): requested ResultLimit=%zd > cached=%zi", ResultLimit, runq.ResultLimit);
+        throw CDDCExpc(errRuntime, "CDDCBranchServer::handle__get_hit_strings(): requested ResultLimit=%zd > cached=%zi", ResultLimit, runq.ResultLimit);
     if (StartHitNo > runq.StartHitNo+runq.ResultLimit) {
         //-- oops: someone a start-offset beyond what we can legitimately return: massage it (as LeafServer does)
         StartHitNo = runq.StartHitNo+runq.ResultLimit;
@@ -550,17 +550,17 @@ void CDDCBranchServer::handle__get_hit_strings(string &Result, const char *Resul
     //-- check for errors
     if (runq.iInternalError != (int)errNone) {
         if (!m_ErrorStr.empty())
-            throw CExpc(runq.iInternalError,m_ErrorStr);
+            throw CDDCExpc(runq.iInternalError,m_ErrorStr);
         else
-            throw CExpc(runq.iInternalError);
+            throw CDDCExpc(runq.iInternalError);
     } else if (runq.iNetworkError != (int)neSuccess) {
-        throw CExpc(errRuntime, GetNetworkErrorString((NetworkErrorsEnum)runq.iNetworkError));
+        throw CDDCExpc(errRuntime, GetNetworkErrorString((NetworkErrorsEnum)runq.iNetworkError));
     }
 
     //-- format result
     if (ResultTypeE == DDC_ResultJson) {
         //-- JSON mode: munge in JSON syntax
-        StringTokenizer tok(runq.ResponseBody.c_str(), "\n");
+        ddcStringTokenizer tok(runq.ResponseBody.c_str(), "\n");
         Result.reserve(6+runq.ResponseBody.size()+FHResult.LogicalSize(runq.StartHitNo, runq.ResultLimit));
 
         Result = "0";
@@ -616,7 +616,7 @@ void CDDCBranchServer::handle__run_query(string &Result, const char *CorpusName,
         runq.Init(Query, ResultType, StartHitNo, ResultLimit, TimeOut, &m_ErrorStr, ReqPath, Hint);
 
         if ( runq.sQuery.empty() )
-            throw CExpc(errParseError, "CDDCBranchServer::handle__run_query(): cannot parse empty query string");
+            throw CDDCExpc(errParseError, "CDDCBranchServer::handle__run_query(): cannot parse empty query string");
         m_ErrorStr.clear();
         
         RunDistributed();
@@ -654,7 +654,7 @@ void CDDCBranchServer::handle__expand_terms(string &Result, const string& pipeli
         //-- user-specified expansion host: get matching name from m_Hosts
         h = FindHost(corpus);
         if (h==NULL)
-            throw CExpc(errParseError, "unknown host `%s' in `expand_terms' request", corpus.c_str());
+            throw CDDCExpc(errParseError, "unknown host `%s' in `expand_terms' request", corpus.c_str());
     }
 
     //-- delegate the query to the user-specified host
@@ -663,15 +663,15 @@ void CDDCBranchServer::handle__expand_terms(string &Result, const string& pipeli
     int hsock = h->CreateAndConnectSocket(ErrorStr);
     try {
         if (!ErrorStr.empty() || hsock==-1)
-            throw CExpc(errOther, "could not connect to subcorpus `%s': %s", h->m_CorpusName.c_str(), ErrorStr.c_str());
+            throw CDDCExpc(errOther, "could not connect to subcorpus `%s': %s", h->m_CorpusName.c_str(), ErrorStr.c_str());
 
         string hq = string("expand_terms \x01") + pipeline + "\x01" + terms + "\x01" + Format("%i", timeout);
         if (!SendString(hsock, hq, ErrorStr))
-            throw CExpc(errOther, "expand_terms faild for subcorpus `%s': %s", h->m_CorpusName.c_str(), ErrorStr.c_str());
+            throw CDDCExpc(errOther, "expand_terms faild for subcorpus `%s': %s", h->m_CorpusName.c_str(), ErrorStr.c_str());
 
         //-- read response directly into Result
         if (ReceiveString(hsock, Result, timeout) != neSuccess)
-            throw CExpc(errOther, "expand_terms failed to read a response from subcorpus `%s'", h->m_CorpusName.c_str());
+            throw CDDCExpc(errOther, "expand_terms failed to read a response from subcorpus `%s'", h->m_CorpusName.c_str());
     }
     catch (...) {
         this->CloseDtr(hsock);
@@ -1007,7 +1007,7 @@ NetworkErrorsEnum CDDCBranchServer::RunGetFirstHits()
     
     //-- sanity check
     if (FHResult.m_Offset > runq.StartHitNo)
-        throw CExpc("navigation cache error: daughters over-pruned (FHResult.Offset=%zd > StartHitNo=%i)", FHResult.m_Offset, runq.StartHitNo);
+        throw CDDCExpc("navigation cache error: daughters over-pruned (FHResult.Offset=%zd > StartHitNo=%i)", FHResult.m_Offset, runq.StartHitNo);
 
 #ifdef DEBUG_HIT_SORT
     for (size_t physi=FHResult.PhysicalOffset(runq.StartHitNo); physi < FHResult.PhysicalMax(runq.StartHitNo+runq.ResultLimit); ++physi) {
@@ -1029,17 +1029,17 @@ void CDDCBranchServer::CheckFirstHitsResult(NetworkErrorsEnum networkError)
 
     if (FHResult.m_InternalError != errNone) {
         if (!m_ErrorStr.empty())
-            throw CExpc(FHResult.m_InternalError, m_ErrorStr);
+            throw CDDCExpc(FHResult.m_InternalError, m_ErrorStr);
         else if (!FHResult.m_ErrorStr.empty())
-            throw CExpc(FHResult.m_InternalError, FHResult.m_ErrorStr);
+            throw CDDCExpc(FHResult.m_InternalError, FHResult.m_ErrorStr);
         else
-            throw CExpc(FHResult.m_InternalError);
+            throw CDDCExpc(FHResult.m_InternalError);
     }
     else if (FHResult.m_NetworkError != neSuccess) {
-        throw CExpc(errRuntime, GetNetworkErrorString(FHResult.m_NetworkError));
+        throw CDDCExpc(errRuntime, GetNetworkErrorString(FHResult.m_NetworkError));
     }
     else if (networkError != neSuccess) {
-        throw CExpc(errRuntime, GetNetworkErrorString(networkError));
+        throw CDDCExpc(errRuntime, GetNetworkErrorString(networkError));
     }
 }
 
@@ -1236,7 +1236,7 @@ NetworkErrorsEnum CDDCBranchServer::GetHitContexts(CFirstHitsQueryResult& FHResu
         }
 
 
-        StringTokenizer tok(S.c_str(), CDDCServer::AdditionalHitDelimiter);
+        ddcStringTokenizer tok(S.c_str(), CDDCServer::AdditionalHitDelimiter);
         while (tok()) {
             Results[HostNo ].push_back(tok.val());
             if (ResultTypeE == DDC_ResultJson) {
@@ -1307,7 +1307,7 @@ void CDDCBranchServer::GetFirstHitsFromCorpora(const CSelectedHosts& SelectedHos
     const NavHint& Hint   = runq.navHint;
     size_t HintOffset     = Hint.OffsetTotal();
     if (StartHitNo < HintOffset)
-        throw CExpc("bizarre hint OffsetTotal=%zd exceeds requested StartHitNo=%d", HintOffset, StartHitNo);
+        throw CDDCExpc("bizarre hint OffsetTotal=%zd exceeds requested StartHitNo=%d", HintOffset, StartHitNo);
     NAVCACHE_DEBUG(ddcLogDebug(Format("-> got HintOffset=%zd", HintOffset)));
 
     //-- daughter-relative paths placeholder \x01
@@ -1422,7 +1422,7 @@ void CDDCBranchServer::GetFirstHitsFromCorpora(const CSelectedHosts& SelectedHos
         size_t f = S.find("\t");
         size_t subcorpusHitOffset = Result.m_Hits.size();
         if (f != string::npos) {
-            StringTokenizer tok(S.c_str() + f +1,"\t");
+            ddcStringTokenizer tok(S.c_str() + f +1,"\t");
             char SortKeyBuf[ DDC_SORTKEY_MAXLEN ];
             while (tok()) {
                 CHitToSort HS(HostNo);

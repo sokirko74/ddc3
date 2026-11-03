@@ -177,7 +177,7 @@ string CDDCServer::ProcessSocketString(const string& SocketInput, SOCKET& rConne
         //-- moo: check for buffer overflow
         if (SocketInput.size() > DDC_STATIC_BUFLEN) {
             string req(SocketInput.substr(0,DDC_STATIC_BUFLEN-3));
-            throw CExpc(errParseError, Format("input buffer size %zi exceeded by request \"%s...\"", DDC_STATIC_BUFLEN, req.c_str()));
+            throw CDDCExpc(errParseError, Format("input buffer size %zi exceeded by request \"%s...\"", DDC_STATIC_BUFLEN, req.c_str()));
         }
         
         //-- moo: parse input command
@@ -210,7 +210,7 @@ string CDDCServer::ProcessSocketString(const string& SocketInput, SOCKET& rConne
                 int nItems = sscanf(SocketInputStr, "get_first_hits %[^\x01]\x01 %i %zi%n", sQuery, &TimeOut, &ResultLimit, &StartPathPos);
                 if (nItems != 3) {
                     //-- unparseable
-                    throw CExpc(errParseError, "CDDCServer::ProcessSocketString(): cannot parse `get_first_hits' request");
+                    throw CDDCExpc(errParseError, "CDDCServer::ProcessSocketString(): cannot parse `get_first_hits' request");
                 }
 
                 findPathHint(SocketInput, StartPathPos, PathPos, HintPos);
@@ -219,7 +219,7 @@ string CDDCServer::ProcessSocketString(const string& SocketInput, SOCKET& rConne
                                              NavHint(SocketInput.substr(HintPos)));
             }
             catch (CExpc& e) {
-                Result = Format("%i 0 0 0 0\n%s", (e.code()==errNone ? errOther : e.code()), e.what());
+                Result = Format("%i 0 0 0 0\n%s", (ddcExpcCode(e)==errNone ? errOther : ddcExpcCode(e)), e.what());
                 ++m_SessionStats.m_nErrors;
             }
             catch (exception& e) {
@@ -236,11 +236,11 @@ string CDDCServer::ProcessSocketString(const string& SocketInput, SOCKET& rConne
                 char sResultType[128];
                 int nItems = sscanf(SocketInput.c_str(), "get_hit_strings %[^\x01]\x01%zi %zi", sResultType, &StartHitNo, &ResultLimit);
                 if (nItems != 3)
-                    throw CExpc(errParseError, "CDDCServer::ProcessSocketString(): cannot parse `get_hit_strings' request");
+                    throw CDDCExpc(errParseError, "CDDCServer::ProcessSocketString(): cannot parse `get_hit_strings' request");
                 this->handle__get_hit_strings(Result, sResultType,StartHitNo,ResultLimit);
             }
             catch (CExpc& e) {
-                Result = Format("%i\x01%s", (e.code()==errNone ? errOther : e.code()), e.what());
+                Result = Format("%i\x01%s", (ddcExpcCode(e)==errNone ? errOther : ddcExpcCode(e)), e.what());
                 ++m_SessionStats.m_nErrors;
             }
             catch (exception& e) {
@@ -265,7 +265,7 @@ string CDDCServer::ProcessSocketString(const string& SocketInput, SOCKET& rConne
                                     "run_query %[^\x01]\x01%[^\x01]\x01%[^\x01]\x01%zi %zi %i%n",
                                     sCorpusName, sQuery, sResultType, &StartHitNo, &ResultLimit, &TimeOut, &StartPathPos);
                 if (nItems != 6)
-                    throw CExpc(errParseError, "cannot parse `run_query` request");
+                    throw CDDCExpc(errParseError, "cannot parse `run_query` request");
 
                 findPathHint(SocketInput, StartPathPos, PathPos, HintPos);
                 this->handle__run_query(Result, sCorpusName,sQuery,sResultType,StartHitNo,ResultLimit,TimeOut,
@@ -273,7 +273,7 @@ string CDDCServer::ProcessSocketString(const string& SocketInput, SOCKET& rConne
                                         NavHint(SocketInput.substr(HintPos)));
             }
             catch (CExpc &e) {
-                Result = Format("\x01 %i %i %i %i %i\n%s", e.code(), 0, 0, 0, 0, e.what());
+                Result = Format("\x01 %i %i %i %i %i\n%s", ddcExpcCode(e), 0, 0, 0, 0, e.what());
                 ++m_SessionStats.m_nErrors;
             }
             catch (exception &e) {
@@ -288,7 +288,7 @@ string CDDCServer::ProcessSocketString(const string& SocketInput, SOCKET& rConne
             isExpandRequest = true;
             vector<string> qv = stringSplit(SocketInput.c_str(), "\x01");
             if (qv.size() < 4)
-                throw CExpc(errParseError, "could not parse `expand_terms' request");
+                throw CDDCExpc(errParseError, "could not parse `expand_terms' request");
             else if (qv.size() < 5)
                 qv.push_back("");
             string &pipeline = qv[1];
@@ -306,7 +306,7 @@ string CDDCServer::ProcessSocketString(const string& SocketInput, SOCKET& rConne
             int iLemmatizeOnly, iLang;
             int nItems = sscanf(SocketInput.c_str(), "get_paradigm %[^\x01]\x01%i %i", sWord, &iLemmatizeOnly, &iLang);
             if (nItems != 3)
-                throw CExpc(errParseError, "cannot parse `get_paradigm` request");
+                throw CDDCExpc(errParseError, "cannot parse `get_paradigm` request");
             this->handle__get_paradigm(Result, sWord,iLemmatizeOnly,iLang);
         }
         else if (cmd == "ddc_close_socket" || cmd == "close_socket" || cmd == "close") {
@@ -355,12 +355,12 @@ string CDDCServer::ProcessSocketString(const string& SocketInput, SOCKET& rConne
         }
         else {
             //-- unknown request
-            throw CExpc(errParseError, Format("unknown command `%s'", cmd.c_str()));
+            throw CDDCExpc(errParseError, Format("unknown command `%s'", cmd.c_str()));
         }
     }
     catch (CExpc &e) {
-        ddcLogError(Format("CDDCServer[%s]::ProcessSocketString(): Exception[%d]: %s", m_CorpusName.c_str(), e.code(), e.what()));
-        if (Result.empty()) Result = Format("%i 0\n%s", e.code(), e.what());
+        ddcLogError(Format("CDDCServer[%s]::ProcessSocketString(): Exception[%d]: %s", m_CorpusName.c_str(), ddcExpcCode(e), e.what()));
+        if (Result.empty()) Result = Format("%i 0\n%s", ddcExpcCode(e), e.what());
         ++m_SessionStats.m_nErrors;
     }
     catch (exception& e) {

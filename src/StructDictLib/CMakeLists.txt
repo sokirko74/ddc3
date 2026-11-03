@@ -8,3 +8,7 @@ TempArticle.cpp
 )
 
 
+
+target_link_libraries(StructDictLib
+    CommonLib
+)

@@ -69,7 +69,7 @@ FILE* getOutputStream(string outfilename){
     else {
         FILE* outfile = fopen(outfilename.c_str(), "wb");
         if (!outfile)
-            throw CExpc(errRuntime, "Error: cannot open output file `%s': %s", outfilename.c_str(), strerror(errno));
+            throw CDDCExpc(errRuntime, "Error: cannot open output file `%s': %s", outfilename.c_str(), strerror(errno));
         return outfile;
     }
 }
@@ -77,7 +77,7 @@ FILE* getOutputStream(string outfilename){
 string getOutputDirectory(string outdir) {
     //-- full dump: check for dump directory
     if (outdir == "-")
-        throw CExpc(errRuntime, "Error: full dump requested but no output directory specified with --output");
+        throw CDDCExpc(errRuntime, "Error: full dump requested but no output directory specified with --output");
 
     size_t slashpos = outdir.find_last_not_of("/");
     outdir.erase(slashpos + 1);
@@ -86,15 +86,15 @@ string getOutputDirectory(string outdir) {
     if (stat(outdir.c_str(), &s)==-1) {
         if (errno == ENOENT) {
             //-- doesn't exist
-            throw CExpc(errRuntime, "Error: output directory `%s' does not exist", outdir.c_str());
+            throw CDDCExpc(errRuntime, "Error: output directory `%s' does not exist", outdir.c_str());
         } else {
             //-- error during stat()
-            throw CExpc(errRuntime, "could not open output directory `%s': %s", outdir.c_str(), strerror(errno));
+            throw CDDCExpc(errRuntime, "could not open output directory `%s': %s", outdir.c_str(), strerror(errno));
         }
     }
     else if (!S_ISDIR(s.st_mode)) {
         //-- exists but is not a directory
-        throw CExpc(errRuntime, "Error: invalid output directory `%s': %s", outdir.c_str(), strerror(errno));
+        throw CDDCExpc(errRuntime, "Error: invalid output directory `%s': %s", outdir.c_str(), strerror(errno));
     }
     return outdir;
 }

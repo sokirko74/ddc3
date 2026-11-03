@@ -57,7 +57,7 @@ bool CHost::CheckValidAddr() const
 //--------------------------------------------------------------
 bool CHost::ReadFromString (string S)
 {
-    StringTokenizer tok(S.c_str(), " \t\r\n");
+    ddcStringTokenizer tok(S.c_str(), " \t\r\n");
     int ItemNo = 0;
     m_SockAddr.Clear();
     while (tok()) 
@@ -194,7 +194,7 @@ void CHost::HandleClientConnection(SOCKET& rConnectedSocket)
         if (!this->Close(rConnectedSocket))
             ddcLogError( Format("cannot close socket %s", SocketPeer(rConnectedSocket).c_str())  );
     }
-    catch (CExpc& e)        { ErrorStr = Format("Exception[%d]: %s", e.code(), e.what()); }
+    catch (CExpc& e)        { ErrorStr = Format("Exception[%d]: %s", ddcExpcCode(e), e.what()); }
     catch (exception &e)    { ErrorStr = Format("Exception: %s", e.what()); }
     catch (...)             { ErrorStr = "Exception: (unhandled exception)"; }
 
@@ -325,7 +325,7 @@ void   CHost::RunThread()
         try {
             this->HandleClientConnection(rConnectedSocket); //-- formerly AnswerByRequest()
         }
-        catch (CExpc& e)        { HandleSocketError(rConnectedSocket, Format("Exception[%d]: %s", e.code(), e.what())); }
+        catch (CExpc& e)        { HandleSocketError(rConnectedSocket, Format("Exception[%d]: %s", ddcExpcCode(e), e.what())); }
         catch (exception &e)    { HandleSocketError(rConnectedSocket, Format("Exception: %s", e.what())); }
         catch (...)             { HandleSocketError(rConnectedSocket, "Exception: (unhandled exception)"); }
     }

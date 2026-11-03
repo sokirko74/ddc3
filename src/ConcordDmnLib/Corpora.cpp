@@ -80,7 +80,7 @@ void LoadLocalCorpora (string ConfigFile, const CDDCServerOptions& Options)
     ddcLogInfo ( Format ("Start loading local corpora from %s", ConfigFile.c_str()) );
     vector<CHost> Hosts;
     if (!LoadHosts(ConfigFile, Hosts))
-        throw CExpc(errOther, "failed to load config file %s", ConfigFile.c_str());
+        throw CDDCExpc(errOther, "failed to load config file %s", ConfigFile.c_str());
 
 
     ddcLogInfo ( Format("  Found %i Host(s)", Hosts.size()) );
@@ -99,7 +99,7 @@ void LoadLocalCorpora (string ConfigFile, const CDDCServerOptions& Options)
             H.CreateListener();
         }
     }
-    catch (CExpc     &e) { ddcLogError( Format("LoadLocalCorpora(): Exception[%d]: %s", e.code(), e.what()) ); throw; }
+    catch (CExpc     &e) { ddcLogError( Format("LoadLocalCorpora(): Exception[%d]: %s", ddcExpcCode(e), e.what()) ); throw; }
     catch (exception &e) { ddcLogError( Format("LoadLocalCorpora(): Exception: %s", e.what()) ); throw; }
     catch (...)          { ddcLogError( "LoadLocalCorpora(): Exception: unhandled exception" ); throw; }
 };
@@ -113,7 +113,7 @@ void LoadDDCServer(string ServerConfigFile, const CDDCServerOptions& Options)
 {
     string Error;
     if (!IsRmlRegistered(Error))
-        throw CExpc(errOther, Error);
+        throw CDDCExpc(errOther, Error);
 
     string IniPath = GetIniFilePath();
     int ii = ServerConfigFile.find("$RML");
@@ -123,7 +123,7 @@ void LoadDDCServer(string ServerConfigFile, const CDDCServerOptions& Options)
     //-- load flat host map
     vector<CHost> hosts;
     if (!LoadHosts(ServerConfigFile, hosts))
-        throw CExpc(errOther, "failed to load server config file %s", ServerConfigFile.c_str());
+        throw CDDCExpc(errOther, "failed to load server config file %s", ServerConfigFile.c_str());
 
     //-- find (embedded) branch-server(s), and index them by label
     for (vector<CHost>::const_iterator hi=hosts.begin(); hi != hosts.end(); ++hi) {
@@ -140,7 +140,7 @@ void LoadDDCServer(string ServerConfigFile, const CDDCServerOptions& Options)
         if (isServerLabel(hi->m_CorpusName)) {
             CDDCBranchServer *bserver = new CDDCBranchServer();
             if (!bserver)
-                throw CExpc(errOther, "cannot allocate memory for server instance `%s'", hi->m_CorpusName.c_str());
+                throw CDDCExpc(errOther, "cannot allocate memory for server instance `%s'", hi->m_CorpusName.c_str());
             bserver->CopyAddressParametersFrom(*hi);
             bserver->SetOptions(Options);
 
@@ -152,7 +152,7 @@ void LoadDDCServer(string ServerConfigFile, const CDDCServerOptions& Options)
 
     //-- sanity check: ensure we've found a valid root server
     if (RootServer==NULL)
-        throw CExpc(errOther, "no root server entry found in server config file `%s'!", ServerConfigFile.c_str());
+        throw CDDCExpc(errOther, "no root server entry found in server config file `%s'!", ServerConfigFile.c_str());
         
     //-- map daughter-servers to associated parent branch-server
     CDDCBranchServer *defaultParent = RootServer;
@@ -170,10 +170,10 @@ void LoadDDCServer(string ServerConfigFile, const CDDCServerOptions& Options)
         //-- find requested parent node
         if (!parentLabel.empty()) {
             if (BServers.find(parentLabel)==BServers.end())
-                throw CExpc(errOther, "unknown parent label `%s' in server config file `%s'", parentLabel.c_str(), ServerConfigFile.c_str());
+                throw CDDCExpc(errOther, "unknown parent label `%s' in server config file `%s'", parentLabel.c_str(), ServerConfigFile.c_str());
             bserver = BServers[parentLabel];
             if (bserver==NULL)
-                throw CExpc(errOther, "parent label `%s' for subcorpus `%s' in server config file `%s' is not a branch server!",
+                throw CDDCExpc(errOther, "parent label `%s' for subcorpus `%s' in server config file `%s' is not a branch server!",
                             parentLabel.c_str(), hi->m_CorpusName.c_str(), ServerConfigFile.c_str());
         }
 
@@ -186,7 +186,7 @@ void LoadDDCServer(string ServerConfigFile, const CDDCServerOptions& Options)
 
     //-- sanity check: ensure root server has non-empty daughter-list
     if (RootServer->m_Hosts.empty())
-        throw CExpc(errOther, "no subcorpus host entries for root server `%s' in server config file `%s'",
+        throw CDDCExpc(errOther, "no subcorpus host entries for root server `%s' in server config file `%s'",
                     RootServer->m_CorpusName.c_str(), ServerConfigFile.c_str());
 
     //-- trim branch-server index (remove leaf-server nodes), and fire up any "proper" branch-servers

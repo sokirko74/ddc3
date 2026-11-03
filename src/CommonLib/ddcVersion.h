@@ -144,7 +144,7 @@ const DDCVersionT DDCVersionMinW(2,1,13);
 void ddc_parse_format_version(const char *s, DDCVersionT &version, DDCVersionT &version_min);
 
 /** check a stored format version string \a s for compatibility with the running ddc;
- *  otherwise throws a CExpc(errLogic). \a label is used for the exception message;
+ *  otherwise throws a CDDCExpc(errLogic). \a label is used for the exception message;
  *  it defaults to \a s.
  */
 void ddc_format_version_check(const char *s, const char *label=NULL);

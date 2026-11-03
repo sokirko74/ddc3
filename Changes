@@ -7,6 +7,13 @@ v3.0 Tue, 03 Nov 2026
 	  - dropped unused pcrecpp-style API (Arg, StringPiece, Consume, FindAndConsume, Extract, DoMatch)
 	* CMake fixes: ddcMMap.cpp in CommonLib, jsoncpp include path for ConcordDmnLib,
 	  local FlexLexer.h for the generated lexer, build without libcurl
+	* morphology from morph_dict (git submodule src/morph_dict), shared with RML
+	  - removed bundled LemmatizerLib, AgramtabLib, MorphWizardLib, ddc_morph_gen, ddc_test_lem
+	  - CommonLib is built on top of morph_dict/common; C++17
+	  - morphology dictionaries are built from morph_dict/data (target ddc_morph_dicts)
+	  - rml.ini moved from $RML/etc to $RML/Bin; DictPath -> $RML/dict/Morph/{Russian,English,German}
+	  - CExpc with error code -> CDDCExpc (derived from morph_dict's CExpc); StringTokenizer -> ddcStringTokenizer
+	* fixed UB on empty vectors in ddcVecFile (Debug builds aborted)
 
 v2.2.12 Wed, 16 Jun 2021 15:21:24 +0200 moocow
 	* fixed sort failure in `count(...) #by[date] #dsc_key` for branch-servers with only a single daughter

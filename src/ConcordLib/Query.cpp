@@ -37,7 +37,7 @@ bool CQuery::CheckSatisfiable(CQueryCompiler *compiler)
 bool CQuery::Compile(CQueryCompiler *compiler)
 {
     assert(compiler!=NULL);
-    throw CExpc(errParseError,"CQuery::Compile(): abstract method called!");
+    throw CDDCExpc(errParseError,"CQuery::Compile(): abstract method called!");
     return false;
 }
 
@@ -104,7 +104,7 @@ void CQuery::Evaluate()
 //--------------------------------------------------------------
 bool CQuery::Negate(void)
 {
-    throw CExpc(errParseError, "attempt to negate non-negatable query `%s'", toString().c_str());
+    throw CDDCExpc(errParseError, "attempt to negate non-negatable query `%s'", toString().c_str());
     return this->Negated();
 };
 
@@ -117,7 +117,7 @@ BYTE CQuery::GetMatchId() const
 //--------------------------------------------------------------
 BYTE CQuery::SetMatchId(BYTE matchId)
 {
-    throw CExpc(errParseError, "attempt to set match-ID for non-token query `%s'", toString().c_str());
+    throw CDDCExpc(errParseError, "attempt to set match-ID for non-token query `%s'", toString().c_str());
     return 0;
 };
 
@@ -259,13 +259,13 @@ bool CQBinOp::Compile(CQueryCompiler *compiler)
 
     //-- sanity checks
     if (!m_dtr1 || !m_dtr2)
-        throw CExpc(errParseError,"not enough arguments for `%s'-clause `%s'", m_OpName.c_str(), this->toString().c_str());
+        throw CDDCExpc(errParseError,"not enough arguments for `%s'-clause `%s'", m_OpName.c_str(), this->toString().c_str());
 
     //-- compile daughters
     if (!m_dtr1->Compile(compiler))
-        throw CExpc(errParseError,"could not compile sub-query `%s' for `%s'-clause", m_dtr1->toString().c_str(), m_OpName.c_str());
+        throw CDDCExpc(errParseError,"could not compile sub-query `%s' for `%s'-clause", m_dtr1->toString().c_str(), m_OpName.c_str());
     if (!m_dtr2->Compile(compiler))
-        throw CExpc(errParseError,"could not compile sub-query `%s' for `%s'-clause", m_dtr2->toString().c_str(), m_OpName.c_str());
+        throw CDDCExpc(errParseError,"could not compile sub-query `%s' for `%s'-clause", m_dtr2->toString().c_str(), m_OpName.c_str());
 
     //-- child methods hook in here
     return true;
@@ -304,12 +304,12 @@ bool CQAnd::Compile(CQueryCompiler *compiler)
             }
             else {
                 //-- (!P&!Q)
-                throw CExpc(errParseError,"conjunction of negations not supported in `%s'-query `%s'", m_OpName.c_str(), this->toString().c_str());
+                throw CDDCExpc(errParseError,"conjunction of negations not supported in `%s'-query `%s'", m_OpName.c_str(), this->toString().c_str());
             }
         }
     } else if (!neg1 || !neg2) {
         // !(P&Q)=(!P|!Q), !(P&!Q)=(!P|Q), !(!P&Q)=(P|!Q)
-        throw CExpc(errParseError,"non-negated sub-queries not supported in negated `%s'-query `%s'", m_OpName.c_str(), this->toString().c_str());
+        throw CDDCExpc(errParseError,"non-negated sub-queries not supported in negated `%s'-query `%s'", m_OpName.c_str(), this->toString().c_str());
     }
 
     //-- create underyling node
@@ -333,13 +333,13 @@ bool CQOr::Compile(CQueryCompiler *compiler)
     if (neg1 != neg2) {
         //-- (P|!Q), (!P|Q), !(P|!Q), !(!P|Q)
         // : we could check for m_Negated here and dispatch to CQAnd, but we'll ignore it for now
-        throw CExpc(errParseError,"disjunction of negated and non-negated sub-queries not supported in query `%s'", this->toString().c_str());
+        throw CDDCExpc(errParseError,"disjunction of negated and non-negated sub-queries not supported in query `%s'", this->toString().c_str());
     } else if (m_Negated && !neg1) {
         //-- !(P|Q)
-        throw CExpc(errParseError,"negated disjunction not supported in query `%s'", this->toString().c_str());
+        throw CDDCExpc(errParseError,"negated disjunction not supported in query `%s'", this->toString().c_str());
     } else if (!m_Negated && neg1) {
         //-- (!P|!Q)
-        throw CExpc(errParseError,"disjunction of negations not supported in query `%s'", this->toString().c_str());
+        throw CDDCExpc(errParseError,"disjunction of negations not supported in query `%s'", this->toString().c_str());
     }
 
     //-- create underyling node
@@ -372,13 +372,13 @@ bool CQWith::Compile(CQueryCompiler *compiler)
 
     //-- extra sanity checks
     if (m_dtr1->Negated() || m_dtr2->Negated())
-        throw CExpc(errParseError, "negated sub-queries not supported in WITH query `%s'", this->toString().c_str());
+        throw CDDCExpc(errParseError, "negated sub-queries not supported in WITH query `%s'", this->toString().c_str());
 
     //-- create underyling node
     CQueryWithNode* pObj = new CQueryWithNode;
     m_Node = pObj;
     if ( !pObj->Create(compiler->m_pHolder, m_dtr1->m_Node, m_dtr2->m_Node, m_MatchId) )
-        throw CExpc(errParseError,"could not compile WITH clause `%s'", this->toString().c_str());
+        throw CDDCExpc(errParseError,"could not compile WITH clause `%s'", this->toString().c_str());
 
     return CQNegatable::Compile(compiler);
 }
@@ -406,14 +406,14 @@ bool CQWithout::Compile(CQueryCompiler *compiler)
 
     //-- extra sanity checks
     if (m_dtr1->Negated() || m_dtr2->Negated())
-        throw CExpc(errParseError, "negated sub-queries not supported in WITHOUT query `%s'", this->toString().c_str());
+        throw CDDCExpc(errParseError, "negated sub-queries not supported in WITHOUT query `%s'", this->toString().c_str());
 
     //-- create underyling node
     CQueryWithoutNode* pObj = new CQueryWithoutNode;
     m_Node = pObj;
 
     if ( !pObj->Create(compiler->m_pHolder, m_dtr1->m_Node, m_dtr2->m_Node, m_MatchId) )
-        throw CExpc(errParseError,"could not compile WITHOUT clause `%s'", this->toString().c_str());
+        throw CDDCExpc(errParseError,"could not compile WITHOUT clause `%s'", this->toString().c_str());
 
     return CQNegatable::Compile(compiler);
 }
@@ -427,14 +427,14 @@ bool CQWithor::Compile(CQueryCompiler *compiler)
 
     //-- extra sanity checks
     if (m_dtr1->Negated() || m_dtr2->Negated())
-        throw CExpc(errParseError, "negated sub-queries not supported in WITHOR query `%s'", this->toString().c_str());
+        throw CDDCExpc(errParseError, "negated sub-queries not supported in WITHOR query `%s'", this->toString().c_str());
 
     //-- create underyling node
     CQueryWithorNode* pObj = new CQueryWithorNode;
     m_Node = pObj;
 
     if ( !pObj->Create(compiler->m_pHolder, m_dtr1->m_Node, m_dtr2->m_Node, m_MatchId) )
-        throw CExpc(errParseError,"could not compile WITHOR clause `%s'", this->toString().c_str());
+        throw CDDCExpc(errParseError,"could not compile WITHOR clause `%s'", this->toString().c_str());
 
     return CQNegatable::Compile(compiler);
 }
@@ -462,7 +462,7 @@ bool CQToken::Compile(CQueryCompiler *compiler)
                ? this->Create(pObj)
                : pObj->CreateNullPattern(compiler->m_pHolder, this->IndexName("Token")));
     if (!rc)
-        throw CExpc(errParseError,"could not compile query condition `%s'", this->toString().c_str());
+        throw CDDCExpc(errParseError,"could not compile query condition `%s'", this->toString().c_str());
     return CQNegatable::Compile(compiler);
 }
 
@@ -628,7 +628,7 @@ TxChain& CQTokInfl::GetChain(void)
         else {
             tx = txd->get(*xi);
             if (tx == NULL)
-                throw CExpc(errParseError, "CQTokInfl::GetChain(): unknown term expander `%s' in query `%s'", xi->c_str(), this->toString().c_str());
+                throw CDDCExpc(errParseError, "CQTokInfl::GetChain(): unknown term expander `%s' in query `%s'", xi->c_str(), this->toString().c_str());
         }
         m_Txc.append(tx);
     }
@@ -764,9 +764,9 @@ bool CQTokMorph::Create(CQueryTokenNode *pNode)
 
     //-- sanity checks
     if (m_Items.empty())
-        throw CExpc(errParseError,"empty pattern not allowed in morphological pattern query `%s'", this->toString().c_str());
+        throw CDDCExpc(errParseError,"empty pattern not allowed in morphological pattern query `%s'", this->toString().c_str());
     if (m_IndexName.empty())
-        throw CExpc(errParseError,"unknown index $%s in morphological pattern query `%s'", m_IndexName.c_str(), this->toString().c_str());
+        throw CDDCExpc(errParseError,"unknown index $%s in morphological pattern query `%s'", m_IndexName.c_str(), this->toString().c_str());
 
 
     return pNode->CreateMorphAnnotationPattern(m_Compiler->m_pHolder, m_IndexName, m_Items);
@@ -809,7 +809,7 @@ bool CQTokThes::Create(CQueryTokenNode *pNode)
 
     //-- sanity checks
     if (name.empty())
-        throw CExpc(errParseError,"unknown index $%s in thesaurus query `%s'", m_IndexName.c_str(), this->toString().c_str());
+        throw CDDCExpc(errParseError,"unknown index $%s in thesaurus query `%s'", m_IndexName.c_str(), this->toString().c_str());
 
     return pNode->CreateThesPattern(m_Compiler->m_pHolder, name, m_Value);
 }
@@ -826,7 +826,7 @@ bool CQTokChunk::Create(CQueryTokenNode *pNode)
     //-- sanity checks
     string name = this->IndexName("Chunk");
     if (!m_Compiler->m_pHolder->m_pConcordance->m_pChunkIndex)
-        throw CExpc(errParseError,"no chunk index defined for query `%s'", this->toString().c_str());
+        throw CDDCExpc(errParseError,"no chunk index defined for query `%s'", this->toString().c_str());
 
     return pNode->CreateChunkPattern(m_Compiler->m_pHolder, name, m_Value);
 }
@@ -840,7 +840,7 @@ string CQTokChunk::ValueString() {
 
 bool CQTokFile::Create(CQueryTokenNode *pNode) {
     if (!m_Compiler->m_pHolder->m_pConcordance->m_bAllowUnsafeQueries)
-        throw CExpc(errParseError,"unsafe file-list query `%s' disabled", this->toString().c_str());
+        throw CDDCExpc(errParseError,"unsafe file-list query `%s' disabled", this->toString().c_str());
     return pNode->CreateFileList(m_Compiler->m_pHolder, this->IndexName("Token"), m_Value);
 }
 
@@ -925,23 +925,23 @@ bool CQNear::Compile(CQueryCompiler *compiler)
 
     //-- compile sub-queries
     if (m_dtr1 && !m_dtr1->Compile(compiler))
-        throw CExpc(errParseError,"could not compile near item sub-query `%s'", m_dtr1->toString().c_str());
+        throw CDDCExpc(errParseError,"could not compile near item sub-query `%s'", m_dtr1->toString().c_str());
     if (m_dtr2 && !m_dtr2->Compile(compiler))
-        throw CExpc(errParseError,"could not compile near item sub-query `%s'", m_dtr2->toString().c_str());
+        throw CDDCExpc(errParseError,"could not compile near item sub-query `%s'", m_dtr2->toString().c_str());
     if (m_dtr3 && !m_dtr3->Compile(compiler))
-        throw CExpc(errParseError,"could not compile near item sub-query `%s'", m_dtr3->toString().c_str());
+        throw CDDCExpc(errParseError,"could not compile near item sub-query `%s'", m_dtr3->toString().c_str());
 
     //-- sanity checks
     if (m_Dist > MaxDistanceForNear)
-        throw CExpc(errParseError,"distance #%d too large (max=%d) in near query `%s'", (int)m_Dist, MaxDistanceForNear, toString().c_str());
+        throw CDDCExpc(errParseError,"distance #%d too large (max=%d) in near query `%s'", (int)m_Dist, MaxDistanceForNear, toString().c_str());
     if (!m_dtr1 || !m_dtr2)
-        throw CExpc(errParseError,"not enough arguments in near query `%s'", (int)m_Dist, MaxDistanceForNear, toString().c_str());
+        throw CDDCExpc(errParseError,"not enough arguments in near query `%s'", (int)m_Dist, MaxDistanceForNear, toString().c_str());
 
     //-- create near query node
     CQueryNearNode* pObj = new CQueryNearNode;
     m_Node = pObj;
     if (!pObj->Create(compiler->m_pHolder, m_Dist, m_dtr1->m_Node, m_dtr2->m_Node, (m_dtr3 ? m_dtr3->m_Node : NULL)))
-        throw CExpc(errParseError,"could not compile near query `%s'", toString().c_str());
+        throw CDDCExpc(errParseError,"could not compile near query `%s'", toString().c_str());
 
     return CQNegatable::Compile(compiler);
 }
@@ -1049,10 +1049,10 @@ bool CQSeq::Compile(CQueryCompiler *compiler)
         assert(m_Items[i] != NULL);
 
         if (!m_Items[i]->Compile(compiler))
-            throw CExpc(errParseError,"could not compile sequence item query `%s'", m_Items[i]->toString().c_str());
+            throw CDDCExpc(errParseError,"could not compile sequence item query `%s'", m_Items[i]->toString().c_str());
 
         if (i<m_Dists.size() && m_Dists[i] > MaxDistanceForNear)
-            throw CExpc(errParseError,"distance #%c%d too large (max=%d) in sequence query `%s'", m_DistOps[i], (int)m_Dists[i], MaxDistanceForNear, toString().c_str());
+            throw CDDCExpc(errParseError,"distance #%c%d too large (max=%d) in sequence query `%s'", m_DistOps[i], (int)m_Dists[i], MaxDistanceForNear, toString().c_str());
 
         ItemNodes.push_back((CQueryTokenNode*)m_Items[i]->m_Node);
     }
@@ -1062,7 +1062,7 @@ bool CQSeq::Compile(CQueryCompiler *compiler)
         CQuerySequenceNode* pObj = new CQuerySequenceNode;
         m_Node = pObj;
         if (!pObj->Create(compiler->m_pHolder, ItemNodes, m_Dists, m_DistOps))
-            throw CExpc(errParseError,"could not compile sequence query `%s'", toString().c_str());
+            throw CDDCExpc(errParseError,"could not compile sequence query `%s'", toString().c_str());
     } else {
         //-- singleton or null sequence
         m_Node = ItemNodes[0];
