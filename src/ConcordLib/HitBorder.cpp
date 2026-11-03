@@ -382,7 +382,7 @@ void CHitBorders::RegisterBorderIndices(const char* IndicesStr)
     m_DefaultBreakName = "";
     if (IndicesStr)
     {
-        ddcStringTokenizer tok(IndicesStr,";");
+        StringTokenizer tok(IndicesStr,";");
         while (tok())
         {
             string Item = tok.val();
@@ -392,7 +392,7 @@ void CHitBorders::RegisterBorderIndices(const char* IndicesStr)
                 throw CDDCExpc(Format("Error! A bad format of the hit type definition (%s)!",IndicesStr));
             };
             Item = Item.substr(1, Item.length() - 2);
-            ddcStringTokenizer item_tok(Item.c_str(), ":");
+            StringTokenizer item_tok(Item.c_str(), ":");
             string ShortName = item_tok.next_token(); 
             if (ShortName == PredefinedTableLineTag)
             {

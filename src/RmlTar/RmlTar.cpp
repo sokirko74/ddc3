@@ -235,7 +235,7 @@ int TAR::th_read()
 bool mkdirhier(const char *path)
 {
     string dst;
-    ddcStringTokenizer tok(path, "/\\");
+    StringTokenizer tok(path, "/\\");
     bool bResult = true;
     while (tok())
     {

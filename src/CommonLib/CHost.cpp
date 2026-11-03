@@ -57,7 +57,7 @@ bool CHost::CheckValidAddr() const
 //--------------------------------------------------------------
 bool CHost::ReadFromString (string S)
 {
-    ddcStringTokenizer tok(S.c_str(), " \t\r\n");
+    StringTokenizer tok(S.c_str(), " \t\r\n");
     int ItemNo = 0;
     m_SockAddr.Clear();
     while (tok()) 

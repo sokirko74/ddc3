@@ -216,7 +216,7 @@ void CDwdsThesaurus::GetAllPathesWhichContainHyperTermNo (size_t HyperTermNo, Dw
 bool  CDwdsThesaurus::ReadPathFromString(const string& TextPath, vector<int>& HyperTermNos) const
 {       
     HyperTermNos.clear();
-    ddcStringTokenizer tok(TextPath.c_str(), ":");
+    StringTokenizer tok(TextPath.c_str(), ":");
     vector <DWORD> Path;
     while (tok()) 
     {

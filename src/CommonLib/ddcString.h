@@ -152,77 +152,13 @@ char* StrError(int ErrorNo);
  * old string tokenizer from ../CommonLib/util_classes.h, utilit.cpp, rsp. ../CommonLib/string_tokenizer.h
  * \detail see also stringSplitE() from utilit.cpp
  */
-/**
-   re-entrant replacement of strtok().
+//-- StringTokenizer lives in morph_dict
+#include "morph_dict/common/util_classes.h"
 
-   Usage (C-strings):
-   <code>
-   char *text = "word, word2;word3"
-   CStringTokenizer token(text, " ,;");
-   const char *word;
-   while((word = token())){
-   // handle token here
-   }
-   </code>
-*/
-class ddcStringTokenizer {
-protected:
-    char *text_ptr;
-    char *text;
-    int i;
-
-    //-------------------------------------------------------
-    std::string delims;
-    inline bool is_delim(char ch) const
-    { return delims.find_first_of(ch) != std::string::npos; }
-  
-    char *_val;
-
-public:
-    //-------------------------------------------------------
-    // constructors etc.
-    ddcStringTokenizer(const char *_text, const char *_delims=" \t\r\n");
-
-    ///! moo: constructor from std::string (implicitly calls c_str() on arguments)
-    ddcStringTokenizer(const std::string& _text, const std::string& _delims)
-    { initialize(_text,_delims); };
-
-    ~ddcStringTokenizer();
-
-    void initialize(const char *_text, const char *_delims=" \t\r\n");
-    void reinitialize(const char *_text, const char *_delims=" \t\r\n");
-
-    ///! moo: initialize from std::string (copies)
-    void initialize(const std::string& _text, const std::string &_delims)
-    { initialize(_text.c_str(), _delims.c_str()); };
-
-    //-------------------------------------------------------
-    // API
-    const char * operator ()();
-    std::string next_token();
-
-    inline const char * get_rest () const
-    { return text; };
-  
-    inline const char *val() const
-    { return _val; };
-  
-    inline int count() const
-    { return i; };
- 
-    inline bool has_next() const
-    { return (*text) != '\0'; };
-
-    //! moo: append all remaining tokens to a string vector (consumes the rest of the source string)
-    void get_tokens(std::vector<std::string> &tokens);
-
-    //! moo: get all remaining text as a single token, trimming any initial or trailing delimiters
-    const char* get_rest_trim();
-};
 
 
 //--------------------------------------------------------------
-/** pseudo-replacement for ddcStringTokenizer (from utilit.h) which allows empty tokens
+/** pseudo-replacement for StringTokenizer (from utilit.h) which allows empty tokens
  * \detail see also stringSplitE() from utilit.cpp
  */
 class StringSplitter {

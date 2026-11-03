@@ -47,12 +47,12 @@ void CBiblIndex::SetPath(string ProjectFileName) {
 
 bool CBiblIndex::RegisterTextAreas(string fields, string &ErrorStr) {
     m_TextAreas.clear();
-    ddcStringTokenizer lines(fields.c_str(), "\n\r");
+    StringTokenizer lines(fields.c_str(), "\n\r");
     while (lines()) {
         string OneField = lines.val();
         Trim(OneField);
         if (OneField.empty()) continue;
-        ddcStringTokenizer tok(OneField.c_str(), " \t");
+        StringTokenizer tok(OneField.c_str(), " \t");
         if (!tok()) {
             ErrorStr = "Error! Bad syntax in free bibliographical attribute description";
             return false;
@@ -98,12 +98,12 @@ bool CBiblIndex::RegisterFreeBiblAttributes(string fields, string &ErrorStr) {
     m_StartPageXPath = "";
 
 
-    ddcStringTokenizer lines(fields.c_str(), "\n\r");
+    StringTokenizer lines(fields.c_str(), "\n\r");
     while (lines()) {
         string OneField = lines.val();
         Trim(OneField);
         if (OneField.empty()) continue;
-        ddcStringTokenizer tok(OneField.c_str(), " \t");
+        StringTokenizer tok(OneField.c_str(), " \t");
 
         if (!tok()) {
             ErrorStr = "Error! Bad syntax in free bibliographical attribute description";
@@ -417,7 +417,7 @@ bool CBiblIndex::FileMatches(DWORD FileNo, const vector<CDDCFilterWithBounds> &F
 
 CBiblExpander *CBiblIndex::AddBiblExpander(const string &spec) {
     const char *delims = " \t\r\n";
-    ddcStringTokenizer stok(spec.c_str(), delims);
+    StringTokenizer stok(spec.c_str(), delims);
     string s_label(""), s_target(""), s_cls(""), s_param("");
     CBiblExpander *bx = NULL;;
 

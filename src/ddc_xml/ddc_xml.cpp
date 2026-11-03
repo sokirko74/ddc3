@@ -35,13 +35,13 @@
 
 void ConvertToVector(const string &Str, list<map<string, string> > &Hits) {
     Hits.clear();
-    ddcStringTokenizer lines(Str.c_str(), "\n");
+    StringTokenizer lines(Str.c_str(), "\n");
     while (lines()) {
         string line = lines.val();
         map<string, string> H;
         int prev_i = 0;
         for (int i = 0; i + 1 < line.length(); i++)
-            if (line[i] == globalTableItemsDelim) // we canno use  ddcStringTokenizer since values can be empty
+            if (line[i] == globalTableItemsDelim) // we canno use  StringTokenizer since values can be empty
             {
                 string Field = line.substr(prev_i, i - prev_i);;
                 prev_i = i + 1;
@@ -536,7 +536,7 @@ int main(int argc, char **argv) {
                 fprintf(stderr, "Error! No integer number after  \"-limit\" parameter!\n");
                 PrintUsageAndExit();
             } else {
-                ddcStringTokenizer tok(argv[i + 1], ",");
+                StringTokenizer tok(argv[i + 1], ",");
                 if (!tok())
                     PrintUsageAndExit();
                 StartHitNo = atoi(tok.val());

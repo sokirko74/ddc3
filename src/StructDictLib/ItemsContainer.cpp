@@ -343,7 +343,7 @@ bool   TItemContainer::BuildDomens (char* LastReadLine)
         }
         strcpy (LastReadLine,buffer);
         rtrim(buffer);
-        ddcStringTokenizer tok(buffer,";");
+        StringTokenizer tok(buffer,";");
         tok();
         m_Domens[k].DomId = atoi (tok.val());
         tok();
@@ -419,7 +419,7 @@ bool   TItemContainer::BuildDomItems ()
             */
             if (!fgets  (q,255,fp)) break;
                         
-            ddcStringTokenizer tok (q, ";");
+            StringTokenizer tok (q, ";");
             if (!tok()) return false;
             assert (tok.val() == string(m_Domens[k].DomStr));
             if (tok.val() != string(m_Domens[k].DomStr))
@@ -685,7 +685,7 @@ bool    TItemContainer::BuildFields(BYTE MaxNumDom)
                 CSignat Signat;
                 assert (strlen (s) > 0);
                 rtrim(s);
-                ddcStringTokenizer tok(s, ";");
+                StringTokenizer tok(s, ";");
                 tok();
                 Signat.SignatId = atoi (tok.val());
                 tok();
@@ -789,7 +789,7 @@ bool TItemContainer::BuildOneFieldFormat (CSignat& Sgn, char* Frmt, char* Name, 
 
     // FunRec.Doms. Â êîíöå ïåðåìåííàÿ DomMeanNum äîëæíà ñîäåðæàòü ÷èñëî
     // çíà÷èìûõ äîìåíîâ.
-    ddcStringTokenizer tok(_Frmt," ");
+    StringTokenizer tok(_Frmt," ");
 
     while (tok())
     {

@@ -241,7 +241,7 @@ void RunCommand(string line)
         PrintHelp();
         return;
     };
-    ddcStringTokenizer tok(line.c_str(), " ");
+    StringTokenizer tok(line.c_str(), " ");
     string command = tok.next_token();
     if (command.empty()) return;
     if (command == "load")

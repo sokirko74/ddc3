@@ -596,7 +596,7 @@ bool  CTempArticle::MarkUp()
             if ( (_eoln == Size)  && (old_eoln+1 ==  _eoln)) continue;
             string Line,FldName,Delim;
             Line = m_ArticleStr.substr(old_eoln+1, _eoln-old_eoln-1);
-            ddcStringTokenizer tok (Line.c_str(), " \t");
+            StringTokenizer tok (Line.c_str(), " \t");
             if (tok())
                 FldName = tok.val();
             if (tok())

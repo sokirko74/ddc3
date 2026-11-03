@@ -1237,7 +1237,7 @@ string timestampUTC(time_t timeval)
 
 vector<string> stringSplit(const char *s, const char *delims)
 {
-    ddcStringTokenizer tok(s,delims);
+    StringTokenizer tok(s,delims);
     vector<string> tokens;
     tok.get_tokens(tokens);
     return tokens;

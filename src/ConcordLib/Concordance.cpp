@@ -131,7 +131,7 @@ CHighlightTags::CHighlightTags() {
 
 bool CHighlightTags::ReadFromString(const string &s) {
     string q = s;
-    ddcStringTokenizer tok(Trim(q).c_str(), ";");
+    StringTokenizer tok(Trim(q).c_str(), ";");
     vector<string> tokens;
     while (tok()) {
         string l = tok.val();
@@ -667,7 +667,7 @@ void CConcordance::DumpIndexToSingleTabFile(FILE *outfp) const {
 
 //----------------------------------------------------------------------
 void CConcordance::RegisterIndicesToShow(const string &IndexListStr) {
-    ddcStringTokenizer tok(IndexListStr.c_str(), " \t\r\n,;");
+    StringTokenizer tok(IndexListStr.c_str(), " \t\r\n,;");
     m_IndicesToShow.clear();
 
     while (tok()) {

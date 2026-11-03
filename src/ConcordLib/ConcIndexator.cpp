@@ -315,7 +315,7 @@ void CConcIndexator::CalculateSearchPeriods(DWORD MaxTokenCountInOnePeriod) {
 
 void CConcIndexator::IndexOneTableTextArea(const string &Text, const CPageNumber &StartPageFromHeader,
                                            size_t &page_breaks_count, CIndexDocument* document) {
-    ddcStringTokenizer tok(Text.c_str(), "\r\n");
+    StringTokenizer tok(Text.c_str(), "\r\n");
     deque<pair<string, CTokenNo> > start_chunk_tags_str_and_pos;
     StartTextAreaBorders();
     try {

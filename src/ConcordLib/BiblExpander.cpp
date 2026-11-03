@@ -55,7 +55,7 @@ BxTermWrapper::BxTermWrapper(const string& label, const string& target, const st
     : CBiblExpander(label,target,param), m_BxTx(NULL)
 {
     const char *delims = " \t\r\n";
-    ddcStringTokenizer stok(param.c_str(), delims);
+    StringTokenizer stok(param.c_str(), delims);
     string txclass("Id"), txparam("");
 
     if (stok.has_next()) txclass = stok.next_token();

@@ -370,7 +370,7 @@ void TxCab::expand(const set<string> &src, set<string> &dst) {
         }
 
         //-- parse response
-        ddcStringTokenizer rtok(m_CCurl.m_Response.c_str(), "\t\r\n");
+        StringTokenizer rtok(m_CCurl.m_Response.c_str(), "\t\r\n");
         while (rtok()) {
             dst.insert(rtok.val());
         }
@@ -568,7 +568,7 @@ void parseTermExpanderSpec(const string &spec, string &txclass, string &txlabel,
     txparam.clear();
 
     const char *delims = " \t\r\n";
-    ddcStringTokenizer stok(spec.c_str(), delims);
+    StringTokenizer stok(spec.c_str(), delims);
 
     if (!stok.has_next()) return;
     txlabel = stok.next_token();

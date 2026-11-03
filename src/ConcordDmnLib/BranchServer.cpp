@@ -560,7 +560,7 @@ void CDDCBranchServer::handle__get_hit_strings(string &Result, const char *Resul
     //-- format result
     if (ResultTypeE == DDC_ResultJson) {
         //-- JSON mode: munge in JSON syntax
-        ddcStringTokenizer tok(runq.ResponseBody.c_str(), "\n");
+        StringTokenizer tok(runq.ResponseBody.c_str(), "\n");
         Result.reserve(6+runq.ResponseBody.size()+FHResult.LogicalSize(runq.StartHitNo, runq.ResultLimit));
 
         Result = "0";
@@ -1236,7 +1236,7 @@ NetworkErrorsEnum CDDCBranchServer::GetHitContexts(CFirstHitsQueryResult& FHResu
         }
 
 
-        ddcStringTokenizer tok(S.c_str(), CDDCServer::AdditionalHitDelimiter);
+        StringTokenizer tok(S.c_str(), CDDCServer::AdditionalHitDelimiter);
         while (tok()) {
             Results[HostNo ].push_back(tok.val());
             if (ResultTypeE == DDC_ResultJson) {
@@ -1422,7 +1422,7 @@ void CDDCBranchServer::GetFirstHitsFromCorpora(const CSelectedHosts& SelectedHos
         size_t f = S.find("\t");
         size_t subcorpusHitOffset = Result.m_Hits.size();
         if (f != string::npos) {
-            ddcStringTokenizer tok(S.c_str() + f +1,"\t");
+            StringTokenizer tok(S.c_str() + f +1,"\t");
             char SortKeyBuf[ DDC_SORTKEY_MAXLEN ];
             while (tok()) {
                 CHitToSort HS(HostNo);

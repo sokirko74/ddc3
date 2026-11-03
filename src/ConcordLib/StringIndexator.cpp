@@ -66,7 +66,7 @@ const CStringIndexSet *CStringIndexator::GetTokenIndex() const {
 bool CStringIndexator::RegisterStringIndices(const string &IndicesStr) {
     ClearStringIndices();
     // to be done[name,short,archive]
-    ddcStringTokenizer tok(IndicesStr.c_str(), ";");
+    StringTokenizer tok(IndicesStr.c_str(), ";");
     while (tok()) {
         string Item = tok.val();
         Trim(Item);
@@ -75,7 +75,7 @@ bool CStringIndexator::RegisterStringIndices(const string &IndicesStr) {
             return false;
         };
         Item = Item.substr(1, Item.length() - 2);
-        ddcStringTokenizer item_tok(Item.c_str(), " \t,");
+        StringTokenizer item_tok(Item.c_str(), " \t,");
         string Name = item_tok.next_token();
         string Short = item_tok.next_token();
         string CompressedStr = item_tok.next_token();
@@ -129,12 +129,12 @@ bool CStringIndexator::RegisterStringIndices(const string &IndicesStr) {
 
 bool CStringIndexator::RegisterIndexAliases(const string &IndexAliasStr) {
     bool rc = true;
-    ddcStringTokenizer lines(IndexAliasStr.c_str(), "\n");
+    StringTokenizer lines(IndexAliasStr.c_str(), "\n");
     while (lines()) {
         string Item = lines.val();
         Trim(Item);
         if (Item.empty()) continue;
-        ddcStringTokenizer fields(Item.c_str(), " \t\r\n");
+        StringTokenizer fields(Item.c_str(), " \t\r\n");
         string AliasOp = fields.next_token();
         string AliasFrom = fields.next_token();
         string AliasTo = fields.next_token();

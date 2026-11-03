@@ -138,7 +138,7 @@ static void EchoOption(const char *format, ...) {
 
 static void EchoOptionLines(const std::string &Lines) {
     if (ddcLogLevel >= ddcLLDebug) {
-        ddcStringTokenizer tok(Lines.c_str(), "\n\r");
+        StringTokenizer tok(Lines.c_str(), "\n\r");
         string l;
         while (tok()) {
             l = "  ";
@@ -159,7 +159,7 @@ void CConcordance::LoadOptionsFromFile(const string &OptFile) {
 }
 
 void CConcordance::LoadOptionsFromString(string Options) {
-    ddcStringTokenizer lines (Options.c_str(), "\n\r");
+    StringTokenizer lines (Options.c_str(), "\n\r");
     MorphLanguageEnum langua;
     string IndicesStr, IndexAliasStr, IndexShowStr, HitTypesStr, FreeBiblDescr, TextAreasDescr;
     m_Language = morphUnknown;
@@ -169,7 +169,7 @@ void CConcordance::LoadOptionsFromString(string Options) {
         char s[1024];
         strcpy(s, lines.val());
                 
-        ddcStringTokenizer fields(s, " \t\r\n");
+        StringTokenizer fields(s, " \t\r\n");
         if (!fields()) continue;
         string q = fields.val();
         string q_lower = q;

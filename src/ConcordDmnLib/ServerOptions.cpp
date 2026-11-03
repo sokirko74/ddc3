@@ -78,7 +78,7 @@ void CDDCServerOptions::LoadLines(const vector<string>& Lines, const string& src
 //--------------------------------------------------------------
 bool CDDCServerOptions::Set(const string& Option, const string& Value, const string& srcName)
 {
-    ddcStringTokenizer fields(Value.c_str(), " \t\r\n");
+    StringTokenizer fields(Value.c_str(), " \t\r\n");
     string opt(Option);
     EngMakeLower(opt);
 

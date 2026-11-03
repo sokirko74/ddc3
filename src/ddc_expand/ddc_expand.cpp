@@ -275,7 +275,7 @@ int main(int argc, char **argv)
                     }
                 }
 
-                ddcStringTokenizer stok(s.c_str(), "\t\r\n");
+                StringTokenizer stok(s.c_str(), "\t\r\n");
                 set<string> src, dst;
                 while (stok()) {
                     src.insert(stok.val());

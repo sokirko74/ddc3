@@ -350,7 +350,7 @@ extern bool     StartsWith(const string& body, const string& prefix);
 extern string timestampLocal(time_t timeval);
 extern string timestampUTC(time_t timeval);
 
-//! moo: convenience wrapper for string-to-vector tokenization using ddcStringTokenizer
+//! moo: convenience wrapper for string-to-vector tokenization using StringTokenizer
 vector<string> stringSplit(const char *s, const char *delims);
 
 //! moo: split a string using std::string() methods only, allowing empty tokens
