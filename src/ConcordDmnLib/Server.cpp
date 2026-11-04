@@ -497,19 +497,7 @@ void CDDCServer::handle__nodes(string &Result, int depth)
 
 //==============================================================================
 
-//----------------------------------------------------------------------
-size_t CDDCServer::residentMemorySize(void) const
-{
-    DDCProcessMemoryStatus pms(getpid());
-    return pms.VmRSS;
-}
 
-//----------------------------------------------------------------------
-size_t CDDCServer::totalMemorySize(void) const
-{
-    DDCProcessMemoryStatus pms(getpid());
-    return pms.VmSize;
-}
 
 //----------------------------------------------------------------------
 void CDDCServer::findPathHint(const string& ReqStr, size_t StartPos, size_t &PathPos, size_t &HintPos)

@@ -220,12 +220,6 @@ public:
     inline void method_not_implemented(const char *methodName)
     { throw CDDCExpc(errRuntime, "DDCServer API method %s not implemented for object %s", methodName, typeid(*this).name()); };
     
-    /** get resident memory size of server process in kb using /proc/self/statm \deprecated prefer totalMemorySize() */
-    virtual size_t residentMemorySize(void) const;
-
-    /** get total memory size of server process in kb using /proc/self/statm */
-    virtual size_t totalMemorySize(void) const;
-
     /** find offsets of server-path and navigation hint from \a ReqStr starting at \a StartPos */
     void findPathHint(const std::string& ReqStr, size_t StartPos, size_t &PathPos, size_t &HintPos);
 };

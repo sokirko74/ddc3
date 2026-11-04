@@ -14,6 +14,7 @@ utf8xx.cpp
 utilit.cpp
 ddcExpc.cpp
 ddcFile.cpp
+ddcProcess.cpp
 )
 
 

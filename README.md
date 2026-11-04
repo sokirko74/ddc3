@@ -60,6 +60,11 @@ The DDC-2.x branch was maintained in SVN under:
 
 ## Building
 
+DDC runs on Linux (POSIX) only: the daemon, sockets, threads, mmap and
+process statistics use POSIX/Linux APIs. The shared libraries `morph_dict`
+(and later `graphan`) stay portable, since RML uses them on Windows too.
+
+
 DDC is built with CMake from the `src/` directory:
 
     cmake -S src -B build -DCMAKE_BUILD_TYPE=Release
