@@ -23,6 +23,7 @@
 
 #include "ddcMMap.h"
 #include "ddcVersion.h"
+#include "ddcFile.h"
 
 //======================================================================
 // ddcCorpusList

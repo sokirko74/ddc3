@@ -24,6 +24,8 @@
 #include <stdlib.h>
 #include <wctype.h>
 #include <algorithm> //-- for std::min
+#include "../CommonLib/ddcExpc.h"
+#include "../CommonLib/ddcLocale.h"
 
 using namespace std;
 

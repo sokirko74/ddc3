@@ -23,6 +23,7 @@
 
 #include "ConcHolder.h"
 #include "../CommonLib/ddcThread.h"
+#include <deque>
 
 //==============================================================================
 /**

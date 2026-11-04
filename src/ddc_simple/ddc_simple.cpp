@@ -26,8 +26,10 @@
 
 #include "../ConcordLib/ConcHolder.h"
 //#include "../ConcordLib/QueryCompiler.h" //-- for debugging ddcObject::Descendants()
-#include "../CommonLib/utilit.h"
+#include "morph_dict/common/utilit.h"
+#include "../CommonLib/ddcUtil.h"
 #include "../jsoncpp/include/json/json.h"
+#include "../CommonLib/ddcProcess.h"
 
 
 using namespace std;

@@ -20,7 +20,8 @@
 
 #ifndef  graline_h
 #define graline_h
-#include  "../CommonLib/utilit.h"
+#include "morph_dict/common/utilit.h"
+#include "../CommonLib/ddcUtil.h"
 #include  "gra_descr.h"
 
 

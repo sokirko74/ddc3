@@ -2,6 +2,7 @@
 #include "tar.h"
 #include <stdio.h>
 #include <string.h>
+#include "../CommonLib/ddcFile.h"
 
 
 using namespace std;

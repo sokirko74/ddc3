@@ -24,7 +24,8 @@
 
 
 
-#include "../CommonLib/utilit.h"
+#include "morph_dict/common/utilit.h"
+#include "../CommonLib/ddcUtil.h"
 #include "../CommonLib/ddcLog.h"
 #include "list"
 #include "limits.h"
@@ -42,6 +43,7 @@
 #include "../tinyxml/tinyxml.h"
 
 #include "../ConcordLib/CCurl.h"
+#include "../CommonLib/ddcLocale.h"
 
 //! global intialization
 inline void ddcInitGlobal(void) {

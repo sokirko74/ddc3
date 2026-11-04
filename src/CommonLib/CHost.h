@@ -21,7 +21,8 @@
 #ifndef _DDC_CHOST_H
 #define _DDC_CHOST_H
 
-#include "utilit.h"
+#include "morph_dict/common/utilit.h"
+#include "ddcUtil.h"
 #include "string_socket.h"
 
 //======================================================================

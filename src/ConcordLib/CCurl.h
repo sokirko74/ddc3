@@ -21,7 +21,8 @@
 #ifndef DDC_CURL_H
 #define DDC_CURL_H
 
-#include "../CommonLib/utilit.h"
+#include "morph_dict/common/utilit.h"
+#include "../CommonLib/ddcUtil.h"
 #include "../CommonLib/ddcString.h"
 #include "../CommonLib/ddcConfig.h"
 #include "../CommonLib/ddcThread.h"

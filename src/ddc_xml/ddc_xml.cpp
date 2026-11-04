@@ -29,6 +29,7 @@
 #include <assert.h>
 #include <stdio.h>
 #include <list>
+#include "../CommonLib/ddcFile.h"
 
 
 

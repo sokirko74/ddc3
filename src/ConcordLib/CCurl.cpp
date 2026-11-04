@@ -66,6 +66,8 @@
 # include <sys/types.h>
 # include <sys/socket.h>
 # include <sys/un.h>
+#include "../CommonLib/ddcExpc.h"
+#include "../CommonLib/DDCInternalError.h"
 #endif
 
 using namespace std;

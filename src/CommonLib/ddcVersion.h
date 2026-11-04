@@ -3,7 +3,8 @@
 #define DDC_version_h
 
 #include "ddcConfig.h" /*-- moo --*/
-#include "utilit.h"
+#include "morph_dict/common/utilit.h"
+#include "ddcUtil.h"
 #include "DDCInternalError.h"
 #include <sstream>
 

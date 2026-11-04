@@ -21,6 +21,7 @@
 
 #include "LeafServer.h"
 #include "../CommonLib/ddcString.h"
+#include "../CommonLib/ddcProcess.h"
 
 using namespace std;
 

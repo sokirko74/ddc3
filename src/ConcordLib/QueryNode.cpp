@@ -26,8 +26,10 @@
 #include "QueryNode.h"
 #include "Query.h"
 #include "../CommonLib/util_classes.h"
-#include "../CommonLib/utilit.h"
+#include "morph_dict/common/utilit.h"
+#include "../CommonLib/ddcUtil.h"
 #include "../PCRE/pcre_rml.h"
+#include "../CommonLib/ddcLocale.h"
 
 
 using namespace std;

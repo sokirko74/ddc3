@@ -4,6 +4,7 @@
 
 #include "BiblIndex.h"
 #include "../tinyxml/xpath_static.h"
+#include "../CommonLib/ddcLocale.h"
 
 
 

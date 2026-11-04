@@ -22,7 +22,8 @@
 #define AFX_STDAFX_H__B8DB77F2_B8A8_4843_B52C_6A9B40D9E6F8__INCLUDED_
 
 
-#include "../CommonLib/utilit.h"
+#include "morph_dict/common/utilit.h"
+#include "../CommonLib/ddcUtil.h"
 //#include "../CommonLib/str_pp.h"
 
 

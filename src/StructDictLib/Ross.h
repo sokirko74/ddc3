@@ -20,7 +20,8 @@
 #ifndef ROSS_H
 #define ROSS_H
 
-#include "../CommonLib/utilit.h"
+#include "morph_dict/common/utilit.h"
+#include "../CommonLib/ddcUtil.h"
 
 #include <time.h>
 

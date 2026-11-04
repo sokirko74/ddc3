@@ -5,6 +5,7 @@
 #include "ConcIndexatorInvoker.h"
 #include "DwdsThesaurus.h"
 #include "DocumentIterator.h"
+#include "../CommonLib/ddcFile.h"
 
 
 using namespace std;

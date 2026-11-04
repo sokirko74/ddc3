@@ -20,6 +20,7 @@
 #include "StdGraph.h"
 #include "assert.h"
 #include "HTMLConv.h"
+#include <stack>
 
 using namespace std;
 

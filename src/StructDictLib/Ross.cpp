@@ -24,6 +24,7 @@
 #include "../CommonLib/util_classes.h"
 #include "LessDomItem.h"
 #include "TempArticle.h"
+#include "../CommonLib/ddcFile.h"
 
 
 using namespace std;

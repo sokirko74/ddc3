@@ -5,7 +5,8 @@
 #ifndef PROJECT_BIBLIOGRAPHY_H
 #define PROJECT_BIBLIOGRAPHY_H
 
-#include "../CommonLib/utilit.h"
+#include "morph_dict/common/utilit.h"
+#include "../CommonLib/ddcUtil.h"
 
 /*! CBibliography  contains bibliographical information about one \ref corpus_file_def "corpus file", this information
   is read from xml, xpathes are defined in options file.

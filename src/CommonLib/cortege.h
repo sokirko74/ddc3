@@ -21,7 +21,8 @@
 #ifndef cortege_h
 #define cortege_h
 
-#include "utilit.h"
+#include "morph_dict/common/utilit.h"
+#include "ddcUtil.h"
 #include <assert.h>
 
 const BYTE ErrUChar     = 254;

@@ -21,7 +21,8 @@
 #ifndef _string_socket_h
 #define _string_socket_h
 
-#include "utilit.h"
+#include "morph_dict/common/utilit.h"
+#include "ddcUtil.h"
 #include "ddcLog.h"
 
 #include <pthread.h>

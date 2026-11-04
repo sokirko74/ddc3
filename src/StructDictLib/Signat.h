@@ -22,7 +22,8 @@
 #define __SIGNAT_H_
 
 
-#include "../CommonLib/utilit.h"
+#include "morph_dict/common/utilit.h"
+#include "../CommonLib/ddcUtil.h"
 
 struct TSignatItem  {
     BYTE m_DomNo;

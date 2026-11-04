@@ -20,13 +20,15 @@
 //
 #include "../CommonLib/ddcLog.h"
 #include "../CommonLib/ddcTime.h"
-#include "../CommonLib/utilit.h"
+#include "morph_dict/common/utilit.h"
+#include "ddcUtil.h"
 #include <string.h>
 #include <errno.h>
 #include <pthread.h>
 
 #ifdef HAVE_SYSLOG_H
 #include <syslog.h>
+#include "ddcExpc.h"
 #endif
 
 using namespace std;

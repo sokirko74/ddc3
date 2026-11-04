@@ -20,7 +20,8 @@
 #ifndef utilit_classes_h
 #define utilit_classes_h
 
-#include "utilit.h"
+#include "morph_dict/common/utilit.h"
+#include "ddcUtil.h"
 #include "ptrholder.h"
 #include "ddcMMap.h"
 #include "ddcThread.h"

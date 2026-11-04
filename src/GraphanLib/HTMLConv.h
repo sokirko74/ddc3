@@ -21,7 +21,8 @@
 #define HTMLConv_h
 
 
-#include "../CommonLib/utilit.h"
+#include "morph_dict/common/utilit.h"
+#include "../CommonLib/ddcUtil.h"
 
 class HTML 
 {

@@ -16,7 +16,10 @@
 //  along with DDC.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "ddcVersion.h"
-#include "utilit.h"
+#include "morph_dict/common/utilit.h"
+#include "ddcUtil.h"
+#include "ddcExpc.h"
+#include "ddcString.h"
 
 using namespace std;
 

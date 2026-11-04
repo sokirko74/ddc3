@@ -23,6 +23,8 @@
 #include "DDCInternalError.h"
 #include <string.h>
 #include <errno.h>
+#include "ddcExpc.h"
+#include "ddcString.h"
 
 using namespace std;
 

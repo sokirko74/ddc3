@@ -19,6 +19,7 @@
 
 #include "StdGraph.h"
 #include "GraphanDicts.h"
+#include "../CommonLib/ddcLocale.h"
 
 
 using namespace std;

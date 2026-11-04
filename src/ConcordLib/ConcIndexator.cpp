@@ -22,6 +22,7 @@
 #include "DwdsThesaurus.h"
 #include "ConcIndexator.h"
 #include "DocumentIterator.h"
+#include <deque>
 
 using namespace std;
 

@@ -23,6 +23,7 @@
 #include "../CommonLib/ddcString.h"
 #include <stdlib.h>
 #include <wctype.h>
+#include "../CommonLib/ddcExpc.h"
 
 using namespace std;
 

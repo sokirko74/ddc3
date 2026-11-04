@@ -9,6 +9,7 @@
 #include "../RmlTar/RmlTar.h"
 #include "../GraphanLib/HTMLConv.h"
 #include "../CommonLib/bserialize.h"
+#include "../CommonLib/ddcFile.h"
 
 
 using namespace std;

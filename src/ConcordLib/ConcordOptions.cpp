@@ -23,6 +23,8 @@
 #include "DwdsThesaurus.h"
 #include "../CommonLib/ddcString.h"
 #include "ConcIndexator.h"
+#include "../CommonLib/ddcFile.h"
+#include "../CommonLib/ddcLocale.h"
 
 using namespace std;
 

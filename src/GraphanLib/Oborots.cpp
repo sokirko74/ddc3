@@ -20,6 +20,7 @@
 #include "GraphmatFile.h"
 #include "GraphanDicts.h"
 #include "../CommonLib/util_classes.h"
+#include "../CommonLib/ddcLocale.h"
 
 
 

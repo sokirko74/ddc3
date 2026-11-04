@@ -17,11 +17,13 @@
 //  along with DDC.  If not, see <http://www.gnu.org/licenses/>.
 //
 #include "ddcString.h"
-#include "utilit.h"
+#include "morph_dict/common/utilit.h"
+#include "ddcUtil.h"
 #include "ddcLog.h"
 #include <string.h>
 #include <cassert>
 #include <cstdio>
+#include "ddcLocale.h"
 
 using namespace std;
 

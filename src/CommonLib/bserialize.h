@@ -20,7 +20,9 @@
 #ifndef bserialze_h
 #define bserialze_h
 
-#include  "utilit.h"
+#include "morph_dict/common/utilit.h"
+#include "ddcUtil.h"
+#include "ddcExpc.h"
         
 // ============== DWORD =====================
 inline size_t get_size_in_bytes (const uint32_t& t)

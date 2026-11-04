@@ -25,7 +25,8 @@
 #pragma warning (disable  : 4530)
 #pragma warning (disable  : 4786)
 
-#include "../CommonLib/utilit.h"
+#include "morph_dict/common/utilit.h"
+#include "../CommonLib/ddcUtil.h"
 #include "Graspace.h"
 #include "gra_descr.h"
 

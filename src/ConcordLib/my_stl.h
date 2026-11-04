@@ -16,7 +16,8 @@
 //  You should have received a copy of the GNU Lesser General Public License
 //  along with DDC.  If not, see <http://www.gnu.org/licenses/>.
 //
-#include "../CommonLib/utilit.h"
+#include "morph_dict/common/utilit.h"
+#include "../CommonLib/ddcUtil.h"
 using namespace std;
 #include <iostream>
 

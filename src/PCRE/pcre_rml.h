@@ -24,7 +24,8 @@
 #define PCRE2_CODE_UNIT_WIDTH 8
 #endif
 #include <pcre2.h>
-#include "../CommonLib/utilit.h"
+#include "morph_dict/common/utilit.h"
+#include "../CommonLib/ddcUtil.h"
 #include <cstring>
 
 //! Build PCRE2 character tables for a single-byte encoding of language \c Langua.

@@ -21,7 +21,8 @@
 #ifndef graspace_h
 #define graspace_h
 
-#include "../CommonLib/utilit.h"
+#include "morph_dict/common/utilit.h"
+#include "../CommonLib/ddcUtil.h"
 
 #define   SEOLN        (unsigned char) 171
 #define   SSpace       (unsigned char) 129

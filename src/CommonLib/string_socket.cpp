@@ -26,6 +26,9 @@
 #include <string.h>
 #include <errno.h>
 #include <sys/un.h>
+#include "ddcExpc.h"
+#include "ddcLocale.h"
+#include "ddcString.h"
 
 using namespace std;
 

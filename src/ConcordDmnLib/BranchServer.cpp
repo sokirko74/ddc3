@@ -24,6 +24,7 @@
 #include "../CommonLib/ddcTime.h"
 #include "../ConcordLib/QueryCompiler.h"
 #include "json/json.h"
+#include "../CommonLib/ddcProcess.h"
 
 using namespace std;
 

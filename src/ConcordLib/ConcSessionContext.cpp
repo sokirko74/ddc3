@@ -20,6 +20,7 @@
 //
 
 #include "ConcSessionContext.h"
+#include "../CommonLib/ddcProcess.h"
 
 using namespace std;
 

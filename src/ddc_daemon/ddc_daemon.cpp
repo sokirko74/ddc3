@@ -19,7 +19,8 @@
 //  along with DDC.  If not, see <http://www.gnu.org/licenses/>.
 //
 
-#include "../CommonLib/utilit.h"
+#include "morph_dict/common/utilit.h"
+#include "../CommonLib/ddcUtil.h"
 #include "../ConcordLib/ConcCommon.h"
 #include "../ConcordDmnLib/Corpora.h"
 #include <sys/wait.h>
@@ -32,6 +33,8 @@
 
 #ifdef HAVE_SYSLOG_H
 #include <syslog.h>
+#include "../CommonLib/ddcExpc.h"
+#include "../CommonLib/ddcFile.h"
 #endif
 
 using namespace std;

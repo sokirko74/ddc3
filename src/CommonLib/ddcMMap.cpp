@@ -19,7 +19,8 @@
 //
 
 #include "ddcMMap.h"
-#include "utilit.h"
+#include "morph_dict/common/utilit.h"
+#include "ddcUtil.h"
 
 using namespace std;
 

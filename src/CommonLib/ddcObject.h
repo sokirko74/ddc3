@@ -21,7 +21,8 @@
 #ifndef DDC_OBJECT_H
 #define DDC_OBJECT_H
 
-#include "utilit.h"
+#include "morph_dict/common/utilit.h"
+#include "ddcUtil.h"
 #include "ddcString.h"
 #include <list>
 

@@ -19,6 +19,7 @@
 #include "StdConc.h"
 #include "../ConcordLib/ConcIndexator.h"
 #include "../ConcordLib/IndexSetForLoadingStage.h"
+#include "../CommonLib/ddcFile.h"
 
 using namespace std;
 

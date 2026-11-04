@@ -24,6 +24,7 @@
 #include <unistd.h>
 #include "../ConcordLib/ConcSession.h"
 #include "../CommonLib/ddcTime.h"
+#include "../CommonLib/ddcProcess.h"
 
 using namespace std;
 

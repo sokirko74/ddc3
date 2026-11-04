@@ -23,7 +23,8 @@
 #include "Domen.h"
 #include "Field.h"
 
-#include "../CommonLib/utilit.h"
+#include "morph_dict/common/utilit.h"
+#include "../CommonLib/ddcUtil.h"
 #include "../CommonLib/cortege.h"
 #include "../CommonLib/bserialize.h"
 

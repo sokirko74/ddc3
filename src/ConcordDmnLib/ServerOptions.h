@@ -23,7 +23,8 @@
 #define DDC_SERVER_OPTIONS_H
 
 #include "../CommonLib/string_socket.h"
-#include "../CommonLib/utilit.h"
+#include "morph_dict/common/utilit.h"
+#include "../CommonLib/ddcUtil.h"
 
 //==============================================================================
 /** class for storing common server options (ddc_server.rc) */

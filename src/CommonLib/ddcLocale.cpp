@@ -20,7 +20,8 @@
 
 #include "ddcLocale.h"
 #include <cstring>
-#include "utilit.h"
+#include "morph_dict/common/utilit.h"
+#include "ddcUtil.h"
 #include <wchar.h>
 #include <wctype.h>
 #include <limits.h>
