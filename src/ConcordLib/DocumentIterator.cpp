@@ -4,7 +4,7 @@
 #include "ConcIndexator.h"
 
 #include "../RmlTar/RmlTar.h"
-#include "morph_dict/graphan/GraphanLib/HTMLConv.h"
+#include "nlp_base/graphan/GraphanLib/HTMLConv.h"
 #include "../CommonLib/bserialize.h"
 #include "../CommonLib/ddcFile.h"
 

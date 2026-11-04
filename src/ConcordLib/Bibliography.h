@@ -1,7 +1,7 @@
 #ifndef PROJECT_BIBLIOGRAPHY_H
 #define PROJECT_BIBLIOGRAPHY_H
 
-#include "morph_dict/common/utilit.h"
+#include "nlp_base/common/utilit.h"
 #include "../CommonLib/ddcUtil.h"
 
 /* CBibliography  contains bibliographical information about one corpus_file_def "corpus file", this information

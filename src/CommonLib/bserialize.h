@@ -1,7 +1,7 @@
 #ifndef bserialze_h
 #define bserialze_h
 
-#include "morph_dict/common/utilit.h"
+#include "nlp_base/common/utilit.h"
 #include "ddcUtil.h"
 #include "ddcExpc.h"
         

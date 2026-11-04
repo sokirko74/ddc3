@@ -1,7 +1,7 @@
 #include "ddcFile.h"
 #include "ddcExpc.h"
 #include "ddcConfig.h"   // DDC_STATIC_BUFLEN
-#include "morph_dict/common/utilit.h"
+#include "nlp_base/common/utilit.h"
 #include "ddcUtil.h"
 #include <cstring>
 #include <unistd.h>      // access()

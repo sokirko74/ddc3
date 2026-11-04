@@ -7,20 +7,20 @@
 
 
 
-#include "morph_dict/common/utilit.h"
+#include "nlp_base/common/utilit.h"
 #include "../CommonLib/ddcUtil.h"
 #include "../CommonLib/ddcLog.h"
 #include "list"
 #include "limits.h"
 
 
-#include "morph_dict/graphan/GraphanLib/GraphmatFile.h"
+#include "nlp_base/graphan/GraphanLib/GraphmatFile.h"
 #include "../CommonLib/ddcIconv.h"
 #include "../CommonLib/ptrholder.h"
-#include "morph_dict/lemmatizer_base_lib/Lemmatizers.h"
-#include "morph_dict/agramtab/EngGramTab.h"
-#include "morph_dict/agramtab/RusGramTab.h"
-#include "morph_dict/agramtab/GerGramTab.h"
+#include "nlp_base/lemmatizer_base_lib/Lemmatizers.h"
+#include "nlp_base/agramtab/EngGramTab.h"
+#include "nlp_base/agramtab/RusGramTab.h"
+#include "nlp_base/agramtab/GerGramTab.h"
 #include "../CommonLib/DDC_common.h"
 #include "../CommonLib/ddcObject.h"
 #include "../tinyxml/tinyxml.h"

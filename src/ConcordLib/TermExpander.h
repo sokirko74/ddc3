@@ -1,7 +1,7 @@
 #ifndef DDC_TERM_EXPANDER_H
 #define DDC_TERM_EXPANDER_H
 
-#include "morph_dict/common/utilit.h"
+#include "nlp_base/common/utilit.h"
 #include "../CommonLib/ddcUtil.h"
 #include "CCurl.h"
 

@@ -5,7 +5,7 @@
 #define PCRE2_CODE_UNIT_WIDTH 8
 #endif
 #include <pcre2.h>
-#include "morph_dict/common/utilit.h"
+#include "nlp_base/common/utilit.h"
 #include "../CommonLib/ddcUtil.h"
 #include <cstring>
 

@@ -1,7 +1,7 @@
 #ifndef DDC_CURL_H
 #define DDC_CURL_H
 
-#include "morph_dict/common/utilit.h"
+#include "nlp_base/common/utilit.h"
 #include "../CommonLib/ddcUtil.h"
 #include "../CommonLib/ddcString.h"
 #include "../CommonLib/ddcConfig.h"

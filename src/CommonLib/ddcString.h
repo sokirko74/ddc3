@@ -153,8 +153,8 @@ extern std::string int2hex(int32_t i);
 // moo: int-to-hexidecimal string deccoding; ; encoding preserves sort order
 extern int32_t hex2int(const std::string& s);
 
-//-- StringTokenizer lives in morph_dict
-#include "morph_dict/common/util_classes.h"
+//-- StringTokenizer lives in nlp_base
+#include "nlp_base/common/util_classes.h"
 
 
 

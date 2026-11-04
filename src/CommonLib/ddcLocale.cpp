@@ -1,6 +1,6 @@
 #include "ddcLocale.h"
 #include <cstring>
-#include "morph_dict/common/utilit.h"
+#include "nlp_base/common/utilit.h"
 #include "ddcUtil.h"
 #include <wchar.h>
 #include <wctype.h>

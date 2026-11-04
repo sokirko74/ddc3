@@ -1,5 +1,5 @@
 #include "ddcMMap.h"
-#include "morph_dict/common/utilit.h"
+#include "nlp_base/common/utilit.h"
 #include "ddcUtil.h"
 
 using namespace std;

@@ -14,7 +14,7 @@
 
 #include <locale.h>
 #include <string>
-#include "morph_dict/common/utilit.h"   // MorphLanguageEnum, RmlMakeUpper()
+#include "nlp_base/common/utilit.h"   // MorphLanguageEnum, RmlMakeUpper()
 
 // sentinel indicating whether current process has initialized the locale
 extern bool ddcLocaleInitialized;
@@ -44,7 +44,7 @@ std::string stolower(const std::string &s);
 
 // ddc case conversion of a word in the corpus language:
 //  morphGeneric -> stoupper()/stolower() (current locale, e.g. utf8),
-//  otherwise -> morph_dict RmlMakeUpper()/RmlMakeLower() (single-byte cp1251/cp1252)
+//  otherwise -> nlp_base RmlMakeUpper()/RmlMakeLower() (single-byte cp1251/cp1252)
 std::string& ddcMakeUpper(std::string& word, MorphLanguageEnum langua);
 std::string& ddcMakeLower(std::string& word, MorphLanguageEnum langua);
 // in-place variant for a 0-terminated buffer (the result must not be longer than the input)

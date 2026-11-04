@@ -1,3 +1,3 @@
-[submodule "src/morph_dict"]
-	path = src/morph_dict
+[submodule "src/nlp_base"]
+	path = src/nlp_base
 	url = https://github.com/sokirko74/nlp_base

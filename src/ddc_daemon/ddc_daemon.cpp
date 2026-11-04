@@ -1,4 +1,4 @@
-#include "morph_dict/common/utilit.h"
+#include "nlp_base/common/utilit.h"
 #include "../CommonLib/ddcUtil.h"
 #include "../ConcordLib/ConcCommon.h"
 #include "../ConcordDmnLib/Corpora.h"

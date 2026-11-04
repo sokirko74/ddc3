@@ -1,7 +1,7 @@
 #ifndef _string_socket_h
 #define _string_socket_h
 
-#include "morph_dict/common/utilit.h"
+#include "nlp_base/common/utilit.h"
 #include "ddcUtil.h"
 #include "ddcLog.h"
 

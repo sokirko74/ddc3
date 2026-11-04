@@ -1,7 +1,7 @@
 #ifndef cortege_h
 #define cortege_h
 
-#include "morph_dict/common/utilit.h"
+#include "nlp_base/common/utilit.h"
 #include "ddcUtil.h"
 #include <assert.h>
 

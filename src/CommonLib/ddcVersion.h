@@ -2,7 +2,7 @@
 #define DDC_version_h
 
 #include "ddcConfig.h" /*-- moo --*/
-#include "morph_dict/common/utilit.h"
+#include "nlp_base/common/utilit.h"
 #include "ddcUtil.h"
 #include "DDCInternalError.h"
 #include <sstream>

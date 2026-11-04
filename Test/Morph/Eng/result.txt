@@ -1,9 +1,0 @@
-Loading..
-Input a word..
->>+ {MOTHER, NOUN, "",  ("narr,sg",) }
-All forms: MOTHER MOTHERS 
-
-+ {MOTHER, VERB, "",  ("inf",) }
-All forms: MOTHER MOTHERS MOTHERED MOTHERED MOTHERING 
-
->

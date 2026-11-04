@@ -13,7 +13,7 @@ The DDC-2.x branch was maintained in SVN under:
 
 ## Dependencies
 
-- **nlp_base** (git submodule `src/morph_dict`,
+- **nlp_base** (git submodule `src/nlp_base`,
   <https://github.com/sokirko74/nlp_base>, formerly morph_dict) — morphology,
   graphematics and structural dictionaries (Ross) shared with RML, with the
   dictionary sources. Fetch it with
@@ -24,7 +24,7 @@ The DDC-2.x branch was maintained in SVN under:
   automatically into `build/dict` (`Morph/{Russian,English,German}`, `GraphAn`,
   `Obor`, `GerObor`, `EngObor`); ddc-morph is no longer needed.
 
-- **zlib** (e.g. Debian/Ubuntu package `zlib1g-dev`) — required by morph_dict.
+- **zlib** (e.g. Debian/Ubuntu package `zlib1g-dev`) — required by nlp_base.
 
 - **PCRE2** (8-bit library, e.g. Debian/Ubuntu package `libpcre2-dev`) —
   Perl-compatible regular expressions. URL: <https://www.pcre.org/>.
@@ -67,7 +67,7 @@ language `Generic` (raw UTF-8, no morphology).
 ## Building
 
 DDC runs on Linux (POSIX) only: the daemon, sockets, threads, mmap and
-process statistics use POSIX/Linux APIs. The shared libraries `morph_dict`
+process statistics use POSIX/Linux APIs. The shared libraries `nlp_base`
 (and later `graphan`) stay portable, since RML uses them on Windows too.
 
 
@@ -89,8 +89,8 @@ layout (see [Dependencies](#dependencies)):
 
 Note that `rml.ini` now lives in `$RML/Bin` (formerly `$RML/etc`).
 
-Take a look at the configuration files in `etc/` and the example corpora in
-`Test/` to get started.
+Take a look at the configuration files in `etc/` and the example corpora of the
+tests in `src/tests/` to get started.
 
 ## Documentation
 

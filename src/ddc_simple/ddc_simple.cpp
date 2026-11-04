@@ -4,7 +4,7 @@
 
 #include "../ConcordLib/ConcHolder.h"
 //#include "../ConcordLib/QueryCompiler.h" //-- for debugging ddcObject::Descendants()
-#include "morph_dict/common/utilit.h"
+#include "nlp_base/common/utilit.h"
 #include "../CommonLib/ddcUtil.h"
 #include "../jsoncpp/include/json/json.h"
 #include "../CommonLib/ddcProcess.h"

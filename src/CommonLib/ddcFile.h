@@ -3,7 +3,7 @@
 
 #include <cstdio>
 #include <string>
-#include "morph_dict/common/utilit.h"   // FileExists(const char*), FileSize(const char*), file_off_t
+#include "nlp_base/common/utilit.h"   // FileExists(const char*), FileSize(const char*), file_off_t
 
 inline bool             FileExists (const std::string& FName)
 { return FileExists(FName.c_str()); };
@@ -47,7 +47,7 @@ extern void     FileAppendPartial(FILE *src, FILE *dst, size_t nBytes);
 extern bool     RemoveWithPrint (const std::string& FileName);
 
 // read the whole file into Result (replace or append); false if it is not readable
-// (cf. morph_dict's LoadFileToString(path), which returns the content)
+// (cf. nlp_base's LoadFileToString(path), which returns the content)
 extern bool     LoadFileToString(std::string FileName, std::string& Result, bool clobber=true);
 extern bool     SaveStringToFile(const std::string& Str, const std::string& FileName);
 

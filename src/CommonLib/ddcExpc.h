@@ -4,11 +4,11 @@
 #include <cstdarg>
 #include <exception>
 #include <string>
-#include "morph_dict/common/utilit.h"   // CExpc
+#include "nlp_base/common/utilit.h"   // CExpc
 
-// ddc exception class: morph_dict's CExpc plus an internal error code
+// ddc exception class: nlp_base's CExpc plus an internal error code
 // the error code is part of the ddc server protocol (see ../CommonLib/DDCInternalError.h);
-//  catch the base class CExpc (also thrown by morph_dict) and use ddcExpcCode() to get the code
+//  catch the base class CExpc (also thrown by nlp_base) and use ddcExpcCode() to get the code
 class CDDCExpc : public CExpc
 {
 public:
@@ -51,7 +51,7 @@ public:
     virtual ~CFatalExpc() {};
 };
 
-// error code of any exception: CDDCExpc::code(), errOther otherwise (e.g. CExpc thrown by morph_dict)
+// error code of any exception: CDDCExpc::code(), errOther otherwise (e.g. CExpc thrown by nlp_base)
 extern int ddcExpcCode(const std::exception& e);
 
 #endif

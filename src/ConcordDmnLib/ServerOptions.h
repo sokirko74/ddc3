@@ -3,7 +3,7 @@
 #define DDC_SERVER_OPTIONS_H
 
 #include "../CommonLib/string_socket.h"
-#include "morph_dict/common/utilit.h"
+#include "nlp_base/common/utilit.h"
 #include "../CommonLib/ddcUtil.h"
 
 //==============================================================================

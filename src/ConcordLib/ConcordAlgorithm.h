@@ -1,7 +1,7 @@
 #ifndef __ConcordAlgorithm_H_
 #define __ConcordAlgorithm_H_
 
-#include "morph_dict/common/utilit.h"
+#include "nlp_base/common/utilit.h"
 #include "../CommonLib/ddcUtil.h"
 
 void SortWithLists(std::vector<uint32_t>& V, DwordVector& Borders);
