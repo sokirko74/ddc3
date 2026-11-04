@@ -844,7 +844,7 @@ bool CQueryTokenNode::CreateThesPattern(const CConcHolder* pHolder, const string
     SetHolder(pHolder);
     m_Source = src;
     string s(src);
-    RmlMakeUpper(s, pHolder->m_pConcordance->m_Language);
+    ddcMakeUpper(s, pHolder->m_pConcordance->m_Language);
     m_IndexName = IndexName;
     if (m_IndexName.empty()) m_IndexName = "Thes";
     m_IndexItems.clear();
@@ -1060,7 +1060,7 @@ bool CQueryTokenNode::CreateLemmaPattern(const CConcHolder* pHolder, const strin
     m_IndexItems.clear();
 
     string re = '^'+ Value.substr(1) + '@';
-    RmlMakeLower(re, pHolder->m_pConcordance->m_Language);
+    ddcMakeLower(re, pHolder->m_pConcordance->m_Language);
     m_IndexName = "MorphAnnot";
     return BuildRegExp(re, m_IndexItems);
 }

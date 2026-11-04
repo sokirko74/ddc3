@@ -25,6 +25,26 @@
 
 using namespace std;
 
+//-- formerly in CommonLib/utilit.cpp; etoupper/rtoupper are defined in morph_dict/common/single_byte_encoding.cpp
+extern BYTE etoupper(BYTE ch);
+extern BYTE rtoupper(BYTE ch);
+static char*  EngRusMakeUpper (char* word)
+{
+    if (word == 0) return 0;
+    size_t len =  strlen(word);
+
+    for( size_t i = 0 ; i < len; i++ )
+
+        if ( is_russian_lower((BYTE)word[i]) )
+            word[i] = rtoupper ((BYTE)word[i]);
+        else
+            if ( is_english_lower((BYTE)word[i]) )
+                word[i] = etoupper ((BYTE) word[i]);
+                
+
+    return word;
+}
+
 //-- suppress gcc warnings of the form "ignoring return value of ‘fread’, declared with attribute warn_unused_result [-Wunused-result]"
 #pragma GCC diagnostic ignored "-Wunused-result"
 
@@ -111,7 +131,7 @@ static bool ReadAbbrevationsFromOneFile(string FileName, vector<CAbbrev>& V, Mor
         };
         Trim(s);
         if (s.empty()) continue;
-        RmlMakeUpper(s, langua);
+        ddcMakeUpper(s, langua);
 
         CAbbrev Abbrev;
 
@@ -227,7 +247,7 @@ bool CGraphanDicts::ReadKeyboard(string FileName)
         }
         else
         {
-            RmlMakeUpper(s, m_Language);
+            ddcMakeUpper(s, m_Language);
             m_Keys.push_back(q);
         };
     };   

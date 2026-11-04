@@ -175,7 +175,7 @@ void CConcordance::LoadOptionsFromString(string Options) {
         if (!fields()) continue;
         string q = fields.val();
         string q_lower = q;
-        RmlMakeLower(q_lower, morphEnglish);
+        ddcMakeLower(q_lower, morphEnglish);
                 
         if (q == "#include" || q == "include") {
             q = fields.get_rest_trim();

@@ -60,7 +60,7 @@ bool CBiblIndex::RegisterTextAreas(string fields, string &ErrorStr) {
             return false;
         };
         string FieldName = tok.val();
-        RmlMakeLower(FieldName, morphEnglish);
+        ddcMakeLower(FieldName, morphEnglish);
         if (FieldName != TextAreaOptionFieldName) {
             ErrorStr = "Error! Bad syntax in text area attribute description";
             return false;

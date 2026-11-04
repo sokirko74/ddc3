@@ -125,7 +125,7 @@ bool CreateMorphIndex(const CStringIndexator* indexator, string path, MorphLangu
                     3 * maxTokenCountInOnePeriod);
 
         const char *sToken = pTokensIndexSet->GetIndexItemStr(pTokensIndexSet->m_Index[i]);
-        if (CheckLanguage(sToken, language)) {
+        if (CheckLanguageSingleByte(sToken, language)) {
             vector<string> TokenProperties = GetGramInfosFromWord(sToken, language,
                                                                   is_upper_alpha((BYTE) sToken[0], language));
 

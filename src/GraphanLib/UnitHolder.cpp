@@ -24,6 +24,39 @@
 
 using namespace std;
 
+//-- formerly in CommonLib/utilit.h; defined in morph_dict/common/single_byte_encoding.cpp
+extern BYTE etoupper(BYTE ch);
+extern BYTE rtoupper(BYTE ch);
+extern BYTE gtoupper(BYTE ch);
+
+template <class T, class Pred, class Conv>
+T& RegisterConverter (T& word, size_t Len, Pred P,  Conv C)
+{
+    for( size_t i = 0 ; i < Len; i++ )
+        if ( P( (BYTE)word[i] )  )
+            word[i] = C ( (BYTE)word[i] );
+
+    return word;
+}
+
+template <class T>
+T& GerEngRusMakeUpperTemplate (T& word, MorphLanguageEnum Langua, size_t Len )
+{
+    if (Len == 0) return word;
+
+    if (Langua == morphGerman)
+        return RegisterConverter(word, Len, is_german_lower, gtoupper);
+    else
+        for( size_t i = 0 ; i < Len; i++ )
+            if (is_russian_lower((BYTE)word[i]))
+                word[i] = rtoupper ( (BYTE)word[i] );
+            else
+                if (is_english_lower((BYTE)word[i]))
+                    word[i] = etoupper ( (BYTE)word[i] );
+
+    return word;
+};
+
 //=======================================================
 //==========            CUnitHolder         =============
 //=======================================================

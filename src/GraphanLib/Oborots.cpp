@@ -79,7 +79,7 @@ size_t  CGraphmatFile :: FindOborotto (size_t FirstGraLineNo, size_t HB, short& 
 void NormalizeOborotStr (const CGraphanDicts& C, string& S)
 {
         
-    RmlMakeUpper( S, C.m_Language );
+    ddcMakeUpper( S, C.m_Language );
     int len = S.length();
     int i = 0;
     string Norm;

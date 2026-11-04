@@ -180,7 +180,7 @@ void TxMorph::expand(const set<string> &src, set<string> &dst) {
             //  print all forms of one paradigm
             for (int j = 0; j < F.GetCount(); j++) {
                 string form = F.GetWordForm(j);
-                RmlMakeLower(form, m_Lang);
+                ddcMakeLower(form, m_Lang);
                 // set 'register' (i.e. letter-case) of the first char of "form" equal to the 'register' of "*w"
                 if (bCapital) {
                     // make the first word upper-case (ugly hack)
@@ -200,7 +200,7 @@ void TxToLower::expand(const set<string> &src, set<string> &dst) {
     for (set<string>::const_iterator si = src.begin(); si != src.end(); si++) {
         if (si->empty())  continue;
         string dq(*si);
-        RmlMakeLower(dq,m_Lang);
+        ddcMakeLower(dq,m_Lang);
         dst.insert(dq);
     }
 }
@@ -213,7 +213,7 @@ void TxToUpper::expand(const set<string> &src, set<string> &dst) {
     for (set<string>::const_iterator si = src.begin(); si != src.end(); si++) {
         if (si->empty())  continue;
         string dq(*si);
-        RmlMakeUpper(dq,m_Lang);
+        ddcMakeUpper(dq,m_Lang);
         dst.insert(dq);
     }
 }
@@ -254,11 +254,11 @@ void TxCase::expand(const set<string> &src, set<string> &dst) {
             dst.insert(upp);
         } else {
             string lwr = q;
-            RmlMakeLower(lwr, m_Lang);
+            ddcMakeLower(lwr, m_Lang);
             dst.insert(lwr);
         };
         string upr = q;
-        RmlMakeUpper(upr, m_Lang);
+        ddcMakeUpper(upr, m_Lang);
         dst.insert(upr);
     }
 }

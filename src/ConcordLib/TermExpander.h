@@ -192,7 +192,7 @@ public:
     virtual CTermExpander* clone(std::map<CTermExpander*,CTermExpander*>& xlate) const
     { return (CTermExpander*)new TxToLower(*this); };
   
-    //! wraps RmlMakeLower()
+    //! wraps ddcMakeLower()
     virtual void expand(const std::set<std::string>& src, std::set<std::string>& dst);
 };
 
@@ -209,7 +209,7 @@ public:
     virtual CTermExpander* clone(std::map<CTermExpander*,CTermExpander*>& xlate) const
     { return (CTermExpander*)new TxToUpper(*this); };
   
-    //! wraps RmlMakeUpper()
+    //! wraps ddcMakeUpper()
     virtual void expand(const std::set<std::string>& src, std::set<std::string>& dst);
 };
 

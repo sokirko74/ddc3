@@ -105,7 +105,7 @@ bool CGraphanDicts:: ReadENames (string FileName)
         CEnglishName N;
         strcpy  (N.name, s);
 
-        RmlMakeUpper(N.name, m_Language);
+        ddcMakeUpper(N.name, m_Language);
 
         m_EnglishNames.push_back(N);
     };

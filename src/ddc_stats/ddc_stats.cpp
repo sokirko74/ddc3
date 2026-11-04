@@ -51,7 +51,7 @@ bool DumpFreqOrPositions(const CConcHolder& R, string IndexName, bool bDumpPosit
 
         if (langua != morphUnknown)
         {
-            if (!CheckLanguage(s,langua)) continue;
+            if (!CheckLanguageSingleByte(s,langua)) continue;
         };
 
         vector<CTokenNo> Occurs;

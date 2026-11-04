@@ -23,6 +23,17 @@
 
 using namespace std;
 
+//-- Windows-1252 (formerly in CommonLib/utilit.h)
+const BYTE Auml  = 196;
+const BYTE auml  = 228;
+const BYTE Uuml  = 220;
+const BYTE uuml  = 252;
+const BYTE Ouml  = 214;
+const BYTE ouml  = 246;
+const BYTE agrave  = 224;
+const BYTE egrave  = 232;
+const BYTE eacute  = 233;
+
 /*
  * Return offset...
  */

@@ -19,6 +19,7 @@
 //
 
 #include "ddcLocale.h"
+#include <cstring>
 #include "utilit.h"
 #include <wchar.h>
 #include <wctype.h>
@@ -136,6 +137,36 @@ std::string stoupper(const std::string &s)
 std::string stolower(const std::string &s)
 {
     return wstring2string(wstolower(string2wstring(s)));
+}
+
+//--------------------------------------------------------------
+std::string& ddcMakeUpper(std::string& word, MorphLanguageEnum langua)
+{
+    if (langua == morphGeneric)
+        word = stoupper(word);
+    else
+        RmlMakeUpper(word, langua);
+    return word;
+}
+
+//--------------------------------------------------------------
+char* ddcMakeUpper(char* word, MorphLanguageEnum langua)
+{
+    if (!word) return word;
+    std::string s(word);
+    ddcMakeUpper(s, langua);
+    strncpy(word, s.c_str(), s.size());
+    return word;
+}
+
+//--------------------------------------------------------------
+std::string& ddcMakeLower(std::string& word, MorphLanguageEnum langua)
+{
+    if (langua == morphGeneric)
+        word = stolower(word);
+    else
+        RmlMakeLower(word, langua);
+    return word;
 }
 
 /*--- emacs style variables ---
