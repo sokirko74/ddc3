@@ -149,7 +149,7 @@ string CQuery::optionsToJson()
 //======================================================================
 // CQNegatable
 
-//! toggle negation flag; returns new value
+// toggle negation flag; returns new value
 bool CQNegatable::Negate(void)
 {
     m_Negated = !m_Negated;

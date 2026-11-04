@@ -45,7 +45,7 @@ CConcIndexator::CConcIndexator() {
 CConcIndexator::~CConcIndexator() {
 };
 
-//!  graphematical definition of a token
+//  graphematical definition of a token
 bool CConcIndexator::IsDWDSToken(long GraLine) const {
     return IsSentenceEnd(Graphmat, GraLine)
         || IsWord(Graphmat, GraLine)
@@ -90,7 +90,7 @@ bool CConcIndexator::SaveCorpusFileList() const {
     FILE *pfp = fopen(PrefixFile.c_str(), "wb");
     if (!pfp) return false;
 
-    //-- *._con (v2.1.13): VERSION_INFO "\n"
+    //-- *._con (v2.1.13): VERSION_INFO ""
     std::string vmin_str = DDCVersionMinW.str();
     fprintf(cfp, "%s / min-compat %s\n", DDCVersionStr.c_str(), vmin_str.c_str());
     fclose(cfp);

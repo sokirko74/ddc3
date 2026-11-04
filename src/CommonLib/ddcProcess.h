@@ -14,7 +14,7 @@
 //======================================================================
 // moo: get memory statistics using /proc/PID/statm (linux only)
 
-/** struct for reading /proc/PID/status; see proc(5) */
+/* struct for reading /proc/PID/status; see proc(5) */
 struct DDCProcessMemoryStatus
 {
     size_t VmPeak;      //< Peak virtual memory size.
@@ -33,29 +33,29 @@ struct DDCProcessMemoryStatus
     size_t RssFile;     //< Size of resident file mappings.  (since Linux 4.5).
     size_t RssAnon;     //< Size of resident file mappings.  (since Linux 4.5).
 
-    /** default constructor (no implicit fetch) */
+    /* default constructor (no implicit fetch) */
     DDCProcessMemoryStatus(void)
         : VmSize(0), VmLck(0), VmPin(0), VmHWM(0), VmRSS(0), VmData(0), VmStk(0), VmExe(0), VmLib(0), VmPTE(0), VmPMD(0), VmSwap(0), RssFile(0), RssAnon(0)
     {};
 
-    /** constructor given pid implicitly fetches data */
+    /* constructor given pid implicitly fetches data */
     DDCProcessMemoryStatus(pid_t pid)
     { fetch(pid); };
 
     inline void clear(void)
     { memset(this, 0, sizeof(DDCProcessMemoryStatus)); };
   
-    /** fetch memory statistics for process PID */
+    /* fetch memory statistics for process PID */
     void fetch(pid_t pid);
 
-    /** fetch memory statistics for current process */
+    /* fetch memory statistics for current process */
     inline void fetch(void)
     { fetch(getpid()); };
 };
 
 
-/// return the number of open files for \a pid (linux only).
-/// \li pid=0 maps to PID of current process)
+// return the number of open files for pid (linux only).
+// - pid=0 maps to PID of current process)
 size_t GetNumberOfOpenFiles(pid_t pid=0);
 
 //-- agressive heap trimming

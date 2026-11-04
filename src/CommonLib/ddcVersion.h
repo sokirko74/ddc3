@@ -8,7 +8,7 @@
 #include <sstream>
 
 //======================================================================
-/** Version class */
+/* Version class */
 class DDCVersionT {
 
     //--------------------------------------------------------------
@@ -30,7 +30,7 @@ public:
     DDCVersionT(const std::string& s)
     { fromString(s); };
 
-    //! return version of current DDC library (for use in initializers)
+    // return version of current DDC library (for use in initializers)
     inline static DDCVersionT current()
     { return DDCVersionT(DDC_VERSION_MAJOR, DDC_VERSION_MINOR, DDC_VERSION_MICRO); };
 
@@ -117,35 +117,35 @@ public:
     };
 };
 
-/** returns current DDC Version as a DDCVersionT (caveat: not useable in global initializers!) */
+/* returns current DDC Version as a DDCVersionT (caveat: not useable in global initializers!) */
 const DDCVersionT DDCVersion(DDC_VERSION_MAJOR, DDC_VERSION_MINOR, DDC_VERSION_MICRO);
 
-/** current DDC Version as a string */
+/* current DDC Version as a string */
 const char* DDCVersionString();
 
-/** Minimum index version this DDC can read */
+/* Minimum index version this DDC can read */
 const DDCVersionT DDCVersionMinR(2,0,0);
 
-/** Minimum DDC version which can read files written by us */
+/* Minimum DDC version which can read files written by us */
 const DDCVersionT DDCVersionMinW(2,1,13);
 
-/** parse a file version string of one of the following forms:
- *  \li <code>"... Format FORMAT_VERSION ... min-compat FORMAT_VERSION_MIN ..."</code>
- *  \li <code>"... Format FORMAT_VERSION ..."</code>
- *  \li <code>"... Version FORMAT_VERSION ... min-compat FORMAT_VERSION_MIN ..."</code>
- *  \li <code>"... Version FORMAT_VERSION ..."</code>
+/* parse a file version string of one of the following forms:
+ *  - <code>"... Format FORMAT_VERSION ... min-compat FORMAT_VERSION_MIN ..."</code>
+ *  - <code>"... Format FORMAT_VERSION ..."</code>
+ *  - <code>"... Version FORMAT_VERSION ... min-compat FORMAT_VERSION_MIN ..."</code>
+ *  - <code>"... Version FORMAT_VERSION ..."</code>
  *
  *  In the second and fourth cases, FORMAT_VERSION_MIN is set to FORMAT_VERSION.
- *  If parse fails, \a version and \a version_min are set to 0 (zero).
+ *  If parse fails, version and version_min are set to 0 (zero).
  *
- *  \param version on completion contains FORMAT_VERSION parsed from \a s, or 0
- *  \param version_min on completion contains FORMAT_VERSION_MIN parsed from \a s, or 0
+ *  version: on completion contains FORMAT_VERSION parsed from s, or 0
+ *  version_min: on completion contains FORMAT_VERSION_MIN parsed from s, or 0
  */
 void ddc_parse_format_version(const char *s, DDCVersionT &version, DDCVersionT &version_min);
 
-/** check a stored format version string \a s for compatibility with the running ddc;
- *  otherwise throws a CDDCExpc(errLogic). \a label is used for the exception message;
- *  it defaults to \a s.
+/* check a stored format version string s for compatibility with the running ddc;
+ *  otherwise throws a CDDCExpc(errLogic). label is used for the exception message;
+ *  it defaults to s.
  */
 void ddc_format_version_check(const char *s, const char *label=NULL);
 

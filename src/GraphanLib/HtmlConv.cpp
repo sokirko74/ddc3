@@ -54,7 +54,7 @@ void HTML::addOffset(unsigned long off)
 }
 
 
-/***************************************************************************
+/**************************************************************************
  * Very simple parser
  */
 string HTML::GetTextFromHTMLBuffer(const char* Buffer, size_t BufferLen)
@@ -266,7 +266,7 @@ bool HTML::checkTag(const string& str, const char* tag)
 }
 
 
-/***************************************************************************
+/**************************************************************************
  * Very simple parser
  */
 string HTML::GetTextFromHtmlFile(string FileName)

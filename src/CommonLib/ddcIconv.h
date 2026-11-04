@@ -4,9 +4,9 @@
  * Description: iconv interface
  *--------------------------------------------------------------------------*/
 
-/**
-   \file ddcIconv.h
-   \brief interface to \c iconv.h
+/*
+    ddcIconv.h
+   interface to iconv.h
 */
 
 #ifndef _DDC_ICONV_H
@@ -20,10 +20,10 @@
 #include <iconv.h>
 
 
-/** \brief default buffer length (in bytes) for iconv conversions */
+/* default buffer length (in bytes) for iconv conversions */
 #define DDC_ICONV_BUFLEN 256
 
-/** \brief define this to use pthread locks */
+/* define this to use pthread locks */
 #define DDC_ICONV_PTHREAD 1
 
 #ifdef DDC_ICONV_PTHREAD
@@ -33,33 +33,33 @@
 # define PTOP(x)
 #endif
 
-/** \brief Interface to \c iconv.h character-conversion routines */
+/* Interface to iconv.h character-conversion routines */
 class ddcIconv {
 public:
     //--------------------------------------------------------------
-    /// \name User-level data
-    //@{
-    std::string enc_src; ///< source encoding
-    std::string enc_dst; ///< destination encoding
-    //@}
+    //  User-level data
+    //
+    std::string enc_src; // source encoding
+    std::string enc_dst; // destination encoding
+    //
 
 public:
     //--------------------------------------------------------------
-    /// \name Low-level data
-    //@{
-    iconv_t ic;     ///< underlying iconv object
+    //  Low-level data
+    //
+    iconv_t ic;     // underlying iconv object
 
-    char ibuf[DDC_ICONV_BUFLEN]; ///< input buffer
-    char obuf[DDC_ICONV_BUFLEN]; ///< output buffer
+    char ibuf[DDC_ICONV_BUFLEN]; // input buffer
+    char obuf[DDC_ICONV_BUFLEN]; // output buffer
 
-    PTOP(pthread_mutex_t mut;) ///< pthread mutex
-    //@}
+    PTOP(pthread_mutex_t mut;) // pthread mutex
+    //
 
     public:
     //--------------------------------------------------------------
-    /// \name Constructors etc.
-    //@{
-    /** Default constructor, given optional source and destination encodings */
+    //  Constructors etc.
+    //
+    /* Default constructor, given optional source and destination encodings */
     ddcIconv(const std::string &srcEncoding="", const std::string &dstEncoding="")
     : enc_src(""),
         enc_dst(""),
@@ -70,38 +70,38 @@ public:
                 close();
     };
 
-    /** Default destructor */
+    /* Default destructor */
     ~ddcIconv(void)
     {
         close();
         PTOP(pthread_mutex_destroy(&mut);)
             };
-    //@}
+    //
 
     //--------------------------------------------------------------
-    ///\name Open/Close
-    //@{
+    // Open/Close
+    //
 
-    /** Check whether selected conversion is a null-op. */
+    /* Check whether selected conversion is a null-op. */
     inline bool empty(void) const
     {
         return (enc_src.empty() || enc_src=="-" || enc_dst.empty() || enc_dst=="-");
     };
 
-    /** Check whether selected converter is valid. */
+    /* Check whether selected converter is valid. */
     inline bool valid(void) const
     {
         return ic != (iconv_t)-1;
     };
 
-    /** Check whether selected converter is a either valid or a null-op */
+    /* Check whether selected converter is a either valid or a null-op */
     inline bool good(void) const
     {
         return empty() || valid();
     };
 
-    /** Open a (new) encoding.
-     *  Either \c srcEncoding or \c dstEncoding may be empty or "-",
+    /* Open a (new) encoding.
+     *  Either srcEncoding or dstEncoding may be empty or "-",
      *  indicating a null-op.
      */
     inline bool open(const std::string &srcEncoding, const std::string dstEncoding)
@@ -116,7 +116,7 @@ public:
             return valid();
     };
 
-    /** Close a conversion. Should be ok to call more than once */
+    /* Close a conversion. Should be ok to call more than once */
     inline bool close(void) {
         if (!empty() && valid() && iconv_close(ic)==-1) return false;
         PTOP(pthread_mutex_lock(&mut);)
@@ -127,17 +127,17 @@ public:
             return true;
     };
 
-    /** Reset converter state (should already have mut lock in threaded applications) */
+    /* Reset converter state (should already have mut lock in threaded applications) */
     inline void reset(void) {
         if (!empty() && valid())
             iconv(ic, NULL,NULL, NULL,NULL);
     };
-    //@}
+    //
 
     //--------------------------------------------------------------  
-    /// \name Conversions
-    //@{
-    /** Perform selected conversion from \c in to \c out (low-level) */
+    //  Conversions
+    //
+    /* Perform selected conversion from in to out (low-level) */
     inline bool convert(const char *idata, const size_t ilen, std::string &out)
     {
         if (!idata || !*idata) {
@@ -198,7 +198,7 @@ public:
             return true;
     };
   
-    /** Perform selected conversion from \c in to \c out */
+    /* Perform selected conversion from in to out */
     inline bool convert(const std::string &in, std::string &out)
     {
         if (empty()) {
@@ -208,14 +208,14 @@ public:
         return convert(in.data(), in.size(), out);
     };
 
-    /** Perform selected conversion from \c in to a (new) string */
+    /* Perform selected conversion from in to a (new) string */
     inline std::string convert(const std::string &in)
     {
         std::string out("");
         convert(in,out);
         return out;
     };
-    //@}
+    //
 
 }; //-- /class ddcIconv
 

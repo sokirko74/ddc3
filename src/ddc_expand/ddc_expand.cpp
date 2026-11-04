@@ -140,7 +140,7 @@ int main(int argc, char **argv)
         else if (strcmp(*argv,"-v")==0 || strcmp(*argv,"--verbose")==0) {
             ddcLogLevel = GetLogLevel(p);
             ddcLogToStderr = (ddcLogLevel!=ddcLLSilent);
-            //fprintf(stderr, "set log level=%s\n", LogLevelName(ddcLogLevel));
+            //fprintf(stderr, "set log level=%s", LogLevelName(ddcLogLevel));
             argv++; argc--;
         }
         else {
@@ -246,7 +246,7 @@ int main(int argc, char **argv)
                                "\n"
                                " Known expander classes and parameters:\n"
                                "  CLASS   PARAM         DESCRIPTION\n"
-                               //"  -----------------------------------------------------------------------------\n"
+                               //"  -----------------------------------------------------------------------------"
                                "  Id      (none)        Identity map\n"
                                "  Case    LANG          Letter-case tweaker\n"
                                "  ToLower LANG          Force to lower-case\n"

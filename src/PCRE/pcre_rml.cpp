@@ -162,7 +162,7 @@ void RML_RE::clear() {
     error_.clear();
 }
 
-/***** Matching interfaces *****/
+/**** Matching interfaces *****/
 
 bool RML_RE::Replace(const string& rewrite, string *str) const {
     size_t vec[2*kMaxPairs];
@@ -216,7 +216,7 @@ int RML_RE::GlobalReplace(const string& rewrite, string *str) const {
     return count;
 }
 
-/***** Actual matching and rewriting code *****/
+/**** Actual matching and rewriting code *****/
 
 int RML_RE::TryMatch(const char *text, size_t len,
                      size_t startpos,

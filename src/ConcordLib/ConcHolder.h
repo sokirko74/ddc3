@@ -4,7 +4,7 @@
 #include "ConcSession.h"
 
 //==============================================================================
-//! \brief backwared-compatible wrapper for CConcSession
+// backwared-compatible wrapper for CConcSession
 typedef CConcSession CConcHolder;
 
 #endif

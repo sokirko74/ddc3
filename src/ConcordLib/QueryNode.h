@@ -10,62 +10,62 @@
 extern const size_t MaxDistanceForNear;
 
 //----------------------------------------------------------------------
-/*! \brief
+/* 
   CQueryNode is an abstract class for any node in a query parse tree. A parse tree is built by 
   YACC during CQueryCompiler::ParseQuery. This class contains all members 
   which are common to atomic and operation nodes.
 
-  moo: this class looks like it \b should be an abstract representation of query
-  \b without any direct dependence on an actual index instance (e.g. ConcHolder
+  moo: this class looks like it should be an abstract representation of query
+  without any direct dependence on an actual index instance (e.g. ConcHolder
   or ConcIndexator) until evaluation time, but that doesn't appear to be the case.
   Attempting to re-build a more modular abstract query representation in Query.(cpp|h).
 */
 class CQueryNode  
 {
 public:
-    //! true if this node is a description of one token or a sequence of adjacent tokens
+    // true if this node is a description of one token or a sequence of adjacent tokens
     bool m_bAtomic;  
 
-    //! is the node negated?
+    // is the node negated?
     bool m_bNegated;
 
-    //! the string from which this node was created
+    // the string from which this node was created
     std::string m_Source;
 
-    //! all occurrences of this node in the current \ref period_def "subcorpus", which should be highlighted
+    // all occurrences of this node in the current period_def "subcorpus", which should be highlighted
     std::vector<CTokenNo> m_Occurrences;
 
-    //! should DDC uses m_OccurrenceNodeIndices (m_OccurrenceNodeIndices is necessary only for #less_by_rank)
+    // should DDC uses m_OccurrenceNodeIndices (m_OccurrenceNodeIndices is necessary only for #less_by_rank)
     bool m_bUseNodeIndices;
 
-    //! query node indices for each occurrence (the origin for each occurrence)
+    // query node indices for each occurrence (the origin for each occurrence)
     std::vector<BYTE> m_OccurrenceNodeIndices;
 
-    //! should DDC use m_OccurrenceMatchIds to track match-ids?
+    // should DDC use m_OccurrenceMatchIds to track match-ids?
     bool m_bUseMatchIds;
 
-    //! match-ids for each occurrence in m_Occurrences (only if m_bUseMatchIds is true)
+    // match-ids for each occurrence in m_Occurrences (only if m_bUseMatchIds is true)
     std::vector<BYTE> m_OccurrenceMatchIds;
 
-    //! all hits of this node in the current \ref period_def "subcorpora"
+    // all hits of this node in the current period_def "subcorpora"
     std::vector<CHit> m_Hits;
 
-    //! a reference to the parent holder (moo: should be unused until evaluation time, but isn't!)
+    // a reference to the parent holder (moo: should be unused until evaluation time, but isn't!)
     const CConcHolder* m_pHolder;
 
-    //! the division of m_Occurrences by chunks , so m_ChunkLengths[0]+m_ChunkLengths[1]... = m_Occurrences.size() ;
-    //! used by near() queries.
+    // the division of m_Occurrences by chunks , so m_ChunkLengths[0]+m_ChunkLengths[1]... = m_Occurrences.size() ;
+    // used by near() queries.
     std::vector<uint32_t> m_ChunkLengths;
 
-    //! chunk offsets, used by CQuerySequenceNode queries; use EnsureChunkOffsets() to populate if required
-    /// \li introduced in v2.1.19; still unused (should probably be used to allow binary-search seek for NEAR queries
+    // chunk offsets, used by CQuerySequenceNode queries; use EnsureChunkOffsets() to populate if required
+    // - introduced in v2.1.19; still unused (should probably be used to allow binary-search seek for NEAR queries
     std::vector<uint32_t> m_ChunkOffsets;
 
-    //! ???
+    // ???
     std::vector<int> m_CacheIds;
 
 
-    //! Constructor
+    // Constructor
     CQueryNode(bool bUseNodeIndices=false, bool bUseMatchIds=false, const CConcHolder *holder=NULL)
         : m_bAtomic(false),
           m_bNegated(false),
@@ -74,27 +74,27 @@ public:
           m_pHolder(holder)
     {};
 
-    //! Destructor
+    // Destructor
     virtual ~CQueryNode();
 
-    //! evaluate query node with respect to m_pHolder , populating m_Hits[] attributes m_BreakNo, m_HighlightOcurrencesEnd .
-    //! If bSeparateHits is false (default), hits in m_Hits[] will by aggregated by m_BreakNo (i.e. at most one instance of any m_BreakNo value in m_Hits[])
+    // evaluate query node with respect to m_pHolder , populating m_Hits[] attributes m_BreakNo, m_HighlightOcurrencesEnd .
+    // If bSeparateHits is false (default), hits in m_Hits[] will by aggregated by m_BreakNo (i.e. at most one instance of any m_BreakNo value in m_Hits[])
     virtual void Evaluate(bool bSeparateHits=false);
 
-    /** \brief initial-stage query evaluation
-     * \detail EvaluateWithoutHits is the first stage of the evaluation of one query.
+    /* initial-stage query evaluation
+     * EvaluateWithoutHits is the first stage of the evaluation of one query.
      * The main task it to build CQueryNode::m_Occurrences, which is written by chunks,
      * sorted by the first item of a chunk. 
      */
     virtual void EvaluateWithoutHits();
 
-    //! set m_bNegated
+    // set m_bNegated
     void SetNegation(bool Value);
 
-    //! get m_bNegated
+    // get m_bNegated
     bool GetNegation() const;
 
-    //! insers a single occurrence FromNode.m_Occurrences[occ]
+    // insers a single occurrence FromNode.m_Occurrences[occ]
     inline void AddOccurrence(const CQueryNode& FromNode, int FromOcc)
     {
         m_Occurrences.push_back(FromNode.m_Occurrences[FromOcc]);
@@ -104,84 +104,84 @@ public:
             m_OccurrenceMatchIds.push_back(FromNode.m_OccurrenceMatchIds[FromOcc]);
     };
 
-    //! inserts occurrences [FromNode.m_Occurrences.begin()+start,  FromNode.m_Occurrences.begin()+end) into m_Occurrences[] (and m_OccurrenceNodeIndices if appropriate)
+    // inserts occurrences [FromNode.m_Occurrences.begin()+start,  FromNode.m_Occurrences.begin()+end) into m_Occurrences[] (and m_OccurrenceNodeIndices if appropriate)
     void AddOccurrences(const CQueryNode& FromNode, int start, int end);
 
-    //! appends occurrences from both FromNode1 and FromNode2, maintaining sort-order and respecting both m_bUseNodeIndices and m_bUseMatchIds
+    // appends occurrences from both FromNode1 and FromNode2, maintaining sort-order and respecting both m_bUseNodeIndices and m_bUseMatchIds
     void AddOccurrences2(const CQueryNode& FromNode1, int start1, int end1,
                          const CQueryNode& FromNode2, int start2, int end2);
 
-    //! appends occurrences from FromNode1, FromNode2, and FromNode3 maintaining sort-order and respecting both m_bUseNodeIndices and m_bUseMatchIds
+    // appends occurrences from FromNode1, FromNode2, and FromNode3 maintaining sort-order and respecting both m_bUseNodeIndices and m_bUseMatchIds
     void AddOccurrences3(const CQueryNode& FromNode1, int start1, int end1,
                          const CQueryNode& FromNode2, int start2, int end2,
                          const CQueryNode& FromNode3, int start3, int end3);
 
-    //! clears m_Occurrences[] and reserves at least \a size elements.
-    //! Also clears and reserves m_OccurrenceNodeIndices[], m_OccurrenceMatchids[] just in case m_bUseNodeIndices rsp. m_bUseMatchIds is true.
+    // clears m_Occurrences[] and reserves at least size elements.
+    // Also clears and reserves m_OccurrenceNodeIndices[], m_OccurrenceMatchids[] just in case m_bUseNodeIndices rsp. m_bUseMatchIds is true.
     void ClearAndReserveOccurrences(int size);
 
-    //! swaps m_Occurrences[], m_OccurrenceNodeIndices[], and m_OccurrenceMatchIds[] between caller object and Node
+    // swaps m_Occurrences[], m_OccurrenceNodeIndices[], and m_OccurrenceMatchIds[] between caller object and Node
     void SwapOccurrences(CQueryNode& Node, bool swapChunkLengths=false);
 
-    //! convert occurrences to hits  using m_pHolder->GetBreaks()
+    // convert occurrences to hits  using m_pHolder->GetBreaks()
     void ConvertOccurrencesToHits (bool bSeparateHits);
 
-    //! convert occurrences to hits for pattern query construction (like "mother likes father")
+    // convert occurrences to hits for pattern query construction (like "mother likes father")
     void ConvertOccurrencesToHitsForPatterns (bool bSeparateHits);
 
-    //! ensure m_ChunkOffsets[] is populated
+    // ensure m_ChunkOffsets[] is populated
     void EnsureChunkOffsets();
 
-    //! set  m_pHolder dependent properties m_bUseNodeIndices, m_bUseMatchIds
+    // set  m_pHolder dependent properties m_bUseNodeIndices, m_bUseMatchIds
     void SetHolder(const CConcHolder* pHolder);
 
-    //! return true iff this is a universal wildcard query (*); default returns false
+    // return true iff this is a universal wildcard query (*); default returns false
     virtual bool IsUniversalWildcard() const;
         
-    //! get occurrence count by query-node index; used by rank-sort operator. default implementation in CQueryNode just chokes.
+    // get occurrence count by query-node index; used by rank-sort operator. default implementation in CQueryNode just chokes.
     virtual size_t GetNodeFrequencyByNodeIndex(size_t NodeIndex) const;
 
-    //! get the index of the first occurrence in m_Occurrences[] for hit number HitNo
+    // get the index of the first occurrence in m_Occurrences[] for hit number HitNo
     inline uint32_t HitOccurrencesBegin(uint32_t HitNo) const
     { return (HitNo == 0) ? 0 : m_Hits[HitNo-1].m_HighlightOccurrenceEnd; };
 
-    //! get the index of the first occurrence in m_Occurrences[] after hit number HitNo
+    // get the index of the first occurrence in m_Occurrences[] after hit number HitNo
     inline uint32_t HitOccurrencesEnd(uint32_t HitNo) const
     { return m_Hits[HitNo].m_HighlightOccurrenceEnd >= m_Occurrences.size() ? m_Occurrences.size() : m_Hits[HitNo].m_HighlightOccurrenceEnd; };
 
-    //! scan for first occurrence of match-id \a MatchId for hit \a HitNo in m_OccurrenceMatchIds[]; only valid if m_bUseMatchIds is true
-    //! \returns least occurence-index \a i such that: occurrence \a i belongs to Hits[HitNo] and as match-id MatchId, or (DOWRD)-1 if none exists
+    // scan for first occurrence of match-id MatchId for hit HitNo in m_OccurrenceMatchIds[]; only valid if m_bUseMatchIds is true
+    // returns least occurence-index i such that: occurrence i belongs to Hits[HitNo] and as match-id MatchId, or (DOWRD)-1 if none exists
     uint32_t GetFirstOccurrenceInHit(uint32_t HitNo, BYTE MatchId) const;
 
-    //! scan for last occurrence of match-id \a MatchId for hit \a HitNo in m_OccurrenceMatchIds[]; only valid if m_bUseMatchIds is true
-    //! \returns greatest occurence-index \a i such that: occurrence \a i belongs to Hits[HitNo] and as match-id MatchId, or (DWORD)-1 if none exists
+    // scan for last occurrence of match-id MatchId for hit HitNo in m_OccurrenceMatchIds[]; only valid if m_bUseMatchIds is true
+    // returns greatest occurence-index i such that: occurrence i belongs to Hits[HitNo] and as match-id MatchId, or (DWORD)-1 if none exists
     uint32_t GetLastOccurrenceInHit(uint32_t HitNo, BYTE MatchId) const;
 
-    //! scan for middle-most occurrence of match-id \a MatchId for hit \a HitNo in m_OccurrenceMatchIds[]; only valid if m_bUseMatchIds is true
-    //! \returns middle-most occurence-index \a i such that: occurrence \a i belongs to Hits[HitNo] and as match-id MatchId, or (DWORD)-1 if none exists
+    // scan for middle-most occurrence of match-id MatchId for hit HitNo in m_OccurrenceMatchIds[]; only valid if m_bUseMatchIds is true
+    // returns middle-most occurence-index i such that: occurrence i belongs to Hits[HitNo] and as match-id MatchId, or (DWORD)-1 if none exists
     uint32_t GetMiddleOccurrenceInHit(uint32_t HitNo, BYTE MatchId) const;
 
-    //! get average size of gap between breaks in m_Hits[]; returned value is always >= 1
+    // get average size of gap between breaks in m_Hits[]; returned value is always >= 1
     inline uint32_t BreakStride() const
     { return m_Hits.empty() ? 1 : std::max((size_t)1, (m_Hits.back().m_BreakNo-m_Hits.front().m_BreakNo)/m_Hits.size()); };
 };
 
 //----------------------------------------------------------------------
-/*!
+/*
   An abtsract class for binary logical operations on nodes (and, or). It contains instances of three major 
   logical operation (union, intersection and difference) which were slightly modified to deal with 
   CQueryNode::m_Hits and CQueryNode::m_Occurrences simultaneously.
 */
 class CQueryBinaryOperationNode : public CQueryNode 
 {
-    //! add the hit list of "NodeFrom" to the back of "First"
+    // add the hit list of "NodeFrom" to the back of "First"
     void hits_add(const CQueryNode& NodeFrom, std::vector<CHit>::const_iterator First);
 
 public:
-    //! the first operation member
+    // the first operation member
     CQueryNode*     m_pChild1;  
 
-    //! the second operation member
+    // the second operation member
     CQueryNode*     m_pChild2;  
 
 public:
@@ -196,9 +196,9 @@ public:
 
     virtual ~CQueryBinaryOperationNode();
 
-    //! push a single hit onto m_Hits[]
-    //! \li expects occurrences to already have been added; sets new hit's m_HighlightOccurrenceEnd=m_Occurrences.size()
-    //! \li for use by hits_and_positions_intersection() etc.
+    // push a single hit onto m_Hits[]
+    // - expects occurrences to already have been added; sets new hit's m_HighlightOccurrenceEnd=m_Occurrences.size()
+    // - for use by hits_and_positions_intersection() etc.
     inline void pushHit(uint32_t BreakNo)
     {
         CHit H(BreakNo);
@@ -206,31 +206,31 @@ public:
         m_Hits.push_back(H);
     };
 
-    //! assign hit occurrences and positions from another node
-    //! \note how does this differ from SwapOccurrences() + m_OccurrenceNodeIndices.assign() + m_OccurrenceMatchIds.assign() + ... ?
+    // assign hit occurrences and positions from another node
+    // note: how does this differ from SwapOccurrences() + m_OccurrenceNodeIndices.assign() + m_OccurrenceMatchIds.assign() + ... ?
     void hits_and_positions_assign(const CQueryNode &NodeFrom);
 
-    //! hijack hit occurrences and positions from another node
+    // hijack hit occurrences and positions from another node
     void hits_and_positions_swap(CQueryNode &NodeFrom);
         
-    //! a modified version of std::union which unites simultaneously  two pairs of vectors
-    //! \note now implicitly evalutes child nodes (v2.0.45 2016-09-05 moocow)
+    // a modified version of std::union which unites simultaneously  two pairs of vectors
+    // note: now implicitly evalutes child nodes (v2.0.45 2016-09-05 moocow)
     void hits_and_positions_union(bool bSeparateHits=false);
 
-    //! a modified version of std::intersection which simultaneously  deals  with two pairs of vectors
-    //! \note now implicitly evalutes child nodes (v2.0.45 2016-09-05 moocow)
+    // a modified version of std::intersection which simultaneously  deals  with two pairs of vectors
+    // note: now implicitly evalutes child nodes (v2.0.45 2016-09-05 moocow)
     void hits_and_positions_intersection(bool bSeparateHits=false);
 
-    //! a modified version of std::difference which simultaneously  deals  with two pairs of vectors
-    //! \note now implicitly evalutes child nodes (v2.0.45 2016-09-05 moocow)
+    // a modified version of std::difference which simultaneously  deals  with two pairs of vectors
+    // note: now implicitly evalutes child nodes (v2.0.45 2016-09-05 moocow)
     void hits_and_positions_difference(bool bSeparateHits=false);
 
-    //! get occurrence count by query-node index; used by rank-sort operator.
+    // get occurrence count by query-node index; used by rank-sort operator.
     size_t GetNodeFrequencyByNodeIndex(size_t NodeIndex) const;
 };
 
 //----------------------------------------------------------------------
-//! CQueryAndOperation implements the hit intersection or "and" operator: for example, "Mother&&father" 
+// CQueryAndOperation implements the hit intersection or "and" operator: for example, "Mother&&father" 
 class CQueryAndOperation        : public CQueryBinaryOperationNode  
 {
 public:
@@ -240,7 +240,7 @@ public:
 };
 
 //----------------------------------------------------------------------
-//! CQueryOrOperation implements the hit union or "or" operator: for example, "Mother||father" 
+// CQueryOrOperation implements the hit union or "or" operator: for example, "Mother||father" 
 class CQueryOrOperation : public CQueryBinaryOperationNode 
 {
 public:
@@ -250,102 +250,102 @@ public:
 };
 
 //----------------------------------------------------------------------
-//! CQueryTokenNode is a class which corresponds to one token or it's singular property (for example lemma)
+// CQueryTokenNode is a class which corresponds to one token or it's singular property (for example lemma)
 class CQueryTokenNode : public CQueryNode
 {
 public:
-    //!  find index items  in the index which is called m_IndexName
+    //  find index items  in the index which is called m_IndexName
     std::vector<uint32_t> m_IndexItems;
 
-    //! the name of index or break collection on which this node is built (see  CQueryChunkNode and  CQueryTokenNode nodes)
+    // the name of index or break collection on which this node is built (see  CQueryChunkNode and  CQueryTokenNode nodes)
     std::string m_IndexName;
 
-    //! true, if it is a chunk (NP, VP and so on)
+    // true, if it is a chunk (NP, VP and so on)
     bool m_bChunk;
 
-    //! true iff this is an anchor query
+    // true iff this is an anchor query
     bool m_bAnchor;
 
-    //! true iff this is a "universal wildcard" query
+    // true iff this is a "universal wildcard" query
     bool m_bAny;
 
-    //! integer offset for break-anchor ($.) queries
+    // integer offset for break-anchor ($.) queries
     int m_AnchorOffset;
 
 public:
-    //! a unique index of the node in query tree (used by rank-sort operator)
+    // a unique index of the node in query tree (used by rank-sort operator)
     BYTE m_NodeIndex;
 
-    //! user-specified match-id (0 specifies default behavior, which is to use highlight-id=255)
+    // user-specified match-id (0 specifies default behavior, which is to use highlight-id=255)
     BYTE m_MatchId;
         
     CQueryTokenNode(int NodeIndex, BYTE MatchId=0);
     virtual ~CQueryTokenNode();
 
-    //! compilation utility: set match-id
+    // compilation utility: set match-id
     void SetMatchId(BYTE MatchId);
 
-    //! return true iff this is a universal wildcard query (*); override returns m_bAny
+    // return true iff this is a universal wildcard query (*); override returns m_bAny
     virtual bool IsUniversalWildcard() const;
 
-    //! low-level: populates m_IndexName and returns appropriate index; throws exception if no appropriate index is found
+    // low-level: populates m_IndexName and returns appropriate index; throws exception if no appropriate index is found
     CStringIndexSet* GetIndex(const CConcHolder* pHolder, const std::string &IndexName);
 
-    //! low-level: makes m_IndexItems unique
+    // low-level: makes m_IndexItems unique
     void MakeUnique(void);
 
-    //! create pattern for matching literal index values (`$INDEX=@STRING' queries)
+    // create pattern for matching literal index values (`$INDEX=@STRING' queries)
     bool CreateStringPattern(const CConcHolder* pHolder, const std::string& IndexName, const std::string& Value);
 
-    //! create pattern for matching literal index values (`$INDEX=/REGEX/' queries)
+    // create pattern for matching literal index values (`$INDEX=/REGEX/' queries)
     bool CreateRegexPattern(const CConcHolder* pHolder, const std::string& IndexName, const std::string& Regex, bool negated=false);
 
-    //! create pattern for matching literal index values (`$INDEX=@{VAL1,...}' queries)
+    // create pattern for matching literal index values (`$INDEX=VAL1,...}' queries)
     bool CreateSetPattern(const CConcHolder* pHolder, const std::string& IndexName, const std::set<std::string>& Values);
 
-    //! create pattern for matching set-valued right-truncated (prefix-set) queries (`$INDEX={PREFIX,...}*')
+    // create pattern for matching set-valued right-truncated (prefix-set) queries (`$INDEX={PREFIX,...}*')
     bool CreatePrefixSetPattern(const CConcHolder* pHolder, const std::string& IndexName, const std::set<std::string>& Prefixes);
 
-    //! create pattern for matching simple right-truncated (prefix) queries (`$INDEX=PREFIX*')
+    // create pattern for matching simple right-truncated (prefix) queries (`$INDEX=PREFIX*')
     bool CreatePrefixPattern(const CConcHolder* pHolder, const std::string& IndexName, const std::string& Prefix);
 
-    //! create pattern for matching set-valued left-truncated (suffix-set) queries (`$INDEX=*{SUFFIX,...}'): uses regex
+    // create pattern for matching set-valued left-truncated (suffix-set) queries (`$INDEX=*{SUFFIX,...}'): uses regex
     bool CreateSuffixSetPattern(const CConcHolder* pHolder, const std::string& IndexName, const std::set<std::string>& Suffixes);
 
-    //! create pattern for matching set-valued left-truncated (suffix-set) queries (`$INDEX=*SUFFIX'): uses regex
+    // create pattern for matching set-valued left-truncated (suffix-set) queries (`$INDEX=*SUFFIX'): uses regex
     bool CreateSuffixPattern(const CConcHolder* pHolder, const std::string& IndexName, const std::string& Suffix);
 
-    //! create pattern for matching set-valued substring (infix-set) queries (`$INDEX=*{INFIX,...}*'): uses regex
+    // create pattern for matching set-valued substring (infix-set) queries (`$INDEX=*{INFIX,...}*'): uses regex
     bool CreateInfixSetPattern(const CConcHolder* pHolder, const std::string& IndexName, const std::set<std::string>& Infixes);
 
-    //! create pattern for matching simple substring (infix) queries (`$INDEX=*INFIX*'): uses regex
+    // create pattern for matching simple substring (infix) queries (`$INDEX=*INFIX*'): uses regex
     bool CreateInfixPattern(const CConcHolder* pHolder, const std::string& IndexName, const std::string& Infix);
 
-    //! create universal-match set
+    // create universal-match set
     bool CreateUniversalPattern(const CConcHolder *pHolder, const std::string& SourceStr="*");
 
-    //! create empty match-set
+    // create empty match-set
     bool CreateNullPattern(const CConcHolder *pHolder, const std::string& IndexName="Token");
 
-    //! create lemma-match pattern (old)
+    // create lemma-match pattern (old)
     bool CreateLemmaPattern(const CConcHolder* pHolder, const std::string& Value);
 
-    //! create pattern which is associated with "Thes" index (old)
+    // create pattern which is associated with "Thes" index (old)
     bool CreateThesPattern(const CConcHolder* pHolder, const std::string& IndexName, const std::string& src);
 
-    //! create pattern which is associated with "MorphPattern" or "Lemma" index (old)
+    // create pattern which is associated with "MorphPattern" or "Lemma" index (old)
     bool CreateMorphAnnotationPattern(const CConcHolder* pHolder, const std::string& IndexName, const std::vector<std::string> &Items);
 
-    //! create pattern which loads target values from the file \a FileName
+    // create pattern which loads target values from the file FileName
     bool CreateFileList(const CConcHolder* pHolder, const std::string &IndexName, const std::string& FileName);
 
-    //! create pattern which is associated with "Chunk" index 
+    // create pattern which is associated with "Chunk" index 
     bool CreateChunkPattern(const CConcHolder* pHolder, const std::string& IndexName, const std::string& ChunkTypeStr);
 
-    //! create an anchor pattern
+    // create an anchor pattern
     bool CreateAnchorPattern(const CConcHolder *pHolder, const std::string& BreakName, int anchor);
 
-    //! generic regex query utility
+    // generic regex query utility
     bool BuildRegExp(std::string RegExpStr, std::vector<uint32_t>& IndexItems, bool negated=false);
 
     void    EvaluateWithoutHits();
@@ -356,8 +356,8 @@ public:
 
 
 //----------------------------------------------------------------------
-/*!
-  \brief  CQuerySequenceNode is an implementation of sequence  operator, for example, "Mother and father".
+/*
+   CQuerySequenceNode is an implementation of sequence  operator, for example, "Mother and father".
   This class holds a sequence of nodes of type CQueryTokenNode (slot m_Items).
   Between m_Items[i]    and  m_Items[i+1] must be no more than m_Distances[i] tokens.
 */ 
@@ -368,8 +368,8 @@ public:
     std::vector<BYTE>                    m_Distances;    
     std::vector<CQueryTokenNode*>        m_Items;
 
-    //! add a distance to m_Distances, return false if the value is too large
-    //! \deprecated
+    // add a distance to m_Distances, return false if the value is too large
+    // deprecated:
     bool AddDistance(const std::string& s, char op='<');
         
 public:
@@ -377,11 +377,11 @@ public:
     CQuerySequenceNode();
     virtual ~CQuerySequenceNode();
 
-    //! create the node during yacc parsing
-    //! \deprecated in favor of second form  Create(const CConcHolder* pHolder, const vector<const CQueryTokenNode*>& Items, const vector<BYTE>& Distances);
+    // create the node during yacc parsing
+    // deprecated: in favor of second form  Create(const CConcHolder* pHolder, const vector<const CQueryTokenNode*>& Items, const vector<BYTE>& Distances);
     bool    Create(const CConcHolder* pHolder, const std::vector<const CQueryNode*>& SequenceObj, const std::vector<std::string>& DistanceStrings);
 
-    //! moo: create the node after initial parsing (compile-time)
+    // moo: create the node after initial parsing (compile-time)
     bool    Create(const CConcHolder* pHolder, const std::vector<CQueryTokenNode*>& Items, const std::vector<BYTE>& Distances, const std::vector<BYTE>& DistanceOps);
 
     void    EvaluateWithoutHits();
@@ -390,8 +390,8 @@ public:
 };
 
 //----------------------------------------------------------------------
-/*!
-  \brief CQueryNearNode is a class which is used to search two or three
+/*
+  CQueryNearNode is a class which is used to search two or three
   child nodes, which are inside some text period of length CQueryNearNode::m_Distance ,
   i.e. an implementation of "near" operator NEAR(a,b,2) and NEAR(a,b,c, 2).
   Note that for the 3-subquery form NEAR(a,b,c, n), n specifies the maximum number
@@ -400,23 +400,23 @@ public:
 class CQueryNearNode : public CQueryNode 
 {
 public:
-    //!  the first child 
+    //  the first child 
     CQueryNode*             m_pChild1;  
 
-    //!  the second  child  
+    //  the second  child  
     CQueryNode*             m_pChild2;  
 
-    //!  the third  child (may be NULL)
+    //  the third  child (may be NULL)
     CQueryNode*             m_pChild3;   
 
-    //!  the distance between the first child and the second child
+    //  the distance between the first child and the second child
     BYTE                    m_Distance;
 
 public:
     CQueryNearNode();
     virtual ~CQueryNearNode();
 
-    //! create the node after yacc parsing (compile-time)
+    // create the node after yacc parsing (compile-time)
     bool Create(const CConcHolder* pHolder, BYTE distance, CQueryNode* child1, CQueryNode* child2, CQueryNode* child3 = NULL);
 
     void FindOccurrences2();
@@ -426,8 +426,8 @@ public:
 };
 
 //----------------------------------------------------------------------
-/*!
-  \brief CQueryWithNode is a class which is used to search a node which simultaneously has two properties, namely       m_pChild1 and  m_pChild2.
+/*
+  CQueryWithNode is a class which is used to search a node which simultaneously has two properties, namely       m_pChild1 and  m_pChild2.
   (implementation of "with"  operator: for example, Mother with [NOUN] )
 */ 
 class CQueryWithNode : public CQueryBinaryOperationNode
@@ -439,7 +439,7 @@ public:
     CQueryWithNode();
     virtual ~CQueryWithNode() {};
 
-    //! create the node during yacc parsing
+    // create the node during yacc parsing
     bool Create(const CConcHolder*  pHolder, CQueryNode* child1, CQueryNode* child2, BYTE matchId=0);
 
     void EvaluateWithoutHits();
@@ -447,8 +447,8 @@ public:
 };
 
 //----------------------------------------------------------------------
-/*!
-  \brief CQueryWithoutNode: (EXPR1 without EXPR2) behaves like (EXPR1 WITH !EXPR2)
+/*
+  CQueryWithoutNode: (EXPR1 without EXPR2) behaves like (EXPR1 WITH !EXPR2)
 */ 
 class CQueryWithoutNode : public CQueryWithNode
 {
@@ -457,15 +457,15 @@ public:
     {};
     virtual ~CQueryWithoutNode() {};
 
-    //! create the node during yacc parsing
+    // create the node during yacc parsing
     bool Create(const CConcHolder*  pHolder, CQueryNode* child1, CQueryNode* child2, BYTE matchId=0);
 
     void EvaluateWithoutHits();
 };
 
 //----------------------------------------------------------------------
-/*!
-  \brief CQueryWithorNode: (EXPR1 withor EXPR2) behaves like (EXPR1 || EXPR2) under token-identity
+/*
+  CQueryWithorNode: (EXPR1 withor EXPR2) behaves like (EXPR1 || EXPR2) under token-identity
 */ 
 class CQueryWithorNode : public CQueryWithNode
 {
@@ -474,7 +474,7 @@ public:
     {};
     virtual ~CQueryWithorNode() {};
 
-    //! create the node during yacc parsing
+    // create the node during yacc parsing
     bool Create(const CConcHolder*  pHolder, CQueryNode* child1, CQueryNode* child2, BYTE matchId=0);
 
     void EvaluateWithoutHits();
@@ -483,40 +483,40 @@ public:
 //----------------------------------------------------------------------
 
 
-/*!
- * \brief CQOccurrenceIterator (formerly CQNearEvalItem) is used to iterate over query occurrences; used by near() queries
+/*
+ * CQOccurrenceIterator (formerly CQNearEvalItem) is used to iterate over query occurrences; used by near() queries
  *  + used by near()-queries, appropriate for iterating over single- or multi-token query nodes
  *    (respects node->m_ChunkLengths)
  */
 struct CQOccurrenceIterator {
-    CQueryNode *node; //!< (sub)query node
-    int cnt;          //!< limit for  node->m_Occurrences[]
-    int cur;          //!< index into node->m_Occurrences[]
-    uint32_t chpos;      //!< index into node->m_ChunkLengths[] (match occurrence)
+    CQueryNode *node; // (sub)query node
+    int cnt;          // limit for  node->m_Occurrences[]
+    int cur;          // index into node->m_Occurrences[]
+    uint32_t chpos;      // index into node->m_ChunkLengths[] (match occurrence)
 
-    /** default constructor */
+    /* default constructor */
     CQOccurrenceIterator(CQueryNode *node_=NULL)
     { assign(node_); };
 
-    /** copy constructor */
+    /* copy constructor */
     CQOccurrenceIterator(const CQOccurrenceIterator &b)
     { operator=(b); };
 
     virtual ~CQOccurrenceIterator() {};
 
-    /**
-     *  Create an iterator bound to the neighbors of \a src, used to avoid expensive EvaluateWithoutHits() for universal sub-queries as near() arguments.
-     *  Destructively alters \a node_->m_Occurrences[] (and associated vectors).
-     *  Generates a "bound" occurence in \a node_->m_Occurrences[] for each source-occurence <code>occi = src.node->m_Occurrences[i]</code>
-     *  and each offset \a off with <code>minOffset <= off <= maxOffset</code> representing token <code>*occi + off</code>, modulo <code>off==0</code>.
-     *  @param node_ universal wildcard node in which to create bound occurrences.
-     *  @param src source iterator to use for occurrence generation (should already have been populated by EvaluateWithoutHits())
-     *  @param minOffset minimum offset for bound occurrences wrt source-occurrence
-     *  @param maxOffset maximum offset for bound occurrences wrt source-occurrence (inclusive)
+    /*
+     *  Create an iterator bound to the neighbors of src, used to avoid expensive EvaluateWithoutHits() for universal sub-queries as near() arguments.
+     *  Destructively alters node_->m_Occurrences[] (and associated vectors).
+     *  Generates a "bound" occurence in node_->m_Occurrences[] for each source-occurence <code>occi = src.node->m_Occurrences[i]</code>
+     *  and each offset off with <code>minOffset <= off <= maxOffset</code> representing token <code>*occi + off</code>, modulo <code>off==0</code>.
+     *  node_: universal wildcard node in which to create bound occurrences.
+     *  src: source iterator to use for occurrence generation (should already have been populated by EvaluateWithoutHits())
+     *  minOffset: minimum offset for bound occurrences wrt source-occurrence
+     *  maxOffset: maximum offset for bound occurrences wrt source-occurrence (inclusive)
      */
     void bind(CQueryTokenNode *node_, const CQOccurrenceIterator &src, int minOffset, int maxOffset);
 
-    /** assignment operator */
+    /* assignment operator */
     inline CQOccurrenceIterator& operator=(const CQOccurrenceIterator &b)
     {
         node = b.node;
@@ -526,7 +526,7 @@ struct CQOccurrenceIterator {
         return *this;
     };
 
-    /** node-assignment */
+    /* node-assignment */
     inline void assign(CQueryNode *node_)
     {
         node  = node_;
@@ -543,23 +543,23 @@ struct CQOccurrenceIterator {
         return *this;
     };
 
-    /** test whether iterator is valid */
+    /* test whether iterator is valid */
     inline bool valid() const
     { return cur < cnt; };
 
-    /** invalidate iterator */
+    /* invalidate iterator */
     inline void invalidate()
     { cur = cnt; };
 
-    /** bool typecast just wraps valid() */
+    /* bool typecast just wraps valid() */
     inline operator bool() const
     { return valid(); };
 
-    /** get size of current occurrence-chunk; assumes iterator is valid */
+    /* get size of current occurrence-chunk; assumes iterator is valid */
     inline size_t chunksize() const
     {  return node->m_ChunkLengths[chpos]; };
 
-    /* get token-id for occurrence-id \a occ */
+    /* get token-id for occurrence-id occ */
     inline CTokenNo tocc(uint32_t occ) const
     { return node->m_Occurrences[occ]; };
         
@@ -589,11 +589,11 @@ struct CQOccurrenceIterator {
         while (valid() && tmin() < Tok) operator++();
     };
 
-    /* equality operator tests whether calling object and argument \a b point to exactly the same tokens */
+    /* equality operator tests whether calling object and argument b point to exactly the same tokens */
     bool operator==(const CQOccurrenceIterator &b) const;
 };
 
-/**
+/*
  * DDC_OCCITER_LB_COEF
  *  + minimum coefficient for deciding between linear increment and lower_bound() on CQTokenOccurrenceIterator::seek()
 //  + heuristic for approximating number of linear-search ops per binary-search visitation (empirically set to 4)
@@ -603,39 +603,39 @@ struct CQOccurrenceIterator {
 */
 #define DDC_OCCITER_LB_COEF 4
 
-/*!
- * \brief CQTokenOccurrenceIterator (formerly CQNearEvalItem) is used to iterate over query occurrences;
+/*
+ * CQTokenOccurrenceIterator (formerly CQNearEvalItem) is used to iterate over query occurrences;
  *  + used by phrase ("") queries, appropriate for iterating over single-token query nodes
  *    (assumes all node->m_ChunkLengths[i]==1)
  *  + disregards chpos
  */
 struct CQTokenOccurrenceIterator : public CQOccurrenceIterator
 {
-    uint32_t stride; ///< average number of tokens between occurrences in node
+    uint32_t stride; // average number of tokens between occurrences in node
         
-    /** default constructor */
+    /* default constructor */
     CQTokenOccurrenceIterator(CQueryNode *node_=NULL)
     { assign(node_); };
 
-    /** copy constructor */
+    /* copy constructor */
     CQTokenOccurrenceIterator(const CQTokenOccurrenceIterator &b)
     { operator=(b); };
 
     virtual ~CQTokenOccurrenceIterator() {};
     
-    /**
-     *  Create an iterator bound to the neighbors of \a src, used to avoid expensive EvaluateWithoutHits() for universal sub-queries as near() arguments.
-     *  Destructively alters \a node_->m_Occurrences[] (and associated vectors).
-     *  Generates a "bound" occurence in \a node_->m_Occurrences[] for each source-occurence <code>occi = src.node->m_Occurrences[i]</code>
-     *  and each offset \a off with <code>minOffset <= off <= maxOffset</code> representing token <code>*occi + off</code>, modulo <code>off==0</code>.
-     *  @param node_ universal wildcard node in which to create bound occurrences.
-     *  @param src source iterator to use for occurrence generation (should already have been populated by EvaluateWithoutHits())
-     *  @param minOffset minimum offset for bound occurrences wrt source-occurrence
-     *  @param maxOffset maximum offset for bound occurrences wrt source-occurrence (inclusive)
+    /*
+     *  Create an iterator bound to the neighbors of src, used to avoid expensive EvaluateWithoutHits() for universal sub-queries as near() arguments.
+     *  Destructively alters node_->m_Occurrences[] (and associated vectors).
+     *  Generates a "bound" occurence in node_->m_Occurrences[] for each source-occurence <code>occi = src.node->m_Occurrences[i]</code>
+     *  and each offset off with <code>minOffset <= off <= maxOffset</code> representing token <code>*occi + off</code>, modulo <code>off==0</code>.
+     *  node_: universal wildcard node in which to create bound occurrences.
+     *  src: source iterator to use for occurrence generation (should already have been populated by EvaluateWithoutHits())
+     *  minOffset: minimum offset for bound occurrences wrt source-occurrence
+     *  maxOffset: maximum offset for bound occurrences wrt source-occurrence (inclusive)
      */
     void bind(CQueryTokenNode *node_, const CQTokenOccurrenceIterator &src, int minOffset, int maxOffset);
 
-    /** assignment operator */
+    /* assignment operator */
     inline CQTokenOccurrenceIterator& operator=(const CQTokenOccurrenceIterator &b)
     {
         CQOccurrenceIterator::operator=(b);
@@ -644,7 +644,7 @@ struct CQTokenOccurrenceIterator : public CQOccurrenceIterator
     };
 
 
-    /** node-assignment : inherited */
+    /* node-assignment : inherited */
     inline void assign(CQueryNode *node_)
     {
         CQOccurrenceIterator::assign(node_);
@@ -662,7 +662,7 @@ struct CQTokenOccurrenceIterator : public CQOccurrenceIterator
     //inline bool valid() const
     //inline operator bool() const
         
-    /** get size of current occurrence-chunk: override */
+    /* get size of current occurrence-chunk: override */
     inline size_t chunksize() const
     { return 1; };
 
@@ -699,7 +699,7 @@ struct CQTokenOccurrenceIterator : public CQOccurrenceIterator
         }
     };
 
-    /* equality operator tests whether calling object and argument \a b point to exactly the same tokens : override */
+    /* equality operator tests whether calling object and argument b point to exactly the same tokens : override */
     inline bool operator==(const CQTokenOccurrenceIterator &b) const
     {
         return node->m_Occurrences[cur] == b.node->m_Occurrences[b.cur];
@@ -707,7 +707,7 @@ struct CQTokenOccurrenceIterator : public CQOccurrenceIterator
 };
 
 //----------------------------------------------------------------------
-/** compute the set of types \c WordForms which may share a lemma with \c src in language \c Langua.
+/* compute the set of types WordForms which may share a lemma with src in language Langua.
  *
  *  The underlying CLemmatizer should handle transcoding of user queries transparently, assuming you
  *  called CLemmatizer::initIconv() with the appropriate encoding arguments.

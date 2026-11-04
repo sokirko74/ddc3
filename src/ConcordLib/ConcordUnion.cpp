@@ -33,7 +33,7 @@ bool CConcIndexator::CreateAsUnion(vector<CConcIndexator* > &X, bool inheritOpti
     // populate: options (unless explicitly disabled by user)
     if (inheritOptions) {
         ddcLogInfo(logname + ": inheriting options from " + path);
-        //ddcLogTrace(logname+": options =\n"+X[0].SaveOptionsToString());
+        //ddcLogTrace(logname+": options ="+X[0].SaveOptionsToString());
         LoadOptionsFromString(X[0]->SaveOptionsToString());
         ddcLogInfo(logname + ": saving options to " + MakeFName(m_Path, "opt"));
         if (!SaveOptions(m_Path))

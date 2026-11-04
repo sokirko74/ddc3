@@ -6,51 +6,51 @@
 
 //==============================================================================
 
-/** default delays for CDDCServerStats exponential moving averages */
+/* default delays for CDDCServerStats exponential moving averages */
 //#define DDC_SERVER_EMA_DELAYS 60,300,900  /* load-average style: 1,5,15 minutes*/
 #define DDC_SERVER_EMA_DELAYS 300,900,3600  /* long window: 5,15,60 minutes */
 
-/** generic class for tracking server statistics */
+/* generic class for tracking server statistics */
 struct CDDCServerStats
 {
     //--------------------------------------------------------------
     // Counters
 
-    /** number of served requests */
+    /* number of served requests */
     size_t m_nRequests; 
 
-    /** number of serverd QUERY requests (run_query or get_first_hits only) */
+    /* number of serverd QUERY requests (run_query or get_first_hits only) */
     size_t m_nQueries;
 
-    /** number of serverd EXXPAND requests (expand_terms only) */
+    /* number of serverd EXXPAND requests (expand_terms only) */
     size_t m_nExpand;
 
-    /** number of errors */
+    /* number of errors */
     size_t m_nErrors;
 
-    /** number of slow requests */
+    /* number of slow requests */
     size_t m_nSlow;
 
-    /** average query times over fixed interval (exponential moving averages at 5,15,60 minutes) */
+    /* average query times over fixed interval (exponential moving averages at 5,15,60 minutes) */
     DDCTimeAvg m_qTimes;
 
-    /** average expansion times over fixed interval (exponential moving averages at 5,15,60 minutes) */
+    /* average expansion times over fixed interval (exponential moving averages at 5,15,60 minutes) */
     DDCTimeAvg m_xTimes;
 
     //--------------------------------------------------------------
     // Constructors etc.
 
-    /** default constructor */
+    /* default constructor */
     CDDCServerStats()
         : m_nRequests(0), m_nQueries(0), m_nExpand(0), m_nErrors(0), m_nSlow(0), m_qTimes(DDC_SERVER_EMA_DELAYS), m_xTimes(DDC_SERVER_EMA_DELAYS)
     {};
 
-    /** copy constructor */
+    /* copy constructor */
     CDDCServerStats(const CDDCServerStats& x)
         : m_nRequests(x.m_nRequests), m_nQueries(x.m_nQueries), m_nExpand(x.m_nExpand), m_nErrors(x.m_nErrors), m_nSlow(x.m_nSlow), m_qTimes(x.m_qTimes), m_xTimes(x.m_xTimes)
     {};
 
-    /** reset to zero */
+    /* reset to zero */
     inline void clear()
     {
         m_nRequests = 0;
@@ -65,10 +65,10 @@ struct CDDCServerStats
     //--------------------------------------------------------------
     // Operators
 
-    /** add counters to calling object */
+    /* add counters to calling object */
     CDDCServerStats& operator+=(const CDDCServerStats& x);
 
-    /** constructive addition */
+    /* constructive addition */
     inline CDDCServerStats operator+(const CDDCServerStats &x) const
     { return CDDCServerStats(*this) += x; };
 };

@@ -9,7 +9,7 @@ using namespace std;
 // globals
 
 //==============================================================================
-//! comparison operator for hits on CHit::m_FileNo (for std::sort)
+// comparison operator for hits on CHit::m_FileNo (for std::sort)
 struct IsLessByHitFileNo {
     const vector<CHit> &m_Base;
     

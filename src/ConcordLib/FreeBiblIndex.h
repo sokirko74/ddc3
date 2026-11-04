@@ -10,7 +10,7 @@
 #include "../CommonLib/ddcStringEnum.h"
 #include "../PCRE/pcre_rml.h"
 
-/*! enum for CFreeBiblIndex subtypes */
+/* enum for CFreeBiblIndex subtypes */
 typedef enum {
     cfbiUnknown,
     cfbiInteger,
@@ -34,19 +34,19 @@ protected:
     std::string GetIndexFileName(std::string Path) const;
 
 public:
-    //! the name of the index (from options file)
+    // the name of the index (from options file)
     std::string m_Name;
 
-    //! the XPath to this information (from  options file)
+    // the XPath to this information (from  options file)
     std::string m_Xpath;
 
-    //! integer references to m_Values for each corpus file
+    // integer references to m_Values for each corpus file
     ddcVecFile<uint32_t> m_ValuesForEachFile;
 
-    //! should DDC show this field for each header?
+    // should DDC show this field for each header?
     bool m_bShowInHeader;
 
-    //! regex options
+    // regex options
     RML_RE::Options *m_pRegexOpts;
 
 public:
@@ -80,36 +80,36 @@ public:
 
     virtual const std::string &GetXpathStr() const;
 
-    //! return bibl-field subtype identifier
+    // return bibl-field subtype identifier
     virtual CFreeBiblIndexTypeId GetTypeId() const;
 
-    //! initialize CDDCFilterWithBounds for a literal target or regex value (default treats Value as integer string and sets range)
-    //! \param Filter filter to populate
-    //! \param LoValue lower bound value to seek (inclusive)
-    //! \param HiValue upper bound value to seek (exclusive)
+    // initialize CDDCFilterWithBounds for a literal target or regex value (default treats Value as integer string and sets range)
+    // Filter: filter to populate
+    // LoValue: lower bound value to seek (inclusive)
+    // HiValue: upper bound value to seek (exclusive)
     virtual bool GetFilterBounds(CDDCFilterWithBounds &Filter, const std::string &LoValue, const std::string &HiValue) const;
 
-    //! initialize CDDCFilterWithBounds for a literal target value (treats Value as integer string and sets singleton range)
-    //! \param Filter filter to populate
-    //! \param Value value to seek
-    //! \li formerly GetValueForDDCFilter() with isRegex==false (default)
+    // initialize CDDCFilterWithBounds for a literal target value (treats Value as integer string and sets singleton range)
+    // Filter: filter to populate
+    // Value: value to seek
+    // - formerly GetValueForDDCFilter() with isRegex==false (default)
     virtual bool GetFilterValue(CDDCFilterWithBounds &Filter, const std::string &Value) const;
 
-    //! initialize CDDCFilterWithBounds for a target regex (default throws errLogic)
-    //! \li formerly GetValueForDDCFilter() with isRegex==true
+    // initialize CDDCFilterWithBounds for a target regex (default throws errLogic)
+    // - formerly GetValueForDDCFilter() with isRegex==true
     virtual bool GetFilterValues(CDDCFilterWithBounds &Filter, const std::string &Regex) const;
 
-    //! initialize CDDCFilterWithBounds for a set of target values (default throws errLogic)
+    // initialize CDDCFilterWithBounds for a set of target values (default throws errLogic)
     virtual bool GetFilterValues(CDDCFilterWithBounds &Filter, const std::set<std::string> &Values) const;
 
-    //! test whether a given file matches the filter condition (for count(*) queries)
+    // test whether a given file matches the filter condition (for count(*) queries)
     virtual bool FileMatches(uint32_t FileNo, const CDDCFilterWithBounds &Filter) const;
 
-    //! for server info
+    // for server info
     virtual size_t size(void) const { return 0; };
 
-    //! for key-based pruning (v2.1.9): map a single value-string to its value-id
-    //! \li default implementation just calls hex2int(Value)
+    // for key-based pruning (v2.1.9): map a single value-string to its value-id
+    // - default implementation just calls hex2int(Value)
     virtual uint32_t GetIntegerLowerBound(const std::string &Value) const;
 };
 
@@ -129,14 +129,14 @@ protected:
 
     };
 
-    //! a list  that is used during building  this  bibl-index
-    //! v2.2.2 : replace with map<>
+    // a list  that is used during building  this  bibl-index
+    // v2.2.2 : replace with map<>
     //list<CStringItem> m_BuildStringItems;
     typedef std::map<std::string,uint32_t> BuildStringItemsMapT;
     BuildStringItemsMapT m_BuildStringItemsMap;
     size_t m_BuildStringItemsSize;
     
-    //! a set of all possible string values for this index
+    // a set of all possible string values for this index
     //vector<string>            m_Values;
     ddcStringEnum<> m_ValuesE;
 
@@ -174,29 +174,29 @@ public:
 
     virtual bool ConvertAndSaveToDiskAfterIndexing(std::string Path);
 
-    //! initialize CDDCFilterWithBounds for a literal target or regex value (default treats Value as integer string and sets range)
-    //! \param Filter filter to populate
-    //! \param LoValue lower bound value to seek (inclusive)
-    //! \param HiValue upper bound value to seek (exclusive)
+    // initialize CDDCFilterWithBounds for a literal target or regex value (default treats Value as integer string and sets range)
+    // Filter: filter to populate
+    // LoValue: lower bound value to seek (inclusive)
+    // HiValue: upper bound value to seek (exclusive)
     virtual bool GetFilterBounds(CDDCFilterWithBounds &Filter, const std::string &LoValue, const std::string &HiValue) const;
 
-    //! initialize CDDCFilterWithBounds for a literal target value (default treats Value as integer string and sets singleton range)
-    //! \param Filter filter to populate
-    //! \param Value value to seek
-    //! \li formerly GetValueForDDCFilter() with isRegex==false (default)
+    // initialize CDDCFilterWithBounds for a literal target value (default treats Value as integer string and sets singleton range)
+    // Filter: filter to populate
+    // Value: value to seek
+    // - formerly GetValueForDDCFilter() with isRegex==false (default)
     virtual bool GetFilterValue(CDDCFilterWithBounds &Filter, const std::string &Value) const;
 
-    //! initialize CDDCFilterWithBounds for a target regex
-    //! \li formerly GetValueForDDCFilter() with isRegex==true
+    // initialize CDDCFilterWithBounds for a target regex
+    // - formerly GetValueForDDCFilter() with isRegex==true
     virtual bool GetFilterValues(CDDCFilterWithBounds &Filter, const std::string &Regex) const;
 
-    //! initialize CDDCFilterWithBounds for a set of target values (default throws errLogic)
+    // initialize CDDCFilterWithBounds for a set of target values (default throws errLogic)
     virtual bool GetFilterValues(CDDCFilterWithBounds &Filter, const std::set<std::string> &Values) const;
 
-    //! for server info
+    // for server info
     virtual size_t size(void) const { return m_ValuesE.size(); };
 
-    //! for key-based pruning (v2.1.9): map a single value-string to its value-id
+    // for key-based pruning (v2.1.9): map a single value-string to its value-id
     virtual uint32_t GetIntegerLowerBound(const std::string &Value) const;
 };
 

@@ -13,55 +13,55 @@ typedef std::vector<std::string>          CQSubcorpusList;
 typedef std::list<std::string>            CQCommentList;
 
 //======================================================================
-/*!
-  \brief root-level query options (filters and flags)
+/*
+  root-level query options (filters and flags)
 */
 class CQueryOptions : public ddcObject {
 public:
-    //! how many hits of the left and right context should be output (must be &lt;= m_MaxContextSentencesCount)
+    // how many hits of the left and right context should be output (must be &lt;= m_MaxContextSentencesCount)
     size_t m_ContextSentencesCount;
 
     // if true, DDC shows file names, instead of bibliographical information for this query
-    //! (CConcIndexator::m_bOutputBibliographyOfHits is default value for outputting bibliography
+    // (CConcIndexator::m_bOutputBibliographyOfHits is default value for outputting bibliography
     bool m_bEnableBibliography;
   
-    //! if true, DDC initializes CHit::m_DebugRank
+    // if true, DDC initializes CHit::m_DebugRank
     bool m_bDebugRank;
 
-    //! whether to return a separate hit for each occurrence, or collect into distinct instances of the selected container (sentence)
-    //! default=false; used by CQueryNode::Evaluate()
+    // whether to return a separate hit for each occurrence, or collect into distinct instances of the selected container (sentence)
+    // default=false; used by CQueryNode::Evaluate()
     bool m_bSeparateHits;
 
-    //! the index of text area where DDC should perform the input query
+    // the index of text area where DDC should perform the input query
     int m_TextAreaNo;
 
-    //! list of all '#WITHIN' arguments (break collections or text areas) from currently parsed query 
+    // list of all '#WITHIN' arguments (break collections or text areas) from currently parsed query 
     std::vector<std::string> m_Within;
 
-    //! the break collection name which should be used while querying
+    // the break collection name which should be used while querying
     std::string m_HitTypeStr;
   
-    //! (abstract) filters and sort operators which should be applied to the resulted hit set
+    // (abstract) filters and sort operators which should be applied to the resulted hit set
     CQFilterList m_QFilters;
 
-    //! (runtime) filters and sort operators which should be applied to the resulted hit set (available after Compile())
+    // (runtime) filters and sort operators which should be applied to the resulted hit set (available after Compile())
     std::vector<CDDCFilterWithBounds> m_Filters; 
 
-    //! selected subcorpora for this query
+    // selected subcorpora for this query
     CQSubcorpusList m_Subcorpora;
 
-    //! user comments for this query (#CMT[comment text])
+    // user comments for this query (#CMT[comment text])
     CQCommentList m_Comments;
 
-    //! lexer comments for this query (#[lexer comment], #:line comment)
+    // lexer comments for this query (#[lexer comment], #:line comment)
     CQCommentList m_LexerComments;
 
 public:
     //------------------------------------------------------------
-    ///\name Constructors etc.
-    //@{
+    // Constructors etc.
+    //
 
-    //! Default constructor
+    // Default constructor
     CQueryOptions()
         : 
         m_ContextSentencesCount(0),
@@ -72,16 +72,16 @@ public:
         m_HitTypeStr("")
     {};
 
-    //! Default destructor; calls Clear
+    // Default destructor; calls Clear
     virtual ~CQueryOptions(void);
 
-    //! swap options
+    // swap options
     void swap(CQueryOptions &x);
 
-    //! assign options (copies filter list if \a deep is true)
+    // assign options (copies filter list if deep is true)
     void assign(const CQueryOptions &src, bool deep=true);
 
-    //! clone object (wraps new() and assign())
+    // clone object (wraps new() and assign())
     inline CQueryOptions* Clone(void) const
     {
         CQueryOptions *clone = new CQueryOptions();
@@ -89,55 +89,55 @@ public:
         return clone;
     };
 
-    //! "safe" clone, used by CQFPrune (wraps new() and assign(*this,false))
+    // "safe" clone, used by CQFPrune (wraps new() and assign(*this,false))
     inline CQueryOptions* SafeClone()
     {
         CQueryOptions *clone = new CQueryOptions();
         clone->assign(*this,false);
         return clone;
     };
-    //@}
+    //
 
 public:
     //------------------------------------------------------------
-    ///\name CQueryOptions API
-    //@{
+    // CQueryOptions API
+    //
 
-    //! Run optional fast unsatisfiability checks for query before Compile() is called
+    // Run optional fast unsatisfiability checks for query before Compile() is called
     virtual bool CheckSatisfiable(CQueryCompiler *compiler);
     
-    //! Compile index-dependent filter properties (required for evaluation)
+    // Compile index-dependent filter properties (required for evaluation)
     virtual bool Compile(CQueryCompiler *compiler);
 
-    //! clear options.
+    // clear options.
     virtual void Clear();
 
-    //! clear comments
+    // clear comments
     void ClearComments();
 
-    //! returns true iff all defined filters are file-based (for optimized count(*) evaluation)
+    // returns true iff all defined filters are file-based (for optimized count(*) evaluation)
     bool CanFilterByFile() const;
 
-    //! returns true iff all defined filters are trivial (i.e. do not change default hit-sort order)
+    // returns true iff all defined filters are trivial (i.e. do not change default hit-sort order)
     bool IsTrivialFilter() const;
 
-    //! returns a pointer (into m_QFilters) to the primary sort-filter, or NULL if no sort-filters are defined
+    // returns a pointer (into m_QFilters) to the primary sort-filter, or NULL if no sort-filters are defined
     CQFilter *PrimarySortFilter() const;
 
-    //! returns true iff the primary sort-filter is prune-filter
+    // returns true iff the primary sort-filter is prune-filter
     bool IsPruneFilter() const;
-    //@}
+    //
 
 public:
     //------------------------------------------------------------
-    ///\name ddcObject API
-    //@{
+    // ddcObject API
+    //
     virtual ddcObjectList Children() const;
     virtual void DisownChildren();
     virtual std::string toString();
     virtual std::string jsonClass() { return "CQueryOptions"; };
     virtual std::string jsonData();
-    //@}
+    //
 };
 
 #endif /* DDC_QUERY_OPTIONS_H */

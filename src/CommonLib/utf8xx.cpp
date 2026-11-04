@@ -44,7 +44,7 @@ static const char trailingBytesForUTF8[256] = {
     2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2, 3,3,3,3,3,3,3,3,4,4,4,4,5,5,5,5
 };
 
-/** returns length of next utf-8 sequence */
+/* returns length of next utf-8 sequence */
 int u8_seqlen(const utf8str &s, size_t i)
 {
     return trailingBytesForUTF8[(unsigned int)(unsigned char)s[i]] + 1;
@@ -79,7 +79,7 @@ size_t u8_toucs(ucs4str &dst, const utf8str &src)
     return nc;
 }
 
-/** convert UTF-8 byte string \c src to a new UCS-4 string */
+/* convert UTF-8 byte string src to a new UCS-4 string */
 ucs4str u8_toucs(const utf8str &src)
 {
     ucs4str dest;
@@ -132,7 +132,7 @@ utf8str u8_toutf8(const ucs4str &src)
     return dst;
 }
 
-/*-- moo: get number of bytes required for representing a wide character \a ch in UTF-8 --*/
+/*-- moo: get number of bytes required for representing a wide character ch in UTF-8 --*/
 size_t u8_wc_len(ucs4 ch)
 {
     if (ch < 0x80) return 1;
@@ -142,7 +142,7 @@ size_t u8_wc_len(ucs4 ch)
     return 0;  //-- bad char (?)
 }
 
-/*-- moo: get number of bytes required for representing a wide character string \a ws ch in UTF-8 --*/
+/*-- moo: get number of bytes required for representing a wide character string ws ch in UTF-8 --*/
 size_t u8_ws_len(const ucs4str &src)
 {
     size_t len=0;

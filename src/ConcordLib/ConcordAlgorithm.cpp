@@ -7,15 +7,15 @@ using namespace std;
 
 
 
-/*! CSortedList is a structure, which contains two integer references (to the begin and to the end of a list)
+/* CSortedList is a structure, which contains two integer references (to the begin and to the end of a list)
   The class provides a less operator (less by list size).
 */
 struct CSortedList : public pair<size_t, size_t>
 {
-    //! return the size of the list
+    // return the size of the list
     size_t size() const {return second - first;};
 
-    //! less operator (by list size)
+    // less operator (by list size)
     bool operator < (const CSortedList& X) const { return size() < X.size(); };
 };
 

@@ -201,7 +201,7 @@ void CQueryNode::SetHolder(const CConcHolder*   pHolder)
     m_bUseMatchIds    = m_pHolder->HasMatchIdOperator();
 }
 
-/**
+/*
  * DDC_GETBREAK_BINSEARCH_COEF
 //  + heuristic for approximating number of linear-search ops per binary-search visitation (empirically set to 8)
 //  + speeds up CQueryNode::ConvertOccurrencesToHits() by up to 45%
@@ -772,7 +772,7 @@ bool CQueryTokenNode::IsUniversalWildcard() const
 
 bool CQueryTokenNode::BuildRegExp(string RegExpStr, vector<uint32_t>& IndexItems, bool negated)
 {
-    //fprintf(stderr, "DEBUG: CQueryTokenNode::BuildRegExp(): /%s/\n", RegExpStr.c_str());
+    //fprintf(stderr, "DEBUG: CQueryTokenNode::BuildRegExp(): /%s/", RegExpStr.c_str());
     const CStringIndexSet*  IndexSet =  m_pHolder->m_pConcordance->GetIndexByAlias(m_IndexName);
     if (!IndexSet) return false;
 

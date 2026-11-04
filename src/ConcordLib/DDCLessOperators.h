@@ -3,10 +3,10 @@
 
 
 
-//! LessIndexString1 is a template  operator "less" for an \ref index_set_def "index set" (the first version)
-//! This less operator provides quite "normal" less and equal operators for stings. The only 
-//! difference is that the first compared item is obtained not by a pointer, but by an offset to 
-//! LessIndexString1::m_pBuffer.
+// LessIndexString1 is a template  operator "less" for an index_set_def "index set" (the first version)
+// This less operator provides quite "normal" less and equal operators for stings. The only 
+// difference is that the first compared item is obtained not by a pointer, but by an offset to 
+// LessIndexString1::m_pBuffer.
 template <class IndexType, typename VectorType=std::vector<char> >
 class LessIndexString1 : public std::binary_function<bool, const IndexType&, const char&> 
 {
@@ -18,7 +18,7 @@ public:
     {
         m_pBuffer = pBuffer;
     }  
-    //! operator less for strings
+    // operator less for strings
     bool  operator()(const IndexType& Ref, const char* S2) const
     {
         const char*  S1 = &((*m_pBuffer)[0]) + Ref.GetIndexItemOffset();
@@ -36,7 +36,7 @@ public:
         return strcmp(S1, S2) < 0;
     }
 
-    //! operator == for strings
+    // operator == for strings
     bool  are_equal(const IndexType& Ref, const char* S2) const
     {
         const char*  S1 = &((*m_pBuffer)[0]) + Ref.GetIndexItemOffset();
@@ -47,10 +47,10 @@ public:
 
 
 
-//! LessIndexString2 is a template  operator "less" for an \ref index_set_def "index set"(the second  version)
-//! This less operator provides quite "normal" less and greater operators for stings. The only 
-//! difference is that the compared items are obtained not by a pointer, but by an offset to 
-//! LessIndexString2::m_pBuffer1 and  LessIndexString2::m_pBuffer2 accordingly.
+// LessIndexString2 is a template  operator "less" for an index_set_def "index set"(the second  version)
+// This less operator provides quite "normal" less and greater operators for stings. The only 
+// difference is that the compared items are obtained not by a pointer, but by an offset to 
+// LessIndexString2::m_pBuffer1 and  LessIndexString2::m_pBuffer2 accordingly.
 template <class IndexType, typename VectorType=std::vector<char> >
 class LessIndexString2 : public std::binary_function<bool, const IndexType&, const IndexType&>
 {
@@ -64,7 +64,7 @@ public:
         m_pBuffer2 = (pBuffer2 != 0) ? pBuffer2 : pBuffer1;
     }  
 
-    //! operator less for strings
+    // operator less for strings
     bool  operator()(const IndexType& W1, const IndexType& W2) const
     {
         const char*  S1 = &((*m_pBuffer1)[0]) + W1.GetIndexItemOffset();
@@ -72,7 +72,7 @@ public:
         return strcmp(S1, S2) < 0;
     }
 
-    //! operator greater for strings
+    // operator greater for strings
     bool  Greater(const IndexType& W1, const IndexType& W2) const
     {
         const char*  S1 = &((*m_pBuffer1)[0]) + W1.GetIndexItemOffset();

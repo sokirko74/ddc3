@@ -6,44 +6,44 @@
 
 //======================================================================
 // ddcStringEnum
-/** convenience wrapper for file-based integer<->string mappings */
+/* convenience wrapper for file-based integer<->string mappings */
 template <typename OffT_=uint32_t>
 class ddcStringEnum
 {
 public:
     //----------------------------------------------------------
     // typedefs
-    typedef OffT_  OffT; ///< typedef for offset values
-    typedef uint32_t  IdT;  ///< typedef for integer IDs
+    typedef OffT_  OffT; // typedef for offset values
+    typedef uint32_t  IdT;  // typedef for integer IDs
 
 public:
     //----------------------------------------------------------
     // data
-    ddcVecFile<char>  m_cdata;    ///< underlying character data
-    ddcVecFile<OffT>  m_offsets;  ///< offsets in m_cdata[] of NUL-terminated item strings; associated strings must be sorted in lexicographic order
-    std::vector<std::string>    m_strings;  ///< backwards-compatible vector<string> implementation, for read/write access
+    ddcVecFile<char>  m_cdata;    // underlying character data
+    ddcVecFile<OffT>  m_offsets;  // offsets in m_cdata[] of NUL-terminated item strings; associated strings must be sorted in lexicographic order
+    std::vector<std::string>    m_strings;  // backwards-compatible vector<string> implementation, for read/write access
 
-    size_t            m_bufsize;  ///< buffer size for fallback loading (default=20000: old value for MaxBiblStringLen from Bibliography.cpp)
+    size_t            m_bufsize;  // buffer size for fallback loading (default=20000: old value for MaxBiblStringLen from Bibliography.cpp)
 
 public:
     //----------------------------------------------------------
     // constructors etc.
 
-    /// default constructor
+    // default constructor
     ddcStringEnum()
         : m_bufsize(20000)
     {};
 
-    /// construct and open
+    // construct and open
     ddcStringEnum(const std::string& cdataFile, const std::string& offsetsFile, const std::string& fallbackFile="", bool useMMap=false)
         : m_bufsize(20000)
     { open(cdataFile,offsetsFile,fallbackFile,useMMap); };
 
-    /// default destructor calls close()
+    // default destructor calls close()
     ~ddcStringEnum()
     { close(); };
 
-    /// clear() method wraps close()
+    // clear() method wraps close()
     inline void clear()
     { close(); };
 
@@ -51,15 +51,15 @@ public:
     //----------------------------------------------------------
     // accessors & properties
 
-    /// returns the number of enumerated strings
+    // returns the number of enumerated strings
     inline size_t size() const
     { return m_offsets ? m_offsets.size() : m_strings.size(); };
 
-    /// STL-esque wrapper
+    // STL-esque wrapper
     inline bool empty() const
     { return m_offsets ? m_offsets.empty() : m_strings.empty(); };
 
-    /// check whether the object is opened
+    // check whether the object is opened
     inline bool opened() const
     { return m_offsets.opened() || !m_strings.empty(); };
 
@@ -67,25 +67,25 @@ public:
     //----------------------------------------------------------
     // typecast operators
 
-    /// implicit typecast to bool
+    // implicit typecast to bool
     inline operator bool() const
     { return opened(); };
     
-    /// indexing operator
+    // indexing operator
     inline const char* operator[](size_t idx) const
     { return m_offsets ? (m_cdata.m_data+m_offsets.m_data[idx]) : m_strings[idx].c_str(); };
 
     //----------------------------------------------------------
     // read/write access (auto-demote)
 
-    /// simulate vector::push_back(): used by indexing routines
+    // simulate vector::push_back(): used by indexing routines
     inline void push_back(const std::string& value)
     {
         ensureVec();
         m_strings.push_back(value);
     };
 
-    /// populate \a v with an equivalent vector-implementation (for compile-time compatibility)
+    // populate v with an equivalent vector-implementation (for compile-time compatibility)
     void to_vector(std::vector<std::string>& v) const
     {
         ClearVector(v);
@@ -98,7 +98,7 @@ public:
         }
     };
     
-    /// force vector-implementation
+    // force vector-implementation
     inline void ensureVec()
     {
         if (m_offsets) {
@@ -114,7 +114,7 @@ public:
     // search
 
 
-    /// constant returned by string-to-id search methods indicating no match was found
+    // constant returned by string-to-id search methods indicating no match was found
     //-- numeric_limits<>::max():
     // + g++ 5.4.0 (ubuntu 16.04.3 / kira) chokes on initialization via std::numeric_limits<IdT>::max() with:
     //   "error: a function call cannot appear in a constant-expression"
@@ -122,7 +122,7 @@ public:
     //static const IdT NO_ID = std::numeric_limits<IdT>::max();
     static const IdT NO_ID = UINT32_MAX;
 
-    /// comparison helper struct for string-to-id search
+    // comparison helper struct for string-to-id search
     struct IdKeyLess {
         const char *m_buf;
 
@@ -140,7 +140,7 @@ public:
         { return key < (m_buf+off); };
     };
 
-    /// returns id of lower-bound for \a key, or NO_ID if not found
+    // returns id of lower-bound for key, or NO_ID if not found
     IdT lower_bound(const std::string& key) const
     {
         if (m_offsets) {
@@ -155,7 +155,7 @@ public:
         return NO_ID;
     };
 
-    /// returns id of upper-bound for \a key, or NO_ID if not found
+    // returns id of upper-bound for key, or NO_ID if not found
     inline IdT upper_bound(const std::string& key) const
     {
         if (m_offsets) {
@@ -170,7 +170,7 @@ public:
         return NO_ID;
     };
 
-    /// returns id of \a key, or NO_ID if not found; wraps lower_bound()
+    // returns id of key, or NO_ID if not found; wraps lower_bound()
     inline IdT find(const std::string& key) const
     {
         IdT lbid = lower_bound(key);
@@ -181,7 +181,7 @@ public:
     //----------------------------------------------------------
     // guts
 
-    /// map a named file \a filename
+    // map a named file filename
     ddcStringEnum& open(const std::string& cdataFile, const std::string& offsetsFile, const std::string& fallbackFile, bool useMMap=false)
     {
         if (opened()) close();
@@ -201,7 +201,7 @@ public:
         return *this;
     };
 
-    /// open in compatibility-mode; lifted from CConcXml::CFreeBiblStringIndex::ReadBiblStringItems (vector<string>&  Set, string FileName)
+    // open in compatibility-mode; lifted from CConcXml::CFreeBiblStringIndex::ReadBiblStringItems (vector<string>&  Set, string FileName)
     void openCompat(const std::string& filename)
     {
         if (opened()) close();
@@ -220,7 +220,7 @@ public:
         fclose(fp);
     };
 
-    /// unmap current file(s), if any
+    // unmap current file(s), if any
     void close()
     {
         m_cdata.close();

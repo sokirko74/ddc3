@@ -62,8 +62,8 @@ static void dumpHitIndex(const std::string &IndexLabel, const vector<size_t> &Hi
 }
 
 //==============================================================================
-//! indirect comparison operator for hits on CHit::m_SortKey.i (for std::sort); replaces IsLessByHitOrderId .
-//! \li true string-based sorting occurs only at distributed server level
+// indirect comparison operator for hits on CHit::m_SortKey.i (for std::sort); replaces IsLessByHitOrderId .
+// - true string-based sorting occurs only at distributed server level
 struct IsLessByHitSortKey {
     const vector<CHit> &m_Base;
 
@@ -76,8 +76,8 @@ struct IsLessByHitSortKey {
 };
 
 //==============================================================================
-//! indirect comparison operator for hits on CHit::m_SortKey.s (for std::sort); replaces IsLessByHitOrderId .
-//! \li true string-based sorting occurs only at distributed server level
+// indirect comparison operator for hits on CHit::m_SortKey.s (for std::sort); replaces IsLessByHitOrderId .
+// - true string-based sorting occurs only at distributed server level
 struct IsLessByHitSortKeyStr {
     const vector<CHit> &m_Base;
 
@@ -276,7 +276,7 @@ CConcSession *CConcSession::WorkerClone(size_t WorkerId) {
     //clone->m_ShortOccurCaches = m_ShortOccurCaches;
     //clone->m_QueryResultStr = m_QueryResultStr;
     //clone->m_ErrorStr = m_ErrorStr;
-    clone->m_pConcordance = m_pConcordance;                //!!!!!!!! hic sunt dracones !!!!!!!
+    clone->m_pConcordance = m_pConcordance;                //!!!!!!! hic sunt dracones !!!!!!!
     //clone->m_ResultOffset = m_ResultOffset;
     //clone->m_ResultLimit = m_ResultLimit;
     //clone->m_ResultMinKey = m_ResultMinKey;
@@ -686,7 +686,7 @@ bool CConcSession::GetContextJson(int StartBreakNo, int EndBreakNo, const uint32
             }
             if (!js.empty()) js.push_back(',');
             js += BuildJsonContextString(Tokens, true);
-#else //!defined(DDC_JSON_DEEP_CONTEXT)
+#else //defined(DDC_JSON_DEEP_CONTEXT)
             if (!GetTokensFromStorageByBreak(m_pConcordance->m_IndicesToShow[0], BreakNo, Tokens)) {
                 ErrorMessage(Format("Cannot get sentence: BreakNo=%i,BreakEndTokenNo=%i,  FileNo=%i\n", BreakNo, B,
                                     CurrFileNo));
@@ -1875,7 +1875,7 @@ DDCErrorEnum CConcSession::GetAllHits(CQuery *QueryRoot, size_t Start, size_t Li
                     rc = errTimeoutElapsed;
                     break;
                 }
-                //printf ("one period time=%i, left time =%i\n", curr_time-last_time, m_QueryEndTime - curr_time);
+                //printf ("one period time=%i, left time =%i", curr_time-last_time, m_QueryEndTime - curr_time);
                 last_time = curr_time;
             }
         }

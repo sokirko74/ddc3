@@ -7,31 +7,31 @@
 extern const BYTE DefaultMatchId;
 
 //======================================================================
-/*!
-  \brief
+/*
+  
   Truly abstract (index-independent) representation of a parsed query
-  \detail
+  
   Should eventually replace old ad-hoc QueryNode.h 
 */
 class CQuery : public ddcObject {
 public:
-    //! arbitrary name for this query node (e.g. string from which it was parsed)
+    // arbitrary name for this query node (e.g. string from which it was parsed)
     std::string m_Label;
 
-    //! associated query compiler (only set on Compile())
+    // associated query compiler (only set on Compile())
     CQueryCompiler *m_Compiler;
 
-    //! underlying CQueryNode (DDC-v1.x API)
+    // underlying CQueryNode (DDC-v1.x API)
     CQueryNode *m_Node;
 
-    //! root-level options (root queries only)
+    // root-level options (root queries only)
     CQueryOptions *m_Options;
 
 public:
     //------------------------------------------------------------
-    ///\name Constructors etc.
-    //@{
-    //! Default constructor
+    // Constructors etc.
+    //
+    // Default constructor
     CQuery(const std::string &label=std::string(""))
         : m_Label(label),
           m_Compiler(NULL),
@@ -39,117 +39,117 @@ public:
           m_Options(NULL)
     {};
 
-    //! Default destructor.
-    //! \li child classes should propagate deletion to daughter nodes
-    //! \li default implementation calls CQuery::Clear(true) [i.e. ClearNode() and ClearOptions()]
+    // Default destructor.
+    // - child classes should propagate deletion to daughter nodes
+    // - default implementation calls CQuery::Clear(true) [i.e. ClearNode() and ClearOptions()]
     virtual ~CQuery(void);
-    //@}
+    //
 
 public:
     //------------------------------------------------------------
-    ///\name API
-    //@{
-    //! Run fast (un)satisfiability checks for query before Compile() is called.
-    //! \li called via CQueryCompiler::CheckSatisfiable()
-    //! \li default implementation just wraps m_Options->CheckSatisfiable(compiler)
-    //! \returns false if this query is trivially unsatisfiable for \a compiler
+    // API
+    //
+    // Run fast (un)satisfiability checks for query before Compile() is called.
+    // - called via CQueryCompiler::CheckSatisfiable()
+    // - default implementation just wraps m_Options->CheckSatisfiable(compiler)
+    // returns false if this query is trivially unsatisfiable for compiler
     virtual bool CheckSatisfiable(CQueryCompiler *compiler);
     
-    //! Compile index-dependent query properties (required for evaluation).  Required.
-    //! \li called once per leaf-corpus query by CConcHolder::GetOccurrences() or CConcHolder::GetHits() via CQueryCompiler::Compile()
+    // Compile index-dependent query properties (required for evaluation).  Required.
+    // - called once per leaf-corpus query by CConcHolder::GetOccurrences() or CConcHolder::GetHits() via CQueryCompiler::Compile()
     virtual bool Compile(CQueryCompiler *compiler);
 
-    //! Compile index-dependent options in m_Options.  Optional.
-    //! \li compiler defaults to this->m_Compiler
+    // Compile index-dependent options in m_Options.  Optional.
+    // - compiler defaults to this->m_Compiler
     virtual bool CompileOptions(CQueryCompiler *compiler=NULL);
 
-    //! Wrapper for m_Node->Evaluate()
-    //! \li called once per leaf-corpus "search period" by CConcHolder::GetAllHits() via CQueryCompiler::Evaluate()
+    // Wrapper for m_Node->Evaluate()
+    // - called once per leaf-corpus "search period" by CConcHolder::GetAllHits() via CQueryCompiler::Evaluate()
     virtual void Evaluate();
 
-    //! For sanity checks.  Default just returns false.
+    // For sanity checks.  Default just returns false.
     virtual bool Negated() { return false; };
 
-    //! Toggle negation flag, returns new value.  Default throws an exception.
+    // Toggle negation flag, returns new value.  Default throws an exception.
     virtual bool Negate();
 
-    //! Get current match-id (should return a nontrivial match-id if any was used, else 0; default just returns 0)
+    // Get current match-id (should return a nontrivial match-id if any was used, else 0; default just returns 0)
     virtual BYTE GetMatchId() const;
 
-    //! Set match-id, returns new value.  Default throws an exception.
+    // Set match-id, returns new value.  Default throws an exception.
     virtual BYTE SetMatchId(BYTE matchId);
 
-    //! Returns true iff this query uses a nontrival match-id operator; default checks (this->GetMatchId() != 0)
+    // Returns true iff this query uses a nontrival match-id operator; default checks (this->GetMatchId() != 0)
     virtual bool HasMatchId() const;
 
-    //! Is this query an admissible root of a compiled parse tree (default returns !this->Negated())
+    // Is this query an admissible root of a compiled parse tree (default returns !this->Negated())
     virtual bool RootOK()
     { return !this->Negated(); };
-    //@}
+    //
 
     //------------------------------------------------------------
-    ///\name Object Substructure (ddcObject API)
-    //@{
-    //! get a list of direct non-NULL CQuery direct daughters of this node
-    //! \li default just returns an empty list
+    // Object Substructure (ddcObject API)
+    //
+    // get a list of direct non-NULL CQuery direct daughters of this node
+    // - default just returns an empty list
     virtual ddcObjectList Children() const;
 
-    //! "disown" any direct child nodes, preventing their destruction if the current object is deleted
-    //! \li default implementation does nothing
+    // "disown" any direct child nodes, preventing their destruction if the current object is deleted
+    // - default implementation does nothing
     virtual void DisownChildren();
-    //@}
+    //
 
     //------------------------------------------------------------
-    ///\name Stringification (ddcObject API & associated utilities)
-    //@{
-    //! \b DEBUG: return a canonical string form for this query (default just returns m_Label)
+    // Stringification (ddcObject API & associated utilities)
+    //
+    // DEBUG: return a canonical string form for this query (default just returns m_Label)
     virtual std::string toString() { return m_Label; };
 
-    //! \b DEBUG: return canonical option string
+    // DEBUG: return canonical option string
     virtual std::string optionsToString();
 
-    //! return json format option string
+    // return json format option string
     virtual std::string optionsToJson();
 
-    //! return a JSON representation of this query
-    //! \li default just returns this->toString()
-    //! \li JSON query structures relflect C++ class structures with an additional "class" key
+    // return a JSON representation of this query
+    // - default just returns this->toString()
+    // - JSON query structures relflect C++ class structures with an additional "class" key
     virtual std::string toJson() { return std::string("{\"class\":"+jsonStr(this->jsonClass())+","+this->jsonData()+"}"); };
     virtual std::string jsonClass() { return "CQuery"; };
     virtual std::string jsonData()  { return ""; };
-    //@}
+    //
 
     //------------------------------------------------------------
-    ///\name Misc Utilities
-    //@{
-    //! \li sets m_Compiler=compiler
-    //! \li throws an exception if compiler==NULL
-    //! \li calls CQuery::ClearNode()
+    // Misc Utilities
+    //
+    // - sets m_Compiler=compiler
+    // - throws an exception if compiler==NULL
+    // - calls CQuery::ClearNode()
     void SetCompiler(CQueryCompiler *compiler);
 
-    //! deletes m_Node if non-NULL
+    // deletes m_Node if non-NULL
     virtual void ClearNode();
 
-    //! deletes m_Options if non-NULL
+    // deletes m_Options if non-NULL
     virtual void ClearOptions();
 
-    //! clear query contents.  if \c deep is true, propagates operation to daughters
+    // clear query contents.  if deep is true, propagates operation to daughters
     virtual void Clear(bool deep=true);
 
-    //! set global query options ; deletes any pre-existing m_Options
+    // set global query options ; deletes any pre-existing m_Options
     virtual void SetOptions(CQueryOptions *opts);
-    //@}
+    //
 };
 
 //======================================================================
-//! CQNegatable: negatable queries
+// CQNegatable: negatable queries
 class CQNegatable : public CQuery {
 public:
-    //! whether this query is negated
+    // whether this query is negated
     bool m_Negated;
 
 public:
-    //! Default constructor
+    // Default constructor
     CQNegatable(const std::string &label=std::string(""), bool negated=false)
         : CQuery(label), m_Negated(negated)
     {};
@@ -159,16 +159,16 @@ public:
 
     virtual ~CQNegatable() {};
 
-    //! toggle negation flag; returns new value
+    // toggle negation flag; returns new value
     virtual bool Negate(void);
 
-    //! override returns current value of m_Negated
+    // override returns current value of m_Negated
     virtual bool Negated() { return m_Negated; };
 
-    //! string creation utility
+    // string creation utility
     virtual std::string NegString(const std::string &s);
 
-    //! override just calls m_Node->SetNegation(m_Negated)
+    // override just calls m_Node->SetNegation(m_Negated)
     virtual bool Compile(CQueryCompiler *compiler);
 
     //-- ddcObject API
@@ -177,10 +177,10 @@ public:
 };
 
 //======================================================================
-//! CQAtomic: atomic (sequencable) queries
+// CQAtomic: atomic (sequencable) queries
 class CQAtomic : public CQNegatable {
 public:
-    //! Default constructor
+    // Default constructor
     CQAtomic(const std::string &label=std::string(""), bool negated=false)
         : CQNegatable(label,negated)
     {};
@@ -195,16 +195,16 @@ public:
 // CQBinOp: Binary operations
 
 //------------------------------------------------------------
-//! binary operation (abstract)
+// binary operation (abstract)
 class CQBinOp : public CQNegatable {
 public:
-    //! first argument
+    // first argument
     CQuery *m_dtr1;
 
-    //! second argument
+    // second argument
     CQuery *m_dtr2;
 
-    //! convenience: operation name
+    // convenience: operation name
     std::string m_OpName;
 
 public:
@@ -212,22 +212,22 @@ public:
         : CQNegatable(opName,negated), m_dtr1(dtr1), m_dtr2(dtr2), m_OpName(opName)
     {};
 
-    //! destructor deletes daughters
+    // destructor deletes daughters
     virtual ~CQBinOp();
 
-    //! get match id: dtr2 > dtr1
+    // get match id: dtr2 > dtr1
     virtual BYTE GetMatchId() const;
 
-    //! override propagates matchId to daughters
+    // override propagates matchId to daughters
     virtual BYTE SetMatchId(BYTE matchId);
 
-    //! deletes associated daughter nodes (avoiding double-free)
+    // deletes associated daughter nodes (avoiding double-free)
     virtual void ClearNode();
 
-    //! clear query contents.  if \c deep is true, propagates operation to daughters
+    // clear query contents.  if deep is true, propagates operation to daughters
     virtual void Clear(bool deep=true);
 
-    //! compile the query
+    // compile the query
     virtual bool Compile(CQueryCompiler *compiler);
 
     //-- ddcObject API
@@ -239,7 +239,7 @@ public:
 };
 
 //------------------------------------------------------------
-//! logical conjunction
+// logical conjunction
 class CQAnd : public CQBinOp {
 public:
     CQAnd(CQuery *dtr1=NULL, CQuery *dtr2=NULL)
@@ -253,7 +253,7 @@ public:
 };
 
 //------------------------------------------------------------
-//! logical conjunction (implicit)
+// logical conjunction (implicit)
 class CQAndImplicit : public CQAnd {
 public:
     CQAndImplicit(CQuery *dtr1=NULL, CQuery *dtr2=NULL)
@@ -268,7 +268,7 @@ public:
 };
 
 //------------------------------------------------------------
-//! logical disjunction
+// logical disjunction
 class CQOr : public CQBinOp {
 public:
     CQOr(CQuery *dtr1=NULL, CQuery *dtr2=NULL)
@@ -282,11 +282,11 @@ public:
 };
 
 //------------------------------------------------------------
-//! 'WITH' query
+// 'WITH' query
 class CQWith : public CQBinOp {
 public:
-    //! match-id for highlighting (TODO: and context-sort reference)
-    //! initialized to 0; anything other than 0 is considered a non-trivial user-specified match-id
+    // match-id for highlighting (TODO: and context-sort reference)
+    // initialized to 0; anything other than 0 is considered a non-trivial user-specified match-id
     BYTE m_MatchId;
 
 public:
@@ -295,10 +295,10 @@ public:
     {};
     virtual ~CQWith() {};
 
-    //! get match id: local > dtr2 > dtr1
+    // get match id: local > dtr2 > dtr1
     virtual BYTE GetMatchId() const;
 
-    //! set local match-id ONLY
+    // set local match-id ONLY
     virtual BYTE SetMatchId(BYTE matchId);
 
     virtual bool Compile(CQueryCompiler *compiler);
@@ -310,7 +310,7 @@ public:
 };
 
 //------------------------------------------------------------
-//! 'WITHOUT' query
+// 'WITHOUT' query
 class CQWithout : public CQWith {
 public:
     CQWithout(CQuery *dtr1=NULL, CQuery *dtr2=NULL, BYTE matchId=0)
@@ -325,7 +325,7 @@ public:
 };
 
 //------------------------------------------------------------
-//! 'WITHOR' query
+// 'WITHOR' query
 class CQWithor : public CQWith {
 public:
     CQWithor(CQuery *dtr1=NULL, CQuery *dtr2=NULL, BYTE matchId=0)
@@ -344,17 +344,17 @@ public:
 // CQToken: single-token queries
 
 //------------------------------------------------------------
-//! single-token query (abstract)
+// single-token query (abstract)
 class CQToken : public CQAtomic {
 public:
-    //! name of index to be queried (default="" (->"Token"))
+    // name of index to be queried (default="" (->"Token"))
     std::string m_IndexName;
 
-    //! value to be searched for (default="")
+    // value to be searched for (default="")
     std::string m_Value;
 
-    //! match-id for highlighting (TODO: and context-sort reference)
-    //! initialized to 0; anything other than 0 is considered a non-trivial user-specified match-id
+    // match-id for highlighting (TODO: and context-sort reference)
+    // initialized to 0; anything other than 0 is considered a non-trivial user-specified match-id
     BYTE m_MatchId;
 
 public:
@@ -363,44 +363,44 @@ public:
     {};
     virtual ~CQToken() {};
 
-    //! get local match-id
+    // get local match-id
     virtual BYTE GetMatchId() const;
 
-    //! Set match-id, returns new value.  Override sets m_MatchId.
+    // Set match-id, returns new value.  Override sets m_MatchId.
     virtual BYTE SetMatchId(BYTE matchId);
 
-    //! Compile query.  Default implementation just calls CQueryTokenNode::CreateStringPattern(m_IndexName,m_Value)
+    // Compile query.  Default implementation just calls CQueryTokenNode::CreateStringPattern(m_IndexName,m_Value)
     virtual bool Compile(CQueryCompiler *compiler);
 
-    //! Compilation utility called by default Compile() method
-    //! \li SetCompiler() has already been called when this method runs
-    //! \li pNode = this->m_Node is the local CQueryTokenNode created for this query
-    //! \li default implementation just calls pNode->CreateStringPattern(m_IndexName,m_Value) 
+    // Compilation utility called by default Compile() method
+    // - SetCompiler() has already been called when this method runs
+    // - pNode = this->m_Node is the local CQueryTokenNode created for this query
+    // - default implementation just calls pNode->CreateStringPattern(m_IndexName,m_Value) 
     virtual bool Create(CQueryTokenNode *pNode);
 
-    //! Compilation utility: return query-operator key for use with CConcIndexator::m_OpDefaultIndexNames
+    // Compilation utility: return query-operator key for use with CConcIndexator::m_OpDefaultIndexNames
     virtual const char *OperatorKey(void) const { return "_"; };
 
-    //! Compilation utility: get long index name (requires non-NULL compiler), empty string is returned if not found
+    // Compilation utility: get long index name (requires non-NULL compiler), empty string is returned if not found
     std::string IndexName(const std::string& DefaultIndexName=std::string(""));
 
-    //! Compilation utility: get long break name (requires non-NULL compiler), empty string is returned if not found
+    // Compilation utility: get long break name (requires non-NULL compiler), empty string is returned if not found
     std::string BreakName(const std::string& DefaultBreakName=std::string(""));
 
-    //! Stringification utility for use by subclasses; returns string "$INDEX=" or empty
+    // Stringification utility for use by subclasses; returns string "$INDEX=" or empty
     virtual std::string IndexString(void);
 
-    //! Stringification utility for use by subclasses; default returns sqString(m_Value)
+    // Stringification utility for use by subclasses; default returns sqString(m_Value)
     virtual std::string ValueString(void);
 
-    //! Stringification utility for use by subclasses; default should be sensible
+    // Stringification utility for use by subclasses; default should be sensible
     virtual std::string MatchIdString(void);
 
     //-- ddcObject API & utilities
-    //! Default stringification: NegString(IndexString() + ValueString())
+    // Default stringification: NegString(IndexString() + ValueString())
     virtual std::string toString(void);
 
-    //! json stringification utility
+    // json stringification utility
     virtual std::string jsonValue(void);
 
     virtual std::string jsonClass() { return "CQToken"; };
@@ -408,7 +408,7 @@ public:
 };
 
 //------------------------------------------------------------
-//! single-token query: exact full-string match
+// single-token query: exact full-string match
 class CQTokExact : public CQToken {
 public:
     CQTokExact(const std::string &indexName=std::string(""), const std::string &value=std::string(""))
@@ -423,7 +423,7 @@ public:
 };
 
 //------------------------------------------------------------
-//! single-token query: arbitrary token (indexName and value are ignored)
+// single-token query: arbitrary token (indexName and value are ignored)
 class CQTokAny : public CQToken {
 public:
     CQTokAny(const std::string &indexName=std::string(""), const std::string &value=std::string("*"))
@@ -439,7 +439,7 @@ public:
 
 
 //------------------------------------------------------------
-//! single-token query: positional anchor
+// single-token query: positional anchor
 class CQTokAnchor : public CQToken {
 public:
     int m_ValueInt;
@@ -461,7 +461,7 @@ public:
 };
 
 //------------------------------------------------------------
-//! single-token query: regex
+// single-token query: regex
 class CQTokRegex : public CQToken {
 public:
     bool m_bRegexNegated;
@@ -478,10 +478,10 @@ public:
 };
 
 //------------------------------------------------------------
-//! single-token query: disjunction over a finite set of values
+// single-token query: disjunction over a finite set of values
 class CQTokSet : public CQToken {
 public:
-    //! set of user-specified target forms
+    // set of user-specified target forms
     std::set<std::string> m_Values;
 
 public:
@@ -493,16 +493,16 @@ public:
     virtual bool Create(CQueryTokenNode *pNode);
     virtual const char *OperatorKey(void) const { return "@_"; };
 
-    //! utility for use by subclasses: comma-separated list of strings in \a values
+    // utility for use by subclasses: comma-separated list of strings in values
     std::string SetValueString(const std::set<std::string> &values);
 
-    //! wrapper for SetValueString(m_Values)
+    // wrapper for SetValueString(m_Values)
     inline std::string SetValueString(void) { return SetValueString(m_Values); };
 
-    //! wrapper for jsonArray(m_Values)
+    // wrapper for jsonArray(m_Values)
     inline std::string jsonValues(void) { return jsonArray(m_Values); };
 
-    //! ValueString() returns "@{" + SetValueString() + "}"
+    // ValueString() returns "" + SetValueString() + "}"
     virtual std::string ValueString(void);
 
     virtual std::string jsonClass() { return "CQTokSet"; };
@@ -510,13 +510,13 @@ public:
 };
 
 //------------------------------------------------------------
-//! single-token query: expanded using CTermExpander.h interface
+// single-token query: expanded using CTermExpander.h interface
 class CQTokInfl : public CQTokSet {
 public:
-    //! expansion chain labels (empty list uses default expander for current index or identity)
+    // expansion chain labels (empty list uses default expander for current index or identity)
     std::vector<std::string> m_Expanders;
 
-    //! expansion chain; see TermExpander.h
+    // expansion chain; see TermExpander.h
     TxChain m_Txc;
 
 public:
@@ -531,18 +531,18 @@ public:
     virtual ~CQTokInfl() {};
 
 
-    //! utility gets expansion chain for m_Expanders in m_Txc; requires non-NULL m_Compiler
-    //! \li if m_Expanders is empty, uses default expansion chain for index, or identity expander if none is defined
-    //! \li an empty string in m_Expanders likewise corresponds to the default expansion chain
-    //! \li throws an exception if an otherwise unknown expander is referenced
-    //! \li returns m_Txc (by reference)
+    // utility gets expansion chain for m_Expanders in m_Txc; requires non-NULL m_Compiler
+    // - if m_Expanders is empty, uses default expansion chain for index, or identity expander if none is defined
+    // - an empty string in m_Expanders likewise corresponds to the default expansion chain
+    // - throws an exception if an otherwise unknown expander is referenced
+    // - returns m_Txc (by reference)
     TxChain& GetChain(void);
 
     virtual const char *OperatorKey(void) const { return "_"; };
     virtual bool Create(CQueryTokenNode *pNode);
     virtual std::string ValueString(void);
 
-    //! Stringification utility: returns string "%X1%X2%X3..." for m_Expanders
+    // Stringification utility: returns string "%X1%X2%X3..." for m_Expanders
     virtual std::string ExpanderString(void);
     virtual std::string ExpanderJson(void);
 
@@ -552,10 +552,10 @@ public:
 };
 
 //------------------------------------------------------------
-//! single-token query: set expanded using CTermExpander.h interface
+// single-token query: set expanded using CTermExpander.h interface
 class CQTokSetInfl : public CQTokInfl {
 public:
-    //! raw input values
+    // raw input values
     std::set<std::string> m_RawValues;
 
 public:
@@ -573,7 +573,7 @@ public:
 };
 
 //------------------------------------------------------------
-//! single-token query: prefix (right-truncated) query PREFIX*
+// single-token query: prefix (right-truncated) query PREFIX*
 class CQTokPrefix : public CQToken {
 public:
     CQTokPrefix(const std::string &indexName=std::string(""), const std::string &prefix=std::string(""))
@@ -590,7 +590,7 @@ public:
 };
 
 //------------------------------------------------------------
-//! single-token query: suffix (left-truncated) query *SUFFIX
+// single-token query: suffix (left-truncated) query *SUFFIX
 class CQTokSuffix : public CQToken {
 public:
     CQTokSuffix(const std::string &indexName=std::string(""), const std::string &suffix=std::string(""))
@@ -604,7 +604,7 @@ public:
 };
 
 //------------------------------------------------------------
-//! single-token query: infix (substring) query *INFIX*
+// single-token query: infix (substring) query *INFIX*
 class CQTokInfix : public CQToken {
 public:
     CQTokInfix(const std::string &indexName=std::string(""), const std::string &infix=std::string(""))
@@ -618,7 +618,7 @@ public:
 };
 
 //------------------------------------------------------------
-//! single-token query: prefix-set (right-truncated) query {PREFIX,...}*
+// single-token query: prefix-set (right-truncated) query {PREFIX,...}*
 class CQTokPrefixSet : public CQTokSet {
 public:
     CQTokPrefixSet(const std::string &indexName=std::string(""), const std::set<std::string> &prefixes=std::set<std::string>())
@@ -632,7 +632,7 @@ public:
 };
 
 //------------------------------------------------------------
-//! single-token query: suffix-set (left-truncated) query *{SUFFIX,...}
+// single-token query: suffix-set (left-truncated) query *{SUFFIX,...}
 class CQTokSuffixSet : public CQTokSet {
 public:
     CQTokSuffixSet(const std::string &indexName=std::string(""), const std::set<std::string> &suffixes=std::set<std::string>())
@@ -646,7 +646,7 @@ public:
 };
 
 //------------------------------------------------------------
-//! single-token query: infix-set (substring) query *{INFIX,...}*
+// single-token query: infix-set (substring) query *{INFIX,...}*
 class CQTokInfixSet : public CQTokSet {
 public:
     CQTokInfixSet(const std::string &indexName=std::string(""), const std::set<std::string> &infixes=std::set<std::string>())
@@ -660,10 +660,10 @@ public:
 };
 
 //------------------------------------------------------------
-//! single-token query: morph pattern (compiles, but UNTESTED)
+// single-token query: morph pattern (compiles, but UNTESTED)
 class CQTokMorph : public CQToken {
 public:
-    //! morph query items
+    // morph query items
     std::vector<std::string> m_Items;
 
 public:
@@ -673,7 +673,7 @@ public:
 
     virtual ~CQTokMorph() {};
 
-    //! append an item to the current list
+    // append an item to the current list
     void Append(const std::string &item) { m_Items.push_back(item); };
 
     virtual const char *OperatorKey(void) const { return "[_]"; };
@@ -685,7 +685,7 @@ public:
 };
 
 //------------------------------------------------------------
-//! single-token query: lemma-search "%LEMMA" (UNTESTED under LemmaQueryUsesMorphPattern=true (default))
+// single-token query: lemma-search "%LEMMA" (UNTESTED under LemmaQueryUsesMorphPattern=true (default))
 class CQTokLemma : public CQTokMorph {
 public:
     CQTokLemma(const std::string &indexName=std::string("Lemma"), const std::string &value=std::string(""))
@@ -702,7 +702,7 @@ public:
 };
 
 //------------------------------------------------------------
-//! single-token query: thesaurus (compiles, but UNTESTED)
+// single-token query: thesaurus (compiles, but UNTESTED)
 class CQTokThes : public CQToken {
 public:
     CQTokThes(const std::string &indexName=std::string("Thes"), const std::string &value=std::string(""))
@@ -718,7 +718,7 @@ public:
 };
 
 //------------------------------------------------------------
-//! single-token query: chunk (compiles, but UNTESTED)
+// single-token query: chunk (compiles, but UNTESTED)
 class CQTokChunk : public CQToken {
 public:
     CQTokChunk(const std::string &indexName=std::string(""), const std::string &value=std::string(""))
@@ -733,7 +733,7 @@ public:
 };
 
 //------------------------------------------------------------
-//! single-token query: file list (UNSAFE)
+// single-token query: file list (UNSAFE)
 class CQTokFile : public CQToken {
 public:
     CQTokFile(const std::string &indexName=std::string(""), const std::string &fileName=std::string(""))
@@ -752,20 +752,20 @@ public:
 // Misc
 
 //------------------------------------------------------------
-//! 'NEAR' query (e.g. NEAR(a,b,2))
-//! un-ordered proximity constraint over 2 sub-queries
+// 'NEAR' query (e.g. NEAR(a,b,2))
+// un-ordered proximity constraint over 2 sub-queries
 class CQNear : public CQNegatable {
 public:
-    //! first query argument (required)
+    // first query argument (required)
     CQuery *m_dtr1;
 
-    //! second query argument (required)
+    // second query argument (required)
     CQuery *m_dtr2;
 
-    //! thrid query argument (NULL for none)
+    // thrid query argument (NULL for none)
     CQuery *m_dtr3;
 
-    //! maximum distance
+    // maximum distance
     BYTE    m_Dist;
 
 public:
@@ -773,28 +773,28 @@ public:
         : m_dtr1(dtr1), m_dtr2(dtr2), m_dtr3(dtr3), m_Dist(dist)
     {};
 
-    //! destructor deletes daughter nodes
+    // destructor deletes daughter nodes
     virtual ~CQNear();
 
-    //! deletes associated daughter nodes (avoiding double-free)
+    // deletes associated daughter nodes (avoiding double-free)
     virtual void ClearNode();
 
-    //! clear query contents.  if \c deep is true, propagates operation to daughters
+    // clear query contents.  if deep is true, propagates operation to daughters
     virtual void Clear(bool deep=true);
 
-    //! get a list of direct non-NULL CQuery direct daughters of this node
+    // get a list of direct non-NULL CQuery direct daughters of this node
     virtual ddcObjectList Children() const;
 
-    //! "disown" any direct child nodes, preventing their destruction if the current object is deleted
+    // "disown" any direct child nodes, preventing their destruction if the current object is deleted
     virtual void DisownChildren();
 
-    //! get match-id: dtr3 > dtr2 > dtr1
+    // get match-id: dtr3 > dtr2 > dtr1
     virtual BYTE GetMatchId() const;
 
-    //! Set match-id, returns new value; override propagates matchId to daughers.
+    // Set match-id, returns new value; override propagates matchId to daughers.
     virtual BYTE SetMatchId(BYTE matchId);
 
-    //! Compile() method implicitly compiles daughter nodes
+    // Compile() method implicitly compiles daughter nodes
     virtual bool Compile(CQueryCompiler *compiler);
 
     virtual std::string toString();
@@ -804,54 +804,54 @@ public:
 };
 
 //------------------------------------------------------------
-//! sequence query (e.g. "a #1 b #1 c")
-//! This class holds a sequence of nodes of type CQToken (slot m_Items).
-//! Distance constraints: between \c m_Items[i] and \c m_Items[i+1] must be
-//!  \li no more than \c m_Dists[i] tokens if \c m_DistOps[i] == '<' (default)
-//!  \li no less than \c m_Dists[i] tokens if \c m_DistOps[i] == '>'
-//!  \li exactly      \c m_Dists[i] tokens if \c m_DistOps[i] == '='
+// sequence query (e.g. "a #1 b #1 c")
+// This class holds a sequence of nodes of type CQToken (slot m_Items).
+// Distance constraints: between m_Items[i] and m_Items[i+1] must be
+//  - no more than m_Dists[i] tokens if m_DistOps[i] == '<' (default)
+//  - no less than m_Dists[i] tokens if m_DistOps[i] == '>'
+//  - exactly      m_Dists[i] tokens if m_DistOps[i] == '='
 class CQSeq : public CQAtomic {
 public:
-    //! items to be queried (must be token nodes)
+    // items to be queried (must be token nodes)
     std::vector<CQToken*> m_Items;
 
-    //! distances between items
+    // distances between items
     std::vector<BYTE>  m_Dists;
 
-    //! distance constraint relations
+    // distance constraint relations
     std::vector<BYTE>  m_DistOps;
 
 public:
-    //! literal constructor (unused)
+    // literal constructor (unused)
     CQSeq(const std::vector<CQToken*> &items, const std::vector<BYTE> &dists, const std::vector<BYTE> &distops)
         : m_Items(items), m_Dists(dists), m_DistOps(distops)
     {};
 
-    //! constructor for atomic (1-token) sequences
+    // constructor for atomic (1-token) sequences
     CQSeq(CQToken *item)
         : m_Items(1,item)
     {};
 
-    //! destructor deletes all child nodes in m_Items
+    // destructor deletes all child nodes in m_Items
     virtual ~CQSeq();
 
-    //! get match-id: later nonzero matchid-items clobber earlier ones
+    // get match-id: later nonzero matchid-items clobber earlier ones
     virtual BYTE GetMatchId() const;
 
-    //! Set match-id, returns new value; override propagates matchId to daughters.
+    // Set match-id, returns new value; override propagates matchId to daughters.
     virtual BYTE SetMatchId(BYTE matchId);
 
-    //! ClearNode() clears associated m_Node's pointer vector to avoid double-free
+    // ClearNode() clears associated m_Node's pointer vector to avoid double-free
     virtual void ClearNode();
 
-    //! clear query contents.  if \c deep is true, propagates operation to daughters
+    // clear query contents.  if deep is true, propagates operation to daughters
     virtual void Clear(bool deep=true);
 
-    //! append another (item,distance) pair onto this sequence
-    //! \c nextDist is ignored if this is the first item in the sequence
+    // append another (item,distance) pair onto this sequence
+    // nextDist is ignored if this is the first item in the sequence
     void Append(CQToken *nextItem, BYTE nextDist=0, BYTE nextDistOp='<');
 
-    //! Compile() method implicitly compiles daughter nodes
+    // Compile() method implicitly compiles daughter nodes
     virtual bool Compile(CQueryCompiler *compiler);
 
     //-- ddcObject API

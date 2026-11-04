@@ -83,12 +83,12 @@ struct LessByPrefixIndex {
     LessByPrefixIndex(const char *pBuffer, size_t PrefixLen = SIZE_MAX)
         : m_pBuffer(pBuffer), m_PrefixLen(PrefixLen) {};
 
-    //! less-than operator (for prefix-search lower_bound())
+    // less-than operator (for prefix-search lower_bound())
     inline bool operator()(const CIndexItem &Ref, const char *Val) const {
         return strncmp(m_pBuffer + Ref.GetIndexItemOffset(), Val, m_PrefixLen) < 0;
     };
 
-    //! less-than operator (for prefix-search upper_bound())
+    // less-than operator (for prefix-search upper_bound())
     inline bool operator()(const char *Val, const CIndexItem &Ref) const {
         return strncmp(Val, m_pBuffer + Ref.GetIndexItemOffset(), m_PrefixLen) < 0;
     };
@@ -117,7 +117,7 @@ struct LessBySuffixIndex {
     LessBySuffixIndex(const char *pBuffer = NULL, const CIndexItem *pIndex = NULL, const size_t SuffixLen = SIZE_MAX)
         : m_pBuffer(pBuffer), m_pIndex(pIndex), m_SuffixLen(SuffixLen) {};
 
-    //! direct string-comparison (A<B) (by suffix)
+    // direct string-comparison (A<B) (by suffix)
     inline bool less(const char *A, const char *B) const {
         const char *a = (A + strlen(A) - 1), *b = (B + strlen(B) - 1);
         size_t i = 0;
@@ -130,17 +130,17 @@ struct LessBySuffixIndex {
         return i == m_SuffixLen ? false : ((unsigned char) (*a)) < ((unsigned char) (*b));
     };
 
-    //! less-than operator (for suffix-indices lower_bound(); respects m_SuffixLen)
+    // less-than operator (for suffix-indices lower_bound(); respects m_SuffixLen)
     inline bool operator()(const uint32_t ItemId, const char *Val) const {
         return less(m_pBuffer + m_pIndex[ItemId].GetIndexItemOffset(), Val);
     };
 
-    //! less-than operator (for suffix-indices upper_bound(); respects m_SuffixLen)
+    // less-than operator (for suffix-indices upper_bound(); respects m_SuffixLen)
     inline bool operator()(const char *Val, const uint32_t ItemId) const {
         return less(Val, m_pBuffer + m_pIndex[ItemId].GetIndexItemOffset());
     };
 
-    //! less-than operator (for suffix-index creation; ignores m_SuffixLen)
+    // less-than operator (for suffix-index creation; ignores m_SuffixLen)
     inline bool operator()(const uint32_t ItemIdA, const uint32_t ItemIdB) const {
         string A(m_pBuffer + m_pIndex[ItemIdA].GetIndexItemOffset()),
             B(m_pBuffer + m_pIndex[ItemIdB].GetIndexItemOffset());
@@ -153,7 +153,7 @@ struct LessBySuffixIndex {
 void CStringIndexSet::QueryTokenListWithLeftTruncation(const string &Suffix, vector<uint32_t> &MatchWords) const {
     if (!m_rIndex)
         throw CDDCExpc("ERROR: CStringIndexSet::QueryTokenListWithLeftTruncation() called but no suffix index is defined");
-    //fprintf(stderr, "DEBUG: QueryTokenListWithLeftTruncation(%s)\n", Suffix.c_str());
+    //fprintf(stderr, "DEBUG: QueryTokenListWithLeftTruncation(%s)", Suffix.c_str());
 
     //-- LessBySuffixIndex: v2.1.21/1d-index,cstr+strlen
     LessBySuffixIndex Less(m_StringBuffer.m_data, m_Index.m_data, Suffix.size());

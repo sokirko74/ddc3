@@ -9,12 +9,12 @@
 #include "../CommonLib/ddcUtil.h"
 #include <cstring>
 
-//! Build PCRE2 character tables for a single-byte encoding of language \c Langua.
-//! The resulting vector must outlive every RML_RE compiled with it.
+// Build PCRE2 character tables for a single-byte encoding of language Langua.
+// The resulting vector must outlive every RML_RE compiled with it.
 extern void RmlPcreMakeTables(std::vector<BYTE>& character_table, MorphLanguageEnum Langua);
 
-//! Pre-compiled regular expression (thin wrapper around PCRE2).
-//! A compiled RML_RE is safe for concurrent matching by multiple threads.
+// Pre-compiled regular expression (thin wrapper around PCRE2).
+// A compiled RML_RE is safe for concurrent matching by multiple threads.
 class RML_RE {
 public:
     class Options {
@@ -25,7 +25,7 @@ public:
 
         Options(void) : flags_(0), tableptr_(NULL), match_limit_(0) {};
 
-        //! \c utf8: compile in UTF-8 mode (implies PCRE2_UCP, so e.g. [[:upper:]] matches non-ASCII letters)
+        // utf8: compile in UTF-8 mode (implies PCRE2_UCP, so e.g. [[:upper:]] matches non-ASCII letters)
         Options(bool utf8, const BYTE *tableptr=NULL)
             : flags_(utf8 ? (PCRE2_UTF|PCRE2_UCP) : 0), tableptr_(tableptr), match_limit_(0)
         {};
@@ -33,7 +33,7 @@ public:
         bool utf8() const { return (flags_ & PCRE2_UTF) != 0; };
     };
 
-    //! Type of match
+    // Type of match
     enum Anchor {
         UNANCHORED,         // No anchoring
         ANCHOR_START,       // Anchor at start only
@@ -94,24 +94,24 @@ public:
     // If RE could not be created properly, returns an error string, else the empty string.
     const std::string& error() const { return error_; }
 
-    /***** matching interface *****/
+    /**** matching interface *****/
 
-    //! true iff the whole of \c text matches
+    // true iff the whole of text matches
     bool FullMatch(const char *text, size_t len) const
     { return TryMatch(text, len, 0, ANCHOR_BOTH, NULL, 0) > 0; };
     bool FullMatch(const std::string& text) const { return FullMatch(text.data(), text.size()); };
     bool FullMatch(const char *text) const { return FullMatch(text, strlen(text)); };
 
-    //! true iff some substring of \c text matches
+    // true iff some substring of text matches
     bool PartialMatch(const char *text, size_t len) const
     { return TryMatch(text, len, 0, UNANCHORED, NULL, 0) > 0; };
     bool PartialMatch(const std::string& text) const { return PartialMatch(text.data(), text.size()); };
     bool PartialMatch(const char *text) const { return PartialMatch(text, strlen(text)); };
 
-    //! Replace the first match in \c *str by \c rewrite (\\0..\\9 or $0..$9 refer to groups)
+    // Replace the first match in *str by rewrite (\\0..\\9 or $0..$9 refer to groups)
     bool Replace(const std::string& rewrite, std::string *str) const;
 
-    //! Replace all matches in \c *str by \c rewrite; returns number of replacements
+    // Replace all matches in *str by rewrite; returns number of replacements
     int GlobalReplace(const std::string& rewrite, std::string *str) const;
 
     // Return the number of capturing subpatterns, or -1 if the

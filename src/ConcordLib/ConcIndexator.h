@@ -1,6 +1,6 @@
-/*! \mainpage Dialing DDWS Concordance  (DDC)
+/*  Dialing DDWS Concordance  (DDC)
   DDC is a tool for linguists to search for a particular construction
-  in a given corpus.  A corpus is defined by a list \ref source_file_def "source files",
+  in a given corpus.  A corpus is defined by a list source_file_def "source files",
   which should be before indexed. The index and query process is governed by file of options.
 */
 
@@ -10,21 +10,21 @@
 
 #include "TabFormatIndexator.h"
 
-/// global default value (5000000) for CConcIndexator::m_UserMaxTokenCountInOnePeriod 
+// global default value (5000000) for CConcIndexator::m_UserMaxTokenCountInOnePeriod 
 extern const uint32_t DefaultMaxTokenCountInOnePeriod;
 
-/// global default value for (400000) CConcIndexator::m_UserMaxInputLoadIndexSize (must be <= DefaultMaxTokenCountInOnePeriod)
+// global default value for (400000) CConcIndexator::m_UserMaxInputLoadIndexSize (must be <= DefaultMaxTokenCountInOnePeriod)
 extern const uint32_t DefaultMaxInputLoadIndexSize;
 
-/*!
+/*
   CConcIndexator is the class for corpus indexing.  The most of its  slots come from Concordance class.
 */
 class CConcIndexator : public CTabFormatIndexator {
 
-    //! graphmat (tokenization  parser)
+    // graphmat (tokenization  parser)
     CGraphmatFile Graphmat;
 
-    //! a reference to DWDS thesaurus if applicable
+    // a reference to DWDS thesaurus if applicable
     const CDwdsThesaurus *m_pDwdsThesaurus;
 
 
@@ -37,7 +37,7 @@ class CConcIndexator : public CTabFormatIndexator {
     void IndexOneTableTextArea(const std::string &Text, const CPageNumber &StartPageFromHeader, size_t &page_breaks_count,
                                CIndexDocument* document);
 
-    //!  graphematical definition of a token for DWDSIndex
+    //  graphematical definition of a token for DWDSIndex
     bool IsDWDSToken(long GraLine) const;
 
     void LoadXmlFile(std::string FileName, const char *pFileBuffer, CBibliography &Bibl);
@@ -50,56 +50,56 @@ public:
 
     ~CConcIndexator();
 
-    //! initializes graphematics using current options
+    // initializes graphematics using current options
     void InitGraphan() ;
 
 
-    //! saves corpus file list  (*._con)
+    // saves corpus file list  (*._con)
     bool SaveCorpusFileList() const;
 
-    //! saves masked file-ids (*._masked_ids)
+    // saves masked file-ids (*._masked_ids)
     bool SaveMaskedFileIds() const;
 
-    //! begins indexing
+    // begins indexing
     void StartIndexing();
 
-    //! destroy all index files
+    // destroy all index files
     void DestroyIndex();
 
-    //! finishes indexing (normal way)
+    // finishes indexing (normal way)
     void NormalEndIndexing();
 
-    //! terminates indexing (for exceptions)
+    // terminates indexing (for exceptions)
     void TerminateIndexing();
 
-    //!  index one file according to m_IndexType
+    //  index one file according to m_IndexType
     void IndexOneFile(CIndexDocument* document);
 
-    //! rollback data buffered by an immediate preceding failed IndexOneFile()
+    // rollback data buffered by an immediate preceding failed IndexOneFile()
     void RollbackIndexOneFile(CTokenNo startTrimTokenNo);
 
-    //! finds all \ref period_def "subcorpora"
+    // finds all period_def "subcorpora"
     void CalculateSearchPeriods(uint32_t MaxTokenCountInOnePeriod);
 
-    //! creates new concordance as union of one or more concordances (new)
+    // creates new concordance as union of one or more concordances (new)
     bool CreateAsUnion(std::vector<CConcIndexator* > &X, bool inheritOptions = true);
 
-    //! creates new concordance as union of one or more concordances (new, filename-based)
+    // creates new concordance as union of one or more concordances (new, filename-based)
     bool CreateAsUnion(const std::vector<std::string> &Xfiles, bool inheritOptions = true);
 
-    //! split project uniformly into sub-projects (new; sub-projects inherit parent options)
+    // split project uniformly into sub-projects (new; sub-projects inherit parent options)
     bool SplitProject(std::vector<CConcIndexator*> &Subs) const;
 
-    //! split project uniformly into sub-projects (guts, given sub-options as string)
+    // split project uniformly into sub-projects (guts, given sub-options as string)
     bool SplitProject(std::vector<CConcIndexator*> &Subs, const std::string &SubOptions) const;
 
-    //! creates morphology index
+    // creates morphology index
     bool CreateMorphIndexWrapper();
 
-    //! returns the size of one \ref period_def "subcorpus"
+    // returns the size of one period_def "subcorpus"
     uint32_t GetMaxTokenCountInOnePeriod() const;
 
-    //! returns the max size of input index in tokens must be less than GetMaxTokenCountInOnePeriod()
+    // returns the max size of input index in tokens must be less than GetMaxTokenCountInOnePeriod()
     uint32_t GetMaxInputLoadIndexSize() const;
 
 };

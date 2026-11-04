@@ -267,7 +267,7 @@ void CDDCLeafServer::handle__info(string &Result, int timeout, bool verbose) {
     Result = (string("{\n\t")
               + "\"name\":" + jsonStr(m_CorpusName) + ",\n\t"
               + "\"version\":" + jsonStr(PACKAGE_VERSION) + ",\n\t"
-              + "\"project\":" + (ix ? jsonStr(ProjectName) : "null") //+ ",\n\t"
+              + "\"project\":" + (ix ? jsonStr(ProjectName) : "null") //+ ",\t"
         );
 
     if (ix) {
@@ -426,7 +426,7 @@ void CDDCLeafServer::handle__info(string &Result, int timeout, bool verbose) {
                 if (ival.first) {
                     //-- user-supplied json file
                     string filename = RelativeFileName(ix->m_Path, ival.second);
-                    //fprintf(stderr, "info file for key '%s'='%s' ; cwd=%s\n", ikey.c_str(), filename.c_str(), CurrentDirectory().c_str()); //-- DEBUG
+                    //fprintf(stderr, "info file for key '%s'='%s' ; cwd=%s", ikey.c_str(), filename.c_str(), CurrentDirectory().c_str()); //-- DEBUG
                     if (!LoadFileToString(filename, Result, false)) {
                         Result += string("null");
                     }

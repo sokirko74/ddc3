@@ -11,8 +11,8 @@ class CDwdsThesaurus;
 class CGraphmatFile;
 
 class TAR;
-//! CConcIndexatorInvoker is a class for invoking an  index process.
-/*!
+// CConcIndexatorInvoker is a class for invoking an  index process.
+/*
   This class was established to start, to stop and to monitor an indexing process.
   To start it  a user should call function CConcIndexatorInvoker::BuildIndex.
   To stop the process a user should set CConcIndexatorInvoker::m_bStoppedByUser to true.
@@ -47,38 +47,38 @@ class ConcIndexatorInvoker {
     void ProcessTarOrSingleFile(CConcIndexator &Indexator, size_t &InputLoadIndexSize, size_t &MemoryLoadIndexSize);
 
 public:
-    //! if true, CConcIndexatorInvoker tries to stop indexing
+    // if true, CConcIndexatorInvoker tries to stop indexing
     bool m_bStoppedByUser;
-    //! if true, then BuildIndex should only rebuild MorphPattern index
+    // if true, then BuildIndex should only rebuild MorphPattern index
     bool m_bOnlyReindexMorphology;
-    //! if true, then there is no initial checking whether the \ref source_file_def "source files" exist
+    // if true, then there is no initial checking whether the source_file_def "source files" exist
     bool m_bSkipInitialFileChecking;
 
-    //! the last message from indexing process
+    // the last message from indexing process
     mutable std::string m_CurrMessage;
 
-    //! should  DDC  send all messages to stdout
+    // should  DDC  send all messages to stdout
     bool m_bStdout;
 
-    //! the index of the currently processing \ref source_file_def "source file"
+    // the index of the currently processing source_file_def "source file"
     int m_CurrentSourceFileNo;
 
-    //! the number of files to index
+    // the number of files to index
     int m_SourceFilesNumber;
 
-    //! the name of file
+    // the name of file
     std::string m_CurrentSourceFileName;
 
-    //! a slot to gather profiling information  for loading stage
+    // a slot to gather profiling information  for loading stage
     mutable CMyTimeSpanHolder m_Profiler;
 
 
     ConcIndexatorInvoker();
 
-    //! outputs a message to stdout or to GUI
+    // outputs a message to stdout or to GUI
     void SetCurrMessage(std::string Message) const;
 
-    //! builds index files for project ProjectFile
+    // builds index files for project ProjectFile
     bool BuildIndex(std::string ProjectFile);
 };
 

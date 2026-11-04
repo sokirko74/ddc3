@@ -1,8 +1,8 @@
 #ifndef __ConcCommon_H_
 #define __ConcCommon_H_
 
-/*! \file ConcCommon.h
-  \brief A file for globally defined constants and classes.
+/*  ConcCommon.h
+  A file for globally defined constants and classes.
 */
 
 
@@ -28,49 +28,49 @@
 #include "../ConcordLib/CCurl.h"
 #include "../CommonLib/ddcLocale.h"
 
-//! global intialization
+// global intialization
 inline void ddcInitGlobal(void) {
     ddcInitLocale();
     ddcInitCurl();
 }
 
-//! a globally defined delimeter, which is used to delimit fields in one record (the first field is always a token)
+// a globally defined delimeter, which is used to delimit fields in one record (the first field is always a token)
 const char globalFieldDelimeter = '\t';
-//! a globally defined xml-tag, which is used to separate records if CConcIndexator::m_IndexType is Free_Index
+// a globally defined xml-tag, which is used to separate records if CConcIndexator::m_IndexType is Free_Index
 const std::string PredefinedTableLineTag = "l";
-//! a globally defined index name for chunks
+// a globally defined index name for chunks
 const std::string ChunkIndexName = "chunk";
-//! a globally defined break collection name for \ref corpus_file_def "corpus files"
+// a globally defined break collection name for corpus_file_def "corpus files"
 const std::string PredefinedFileBreakName = "file";
-//! a globally defined break collection name for \ref text areas
+// a globally defined break collection name for text areas
 const std::string PredefinedTextAreaBreakName = "textarea";
 
-//! integer type CTokenNo is used to  refer an index of a token in the corpus
+// integer type CTokenNo is used to  refer an index of a token in the corpus
 typedef uint32_t CTokenNo;
 
-//! integer type CFileNo is used to refer to a single document (file) in the corpus
+// integer type CFileNo is used to refer to a single document (file) in the corpus
 typedef uint32_t CFileNo;
 
-//!  MaxShortOccurCacheSize is the upper bound  of  CShortOccurCache::m_Data.size() It is introduced to restrict memory usage.
+//  MaxShortOccurCacheSize is the upper bound  of  CShortOccurCache::m_Data.size() It is introduced to restrict memory usage.
 const size_t MaxShortOccurCacheSize = 1000000;
 
-//! maximum length of string sort-keys passed from subcorpus servers to distributed server, including terminating NUL
-//! (see CConcHolder::GetHitIds() and CDDCServerListenHost::GetFirstHitsFromCorpora())
+// maximum length of string sort-keys passed from subcorpus servers to distributed server, including terminating NUL
+// (see CConcHolder::GetHitIds() and CDDCServerListenHost::GetFirstHitsFromCorpora())
 #define DDC_SORTKEY_MAXLEN 256
 
 const size_t MaxBiblStringLen = 20000;
 
-/*!  CShortOccurCache  is a structure which holds all found occurrences indexed by an index item No,
-  if the number of  occurrences for this index item is not greater than OccurBufferSize. This structure can take an advantage only if there are many \ref period_def "corpus periods",
-  otherwise it can even slow the program. But if there are many \ref period_def "corpus periods", then having initialized
-  this cache for  the first \ref period_def "period", the program can read from now on occurrences directly from the memory.
+/*  CShortOccurCache  is a structure which holds all found occurrences indexed by an index item No,
+  if the number of  occurrences for this index item is not greater than OccurBufferSize. This structure can take an advantage only if there are many period_def "corpus periods",
+  otherwise it can even slow the program. But if there are many period_def "corpus periods", then having initialized
+  this cache for  the first period_def "period", the program can read from now on occurrences directly from the memory.
   CShortOccurCache is  used only for one query at a time, so it is cleared in the very beginning of CConcHolder::GetAllHits.
  
 */
 
 class CShortOccurCache 
 {
-    //! the structure holds a pointer to a vector of occurrences and its size
+    // the structure holds a pointer to a vector of occurrences and its size
     struct CDataReference 
     {
         // the start index of subvector in m_OccurrencesBody
@@ -85,11 +85,11 @@ class CShortOccurCache
             m_VectorLength = VectorLength;
         };
     };
-    //!this map contains a relation from index item No to the address of its occurrences
+    //this map contains a relation from index item No to the address of its occurrences
     //map<CTokenNo, CDataReference> m_IndexItemNo2Occurrences;
     std::vector <CDataReference> m_IndexItemNo2Occurrences;
 
-    //!this vector contains all occurrences for this cache
+    //this vector contains all occurrences for this cache
     std::vector<CTokenNo>                        m_OccurrencesBody;
 public:
     void                            Clear();
@@ -99,62 +99,62 @@ public:
 
 };
 
-/*!  HitSortEnum
+/*  HitSortEnum
   This enum defines the types of all possible orders which can be apllied to an output hit set. 
 */
 enum HitSortEnum {
-    //! no sort operators, only filtering (used by #has_field[])
+    // no sort operators, only filtering (used by #has_field[])
     NoSort = 0,
-    //! sort by the issue date (ascending) 
+    // sort by the issue date (ascending) 
     LessByDate = 1,
-    //! sort by the issue date (descending)
+    // sort by the issue date (descending)
     GreaterByDate = 2,
-    //! sort by the size of the hit in tokens (ascending) 
+    // sort by the size of the hit in tokens (ascending) 
     LessBySize = 3,
-    //! sort by the size of the hit in tokens (descending) 
+    // sort by the size of the hit in tokens (descending) 
     GreaterBySize = 4,
-    //! sort by a free bibliographical field (ascending) 
+    // sort by a free bibliographical field (ascending) 
     LessByFreeBiblField = 5,
-    //! sort by a free bibliographical field (descending) 
+    // sort by a free bibliographical field (descending) 
     GreaterByFreeBiblField = 6,
-    //! sort by document (ascending) 
+    // sort by document (ascending) 
     LessByRank = 7,
-    //! sort by document rank (descending) 
+    // sort by document rank (descending) 
     GreaterByRank = 8,
-    //! sort by central context (ascending) 
+    // sort by central context (ascending) 
     LessByMiddleContext = 9,
-    //! sort by match context (descending) 
+    // sort by match context (descending) 
     GreaterByMiddleContext = 10,
-    //! sort by left context (ascending) 
+    // sort by left context (ascending) 
     LessByLeftContext = 11,
-    //! sort by left context (descending) 
+    // sort by left context (descending) 
     GreaterByLeftContext = 12,
-    //! sort by right context (ascending) 
+    // sort by right context (ascending) 
     LessByRightContext = 13,
-    //! sort by right context (descending) 
+    // sort by right context (descending) 
     GreaterByRightContext = 14,
-    //! sort by random key
+    // sort by random key
     RandomSort = 15,
-    //! sort by count()-key (ascending)
+    // sort by count()-key (ascending)
     LessByCountKey = 16,
-    //! sort by count()-key (descending)
+    // sort by count()-key (descending)
     GreaterByCountKey = 17,
-    //! sort by count()-value (ascending)
+    // sort by count()-value (ascending)
     LessByCountValue = 18,
-    //! sort by count()-value (descending)
+    // sort by count()-value (descending)
     GreaterByCountValue = 19,
-    //! sort by #prune[]-key (ascending)
+    // sort by #prune[]-key (ascending)
     LessByPruneKey = 20,
-    //! sort by #prune[]-key (descending)
+    // sort by #prune[]-key (descending)
     GreaterByPruneKey = 21,
-    //! end-of-enum sentinel
+    // end-of-enum sentinel
     HitSortsCount = 22
 };
 
 inline bool IsPruneFilterType(HitSortEnum e)
 { return e==LessByPruneKey || e==GreaterByPruneKey; }
 
-/*! symbolic hit sort order constants */
+/* symbolic hit sort order constants */
 enum HitSortOrderEnum {
     hsoDescending = -1,
     hsoNone = 0,
@@ -177,7 +177,7 @@ inline bool IsCountKeySort(HitSortOrderEnum e)
 inline bool IsCountValueSort(HitSortOrderEnum e)
 { return e==hsoAscendingCountValues || e==hsoDescendingCountValues; }
 
-/*! symbolic names for HitSortEnum, for debugging */
+/* symbolic names for HitSortEnum, for debugging */
 static const char *HitSortEnumNames[HitSortsCount] =
 {
     "NoSort",
@@ -204,7 +204,7 @@ static const char *HitSortEnumNames[HitSortsCount] =
     "GreaterByPruneKey"
 };
 
-/*! symbolic names for HitSortEnum, for stringification */
+/* symbolic names for HitSortEnum, for stringification */
 static const char *HitSortEnumStrings[HitSortsCount] = {
     "no_sort",
     "asc_by_date",
@@ -238,105 +238,105 @@ public:
     
     virtual std::string GetStringValue(uint32_t FileNo) const = 0;
 
-    //! for key-based pruning (v2.1.9): map a single value-string to its value-id
-    //! \li default implementation just calls hex2int(Value)
+    // for key-based pruning (v2.1.9): map a single value-string to its value-id
+    // - default implementation just calls hex2int(Value)
     virtual uint32_t GetIntegerLowerBound(const std::string &Value) const = 0;
 };
 
-/*! type for hit sort-keys and/or result filtering;
+/* type for hit sort-keys and/or result filtering;
  *  new in v2.0.19
  */
 struct CHitSortKey {
-    //! primary integer sort key; formerly CHit::m_OrderId, CDDCFilterWithBounds.m_LevelStart|m_LevelEnd
+    // primary integer sort key; formerly CHit::m_OrderId, CDDCFilterWithBounds.m_LevelStart|m_LevelEnd
     int     i;
 
-    //! secondary sort key, new for v2.0.19
+    // secondary sort key, new for v2.0.19
     std::string  s;
 
-    //! default constructor
+    // default constructor
     CHitSortKey(int i_=0) : i(i_)
     {};
 
-    //! constructor given integer and string
+    // constructor given integer and string
     CHitSortKey(int i_, const std::string& s_) : i(i_), s(s_)
     {};
 
-    //! clear key
+    // clear key
     inline void clear()
     { i=0; s.clear(); };
 
-    //! less-than comparison operator; as for std::pair<i,s>
+    // less-than comparison operator; as for std::pair<i,s>
     inline bool operator< (const CHitSortKey &x) const
     { return (i < x.i) || (i==x.i && s < x.s); };
 
-    //! greater-than comparison operator
+    // greater-than comparison operator
     inline bool operator> (const CHitSortKey &x) const
     { return (i > x.i) || (i==x.i && s > x.s); };
 
-    //! assignment given integer
+    // assignment given integer
     inline void assign(int i_)
     { i=i_; s.clear(); };
 
-    //! assignment given integer + string
+    // assignment given integer + string
     inline void assign(int i_, const std::string &s_)
     { i=i_; s=s_; };
 
-    //! assignment to std::pair
+    // assignment to std::pair
     inline void operator= (const std::pair<int,std::string>& p)
     { i=p.first; s=p.second; };
 
-    //! assignment to integer, alias for assign(i,"")
+    // assignment to integer, alias for assign(i,"")
     inline void operator= (int i_)
     { i=i_; s.clear(); };
 
-    //! assignment to string, alias for assign(0,s)
+    // assignment to string, alias for assign(0,s)
     inline void operator= (const std::string &s_)
     { i=0; s=s_; };
 };
 
-/*! This structure describes a filter which can be applied to the result hit set. For example, for 
-  filter operator "#less_by_size[5,10]" the slots would have the following values: \n
-  - m_FilterType =  LessBySize \n
-  - m_LevelStart =  5 \n
-  - m_LevelEnd =  10+1 \n
+/* This structure describes a filter which can be applied to the result hit set. For example, for 
+  filter operator "#less_by_size[5,10]" the slots would have the following values: 
+  - m_FilterType =  LessBySize 
+  - m_LevelStart =  5 
+  - m_LevelEnd =  10+1 
 
 */
 struct CDDCFilterWithBounds 
 {
-    //!  the type of the filter
+    //  the type of the filter
     HitSortEnum             m_FilterType;
 
-    //! the name of the free bibliographical field for bibliographic filters (#asc[FIELD], #desc[FIELD], #has[FIELD]),  or the name of a token field for context-sort filters (#left, #right, etc)
-    //! \note formerly m_AttrName
+    // the name of the free bibliographical field for bibliographic filters (#asc[FIELD], #desc[FIELD], #has[FIELD]),  or the name of a token field for context-sort filters (#left, #right, etc)
+    // note: formerly m_AttrName
     std::string                  m_AttrName;
 
-    //! \li true if DDC should use CDDCFilterWithBounds::m_SatisfiedValues
-    //! \li false if DDC should use range defined by CDDCFilterWithBounds::m_LevelStart and CDDCFilterWithBounds::m_LevelEnd slots
-    //! (formerly m_bRegExp)
+    // - true if DDC should use CDDCFilterWithBounds::m_SatisfiedValues
+    // - false if DDC should use range defined by CDDCFilterWithBounds::m_LevelStart and CDDCFilterWithBounds::m_LevelEnd slots
+    // (formerly m_bRegExp)
     bool                    m_bSet;
 
-    //! true iff this is a negated filter
+    // true iff this is a negated filter
     bool                    m_bNegated; 
 
-    //! match-id of reference token for context-sort operators (default=0:any)
+    // match-id of reference token for context-sort operators (default=0:any)
     int m_ContextMatchId;
 
-    //!  offset from matched token for context-sort operators
+    //  offset from matched token for context-sort operators
     int m_ContextOffset;
 
-    //!  the lower bound of the filter (by default (INT_MIN,"")), valid only if m_bSet==false; formerly int m_LevelStart
+    //  the lower bound of the filter (by default (INT_MIN,"")), valid only if m_bSet==false; formerly int m_LevelStart
     CHitSortKey m_KeyLo;
 
-    //!  the upper bound of the filter (by default (INT_MAX,"")), valid only if m_bSet==false; formerly int m_LevelEnd
+    //  the upper bound of the filter (by default (INT_MAX,"")), valid only if m_bSet==false; formerly int m_LevelEnd
     CHitSortKey m_KeyHi;
 
-    //!  the possible (integer) values for this bibliographical field,  valid only if m_bSet==true
+    //  the possible (integer) values for this bibliographical field,  valid only if m_bSet==true
     std::set<int> m_SatisfiedValues;
 
-    //! pointer to the CConcXml::CFreeBiblIndex responsible for populating this filter (only after compile)
+    // pointer to the CConcXml::CFreeBiblIndex responsible for populating this filter (only after compile)
     const CFreeBiblIndexInterface* m_BiblIndex;
 
-    //! pointer to parent CQFilter (if any)
+    // pointer to parent CQFilter (if any)
     class CQFilter * m_Parent;
 
     inline void clear()
@@ -344,7 +344,7 @@ struct CDDCFilterWithBounds
         m_SatisfiedValues.clear();
     };
 
-    //! returns integer sort order as a HitSortOrderEnum (-1:descending, 0:none, 1:ascending, 2:count_keys, 3:count_values)
+    // returns integer sort order as a HitSortOrderEnum (-1:descending, 0:none, 1:ascending, 2:count_keys, 3:count_values)
     inline HitSortOrderEnum SortOrder() const {
         switch (m_FilterType) {
             case GreaterByDate:
@@ -365,7 +365,7 @@ struct CDDCFilterWithBounds
         };
     };
 
-    //! returns true iff this is a file-based filter (for optimized count(*) queries)
+    // returns true iff this is a file-based filter (for optimized count(*) queries)
     inline bool IsFileFilter() const
     {
         switch (m_FilterType) {
@@ -396,11 +396,11 @@ struct CDDCFilterWithBounds
         }
     };
 
-    //! returns true iff this is a trivial-sort filter (i.e. does not change original hit-sort order)
+    // returns true iff this is a trivial-sort filter (i.e. does not change original hit-sort order)
     inline bool IsTrivialFilter(void) const
     { return m_FilterType == NoSort; };
 
-    //! returns true iff this is a pruning filter
+    // returns true iff this is a pruning filter
     inline bool IsPruneFilter(void) const
     { return IsPruneFilterType(m_FilterType); };
 
@@ -418,34 +418,34 @@ struct CDDCFilterWithBounds
     {};
 };
 
-/*! CHit is a structure that holds one found hit and its properties. The calculation of its slots 
+/* CHit is a structure that holds one found hit and its properties. The calculation of its slots 
   starts in CQueryNode class  and its inheritors and proceeds  in CConcHolder class.
 */
 struct CHit 
 {
-    //! the index of the \ref break_def "break", which this hit represents (in the break collection CConcHolder::GetBreaks)
+    // the index of the break_def "break", which this hit represents (in the break collection CConcHolder::GetBreaks)
     uint32_t   m_BreakNo;
-    //! the end offset of token occurrences to be highlighted in CQueryNode::m_Occurrences and later in CConcHolder::m_HighlightOccurs
+    // the end offset of token occurrences to be highlighted in CQueryNode::m_Occurrences and later in CConcHolder::m_HighlightOccurs
     uint32_t   m_HighlightOccurrenceEnd;
-    //! the index of \ref corpus_file_def "coprus file", where this hit is found, it is equal to  m_BreakNo if user searches within files
+    // the index of corpus_file_def "coprus file", where this hit is found, it is equal to  m_BreakNo if user searches within files
     uint32_t   m_FileNo;
 
     union {
-        //! the string which displays how the rank was calculated (for rank-sorted queries)
+        // the string which displays how the rank was calculated (for rank-sorted queries)
         size_t  m_DebugRankNo;
 
-        //! count for this item (for count-queries)
+        // count for this item (for count-queries)
         size_t  m_Count;
     } m_Value;
 
-    //! key for sorting and/or filtering, which is calculated either by an instance of CDDCFilterWithBounds or by CConcHolder.
-    //! formerly m_OrderId
+    // key for sorting and/or filtering, which is calculated either by an instance of CDDCFilterWithBounds or by CConcHolder.
+    // formerly m_OrderId
     CHitSortKey m_SortKey;
 
     CHit(uint32_t BreakNo=0) : m_BreakNo(BreakNo), m_SortKey(0) { m_Value.m_Count=0; };
 };
 
-/*! \brief FormatTypeEnum defines the format of output hits:
+/* FormatTypeEnum defines the format of output hits:
   - DDC_ResultHTML -  output hits  should be written in HTML-format; the tags "<STRONG><FONT COLOR=red>" are used for highlighting.
   - DDC_ResultText -  output hits  should be written in plain-format; the string "&&" is used to select the first  highlighting position, "_"  for the following positions are used for higlighting.
   - DDC_ResultTable -  output hits  should be written in table-format; there is no highlighting in the string at all, instead of this highligted words are written after the string
@@ -459,31 +459,31 @@ enum DDCFormatTypeEnum {
     DDC_ResultJson
 };
 
-//!  a type for index string to its occurrences
+//  a type for index string to its occurrences
 typedef std::map<std::string,CShortOccurCache> CShortOccurCacheMap;
 
-//!  a type for holding occurrences during reading from the disk
+//  a type for holding occurrences during reading from the disk
 typedef std::vector<CTokenNo> COccurrBuffer;
 
-//! a delimiter between morphological annotations
+// a delimiter between morphological annotations
 const std::string MorphAnnotationsDelim = "#";
-//! a regular expression, which passes everything within one morphological annotation
+// a regular expression, which passes everything within one morphological annotation
 const std::string MorphAnnotationsDelimRegExp = "[^#]*";
 
-//! initializes morphology dictionaries
+// initializes morphology dictionaries
 extern bool InitConcordDicts();
-//! deletes morphology dictionaries
+// deletes morphology dictionaries
 extern void FreeConcordDicts();
-//! return a morphology dictionary by a language indentifier
+// return a morphology dictionary by a language indentifier
 extern const CLemmatizer* GetLemmatizerByLanguage (MorphLanguageEnum Langua);
-//! return a grammatical table  by a language indentifier
+// return a grammatical table  by a language indentifier
 extern const CAgramtab* GetGramtabByLanguage (MorphLanguageEnum Langua);
-//! recode a word from the user (corpus) encoding to the internal encoding of the morphology (and back);
-//! identity except for German, see "Software\\Dialing\\Lemmatizer\\German\\ExtEncoding" in rml.ini
+// recode a word from the user (corpus) encoding to the internal encoding of the morphology (and back);
+// identity except for German, see "Software\\Dialing\\Lemmatizer\\German\\ExtEncoding" in rml.ini
 extern std::string MorphRecodeExt2Int (MorphLanguageEnum Langua, const std::string& s);
 extern std::string MorphRecodeInt2Ext (MorphLanguageEnum Langua, const std::string& s);
 
-//! compare hits by break-number (for query evaluation, e.g. CQueryBinaryOperationNode::hits_and_positions_intersection())
+// compare hits by break-number (for query evaluation, e.g. CQueryBinaryOperationNode::hits_and_positions_intersection())
 struct CHitCompareByBreak
 {
     CHitCompareByBreak() {};
@@ -492,7 +492,7 @@ struct CHitCompareByBreak
     { return h.m_BreakNo < brkno; };
 };
 
-//! return a string representation of a set of token properties (in the format which is used in the index)
+// return a string representation of a set of token properties (in the format which is used in the index)
 std::string GetIndexItemSetByVectorString(const std::vector<std::string> &TokenProperties, bool bRegexp);
 
 #endif

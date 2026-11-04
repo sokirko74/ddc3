@@ -7,13 +7,13 @@
 #include "../CommonLib/ddcMMap.h"
 
 /////////////////////////////////////////////////////////////////////////////
-// PeriodsDivisionMap : type for mappping an index item no to its \ref perdiv_def "period division"
+// PeriodsDivisionMap : type for mappping an index item no to its perdiv_def "period division"
 
-//!  a type for mappping an index item no to its \ref perdiv_def "period division"
+//  a type for mappping an index item no to its perdiv_def "period division"
 //typedef map<DWORD, vector<DWORD> > PeriodsDivisionMap__OLD
 typedef ddcMapFile<uint32_t, uint32_t> PeriodsDivisionMapT;
-typedef PeriodsDivisionMapT::MapT PeriodsDivisionMapR;  ///< low-level resident std::map<> implementation in PeriodsDivisionMap::m_map
-typedef PeriodsDivisionMapT::RecFileT PeriodsDivisionMapV;  ///< low-level virtual mmap()-based implementation in PeriodsDivisionMap::m_rfile
+typedef PeriodsDivisionMapT::MapT PeriodsDivisionMapR;  // low-level resident std::map<> implementation in PeriodsDivisionMap::m_map
+typedef PeriodsDivisionMapT::RecFileT PeriodsDivisionMapV;  // low-level virtual mmap()-based implementation in PeriodsDivisionMap::m_rfile
 
 
 
@@ -26,7 +26,7 @@ const uint32_t TheOnlyOccurIsInEndOccurNo = 1 << 31;
 //const DWORD AllFlags = TheOnlyOccurIsInEndOccurNo  | EndOfSentenceForBigrams;
 const uint32_t AllFlags = TheOnlyOccurIsInEndOccurNo;
 
-/*!
+/*
   CIndexItem contains basic information about one index item. In the strict sense one index item
   is a connection between an indexed string and its occurrences. More generally the term "index item"
   is used to refer also an indexed string.
@@ -39,12 +39,12 @@ class CIndexItem {
     uint32_t m_EndOccurOffset;
 
 public:
-    //! return m_IndexItemOffsetAndFlags for serialization
+    // return m_IndexItemOffsetAndFlags for serialization
     uint32_t GetIndexItemOffsetAndFlags() const {
         return m_IndexItemOffsetAndFlags;
     };
 
-    //! set m_IndexItemOffsetAndFlags for serialization
+    // set m_IndexItemOffsetAndFlags for serialization
     void SetIndexItemOffsetAndFlags(uint32_t Value) {
         m_IndexItemOffsetAndFlags = Value;
     };
@@ -53,33 +53,33 @@ public:
         return ~0 & ~AllFlags;
     };
 
-    //! returns a reference of this index item to CStringIndexSet::m_StringBuffer
+    // returns a reference of this index item to CStringIndexSet::m_StringBuffer
     uint32_t GetIndexItemOffset() const {
         return m_IndexItemOffsetAndFlags & ~AllFlags;
     };
 
-    //! sets a reference  of this index item to CStringIndexSet::m_StringBuffer
+    // sets a reference  of this index item to CStringIndexSet::m_StringBuffer
     void SetIndexItemOffset(uint32_t Value) {
         m_IndexItemOffsetAndFlags &= AllFlags;
         m_IndexItemOffsetAndFlags |= Value & ~AllFlags;
     };
 
-    //! returns  flags of  this  index item
+    // returns  flags of  this  index item
     uint32_t GetItemIndexFlags() const {
         return m_IndexItemOffsetAndFlags & AllFlags;
     };
 
-    //! set flags of  this  index item
+    // set flags of  this  index item
     void AddItemIndexFlags(uint32_t Value) {
         m_IndexItemOffsetAndFlags |= Value & AllFlags;
     };
 
-    //! return the upper bound offset of occurrences in CIndexSetForQueryingStage::m_OccursFp
+    // return the upper bound offset of occurrences in CIndexSetForQueryingStage::m_OccursFp
     uint32_t GetEndOccurOffset() const {
         return m_EndOccurOffset;
     };
 
-    //! set the upper bound offset of occurrences in CIndexSetForQueryingStage::m_OccursFp
+    // set the upper bound offset of occurrences in CIndexSetForQueryingStage::m_OccursFp
     void SetEndOccurOffset(uint32_t EndOccurOffset) {
         m_EndOccurOffset = EndOccurOffset;
     };
@@ -114,7 +114,7 @@ inline size_t restore_from_bytes(CIndexItem &i, const BYTE *buf) {
 /////////////////////////////////////////////////////////////////////////////
 // suffix-index
 
-/** CSuffixIndex is a vector of Item-IDs sorted in ascending order by reverse string-value,
+/* CSuffixIndex is a vector of Item-IDs sorted in ascending order by reverse string-value,
  *  for fast binary search of string-suffixes.
  */
 typedef ddcVecFile<uint32_t> CSuffixIndex;
@@ -128,80 +128,80 @@ class CStringIndexator;
 class CItemIndexForLoading;
 
 /////////////////////////////////////////////////////////////////////////////
-/*!     This class is  a part of CStringIndexSet class which is used only during querying.  It contains
+/*     This class is  a part of CStringIndexSet class which is used only during querying.  It contains
   the important serialization primitives.
 */
 class CIndexSetForQueryingStage {
-    //! the main file of  occurrences
+    // the main file of  occurrences
     ddcFileOrMMap m_OccursFp;
 
-    //! load all \ref perdiv_def "period divisions" to m_EndPeriodOffsets
+    // load all perdiv_def "period divisions" to m_EndPeriodOffsets
     bool LoadPeriodDivision();
 
-    //! reads \a Count occurences starting at \a FilePosition from \a m_OccursFp into \a OutBuffer
-    //! + ddc-v2.1.0: file-access (m_OccursFp); implicitly locks & unlocks the object
+    // reads Count occurences starting at FilePosition from m_OccursFp into OutBuffer
+    // + ddc-v2.1.0: file-access (m_OccursFp); implicitly locks & unlocks the object
     void ReadOccurrences(CTokenNo *OutBuffer, file_off_t FilePosition, size_t Count) const;
 
 protected:
 
-    //!         return true, if the project path is initialized
+    //         return true, if the project path is initialized
     void AssertHasPath() const;
 
-    //!  a function for reading occurrences for one index item
+    //  a function for reading occurrences for one index item
     void AddOccurs(size_t IndexItemNo, const bool bOneOccurrence, const size_t StartOccurNo, const size_t EndOccurNo,
                    std::vector<CTokenNo> &Occurs, size_t PeriodNo, COccurrBuffer &OccursBuffer,
                    CShortOccurCache *pCacheByIndexSet, int &CacheId) const;
 
-    //!  return the file name  for the file occurrences
+    //  return the file name  for the file occurrences
     std::string GetOccursFileName() const;
 
-    //!  return the name  of file for m_Index
+    //  return the name  of file for m_Index
     std::string GetOccHdrFileName() const;
 
-    //!  return the name  of file for m_rIndex (for suffix-queries)
+    //  return the name  of file for m_rIndex (for suffix-queries)
     std::string GetSuffixFileName() const;
 
 
-    //!  return the name  of file for occurrences \ref perdiv_def "period division"
+    //  return the name  of file for occurrences perdiv_def "period division"
     std::string GetPeriodsDivisionFileName() const;
 
-    //!  return the name  of file for CIndexSetForLoadingStage::m_StringBuffer
+    //  return the name  of file for CIndexSetForLoadingStage::m_StringBuffer
     std::string GetFileNameForInfos() const;
 
-    //! return the size of the file for occurrences
+    // return the size of the file for occurrences
     file_off_t GetOccurrsFileSize() const;
 
-    //!  get the offset of the first occurrence of index item no IndexNo in the file of occurrences(m_OccursFp)
+    //  get the offset of the first occurrence of index item no IndexNo in the file of occurrences(m_OccursFp)
     size_t GetStartOccurNo(size_t IndexNo) const;
 
-    //!         build  a \ref perdiv_def "period division"  for one index item
+    //         build  a perdiv_def "period division"  for one index item
     bool BuildPeriodsDivisionAndCompress(const uint32_t TokenId, std::vector<CTokenNo> &InputTokens);
 
-    //! write one index item to result file
+    // write one index item to result file
     bool
     AddOneIndexItem(CItemIndexForLoading &M, FILE *res_fp, size_t &CurrPositionInResFile, const CTokenNo EndTokeNo);
 
-    //! write index item's \ref perdiv_def "period division"  to disk
+    // write index item's perdiv_def "period division"  to disk
     bool WritePeriodsDivision();
 
-    //! load index set from binaries
+    // load index set from binaries
     bool LoadIndexSet(bool bLoadHeaderOfOccurrences = true);
 
 
 public:
-    //! the main index(from strings to the ordered list of their occurrences)
+    // the main index(from strings to the ordered list of their occurrences)
     ddcVecFile<CIndexItem> m_Index;
 
-    //! optional auxiliary index for suffix-queries; ItemIds lexicographically sorted by reverse string-value
+    // optional auxiliary index for suffix-queries; ItemIds lexicographically sorted by reverse string-value
     CSuffixIndex m_rIndex;
 
-    //! all corpus \ref perdiv_def "period divisions" for the long occurrence lists
+    // all corpus perdiv_def "period divisions" for the long occurrence lists
     PeriodsDivisionMapT m_EndPeriodOffsets;
 
-    //! a pointer to the collection of indices, which contains a reference to this index
+    // a pointer to the collection of indices, which contains a reference to this index
     const CStringIndexator *m_pParent;
 
-    //! if true, then the occurrences should be compresses (up to 30% for huge corpora)
+    // if true, then the occurrences should be compresses (up to 30% for huge corpora)
     bool m_bCompressOccurrences;
 
 
@@ -209,13 +209,13 @@ public:
 
     virtual ~CIndexSetForQueryingStage();
 
-    //! return the name of the index (CStringIndexSet::m_Name)
+    // return the name of the index (CStringIndexSet::m_Name)
     virtual std::string GetName() const = 0;
 
-    //! destroy index set and remove index files
+    // destroy index set and remove index files
     bool DestroyIndexSet();
 
-    //! reads all occurrences of IndexItemNo (this function can allocate much memory; it should be used carefully)
+    // reads all occurrences of IndexItemNo (this function can allocate much memory; it should be used carefully)
     void ReadAllOccurrences(size_t IndexItemNo, std::vector<CTokenNo> &Occurs) const;
 
 };

@@ -152,7 +152,7 @@ bool CQueryCompiler::ParseQuery(const string &QueryStr)
     fprintf(stderr, "\nCQueryCompiler::ParseQuery(): parsed final query: %s\n", QueryToString().c_str());
 #endif
 
-    //fprintf(stderr, "DEBUG: got subcorpora pos=%d ; len=%d -> \"%s\"\n", yyDtrsPos, yyDtrsLen, QueryStr.substr(yyDtrsPos,yyDtrsLen).c_str());
+    //fprintf(stderr, "DEBUG: got subcorpora pos=%d ; len=%d -> \"%s\"", yyDtrsPos, yyDtrsLen, QueryStr.substr(yyDtrsPos,yyDtrsLen).c_str());
 
     return true;
 }
@@ -353,7 +353,7 @@ void CQueryCompiler::SetFilterBounds(const string& lb, const string& ub)
 {
     m_FilterLB=lb;
     m_FilterUB=ub;
-    //fprintf(stderr, "DEBUG: SetFilterBounds(field=%s, id=%u, offset=%d)\n", m_FilterField.c_str(), m_FilterMatchId, m_FilterOffset);
+    //fprintf(stderr, "DEBUG: SetFilterBounds(field=%s, id=%u, offset=%d)", m_FilterField.c_str(), m_FilterMatchId, m_FilterOffset);
 }
 
 void CQueryCompiler::SetFilterKey(const string &field, BYTE matchid, int offset)

@@ -11,60 +11,60 @@ class CQCount;              //-- forward decl, for CQFPrune
 //======================================================================
 // CQFilter
 
-//! class for global query filters aka "query operators"
+// class for global query filters aka "query operators"
 class CQFilter : public ddcObject {
 public:
     //------------------------------------------------------------
-    //!\name CQFilter API
-    //@{
-    //! Default constructor
+    // CQFilter API
+    //
+    // Default constructor
     CQFilter()
     {};
 
-    //! Default destructor (empty)
+    // Default destructor (empty)
     virtual ~CQFilter() {};
     
-    //! Run fast (un)satisfiability checks for filter before Compile() is called.  Default just returns true.
+    // Run fast (un)satisfiability checks for filter before Compile() is called.  Default just returns true.
     virtual bool CheckSatisfiable(CQueryCompiler *compiler, CQueryOptions *options);
 
-    //! apply the filter to the given compiler
+    // apply the filter to the given compiler
     virtual bool Compile(CQueryCompiler *compiler, CQueryOptions *options);
 
-    //! clone this filter
+    // clone this filter
     virtual CQFilter* Clone()
     { return new CQFilter(*this); };
 
-    //! sort-type for this filter (if any)
+    // sort-type for this filter (if any)
     virtual HitSortEnum FilterType() const
     { return NoSort; };
-    //@}
+    //
 
     //------------------------------------------------------------
-    //!\name ddcObject API
-    //@{
-    //! convert filter to a canonical string
+    // ddcObject API
+    //
+    // convert filter to a canonical string
     virtual std::string toString(void) { return std::string("#FILTER[?]"); };
     virtual std::string jsonClass(void) { return "CQFilter"; };
-    //@}
+    //
 };
 
 //======================================================================
 // CQFSort
 
-//! class for global query sort filters, associated with a CDDCFilterWithBounds object (ConcCommon.h)
-//! m_arg0: unused, m_arg1: lower_bound, m_arg2: upper_bound
+// class for global query sort filters, associated with a CDDCFilterWithBounds object (ConcCommon.h)
+// m_arg0: unused, m_arg1: lower_bound, m_arg2: upper_bound
 class CQFSort : public CQFilter {
 public:
-    //! underlying DDC Filter struct
+    // underlying DDC Filter struct
     CDDCFilterWithBounds m_Filter;
 
-    //! 0th argument (e.g. field name)
+    // 0th argument (e.g. field name)
     std::string m_arg0;
 
-    //! 1st argument (e.g. lower bound)
+    // 1st argument (e.g. lower bound)
     std::string m_arg1;
 
-    //! 2nd argument (e.g. upper bound)
+    // 2nd argument (e.g. upper bound)
     std::string m_arg2;
 
 public:
@@ -88,23 +88,23 @@ public:
     virtual HitSortEnum FilterType() const
     { return m_Filter.m_FilterType; };
 
-    //! swap lower- and upper-bounds if they not in logical order
+    // swap lower- and upper-bounds if they not in logical order
     void SortBounds(void);
 
-    //! compile the filter.  Default implementation just pushes m_Filter onto options->m_Filters
+    // compile the filter.  Default implementation just pushes m_Filter onto options->m_Filters
     virtual bool Compile(CQueryCompiler *compiler, CQueryOptions *options);
 
-    //! compilation utility: return a valid bibliographic attribute for \a attrName
-    //!  + prefers \a attrName if that is a valid attribute name
-    //!  + otherwise uses compiler->m_pHolder->m_pConcordance->m_Bibl.m_DefaultAttrName if non-empty and a valid attribute name
-    //!  + otherwise returns an empty string
+    // compilation utility: return a valid bibliographic attribute for attrName
+    //  + prefers attrName if that is a valid attribute name
+    //  + otherwise uses compiler->m_pHolder->m_pConcordance->m_Bibl.m_DefaultAttrName if non-empty and a valid attribute name
+    //  + otherwise returns an empty string
     std::string ResolveAttributeName(CQueryCompiler *compiler, const std::string& attrName, bool allowBiblExpander=false);
 
-    //! compilation & satisfiability-check utility: return constant bibliographic index for \a attrName (if it is one), or NULL
+    // compilation & satisfiability-check utility: return constant bibliographic index for attrName (if it is one), or NULL
     CFreeBiblIndex *GetBiblConstant(CQueryCompiler *compiler, const std::string &attrName, bool allowBiblExpander=true);
 
     //-- ddcObject API & utilities
-    //! stringification utility: quoted strign for arg, or empty string
+    // stringification utility: quoted strign for arg, or empty string
     std::string argString(const std::string &arg) const;
     virtual std::string toString(void);
     virtual std::string jsonClass(void) { return "CQFSort"; };
@@ -193,7 +193,7 @@ public:
 //======================================================================
 // CQFBiblSort
 
-//! m_arg0: field name, m_arg1: lower_bound, m_arg2: upper_bound
+// m_arg0: field name, m_arg1: lower_bound, m_arg2: upper_bound
 class CQFBiblSort : public CQFSort {
 public:
     CQFBiblSort(HitSortEnum ftype=LessByFreeBiblField,
@@ -208,7 +208,7 @@ public:
     virtual CQFilter* Clone()
     { return (CQFilter*)new CQFBiblSort(*this); };
 
-    //! compile the filter.  requires reference to underlying CConcIndexator
+    // compile the filter.  requires reference to underlying CConcIndexator
     virtual bool Compile(CQueryCompiler *compiler, CQueryOptions *options);
 
     virtual std::string toString(void);
@@ -220,7 +220,7 @@ public:
 //======================================================================
 // CQFContextSort (formerly CQFBigramSort)
 
-//! m_arg0: field name, m_arg1: lower_bound, m_arg2: upper_bound
+// m_arg0: field name, m_arg1: lower_bound, m_arg2: upper_bound
 class CQFContextSort : public CQFSort {
 public:
     CQFContextSort(HitSortEnum ftype=LessByMiddleContext,
@@ -240,7 +240,7 @@ public:
     virtual CQFilter* Clone()
     { return (CQFilter*)new CQFContextSort(*this); };
 
-    //! compile the filter
+    // compile the filter
     virtual bool Compile(CQueryCompiler *compiler, CQueryOptions *options);
 
     virtual std::string toString(void);
@@ -253,7 +253,7 @@ public:
 
 class CQFHasField : public CQFSort {
 public:
-    //! is this a negated filter?
+    // is this a negated filter?
     bool m_Negated;
 
 public:
@@ -266,17 +266,17 @@ public:
     virtual CQFilter* Clone()
     { return (CQFilter*)new CQFHasField(*this); };
 
-    //! negate the filter condition
+    // negate the filter condition
     virtual void Negate(void);
 
-    //! compile the filter.  requires reference to underlying CConcIndexator.
-    //! CQFHasField implementation just ensures that m_arg0, m_arg1 are non-empty, throwing a CExpc otherwise
+    // compile the filter.  requires reference to underlying CConcIndexator.
+    // CQFHasField implementation just ensures that m_arg0, m_arg1 are non-empty, throwing a CExpc otherwise
     virtual bool Compile(CQueryCompiler *compiler, CQueryOptions *options);
 
-    //! value string for stringification
+    // value string for stringification
     virtual std::string valueString(void);
 
-    //! generic stringification; uses valueString()
+    // generic stringification; uses valueString()
     virtual std::string toString(void);
 
     virtual std::string jsonClass(void) { return "CQFHasField"; };
@@ -299,10 +299,10 @@ public:
     virtual CQFilter* Clone()
     { return (CQFilter*)new CQFHasFieldValue(*this); };
 
-    //! Run fast (un)satisfiability checks for filter before Compile() is called.  Default just returns true.
+    // Run fast (un)satisfiability checks for filter before Compile() is called.  Default just returns true.
     virtual bool CheckSatisfiable(CQueryCompiler *compiler, CQueryOptions *options);
     
-    //! compile the filter.  requires reference to underlying CConcIndexator
+    // compile the filter.  requires reference to underlying CConcIndexator
     virtual bool Compile(CQueryCompiler *compiler, CQueryOptions *options);
     virtual std::string jsonClass(void) { return "CQFHasFieldValue"; };
 };
@@ -312,7 +312,7 @@ public:
 
 class CQFHasFieldRegex : public CQFHasField {
 public:
-    //! target regex (same as m_arg1 for direct regex filters; auto-generated for prefix-, suffix-, and infix-filters)
+    // target regex (same as m_arg1 for direct regex filters; auto-generated for prefix-, suffix-, and infix-filters)
     std::string m_Regex;
 
 public:
@@ -325,10 +325,10 @@ public:
     virtual CQFilter* Clone()
     { return (CQFilter*)new CQFHasFieldRegex(*this); };
 
-    //! Run fast (un)satisfiability checks for filter before Compile() is called.  Default just returns true.
+    // Run fast (un)satisfiability checks for filter before Compile() is called.  Default just returns true.
     virtual bool CheckSatisfiable(CQueryCompiler *compiler, CQueryOptions *options);
 
-    //! compile the filter.  requires reference to underlying CConcIndexator
+    // compile the filter.  requires reference to underlying CConcIndexator
     virtual bool Compile(CQueryCompiler *compiler, CQueryOptions *options);
 
     virtual std::string valueString(void);
@@ -400,7 +400,7 @@ public:
 
 class CQFHasFieldSet : public CQFHasField {
 public:
-    //! original target strings string
+    // original target strings string
     std::set<std::string> m_Values;
 
 public:
@@ -413,20 +413,20 @@ public:
     virtual CQFilter* Clone()
     { return (CQFilter*)new CQFHasFieldSet(*this); };
 
-    //! Run fast (un)satisfiability checks for filter before Compile() is called.  Default just returns true.
+    // Run fast (un)satisfiability checks for filter before Compile() is called.  Default just returns true.
     virtual bool CheckSatisfiable(CQueryCompiler *compiler, CQueryOptions *options);
 
-    //! compile the filter.  requires reference to underlying CConcIndexator
+    // compile the filter.  requires reference to underlying CConcIndexator
     virtual bool Compile(CQueryCompiler *compiler, CQueryOptions *options);
 
-    //! utility for use by subclasses: comma-separated list of strings in \a values
+    // utility for use by subclasses: comma-separated list of strings in values
     std::string SetValueString(const std::set<std::string> &values);
 
-    //! wrapper for SetValueString(m_Values)
+    // wrapper for SetValueString(m_Values)
     inline std::string SetValueString(void)
     { return SetValueString(m_Values); };
 
-    //! stringification virtual method
+    // stringification virtual method
     virtual std::string valueString(void);
 
     virtual std::string jsonClass(void) { return "CQFHasFieldSet"; };
@@ -436,39 +436,39 @@ public:
 //======================================================================
 // CQFPrune
 
-//! class for global query pruning filters
-//! m_arg0 : pruning limit (maximum number of hits per key)
+// class for global query pruning filters
+// m_arg0 : pruning limit (maximum number of hits per key)
 class CQFPrune : public CQFSort {
 public:
-    //! maximum number of hits per count-key
+    // maximum number of hits per count-key
     size_t m_limit;
 
-    //! list count-keys (externally allocated, freed here)
+    // list count-keys (externally allocated, freed here)
     CQCountKeyExprList *m_keys;
 
-    //! underlying counts
+    // underlying counts
     CCountMap m_Counts;
 
 public:
     //------------------------------------------------------------
-    //!\name CQFilter API
-    //@{
+    // CQFilter API
+    //
     CQFPrune(HitSortEnum ftype=LessByPruneKey, size_t Limit=0, CQCountKeyExprList* Keys=NULL);
 
-    //! Default destructor (empty)
+    // Default destructor (empty)
     virtual ~CQFPrune();
 
-    //! clone this filter (also clones m_keys)
+    // clone this filter (also clones m_keys)
     virtual CQFilter* Clone();
 
-    //! apply the filter to the given compiler
+    // apply the filter to the given compiler
     virtual bool Compile(CQueryCompiler *compiler, CQueryOptions *options);
-    //@}
+    //
 
     //------------------------------------------------------------
-    //!\name ddcObject API
-    //@{
-    //! convert filter to a canonical string
+    // ddcObject API
+    //
+    // convert filter to a canonical string
     virtual std::string toString(void);
 
     virtual std::string jsonClass(void) { return "CQFPrune"; };
@@ -476,15 +476,15 @@ public:
 
     virtual ddcObjectList Children() const;
     virtual void DisownChildren();
-    //@}
+    //
 
     //------------------------------------------------------------
-    //!\name CQFPrune local methods
-    //@{
-    //! apply pruning filter to \a PeriodHitsIndex, assigning hit sort-key strings as we go
-    //! \li also assigns period-local key-ids (for use with navigation hints via ConcSession::SortKeyLB() etc)
+    // CQFPrune local methods
+    //
+    // apply pruning filter to PeriodHitsIndex, assigning hit sort-key strings as we go
+    // - also assigns period-local key-ids (for use with navigation hints via ConcSession::SortKeyLB() etc)
     void PruneHitsIndex(const CQuery *qRoot, std::vector<size_t>& PeriodHitsIndex);
-    //@}
+    //
 };
 
 #endif /* DDC_QFILTER_H */

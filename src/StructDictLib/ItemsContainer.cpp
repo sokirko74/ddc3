@@ -658,7 +658,7 @@ bool    TItemContainer::BuildFields(BYTE MaxNumDom)
             Fields[FieldNo].IsApplicToActant = strcmp(q,"FALSE") != 0;
                         
 
-            //printf ("%s\n", Fields[FieldNo].FieldStr);
+            //printf ("%s", Fields[FieldNo].FieldStr);
 
 
             for (BYTE i = 0; i < SignatCount; i++)
@@ -689,7 +689,7 @@ bool    TItemContainer::BuildFields(BYTE MaxNumDom)
     }
     catch (...)
     {
-        //printf ("errror!!!\n");
+        //printf ("errror!!!");
         m_LastError =  string("Error in field ") + string(Fields[FieldNo].FieldStr);
         return false;
     };

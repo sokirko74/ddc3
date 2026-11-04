@@ -17,7 +17,7 @@ using namespace std;
 // Sorting utility structures
 
 //==============================================================================
-//! comparison operator for hits on CHit::m_FileNo (for std::sort)
+// comparison operator for hits on CHit::m_FileNo (for std::sort)
 struct IsLessByFileNo {
     IsLessByFileNo() {};
 
@@ -25,7 +25,7 @@ struct IsLessByFileNo {
 };
 
 //==============================================================================
-//! comparison operator for hits on CHit::m_BreakNo (for std::sort)
+// comparison operator for hits on CHit::m_BreakNo (for std::sort)
 struct IsLessByBreakNo {
     IsLessByBreakNo() {};
 
@@ -34,7 +34,7 @@ struct IsLessByBreakNo {
 
 
 //==============================================================================
-//! direct comparison operator for hits on CHit::m_SortKey.i (for std::sort)
+// direct comparison operator for hits on CHit::m_SortKey.i (for std::sort)
 struct HitLessByCountValue {
     bool operator()(const CHit &a, const CHit &b) const {
         return a.m_Value.m_Count < b.m_Value.m_Count;
@@ -45,14 +45,14 @@ struct HitLessByCountValue {
 // Hit size utilities
 
 //----------------------------------------------------------------------
-/** get initial occurrence number of \a Hit */
+/* get initial occurrence number of Hit */
 static inline uint32_t HitOccurrenceStart(const CHit &Hit, const CConcHolder *holder) {
     uint32_t hitno = &Hit - &*(holder->m_Hits.begin());
     return (hitno == 0 ? 0 : holder->m_Hits[hitno - 1].m_HighlightOccurrenceEnd);
 };
 
 //----------------------------------------------------------------------
-/** get first occurence offset after \a Hit (upper bound) */
+/* get first occurence offset after Hit (upper bound) */
 static inline uint32_t HitOccurrenceEnd(const CHit &Hit, const CConcHolder *holder) {
     //return Hit.m_HighlightOccurrenceEnd;
     const vector<CTokenNo> &occurrences = holder->m_HighlightOccurs;

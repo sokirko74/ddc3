@@ -213,7 +213,7 @@ bool CGraphmatFile :: GraphmatMain ()
 
     if   (!m_GraOutputFile.empty())
     {
-        //fprintf (stderr, "write to %s\n", m_GraOutputFile.c_str());
+        //fprintf (stderr, "write to %s", m_GraOutputFile.c_str());
         WriteGraphMat (m_GraOutputFile.c_str());
     }
 

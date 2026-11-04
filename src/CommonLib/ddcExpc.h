@@ -6,16 +6,16 @@
 #include <string>
 #include "morph_dict/common/utilit.h"   // CExpc
 
-//! \brief ddc exception class: morph_dict's CExpc plus an internal error code
-//! \detail the error code is part of the ddc server protocol (see ../CommonLib/DDCInternalError.h);
-//!  catch the base class CExpc (also thrown by morph_dict) and use ddcExpcCode() to get the code
+// ddc exception class: morph_dict's CExpc plus an internal error code
+// the error code is part of the ddc server protocol (see ../CommonLib/DDCInternalError.h);
+//  catch the base class CExpc (also thrown by morph_dict) and use ddcExpcCode() to get the code
 class CDDCExpc : public CExpc
 {
 public:
-    //! internal error code (see ../CommonLib/DDCInternalError.h)
+    // internal error code (see ../CommonLib/DDCInternalError.h)
     int m_ErrorCode;
 
-    //! symbolic error message (also returned by what())
+    // symbolic error message (also returned by what())
     std::string m_strCause;
 
 public:
@@ -28,20 +28,20 @@ public:
 
     virtual ~CDDCExpc() {};
 
-    //! set m_strCause with a printf() format
+    // set m_strCause with a printf() format
     void Set(const char* format, ... );
 
-    //! set m_strCause with a vprintf() format
+    // set m_strCause with a vprintf() format
     void vSet(const char *format, va_list& arglst);
 
-    //! stdexcept interface
+    // stdexcept interface
     virtual const char* what() const noexcept override;
 
-    //! error code interface
+    // error code interface
     virtual int code() const;
 };
 
-//! \brief local exception class, fatal (can be used to force immediate bail-out)
+// local exception class, fatal (can be used to force immediate bail-out)
 class CFatalExpc : public CDDCExpc
 {
 public:
@@ -51,7 +51,7 @@ public:
     virtual ~CFatalExpc() {};
 };
 
-//! error code of any exception: CDDCExpc::code(), errOther otherwise (e.g. CExpc thrown by morph_dict)
+// error code of any exception: CDDCExpc::code(), errOther otherwise (e.g. CExpc thrown by morph_dict)
 extern int ddcExpcCode(const std::exception& e);
 
 #endif

@@ -186,7 +186,7 @@ bool CGraphanDicts::ReadAbbrevations()
 //                      {
 //                              fprintf(fp, "%s ", it->m_ItemStr.c_str());
 //                      };
-//                      fprintf(fp, "\n");
+//                      fprintf(fp, "");
 //              };
 //              fclose (fp);
 //      }

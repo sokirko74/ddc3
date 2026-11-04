@@ -10,7 +10,7 @@ using namespace std;
 
 const size_t MaxCompressRatio = 5;
 size_t AllBytesRead = 0;
-//!  the size of the buffer, which is used to read occurrences from the disk
+//  the size of the buffer, which is used to read occurrences from the disk
 //const DWORD OccurBufferSize = 32;
 const uint32_t OccurBufferSize = 512;
 

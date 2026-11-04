@@ -94,7 +94,7 @@ string GetThesaurusPath ()
 
 bool  CDwdsThesaurus::LoadDwdsThesaurus ()
 {
-    //fprintf (stderr,"0\n");
+    //fprintf (stderr,"0");
     ///////////////////////////////////////////
     string fname =  GetThesaurusPath() + string("dwds_thes_hyper.dat");
     FILE* fp = fopen (fname.c_str(), "r");
@@ -130,9 +130,9 @@ bool  CDwdsThesaurus::LoadDwdsThesaurus ()
         return false;
 
     };
-    //fprintf (stderr,"1\n");
+    //fprintf (stderr,"1");
     ReadVector(fname, Pathes);
-    //fprintf (stderr,"2\n");
+    //fprintf (stderr,"2");
 
     ///////////////////////////////////////////
     fname =  GetThesaurusPath() + string("dwds_thes_pathes.idx");

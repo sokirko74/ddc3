@@ -2,14 +2,14 @@
 #define  GramInfo_h
 
 
-//! CGramInfo represents one morphological pattern, for example "[SUB pl, sg]"
+// CGramInfo represents one morphological pattern, for example "[SUB pl, sg]"
 struct CGramInfo 
 {
-    //! the language of the pattern 
+    // the language of the pattern 
     MorphLanguageEnum       m_Language;
-    //! the part of speech mask  (SUB, ART,ADJ...)
+    // the part of speech mask  (SUB, ART,ADJ...)
     uint32_t                           m_PartOfSpeechMask;
-    //! morphological features (plu, sig, nom...)
+    // morphological features (plu, sig, nom...)
     uint64_t                           m_Grammems;
 
     CGramInfo () {

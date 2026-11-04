@@ -7,45 +7,45 @@
 
 //======================================================================
 // ddcCorpusList
-/** high-level wrapper for corpus file lists (*._con) */
+/* high-level wrapper for corpus file lists (*._con) */
 template <typename OffT_=uint32_t>
 class ddcCorpusList
 {
 public:
     //----------------------------------------------------------
     // typedefs
-    typedef OffT_  OffT; ///< typedef for offset values
-    typedef uint32_t  IdT;  ///< typedef for integer IDs
+    typedef OffT_  OffT; // typedef for offset values
+    typedef uint32_t  IdT;  // typedef for integer IDs
 
 public:
     //----------------------------------------------------------
     // data
-    ddcVecFile<char>  m_cdata;    ///< underlying character data, including initial version string
-    ddcVecFile<OffT>  m_offsets;  ///< offsets in m_cdata[] of "\n"-terminated filenames (in corpus order)
-    std::vector<std::string>    m_strings;  ///< backwards-compatible vector<string> implementation, for read/write access
-    std::string            m_verstr;   ///< version string (1st line of *._con file)
+    ddcVecFile<char>  m_cdata;    // underlying character data, including initial version string
+    ddcVecFile<OffT>  m_offsets;  // offsets in m_cdata[] of ""-terminated filenames (in corpus order)
+    std::vector<std::string>    m_strings;  // backwards-compatible vector<string> implementation, for read/write access
+    std::string            m_verstr;   // version string (1st line of *._con file)
 
-    size_t            m_bufsize;  ///< buffer size for fallback (default is old value for MaxBiblStringLen from Bibliography.cpp)
+    size_t            m_bufsize;  // buffer size for fallback (default is old value for MaxBiblStringLen from Bibliography.cpp)
 
 public:
     //----------------------------------------------------------
     // constructors etc.
 
-    /// default constructor
+    // default constructor
     ddcCorpusList()
         : m_bufsize(20000)
     {};
 
-    /// construct and open
+    // construct and open
     ddcCorpusList(const std::string& conFile, const std::string& cdataFile="", const std::string& offsetsFile="", bool useMMap=false)
         : m_bufsize(20000)
     { open(conFile,cdataFile,offsetsFile,useMMap); };
 
-    /// default destructor calls close()
+    // default destructor calls close()
     ~ddcCorpusList()
     { close(); };
 
-    /// clear() method wraps close()
+    // clear() method wraps close()
     inline void clear()
     { close(); };
 
@@ -53,31 +53,31 @@ public:
     //----------------------------------------------------------
     // accessors & properties
 
-    /// returns the number of enumerated strings
+    // returns the number of enumerated strings
     inline size_t size() const
     { return m_offsets ? m_offsets.size() : m_strings.size(); };
 
-    /// STL-esque wrapper
+    // STL-esque wrapper
     inline bool empty() const
     { return m_offsets ? m_offsets.empty() : m_strings.empty(); };
 
-    /// check whether the object is opened
+    // check whether the object is opened
     inline bool opened() const
     { return m_offsets.opened() || !m_strings.empty(); };
 
-    /// version string
+    // version string
     const std::string& VersionString() const
     { return m_verstr; };
 
-    /// get start-offset of string by index (mmap variant only)
+    // get start-offset of string by index (mmap variant only)
     inline OffT itemStartOffset(IdT idx) const
     { return m_offsets[idx]; };
 
-    /// get end-offset of string by index (mmap variant only)
+    // get end-offset of string by index (mmap variant only)
     inline OffT itemEndOffset(IdT idx) const
     { return ((idx+1)>=size() ? m_cdata.size() : m_offsets[idx+1]) - 1; };
 
-    /// pseudo-indexing operator
+    // pseudo-indexing operator
     inline void itemGet(IdT idx, std::string& str) const
     {
         OffT i = itemStartOffset(idx);
@@ -90,11 +90,11 @@ public:
     //----------------------------------------------------------
     // operators
 
-    /// implicit typecast to bool
+    // implicit typecast to bool
     inline operator bool() const
     { return opened(); };
 
-    /// indexing operator (copies)
+    // indexing operator (copies)
     inline std::string operator[](IdT idx) const
     {
         if (!m_offsets) return m_strings[idx];
@@ -106,14 +106,14 @@ public:
     //----------------------------------------------------------
     // read/write access (auto-demote)
 
-    /// simulate vector::push_back(): used by indexing routines
+    // simulate vector::push_back(): used by indexing routines
     inline void push_back(const std::string& value)
     {
         ensureVec();
         m_strings.push_back(value);
     };
 
-    /// populate \a v with an equivalent vector-implementation (for compile-time compatibility)
+    // populate v with an equivalent vector-implementation (for compile-time compatibility)
     void append_vector(std::vector<std::string>& v) const
     {
         v.reserve(v.size()+size());
@@ -125,7 +125,7 @@ public:
         }
     };
     
-    /// force vector-implementation
+    // force vector-implementation
     inline void ensureVec()
     {
         if (m_offsets) {
@@ -141,12 +141,12 @@ public:
     //----------------------------------------------------------
     // search
 
-    /// constant returned by string-to-id search methods indicating no match was found
+    // constant returned by string-to-id search methods indicating no match was found
     //-- re numeric_limits<>::max(): see NO_ID comments in ddcStringEnum.h
     //static const IdT NO_ID = std::numeric_limits<IdT>::max();
     static const IdT NO_ID = UINT32_MAX;
 
-    /// returns first id of \a key, or NO_ID if not found (linear search)
+    // returns first id of key, or NO_ID if not found (linear search)
     inline IdT find(const std::string& key) const
     {
         if (m_offsets) {
@@ -165,7 +165,7 @@ public:
         return NO_ID;
     };
 
-    /// returns last id of \a key, or NO_ID if not found (linear search)
+    // returns last id of key, or NO_ID if not found (linear search)
     inline IdT rfind(const std::string& key) const
     {
         if (m_offsets) {
@@ -191,7 +191,7 @@ public:
     //----------------------------------------------------------
     // guts
 
-    /// map a named file \a filename
+    // map a named file filename
     ddcCorpusList& open(const std::string& conFile, const std::string& cdataFile="", const std::string& offsetsFile="", bool useMMap=false)
     {
         if (opened()) close();
@@ -211,7 +211,7 @@ public:
         return *this;
     };
 
-    /// open in compatibility-mode; lifted from CConcIndexator::LoadCorpusFiles()
+    // open in compatibility-mode; lifted from CConcIndexator::LoadCorpusFiles()
     void openCompat(const std::string& filename, bool slurpList=true)
     {
         if (opened()) close();
@@ -238,7 +238,7 @@ public:
         fclose(fp);
     };
 
-    /// unmap current file(s), if any
+    // unmap current file(s), if any
     void close()
     {
         m_cdata.close();

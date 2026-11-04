@@ -14,11 +14,11 @@ CEngGramTab *engGramTab = 0;
 CRusGramTab *rusGramTab = 0;
 CGerGramTab *gerGramTab = 0;
 
-//! German I/O recoding (internal morphology encoding is LATIN1)
+// German I/O recoding (internal morphology encoding is LATIN1)
 ddcIconv *gerExt2Int = 0;
 ddcIconv *gerInt2Ext = 0;
 
-//! global mutex for non-thread-safe curl operations (global init, lru-cached proxy)
+// global mutex for non-thread-safe curl operations (global init, lru-cached proxy)
 pthread_mutex_t ddcMorphMutex = PTHREAD_MUTEX_INITIALIZER;
 
 static void InitGermanRecoding() {

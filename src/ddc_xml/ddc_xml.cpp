@@ -628,7 +628,7 @@ int main(int argc, char **argv) {
             ThreadPool myPool(threadCount, Queries);
             myPool.Wait();
             for (size_t i = 0; i < Queries.size(); i++) {
-                //fprintf (outputFile, " length=%i\n", myPool.GetResult(i).length());
+                //fprintf (outputFile, " length=%i", myPool.GetResult(i).length());
                 fprintf (outputFile, "%s", myPool.GetResult(i).c_str());
             }
         }

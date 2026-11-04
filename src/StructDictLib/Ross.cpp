@@ -10,7 +10,7 @@
 
 using namespace std;
 
-//! true if the line \a t contains only whitespace (up to '\r' or the end of the string)
+// true if the line t contains only whitespace (up to '\r' or the end of the string)
 static bool IsEmptyLine(const char *t)
 {
     for (; *t != 0 && *t != '\r'; t++)

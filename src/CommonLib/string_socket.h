@@ -37,7 +37,7 @@ enum NetworkErrorsEnum {
     neRequestTooLarge = 10
 };
 
-/// enum for socket schemes
+// enum for socket schemes
 enum SocketTypeEnum {
     stUnknown = 0,
     stINET = 1,
@@ -55,29 +55,29 @@ extern const int ddcSocketChunkSize;
 //======================================================================
 // Constants
 
-/** wrapper structure for abstract socket address parameters */
+/* wrapper structure for abstract socket address parameters */
 struct CSocketAddr
 {
-    SocketTypeEnum m_Type;	///< socket domain
-    std::string         m_Addr;	///< unix:filesystem path, tcp:host address
-    int            m_Port;      ///< unix:filler, tcp:port number
+    SocketTypeEnum m_Type;	// socket domain
+    std::string         m_Addr;	// unix:filesystem path, tcp:host address
+    int            m_Port;      // unix:filler, tcp:port number
 
-    /** default constructor */
+    /* default constructor */
     CSocketAddr(SocketTypeEnum sockType=stUnknown, const std::string& sockAddr="", int sockPort=-1)
         : m_Type(sockType), m_Addr(sockAddr), m_Port(sockPort)
     {};
 
-    /** copy constructor */
+    /* copy constructor */
     CSocketAddr(const CSocketAddr &X)
         : m_Type(X.m_Type), m_Addr(X.m_Addr), m_Port(X.m_Port)
     {};
 
-    /** constructor from string */
+    /* constructor from string */
     CSocketAddr(const std::string& Str, bool parsePort=true)
         : m_Type(stUnknown), m_Addr(), m_Port(-1)
     { ParseSocketAddr(Str, parsePort); };
 
-    /** assignment operator */
+    /* assignment operator */
     CSocketAddr& operator=(const CSocketAddr& X)
     {
         m_Type = X.m_Type;
@@ -86,34 +86,34 @@ struct CSocketAddr
         return *this;
     }
 
-    /** clear address parameters */
+    /* clear address parameters */
     void Clear();
 
-    /** does this address look kosher? */
+    /* does this address look kosher? */
     bool IsValid() const;
 
-    /** implicit cast-to-bool wraps IsValid() */
+    /* implicit cast-to-bool wraps IsValid() */
     inline operator bool() const
     { return IsValid(); };
 
-    /** parse m_Type and m_Addr from \a Str.
-     *  Implicitly calls ParseSocketPort() if \a parsePort is true.
+    /* parse m_Type and m_Addr from Str.
+     *  Implicitly calls ParseSocketPort() if parsePort is true.
      *  Supported notation:
-     *  \li ADDR - INET socket on ADDR
-     *  \li tcp://ADDR_PORT - INET socket on ADDR, with explicit scheme
-     *  \li /PATH - UNIX socket on absolute path /PATH
-     *  \li unix://PATH - UNIX socket on PATH
-     *  \li unix:PATH - ditto
+     *  - ADDR - INET socket on ADDR
+     *  - tcp://ADDR_PORT - INET socket on ADDR, with explicit scheme
+     *  - /PATH - UNIX socket on absolute path /PATH
+     *  - unix://PATH - UNIX socket on PATH
+     *  - unix:PATH - ditto
      */
     void ParseSocketAddr(const std::string& Str, bool parsePort=true);
 
-    /** extract \a m_Port from \a m_Addr.  Supported notation:
-     *  \li ADDR:PORT - INET socket on ADDR:PORT
-     *  \li ADDR PORT - same
+    /* extract m_Port from m_Addr.  Supported notation:
+     *  - ADDR:PORT - INET socket on ADDR:PORT
+     *  - ADDR PORT - same
      */
     void ParseAddrPort();
 
-    /** return a URL-style string representation of this address */
+    /* return a URL-style string representation of this address */
     std::string toString() const;
 };
 
@@ -136,10 +136,10 @@ extern void flush_socket (SOCKET sock);
 extern bool SocketInitialize(bool bReadFromLocalFile);
 extern bool SocketDeinitialize();
 
-/** close a socket; if \a linger is true, SO_LINGER option will be set for \a timeout second(s) */
+/* close a socket; if linger is true, SO_LINGER option will be set for timeout second(s) */
 extern bool CloseSocket(int l_socket, bool linger=false, int timeout=5);
 
-/** wrapper for CloseSocket() on a reference */
+/* wrapper for CloseSocket() on a reference */
 extern bool CloseSocketRef(SOCKET& rConnectedSocket, bool linger=false, int timeout=5);
 
 extern std::string GetNetworkErrorString(const NetworkErrorsEnum& t);

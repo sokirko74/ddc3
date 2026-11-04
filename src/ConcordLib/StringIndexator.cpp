@@ -269,7 +269,7 @@ void CStringIndexator::IndexOneToken(CTokenIndexator *document, const char *Inpu
         ddcLogWarn(Format("Warning: truncating greedy colums for input line \"%s\" (length=%zd > max=%zd)", InputLine, length, MaxIndexLineLength));
         IndexTokenFixLongColumns(MaxIndexLineLength, document->ColumnMap.size(), InputLine, Line);
         length = strlen(Line);
-        //ddcLogWarn(Format("DEBUG: got truncated line of length %zd: %s\n", length, Line));
+        //ddcLogWarn(Format("DEBUG: got truncated line of length %zd: %s", length, Line));
     } else {
         strcpy(Line, InputLine);
     }

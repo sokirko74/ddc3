@@ -11,31 +11,31 @@
 #endif
 
 //======================================================================
-/*!
-  \brief
+/*
+  
   thread-safe pseudo-random number stream using drand48() & friends
 */
 class DDCRandom {
 public:
-    //! underlying random seed for POSIX.1 random numbers using rand_r() or srand()+rand() hack
+    // underlying random seed for POSIX.1 random numbers using rand_r() or srand()+rand() hack
     unsigned int m_seed;
 
 #ifdef DDC_RAND48
-    //! underlying computation state (defaults to {m_seed,m_seed,m_seed}) for jrand48() & friends
+    // underlying computation state (defaults to {m_seed,m_seed,m_seed}) for jrand48() & friends
     unsigned short m_state[3];
 #endif
 
 public:
     //------------------------------------------------------------
-    ///\name Constructors etc.
-    //@{
-    //! Constructor given state
+    // Constructors etc.
+    //
+    // Constructor given state
     DDCRandom(unsigned int seed=0)
     {
         set_seed(seed);
     };
 
-    //! set internal seed
+    // set internal seed
     void set_seed(unsigned int seed=0)
     {
         m_seed = seed;
@@ -46,16 +46,16 @@ public:
 #endif
     };
 
-    //! Default destructor.
+    // Default destructor.
     ~DDCRandom(void) {};
-    //@}
+    //
 
 public:
     //------------------------------------------------------------
-    ///\name API
-    //@{
+    // API
+    //
 
-    //! returns a pseudo-random double in the range [0,1)
+    // returns a pseudo-random double in the range [0,1)
     inline double random_d(void) {
 #if defined(HAVE_ERAND48)
         return erand48(m_state);
@@ -67,7 +67,7 @@ public:
 #endif
     };
 
-    //! returns a pseudo-random long in the range [-2**31,2**31)
+    // returns a pseudo-random long in the range [-2**31,2**31)
     inline long random_l(void) {
 #if defined(HAVE_JRAND48)
         return (long)jrand48(m_state);
@@ -79,7 +79,7 @@ public:
 #endif
     };
 
-    //! returns a pseudo-random unsigned long in the range [0,2**31)
+    // returns a pseudo-random unsigned long in the range [0,2**31)
     inline long random_n(void) {
         //return (unsigned long)random_l();
 #if defined(HAVE_NRAND48)
@@ -88,7 +88,7 @@ public:
         return random_l();
 #endif
     };
-    //@}
+    //
 };
 
 #endif /* DDC_RANDOM_H */

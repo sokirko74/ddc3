@@ -16,7 +16,7 @@ bool ddcEnableAnonymousTokens = false;
 //                    class CItemIndexForLoading
 //==========================================================
 
-//! initializes vector of  occurrences
+// initializes vector of  occurrences
 bool CItemIndexForLoading::InitOccurs() 
 {
     m_pCurrOccurs = new vector<CTokenNo>;
@@ -28,7 +28,7 @@ bool CItemIndexForLoading::InitOccurs()
     return true;
 };
 
-//! deletes vector of  occurrences
+// deletes vector of  occurrences
 void CItemIndexForLoading::FreeOccurs() 
 {
     try 
@@ -44,13 +44,13 @@ void CItemIndexForLoading::FreeOccurs()
     }
 };
 
-//! writes vector of  occurrences to a file
+// writes vector of  occurrences to a file
 bool CItemIndexForLoading::WriteOccurrences(FILE* fp) const 
 {
     return WriteVectorInner(fp, *m_pCurrOccurs);
 };
 
-//! checks the order of  occurrences
+// checks the order of  occurrences
 bool CItemIndexForLoading::CheckOccurrences(CTokenNo EndTokenNo) const 
 {
     size_t Count = m_pCurrOccurs->size();
@@ -79,7 +79,7 @@ bool CItemIndexForLoading::CheckOccurrences(CTokenNo EndTokenNo) const
     return true;
 };
 
-//! clears vector of  occurrences to a file
+// clears vector of  occurrences to a file
 void CItemIndexForLoading::ClearOccurrences() 
 {
     ClearVector(*m_pCurrOccurs);
@@ -87,7 +87,7 @@ void CItemIndexForLoading::ClearOccurrences()
 
 
 
-//! read vector of  occurrences from a temporal file 
+// read vector of  occurrences from a temporal file 
 bool CItemIndexForLoading::ReadFromTemporalFile (FILE* fp)
 {
     // reads m_IndexItemOffset
@@ -108,7 +108,7 @@ bool CItemIndexForLoading::ReadFromTemporalFile (FILE* fp)
     return true;
 };
 
-//! write vector of  occurrences to a temporal file 
+// write vector of  occurrences to a temporal file 
 void CItemIndexForLoading::WriteToTemporalFile (FILE* fp) const
 {
     if (fwrite(&m_IndexItemOffset, sizeof(m_IndexItemOffset), 1 , fp) != 1) 
@@ -264,7 +264,7 @@ bool CIndexSetForLoadingStage::FindIndexItemInVector (const char* Item, vector<C
         && m_LoadLess1.are_equal(*it, Item);
 };
 
-//! finds an item in the swap index set, if it is not found, finds the item in the file index  set
+// finds an item in the swap index set, if it is not found, finds the item in the file index  set
 bool CIndexSetForLoadingStage::FindIndexItem (const char* Item, vector<CItemIndexForLoading>::iterator& it)
 {
     int HashNo = GetHashNo(Item);
@@ -288,8 +288,8 @@ bool    CIndexSetForLoadingStage::AddToMemoryLoadIndexAndClear(vector<CItemIndex
         {
             fprintf (stderr,"An error occurred in function %s::AddToMemoryLoadIndexAndClear (order error:FileIndexSet is not sorted)\n", GetName().c_str());
                         
-            //fprintf (stderr,"FileIndexSet[%i] = %s\n", i, GetIndexItemStr(FileIndexSet[i]) );
-            //fprintf (stderr,"FileIndexSet[%i] = %s\n", i+1, GetIndexItemStr(FileIndexSet[i+1]) );
+            //fprintf (stderr,"FileIndexSet[%i] = %s", i, GetIndexItemStr(FileIndexSet[i]) );
+            //fprintf (stderr,"FileIndexSet[%i] = %s", i+1, GetIndexItemStr(FileIndexSet[i+1]) );
             return false;
         };
     // special check
@@ -636,6 +636,6 @@ void CIndexSetForLoadingStage::RollbackLoadIndex(CTokenNo startTrimTokenNo)
             throw CDDCExpc(Format("failed to truncate temporary storage file '%s' during rollback", m_TempStorageFileName.c_str()));
         if (!fseek64(m_TempStorageFile, truncate_offset, SEEK_SET))
             throw CDDCExpc(Format("failed to re-seek to end of temporary storage file '%s' during rollback", m_TempStorageFileName.c_str()));
-        //fprintf(stderr, "DEBUG/ROLLBACK: truncate_offset=%zd ; new_offset=%zd\n", truncate_offset, ftell64(m_TempStorageFile)); //-- DEBUG
+        //fprintf(stderr, "DEBUG/ROLLBACK: truncate_offset=%zd ; new_offset=%zd", truncate_offset, ftell64(m_TempStorageFile)); //-- DEBUG
     }
 };

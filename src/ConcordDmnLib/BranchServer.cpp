@@ -1049,7 +1049,7 @@ NetworkErrorsEnum CDDCBranchServer::GetHitCounts(CFirstHitsQueryResult& FHResult
         && ResultString[ResultString.size()-1]=='\n')
 
     {
-        //-- trim final trailing ",\n"
+        //-- trim final trailing ","
         ResultString.erase(ResultString.size()-2);
     }
     else if (ResultTypeE == DDC_ResultHTML) {

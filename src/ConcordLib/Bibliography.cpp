@@ -82,7 +82,7 @@ bool CBibliography::ConvertDateToInt(int &Result) const
 };
 
 
-//! auto-truncate a single bibliography string (convenience class method)
+// auto-truncate a single bibliography string (convenience class method)
 inline static void SanitizeBiblString(std::string& val, const char *label)
 {
     if (TrimTruncate(val,MaxBiblStringLen))

@@ -2,7 +2,7 @@
 #define ptrholder_h
 
 
-/** abstraction layer for pointers allocated with new() */
+/* abstraction layer for pointers allocated with new() */
 template <class T>
 class PtrHolder {
 public:
@@ -72,7 +72,7 @@ protected:
 };
 
 
-/** abstraction layer for pointers allocated with new[]() */
+/* abstraction layer for pointers allocated with new[]() */
 template <class T>
 class ArrayPtrHolder {
 public:

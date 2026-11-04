@@ -320,7 +320,7 @@ curl_socket_t CCurl::cbOpenUnixSocket_(void *clientp, curlsocktype purpose, stru
         return -1;
     }
 
-    //fprintf(stderr, "DEBUG: CCurl::cbOpenUnixSocket_(): opened %s on fd #%d [addrlen=%zd]\n", ccurl->m_UnixSocketPath.c_str(), sockfd, address->addrlen);
+    //fprintf(stderr, "DEBUG: CCurl::cbOpenUnixSocket_(): opened %s on fd #%d [addrlen=%zd]", ccurl->m_UnixSocketPath.c_str(), sockfd, address->addrlen);
   
     return sockfd;
 #endif

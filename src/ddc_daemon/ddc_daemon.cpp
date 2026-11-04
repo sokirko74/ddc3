@@ -274,7 +274,7 @@ int do_start(bool clientMode=false)
         }
 
 
-        //syslog(LOG_ALERT, "Open       lock file `%s'\n", LockFileName.c_str());
+        //syslog(LOG_ALERT, "Open       lock file `%s'", LockFileName.c_str());
         ddcLogDebug(Format("Open lock file `%s'", LockFileName.c_str()));
         FILE* fp = fopen (LockFileName.c_str(), "w");
         if (!fp) {
