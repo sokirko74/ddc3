@@ -1,22 +1,4 @@
-//-*- Mode: C++ -*-
-//
-//  DDC originally by Alexey Sokirko
 //  This file by Bryan Jurish, adapted from https://vichargrave.github.io/articles/2012-12/java-style-thread-class-in-cpp
-//
-//  This file is part of DDC.
-// 
-//  DDC is free software: you can redistribute it and/or modify
-//  it under the terms of the GNU Lesser General Public License as published by
-//  the Free Software Foundation, either version 3 of the License, or
-//  (at your option) any later version.
-// 
-//  DDC is distributed in the hope that it will be useful,
-//  but WITHOUT ANY WARRANTY; without even the implied warranty of
-//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-//  GNU Lesser General Public License for more details.
-// 
-//  You should have received a copy of the GNU Lesser General Public License
-//  along with DDC.  If not, see <http://www.gnu.org/licenses/>.
 //
 
 #include "ddcThread.h"
@@ -113,13 +95,3 @@ int ddcThread::detach(bool force)
         m_running = 0; //-- force-detach underlying pthread_t
     return result;
 }
-
-/*--- emacs style variables ---
- * Local Variables:
- *  mode: C++
- *  c-file-style: "ellemtel"
- *  c-basic-offset: 4
- *  tab-width: 8
- *  indent-tabs-mode: nil
- * End:
- */

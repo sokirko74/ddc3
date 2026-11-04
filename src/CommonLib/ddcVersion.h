@@ -1,4 +1,3 @@
-/*-*- Mode: C++ -*-*/
 #ifndef DDC_version_h
 #define DDC_version_h
 
@@ -151,13 +150,3 @@ void ddc_parse_format_version(const char *s, DDCVersionT &version, DDCVersionT &
 void ddc_format_version_check(const char *s, const char *label=NULL);
 
 #endif
-
-/*--- emacs style variables ---
- * Local Variables:
- *  mode: C++
- *  c-file-style: "ellemtel"
- *  c-basic-offset: 4
- *  tab-width: 8
- *  indent-tabs-mode: nil
- * End:
- */

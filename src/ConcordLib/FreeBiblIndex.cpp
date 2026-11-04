@@ -1,4 +1,3 @@
-//
 // Created by sokirko on 10.10.19.
 //
 
@@ -663,13 +662,3 @@ void CFreeBiblStringConstant::CreatePartitions(vector<CFreeBiblIndex *> &Parts, 
                                                const vector<uint32_t> &EndFileNo) const {
     ddcLogDebug("CFreeBiblStringConstant::CreatePartitions(): ignoring bibl string constant " + m_Name);
 };
-
-/*--- emacs style variables ---
- * Local Variables:
- *  mode: C++
- *  c-file-style: "ellemtel"
- *  c-basic-offset: 4
- *  tab-width: 8
- *  indent-tabs-mode: nil
- * End:
- */

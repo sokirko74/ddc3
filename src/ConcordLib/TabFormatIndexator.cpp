@@ -1,4 +1,3 @@
-//
 // Created by sokirko on 05.10.19.
 //
 
@@ -183,13 +182,3 @@ void CTabFormatIndexator::IndexTabFormat(CIndexDocument* document) {
                            document->DroppedLinesCount, document->CorpusFileName.c_str()));
     }
 };
-
-/*--- emacs style variables ---
- * Local Variables:
- *  mode: C++
- *  c-file-style: "ellemtel"
- *  c-basic-offset: 4
- *  tab-width: 8
- *  indent-tabs-mode: nil
- * End:
- */

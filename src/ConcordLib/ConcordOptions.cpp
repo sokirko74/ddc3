@@ -1,23 +1,3 @@
-//-*- Mode: C++ -*-
-//
-//  DDC originally by Alexey Sokirko
-//  Changes and modifications 2011-2019 by Bryan Jurish and Alexey Sokirko
-//
-//  This file is part of DDC.
-// 
-//  DDC is free software: you can redistribute it and/or modify
-//  it under the terms of the GNU Lesser General Public License as published by
-//  the Free Software Foundation, either version 3 of the License, or
-//  (at your option) any later version.
-// 
-//  DDC is distributed in the hope that it will be useful,
-//  but WITHOUT ANY WARRANTY; without even the implied warranty of
-//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-//  GNU Lesser General Public License for more details.
-// 
-//  You should have received a copy of the GNU Lesser General Public License
-//  along with DDC.  If not, see <http://www.gnu.org/licenses/>.
-//
 #include "StdConc.h"
 #include "../CommonLib/util_classes.h"
 #include "DwdsThesaurus.h"
@@ -756,13 +736,3 @@ bool CConcordance::HasEqualOptions(const CConcordance &X) const {
     string s2  = X.SaveOptionsToString();
     return s1 == s2;
 };
-
-/*--- emacs style variables ---
- * Local Variables:
- *  mode: C++
- *  c-file-style: "ellemtel"
- *  c-basic-offset: 4
- *  tab-width: 8
- *  indent-tabs-mode: nil
- * End:
- */

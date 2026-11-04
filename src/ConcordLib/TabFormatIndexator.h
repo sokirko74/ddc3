@@ -1,4 +1,3 @@
-//
 // Created by sokirko on 05.10.19.
 //
 
@@ -32,13 +31,3 @@ extern  std::string ReadTabFormatDocumentName(const std::string& line);
 
 
 #endif //PROJECT_TABFORMATINDEXATOR_H
-
-/*--- emacs style variables ---
- * Local Variables:
- *  mode: C++
- *  c-file-style: "ellemtel"
- *  c-basic-offset: 4
- *  tab-width: 8
- *  indent-tabs-mode: nil
- * End:
- */

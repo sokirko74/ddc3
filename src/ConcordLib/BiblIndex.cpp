@@ -1,4 +1,3 @@
-//
 // Created by sokirko on 12.10.19.
 //
 
@@ -709,13 +708,3 @@ string CBiblIndex::BiblExpanderMapToJson() const {
     result += "]";
     return result;
 }
-
-/*--- emacs style variables ---
- * Local Variables:
- *  mode: C++
- *  c-file-style: "ellemtel"
- *  c-basic-offset: 4
- *  tab-width: 8
- *  indent-tabs-mode: nil
- * End:
- */

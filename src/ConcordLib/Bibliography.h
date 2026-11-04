@@ -1,4 +1,3 @@
-//
 // Created by sokirko on 10.10.19.
 //
 
@@ -46,13 +45,3 @@ struct CBibliography {
 
 
 #endif //PROJECT_BIBLIOGRAPHY_H
-
-/*--- emacs style variables ---
- * Local Variables:
- *  mode: C++
- *  c-file-style: "ellemtel"
- *  c-basic-offset: 4
- *  tab-width: 8
- *  indent-tabs-mode: nil
- * End:
- */

@@ -1,4 +1,3 @@
-//--------------------------------------------------------------
 bool	CQueryTokenNode::CreateTokenPattern(const CConcHolder* pHolder, const string& IndexName, const string& Value, bool bRegex, bool bExact)
 {
 	/*-- moo:

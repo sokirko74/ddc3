@@ -4,6 +4,7 @@
  * the autoheader-generated preprocessor symbols (e.g. after
  * (#include)ing in some config.h from another autoheader package
  */
+
 #include "ddcConfigAuto.h"
 
 /* 
@@ -15,13 +16,3 @@
 #define _DDC_CONFIG_H
 
 #endif /* _DDC_CONFIG_H */
-
-/*--- emacs style variables ---
- * Local Variables:
- *  mode: C++
- *  c-file-style: "ellemtel"
- *  c-basic-offset: 4
- *  tab-width: 8
- *  indent-tabs-mode: nil
- * End:
- */

@@ -136,7 +136,7 @@ extern int yyqdebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 90 "yyQParser.y"
+#line 73 "yyQParser.y"
 
   std::string*	 	m_str;     /* For returning simple strings  */
   int                   m_int;     /* For returning integers */

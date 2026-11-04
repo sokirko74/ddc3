@@ -23,13 +23,3 @@ bool tar_get_next_file(TAR *t, std::string& FileName, std::vector<char>& Result)
 
 
 #endif /* ! LIBTAR_H */
-
-/*--- emacs style variables ---
- * Local Variables:
- *  mode: C++
- *  c-file-style: "ellemtel"
- *  c-basic-offset: 4
- *  tab-width: 8
- *  indent-tabs-mode: nil
- * End:
- */

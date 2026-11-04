@@ -1,4 +1,3 @@
-//
 // Created by sokirko on 05.10.19.
 //
 
@@ -158,13 +157,3 @@ bool CDocumentIterator::NextDocument(CIndexDocument& doc) {
     doc.NormalizeDocumentBuffer();
     return true;
 }
-
-/*--- emacs style variables ---
- * Local Variables:
- *  mode: C++
- *  c-file-style: "ellemtel"
- *  c-basic-offset: 4
- *  tab-width: 8
- *  indent-tabs-mode: nil
- * End:
- */
