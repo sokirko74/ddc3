@@ -29,7 +29,6 @@ Options:
   -t, -timeout SECS  # set server timeout to SECS (default=$timeout)
   -r, -request       # send a raw DDC request (not a corpus query)
   -j, -json          # select DDC-JSON format (default)
-  -k, -kwic          # select KWIC format (uses $(dirname $0)/ddc-json2kwic.perl)
   -text              # select DDC-text format
   -table             # select DDC-table format
 
@@ -88,10 +87,6 @@ while test $# -gt 0 ; do
 	    ;;
 	-json|-j)
 	    mode="json"
-	    ;;
-	-kwic|-k)
-	    mode="json"
-	    postproc="$(dirname $0)/ddc-json2kwic.perl"
 	    ;;
 
 	--)
