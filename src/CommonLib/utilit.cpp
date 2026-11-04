@@ -336,17 +336,6 @@ const uint16_t ASCII[256] = {
 
 
 
-time_t FileMTime (const char *filename)
-{
-#if defined(HAVE_SYS_TYPES_H) && defined(HAVE_SYS_STAT_H)
-    struct stat statbuf;
-    if (stat(filename, &statbuf) == -1)
-        return 0;
-    return statbuf.st_mtime;
-#else
-    return 0;
-#endif
-}
 
 
 bool FSeek(FILE* fp, file_off_t pos, int origin)

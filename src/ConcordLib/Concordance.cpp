@@ -20,6 +20,8 @@
 //
 #include "StdConc.h"
 #include "Concordance.h"
+#include <sys/types.h>
+#include <sys/stat.h>
 
 
 using namespace std;
@@ -405,9 +407,10 @@ string CConcordance::GetHtmlReference(size_t posFile) const {
 };
 
 time_t CConcordance::UpdateTimestamp(const char *filename) {
-    time_t mtime = FileMTime(filename);
-    if (mtime > m_Timestamp)
-        m_Timestamp = mtime;
+    //-- modification time of the file (0 if it cannot be stat'ed); stat() exists on Windows too
+    struct stat statbuf;
+    if (stat(filename, &statbuf) == 0 && statbuf.st_mtime > m_Timestamp)
+        m_Timestamp = statbuf.st_mtime;
     return m_Timestamp;
 }
 
