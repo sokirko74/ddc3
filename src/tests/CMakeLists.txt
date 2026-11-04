@@ -15,3 +15,4 @@ add_subdirectory (bad_daemon_config)
 add_subdirectory (good_daemon_config)
 
 
+add_subdirectory (utf8)
