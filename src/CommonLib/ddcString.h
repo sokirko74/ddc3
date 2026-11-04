@@ -26,6 +26,8 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <string>
+#include <cstdint>
+#include <vector>
 
 //----------------------------------------------------------------------
 //\name C escapes
@@ -152,6 +154,25 @@ char* StrError(int ErrorNo);
  * old string tokenizer from ../CommonLib/util_classes.h, utilit.cpp, rsp. ../CommonLib/string_tokenizer.h
  * \detail see also stringSplitE() from utilit.cpp
  */
+//-- string splitting and hex keys (formerly in utilit.h)
+
+//! moo: convenience wrapper for string-to-vector tokenization using StringTokenizer (no empty tokens)
+std::vector<std::string> stringSplit(const char *s, const char *delims);
+
+//! moo: split a string using std::string() methods only, allowing empty tokens
+//! \li appends token-strings to argument \a tokens
+//! \li \a tokens is not implicitly cleared
+void stringSplitE(const std::string& s, const std::string& delims, std::vector<std::string>& tokens);
+
+//! moo: stringSplitE() variant returning token-vector
+std::vector<std::string> stringSplitE(const std::string& s, const std::string& delims);
+
+//! moo: int-to-hexidecimal string encoding; encoding preserves sort order (for subcorpus->server communications)
+extern std::string int2hex(int32_t i);
+
+//! moo: int-to-hexidecimal string deccoding; ; encoding preserves sort order
+extern int32_t hex2int(const std::string& s);
+
 //-- StringTokenizer lives in morph_dict
 #include "morph_dict/common/util_classes.h"
 

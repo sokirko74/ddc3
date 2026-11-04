@@ -64,6 +64,11 @@ extern void     FileAppendPartial(FILE *src, FILE *dst, size_t nBytes);
 
 extern bool     RemoveWithPrint (const std::string& FileName);
 
+//! read the whole file into \a Result (replace or append); false if it is not readable
+//! (cf. morph_dict's LoadFileToString(path), which returns the content)
+extern bool     LoadFileToString(std::string FileName, std::string& Result, bool clobber=true);
+extern bool     SaveStringToFile(const std::string& Str, const std::string& FileName);
+
 //-- std::filesystem based
 //! current working directory of the process ("" on error)
 extern std::string   CurrentDirectory(void);

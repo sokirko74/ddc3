@@ -368,66 +368,14 @@ const uint16_t ASCII[256] = {
 
 
 
-// == strincmp
-int CompareWithoutRegister ( const char *s1, const char *s2, size_t l, MorphLanguageEnum langua)
-{
-    for     (       ;
-                    (               (l > 0)
-                                    &&      (       ( (BYTE)*s1 == (BYTE)*s2)
-                                                    || ( (BYTE)*s1 == ReverseChar((BYTE)*s2, langua) )
-                                        )
-                                    &&      *s1 
-                                    &&      *s2  
-                        );
-                    s1++,s2++,l--
-        );
-
-    if (l == 0) return 0;
-
-    if (*s1 < *s2)
-        return -1;
-    else
-        if (*s1 > *s2)
-            return 1;
-        else
-            return 0;
-}
 
 
 
 
 
-BYTE force_rus_char (BYTE ch)
-{
-    // \xe2 \xef\xe5\xf0\xe2\xee\xe9 \xf1\xf2\xf0\xee\xea\xe5 \xed\xe0\xf5\xee\xe4\xff\xf2\xf1\xff \xeb\xe0\xf2\xe8\xed\xf1\xea\xe8\xe5 \xe1\xf3\xea\xe2\xfb, \xea\xee\xf2\xee\xf0\xfb\xe9 \xec\xee\xe3\xf3\xf2 \xe1\xfb\xf2\xfc \xe7\xe0\xec\xe5\xed\xe5\xed\xfb \xed\xe0
-    // \xf0\xf3\xf1\xf1\xea\xe8\xe5
-    char search[] = "AaEe3KkMHOoPpCcyXxuT";
-    // \xe2\xee \xe2\xf2\xee\xf0\xee\xe9 \xf1\xf2\xf0\xee\xea\xe5 \xed\xe0\xf5\xee\xe4\xff\xf2\xf1\xff \xf0\xf3\xf1\xf1\xea\xe8\xe5
-    char replace[] = "\300\340\305\345\307\312\352\314\315\316\356\320\360\321\361\363\325\365\350\322";
-
-    char *t = strchr (search,ch);
-
-    if (t == 0) return 0;
-
-    return replace[(size_t) ((char*)t- (char*)search)];
-}
 
 
 
-bool force_to_rus (char* dest, const char* sour, size_t len)
-{
-    BYTE ch = 0 ;
-
-    for (size_t i=0; i < len; i++)
-        if  (is_russian_alpha((BYTE)sour[i]) || sour[i] == '-')
-            dest[i] = sour[i];
-        else
-            if ((ch = force_rus_char((BYTE)sour[i])) != 0)
-                dest[i] = ch;
-            else
-                return false;
-    return true;
-}
 
 
 
@@ -473,61 +421,8 @@ bool force_to_rus (char* dest, const char* sour, size_t len)
 
 //=======================           Morphology  =======================
 
-const int predict_poses_size = 4;
-
-//  we cannot use here class string, because VC7 shows in this case memory leaks
-struct CPredictPartOfSpeech {
-    char m_pos_str[100];
-};
-// Windows-1251!
-const CPredictPartOfSpeech  predict_rus_pos[predict_poses_size] =
-{
-    "\xd1",
-    "\xc8\xcd\xd4\xc8\xcd\xc8\xd2\xc8\xc2",
-    "\xcf",
-    "\xcd",
-};
-
-const CPredictPartOfSpeech predict_eng_pos[predict_poses_size] =
-{
-    "NOUN",
-    "VERB",
-    "ADJECTIVE",
-    "ADVERB",
-};
-const CPredictPartOfSpeech predict_ger_pos[predict_poses_size] =
-{
-    "SUB",
-    "VER",
-    "ADJ",
-    "ADV",
-};
 
 
-int GetPredictionPartOfSpeech(const string& PartOfSpeech, MorphLanguageEnum langua)
-{
-    const CPredictPartOfSpeech* PossiblePoses;
-    switch (langua)
-    {
-        case morphEnglish: PossiblePoses = predict_eng_pos; break;
-        case morphGerman: PossiblePoses = predict_ger_pos; break;
-        case morphRussian: PossiblePoses = predict_rus_pos; break;
-        default : assert(false);
-    };
-
-
-    int k=0;
-    for(; k < predict_poses_size; k++ )
-        if( PartOfSpeech == PossiblePoses[k].m_pos_str )
-        {
-            break;
-        };
-
-    if (k == predict_poses_size)
-        return UnknownPartOfSpeech;
-    else
-        return k;
-};
 
 
 
@@ -772,10 +667,6 @@ void ConvertJO2Je(char* src)
 
 
 
-bool StartsWith(const string& body, const string& prefix)
-{
-    return body.rfind(prefix, 0) == 0;
-}
 
 
 
@@ -827,102 +718,19 @@ const string all_brackets = open_brackets+close_brackets;
 
 
 
-string timestampLocal(time_t timeval)
-{
-    char buf[32];
-    struct tm time_tm;
-    localtime_r(&timeval, &time_tm);
-    strftime(buf, 32, "%FT%T%z", &time_tm);                 //--- ISO 8601 timestamp, local
-    return string(buf);
-}
-string timestampUTC(time_t timeval)
-{
-    char buf[32];
-    struct tm time_tm;
-    gmtime_r(&timeval, &time_tm);
-    strftime(buf, 32, "%FT%TZ", &time_tm);                  //--- ISO 8601 timestamp, UTC
-    return string(buf);
-}
 
 
-vector<string> stringSplit(const char *s, const char *delims)
-{
-    StringTokenizer tok(s,delims);
-    vector<string> tokens;
-    tok.get_tokens(tokens);
-    return tokens;
-};
 
-void stringSplitE(const string& s, const string& delims, vector<string>& tokens)
-{
-    size_t i,j;
-    for (i=0, j=s.find_first_of(delims,0); i < s.size(); j=s.find_first_of(delims,i)) {
-        if (j==string::npos) {
-            tokens.push_back(s.substr(i));
-            break;
-        }
-        tokens.push_back(s.substr(i,j-i));
-        i = j+1;
-    }
-};
 
-vector<string> stringSplitE(const string& s, const string& delims)
-{
-    vector<string> tokens;
-    stringSplitE(s,delims,tokens);
-    return tokens;
-};
 
 
 //-- formerly in Bibliography.cpp
 //#define _MAKEWORD(a, b)      ((WORD)(((BYTE)((a) & 0xff)) | ((WORD)((BYTE)((b) & 0xff))) << 8))
 //#define _MAKELONG(a, b)      ((long)(((WORD)((a) & 0xffff)) | ((DWORD)((WORD)((b) & 0xffff))) << 16))
 
-uint32_t date2int(signed int y, unsigned int m, unsigned int d)
-{
-    return
-        (((y&0xffff)<<16) | ((m&0xff)<<8) | ((d&0xff)<<0)); //-- ddc <= v2.0.8 compat (mostly, modulo signed years)
-    //(((y&0xfffffe00)<<9) | ((m&0x0f)<<5) | ((d&0x1f)<<0));  //-- 32bit safe, decodable
-    //($y*10000 + $m*100 + $d); //-- decimal intuitive (tough to decode)
-}
 
-void int2date(uint32_t i, signed int *y, unsigned int *m, unsigned int *d)
-{
-    //-- ddc <= v2.0.8 compat for years in range [0..32767] + new support for years [-32768..-1] as of ddc v2.2.4
-    if (y) *y = ((int16_t)((i>>16)&0xffff));
-    if (m) *m = ((uint8_t)((i>> 8)&0xff));
-    if (d) *d = ((uint8_t)((i>> 0)&0xff));
-}
 
-//--------------------------------------------------------------
-string int2hex(int32_t i)
-{
-    char buf[10];
-    unsigned char sgn  = (i < 0 ? 0 : 1);
-    if (!sgn) i = -i;
-    snprintf(buf,10,"#%02x%02x%02x%02x",
-             (sgn<<7)|((i>>24)&0x7f),
-             (i>>16)&0xff,
-             (i>> 8)&0xff,
-             (i)&0xff
-        );
-    return string(buf);
-}
 
-//--------------------------------------------------------------
-int32_t hex2int(const string& s)
-{
-    assert(s.size() > 8);
-    uint32_t bytes[4];
-    sscanf(s.c_str()+1, "%02x%02x%02x%02x", &bytes[0], &bytes[1], &bytes[2], &bytes[3]);
-    int32_t i = ((bytes[3]&0xff)
-                 | (bytes[2]&0xff)<<8
-                 | (bytes[1]&0xff)<<16
-                 | (bytes[0]&0x7f)<<24
-        );
-    if (!(bytes[0] & 0x80)) i = -i;
-    return i;
-}
 
 
 #ifndef WIN32
@@ -966,25 +774,6 @@ const char *ddc_set_log_label(const char *log_label)
 }
 
 
-bool LoadFileToString(string FileName, string& Result, bool clobber)
-{
-    if ( access(FileName.c_str(), R_OK) != 0) return false;
-    vector<char> V;
-    ReadVector(FileName,V);
-    if (clobber) {
-        Result.assign(V.begin(), V.end());
-    } else {
-        Result.append(V.begin(), V.end());
-    }
-    return true;
-};
-
-bool SaveStringToFile(const string& Str, const string& FileName)
-{
-    vector<char> V;
-    V.assign(Str.begin(), Str.end());
-    return WriteVector(FileName, V);
-};
 
 
 
@@ -992,61 +781,7 @@ bool SaveStringToFile(const string& Str, const string& FileName)
 
 
 
-//==================================================================
-//=========================== KOI8 <==> WIN ========================
-//==================================================================
 
-BYTE kw[] = {128,129,130,131,132,133,134,135,136,137,138,139,140,141,142,143,
-             144,145,146,147,148,149,150,151,152,153,154,155,156,157,158,159,
-             160,161,162,163,164,165,166,167,168,169,170,171,172,173,174,175,
-             176,177,178,179,180,181,182,183,184,185,186,187,188,189,190,191,
-             254,224,225,246,228,229,244,227,245,232,233,234,235,236,237,238,
-             239,255,240,241,242,243,230,226,252,251,231,248,253,249,247,250,
-             222,192,193,214,196,197,212,195,213,200,201,202,203,204,205,206,
-             207,223,208,209,210,211,198,194,220,219,199,216,221,217,215,218};
-
-
-BYTE wk[] = {128,129,130,131,132,133,134,135,136,137,138,139,140,141,142,143,
-             144,145,146,147,148,149,150,151,152,153,154,155,156,157,158,159,
-             160,161,162,163,164,165,166,167,168,169,170,171,172,173,174,175,
-             176,177,178,179,180,181,182,183,184,185,186,187,188,189,190,191,
-             225,226,247,231,228,229,246,250,233,234,235,236,237,238,239,240,
-             242,243,244,245,230,232,227,254,251,253,255,249,248,252,224,241,
-             193,194,215,199,196,197,214,218,201,202,203,204,205,206,207,208,
-             210,211,212,213,198,200,195,222,219,221,223,217,216,220,192,209};
-
-
-
-char wtk(char c)
-{
-        
-    c&= 0377;
-    if(c & 0200)
-        c       = wk[c & 0177];
-    return c;
-}
-char ktw(char c)
-{
-    c&= 0377;
-    if(c & 0200)
-        c       = kw[c & 0177];
-    return c;
-}
-
-
-void WinToKOI8 (string& s)
-{
-    size_t count = s.length();
-    for (int i=0; i< count; i++)
-        s[i] = wtk(s[i]);
-};
-
-void KOI8ToWin (string& s)
-{
-    size_t count = s.length();
-    for (int i=0; i< count; i++)
-        s[i] = ktw(s[i]);
-};
 
 
 

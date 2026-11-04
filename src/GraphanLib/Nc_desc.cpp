@@ -24,6 +24,37 @@
 
 using namespace std;
 
+//-- formerly in CommonLib/utilit.cpp
+BYTE force_rus_char (BYTE ch)   // declared in morph_dict/common/single_byte_encoding.h
+{
+    // \xe2 \xef\xe5\xf0\xe2\xee\xe9 \xf1\xf2\xf0\xee\xea\xe5 \xed\xe0\xf5\xee\xe4\xff\xf2\xf1\xff \xeb\xe0\xf2\xe8\xed\xf1\xea\xe8\xe5 \xe1\xf3\xea\xe2\xfb, \xea\xee\xf2\xee\xf0\xfb\xe9 \xec\xee\xe3\xf3\xf2 \xe1\xfb\xf2\xfc \xe7\xe0\xec\xe5\xed\xe5\xed\xfb \xed\xe0
+    // \xf0\xf3\xf1\xf1\xea\xe8\xe5
+    char search[] = "AaEe3KkMHOoPpCcyXxuT";
+    // \xe2\xee \xe2\xf2\xee\xf0\xee\xe9 \xf1\xf2\xf0\xee\xea\xe5 \xed\xe0\xf5\xee\xe4\xff\xf2\xf1\xff \xf0\xf3\xf1\xf1\xea\xe8\xe5
+    char replace[] = "\300\340\305\345\307\312\352\314\315\316\356\320\360\321\361\363\325\365\350\322";
+
+    char *t = strchr (search,ch);
+
+    if (t == 0) return 0;
+
+    return replace[(size_t) ((char*)t- (char*)search)];
+}
+
+static bool force_to_rus (char* dest, const char* sour, size_t len)
+{
+    BYTE ch = 0 ;
+
+    for (size_t i=0; i < len; i++)
+        if  (is_russian_alpha((BYTE)sour[i]) || sour[i] == '-')
+            dest[i] = sour[i];
+        else
+            if ((ch = force_rus_char((BYTE)sour[i])) != 0)
+                dest[i] = ch;
+            else
+                return false;
+    return true;
+}
+
 void CGraphmatFile :: InitNonContextDescriptors (CGraLine& L)
 {
     bool    fl_ra=false,  /* rus alpha */

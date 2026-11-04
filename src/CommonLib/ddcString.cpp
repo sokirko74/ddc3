@@ -20,6 +20,8 @@
 #include "utilit.h"
 #include "ddcLog.h"
 #include <string.h>
+#include <cassert>
+#include <cstdio>
 
 using namespace std;
 
@@ -425,6 +427,67 @@ char* StrError(int ErrorNo)
 #else
     return strerror(ErrorNo);
 #endif
+}
+
+//======================================================================
+// string splitting and hex keys
+
+vector<string> stringSplit(const char *s, const char *delims)
+{
+    StringTokenizer tok(s,delims);
+    vector<string> tokens;
+    tok.get_tokens(tokens);
+    return tokens;
+};
+
+void stringSplitE(const string& s, const string& delims, vector<string>& tokens)
+{
+    size_t i,j;
+    for (i=0, j=s.find_first_of(delims,0); i < s.size(); j=s.find_first_of(delims,i)) {
+        if (j==string::npos) {
+            tokens.push_back(s.substr(i));
+            break;
+        }
+        tokens.push_back(s.substr(i,j-i));
+        i = j+1;
+    }
+};
+
+vector<string> stringSplitE(const string& s, const string& delims)
+{
+    vector<string> tokens;
+    stringSplitE(s,delims,tokens);
+    return tokens;
+};
+
+//--------------------------------------------------------------
+string int2hex(int32_t i)
+{
+    char buf[10];
+    unsigned char sgn  = (i < 0 ? 0 : 1);
+    if (!sgn) i = -i;
+    snprintf(buf,10,"#%02x%02x%02x%02x",
+             (sgn<<7)|((i>>24)&0x7f),
+             (i>>16)&0xff,
+             (i>> 8)&0xff,
+             (i)&0xff
+        );
+    return string(buf);
+}
+
+//--------------------------------------------------------------
+int32_t hex2int(const string& s)
+{
+    assert(s.size() > 8);
+    uint32_t bytes[4];
+    sscanf(s.c_str()+1, "%02x%02x%02x%02x", &bytes[0], &bytes[1], &bytes[2], &bytes[3]);
+    int32_t i = ((bytes[3]&0xff)
+                 | (bytes[2]&0xff)<<8
+                 | (bytes[1]&0xff)<<16
+                 | (bytes[0]&0x7f)<<24
+        );
+    if (!(bytes[0] & 0x80)) i = -i;
+    return i;
 }
 
 //======================================================================

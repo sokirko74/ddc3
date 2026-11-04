@@ -21,6 +21,8 @@
 #include "ddcConfig.h"   // DDC_STATIC_BUFLEN
 #include "utilit.h"      // EngMakeLower()
 #include <cstring>
+#include <unistd.h>      // access()
+#include "bserialize.h"  // ReadVector(), WriteVector()
 #include <cerrno>
 #include <filesystem>
 #include <system_error>
@@ -241,6 +243,26 @@ bool RemoveWithPrint (const string& FileName)
         }
     return true;
 }
+
+bool LoadFileToString(string FileName, string& Result, bool clobber)
+{
+    if ( access(FileName.c_str(), R_OK) != 0) return false;
+    vector<char> V;
+    ReadVector(FileName,V);
+    if (clobber) {
+        Result.assign(V.begin(), V.end());
+    } else {
+        Result.append(V.begin(), V.end());
+    }
+    return true;
+};
+
+bool SaveStringToFile(const string& Str, const string& FileName)
+{
+    vector<char> V;
+    V.assign(Str.begin(), Str.end());
+    return WriteVector(FileName, V);
+};
 
 //======================================================================
 // directories and whole-file operations (std::filesystem)

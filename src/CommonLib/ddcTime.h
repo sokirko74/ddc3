@@ -23,6 +23,7 @@
 
 #include "../CommonLib/ddcConfig.h"
 #include <time.h>
+#include <cstdint>
 #include <string>
 #include <map>
 #include <vector>
@@ -381,6 +382,18 @@ struct DDCTimeAvg
 // Functions
 
         
+//======================================================================
+// date/time helpers (formerly in utilit.h)
+
+//! ISO 8601 timestamp, UTC
+extern std::string timestampUTC(time_t timeval);
+
+//! moo: date-to-int encoding (v2.2.4: use signed years)
+extern uint32_t date2int(  signed int y, unsigned int m=1, unsigned int d=1);
+
+//! moo: int-to-date decoding (v2.2.4: use signed years)
+extern void int2date(uint32_t i, signed int *y, unsigned int *m=NULL, unsigned int *d=NULL);
+
 #endif /* DDC_TIME_H */
 
 /*--- emacs style variables ---

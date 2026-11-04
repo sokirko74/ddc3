@@ -75,7 +75,7 @@ void CTabFormatIndexator::ProcessMetaField (CIndexDocument* document, const stri
     Trim(value);
 
     // todo inheritance from the previous file
-    if (StartsWith(field, INDEX_FIELD_STARTER)) {
+    if (startswith(field, INDEX_FIELD_STARTER)) {
         AddColumnMap(field, value, params);
     }
     else if (field == BIBL_SCAN) {
@@ -102,15 +102,15 @@ void CTabFormatIndexator::ProcessMetaField (CIndexDocument* document, const stri
     else if (field == META_N) {
         // nothing to store
     }
-    else if (StartsWith(field, TOKID_STARTER)) {
+    else if (startswith(field, TOKID_STARTER)) {
         // ignored
     }
-    else if (StartsWith(field, BREAK_STARTER)) {
+    else if (startswith(field, BREAK_STARTER)) {
         // if with '=', then ignore value
         string breakName = field.substr(BREAK_STARTER.length());
         AddBreakByName(breakName, document->CorpusEndTokenNo);
     }
-    else if (StartsWith(field, META_STARTER)) {
+    else if (startswith(field, META_STARTER)) {
         // free bibl index
         string indexName = field.substr(META_STARTER.length());
         m_BiblIndex.SetFreeBiblByName(indexName, value, params->Bibl);
@@ -129,7 +129,7 @@ void CTabFormatIndexator::ProcessToken (CIndexDocument* document, const string& 
 }
 
 string ReadTabFormatDocumentName(const string& line) {
-    if (StartsWith(line, META_FILE_DELIMITER)) {
+    if (startswith(line, META_FILE_DELIMITER)) {
         int index = line.find(EQU_CHAR);
         if (index == string::npos) throw CDDCExpc(Format("bad format at line %s", line.c_str()));
         string s = line.substr(index  + 1);
@@ -154,15 +154,15 @@ void CTabFormatIndexator::IndexTabFormat(CIndexDocument* document) {
         string& line  = document->DocumentLines[i];
         Trim(line);
         if (line.empty()) continue;
-        if (StartsWith(line, BREAK_STARTER)) {
+        if (startswith(line, BREAK_STARTER)) {
             if (!inDocumentHeader) {
                 ProcessBreakRecord(document, line, &params);
             }
         }
-        else if (StartsWith(line, CMD_STARTER)) {
+        else if (startswith(line, CMD_STARTER)) {
             ProcessMetaField(document, line, &params);
         }
-        else if (StartsWith(line, COMMENT_STARTER)) {
+        else if (startswith(line, COMMENT_STARTER)) {
             //-- other comment: ignore
         }
         else {

@@ -201,3 +201,31 @@ string DDCTimeAvg::toJsonMap() const
  *  indent-tabs-mode: nil
  * End:
  */
+
+//======================================================================
+// date/time helpers
+
+string timestampUTC(time_t timeval)
+{
+    char buf[32];
+    struct tm time_tm;
+    gmtime_r(&timeval, &time_tm);
+    strftime(buf, 32, "%FT%TZ", &time_tm);                  //--- ISO 8601 timestamp, UTC
+    return string(buf);
+}
+
+uint32_t date2int(signed int y, unsigned int m, unsigned int d)
+{
+    return
+        (((y&0xffff)<<16) | ((m&0xff)<<8) | ((d&0xff)<<0)); //-- ddc <= v2.0.8 compat (mostly, modulo signed years)
+    //(((y&0xfffffe00)<<9) | ((m&0x0f)<<5) | ((d&0x1f)<<0));  //-- 32bit safe, decodable
+    //($y*10000 + $m*100 + $d); //-- decimal intuitive (tough to decode)
+}
+
+void int2date(uint32_t i, signed int *y, unsigned int *m, unsigned int *d)
+{
+    //-- ddc <= v2.0.8 compat for years in range [0..32767] + new support for years [-32768..-1] as of ddc v2.2.4
+    if (y) *y = ((int16_t)((i>>16)&0xffff));
+    if (m) *m = ((uint8_t)((i>> 8)&0xff));
+    if (d) *d = ((uint8_t)((i>> 0)&0xff));
+}

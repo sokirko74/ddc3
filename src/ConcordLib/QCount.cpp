@@ -21,6 +21,7 @@
 #include "QCount.h"
 #include "QueryCompiler.h"
 #include "ConcHolder.h"
+#include "../CommonLib/ddcTime.h"   // date2int(), int2date()
 
 using namespace std;
 

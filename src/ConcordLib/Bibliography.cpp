@@ -6,6 +6,7 @@
 #include "ConcCommon.h"
 #include "../CommonLib/ddcLog.h"
 #include "../GraphanLib/graline.h"
+#include "../CommonLib/ddcTime.h"   // date2int(), int2date()
 
 using namespace std;
 

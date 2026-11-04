@@ -70,31 +70,31 @@ void CSocketAddr::ParseSocketAddr(const string& Str, bool parsePort)
 {
     string s(Str);
     string lo = stolower(s);
-    if (StartsWith(lo,"tcp://")) {
+    if (startswith(lo,"tcp://")) {
         m_Type = stINET;
         m_Addr = s.substr(6);
     }
-    else if (StartsWith(lo,"tcp:")) {
+    else if (startswith(lo,"tcp:")) {
         m_Type = stINET;
         m_Addr = s.substr(4);
     }
-    else if (StartsWith(lo,"inet://")) {
+    else if (startswith(lo,"inet://")) {
         m_Type = stINET;
         m_Addr = s.substr(7);
     }
-    else if (StartsWith(lo,"inet:")) {
+    else if (startswith(lo,"inet:")) {
         m_Type = stINET;
         m_Addr = s.substr(5);
     }
-    else if (StartsWith(lo, "unix://")) {
+    else if (startswith(lo, "unix://")) {
         m_Type = stUNIX;
         m_Addr = s.substr(7);
     }
-    else if (StartsWith(lo, "unix:")) {
+    else if (startswith(lo, "unix:")) {
         m_Type = stUNIX;
         m_Addr = s.substr(5);
     }
-    else if (StartsWith(Str,"/")) {
+    else if (startswith(Str,"/")) {
         m_Type = stUNIX;
         m_Addr = s;
     }

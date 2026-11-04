@@ -23,6 +23,32 @@
 
 using namespace std;
 
+//-- formerly in CommonLib/utilit.cpp
+// == strincmp
+static int CompareWithoutRegister ( const char *s1, const char *s2, size_t l, MorphLanguageEnum langua)
+{
+    for     (       ;
+                    (               (l > 0)
+                                    &&      (       ( (BYTE)*s1 == (BYTE)*s2)
+                                                    || ( (BYTE)*s1 == ReverseChar((BYTE)*s2, langua) )
+                                        )
+                                    &&      *s1 
+                                    &&      *s2  
+                        );
+                    s1++,s2++,l--
+        );
+
+    if (l == 0) return 0;
+
+    if (*s1 < *s2)
+        return -1;
+    else
+        if (*s1 > *s2)
+            return 1;
+        else
+            return 0;
+}
+
 #define RD_MODE    (unsigned) 'r'
 #define WR_MODE    (unsigned) 'w'
 

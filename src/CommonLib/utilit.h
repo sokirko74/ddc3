@@ -124,61 +124,6 @@ const BYTE UpperJO_cp1251  = 168;
 
 
 //======================================================================
-// working with registry 
-extern std::string   GetRegistryString (std::string RegistryPath);
-extern bool     CanGetRegistryString (std::string RegistryPath);
-extern bool  IsRmlRegistered(std::string& Error);
-extern struct tm  RmlGetCurrentTime ();
-extern std::string   GetIniFilePath();
-extern std::string   GetRmlVariable();
-
-//======================================================================
-// working with strings
-extern char*    rtrim (char* s);
-extern bool     IsSuperEqualChar (BYTE ch1, BYTE ch2, MorphLanguageEnum langua);
-extern int      CompareWithoutRegister ( const char *s1, const char *s2, size_t l, MorphLanguageEnum langua);
-extern BYTE     force_rus_char (BYTE ch);
-extern bool     force_to_rus (char* dest, const char* sour, size_t len);
-extern char*    IntToStr (int Value, char* Buffer);
-extern std::string&  IntToStr (int Value, std::string& oBuffer);
-extern std::string&  TrimLeft (std::string& str);
-extern std::string&  TrimRight (std::string& str);
-extern std::string&  Trim (std::string& str);
-extern bool             LoadFileToString(std::string FileName, std::string& Result, bool clobber=true);
-extern bool             SaveStringToFile(const std::string& Str, const std::string& FileName);
-extern void             KOI8ToWin (std::string& s);
-extern void             WinToKOI8 (std::string& s);
-extern void             WinToKOI8 (std::string& s);
-extern bool     StartsWith(const std::string& body, const std::string& prefix);
-
-//======================================================================
-//! moo: timestamp stuff
-extern std::string timestampLocal(time_t timeval);
-extern std::string timestampUTC(time_t timeval);
-
-//! moo: convenience wrapper for string-to-vector tokenization using StringTokenizer
-std::vector<std::string> stringSplit(const char *s, const char *delims);
-
-//! moo: split a string using std::string() methods only, allowing empty tokens
-//! \li appends token-strings to argument \a tokens
-//! \li \a tokens is not implicitly cleared
-void stringSplitE(const std::string& s, const std::string& delims, std::vector<std::string>& tokens);
-
-//! moo: stringSplitE() variant returning token-vector
-std::vector<std::string> stringSplitE(const std::string& s, const std::string& delims);
-
-//! moo: date-to-int encoding (v2.2.4: use signed years)
-extern uint32_t date2int(  signed int y, unsigned int m=1, unsigned int d=1);
-
-//! moo: int-to-date decoding (v2.2.4: use signed years)
-extern void int2date(uint32_t i, signed int *y, unsigned int *m=NULL, unsigned int *d=NULL);
-
-//! moo: int-to-hexidecimal string encoding; encoding preserves sort order (for subcorpus->server communications)
-extern std::string int2hex(int32_t i);
-
-//! moo: int-to-hexidecimal string deccoding; ; encoding preserves sort order
-extern int32_t hex2int(const std::string& s);
-
 //! register a thread-local log prefix (unix only)
 extern       void  ddc_thread_init(const char *log_label=NULL);
 
@@ -189,9 +134,6 @@ extern const char *ddc_log_label(void);
 extern const char *ddc_set_log_label(const char *log_label);
 
 
-extern int GetPredictionPartOfSpeech(const std::string& PartOfSpeech, MorphLanguageEnum langua);
-extern bool GetLanguageByString (std::string s, MorphLanguageEnum& Result);
-extern std::string GetStringByLanguage (MorphLanguageEnum Langua);
 
 //======================================================================
 // integer utilities
