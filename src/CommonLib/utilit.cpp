@@ -349,107 +349,12 @@ const uint16_t ASCII[256] = {
 
 
 
-bool MakePath (const char* RossPath, const char* FileName, char* FullPath)
-{ 
-    if (!RossPath || !FileName || !FullPath) return false;
-
-    strcpy(FullPath,RossPath);
-
-#ifdef WIN32
-
-    if (             (FullPath[strlen(FullPath) - 1] != '\\') 
-                     &&      (FullPath[strlen(FullPath) - 1] != '/') 
-        )
-        strcat (FullPath,"\\");
-#else
-
-    if (FullPath[strlen(FullPath) - 1] != '/')
-        strcat (FullPath,"/");
-
-#endif
-
-    strcat (FullPath, FileName);      
-
-    return  FileExists(FullPath);
-};
-
-string GetPathByFile (string FileName)
-{ 
-    size_t i = FileName.rfind("\\");        
-    size_t j = FileName.rfind("/");         
-
-    if (                  (i == string::npos) 
-                          &&              (j == string::npos)
-        )
-        return "";
-    else
-        if (i == string::npos) 
-            return FileName.substr(0, j+1);
-        else
-            if (j == string::npos) 
-                return FileName.substr(0, i+1);
-            else
-                return FileName.substr(0, max(i,j)+1); 
-};
 
 
-bool IsBinFile (const char* FileName)
-{
-    return      FileName 
-        &&  (strlen (FileName) > 3)
-        &&  !strncmp (FileName+strlen(FileName) - 3, "bin", 3);
-};
-
-string  CreateTempFileName()
-{
-    char tmpfilename[_MAX_PATH];
-    const char * sTempPath = getenv("TMP");
-#ifdef WIN32
-    if (sTempPath)
-    {
-        strcpy (tmpfilename, _tempnam(sTempPath, "rml"));
-    }
-    else
-    {
-        strcpy (tmpfilename, _tempnam(".", "rml"));
-        //tmpnam((tmpfilename);
-    }
-#else
-    if (sTempPath)
-    {
-        strcpy(tmpfilename, sTempPath);
-        if (strlen(tmpfilename) > 0 && tmpfilename[strlen(tmpfilename)-1] != '/')
-            strcat (tmpfilename,"/");
-        strcat (tmpfilename,"rml-temp.XXXXXX");
-    }
-    else
-        strcpy(tmpfilename, "/tmp/rml-temp.XXXXXX");        
-                
-    int fd = mkstemp(tmpfilename);
-    if (fd == -1)
-        throw CDDCExpc ("Cannot create temp file");
-    close (fd);
-#endif
-
-    return tmpfilename;
-
-};
 
 
-bool IsEmptyLine ( const char *t)
-{
-    if (*t==0) return true;
 
-    while (*t != '\r')
-    {
-        if ( (BYTE) t[0]>' ') 
-            return false;
 
-        t++;
-    }
-
-    return true;
-}
 
 
 
@@ -526,200 +431,23 @@ bool force_to_rus (char* dest, const char* sour, size_t len)
 
 
 
-string FileExtension (const string& FileName)
-{
-    size_t pos = FileName.rfind('.');
-    if (pos != FileName.npos)
-        return FileName.substr(pos);
-    return string("");
-}
-
-string FileDirectory (const string& FileName)
-{
-    size_t pos = FileName.find_last_of("/"
-#   ifdef WIN32
-                                       "\\:"
-#   endif
-        );
-    if (pos != FileName.npos)
-        return FileName.substr(0,pos);
-
-    return string(".");
-}
-
-string FileBasename (const string& FileName)
-{
-    size_t pos = FileName.find_last_of("/"
-#   ifdef WIN32
-                                       "\\:"
-#   endif
-        );
-    if (pos+1 < FileName.size())
-        return FileName.substr(pos+1);
-
-    return FileName;
-}
-
-string FileBasename (const string& FileName, const string& FileExtension)
-{
-    if (FileName.rfind(FileExtension) == FileName.size()-FileExtension.size())
-        return FileBasename( FileName.substr(0,FileName.size()-FileExtension.size()) );
-    return FileBasename(FileName);
-}
 
 
-string CurrentDirectory(void)
-{
-    size_t size = 128;
-    char   *buffer=NULL;
-    while (1) {
-        buffer = (char *) malloc (size);
-        if (getcwd (buffer, size) == buffer)
-            break;
-        free (buffer);
-        if (errno != ERANGE)
-            break;
-        size *= 2;
-    }
-    if (buffer != NULL) {
-        string s(buffer);
-        free(buffer);
-        return s;
-    }
-    return string("");
-}
-
-bool IsHtmlFile (const string& FileName)
-{
-    string ext = FileExtension(FileName);
-    EngMakeLower(ext);
-    return (ext == ".htm"
-            || ext == ".html"
-            || ext == ".shtml"
-        );
-}
-
-bool IsTableFile (const string& FileName)
-{
-    string ext = FileExtension(FileName);
-    EngMakeLower(ext);
-    return (ext == ".tab"
-            || ext == ".tbl"
-            || ext == ".table"
-        );
-}
-
-bool IsJsonFile (const string& FileName)
-{
-    string ext = FileExtension(FileName);
-    EngMakeLower(ext);
-    return (ext == ".json"
-            || ext == ".jsn"
-            || ext == ".js"
-        );
-}
-
-bool IsAbsolutePath (const string& PathName)
-{
-    if (PathName.empty())
-        return false;
-    else if (PathName[0] == '/'
-#ifdef WIN32
-             || (PathName[0] == '\\')
-             || (PathName.size()>1 && PathName[1] == ':')
-#endif
-        )
-        return true;
-    
-    return false;
-}
-
-string RelativePathName(const string &RefDir, const string &PathName)
-{
-    if (!IsAbsolutePath(PathName)) {
-        string rel(RefDir);
-        if (!rel.empty() && rel[rel.size()-1] != '/') rel.push_back('/');
-        rel += PathName;
-        return rel;
-    }
-    return PathName;
-}
-
-string RelativeFileName(const string &RefFile, const string &PathName)
-{
-    return RelativePathName(FileDirectory(RefFile),PathName);
-}
 
 
-void AddFile(const char* MainFile, const char* ToAdd)
-{
-    char s[_MAX_PATH*2];
-#ifdef WIN32
-    sprintf (s, "type %s  >> %s ", ToAdd, MainFile);
-#else
-    sprintf (s, "cat %s  >> %s ", ToAdd, MainFile);
-#endif
-    system (s);
 
-};
 
-void FileAppend(FILE *src, FILE *dst)
-{
-    if (!src) throw CDDCExpc("FileAppend(): no source file specified");
-    if (!dst) throw CDDCExpc("FileAppend(): no destination file specified");
 
-    char buf[DDC_STATIC_BUFLEN];
-    size_t nread;
-    do  {
-        if ( (nread=fread(buf, 1, DDC_STATIC_BUFLEN, src)) > 0
-             &&
-             fwrite(buf, 1, nread, dst) != nread )
-            throw CDDCExpc("FileAppend(): failed to copy data");
-    }
-    while (nread  > 0 && !feof(src));
-};
 
-void FileAppend(const char *srcFile, const char *dstFile)
-{
-    FILE *src = fopen(srcFile,"rb");
-    FILE *dst = fopen(dstFile,"ab");
-    try {
-        if (!src) throw CDDCExpc(Format("FileAppend(): open failed for source file '%s': %s", srcFile, strerror(errno)));
-        if (!dst) throw CDDCExpc(Format("FileAppend(): open failed for destination file '%s': %s", dstFile, strerror(errno)));
-        FileAppend(src,dst);
-    }
-    catch (exception &e) {
-        if (src) fclose(src);
-        if (dst) fclose(dst);
-        throw;
-    }
-    if (src) fclose(src);
-    if (dst) fclose(dst);
-};
 
-void FileAppend(const string& srcFile, const string& dstFile)
-{
-    FileAppend(srcFile.c_str(), dstFile.c_str());
-};
 
-void FileAppendPartial(FILE *src, FILE *dst, size_t nBytes)
-{
-    if (!src) throw CDDCExpc("FileAppendPartial(): no source file specified");
-    if (!dst) throw CDDCExpc("FileAppendPartial(): no destination file specified");
-        
-    char buf[DDC_STATIC_BUFLEN];
-    size_t nPending=nBytes;
-    do  {
-        size_t nwant = (nPending > DDC_STATIC_BUFLEN ? DDC_STATIC_BUFLEN : nPending);
-        size_t nread = fread(buf, 1, nwant, src);
-        if (nread != nwant)
-            throw CDDCExpc(Format("FileAppendPartial(): tried to read %zd byte(s) but got only %zd", nwant, nread));
-        if (fwrite(buf, 1, nread, dst) != nread)
-            throw CDDCExpc(Format("FileAppendPartial(): failed to write %zd byte(s)", nread));
-        nPending -= nread;
-    }
-    while (nPending > 0);
-}
+
+
+
+
+
+
+
 
 
 
@@ -1385,85 +1113,19 @@ void KOI8ToWin (string& s)
 
 
 
-bool  MakeDir(const string& DirName)
-{
-#ifdef WIN32
-    return _mkdir(DirName.c_str()) != -1;
-#else
-    return mkdir(DirName.c_str(), 0777) != -1;
-#endif
-};
-
-bool  MakeDirP(const string& DirName)
-{
-    std::error_code ec;
-    if (std::filesystem::is_directory(DirName, ec))
-        return true;
-    if (!MakeDirP(FileDirectory(DirName)))
-        return false;
-    if (!MakeDir(DirName))
-        throw CDDCExpc(Format("MakeDirP(): failed to create directory '%s': %s", DirName.c_str(), strerror(errno)));
-    return true;
-};
 
 
 
 
 
 
-bool RemoveWithPrint (const string& FileName)
-{
-    if (FileExists(FileName.c_str()))
-        if (remove(FileName.c_str()))
-        {
-            fprintf(stderr, "Cannot remove %s errno=%i\n", FileName.c_str(), errno);
-            return false;
-        }
-    return true;
-}
 
 
 
 
 
-bool RmlCopyFile(const char *oldpath, const char *newpath)
-{
-    char buf[512];
-   
-    FILE* fi = fopen(oldpath, "rb");
-    if (!fi)
-        return false;
-    FILE* fo = fopen(newpath, "wb");
-    if (!fo)
-        return false;
-    int x = 0;
-    do 
-    {
-        x = fread(buf, 1, 512, fi);
-        if (x > 0) 
-            if (fwrite(buf, 1, x, fo) < x) 
-            {   /* Couldn't write */
-                fclose(fo);
-                fclose(fi);
-                unlink(newpath);
-                return false;
-            }
-    }
-    while ( x  > 0);
-    fclose(fo);
-    fclose(fi);
-    return true;
-}
 
-bool RmlMoveFile(const char *oldpath, const char *newpath)
-{
-    if (!rename(oldpath, newpath))
-        return true;
-  
-    if (!RmlCopyFile(oldpath, newpath)) return false;
-    unlink(oldpath);
-    return true;
-}
+
 
 string BuildRMLPath (const char* s)
 {

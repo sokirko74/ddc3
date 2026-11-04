@@ -118,70 +118,8 @@ const BYTE UpperJO_cp1251  = 168;
 #include "ddcExpc.h"
 
 
-// working with files
-extern bool             FileExists (const char *FName);
-inline bool             FileExists (const std::string& FName)
-{ return FileExists(FName.c_str()); };
-
-
-extern file_off_t       FileSize (const char *filename);
-inline file_off_t       FileSize (const std::string& filename)
-{ return FileSize(filename.c_str()); };
-
-
-
-extern void     ErrorMessage (const std::string& Label, const std::string& Message);
-extern void     ErrorMessage (const std::string& Message);
-extern std::string   MakeFName ( const std::string& InpitFileName,  const std::string& Ext);
-extern bool     MakePath (const char* RossPath, const char* FileName, char* FullPath);
-extern std::string   GetPathByFile (std::string FileName);
-extern bool     IsBinFile (const char* FileName);
-extern bool     IsEmptyLine ( const char *t);
-
-//-- filename stuff
-extern bool     IsHtmlFile (const std::string& FileName);
-extern bool     IsTableFile (const std::string& FileName);
-extern bool     IsJsonFile (const std::string& FileName);
-extern std::string   FileExtension (const std::string& FileName);
-
-//! Returns directory part of \a FileName, or "." if FileName is a bare filename, like dirname(3)
-extern std::string   FileDirectory (const std::string& FileName);
-
-//! Returns file part of \a FileName, like basename(3)
-extern std::string   FileBasename  (const std::string& FileName);
-
-//! Returns basename \a FileName, removing any trailing extension \a FileExtension
-extern std::string   FileBasename  (const std::string& FileName, const std::string& FileExtension);
-
-//! Wrapper for getcwd(); returns current working directory of current process
-extern std::string   CurrentDirectory(void);
-
-//! Returns true iff PathName is an absolute path (simple string heuristics)
-extern bool     IsAbsolutePath (const std::string& PathName);
-
-//! If PathName is absolute, it is returned; otherwise returns (RefDir + "/" + PathName)
-extern std::string   RelativePathName(const std::string &RefDir, const std::string &PathName);
-
-//! If PathName is absolute, it is returned; otherwise returns (FileDirectory(RefFile) + "/" + PathName)
-extern std::string   RelativeFileName(const std::string &RefFile, const std::string &PathName);
-
-//! AddFile(): old ugly file-append hack using system("cat...")
-extern void     AddFile(const char* MainFile, const char* ToAdd);
-
-//! FileAppend(): newer better replacement for AddFile()
-extern void     FileAppend(FILE *src, FILE *dst);
-extern void     FileAppend(const char* srcFile, const char* dstFile);
-extern void     FileAppend(const std::string& srcFile, const std::string& dstFile);
-
-//! FileAppendPartial(): append a substring of \a src to \a dst
-extern void     FileAppendPartial(FILE *src, FILE *dst, size_t nBytes);
-                           
-extern bool     RmlMoveFile(const char *oldpath, const char *newpath);
-extern bool     RmlCopyFile(const char *oldpath, const char *newpath);
-extern std::string   CreateTempFileName();
-extern bool     MakeDir(const std::string& DirName);
-extern bool     MakeDirP(const std::string& DirName);
-extern bool     RemoveWithPrint (const std::string& FileName);
+//-- files and paths
+#include "ddcFile.h"
 
 
 //======================================================================

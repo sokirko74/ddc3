@@ -13,6 +13,7 @@ string_socket.cpp
 utf8xx.cpp
 utilit.cpp
 ddcExpc.cpp
+ddcFile.cpp
 )
 
 

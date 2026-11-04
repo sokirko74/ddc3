@@ -29,6 +29,15 @@
 
 using namespace std;
 
+//! true if the line \a t contains only whitespace (up to '\r' or the end of the string)
+static bool IsEmptyLine(const char *t)
+{
+    for (; *t != 0 && *t != '\r'; t++)
+        if ((BYTE)*t > ' ')
+            return false;
+    return true;
+}
+
 inline size_t get_size_in_bytes (const CStructEntry& t)
 {
     BYTE b;
