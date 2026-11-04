@@ -27,10 +27,6 @@
 #include "../ConcordLib/ConcHolder.h"
 #include "../CommonLib/ddcThreadQueue.h"
 
-#ifdef WIN32
-#include <process.h>  /* _beginthread, _endthread */
-#else
-#endif
 
 //#define DEBUG_HIT_SORT
 #ifdef DEBUG_HIT_SORT

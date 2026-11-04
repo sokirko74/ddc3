@@ -34,21 +34,7 @@
 #include  <stdio.h>
 
 
-#define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers
 
-#ifdef WIN32
-
-// it is used to find memory leaks
-#ifdef DETECT_MEMORY_LEAK
-extern void* operator new(size_t nSize, const char* lpszFileName, int nLine);
-extern void  operator delete(void* p, const char* lpszFileName, int nLine);
-#define DEBUG_NEW new(THIS_FILE, __LINE__)
-#endif
-        
-
-#include "windows.h"
-#include "winuser.h"
-#endif
 
 #include  <assert.h>
 #include  <stdarg.h>
@@ -65,14 +51,6 @@ extern void  operator delete(void* p, const char* lpszFileName, int nLine);
 #include "time.h"
 
 
-#ifndef __GNUC__
-#pragma warning (disable : 4018)
-#pragma warning (disable : 4244)
-#pragma warning (disable : 4103)
-#pragma warning  (disable : 4530)
-#pragma warning  (disable : 4251)
-#pragma warning  (disable : 4996)
-#endif
                 
 
 
@@ -84,23 +62,11 @@ extern void  operator delete(void* p, const char* lpszFileName, int nLine);
 
 
 #include <cstdint>
-#ifdef _WIN32
-#include <process.h>        // getpid()
-#ifdef _MSC_VER
-typedef int pid_t;
-#endif
-#else
 #include <unistd.h>
-#endif
 
 //-- moo: branch prediction macros; see e.g. https://www.geeksforgeeks.org/branch-prediction-macros-in-gcc/
-#ifdef __GNUC__
 # define likely(x)      __builtin_expect(!!(x), 1) 
 # define unlikely(x)    __builtin_expect(!!(x), 0)
-#else
-# define likely(x) x
-# define unlikely(x) x
-#endif
 
 //-- moo: more utilities
 #include "../CommonLib/ddcLocale.h"
@@ -137,25 +103,8 @@ const BYTE UpperJO_cp1251  = 168;
  */
 inline uint32_t log2u32(uint32_t v)
 {
-#ifdef __GNUC__
     //-- gcc has __builtin_clz()
     return (v==0 ? 0 : __builtin_clz(v)^31);
-#else
-    //-- everywhere else, we use DeBruijn multiplication
-    static const int MultiplyDeBruijnBitPosition[32] =
-        {
-            0, 9, 1, 10, 13, 21, 2, 29, 11, 14, 16, 18, 22, 25, 3, 30,
-            8, 12, 20, 28, 15, 17, 24, 7, 19, 27, 23, 6, 26, 5, 4, 31
-        };
-
-    v |= v >> 1; // first round down to one less than a power of 2
-    v |= v >> 2;
-    v |= v >> 4;
-    v |= v >> 8;
-    v |= v >> 16;
-
-    return MultiplyDeBruijnBitPosition[(uint32_t)(v * 0x07C4ACDDU) >> 27];
-#endif
 };
 
 /** get average size of gap between elements of v[]

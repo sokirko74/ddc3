@@ -46,16 +46,10 @@ const size_t DDCTimeBufferSize = 16;
 struct tm DDCTimeUnix::CalendarTime() const
 {
     time_t ltime = Time();
-#ifdef  WIN32
-    struct tm *today;
-    today = localtime( &ltime );
-    return *today;
-#else
     //  we should  thread safe  variants
     struct tm today;
     localtime_r( &ltime, &today );
     return today;
-#endif
 }
 
 //----------------------------------------------------------------------

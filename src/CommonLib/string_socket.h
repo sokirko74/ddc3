@@ -64,9 +64,6 @@ enum SocketTypeEnum {
 };
 
 #define SOCKET int
-#ifdef WIN32
-struct sockaddr_in;
-#endif
 
 //======================================================================
 // Constants

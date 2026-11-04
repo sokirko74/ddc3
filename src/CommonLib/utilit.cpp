@@ -27,11 +27,7 @@
 #include <errno.h>
 
 //  for mkdir
-#ifdef WIN32
-#include <direct.h>
-#else
 #include <sys/stat.h>
-#endif
 
 //-- for stat() and mtime
 #ifdef HAVE_SYS_TYPES_H
@@ -50,13 +46,6 @@ using namespace std;
 //-- suppress gcc warnings of the form "ignoring return value of `fread', declared with attribute warn_unused_result [-Wunused-result]"
 #pragma GCC diagnostic ignored "-Wunused-result"
 
-#ifdef DETECT_MEMORY_LEAK
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#undef THIS_FILE
-static char THIS_FILE[] = __FILE__;
-#endif
-#endif
 
 const uint16_t fWordDelim = 1;
 const uint16_t RusUpper = 2;

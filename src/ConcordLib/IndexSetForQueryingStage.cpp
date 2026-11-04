@@ -26,13 +26,6 @@
 
 using namespace std;
 
-#ifdef DETECT_MEMORY_LEAK
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#undef THIS_FILE
-static char THIS_FILE[] = __FILE__;
-#endif
-#endif
 
 const size_t MaxCompressRatio = 5;
 size_t AllBytesRead = 0;

@@ -140,21 +140,13 @@ static void KOI8ToWin (string& s)
 
 void RussianConvertToDictionary (string& S)
 {
-#ifdef WIN32
-    OemToCharBuff((char*)S.c_str(), (char*)S.c_str(), S.length());          
-#else
     KOI8ToWin(S);
-#endif
 
 };
 
 void RussianConvertToScreen (string& S)
 {
-#ifdef WIN32
-    CharToOemBuff((char*)S.c_str(), (char*)S.c_str(), S.length());          
-#else
     WinToKOI8(S);
-#endif
 
 };
 

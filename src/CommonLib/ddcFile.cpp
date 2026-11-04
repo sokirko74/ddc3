@@ -36,18 +36,10 @@ bool MakePath (const char* RossPath, const char* FileName, char* FullPath)
 
     strcpy(FullPath,RossPath);
 
-#ifdef WIN32
-
-    if (             (FullPath[strlen(FullPath) - 1] != '\\') 
-                     &&      (FullPath[strlen(FullPath) - 1] != '/') 
-        )
-        strcat (FullPath,"\\");
-#else
 
     if (FullPath[strlen(FullPath) - 1] != '/')
         strcat (FullPath,"/");
 
-#endif
 
     strcat (FullPath, FileName);      
 
@@ -91,9 +83,6 @@ string FileExtension (const string& FileName)
 string FileDirectory (const string& FileName)
 {
     size_t pos = FileName.find_last_of("/"
-#   ifdef WIN32
-                                       "\\:"
-#   endif
         );
     if (pos != FileName.npos)
         return FileName.substr(0,pos);
@@ -104,9 +93,6 @@ string FileDirectory (const string& FileName)
 string FileBasename (const string& FileName)
 {
     size_t pos = FileName.find_last_of("/"
-#   ifdef WIN32
-                                       "\\:"
-#   endif
         );
     if (pos+1 < FileName.size())
         return FileName.substr(pos+1);
@@ -149,10 +135,6 @@ bool IsAbsolutePath (const string& PathName)
     if (PathName.empty())
         return false;
     else if (PathName[0] == '/'
-#ifdef _WIN32
-             || (PathName[0] == '\\')
-             || (PathName.size()>1 && PathName[1] == ':')
-#endif
         )
         return true;
     

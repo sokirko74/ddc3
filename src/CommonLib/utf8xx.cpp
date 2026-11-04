@@ -39,11 +39,7 @@
 /* Tue, 23 Feb 2016 14:24:52 +0100
  * + disable from non-POSIX alloca.h (used by u8_vprintf(), u8_printf())
  */
-#ifdef WIN32
-#include <malloc.h>
-#else
 #include <alloca.h>
-#endif
 #endif /*-- disable alloca.h dependency --*/
 
 #include "utf8xx.h"

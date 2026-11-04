@@ -34,13 +34,6 @@ using namespace std;
 //==============================================================================
 const time_t TheEndOfTheWorld = 0xffffffff;
 
-#ifdef DETECT_MEMORY_LEAK
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#undef THIS_FILE
-static char THIS_FILE[] = __FILE__;
-#endif
-#endif
 
 //==============================================================================
 //#define DEBUG_HIT_TRIM 1

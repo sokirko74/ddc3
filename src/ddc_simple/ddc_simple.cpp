@@ -34,11 +34,6 @@ using namespace std;
 
 extern size_t AllBytesRead;;
 
-#ifdef DETECT_MEMORY_LEAK
-#define _CRTDBG_MAP_ALLOC
-#include <stdlib.h>
-#include <crtdbg.h>
-#endif
 
 const char *prog = "ddc_simple";
 

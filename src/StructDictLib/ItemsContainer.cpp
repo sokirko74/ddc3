@@ -17,7 +17,6 @@
 // ==========  Dialing Structural Dictionary (www.aot.ru)
 // ==========  Copyright by Alexey Sokirko (1998-2002), Bryan Jurish (2011)
 
-#pragma warning  (disable : 4530)
 #include "StdRoss.h"
 #include <algorithm>
 #include <stdio.h>

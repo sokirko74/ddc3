@@ -19,7 +19,6 @@
 
 #ifndef ROSS_H
 #define ROSS_H
-#pragma warning  (disable : 4530)
 
 #include "../CommonLib/utilit.h"
 
