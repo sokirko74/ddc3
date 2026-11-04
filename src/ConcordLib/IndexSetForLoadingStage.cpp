@@ -662,7 +662,7 @@ void CIndexSetForLoadingStage::RollbackLoadIndex(CTokenNo startTrimTokenNo)
             throw CDDCExpc(Format("failed to truncate temporary storage file '%s' during rollback", m_TempStorageFileName.c_str()));
         if (!fseek64(m_TempStorageFile, truncate_offset, SEEK_SET))
             throw CDDCExpc(Format("failed to re-seek to end of temporary storage file '%s' during rollback", m_TempStorageFileName.c_str()));
-        //fprintf(stderr, "DEBUG/ROLLBACK: truncate_offset=%zd ; new_offset=%zd\n", truncate_offset, ftell(m_TempStorageFile)); //-- DEBUG
+        //fprintf(stderr, "DEBUG/ROLLBACK: truncate_offset=%zd ; new_offset=%zd\n", truncate_offset, ftell64(m_TempStorageFile)); //-- DEBUG
     }
 };
 

@@ -200,7 +200,7 @@ bool CFreeBiblStringIndex::WriteBiblStringItems(const vector<string> &Set, strin
     }
 
     for (size_t i = 0; i < Set.size(); i++) {
-        ddcStringEnum<>::OffT pos = ftell(vfp);
+        ddcStringEnum<>::OffT pos = (ddcStringEnum<>::OffT)ftell64(vfp);
         fwrite(&pos, sizeof(ddcStringEnum<>::OffT), 1, ifp);
         fwrite(Set[i].c_str(), 1, Set[i].size() + 1, vfp);
     }
@@ -561,7 +561,7 @@ bool CFreeBiblStringIndex::ConvertAndSaveToDiskAfterIndexing(string m_Path) {
     try {
         for (BuildStringItemsMapT::const_iterator it=m_BuildStringItemsMap.begin(); it != m_BuildStringItemsMap.end(); ++it) {
             const string &I = it->first;
-            ddcStringEnum<>::OffT pos = ftell(vfp);
+            ddcStringEnum<>::OffT pos = (ddcStringEnum<>::OffT)ftell64(vfp);
 
             if (fwrite(&pos, sizeof(ddcStringEnum<>::OffT), 1, ifp) != 1)
                 throw runtime_error("failed to write offset data");

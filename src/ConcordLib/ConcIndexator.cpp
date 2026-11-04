@@ -122,7 +122,7 @@ bool CConcIndexator::SaveCorpusFileList() const {
     //-- *._con_files, *._con_idx (v2.1.13)
     size_t cnt = m_CorpusFiles.size();
     for (ddcCorpusList<>::IdT i = 0; i < cnt; i++) {
-        ddcCorpusList<>::OffT pos = ftell(lfp);
+        ddcCorpusList<>::OffT pos = (ddcCorpusList<>::OffT)ftell64(lfp);
         fwrite(&pos, sizeof(ddcCorpusList<>::OffT), 1, ofp);
         fprintf(lfp, "%s\n", m_CorpusFiles[i].c_str());
     }
