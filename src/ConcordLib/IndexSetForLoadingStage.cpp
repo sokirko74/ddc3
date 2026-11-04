@@ -123,7 +123,7 @@ bool CItemIndexForLoading::ReadFromTemporalFile (FILE* fp)
     // reads the number  of  occurrences 
     size_t OccCount;
     if ( fread(&OccCount, sizeof(size_t), 1, fp) != 1) 
-        throw CDDCExpc("Exception in CItemIndexForLoading::ReadFromTemporalFile: offset %u\n",FTell(fp));
+        throw CDDCExpc("Exception in CItemIndexForLoading::ReadFromTemporalFile: offset %llu\n", (unsigned long long)FTell(fp));
 
     m_pCurrOccurs->clear();
 
