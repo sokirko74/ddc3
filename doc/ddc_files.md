@@ -1,0 +1,744 @@
+# DDC INDEX FILES
+
+This manpage describes the individual file formats used by a single physical DDC (subcorpus) index, created by ddc\_index(1) and used by ddc\_simple(1), ddc\_console(1), and/or ddc\_daemon(1).
+
+# DESCRIPTION
+
+Each physical index file is associated either with the corpus as a whole (a "corpus-level" file), a token attribute (a "token-level" file) a document attribute (a "document-level" file), or a break collection (a "break-level" file). Each of the following subsections describes the index files at exactly one of these levels.
+
+Each file type described below is characterized with the following attributes:
+
+- **version**: DDC version(s) using this file.
+
+- **resident**: whether the file data is read into resident memory on startup.
+
+- **mmap**: whether the [MemoryMap](ddc_opt.md#memorymap) option introduced in DDC v2.1.12 provides virtual memory-mapping support for files of this type.
+
+- **popularity**: how often the file data is accessed in the course of a persistent server's lifetime,
+
+- **size**: subjective categorization of expected file size (number of bytes used on disk).
+
+- **growth**: expected growth behavior of the file, in big-O notation.
+
+- **format**: brief description of the file format.
+
+- **accessor**: convenience accessor producing the filename, if any.
+
+- **used by**: variable name(s) directly associated with the file.
+
+- **loaded by**: method names(s) responsible for loading file data at runtime.
+
+- **doc**: legacy API documentation about the file or its associated variables, if any.
+
+## Corpus-Level Files
+
+This section describes the DDC index files associated with the corpus as a whole. Each physical index *CORPUS* should have at most one of each of these files.
+
+### CORPUS.opt
+
+```
+- version: >= v2.0.0
+- resident: yes
+- mmap: no
+- popularity: high
+- size: tiny
+- growth: O(1)
+- format:
+  - see ddc_opt(5)
+- accessor: MakeFName(FileName, "opt");
+- used by:
+  - CConcIndexator::*
+- loaded by:
+  - CConcIndexator::LoadSourceFilesAndOptions(string FileName)
+    + via CConcIndexator::LoadOptionsFromString()
+- doc: see ddc_opt(5)
+```
+
+Index options, see [ddc\_opt(5)](ddc_opt.md) for details.
+
+### CORPUS.con
+
+```
+- version: >= v2.0.0
+- resident: sometimes
+- mmap: no
+- popularity: compile-time only (>= v2.1.15)
+- size: small
+- growth: O(NSources) ~ O(NDocs)
+- format:
+  - 1 souce filename per line
+- accessor: CConcIndexator::GetFileNameForCorpusFileNames()
+- used by:
+  - vector<string> CConcIndexator::m_CorpusFiles;
+- loaded by:
+  - CConcIndexator::LoadCorpusFiles()
+- doc (StringIndexator.h #corpus_file_def)
+  #+BEGIN_SRC
+       Corpus File Definition
+
+A list of corpus files (CConcIndexator::m_CorpusFiles) is built upon a list of
+\ref source_file_def "source files" extracting everything from all source archives.
+So if a source list doesn't contain archives then the lists of corpus files and source files are
+(mostly) identical, otherwise it contains also files from archives, which are prefixed by the name of the archive .
+For each corpus file DDC maintains a file \ref break_def "break", quick bibliographical information
+(class CBiblIndex) and full bibliographical information (class CBibliography).
+  #+END_SRC
+```
+
+List of corpus source files as passed to ddc\_index(1). Prior to ddc v2.1.15, this file-list was **always** loaded into resident anonymous memory on project load. As of v2.1.15, the runtime utilities `ddc_daemon`, `ddc_dump`, `ddc_simple`, `ddc_split`, and `ddc_stats` no longer load this file. The list of actually indexed source files remains available in [CORPUS.\_con\_files](#corpus_con_files).
+
+### CORPUS.\_con
+
+```
+- version: <= v2.1.12
+- resident: yes
+- mmap: no
+- popularity: high
+- size: small
+- growth: O(NDocs)
+- format:
+  - version header line
+    #+BEGIN_SRC
+      Dialing DWDS Concordance (DDC), Version 2.0.45 / min-compat 2.0.0
+    #+END_SRC
+  - for ddc <= v2.1.12, remainder of file is a file-list as for CORPUS.con
+  - for ddc >= v2.1.13, any remaining file content is ignored
+- accessor: CConcIndexator::GetFileNameForCorpusFileNames()
+- used by:
+  - ddcCorpusList<> CConcIndexator::m_CorpusFiles; //-- formerly vector<string>
+- loaded by:
+  - CConcIndexator::LoadCorpusFiles()
+- doc (StringIndexator.h #corpus_file_def)
+  #+BEGIN_SRC
+    Corpus File Definition
+
+    A list of corpus files (CConcIndexator::m_CorpusFiles) is built upon a list of
+    \ref source_file_def "source files" extracting everything from all source archives.
+    So if a source list doesn't contain archives then the lists of corpus files and source files are
+    (mostly) identical, otherwise it contains also files from archives, which are prefixed by the name of the archive .
+    For each corpus file DDC maintains a file \ref break_def "break", quick bibliographical information
+    (class CBiblIndex) and full bibliographical information (class CBibliography).
+  #+END_SRC
+```
+
+For DDC \> v2.1.13 this file is a dummy stub containing only a version information header, used for compatibility checks. This file's modification time is also used to initialize the index timestamp returned by the server [info](ddc_proto.md#info) command.
+
+In DDC versions prior to v2.1.13, the `CORPUS._con` file also included a list of newline-separated corpus filenames as for `CORPUS.con`, which were loaded into memory at runtime. As of v2.1.13, the runtime corpus file-list is stored in mmap()-friendlier format in `CORPUS._con_files` and `CORPUS._con_idx`, which see. For compatibility reasons, DDC v2.1.13 will fall back to loading its corpus-list from this file if `CORPUS._con_files` and/or `CORPUS._con_idx` are unvavailble.
+
+Note that `CORPUS._con` (rsp. `CORPUS._con_files`) contains the list of files **actually indexed** by the `ddc_index` program, and thus may differ from the the list of original source files [CORPUS.con](#corpuscon) passed as input to `ddc_index`. In particular, source files from [CORPUS.con](#corpuscon) which contain no tokens or which could not be indexed for any other reason will have no corresponding entry in `CORPUS._con*`.
+
+### CORPUS.\_con\_files
+
+```
+- version: >= v2.1.13
+- resident: yes
+- mmap: yes
+- popularity: high
+- size: small
+- growth: O(NDocs)
+- format:
+  - file list, "\n"-separated, 1 filename per line in corpus order
+  - byte offsets in *._con_files are stored in *._con_idx
+- accessor: CConcIndexator::GetFileNameForCorpusFileNames() + "_files"
+- used by:
+  - ddcCorpusList<> CConcIndexator::m_CorpusFiles;
+- loaded by:
+  - CConcIndexator::LoadCorpusFiles()
+- doc: see CORPUS._con
+```
+
+List of corpus source files written by ddc\_index(1) and loaded or mmap()ed at runtime; see [CORPUS.\_con](#corpus_con).
+
+### CORPUS.\_con\_idx
+
+```
+- version: >= v2.1.13
+- resident: yes
+- mmap: yes
+- popularity: high
+- size: small
+- growth: O(NDocs)
+- format:
+  - vector<DWORD> [size=NDocs]
+  - DWORD -> uint32_t
+  - byte offsets in CORPUS._con_files of indexed files, in corpus order
+- accessor: CConcIndexator::GetFileNameForCorpusFileNames() + "_files"
+- used by:
+  - ddcCorpusList<> CConcIndexator::m_CorpusFiles;
+- loaded by:
+  - CConcIndexator::LoadCorpusFiles()
+- doc: see CORPUS._con, CORPUS._con_files
+```
+
+Item-wise byte offsets of corpus source filenames in `CORPUS._con_files` written by ddc\_index(1) and loaded or mmap()ed at runtime; see [CORPUS.\_con](#corpus_con) and [CORPUS.\_con\_files](#corpus_con_files).
+
+### CORPUS.\_con\_prefix
+
+```
+- version: >= v2.1.13
+- resident: yes
+- mmap: no
+- popularity: unknown
+- size: miniscule
+- growth: O(1)
+- format:
+  - string: longest common string prefix of all filenames in CORPUS._con_files
+- accessor: none
+- used by:
+  - string CConcIndexator::m_CommonFilePrefix;
+- loaded by:
+  - CConcIndexator::LoadCorpusFiles()
+- doc: see CORPUS._con
+```
+
+Longest common string prefix of all filenames in `CORPUS._con_files`. Prior to v2.1.13, this value was computed at corpus startup, which can get irritatingly expensive for huge corpora. For compatibility reasons, DDC \>= v2.1.13 will fall back to the old behavior if this file is unavailable.
+
+### CORPUS.\_masked
+
+```
+- version: >= v2.0.0
+- resident: yes
+- mmap: no
+- popularity: optional (high if present)
+- size: typically tiny if present at all
+- growth: O(NMasked)
+- format:
+  - 1 filename per line (as for *.con)
+  - causes any hits in any file listed in *._masked to be suppressed
+- accessor: CConcIndexator::GetFileNameForMaskedFiles()
+- used by:
+  - set<size_t> CConcIndexator::m_MaskedFiles;
+- loaded by:
+  - CConcIndexator::LoadMaskedFiles()
+- doc: (none)
+```
+
+Optional list of corpus files for which hits are to be suppressed (simulated deletion). Should be kept very small to minimize startup overhead O(NMasked\*NFiles).
+
+### CORPUS.\_masked\_ids
+
+```
+- version: >= v2.1.24
+- resident: yes
+- mmap: not really
+- popularity: optional (high if present)
+- size: typically tiny if present at all
+- growth: O(NMaskedBin)
+- format:
+  - vector<CFileNo=DWORD> [size=NMaskedBin]
+  - flat list of file IDs (line-numbers in *._con_files) to be masked a la CORPUS._masked
+- accessor: CConcIndexator::GetFileNameForMaskedFileIds()
+- used by:
+  - set<size_t> CConcIndexator::m_MaskedFiles;
+- loaded by:
+  - CConcIndexator::LoadMaskedFiles()
+- doc: (none)
+```
+
+Optional list of corpus file-IDs for which hits are to be suppressed (simulated deletion) a la [CORPUS.\_masked](#corpus_masked). Moire efficient than [CORPUS.\_masked](#corpus_masked), since since binary mask-vector doesn't need linear search for filename-to-ID resolution at startup time. Should still be kept relatively small to minimize corpus bloat and avert a zombie apocalypse.
+
+### CORPUS.\_periods
+
+```
+- version: >= v2.0.0
+- resident: yes
+- mmap: no
+- popularity: high
+- size: tiny
+- growth: O(NTokens)
+- format:
+  - vector<CTokenNo> [size=NPeriods]
+  - CTokenNo -> DWORD -> uint32_t
+  - token-IDs of period end-offsets, indexed by logical period-ID
+  - typically less than 100 bytes long, never yet observed to be more than 300 bytes long (longest = ibk_web_2016b14._periods at 228 bytes)
+- accessor: CStringIndexator::GetSearchPeriodsFileName()
+- used by:
+  - vector<CTokenNo> CStringIndexator::m_SearchPeriods;
+- loaded by: (none)
+  - CStringIndexator::ReadIndicesFromTheDisk()
+    + populatesCStringIndexator::m_SearchPeriods via ReadVector()
+- doc (StringIndexator.h #period_def)
+  #+BEGIN_SRC
+    A "corpus period",  "internal subcorpus" or a "search period" is a \ref break_def "break", which is introduced to restrict
+    the memory usage.  Corpus period always  coincides with a file break. The size of one
+    corpus period is 5000000 by default and can be determined manualy using field "UserMaxTokenCountInOnePeriod"
+    in the options file.  While evaluating a query DDC deals only with one corpus period at a time, so
+    DDC applies the input query to each corpus period, and then concatenates the results.
+    Corpus periods  are also used in storing \ref perdiv_def "period divisions"
+  #+END_SRC
+```
+
+Token offsets of corpus "period" boundaries; see [UserMaxTokenCountInOnePeriod](ddc_opt.md#usermaxtokencountinoneperiod). Due to its expected small size, this file is always loaded into anonymous resident memory rather than `mmap()`ed, because the latter would always allocate at least one entire page (typically 4KB) of memory.
+
+### CORPUS.\_error\_log
+
+```
+- version: >= v2.0.0
+- resident: no
+- mmap: no
+- popularity: compile-time only
+- size: ?
+- growth: O(?)
+- format:
+  - formatted text
+- accessor: CConcIndexatorInvoker::GetErrorLogFileName(string Path)
+- used by:
+  - CConcIndexatorInvoker::BuildIndex(string ProjectFile)
+- loaded by: (none)
+- doc: (none)
+```
+
+Error log written at compile-time; may be missing or empty.
+
+### CORPUS.\_time\_statistics
+
+```
+- version: >= v2.0.0
+- resident: no
+- mmap: no
+- popularity: compile-time only
+- size: ?
+- growth: O(?)
+- format:
+  - formatted text
+- accessor: CConcIndexatorInvoker::GetTimeStatisticsFileName(string Path)
+- used by:
+  - CConcIndexatorInvoker::BuildIndex(string ProjectFile)
+    + calls CConcIndexatorInvoker::WriteTimeStatistics(const CConcIndexator& Indexator, DWORD CorpusEndTokenNo, DWORD MaxTokenCountInOnePeriod)
+- loaded by: (none)
+- doc: (none)
+```
+
+Basic profiling information written at compile time, not used at runtime.
+
+## Token-Level Files
+
+This section describes the DDC index files associated with a single token attribute. Each token attribute *TOKATTR* for each physical index *CORPUS* should be associated with one of each of these files.
+
+### CORPUS.\_TOKATTR
+
+```
+- version: >= v2.0.0
+- resident: yes
+- mmap: yes
+- popularity: high
+- size: medium
+- growth: O(NTypes)
+- format: raw strings (types), NUL-terminated, in compile-time document order
+- used by:
+  - ddcVecFile<char> CIndexSetForLoadingStage::m_StringBuffer;
+- loaded by:
+  - CStringIndexSet::ReadFromTheDisk()
+- doc (StringIndexator.h #index_set_def):
+  #+BEGIN_SRC
+An index set consists of the list of strings (which are also called "index items") and corresponding
+lists of their occurrences in the corpus, for example:\n\n
+mother -> 1, 100, 457 \n
+mothered -> 5006\n
+mothering -> 2, 120, 147\n
+
+A string to index can contain any char except \\0.  All strings of one index set are stored in a
+special file (see CIndexSetForQueryingStage::GetFileNameForInfos() ).
+  #+END_SRC
+```
+
+Buffer holding all distinct string values (types) for *TOKATTR*, NUL-terminated, in compile-time document order.
+
+### CORPUS.\_suffix\_TOKATTR
+
+```
+- version: >= v2.1.21 (optional)
+- resident: yes
+- mmap: yes
+- popularity: low
+- size: medium
+- growth: O(NTypes)
+- format: vector<DWORD> [size=NTypes]
+- used by:
+  - CSuffixIndex CIndexSetForQueryingStage::m_rIndex
+    + typedef ddcVecFile<DWORD> CSuffixIndex
+    + used by CStringIndexSet::QueryTokenListWithLeftTruncation()
+- loaded by:
+  - CIndexSetForQueryingStage::LoadIndexSet()
+```
+
+All Item-IDs (= indices into `CIndexSetForQueryingStage::m_Index[]`) sorted by reverse associated string-value. Used for fast discovery (binary search) of all index items matching a given suffix by `CStringIndexSet::QueryTokenListWithLeftTruncation()`. If this file is not present, DDC will fall back to the pre-v2.1.21 full-vocabulary regex search behavior for suffix queries.
+
+### CORPUS.\_occ\_hdr\_TOKATTR
+
+```
+- version: >= v2.0.0
+- resident: yes
+- mmap: yes
+- popularity: high
+- size: medium
+- growth: O(NTypes)
+- format: vector<CIndexItem>
+  - {DWORD m_IndexItemOffsetAndFlags; DWORD m_EndOccurOffset;} [size=NTypes]
+- used by:
+  - ddcVecFile<CIndexItem> CIndexSetForQueryingStage::m_Index
+    + used by CIndexItem::GetEndOccurOffset()
+    + used by CIndexSetForQueryingStage::GetStartOccurNo(size_t IndexNo)
+- loaded by:
+  - CIndexSetForQueryingStage::LoadIndexSet()
+```
+
+Flags and byte-offsets in `CORPUS._TOKATTR` for *TOKATTR* value-types, indexed by type-id.
+
+### CORPUS.\_occurs\_TOKATTR
+
+```
+- version: >= v2.0.0
+- resident: no
+- mmap: yes
+- popularity: high
+- size: large
+- growth: O(NTokens)
+- format:
+  - vector<CTokenNo> [size=NTypes-NHapax]
+  - presumably, OccursFp[m_Index[TypeId-1].m_EndOccurOffset .. m_Index[TypeId].m_EndOccurOffset]
+    holds logical corpus offsets of all occurrences for type TypeId
+  - looks like special case for hapax types (f(TypeId)==1), for which the singleton corpus offset
+    itself lives in m_Index[TypeId]
+    - hapax are presumably identified by
+     (m_Index[TypeId].m_IndexItemOffsetAndFlags & TheOnlyOccurIsInEndOccurNo) != 0
+    - looking at D* indices, this seems to be Not Worth It (TM),
+      at least in terms of disk space.
+- used by:
+  - FILE* CIndexSetForQueryingStage::m_OccursFp
+  - CIndexSetForQueryingStage::ReadOccurrences (CTokenNo* OutBuffer, file_off_t FilePosition, size_t Count) const
+    - CIndexSetForQueryingStage::CIndexSetForQueryingStage::AddOccurs (size_t PeriodDevId, const bool bOneOccurrence, const size_t StartOccurNo, const size_t EndOccurNo, vector<CTokenNo>& Occurs,  size_t PeriodNo, COccurrBuffer& TempOccurrsBuffer, CShortOccurCache* pCacheByIndexSet, int& CacheId) const
+      - CStringIndexSet::FindOccurrences (const vector<DWORD>& IndexItems, const size_t PeriodNo, vector<CTokenNo>& occurrences,  CMyTimeSpanHolder& Profiler, CShortOccurCacheMap* pCaches, vector<int>& CacheIds) const
+ - CQueryTokenNode::EvaluateWithoutHits()
+- loaded by:
+  - CIndexSetForQueryingStage::LoadIndexSet() //-- opens FILE* CIndexSetForQueryingStage::m_OccursFp
+- doc:
+   #+BEGIN_SRC
+   (StringIndexator #index_set_def)
+Regarding occurrences, DDC distinguishes  three types of occurrence lists: \n
+ - singleton (which is always in the memory);
+ - \ref long_listdef "short lists";
+ - \ref long_listdef "long lists";
+
+   (StringIndexator #long_listdef)
+A list of occurrences is called "long" if its length is more than OccurBufferSize, otherwise it is
+called a "short" one.
+   #+END_SRC
+```
+
+Inverted index for (non-hapax) *TOKATTR* value-types, indexed by type-id; mmap() support since v2.2.0.
+
+### CORPUS.\_storage\_TOKATTR
+
+```
+- version: >= v2.0.0
+- resident: no
+- mmap: yes
+- popularity: high
+- size: large
+- growth: O(NTokens)
+- format: vector of CTokenNo (-> DWORD -> uint32_t), attribute value-type id by corpus token offset [size=NTokens]
+- used by:
+  - FILE* CStringIndexSet::m_StorageFile
+    - CStringIndexSet::GetTokensFromStorage(const size_t start_offset,  const size_t end_offset, vector<COutputToken>& Tokens) const
+      - CConcIndexator::GetTokensFromStorageByBreak()
+      - CConcIndexator::DumpFileIndexTabs()
+- loaded by:
+  - CStringIndexSet::OpenStorageFile()
+- doc (StringIndexator.h #storage_def)
+  #+BEGIN_SRC
+An index storage is a sequence of integers X1...XN, where N is the number of tokens in
+the corpus. Each Xi points to an indexed string, for example for the token index it points to a token.
+The order of X1...XN is just the same as	it was in the input corpus. For example using
+Token index storage DDC can reproduce the whole corpus word by word. By default the first index of the corpus has an index storage,
+for the other indices this option is switched off (see CIndexSetForLoadingStage::m_bUseItemStorage).
+  #+END_SRC
+```
+
+Values for *TOKATTR* indexed by logical token-ID. Only available if the [STORAGE](ddc_opt.md#storage) option was set for *TOKATTR* at compile-time.
+
+mmap() support since v2.2.0.
+
+### CORPUS.\_perdivTOKATTR
+
+```
+- version: >= v2.0.0
+- resident: yes
+- mmap: yes
+- popularity: low (only used for VHF types)
+- size: small
+- growth: O(NTypes)
+- format:
+  - (DWORD PeriodDivId (==TypeId); DWORD EndOffsetsForTypeIdByPeriod[CountOfPeriods])*
+  - DWORD (-> uint32_t)*
+  - size=((size(File)/(m_pParent->GetSearchPeriodsCount()+1)) / sizeof(DWORD)) * m_pParent->GetSearchPeriodsCount()
+        = ((size(File)/(m_pParent->GetSearchPeriodsCount()+1)) / sizeof(DWORD)) * m_pParent->GetSearchPeriodsCount()
+- used by:
+  - PeriodsDivisionMapT CIndexSetForQueryingStage::m_EndPeriodOffsets;
+    + ConcCommon.h: typedef map<DWORD, vector<DWORD> > PeriodsDivisionMap;
+  - CIndexSetForQueryingStage::AddOccurs (size_t PeriodDivId, const bool bOneOccurrence, const size_t StartOccurNo, const size_t EndOccurNo, vector<CTokenNo>& Occurs,  size_t PeriodNo, COccurrBuffer& TempOccurrsBuffer, CShortOccurCache* pCacheByIndexSet, int& CacheId) const
+    + as called from CStringIndexSet::FindOccurrences(), PeriodDivId is used as the key (==IndexItemId), and the associated period boundaries are the value
+- loaded by:
+  - CIndexSetForQueryingStage::LoadPeriodDivision()
+- doc (StringIndexator.h #perdiv_dev)
+  #+BEGIN_SRC
+     Period division for long occurrence lists
+
+     For each \ref long_listdef "long list" DDC stores so called \b period \b division, which is a list of
+     integers X[1],X[2], ..X[M], where M is the number of \ref period_def "corpus periods".
+     All occurrences from X[i-1] until X[i] belongs to corpus period i. Generally, using this period division
+     one can quickly get the sublist of occurrences which belongs to the same corpus period. All period divisions
+     are written in CIndexSetForQueryingStage::m_EndPeriodOffsets .
+  #+END_SRC
+```
+
+Painfully complex indirection level for splitting up index entries by "corpus search periods"; probably really only useful for very-high-frequency items, which can easily make other things explode anyways, so likely not even all too useful for those. Note also that unlike other token-attribute index files, there is **no** underscore between `perdiv` and the token attribute name *TOKATTR* in this filename. Thus was it in the beginning, and thus it has remained.
+
+## Document-Level Files
+
+This section describes the DDC index files associated with a single document attribute. Each document attribute *DOCATTR* for each physical index *CORPUS* may be associated with one or more of these files:
+
+### CORPUS.\_bibl\_DOCATTR\_strings
+
+```
+- version: <= v2.1.11 (compatibility fallback >= v2.1.12)
+- resident: yes
+- mmap: yes
+- popularity: high
+- size: small to medium (comparable to _Lemma (types) for ibk_web_2016b)
+- growth: O(NValueTypes)
+- format:
+  - 1 value-type per line ("\n"-separated), [nlines=NBasenames]
+  - lines sorted lexicographically, line number is logical key of value-id (offset in CFreeBiblStringIndex::m_Values)
+- accessor: CConcXml::CFreeBiblStringIndex::GetStringFileName (string Path)
+- used by:
+  - ddcStringEnum<> CConcXml::CFreeBiblStringIndex::m_ValuesE;
+- loaded by:
+  - CConcXml::CFreeBiblStringIndex::ReadBiblStringItems (vector<string>&  Set, string FileName) const
+    + via CConcXml::CFreeBiblStringIndex::ReadFromDisk (string Path, DWORD FileBreaksSize)
+```
+
+Value types for *DOCATTR* as used by DDC \<= v2.1.11. As of DDC v2.1.12, the relevant data is stored in a pair of mmap()-friendly files `CORPUS._bibl_DOCATTR_strings_values` and `CORPUS._bibl_DOCATTR_strings_idx`, which see.
+
+mmap() support since v2.2.0.
+
+### CORPUS.\_bibl\_DOCATTR\_strings\_values
+
+```
+- version: >= v2.1.12
+- resident: yes
+- mmap: yes
+- popularity: high
+- size: small to medium (comparable to _Lemma (types) for ibk_web_2016b)
+- growth: O(NValueTypes)
+- format: raw strings (types), NUL-terminated, in lexicographically sorted order
+  - record number is logical key of value-id (offset in CFreeBiblStringIndex::m_ValuesE)
+- accessor: CConcXml::CFreeBiblStringIndex::GetStringFileName (string Path) + "_values"
+- used by:
+  - ddcStringEnum<> CConcXml::CFreeBiblStringIndex::m_ValuesE;
+- loaded by:
+  - CConcXml::CFreeBiblStringIndex::ReadBiblStringItems (vector<string>&  Set, string FileName) const
+    + via CConcXml::CFreeBiblStringIndex::ReadFromDisk (string Path, DWORD FileBreaksSize)
+```
+
+mmap()-friendly value types for *DOCATTR* as used by DDC \>= v2.1.12. Together with `CORPUS._bibl_DOCATTR_strings_idx`, replaces `CORPUS._bibl_DOCATTR_strings`.
+
+### CORPUS.\_bibl\_DOCATTR\_strings\_idx
+
+```
+- version: >= v2.1.12
+- resident: yes
+- mmap: yes
+- popularity: high
+- size: small
+- growth: O(NValueTypes)
+- format:
+  - vector<DWORD> [size=NValueTypes]
+  - byte-offsets of string values in CORPUS._bibl_DOCATTR_strings_values, indexed by logical ID
+- accessor: CConcXml::CFreeBiblStringIndex::GetStringFileName (string Path) + "_idx"
+- used by:
+  - ddcStringEnum<> CConcXml::CFreeBiblStringIndex::m_ValuesE;
+- loaded by:
+  - CConcXml::CFreeBiblStringIndex::ReadBiblStringItems (vector<string>&  Set, string FileName) const
+    + via CConcXml::CFreeBiblStringIndex::ReadFromDisk (string Path, DWORD FileBreaksSize)
+```
+
+mmap()-friendly item offsets for *DOCATTR* as used by DDC \>= v2.1.12. Together with `CORPUS._bibl_DOCATTR_strings_values`, replaces `CORPUS._bibl_DOCATTR_strings`.
+
+### CORPUS.\_bibl\_DOCATTR\_integers
+
+```
+- version: >= v2.0.0
+- resident: yes
+- mmap: yes
+- popularity: high
+- size: small
+- growth: O(NDocs)
+- format:
+  - DWORD [size=NDocs]
+  - 1 value-type id (or literal value for integer fields) for each doc, indexed by doc-id
+- accessor: CConcXml::CFreeBiblIndex::GetIndexFileName (string Path)
+- used by:
+  - ddcVecFile<DWORD> CConcXml::CFreeBiblIndex::m_ValuesForEachFile;
+- loaded by:
+  - CConcXml::CFreeBiblIndex::ReadFromDisk (string Path,  DWORD FileBreaksSize)
+```
+
+Document-ID to attribute lookup table for *DOCATTR*.
+
+### CORPUS.\_bibl\_date
+
+```
+- version: >= v2.0.0
+- resident: yes
+- mmap: yes
+- popularity: high
+- size: small
+- growth: O(NDocs)
+- format:
+  - int [size=NDocs]
+  - 1 ddc-encoded date for each doc, indexed by doc-id
+- accessor: CConcXml::GetBiblDateIndexFileName()
+- used by:
+  - ddcVecFile<DWORD> CConcXml::m_Dates;
+- loaded by:
+  - CConcXml::LoadBibl(string Path, size_t FileBreaksSize)
+```
+
+Support for the `date` metadata field is hard-coded into the DDC library itself, so this file gets its own naming conventions.
+
+### CORPUS.\_bibl
+
+```
+- version: >= v2.0.0
+- resident: no
+- mmap: yes
+- popularity: high
+- size: small-medium
+- growth: O(NDocs)
+- format:
+  - line-based, pseudo-XML, (1? <= n <= 3?) lines per file, 1 builtin bibl-record (date|orig|scan) per line
+  - file-wise byte-offsets are provided by vector<file_off_t> CConcXml::m_EndOffsetsInBiblFile ("CORPUS._bibl_idx")
+  - example (kern01):
+    #+BEGIN_SRC
+    <orig> Bassewitz, Gerdt von: Peterchens Mondfahrt, o. O.: 1900</orig>
+    <date> 1900-12-31</date>
+    <scan> Bassewitz, Gerdt von: Peterchens Mondfahrt, München: Dt. Taschenbuch-Verl. 1991</scan>
+    <orig> Brief von Wilhelm Busch an Erich Bachmann vom 02.01.1900</orig>
+    <date> 1900-01-02</date>
+    <scan> Brief von Wilhelm Busch an Erich Bachmann vom 02.01.1900. In: ders., Gesammelte Werke, Berlin: Directmedia Publ. 2002</scan>
+    #+END_SRC
+- accessor: CConcXml::GetBiblFileName()
+- used by:
+  - FILE* CConcXml::m_BiblBodyFile;
+    - CBibliography CConcXml::GetFullBibliographyOfHit(size_t FileNo) const  //-- with locking
+- loaded by:
+  - CConcXml::LoadBibl(string Path, size_t FileBreaksSize)
+    + sets m_BiblBodyFile = fopen(GetBiblFileName().c_str(), "rb");
+- doc:
+  #+BEGIN_SRC
+File of Bibliographical references
+  #+END_SRC
+```
+
+String values for built-in DDC metadata fields (read-only, no runtime query support, should probably go away); mmap() support since v2.2.0.
+
+### CORPUS.\_bibl\_idx
+
+```
+- version: >= v2.0.0
+- resident: yes
+- mmap: yes
+- popularity: high
+- size: small
+- growth: O(NDocs)
+- format:
+  - vector<file_off_t=QWORD=uint64_t> [size=NDocs]
+  - pseudo-XML for doc-id DOC lives at bytes B with (m_EndOffsetsInBiblFile[DOC-1] <= B < m_EndOffsetsInBiblFile[DOC])
+  - special case for DOC==0 --> bytes B (0 <= B < m_EndOffsetsInBiblFile[DOC=0])
+- accessor: CConcXml::GetBiblIndexFileName()
+- used by:
+  - ddcVecFile<file_off_t> CConcXml::m_EndOffsetsInBiblFile; //-- file_off_t --> QWORD --> uint64_t
+- loaded by:
+  - CConcXml::LoadBibl(string Path, size_t FileBreaksSize)
+- doc: (undocumented)
+```
+
+Document-ID to built-in metadata lookup table (byte offsets).
+
+## Break-Level Files
+
+This section describes the DDC index files associated with a single "break collection". Each break collection *BREAK* for each physical index *CORPUS* may be associated with one or more of these files:
+
+### CORPUS.\_BREAK\_border
+
+```
+- version: >= v2.0.0
+- resident: yes
+- mmap: yes
+- popularity: high (hit boundaries)
+- size: medium
+- growth: O(NBreaks) ~ O(NTokens)
+- format:
+  - vector<CTokenNo> BreakOffsets [size=NBreaks]
+  - break number BRKI covers tokens TOKI with (BreakOffsets[BRKI-1] <= TOKI < BreakOffsets[BRKI])
+  - special case for BRKI==0 --> tokens (0 <= TOKI < BreakOffsets[BRKI])
+- accessor: CHitBorders::CBreakCollection::GetBreakFileName(string Path);
+- used by:
+  - ddcBreakVector CHitBorders::CBreakCollection::m_BreakOffsets [size=NBreaks]
+    + ddcBreakVector -> ddcVecFile<CTokenNo> (convenience typedef)
+    + CTokenNo -> DWORD -> uint32_t
+- loaded by:
+  - CHitBorders::CBreakCollection::ReadFromDisk(string Path)
+- doc (HitBorder.h #break_def)
+  #+BEGIN_SRC
+   A "break" is a border between two adjacent sentences, paragraphs, files or other text chunks.
+   Generally, a break of a type \b t  is an integer end offset of a token chunk in the corpus.
+   Type  \b t  can be sentence, a clause, a file etc. The ordered concatenation of all chunks of
+   type \b t is the corpus itself, so it means that there is no intersection between these chunks and no uncovered parts.
+   One break collection of type \b t has short and long names.
+   All break collections are stored in CHitBorders::m_Breaks indexed by their short names.
+   \see CHitBorders
+  #+END_SRC
+```
+
+### CORPUS.\_pagebreaks
+
+```
+- version: >= v2.0.0
+- resident: yes
+- mmap: yes
+- popularity: high
+- size: small to medium
+- growth: O(NPages) ~ O(NTokens)
+- format:
+  - vector<CPageNumber> [size=NPages]
+    + CPageNumber = struct {CTokenNo m_StartTokenNo; DWORD m_PageNumber;}
+    + CTokenNo -> DWORD -> uint32_t
+- accessor: CHitBorders::GetPageBreaksFileName(string Path)
+- used by:
+  - ddcVecFile<CPageNumber> CHitBorders::m_PageBreaks;
+- loaded by:
+  - CHitBorders::LoadHitBorders(string Path)
+- doc (HitBorder.h #pb_def, #CPageNumber)
+  #+BEGIN_SRC
+     A "page break" is a \ref break_def break, which additionally  contains an integer page number
+     \see CPageNumber.
+
+     CPageNumber is a structure that holds a page number and the index of token, from which this page starts
+  #+END_SRC
+```
+
+Page-level breaks are handled separately by the DDC core. This handling should probably be replaced by generic "container-attributes" with runtime query support.
+
+# ACKNOWLEDGEMENTS
+
+Alexey Sokirko wrote the original DDC.
+
+# AUTHOR
+
+Bryan Jurish \<jurish@bbaw.de\>
+
+# SEE ALSO
+
+ddc\_opt(5), ddc\_server.opt(5), ddc\_cfg(5)

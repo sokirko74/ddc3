@@ -89,6 +89,18 @@ Note that `rml.ini` now lives in `$RML/Bin` (formerly `$RML/etc`).
 Take a look at the configuration files in `etc/` and the example corpora in
 `Test/` to get started.
 
+## Documentation
+
+Reference documentation (formerly POD manpages) is in `doc/`:
+
+- [ddc_query.md](doc/ddc_query.md) — query language
+- [ddc_opt.md](doc/ddc_opt.md) — corpus options (`*.opt`, `*.con`)
+- [ddc_cfg.md](doc/ddc_cfg.md) — server configuration (`*.cfg`)
+- [ddc_server.opt.md](doc/ddc_server.opt.md) — server options
+- [ddc_proto.md](doc/ddc_proto.md) — client/server protocol
+- [ddc_files.md](doc/ddc_files.md) — index file formats
+- [ddc_tabs.md](doc/ddc_tabs.md) — tab-separated (`ddc_dump --tabs`) format
+
 ## Build options
 
 The following CMake options (`-DNAME=VALUE`) are supported:
