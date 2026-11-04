@@ -339,7 +339,7 @@ bool CConcXml::SplitBibliography(vector<CConcXml *> &Bibls, const vector<uint32_
             if (bf_out == NULL)
                 throw CDDCExpc(Format("%s: Error: open failed for partition #%zd bibl file: %s", logname.c_str(), i,
                                    strerror(errno)));
-            if (!FSeek(mainBodyFile, bf_begin, SEEK_SET))
+            if (!fseek64(mainBodyFile, bf_begin, SEEK_SET))
                 throw CDDCExpc(Format("%s: Error: seek failed for %s to position %zd", GetBiblFileName().c_str(),
                                    (size_t) bf_begin));
 

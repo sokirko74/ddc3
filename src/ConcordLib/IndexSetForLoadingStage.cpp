@@ -123,7 +123,7 @@ bool CItemIndexForLoading::ReadFromTemporalFile (FILE* fp)
     // reads the number  of  occurrences 
     size_t OccCount;
     if ( fread(&OccCount, sizeof(size_t), 1, fp) != 1) 
-        throw CDDCExpc("Exception in CItemIndexForLoading::ReadFromTemporalFile: offset %llu\n", (unsigned long long)FTell(fp));
+        throw CDDCExpc("Exception in CItemIndexForLoading::ReadFromTemporalFile: offset %llu\n", (unsigned long long)ftell64(fp));
 
     m_pCurrOccurs->clear();
 
@@ -660,7 +660,7 @@ void CIndexSetForLoadingStage::RollbackLoadIndex(CTokenNo startTrimTokenNo)
         fflush(m_TempStorageFile);
         if (ftruncate(fileno(m_TempStorageFile), ((off_t)startTrimTokenNo) * sizeof(uint32_t)) != 0)
             throw CDDCExpc(Format("failed to truncate temporary storage file '%s' during rollback", m_TempStorageFileName.c_str()));
-        if (!FSeek(m_TempStorageFile, truncate_offset, SEEK_SET))
+        if (!fseek64(m_TempStorageFile, truncate_offset, SEEK_SET))
             throw CDDCExpc(Format("failed to re-seek to end of temporary storage file '%s' during rollback", m_TempStorageFileName.c_str()));
         //fprintf(stderr, "DEBUG/ROLLBACK: truncate_offset=%zd ; new_offset=%zd\n", truncate_offset, ftell(m_TempStorageFile)); //-- DEBUG
     }

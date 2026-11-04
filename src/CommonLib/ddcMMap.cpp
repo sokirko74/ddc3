@@ -62,7 +62,7 @@ bool ddcFileOrMMap::ReadFromFile(file_off_t start, size_t nbytes, BYTE* buffer) 
     if (!m_File) return false;
     lock();
     try {
-        if (!FSeek(m_File, start, SEEK_SET)) {
+        if (!fseek64(m_File, start, SEEK_SET)) {
             unlock();
             return false;
         }

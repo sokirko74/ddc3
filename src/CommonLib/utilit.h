@@ -128,8 +128,6 @@ extern file_off_t       FileSize (const char *filename);
 inline file_off_t       FileSize (const std::string& filename)
 { return FileSize(filename.c_str()); };
 
-extern bool             FSeek(FILE* fp, file_off_t pos, int origin);
-extern file_off_t       FTell(FILE* fp);
 
 
 extern void     ErrorMessage (const std::string& Label, const std::string& Message);

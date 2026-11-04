@@ -338,28 +338,6 @@ const uint16_t ASCII[256] = {
 
 
 
-bool FSeek(FILE* fp, file_off_t pos, int origin)
-{
-    if (fp==NULL)
-        return false; //-- moo: this happens e.g. if Indices and IndicesToShow reference an index which isn't in the filesystem
-#ifdef _WIN32
-    return _fseeki64(fp, pos, origin) == 0;
-#else
-    return fseeko(fp, pos, origin) == 0;
-#endif
-
-}
-
-file_off_t FTell(FILE* fp)
-{
-    if (fp==NULL)
-        return (file_off_t)-1; //-- like ftell() on error
-#ifdef _WIN32
-    return _ftelli64(fp) ;
-#else
-    return ftello(fp);
-#endif
-}
 
 
 
