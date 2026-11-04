@@ -118,6 +118,25 @@ DDCLogLevel SetLogLevel(DDCLogLevel Level)
 }
 
 //----------------------------------------------------------------------
+// thread-local log label
+static thread_local std::string ddc_thread_log_label;
+
+void ddc_thread_init(const char *log_label)
+{
+    ddc_thread_log_label = log_label ? log_label : "";
+}
+
+const char *ddc_log_label(void)
+{
+    return ddc_thread_log_label.c_str();
+}
+
+void ddc_set_log_label(const char *log_label)
+{
+    ddc_thread_init(log_label);
+}
+
+//----------------------------------------------------------------------
 void ddcLog(const string&  t)
 {
     FILE * fp = NULL;

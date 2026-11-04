@@ -124,14 +124,6 @@ const BYTE UpperJO_cp1251  = 168;
 
 
 //======================================================================
-//! register a thread-local log prefix (unix only)
-extern       void  ddc_thread_init(const char *log_label=NULL);
-
-//! get thread-local log prefix, or empty string if none registered
-extern const char *ddc_log_label(void);
-
-//! set thread-local log prefix; returns old label (if any)
-extern const char *ddc_set_log_label(const char *log_label);
 
 
 

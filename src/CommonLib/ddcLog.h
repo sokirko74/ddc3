@@ -118,6 +118,18 @@ inline void concord_daemon_log(const std::string& t)
 #define ddcLogDie(Msg) { ddcLogError(Msg); abort(); }
 
 
+//======================================================================
+// thread-local log label (prefix of every log line written by the current thread)
+
+//! set the log label of the current thread (NULL means "")
+extern void        ddc_thread_init(const char *log_label=NULL);
+
+//! get the log label of the current thread, "" if none was set
+extern const char *ddc_log_label(void);
+
+//! set the log label of the current thread (same as ddc_thread_init())
+extern void        ddc_set_log_label(const char *log_label);
+
 #endif /* DDC_LOG_H */
 
 /*--- emacs style variables ---

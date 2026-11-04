@@ -733,45 +733,6 @@ const string all_brackets = open_brackets+close_brackets;
 
 
 
-#ifndef WIN32
-#include <pthread.h>
-static pthread_once_t ddc_thread_data_once = PTHREAD_ONCE_INIT;
-static pthread_key_t  ddc_loglabel_key;
-static void ddc_loglabel_destroy(void *label)
-{
-    if (label) free(label);
-}
-static void ddc_thread_data_alloc(void)
-{
-    pthread_key_create(&ddc_loglabel_key, ddc_loglabel_destroy);    
-}
-#endif
-
-void ddc_thread_init(const char *log_label)
-{
-#ifndef WIN32
-    pthread_once(&ddc_thread_data_once, ddc_thread_data_alloc);
-    pthread_setspecific(ddc_loglabel_key, strdup(log_label));
-#endif
-    return;
-}
-const char *ddc_log_label(void)
-{
-#ifndef WIN32
-    const char *s = (const char*)pthread_getspecific(ddc_loglabel_key);
-    return s==NULL ? "" : s;
-#else
-    return NULL;
-#endif
-}
-const char *ddc_set_log_label(const char *log_label)
-{
-    const char *old = ddc_log_label();
-#ifndef WIN32
-    pthread_setspecific(ddc_loglabel_key, log_label);
-#endif
-    return old;
-}
 
 
 
