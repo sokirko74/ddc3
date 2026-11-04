@@ -113,4 +113,8 @@ Many.
 Alexey Sokirko wrote DDC.
 
 Bryan Jurish <jurish@bbaw.de> made various improvements and maintained the
-DDC-2.x branch.
+DDC-2.x branch (Copyright 2011-2021 by Bryan Jurish).
+
+DDC is licensed under the GNU Lesser General Public License, version 3 or
+later (see `COPYING` and `COPYING.LESSER`); see also `AUTHORS`. The authorship
+of individual changes is recorded in the git history.

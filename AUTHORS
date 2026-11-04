@@ -1,0 +1,11 @@
+Alexey Sokirko <sokirko@yandex.ru>
+    original author of DDC (Dialing DWDS Concordance)
+
+Bryan Jurish <jurish@bbaw.de>
+    Copyright 2011-2021 by Bryan Jurish: various improvements and
+    modifications, maintainer of the DDC-2.x branch
+
+DDC is free software under the GNU Lesser General Public License,
+version 3 or later (see COPYING and COPYING.LESSER).
+The per-file copyright and license headers were removed in DDC 3;
+the authorship of individual changes is recorded in the git history.
