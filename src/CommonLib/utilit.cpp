@@ -755,29 +755,9 @@ void FileAppendPartial(FILE *src, FILE *dst, size_t nBytes)
 }
 
 
-#ifdef WIN32
-string TryReadRMLFromRegistry()
-{
-    HKEY hKeyResult; 
-    LONG res; 
-    res = RegOpenKeyEx( HKEY_LOCAL_MACHINE, "SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Environment",  0, KEY_ALL_ACCESS, &hKeyResult ); 
-    if(res != ERROR_SUCCESS)
-        throw CDDCExpc("Error! Environment variable \"RML\"is not set!");
-    else
-    { 
-        char buf[512]; 
-        uint32_t dwBytes = sizeof(buf); 
-        res = RegQueryValueEx( hKeyResult, "RML", 0, NULL, reinterpret_cast <PBYTE> (buf), &dwBytes); 
-        if(res != ERROR_SUCCESS) 
-            throw CDDCExpc("Error! Environment variable \"RML\"is not set!");
-        return buf;
-    }
-} 
-#endif
 
 
 
-const char RML_REGISTRY_FILENAME[] = "rml.ini";
 
 
 

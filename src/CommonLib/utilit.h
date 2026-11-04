@@ -86,8 +86,15 @@ extern void  operator delete(void* p, const char* lpszFileName, int nLine);
 
 
 
-#include <unistd.h>
 #include <cstdint>
+#ifdef _WIN32
+#include <process.h>        // getpid()
+#ifdef _MSC_VER
+typedef int pid_t;
+#endif
+#else
+#include <unistd.h>
+#endif
 
 //-- moo: branch prediction macros; see e.g. https://www.geeksforgeeks.org/branch-prediction-macros-in-gcc/
 #ifdef __GNUC__
