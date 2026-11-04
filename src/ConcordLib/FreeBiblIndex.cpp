@@ -1,6 +1,3 @@
-// Created by sokirko on 10.10.19.
-//
-
 #include "FreeBiblIndex.h"
 
 

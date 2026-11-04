@@ -144,7 +144,7 @@ Prior to ddc v2.0.20, there was no way to override a previously set boolean flag
 
 ### Utf8
 
-If specified true, DDC expects all corpus data and external queries to be encoded in UTF-8. This uses both iconv and C99 locales internally, so you should ensure that your LC\_CTYPE variable has a UTF-8 encoding (e.g. *export LC\_CTYPE="en\_US.UTF-8"* in the parent shell.) if you choose to use this option.
+Since DDC 3 this option is always on and `Utf8 0` is ignored (with a warning): all corpus data, queries and output are UTF-8. The morphology and graphematics use single-byte encodings internally (cp1251 for Russian, cp1252 for English and German) and the conversion is done by DDC. Texts with characters outside these encodings (e.g. historical German with "ſ") should be indexed with the language `Generic`, which keeps the UTF-8 text unchanged (no morphology). DDC sets a UTF-8 LC\_CTYPE if the current locale is not UTF-8.
 
 ### MemoryMap
 
@@ -718,7 +718,7 @@ DDC ensures that the following expander labels are defined, instantiating them w
 
 - case
 
-  Defined as `Expand case LANG` unless the [Utf8](#utf8) flag was set, in which case the default *case* expander is defined as `Expand case Generic`.
+  Defined as `Expand case Generic` (DDC 3 is always [Utf8](#utf8)).
 
 - infl
 

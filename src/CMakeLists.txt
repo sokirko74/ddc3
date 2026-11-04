@@ -132,11 +132,49 @@ foreach(_lang Russian English German)
 endforeach()
 add_custom_target(ddc_morph_dicts ALL DEPENDS ${_ddc_morph_outputs})
 
+#-- graphematics and structural dictionaries (Ross) from morph_dict (nlp_base)
+add_subdirectory (morph_dict/dicts/StructDictLib)
+add_subdirectory (morph_dict/dicts/StructDictLoader)
+add_subdirectory (morph_dict/graphan/GraphanLib)
+
+#-- graphematical dictionaries: ${CMAKE_BINARY_DIR}/dict/GraphAn (plain files) and the binary
+#   dictionaries of fixed expressions ${CMAKE_BINARY_DIR}/dict/{Obor,GerObor,EngObor}
+#   ($RML/dict should point there; see Bin/rml.ini)
+set(DDC_DICTS_DIR ${CMAKE_BINARY_DIR}/dict)
+set(_ddc_graphan_outputs)
+file(GLOB _graphan_files ${CMAKE_CURRENT_SOURCE_DIR}/morph_dict/data/GraphAn/*)
+foreach(_f ${_graphan_files})
+    get_filename_component(_n ${_f} NAME)
+    add_custom_command(
+        OUTPUT ${DDC_DICTS_DIR}/GraphAn/${_n}
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different ${_f} ${DDC_DICTS_DIR}/GraphAn/${_n}
+        DEPENDS ${_f}
+        VERBATIM
+    )
+    list(APPEND _ddc_graphan_outputs ${DDC_DICTS_DIR}/GraphAn/${_n})
+endforeach()
+foreach(_dict Obor GerObor EngObor)
+    set(_src ${CMAKE_CURRENT_SOURCE_DIR}/morph_dict/data/${_dict})
+    set(_dst ${DDC_DICTS_DIR}/${_dict})
+    set(_scheme ${_src}/ross.txt ${_src}/fields.json ${_src}/domains.json ${_src}/domitems.tsv ${_src}/config.rcf)
+    file(MAKE_DIRECTORY ${_dst})
+    add_custom_command(
+        OUTPUT ${_dst}/units.bin ${_dst}/cortege.bin ${_dst}/comments.bin
+        COMMAND ${CMAKE_COMMAND} -E make_directory ${_dst}
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different ${_scheme} ${_dst}
+        COMMAND StructDictLoader --action from_txt --input-file ross.txt --output-ross-folder .
+        DEPENDS StructDictLoader ${_scheme}
+        WORKING_DIRECTORY ${_dst}
+        COMMENT "Building the ${_dict} dictionary"
+        VERBATIM
+    )
+    list(APPEND _ddc_graphan_outputs ${_dst}/units.bin)
+endforeach()
+add_custom_target(ddc_graphan_dicts ALL DEPENDS ${_ddc_graphan_outputs})
+
 add_subdirectory (tinyxml)
 add_subdirectory (PCRE)
 add_subdirectory (CommonLib)
-add_subdirectory (StructDictLib)
-add_subdirectory (GraphanLib)
 add_subdirectory (RmlTar)
 add_subdirectory (ConcordLib)
 add_subdirectory (ConcordDmnLib)
@@ -150,7 +188,6 @@ add_subdirectory (ddc_search)
 add_subdirectory (ddc_simple)
 add_subdirectory (ddc_split)
 add_subdirectory (ddc_stats)
-add_subdirectory (ddc_struct_dict_loader)
 add_subdirectory (ddc_union)
 add_subdirectory (ddc_xml)
 add_subdirectory (tests)

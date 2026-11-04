@@ -1,6 +1,3 @@
-// Created by sokirko on 04.10.19.
-//
-
 #ifndef CCONCINDEXATORINVOKER_H
 #define CCONCINDEXATORINVOKER_H
 

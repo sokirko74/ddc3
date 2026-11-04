@@ -14,7 +14,7 @@
 #include "limits.h"
 
 
-#include "../GraphanLib/GraphmatFile.h"
+#include "morph_dict/graphan/GraphanLib/GraphmatFile.h"
 #include "../CommonLib/ddcIconv.h"
 #include "../CommonLib/ptrholder.h"
 #include "morph_dict/lemmatizer_base_lib/Lemmatizers.h"
@@ -480,8 +480,8 @@ extern const CLemmatizer* GetLemmatizerByLanguage (MorphLanguageEnum Langua);
 extern const CAgramtab* GetGramtabByLanguage (MorphLanguageEnum Langua);
 // recode a word from the user (corpus) encoding to the internal encoding of the morphology (and back);
 // identity except for German, see "Software\\Dialing\\Lemmatizer\\German\\ExtEncoding" in rml.ini
-extern std::string MorphRecodeExt2Int (MorphLanguageEnum Langua, const std::string& s);
-extern std::string MorphRecodeInt2Ext (MorphLanguageEnum Langua, const std::string& s);
+extern bool MorphUtf8ToSingleByte (MorphLanguageEnum Langua, const std::string& utf8, std::string& out);
+extern std::string MorphSingleByteToUtf8 (MorphLanguageEnum Langua, const std::string& s);
 
 // compare hits by break-number (for query evaluation, e.g. CQueryBinaryOperationNode::hits_and_positions_intersection())
 struct CHitCompareByBreak

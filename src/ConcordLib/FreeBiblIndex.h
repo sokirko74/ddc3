@@ -1,6 +1,3 @@
-// Created by sokirko on 10.10.19.
-//
-
 #ifndef PROJECT_FREEBIBLINDEX_H
 #define PROJECT_FREEBIBLINDEX_H
 

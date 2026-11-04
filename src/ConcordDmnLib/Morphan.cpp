@@ -131,8 +131,11 @@ inline  bool IsUpper(int x, MorphLanguageEnum Langua)
 
 
 
-bool GetParadigmCollection(string WordForm, vector<CFormInfo>&  Paradigms, MorphLanguageEnum Langua)
+bool GetParadigmCollection(string WordFormUtf8, vector<CFormInfo>&  Paradigms, MorphLanguageEnum Langua)
 {
+    string WordForm;   //-- single-byte for the morphology
+    if (!MorphUtf8ToSingleByte(Langua, WordFormUtf8, WordForm))
+        return false;
     if (WordForm.length() == 0) 
     {
         return false;
@@ -360,7 +363,7 @@ string Lemmatize(string WordForm, MorphLanguageEnum Langua, int& LemmasCount)
             strResult += GetStringByParadigm(& (Paradigms[i]), Langua);
         };
         strResult += "</TABLE>";
-        return strResult;
+        return MorphSingleByteToUtf8(Langua, strResult);
     }
     else
     {
@@ -380,5 +383,5 @@ string GetParadigm(string WordForm, int LemmaNo, MorphLanguageEnum Langua)
     {
         return "Not found";
     };
-    return  GetParadigmFromDictionary(&piParadigmCollection[LemmaNo], Langua);
+    return  MorphSingleByteToUtf8(Langua, GetParadigmFromDictionary(&piParadigmCollection[LemmaNo], Langua));
 }

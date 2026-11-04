@@ -1,6 +1,3 @@
-// Created by sokirko on 12.10.19.
-//
-
 #ifndef PROJECT_BIBLINDEX_H
 #define PROJECT_BIBLINDEX_H
 

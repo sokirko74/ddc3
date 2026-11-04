@@ -1,6 +1,3 @@
-// Created by sokirko on 05.10.19.
-//
-
 #ifndef PROJECT_TABFORMATINDEXATOR_H
 #define PROJECT_TABFORMATINDEXATOR_H
 

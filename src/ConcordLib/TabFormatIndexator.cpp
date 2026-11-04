@@ -1,5 +1,3 @@
-// Created by sokirko on 05.10.19.
-//
 
 #include "TabFormatIndexator.h"
 #include "DocumentIterator.h"

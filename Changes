@@ -14,6 +14,12 @@ v3.0 Tue, 03 Nov 2026
 	  - rml.ini moved from $RML/etc to $RML/Bin; DictPath -> $RML/dict/Morph/{Russian,English,German}
 	  - CExpc with error code -> CDDCExpc (derived from morph_dict's CExpc); StringTokenizer -> ddcStringTokenizer
 	* fixed UB on empty vectors in ddcVecFile (Debug builds aborted)
+	* nlp_base (formerly morph_dict) also provides the graphematics (graphan) and
+	  the structural dictionaries (Ross); removed the bundled GraphanLib, StructDictLib,
+	  ddc_struct_dict_loader; all dictionaries are built into build/dict, ddc-morph is not needed
+	* UTF-8 only: corpus texts, queries, index and output are UTF-8 (option Utf8 is always on,
+	  "Utf8 0" is ignored); morphology/graphan use cp1251/cp1252 internally;
+	  removed the German ExtEncoding recoding; historical German -> language Generic
 
 v2.2.12 Wed, 16 Jun 2021 15:21:24 +0200 moocow
 	* fixed sort failure in `count(...) #by[date] #dsc_key` for branch-servers with only a single daughter

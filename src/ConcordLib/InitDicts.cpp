@@ -1,5 +1,4 @@
 #include "ConcCommon.h"
-#include "../CommonLib/ddcIconv.h"
 
 using namespace std;
 
@@ -14,33 +13,16 @@ CEngGramTab *engGramTab = 0;
 CRusGramTab *rusGramTab = 0;
 CGerGramTab *gerGramTab = 0;
 
-// German I/O recoding (internal morphology encoding is LATIN1)
-ddcIconv *gerExt2Int = 0;
-ddcIconv *gerInt2Ext = 0;
-
 // global mutex for non-thread-safe curl operations (global init, lru-cached proxy)
 pthread_mutex_t ddcMorphMutex = PTHREAD_MUTEX_INITIALIZER;
 
-static void InitGermanRecoding() {
-    string extEncoding;
-    try {
-        extEncoding = ::GetRegistryString("Software\\Dialing\\Lemmatizer\\German\\ExtEncoding");
-    }
-    catch (...) {}
-    if (extEncoding.empty())
-        extEncoding = "UTF8"; //-- moo: expect UTF8 I/O for German by default
-    if (extEncoding != "LATIN1") {
-        gerExt2Int = new ddcIconv(extEncoding, "LATIN1//TRANSLIT");
-        gerInt2Ext = new ddcIconv("LATIN1", extEncoding + "//TRANSLIT");
-    }
+bool MorphUtf8ToSingleByte(MorphLanguageEnum Langua, const string& utf8, string& out) {
+    out = convert_from_utf8(utf8.c_str(), Langua);
+    return convert_to_utf8(out, Langua) == utf8;   //-- false if some characters do not exist in cp1251/cp1252
 }
 
-string MorphRecodeExt2Int(MorphLanguageEnum Langua, const string& s) {
-    return (Langua == morphGerman && gerExt2Int) ? gerExt2Int->convert(s) : s;
-}
-
-string MorphRecodeInt2Ext(MorphLanguageEnum Langua, const string& s) {
-    return (Langua == morphGerman && gerInt2Ext) ? gerInt2Ext->convert(s) : s;
+string MorphSingleByteToUtf8(MorphLanguageEnum Langua, const string& s) {
+    return convert_to_utf8(s, Langua);
 }
 
 template<class T, class Y>
@@ -68,8 +50,6 @@ void InitMorphologySystem(T *&Lemmatizer, Y *&Gramtab) {
         delete Gramtab;
         Gramtab = 0;
     }
-    if (Lemmatizer && Lemmatizer->GetLanguage() == morphGerman && !gerExt2Int)
-        InitGermanRecoding();
     pthread_mutex_unlock(&ddcMorphMutex);
 };
 
@@ -142,11 +122,8 @@ void FreeConcordDicts() {
     if (rusGramTab) delete rusGramTab;
     if (engGramTab) delete engGramTab;
     if (gerGramTab) delete gerGramTab;
-    if (gerExt2Int) delete gerExt2Int;
-    if (gerInt2Ext) delete gerInt2Ext;
     rusLemmatizer = 0; engLemmatizer = 0; gerLemmatizer = 0;
     rusGramTab = 0; engGramTab = 0; gerGramTab = 0;
-    gerExt2Int = 0; gerInt2Ext = 0;
     bRussianMorph = bEnglishMorph = bGermanMorph = false;
 
 

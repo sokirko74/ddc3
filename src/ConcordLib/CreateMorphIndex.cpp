@@ -104,8 +104,11 @@ bool CreateMorphIndex(const CStringIndexator* indexator, string path, MorphLangu
             fprintf(stderr, "%zi/%zi (%zi/%zi)             \r", i, CountOfTokens, OccursCount,
                     3 * maxTokenCountInOnePeriod);
 
-        const char *sToken = pTokensIndexSet->GetIndexItemStr(pTokensIndexSet->m_Index[i]);
-        if (CheckLanguageSingleByte(sToken, language)) {
+        const char *sTokenUtf8 = pTokensIndexSet->GetIndexItemStr(pTokensIndexSet->m_Index[i]);
+        string Token;   //-- single-byte (cp1251/cp1252) for the morphology
+        if (MorphUtf8ToSingleByte(language, sTokenUtf8, Token) && !Token.empty()
+            && CheckLanguageSingleByte(Token.c_str(), language)) {
+            const char *sToken = Token.c_str();
             vector<string> TokenProperties = GetGramInfosFromWord(sToken, language,
                                                                   is_upper_alpha((BYTE) sToken[0], language));
 

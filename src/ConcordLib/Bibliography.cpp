@@ -1,10 +1,7 @@
-// Created by sokirko on 10.10.19.
-//
-
 #include "Bibliography.h"
 #include "ConcCommon.h"
 #include "../CommonLib/ddcLog.h"
-#include "../GraphanLib/graline.h"
+#include "morph_dict/graphan/GraphanLib/graline.h"
 #include "../CommonLib/ddcTime.h"   // date2int(), int2date()
 
 using namespace std;

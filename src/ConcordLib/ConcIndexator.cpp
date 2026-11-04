@@ -19,6 +19,14 @@ const uint32_t DefaultMaxInputLoadIndexSize    =  400000;
 //===========================================
 
 // Here is the definition of a token
+//! Russian "jo" -> "je" (U+0451 -> U+0435, U+0401 -> U+0415) in utf8; formerly done by graphan (m_bConvertRussianJo2Je)
+static void ReplaceRussianJo(std::string& s) {
+    for (size_t i = 0; i + 1 < s.size(); i++) {
+        if ((BYTE)s[i] == 0xD1 && (BYTE)s[i+1] == 0x91) { s[i] = (char)0xD0; s[i+1] = (char)0xB5; }
+        else if ((BYTE)s[i] == 0xD0 && (BYTE)s[i+1] == 0x81) { s[i+1] = (char)0x95; }
+    }
+}
+
 bool IsWord(const CGraphmatFile& piGraphmat, long GraLine) {
     return piGraphmat.HasDescr(GraLine, OLLE)
         || piGraphmat.HasDescr(GraLine, ORLE);
@@ -63,10 +71,11 @@ void CConcIndexator::InitGraphan()  {
     Graphmat.m_bUseParagraphTagToDivide = m_bUseParagraphTagToDivide;
     Graphmat.m_bEmptyLineIsSentenceDelim = m_bEmptyLineIsSentenceDelim;
     Graphmat.m_bUseIndention = m_bUseIndention;
-    Graphmat.m_bConvertRussianJo2Je = true;
-    Graphmat.m_bFilterUnprintableSymbols = false;
-    if (!Graphmat.LoadDicts()) {
-        throw CDDCExpc(Format("Graphan::LoadDicts failed! Error: %s", Graphmat.GetLastError().c_str()));
+    try {
+        Graphmat.LoadDicts(m_Language);
+    }
+    catch (std::exception& e) {
+        throw CDDCExpc(Format("Graphan::LoadDicts failed! Error: %s", e.what()));
     }
 };
 
@@ -261,9 +270,7 @@ CConcIndexator::LoadXmlFile(string FileName, const char *pFileBuffer, CBibliogra
         AllTexts += "</textarea>\n\n";
     }
 
-    if (!Graphmat.LoadStringToGraphan(AllTexts))
-        throw CDDCExpc(Format("Graphmat.LoadStringToGraphan failed for file %s, Error:%s", FileName.c_str(),
-                           Graphmat.GetLastError().c_str()));
+    Graphmat.LoadStringToGraphan(AllTexts);
 
 };
 
@@ -433,12 +440,7 @@ void CConcIndexator::LoadFileIntoGraphan(string FileName, const char *pFileBuffe
         if (IsXmlFile(FileName)) {
             LoadXmlFile(FileName, pFileBuffer, Bibl);
         } else {
-            if (!Graphmat.LoadStringToGraphan(pFileBuffer)) {
-                if (!Graphmat.GetLastError().empty())
-                    throw CDDCExpc( Graphmat.GetLastError());
-                else
-                    throw CDDCExpc("CGraphmat::LoadStringToGraphan has crushed! ");
-            }
+            Graphmat.LoadStringToGraphan(pFileBuffer);
             m_BiblIndex.SetFreeBiblAttribsEmpty(Bibl);
         };
 
@@ -458,7 +460,7 @@ void CConcIndexator::IndexTextOrHtmlFile(CIndexDocument* document) {
     LoadFileIntoGraphan(document->CorpusFileName, &document->DocumentBuffer[0], Bibl);
 
     long GraLinesCount = Graphmat.GetTokensCount();
-    if (GraLinesCount <= 1) {
+    if (GraLinesCount == 0) {
         // the file is empty
         return;
     };
@@ -480,23 +482,28 @@ void CConcIndexator::IndexTextOrHtmlFile(CIndexDocument* document) {
         throw CDDCExpc("could not find sentence collection");
     }
 
-    for (long GraLineNo = 1; GraLineNo < GraLinesCount; GraLineNo++) {
+    for (long GraLineNo = 0; GraLineNo < GraLinesCount; GraLineNo++) {
         bool bSentenceEnd = false;
         bool bToken = IsDWDSToken(GraLineNo);
         if (bToken) {
-            BYTE TokenLen = Graphmat.GetUnits()[GraLineNo].GetTokenLength();
+            //-- the index stores utf8 tokens (graphan works with single-byte strings inside)
+            std::string Token = Graphmat.GetUnits()[GraLineNo].GetTokenUtf8();
+            if (m_Language == morphRussian)
+                ReplaceRussianJo(Token);
+            size_t TokenLen = Token.length();
             if (TokenLen == 0) {
                 throw CDDCExpc(Format("Fatal error: An empty word is found!\nGraph.Word No %i from %i \n", GraLineNo,
                                    GraLinesCount));
             };
 
-            const char *Token = Graphmat.GetUnits()[GraLineNo].GetToken();
             if ((BYTE) Token[0] == globalFieldDelimeter) {
                 throw CDDCExpc(Format("Error! An input word(LineNo=%i) cannot contain symbol \"%c\"(%i) \n", GraLineNo,
                                    (int) globalFieldDelimeter, (unsigned int) globalFieldDelimeter));
             };
 
-            strncpy(OneIndexLine, Token, TokenLen);
+            if (TokenLen + 2 >= sizeof(OneIndexLine))
+                throw CDDCExpc(Format("Error! Token is too long (LineNo=%i)", GraLineNo));
+            memcpy(OneIndexLine, Token.c_str(), TokenLen);
             OneIndexLine[TokenLen] = globalFieldDelimeter;
             OneIndexLine[TokenLen + 1] = 0;
 
@@ -505,9 +512,9 @@ void CConcIndexator::IndexTextOrHtmlFile(CIndexDocument* document) {
                 && (Graphmat.HasDescr(GraLineNo, OUp)
                     || Graphmat.HasDescr(GraLineNo, OUpLw))
                 ) {
-                const char *UpperToken = Graphmat.GetUppercaseToken(GraLineNo);
+                std::string UpperToken = Graphmat.GetUnits()[GraLineNo].GetTokenUpperUtf8();
                 OneIndexLine[TokenLen + 1] = globalFieldDelimeter;
-                strcpy(OneIndexLine + TokenLen + 2, m_pDwdsThesaurus->GetAllThesInterpetations(UpperToken).c_str());
+                strcpy(OneIndexLine + TokenLen + 2, m_pDwdsThesaurus->GetAllThesInterpetations(UpperToken.c_str()).c_str());
             }
 
             IndexOneToken(document, OneIndexLine, m_bResumeOnIndexErrors);

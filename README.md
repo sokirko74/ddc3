@@ -13,19 +13,16 @@ The DDC-2.x branch was maintained in SVN under:
 
 ## Dependencies
 
-- **morph_dict** (git submodule `src/morph_dict`,
-  <https://github.com/sokirko74/morph_dict>) — morphology library and
-  dictionary sources shared with RML. Fetch it with
+- **nlp_base** (git submodule `src/morph_dict`,
+  <https://github.com/sokirko74/nlp_base>, formerly morph_dict) — morphology,
+  graphematics and structural dictionaries (Ross) shared with RML, with the
+  dictionary sources. Fetch it with
 
       git submodule update --init
 
-  (or clone with `git clone --recursive`). The morphology dictionaries are
-  built from it automatically (`build/dict/Morph/{Russian,English,German}`).
-
-- **ddc-morph >= v2.0.0** — graphematical data (`dict/GraphAn`, `dict/Obor`,
-  `dict/GerObor`). Its morphology dictionaries are no longer used.
-  The ddc-morph sources are maintained in SVN under:
-  <https://ddc-concordance.svn.sourceforge.net/svnroot/ddc-morph>
+  (or clone with `git clone --recursive`). All dictionaries are built from it
+  automatically into `build/dict` (`Morph/{Russian,English,German}`, `GraphAn`,
+  `Obor`, `GerObor`, `EngObor`); ddc-morph is no longer needed.
 
 - **zlib** (e.g. Debian/Ubuntu package `zlib1g-dev`) — required by morph_dict.
 
@@ -58,6 +55,15 @@ The DDC-2.x branch was maintained in SVN under:
 
   before re-compiling.
 
+## Encoding
+
+DDC 3 talks to the outside world only in UTF-8: corpus texts, queries and all
+output. Single-byte (cp1251/latin1) corpora are no longer supported; convert
+them with `iconv` and reindex. Morphology and graphematics work with
+cp1251/cp1252 internally, DDC converts at the boundary. Texts with characters
+outside these encodings (e.g. historical German with "ſ") should use the
+language `Generic` (raw UTF-8, no morphology).
+
 ## Building
 
 DDC runs on Linux (POSIX) only: the daemon, sockets, threads, mmap and
@@ -77,10 +83,7 @@ Set the (legacy) environment variable `RML` to a directory with the following
 layout (see [Dependencies](#dependencies)):
 
     $RML/Bin/rml.ini     <- Bin/rml.ini from this repository
-    $RML/dict/Morph      <- build/dict/Morph (built from morph_dict)
-    $RML/dict/GraphAn    <- from ddc-morph
-    $RML/dict/Obor       <- from ddc-morph
-    $RML/dict/GerObor    <- from ddc-morph
+    $RML/dict            <- build/dict (built from nlp_base)
 
     export RML=/path/to/rml
 

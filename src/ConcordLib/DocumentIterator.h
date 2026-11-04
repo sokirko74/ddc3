@@ -1,5 +1,3 @@
-// Created by sokirko on 05.10.19.
-//
 
 #ifndef PROJECT_DOCUMENTITERATOR_H
 #define PROJECT_DOCUMENTITERATOR_H

@@ -309,10 +309,7 @@ public:
 
     // return default pcre regex options
     RML_RE::Options GetRegexOptions() const {
-        if (m_Utf8)
-            return RML_RE::Options(true, NULL);
-        else
-            return RML_RE::Options(false, m_PcreCharacterTables.data());
+        return RML_RE::Options(true, NULL);   //-- ddc3 is always utf8
     };
 
     // return true, if DDC outputs results in DWDS format

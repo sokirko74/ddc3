@@ -1,6 +1,3 @@
-// Created by sokirko on 10.10.19.
-//
-
 #ifndef PROJECT_BIBLIOGRAPHY_H
 #define PROJECT_BIBLIOGRAPHY_H
 

@@ -1,12 +1,10 @@
-// Created by sokirko on 05.10.19.
-//
 
 #include "DocumentIterator.h"
 #include "ConcCommon.h"
 #include "ConcIndexator.h"
 
 #include "../RmlTar/RmlTar.h"
-#include "../GraphanLib/HTMLConv.h"
+#include "morph_dict/graphan/GraphanLib/HTMLConv.h"
 #include "../CommonLib/bserialize.h"
 #include "../CommonLib/ddcFile.h"
 

@@ -1,6 +1,3 @@
-// Created by sokirko on 04.10.19.
-//
-
 #include "ConcIndexatorInvoker.h"
 #include "DwdsThesaurus.h"
 #include "DocumentIterator.h"

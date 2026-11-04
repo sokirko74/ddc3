@@ -147,7 +147,9 @@ void TxMorph::expand(const set<string> &src, set<string> &dst) {
         const string& w = *si;
         vector<CFormInfo> Paradigms;
 
-        string w_ = MorphRecodeExt2Int(m_Lang, w);
+        string w_;
+        if (!MorphUtf8ToSingleByte(m_Lang, w, w_) || w_.empty())
+            continue;
         const bool bCapital = is_upper_alpha((BYTE)w_[0],m_Lang);
         try {
             pLemmatizer->CreateParadigmCollection(false, w_, bCapital, true, Paradigms);
@@ -162,13 +164,13 @@ void TxMorph::expand(const set<string> &src, set<string> &dst) {
             //  print all forms of one paradigm
             for (int j = 0; j < F.GetCount(); j++) {
                 string form = F.GetWordForm(j);
-                ddcMakeLower(form, m_Lang);
+                RmlMakeLower(form, m_Lang);   //-- single-byte here
                 // set 'register' (i.e. letter-case) of the first char of "form" equal to the 'register' of "*w"
                 if (bCapital) {
                     // make the first word upper-case (ugly hack)
                     form[0] = ReverseChar((BYTE)form[0], m_Lang);
                 }
-                dst.insert(MorphRecodeInt2Ext(m_Lang, form));
+                dst.insert(MorphSingleByteToUtf8(m_Lang, form));
             }
         }
     }

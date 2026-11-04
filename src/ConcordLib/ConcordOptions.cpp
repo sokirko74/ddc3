@@ -65,7 +65,7 @@ void CConcordance::InitDefaultOptions() {
     m_PositionRank = 0.3;
     m_InterpDelimiter = "#";
     m_TokenDelimiter = "";
-    m_Utf8 = false;
+    m_Utf8 = true;   //-- ddc3: always utf8
     m_bAllowUnsafeQueries = false;
     m_bAllowCountByTokenAttributes = true;
     m_bMemoryMap = false;
@@ -299,7 +299,8 @@ void CConcordance::LoadOptionsFromString(string Options) {
             m_TokenDelimiter = unescapeCString(q);
             EchoOption("TokenDelimiter = \"%s\"", m_TokenDelimiter.c_str());
         } else if (q == "Utf8") {
-            m_Utf8 = StringToBool(fields.next_token());
+            if (!StringToBool(fields.next_token()))
+                ddcLogWarn("option \"Utf8 0\" is ignored: ddc3 only supports utf8 corpora");
         } else if (q == "AllowUnsafeQueries") {
             m_bAllowUnsafeQueries = StringToBool(fields.next_token());
             EchoOption("AllowUnsafeQueries %s", BoolToString(m_bAllowUnsafeQueries));
@@ -433,8 +434,8 @@ void CConcordance::LoadOptionsFromString(string Options) {
     if (m_Language == morphUnknown)
         throw CDDCExpc("no language definition found in the options file");
 
-    //-- set utf-8 flag
-    if (m_Utf8) {
+    //-- utf-8 locale (ddc3 is always utf8)
+    {
         const char *lc_ctype = setlocale(LC_CTYPE,NULL);
         if (strstr(lc_ctype,"UTF-8")==NULL && strstr(lc_ctype,"utf8")==NULL) {
             //-- hack for locale-sensitive internal iconv conversions to/from wchar_t
@@ -445,8 +446,6 @@ void CConcordance::LoadOptionsFromString(string Options) {
             lc_ctype = setlocale(LC_CTYPE,NULL);
         }
         EchoOption("Utf8 enabled (LC_CTYPE=%s)", lc_ctype);
-    } else {
-        EchoOption("Utf8 disabled");
     }
 
     //-- always set LC_NUMERIC="C"
@@ -461,8 +460,6 @@ void CConcordance::LoadOptionsFromString(string Options) {
                                  (!m_bDisableDefaultQueryLexicalExpansion),
                                  (!m_bCaseSensitive));
 
-    //-- (old-style) regex table generation
-    RmlPcreMakeTables(m_PcreCharacterTables, m_Language);
         
     const char* ArchiveType = (m_bArchiveIndex) ? "archive" : "normal";
         

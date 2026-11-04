@@ -1,6 +1,3 @@
-// Created by sokirko on 12.10.19.
-//
-
 #include "BiblIndex.h"
 #include "../tinyxml/xpath_static.h"
 #include "../CommonLib/ddcLocale.h"
