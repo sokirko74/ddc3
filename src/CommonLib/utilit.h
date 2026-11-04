@@ -116,9 +116,6 @@ extern bool             FileExists (const char *FName);
 inline bool             FileExists (const std::string& FName)
 { return FileExists(FName.c_str()); };
 
-extern bool             IsDirectory(const char* DirName);
-inline bool             IsDirectory(const std::string& DirName)
-{ return IsDirectory(DirName.c_str()); };
 
 extern file_off_t       FileSize (const char *filename);
 inline file_off_t       FileSize (const std::string& filename)

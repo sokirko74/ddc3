@@ -42,7 +42,7 @@
 # include <sys/stat.h>
 #endif
 
-//-- for opendir(), IsDirectory
+//-- for opendir()
 #include <dirent.h>
 
 using namespace std;
@@ -346,17 +346,6 @@ time_t FileMTime (const char *filename)
 #else
     return 0;
 #endif
-}
-
-bool IsDirectory (const char *DirName)
-{
-    DIR* dir = opendir(DirName);
-    if (dir != NULL) {
-        closedir(dir);
-        return true;
-    }
-    //(errno != ENOTDIR);
-    return false;
 }
 
 
@@ -1460,7 +1449,8 @@ bool  MakeDir(const string& DirName)
 
 bool  MakeDirP(const string& DirName)
 {
-    if (IsDirectory(DirName))
+    std::error_code ec;
+    if (std::filesystem::is_directory(DirName, ec))
         return true;
     if (!MakeDirP(FileDirectory(DirName)))
         return false;
