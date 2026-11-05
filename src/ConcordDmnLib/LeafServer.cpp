@@ -195,6 +195,8 @@ CDDCLeafServer::handle__run_query(string &Result, const char *CorpusName, const 
 void CDDCLeafServer::handle__expand_terms(string &Result, const string &pipeline, const string &terms, int timeout,
                                           const string &corpus) {
     assert(m_pHolder != NULL);
+    if (!IsValidUtf8(terms))
+        throw CDDCExpc(errParseError, "the terms of `expand_terms' are not valid UTF-8 (ddc accepts only UTF-8)");
     vector<string> iterms_v = stringSplit(terms.c_str(), " \t\r\n");
     set<string> iterms(iterms_v.begin(), iterms_v.end());
 

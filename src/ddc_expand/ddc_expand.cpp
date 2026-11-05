@@ -50,6 +50,11 @@ void PrintUsage()
 
 void expand(const set<string> &src)
 {
+    for (const string& w : src)
+        if (!IsValidUtf8(w)) {
+            fprintf(stderr, "%s: the input is not valid UTF-8 (ddc accepts only UTF-8): %s\n", prog, w.c_str());
+            return;
+        }
     set<string> dst;
     tx->expand(src, dst);
     for (set<string>::const_iterator xi=dst.begin(); xi!=dst.end(); xi++) {

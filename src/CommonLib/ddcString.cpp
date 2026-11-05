@@ -475,6 +475,35 @@ int32_t hex2int(const string& s)
 }
 
 //======================================================================
+// utf8 validation
+
+bool IsValidUtf8(const char *s, size_t len)
+{
+    const unsigned char *p = (const unsigned char*)s, *end = p + len;
+    while (p < end) {
+        unsigned char c = *p;
+        size_t n;
+        uint32_t cp;
+        if (c < 0x80)      { p++; continue; }
+        else if ((c & 0xE0) == 0xC0) { n = 1; cp = c & 0x1F; }
+        else if ((c & 0xF0) == 0xE0) { n = 2; cp = c & 0x0F; }
+        else if ((c & 0xF8) == 0xF0) { n = 3; cp = c & 0x07; }
+        else return false;
+        if ((size_t)(end - p) <= n) return false;
+        for (size_t i = 1; i <= n; i++) {
+            if ((p[i] & 0xC0) != 0x80) return false;
+            cp = (cp << 6) | (p[i] & 0x3F);
+        }
+        //-- reject overlong encodings, surrogates and code points beyond U+10FFFF
+        if ((n == 1 && cp < 0x80) || (n == 2 && cp < 0x800) || (n == 3 && cp < 0x10000)
+            || (cp >= 0xD800 && cp <= 0xDFFF) || cp > 0x10FFFF)
+            return false;
+        p += n + 1;
+    }
+    return true;
+}
+
+//======================================================================
 // string trimming
 
 //--------------------------------------------------------------

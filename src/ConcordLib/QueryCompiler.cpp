@@ -124,6 +124,8 @@ bool CQueryCompiler::ParseQuery(const string &QueryStr)
 #endif
     CleanParser();
     if (QueryStr.empty()) return false;
+    if (!IsValidUtf8(QueryStr))
+        throw CDDCExpc(errParseError, "the query is not valid UTF-8 (ddc accepts only UTF-8)");
     istringstream QueryStream(QueryStr+"\n"); //-- ensure that query ends with whitespace!
 
     // We must reset the scanner start condition, i.e., call BEGIN(INITIAL)

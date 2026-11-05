@@ -85,6 +85,10 @@ std::string unescapeUrlString(const std::string &s);
 
 /* Decode \uXXXX escapes from a string to UTF-8 */
 std::string unescapeUtf8String(const std::string &s);
+
+//! true iff s is valid UTF-8 (all ddc input must be UTF-8)
+bool IsValidUtf8(const char *s, size_t len);
+inline bool IsValidUtf8(const std::string &s) { return IsValidUtf8(s.data(), s.size()); }
 //
 
 //----------------------------------------------------------------------

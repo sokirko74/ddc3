@@ -64,6 +64,10 @@ cp1251/cp1252 internally, DDC converts at the boundary. Texts with characters
 outside these encodings (e.g. historical German with "ſ") should use the
 language `Generic` (raw UTF-8, no morphology).
 
+Input that is not valid UTF-8 is rejected with an error: corpus files
+(`ddc_index`), queries (`ddc_simple`, `ddc_console`, `ddc_qparse`, the server)
+and terms (`ddc_expand`, `expand_terms`).
+
 ## Building
 
 DDC runs on Linux (POSIX) only: the daemon, sockets, threads, mmap and

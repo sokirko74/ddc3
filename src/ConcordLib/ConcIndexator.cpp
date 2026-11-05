@@ -271,6 +271,8 @@ CConcIndexator::LoadXmlFile(string FileName, const char *pFileBuffer, CBibliogra
         AllTexts += "</textarea>\n\n";
     }
 
+    if (!IsValidUtf8(AllTexts))
+        throw CDDCExpc(Format("file %s is not valid UTF-8 (ddc accepts only UTF-8)", FileName.c_str()));
     Graphmat.LoadStringToGraphan(AllTexts);
 
 };
@@ -441,6 +443,8 @@ void CConcIndexator::LoadFileIntoGraphan(string FileName, const char *pFileBuffe
         if (IsXmlFile(FileName)) {
             LoadXmlFile(FileName, pFileBuffer, Bibl);
         } else {
+            if (!IsValidUtf8(pFileBuffer, strlen(pFileBuffer)))
+                throw CDDCExpc(Format("file %s is not valid UTF-8 (ddc accepts only UTF-8)", FileName.c_str()));
             Graphmat.LoadStringToGraphan(pFileBuffer);
             m_BiblIndex.SetFreeBiblAttribsEmpty(Bibl);
         };

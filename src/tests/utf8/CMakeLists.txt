@@ -31,3 +31,22 @@ endmacro(ddc_utf8_test)
 
 ddc_utf8_test (Russian "рама" "мыть" "ёлка" "/^ёлк|^елк/" "λόγος")
 ddc_utf8_test (Generic "Waſſer" "Kaiſer" "Deꝛ" "/^ſ/" "Fluß")
+
+# input that is not UTF-8 must be rejected
+add_test(
+        NAME utf8_reject_cp1251_query
+        COMMAND ddc_simple corpus.con <query_cp1251.txt result_cp1251.html -ResultFormat html
+        WORKING_DIRECTORY  ${CMAKE_BINARY_DIR}/tests/utf8/Russian
+)
+set_tests_properties(utf8_reject_cp1251_query PROPERTIES WILL_FAIL TRUE)
+
+add_test(
+        NAME utf8_reject_cp1251_copy
+        COMMAND ${CMAKE_COMMAND} -E copy_directory ${PROJECT_SOURCE_DIR}/utf8/Cp1251  ${CMAKE_BINARY_DIR}/tests/utf8/Cp1251
+)
+add_test(
+        NAME utf8_reject_cp1251_index
+        COMMAND ddc_index corpus.con
+        WORKING_DIRECTORY  ${CMAKE_BINARY_DIR}/tests/utf8/Cp1251
+)
+set_tests_properties(utf8_reject_cp1251_index PROPERTIES WILL_FAIL TRUE)

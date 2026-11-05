@@ -54,7 +54,7 @@ vector<string> GetGramInfosFromWord(const char *GraLine, MorphLanguageEnum Langu
                         continue;
 
             if (pos != UnknownPartOfSpeech)
-                Result.push_back(A->GetPartOfSpeechStr(pos));
+                Result.push_back(A->GetPartOfSpeechStr(pos));   //-- gramtab names are utf8 (or Latin)
         };
 
         uint64_t Grammems;

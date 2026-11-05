@@ -109,12 +109,20 @@ int main(int argc, char* argv[])
     ddc_set_log_label(loglabel.c_str());
 
     //-- guts
-    if (!S.BuildIndex(ProjectFile ))
-    {
-        ddcLogError("cannot index the project!");
+    try {
+        if (!S.BuildIndex(ProjectFile ))
+        {
+            ddcLogError("cannot index the project!");
+            FreeConcordDicts();
+            return 1;
+        };
+    }
+    catch (std::exception &e) {
+        //-- e.g. an input file that is not valid UTF-8
+        ddcLogError(Format("cannot index the project: %s", e.what()));
         FreeConcordDicts();
         return 1;
-    };
+    }
 
 
     double elapsed = DDCTimeHiRes::Now().Elapsed(t0);
