@@ -1,6 +1,6 @@
 # UTF-8 corpora (one ddc_simple call per query, each with its own canon file):
 #  - Russian: morphology via cp1251 inside (lemma expansion, jo -> je, regex on Cyrillic);
-#    characters outside cp1251 are dropped by the graphematics (λόγος is not found)
+#    characters outside cp1251 are kept by the graphematics (λόγος is one token and is found)
 #  - Generic: raw UTF-8, e.g. historical German with long s (no morphology, words are not split)
 macro (ddc_utf8_test lang)
     set (dir ${CMAKE_BINARY_DIR}/tests/utf8/${lang})

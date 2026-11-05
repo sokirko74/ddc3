@@ -71,6 +71,7 @@ void CConcIndexator::InitGraphan()  {
     Graphmat.m_bUseParagraphTagToDivide = m_bUseParagraphTagToDivide;
     Graphmat.m_bEmptyLineIsSentenceDelim = m_bEmptyLineIsSentenceDelim;
     Graphmat.m_bUseIndention = m_bUseIndention;
+    Graphmat.m_bKeepUnknownChars = true;   //-- e.g. Greek words in a Russian text are indexed, see GetTokenUtf8()
     try {
         Graphmat.LoadDicts(m_Language);
     }
@@ -487,7 +488,7 @@ void CConcIndexator::IndexTextOrHtmlFile(CIndexDocument* document) {
         bool bToken = IsDWDSToken(GraLineNo);
         if (bToken) {
             //-- the index stores utf8 tokens (graphan works with single-byte strings inside)
-            std::string Token = Graphmat.GetUnits()[GraLineNo].GetTokenUtf8();
+            std::string Token = Graphmat.GetTokenUtf8(GraLineNo);
             if (m_Language == morphRussian)
                 ReplaceRussianJo(Token);
             size_t TokenLen = Token.length();
