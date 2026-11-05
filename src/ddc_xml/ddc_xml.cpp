@@ -1,3 +1,5 @@
+#include "nlp_base/common/utilit.h"
+#include "nlp_base/common/argparse.h"
 #include <signal.h>
 
 #include "../CommonLib/CHost.h"
@@ -139,29 +141,6 @@ string CPrototype::BuildEntry(const map<string, string> &Hit, const string &Quer
 
 
 
-void PrintUsageAndExit() {
-    fprintf(stderr, "%s\n", DDCVersionStr.c_str());
-    fprintf(stderr, "The program builds a xml-file by a DDC query result\n");
-    fprintf(stderr, "Usage(1): ddc_xml <query> <options>\n");
-    fprintf(stderr, "Usage(2): ddc_xml -f query_file <options>\n");
-    fprintf(stderr, "Usage(3): ddc_xml corpus_name -reload \n");
-    fprintf(stderr, "Where \"<query>\" is a query to DDC, \"query_file\" is a text file\n");
-    fprintf(stderr, "where each line is a query\n");
-    fprintf(stderr, "where <options> can be \n");
-    fprintf(stderr, "  -Limit [Start,]Count  \"Start\" is the first hit(starting from zero), \n");
-    fprintf(stderr, "         \"Count\" is the maximal number of hits to find\n"),
-        fprintf(stderr, "  -text   let the program create a text file( by default is xml)\n");
-    fprintf(stderr, "  -timeout N   set the timeout in seconds (by default it is 200 seconds)\n");
-    fprintf(stderr, "  -s, --server SERVER_CFG   (default=$RML/etc/ddc_xml_server.cfg)\n");
-    fprintf(stderr, "  -o, --output if specified, write the result to this file\n");
-    fprintf(stderr, "  -threads NUM if specified, run in NUM threads\n");
-    fprintf(stderr, "  where corpus_name is a corpus to reload\n");
-    fprintf(stderr, "Example1: ddc_xml  \"test&&west\" -Limit 100\n");
-    fprintf(stderr, "Example1: ddc_xml  \"test&&west\" -Limit 10,100 -text\n");
-    fprintf(stderr, "Example2: ddc_xml  test  >out.xml\n");
-    fprintf(stderr, "Example2: ddc_xml  -f query.txt >out.xml\n");
-    exit(1);
-};
 
 class CQueryRunner : public ddcLockable{
     string FormatResponse(string query, string recievedString);
@@ -474,102 +453,45 @@ void ThreadPool::Wait()
 
 int main(int argc, char **argv) {
 
-    string OutputFormat = "table";
-    int ResultLimit = 10;
-    int StartHitNo = 0;
-    int Timeout = 200;
-    bool bReloadCorpus = false;
+    ArgumentParser args;
+    args.SetVersion(DDCVersionStr);
+    args.SetDescription("Send queries to a DDC server and print the hits as xml (default) or text");
+    args.AddArgument("-s, --server", "server config (default: RML_FOLDER/etc/ddc_xml_server.cfg)", true);
+    args.AddArgument("-o, --output", "output file (default: stdout)", true);
+    args.AddArgument("-f, --query-file", "a file with queries, one per line", true);
+    args.AddArgument("--start", "the number of the first hit (default: 0)", true);
+    args.AddArgument("--limit", "the maximal number of hits (default: 10)", true);
+    args.AddArgument("--timeout", "timeout in seconds (default: 200)", true);
+    args.AddArgument("--threads", "run the queries in N threads", true);
+    args.AddOption("--text", "text output instead of xml");
+    args.AddOption("--reload", "reload the corpus QUERY instead of querying");
+    args.AddPositional("query", "the query (with --reload: the corpus name)", true);
+    args.SetEpilog("Examples:\n"
+                   "  ddc_xml --limit 100 \"test&&west\"\n"
+                   "  ddc_xml --start 10 --limit 100 --text \"test&&west\"\n"
+                   "  ddc_xml -f query.txt -o out.xml\n"
+                   "  ddc_xml --reload corpus_name");
+    args.SetOpenStreams(false);
+    args.Parse(argc, (const char **) argv);
+
+    string OutputFormat = args.Exists("text") ? "text" : "table";
+    int ResultLimit = args.Retrieve("limit", 10);
+    int StartHitNo = args.Retrieve("start", 0);
+    int Timeout = args.Retrieve("timeout", 200);
+    bool bReloadCorpus = args.Exists("reload");
+    string outputFilePath = args.Retrieve("output");
+    string cfgPath = args.Retrieve("server");
+    int threadCount = args.Retrieve("threads", -1);
+    if (threadCount == 0 || ResultLimit < 0 || StartHitNo < 0) {
+        fprintf(stderr, "Error! --threads must be positive, --start and --limit cannot be negative\n");
+        return 1;
+    }
     StringVector Queries;
-    string outputFilePath = "";
-    string cfgPath;
-    int threadCount = -1;
+    if (args.Exists("query-file"))
+        ReadQueriesFromFile(args.Retrieve("query-file").c_str(), Queries);
+    if (args.Exists("query"))
+        Queries.push_back(args.Retrieve("query"));
 
-    for (size_t i = 1; i < argc; i++) {
-        string s = argv[i];
-        EngMakeLower(s);
-        if ((s == "-help")
-            || (s == "--help")
-            || (s == "/?")
-            )
-            PrintUsageAndExit();
-        else if (s == "-text")
-            OutputFormat = "text";
-        else if (s == "-reload")
-            bReloadCorpus = true;
-        else if ((s == "-s") || (s == "--server")) {
-            if (i + 1 >= argc)
-                PrintUsageAndExit();
-            i++;
-            cfgPath = argv[i];
-        } else if ((s == "-o") || (s == "--output")) {
-            if (i + 1 >= argc)
-                PrintUsageAndExit();
-            i++;
-            outputFilePath = argv[i];
-        } else if (s == "-threads") {
-            if (i + 1 >= argc)
-                PrintUsageAndExit();
-            i++;
-            threadCount = atoi(argv[i]);
-            if (threadCount == 0) {
-                fprintf(stderr, "threads count must be greater than zero!\n");
-                PrintUsageAndExit();
-            }
-        } else if (s == "-limit") {
-            if (i + 1 >= argc) {
-                fprintf(stderr, "Error! No integer number after  \"-limit\" parameter!\n");
-                PrintUsageAndExit();
-            } else {
-                StringTokenizer tok(argv[i + 1], ",");
-                if (!tok())
-                    PrintUsageAndExit();
-                StartHitNo = atoi(tok.val());
-                if (tok()) {
-                    ResultLimit = atoi(tok.val());
-                } else {
-                    ResultLimit = StartHitNo;
-                    StartHitNo = 0;
-                }
-
-                if (ResultLimit < 0) {
-                    fprintf(stderr, "Error! \"Count\"  in -Limit cannot be negative!\n\n");
-                    PrintUsageAndExit();
-                }
-                if (StartHitNo < 0) {
-                    fprintf(stderr, "Error! \"Start\"  in -Limit cannot be negative!\n\n");
-                    PrintUsageAndExit();
-                }
-
-                i++;
-
-            };
-        } else if ((s == "--version") || (s == "-v")) {
-            fprintf(stderr, "%s\n", DDCVersionStr.c_str());
-            fprintf(stderr, "%s: command line query processor(distributed vesrsion)\n", argv[0]);
-            return 1;
-        } else if (s == "-timeout") {
-            if (i + 1 >= argc) {
-                fprintf(stderr, "Error! No integer number after  \"-timeout\" parameter!\n");
-                PrintUsageAndExit();
-            } else {
-                Timeout = atoi(argv[i + 1]);
-                i++;
-            };
-        } else if (s == "-f") {
-            if (i + 1 >= argc) {
-                fprintf(stderr, "Error! No file name after  \"-f\" parameter!\n");
-                PrintUsageAndExit();
-            } else {
-                ReadQueriesFromFile(argv[i + 1], Queries);
-                i++;
-            };
-
-        } else {
-            if (!Queries.empty()) PrintUsageAndExit();
-            Queries.push_back(argv[1]);
-        };
-
-    };
     try {
         if (cfgPath.empty()) {
             cfgPath = GetPathByFile(GetIniFilePath()) + "etc/ddc_xml_server.cfg";
@@ -580,8 +502,8 @@ int main(int argc, char **argv) {
         return 1;
     };
     if (Queries.empty()) {
-        fprintf(stderr, " No query is specified\n");
-        PrintUsageAndExit();
+        fprintf(stderr, "No query is specified\n%s", args.Usage().c_str());
+        return 1;
 
     };
 

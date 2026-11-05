@@ -8,45 +8,18 @@
 
 #include "../ConcordLib/ConcCommon.h"
 #include "../ConcordLib/TermExpander.h"
+#include "nlp_base/common/argparse.h"
 
 using namespace std;
 
 //-- suppress gcc warnings of the form "ignoring return value of `fread', declared with attribute warn_unused_result [-Wunused-result]"
 #pragma GCC diagnostic ignored "-Wunused-result"
 
-const char *prog = "ddcExpand";
+const char *prog = "ddc_expand";
 CTermExpander *tx = NULL;
 TxChain       txc;
 TxDispatcher  txd;
 
-void PrintUsage()
-{
-    printf("\n"
-           "Usage: %s [OPTIONS] [INPUT...]\n", prog);
-    printf("\n"
-           "Options:\n"
-           "  -h         ##-- this help message\n"
-           "  -c CLASS   ##-- set expander class (default='Morph')\n"
-           "  -l LABEL   ##-- set expander label (default='')\n"
-           "  -p PARAM   ##-- set expander parameter string (default='')\n"
-           "  -f CONFIG  ##-- parse config file (default=none)\n"
-           "  -w         ##-- if given, INPUT(s) are words to analyze, otherwise files\n"
-           "  -v LEVEL   ##-- set ddc log level (silent,\n"
-           "\n"
-           "Examples:\n"
-           "  ddcExpand -c Case file.txt\n"
-           "  ddcExpand -c Case -\n"
-           "  ddcExpand -c Morph -p German -w sein\n"
-           "  ddcExpand -c cab -p 'http://localhost:9099/query/?a=expand&fmt=xl' -w sein\n"
-           "  ddcExpand -c cab -p 'http+unix:/tmp/cab-xlit.sock//query/?a=expand&fmt=xl' -w sein\n"        
-           "  ddcExpand -f config.txt\n"
-           "\n"
-           "Interactive mode:\n"
-           "  Type #h [ENTER] for help\n"
-           "\n"
-        );
-    exit(-1);   
-};
 
 void expand(const set<string> &src)
 {
@@ -113,45 +86,43 @@ int main(int argc, char **argv)
     ddcLogToStderr = true;
     ddcLogLevel    = ddcLLWarn;
 
-    string txfile("");
-    string txclass("Id");
-    string txlabel("Token");;
-    string txparam;
-    bool fileMode = true;
-    vector<string> inputs;
-    for (argv++,argc--; argc > 0; argv++,argc--) {
-        string p = argc > 1 ? string(*(argv+1)) : string("");
-        if (strcmp(*argv,"-h")==0) { PrintUsage(); }
-        else if (strcmp(*argv,"-c")==0) {
-            txclass=p;
-            argv++; argc--;
-        }
-        else if (strcmp(*argv,"-l")==0) {
-            txlabel=p;
-            argv++; argc--;
-        }
-        else if (strcmp(*argv,"-p")==0) {
-            if (!txparam.empty()) txparam.push_back(' ');
-            txparam.append(p);
-            argv++; argc--;
-        }
-        else if (strcmp(*argv,"-f")==0) {
-            txfile=p;
-            argv++; argc--;
-        }
-        else if (strcmp(*argv,"-w")==0) {
-            fileMode=false;
-        }
-        else if (strcmp(*argv,"-v")==0 || strcmp(*argv,"--verbose")==0) {
-            ddcLogLevel = GetLogLevel(p);
-            ddcLogToStderr = (ddcLogLevel!=ddcLLSilent);
-            //fprintf(stderr, "set log level=%s", LogLevelName(ddcLogLevel));
-            argv++; argc--;
-        }
-        else {
-            inputs.push_back(string(*argv));
-        }
+    ArgumentParser args;
+    args.SetVersion(DDCVersionStr);
+    args.SetDescription("Expand terms with a DDC term expander");
+    args.AddArgument("-v, --verbose", "log level: none|error|warn|info|debug|trace", true);
+    args.AddArgument("-c, --class", "expander class (default: Id)", true);
+    args.AddArgument("-l, --label", "expander label (default: Token)", true);
+    args.AddArgument("-p, --param", "expander parameter string (several are joined with a space)", true, true);
+    args.AddArgument("-f, --config", "a config file with expanders", true);
+    args.AddOption("-w, --words", "the inputs are words to expand, not files");
+    args.AddPositionalList("inputs", "input files ('-' for stdin) or words (with --words); none: interactive mode", true);
+    args.SetEpilog("Examples:\n"
+           "  ddc_expand -c Case file.txt\n"
+           "  ddc_expand -c Case -\n"
+           "  ddc_expand -c Morph -p German -w sein\n"
+           "  ddc_expand -c cab -p 'http://localhost:9099/query/?a=expand&fmt=xl' -w sein\n"
+           "  ddc_expand -c cab -p 'http+unix:/tmp/cab-xlit.sock//query/?a=expand&fmt=xl' -w sein\n"
+           "  ddc_expand -f config.txt\n"
+           "\n"
+           "Interactive mode:\n"
+           "  Type #h [ENTER] for help");
+    args.SetOpenStreams(false);
+    args.Parse(argc, (const char **) argv);
+    if (args.Exists("verbose")) {
+        ddcLogLevel = GetLogLevel(args.Retrieve("verbose"));
+        ddcLogToStderr = (ddcLogLevel!=ddcLLSilent);
     }
+
+    string txfile = args.Retrieve("config");
+    string txclass = args.Exists("class") ? args.Retrieve("class") : "Id";
+    string txlabel = args.Exists("label") ? args.Retrieve("label") : "Token";
+    string txparam;
+    for (auto &p : args.RetrieveList("param")) {
+        if (!txparam.empty()) txparam.push_back(' ');
+        txparam.append(p);
+    }
+    bool fileMode = !args.Exists("words");
+    vector<string> inputs = args.RetrieveList("inputs");
 
     //---- load dicts
     printf ("%s: Loading...\n", prog);

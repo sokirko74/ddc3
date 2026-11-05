@@ -18,7 +18,7 @@ macro (ddc_utf8_test lang)
         math (EXPR n "${n} + 1")
         add_test(
                 NAME utf8_${lang}_query${n}
-                COMMAND ddc_simple corpus.con "${q}" result${n}.html -ResultFormat html
+                COMMAND ddc_simple --result-format html -o result${n}.html corpus.con "${q}"
                 WORKING_DIRECTORY  ${dir}
         )
         add_test(
@@ -35,7 +35,7 @@ ddc_utf8_test (Generic "Waſſer" "Kaiſer" "Deꝛ" "/^ſ/" "Fluß")
 # input that is not UTF-8 must be rejected
 add_test(
         NAME utf8_reject_cp1251_query
-        COMMAND ddc_simple corpus.con <query_cp1251.txt result_cp1251.html -ResultFormat html
+        COMMAND ddc_simple --result-format html -o result_cp1251.html --query-file query_cp1251.txt corpus.con
         WORKING_DIRECTORY  ${CMAKE_BINARY_DIR}/tests/utf8/Russian
 )
 set_tests_properties(utf8_reject_cp1251_query PROPERTIES WILL_FAIL TRUE)

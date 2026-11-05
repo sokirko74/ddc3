@@ -22,12 +22,12 @@ macro (ddc_unix_domain_socket_test)
 
     add_test(
             NAME unix_domain_socket_query_leaf
-            COMMAND ddc_xml --server ddc_xml_leaf.cfg  -text -f query.txt --output new_result_leaf.txt
+            COMMAND ddc_xml --server ddc_xml_leaf.cfg  --text -f query.txt --output new_result_leaf.txt
             WORKING_DIRECTORY  ${dir}
     )
     add_test(
             NAME unix_domain_socket_query_root
-            COMMAND ddc_xml --server ddc_xml_root.cfg  -text -f query.txt --output new_result_root.txt
+            COMMAND ddc_xml --server ddc_xml_root.cfg  --text -f query.txt --output new_result_root.txt
             WORKING_DIRECTORY  ${dir}
     )
     add_test(

@@ -8,31 +8,12 @@
 #include "../CommonLib/ddcTime.h"
 #include "../ConcordLib/ConcCommon.h"
 #include "../ConcordLib/ConcIndexatorInvoker.h"
+#include "nlp_base/common/utilit.h"
+#include "nlp_base/common/argparse.h"
 
 using namespace std;
 
 const char *prog = "ddc_index";
-void  PrintUsageAndExit()
-{
-    printf ("%s\n", DDCVersionStr.c_str());
-    printf ("Index a DDC project (*.con) file\n");
-    printf ("\nUsage: %s [OPTIONS] PROJECT\n", prog);
-    printf ("\nOptions:\n"
-            "  -V, --version                      # report program version and exit\n"
-            "  -h, --help                         # this help message\n"
-            "  -v, --verbose LEVEL                # set log-verbosity level (none|error|warn|info=weak|debug=medium|trace=heavy)\n"
-            "  -a, --anonymize                    # enable anonymous tokens (beginning with '-#')?\n"
-            "      --only-reindex-morph\n"
-            "      --print-profiler-info\n"
-            "      --skip-initial-file-checking\n"
-        );
-    printf("\nNotes:\n"
-           "  + may generate large temporary files in $TMP or /tmp\n"
-        );
-    exit(1);
-};
-
-
 
 int main(int argc, char* argv[])
 {
@@ -45,59 +26,28 @@ int main(int argc, char* argv[])
     ddcLogToStderr = true;
 
     prog = argv[0];
-    if (argc < 2) 
-        PrintUsageAndExit();
-    ConcIndexatorInvoker S;
-    bool bOnlyReindexMorphology = false;
-    bool bPrintProfile = false;
-    bool bSkipInitialFileChecking = false;
-    string ProjectFile;
-    for (size_t i=1; i < argc; i++)
-    {
-        string s = argv[i];
-        if (s=="-h" || s=="--help") {
-            PrintUsageAndExit();
-        }
-        else if (  (s == "--version") || (s== "-V")) {
-            fprintf (stderr,"%s\n", DDCVersionStr.c_str()); 
-            fprintf (stderr,"ddc_index: create index from a DDC project *.con file\n");     
-            return 1;
-        }
-        else if (s == "--verbose" || s=="-v" || s=="--log-level" || s=="--log" || s=="--protocol") {
-            if (i+1 >= argc) 
-                PrintUsageAndExit();
-            SetLogLevel( GetLogLevel(argv[i+1]) );
-            i++;
-        }
-        else if (s == "-a" || s == "--anonymize") {
-            ddcEnableAnonymousTokens = true;
-        }
-        else if (s == "--only-reindex-morph")
-        {
-            ddcLogInfo("--only-reindex-morph");
-            S.m_bOnlyReindexMorphology = true;
-        }
-        else
-            if (s == "--skip-initial-file-checking")
-            {
-                ddcLogInfo("--skip-initial-file-checking");
-                S.m_bSkipInitialFileChecking = true;
-            }
-            else
-                if (s == "--print-profiler-info")
-                {
-                    ddcLogInfo("--print-profiler-info");
-                    S.m_Profiler.m_bTimeSpanHolderEnabled = true;
-                }
-                else
-                {
-                    if (!ProjectFile.empty())
-                        PrintUsageAndExit();
-                    ProjectFile = s;
-                }
+    ArgumentParser args;
+    args.SetVersion(DDCVersionStr);
+    args.SetDescription("Index a DDC project (*.con) file");
+    args.AddArgument("-v, --verbose", "log level: none|error|warn|info|debug|trace", true);
+    args.AddOption("-a, --anonymize", "enable anonymous tokens (beginning with '-#')");
+    args.AddOption("--only-reindex-morph", "rebuild only the morphological pattern index");
+    args.AddOption("--print-profiler-info", "print the profiler information");
+    args.AddOption("--skip-initial-file-checking", "do not check the input files before indexing");
+    args.AddPositional("project", "the DDC project file (*.con)");
+    args.SetEpilog("Notes:\n  + may generate large temporary files in $TMP or /tmp");
+    args.SetOpenStreams(false);
+    args.Parse(argc, (const char **) argv);
+    if (args.Exists("verbose"))
+        SetLogLevel(GetLogLevel(args.Retrieve("verbose")));
 
-    };
-        
+    ConcIndexatorInvoker S;
+    string ProjectFile = args.Retrieve("project");
+    if (args.Exists("anonymize"))
+        ddcEnableAnonymousTokens = true;
+    S.m_bOnlyReindexMorphology = args.Exists("only-reindex-morph");
+    S.m_bSkipInitialFileChecking = args.Exists("skip-initial-file-checking");
+    S.m_Profiler.m_bTimeSpanHolderEnabled = args.Exists("print-profiler-info");
 
     InitConcordDicts();
         

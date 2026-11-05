@@ -6,6 +6,7 @@
 #include "../ConcordLib/ConcSession.h"
 #include "../CommonLib/ddcTime.h"
 #include "../CommonLib/ddcProcess.h"
+#include "nlp_base/common/argparse.h"
 
 using namespace std;
 
@@ -14,28 +15,6 @@ const char *prog = "ddc_union";
 string outfilename;
 string optfilename;
 vector<string> infilenames;
-
-//--------------------------------------------------------------
-void show_version(void) {
-    fprintf(stderr, "%s\n", DDCVersionStr.c_str());
-    fprintf(stderr, "%s: DDC corpus index union\n", prog);
-}
-
-//--------------------------------------------------------------
-void show_usage(void) {
-    show_version();
-    fprintf(stderr, "\n");
-    fprintf(stderr, "Usage: %s [OPTIONS] CON_FILE(s)\n", prog);
-    fprintf(stderr,
-            "\n"
-            " Options:\n"
-            "  -h, --help            # this help message\n"
-            "  -o, --output OUT      # specify output project basename (REQUIRED)\n"
-            "  -O, --options OPTFILE # load output options from OPTFILE (default: CON_FILE.(opt/con))\n"
-            "  -v, --verbose LEVEL   # specify log-verbosity level (none|error|warn|info=weak|debug=medium|trace=heavy)\n"
-            "\n"
-        );
-}
 
 //--------------------------------------------------------------
 void copyOptionsFile(const string &srcFile, const string &dstFile) {
@@ -54,45 +33,20 @@ int main(int argc, char *argv[]) {
     ddcLogToSyslog = false;
     ddcLogToStderr = true;
 
-    for (int argi = 1; argi < argc; ++argi) {
-        string s = argv[argi];
-
-        if (s == "--help" || s == "-h") {
-            show_usage();
-            return 0;
-        } else if (s == "--output" || s == "-o") {
-            ++argi;
-            if (argi < argc)
-                outfilename = argv[argi];
-        } else if (s == "--options" || s == "--opt" || s == "-O") {
-            ++argi;
-            if (argi < argc)
-                optfilename = argv[argi];
-        } else if (s == "--verbose" || s == "-verbose" || s == "-v" || s == "--log-level" || s == "--log" ||
-                   s == "--protocol") {
-            if (argi + 1 >= argc) {
-                show_usage();
-                exit(1);
-            }
-            SetLogLevel(GetLogLevel(argv[argi + 1]));
-            argi++;
-        } else {
-            infilenames.push_back(argv[argi]);
-        }
-    }
-
-    //-- sanity check(s)
-    if (infilenames.empty()) {
-        fprintf(stderr, "Error: no input con-file(s) specified!\n");
-        show_usage();
-        exit(1);
-    }
-    if (outfilename.empty()) {
-        fprintf(stderr, "Error: no output con-file specified!\n");
-        show_usage();
-        exit(1);
-    }
-
+    ArgumentParser args;
+    args.SetVersion(DDCVersionStr);
+    args.SetDescription("Unite DDC corpus indices");
+    args.AddArgument("-v, --verbose", "log level: none|error|warn|info|debug|trace", true);
+    args.AddArgument("-o, --output", "output project file (*.con)");
+    args.AddArgument("-O, --options", "load the output options from this file (default: the options of the first project)", true);
+    args.AddPositionalList("projects", "the DDC project files (*.con)");
+    args.SetOpenStreams(false);
+    args.Parse(argc, (const char **) argv);
+    if (args.Exists("verbose"))
+        SetLogLevel(GetLogLevel(args.Retrieve("verbose")));
+    infilenames = args.RetrieveList("projects");
+    outfilename = args.Retrieve("output");
+    optfilename = args.Retrieve("options");
 
     try {
         //-- timer

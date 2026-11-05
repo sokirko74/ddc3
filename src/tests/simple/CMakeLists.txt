@@ -11,7 +11,7 @@ macro (ddc_index_simple_test lang)
     )
     add_test(
             NAME ${lang}_ddc_query_simple_test
-            COMMAND ddc_simple corpus.con query.txt -ResultFormat html new_result.html
+            COMMAND ddc_simple --query-file query.txt --result-format html -o new_result.html corpus.con
             WORKING_DIRECTORY  ${dir}
     )
     add_test(

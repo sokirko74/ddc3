@@ -1,5 +1,7 @@
 // ConcordSimple.cpp : Defines the entry point for the 
 
+#include "nlp_base/common/utilit.h"
+#include "nlp_base/common/argparse.h"
 #include <time.h>
 
 #include "../ConcordLib/ConcHolder.h"
@@ -65,48 +67,27 @@ void DumpStorage(const CConcHolder& R, string IndexName, FILE* output)
 };
 
 
-void PrintUsageAndExit()
-{
-    fprintf (stderr, "%s\n", DDCVersionStr.c_str());        
-    fprintf (stderr, "Usage: ddc_stats <Concordance Project> <lang> <index-name> <action> [--output FILE]\n");
-    fprintf (stderr, "Where <action> can be:\n");
-    fprintf (stderr, "\t\"dump-freq\" (get frequences of items)\n");
-    fprintf (stderr, "\t\"dump-positions\" (dump all positions of items)\n");
-    fprintf (stderr, "\t\"dump-storage\" (dump all saved string items)\n");
-    fprintf (stderr, "Where <lang> can be Russian, German, English, or All)\n");
-    fprintf (stderr, "Example: ddc_stats test.con German Token dump-freq\n");
-    fprintf (stderr, "Example: ddc_stats test.con German Token dump-freq --output dump.txt\n");
-    exit( 1 );
-};
-
-
 int main(int argc, char* argv[])
 {
-    if (argc == 2) 
-    {
-        string s = argv[1];
+    ArgumentParser args;
+    args.SetVersion(DDCVersionStr);
+    args.SetDescription("Dump the statistics of a DDC corpus index");
+    args.AddArgument("-o, --output", "output file (default: stdout)", true);
+    args.AddPositional("project", "the DDC project file (*.con)");
+    args.AddPositional("lang", "Russian, German, English or All: print only the items of this language");
+    args.AddPositional("index", "the index name, e.g. Token");
+    args.AddPositional("action", "dump-freq (frequencies), dump-positions (all positions) or dump-storage (all saved strings)");
+    args.SetEpilog("Example: ddc_stats -o dump.txt test.con German Token dump-freq");
+    args.SetOpenStreams(false);
+    args.Parse(argc, (const char **) argv);
+    string outputFile = args.Exists("output") ? args.Retrieve("output") : "-";
+    string ProjectFile = args.Retrieve("project");
+    string IndexName = args.Retrieve("index");
 
-        if (  (s == "--version") || (s== "-v"))
+    if (args.Retrieve("lang") != "All")
+        if (!GetLanguageByString(args.Retrieve("lang"), langua))
         {
-            fprintf (stderr,"%s\n", DDCVersionStr.c_str()); 
-            fprintf (stderr,"ddc_stats: DDC corpus statistics dumper\n");   
-            return 1;
-        }
-    };
-
-    string outputFile = "-";
-    if (argc > 1  && !strcmp(argv[argc-2], "--output")) {
-        outputFile = argv[argc-1];
-        argc -= 2;
-    }
-
-    if (argc != 5)
-        PrintUsageAndExit();
-        
-    if (strcmp("All", argv[2]))
-        if (!GetLanguageByString(argv[2], langua))
-        {
-            fprintf (stderr, "Cannot find the language %s\n", argv[2]);
+            fprintf (stderr, "Cannot find the language %s\n", args.Retrieve("lang").c_str());
             return 1;
         }
     try
@@ -116,11 +97,11 @@ int main(int argc, char* argv[])
 
 
         try {
-            R.m_pConcordance->LoadProject(argv[1]);
+            R.m_pConcordance->LoadProject(ProjectFile);
         }
         catch (exception& e)
         {
-            fprintf (stderr, "cannot load project %s: %s", argv[1], e.what());
+            fprintf (stderr, "cannot load project %s: %s", ProjectFile.c_str(), e.what());
             return -1;
         };
                 
@@ -129,16 +110,16 @@ int main(int argc, char* argv[])
         if (outputFile != "-") {
             output = fopen (outputFile.c_str(), "w");
         }
-        string Action = argv[4];
+        string Action = args.Retrieve("action");
         if (Action  == "dump-freq")
-            DumpFreqOrPositions(R, argv[3], false, output);
+            DumpFreqOrPositions(R, IndexName, false, output);
         else
             if (Action  == "dump-positions")
-                DumpFreqOrPositions(R, argv[3], true, output);
+                DumpFreqOrPositions(R, IndexName, true, output);
             else
                 if (Action  == "dump-storage")
                 {
-                    DumpStorage(R, argv[3], output);
+                    DumpStorage(R, IndexName, output);
                 }
                 else
                 {

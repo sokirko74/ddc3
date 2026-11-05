@@ -1,4 +1,5 @@
 #include "nlp_base/common/utilit.h"
+#include "nlp_base/common/argparse.h"
 #include "../CommonLib/ddcUtil.h"
 #include "../ConcordLib/ConcCommon.h"
 #include "../ConcordDmnLib/Corpora.h"
@@ -44,34 +45,6 @@ bool got_nWorkers;
 
 
 const char *prog = "ddc_daemon";
-
-void PrintUsage()
-{
-    printf ("%s\n", DDCVersionStr.c_str() );
-    printf ("Daemon for working with Dialing-DWDS Concordance\n");
-    printf ("\nUsage: %s ACTION [OPTIONS]\n", prog);
-    printf ("\nOptions:\n"
-            "  -V, --version             # report program version and exit\n"
-            "  -v, --verbose LEVEL       # set log-verbosity level (none|error|warn|info=weak|debug=medium|trace=heavy)\n"
-            "  -l, --local LOCAL_CFG     # set local corpus config (default=$RML/etc/ddc_local_corpora.cfg)\n"
-            "  -s, --server SERVER_CFG   # set server config (default=$RML/etc/ddc_server.cfg)\n"
-            "  -O, --options SERVER_OPT  # load server options file (default=$RML/etc/ddc_server.opt)\n"
-            "  -t, --threads N           # use N worker threads (default=0: serial mode)\n"
-            "      --[no]fork            # do/don't detach from the running terminal (default=--fork)\n"
-            "      --[no]stderr          # do/don't log to stderr (default=--nostderr)\n"
-            "      --[no]syslog          # do/don't log to syslog (default=--nosyslog)\n"
-            "      --[no]logfiles        # do/don't log to local files (default=--logfiles)\n"
-        );
-    printf ("\nActions:\n");
-    printf ("  start                 # start daemon\n");
-    printf ("  stop                  # stop running daemon\n");
-    printf ("  status                # print status daemon\n");
-    printf ("  restart               # re-start running daemon\n");
-    printf ("  start_cli             # starts the program not as a daemon bat as a simple console program [BROKEN]\n");     
-    printf ("\n");
-    exit(1);
-};
-
 
 void RemoveFile(const string& filename)
 {
@@ -360,18 +333,25 @@ int     main(int argc, char     **argv)
     ddcLogToStderr = true;
     ddcLogToSyslog = false;
 
-    if (argc == 2)  
-    {               
-        string s = argv[1];             
-        if (  (s == "--version") || (s== "-V"))         
-        {                       
-            printf ("%s\n", DDCVersionStr.c_str());                         
-            printf ("%s: Daemon for working with Dialing-DWDS Concordance\n", argv[0]);
-            return 1;               
-        }       
+    ArgumentParser args;
+    args.SetVersion(DDCVersionStr);
+    args.SetDescription("The DDC server daemon");
+    args.AddArgument("-v, --verbose", "log level: none|error|warn|info|debug|trace", true);
+    args.AddArgument("-l, --local", "local corpus config (default: RML_INI_FOLDER/ddc_local_corpora.cfg)", true);
+    args.AddArgument("-s, --server", "server config (default: RML_INI_FOLDER/ddc_server.cfg)", true);
+    args.AddArgument("-O, --options", "server options file (default: RML_INI_FOLDER/ddc_server.opt)", true, true);
+    args.AddArgument("-t, --threads", "number of worker threads (default: 0, serial mode)", true);
+    args.AddOption("--no-fork", "do not detach from the terminal");
+    args.AddOption("--stderr", "log to stderr");
+    args.AddOption("--syslog", "log to syslog");
+    args.AddOption("--no-log-files", "do not log to local files");
+    args.AddPositional("action", "start|stop|status|restart (default)|start_cli (not as a daemon)", true);
+    args.SetOpenStreams(false);
+    args.Parse(argc, (const char **) argv);
+    if (args.Exists("verbose")) {
+        SetLogLevel(GetLogLevel(args.Retrieve("verbose")));
+        gotLogLevel = true;
     }
-    if (argc < 2)
-        PrintUsage();
 
     string Error;
     if (!IsRmlRegistered(Error)) 
@@ -391,68 +371,18 @@ int     main(int argc, char     **argv)
     if (FileExists(ServerOptionsFile.c_str()))
         ServerOptionsFiles.push_back(ServerOptionsFile);
 
-    //-- parse command-line
-    for (size_t i=1; i<argc; i++)
-    {
-        string s = argv[i];
-        if ((s == "-h")
-            || (s == "--help")
-            || (s == "/h")
-            || (s == "/help")
-            ) {
-            PrintUsage();
-        }
-        else if (s == "--verbose" || s=="-v" || s=="--log-level" || s=="--log" || s=="--protocol") {
-            if (i+1 >= argc) 
-                PrintUsage();
-            SetLogLevel( GetLogLevel(argv[i+1]) );
-            gotLogLevel = true;
-            i++;
-        }
-        else if (s == "--local" || s == "-l") {
-            if (i+1 >= argc) 
-                PrintUsage();
-            i++;
-            CorporaFile = argv[i];
-        }
-        else if (s == "--server" || s == "-s") {
-            if (i+1 >= argc) 
-                PrintUsage();
-            i++;
-            ServerCorporaFile = argv[i];
-        }
-        else if (s == "--options" || s == "-O") {
-            if (i+1 >= argc) 
-                PrintUsage();
-            i++;
-            ServerOptionsFiles.push_back(argv[i]);
-            try {
-                ServerOptions.LoadFile(argv[i]); //-- load in-place
-            }
-            catch (exception &e) {
-                fprintf(stderr, "%s: Error loading server options file '%s': %s\n", prog, argv[i], e.what());
-                exit(1);
-            }
-        }
-        else if (s == "--nthreads" || s == "--threads" || s == "-t") {
-            if (i+1 >= argc)
-                PrintUsage();
-            i++;
-            nWorkers = strtoul(argv[i],NULL,0);
-            got_nWorkers = true;
-        }
-        else if (s == "--fork") { doFork = true; }
-        else if (s == "--nofork") { doFork = false; }
-        else if (s == "--stderr") { log_stderr = true; }
-        else if (s == "--nostderr") { log_stderr = false; }
-        else if (s == "--syslog") { log_syslog = true; }
-        else if (s == "--nosyslog") { log_syslog = false; }
-        else if (s == "--logfiles" || s == "--logfile") { log_files = true; }
-        else if (s == "--nologfiles" || s == "--nologfile") { log_files = false; }
-        else {
-            Action = argv[i];
-        }
+    if (args.Exists("local")) CorporaFile = args.Retrieve("local");
+    if (args.Exists("server")) ServerCorporaFile = args.Retrieve("server");
+    for (auto &f : args.RetrieveList("options")) ServerOptionsFiles.push_back(f);
+    if (args.Exists("threads")) {
+        nWorkers = strtoul(args.Retrieve("threads").c_str(), NULL, 0);
+        got_nWorkers = true;
     }
+    if (args.Exists("no-fork")) doFork = false;
+    if (args.Exists("stderr")) log_stderr = true;
+    if (args.Exists("syslog")) log_syslog = true;
+    if (args.Exists("no-log-files")) log_files = false;
+    if (args.Exists("action")) Action = args.Retrieve("action");
 
     //-- load server options
     for (vector<string>::const_iterator optfi=ServerOptionsFiles.begin(); optfi!=ServerOptionsFiles.end(); ++optfi) {
@@ -483,8 +413,10 @@ int     main(int argc, char     **argv)
                     &&      (Action != "stop")
                     &&      (Action != "restart")
                     &&      (Action != "status")
-        )
-        PrintUsage();
+        ) {
+        fprintf(stderr, "%s: unknown action '%s'\n%s", prog, Action.c_str(), args.Usage().c_str());
+        return 1;
+    }
 
     int resultCode = 0;
     try {

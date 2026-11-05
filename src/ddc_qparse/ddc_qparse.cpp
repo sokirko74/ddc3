@@ -4,6 +4,7 @@
 
 #include "../ConcordLib/ConcCommon.h"
 #include "../ConcordLib/QueryCompiler.h"
+#include "nlp_base/common/argparse.h"
 
 using namespace std;
 
@@ -12,21 +13,6 @@ bool outputJson = false;
 bool outputComments = false;
 CQueryCompiler qc;
 
-void PrintUsage()
-{
-    printf("\n"
-           "Usage: %s [OPTIONS] [--] [QUERY...]\n", prog);
-    printf("\n"
-           "Options:\n"
-           "  -h, -help          # this help message\n"
-           "  -v, -verbose LEVEL # set ddc log level (silent|error|warn|info|debug|trace)\n"
-           "  -d, -ddc           # select DDC output (default)\n"
-           "  -j, -json          # select JSON output\n"
-           "  -c, -[no]comments  # do/don't keep lexer comments (default=don't)\n"
-           "\n"
-        );
-    exit(-1);   
-};
 
 int main(int argc, char **argv)
 {
@@ -39,40 +25,25 @@ int main(int argc, char **argv)
     ddcLogLevel    = ddcLLWarn;
     ddc_thread_init(prog);
 
-    bool   optsDone = false;
+    ArgumentParser args;
+    args.SetVersion(DDCVersionStr);
+    args.SetDescription("Parse a DDC query and print it in the canonical form or as JSON");
+    args.AddArgument("-v, --verbose", "log level: none|error|warn|info|debug|trace", true);
+    args.AddOption("-j, --json", "JSON output (default: DDC query syntax)");
+    args.AddOption("-c, --comments", "keep the lexer comments");
+    args.AddPositionalList("query", "the query (the words are joined with a space); use -- before a query starting with '-'");
+    args.SetOpenStreams(false);
+    args.Parse(argc, (const char **) argv);
+    if (args.Exists("verbose")) {
+        ddcLogLevel = GetLogLevel(args.Retrieve("verbose"));
+        ddcLogToStderr = (ddcLogLevel!=ddcLLSilent);
+    }
+    outputJson = args.Exists("json");
+    outputComments = args.Exists("comments");
     string qstr;
-    for (argv++,argc--; argc > 0; argv++,argc--) {
-        string a = *argv;
-        if (!optsDone) {
-            string av = argc > 1 ? string(*(argv+1)) : string("");
-            if (a=="-h" || a=="-help" || a=="--help") {
-                PrintUsage();
-            } else if (a=="-j" || a=="-json" || a=="--json") {
-                outputJson = true;
-                continue;
-            } else if (a=="-d" || a=="-ddc" || a=="--ddc") {
-                outputJson = false;
-                continue;
-            } else if (a=="-v" || a=="-verbose" || a=="--verbose") {
-                ddcLogLevel = GetLogLevel(av);
-                ddcLogToStderr = (ddcLogLevel!=ddcLLSilent);
-                argv++; argc--;
-                continue;
-            } else if (a=="-c" || a=="-comments" || a=="--comments") {
-                outputComments = true;
-                continue;
-            }
-            else if (a=="-noc" || a=="-nocomments" || a=="--nocomments") {
-                outputComments = false;
-                continue;
-            }
-            else if (a=="--") {
-                optsDone = true;
-                continue;
-            }
-        }
+    for (auto &w : args.RetrieveList("query")) {
         if (!qstr.empty()) qstr.push_back(' ');
-        qstr += a;
+        qstr += w;
     }
 
     //-- log configuration

@@ -4,43 +4,17 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include "../ConcordLib/ConcHolder.h"
+#include "nlp_base/common/argparse.h"
 
 using namespace std;
 
 //======================================================================
 const char *prog = "ddc_dump";
-const char *confilename = NULL;
+string confilename;
 
 bool  dump_opt  = false;
 bool  dump_full = false;
 CIndexDumpFormat dump_fmt = idfJson;
-
-//--------------------------------------------------------------
-void show_version(void) {
-    fprintf(stderr, "%s\n", DDCVersionStr.c_str());
-    fprintf(stderr, "%s: DDC corpus index metadata dumper\n", prog);
-}
-
-//--------------------------------------------------------------
-void show_usage(void) {
-    show_version();
-    fprintf(stderr, "\n");
-    fprintf(stderr, "Usage: %s [OPTIONS] CON_FILE\n", prog);
-    fprintf(stderr,
-            "\n"
-            " Options:\n"
-            "  -h, --help         # this help message\n"
-            "  -v, --version      # show version and exit\n"
-            "  -o, --output OUT   # specify output file or directory (default=stdout)\n"
-            "  -O, --options      # just dump PROJECT.opt\n"
-            "  -f, --full         # full dump, output to directory\n"
-            "  -j, --json         # for full dump: output as JSON (default)\n"
-            "  -t, --tabs         # for full dump: output as TAB-separated records (aka TT)\n"
-            "  -T, --tabs-stream  # output --tabs format to monolithic file or stdout\n"
-            "  -b, --bibl         # bibliography only dump (default; output to file)\n"
-            "\n"
-        );
-}
 
 FILE* getOutputStream(string outfilename){
     if (outfilename == "-")
@@ -80,43 +54,29 @@ string getOutputDirectory(string outdir) {
 
 //======================================================================
 int main(int argc, char *argv[]) {
-    string outfilename = "-";
-    for (int argi = 1; argi < argc; ++argi) {
-        string s = argv[argi];
+    ArgumentParser args;
+    args.SetVersion(DDCVersionStr);
+    args.SetDescription("Dump the metadata of a DDC corpus index");
+    args.AddArgument("-o, --output", "output file or directory (default: stdout)", true);
+    args.AddOption("-O, --options", "just dump PROJECT.opt");
+    args.AddOption("-f, --full", "full dump, output to a directory");
+    args.AddOption("-j, --json", "for a full dump: output as JSON (default)");
+    args.AddOption("-t, --tabs", "for a full dump: output as TAB-separated records (aka TT)");
+    args.AddOption("-T, --tabs-stream", "output the --tabs format to one file or stdout");
+    args.AddOption("-b, --bibl", "bibliography only dump (default)");
+    args.AddPositional("project", "the DDC project file (*.con)");
+    args.SetOpenStreams(false);
+    args.Parse(argc, (const char **) argv);
 
-        if (s == "--version" || s == "-v") {
-            show_version();
-            return 0;
-        } else if (s == "--help" || s == "-h") {
-            show_usage();
-            return 0;
-        } else if (s == "--output" || s == "-o") {
-            ++argi;
-            if (argi < argc)
-                outfilename = argv[argi];
-        } else if (s=="--options" || s=="-O") {
-            dump_opt = true;
-        } else if (s == "--full" || s == "-f") {
-            dump_full = true;
-        } else if (s == "--bibl" || s == "-b") {
-            dump_full = false;
-        } else if (s == "--json" || s == "-j") {
-            dump_fmt = idfJson;
-        } else if (s == "--tabs" || s == "-t" || s == "--tt") {
-            dump_fmt = idfTabs;
-        } else if (s == "--tabs-stream" || s == "-T" || s == "--tab-stream") {
-            dump_fmt = idfTabsStream;
-            dump_full = true;
-        } else {
-            confilename = argv[argi];
-        }
-    }
-
-    //-- sanity check(s)
-    if (!confilename) {
-        fprintf(stderr, "Error: no con-file specified!\n");
-        show_usage();
-        exit(1);
+    confilename = args.Retrieve("project");
+    string outfilename = args.Exists("output") ? args.Retrieve("output") : "-";
+    dump_opt = args.Exists("options");
+    dump_full = args.Exists("full") && !args.Exists("bibl");
+    if (args.Exists("tabs"))
+        dump_fmt = idfTabs;
+    if (args.Exists("tabs-stream")) {
+        dump_fmt = idfTabsStream;
+        dump_full = true;
     }
 
     //-- load project

@@ -11,7 +11,7 @@ macro (index_morph_pattern)
     )
     add_test(
             NAME ddc_query_index_morph_pattern
-            COMMAND ddc_simple m.con [NOUN] new_result.txt
+            COMMAND ddc_simple -o new_result.txt m.con [NOUN]
             WORKING_DIRECTORY  ${dir}
     )
     add_test(

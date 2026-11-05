@@ -1,5 +1,7 @@
 // ConcordSimple.cpp : Defines the entry point for the 
 
+#include "nlp_base/common/utilit.h"
+#include "nlp_base/common/argparse.h"
 #include <time.h>
 
 #include "../ConcordLib/ConcHolder.h"
@@ -253,25 +255,20 @@ int main(int argc, char* argv[])
 {
     ddcInitGlobal();
 
-    if (argc == 2) 
-    {
-        string s = argv[1];
-
-        if (  (s == "--version") || (s== "-v"))
-        {
-            fprintf (stderr,"%s\n", DDCVersionStr.c_str()); 
-            fprintf (stderr,"%s: command line query processor\n", argv[0]); 
-            return 1;
-        }
-    };
+    ArgumentParser args;
+    args.SetVersion(DDCVersionStr);
+    args.SetDescription("Interactive DDC query console (type \"help\" for the commands)");
+    args.AddPositional("project", "the DDC project file (*.con) to load", true);
+    args.SetOpenStreams(false);
+    args.Parse(argc, (const char **) argv);
 
     Holder.m_pConcordance = 0;
     Holder.SetResultFormat("TEXT");
     Holder.m_ResultLimit=10;
     InitConcordDicts();
 
-    if (argc == 2)
-        RunCommand(string("load ") +argv[1]);
+    if (args.Exists("project"))
+        RunCommand(string("load ") + args.Retrieve("project"));
 
     size_t bufsize=1024;
     char *linebuf=(char*)malloc(bufsize);

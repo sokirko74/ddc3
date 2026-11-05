@@ -22,7 +22,7 @@ macro (requests_in_threads)
 
     add_test(
             NAME requests_in_threads_query_single_threaded
-            COMMAND ddc_xml --server ddc_xml_root.cfg  -text -f query.txt --output new_result_single_threaded.txt
+            COMMAND ddc_xml --server ddc_xml_root.cfg  --text -f query.txt --output new_result_single_threaded.txt
             WORKING_DIRECTORY  ${dir}
     )
     add_test(
@@ -32,7 +32,7 @@ macro (requests_in_threads)
     )
     add_test(
             NAME requests_in_threads_query_multi_threaded
-            COMMAND ddc_xml --server ddc_xml_root.cfg  -threads 2 -text -f query.txt --output new_result_multi_threaded.txt
+            COMMAND ddc_xml --server ddc_xml_root.cfg  --threads 2 --text -f query.txt --output new_result_multi_threaded.txt
             WORKING_DIRECTORY  ${dir}
     )
     add_test(
