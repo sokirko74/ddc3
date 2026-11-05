@@ -6,7 +6,7 @@
 //#include "../ConcordLib/QueryCompiler.h" //-- for debugging ddcObject::Descendants()
 #include "nlp_base/common/utilit.h"
 #include "../CommonLib/ddcUtil.h"
-#include "../jsoncpp/include/json/json.h"
+#include "../contrib/jsoncpp/include/json/json.h"
 #include "../CommonLib/ddcProcess.h"
 
 

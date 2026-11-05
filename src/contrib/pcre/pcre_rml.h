@@ -6,7 +6,7 @@
 #endif
 #include <pcre2.h>
 #include "nlp_base/common/utilit.h"
-#include "../CommonLib/ddcUtil.h"
+#include "../../CommonLib/ddcUtil.h"
 #include <cstring>
 
 // Build PCRE2 character tables for a single-byte encoding of language Langua.

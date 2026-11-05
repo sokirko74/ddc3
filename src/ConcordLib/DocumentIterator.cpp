@@ -3,7 +3,7 @@
 #include "ConcCommon.h"
 #include "ConcIndexator.h"
 
-#include "../RmlTar/RmlTar.h"
+#include "../contrib/tar/RmlTar.h"
 #include "nlp_base/graphan/GraphanLib/HTMLConv.h"
 #include "../CommonLib/bserialize.h"
 #include "../CommonLib/ddcFile.h"

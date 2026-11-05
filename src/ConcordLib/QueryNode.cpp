@@ -8,7 +8,7 @@
 #include "../CommonLib/util_classes.h"
 #include "nlp_base/common/utilit.h"
 #include "../CommonLib/ddcUtil.h"
-#include "../PCRE/pcre_rml.h"
+#include "../contrib/pcre/pcre_rml.h"
 #include "../CommonLib/ddcLocale.h"
 
 
