@@ -111,7 +111,7 @@ bool CQueryCompiler::ParseQuery(const string &QueryStr)
 #endif
 #ifdef DEBUG_PARSER
     yyqdebug = 1;
-    fprintf(stderr, "CQueryCompiler::ParseQuery(): BEGIN: q=(%s)\n", QueryStr.c_str());
+    ddcLogDebug(Format("CQueryCompiler::ParseQuery(): BEGIN: q=(%s)", QueryStr.c_str()));
 #endif
     CleanParser();
     if (QueryStr.empty()) return false;
@@ -142,10 +142,9 @@ bool CQueryCompiler::ParseQuery(const string &QueryStr)
     //-- DEBUG: dump finished parse
     assert(m_pQuery != NULL);
 #if DEBUG_QSTRING
-    fprintf(stderr, "\nCQueryCompiler::ParseQuery(): parsed final query: %s\n", QueryToString().c_str());
+    ddcLogDebug(Format("CQueryCompiler::ParseQuery(): parsed final query: %s", QueryToString().c_str()));
 #endif
 
-    //fprintf(stderr, "DEBUG: got subcorpora pos=%d ; len=%d -> \"%s\"", yyDtrsPos, yyDtrsLen, QueryStr.substr(yyDtrsPos,yyDtrsLen).c_str());
 
     return true;
 }
@@ -153,7 +152,7 @@ bool CQueryCompiler::ParseQuery(const string &QueryStr)
 void CQueryCompiler::yybegin(int new_state)
 {
 #if DEBUG_LEXER
-    fprintf(stderr, "CQueryCompiler::yybegin(%d)\n", new_state);
+    ddcLogDebug(Format("CQueryCompiler::yybegin(%d)", new_state));
 #endif
     yy_begin(new_state);
 }
@@ -344,7 +343,6 @@ void CQueryCompiler::SetFilterBounds(const string& lb, const string& ub)
 {
     m_FilterLB=lb;
     m_FilterUB=ub;
-    //fprintf(stderr, "DEBUG: SetFilterBounds(field=%s, id=%u, offset=%d)", m_FilterField.c_str(), m_FilterMatchId, m_FilterOffset);
 }
 
 void CQueryCompiler::SetFilterKey(const string &field, BYTE matchid, int offset)

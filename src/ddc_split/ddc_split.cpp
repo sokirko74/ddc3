@@ -1,3 +1,4 @@
+#include <iostream>
 #include <stdio.h>
 #include <errno.h>
 #include <sys/types.h>
@@ -57,7 +58,7 @@ int main(int argc, char *argv[]) {
         string out1 = Format(outfmt.c_str(), 1);
         string out2 = Format(outfmt.c_str(), 2);
         if (out1 == out2) {
-            fprintf(stderr, "Error: output format should contain at least a \"%%d\" specifier\n");
+            std::cerr << "Error: output format should contain at least a \"%d\" specifier\n";
             exit(1);
         }
     }
@@ -95,7 +96,7 @@ int main(int argc, char *argv[]) {
                           mstat.VmPeak, mstat.VmSize, mstat.VmHWM, mstat.VmRSS, mstat.VmSwap));
     }
     catch (exception &e) {
-        fprintf(stderr, "%s: Exception: %s\n", prog, e.what());
+        std::cerr << prog << ": Exception: " << e.what() << "\n";
         exit(-1);
     }
 

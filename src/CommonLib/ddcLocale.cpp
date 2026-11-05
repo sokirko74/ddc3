@@ -1,4 +1,5 @@
 #include "ddcLocale.h"
+#include "ddcLog.h"
 #include <cstring>
 #include "nlp_base/common/utilit.h"
 #include "ddcUtil.h"
@@ -44,14 +45,14 @@ std::wstring string2wstring(const std::string &src)
         }
         else if (c_len == (size_t)-2) {
             //-- conversion error: incomplete multibyte sequence
-            fprintf(stderr,"string2wstring(): incomplete multibyte sequence starting with `%c'\n", src[src.size()-src_len]);
+            ddcLogError(Format("string2wstring(): incomplete multibyte sequence starting with `%c'", src[src.size()-src_len]));
             dst.push_back((wchar_t)((unsigned char)*srcp));   //-- latin-1 hack: push raw byte value
             c_len = 1;
             continue;
         }
         else if (c_len == (size_t)-1) {
             //-- conversion error: invalid multibyte sequence
-            fprintf(stderr,"string2wstring(): invalid multibyte sequence starting with `%c'\n", src[src.size()-src_len]);
+            ddcLogError(Format("string2wstring(): invalid multibyte sequence starting with `%c'", src[src.size()-src_len]));
             dst.push_back((wchar_t)((unsigned char)*srcp)); //-- latin-1 hack: push raw byte value
             c_len = 1;
             continue;
@@ -77,7 +78,7 @@ std::string wstring2string(const std::wstring &src)
         c_len = wcrtomb(dst_buf, *srcp, &state);
         if (c_len == (size_t)-1) {
             //-- conversion error: *srcp is not a valid wide character: skip it
-            fprintf(stderr,"wstring2string(): invalid wide character 0x%04x\n", (int)src[src.size()-src_len]);
+            ddcLogError(Format("wstring2string(): invalid wide character 0x%04x", (int)src[src.size()-src_len]));
             c_len = 1;
             continue;
         }

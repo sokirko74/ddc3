@@ -86,7 +86,7 @@ string GetThesaurusPath ()
 {
     if (!CanGetRegistryString("Software\\Dialing\\Concordance\\DwdsThesaurus")) 
     {
-        fprintf (stderr,"Cannot load dwds thesaurus.\n");
+        ddcLogError("Cannot load dwds thesaurus.");
         return "";
     };
     return  GetRegistryString("Software\\Dialing\\Concordance\\DwdsThesaurus");
@@ -94,13 +94,12 @@ string GetThesaurusPath ()
 
 bool  CDwdsThesaurus::LoadDwdsThesaurus ()
 {
-    //fprintf (stderr,"0");
     ///////////////////////////////////////////
     string fname =  GetThesaurusPath() + string("dwds_thes_hyper.dat");
     FILE* fp = fopen (fname.c_str(), "r");
     if (!fp) 
     {
-        fprintf (stderr,"Cannot open file %s\n", fname.c_str());
+        ddcLogError(Format("Cannot open file %s", fname.c_str()));
         return false;
 
     };
@@ -126,19 +125,17 @@ bool  CDwdsThesaurus::LoadDwdsThesaurus ()
     fname =  GetThesaurusPath() + string("dwds_thes_pathes.bin");
     if (access(fname.c_str(), 04) != 0)
     {
-        fprintf (stderr,"Cannot open file %s\n", fname.c_str());
+        ddcLogError(Format("Cannot open file %s", fname.c_str()));
         return false;
 
     };
-    //fprintf (stderr,"1");
     ReadVector(fname, Pathes);
-    //fprintf (stderr,"2");
 
     ///////////////////////////////////////////
     fname =  GetThesaurusPath() + string("dwds_thes_pathes.idx");
     if (access(fname.c_str(), 04) != 0)
     {
-        fprintf (stderr,"Cannot open file %s\n", fname.c_str());
+        ddcLogError(Format("Cannot open file %s", fname.c_str()));
         return false;
 
     };
@@ -149,7 +146,7 @@ bool  CDwdsThesaurus::LoadDwdsThesaurus ()
     fname =  GetThesaurusPath() + string("dwds_thes_lemmas_pathes.dat");
     if (access(fname.c_str(), 04) != 0)
     {
-        fprintf (stderr,"Cannot open file %s\n", fname.c_str());
+        ddcLogError(Format("Cannot open file %s", fname.c_str()));
         return false;
 
     };
@@ -159,14 +156,14 @@ bool  CDwdsThesaurus::LoadDwdsThesaurus ()
     fname =  GetThesaurusPath() + string("dwds_thes_lemmas_str.dat");
     if (access(fname.c_str(), 04) != 0)
     {
-        fprintf (stderr,"Cannot open file %s\n", fname.c_str());
+        ddcLogError(Format("Cannot open file %s", fname.c_str()));
         return false;
 
     };
     LeavesLemmas.ReadShortStringHolder(fname);
     if (LeavesLemmas.size() != LeavesPathes.size() ) 
     {
-        fprintf (stderr,"Bad index in thesaurus %s\n", fname.c_str());
+        ddcLogError(Format("Bad index in thesaurus %s", fname.c_str()));
         return false;
     };
 

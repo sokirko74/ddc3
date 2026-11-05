@@ -1,3 +1,4 @@
+#include <iostream>
 #include <stdio.h>
 #include <errno.h>
 #include <sys/types.h>
@@ -79,7 +80,7 @@ int main(int argc, char *argv[]) {
                           mstat.VmPeak, mstat.VmSize, mstat.VmHWM, mstat.VmRSS, mstat.VmSwap));
     }
     catch (exception &e) {
-        fprintf(stderr, "%s: Exception: %s\n", prog, e.what());
+        std::cerr << prog << ": Exception: " << e.what() << "\n";
         exit(-1);
     }
 

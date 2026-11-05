@@ -1,11 +1,8 @@
-// ConcordSimple.cpp : Defines the entry point for the 
-// ConcordSimple.cpp : Defines the entry point for the
-
+#include <iostream>
 #include <time.h>
 
 #include "../ConcordLib/ConcHolder.h"
 #include "nlp_base/common/utilit.h"
-#include "../CommonLib/ddcUtil.h"
 #include "nlp_base/common/rapidjson.h"
 #include "../CommonLib/ddcProcess.h"
 #include "nlp_base/common/argparse.h"
@@ -67,7 +64,7 @@ int main(int argc, char *argv[]) {
         string _Query = args.Retrieve("query");
         string QueryFileName = args.Retrieve("query-file");
         if (_Query.empty() && QueryFileName.empty()) {
-            fprintf(stderr, "%s: no query (give QUERY or --query-file)\n%s", prog, args.Usage().c_str());
+            std::cerr << prog << ": no query (give QUERY or --query-file)\n" << args.Usage();
             return 1;
         }
         string OutFileName = args.Exists("output") ? args.Retrieve("output") : "-";
@@ -92,7 +89,7 @@ int main(int argc, char *argv[]) {
                 R.m_pConcordance->LoadProject(Corpus, false);
             }
             catch (exception &e) {
-                fprintf(stderr, "cannot load project %s: %s\n", Corpus.c_str(), e.what());
+                std::cerr << "cannot load project " << Corpus << ": " << e.what() << "\n";
                 return -1;
             };
 
@@ -103,15 +100,15 @@ int main(int argc, char *argv[]) {
 
             if (OutFileName == "-") {
                 //-- output to stdout
-                fprintf(stderr, "Output to stdout\n");
+                std::cerr << "Output to stdout\n";
                 OutFile = stdout;
             } else {
-                fprintf(stderr, "Open output file %s\n", OutFileName.c_str());
+                std::cerr << "Open output file " << OutFileName << "\n";
                 remove(OutFileName.c_str());
                 OutFile = fopen(OutFileName.c_str(), "w");
             }
             if (!OutFile) {
-                fprintf(stderr, "cannot open output file  %s\n", OutFileName.c_str());
+                std::cerr << "cannot open output file  " << OutFileName << "\n";
                 return -1;
             }
 
@@ -121,7 +118,7 @@ int main(int argc, char *argv[]) {
                 R.m_ResultLimit = ResultLimit;
 
             R.m_ResultMinKey = ResultMinKey;
-            fprintf(stderr, "Finding at least %zi occurrences\n", R.m_ResultLimit);
+            std::cerr << "Finding at least " << R.m_ResultLimit << " occurrences\n";
 
             if (ResultFormat == "GUESS") {
                 if (IsJsonFile(OutFileName)) {
@@ -134,7 +131,7 @@ int main(int argc, char *argv[]) {
                     ResultFormat = "TEXT";
                 }
             };
-            fprintf(stderr, "Using result format %s\n", ResultFormat.c_str());
+            std::cerr << "Using result format " << ResultFormat << "\n";
             R.SetResultFormat(ResultFormat);
 
             R.m_QueryResultStr = "";
@@ -143,7 +140,7 @@ int main(int argc, char *argv[]) {
             if (!QueryFileName.empty()) {
                 FILE *fp = fopen(QueryFileName.c_str(), "r");
                 if (!fp) {
-                    fprintf(stderr, "cannot open input file  %s\n", QueryFileName.c_str());
+                    std::cerr << "cannot open input file  " << QueryFileName << "\n";
                     return 1;
                 } else {
                     char s[1024];
@@ -166,7 +163,7 @@ int main(int argc, char *argv[]) {
 
             for (int ProfileCycleNo = 0; ProfileCycleNo < CountOfCycles; ProfileCycleNo++) {
                 if (ProfileCycleNo == 1) {
-                    fprintf(stderr, "Profiling %d iterations...", CountOfCycles);
+                    std::cerr << "Profiling " << CountOfCycles << " iterations...";
                 } else if (ProfileCycleNo > 0 && (ProfileCycleNo % 100) == 0) {
                     fputc('.', stderr);
                 }
@@ -175,15 +172,13 @@ int main(int argc, char *argv[]) {
 
                     string Query = queries[QueryNo];
                     if (ProfileCycleNo == 0) {
-                        fprintf(stderr, "Query[%d / %zi] = %s\n", QueryNo, queries.size(), Query.c_str());
+                        std::cerr << "Query[" << QueryNo << " / " << queries.size() << "] = " << Query << "\n";
                         try {
-                            fprintf(stderr, "Canon[%d / %zi] = %s\n", QueryNo, queries.size(),
-                                    R.CanonicalQueryString(Query).c_str());
-                            fprintf(stderr, "Json [%d / %zi] = %s\n", QueryNo, queries.size(),
-                                    R.JsonQueryString(Query).c_str());
+                            std::cerr << "Canon[" << QueryNo << " / " << queries.size() << "] = " << R.CanonicalQueryString(Query) << "\n";
+                            std::cerr << "Json [" << QueryNo << " / " << queries.size() << "] = " << R.JsonQueryString(Query) << "\n";
                         }
                         catch (exception &e) {
-                            fprintf(stderr, "Exception: %s\n", e.what());
+                            std::cerr << "Exception: " << e.what() << "\n";
                         }
                     }
                     EndHitNo = StartFrom;
@@ -195,39 +190,39 @@ int main(int argc, char *argv[]) {
                         long TimeSpan = EndTime - StartTime;
 
                         if (ProfileCycleNo == 0) {
-                            fprintf(stderr, "ticks %zi\n", TimeSpan);
+                            std::cerr << "ticks " << TimeSpan << "\n";
 
                             if (Error != errNone) {
-                                fprintf(stderr, "Error! %s \n", GetDDCErrorString(Error));
+                                std::cerr << "Error! " << GetDDCErrorString(Error) << " \n";
                                 return -1;
                             } else {
-                                fprintf(stderr, "Number of hits found : %zi\n", R.m_AllHitsCount);
-                                fprintf(stderr, "Next available hit   : %i\n", EndHitNo);
+                                std::cerr << "Number of hits found : " << R.m_AllHitsCount << "\n";
+                                std::cerr << "Next available hit   : " << EndHitNo << "\n";
                             }
 
                             if (bOnlyGetHitIds) {
                                 string Result = R.GetHitIds();
-                                printf("HitIDs = %s\n", Result.c_str());
+                                std::cout << "HitIDs = " << Result << "\n";
                             }
                         }
                     } else {
                         try {
                             DDCErrorEnum Error = R.SimpleQuery(Query, EndHitNo, HitsCount);
                             if (Error != errNone) {
-                                fprintf(stderr, "Error! %s \n", GetDDCErrorString(Error));
+                                std::cerr << "Error! " << GetDDCErrorString(Error) << " \n";
                                 return -1;
                             };
                         }
                         catch (CExpc &e) {
-                            fprintf(stderr, "Exception[%d]: %s\n", ddcExpcCode(e), e.what());
+                            std::cerr << "Exception[" << ddcExpcCode(e) << "]: " << e.what() << "\n";
                             return -1;
                         }
                         catch (exception &e) {
-                            fprintf(stderr, "Exception: %s\n", e.what());
+                            std::cerr << "Exception: " << e.what() << "\n";
                             return -1;
                         }
                         catch (...) {
-                            fprintf(stderr, "Exception: (unhandled exception)\n");
+                            std::cerr << "Exception: (unhandled exception)\n";
                             return -1;
                         }
 
@@ -242,13 +237,12 @@ int main(int argc, char *argv[]) {
             clock_t AllEndTime = clock();
             double elapsed = (double) (AllEndTime - AllStartTime) / (double) CLOCKS_PER_SEC;
             double q_sec = (double) CountOfCycles * (double) queries.size() / elapsed;
-            fprintf(stderr, "Seconds = %.3f\n", elapsed);
-            fprintf(stderr, "Queries/Sec = %.3f\n", q_sec);
-            fprintf(stderr, "HitsCount = %i\n", HitsCount);
+            std::cerr << "Seconds = " << Format("%.3f", elapsed) << "\n";
+            std::cerr << "Queries/Sec = " << Format("%.3f", q_sec) << "\n";
+            std::cerr << "HitsCount = " << HitsCount << "\n";
 
             DDCProcessMemoryStatus mstat(getpid());
-            fprintf(stderr, "Memory Usage (kB) = VmPeak:%zd , VmSize:%zd , VmHWM:%zd , VmRSS:%zd , VmSwap:%zd\n",
-                    mstat.VmPeak, mstat.VmSize, mstat.VmHWM, mstat.VmRSS, mstat.VmSwap);
+            std::cerr << "Memory Usage (kB) = VmPeak:" << mstat.VmPeak << " , VmSize:" << mstat.VmSize << " , VmHWM:" << mstat.VmHWM << " , VmRSS:" << mstat.VmRSS << " , VmSwap:" << mstat.VmSwap << "\n";
 
 
             string result = R.m_QueryResultStr;
@@ -258,7 +252,7 @@ int main(int argc, char *argv[]) {
             fprintf(OutFile, "%s", result.c_str());
             if (OutFile != stdout) fclose(OutFile);
 
-            fprintf(stderr, "All bytes read while querying = %zi\n", AllBytesRead);
+            std::cerr << "All bytes read while querying = " << AllBytesRead << "\n";
 
             delete R.m_pConcordance;
 

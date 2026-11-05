@@ -153,12 +153,6 @@ char *u8_memchr(char *s, u_int32_t ch, size_t sz, int *charn);
 
 int u8_is_locale_utf8(char *locale);
 
-/* printf where the format string and arguments may be in UTF-8.
-    you can avoid this function and just use ordinary printf() if the current
-    locale is UTF-8. */
-int u8_vprintf(char *fmt, va_list ap);
-int u8_printf(char *fmt, ...);
-
 #endif /* UTFXX_C_API */
 
 #endif /* UTF8XX_H */

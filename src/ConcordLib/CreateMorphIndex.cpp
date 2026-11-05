@@ -76,7 +76,7 @@ vector<string> GetGramInfosFromWord(const char *GraLine, MorphLanguageEnum Langu
 
 bool CreateMorphIndex(const CStringIndexator* indexator, string path, MorphLanguageEnum language, size_t maxTokenCountInOnePeriod) {
 
-    fprintf(stderr, "CreateMorphIndex...\n");
+    ddcLogDebug("CreateMorphIndex...");
     CStringIndexSet *pMorphIndexSet = indexator->GetIndexByAlias("MorphPattern");
     if (!pMorphIndexSet) {
         ErrorMessage("Cannot find MorphPattern index");
@@ -101,8 +101,7 @@ bool CreateMorphIndex(const CStringIndexator* indexator, string path, MorphLangu
 
     for (size_t i = 0; i < CountOfTokens; i++) {
         if ((i % 1000) == 0)
-            fprintf(stderr, "%zi/%zi (%zi/%zi)             \r", i, CountOfTokens, OccursCount,
-                    3 * maxTokenCountInOnePeriod);
+            ddcLogDebug(Format("%zi/%zi (%zi/%zi)", i, CountOfTokens, OccursCount, 3 * maxTokenCountInOnePeriod));
 
         const char *sTokenUtf8 = pTokensIndexSet->GetIndexItemStr(pTokensIndexSet->m_Index[i]);
         string Token;   //-- single-byte (cp1251/cp1252) for the morphology
@@ -130,29 +129,27 @@ bool CreateMorphIndex(const CStringIndexator* indexator, string path, MorphLangu
             pMorphIndexSet->SortInputAndMemoryIndices();
 
             if (!pMorphIndexSet->AddInputLoadIndexToMemoryLoadIndex()) {
-                fprintf(stderr,
-                        "AddInputLoadIndexToMemoryLoadIndex returned false in CConcIndexator::CreateMorphIndex\n");
+                ddcLogError("AddInputLoadIndexToMemoryLoadIndex returned false in CConcIndexator::CreateMorphIndex");
                 return false;
             };
 
             if (!pMorphIndexSet->SaveMemoryLoadIndex()) {
-                fprintf(stderr, "cannot save memory indices to disk; probably no space left on device\n");
+                ddcLogError("cannot save memory indices to disk; probably no space left on device");
                 return false;
             };
 
             if (!pMorphIndexSet->AddMemoryLoadIndexToMainLoadIndex()) {
-                fprintf(stderr,
-                        "AddMemoryLoadIndexToMainLoadIndex returned false in CConcIndexator::CreateMorphIndex\n");
+                ddcLogError("AddMemoryLoadIndexToMainLoadIndex returned false in CConcIndexator::CreateMorphIndex");
                 return false;
             }
             OccursCount = 0;
         };
     };
-    fprintf(stderr, "%zi/%zi                         \n", CountOfTokens, CountOfTokens);
+    ddcLogDebug(Format("%zi/%zi", CountOfTokens, CountOfTokens));
 
-    fprintf(stderr, "final writing morph index\n");
+    ddcLogDebug("final writing morph index");
     if (!pMorphIndexSet->WriteToFile(true)) return false;
 
-    fprintf(stderr, "done\n");
+    ddcLogDebug("done");
     return true;
 };

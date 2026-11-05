@@ -142,8 +142,7 @@ void CIndexSetForQueryingStage::AddOccurs(size_t PeriodDevId, const bool bOneOcc
                                           const size_t EndOccurNo, vector<CTokenNo> &Occurs, size_t PeriodNo,
                                           COccurrBuffer &TempOccurrsBuffer, CShortOccurCache *pCacheByIndexSet,
                                           int &CacheId) const {
-    OCCDEBUG(fprintf(stderr, "DEBUG: AddOccurs(PeriodDevId=%u, bOne=%d, Start=%u, End=%u, PNo=%u)\n", PeriodDevId,
-                     bOneOccurrence, StartOccurNo, EndOccurNo, PeriodNo));
+    OCCDEBUG(ddcLogDebug(Format("DEBUG: AddOccurs(PeriodDevId=%u, bOne=%d, Start=%u, End=%u, PNo=%u)", PeriodDevId, bOneOccurrence, StartOccurNo, EndOccurNo, PeriodNo)));
 
     const CTokenNo StartSearchPeriod = (PeriodNo == 0) ? 0 : m_pParent->GetSearchPeriod(PeriodNo - 1);
     const CTokenNo EndSearchPeriod = m_pParent->GetSearchPeriod(PeriodNo);
@@ -161,8 +160,7 @@ void CIndexSetForQueryingStage::AddOccurs(size_t PeriodDevId, const bool bOneOcc
         if (Periods != NULL) {
 #ifdef DEBUG_OCCURS
             PeriodsDivisionMapT::const_iterator epi = lower_bound(m_EndPeriodOffsets.begin(),m_EndPeriodOffsets.end(),PeriodDevId,PeriodsDivisionMapT::KeyLess());
-            fprintf(stderr, "DEBUG: AddOccurs(): Periods != NULL (#%d : %d => [%d => %u])\n",
-                    epi-m_EndPeriodOffsets.begin(), m_EndPeriodOffsets.key(epi), PeriodNo, Periods[PeriodNo]);
+            ddcLogDebug(Format("DEBUG: AddOccurs(): Periods != NULL (#%d : %d => [%d => %u])", epi-m_EndPeriodOffsets.begin(), m_EndPeriodOffsets.key(epi), PeriodNo, Periods[PeriodNo]));
 #endif
 
             //const vector<DWORD>& Periods = per_dev_it->second;
@@ -193,7 +191,7 @@ void CIndexSetForQueryingStage::AddOccurs(size_t PeriodDevId, const bool bOneOcc
 
         } else //  if no period division of this token, then read all occurrences from all periods
         {
-            OCCDEBUG(fprintf(stderr, "DEBUG: AddOccurs(): Periods == NULL\n"));
+            OCCDEBUG(ddcLogDebug("DEBUG: AddOccurs(): Periods == NULL"));
 
             uint64_t End = EndOccurNo;
             uint32_t MaxCountToRead = EndOccurNo - StartOccurNo;
@@ -215,8 +213,7 @@ void CIndexSetForQueryingStage::AddOccurs(size_t PeriodDevId, const bool bOneOcc
                 // * UPDATE 2018-09-24 12:43:50+0200
                 //   + failure here is also symptomatic of ddc-v1.x indices, which use IndexItemOffsetAndFlags as key in *._perdiv* files
                 //   + use dstar/script/ddc-upgrade-v2.0.0.perl to upgrade v1.x indices for use with ddc v2.x
-                OCCDEBUG(fprintf(stderr, "DEBUG: MaxCountToRead=%u, OccurBufferSize=%u\n", MaxCountToRead,
-                                 OccurBufferSize));
+                OCCDEBUG(ddcLogDebug(Format("DEBUG: MaxCountToRead=%u, OccurBufferSize=%u", MaxCountToRead, OccurBufferSize)));
                 assert (MaxCountToRead <= OccurBufferSize);
 
                 // dearchiving the occurrences ( if !m_bCompressOccurrences then it is just a copy )
@@ -328,7 +325,7 @@ CompressPortion(vector<uint32_t> &Archive, const vector<uint32_t> &Body, uint32_
 */
 bool CIndexSetForQueryingStage::BuildPeriodsDivisionAndCompress(const uint32_t PerDivId, vector<CTokenNo> &InputTokens) {
     if (m_pParent->GetSearchPeriodsCount() == 0) {
-        fprintf(stderr, "Error! There are no search periods\n");
+        ddcLogError("Error! There are no search periods");
         return false;
     }
     size_t OriginalTokenCount = InputTokens.size();
@@ -358,14 +355,12 @@ bool CIndexSetForQueryingStage::BuildPeriodsDivisionAndCompress(const uint32_t P
             if (CurrentPeriod >= m_pParent->GetSearchPeriodsCount()) {
                 // if we are here, it means that some j (*IndexItem.GetOccurs())[j]
                 // is greater than the upper bound of the last search period
-                fprintf(stderr,
-                        "Error while writing occurrences periods for \"%s\": CurrentPeriod >= m_pParent->m_pSearchPeriods.size()\n",
-                        GetName().c_str());
-                fprintf(stderr, "CurrentPeriod = %zi\n", CurrentPeriod);
-                fprintf(stderr, "m_pParent->m_pSearchPeriods.size() = %zi\n", m_pParent->GetSearchPeriodsCount());
-                fprintf(stderr, "Occurrence =%i, Number of occurrences = %zi\n", InputTokens[j], OriginalTokenCount);
+                ddcLogError(Format("Error while writing occurrences periods for \"%s\": CurrentPeriod >= m_pParent->m_pSearchPeriods.size()", GetName().c_str()));
+                ddcLogError(Format("CurrentPeriod = %zi", CurrentPeriod));
+                ddcLogError(Format("m_pParent->m_pSearchPeriods.size() = %zi", m_pParent->GetSearchPeriodsCount()));
+                ddcLogError(Format("Occurrence =%i, Number of occurrences = %zi", InputTokens[j], OriginalTokenCount));
                 for (size_t p = 0; p < m_pParent->GetSearchPeriodsCount(); p++)
-                    fprintf(stderr, "CurrentPeriod = %zi, EndTokenNo = %u\n", p, m_pParent->GetSearchPeriod(p));
+                    ddcLogError(Format("CurrentPeriod = %zi, EndTokenNo = %u", p, m_pParent->GetSearchPeriod(p)));
 
                 return false;
             };
@@ -391,14 +386,12 @@ bool CIndexSetForQueryingStage::BuildPeriodsDivisionAndCompress(const uint32_t P
         if (CurrentPeriod >= m_pParent->GetSearchPeriodsCount()) {
             // if we are here, it means that some j (*IndexItem.GetOccurs())[j]
             // is greater than the upper bound of the last search period
-            fprintf(stderr,
-                    "Error while writing occurrences periods for \"%s\": CurrentPeriod >= m_pParent->m_pSearchPeriods.size()\n",
-                    GetName().c_str());
-            fprintf(stderr, "CurrentPeriod = %zi\n", CurrentPeriod);
-            fprintf(stderr, "m_pParent->m_pSearchPeriods.size() = %zi\n", m_pParent->GetSearchPeriodsCount());
-            fprintf(stderr, "Occurrence =%u, Number of occurrences = %zi\n", InputTokens[j], OriginalTokenCount);
+            ddcLogError(Format("Error while writing occurrences periods for \"%s\": CurrentPeriod >= m_pParent->m_pSearchPeriods.size()", GetName().c_str()));
+            ddcLogError(Format("CurrentPeriod = %zi", CurrentPeriod));
+            ddcLogError(Format("m_pParent->m_pSearchPeriods.size() = %zi", m_pParent->GetSearchPeriodsCount()));
+            ddcLogError(Format("Occurrence =%u, Number of occurrences = %zi", InputTokens[j], OriginalTokenCount));
             for (size_t p = 0; p < m_pParent->GetSearchPeriodsCount(); p++)
-                fprintf(stderr, "CurrentPeriod = %zi, EndTokenNo = %u\n", p, m_pParent->GetSearchPeriod(p));
+                ddcLogError(Format("CurrentPeriod = %zi, EndTokenNo = %u", p, m_pParent->GetSearchPeriod(p)));
             return false;
         };
 
@@ -415,7 +408,7 @@ bool CIndexSetForQueryingStage::BuildPeriodsDivisionAndCompress(const uint32_t P
 
     m_EndPeriodOffsets.ensureMap();
     if (m_EndPeriodOffsets.m_map.find(PerDivId) != m_EndPeriodOffsets.m_map.end()) {
-        fprintf(stderr, "token id %i fo period division is not unique, index name = %s\n", PerDivId, GetName().c_str());
+        ddcLogError(Format("token id %i fo period division is not unique, index name = %s", PerDivId, GetName().c_str()));
         return false;
     }
 
@@ -498,15 +491,15 @@ bool CIndexSetForQueryingStage::LoadPeriodDivision() {
                                 m_pParent->m_bMemoryMap);
     }
     catch (CExpc &e) {
-        fprintf(stderr, "Exception[%d] in CIndexSetForQueryingStage::LoadPeriodDivision(): %s\n", ddcExpcCode(e), e.what());
+        ddcLogError(Format("Exception[%d] in CIndexSetForQueryingStage::LoadPeriodDivision(): %s", ddcExpcCode(e), e.what()));
         return false;
     }
     catch (exception &e) {
-        fprintf(stderr, "Exception in CIndexSetForQueryingStage::LoadPeriodDivision(): %s\n", e.what());
+        ddcLogError(Format("Exception in CIndexSetForQueryingStage::LoadPeriodDivision(): %s", e.what()));
         return false;
     }
     catch (...) {
-        fprintf(stderr, "Exception in CIndexSetForQueryingStage::LoadPeriodDivision(): (unhandled exception)\n");
+        ddcLogError("Exception in CIndexSetForQueryingStage::LoadPeriodDivision(): (unhandled exception)");
         return false;
     }
     return true;

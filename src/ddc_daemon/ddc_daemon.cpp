@@ -1,3 +1,4 @@
+#include <iostream>
 #include "nlp_base/common/utilit.h"
 #include "nlp_base/common/argparse.h"
 #include "../CommonLib/ddcUtil.h"
@@ -109,13 +110,13 @@ int puke(const std::string& msg) {
 
 bool  read_pid_from_lock_file(pid_t& pid) {
     if (access(LockFileName.c_str(), R_OK) != 0) {
-        fprintf(stderr, "cannot access lock file `%s' (ddc_daemon not started?)\n", LockFileName.c_str());
+        std::cerr << "cannot access lock file `" << LockFileName << "' (ddc_daemon not started?)\n";
         return false;
     }
 
     FILE* fp = fopen(LockFileName.c_str(), "r");
     if (!fp) {
-        fprintf(stderr, "open failed for lock file `%s': %s\n", LockFileName.c_str(), StrError(errno));
+        std::cerr << "open failed for lock file `" << LockFileName << "': " << StrError(errno) << "\n";
         return false;
     }
     fscanf(fp, "%i", &pid);
@@ -129,10 +130,10 @@ int print_status() {
         return 1;
     }
     if (kill (pid, 0) != 0) { //it is not a kill
-        fprintf (stderr, "ddc_daemon (pid=%d) cannot be found \n", pid);
+        std::cerr << "ddc_daemon (pid=" << pid << ") cannot be found \n";
         return 1;
     }
-    fprintf(stderr, "ddc is running, pid=%d\n", pid);
+    std::cerr << "ddc is running, pid=" << pid << "\n";
     return 0;
 }
 //----------------------------------------------------------------------
@@ -141,7 +142,7 @@ int do_stop(void)
 {
     pid_t pid;
 
-    fprintf(stderr, "Stopping ddc_daemon...\n");
+    std::cerr << "Stopping ddc_daemon...\n";
     if (!read_pid_from_lock_file(pid)) {
         RemoveLockFile();
         return 1;
@@ -149,11 +150,11 @@ int do_stop(void)
     RemoveLockFile();
 
     if (kill (pid, SIGTERM) == 0) {
-        fprintf (stderr, "ddc_daemon (pid=%d) was stopped\n", pid);
+        std::cerr << "ddc_daemon (pid=" << pid << ") was stopped\n";
         return 0;
     }
     else {
-        fprintf(stderr, "cannot send a SIGTERM to daemon process (pid=%d): %s\n", pid, StrError(errno));
+        std::cerr << "cannot send a SIGTERM to daemon process (pid=" << pid << "): " << StrError(errno) << "\n";
         return 1;
     }
 }
@@ -185,20 +186,20 @@ int do_start(bool clientMode=false)
             ddcLogToSyslog=true;
             openlog("ddc_daemon", LOG_PID|LOG_CONS, LOG_DAEMON);
 #else
-            fprintf(stderr, "%s: syslog logging disabled because ddc_daemon wasn't compiled with syslog support\n", prog);
+            std::cerr << prog << ": syslog logging disabled because ddc_daemon wasn't compiled with syslog support\n";
             ddcLogToSyslog = false;
 #endif
         }
 
         ddcLogInfo(startmsg);
-        if (!log_stderr) fprintf(stderr, "%s\n", startmsg.c_str());
+        if (!log_stderr) std::cerr << startmsg << "\n";
         
         if (clientMode) {
-            fprintf(stderr, "removing %s\n",LockFileName.c_str());
+            std::cerr << "removing " << LockFileName << "\n";
             remove(LockFileName.c_str());
         }
         if (access(LockFileName.c_str(), R_OK) == 0) {
-            fprintf(stderr, "Daemon lock-file `%s' already exists: is ddc_daemon already running?\n", LockFileName.c_str());
+            std::cerr << "Daemon lock-file `" << LockFileName << "' already exists: is ddc_daemon already running?\n";
             return 1;
         }
 
@@ -226,7 +227,7 @@ int do_start(bool clientMode=false)
                     int fpid = fork();
                     if (fpid != 0) {
                         //-- parent
-                        fprintf(stderr, "spawned server process on pid=%d\n", fpid);
+                        std::cerr << "spawned server process on pid=" << fpid << "\n";
                         exit(0);
                     } else {
                         //-- daemon==child
@@ -234,7 +235,7 @@ int do_start(bool clientMode=false)
                     }
                 } else {
                     //-- daemon==parent
-                    fprintf(stderr, "running server in non-forking mode on pid=%d\n", getpid());
+                    std::cerr << "running server in non-forking mode on pid=" << getpid() << "\n";
                 }
             }
 
@@ -287,7 +288,7 @@ int do_start(bool clientMode=false)
             signal (SIGINT, SIG_IGN);
 
         if (clientMode)
-            fprintf (stderr, "\nWaiting for accept...\n");
+            std::cerr << "\nWaiting for accept...\n";
         else {
             //-- remove the wait-file to let the caller know we've started up ok
             sleep(1);
@@ -356,7 +357,7 @@ int     main(int argc, char     **argv)
     string Error;
     if (!IsRmlRegistered(Error)) 
     {
-        fprintf (stderr, "%s\n", Error.c_str()  );
+        std::cerr << Error << "\n";
         return 1;
     };
 
@@ -391,7 +392,7 @@ int     main(int argc, char     **argv)
             ServerOptions.LoadFile(*optfi);
         }
         catch (exception &e) {
-            fprintf(stderr, "%s: Error loading server options file '%s': %s\n", prog, optfi->c_str(), e.what());
+            std::cerr << prog << ": Error loading server options file '" << optfi->c_str() << "': " << e.what() << "\n";
             exit(1);
         }
     }
@@ -400,7 +401,7 @@ int     main(int argc, char     **argv)
 
     if (!FileExists(CorporaFile.c_str()))
     {
-        fprintf (stderr, "cannot access %s\n", CorporaFile.c_str());
+        std::cerr << "cannot access " << CorporaFile << "\n";
         exit(1);
     };
 
@@ -414,7 +415,7 @@ int     main(int argc, char     **argv)
                     &&      (Action != "restart")
                     &&      (Action != "status")
         ) {
-        fprintf(stderr, "%s: unknown action '%s'\n%s", prog, Action.c_str(), args.Usage().c_str());
+        std::cerr << prog << ": unknown action '" << Action << "'\n" << args.Usage();
         return 1;
     }
 
@@ -434,7 +435,7 @@ int     main(int argc, char     **argv)
             return do_start();
         }
     } catch (exception& e) {
-        fprintf (stderr, "Exception: %s", e.what());
+        std::cerr << "Exception: " << e.what();
         resultCode = 1;
     }
 

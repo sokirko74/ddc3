@@ -772,7 +772,6 @@ bool CQueryTokenNode::IsUniversalWildcard() const
 
 bool CQueryTokenNode::BuildRegExp(string RegExpStr, vector<uint32_t>& IndexItems, bool negated)
 {
-    //fprintf(stderr, "DEBUG: CQueryTokenNode::BuildRegExp(): /%s/", RegExpStr.c_str());
     const CStringIndexSet*  IndexSet =  m_pHolder->m_pConcordance->GetIndexByAlias(m_IndexName);
     if (!IndexSet) return false;
 

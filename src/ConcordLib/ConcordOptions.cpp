@@ -341,8 +341,7 @@ void CConcordance::LoadOptionsFromString(string Options) {
             m_bDwdsCorpusInterface = StringToBool(fields.next_token());
             EchoOption("DwdsCorpusInterface %s", BoolToString(m_bDwdsCorpusInterface));
         } else if (q == "Bigrams") {
-            fprintf(stderr, "WARNING: Bigrams declaration ignored for ddc >= v2.0.19: `Bigrams %s'\n",
-                    fields.get_rest());
+            ddcLogWarn(Format("WARNING: Bigrams declaration ignored for ddc >= v2.0.19: `Bigrams %s'", fields.get_rest()));
         } else if (q == "Indices") {
             IndicesStr = fields.get_rest_trim();
             if (!IndexAliasStr.empty()) {
@@ -439,9 +438,8 @@ void CConcordance::LoadOptionsFromString(string Options) {
         const char *lc_ctype = setlocale(LC_CTYPE,NULL);
         if (strstr(lc_ctype,"UTF-8")==NULL && strstr(lc_ctype,"utf8")==NULL) {
             //-- hack for locale-sensitive internal iconv conversions to/from wchar_t
-            fprintf(stderr, "WARNING: Utf8 mode requested but LC_CTYPE `%s' doesn't seem to be a UTF-8 locale\n",
-                    lc_ctype);
-            fprintf(stderr, "WARNING: attempting to set Utf8 LC_CTYPE=%s\n", LC_CTYPE_UTF8_DEFAULT);
+            ddcLogWarn(Format("WARNING: Utf8 mode requested but LC_CTYPE `%s' doesn't seem to be a UTF-8 locale", lc_ctype));
+            ddcLogWarn(Format("WARNING: attempting to set Utf8 LC_CTYPE=%s", LC_CTYPE_UTF8_DEFAULT));
             setlocale(LC_CTYPE,LC_CTYPE_UTF8_DEFAULT);
             lc_ctype = setlocale(LC_CTYPE,NULL);
         }
@@ -543,14 +541,12 @@ void CConcordance::LoadOptionsFromString(string Options) {
     for (map<string,string>::iterator oni=m_OpDefaultIndexNames.begin(); oni != m_OpDefaultIndexNames.end(); ) {
         if (oni->first == "." && !GetBreakCollectionByName(oni->second)) {
             map<string,string>::iterator tmp = oni;
-            fprintf(stderr, "WARNING: ignoring unknown default break collection `%s' for query operator `%s'\n",
-                    oni->second.c_str(), oni->first.c_str());
+            ddcLogWarn(Format("WARNING: ignoring unknown default break collection `%s' for query operator `%s'", oni->second.c_str(), oni->first.c_str()));
             ++oni;
             m_OpDefaultIndexNames.erase(tmp);
         } else if (!GetIndexByAlias(oni->second)) {
             map<string,string>::iterator tmp = oni;
-            fprintf(stderr, "WARNING: ignoring unknown default index `%s' for query operator `%s'\n",
-                    oni->second.c_str(), oni->first.c_str());
+            ddcLogWarn(Format("WARNING: ignoring unknown default index `%s' for query operator `%s'", oni->second.c_str(), oni->first.c_str()));
             ++oni;
             m_OpDefaultIndexNames.erase(tmp);
         } else {

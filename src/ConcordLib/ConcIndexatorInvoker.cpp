@@ -21,7 +21,7 @@ ConcIndexatorInvoker::ConcIndexatorInvoker() {
 void ConcIndexatorInvoker::SetCurrMessage(string Message) const {
     m_CurrMessage = Message;
     if (m_bStdout) {
-        fprintf(stderr, "%s\n", m_CurrMessage.c_str());
+        ddcLogInfo(m_CurrMessage);
     };
 };
 
@@ -42,7 +42,7 @@ void ConcIndexatorInvoker::WriteTimeStatistics(const CConcIndexator &Indexator, 
 
         FILE *fp = fopen(GetTimeStatisticsFileName(Indexator.m_Path).c_str(), "w");
         if (!fp) {
-            fprintf(stderr, "Cannot write time statistics to file!\n");
+            ddcLogError("Cannot write time statistics to file!");
         } else {
             fprintf(fp, "%s", m_Profiler.GetStrRepresentation(AllClocksCount).c_str());
             int AllSeconds = (int) (AllClocksCount / CLOCKS_PER_SEC);
@@ -123,7 +123,7 @@ void ConcIndexatorInvoker::BuildOnlyMorphIndex(string ProjectFile) const {
 };
 
 void newhandler() {
-    fprintf(stderr, "Cannot allocate memory (newhandler is called); terminate the process...\n");
+    ddcLogError("Cannot allocate memory (newhandler is called); terminate the process...");
     throw bad_alloc();
     return;
 }
@@ -276,7 +276,7 @@ void ConcIndexatorInvoker::AddInputLoadIndexToMemoryLoadIndexWrapper(CConcIndexa
 
 void ConcIndexatorInvoker::ProcessTarOrSingleFile(CConcIndexator& Indexator, size_t& InputLoadIndexSize, size_t& MemoryLoadIndexSize)
 {
-    fprintf(stderr, "Indexing file `%s'\n", m_CurrentSourceFileName.c_str());
+    ddcLogDebug(Format("Indexing file `%s'", m_CurrentSourceFileName.c_str()));
     CDocumentIterator docIterator(&Indexator, m_CurrentSourceFileName);
     CIndexDocument document;
 

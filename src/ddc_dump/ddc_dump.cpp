@@ -1,3 +1,4 @@
+#include <iostream>
 #include <stdio.h>
 #include <errno.h>
 #include <sys/types.h>
@@ -54,6 +55,8 @@ string getOutputDirectory(string outdir) {
 
 //======================================================================
 int main(int argc, char *argv[]) {
+    ddcLogToStderr = true;   //-- library messages (ddcLog) go to stderr
+    ddcLogToFiles = false;
     ArgumentParser args;
     args.SetVersion(DDCVersionStr);
     args.SetDescription("Dump the metadata of a DDC corpus index");
@@ -88,18 +91,17 @@ int main(int argc, char *argv[]) {
 
         if (dump_opt) {
             //-- option dump
-            fprintf(stderr, "%s: dumping project options ...", prog);
+            std::cerr << prog << ": dumping project options ...";
             if (outfilename.empty()) outfilename = "-";
             R.m_pConcordance->SaveOptions(outfilename);
-            fprintf(stderr, " done.\n");
+            std::cerr << " done.\n";
         }
         else if (!dump_full) {
             //-- bibliographic dump
             FILE* outfile = getOutputStream(outfilename);
-            fprintf(stderr, "%s: dumping bibliographic metadata to %s ...", prog,
-                    (outfile == stdout ? "standard output" : outfilename.c_str()));
+            std::cerr << prog << ": dumping bibliographic metadata to " << (outfile == stdout ? "standard output" : outfilename.c_str()) << " ...";
             R.m_pConcordance->DumpBibliography(outfile);
-            fprintf(stderr, " done.\n");
+            std::cerr << " done.\n";
 
             fclose(outfile);
         }
@@ -114,13 +116,13 @@ int main(int argc, char *argv[]) {
             string output = getOutputDirectory(outfilename);
       
             //-- full dump: data
-            fprintf(stderr, "%s: dumping index data to %s ...\n", prog, output.c_str());
+            std::cerr << prog << ": dumping index data to " << output << " ...\n";
             R.m_pConcordance->DumpIndex(output, dump_fmt);
-            fprintf(stderr, "%s: done.\n", prog);
+            std::cerr << prog << ": done.\n";
         }
     }
     catch (exception &e) {
-        fprintf(stderr, "%s: Exception: %s\n", prog, e.what());
+        std::cerr << prog << ": Exception: " << e.what() << "\n";
         exit(-1);
     }
 

@@ -22,7 +22,7 @@ bool CItemIndexForLoading::InitOccurs()
     m_pCurrOccurs = new vector<CTokenNo>;
     if (!m_pCurrOccurs)
     {
-        fprintf(stderr, "cannot allocate new vector of occurrences in CItemIndexForLoading::InitOccurs\n");
+        ddcLogError("cannot allocate new vector of occurrences in CItemIndexForLoading::InitOccurs");
         return false;
     }
     return true;
@@ -39,7 +39,7 @@ void CItemIndexForLoading::FreeOccurs()
     }
     catch (...)
     {
-        fprintf (stderr, "Exception in CItemIndexForLoading::FreeOccurs\n");
+        ddcLogError("Exception in CItemIndexForLoading::FreeOccurs");
         throw;
     }
 };
@@ -246,12 +246,12 @@ bool    CIndexSetForLoadingStage::SaveMemoryLoadIndex()
     }
     catch (CExpc c)
     {
-        fprintf (stderr, "Exception %s in CIndexSetForLoadingStage::SaveMemoryLoadIndex; Index name=%s\n", c.what(), GetName().c_str());
+        ddcLogError(Format("Exception %s in CIndexSetForLoadingStage::SaveMemoryLoadIndex; Index name=%s", c.what(), GetName().c_str()));
         return false;
     }
     catch(...)
     {
-        fprintf (stderr, "Exception in CIndexSetForLoadingStage::SaveMemoryLoadIndex; Index name=%s\n",GetName().c_str());
+        ddcLogError(Format("Exception in CIndexSetForLoadingStage::SaveMemoryLoadIndex; Index name=%s", GetName().c_str()));
         if (!fp) fclose (fp);
         return false;
     }
@@ -286,10 +286,8 @@ bool    CIndexSetForLoadingStage::AddToMemoryLoadIndexAndClear(vector<CItemIndex
     for (; i+1 < cnt; i++)
         if (!m_LoadLess2(FileIndexSet[i], FileIndexSet[i+1]) )
         {
-            fprintf (stderr,"An error occurred in function %s::AddToMemoryLoadIndexAndClear (order error:FileIndexSet is not sorted)\n", GetName().c_str());
+            ddcLogError(Format("An error occurred in function %s::AddToMemoryLoadIndexAndClear (order error:FileIndexSet is not sorted)", GetName().c_str()));
                         
-            //fprintf (stderr,"FileIndexSet[%i] = %s", i, GetIndexItemStr(FileIndexSet[i]) );
-            //fprintf (stderr,"FileIndexSet[%i] = %s", i+1, GetIndexItemStr(FileIndexSet[i+1]) );
             return false;
         };
     // special check
@@ -305,7 +303,7 @@ bool    CIndexSetForLoadingStage::AddToMemoryLoadIndexAndClear(vector<CItemIndex
         int debug2 = FileIndexSet.size() + Body.size();
         if ( Result.size() != FileIndexSet.size() + Body.size())
         {
-            fprintf (stderr,"An error occurred in function %s::AddToMemoryLoadIndexAndClear (order error)\n", GetName().c_str());
+            ddcLogError(Format("An error occurred in function %s::AddToMemoryLoadIndexAndClear (order error)", GetName().c_str()));
             return false;
         };
         assert (Result.size() == (FileIndexSet.size() + Body.size()) );
@@ -318,7 +316,7 @@ bool    CIndexSetForLoadingStage::AddToMemoryLoadIndexAndClear(vector<CItemIndex
     for (i = 0; i+1 < cnt; i++)
         if (!m_LoadLess2(Body[i], Body[i+1]) )
         {
-            fprintf (stderr,"An error occurred in function %s::AddToMemoryLoadIndexAndClear (order error:Body is not sorted)\n", GetName().c_str());
+            ddcLogError(Format("An error occurred in function %s::AddToMemoryLoadIndexAndClear (order error:Body is not sorted)", GetName().c_str()));
             return false;
         };
     // special check
@@ -337,7 +335,7 @@ bool    CIndexSetForLoadingStage::AddInputLoadIndexToMemoryLoadIndex()
     }
     catch (...)
     {
-        fprintf (stderr, "Exception in CStringIndexator::AddInputLoadIndexToMemoryLoadIndex; Index Name=%s\n", GetName().c_str());
+        ddcLogError(Format("Exception in CStringIndexator::AddInputLoadIndexToMemoryLoadIndex; Index Name=%s", GetName().c_str()));
         return false;
     }
 
@@ -471,14 +469,14 @@ bool    CIndexSetForLoadingStage::AddMemoryLoadIndexToMainLoadIndex()
         iteration = 92;
         if (remove(m_MainOccurTempFileName.c_str()) != 0)
         {
-            fprintf (stderr,"Cannot remove file %s\n", m_MainOccurTempFileName.c_str());
+            ddcLogError(Format("Cannot remove file %s", m_MainOccurTempFileName.c_str()));
             return false;
         };
 
         iteration = 93;
         if (!RmlMoveFile(ResultFileName.c_str(), m_MainOccurTempFileName.c_str()) )
         {
-            fprintf (stderr,"Cannot move file %s to %s\n", ResultFileName.c_str(), m_MainOccurTempFileName.c_str());
+            ddcLogError(Format("Cannot move file %s to %s", ResultFileName.c_str(), m_MainOccurTempFileName.c_str()));
             return false;
         };
 
@@ -487,11 +485,11 @@ bool    CIndexSetForLoadingStage::AddMemoryLoadIndexToMainLoadIndex()
     }
     catch (CExpc c) 
     {
-        fprintf (stderr, "Exception %s in CIndexSetForLoadingStage::AddMemoryLoadIndexToMainLoadIndex; Index name=%s; iteration=%i\n",c.what(), GetName().c_str(), iteration);
+        ddcLogError(Format("Exception %s in CIndexSetForLoadingStage::AddMemoryLoadIndexToMainLoadIndex; Index name=%s; iteration=%i", c.what(), GetName().c_str(), iteration));
     }
     catch (...) 
     {
-        fprintf (stderr, "Exception in CIndexSetForLoadingStage::AddMemoryLoadIndexToMainLoadIndex; Index name=%s; iteration=%i\n",GetName().c_str(), iteration);
+        ddcLogError(Format("Exception in CIndexSetForLoadingStage::AddMemoryLoadIndexToMainLoadIndex; Index name=%s; iteration=%i", GetName().c_str(), iteration));
     }
     if (curr_fp) fclose(curr_fp);
     if (main_fp) fclose(main_fp);
@@ -636,6 +634,5 @@ void CIndexSetForLoadingStage::RollbackLoadIndex(CTokenNo startTrimTokenNo)
             throw CDDCExpc(Format("failed to truncate temporary storage file '%s' during rollback", m_TempStorageFileName.c_str()));
         if (!fseek64(m_TempStorageFile, truncate_offset, SEEK_SET))
             throw CDDCExpc(Format("failed to re-seek to end of temporary storage file '%s' during rollback", m_TempStorageFileName.c_str()));
-        //fprintf(stderr, "DEBUG/ROLLBACK: truncate_offset=%zd ; new_offset=%zd", truncate_offset, ftell64(m_TempStorageFile)); //-- DEBUG
     }
 };

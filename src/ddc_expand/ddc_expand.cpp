@@ -1,3 +1,4 @@
+#include <iostream>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -25,7 +26,7 @@ void expand(const set<string> &src)
 {
     for (const string& w : src)
         if (!IsValidUtf8(w)) {
-            fprintf(stderr, "%s: the input is not valid UTF-8 (ddc accepts only UTF-8): %s\n", prog, w.c_str());
+            std::cerr << prog << ": the input is not valid UTF-8 (ddc accepts only UTF-8): " << w << "\n";
             return;
         }
     set<string> dst;
@@ -49,7 +50,7 @@ void loadTxFile(const string &txfile)
 {
     FILE *f = fopen(txfile.c_str(),"r");
     if (!f) {
-        fprintf(stderr, "%s: open failed for config file %s: %s", prog, txfile.c_str(), strerror(errno));
+        std::cerr << prog << ": open failed for config file " << txfile << ": " << strerror(errno);
         exit(-1);
     }
     while (!feof(f)) {
@@ -73,12 +74,13 @@ void selectChain(const string& chainSpec="Token")
         else tx = &txc;
     }
     catch (exception &e) {
-        fprintf(stderr, "Exception: %s\n", e.what());
+        std::cerr << "Exception: " << e.what() << "\n";
     }
 }
 
 int main(int argc, char **argv)
 {
+    ddcLogToFiles = false;
     //---- command-line params
     prog=*argv;
 
@@ -125,7 +127,7 @@ int main(int argc, char **argv)
     vector<string> inputs = args.RetrieveList("inputs");
 
     //---- load dicts
-    printf ("%s: Loading...\n", prog);
+    std::cout << prog << ": Loading...\n";
     InitConcordDicts();
 
     //-- load config file
@@ -133,23 +135,23 @@ int main(int argc, char **argv)
         loadTxFile(txfile);
         txd.ensureDefaultExpanders(morphGeneric);
         txd.compile();
-        fprintf(stderr, "%s: loaded dispatcher file `%s':\n%s\n", prog, txfile.c_str(), txd.configString("> ").c_str());
+        std::cerr << prog << ": loaded dispatcher file `" << txfile << "':\n" << txd.configString("> ") << "\n";
         fflush(stderr);
     }
     else {
         //-- create new expander
         tx = newTermExpander(txclass, txlabel, txparam);
         if (!tx) {
-            fprintf(stderr, "%s: could not create term expander of class `%s'\n", prog, txclass.c_str());
+            std::cerr << prog << ": could not create term expander of class `" << txclass << "'\n";
             exit(-1);
         }
         tx->compile();
         txd.insert(tx);
-        fprintf(stderr, "%s: created term expander [%s]\n", prog, tx->configString().c_str());
+        std::cerr << prog << ": created term expander [" << tx->configString() << "]\n";
         fflush(stderr);
     }
     selectChain(txlabel);
-    fprintf(stderr, "%s: using expander [%s]\n", prog, tx->configString().c_str());
+    std::cerr << prog << ": using expander [" << tx->configString() << "]\n";
 
     if (!fileMode) {
         //-- process command-line arguments
@@ -164,17 +166,17 @@ int main(int argc, char **argv)
             string &infilename = *ii;
             FILE *infile = infilename.empty() || infilename==string("-") ? stdin : fopen(infilename.c_str(),"r");
             if (!infile) {
-                fprintf(stderr, "%s: open failed for input file %s: %s", prog, infilename.c_str(), strerror(errno));
+                std::cerr << prog << ": open failed for input file " << infilename << ": " << strerror(errno);
                 exit(-1);
             }
             if (infilename.empty()) {
-                fprintf(stderr, "%s: type #h [ENTER] for help\n", prog);
+                std::cerr << prog << ": type #h [ENTER] for help\n";
             }
 
             //---- guts
             while (!feof(infile)) {
                 if (infilename.empty()) {
-                    printf("%s:[%s]> ", prog, tx->configString().c_str());
+                    std::cout << prog << ":[" << tx->configString() << "]> ";
                     fflush(stdout);
                 }
                 char buffer[TX_BUFSIZE];
@@ -193,7 +195,7 @@ int main(int argc, char **argv)
                     if (op == "#define" || op == "#def") {
                         CTermExpander *tx_ = txd.addExpander(arg);
                         if (!tx_) {
-                            fprintf(stderr, "%s: could not parse expander spec `%s'\n", prog, arg.c_str());
+                            std::cerr << prog << ": could not parse expander spec `" << arg << "'\n";
                             exit(-1);
                         }
                         tx->compile();
@@ -213,23 +215,8 @@ int main(int argc, char **argv)
                         break;
                     }
                     else if (op == "#help" || op == "#h") {
-                        printf("%s: interactive mode commands\n", prog);
-                        printf("  #help                         : this help message\n"
-                               "  #define LABEL [CLASS [PARAM]] : define a new expander\n"
-                               "  #set    LABEL...              : select a new expansion chain\n"
-                               "  #list                         : list current expanders\n"
-                               "  #quit                         : quit the program\n"
-                               "\n"
-                               " Known expander classes and parameters:\n"
-                               "  CLASS   PARAM         DESCRIPTION\n"
-                               //"  -----------------------------------------------------------------------------"
-                               "  Id      (none)        Identity map\n"
-                               "  Case    LANG          Letter-case tweaker\n"
-                               "  ToLower LANG          Force to lower-case\n"
-                               "  ToUpper LANG          Force to upper-case\n"
-                               "  Infl    LANG          Lemmatizer + re-inflection (morphy)\n"
-                               "  Cab     URL TIMEOUT   External DTA::CAB server\n"
-                               "\n");
+                        std::cout << prog << ": interactive mode commands\n";
+                        std::cout << "  #help                         : this help message\n  #define LABEL [CLASS [PARAM]] : define a new expander\n  #set    LABEL...              : select a new expansion chain\n  #list                         : list current expanders\n  #quit                         : quit the program\n\n Known expander classes and parameters:\n  CLASS   PARAM         DESCRIPTION\n  Id      (none)        Identity map\n  Case    LANG          Letter-case tweaker\n  ToLower LANG          Force to lower-case\n  ToUpper LANG          Force to upper-case\n  Infl    LANG          Lemmatizer + re-inflection (morphy)\n  Cab     URL TIMEOUT   External DTA::CAB server\n\n";
                     }
                 }
 
@@ -239,7 +226,7 @@ int main(int argc, char **argv)
                     src.insert(stok.val());
                 }
                 if (src.empty()) {
-                    if (!infilename.empty()) printf("\n");
+                    if (!infilename.empty()) std::cout << "\n";
                     continue;
                 }
                 expand(src);

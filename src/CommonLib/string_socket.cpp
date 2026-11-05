@@ -133,7 +133,7 @@ bool CloseSocket(int l_socket, bool linger, int timeout)
         setsockopt(l_socket, SOL_SOCKET, SO_LINGER, (void*)&sock_linger, sizeof(struct linger));
     }
     bResult =  close(l_socket) == 0;
-    FDDEBUG(fprintf (stderr, "FDDEBUG: CloseSocket(%u) returned %s\n", (uint)l_socket, (bResult? "true" : "false"));)
+    FDDEBUG(ddcLogDebug(Format("FDDEBUG: CloseSocket(%u) returned %s", (uint)l_socket, (bResult? "true" : "false")));)
         return bResult;
 };
 
@@ -490,7 +490,7 @@ SOCKET create_inet_socket (const char* HostAddr, int Port, bool bBind, string& s
     }
     freeaddrinfo(res0);
 
-    FDDEBUG(fprintf(stderr, "DEBUG: create_socket(host=%s, port=%d, bind=%d) --> %u\n", HostAddr, Port, (bBind ? 1 : 0), (uint)l_socket));
+    FDDEBUG(ddcLogDebug(Format("DEBUG: create_socket(host=%s, port=%d, bind=%d) --> %u", HostAddr, Port, (bBind ? 1 : 0), (uint)l_socket)));
     return l_socket;
 };
 

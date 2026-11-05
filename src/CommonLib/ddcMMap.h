@@ -660,7 +660,6 @@ public:
     struct KeyLess {
         inline bool operator()(const char &ref, const KeyT &key) {
             const KeyT &refkey = *((const KeyT *) (&ref));
-            //fprintf(stderr, "COMPARE(%d, %d)", refkey, key);
             return refkey < key;
         };
     };

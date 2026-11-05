@@ -37,12 +37,7 @@ const time_t TheEndOfTheWorld = 0xffffffff;
 static void dumpHits(const std::string &Label, const vector<CHit> &Hits) {
     for (size_t hi = 0; hi < Hits.size(); hi++) {
         const CHit &h = Hits[hi];
-        fprintf(stderr,
-                "%s[%zd] = {m_BreakNo=%u, m_HighlightOccurrenceEnd=%u, m_SortKey={%d,%s}, m_FileNo=%u, m_DebugRankNo=%zu}\n",
-                Label.c_str(), hi,
-                h.m_BreakNo, h.m_HighlightOccurrenceEnd, h.m_SortKey.i, jsonStr(h.m_SortKey.s).c_str(), h.m_FileNo,
-                h.m_Value.m_DebugRankNo
-            );
+        ddcLogInfo(Format("%s[%zd] = {m_BreakNo=%u, m_HighlightOccurrenceEnd=%u, m_SortKey={%d,%s}, m_FileNo=%u, m_DebugRankNo=%zu}", Label.c_str(), hi, h.m_BreakNo, h.m_HighlightOccurrenceEnd, h.m_SortKey.i, jsonStr(h.m_SortKey.s).c_str(), h.m_FileNo, h.m_Value.m_DebugRankNo));
     }
 }
 
@@ -51,13 +46,7 @@ static void dumpHitIndex(const std::string &IndexLabel, const vector<size_t> &Hi
     for (size_t hii = 0; hii < HitIndex.size(); hii++) {
         size_t hi = HitIndex[hii];
         const CHit &h = Hits[hi];
-        fprintf(stderr,
-                "%s[%zd] = %s[%zd] = {m_BreakNo=%u, m_HighlightOccurrenceEnd=%u, m_SortKey={%d,%s}, m_FileNo=%u, m_DebugRankNo=%zu}\n",
-                IndexLabel.c_str(), hii,
-                Label.c_str(), hi,
-                h.m_BreakNo, h.m_HighlightOccurrenceEnd, h.m_SortKey.i, jsonStr(h.m_SortKey.s).c_str(), h.m_FileNo,
-                h.m_Value.m_DebugRankNo
-            );
+        ddcLogInfo(Format("%s[%zd] = %s[%zd] = {m_BreakNo=%u, m_HighlightOccurrenceEnd=%u, m_SortKey={%d,%s}, m_FileNo=%u, m_DebugRankNo=%zu}", IndexLabel.c_str(), hii, Label.c_str(), hi, h.m_BreakNo, h.m_HighlightOccurrenceEnd, h.m_SortKey.i, jsonStr(h.m_SortKey.s).c_str(), h.m_FileNo, h.m_Value.m_DebugRankNo));
     }
 }
 
@@ -1719,12 +1708,7 @@ DDCErrorEnum CConcSession::GetAllHits(CQuery *QueryRoot, size_t Start, size_t Li
             }
 
 #if DEBUG_HIT_SORT //-- DEBUG
-            fprintf(stderr, "DEBUG[pre-trim,period=%d/%d,filter=%s(%s),order=%d]: KeyLo={%d,%s}, KeyHi={%d,%s}, hits_start=%zd, hits_end=%zd\n",
-                    m_CurrentSearchPeriodNo, CountOfPeriods,
-                    HitSortEnumNames[F.m_FilterType], F.m_AttrName.c_str(), m_SortOrder,
-                    F.m_KeyLo.i, jsonStr(F.m_KeyLo.s).c_str(),
-                    F.m_KeyHi.i, jsonStr(F.m_KeyHi.s).c_str(),
-                    hits_start, hits_end);
+            ddcLogDebug(Format("DEBUG[pre-trim,period=%d/%d,filter=%s(%s),order=%d]: KeyLo={%d,%s}, KeyHi={%d,%s}, hits_start=%zd, hits_end=%zd", m_CurrentSearchPeriodNo, CountOfPeriods, HitSortEnumNames[F.m_FilterType], F.m_AttrName.c_str(), m_SortOrder, F.m_KeyLo.i, jsonStr(F.m_KeyLo.s).c_str(), F.m_KeyHi.i, jsonStr(F.m_KeyHi.s).c_str(), hits_start, hits_end));
             dumpHitIndex("DEBUG: periodHits", PeriodHitsIndex, "qHits", qHits);
 #endif //-- DEBUG
 
@@ -1875,7 +1859,6 @@ DDCErrorEnum CConcSession::GetAllHits(CQuery *QueryRoot, size_t Start, size_t Li
                     rc = errTimeoutElapsed;
                     break;
                 }
-                //printf ("one period time=%i, left time =%i", curr_time-last_time, m_QueryEndTime - curr_time);
                 last_time = curr_time;
             }
         }
@@ -2147,7 +2130,7 @@ CConcSession::SaveOccurrences(const vector<uint32_t> &ChunkLengths, int ContextS
         for (size_t i = 0; i < ChunkLengths.size(); i++)
             len += ChunkLengths[i];
         if (Occurrences.size() != len) {
-            fprintf(stderr, "Fatal Error! Sum of all chunk lengths  is not equal to the number of all occurrences\n");
+            ddcLogError("Fatal Error! Sum of all chunk lengths  is not equal to the number of all occurrences");
             return false;
         }
     }
@@ -2226,7 +2209,7 @@ CConcSession::GetOccurrences(const string &Query, int ContextSize, SaveTriggerTy
         SetHitType();
 
         if (!m_pQueryCompiler->m_pQuery->m_Node->m_bAtomic) {
-            fprintf(stderr, "Error! The query is not a pattern!\n");
+            ddcLogError("Error! The query is not a pattern!");
             return errParseError;
         };
 
@@ -2243,13 +2226,11 @@ CConcSession::GetOccurrences(const string &Query, int ContextSize, SaveTriggerTy
             }
 
             if (m_bStdout)
-                fprintf(stderr, " %zi/%zi             \r", m_CurrentSearchPeriodNo,
-                        m_pConcordance->GetSearchPeriodsCount());
+                ddcLogDebug(Format(" %zi/%zi", m_CurrentSearchPeriodNo, m_pConcordance->GetSearchPeriodsCount()));
         };
 
         if (m_bStdout)
-            fprintf(stderr, " %zi/%zi             \n", m_CurrentSearchPeriodNo,
-                    m_pConcordance->GetSearchPeriodsCount());
+            ddcLogDebug(Format(" %zi/%zi", m_CurrentSearchPeriodNo, m_pConcordance->GetSearchPeriodsCount()));
 
         //m_pQueryCompiler->DeleteTree();
 

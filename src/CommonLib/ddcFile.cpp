@@ -1,4 +1,5 @@
 #include "ddcFile.h"
+#include "ddcLog.h"
 #include "ddcExpc.h"
 #include "ddcConfig.h"   // DDC_STATIC_BUFLEN
 #include "nlp_base/common/utilit.h"
@@ -203,7 +204,7 @@ bool RemoveWithPrint (const string& FileName)
     if (FileExists(FileName.c_str()))
         if (remove(FileName.c_str()))
         {
-            fprintf(stderr, "Cannot remove %s errno=%i\n", FileName.c_str(), errno);
+            ddcLogError(Format("Cannot remove %s errno=%i", FileName.c_str(), errno));
             return false;
         }
     return true;

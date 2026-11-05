@@ -115,7 +115,7 @@ bool CConcXml::Start(string ProjectFileName) {
 
     m_BodyFileToBuild = fopen(GetBiblFileName().c_str(), "wb");
     if (!m_BodyFileToBuild) {
-        fprintf(stderr, "cannot write to  file  %s\n", GetBiblFileName().c_str());
+        ddcLogError(Format("cannot write to  file  %s", GetBiblFileName().c_str()));
         return false;
     };
 
@@ -492,8 +492,7 @@ void CConcXml::ReadMorphXmlFileIntoGraTable(string FileName, const char *pFileBu
                         Trim(Word.m_WordStr);
                     };
                     if (Word.m_WordStr.empty()) {
-                        fprintf(stderr, "empty word after word WordNo=%zi WordStr=%s\n", AllWordsCount,
-                                LastReadWord.c_str());
+                        ddcLogWarn(Format("empty word after word WordNo=%zi WordStr=%s", AllWordsCount, LastReadWord.c_str()));
                         continue;
                     };
 

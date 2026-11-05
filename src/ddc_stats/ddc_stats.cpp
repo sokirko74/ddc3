@@ -1,5 +1,6 @@
 // ConcordSimple.cpp : Defines the entry point for the 
 
+#include <iostream>
 #include "nlp_base/common/utilit.h"
 #include "nlp_base/common/argparse.h"
 #include <time.h>
@@ -17,7 +18,7 @@ bool DumpFreqOrPositions(const CConcHolder& R, string IndexName, bool bDumpPosit
     const CStringIndexSet* SI = R.m_pConcordance->GetIndexByAlias(IndexName);
     if (!SI)
     {
-        fprintf(stderr, "Cannot find index name `%s'!\n", IndexName.c_str() );
+        std::cerr << "Cannot find index name `" << IndexName << "'!\n";
         return false;
     };
 
@@ -26,7 +27,7 @@ bool DumpFreqOrPositions(const CConcHolder& R, string IndexName, bool bDumpPosit
     {
         if ( (i % 1000) == 0)
         {
-            fprintf(stderr, "%zi/%zi  \r", i, SI->m_Index.size());
+            std::cerr << i << "/" << SI->m_Index.size() << "  \r";
         };
         const char* s = SI->GetIndexItemStr(SI->m_Index[i]);
 
@@ -52,7 +53,7 @@ bool DumpFreqOrPositions(const CConcHolder& R, string IndexName, bool bDumpPosit
                 
                 
     };
-    fprintf(stderr, "ok                   \n");
+    std::cerr << "ok                   \n";
     return true;
 };
 
@@ -69,6 +70,8 @@ void DumpStorage(const CConcHolder& R, string IndexName, FILE* output)
 
 int main(int argc, char* argv[])
 {
+    ddcLogToStderr = true;   //-- library messages (ddcLog) go to stderr
+    ddcLogToFiles = false;
     ArgumentParser args;
     args.SetVersion(DDCVersionStr);
     args.SetDescription("Dump the statistics of a DDC corpus index");
@@ -87,7 +90,7 @@ int main(int argc, char* argv[])
     if (args.Retrieve("lang") != "All")
         if (!GetLanguageByString(args.Retrieve("lang"), langua))
         {
-            fprintf (stderr, "Cannot find the language %s\n", args.Retrieve("lang").c_str());
+            std::cerr << "Cannot find the language " << args.Retrieve("lang") << "\n";
             return 1;
         }
     try
@@ -101,7 +104,7 @@ int main(int argc, char* argv[])
         }
         catch (exception& e)
         {
-            fprintf (stderr, "cannot load project %s: %s", ProjectFile.c_str(), e.what());
+            std::cerr << "cannot load project " << ProjectFile << ": " << e.what();
             return -1;
         };
                 
@@ -124,7 +127,7 @@ int main(int argc, char* argv[])
                 else
                 {
 
-                    fprintf(stderr, "\"%s\" is not a valid action\n", Action.c_str());
+                    std::cerr << "\"" << Action << "\" is not a valid action\n";
 
                 };
         if (outputFile != "-") {
@@ -135,7 +138,7 @@ int main(int argc, char* argv[])
 
     }
     catch (runtime_error& e ) {
-        fprintf(stderr, "Exception: %s\n", e.what());
+        std::cerr << "Exception: " << e.what() << "\n";
     }
 
 

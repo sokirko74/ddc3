@@ -428,7 +428,6 @@ void CDDCLeafServer::handle__info(string &Result, int timeout, bool verbose) {
                 if (ival.first) {
                     //-- user-supplied json file
                     string filename = RelativeFileName(ix->m_Path, ival.second);
-                    //fprintf(stderr, "info file for key '%s'='%s' ; cwd=%s", ikey.c_str(), filename.c_str(), CurrentDirectory().c_str()); //-- DEBUG
                     if (!LoadFileToString(filename, Result, false)) {
                         Result += string("null");
                     }

@@ -5,6 +5,7 @@
 // ConcordIndex.cpp : Defines the entry point for the console application.
 //
 
+#include <iostream>
 #include "../CommonLib/ddcTime.h"
 #include "../ConcordLib/ConcCommon.h"
 #include "../ConcordLib/ConcIndexatorInvoker.h"

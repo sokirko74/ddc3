@@ -1,3 +1,4 @@
+#include <iostream>
 #include "nlp_base/common/utilit.h"
 #include "nlp_base/common/argparse.h"
 #include <signal.h>
@@ -100,19 +101,18 @@ bool CPrototype::Initialize(string PrototypeStr) {
             for (size_t j = 0; j < i; j++)
                 if (m_PrototypeStr[j] == '\n')
                     nl++;
-            fprintf(stderr, "unfinished place holder \"%s\" number %zi at offset %zi line %zi\n", PlaceHolderSequence,
-                    m_NameToOffset.size(), i, nl);
+            std::cerr << "unfinished place holder \"" << PlaceHolderSequence << "\" number " << m_NameToOffset.size() << " at offset " << i << " line " << nl << "\n";
             return false;
         };
         string Name = m_PrototypeStr.substr(i + strlen(PlaceHolderSequence), end - i - strlen(PlaceHolderSequence));
         m_NameToOffset[i] = Name;
         i = end + strlen(PlaceHolderSequence);
     };
-    fprintf(stderr, "Found place holders: ");
+    std::cerr << "Found place holders: ";
     for (map<int, string>::const_iterator it = m_NameToOffset.begin(); it != m_NameToOffset.end(); it++) {
-        fprintf(stderr, " %s", it->second.c_str());
+        std::cerr << " " << it->second;
     };
-    fprintf(stderr, "\n");
+    std::cerr << "\n";
 
     return true;
 };
@@ -180,7 +180,7 @@ void ReadQueriesFromFile(const char *Filename, StringVector &Queries) {
     Queries.clear();
     FILE *fp = fopen(Filename, "r");
     if (!fp) {
-        fprintf(stderr, "cannot open %s\n", Filename);
+        std::cerr << "cannot open " << Filename << "\n";
         exit(1);
     };
 
@@ -222,7 +222,7 @@ SOCKET CQueryRunner::OpenSocket()
 void my_handler(int i) {
     try {
 
-        fprintf(stderr, "Closing socket\n");
+        std::cerr << "Closing socket\n";
         if (QueryRunner)
             QueryRunner->CloseSocketsOnError();
 
@@ -258,9 +258,9 @@ void CQueryRunner::CloseTheSocket(SOCKET s) {
 
 
 string CQueryRunner::RunQuery(string query) {
-    fprintf(stderr, "Query = %s\n", query.c_str());
+    std::cerr << "Query = " << query << "\n";
 
-    fprintf(stderr, "Getting data from DDC (Timeout=%i sec.)\n", TimeOut);
+    std::cerr << "Getting data from DDC (Timeout=" << TimeOut << " sec.)\n";
     SOCKET socket = OpenSocket();
 
     string recievedString;
@@ -340,7 +340,7 @@ string CQueryRunner::FormatResponse(string query, string recievedString) {
         return response;
     };
 
-    fprintf(stderr, "%i hits found\n", HitsCount);
+    std::cerr << HitsCount << " hits found\n";
 
 
     list<map<string, string> > Hits;
@@ -366,7 +366,7 @@ string CQueryRunner::FormatResponse(string query, string recievedString) {
     };
 
     result += EndPart;
-    fprintf(stderr, "%zi hits were written\n", Hits.size());
+    std::cerr << Hits.size() << " hits were written\n";
     return result;
 };
 
@@ -452,6 +452,8 @@ void ThreadPool::Wait()
 
 
 int main(int argc, char **argv) {
+    ddcLogToStderr = true;   //-- library messages (ddcLog) go to stderr
+    ddcLogToFiles = false;
 
     ArgumentParser args;
     args.SetVersion(DDCVersionStr);
@@ -483,7 +485,7 @@ int main(int argc, char **argv) {
     string cfgPath = args.Retrieve("server");
     int threadCount = args.Retrieve("threads", -1);
     if (threadCount == 0 || ResultLimit < 0 || StartHitNo < 0) {
-        fprintf(stderr, "Error! --threads must be positive, --start and --limit cannot be negative\n");
+        std::cerr << "Error! --threads must be positive, --start and --limit cannot be negative\n";
         return 1;
     }
     StringVector Queries;
@@ -498,28 +500,28 @@ int main(int argc, char **argv) {
         }
     }
     catch (CExpc C) {
-        fprintf(stderr, "%s\n", C.what());
+        std::cerr << C.what() << "\n";
         return 1;
     };
     if (Queries.empty()) {
-        fprintf(stderr, "No query is specified\n%s", args.Usage().c_str());
+        std::cerr << "No query is specified\n" << args.Usage();
         return 1;
 
     };
 
 
     if (!SocketInitialize(true)) {
-        fprintf(stderr, "Service could invoke AfxSocketInit()\n");
+        std::cerr << "Service could invoke AfxSocketInit()\n";
         return -1;
     };
 
 
     string TemplateFile = GetPathByFile(GetIniFilePath()) + "etc/ddc_template.xml";
     if (OutputFormat == "table") {
-        fprintf(stderr, "Reading %s\n", TemplateFile.c_str());
+        std::cerr << "Reading " << TemplateFile << "\n";
         if (access(TemplateFile.c_str(), 04) != 0) {
             SocketDeinitialize();
-            fprintf(stderr, "Cannot load template file %s", TemplateFile.c_str());
+            std::cerr << "Cannot load template file " << TemplateFile;
             return -1;
         };
     };
@@ -527,7 +529,7 @@ int main(int argc, char **argv) {
     if (!outputFilePath.empty()) {
         outputFile = fopen(outputFilePath.c_str(), "w");
         if (!outputFile) {
-            fprintf(stderr, "Cannot write file %s", outputFilePath.c_str());
+            std::cerr << "Cannot write file " << outputFilePath;
             return 1;
         }
 
@@ -556,7 +558,7 @@ int main(int argc, char **argv) {
         }
     }
     catch (CExpc e) {
-        fprintf(stderr, "Error! %s\n", e.what());
+        std::cerr << "Error! " << e.what() << "\n";
         QueryRunner->CloseSocketsOnError();
         resultCode = 1;
     }

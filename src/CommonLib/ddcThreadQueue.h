@@ -83,10 +83,8 @@ public:
     {
         pthread_mutex_lock(&m_mutex);
         while (m_queue.size() == m_max_size) {
-            //fprintf(stderr, "ddcThreadQueue::add(): max queue size (%zu) reached; waiting...", m_queue.size());
             pthread_cond_wait(&m_condv_removed, &m_mutex);
         }
-        //fprintf(stderr, "ddcThreadQueue::add(): appending queue item to queue of size %zu", m_queue.size());
         m_queue.push_back(item);
         pthread_cond_signal(&m_condv_added);
         pthread_mutex_unlock(&m_mutex);

@@ -153,7 +153,6 @@ struct LessBySuffixIndex {
 void CStringIndexSet::QueryTokenListWithLeftTruncation(const string &Suffix, vector<uint32_t> &MatchWords) const {
     if (!m_rIndex)
         throw CDDCExpc("ERROR: CStringIndexSet::QueryTokenListWithLeftTruncation() called but no suffix index is defined");
-    //fprintf(stderr, "DEBUG: QueryTokenListWithLeftTruncation(%s)", Suffix.c_str());
 
     //-- LessBySuffixIndex: v2.1.21/1d-index,cstr+strlen
     LessBySuffixIndex Less(m_StringBuffer.m_data, m_Index.m_data, Suffix.size());

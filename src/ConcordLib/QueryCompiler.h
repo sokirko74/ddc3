@@ -246,7 +246,6 @@ public:
     // error reporting: throws a errParseError exception
     void barf(const std::string &msg) const;  //throw(CExpc)
 
-    // error reporting: throws a errParseError exception with a printf() format
     void barf(const char *fmt, ...) const; //throw(CExpc)
 
     // error reporting: throw a verbose errParseError exception using current lexer+parser context

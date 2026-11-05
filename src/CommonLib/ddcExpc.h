@@ -28,7 +28,6 @@ public:
 
     virtual ~CDDCExpc() {};
 
-    // set m_strCause with a printf() format
     void Set(const char* format, ... );
 
     // set m_strCause with a vprintf() format

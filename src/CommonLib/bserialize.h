@@ -4,6 +4,8 @@
 #include "nlp_base/common/utilit.h"
 #include "ddcUtil.h"
 #include "ddcExpc.h"
+#include "ddcLog.h"
+#include "ddcString.h"
         
 // ============== DWORD =====================
 inline size_t get_size_in_bytes (const uint32_t& t)
@@ -255,12 +257,12 @@ void ReadVectorInner (FILE* fp, std::vector<T>& V, size_t Count)
     }
     catch ( std::length_error  &e ) 
     {
-        fprintf (stderr, "ReadVectorInner:length_error exception is caught: %s\n", e.what( ));
+        ddcLogError(Format("ReadVectorInner:length_error exception is caught: %s", e.what( )));
         throw;
     }
     catch ( std::exception &e ) 
     {
-        fprintf (stderr, "ReadVectorInner: general std::exception is caught: %s\n", e.what( ));
+        ddcLogError(Format("ReadVectorInner: general std::exception is caught: %s", e.what( )));
         throw;
     };
 

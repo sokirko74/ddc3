@@ -403,13 +403,13 @@ bool LoadHosts (string Path, vector<CHost>& Hosts)
 {
     if (!FileExists(Path.c_str()))
     {
-        fprintf (stderr, "LoadHosts() ERROR: cannot access file %s\n", Path.c_str());
+        ddcLogError(Format("LoadHosts() ERROR: cannot access file %s", Path.c_str()));
         return false;
     };
     FILE * fp = fopen (Path.c_str(), "r");
     if (!fp) 
     {
-        fprintf (stderr, "LoadHosts() ERROR: cannot open file %s\n", Path.c_str());
+        ddcLogError(Format("LoadHosts() ERROR: cannot open file %s", Path.c_str()));
         return false;
     };
     char buffer[1024];
@@ -427,7 +427,7 @@ bool LoadHosts (string Path, vector<CHost>& Hosts)
         CHost T;
         if (!T.ReadFromString(Q)) 
         {
-            fprintf (stderr, "LoadHosts ERROR: could not parse file %s line number %i: %s\n", Path.c_str(), LineNo, buffer);
+            ddcLogError(Format("LoadHosts ERROR: could not parse file %s line number %i: %s", Path.c_str(), LineNo, buffer));
             fclose(fp);
             return false;
         };

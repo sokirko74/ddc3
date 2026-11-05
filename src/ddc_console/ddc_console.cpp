@@ -1,5 +1,6 @@
 // ConcordSimple.cpp : Defines the entry point for the 
 
+#include <iostream>
 #include "nlp_base/common/utilit.h"
 #include "nlp_base/common/argparse.h"
 #include <time.h>
@@ -14,16 +15,16 @@ using namespace std;
 void PrintHelp()
 {
                 
-    printf ("load <Concordance Project>  - load project\n");
-    printf ("query <query> - run a query\n");
-    printf ("set limit <limit> - maximal count of hits to find\n");
-    printf ("set profile_cycle <count> - how many times should the program run the query\n");
-    printf ("set out <file> - print hits to <file> \n");
-    printf ("set result_format html|txt|table|docids|json - set the format of hits\n");
-    printf ("exit - exit\n");
-    printf ("showtime - toggle show time switcher\n");
-    printf ("echoquery - toggle echo query switcher\n");
-    printf ("expand [PIPELINE] <word> - expand word to all known inflected forms\n");
+    std::cout << "load <Concordance Project>  - load project\n";
+    std::cout << "query <query> - run a query\n";
+    std::cout << "set limit <limit> - maximal count of hits to find\n";
+    std::cout << "set profile_cycle <count> - how many times should the program run the query\n";
+    std::cout << "set out <file> - print hits to <file> \n";
+    std::cout << "set result_format html|txt|table|docids|json - set the format of hits\n";
+    std::cout << "exit - exit\n";
+    std::cout << "showtime - toggle show time switcher\n";
+    std::cout << "echoquery - toggle echo query switcher\n";
+    std::cout << "expand [PIPELINE] <word> - expand word to all known inflected forms\n";
 
 };
 
@@ -67,17 +68,17 @@ void RunQuery(string Command, string Query)
     Trim(Query);
     if (Query.empty())
     {
-        printf ("cannot process empty query\n");
+        std::cout << "cannot process empty query\n";
         return;
     };              
     if (!Holder.m_pConcordance)
     {
-        printf ("no loaded corpus\n");
+        std::cout << "no loaded corpus\n";
         return;
     };              
 
     if (CountOfCycles > 1)
-        printf ("Count of profile cycles = %zi\n", CountOfCycles);
+        std::cout << "Count of profile cycles = " << CountOfCycles << "\n";
 
     uint32_t  EndHitNo = 0, HitsCount;         
                 
@@ -95,7 +96,7 @@ void RunQuery(string Command, string Query)
 
         if (Error != errNone)
         {
-            fprintf (stderr, "Error! %s \n", GetDDCErrorString(Error));
+            std::cerr << "Error! " << GetDDCErrorString(Error) << " \n";
             return;
         };
 
@@ -111,14 +112,14 @@ void RunQuery(string Command, string Query)
     string s = Holder.m_QueryResultStr;
     if (OutFile.empty())
     {
-        printf ("%s", s.c_str());
+        std::cout << s;
     }
     else
     {
         FILE * fp = (OutFile.empty() ? stdout : fopen (OutFile.c_str(),"a"));
         if (!fp)
         {
-            fprintf (stderr, "cannot open  %s\n", OutFile.c_str());
+            std::cerr << "cannot open  " << OutFile << "\n";
         }
         else
         {
@@ -128,9 +129,9 @@ void RunQuery(string Command, string Query)
     };
         
 
-    printf ("HitsCount = %u\n", HitsCount);
+    std::cout << "HitsCount = " << HitsCount << "\n";
     if (bShowTime)
-        fprintf (stderr, "Seconds = %zi\n", t2 - t1);
+        std::cerr << "Seconds = " << (t2 - t1) << "\n";
 
 };
 
@@ -141,7 +142,7 @@ void RunExpand(string Command, string Args)
     string cspec("default");
     set<string> words;
     if (args.empty()) {
-        printf ("Usage: expand [PIPELINE] WORD(s)...\n");
+        std::cout << "Usage: expand [PIPELINE] WORD(s)...\n";
         return;
     }
     else if (args.size() == 1) {
@@ -154,7 +155,7 @@ void RunExpand(string Command, string Args)
 
     if (!Holder.m_pConcordance)
     {
-        printf ("no corpus loaded\n");
+        std::cout << "no corpus loaded\n";
         return;
     }
 
@@ -164,7 +165,7 @@ void RunExpand(string Command, string Args)
         txc = Holder.m_pConcordance->m_Txd.getChain(cspec);
     }
     catch (exception &e) {
-        fprintf(stderr, "Could not create pipeline `%s': %s\n", cspec.c_str(), e.what());
+        std::cerr << "Could not create pipeline `" << cspec << "': " << e.what() << "\n";
         return;
     }
 
@@ -172,11 +173,11 @@ void RunExpand(string Command, string Args)
     set<string> xwords;
     txc.expand(words, xwords);
 
-    printf("Got %zi expansions for pipeline [%s]\n: ", xwords.size(), txc.chainString().c_str());
+    std::cout << "Got " << xwords.size() << " expansions for pipeline [" << txc.chainString() << "]\n: ";
     for (set<string>::const_iterator xi=xwords.begin(); xi!=xwords.end(); xi++) {
-        printf("%s%s", (xi==xwords.begin() ? "" : ", "), xi->c_str());
+        std::cout << (xi==xwords.begin() ? "" : ", ") << *xi;
     }
-    printf("\n");
+    std::cout << "\n";
 };
 
 
@@ -187,13 +188,13 @@ void RunCommand(string line)
     if (line  == "showtime") 
     {
         bShowTime = !bShowTime;
-        printf ("ShowTime = %s\n", bShowTime? "true":  "false");
+        std::cout << "ShowTime = " << (bShowTime ? "true" : "false") << "\n";
         return;
     };
     if (line  == "echoquery") 
     {
         bEchoQuery = !bEchoQuery;
-        printf ("EchoQuery = %s\n", bEchoQuery? "true":  "false");
+        std::cout << "EchoQuery = " << (bEchoQuery ? "true" : "false") << "\n";
         return;
     };
     if (line  == "help")
@@ -219,14 +220,14 @@ void RunCommand(string line)
             if (variab == "profile_cycle")
             {
                 CountOfCycles = atoi(value.c_str());
-                printf ("Count of profile cycles = %zi\n", CountOfCycles);
+                std::cout << "Count of profile cycles = " << CountOfCycles << "\n";
                                 
             }
             else
                 if (variab == "limit")
                 {
                     Holder.m_ResultLimit = atoi(value.c_str());
-                    fprintf  (stderr, "ResultLimit = %zi\n", Holder.m_ResultLimit);
+                    std::cerr << "ResultLimit = " << Holder.m_ResultLimit << "\n";
                 }
                 else
                     if (variab == "out")
@@ -239,12 +240,12 @@ void RunCommand(string line)
                         if (variab == "result_format")
                         {
                             Holder.SetResultFormat(value);
-                            fprintf  (stderr, "result format = %s\n", Holder.GetResultFormatStr().c_str());
+                            std::cerr << "result format = " << Holder.GetResultFormatStr() << "\n";
                         };
         }
         else
         {
-            fprintf  (stderr, "Unknown command, type \"help\" to get the list of commands\n");
+            std::cerr << "Unknown command, type \"help\" to get the list of commands\n";
         };
         
         
@@ -253,6 +254,8 @@ void RunCommand(string line)
 
 int main(int argc, char* argv[])
 {
+    ddcLogToStderr = true;   //-- library messages (ddcLog) go to stderr
+    ddcLogToFiles = false;
     ddcInitGlobal();
 
     ArgumentParser args;
@@ -274,7 +277,7 @@ int main(int argc, char* argv[])
     char *linebuf=(char*)malloc(bufsize);
     for (;;)
     {
-        printf (">");
+        std::cout << ">";
         ssize_t nread = getline(&linebuf,&bufsize,stdin);
         if (nread==-1 || (nread==0 && feof(stdin))) break;
         string q(linebuf, nread);
@@ -287,7 +290,7 @@ int main(int argc, char* argv[])
         }
         catch (exception &e) {
             //-- e.g. a query that is not valid UTF-8: report it and wait for the next command
-            fprintf (stderr, "Error: %s\n", e.what());
+            std::cerr << "Error: " << e.what() << "\n";
         }
 
     };

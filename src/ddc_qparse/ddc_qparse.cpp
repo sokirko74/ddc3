@@ -1,3 +1,4 @@
+#include <iostream>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -16,6 +17,7 @@ CQueryCompiler qc;
 
 int main(int argc, char **argv)
 {
+    ddcLogToFiles = false;
     //---- command-line params
     string prog_base = FileBasename(*argv);
     prog = prog_base.c_str();
@@ -60,7 +62,7 @@ int main(int argc, char **argv)
         }
     }
     catch (std::exception &e) {
-        fprintf(stderr, "%s: %s\n", prog, e.what());
+        std::cerr << prog << ": " << e.what() << "\n";
         return 1;
     }
 
@@ -75,7 +77,7 @@ int main(int argc, char **argv)
     string ostr = (outputJson
                    ? qc.QueryToJson()
                    : qc.QueryToString());
-    printf("%s\n", ostr.c_str());
+    std::cout << ostr << "\n";
 
     //-- cleanup
     qc.CleanParser();

@@ -106,7 +106,7 @@ bool InitConcordDicts() {
         return true;
     }
     catch (std::exception& c) {
-        fprintf(stderr, "Exception %s \n", c.what());
+        ddcLogError(Format("Exception %s", c.what()));
         return false;
     }
     catch (...) {

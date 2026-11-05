@@ -518,7 +518,7 @@ void CFreeBiblStringIndex::RegisterBiblStringItemId(const string &ValueStr) {
 
 
 bool CFreeBiblStringIndex::ConvertAndSaveToDiskAfterIndexing(string m_Path) {
-    fprintf(stderr, "sorting and saving index for %s\n", m_Name.c_str());
+    ddcLogDebug(Format("sorting and saving index for %s", m_Name.c_str()));
     { // converting
         vector<uint32_t> Old2New(m_BuildStringItemsMap.size());
         size_t newId = 0;
@@ -551,7 +551,7 @@ bool CFreeBiblStringIndex::ConvertAndSaveToDiskAfterIndexing(string m_Path) {
         return false;
     }
 
-    fprintf(stderr, "Writing %zi items  to %s_*\n", m_BuildStringItemsMap.size(), StringFileName.c_str());
+    ddcLogDebug(Format("Writing %zi items  to %s_*", m_BuildStringItemsMap.size(), StringFileName.c_str()));
 
     bool rc = true;
     try {
@@ -568,11 +568,11 @@ bool CFreeBiblStringIndex::ConvertAndSaveToDiskAfterIndexing(string m_Path) {
         rc = true;
     }
     catch (exception &e) {
-        fprintf(stderr, "CFreeBiblStringIndex::ConvertAndSaveToDiskAfterIndexing(): Exception: %s\n", e.what());
+        ddcLogError(Format("CFreeBiblStringIndex::ConvertAndSaveToDiskAfterIndexing(): Exception: %s", e.what()));
         rc = false;
     }
     catch (...) {
-        fprintf(stderr, "CFreeBiblStringIndex::ConvertAndSaveToDiskAfterIndexing(): Exception: (unhandled exception)\n");
+        ddcLogError("CFreeBiblStringIndex::ConvertAndSaveToDiskAfterIndexing(): Exception: (unhandled exception)");
         rc = false;
     }
 

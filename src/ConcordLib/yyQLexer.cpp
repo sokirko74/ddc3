@@ -1292,7 +1292,7 @@ using namespace std;
 # define DBG(code)
 #endif
 
-#define DPRINTF2(a1,a2) DBG(fprintf(stderr,a1,a2);)
+#define DPRINTF2(a1,a2) DBG(ddcLogDebug(Format(a1,a2));)
 
 //-- DDC_WANT_LEXER_COMMENTS : define this to return lexer comments from yylex()
 // + lexer comments were introduced for v2.1.16

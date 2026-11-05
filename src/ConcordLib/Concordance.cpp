@@ -627,7 +627,7 @@ void CConcordance::DumpIndex(string dirname, CIndexDumpFormat fmt) const {
         FILE *dumpfh = fopen(dumpfile.c_str(), "wb");
         if (!dumpfh)
             throw CDDCExpc(errRuntime, "Error: open failed for dump file '%s': %s", dumpfile.c_str(), StrError(errno));
-        fprintf(stderr, "dumping %s ~ %s\n", dumpfile.c_str(), m_CorpusFiles[fn].c_str());
+        ddcLogDebug(Format("dumping %s ~ %s", dumpfile.c_str(), m_CorpusFiles[fn].c_str()));
         switch (fmt) {
             case idfJson:
                 DumpFileIndexJson(fn, dumpfh);

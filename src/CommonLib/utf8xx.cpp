@@ -17,13 +17,6 @@
 #include <string.h>
 #include <stdarg.h>
 
-#if 0
-/* Tue, 23 Feb 2016 14:24:52 +0100
- * + disable from non-POSIX alloca.h (used by u8_vprintf(), u8_printf())
- */
-#include <alloca.h>
-#endif /*-- disable alloca.h dependency --*/
-
 #include "utf8xx.h"
 
 using namespace std;
@@ -474,43 +467,5 @@ int u8_is_locale_utf8(char *locale)
     return 0;
 }
 
-#if 0
-/* Tue, 23 Feb 2016 14:24:52 +0100
- * + disable u8_vprintf() and u8_printf() since they rely on alloca() from non-POSIX alloca.h
- */
-int u8_vprintf(char *fmt, va_list ap)
-{
-    int cnt, sz=0;
-    char *buf;
-    u_int32_t *wcs;
-
-    sz = 512;
-    buf = (char*)alloca(sz);
-  try_print:
-    cnt = vsnprintf(buf, sz, fmt, ap);
-    if (cnt >= sz) {
-        buf = (char*)alloca(cnt - sz + 1);
-        sz = cnt + 1;
-        goto try_print;
-    }
-    wcs = (u_int32_t*)alloca((cnt+1) * sizeof(u_int32_t));
-    cnt = u8_toucs(wcs, cnt+1, buf, cnt);
-    printf("%ls", (wchar_t*)wcs);
-    return cnt;
-}
-
-int u8_printf(char *fmt, ...)
-{
-    int cnt;
-    va_list args;
-
-    va_start(args, fmt);
-
-    cnt = u8_vprintf(fmt, args);
-
-    va_end(args);
-    return cnt;
-}
-#endif /*-- disable alloca()-dependent functions --*/
 
 #endif /* UTF8XX_C_API */

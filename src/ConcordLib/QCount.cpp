@@ -570,7 +570,7 @@ void CQCount::CountLocal(CQueryResult &Result, size_t Limit) {
     if (keys->CanCountByFile()) {
         //-- counting guts: file-level
 #if DEBUG_NCOUNT
-        fprintf(stderr, "DEBUG_NCOUNT: count-by-file\n");
+        ddcLogDebug("DEBUG_NCOUNT: count-by-file");
 #endif
         bool isWithinFile = (qRoot->m_Options->m_HitTypeStr == PredefinedFileBreakName);
         uint32_t f = (uint32_t) -1;
@@ -601,7 +601,7 @@ void CQCount::CountLocal(CQueryResult &Result, size_t Limit) {
     } else if (m_Options ? m_Options->m_bSeparateHits : qRoot->m_Options->m_bSeparateHits) {
         //-- counting guts: token-level
 #if DEBUG_NCOUNT
-        fprintf(stderr, "DEBUG_NCOUNT: count-by-token\n");
+        ddcLogDebug("DEBUG_NCOUNT: count-by-token");
 #endif
         for (vector<CHit>::const_iterator hi = Result.m_Hits.begin();
              hi != Result.m_Hits.end() && m_CountSample < m_sample; ++hi, ++m_CountSample) {
@@ -612,7 +612,7 @@ void CQCount::CountLocal(CQueryResult &Result, size_t Limit) {
         //-- counting guts: break-level
         //  + this code assumes m_dtr hits are populated with bSeparateHits=true !
 #if DEBUG_NCOUNT
-        fprintf(stderr, "DEBUG_NCOUNT: count-by-break\n");
+        ddcLogDebug("DEBUG_NCOUNT: count-by-break");
 #endif
         //CConcHolder *holder = (CConcHolder *) m_Compiler->m_pHolder;
         set<string> bkeys;
@@ -857,7 +857,7 @@ bool CQKeys::Compile(CQueryCompiler *compiler) {
             m_dtrs.push_back(new CQTokSet(*ixi));
     }
 
-    KEYSDEBUG(fprintf(stderr, "[DEBUG:keys] %s\n", (this->toString() + this->optionsToString()).c_str()));
+    KEYSDEBUG(ddcLogDebug(Format("[DEBUG:keys] %s", (this->toString() + this->optionsToString()).c_str())));
 
     //-- create joint proxy query
     m_proxy = NULL;
@@ -913,7 +913,7 @@ bool CQKeys::Compile(CQueryCompiler *compiler) {
         throw CDDCExpc(errParseError, "could not compile subquery `%s' for keys-query `%s'", m_proxy->toString().c_str(),
                     this->toString().c_str());
 
-    KEYSDEBUG(fprintf(stderr, "[DEBUG:keys:proxy] %s\n", (m_proxy->toString() + m_proxy->optionsToString()).c_str()));
+    KEYSDEBUG(ddcLogDebug(Format("[DEBUG:keys:proxy] %s", (m_proxy->toString() + m_proxy->optionsToString()).c_str())));
 
     //-- setup proxy m_Node
     m_Node = m_proxy->m_Node;

@@ -578,7 +578,7 @@ void CConcIndexator::IndexTextOrHtmlFile(CIndexDocument* document) {
     // write the last sentence if it contains at least one token
     if (!m_bQueryOnlyFiles)
         if (CurrSentenceBreak < document->CorpusEndTokenNo) {
-            fprintf(stderr, "The last end of sentence is not found, graphematics should be refactored :)\n");
+            ddcLogError("The last end of sentence is not found, graphematics should be refactored :)");
             CurrSentenceBreak = document->CorpusEndTokenNo;
             AddBreakByIndex(SentenceBreakCollection, document->CorpusEndTokenNo);
             SentNo++;

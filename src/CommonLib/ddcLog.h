@@ -77,7 +77,7 @@ inline void concord_daemon_log(const std::string& t)
 { ddcLog(t); }
 
 /* macro to conditionally log a message; only evaluates Msg if Test is true */
-#define ddcLogIf(Test,Msg) if (Test) ddcLog(Msg)
+#define ddcLogIf(Test,Msg) do { if (Test) ddcLog(Msg); } while (0)
 
 /* conditionally log an error-message if ddcLogLevel >= ddcLLError */
 #define ddcLogError(Msg) ddcLogIf((ddcLogLevel >= ddcLLError),Msg)
