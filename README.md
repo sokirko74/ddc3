@@ -13,6 +13,18 @@ The DDC-2.x branch was maintained in SVN under:
 
 ## Dependencies
 
+- **A C++17 compiler, make, CMake** — a fresh Ubuntu has no compiler, and the
+  `cmake` package does not pull it in; `cmake` then fails with
+  "No CMAKE_CXX_COMPILER could be found". On Debian/Ubuntu install everything
+  needed for the build with
+
+      sudo apt install build-essential cmake git zlib1g-dev libpugixml-dev libpcre2-dev flex bison
+
+  CMake picks the compiler once, on the first configure (`-DCMAKE_CXX_COMPILER`,
+  else `$CXX`, else `c++` from `PATH`, i.e. g++ on Ubuntu), and stores it in
+  `build/CMakeCache.txt`. After installing or changing the compiler remove the
+  build directory (or `CMakeCache.txt` and `CMakeFiles/`) and configure again.
+
 - **nlp_base** (git submodule `src/nlp_base`,
   <https://github.com/sokirko74/nlp_base>, formerly morph_dict) — morphology,
   graphematics and structural dictionaries (Ross) shared with RML, with the
