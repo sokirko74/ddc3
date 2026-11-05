@@ -15,7 +15,6 @@ add_library(ConcordDmnLib
 
 target_link_libraries(ConcordDmnLib
     ConcordLib
-    jsoncpp_lib_static
 )
 
 

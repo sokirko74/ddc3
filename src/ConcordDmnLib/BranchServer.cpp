@@ -2,7 +2,8 @@
 #include "../CommonLib/ddcString.h"
 #include "../CommonLib/ddcTime.h"
 #include "../ConcordLib/QueryCompiler.h"
-#include "json/json.h"
+#include "nlp_base/common/rapidjson.h"
+#include "nlp_base/contrib/rapidjson/error/en.h"
 #include "../CommonLib/ddcProcess.h"
 
 using namespace std;
@@ -778,18 +779,18 @@ void CDDCBranchServer::handle__nodes(string &Result, int depth)
     if (depth != 0) {
         vector<string> Results(m_Hosts.size());
         GetSubcorpusJsonStrings(Results, Format("nodes %d",depth-1));
-        Json::Reader jreader;
-        
         for (size_t hi=0; hi < m_Hosts.size(); ++hi) {
-            Json::Value hval;
+            rapidjson::Document hval;
             string dtrPath = string("/") + m_Hosts[hi].m_ShortName;
-            if (!jreader.parse(Results[hi],hval)) {
-                nodes.push_back(dtrPath + ": Error: " + jreader.getFormattedErrorMessages());
+            if (hval.Parse(Results[hi].c_str()).HasParseError()) {
+                nodes.push_back(dtrPath + ": Error: " + Format("%s (offset %zu)",
+                    rapidjson::GetParseError_En(hval.GetParseError()), hval.GetErrorOffset()));
             }
-            else if (hval.isArray()) {
-                //-- array: branch node
-                for (Json::Value::iterator hvi=hval.begin(); hvi!=hval.end(); ++hvi) {
-                    nodes.push_back(dtrPath + hvi->asString());
+            else if (hval.IsArray()) {
+                //-- array of strings: branch node
+                for (auto &hvi : hval.GetArray()) {
+                    if (hvi.IsString())
+                        nodes.push_back(dtrPath + hvi.GetString());
                 }
             }
             else {

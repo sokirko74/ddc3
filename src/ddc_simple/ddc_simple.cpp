@@ -6,7 +6,7 @@
 //#include "../ConcordLib/QueryCompiler.h" //-- for debugging ddcObject::Descendants()
 #include "nlp_base/common/utilit.h"
 #include "../CommonLib/ddcUtil.h"
-#include "../contrib/jsoncpp/include/json/json.h"
+#include "nlp_base/common/rapidjson.h"
 #include "../CommonLib/ddcProcess.h"
 
 
@@ -48,11 +48,14 @@ void PrintUsageAndExit() {
 };
 
 string PrettifyJson (string s) {
-    Json::Reader jsonReader;
-    Json::Value value;
-    jsonReader.parse(s, value);
-    Json::StyledWriter writer;
-    return writer.write(value);
+    rapidjson::Document doc;
+    if (doc.Parse(s.c_str()).HasParseError())
+        return s;
+    rapidjson::StringBuffer buffer;
+    rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
+    writer.SetIndent(' ', 3);
+    doc.Accept(writer);
+    return string(buffer.GetString()) + "\n";
 }
 
 int main(int argc, char *argv[]) {
