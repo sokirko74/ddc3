@@ -53,8 +53,14 @@ int main(int argc, char **argv)
 
     //-- compile
     qc.m_KeepLexerComments = outputComments;
-    if (!qc.ParseQuery(qstr)) {
-        ddcLogError("failed to parse query");
+    try {
+        if (!qc.ParseQuery(qstr)) {
+            ddcLogError("failed to parse query");
+            return 1;
+        }
+    }
+    catch (std::exception &e) {
+        fprintf(stderr, "%s: %s\n", prog, e.what());
         return 1;
     }
 

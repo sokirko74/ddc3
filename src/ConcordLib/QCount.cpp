@@ -32,7 +32,6 @@ struct IsLessByBreakNo {
     bool operator()(const CHit &h1, const CHit &h2) const { return h1.m_BreakNo < h2.m_BreakNo; };
 };
 
-
 //==============================================================================
 // direct comparison operator for hits on CHit::m_SortKey.i (for std::sort)
 struct HitLessByCountValue {
@@ -58,7 +57,6 @@ static inline uint32_t HitOccurrenceEnd(const CHit &Hit, const CConcHolder *hold
     const vector<CTokenNo> &occurrences = holder->m_HighlightOccurs;
     return Hit.m_HighlightOccurrenceEnd >= occurrences.size() ? occurrences.size() : Hit.m_HighlightOccurrenceEnd;
 };
-
 
 //==============================================================================
 // CQCountKeyExpr
@@ -179,17 +177,8 @@ CQCountKeyExprRegex::~CQCountKeyExprRegex() {
 }
 
 //----------------------------------------------------------------------
-ddcObjectList CQCountKeyExprRegex::Children() const {
-    ddcObjectList kids(CQuery::Children());
-    if (m_Src) kids.push_back(m_Src);
-    return kids;
-}
 
 //----------------------------------------------------------------------
-void CQCountKeyExprRegex::DisownChildren() {
-    CQuery::DisownChildren();
-    m_Src = NULL;
-}
 
 //----------------------------------------------------------------------
 bool CQCountKeyExprRegex::Compile(CQueryCompiler *compiler) {
@@ -301,10 +290,8 @@ string CQCountKeyExprToken::jsonData() {
         Format(",\"MatchId\":%hhu,\"Offset\":%d", m_MatchId, m_Offset);
 }
 
-
 //==============================================================================
 // CQCountKeyExprList
-
 
 //----------------------------------------------------------------------
 CQCountKeyExprList::~CQCountKeyExprList() {
@@ -320,19 +307,8 @@ void CQCountKeyExprList::Clear() {
 };
 
 //----------------------------------------------------------------------
-ddcObjectList CQCountKeyExprList::Children() const {
-    ddcObjectList kids(CQuery::Children());
-    for (vector<CQCountKeyExpr *>::const_iterator xi = m_Exprs.begin(); xi != m_Exprs.end(); xi++) {
-        if (*xi) kids.push_back((ddcObject *) (*xi));
-    }
-    return kids;
-}
 
 //----------------------------------------------------------------------
-void CQCountKeyExprList::DisownChildren() {
-    CQuery::DisownChildren();
-    m_Exprs.clear();
-}
 
 //----------------------------------------------------------------------
 bool CQCountKeyExprList::CanCountByFile() const {
@@ -430,19 +406,8 @@ void CQCount::Clear(bool deep) {
 }
 
 //--------------------------------------------------------------
-ddcObjectList CQCount::Children() const {
-    ddcObjectList kids(CQuery::Children());
-    if (m_dtr) kids.push_back(m_dtr);
-    if (m_keys) kids.push_back(m_keys);
-    return kids;
-}
 
 //--------------------------------------------------------------
-void CQCount::DisownChildren() {
-    CQuery::DisownChildren();
-    m_dtr = NULL;
-    m_keys = NULL;
-}
 
 //--------------------------------------------------------------
 BYTE CQCount::GetMatchId() const {
@@ -762,7 +727,6 @@ void CQCount::ConvertCountsToHits(CQueryResult &Result, size_t Limit) {
     if (Limit < Result.m_Hits.size())
         Result.m_Hits.resize(Limit);
 
-
     //-- count query: setup CQueryResult fields
     Result.m_HighlightOccurs.clear();
     Result.m_HighlightIds.clear();
@@ -847,20 +811,8 @@ void CQKeys::Clear(bool deep) {
 }
 
 //--------------------------------------------------------------
-ddcObjectList CQKeys::Children() const {
-    ddcObjectList kids(CQuery::Children());
-    if (m_qCount) kids.push_back(m_qCount);
-    //if (m_proxy) kids.push_back(m_proxy);
-    return kids;
-}
 
 //--------------------------------------------------------------
-void CQKeys::DisownChildren() {
-    CQuery::DisownChildren();
-    m_qCount = NULL;
-    m_proxy = NULL;
-    m_dtrs.clear();
-}
 
 //--------------------------------------------------------------
 //#define KEYSDEBUG(code) code
@@ -1049,7 +1001,6 @@ void GenerateCountString(string &ResultStr, DDCFormatTypeEnum fmt, const string 
             }
             ResultStr += "</TR>\n";
             break;
-
 
         case DDC_ResultText:
         case DDC_ResultTable:

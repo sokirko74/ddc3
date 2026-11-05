@@ -28,7 +28,7 @@
 
   moo: renamed CQueryParser to CQueryCompiler to reflect actual functionality.
 */
-class CQueryCompiler : public ddcObject, virtual public yyqLexer
+class CQueryCompiler : public CQueryObject, virtual public yyqLexer
 {
 public:
     //--------------------------------------------------------------
@@ -253,9 +253,7 @@ public:
     // - this is called by underlying bison parser's yyerror() routine
     void yybarf(const char *yymsg) const; //throw(CExpc)
 
-    //-- ddcObject API
-    virtual ddcObjectList Children() const;
-    virtual void DisownChildren();
+    //-- CQueryObject API
     virtual std::string jsonClass() { return "CQueryCompiler"; };
     virtual std::string jsonData()  { return std::string("\"Query\":" + jsonStr(m_pQuery)); };
 };

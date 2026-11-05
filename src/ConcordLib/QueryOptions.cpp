@@ -332,13 +332,5 @@ string CQueryOptions::jsonData()
 }
 
 //--------------------------------------------------------------
-ddcObjectList CQueryOptions::Children() const
-{
-    return ddcObjectList(m_QFilters.begin(), m_QFilters.end());
-}
  
 //--------------------------------------------------------------
-void CQueryOptions::DisownChildren()
-{
-    m_QFilters.clear();
-}

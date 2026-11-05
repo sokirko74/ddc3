@@ -109,18 +109,8 @@ bool CQuery::HasMatchId() const
 };
 
 //--------------------------------------------------------------
-ddcObjectList CQuery::Children() const
-{
-    ddcObjectList kids;
-    if (m_Options) kids.push_back(m_Options);
-    return kids;
-};
 
 //--------------------------------------------------------------
-void CQuery::DisownChildren()
-{
-    m_Options = NULL;
-};
 
 //--------------------------------------------------------------
 void CQuery::SetOptions(CQueryOptions *opts)
@@ -144,7 +134,6 @@ string CQuery::optionsToJson()
         return m_Options->toJson();
     return string("null");
 }
-
 
 //======================================================================
 // CQNegatable
@@ -217,21 +206,6 @@ void CQBinOp::Clear(bool deep)
     }
     m_dtr1=NULL;
     m_dtr2=NULL;
-}
-
-ddcObjectList CQBinOp::Children() const
-{
-    ddcObjectList kids(CQuery::Children());
-    if (m_dtr1) kids.push_back(m_dtr1);
-    if (m_dtr2) kids.push_back(m_dtr2);
-    return kids;
-}
-
-void CQBinOp::DisownChildren()
-{
-    CQuery::DisownChildren();
-    m_dtr1 = NULL;
-    m_dtr2 = NULL;
 }
 
 bool CQBinOp::Compile(CQueryCompiler *compiler)
@@ -518,7 +492,6 @@ string CQToken::jsonData() {
         );
 }
 
-
 //======================================================================
 // CQTokExact
 
@@ -662,7 +635,6 @@ string CQTokInfl::jsonData() {
 //======================================================================
 // CQTokSetInfl
 
-
 bool CQTokSetInfl::Create(CQueryTokenNode *pNode)
 {
     set<string> src(m_RawValues);
@@ -748,7 +720,6 @@ bool CQTokMorph::Create(CQueryTokenNode *pNode)
         throw CDDCExpc(errParseError,"empty pattern not allowed in morphological pattern query `%s'", this->toString().c_str());
     if (m_IndexName.empty())
         throw CDDCExpc(errParseError,"unknown index $%s in morphological pattern query `%s'", m_IndexName.c_str(), this->toString().c_str());
-
 
     return pNode->CreateMorphAnnotationPattern(m_Compiler->m_pHolder, m_IndexName, m_Items);
 }
@@ -855,23 +826,6 @@ void CQNear::Clear(bool deep)
         if (m_dtr2) delete m_dtr2;
         if (m_dtr3) delete m_dtr3;
     }
-    m_dtr1 = NULL;
-    m_dtr2 = NULL;
-    m_dtr3 = NULL;
-}
-
-ddcObjectList CQNear::Children() const
-{
-    ddcObjectList kids(CQuery::Children());
-    if (m_dtr1) kids.push_back(m_dtr1);
-    if (m_dtr2) kids.push_back(m_dtr2);
-    if (m_dtr3) kids.push_back(m_dtr3);
-    return kids;
-}
-
-void CQNear::DisownChildren()
-{
-    CQuery::DisownChildren();
     m_dtr1 = NULL;
     m_dtr2 = NULL;
     m_dtr3 = NULL;
@@ -991,21 +945,6 @@ BYTE CQSeq::SetMatchId(BYTE matchId)
         (*ii)->SetMatchId(matchId);
     }
     return matchId;
-}
-
-ddcObjectList CQSeq::Children() const
-{
-    ddcObjectList kids(CQuery::Children());
-    for (vector<CQToken*>::const_iterator qi=m_Items.begin(); qi!=m_Items.end(); ++qi) {
-        if (*qi) kids.push_back((ddcObject*)(*qi));
-    }
-    return kids;
-}
-
-void CQSeq::DisownChildren()
-{
-    CQuery::DisownChildren();
-    m_Items.clear();
 }
 
 void CQSeq::Append(CQToken *nextItem, BYTE nextDist, BYTE nextDistOp)

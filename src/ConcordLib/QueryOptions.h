@@ -16,7 +16,7 @@ typedef std::list<std::string>            CQCommentList;
 /*
   root-level query options (filters and flags)
 */
-class CQueryOptions : public ddcObject {
+class CQueryOptions : public CQueryObject {
 public:
     // how many hits of the left and right context should be output (must be &lt;= m_MaxContextSentencesCount)
     size_t m_ContextSentencesCount;
@@ -130,10 +130,7 @@ public:
 
 public:
     //------------------------------------------------------------
-    // ddcObject API
-    //
-    virtual ddcObjectList Children() const;
-    virtual void DisownChildren();
+    // CQueryObject API
     virtual std::string toString();
     virtual std::string jsonClass() { return "CQueryOptions"; };
     virtual std::string jsonData();

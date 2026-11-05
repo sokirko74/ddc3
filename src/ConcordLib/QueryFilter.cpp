@@ -55,7 +55,6 @@ bool CQFilter::CheckSatisfiable(CQueryCompiler *compiler, CQueryOptions *options
     return true;
 }
 
-
 //--------------------------------------------------------------
 bool CQFilter::Compile(CQueryCompiler *compiler, CQueryOptions *options)
 {
@@ -64,7 +63,6 @@ bool CQFilter::Compile(CQueryCompiler *compiler, CQueryOptions *options)
     throw CDDCExpc(errParseError,"CQFilter::Compile(): abstract method called!");
     return false;
 }
-
 
 //======================================================================
 // CQFSort
@@ -157,14 +155,12 @@ CFreeBiblIndex* CQFSort::GetBiblConstant(CQueryCompiler *compiler, const string 
     return NULL;
 }
 
-
 //--------------------------------------------------------------
 string CQFSort::argString(const string &arg) const
 {
     if (arg.empty()) return arg;
     return string("'") + escapeChars(arg,"\\'") + "'";
 }
-
 
 //--------------------------------------------------------------
 string CQFSort::toString(void)
@@ -206,7 +202,6 @@ string CQFSort::jsonType()
 {
     return string("\"FilterType\":")+jsonStr(HitSortEnumStrings[m_Filter.m_FilterType]);
 };
-
 
 //======================================================================
 // CQFRankSort
@@ -271,7 +266,6 @@ bool CQFRandomSort::Compile(CQueryCompiler *compiler, CQueryOptions *options)
     compiler->m_pHolder->SetRandomSeed((unsigned int)seed);
     return CQFSort::Compile(compiler, options);
 }
-
 
 //======================================================================
 // CQFBiblSort
@@ -374,7 +368,6 @@ string CQFContextSort::jsonData(void)
             +","+this->jsonMinMax()
         );
 };
-
 
 //======================================================================
 // CQFHasField
@@ -573,7 +566,6 @@ CQFPrune::CQFPrune(HitSortEnum ftype, size_t Limit, CQCountKeyExprList* Keys)
     m_Filter.m_KeyHi      = INT_MAX;
 }
 
-
 CQFPrune::~CQFPrune()
 {
     if (m_keys) {
@@ -598,7 +590,6 @@ bool CQFPrune::Compile(CQueryCompiler *compiler, CQueryOptions *options)
             && m_keys->Compile(compiler));
 };
 
-
 string CQFPrune::toString()
 {
     string s = Format("#%s[%zd", HitSortEnumStrings[m_Filter.m_FilterType], m_limit);
@@ -621,16 +612,8 @@ string CQFPrune::jsonData()
 };
 
 //--------------------------------------------------------------
-ddcObjectList CQFPrune::Children() const {
-    ddcObjectList kids(ddcObject::Children());
-    if (m_keys) kids.push_back(m_keys);
-    return kids;
-};
 
 //--------------------------------------------------------------
-void CQFPrune::DisownChildren() {
-    m_keys = NULL;
-};
 
 //-- see also CQCount::CountLocal()
 void CQFPrune::PruneHitsIndex(const CQuery *qRoot, vector<size_t>& PeriodHitsIndex)

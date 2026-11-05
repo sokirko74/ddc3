@@ -13,7 +13,7 @@ extern const BYTE DefaultMatchId;
   
   Should eventually replace old ad-hoc QueryNode.h 
 */
-class CQuery : public ddcObject {
+class CQuery : public CQueryObject {
 public:
     // arbitrary name for this query node (e.g. string from which it was parsed)
     std::string m_Label;
@@ -88,19 +88,7 @@ public:
     //
 
     //------------------------------------------------------------
-    // Object Substructure (ddcObject API)
-    //
-    // get a list of direct non-NULL CQuery direct daughters of this node
-    // - default just returns an empty list
-    virtual ddcObjectList Children() const;
-
-    // "disown" any direct child nodes, preventing their destruction if the current object is deleted
-    // - default implementation does nothing
-    virtual void DisownChildren();
-    //
-
-    //------------------------------------------------------------
-    // Stringification (ddcObject API & associated utilities)
+    // Stringification (CQueryObject API & associated utilities)
     //
     // DEBUG: return a canonical string form for this query (default just returns m_Label)
     virtual std::string toString() { return m_Label; };
@@ -171,7 +159,7 @@ public:
     // override just calls m_Node->SetNegation(m_Negated)
     virtual bool Compile(CQueryCompiler *compiler);
 
-    //-- ddcObject API
+    //-- CQueryObject API
     virtual std::string jsonClass() { return "CQNegatable"; };
     virtual std::string jsonData()  { return std::string("\"Negated\":")+(m_Negated ? "1" : "0"); };
 };
@@ -186,7 +174,7 @@ public:
     {};
     virtual ~CQAtomic() {};
 
-    //-- ddcObject API
+    //-- CQueryObject API
     virtual std::string jsonClass() { return "CQAtomic"; };
 };
 
@@ -230,9 +218,7 @@ public:
     // compile the query
     virtual bool Compile(CQueryCompiler *compiler);
 
-    //-- ddcObject API
-    virtual ddcObjectList Children() const;
-    virtual void DisownChildren();
+    //-- CQueryObject API
     virtual std::string toString();
     virtual std::string jsonClass() { return "CQBinOp"; };
     virtual std::string jsonData();
@@ -303,7 +289,7 @@ public:
 
     virtual bool Compile(CQueryCompiler *compiler);
 
-    //-- ddcObject API
+    //-- CQueryObject API
     virtual std::string jsonClass() { return "CQWith"; };
     virtual std::string jsonData();
     virtual std::string toString();
@@ -396,7 +382,7 @@ public:
     // Stringification utility for use by subclasses; default should be sensible
     virtual std::string MatchIdString(void);
 
-    //-- ddcObject API & utilities
+    //-- CQueryObject API & utilities
     // Default stringification: NegString(IndexString() + ValueString())
     virtual std::string toString(void);
 
@@ -782,12 +768,6 @@ public:
     // clear query contents.  if deep is true, propagates operation to daughters
     virtual void Clear(bool deep=true);
 
-    // get a list of direct non-NULL CQuery direct daughters of this node
-    virtual ddcObjectList Children() const;
-
-    // "disown" any direct child nodes, preventing their destruction if the current object is deleted
-    virtual void DisownChildren();
-
     // get match-id: dtr3 > dtr2 > dtr1
     virtual BYTE GetMatchId() const;
 
@@ -854,9 +834,7 @@ public:
     // Compile() method implicitly compiles daughter nodes
     virtual bool Compile(CQueryCompiler *compiler);
 
-    //-- ddcObject API
-    virtual ddcObjectList Children() const;
-    virtual void DisownChildren();
+    //-- CQueryObject API
     virtual std::string toString();
     virtual std::string jsonClass() { return "CQSeq"; };
     virtual std::string jsonData();

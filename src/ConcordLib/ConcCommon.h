@@ -22,7 +22,7 @@
 #include "nlp_base/agramtab/RusGramTab.h"
 #include "nlp_base/agramtab/GerGramTab.h"
 #include "../CommonLib/DDC_common.h"
-#include "../CommonLib/ddcObject.h"
+#include "QueryObject.h"
 #include <pugixml.hpp>
 
 #include "../ConcordLib/CCurl.h"

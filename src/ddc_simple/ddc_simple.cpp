@@ -4,7 +4,6 @@
 #include <time.h>
 
 #include "../ConcordLib/ConcHolder.h"
-//#include "../ConcordLib/QueryCompiler.h" //-- for debugging ddcObject::Descendants()
 #include "nlp_base/common/utilit.h"
 #include "../CommonLib/ddcUtil.h"
 #include "nlp_base/common/rapidjson.h"
@@ -182,14 +181,6 @@ int main(int argc, char *argv[]) {
                                     R.CanonicalQueryString(Query).c_str());
                             fprintf(stderr, "Json [%d / %zi] = %s\n", QueryNo, queries.size(),
                                     R.JsonQueryString(Query).c_str());
-#if 0
-                            //-- test ddcObject::Descendants()
-                            fprintf(stderr, "Descendants[%d / %zi] (Compiler) =\n", QueryNo, queries.size());
-                            ddcObjectList objs = R.m_pQueryCompiler->Descendants();
-                            for (ddcObjectList::const_iterator oi=objs.begin(); oi != objs.end(); ++oi) {
-                                fprintf(stderr, " + %s\n", *oi ? (*oi)->toString().c_str() : "NULL");
-                            }
-#endif
                         }
                         catch (exception &e) {
                             fprintf(stderr, "Exception: %s\n", e.what());

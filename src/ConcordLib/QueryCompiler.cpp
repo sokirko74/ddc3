@@ -5,7 +5,6 @@
 
 using namespace std;
 
-
 // DEBUG_PARSER : define this to debug the lexer+parser pair
 #undef DEBUG_PARSER
 #undef DEBUG_LEXER
@@ -18,7 +17,6 @@ using namespace std;
 
 #include <sstream>
 
-
 extern int yyqdebug;
 int yyqparse (CQueryCompiler *_qcompiler);
 
@@ -27,15 +25,10 @@ int yyqlex (void* valp, CQueryCompiler* _prs)
     return _prs->yyqlex(valp);
 };
 
-
 void yyqerror(const char *a)
 {
     const char * s = a;
 };
-
-
-
-
 
 CQueryCompiler::CQueryCompiler(const CConcHolder* pHolder) 
 {
@@ -95,7 +88,6 @@ bool    CQueryCompiler::Evaluate(CQuery *query)
     return true;
 }
 
-
 const char* ContextStarter =  "#Cntxt";
 const char* ContextStarterLower =  "#cntxt";
 
@@ -106,7 +98,6 @@ string SortOperators[SortOperatorsCount] =
  "#less_by_size", "#greater_by_size", "#is_size",
  "#has_field", "#less_by_rank", "#greater_by_rank",
  "#left", "#right"};
-
 
 // It is very  important that our LEX@Yacc is reentrant
 // since we use bison declaration %pure-parser
@@ -216,7 +207,6 @@ void CQueryCompiler::DeleteTree()
     m_qCountHi.clear();
     m_pQuery = NULL;
 }
-
 
 int CQueryCompiler::yyqlex(void* valp)
 {
@@ -350,7 +340,6 @@ CQKeys* CQueryCompiler::PushKeysQuery(CQCount *qCount)
     return (CQKeys*)(this->PushQuery(qk));
 }
 
-
 void CQueryCompiler::SetFilterBounds(const string& lb, const string& ub)
 {
     m_FilterLB=lb;
@@ -406,15 +395,3 @@ void CQueryCompiler::yybarf(const char *yymsg) const //throw(CExpc)
     barf("could not parse query: %s at line %d, near token `%s'", yymsg, lineno(), YYText());
 }
 
-ddcObjectList CQueryCompiler::Children() const
-{
-    ddcObjectList kids;
-    if (m_pQuery) kids.push_back(m_pQuery);
-    return kids;
-}
-
-void CQueryCompiler::DisownChildren()
-{
-    m_pQuery = NULL;
-    m_Queries.clear(); //-- may leak memory after parse errors!
-}

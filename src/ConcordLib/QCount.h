@@ -192,7 +192,6 @@ public:
     CQCountKeyExprRegex(CQCountKeyExpr *src, const std::string& pattern, const std::string &replacement, const std::string& modifiers=std::string(""))
         : CQCountKeyExprIndexed("regex"), m_Src(src), m_Pattern(pattern), m_Replacement(replacement), m_Modifiers(modifiers), isGlobal(false), m_Regex(NULL) {};
     virtual ~CQCountKeyExprRegex();
-    virtual void DisownChildren();
     virtual bool CanCountByFile() const { return m_Src->CanCountByFile(); };
     virtual bool Compile(CQueryCompiler *compiler);
     virtual std::string& Evaluate(const CHit &Hit);
@@ -206,8 +205,7 @@ public:
         m_CurFile = Hit.m_FileNo;
     };
   
-    //-- ddcObject API
-    virtual ddcObjectList Children() const;
+    //-- CQueryObject API
     virtual std::string toString();
     virtual std::string jsonClass() { return "CQCountKeyExprRegex"; };
     virtual std::string jsonData();
@@ -283,9 +281,7 @@ public:
     virtual bool Compile(CQueryCompiler *compiler);
     virtual std::string& Evaluate(const CHit &Hit);
 
-    //-- ddcObject API
-    virtual ddcObjectList Children() const;
-    virtual void DisownChildren();
+    //-- CQueryObject API
     virtual std::string toString();
     virtual std::string jsonClass() { return "CQCountKeyExprList"; };
     virtual std::string jsonData();
@@ -397,9 +393,7 @@ public:
     // clear query contents.  if deep is true, propagates operation to daughters
     virtual void Clear(bool deep=true);
 
-    //-- ddcObject API
-    virtual ddcObjectList Children() const;
-    virtual void DisownChildren();
+    //-- CQueryObject API
 };
 
 
@@ -480,9 +474,7 @@ public:
     // clear query contents.  if deep is true, propagates operation to daughters
     virtual void Clear(bool deep=true);
 
-    //-- ddcObject API
-    virtual ddcObjectList Children() const;
-    virtual void DisownChildren();
+    //-- CQueryObject API
 };
 
 

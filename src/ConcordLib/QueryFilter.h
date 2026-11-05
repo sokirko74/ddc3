@@ -12,7 +12,7 @@ class CQCount;              //-- forward decl, for CQFPrune
 // CQFilter
 
 // class for global query filters aka "query operators"
-class CQFilter : public ddcObject {
+class CQFilter : public CQueryObject {
 public:
     //------------------------------------------------------------
     // CQFilter API
@@ -40,7 +40,7 @@ public:
     //
 
     //------------------------------------------------------------
-    // ddcObject API
+    // CQueryObject API
     //
     // convert filter to a canonical string
     virtual std::string toString(void) { return std::string("#FILTER[?]"); };
@@ -103,7 +103,7 @@ public:
     // compilation & satisfiability-check utility: return constant bibliographic index for attrName (if it is one), or NULL
     CFreeBiblIndex *GetBiblConstant(CQueryCompiler *compiler, const std::string &attrName, bool allowBiblExpander=true);
 
-    //-- ddcObject API & utilities
+    //-- CQueryObject API & utilities
     // stringification utility: quoted strign for arg, or empty string
     std::string argString(const std::string &arg) const;
     virtual std::string toString(void);
@@ -466,7 +466,7 @@ public:
     //
 
     //------------------------------------------------------------
-    // ddcObject API
+    // CQueryObject API
     //
     // convert filter to a canonical string
     virtual std::string toString(void);
@@ -474,8 +474,6 @@ public:
     virtual std::string jsonClass(void) { return "CQFPrune"; };
     virtual std::string jsonData(void);
 
-    virtual ddcObjectList Children() const;
-    virtual void DisownChildren();
     //
 
     //------------------------------------------------------------
