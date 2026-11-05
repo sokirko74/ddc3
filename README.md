@@ -78,13 +78,14 @@ process statistics use POSIX/Linux APIs. The shared libraries `nlp_base`
 (and later `graphan`) stay portable, since RML uses them on Windows too.
 
 
-DDC is built with CMake from the `src/` directory:
+DDC is built with CMake from the top-level directory:
 
-    cmake -S src -B build -DCMAKE_BUILD_TYPE=Release
+    cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
     cmake --build build -j
 
-Binaries are left in the build directory (e.g. `build/ddc_daemon/ddc_daemon`);
-there is no install target.
+Binaries are left in the build directory (e.g. `build/src/ddc_daemon/ddc_daemon`);
+there is no install target. The tests are built with `-DCMAKE_BUILD_TYPE=Debug`
+and run with `ctest` in the build directory (`RML` must be set, see below).
 
 Set the (legacy) environment variable `RML` to a directory with the following
 layout (see [Dependencies](#dependencies)):
