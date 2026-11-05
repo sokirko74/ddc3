@@ -99,8 +99,7 @@ void  termination_handler(int signum)
 };
 
 int puke(const std::string& msg) {
-    fputs(msg.c_str(), stdout);
-    fputc('\n', stdout);
+    std::cout << msg << std::endl;
     ddcLogError(msg);
     UnloadData();
     RemoveLockFile();

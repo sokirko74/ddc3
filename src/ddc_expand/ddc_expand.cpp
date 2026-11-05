@@ -31,12 +31,9 @@ void expand(const set<string> &src)
         }
     set<string> dst;
     tx->expand(src, dst);
-    for (set<string>::const_iterator xi=dst.begin(); xi!=dst.end(); xi++) {
-        fputs(xi->c_str(), stdout);
-        fputc('\t', stdout);
-    }
-    fputc('\n',stdout);
-    fflush(stdout);
+    for (const auto &x : dst)
+        std::cout << x << '\t';
+    std::cout << std::endl;
 }
 void expand(const string &s)
 {
@@ -136,7 +133,6 @@ int main(int argc, char **argv)
         txd.ensureDefaultExpanders(morphGeneric);
         txd.compile();
         std::cerr << prog << ": loaded dispatcher file `" << txfile << "':\n" << txd.configString("> ") << "\n";
-        fflush(stderr);
     }
     else {
         //-- create new expander
@@ -148,7 +144,6 @@ int main(int argc, char **argv)
         tx->compile();
         txd.insert(tx);
         std::cerr << prog << ": created term expander [" << tx->configString() << "]\n";
-        fflush(stderr);
     }
     selectChain(txlabel);
     std::cerr << prog << ": using expander [" << tx->configString() << "]\n";
@@ -176,8 +171,7 @@ int main(int argc, char **argv)
             //---- guts
             while (!feof(infile)) {
                 if (infilename.empty()) {
-                    std::cout << prog << ":[" << tx->configString() << "]> ";
-                    fflush(stdout);
+                    std::cout << prog << ":[" << tx->configString() << "]> " << std::flush;
                 }
                 char buffer[TX_BUFSIZE];
                 fgets(buffer, TX_BUFSIZE, infile);
@@ -207,11 +201,11 @@ int main(int argc, char **argv)
                         continue;
                     }
                     else if (op == "#list" || op == "#ls" || op=="#dump") {
-                        fputs(txd.configString("\t").c_str(),stdout);
+                        std::cout << txd.configString("\t");
                         continue;
                     }
                     else if (op == "#quit" || op == "#exit" || op=="#q") {
-                        fputc('\n',stdout);
+                        std::cout << '\n';
                         break;
                     }
                     else if (op == "#help" || op == "#h") {

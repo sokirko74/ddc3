@@ -165,7 +165,7 @@ int main(int argc, char *argv[]) {
                 if (ProfileCycleNo == 1) {
                     std::cerr << "Profiling " << CountOfCycles << " iterations...";
                 } else if (ProfileCycleNo > 0 && (ProfileCycleNo % 100) == 0) {
-                    fputc('.', stderr);
+                    std::cerr << '.';
                 }
 
                 for (int QueryNo = 0; QueryNo < queries.size(); QueryNo++) {
@@ -231,7 +231,7 @@ int main(int argc, char *argv[]) {
                     R.ClearQuery();
                 }
             }
-            if (CountOfCycles > 1) fputs(" done.\n", stderr);
+            if (CountOfCycles > 1) std::cerr << " done.\n";
 
 
             clock_t AllEndTime = clock();
