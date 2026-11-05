@@ -25,13 +25,12 @@
 #include "QueryObject.h"
 #include <pugixml.hpp>
 
-#include "../ConcordLib/CCurl.h"
+#include "../ConcordLib/UrlFetch.h"
 #include "../CommonLib/ddcLocale.h"
 
 // global intialization
 inline void ddcInitGlobal(void) {
     ddcInitLocale();
-    ddcInitCurl();
 }
 
 // a globally defined delimeter, which is used to delimit fields in one record (the first field is always a token)

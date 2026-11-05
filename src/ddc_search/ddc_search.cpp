@@ -161,7 +161,7 @@ print_template_file_search(string FileName, string Query, int StartHitNo, int En
 };
 
 
-SOCKET ConcordDaemonSocket;
+CSocketAddr ConcordDaemonAddr;
 
 int GetLemmas() {
     log("GetLemmas\n");
@@ -182,20 +182,18 @@ int GetLemmas() {
     char WordForm[1024 * 10];
     cgiFormStringNoNewlines("SearchText", WordForm, 10240);
 
-    string S = Format("get_paradigm %s\x1%i %i", WordForm, WithParadigms ? 0 : 1, Langua);
-    string ErrorStr;
-    if (!SendString(ConcordDaemonSocket, S.c_str(), S.length(), ErrorStr)) {
-        log(Format("cannot send string: %s\n", ErrorStr.c_str()));
-        return -1;
+    string S, ErrorStr;
+    RequestParams params = {
+        {"word", WordForm},
+        {"lemmatize_only", WithParadigms ? "0" : "1"},
+        {"lang", Format("%i", Langua)},
     };
-
-    NetworkErrorsEnum Res = ReceiveString(ConcordDaemonSocket, S, ReceiveTimeOut);
+    NetworkErrorsEnum Res = HttpRequest(ConcordDaemonAddr, "get_paradigm", params, ReceiveTimeOut, S, ErrorStr);
     if (Res != neSuccess) {
         char error_str[255];
         sprintf(error_str, "Network error: %s in int GetLemmas()",
                 GetNetworkErrorString((NetworkErrorsEnum) Res).c_str());
         print_error(error_str);
-        SocketDeinitialize();
         return -1;
     };
 
@@ -217,9 +215,8 @@ int GetLemmas() {
 };
 
 
-bool GetDaemon(SOCKET &T, const string &ServerName) {
+bool GetDaemon(CSocketAddr &T, const string &ServerName) {
     string ConcordCfgFile = "concord_cgi.cfg";
-    SocketInitialize(false);
     string Path = GetIniFilePath() + "/" + ConcordCfgFile;
     if (access(Path.c_str(), 04) != 0) {
         log("Cannot access " + Path);
@@ -240,14 +237,7 @@ bool GetDaemon(SOCKET &T, const string &ServerName) {
         return false;
     };
 
-    string strError;
-    T = Hosts[i].CreateAndConnectSocket(strError);
-    if (T == -1) {
-        print_error(Format("Cannot open socket for %s from %s", ServerName.c_str(), ConcordCfgFile.c_str()));
-        log(Format("Cannot create or connect socket %s (%s)\n", Hosts[i].GetAddressStr().c_str(), strError.c_str()));
-        return false;
-
-    };
+    T = Hosts[i].SocketAddr();
 
     return true;
 };
@@ -291,12 +281,6 @@ int cgiMain() {
 
     cgiHeaderContentType("text/html");
 
-    if (!SocketInitialize(false)) {
-        log("Service could invoke AfxSocketInit()\n");
-        return -1;
-    };
-
-
     string sError;
 
     if (!IsRmlRegistered(sError)) {
@@ -331,14 +315,12 @@ int cgiMain() {
     if (!strcmp(SearchType, "morphology")) {
 
         cgiFormStringNoNewlines("CorpusName", CorpusName, 120);
-        if (!GetDaemon(ConcordDaemonSocket, CorpusName)) {
-            SocketDeinitialize();
+        if (!GetDaemon(ConcordDaemonAddr, CorpusName)) {
             log("Cannot connect to concordance daemon\n");
             print_error("Cannot connect to concordance daemon");
             return -1;
         };
         int res = GetLemmas();
-        SocketDeinitialize();
         return res;
     };
 
@@ -352,7 +334,6 @@ int cgiMain() {
 
 
     if (!strlen(SearchText)) {
-        SocketDeinitialize();
         print_error("An empty query cannot be processed");
         return -1;
     };
@@ -361,8 +342,7 @@ int cgiMain() {
     log(Format("  Init corpora %s\n", CorpusName));
 
 
-    if (!GetDaemon(ConcordDaemonSocket, CorpusName)) {
-        SocketDeinitialize();
+    if (!GetDaemon(ConcordDaemonAddr, CorpusName)) {
         log("Cannot connect to concordance daemon\n");
         print_error("Cannot connect to concordance daemon");
         return -1;
@@ -376,20 +356,19 @@ int cgiMain() {
             //  in order to give time to search-script itself
             TimeOut--;
         };
-        string S = Format("run_query %s\x1%s\x1html\x1%i %i %i", CorpusName, SearchText, StartHitNo, ResultLimit,
-                          TimeOut);
-        string ErrorStr;
-        if (!SendString(ConcordDaemonSocket, S.c_str(), S.length(), ErrorStr)) {
-            SocketDeinitialize();
-            return -1;
+        RequestParams params = {
+            {"corpus", CorpusName},
+            {"query", SearchText},
+            {"format", "html"},
+            {"start", Format("%i", StartHitNo)},
+            {"limit", Format("%i", ResultLimit)},
+            {"timeout", Format("%i", TimeOut)},
         };
-
-        NetworkErrorsEnum Res = ReceiveString(ConcordDaemonSocket, S, ReceiveTimeOut);
-        CloseSocket(ConcordDaemonSocket);
+        string S, ErrorStr;
+        NetworkErrorsEnum Res = HttpRequest(ConcordDaemonAddr, "run_query", params, ReceiveTimeOut, S, ErrorStr);
         if (Res != neSuccess) {
             print_error(Format("Network error: %s (dispatched by server)",
                                GetNetworkErrorString((NetworkErrorsEnum) Res).c_str()));
-            SocketDeinitialize();
             return -1;
         };
 
@@ -405,7 +384,6 @@ int cgiMain() {
         uint32_t HitsCount, EndHitNo, RelevantDocsCount;
 
         if (S.empty()) {
-            SocketDeinitialize();
             log("An empty response was received!\n");
             return -1;
         };
@@ -413,7 +391,6 @@ int cgiMain() {
 
         int z = S.find('\x1');
         if (z == string::npos) {
-            SocketDeinitialize();
             log("Parse Error (cannot find result html). Here is response dump:\n");
             log(S);
             return -1;
@@ -432,14 +409,12 @@ int cgiMain() {
                     GetNetworkErrorString((NetworkErrorsEnum) iNetworkError).c_str());
             print_error(error_str);
             log(error_str);
-            SocketDeinitialize();
             return -1;
         };
 
         if (InternalError != errNone) {
             print_error(Format(" Internal error: %s (ErrorCode = %i)", GetDDCErrorString((DDCErrorEnum) InternalError),
                                InternalError));
-            SocketDeinitialize();
             return -1;
         };
 
@@ -457,7 +432,6 @@ int cgiMain() {
                                         RelevantDocsCount)) {
             print_error(Format("Cannot open template file \"%s\"", TemplateFile.c_str()));
 
-            SocketDeinitialize();
             return false;
         };
         log("Successful exit\n");
@@ -465,10 +439,8 @@ int cgiMain() {
         return 0;
     } catch (...) {
         print_error("Search has crushed! ");
-        SocketDeinitialize();
         return -1;
     }
-    SocketDeinitialize();
 
     return 0;
 }

@@ -22,6 +22,11 @@ v3.0 Tue, 03 Nov 2026
 	  removed the German ExtEncoding recoding; historical German -> language Generic
 	* XML: bundled TinyXML 2.3.1 + TinyXPath replaced by the system pugixml (libpugixml-dev):
 	  full XPath 1.0 for TextArea/Bibl, character references and CDATA are handled
+	* server protocol is HTTP (cpp-httplib from nlp_base/contrib/httplib), see doc/ddc_proto.md:
+	  GET/POST /COMMAND with named parameters (run_query?query=...&format=json&limit=10, status, ...);
+	  the length-prefixed socket protocol is removed; a keep-alive connection is a session
+	  (get_first_hits, get_hit_strings); requests to daughters are sent in parallel;
+	  the Cab term expanders use httplib instead of libcurl (CCurl removed)
 
 v2.2.12 Wed, 16 Jun 2021 15:21:24 +0200 moocow
 	* fixed sort failure in `count(...) #by[date] #dsc_key` for branch-servers with only a single daughter

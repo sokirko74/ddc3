@@ -60,13 +60,13 @@ struct CFirstHitsQueryResult  {
     std::string                      m_ErrorStr;
     std::vector<CHitToSort>          m_Hits;
     std::vector<size_t>              m_DtrEnds;              //< EndHitNo components scanned from each immediate daughter subcorpus
-    std::vector<SOCKET>              m_Sockets;
+    std::vector<std::shared_ptr<CHttpConnection> > m_Connections; //< keep-alive sessions with the selected daughters
     size_t                      m_Offset;               //< logical offset of m_Hits[0] (sum over number of front-trimmed hits for all subcorpora)
     
-    /* destructor implicitly calls CloseSockets() */
+    /* destructor implicitly calls CloseConnections() */
     ~CFirstHitsQueryResult()
     {
-        CloseSockets();  //-- fix mantis bug #718?
+        CloseConnections();
     };
 
     /* clear the object */
@@ -78,8 +78,8 @@ struct CFirstHitsQueryResult  {
         return (m_NetworkError != neSuccess )  || (m_InternalError != errNone);
     };
 
-    /* close any previously opened sockets */
-    void CloseSockets();
+    /* close any previously opened connections */
+    void CloseConnections();
 
     /* collect counts by sort-key, only makes sense if m_SortOrder==hsoCounts ; also modifies m_AllHitsCount */
     void CollectCounts();
@@ -291,12 +291,9 @@ public:
 
 public:
     //--------------------------------------------------------------
-    // CHost API: overrides
-    /* close connected socket, implies cleanup/close of m_FHResult and m_QueryData */
-    virtual bool Close(SOCKET& rConnectedSocket, bool linger=false, int timeout=5);
-
-    /* close a socket connected to a daugher subcorpus, NO implicit cleanup of m_FHResult and m_QueryData */
-    virtual bool CloseDtr(SOCKET& rConnectedSocket, bool linger=false, int timeout=5);
+    // CDDCServer API: overrides
+    /* end of a session: cleanup/close of m_FHResult and m_QueryData */
+    virtual void EndSession() override;
 
 public:
     //--------------------------------------------------------------
@@ -330,7 +327,6 @@ public:
     virtual void handle__nodes(std::string &Result, int depth=-1);
 
     /* request handler: ddc_close_socket: required (leaf|branch) */
-    virtual void handle__close_socket(std::string &Result, SOCKET &rConnectedSocket);
 
 public:
     //--------------------------------------------------------------
@@ -339,11 +335,11 @@ public:
     /* initialize m_HostMap[] from m_Hosts[] */
     void InitHostMap();
 
-    /* pass request to each subcorpus host and fetch results into a vector<> */
-    void GetSubcorpusJsonStrings(std::vector<std::string>& Results, const std::string &request, int timeout=10);
+    /* send a request to each daughter (in parallel), fetch the json results (or json error objects) */
+    void GetSubcorpusJsonStrings(std::vector<std::string>& Results, const std::string &command, const RequestParams& params, int timeout=10);
 
-    /* pass request to each subcorpus host, fetch results, and collect into a single JSON array */
-    std::string GetSubcorpusJsonArray(const std::string &request, int timeout=10);
+    /* send a request to each daughter, collect the results into a single JSON array */
+    std::string GetSubcorpusJsonArray(const std::string &command, const RequestParams& params=RequestParams(), int timeout=10);
 
     /* new top-level guts for handle__run_query(); uses m_FHResult and m_QueryData */
     void RunDistributed();
@@ -398,22 +394,18 @@ public:
                                  const int     TimeOut,
                                  CFirstHitsQueryResult& Result);
 
-    /* send a single get_hit_strings request (used by both parallel and serial modes) */
-    NetworkErrorsEnum SendGetHitStringsRequest(BYTE SelectedHostNo,
-                                               const std::vector< std::vector<size_t> >& SortedHits,
-                                               const std::vector<size_t>& FirstOffsets,
-                                               const std::string& ResultType);
-    
-    /* old guts for handle__run_query() phase 2 */
-    NetworkErrorsEnum GetHitStringsFromOneCorpus(CHost& Host,
-                                                 const std::string& ResultType,
-                                                 size_t StartHitNo,
-                                                 size_t ResultLimit,
-                                                 int   TimeOut,
-                                                 SOCKET& CorpusSocket,
-                                                 int&    InternalError,
-                                                 std::string& Result,
-                                                 std::string& ResultHint);
+    /* parameters of a get_hit_strings request to a selected daughter */
+    RequestParams GetHitStringsParams(BYTE SelectedHostNo,
+                                      const std::vector< std::vector<size_t> >& SortedHits,
+                                      const std::vector<size_t>& FirstOffsets,
+                                      const std::string& ResultType);
+
+    /* parse a get_hit_strings response S of a daughter */
+    NetworkErrorsEnum ParseHitStringsResponse(const std::string& S,
+                                              size_t ResultLimit,
+                                              int&    InternalError,
+                                              std::string& Result,
+                                              std::string& ResultHint);
 
     /* heuristically extract user-specified subcorpora from ":CORPORA" clause of current query, called by RunDistributed()
      * - uses (parsed) input query from m_QueryData

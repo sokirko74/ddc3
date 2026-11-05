@@ -3,7 +3,10 @@
 
 #include "nlp_base/common/utilit.h"
 #include "../CommonLib/ddcUtil.h"
-#include "CCurl.h"
+
+#include <list>
+#include <map>
+#include <set>
 
 //======================================================================
 /*
@@ -212,50 +215,15 @@ public:
 
 
 //======================================================================
-// TxCurl: abstract term expander using libcurl
-class TxCurl : public CTermExpander {
-public:
-    // CCurl object to use for expansion query
-    CCurl m_CCurl;
-
-public:
-    // default constructor; no implicit compilation
-    TxCurl(const std::string &cls=std::string("Curl"), const std::string &label=std::string("Curl"), const std::string& param=std::string(""))
-        : CTermExpander(cls,label,param)
-    {};
-
-    // Destructor frees m_Curl if non-NULL
-    virtual ~TxCurl(void) {};
-
-    // clone constructor calls default constructor
-    virtual CTermExpander* clone(std::map<CTermExpander*,CTermExpander*>& xlate) const;
-  
-    //--------------------------------------------------------------
-    // Subclass API
-    //
-
-    // Initializer sets up m_Curl object based on object parameters
-    // Default implementation sets CCurl url(""), timeout(5), noSignal(1), failOnError(1), and setDataCallback()
-    virtual void compile(void);
-
-    // Wrapper for m_CCurl.perform_cached()
-    virtual bool perform(void)
-    { return m_CCurl.perform_cached(); };
-    //
-
-    //--------------------------------------------------------------
-    // expansion API (nothing here)
-    //virtual void expand(const set<string>& src, set<string>& dst);
-};
-
-
-//======================================================================
 // TxCab: HTTP-based term expander using DTA::CAB HTTP protocol
 // I/O format is DTA::CAB::Format::ExpandList (newline- and TAB-separated lists)
-class TxCab : public TxCurl {
+class TxCab : public CTermExpander {
 public:
     // base URL; newline-separated query argument(s) will be appended for each expansion query
     std::string m_UrlBase;
+
+    // request timeout (seconds)
+    int m_Timeout;
 
     // debug?
     int m_Debug;
@@ -267,14 +235,13 @@ public:
 public:
     //------------------------------------------------------------
     TxCab(const std::string &label=std::string("Cab"), const std::string& param=std::string(""), int Debug=0, int MapMode=0)
-        : TxCurl("Cab",label,param), m_Debug(Debug), m_MapMode(MapMode)
+        : CTermExpander("Cab",label,param), m_Timeout(5), m_Debug(Debug), m_MapMode(MapMode)
     {};
     virtual ~TxCab(void) {};
 
     virtual CTermExpander* clone(std::map<CTermExpander*,CTermExpander*>& xlate) const;
   
-    // Setup m_Curl object based on object parameters
-    // Default parses space-separated m_Param to set m_UrlBase and m_CCurl->timeout()
+    // Parses space-separated m_Param to set m_UrlBase and m_Timeout
     // - 1st param: base URL (with trailing query parameter name e.g. "qd=")
     // - 2nd param: timeout (seconds)
     // - 3rd param: debug (int~bool)

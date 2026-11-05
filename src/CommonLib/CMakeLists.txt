@@ -8,7 +8,7 @@ ddcString.cpp
 ddcThread.cpp
 ddcTime.cpp
 ddcVersion.cpp
-string_socket.cpp
+Network.cpp
 utf8xx.cpp
 ddcExpc.cpp
 ddcFile.cpp

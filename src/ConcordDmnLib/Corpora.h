@@ -3,7 +3,8 @@
 #ifndef __CORPORA_H_
 #define __CORPORA_H_
 
-#include "../CommonLib/string_socket.h"
+#include "../CommonLib/Network.h"
+#include "../CommonLib/ddcLog.h"
 #include "ServerOptions.h"
 
 extern void LoadDDCServer (std::string ServerConfigFile, const CDDCServerOptions& Options);

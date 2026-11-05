@@ -34,15 +34,13 @@ void CDDCLeafServer::WorkerCloneFree(void) {
 // CDDCLeafServer: CHost API: overrides
 
 //----------------------------------------------------------------------
-bool CDDCLeafServer::Close(SOCKET &rConnectedSocket, bool linger, int timeout) {
-    bool rc = CHost::Close(rConnectedSocket, linger, timeout);
+void CDDCLeafServer::EndSession() {
     if (m_pHolder) {
         //-- clear local intermediate query results: don't hog memory after expensive (often failed) queries
         m_pHolder->ClearQuery();
         m_pHolder->ClearQueryResults();
         m_pHolder->m_ShortOccurCaches.clear();
     }
-    return rc;
 }
 
 
@@ -251,7 +249,7 @@ void CDDCLeafServer::handle__status(string &Result, int timeout, bool verbose) {
                   ) + ",\n\t"
               + "\"nfd\":" + Format("%zd", nfd) + ",\n\t"
               + "\"cachesize\":" + Format("%zd", m_pHolder->CacheSize()) + ",\n\t"
-              + "\"curlcachesize\":" + Format("%zd", ddcCurlCache.size()) + "\n\t"
+              + "\"urlcachesize\":" + Format("%zd", UrlCache.size()) + "\n\t"
               + "}"
         );
     m_bExpectMore = false;
@@ -469,9 +467,9 @@ void CDDCLeafServer::handle__reload(string &Result, int depth) {
 //----------------------------------------------------------------------
 void CDDCLeafServer::handle__clear_cache(string &Result, int depth) {
     m_pHolder->ClearQueryCache();
-    ddcCurlCache.lock();
-    ddcCurlCache.clear();
-    ddcCurlCache.unlock();
+    UrlCache.lock();
+    UrlCache.clear();
+    UrlCache.unlock();
     Result = Format("{%s:1}", jsonStr(m_CorpusName).c_str());
     m_bExpectMore = false;
 }

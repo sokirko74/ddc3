@@ -27,13 +27,14 @@ Options:
   -S, -start START   # index of first hit (default=$start)
   -l, -limit LIMIT   # return at most LIMIT hits (default=$limit)
   -t, -timeout SECS  # set server timeout to SECS (default=$timeout)
-  -r, -request       # send a raw DDC request (not a corpus query)
+  -r, -request       # send a DDC request COMMAND [NAME=VALUE...] (not a corpus query)
   -j, -json          # select DDC-JSON format (default)
   -text              # select DDC-text format
   -table             # select DDC-table format
 
-request queries are interpreted by the printf(1) program,
-so you can use e.g. \OOO or \xXX escapes.
+The server is queried over HTTP with curl(1), e.g.
+  $prog -r status
+  $prog -r vinfo timeout=5
 
 EOF
 }
@@ -116,17 +117,13 @@ fi
 ## guts
 
 mode=$(echo "$mode" | tr a-z A-Z)
+url="http://$host:$port"
 if test "$mode" != "REQUEST" ; then
-    reqbody=$(printf "run_query Distributed\x01%s\x01%s\x01%d %d %d" "${req[*]}" "$mode" "$start" "$limit" "$timeout")
+    curl -sS --data-urlencode "query=${req[*]}" -d "format=$mode" -d "start=$start" -d "limit=$limit" \
+         -d "timeout=$timeout" "$url/run_query" | "$postproc"
 else
-    reqbody="${req[*]}"
+    cmd="${req[0]}"
+    args=()
+    for kv in "${req[@]:1}"; do args+=(--data-urlencode "$kv"); done
+    curl -sS "${args[@]}" "$url/$cmd" | "$postproc"
 fi
-
-## ddc_request_str=$(ddc_request $printf_format ...)
-ddc_request() {
-    local len=$(printf "$@" | wc -c)
-    printf "$(printf "\\%03o" $((len&255)) $((len>>8&255)) $((len>>16&255)) $((len>>24&255)))"
-    printf "$@"
-}
-
-ddc_request "$reqbody" | nc "$host" "$port" | tail -c +5 | "$postproc"

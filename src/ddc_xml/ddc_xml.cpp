@@ -142,10 +142,9 @@ string CPrototype::BuildEntry(const map<string, string> &Hit, const string &Quer
 
 
 
-class CQueryRunner : public ddcLockable{
+class CQueryRunner {
     string FormatResponse(string query, string recievedString);
-    SOCKET OpenSocket();
-    void CloseTheSocket(SOCKET s);
+    CSocketAddr ServerAddr() const;
 
 public:
     const string CfgPath;
@@ -155,7 +154,6 @@ public:
     const string OutputFormat;
     const int TimeOut;
     const bool ReloadCorpus;
-    vector<SOCKET> OpenSockets;
     CQueryRunner (string cfgPath, int resultLimit, int startHitNo, string templateFile, string outputFormat,
                   int timeOut, bool reloadCorpus):
         CfgPath(cfgPath),
@@ -170,8 +168,6 @@ public:
     }
 
     string RunQuery(string Query);
-    void CloseSocketsOnError();
-
 };
 
 CQueryRunner* QueryRunner = NULL;
@@ -195,65 +191,14 @@ void ReadQueriesFromFile(const char *Filename, StringVector &Queries) {
 };
 
 
-SOCKET CQueryRunner::OpenSocket()
+CSocketAddr CQueryRunner::ServerAddr() const
 {
     vector<CHost> Hosts;
     LoadHosts(CfgPath, Hosts);
-    int i = 0;
-    for (; i < Hosts.size(); i++)
-        if (Hosts[i].m_CorpusName == "server")
-            break;
-
-    if (i == Hosts.size()) {
-        throw CDDCExpc(Format("Cannot find  \"server\"-record in %s\n", CfgPath.c_str()));
-    };
-    string strError;
-    SOCKET s = Hosts[i].CreateAndConnectSocket(strError);
-    if (s == -1) {
-        throw CDDCExpc(Format("Error while opening server socket: %s\n", strError.c_str()));
-    };
-    lock();
-    OpenSockets.push_back(s);
-    unlock();
-    return s;
-}
-
-//  we should close all socket if user aborts the program (presses Ctrl-c)
-void my_handler(int i) {
-    try {
-
-        std::cerr << "Closing socket\n";
-        if (QueryRunner)
-            QueryRunner->CloseSocketsOnError();
-
-        SocketDeinitialize();
-    }
-    catch (...) {
-    };
-    exit(1);
-};
-
-void CQueryRunner::CloseSocketsOnError()
-{
-    lock();
-    for(size_t i = 0;  i < OpenSockets.size();   i++) {
-        CloseSocket(OpenSockets[i]);
-    }
-    OpenSockets.clear();
-    unlock();
-}
-
-void CQueryRunner::CloseTheSocket(SOCKET s) {
-    lock();
-    for(size_t i = 0;  i < OpenSockets.size();   i++) {
-        if (OpenSockets[i] == s) {
-            CloseSocket(s);
-            OpenSockets.erase(OpenSockets.begin() + i);
-            break;
-        }
-    }
-    unlock();
-
+    for (const auto& h : Hosts)
+        if (h.m_CorpusName == "server")
+            return h.SocketAddr();
+    throw CDDCExpc(Format("Cannot find  \"server\"-record in %s\n", CfgPath.c_str()));
 }
 
 
@@ -261,36 +206,25 @@ string CQueryRunner::RunQuery(string query) {
     std::cerr << "Query = " << query << "\n";
 
     std::cerr << "Getting data from DDC (Timeout=" << TimeOut << " sec.)\n";
-    SOCKET socket = OpenSocket();
-
-    string recievedString;
-    try {
-        string corpusName = "Distributed";
-        string networkString;
-        if (ReloadCorpus)
-            networkString = Format("reload %s", query.c_str());
-        else
-            networkString = Format("run_query %s\x1%s\x1%s\x1%i %i %i", corpusName.c_str(), query.c_str(),
-                                   OutputFormat.c_str(), StartHitNo, ResultLimit, TimeOut - 1);
-        //  Timeout was decremented in order to give time to ddc_xml-script itself
-
-        string ErrorStr;
-        if (!SendString(socket, networkString.c_str(), networkString.length(), ErrorStr)) {
-            throw(CDDCExpc(Format("Send error: %s\n", ErrorStr.c_str())));
+    string recievedString, ErrorStr;
+    NetworkErrorsEnum res;
+    if (ReloadCorpus) {
+        res = HttpRequest(ServerAddr(), "reload", {{"depth", query}}, TimeOut, recievedString, ErrorStr);
+    } else {
+        //  Timeout is decremented in order to give time to ddc_xml itself
+        RequestParams params = {
+            {"corpus", "Distributed"},
+            {"query", query},
+            {"format", OutputFormat},
+            {"start", Format("%i", StartHitNo)},
+            {"limit", Format("%i", ResultLimit)},
+            {"timeout", Format("%i", TimeOut - 1)},
         };
-
-        NetworkErrorsEnum res = ReceiveString(socket, recievedString, TimeOut);
-
-        if (res != neSuccess) {
-            throw(CDDCExpc(Format("Error: %s\n", GetNetworkErrorString(res).c_str())));
-        };
+        res = HttpRequest(ServerAddr(), "run_query", params, TimeOut, recievedString, ErrorStr);
     }
-    catch (...) {
-        CloseTheSocket(socket);
-        throw;
+    if (res != neSuccess) {
+        throw CDDCExpc(Format("Error: %s: %s\n", GetNetworkErrorString(res).c_str(), ErrorStr.c_str()));
     };
-    CloseTheSocket(socket);
-
 
     try {
         return FormatResponse(query, recievedString);
@@ -510,17 +444,10 @@ int main(int argc, char **argv) {
     };
 
 
-    if (!SocketInitialize(true)) {
-        std::cerr << "Service could invoke AfxSocketInit()\n";
-        return -1;
-    };
-
-
     string TemplateFile = GetPathByFile(GetIniFilePath()) + "etc/ddc_template.xml";
     if (OutputFormat == "table") {
         std::cerr << "Reading " << TemplateFile << "\n";
         if (access(TemplateFile.c_str(), 04) != 0) {
-            SocketDeinitialize();
             std::cerr << "Cannot load template file " << TemplateFile;
             return -1;
         };
@@ -535,9 +462,6 @@ int main(int argc, char **argv) {
 
     }
 
-    typedef void (*sighandler_t)(int);
-    sighandler_t oldHandler;
-    oldHandler = signal(SIGINT, my_handler);
     QueryRunner = new  CQueryRunner(cfgPath, ResultLimit, StartHitNo, TemplateFile, OutputFormat,
                                     Timeout, bReloadCorpus);
     int resultCode = 0;
@@ -559,17 +483,12 @@ int main(int argc, char **argv) {
     }
     catch (CExpc e) {
         std::cerr << "Error! " << e.what() << "\n";
-        QueryRunner->CloseSocketsOnError();
         resultCode = 1;
     }
-
-    signal(SIGINT, oldHandler);
 
     if (!outputFilePath.empty()) {
         fclose(outputFile);
     }
-
-    SocketDeinitialize();
 
     return resultCode;
 }

@@ -1,6 +1,6 @@
 // Morphan.cpp : Implementation of CMorphan
 
-#include "../CommonLib/string_socket.h"
+#include "../CommonLib/Network.h"
 #include "Morphan.h"
 
 

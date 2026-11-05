@@ -5,7 +5,6 @@
 #include "ServerStats.h"
 #include "../CommonLib/CHost.h"
 #include "../ConcordLib/ConcHolder.h"
-#include "../CommonLib/ddcThreadQueue.h"
 
 
 //#define DEBUG_HIT_SORT
@@ -49,10 +48,10 @@ public:
     /* FQDN if available, otherwise symbolic hostname as returned by gethostname() */
     std::string m_FQHostName;
 
-    /* number of client-thread workers for thread pool (default=0: serial mode) */
+    /* number of worker threads of the http server (default=0: one worker, serial mode) */
     size_t m_nWorkers;
 
-    /* maximum number of pending client connections the thread-pool queue (min=1: use tcp queueing only; default=DDC_DEFAULT_THREAD_QUEUE_SIZE) */
+    /* maximum number of queued client connections (default=DDC_DEFAULT_THREAD_QUEUE_SIZE) */
     size_t m_ThreadQueueSize;
 
     /* upper-bound in seconds for "slow" queries
@@ -62,11 +61,8 @@ public:
      */
     double m_SlowQueryTimeout;
 
-    /* worker thread-id for worker clones */
+    /* worker thread-id for worker clones (0: the parent server) */
     size_t m_WorkerId;
-
-    /* client-thread pool (requires pthread) */
-    class CDDCServerThreadPool *m_ThreadPool;
 
 public:
     //--------------------------------------------------------------
@@ -87,14 +83,12 @@ public:
 
 public:
     //--------------------------------------------------------------
-    // DDCServer API: client threads
-
-    /* initialize the client-thread pool (requires pthread support) */
-    virtual void StartClientThreads();
+    // DDCServer API: worker threads
+    //  each http server worker thread serves requests with its own clone of the server;
+    //  a keep-alive connection is served by one worker, so a clone keeps the session state
 
     /* create a minimal (uninitialized) copy of this object (and any subordinate data) for use by a worker thread
      *  - WorkerCloneInit() will be called on the returned clone
-     *  - will be called on parent server to create a thread-local m_Server for each worker ::CDDCServerThread 
      *  - derived classes should override both this method and WorkerCloneInit()
      *  see WorkerCloneInit
      */
@@ -105,34 +99,29 @@ public:
      *  - called on newly created worker-clone objects by default WorkerClone() implementation
      *  - recommended for derived classes
      *  Parent: parent server from which settings are to be cloned
-     *  WorkerId: local id of this worker-clone (== CDDCServerThread.m_ThreadId)
+     *  WorkerId: local id of this worker-clone (1, 2, ...)
      */
     virtual void WorkerCloneInit(const CDDCServer *Parent, size_t WorkerId);
 
     /* perform local cleanup of a worker clone prior to deletion; default implementation just calls Shutdown() */
     virtual void WorkerCloneFree(void);
 
-    /* is this server configured and ready to use client threads?
-     *  - requires pthread support
-     *  - only meaningful for parent server after StartClientThreads()
-     */
-    inline bool UseClientThreads(void) const
-    { return m_ThreadPool!=NULL; };
+    /* end of a session (no more requests expected): free the session data; override */
+    virtual void EndSession() {};
+
+protected:
+    //--------------------------------------------------------------
+    // CHost API
+
+    virtual size_t WorkerCount() const override { return m_nWorkers; };
+    virtual size_t MaxQueuedConnections() const override { return m_ThreadQueueSize; };
 
 public:
-    //--------------------------------------------------------------
-    // CHost API: socket handlers
+    /* CHost API: passes the request to the worker clone of the current thread, maintains the stats */
+    virtual std::string HandleRequest(const CRequest& Request) override;
 
-    /* CHost API: main accept - process - respond loop; called in its own thread
-     *  - override calls StartClientThreads() before calling inherited method
-     */
-    virtual void RunThread();
-
-    /* CHost API: handle a new client connection (top-level): override */
-    virtual void HandleClientConnection(SOCKET& rConnectedSocket);
-    
-    /* CHost API: maintains m_Stats and calls appropriate handle__() methods */
-    virtual std::string ProcessSocketString(const std::string& SocketInput, SOCKET& rConnectedSocket);
+    /* parse the request parameters and call the appropriate handle__() method; called on a worker clone */
+    virtual std::string ProcessRequest(const CRequest& Request);
 
 public:
     //--------------------------------------------------------------
@@ -178,10 +167,7 @@ public:
     /* request handler: get_paradigm: optional (leaf|branch) */
     virtual void handle__get_paradigm(std::string &Result, const char *Word, int iLemmatizeOnly, int iLang);
 
-    /* request handler: close_socket: optional (leaf|branch) */
-    virtual void handle__close_socket(std::string &Result, SOCKET &rConnectedSocket);
-
-    /* request handler: close_socket: optional (leaf|branch) */
+    /* request handler: version: optional (leaf|branch) */
     virtual void handle__version(std::string &Result);
 
     /* request handler: vstatus: optional (leaf|branch): default wraps handle__status(Result,timeout,true) */
@@ -196,8 +182,6 @@ public:
     inline void method_not_implemented(const char *methodName)
     { throw CDDCExpc(errRuntime, "DDCServer API method %s not implemented for object %s", methodName, typeid(*this).name()); };
     
-    /* find offsets of server-path and navigation hint from ReqStr starting at StartPos */
-    void findPathHint(const std::string& ReqStr, size_t StartPos, size_t &PathPos, size_t &HintPos);
 };
 
 #endif /* DDC_SERVER_H */

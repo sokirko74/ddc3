@@ -33,12 +33,9 @@ The DDC-2.x branch was maintained in SVN under:
   Perl-compatible regular expressions. URL: <https://www.pcre.org/>.
   Tested version(s): 10.46.
 
-- **libcurl** (optional) — if available, libcurl can be used for accessing
-  external HTTP-based term expanders from within a running DDC process. DDC
-  should still compile and run even if libcurl is unavailable, but e.g.
-  external HTTP-based term expanders will be unusable.
-  URL: <http://curl.haxx.se/>.
-  Tested version(s): 7.21.0, 7.38.0, 7.52.1.
+- **cpp-httplib** (bundled in `nlp_base/contrib/httplib`) — HTTP server and
+  client. The servers speak HTTP (see [ddc_proto.md](doc/ddc_proto.md)), the
+  external term expanders (DTA::CAB) are queried over HTTP as well.
 
 - **GNU bison** — tested version(s): 2.4.1, 3.0.2, 3.0.4.
 
@@ -108,7 +105,7 @@ Reference documentation (formerly POD manpages) is in `doc/`:
 - [ddc_opt.md](doc/ddc_opt.md) — corpus options (`*.opt`, `*.con`)
 - [ddc_cfg.md](doc/ddc_cfg.md) — server configuration (`*.cfg`)
 - [ddc_server.opt.md](doc/ddc_server.opt.md) — server options
-- [ddc_proto.md](doc/ddc_proto.md) — client/server protocol
+- [ddc_proto.md](doc/ddc_proto.md) — client/server protocol (HTTP)
 - [ddc_files.md](doc/ddc_files.md) — index file formats
 - [ddc_tabs.md](doc/ddc_tabs.md) — tab-separated (`ddc_dump --tabs`) format
 
@@ -122,10 +119,7 @@ The following CMake options (`-DNAME=VALUE`) are supported:
 | `DDC_USE_HIRES_CLOCK=ON` | Enable high-resolution clock if available. Requires `clock_gettime()`. ON by default for Debug builds, otherwise OFF. |
 | `DDC_JSON_DEEP_CONTEXT=ON` | Enable deep encoding of extra-sentential context tokens in JSON output strings. OFF by default, since it breaks strict backwards-compatibility. |
 | `DDC_ENABLE_MMAP=OFF` | Disable mmap virtual memory support (ON by default if available). |
-| `DDC_ENABLE_CURL_UNIX_URLS=OFF` | Disable UNIX socket URL conventions for CCurl. |
 | `DDC_STATIC_BUFLEN=SIZE` | Size in bytes of large static internal string buffers (default 4096). |
-
-CURL support is enabled automatically if libcurl development files are found.
 
 ## Known bugs
 

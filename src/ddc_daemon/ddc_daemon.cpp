@@ -78,7 +78,6 @@ void UnloadData()
 {
     FreeConcordDicts();
     UnloadLocalCorporaAndServer();
-    SocketDeinitialize();
     RemoveLockFile();
     closelog();
 };
@@ -103,7 +102,6 @@ int puke(const std::string& msg) {
     ddcLogError(msg);
     UnloadData();
     RemoveLockFile();
-    SocketDeinitialize();
     return -1;
 }
 
@@ -258,14 +256,10 @@ int do_start(bool clientMode=false)
         fclose (fp);
         ddcLogDebug(Format("Wrote PID=%i to lock-file `%s'", getpid(), LockFileName.c_str()));
 
-        ddcLogDebug("SocketInitialize");
-        SocketInitialize(false);
-
         ddcLogDebug("InitLemmatizers");
         if (!InitConcordDicts())
         {
             ddcLogDebug("Cannot load Morphology");
-            //SocketDeinitialize();
             //return 1;
                 
         }
@@ -312,7 +306,6 @@ int do_start(bool clientMode=false)
     }
 
     RemoveLockFile();
-    SocketDeinitialize();     
     return 1;
 }
 
@@ -440,6 +433,5 @@ int     main(int argc, char     **argv)
 
     //-- should never get here
     RemoveLockFile();
-    SocketDeinitialize();   
     return resultCode;
 }

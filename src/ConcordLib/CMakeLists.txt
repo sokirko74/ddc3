@@ -3,7 +3,7 @@ project(ConcordLib)
 
 add_library(ConcordLib
     NavHint.cpp
-    CCurl.cpp
+    UrlFetch.cpp
     TermExpander.cpp
     BiblExpander.cpp
     Query.cpp
@@ -49,10 +49,6 @@ target_link_libraries(ConcordLib
     lemmatizer_base_lib
     RmlTar
 )
-if(CURL_FOUND)
-    target_link_libraries(ConcordLib ${CURL_LIBRARIES})
-endif()
-
 # the generated lexer must pick up our patched FlexLexer.h, not the system one
 target_include_directories(ConcordLib PRIVATE ${PROJECT_SOURCE_DIR})
 

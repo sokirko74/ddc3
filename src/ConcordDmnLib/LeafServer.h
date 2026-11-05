@@ -43,9 +43,9 @@ public:
 
 public:
     //--------------------------------------------------------------
-    // CHost API: overrides
-    /* close connected socket, implies cleanup of m_pHolder intermediate results */
-    virtual bool Close(SOCKET& rConnectedSocket, bool linger=false, int timeout=5);
+    // CDDCServer API: overrides
+    /* end of a session: cleanup of m_pHolder intermediate results */
+    virtual void EndSession() override;
 
 public:
     //--------------------------------------------------------------

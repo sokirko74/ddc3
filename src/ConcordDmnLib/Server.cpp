@@ -1,7 +1,11 @@
 #include "Server.h"
-#include "ServerThread.h"
 #include "Morphan.h"
 #include "../CommonLib/ddcTime.h"
+
+#include <atomic>
+#include <map>
+#include <set>
+#include <mutex>
 
 #ifdef HAVE_UNISTD_H
 # include <unistd.h>
@@ -26,8 +30,7 @@ CDDCServer::CDDCServer()
       m_nWorkers(0),
       m_ThreadQueueSize(DDC_DEFAULT_THREAD_QUEUE_SIZE),
       m_SlowQueryTimeout(10),
-      m_WorkerId(0),
-      m_ThreadPool(NULL)
+      m_WorkerId(0)
 {
     m_tStarted = time(NULL);
 
@@ -50,12 +53,6 @@ CDDCServer::CDDCServer()
 //----------------------------------------------------------------------
 void CDDCServer::Shutdown(bool quiet)
 {
-    if (m_ThreadPool) {
-        if (!quiet)
-            ddcLogInfo(Format("shutting down worker thread(s) for server %s", m_CorpusName.c_str()));
-        m_ThreadPool->stop();
-    }
-
     if (!quiet) {
         if (m_WorkerId) {
             ddcLogDebug(Format("shutting down worker thread #%zd for server %s", m_WorkerId, m_CorpusName.c_str()));
@@ -87,23 +84,6 @@ void CDDCServer::SetOptions(const CDDCServerOptions &Options)
 };
 
 //----------------------------------------------------------------------
-void CDDCServer::StartClientThreads()
-{
-    if (m_nWorkers == 0) {
-        //-- serial mode
-        if (m_ThreadPool) delete m_ThreadPool;
-        m_ThreadPool = NULL;
-        ddcLogInfo("client-threads disabled; running in serial mode");
-    }
-    else {
-        //-- client-thread mode
-        if (!m_ThreadPool)
-            m_ThreadPool = new CDDCServerThreadPool();
-        m_ThreadPool->start(this, m_nWorkers, m_ThreadQueueSize);
-    }
-}
-
-//----------------------------------------------------------------------
 void CDDCServer::WorkerCloneInit(const CDDCServer *Parent, size_t WorkerId)
 {
     *this = *Parent;
@@ -111,8 +91,6 @@ void CDDCServer::WorkerCloneInit(const CDDCServer *Parent, size_t WorkerId)
     //-- local overrides
     this->m_WorkerId = WorkerId;
     StopListening();
-
-    m_ThreadPool = NULL;
 }
 
 //----------------------------------------------------------------------
@@ -121,83 +99,84 @@ void CDDCServer::WorkerCloneFree()
 }
 
 //----------------------------------------------------------------------
-void CDDCServer::RunThread()
-{
-    this->StartClientThreads();
-    CHost::RunThread();
-};
+namespace {
+    //-- the stats of the parent servers are updated by several worker threads
+    std::mutex StatsMutex;
+    std::atomic<size_t> NextWorkerId(1);
 
-//----------------------------------------------------------------------
-void CDDCServer::HandleClientConnection(SOCKET& rConnectedSocket)
-{
-    m_SessionStats.clear();
-    if (UseClientThreads()) {
-        //-- +pthread, client-thread mode
-        m_ThreadPool->m_Queue.add(rConnectedSocket);
-        ddcLogTrace(Format("queued thread-pool item for client %s", SocketPeer(rConnectedSocket).c_str()));
-    }
-    else {
-        //-- serial mode or worker
-        CHost::HandleClientConnection(rConnectedSocket);
-        m_ServerStats += m_SessionStats;
-    }
+    struct WorkerCloneDeleter {
+        void operator()(CDDCServer* clone) const {
+            clone->WorkerCloneFree();
+            delete clone;
+        }
+    };
+    typedef std::unique_ptr<CDDCServer, WorkerCloneDeleter> WorkerClonePtr;
+
+    //-- worker clones of the current thread, by parent server
+    thread_local std::map<const CDDCServer*, WorkerClonePtr> ThreadClones;
 }
 
 //----------------------------------------------------------------------
-string CDDCServer::ProcessSocketString(const string& SocketInput, SOCKET& rConnectedSocket)
+string CDDCServer::HandleRequest(const CRequest& Request)
+{
+    static const std::set<string> Commands = {
+        "get_first_hits", "get_hit_strings", "run_query", "expand_terms", "get_paradigm",
+        "version", "status", "vstatus", "info", "vinfo", "reload", "clear_cache", "nodes",
+    };
+    if (Commands.find(Request.Command) == Commands.end())
+        throw CDDCExpc(errParseError, Format("unknown command `%s'", Request.Command.c_str()));  //-- http status 400
+
+    WorkerClonePtr& clone = ThreadClones[this];
+    if (!clone) {
+        size_t workerId = NextWorkerId++;
+        clone.reset(this->WorkerClone());
+        clone->WorkerCloneInit(this, workerId);
+        ddc_thread_init(Format("%s#%zu", m_CorpusName.c_str(), workerId).c_str());
+        ddcLogDebug(Format("started worker #%zu for server %s", workerId, m_CorpusName.c_str()));
+    }
+    {
+        //-- adopt the parent stats, so that the status reports them accurately
+        std::lock_guard<std::mutex> lock(StatsMutex);
+        clone->m_ServerStats = m_ServerStats;
+    }
+    clone->m_SessionStats.clear();
+    string Result = clone->ProcessRequest(Request);
+    if (!clone->m_bExpectMore)
+        clone->EndSession();
+    {
+        std::lock_guard<std::mutex> lock(StatsMutex);
+        m_ServerStats += clone->m_SessionStats;
+    }
+    return Result;
+}
+
+//----------------------------------------------------------------------
+string CDDCServer::ProcessRequest(const CRequest& Request)
 {
     string Result;
     bool isQueryRequest=false, isFollowupRequest=false, isExpandRequest=false;
     DDCTimeHiRes t_started = DDCTimeHiRes::Now();
+    const string& cmd = Request.Command;
 
-    //-- initialize with default values
-    m_bRespond    = true;
     m_bExpectMore = false;
 
     try {
-        //-- moo: check for buffer overflow
-        if (SocketInput.size() > DDC_STATIC_BUFLEN) {
-            string req(SocketInput.substr(0,DDC_STATIC_BUFLEN-3));
-            throw CDDCExpc(errParseError, Format("input buffer size %zi exceeded by request \"%s...\"", DDC_STATIC_BUFLEN, req.c_str()));
-        }
-        
-        //-- moo: parse input command
-        size_t eocpos = SocketInput.find_first_of(" \t\r\n\x00\x01\x02");
-        if (eocpos==SocketInput.npos) eocpos=SocketInput.size();
-        string cmd(SocketInput,0,eocpos);
-
-        //-- moo: maybe log request
-        if (m_bLogRequests && m_noLogCommands.find(cmd)==m_noLogCommands.end()) {
-            ddcLogInfo(Format("%s recv \"%s\"", m_CorpusName.c_str(), SocketInput.c_str()));
-        } else if (ddcLogLevel >= ddcLLTrace) {
-            ddcLogInfo(Format("%s recv \"%s\"", m_CorpusName.c_str(), SocketInput.c_str()));
+        //-- maybe log request
+        if ((m_bLogRequests && m_noLogCommands.find(cmd)==m_noLogCommands.end()) || ddcLogLevel >= ddcLLTrace) {
+            ddcLogInfo(Format("%s recv \"%s\"", m_CorpusName.c_str(), Request.toString().c_str()));
         }
 
-        //-- moo: command parsing and dispatch
+        //-- command parsing and dispatch
         if (cmd == "get_first_hits") {
             //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-            // get_first_hits QUERY "\x01" TIMEOUT " " LIMIT              : get keys of hits [0,LIMIT)             (<  v2.1.9)
-            // get_first_hits QUERY "\x01" TIMEOUT " " LIMIT  (" " HINT)? : get keys of hits [OFFSET,OFFSET+LIMIT) (>= v2.1.9)
-            //                                                              where HINT = OFFSET ("(" DTR_OFFSETS ")")? (" " MINKEY)?
+            // get_first_hits query timeout limit [path] [hint] : get keys of hits [OFFSET,OFFSET+LIMIT)
+            //   where hint = OFFSET ("(" DTR_OFFSETS ")")? (" " MINKEY)?
             ++m_SessionStats.m_nQueries;
             isQueryRequest = true;
             try {
-                int TimeOut, StartPathPos;
-                size_t ResultLimit, PathPos,HintPos;
-                char sQuery[DDC_STATIC_BUFLEN];
-                const char* SocketInputStr = SocketInput.c_str();
-
-                //-- parse mandatory arguments (QUERY, TIMEOUT, LIMIT)
-                int nItems = sscanf(SocketInputStr, "get_first_hits %[^\x01]\x01 %i %zi%n", sQuery, &TimeOut, &ResultLimit, &StartPathPos);
-                if (nItems != 3) {
-                    //-- unparseable
-                    throw CDDCExpc(errParseError, "CDDCServer::ProcessSocketString(): cannot parse `get_first_hits' request");
-                }
-
-                findPathHint(SocketInput, StartPathPos, PathPos, HintPos);
-                this->handle__get_first_hits(Result, sQuery, TimeOut, ResultLimit,
-                                             SocketInput.substr(PathPos,HintPos-PathPos),
-                                             NavHint(SocketInput.substr(HintPos)));
+                this->handle__get_first_hits(Result, Request.Get("query").c_str(),
+                                             Request.GetInt("timeout"), Request.GetInt("limit"),
+                                             Request.Get("path", ""), NavHint(Request.Get("hint", "")));
             }
             catch (CExpc& e) {
                 Result = Format("%i 0 0 0 0\n%s", (ddcExpcCode(e)==errNone ? errOther : ddcExpcCode(e)), e.what());
@@ -210,15 +189,11 @@ string CDDCServer::ProcessSocketString(const string& SocketInput, SOCKET& rConne
         }
         else if (cmd == "get_hit_strings") {
             //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-            // get_hit_strings " " FORMAT "\x01" OFFSET " " LIMIT : get full hit strings
+            // get_hit_strings format start limit : get full hit strings
             isFollowupRequest = true;
             try {
-                size_t StartHitNo, ResultLimit;
-                char sResultType[128];
-                int nItems = sscanf(SocketInput.c_str(), "get_hit_strings %[^\x01]\x01%zi %zi", sResultType, &StartHitNo, &ResultLimit);
-                if (nItems != 3)
-                    throw CDDCExpc(errParseError, "CDDCServer::ProcessSocketString(): cannot parse `get_hit_strings' request");
-                this->handle__get_hit_strings(Result, sResultType,StartHitNo,ResultLimit);
+                this->handle__get_hit_strings(Result, Request.Get("format").c_str(),
+                                              Request.GetInt("start"), Request.GetInt("limit"));
             }
             catch (CExpc& e) {
                 Result = Format("%i\x01%s", (ddcExpcCode(e)==errNone ? errOther : ddcExpcCode(e)), e.what());
@@ -231,27 +206,14 @@ string CDDCServer::ProcessSocketString(const string& SocketInput, SOCKET& rConne
         }
         else if (cmd == "run_query") {
             //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-            // run_query " " CORPUS "\x01" QUERY "\x01" FORMAT "\x01" START " " LIMIT " " TIMEOUT             : full query           (<  v2.1.9)
-            // run_query " " CORPUS "\x01" QUERY "\x01" FORMAT "\x01" START " " LIMIT " " TIMEOUT (" " HINT)? : full query with hint (>= v2.1.9)
+            // run_query corpus query format start limit timeout [path] [hint] : full query
             ++m_SessionStats.m_nQueries;
             isQueryRequest = true;
             try {
-                size_t StartHitNo, ResultLimit, PathPos,HintPos;
-                int TimeOut, StartPathPos;
-                char sQuery[DDC_STATIC_BUFLEN];
-                char sCorpusName[DDC_STATIC_BUFLEN]; //-- unused?
-                char sResultType[DDC_STATIC_BUFLEN];
-                const char* SocketInputStr = SocketInput.c_str();
-                int nItems = sscanf(SocketInputStr,
-                                    "run_query %[^\x01]\x01%[^\x01]\x01%[^\x01]\x01%zi %zi %i%n",
-                                    sCorpusName, sQuery, sResultType, &StartHitNo, &ResultLimit, &TimeOut, &StartPathPos);
-                if (nItems != 6)
-                    throw CDDCExpc(errParseError, "cannot parse `run_query` request");
-
-                findPathHint(SocketInput, StartPathPos, PathPos, HintPos);
-                this->handle__run_query(Result, sCorpusName,sQuery,sResultType,StartHitNo,ResultLimit,TimeOut,
-                                        SocketInput.substr(PathPos,HintPos-PathPos),
-                                        NavHint(SocketInput.substr(HintPos)));
+                this->handle__run_query(Result, Request.Get("corpus", "Distributed").c_str(), Request.Get("query").c_str(),
+                                        Request.Get("format", "text").c_str(),
+                                        Request.GetInt("start", 0), Request.GetInt("limit", 10), Request.GetInt("timeout", 10),
+                                        Request.Get("path", ""), NavHint(Request.Get("hint", "")));
             }
             catch (CExpc &e) {
                 Result = Format("\x01 %i %i %i %i %i\n%s", ddcExpcCode(e), 0, 0, 0, 0, e.what());
@@ -264,88 +226,55 @@ string CDDCServer::ProcessSocketString(const string& SocketInput, SOCKET& rConne
         }
         else if (cmd == "expand_terms") {
             //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-            // expand_terms "\x01" PIPELINE "\x01" TERMS "\x01" TIMEOUT ["\x01" CORPUS] : term expansion (leaf|branch)
+            // expand_terms pipeline terms [timeout] [corpus] : term expansion (leaf|branch)
             ++m_SessionStats.m_nExpand;
             isExpandRequest = true;
-            vector<string> qv = stringSplit(SocketInput.c_str(), "\x01");
-            if (qv.size() < 4)
-                throw CDDCExpc(errParseError, "could not parse `expand_terms' request");
-            else if (qv.size() < 5)
-                qv.push_back("");
-            string &pipeline = qv[1];
-            string &terms    = qv[2];
-            int     timeout  = atoi(qv[3].c_str());
-            string &corpus   = qv[4];
-            this->handle__expand_terms(Result, pipeline,terms,timeout,corpus);
+            this->handle__expand_terms(Result, Request.Get("pipeline"), Request.Get("terms"),
+                                       Request.GetInt("timeout", 10), Request.Get("corpus", ""));
         }
         else if (cmd == "get_paradigm") {
             //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-            // get_paradigm " " WORD "\x01" LEMMATIZE_BOOL " " LANG_INT
+            // get_paradigm word [lemmatize_only] lang
             ++m_SessionStats.m_nExpand;
             isExpandRequest = true;
-            char sWord[DDC_STATIC_BUFLEN];
-            int iLemmatizeOnly, iLang;
-            int nItems = sscanf(SocketInput.c_str(), "get_paradigm %[^\x01]\x01%i %i", sWord, &iLemmatizeOnly, &iLang);
-            if (nItems != 3)
-                throw CDDCExpc(errParseError, "cannot parse `get_paradigm` request");
-            this->handle__get_paradigm(Result, sWord,iLemmatizeOnly,iLang);
-        }
-        else if (cmd == "ddc_close_socket" || cmd == "close_socket" || cmd == "close") {
-            //--  close
-            this->handle__close_socket(Result, rConnectedSocket);
+            this->handle__get_paradigm(Result, Request.Get("word").c_str(), Request.GetInt("lemmatize_only", 0),
+                                       Request.GetInt("lang"));
         }
         else if (cmd == "version") {
-            //-- version : server version
             this->handle__version(Result);
         }
         else if (cmd == "status") {
-            //-- status : server status (brief)
             this->handle__status(Result);
         }
         else if (cmd == "vstatus") {
-            //-- vstatus [TIMEOUT] : server status (verbose)
-            int timeout = strtol(SocketInput.substr(eocpos).c_str(),NULL,0);
-            this->handle__vstatus(Result, timeout);
+            this->handle__vstatus(Result, Request.GetInt("timeout", 0));
         }
         else if (cmd == "info") {
-            //-- info [TIMEOUT]: sever info (brief)
-            int timeout = strtol(SocketInput.substr(eocpos).c_str(),NULL,0);
-            this->handle__info(Result, timeout);
+            this->handle__info(Result, Request.GetInt("timeout", 0));
         }
         else if (cmd == "vinfo") {
-            //-- vinfo [TIMEOUT]: sever info (verbose)
-            int timeout = strtol(SocketInput.substr(eocpos).c_str(),NULL,0);
-            this->handle__vinfo(Result, timeout);
+            this->handle__vinfo(Result, Request.GetInt("timeout", 0));
         }
         else if (cmd == "reload") {
-            //-- reload [DEPTH]
-            int depth = strtol(SocketInput.substr(eocpos).c_str(),NULL,0);
-            this->handle__reload(Result, depth);
+            this->handle__reload(Result, Request.GetInt("depth", 0));
         }
         else if (cmd == "clear_cache") {
-            //-- clear_cache [DEPTH]
-            int depth = strtol(SocketInput.substr(eocpos).c_str(),NULL,0);
-            this->handle__clear_cache(Result, depth);
+            this->handle__clear_cache(Result, Request.GetInt("depth", 0));
         }
         else if (cmd == "nodes") {
-            //-- nodes [DEPTH]
-            int depth = (eocpos >= SocketInput.size()
-                         ? -1
-                         : strtol(SocketInput.substr(eocpos).c_str(),NULL,0));
-            this->handle__nodes(Result, depth);
+            this->handle__nodes(Result, Request.GetInt("depth", -1));
         }
         else {
-            //-- unknown request
             throw CDDCExpc(errParseError, Format("unknown command `%s'", cmd.c_str()));
         }
     }
     catch (CExpc &e) {
-        ddcLogError(Format("CDDCServer[%s]::ProcessSocketString(): Exception[%d]: %s", m_CorpusName.c_str(), ddcExpcCode(e), e.what()));
+        ddcLogError(Format("CDDCServer[%s]::ProcessRequest(): Exception[%d]: %s", m_CorpusName.c_str(), ddcExpcCode(e), e.what()));
         if (Result.empty()) Result = Format("%i 0\n%s", ddcExpcCode(e), e.what());
         ++m_SessionStats.m_nErrors;
     }
     catch (exception& e) {
-        ddcLogError(Format("CDDCServer[%s]::ProcessSocketString(): Exception: %s", m_CorpusName.c_str(), e.what()));
+        ddcLogError(Format("CDDCServer[%s]::ProcessRequest(): Exception: %s", m_CorpusName.c_str(), e.what()));
         if (Result.empty()) Result = Format("%i 0\n%s", -1, e.what());
         ++m_SessionStats.m_nErrors;
     }
@@ -361,7 +290,7 @@ string CDDCServer::ProcessSocketString(const string& SocketInput, SOCKET& rConne
     
     //-- check for slow queries
     if (m_SlowQueryTimeout > 0 && t_elapsed > m_SlowQueryTimeout) {
-        ddcLogWarn(Format("WARNING: slow request (%gs > %gs): %s", t_elapsed, m_SlowQueryTimeout, SocketInput.c_str()));
+        ddcLogWarn(Format("WARNING: slow request (%gs > %gs): %s", t_elapsed, m_SlowQueryTimeout, Request.toString().c_str()));
         ++m_SessionStats.m_nSlow;
     }
 
@@ -420,13 +349,6 @@ void CDDCServer::handle__get_paradigm(string &Result, const char *Word, int iLem
 }
 
 //----------------------------------------------------------------------
-void CDDCServer::handle__close_socket(string &Result, SOCKET& rConnectedSocket)
-{
-    m_bRespond = false;
-    this->Close(rConnectedSocket);
-}
-
-//----------------------------------------------------------------------
 void CDDCServer::handle__version(string &Result)
 {
     Result = PACKAGE_VERSION;
@@ -475,21 +397,3 @@ void CDDCServer::handle__nodes(string &Result, int depth)
 }
 
 //==============================================================================
-
-
-
-//----------------------------------------------------------------------
-void CDDCServer::findPathHint(const string& ReqStr, size_t StartPos, size_t &PathPos, size_t &HintPos)
-{
-    //-- skip initial whitespace
-    for (PathPos=StartPos; PathPos < ReqStr.size() && isspace(ReqStr[PathPos]); ++PathPos) ;
-
-    //-- check whether path was specified (must begin with a non-digit and contain no whitespace)
-    if (PathPos < ReqStr.size() && !isdigit(ReqStr[PathPos])) {
-        for (HintPos=PathPos; HintPos < ReqStr.size() && !isspace(ReqStr[HintPos]); ++HintPos) ;
-    } else {
-        HintPos = PathPos;
-    }
-    
-    return;
-}

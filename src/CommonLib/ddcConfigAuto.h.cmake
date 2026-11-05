@@ -29,14 +29,6 @@
 #cmakedefine HAVE_STRERROR_R 1
 #define HAVE_PTHREAD 1
 
-/* libcurl */
-#cmakedefine HAVE_LIBCURL 1
-#cmakedefine DDC_HAVE_CURL_UNIX_SUPPORT 1
-#cmakedefine DDC_HAVE_CURL_ALREADY_CONNECTED 1
-#cmakedefine DDC_HAVE_UNIX_SOCKET_HEADERS 1
-#cmakedefine DDC_ENABLE_CURL_UNIX_URLS 1
-#cmakedefine DDC_ENABLE_CURL_UNIX_SOCKETS 1
-
 /* build options */
 #cmakedefine DDC_ENABLE_MMAP 1
 #cmakedefine DDC_USE_HIRES_CLOCK 1

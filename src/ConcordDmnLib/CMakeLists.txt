@@ -9,7 +9,6 @@ add_library(ConcordDmnLib
 	Server.cpp
 	ServerOptions.cpp
 	ServerStats.cpp
-	ServerThread.cpp
 )
 
 target_link_libraries(ConcordDmnLib

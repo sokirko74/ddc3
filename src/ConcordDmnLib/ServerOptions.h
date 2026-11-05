@@ -2,7 +2,11 @@
 #ifndef DDC_SERVER_OPTIONS_H
 #define DDC_SERVER_OPTIONS_H
 
-#include "../CommonLib/string_socket.h"
+#include "../CommonLib/Network.h"
+#include "../CommonLib/ddcLog.h"
+
+/* default maximum number of queued client connections */
+#define DDC_DEFAULT_THREAD_QUEUE_SIZE 256
 #include "nlp_base/common/utilit.h"
 #include "../CommonLib/ddcUtil.h"
 
@@ -29,7 +33,7 @@ public:
     /* number of client-thread workers for thread pool (default=0: serial mode) */
     size_t m_nWorkers;
 
-    /* maximum number of pending client connections the thread-pool queue (min=1: use tcp queueing only; default=DDC_DEFAULT_THREAD_QUEUE_SIZE) */
+    /* maximum number of queued client connections (default=DDC_DEFAULT_THREAD_QUEUE_SIZE) */
     size_t m_ThreadQueueSize;
 
     /* should branch server send "get_hit_strings" requests in parallel? (default=false) */

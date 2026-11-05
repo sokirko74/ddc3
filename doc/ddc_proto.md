@@ -1,46 +1,44 @@
 # DDC SERVER PROTOCOL
 
-This manual page describes the network protocol used by the DDC (sub)corpus and distributed servers. In the syntax descriptions, the string "\\x01" represents a literal ASCII byte with decimal value 1 (a.k.a. "SOH" a.k.a "start of heading"), and " " represents a literal space character (ASCII byte with decimal value 32).
+This manual page describes the network protocol used by the DDC (sub)corpus and distributed servers. Since ddc 3.0 it is HTTP: a request is a GET or POST of `/COMMAND` with named parameters (in the URL query string or as an `application/x-www-form-urlencoded` body), and the response body is the result. In the response descriptions, the string "\\x01" represents a literal ASCII byte with decimal value 1 (a.k.a. "SOH"), and " " a literal space character.
 
 # SYNOPSIS
 
 ```
 ##=====================================================================
-## Generic Message Format
-
-LENGTH DATA
-
-##=====================================================================
 ## Common Messages
 
-version
-status
-vstatus
-info
-nodes DEPTH
-reload DEPTH
-clear_cache DEPTH
+GET|POST /version
+GET|POST /status
+GET|POST /vstatus     [timeout=SECS]
+GET|POST /info        [timeout=SECS]
+GET|POST /vinfo       [timeout=SECS]
+GET|POST /nodes       [depth=DEPTH]
+GET|POST /reload      [depth=DEPTH]
+GET|POST /clear_cache [depth=DEPTH]
 
-expand_terms " \x01" PIPELINE "\x01" TERMS "\x01" TIMEOUT
-expand_terms " \x01" PIPELINE "\x01" TERMS "\x01" TIMEOUT "\x01" CORPUS
+GET|POST /expand_terms pipeline=PIPELINE terms=TERMS [timeout=SECS] [corpus=CORPUS]
 
-get_paradigm " " WORD "\x01" ILEMMATIZE " " ILANG
-
-ddc_close_socket
+GET|POST /get_paradigm word=WORD lang=ILANG [lemmatize_only=0|1]
 
 ##=====================================================================
 ## Branch-Server Messages
 
-run_query " " CORPUS "\x01" QUERY "\x01" FORMAT "\x01" OFFSET " " LIMIT " " TIMEOUT
-run_query " " CORPUS "\x01" QUERY "\x01" FORMAT "\x01" OFFSET " " LIMIT " " TIMEOUT " " HINT
+GET|POST /run_query query=QUERY [corpus=CORPUS] [format=FORMAT] [start=OFFSET] [limit=LIMIT]
+                    [timeout=SECS] [path=PATH] [hint=HINT]
 
 ##=====================================================================
 ## Leaf-Server Messages
 
-get_first_hits " " QUERY "\x01 " TIMEOUT " " LIMIT
-get_first_hits " " QUERY "\x01 " TIMEOUT " " LIMIT " " HINT
+GET|POST /get_first_hits query=QUERY timeout=SECS limit=LIMIT [path=PATH] [hint=HINT]
+GET|POST /get_hit_strings format=FORMAT start=OFFSET limit=LIMIT
+```
 
-get_hit_strings " " FORMAT "\x01" OFFSET " " LIMIT
+Example:
+
+```
+curl --data-urlencode 'query=Haus' -d 'format=json&limit=5' http://localhost:50000/run_query
+curl --unix-socket /tmp/corpus.sock http://localhost/status
 ```
 
 # DESCRIPTION
@@ -49,11 +47,17 @@ This section contains descriptions of the various requests which may be sent to 
 
 ## Generic Message Format
 
+A request is an HTTP/1.1 GET or POST request for the path `/COMMAND`; parameters are passed by name, in the URL query string (GET) or in an `application/x-www-form-urlencoded` body (POST). All texts are UTF-8. The response body (`text/plain; charset=utf-8`) is the result described below for each command; ddc-level errors (e.g. a query syntax error) are reported in the response body with HTTP status 200. An unknown command or a missing or malformed parameter gets HTTP status 400, the body is
+
 ```
-LENGTH DATA
+STATUS " 0\n" ERROR
 ```
 
-All messages sent to or from a DDC server share the common generic format `LENGTH DATA`, where `LENGTH` is a 32-bit little-endian unsigned integer, and `DATA` is the underlying message data, which is exactly `LENGTH` bytes long.
+A server listens on a tcp address or on a UNIX socket (see [ddc\_cfg(5)](ddc_cfg.md)).
+
+## Sessions
+
+A keep-alive HTTP connection is a session: all its requests are served one after another by the same server worker. A branch server sends `get_first_hits` and then `get_hit_strings` to a daughter in one connection; the daughter keeps the query result between the two requests. The session data are freed after the last request of a session (e.g. after `get_hit_strings`). The number of workers (concurrent sessions) is the `NumThreads` option of [ddc\_server.opt(5)](ddc_server.opt.md).
 
 ## Common Messages
 
@@ -62,7 +66,7 @@ This section describes the messages accepted by all DDC servers.
 ### version
 
 ```
-version
+/version
 ```
 
 Returns the version number of the running server as a string, by convention of the form `MAJOR.MINOR.MICRO-PATCHLEVEL` where `MAJOR`, `MINOR`, and `MICRO` are unsigned decimal integers, and `-PATCHLEVEL` is an optional string suffix. This should be the same string reported by **ddc\_daemon** on startup.
@@ -72,8 +76,7 @@ Since v2.0.18
 ### status
 
 ```
-status
-status TIMEOUT
+/status
 ```
 
 Returns status information on the running server as a JSON object of the form:
@@ -128,8 +131,8 @@ Since v2.0.18, optional TIMEOUT parameter since v2.0.47.
 ### vstatus
 
 ```
-vstatus
-vstatus TIMEOUT
+/vstatus
+/vstatus?timeout=TIMEOUT
 ```
 
 Like the `status` command, but the elements of the returned "corpora" list for a branch server are the JSON objects returned by the `status` command to the associated subcorpus servers, rather than just subcorpus names. If the optional TIMEOUT parameter is specified, it should be an integer value indicating the maximum time (in seconds) to wait for subcorpus responses; default=10.
@@ -139,8 +142,8 @@ Since v2.0.18, optional TIMEOUT parameter since v2.0.47.
 ### info
 
 ```
-info
-info TIMEOUT
+/info
+/info?timeout=TIMEOUT
 ```
 
 Returns information about associated corpora as a JSON object. For a leaf server, the returned object is of the form:
@@ -245,8 +248,8 @@ Since v2.0.18, "periods" attribute since v2.0.33, user-supplied info since v2.0.
 ### nodes
 
 ```
-nodes
-nodes DEPTH
+/nodes
+/nodes?depth=DEPTH
 ```
 
 Returns a JSON array of all subcorpus nodes directly or indirectly accessible from the current server node, or `null` if the current server node is a leaf-server. For branch servers, each element of the returned array is a `/`-separated server-tree `PATH` string as for [HINT](#hint) and suitable for use with the `:` query directive.
@@ -254,8 +257,8 @@ Returns a JSON array of all subcorpus nodes directly or indirectly accessible fr
 ### reload
 
 ```
-reload
-reload DEPTH
+/reload
+/reload?depth=DEPTH
 ```
 
 Requests re-loading local (sub)corpus data from disk. If `DEPTH` is present and non-zero, a receiving branch server will send a `reload` message with paramter `DEPTH-1` to any subordinate servers on the user's behalf; a `DEPTH` parameter of -1 requests maximum depth.
@@ -267,8 +270,8 @@ Apparently **BROKEN** since at least v2.1.0.
 ### clear\_cache
 
 ```
-clear_cache
-clear_cache DEPTH
+/clear_cache
+/clear_cache?depth=DEPTH
 ```
 
 Request that the receiving server immediately clear any in-memory query cache(s). If `DEPTH` is present and non-zero, a receiving branch server will send a `clear_cache` message with parameter `DEPTH-1` to any subordinate servers on the user's behalf; a `DEPTH` parameter of -1 requests maximum depth.
@@ -278,11 +281,10 @@ Since v2.0.23, DEPTH parameter since v2.0.25.
 ### expand\_terms
 
 ```
-expand_terms " \x01" PIPELINE "\x01" TERMS "\x01" TIMEOUT
-expand_terms " \x01" PIPELINE "\x01" TERMS "\x01" TIMEOUT "\x01" CORPUS
+/expand_terms pipeline=PIPELINE terms=TERMS [timeout=TIMEOUT] [corpus=CORPUS]
 ```
 
-Requests online term expansion of the terms `TERMS` by the expansion pipeline `PIPELINE`, which must be known to the leaf server chosen for expansion (see [ddc\_opt / Expand](ddc_opt.md#expand)). `TIMEOUT` is a request timeout in seconds.
+Requests online term expansion of the terms `TERMS` by the expansion pipeline `PIPELINE`, which must be known to the leaf server chosen for expansion (see [ddc\_opt / Expand](ddc_opt.md#expand)). `TIMEOUT` is a request timeout in seconds (default 10).
 
 For branch servers, if `CORPUS` is specified, it should be the the name of an immediate subcorpus which should be queried to perform the expansion. If unspecified, the first registered subcorpus is queried.
 
@@ -299,7 +301,7 @@ Since v2.0.0
 ### get\_paradigm
 
 ```
-get_paradigm " " WORD "\x01" ILEMMATIZE " " ILANG
+/get_paradigm word=WORD lang=ILANG [lemmatize_only=ILEMMATIZE]
 ```
 
 Request morphological analysis of the word `WORD` using legacy built-in language-specific heuristics. `ILEMMATIZE` is a boolean integer; if true, only lemmatization is performed. `ILANG` is an integer indicating the built-in language rule-set to use; it should be a valid `MorphLanguageEnum` value as defined in *${DDC\_SRC}/src/CommonLib/utilit.h* ; currently recognized values are (0:unknown, 1:Russian, 2:English, 3:German, 4:Generic, 5:URL, 6:Digits).
@@ -307,18 +309,6 @@ Request morphological analysis of the word `WORD` using legacy built-in language
 Response is an HTML fragment.
 
 Since v1.x
-
-### ddc\_close\_socket
-
-```
-ddc_close_socket
-```
-
-Dummy request used internally prior to ddc-v2.0.23 to avoid annoying complaints unless each subcorpus socket gets exactly 2 messages per user request. **DANGEROUS** to use directly, can cause server lockup!
-
-Since v2.0.0
-
-More or less obsolete since v2.0.23; may still be used to cleanup stale connections in exception handlers.
 
 ## Branch-Server Messages
 
@@ -329,15 +319,14 @@ Branch servers are prototypically used as the top-level instance for processing 
 ### run\_query
 
 ```
-run_query " " CORPUS "\x01" QUERY "\x01" FORMAT "\x01" OFFSET " " LIMIT " " TIMEOUT
-run_query " " CORPUS "\x01" QUERY "\x01" FORMAT "\x01" OFFSET " " LIMIT " " TIMEOUT " " HINT
+/run_query query=QUERY [corpus=CORPUS] [format=FORMAT] [start=OFFSET] [limit=LIMIT] [timeout=TIMEOUT] [path=PATH] [hint=HINT]
 ```
 
 Top-level user query request.
 
 - CORPUS
 
-  is a vacuous parameter, by convention the string "Distributed" is used.
+  is a vacuous parameter, default "Distributed".
 
 - QUERY
 
@@ -345,26 +334,30 @@ Top-level user query request.
 
 - FORMAT
 
-  is a string representing the data format to be returned by DDC. Currently, DDC supports the following formats: "JSON", "TABLE", "TEXT", "HTML", or "DOCIDS".
+  is a string representing the data format to be returned by DDC. Currently, DDC supports the following formats: "JSON", "TABLE", "TEXT", "HTML", or "DOCIDS". Default "text".
 
 - OFFSET
 
-  is the index of the first hit to be retrieved, starting from 0 (zero).
+  is the index of the first hit to be retrieved, starting from 0 (zero), default 0.
 
 - LIMIT
 
-  is the maximum number of hits to be retrieved.
+  is the maximum number of hits to be retrieved, default 10.
 
 - TIMEOUT
 
-  is the maximum number of seconds to spend processing the query before returning an error response. Note that since the underlying server(s) only check for timeout conditions once for each iteration through the "corpus period" loop, an expensive query can potentially block the server(s) for much longer than the specified TIMEOUT before such an error response is actually generated and sent to the client.
+  is the maximum number of seconds to spend processing the query before returning an error response, default 10. Note that since the underlying server(s) only check for timeout conditions once for each iteration through the "corpus period" loop, an expensive query can potentially block the server(s) for much longer than the specified TIMEOUT before such an error response is actually generated and sent to the client.
+
+- PATH
+
+  is the server-tree path of the receiving node (used by branch servers in requests to their daughters).
 
 - HINT
 
   As of DDC v2.1.9, the optional `HINT` parameter may be passed to specify a lower bound navigation hint for bandwidth and memory optimization of non-count queries. If specified, `HINT` is composed of a nested offset hint (`HINT_OFFSETS`) followed by a single space, followed by a primary sort-key lower bound (`HINT_SORTKEY`). The nested offset hint encodes the logical offset of the requested hint with respect to both the current server node (`OFFSET`) and any descendants (`DTR_OFFSETS`).
 
   ```
-  HINT         ::= (PATH " ") HINT_OFFSETS (" " SORTKEY)
+  HINT         ::= HINT_OFFSETS (" " SORTKEY)
   HINT_OFFSETS ::= OFFSET DTR_OFFSETS?
   DTR_OFFSETS  ::= "(" HINT_OFFSETS ("+" HINT_OFFSETS)* ")"
   OFFSET       ::= <unsigned integer>
@@ -378,7 +371,7 @@ Top-level user query request.
 
   For context queries, each `OFFSET` should be the sum of the first level of `DTR_OFFSETS`, and `OFFSET` must be less than or equal to `START`, otherwise an exception may be thrown. If `QUERY` contains a non-trivial sort operation and `HINT` contains a non-empty `SORTKEY` component, only hits equal to or following `SORTKEY` in the requested primary sort order will be returned. If a `SORTKEY` was supplied which is inconsistent with the requested `OFFSET` or `START`, an exception will be thrown.
 
-  As of DDC v2.2.8, the `HINT` parameter may specify an optional initial `PATH` containing the labels of any superordinate branch servers(s) in the server-tree for the current request as a "/"-separated list, analogous to UNIX filesystem path notation. An empty `PATH` or indicates that the request was directly initiated by a client (e.g. a user). All other `PATH` parameters must begin with a slash (`/`). If you are writing a client, you probably don't want to specify `PATH` yourself; the DDC-internal code should take care of setting it sensibly.
+  The `PATH` parameter contains the labels of any superordinate branch servers(s) in the server-tree for the current request as a "/"-separated list, analogous to UNIX filesystem path notation. An empty `PATH` or indicates that the request was directly initiated by a client (e.g. a user). All other `PATH` parameters must begin with a slash (`/`). If you are writing a client, you probably don't want to specify `PATH` yourself; the DDC-internal code should take care of setting it sensibly.
 
   Since v2.1.9, older DDC versions do not accept a `HINT` parameter. `PATH` parameter since v2.2.8.
 
@@ -470,8 +463,7 @@ This section describes the messages accepted by DDC "leaf" servers, also known a
 ### get\_first\_hits
 
 ```
-get_first_hits " " QUERY "\x01" TIMEOUT " " LIMIT
-get_first_hits " " QUERY "\x01" TIMEOUT " " LIMIT " " HINT
+/get_first_hits query=QUERY timeout=TIMEOUT limit=LIMIT [path=PATH] [hint=HINT]
 ```
 
 Requests subcorpus-local evaluation of the user query `QUERY`, returning IDs for up to `LIMIT` hits. `TIMEOUT` is an operation timeout in seconds, and `LIMIT` is the maximum number of hit-IDs to retrieve.
@@ -509,10 +501,10 @@ Since v1.x, error message strings since v2.0.0, count-queries since v2.0.23, bra
 ### get\_hit\_strings
 
 ```
-get_hit_strings " " FORMAT "\x01" OFFSET " " LIMIT
+/get_hit_strings format=FORMAT start=OFFSET limit=LIMIT
 ```
 
-Requests verbose hit strings for the current query (assumedly the query itself was specified in the previous `get_first_hits` request). Hits are to be formatted in `FORMAT`, which should be a format known to DDC. `OFFSET` is the offset of the first hit to return, starting from zero, and `LIMIT` is the maximum number of formatted hits to return.
+Requests verbose hit strings for the current query of the session (the query itself was specified in the previous `get_first_hits` request of the same keep-alive connection, see [Sessions](#sessions)). Hits are to be formatted in `FORMAT`, which should be a format known to DDC. `OFFSET` is the offset of the first hit to return, starting from zero, and `LIMIT` is the maximum number of formatted hits to return.
 
 If an error occurred, the response will be of the form:
 
@@ -549,10 +541,6 @@ Since v1.x, JSON format and error messages since v2.0.0, branch-server support s
 ## Error Messages
 
 This section describes some common error messages which may be returned by a ddc server.
-
-### Socket Error! Servname not supported for ai\_socktype
-
-This message may be reported by branch server with a misconfigured `ddc_server.cfg` file. In particular, if a subordinated server is declared in the branch server's `ddc_server.cfg` with no port number, or with a colon separating the server address and the port number instead of a space, this error message will be generated by any attempt to query the server.
 
 ### std::bad\_alloc
 

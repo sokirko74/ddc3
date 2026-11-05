@@ -23,7 +23,48 @@ using namespace std;
 # define PRUNE_DEBUG(x)
 #endif
 
+#include <thread>
+
 #define DEEP_HINTS 1
+
+//==============================================================================
+// requests to daughters
+
+/* one request to a daughter: Conn==NULL means "skip" */
+struct CDtrRequest {
+    CHttpConnection*  Conn = nullptr;
+    std::string       Command;
+    RequestParams     Params;
+    NetworkErrorsEnum Rc = neSuccess;
+    std::string       Result;
+    std::string       ErrorStr;
+};
+
+/* send the requests, in parallel if there are several */
+static void RunDtrRequests(std::vector<CDtrRequest>& reqs, int timeout, bool parallel=true)
+{
+    auto run = [timeout](CDtrRequest& r) {
+        try {
+            r.Rc = r.Conn->Request(r.Command, r.Params, timeout, r.Result, r.ErrorStr);
+        }
+        catch (std::exception& e) {
+            r.Rc = neNetworkError;
+            r.ErrorStr = e.what();
+        }
+    };
+    size_t n = 0;
+    for (auto& r : reqs) if (r.Conn) ++n;
+    if (!parallel || n < 2) {
+        for (auto& r : reqs) if (r.Conn) run(r);
+        return;
+    }
+    std::vector<std::thread> threads;
+    threads.reserve(n);
+    for (auto& r : reqs)
+        if (r.Conn) threads.emplace_back(run, std::ref(r));
+    for (auto& t : threads) t.join();
+}
+
 
 //==============================================================================
 // CFirstHitsQueryResult
@@ -40,20 +81,16 @@ void CFirstHitsQueryResult::Clear()
     m_NetworkError = neSuccess;
     ClearVector(m_Hits);
     m_DtrEnds.clear();
-    m_Sockets.clear();
+    m_Connections.clear();
     m_Offset = 0;
 }
 
 //----------------------------------------------------------------------
-void CFirstHitsQueryResult::CloseSockets()
+void CFirstHitsQueryResult::CloseConnections()
 {
-    for (size_t j=0; j<m_Sockets.size(); j++) {
-        if (m_Sockets[j] != -1) {
-            string ErrorStr;
-            SendString(m_Sockets[j], "ddc_close_socket", 16, ErrorStr);
-            CloseSocket(m_Sockets[j]);
-        }
-        m_Sockets[j] = -1;
+    for (auto& c : m_Connections) {
+        if (c) c->Close();
+        c.reset();
     }
 }
 
@@ -79,7 +116,7 @@ void CFirstHitsQueryResult::CollectCounts()
 
     //-- v2.0.36: we might need to re-sort hits
     //-- v2.2.12-pre1: ... but not if we've got only 1 daughter node
-    if (m_Sockets.size() > 1) {
+    if (m_Connections.size() > 1) {
         switch (m_SortOrder) {
             case hsoDescendingCountKeys:
                 reverse(m_Hits.begin(), m_Hits.end());
@@ -417,26 +454,12 @@ void CRunQueryData::toString(string &Response, size_t WorkerId, const DDCVersion
 // CDDCBranchServer: CHost API: overrides
 
 //----------------------------------------------------------------------
-bool CDDCBranchServer::Close(SOCKET& rConnectedSocket, bool linger, int timeout)
+void CDDCBranchServer::EndSession()
 {
-    //ddcLogTrace(Format("CDDCBranchServer::Close(): socket=%d:%s, linger=%d, timeout=%d", rConnectedSocket, SocketPeerP(rConnectedSocket).c_str(), (int)linger, timeout));
-    
-    //-- clear local intermediate query results: don't hog memory (or sockets) after expensive (often failed) queries
-    m_FHResult.CloseSockets();
+    //-- clear local intermediate query results: don't hog memory (or connections) after expensive (often failed) queries
+    m_FHResult.CloseConnections();
     m_FHResult.Clear();
     m_QueryData.Clear();
-
-    return CHost::Close(rConnectedSocket, linger, timeout);
-}
-
-//----------------------------------------------------------------------
-bool CDDCBranchServer::CloseDtr(SOCKET& rConnectedSocket, bool linger, int timeout)
-{
-    if (rConnectedSocket != -1) {
-        string ErrorStr;
-        SendString(rConnectedSocket, "ddc_close_socket", 16, ErrorStr);
-    }
-    return CHost::Close(rConnectedSocket, linger, timeout);
 }
 
 
@@ -605,7 +628,7 @@ void CDDCBranchServer::handle__run_query(string &Result, const char *CorpusName,
         RunDistributed();
     }
     catch (exception &e) {
-        m_FHResult.CloseSockets(); //-- don't leak file descriptors!
+        m_FHResult.CloseConnections();
         if (m_ErrorStr.empty()) m_ErrorStr = Format("Exception: %s", e.what());
     }
 
@@ -643,25 +666,9 @@ void CDDCBranchServer::handle__expand_terms(string &Result, const string& pipeli
     //-- delegate the query to the user-specified host
     assert(h != NULL);
     string ErrorStr;
-    int hsock = h->CreateAndConnectSocket(ErrorStr);
-    try {
-        if (!ErrorStr.empty() || hsock==-1)
-            throw CDDCExpc(errOther, "could not connect to subcorpus `%s': %s", h->m_CorpusName.c_str(), ErrorStr.c_str());
-
-        string hq = string("expand_terms \x01") + pipeline + "\x01" + terms + "\x01" + Format("%i", timeout);
-        if (!SendString(hsock, hq, ErrorStr))
-            throw CDDCExpc(errOther, "expand_terms faild for subcorpus `%s': %s", h->m_CorpusName.c_str(), ErrorStr.c_str());
-
-        //-- read response directly into Result
-        if (ReceiveString(hsock, Result, timeout) != neSuccess)
-            throw CDDCExpc(errOther, "expand_terms failed to read a response from subcorpus `%s'", h->m_CorpusName.c_str());
-    }
-    catch (...) {
-        this->CloseDtr(hsock);
-        throw;
-    }
-
-    this->CloseDtr(hsock);
+    RequestParams params = {{"pipeline", pipeline}, {"terms", terms}, {"timeout", Format("%i", timeout)}};
+    if (HttpRequest(h->SocketAddr(), "expand_terms", params, timeout, Result, ErrorStr) != neSuccess)
+        throw CDDCExpc(errOther, "expand_terms failed for subcorpus `%s': %s", h->m_CorpusName.c_str(), ErrorStr.c_str());
     m_bExpectMore = false;
 }
 
@@ -677,7 +684,7 @@ void CDDCBranchServer::handle__status(string &Result, int timeout, bool verbose)
     string subResult;
     if (verbose) {
         //-- vstatus: get subcorpus status
-        subResult = GetSubcorpusJsonArray("vstatus", timeout);
+        subResult = GetSubcorpusJsonArray("vstatus", RequestParams(), timeout);
     } else {
         //-- status: just get subcorpus names
         for (size_t i=0; i < m_Hosts.size(); ++i) {
@@ -744,7 +751,7 @@ void CDDCBranchServer::handle__reload(string &Result, int depth)
 {
     Result = string("{") + jsonStr(m_CorpusName) + ":";
     if (depth != 0) {
-        Result += GetSubcorpusJsonArray(Format("reload %d",depth-1));
+        Result += GetSubcorpusJsonArray("reload", {{"depth", Format("%d", depth-1)}});
     } else {
         Result.push_back('1');
     }
@@ -755,15 +762,15 @@ void CDDCBranchServer::handle__reload(string &Result, int depth)
 //----------------------------------------------------------------------
 void CDDCBranchServer::handle__clear_cache(string &Result, int depth)
 {
-    ddcCurlCache.lock();
-    ddcCurlCache.clear();
-    ddcCurlCache.unlock();
+    UrlCache.lock();
+    UrlCache.clear();
+    UrlCache.unlock();
 
     if (m_pNavCache) m_pNavCache->clear();
 
     Result = string("{") + jsonStr(m_CorpusName) + ":";
     if (depth != 0) {
-        Result += GetSubcorpusJsonArray(Format("clear_cache %d",depth-1));
+        Result += GetSubcorpusJsonArray("clear_cache", {{"depth", Format("%d", depth-1)}});
     } else {
         Result.push_back('1');
     }
@@ -778,7 +785,7 @@ void CDDCBranchServer::handle__nodes(string &Result, int depth)
     nodes.push_back("/");
     if (depth != 0) {
         vector<string> Results(m_Hosts.size());
-        GetSubcorpusJsonStrings(Results, Format("nodes %d",depth-1));
+        GetSubcorpusJsonStrings(Results, "nodes", {{"depth", Format("%d", depth-1)}});
         for (size_t hi=0; hi < m_Hosts.size(); ++hi) {
             rapidjson::Document hval;
             string dtrPath = string("/") + m_Hosts[hi].m_ShortName;
@@ -808,13 +815,6 @@ void CDDCBranchServer::handle__nodes(string &Result, int depth)
     }
     Result += "\n]";
     m_bExpectMore = false;
-}
-
-//----------------------------------------------------------------------
-void CDDCBranchServer::handle__close_socket(string &Result, SOCKET &rConnectedSocket)
-{
-    m_bRespond = false;
-    this->Close(rConnectedSocket);
 }
 
 //==============================================================================
@@ -944,7 +944,7 @@ NetworkErrorsEnum CDDCBranchServer::RunGetFirstHits()
     runq.RelevantDocsCount = FHResult.m_AllRelevantDocsCount;
     runq.iInternalError = FHResult.m_InternalError;
     if (FHResult.HasErrors()) {
-        FHResult.CloseSockets();
+        FHResult.CloseConnections();
         swap(m_ErrorStr, FHResult.m_ErrorStr);
         if (FHResult.m_InternalError != errNone)
             runq.iInternalError = FHResult.m_InternalError;
@@ -1057,7 +1057,7 @@ NetworkErrorsEnum CDDCBranchServer::GetHitCounts(CFirstHitsQueryResult& FHResult
         ResultString += "</TABLE>";
     }
 
-    FHResult.CloseSockets();
+    FHResult.CloseConnections();
     return neSuccess;
 }
 
@@ -1087,30 +1087,20 @@ void CDDCBranchServer::UpdateNavCache()
 }
 
 //----------------------------------------------------------------------
-NetworkErrorsEnum CDDCBranchServer::SendGetHitStringsRequest(BYTE SelectedHostNo,
-                                                             const vector< vector<size_t> >& SortedHits,
-                                                             const vector<size_t>& FirstOffsets,
-                                                             const string& ResultType)
+RequestParams CDDCBranchServer::GetHitStringsParams(BYTE SelectedHostNo,
+                                                    const vector< vector<size_t> >& SortedHits,
+                                                    const vector<size_t>& FirstOffsets,
+                                                    const string& ResultType)
 {
     BYTE HostNo              = m_QueryData.SelectedHosts.m_vec[SelectedHostNo];
-    SOCKET&     CorpusSocket = m_FHResult.m_Sockets[SelectedHostNo];
     const vector<size_t>& V  = SortedHits[HostNo];
     size_t FirstHitNo        = (V.empty()) ? FirstOffsets[HostNo] : m_FHResult.m_Hits[V[0]].m_HitNo;
     size_t HostLimit         = m_FHResult.HostHitsLimit(V);
-    string ErrorStr;
-
-    if (CorpusSocket == -1)
-        return neNetworkError;
-
-    string Req = Format ("get_hit_strings %s\x01%zi %zi",  ResultType.c_str(), FirstHitNo, HostLimit);
-    if (!SendString(CorpusSocket, Req, ErrorStr))  {
-        ErrorMessage(Format("cannot send a string to socket %s : %s", m_Hosts[HostNo].GetAddressStr().c_str(), ErrorStr.c_str() ));
-        if (!this->CloseDtr(CorpusSocket))
-            ErrorMessage (Format("cannot close socket %s", m_Hosts[HostNo].GetAddressStr().c_str()));
-
-        return neCouldNotSendData;
-    }
-    return neSuccess;
+    return {
+        {"format", ResultType},
+        {"start", Format("%zi", FirstHitNo)},
+        {"limit", Format("%zi", HostLimit)},
+    };
 };
 
 //----------------------------------------------------------------------
@@ -1167,14 +1157,17 @@ NetworkErrorsEnum CDDCBranchServer::GetHitContexts(CFirstHitsQueryResult& FHResu
         runq.navHint.m_SortKey = FHResult.m_Hits[end-1].m_SortKeyStr;
     NAVCACHE_DEBUG( ddcLogDebug(Format("GetHitContexts(): FHR.LEnd=%zd FHR.Count=%zd --> navKey.HitNo=%zd", FHResult.LogicalOffset(end), FHResult.m_AllHitsCount, runq.navKey.m_HitNo)) );
 
-    // get strings from the hosts: paralell mode
-    if (m_bHitStringsParallel) {
-        NetworkErrorsEnum reqrc;
-        for (size_t i=0; i < SelectedHosts.size(); ++i) {
-            if ((reqrc=SendGetHitStringsRequest(i, SortedHits, FirstOffsets, ResultType)) != neSuccess)
-                return reqrc;
-        }
+    //-- get_hit_strings requests in the sessions opened by get_first_hits (parallel or serial)
+    vector<CDtrRequest> reqs(SelectedHosts.size());
+    for (size_t i=0; i < SelectedHosts.size(); ++i) {
+        if (i >= FHResult.m_Connections.size() || !FHResult.m_Connections[i])
+            return neNetworkError;
+        reqs[i].Conn = FHResult.m_Connections[i].get();
+        reqs[i].Command = "get_hit_strings";
+        reqs[i].Params = GetHitStringsParams(i, SortedHits, FirstOffsets, ResultType);
     }
+    RunDtrRequests(reqs, TimeOut, m_bHitStringsParallel);
+    FHResult.CloseConnections();
 
     //-- get_hit_strings: serial mode / read responses
     //   Results[HostNo] - contains all hit strings in the right order
@@ -1183,30 +1176,31 @@ NetworkErrorsEnum CDDCBranchServer::GetHitContexts(CFirstHitsQueryResult& FHResu
         BYTE HostNo = SelectedHosts.m_vec[i]; 
         const vector<size_t>&  V = SortedHits[HostNo];
 
-        if (!m_bHitStringsParallel) {
-            //-- serial mode: send request
-            NetworkErrorsEnum reqrc = SendGetHitStringsRequest(i, SortedHits, FirstOffsets, ResultType);
-            if (reqrc != neSuccess) return reqrc;
+        if (reqs[i].Rc != neSuccess) {
+            m_ErrorStr = string("[") + m_Hosts[HostNo].m_CorpusName + "] " + reqs[i].ErrorStr;
+            return reqs[i].Rc;
         }
-        
+
         string S, dtrHint;
         size_t FirstHitNo = (V.empty()) ? FirstOffsets[HostNo] : FHResult.m_Hits[V[0]].m_HitNo;
         size_t HostLimit  = m_FHResult.HostHitsLimit(V);
         InternalError = errNone;
-        NetworkErrorsEnum Res = GetHitStringsFromOneCorpus
-            (m_Hosts[HostNo], ResultType, FirstHitNo, HostLimit, TimeOut,FHResult.m_Sockets[i], InternalError, S, dtrHint);
-        //-- should we be checking for (Res != neSuccess) here?
+        NetworkErrorsEnum Res = ParseHitStringsResponse(reqs[i].Result, HostLimit, InternalError, S, dtrHint);
+        if (Res != neSuccess) {
+            m_ErrorStr = string("[") + m_Hosts[HostNo].m_CorpusName + "] cannot parse a get_hit_strings response";
+            return Res;
+        }
 
         NAVCACHE_DEBUG(ddcLogDebug(Format("GetHitContexts[host=%d]: Hint=`%s'", HostNo, dtrHint.c_str())));
         if (!dtrHint.empty()) runq.navHint.m_DtrHints[HostNo].swap(dtrHint);
             
         if (FHResult.HasErrors()) {
-            FHResult.CloseSockets();
+            FHResult.CloseConnections();
             m_ErrorStr = FHResult.m_ErrorStr;
             return FHResult.m_NetworkError==neSuccess ? neInternalError : FHResult.m_NetworkError;
         }
         else if (InternalError != errNone) {
-            FHResult.CloseSockets();
+            FHResult.CloseConnections();
             m_ErrorStr = string("[") + m_Hosts[HostNo].m_CorpusName + "] ";
             size_t p = S.find_first_not_of("\x1\x2 \t\r\n");
             if (p != S.npos) {
@@ -1236,7 +1230,7 @@ NetworkErrorsEnum CDDCBranchServer::GetHitContexts(CFirstHitsQueryResult& FHResu
 
         if (Results[HostNo].size() != HostLimit)
         {
-            FHResult.CloseSockets();
+            FHResult.CloseConnections();
             return neProtocolError;
         };
     };
@@ -1276,7 +1270,7 @@ void CDDCBranchServer::GetFirstHitsFromCorpora(const CSelectedHosts& SelectedHos
 {
     CRunQueryData &runq = m_QueryData; //-- for navigation hints
         
-    Result.m_Sockets.resize(SelectedHosts.size(),-1);
+    Result.m_Connections.assign(SelectedHosts.size(), nullptr);
     Result.m_AllHitsCount = 0;
     Result.m_AllRelevantDocsCount = 0;
     Result.m_NetworkError = neSuccess;
@@ -1285,8 +1279,6 @@ void CDDCBranchServer::GetFirstHitsFromCorpora(const CSelectedHosts& SelectedHos
     Result.m_ErrorStr = "";
 
     //-- nav-hints
-    bool compat_ge_v2_1_9 = (m_VersionCompat >= DDCVersionT(2,1,9)); //-- can we use v2.1.9 get_first_hits syntax?
-    bool compat_ge_v2_2_8 = (m_VersionCompat >= DDCVersionT(2,2,8)); //-- can we use v2.2.8 RequestPath syntax?
     const NavHint& Hint   = runq.navHint;
     size_t HintOffset     = Hint.OffsetTotal();
     if (StartHitNo < HintOffset)
@@ -1296,55 +1288,36 @@ void CDDCBranchServer::GetFirstHitsFromCorpora(const CSelectedHosts& SelectedHos
     //-- daughter-relative paths placeholder \x01
     size_t qPathPos = Query.rfind('\x01');
 
-    for (size_t i=0; i<SelectedHosts.size(); i++)   
+    //-- get_first_hits requests to the selected daughters (keep-alive sessions, get_hit_strings follows)
+    vector<CDtrRequest> reqs(SelectedHosts.size());
+    for (size_t i=0; i<SelectedHosts.size(); i++)
     {
         BYTE HostNo = SelectedHosts.m_vec[i];
-        CHost& Host = m_Hosts[HostNo];
-        string strError;
-        Result.m_Sockets[i] = Host.CreateAndConnectSocket(strError);
-        if (Result.m_Sockets[i] == -1)
-        {
-            Result.m_NetworkError = neCouldNotOpenSocket;
-            return;
-        };
+        Result.m_Connections[i] = std::make_shared<CHttpConnection>(m_Hosts[HostNo].SocketAddr());
 
         string dtrQuery(Query);
         string dtrPath = runq.ReqPath + "/" + m_Hosts[HostNo].m_ShortName;
         if (qPathPos != string::npos)
             dtrQuery.replace(qPathPos,1, SelectedHosts.DtrPaths(HostNo));
 
+        //-- use NavCache hints for get_first_hits requests to daughter subcorpora
         const char *dtrHintStr = Hint.DtrHint(HostNo);
-        string Req;
-        if (compat_ge_v2_1_9) {
-            //-- compat >= v2.1.9: use NavCache hints for get_first_hits requests to daughter subcorpora
-            char *dtrHintTail;
-            size_t dtrStart = strtoul(dtrHintStr,&dtrHintTail,0);
-            size_t dtrLimit = StartHitNo + ResultLimit - HintOffset;
-            //size_t dtrLimit = ResultLimit + (StartHitNo-min((size_t)StartHitNo,dtrStart));
-            //size_t dtrLimit = ResultLimit - min((size_t)ResultLimit,max(dtrStart,HintOffset));
+        char *dtrHintTail;
+        size_t dtrStart = strtoul(dtrHintStr,&dtrHintTail,0);
+        size_t dtrLimit = StartHitNo + ResultLimit - HintOffset;
 
-            if (compat_ge_v2_2_8) {
-                //-- compat >= v2.2.8: include dtrPath in request
-                Req = Format("get_first_hits %s\x01%i %zi %s %zd%s %s",
-                             dtrQuery.c_str(), TimeOut,dtrLimit, dtrPath.c_str(), dtrStart,dtrHintTail, Hint.m_SortKey.c_str());
-            } else {
-                //-- v2.1.9 <= compat < v2.2.8: use hints but no dtrPath in request
-                Req = Format("get_first_hits %s\x01%i %zi %zd%s %s",
-                             dtrQuery.c_str(), TimeOut,dtrLimit,                  dtrStart,dtrHintTail, Hint.m_SortKey.c_str());
-            }
-        } else {
-            //-- compat <  v2.1.9: use old get_first_hits syntax (highway-painting algorithm)
-            Req = Format ("get_first_hits %s\x01%i %i", dtrQuery.c_str(), TimeOut,  StartHitNo+ResultLimit);
-        }
-                    
-        string ErrorStr;
-        if (!SendString(Result.m_Sockets[i], Req.c_str(), Req.length(), ErrorStr)) 
-        {
-            ErrorMessage (Format("cannot send a string to socket %s : %s", Host.GetAddressStr().c_str(), ErrorStr.c_str() ));
-            Result.m_NetworkError = neCouldNotSendData;
-            return;
+        CDtrRequest& r = reqs[i];
+        r.Conn = Result.m_Connections[i].get();
+        r.Command = "get_first_hits";
+        r.Params = {
+            {"query", dtrQuery},
+            {"timeout", Format("%i", TimeOut)},
+            {"limit", Format("%zd", dtrLimit)},
+            {"path", dtrPath},
+            {"hint", Format("%zd%s %s", dtrStart, dtrHintTail, Hint.m_SortKey.c_str())},
         };
     };
+    RunDtrRequests(reqs, TimeOut);
 
     Result.m_DtrEnds.assign(m_Hosts.size(), 0);
     vector<size_t>  HitsDistribution(m_Hosts.size(), 0);
@@ -1354,11 +1327,12 @@ void CDDCBranchServer::GetFirstHitsFromCorpora(const CSelectedHosts& SelectedHos
         BYTE HostNo = SelectedHosts.m_vec[i];
         CHost& Host = m_Hosts[HostNo];
 
-        string S;
-        Result.m_NetworkError = ReceiveString(Result.m_Sockets[i], S, TimeOut);
+        string& S = reqs[i].Result;
+        Result.m_NetworkError = reqs[i].Rc;
         if (Result.m_NetworkError != neSuccess)
         {
-            concord_daemon_log( string(" Cannot receive a result string from daughter corpus ")+Host.m_CorpusName+" " );
+            Result.m_ErrorStr = string("[") + Host.m_CorpusName + "] " + reqs[i].ErrorStr;
+            ddcLogError(string("cannot receive a result string from daughter corpus ") + Host.m_CorpusName + ": " + reqs[i].ErrorStr);
             return;
         };
 
@@ -1465,31 +1439,13 @@ void CDDCBranchServer::GetFirstHitsFromCorpora(const CSelectedHosts& SelectedHos
 }
 
 //----------------------------------------------------------------------
-NetworkErrorsEnum CDDCBranchServer::GetHitStringsFromOneCorpus(CHost& Host,
-                                                               const string& ResultType,
-                                                               size_t StartHitNo,
-                                                               size_t ResultLimit,
-                                                               int   TimeOut,
-                                                               SOCKET& CorpusSocket,
-                                                               int&    InternalError,
-                                                               string& Result,
-                                                               string& ResultHint)
+NetworkErrorsEnum CDDCBranchServer::ParseHitStringsResponse(const string& Response,
+                                                            size_t ResultLimit,
+                                                            int&    InternalError,
+                                                            string& Result,
+                                                            string& ResultHint)
 {
-    string ErrorStr;
-    if (CorpusSocket == -1)
-        return neNetworkError;
-
-    string S;
-    NetworkErrorsEnum Res = ReceiveString(CorpusSocket, S, TimeOut);
-    if (!this->CloseDtr(CorpusSocket))
-        ErrorMessage (Format("cannot close socket %s", Host.GetAddressStr().c_str()));
-
-    if (Res  != neSuccess)
-    {
-        concord_daemon_log ( "cannot receive a result string from a client" );
-        return Res;
-    };
-
+    string S(Response);
     //InternalError OffsetHint? Result      
     size_t dataPos = S.find('\x01');
     if ( (dataPos == string::npos) || (dataPos == 0) ) 
@@ -1662,78 +1618,35 @@ void CDDCBranchServer::InitHostMap()
 };
 
 //----------------------------------------------------------------------
-void CDDCBranchServer::GetSubcorpusJsonStrings(vector<string>& Results, const string& request, int timeout)
+void CDDCBranchServer::GetSubcorpusJsonStrings(vector<string>& Results, const string& command, const RequestParams& params, int timeout)
 {
-    vector<SOCKET> Sockets(m_Hosts.size(), -1);
-    size_t i;
-    string errorStr;
-    Results.resize(m_Hosts.size());
     if (timeout==0) timeout=10; //-- default timeout
-
-    //-- send requests
-    for (i=0; i < m_Hosts.size(); ++i) {
-        CHost &Host = m_Hosts[i];
-
-        //-- open socket
-        errorStr.clear();
-        try {
-            SOCKET sock = Host.CreateAndConnectSocket(errorStr);
-            if (sock == -1 || !errorStr.empty()) {
-                Results[i] = Format("{\"name\":%s,\"error\":\"could not open socket: %s\"}", jsonStr(Host.m_CorpusName).c_str(), jsonStr(errorStr, true, false).c_str());
-                continue;
-            }
-
-            //-- send request
-            if (!SendString(sock, request, errorStr) || !errorStr.empty()) {
-                this->CloseDtr(sock);
-                Results[i] = Format("{\"name\":%s,\"error\":\"could not send to socket: %s\"}", jsonStr(Host.m_CorpusName).c_str(), jsonStr(errorStr, true, false).c_str());
-                continue;
-            }
-
-            //-- store socket
-            Sockets[i] = sock;
-        }
-        catch (exception &e) {
-            Results[i] = Format("{\"name\":%s,\"error\":\"error sending to socket: %s\"}", jsonStr(Host.m_CorpusName).c_str(), jsonStr(e.what(), true, false).c_str());
-            continue;
-        }
-        catch (...) {
-            Results[i] = Format("{\"name\":%s,\"error\":\"error sending to socket\"}", jsonStr(Host.m_CorpusName).c_str());
-            continue;
-        }
-
+    vector<std::unique_ptr<CHttpConnection> > conns(m_Hosts.size());
+    vector<CDtrRequest> reqs(m_Hosts.size());
+    for (size_t i=0; i < m_Hosts.size(); ++i) {
+        conns[i].reset(new CHttpConnection(m_Hosts[i].SocketAddr()));
+        reqs[i].Conn = conns[i].get();
+        reqs[i].Command = command;
+        reqs[i].Params = params;
     }
+    RunDtrRequests(reqs, timeout);
 
-    //-- read responses
-    for (i=0; i < m_Hosts.size(); ++i) {
-        if (Sockets[i] == -1 || !Results[i].empty())
-            continue;
-
-        //-- read response
-        try {
-            if (ReceiveString(Sockets[i], Results[i], timeout) != neSuccess) {
-                Results[i] = Format("{\"name\":%s,\"error\":\"failed to read response data from socket\"}", jsonStr(m_Hosts[i].m_CorpusName).c_str());
-            }
+    Results.resize(m_Hosts.size());
+    for (size_t i=0; i < m_Hosts.size(); ++i) {
+        if (reqs[i].Rc == neSuccess) {
+            Results[i].swap(reqs[i].Result);
+        } else {
+            Results[i] = Format("{\"name\":%s,\"error\":\"%s: %s\"}", jsonStr(m_Hosts[i].m_CorpusName).c_str(),
+                                GetNetworkErrorString(reqs[i].Rc).c_str(), jsonStr(reqs[i].ErrorStr, true, false).c_str());
         }
-        catch (exception &e) {
-            Results[i] = Format("{\"name\":%s,\"error\":\"error reading response data from socket: %s\"}", jsonStr(m_Hosts[i].m_CorpusName).c_str(), jsonStr(e.what(),true,false).c_str());
-        }
-        catch (...) {
-            Results[i] = Format("{\"name\":%s,\"error\":\"error reading response data from socket\"}", jsonStr(m_Hosts[i].m_CorpusName).c_str());
-        }
-
-        //-- close socket (forgetting this causes an fd-leak resulting in "Could not create socket: Too many open files for HOST:PORT" messages later)
-        this->CloseDtr(Sockets[i]);
     }
-
-    return;
 }
 
 //----------------------------------------------------------------------
-string CDDCBranchServer::GetSubcorpusJsonArray(const string& request, int timeout)
+string CDDCBranchServer::GetSubcorpusJsonArray(const string& command, const RequestParams& params, int timeout)
 {
     vector<string> Results(m_Hosts.size());
-    GetSubcorpusJsonStrings(Results, request, timeout);
+    GetSubcorpusJsonStrings(Results, command, params, timeout);
 
     //-- build result
     string Result("[");

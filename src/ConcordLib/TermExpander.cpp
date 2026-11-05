@@ -1,4 +1,5 @@
 #include "TermExpander.h"
+#include "UrlFetch.h"
 #include "ConcCommon.h"
 #include "../CommonLib/ddcString.h"
 #include <stdlib.h>
@@ -248,30 +249,6 @@ void TxCase::expand(const set<string> &src, set<string> &dst) {
 }
 
 //======================================================================
-// TxCurl
-
-//--------------------------------------------------------------
-CTermExpander *TxCurl::clone(map<CTermExpander *, CTermExpander *> &xlate) const {
-    TxCurl* that = new TxCurl(m_Class, m_Label, m_Param);
-    that->compile();
-    return (CTermExpander*)that;
-}
-
-//--------------------------------------------------------------
-void TxCurl::compile(void) {
-    m_CCurl.lock();
-    m_CCurl.url("");
-    m_CCurl.requestUrl("");
-    m_CCurl.unixSocketPath("");
-    m_CCurl.timeout(5);
-    m_CCurl.noSignal(1);
-    m_CCurl.failOnError(1);
-    m_CCurl.setDefaultDataCallback();
-    m_CCurl.unlock();
-}
-
-
-//======================================================================
 // TxCab
 
 //--------------------------------------------------------------
@@ -283,21 +260,17 @@ CTermExpander *TxCab::clone(map<CTermExpander *, CTermExpander *> &xlate) const 
 
 //--------------------------------------------------------------
 void TxCab::compile(void) {
-    //-- defaults
-    TxCurl::compile();
-
     //-- parse parameters
-    m_CCurl.lock();
     vector<string> params = stringSplit(m_Param.c_str(), " \t\r\n");
     m_UrlBase.clear();
+    m_Timeout = 5;
     if (params.size() > 0) {
         m_UrlBase = params[0];
         if (*m_UrlBase.rbegin() != '=')
             m_UrlBase += "&qd="; //-- compatibility hack for versions < 2.0.5
     }
     if (params.size() > 1) {
-        int secs = strtol(params[1].c_str(), NULL, 0);
-        m_CCurl.timeout(secs);
+        m_Timeout = strtol(params[1].c_str(), NULL, 0);
     }
     if (params.size() > 2) {
         m_Debug = strtol(params[2].c_str(), NULL, 0);
@@ -306,22 +279,14 @@ void TxCab::compile(void) {
         m_MapMode = strtol(params[3].c_str(), NULL, 0);
     }
 
-#ifdef DDC_ENABLE_CURL_UNIX_URLS
     if (m_Debug) {
         string unixPath, requestUrl;
-        bool useUnixSocket = CCurl::parseUnixSocketUrl(m_UrlBase, unixPath, requestUrl);
-        if (useUnixSocket) {
+        if (ParseUnixSocketUrl(m_UrlBase, unixPath, requestUrl)) {
             ddcLogDebug(Format("TxCab::expand[%s]: detected UNIX socket URL: %s", m_Label.c_str(), m_UrlBase.c_str()));
             ddcLogDebug(Format("TxCab::expand[%s]: -> UNIX socket path: %s", m_Label.c_str(), unixPath.c_str()));
-            ddcLogDebug(Format("TxCab::expand[%s]: -> curl request URL: %s", m_Label.c_str(), requestUrl.c_str()));
+            ddcLogDebug(Format("TxCab::expand[%s]: -> request URL: %s", m_Label.c_str(), requestUrl.c_str()));
         }
     }
-#endif
-  
-    //-- curl flags
-    m_CCurl.forbidReuse(1); //-- CAB closes client connections, but CURL is smart enough to re-connect anyway (?)
-    m_CCurl.verbose(m_Debug ? 1 : 0); //-- DEBUG
-    m_CCurl.unlock();
 }
 
 //--------------------------------------------------------------
@@ -339,36 +304,19 @@ void TxCab::expand(const set<string> &src, set<string> &dst) {
     }
 
     //-- low-level query
-    m_CCurl.lock();
-    try {
-        m_CCurl.url(url);
-    
-        if (!this->perform() || m_CCurl.m_Response.empty()) {
-            //-- query failed: silently do identity expansion
-#if 0
-            throw CDDCExpc(errRuntime, "TxCab::expand(): ERROR: %s", m_CCurl.m_CurlErr);
-#else
-            concord_daemon_log(Format("TxCab::expand(%s) failed: %s", url.c_str(), m_CCurl.m_CurlErr));
-            if (m_MapMode) dst = src; //-- fallback to literal search in map mode
-            m_CCurl.unlock();
-            return;
-#endif      
-        }
-
-        //-- parse response
-        StringTokenizer rtok(m_CCurl.m_Response.c_str(), "\t\r\n");
-        while (rtok()) {
-            dst.insert(rtok.val());
-        }
-    }
-    catch (...) {
-        m_CCurl.unlock();
-        throw;
+    string response, errorStr;
+    if (!FetchUrl(url, m_Timeout, response, errorStr) || response.empty()) {
+        //-- query failed: silently do identity expansion
+        ddcLogWarn(Format("TxCab::expand(%s) failed: %s", url.c_str(), errorStr.c_str()));
+        if (m_MapMode) dst = src; //-- fallback to literal search in map mode
+        return;
     }
 
-    //-- all done
-    m_CCurl.unlock();
-    return;
+    //-- parse response
+    StringTokenizer rtok(response.c_str(), "\t\r\n");
+    while (rtok()) {
+        dst.insert(rtok.val());
+    }
 }
 
 //======================================================================
