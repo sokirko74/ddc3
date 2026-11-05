@@ -52,8 +52,8 @@ public:
 
 
     
-    // load xml file into TiXmlDocument& doc and load bibliographical fileds to CBibliography& Bibl
-    void LoadXmlAndReadBibliography(TiXmlDocument &doc, const char *pFileBuffer, CBibliography &Bibl);
+    // load xml file into doc and load bibliographical fileds to CBibliography& Bibl
+    void LoadXmlAndReadBibliography(pugi::xml_document &doc, const char *pFileBuffer, CBibliography &Bibl);
 
     // load xml file under  MorphXML_Index into vector<CXmlToken>& GraTable
     void ReadMorphXmlFileIntoGraTable(std::string FileName, const char *pFileBuffer, std::vector<CXmlToken> &GraTable,

@@ -23,7 +23,7 @@
 #include "nlp_base/agramtab/GerGramTab.h"
 #include "../CommonLib/DDC_common.h"
 #include "../CommonLib/ddcObject.h"
-#include "../tinyxml/tinyxml.h"
+#include <pugixml.hpp>
 
 #include "../ConcordLib/CCurl.h"
 #include "../CommonLib/ddcLocale.h"

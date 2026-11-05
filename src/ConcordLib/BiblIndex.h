@@ -132,7 +132,7 @@ public:
     bool GetFilterValues(CDDCFilterWithBounds &Filter, const std::set<std::string> &Values) const;
 
     // return all text area elements for this document ("doc")
-    void GetTextAreaElements(const TiXmlDocument &doc, std::vector<TiXmlElement *> &Result) const;
+    void GetTextAreaElements(const pugi::xml_document &doc, std::vector<pugi::xml_node> &Result) const;
 
     // return all text area names
     size_t GetTextAreasCount() const;

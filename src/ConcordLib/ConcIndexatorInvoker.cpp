@@ -157,7 +157,6 @@ void ConcIndexatorInvoker::BuildIndexStart(string ProjectFile, CConcIndexator& i
 
     m_Profiler.ClearTimers();
     m_Profiler.StartTimer("Indexing", 0);
-    TiXmlBase::SetCondenseWhiteSpace(false);
     time(&m_StartTime);
 }
 

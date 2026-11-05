@@ -44,7 +44,7 @@ add_library(ConcordLib
         BiblIndex.cpp BiblIndex.h)
 
 target_link_libraries(ConcordLib
-    tinyxml
+    pugixml::pugixml
     PCRE
     GraphanLib
     lemmatizer_base_lib

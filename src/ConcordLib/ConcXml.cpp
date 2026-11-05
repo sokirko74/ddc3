@@ -1,5 +1,4 @@
 #include "ConcXml.h"
-#include "../tinyxml/xpath_static.h"
 #include "../CommonLib/bserialize.h"
 #include "../CommonLib/ddcString.h"
 #include <typeinfo>    //-- for typeid()
@@ -21,61 +20,66 @@ string &DeleteEoln(string &s) {
 
 
 
-string ReadXmlField(const TiXmlDocument &pDoc, string XPath) {
-    string ErrStr;
-    TinyXPath::xpath_processor xp_proc(pDoc.RootElement(), XPath.c_str());
-    TinyXPath::expression_result er_res = xp_proc.er_compute_xpath();
-    if (xp_proc.e_error != TinyXPath::xpath_processor::e_no_error)
-        // not present in this dociment
-        return "";
+//-- pugixml parse options for the corpus documents: keep whitespace-only text nodes (like the
+//   former TiXmlBase::SetCondenseWhiteSpace(false)), decode entities, CDATA is text
+const unsigned int DdcXmlParseOptions = pugi::parse_default | pugi::parse_ws_pcdata;
 
-    string Result;
-    switch (er_res.e_type) {
-        case TinyXPath::e_bool:
-            Result = (er_res.o_get_bool() ? "1" : "0");
-            break;
-
-        case TinyXPath::e_string:
-            Result = er_res.cp_get_string();
-            break;
-
-        case TinyXPath::e_int:
-            Result = Format("%d", er_res.i_get_int());
-            break;
-
-        case TinyXPath::e_double:
-            Result = Format("%g", er_res.d_get_double());
-            break;
-
-        case TinyXPath::e_node_set: {
-            TinyXPath::node_set *pSet = er_res.nsp_get_node_set();
-            size_t Count = pSet->u_get_nb_node_in_set();
-            for (size_t u_node = 0; u_node < Count; u_node++) {
-                string s;
-                const TiXmlBase *pBase = pSet->XBp_get_base_in_set(u_node);
-                if (pSet->o_is_attrib(u_node)) {
-                    const TiXmlAttribute *node = pSet->XAp_get_attribute_in_set(u_node);
-                    s = node->Value();
-                } else {
-                    const TiXmlNode *node = pSet->XNp_get_node_in_set(u_node);
-                    for (TiXmlNode *child = node->FirstChild(); child; child = child->NextSibling())
-                        if (child->Type() == TiXmlNode::TEXT) {
-                            string q = child->Value();
-                            Trim(q);
-                            s += q;
-                        };
-                }
-                Result += s;
-                if (u_node + 1 < Count)
-                    Result += ":";
-            }
+//-- text of the text children (PCDATA, CDATA) of node, each one trimmed
+static string GetTrimmedTextChildren(const pugi::xml_node &node) {
+    string s;
+    for (pugi::xml_node child = node.first_child(); child; child = child.next_sibling())
+        if (child.type() == pugi::node_pcdata || child.type() == pugi::node_cdata) {
+            string q = child.value();
+            Trim(q);
+            s += q;
         }
-            break;
+    return s;
+}
 
-        case TinyXPath::e_invalid:
-        default:
-            ErrorMessage(Format("Error: Unknown or invalid return type for XPath `%s'", XPath.c_str()));
-            break;
+string ReadXmlField(const pugi::xml_document &pDoc, string XPath) {
+    string Result;
+    try {
+        pugi::xpath_query query(XPath.c_str());
+        switch (query.return_type()) {
+            case pugi::xpath_type_boolean:
+                Result = (query.evaluate_boolean(pDoc) ? "1" : "0");
+                break;
+
+            case pugi::xpath_type_string:
+                Result = query.evaluate_string(pDoc);
+                break;
+
+            case pugi::xpath_type_number: {
+                double d = query.evaluate_number(pDoc);
+                if (d == (double)(long long)d)
+                    Result = Format("%lld", (long long)d);
+                else
+                    Result = Format("%g", d);
+            }
+                break;
+
+            case pugi::xpath_type_node_set: {
+                //-- values of attributes, trimmed text children of elements, separated by ":"
+                pugi::xpath_node_set set = query.evaluate_node_set(pDoc);
+                for (size_t u_node = 0; u_node < set.size(); u_node++) {
+                    if (set[u_node].attribute())
+                        Result += set[u_node].attribute().value();
+                    else
+                        Result += GetTrimmedTextChildren(set[u_node].node());
+                    if (u_node + 1 < set.size())
+                        Result += ":";
+                }
+            }
+                break;
+
+            default:
+                ErrorMessage(Format("Error: Unknown or invalid return type for XPath `%s'", XPath.c_str()));
+                break;
+        }
+    }
+    catch (const pugi::xpath_exception &) {
+        //-- invalid XPath: not present in this document
+        return "";
     }
 
     DeleteEoln(Result);
@@ -385,13 +389,10 @@ bool CConcXml::SplitBibliography(vector<CConcXml *> &Bibls, const vector<uint32_
 
 
 
-void CConcXml::LoadXmlAndReadBibliography(TiXmlDocument &doc, const char *pFileBuffer, CBibliography &Bibl) {
-    string Buffer = pFileBuffer;
-    doc.Parse(Buffer.c_str());
-
-    if (doc.Error()) {
-        throw CDDCExpc(Format("cannot open or parse Col=%i,  Row=%i, Error=%s", doc.ErrorCol(), doc.ErrorRow(),
-                           doc.ErrorDesc()));
+void CConcXml::LoadXmlAndReadBibliography(pugi::xml_document &doc, const char *pFileBuffer, CBibliography &Bibl) {
+    pugi::xml_parse_result res = doc.load_string(pFileBuffer, DdcXmlParseOptions);
+    if (!res) {
+        throw CDDCExpc(Format("cannot parse xml at offset %zi, Error=%s", (size_t)res.offset, res.description()));
     };
     Bibl.CleanBibliography();
 
@@ -448,28 +449,29 @@ void CConcXml::SetFreeBiblAttribsEmpty(CBibliography &Bibl) const {
 void CConcXml::ReadMorphXmlFileIntoGraTable(string FileName, const char *pFileBuffer, vector<CXmlToken> &GraTable,
                                             CBibliography &Bibl) {
 
-    TiXmlDocument doc(FileName.c_str());
+    pugi::xml_document doc;
 
     LoadXmlAndReadBibliography(doc, pFileBuffer, Bibl);
 
-    vector<TiXmlElement *> TextAreas;
+    vector<pugi::xml_node> TextAreas;
     GetTextAreaElements(doc, TextAreas);
 
     for (size_t TextAreaNo = 0; TextAreaNo < TextAreas.size(); TextAreaNo++) {
-        TiXmlElement *text = TextAreas[TextAreaNo];
+        pugi::xml_node text = TextAreas[TextAreaNo];
 
         size_t AllWordsCount = 0;
         string LastReadWord;
         try {
-            for (TiXmlElement *sent = text->FirstChildElement("s"); sent; sent = sent->NextSiblingElement("s")) {
+            for (pugi::xml_node sent = text.child("s"); sent; sent = sent.next_sibling("s")) {
                 size_t CountOfWord = 0;
-                for (TiXmlElement *xml_word = sent->FirstChildElement(); xml_word; xml_word = xml_word->NextSiblingElement()) {
+                for (pugi::xml_node xml_word = sent.first_child(); xml_word; xml_word = xml_word.next_sibling()) {
+                    if (xml_word.type() != pugi::node_element) continue;
 
                     CXmlToken Word;
-                    Word.m_Type = xml_word->Value();
+                    Word.m_Type = xml_word.name();
                     Trim(Word.m_Type);
                     if (Word.m_Type == "pb") {
-                        const char *q = xml_word->Attribute("n");
+                        const char *q = xml_word.attribute("n") ? xml_word.attribute("n").value() : NULL;
                         if (q) {
                             Word.m_WordStr = q;
                             GraTable.push_back(Word);
@@ -481,12 +483,12 @@ void CConcXml::ReadMorphXmlFileIntoGraTable(string FileName, const char *pFileBu
                     };
 
                     {
-                        TiXmlNode *xml_word_str = xml_word->FirstChild();
+                        pugi::xml_node xml_word_str = xml_word.first_child();
                         if (!xml_word_str) {
                             throw CDDCExpc(Format("cannot get the next word [WordNo=%i LastReadWord=%s]", AllWordsCount,
                                                LastReadWord.c_str()));
                         };
-                        Word.m_WordStr = xml_word_str->Value();
+                        Word.m_WordStr = xml_word_str.value();
                         Trim(Word.m_WordStr);
                     };
                     if (Word.m_WordStr.empty()) {
@@ -496,22 +498,19 @@ void CConcXml::ReadMorphXmlFileIntoGraTable(string FileName, const char *pFileBu
                     };
 
 
-                    for (TiXmlElement *xml_annot = xml_word->FirstChildElement(
-                             "ana"); xml_annot; xml_annot = xml_annot->NextSiblingElement("ana")) {
+                    for (pugi::xml_node xml_annot = xml_word.child("ana"); xml_annot; xml_annot = xml_annot.next_sibling("ana")) {
                         CXmlMorphAnnot A;
 
                         {
-                            const char *q = xml_annot->Attribute("lex");
-                            string s = q ? q : "";
+                            string s = xml_annot.attribute("lex").value();
                             for (int i = 0; i < s.length(); i++)
                                 if ((s[i] != '`') && (s[i] != '*'))
                                     A.m_Lemma += s[i];
                         };
 
                         {
-                            const char *s = xml_annot->Attribute("gr");
-                            if (s)
-                                A.m_GrammemsStr = s;
+                            if (xml_annot.attribute("gr"))
+                                A.m_GrammemsStr = xml_annot.attribute("gr").value();
                         };
                         Word.m_Annots.push_back(A);
                     };

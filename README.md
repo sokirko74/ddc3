@@ -26,6 +26,9 @@ The DDC-2.x branch was maintained in SVN under:
 
 - **zlib** (e.g. Debian/Ubuntu package `zlib1g-dev`) — required by nlp_base.
 
+- **pugixml** (Debian/Ubuntu package `libpugixml-dev`, <https://pugixml.org>) —
+  XML parser with XPath 1.0, used for XML corpora (text areas, bibliographic fields).
+
 - **PCRE2** (8-bit library, e.g. Debian/Ubuntu package `libpcre2-dev`) —
   Perl-compatible regular expressions. URL: <https://www.pcre.org/>.
   Tested version(s): 10.46.

@@ -53,7 +53,7 @@
   - 3. Xml text, extension *.xml.  
         
   If a source file is an xml file then DDC extracts some bibliographical information from it (class CBibliography) and stores it as an additional index,
-  otherwise the bibliographical index  is empty. For parsing DDC uses TinyXml project (http://sourceforge.net/projects/tinyxml  )  
+  otherwise the bibliographical index  is empty. For parsing DDC uses pugixml (https://pugixml.org)  
   A source file can be also a tar archive.  
   All source files of one DDC index are stored in CConcIndexator::m_SourceFiles .
 */

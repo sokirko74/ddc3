@@ -1,5 +1,4 @@
 #include "BiblIndex.h"
-#include "../tinyxml/xpath_static.h"
 #include "../CommonLib/ddcLocale.h"
 
 
@@ -524,17 +523,23 @@ bool CBiblIndex::GetFilterValues(CDDCFilterWithBounds &Filter, const set<string>
 };
 
 
-void CBiblIndex::GetTextAreaElements(const TiXmlDocument &doc, vector<TiXmlElement *> &Result) const {
+void CBiblIndex::GetTextAreaElements(const pugi::xml_document &doc, vector<pugi::xml_node> &Result) const {
     Result.clear();
 
     for (size_t i = 0; i < m_TextAreas.size(); i++) {
-        TiXmlNode *text = TinyXPath::XNp_xpath_node(doc.RootElement(), m_TextAreas[i].m_Xpath.c_str());
-        if (!text) {
+        pugi::xml_node text;
+        try {
+            text = doc.select_node(m_TextAreas[i].m_Xpath.c_str()).node();
+        }
+        catch (const pugi::xpath_exception &) {
+            //-- invalid XPath: reported below as "cannot find"
+        }
+        if (!text || text.type() != pugi::node_element) {
             throw CDDCExpc(Format("Cannot find %s in the source document using XPath \"%s\"!",
                                m_TextAreas[i].m_TextAreaName.c_str(),
                                m_TextAreas[i].m_Xpath.c_str()));
         };
-        Result.push_back(text->ToElement());
+        Result.push_back(text);
     }
 };
 

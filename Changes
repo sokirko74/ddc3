@@ -20,6 +20,8 @@ v3.0 Tue, 03 Nov 2026
 	* UTF-8 only: corpus texts, queries, index and output are UTF-8 (option Utf8 is always on,
 	  "Utf8 0" is ignored); morphology/graphan use cp1251/cp1252 internally;
 	  removed the German ExtEncoding recoding; historical German -> language Generic
+	* XML: bundled TinyXML 2.3.1 + TinyXPath replaced by the system pugixml (libpugixml-dev):
+	  full XPath 1.0 for TextArea/Bibl, character references and CDATA are handled
 
 v2.2.12 Wed, 16 Jun 2021 15:21:24 +0200 moocow
 	* fixed sort failure in `count(...) #by[date] #dsc_key` for branch-servers with only a single daughter

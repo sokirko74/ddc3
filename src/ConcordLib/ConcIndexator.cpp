@@ -172,48 +172,46 @@ uint32_t CConcIndexator::GetMaxInputLoadIndexSize() const {
         return DefaultMaxInputLoadIndexSize;
 };
 
-void GetTextFromXMLRecursive(TiXmlNode *parent, string &Result) {
-    if (parent->Type() == TiXmlNode::TEXT) {
+void GetTextFromXMLRecursive(const pugi::xml_node &parent, string &Result) {
+    if (parent.type() == pugi::node_pcdata || parent.type() == pugi::node_cdata) {
         if (Result.empty())
             Result += Format("\n<pb %u>\n", UnknownPageNumber);
 
-        Result += parent->Value();
-    } else if (parent->Type() == TiXmlNode::ELEMENT) {
-        string type = parent->Value();
+        Result += parent.value();
+    } else if (parent.type() == pugi::node_element) {
+        string type = parent.name();
         Trim(type);
 
         if (type == "pb") {
-            const char *pb_str = ((TiXmlElement *) parent)->Attribute("n");
-            if (!pb_str) {
+            if (!parent.attribute("n")) {
                 throw CDDCExpc("Cannot parse page break element");
             };
-            Result += Format("\n<pb %s>\n", pb_str);
+            Result += Format("\n<pb %s>\n", parent.attribute("n").value());
         } else {
-            for (TiXmlNode *child = parent->FirstChild(); child; child = child->NextSibling()) {
+            for (pugi::xml_node child = parent.first_child(); child; child = child.next_sibling()) {
                 GetTextFromXMLRecursive(child, Result);
             };
         };
         if (type == "p")
             Result += "\n</p>\n";
-    } else if (parent->Type() == TiXmlNode::COMMENT) {
-        // skipping comments
+    } else if (parent.type() == pugi::node_comment || parent.type() == pugi::node_pi) {
+        // skipping comments and processing instructions
     } else {
-        throw CDDCExpc((Format("Unknown xml-node:%s. Some parts of file cannot be parsed!", parent->Value())));
+        throw CDDCExpc((Format("Unknown xml-node:%s. Some parts of file cannot be parsed!", parent.name())));
     };
 };
 
 // read the input xml that is in CWB-format (corpus work bench format)
-void GetCWBFormattedStringRecursive(const TiXmlNode *parent, string &Result) {
-    if (parent->Type() == TiXmlNode::TEXT) {
-        Result += parent->Value() + string("\n");
-    } else if (parent->Type() == TiXmlNode::ELEMENT) {
-        string type = parent->Value();
+void GetCWBFormattedStringRecursive(const pugi::xml_node &parent, string &Result) {
+    if (parent.type() == pugi::node_pcdata || parent.type() == pugi::node_cdata) {
+        Result += parent.value() + string("\n");
+    } else if (parent.type() == pugi::node_element) {
+        string type = parent.name();
         Trim(type);
         bool bNotLineBreak = (type != PredefinedTableLineTag);
         if (type == "pb") {
-            const char *page_number = parent->ToElement()->Attribute("n");
-            if (page_number) {
-                Result += Format("<pb %s>\n", page_number);
+            if (parent.attribute("n")) {
+                Result += Format("<pb %s>\n", parent.attribute("n").value());
                 return;
             } else {
                 throw CDDCExpc("bad page break");
@@ -222,18 +220,18 @@ void GetCWBFormattedStringRecursive(const TiXmlNode *parent, string &Result) {
             Result += Format("\n<%s>\n", type.c_str());
 
 
-        for (TiXmlNode *child = parent->FirstChild(); child; child = child->NextSibling()) {
+        for (pugi::xml_node child = parent.first_child(); child; child = child.next_sibling()) {
             GetCWBFormattedStringRecursive(child, Result);
         };
 
         if (bNotLineBreak)
             Result += Format("\n</%s>\n", type.c_str());
 
-    } else if (parent->Type() == TiXmlNode::COMMENT) {
+    } else if (parent.type() == pugi::node_comment || parent.type() == pugi::node_pi) {
         //-- moo: skip comments in document body
         ;
     } else {
-        throw CDDCExpc(Format("Unknown xml-node:%s. Some parts of file cannot be parsed!", parent->Value()));
+        throw CDDCExpc(Format("Unknown xml-node:%s. Some parts of file cannot be parsed!", parent.name()));
     };
 };
 
@@ -244,16 +242,16 @@ CConcIndexator::LoadXmlFile(string FileName, const char *pFileBuffer, CBibliogra
         throw CDDCExpc(Format("Error! Cannot index xml files, since no text areas defined in the options file!"));
     }
 
-    TiXmlDocument doc(FileName.c_str());
+    pugi::xml_document doc;
 
     m_BiblIndex.LoadXmlAndReadBibliography(doc, pFileBuffer, Bibl);
 
-    vector<TiXmlElement *> TextAreas;
+    vector<pugi::xml_node> TextAreas;
     m_BiblIndex.GetTextAreaElements(doc, TextAreas);
 
     string AllTexts;
     for (size_t TextAreaNo = 0; TextAreaNo < TextAreas.size(); TextAreaNo++) {
-        TiXmlElement *body = TextAreas[TextAreaNo];
+        pugi::xml_node body = TextAreas[TextAreaNo];
 
         string SourceText;
 
@@ -402,10 +400,10 @@ void CConcIndexator::IndexFreeIndex(CIndexDocument* document) {
 
     CBibliography Bibliography;
 
-    TiXmlDocument doc(document->CorpusFileName.c_str());
+    pugi::xml_document doc;
     m_BiblIndex.LoadXmlAndReadBibliography(doc, &document->DocumentBuffer[0], Bibliography);
 
-    vector<TiXmlElement *> TextAreas;
+    vector<pugi::xml_node> TextAreas;
     m_BiblIndex.GetTextAreaElements(doc, TextAreas);
 
     CPageNumber StartPageFromHeader;
@@ -419,7 +417,7 @@ void CConcIndexator::IndexFreeIndex(CIndexDocument* document) {
 
     //iterate through all text areas
     for (size_t TextAreaNo = 0; TextAreaNo < TextAreas.size(); TextAreaNo++) {
-        TiXmlElement *textarea = TextAreas[TextAreaNo];
+        pugi::xml_node textarea = TextAreas[TextAreaNo];
         string Text;
         // get text from xml
         GetCWBFormattedStringRecursive(textarea, Text);
