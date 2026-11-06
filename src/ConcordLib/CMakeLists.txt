@@ -32,8 +32,8 @@ add_library(ConcordLib
     ConvertFromLoadIndexToWorking.cpp
     LoadingBinaries.cpp
     DwdsThesaurus.cpp
-    ${PROJECT_SOURCE_DIR}/yyQParser.cpp
-    ${PROJECT_SOURCE_DIR}/yyQLexer.cpp
+    ${CMAKE_CURRENT_BINARY_DIR}/yyQParser.cpp
+    ${CMAKE_CURRENT_BINARY_DIR}/yyQLexer.cpp
     InitDicts.cpp
     CreateMorphIndex.cpp
     ConcIndexatorInvoker.cpp
@@ -50,21 +50,23 @@ target_link_libraries(ConcordLib
     RmlTar
     ZLIB::ZLIB
 )
-# the generated parser and lexer (yyQParser.h, yyQLexer.h) are in this directory
-target_include_directories(ConcordLib PRIVATE ${PROJECT_SOURCE_DIR})
+# the generated code (yyQParser.cpp/.h, yyQLexer.cpp/.h, yyQParser.output) is in the build directory
+# (it is not kept in git); yyQParser.h is included by QueryCompiler.h, so the directory is PUBLIC
+target_include_directories(ConcordLib PRIVATE ${PROJECT_SOURCE_DIR} PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
 
-
-message ("bison_tool = " ${BISON_TOOL})
-  add_custom_command(OUTPUT ${PROJECT_SOURCE_DIR}/yyQParser.cpp ${PROJECT_SOURCE_DIR}/yyQParser.h
-    DEPENDS yyQParser.y
-	COMMAND ${BISON_TOOL} -d -v yyQParser.y
-    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+# bison and flex run in the build directory: the output names in yyQParser.y (%output, %header)
+# and yyQLexer.l (outfile, header-file) are relative to it
+add_custom_command(
+    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/yyQParser.cpp ${CMAKE_CURRENT_BINARY_DIR}/yyQParser.h
+    DEPENDS ${PROJECT_SOURCE_DIR}/yyQParser.y
+    COMMAND ${BISON_TOOL} -v ${PROJECT_SOURCE_DIR}/yyQParser.y
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
     VERBATIM
- )
-
- add_custom_command( OUTPUT ${PROJECT_SOURCE_DIR}/yyQLexer.cpp ${PROJECT_SOURCE_DIR}/yyQLexer.h
-     DEPENDS yyQLexer.l yyQParser.h
-  	 COMMAND ${FLEX_TOOL} yyQLexer.l
-     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
-     VERBATIM
+)
+add_custom_command(
+    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/yyQLexer.cpp ${CMAKE_CURRENT_BINARY_DIR}/yyQLexer.h
+    DEPENDS ${PROJECT_SOURCE_DIR}/yyQLexer.l ${CMAKE_CURRENT_BINARY_DIR}/yyQParser.h
+    COMMAND ${FLEX_TOOL} ${PROJECT_SOURCE_DIR}/yyQLexer.l
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+    VERBATIM
 )

@@ -51,22 +51,12 @@ The DDC-2.x branch was maintained in SVN under:
 
 - **GNU bison** >= 3.8 (the C++ parser skeleton) — tested version: 3.8.2.
 
-  If you get errors compiling `src/ConcordLib/yyQParser.o`, try re-extracting
-  the sources and call
-
-      touch src/ConcordLib/yyQParser.cpp src/ConcordLib/yyQParser.h
-
-  before re-compiling.
-
 - **GNU flex** — tested version(s): 2.5.35, 2.5.39, 2.6.1, 2.6.4; the C++ scanner
   needs the system `FlexLexer.h` (Debian/Ubuntu package `libfl-dev`).
 
-  If you get errors compiling `src/ConcordLib/yyQLexer.o`, try re-extracting
-  the sources and call
-
-      touch src/ConcordLib/yyQLexer.cpp src/ConcordLib/yyQLexer.h
-
-  before re-compiling.
+  The query parser and scanner are generated from `src/ConcordLib/yyQParser.y`
+  and `yyQLexer.l` into the build directory (`build/src/ConcordLib/yyQ*`);
+  they are not kept in git.
 
 ## Encoding
 
