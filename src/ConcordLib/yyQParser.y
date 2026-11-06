@@ -2,16 +2,24 @@
  * Bison Options
  */
 
-%pure-parser
+%require "3.8"
+%language "c++"
+%define api.namespace {ddcq}
+%define api.parser.class {QParser}
+%define parse.trace
 %lex-param {CQueryCompiler* _qcompiler}
 %parse-param {CQueryCompiler* _qcompiler}
 
-//2020-04-02/debian-buster: yyQParser.y:25.1-18: warning: deprecated directive, use ‘%define api.prefix {yyq}’ [-Wdeprecated]
-%name-prefix "yyq"
-// %define api.prefix {yyq}
+%output "yyQParser.cpp"
+%header "yyQParser.h"
 
-%output  "yyQParser.cpp"
-%defines "yyQParser.h"
+%code requires {
+  // for the parser class in yyQParser.h
+  #include <string>
+  class CQueryCompiler;
+  class CQuery;
+  class CQFilter;
+}
 
 //-- expect conflicts
 // - 1 shift/reduce conflict for KW_COMMENT in "query_conditions: q_clause q_filters . (q_filters: q_filters . q_comment)"
@@ -28,21 +36,12 @@
  * Bison C Header
  */
 
-#define YY_HEADER_EXPORT_START_CONDITIONS 1 /* export start conditions */
-
-#define yyqlex_ALREADY_DEFINED // let flex 2.6 not insert #undef yylex
-
-#include "yyQLexer.h"
-
 #include "QueryCompiler.h"
 #include "../CommonLib/ddcString.h"
 #include <sstream>
 
 using namespace std;
 
-#ifndef YYDEBUG
-# define YYDEBUG 1
-#endif
 
 #define NOINT INT_MIN
 #define _qc ((CQueryCompiler*)_qcompiler)
@@ -58,13 +57,8 @@ using namespace std;
 	#endif
 #endif
 
-#define YYERROR_VERBOSE 1
-#ifdef yyqerror
-# undef yyqerror
-#endif
-#define yyqerror(qc,msg) qc->yybarf(msg)
-
-int yylex (void*,  CQueryCompiler*);
+// the scanner, see CQueryCompiler::yyqlex()
+int yylex (ddcq::QParser::value_type* lval, CQueryCompiler* qc);
 %} 
 
 /*======================================================================
@@ -962,8 +956,8 @@ date:		DATE	{ $$ = $1; }
 	|	INTEGER { $$ = $1; }
 	;
 
-matchid:	'=' 	{ _qc->yybegin(Q_MATCHID); }
-		integer	{ _qc->yybegin(INITIAL); $$ = $3; }
+matchid:	'=' 	{ _qc->yybeginMatchId(); }
+		integer	{ _qc->yybeginInitial(); $$ = $3; }
 	;
 
 
@@ -971,3 +965,9 @@ matchid:	'=' 	{ _qc->yybegin(Q_MATCHID); }
 /*======================================================================
  * User C Code
  */
+
+// syntax errors: CQueryCompiler::yybarf() throws CDDCExpc(errParseError, ...)
+void ddcq::QParser::error(const std::string& msg)
+{
+    _qcompiler->yybarf(msg.c_str());
+}

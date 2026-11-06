@@ -280,3 +280,7 @@ comment_text	(\\.|[^\]])*
 int yyFlexLexer::yywrap(void) { return 1; }   /* yyFlexLexer is yyqFlexLexer here (%option prefix) */
 
 void CQueryCompiler::yy_begin(int new_state) { BEGIN(new_state); }
+
+/* the start conditions are known only here, the parser switches them with these */
+void CQueryCompiler::yybeginMatchId() { yybegin(Q_MATCHID); }
+void CQueryCompiler::yybeginInitial() { yybegin(INITIAL); }

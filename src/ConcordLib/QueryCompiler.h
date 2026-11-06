@@ -32,7 +32,8 @@
 
   moo: renamed CQueryParser to CQueryCompiler to reflect actual functionality.
 */
-class CQueryCompiler : public CQueryObject, public yyqFlexLexer
+// ddcq::QParser::token: the token codes (SYMBOL, REGEX, ...) returned by the scanner methods
+class CQueryCompiler : public CQueryObject, public yyqFlexLexer, public ddcq::QParser::token
 {
 public:
     //--------------------------------------------------------------
@@ -143,7 +144,7 @@ public:
     // - re-sets filters and subcorpora, deletes current parse tree (if any)
     void CleanParser();
 
-    // wrapper for yylex() as called from bison parser (valp is a YYSTYPE*)
+    // wrapper for yylex() as called from bison parser (valp is a ddcq::QParser::value_type*)
     int yyqlex (void* valp);
 
     // wrapper to push a new string pointer onto the m_Labels stack (to be freed on CleanParser())
@@ -173,6 +174,10 @@ public:
 
     // BEGIN(new_state), callable outside of the scanner actions
     void yy_begin(int new_state);
+
+    // scanner start conditions Q_MATCHID and INITIAL, for the parser (yyQParser.y: matchid)
+    void yybeginMatchId();
+    void yybeginInitial();
 
     // delete parse tree (m_pQuery) if non-NULL; actually wipes all queries in m_Queries and m_qCountKeys
     void DeleteTree();

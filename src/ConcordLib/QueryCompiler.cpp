@@ -17,17 +17,10 @@ using namespace std;
 
 #include <sstream>
 
-extern int yyqdebug;
-int yyqparse (CQueryCompiler *_qcompiler);
-
-int yyqlex (void* valp, CQueryCompiler* _prs)
+// the scanner as called by the bison parser (ddcq::QParser, yyQParser.y)
+int yylex (ddcq::QParser::value_type* lval, CQueryCompiler* qc)
 {
-    return _prs->yyqlex(valp);
-};
-
-void yyqerror(const char *a)
-{
-    const char * s = a;
+    return qc->yyqlex(lval);
 };
 
 CQueryCompiler::CQueryCompiler(const CConcHolder* pHolder) 
@@ -110,7 +103,6 @@ bool CQueryCompiler::ParseQuery(const string &QueryStr)
     yy_flex_debug = 1;
 #endif
 #ifdef DEBUG_PARSER
-    yyqdebug = 1;
     ddcLogDebug(Format("CQueryCompiler::ParseQuery(): BEGIN: q=(%s)", QueryStr.c_str()));
 #endif
     CleanParser();
@@ -133,7 +125,11 @@ bool CQueryCompiler::ParseQuery(const string &QueryStr)
     yybyteno = 0;
     yyDtrsPos = -1;
     yyDtrsLen = 0;
-    int rc = yyqparse(this);
+    ddcq::QParser parser(this);
+#ifdef DEBUG_PARSER
+    parser.set_debug_level(1);
+#endif
+    int rc = parser.parse();
     if (rc != 0) {
         CleanParser();
         return false;
@@ -230,15 +226,15 @@ int CQueryCompiler::yyqlex(void* valp)
             case REGEX_SEARCH:
                 m_RegexPattern = s;
                 // 2016-11-25: setting valp->m_str=&m_RegexPattern chokes on (/foo/ /bar/) --> (/bar/ /bar/)
-                ((YYSTYPE *)valp)->m_str = newString(s);
+                ((ddcq::QParser::value_type *)valp)->m_str = newString(s);
                 break;
             case REGOPT:
                 m_RegexModifiers = s;
-                ((YYSTYPE *)valp)->m_str = &m_RegexModifiers;
+                ((ddcq::QParser::value_type *)valp)->m_str = &m_RegexModifiers;
                 break;
             case REGEX_REPLACE:
                 m_RegexReplacement = s;
-                ((YYSTYPE *)valp)->m_str = &m_RegexReplacement;
+                ((ddcq::QParser::value_type *)valp)->m_str = &m_RegexReplacement;
                 break;
             case SYMBOL:
             case INDEX:
@@ -251,7 +247,7 @@ int CQueryCompiler::yyqlex(void* valp)
             case KW_DATE:
             case KW_FILENAME:
             case KW_FILEID:
-                ((YYSTYPE *)valp)->m_str = newString(s);
+                ((ddcq::QParser::value_type *)valp)->m_str = newString(s);
                 break;
             case BLOCK_COMMENT:
                 if (m_KeepLexerComments)
@@ -262,7 +258,7 @@ int CQueryCompiler::yyqlex(void* valp)
                     m_qOptions.m_LexerComments.push_back(s+"\n");
                 continue;
             default:
-                ((YYSTYPE *)valp)->m_str = NULL;
+                ((ddcq::QParser::value_type *)valp)->m_str = NULL;
                 break;
         }
         break;

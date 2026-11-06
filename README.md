@@ -49,7 +49,7 @@ The DDC-2.x branch was maintained in SVN under:
   client. The servers speak HTTP (see [ddc_proto.md](doc/ddc_proto.md)), the
   external term expanders (DTA::CAB) are queried over HTTP as well.
 
-- **GNU bison** — tested version(s): 2.4.1, 3.0.2, 3.0.4.
+- **GNU bison** >= 3.8 (the C++ parser skeleton) — tested version: 3.8.2.
 
   If you get errors compiling `src/ConcordLib/yyQParser.o`, try re-extracting
   the sources and call
