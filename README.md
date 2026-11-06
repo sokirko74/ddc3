@@ -94,23 +94,26 @@ DDC is built with CMake from the top-level directory:
 
 Binaries are left in the build directory (e.g. `build/src/ddc_daemon/ddc_daemon`);
 there is no install target. The tests are built with `-DCMAKE_BUILD_TYPE=Debug`
-and run with `ctest` in the build directory (`RML` must be set, see below).
+and run with `ctest` in the build directory (`DDC3` must be set, see below).
 
-Set the (legacy) environment variable `RML` to a directory with the following
-layout (see [Dependencies](#dependencies)):
+Set the environment variable `DDC3` to the root of the repository or of an
+installation, i.e. a directory with the following layout
+(see [Dependencies](#dependencies)):
 
-    $RML/Bin/rml.ini     <- Bin/rml.ini from this repository
-    $RML/dict            <- build/dict (built from nlp_base)
-
-    export RML=/path/to/rml
+    $DDC3/Bin/rml.ini    <- Bin/rml.ini from this repository
+    $DDC3/dict           <- build/dict (built from nlp_base)
 
 The simplest choice is the repository itself: it already has `Bin/rml.ini`, so
 only a symlink to the built dictionaries is needed (`/dict` is git-ignored):
 
     ln -s build/dict dict
-    export RML=$PWD
+    export DDC3=$PWD
 
-Note that `rml.ini` now lives in `$RML/Bin` (formerly `$RML/etc`).
+Without `DDC3` the programs stop with an error. ddc3 formerly used `RML`
+(as the RML programs do); `RML` is now ignored, so both can be installed side by
+side. The placeholder `$RML` keeps its name: in `rml.ini` it is replaced by
+`$DDC3`, in the daemon config paths by `$DDC3/Bin`. Logs are written to
+`$DDC3/log`.
 
 Take a look at the configuration files in `etc/` and the example corpora of the
 tests in `src/tests/` to get started.

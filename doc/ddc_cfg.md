@@ -41,7 +41,7 @@ The third field specifies the TCP port-number *PORT* to be bound by a branch-nod
 
 The meaning of the fourth and final field *PATH* differs between `ddc_local_corpora.cfg` and `ddc_server.cfg`.
 
-For `ddc_local_corpora.cfg`, *PATH* is required, and specifies the local path to the associated DDC project file (`*.con`), relative to the DDC runtime root directory as stored in the environment variable `$RML`.
+For `ddc_local_corpora.cfg`, *PATH* is required, and specifies the local path to the associated DDC project file (`*.con`), relative to the DDC runtime root directory as stored in the environment variable `$DDC3`.
 
 For `ddc_server.cfg`, *PATH* is optional. If non-empty, it specifies the [LABEL](#label) of the node's parent in the dataflow tree, which should be a branch node. If empty, the most recently declared branch-node is used as the parent.
 
