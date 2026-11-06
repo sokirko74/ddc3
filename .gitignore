@@ -2,3 +2,4 @@
 cmake-build-*/
 /dict
 /log/
+__pycache__/
