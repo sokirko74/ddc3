@@ -3,7 +3,7 @@
  */
 
 %option c++
-%option yyclass="yyqLexer"
+%option yyclass="CQueryCompiler"
    /*
      %option reentrant
      %option bison-bridge
@@ -277,6 +277,6 @@ comment_text	(\\.|[^\]])*
 /*======================================================================
  * C Code
  */
-int yyqLexer::yywrap(void) { return 1; }
+int yyFlexLexer::yywrap(void) { return 1; }   /* yyFlexLexer is yyqFlexLexer here (%option prefix) */
 
-void yyqLexer::yy_begin(int new_state) { BEGIN(new_state); }
+void CQueryCompiler::yy_begin(int new_state) { BEGIN(new_state); }

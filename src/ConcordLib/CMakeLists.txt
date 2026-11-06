@@ -50,7 +50,7 @@ target_link_libraries(ConcordLib
     RmlTar
     ZLIB::ZLIB
 )
-# the generated lexer must pick up our patched FlexLexer.h, not the system one
+# the generated parser and lexer (yyQParser.h, yyQLexer.h) are in this directory
 target_include_directories(ConcordLib PRIVATE ${PROJECT_SOURCE_DIR})
 
 

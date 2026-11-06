@@ -11,9 +11,13 @@
 #include "yyQParser.h"
 //#include "yyQLexer.h" //-- included from yyQParser.h (2017-03-01)
 
+// the system <FlexLexer.h> (package libfl-dev), for the C++ scanner class yyqFlexLexer (%option prefix="yyq");
+// it may have been included already by the generated yyQLexer.h
+#if !defined(yyFlexLexerOnce)
 #undef yyFlexLexer
-#define yyFlexLexer yyqLexer
-#include "FlexLexer.h"
+#define yyFlexLexer yyqFlexLexer
+#include <FlexLexer.h>
+#endif
 
 
 //-- moo: re-working parse-tree API
@@ -23,12 +27,12 @@
 /*
   CQueryCompiler  is a class for the parse tree of the input query and its general properties.
 
-  Descended from FlexLexer (abstract class of flex tool), so it should implement also 
-  flex parser's  functionality (DDC uses YACC in thread-safe mode).
+  Descended from the flex scanner class yyqFlexLexer: yylex() generated from yyQLexer.l is a method
+  of CQueryCompiler (%option yyclass), so the scanner actions can use its members.
 
   moo: renamed CQueryParser to CQueryCompiler to reflect actual functionality.
 */
-class CQueryCompiler : public CQueryObject, virtual public yyqLexer
+class CQueryCompiler : public CQueryObject, public yyqFlexLexer
 {
 public:
     //--------------------------------------------------------------
@@ -150,16 +154,25 @@ public:
     std::string* newRegex(const std::string &pattern, const std::string &modifiers=std::string(""), bool isMatch=true);
 
     // flex convenience wrapper
-    inline const char* yytext() const { return YYText(); };
-
-    // flex convenience wrapper
-    inline int yyleng() const { return YYLeng(); };
-
-    // flex convenience wrapper
     inline std::string yystring() const { return std::string(YYText(),YYLeng()); };
 
-    // wrapper for protected yyFlexLexer::yy_begin()
+    // wrapper for yy_begin()
     void yybegin(int new_state);
+
+    //--------------------------------------------------------------
+    // scanner (yyQLexer.l): yylex() is generated as a method of this class (%option yyclass)
+    int yylex() override;
+
+    // absolute byte offset in the query string (incremented by YY_USER_ACTION, reset by ParseQuery())
+    int yybyteno;
+    int byteno() const { return yybyteno; }
+
+    // byte offset and length of the subcorpus list after ':' (-1 if there is none)
+    int yyDtrsPos;
+    int yyDtrsLen;
+
+    // BEGIN(new_state), callable outside of the scanner actions
+    void yy_begin(int new_state);
 
     // delete parse tree (m_pQuery) if non-NULL; actually wipes all queries in m_Queries and m_qCountKeys
     void DeleteTree();

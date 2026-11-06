@@ -344,7 +344,7 @@ int yyFlexLexer::yylex()
 	return 0;
 	}
 
-#define YY_DECL int yyqLexer::yylex()
+#define YY_DECL int CQueryCompiler::yylex()
 
 /* Done after the current pattern has been matched and before the
  * corresponding action - sets up yytext.
@@ -3125,7 +3125,7 @@ void yyfree (void * ptr )
 /*======================================================================
  * C Code
  */
-int yyqLexer::yywrap(void) { return 1; }
+int yyFlexLexer::yywrap(void) { return 1; }   /* yyFlexLexer is yyqFlexLexer here (%option prefix) */
 
-void yyqLexer::yy_begin(int new_state) { BEGIN(new_state); }
+void CQueryCompiler::yy_begin(int new_state) { BEGIN(new_state); }
 

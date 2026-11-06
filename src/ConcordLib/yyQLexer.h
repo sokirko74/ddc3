@@ -228,7 +228,7 @@ int yyFlexLexer::yylex()
 	return 0;
 	}
 
-#define YY_DECL int yyqLexer::yylex()
+#define YY_DECL int CQueryCompiler::yylex()
 
 #ifdef YY_HEADER_EXPORT_START_CONDITIONS
 #define INITIAL 0

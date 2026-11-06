@@ -18,7 +18,7 @@ The DDC-2.x branch was maintained in SVN under:
   "No CMAKE_CXX_COMPILER could be found". On Debian/Ubuntu install everything
   needed for the build with
 
-      sudo apt install build-essential cmake git zlib1g-dev libpugixml-dev libpcre2-dev flex bison
+      sudo apt install build-essential cmake git zlib1g-dev libpugixml-dev libpcre2-dev flex libfl-dev bison
 
   CMake picks the compiler once, on the first configure (`-DCMAKE_CXX_COMPILER`,
   else `$CXX`, else `c++` from `PATH`, i.e. g++ on Ubuntu), and stores it in
@@ -58,7 +58,8 @@ The DDC-2.x branch was maintained in SVN under:
 
   before re-compiling.
 
-- **GNU flex** — tested version(s): 2.5.35, 2.5.39, 2.6.1.
+- **GNU flex** — tested version(s): 2.5.35, 2.5.39, 2.6.1, 2.6.4; the C++ scanner
+  needs the system `FlexLexer.h` (Debian/Ubuntu package `libfl-dev`).
 
   If you get errors compiling `src/ConcordLib/yyQLexer.o`, try re-extracting
   the sources and call
