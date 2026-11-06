@@ -275,7 +275,8 @@ CConcIndexator::LoadXmlFile(string FileName, const char *pFileBuffer, CBibliogra
 
 };
 
-bool IsXmlFile(const string &FileName) {
+bool IsXmlFile(const string &fileName) {
+    const string FileName = StripGzExtension(fileName);
     return (FileName.length() > 4)
         && ((FileName.substr(FileName.length() - 4) == ".xml")
             || (FileName.substr(FileName.length() - 4) == ".XML")

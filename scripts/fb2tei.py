@@ -2,11 +2,12 @@
 """Convert FictionBook (fb2, fb2.gz) files into the TEI.2-like xml that ddc indexes
 (the format of the Moshkov library xml, see create_xml.pl), in UTF-8.
 
-    fb2tei.py INPUT OUTPUT [-j N]
+    fb2tei.py INPUT OUTPUT [-j N] [--gzip]
 
 INPUT is an .fb2/.fb2.gz file or a directory (searched recursively); OUTPUT is
 the xml file or the output directory, where the input tree is mirrored
 (Sorted_Books/2005/100196.fb2.gz -> OUTPUT/2005/100196.xml).
+With --gzip the output is x.xml.gz (ddc_index reads .gz corpus files).
 Existing output files are skipped, so an interrupted run can be restarted.
 Files that cannot be parsed are listed in OUTPUT/fb2tei.errors.
 """
@@ -190,13 +191,13 @@ def read_input(path):
         return f.read()
 
 
-def output_name(path, in_root, out_root):
+def output_name(path, in_root, out_root, compress):
     rel = os.path.relpath(path, in_root)
     for ext in (".fb2.gz", ".fb2"):
         if rel.endswith(ext):
             rel = rel[: -len(ext)]
             break
-    return os.path.join(out_root, rel + ".xml")
+    return os.path.join(out_root, rel + (".xml.gz" if compress else ".xml"))
 
 
 def process(job):
@@ -205,8 +206,11 @@ def process(job):
         xml = convert(parse(read_input(src)))
         os.makedirs(os.path.dirname(dst), exist_ok=True)
         tmp = dst + ".tmp"
-        with open(tmp, "w", encoding="utf-8") as f:
-            f.write(xml)
+        data = xml.encode("utf-8")
+        if dst.endswith(".gz"):
+            data = gzip.compress(data, compresslevel=6, mtime=0)
+        with open(tmp, "wb") as f:
+            f.write(data)
         os.replace(tmp, dst)
         return src, None
     except Exception as e:  # noqa: BLE001 -- one bad book must not stop the run
@@ -226,6 +230,7 @@ def main():
     ap.add_argument("input")
     ap.add_argument("output")
     ap.add_argument("-j", "--jobs", type=int, default=os.cpu_count())
+    ap.add_argument("--gzip", action="store_true", help="write gzip-compressed x.xml.gz")
     args = ap.parse_args()
 
     if os.path.isfile(args.input):
@@ -235,7 +240,7 @@ def main():
         return
 
     jobs = [(s, d) for s in find_inputs(args.input)
-            for d in [output_name(s, args.input, args.output)] if not os.path.exists(d)]
+            for d in [output_name(s, args.input, args.output, args.gzip)] if not os.path.exists(d)]
     print("%d files to convert" % len(jobs), file=sys.stderr)
     os.makedirs(args.output, exist_ok=True)
     errors = 0

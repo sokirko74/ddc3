@@ -8,6 +8,8 @@
 #include "../CommonLib/bserialize.h"
 #include "../CommonLib/ddcFile.h"
 
+#include <zlib.h>
+
 
 using namespace std;
 
@@ -74,6 +76,22 @@ bool IsTarFile(const string &FileName) {
             );
 };
 
+// reads a whole gzip-compressed file (zlib also reads an uncompressed one as is)
+static void ReadGzFile(const string& path, vector<char>& buffer) {
+    gzFile f = gzopen(path.c_str(), "rb");
+    if (!f) throw CDDCExpc(Format("Cannot open file \"%s\"", path.c_str()));
+    gzbuffer(f, 1 << 17);
+    char chunk[1 << 16];
+    int n;
+    while ((n = gzread(f, chunk, sizeof(chunk))) > 0) {
+        buffer.insert(buffer.end(), chunk, chunk + n);
+    }
+    int err = Z_OK;
+    string msg = n < 0 ? gzerror(f, &err) : "";
+    gzclose(f);
+    if (n < 0) throw CDDCExpc(Format("Cannot read gzip file \"%s\": %s", path.c_str(), msg.c_str()));
+}
+
 CDocumentIterator::CDocumentIterator(const CConcIndexator* parent, const string &containerPath) :
     Parent(parent),
     Tar(0),
@@ -82,6 +100,10 @@ CDocumentIterator::CDocumentIterator(const CConcIndexator* parent, const string 
     IsStdin(false),
     TabFormatStream(NULL)
 {
+    if (IsGzFile(containerPath) && IsTarFile(StripGzExtension(containerPath))) {
+        throw CDDCExpc(Format("Error! %s: compressed tar files are not supported, use .tar or single .gz files",
+                              containerPath.c_str()));
+    }
     if (IsTarFile(containerPath)) {
         tar_open(&Tar, containerPath.c_str());
         if (!Tar) {
@@ -149,7 +171,11 @@ bool CDocumentIterator::NextDocument(CIndexDocument& doc) {
         doc.CorpusFileName = ContainerPath + ":" + doc.CorpusFileName;
     } else {
         doc.CorpusFileName = ContainerPath;
-        ReadVector(doc.CorpusFileName, doc.DocumentBuffer);
+        if (IsGzFile(doc.CorpusFileName)) {
+            ReadGzFile(doc.CorpusFileName, doc.DocumentBuffer);
+        } else {
+            ReadVector(doc.CorpusFileName, doc.DocumentBuffer);
+        }
         Finished = true;
     }
     doc.NormalizeDocumentBuffer();

@@ -84,9 +84,21 @@ string FileBasename (const string& FileName)
     return FileName;
 }
 
-bool IsHtmlFile (const string& FileName)
+bool IsGzFile (const string& FileName)
 {
     string ext = FileExtension(FileName);
+    EngMakeLower(ext);
+    return ext == ".gz";
+}
+
+string StripGzExtension (const string& FileName)
+{
+    return IsGzFile(FileName) ? FileName.substr(0, FileName.length() - 3) : FileName;
+}
+
+bool IsHtmlFile (const string& FileName)
+{
+    string ext = FileExtension(StripGzExtension(FileName));
     EngMakeLower(ext);
     return (ext == ".htm"
             || ext == ".html"

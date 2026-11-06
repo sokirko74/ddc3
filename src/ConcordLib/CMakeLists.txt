@@ -48,6 +48,7 @@ target_link_libraries(ConcordLib
     GraphanLib
     lemmatizer_base_lib
     RmlTar
+    ZLIB::ZLIB
 )
 # the generated lexer must pick up our patched FlexLexer.h, not the system one
 target_include_directories(ConcordLib PRIVATE ${PROJECT_SOURCE_DIR})

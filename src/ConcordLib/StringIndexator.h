@@ -48,9 +48,10 @@
   parameter for the indexing process (CConcIndexatorInvoker::BuildIndex).  The second parameter  is a file of 
   options.  Source files are used only during the indexing, and they can be removed afterwards.  The current version supports
   the following types of source files:
-  - 1. Plain text (Russian Win-1251, German ISO-8859-1), extension *.txt.
-  - 2. Html text (Russian Win-1251, German ISO-8859-1), extension *.html, *.htm.
+  - 1. Plain text (UTF-8), extension *.txt.
+  - 2. Html text (UTF-8), extension *.html, *.htm.
   - 3. Xml text, extension *.xml.  
+  Any of them can be gzip-compressed (*.xml.gz etc.); compressed tar files (*.tar.gz) are not supported.
         
   If a source file is an xml file then DDC extracts some bibliographical information from it (class CBibliography) and stores it as an additional index,
   otherwise the bibliographical index  is empty. For parsing DDC uses pugixml (https://pugixml.org)  

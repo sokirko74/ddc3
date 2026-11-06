@@ -16,6 +16,10 @@ extern std::string   GetPathByFile (std::string FileName);
 extern bool     IsBinFile (const char* FileName);
 
 //-- filename stuff
+// a gzip-compressed corpus file ("x.xml.gz"): its content type is given by the name without ".gz"
+extern bool     IsGzFile (const std::string& FileName);
+extern std::string   StripGzExtension (const std::string& FileName);
+
 extern bool     IsHtmlFile (const std::string& FileName);
 extern bool     IsTableFile (const std::string& FileName);
 extern bool     IsJsonFile (const std::string& FileName);
