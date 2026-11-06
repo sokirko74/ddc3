@@ -887,7 +887,7 @@ CStringIndexSet* CQueryTokenNode::GetIndex(const CConcHolder* pHolder, const str
 //--------------------------------------------------------------
 void CQueryTokenNode::MakeUnique(void)
 {
-    //-- (?) sort results in m_IndexItems (snagged from old CreateTokenPattern())
+    //-- (?) sort results in m_IndexItems (as the old CreateTokenPattern() did, see graveyard.cc in git history)
     sort(m_IndexItems.begin(),  m_IndexItems.end());
     vector<uint32_t>::iterator endit = unique(m_IndexItems.begin(),  m_IndexItems.end());
     m_IndexItems.erase(endit,m_IndexItems.end());
