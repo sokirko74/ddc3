@@ -228,7 +228,11 @@ Undocumented
 
 ### ResumeOnIndexErrors
 
-Undocumented
+    ResumeOnIndexErrors 1
+
+If set, `ddc_index` skips a corpus file that cannot be indexed (e.g. invalid XML or UTF-8, or a text
+larger than the 256 MB limit of the graphematics) with a warning and goes on; the skipped files are
+listed in `<project>._error_log`. By default the first such file stops the indexing.
 
 ### GutenbergInterface
 

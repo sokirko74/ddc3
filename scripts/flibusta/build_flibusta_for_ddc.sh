@@ -13,7 +13,8 @@
 ##   fetch     rsync the extracted books to $WORK/fb2
 ##   convert   fb2tei.py --gzip: fb2 -> TEI.2 xml (UTF-8, notes at the end) in $WORK/tei
 ##   split     make_ddc_parts.py: $PARTS subcorpora of about equal size + daemon configs in $WORK/ddc
-##   index     ddc_index of all parts in parallel (logs in $WORK/ddc/partK/index.log)
+##   index     ddc_index of the parts, $INDEX_JOBS at a time (logs in $WORK/ddc/partK/index.log;
+##             a book that cannot be indexed is skipped, see ResumeOnIndexErrors in flibusta.opt)
 ##   serve     (re)start ddc_daemon: leaves on 127.0.0.1:$PORT+K, root on 127.0.0.1:$PORT
 ##
 ## All settings can be overridden from the environment, e.g. MIN_RATES=5 PARTS=4 ./build_flibusta_for_ddc.sh all
@@ -37,6 +38,7 @@ LANG_CODE=${LANG_CODE:-ru}
 PARTS=${PARTS:-8}
 PORT=${PORT:-50300}
 JOBS=${JOBS:-$(nproc)}
+INDEX_JOBS=${INDEX_JOBS:-4}                                      # ~1-2 GB of memory per ddc_index
 REMOTE_JOBS=${REMOTE_JOBS:-2}
 BIN=${BIN:-$DDC3_ROOT/build/src}
 export DDC3=${DDC3:-$DDC3_ROOT}
@@ -85,17 +87,16 @@ step_split() {
 }
 
 step_index() {
-    log "index $PARTS parts in parallel"
-    local pids=() i
+    log "index $PARTS parts, $INDEX_JOBS at a time"
+    local i failed="$WORK/ddc/failed_parts"
+    rm -f "$failed"
     for i in $(seq 1 "$PARTS"); do
-        ( cd "$WORK/ddc/part$i" && "$BIN/ddc_index/ddc_index" "part$i.con" > index.log 2>&1 ) &
-        pids+=($!)
+        while [ "$(jobs -rp | wc -l)" -ge "$INDEX_JOBS" ]; do wait -n || true; done
+        ( cd "$WORK/ddc/part$i" && "$BIN/ddc_index/ddc_index" "part$i.con" > index.log 2>&1 \
+            && log "part$i done" || echo "part$i failed, see $WORK/ddc/part$i/index.log" | tee -a "$failed" >&2 ) &
     done
-    local failed=0
-    for i in "${!pids[@]}"; do
-        wait "${pids[$i]}" || { echo "part$((i + 1)) failed, see $WORK/ddc/part$((i + 1))/index.log" >&2; failed=1; }
-    done
-    return $failed
+    wait
+    [ ! -s "$failed" ]
 }
 
 step_serve() {
