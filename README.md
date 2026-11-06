@@ -104,6 +104,12 @@ layout (see [Dependencies](#dependencies)):
 
     export RML=/path/to/rml
 
+The simplest choice is the repository itself: it already has `Bin/rml.ini`, so
+only a symlink to the built dictionaries is needed (`/dict` is git-ignored):
+
+    ln -s build/dict dict
+    export RML=$PWD
+
 Note that `rml.ini` now lives in `$RML/Bin` (formerly `$RML/etc`).
 
 Take a look at the configuration files in `etc/` and the example corpora of the
