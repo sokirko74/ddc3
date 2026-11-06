@@ -1,6 +1,6 @@
 #include "Server.h"
 #include "Morphan.h"
-#include "../CommonLib/ddcTime.h"
+#include "CommonLib/ddcTime.h"
 
 #include <atomic>
 #include <map>

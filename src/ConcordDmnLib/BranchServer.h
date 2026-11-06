@@ -1,8 +1,8 @@
 #ifndef DDC_BRANCH_SERVER_H
 #define DDC_BRANCH_SERVER_H
 
-#include "../ConcordDmnLib/Server.h"
-#include "../ConcordLib/QueryCompiler.h"
+#include "ConcordDmnLib/Server.h"
+#include "ConcordLib/QueryCompiler.h"
 
 //======================================================================
 /* single hit data in get_first_hits responses */

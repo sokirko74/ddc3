@@ -4,7 +4,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
-#include "../ConcordLib/ConcHolder.h"
+#include "ConcordLib/ConcHolder.h"
 #include "nlp_base/common/argparse.h"
 
 using namespace std;

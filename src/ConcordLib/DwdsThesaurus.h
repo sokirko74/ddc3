@@ -1,7 +1,7 @@
 #ifndef __DwdsThesaurus_H_
 #define __DwdsThesaurus_H_
 
-#include "../CommonLib/util_classes.h"
+#include "CommonLib/util_classes.h"
 
 
 class CDwdsThesaurus 

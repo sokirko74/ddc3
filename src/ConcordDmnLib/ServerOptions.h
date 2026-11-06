@@ -1,14 +1,14 @@
-#include "../CommonLib/ddcVersion.h"
+#include "CommonLib/ddcVersion.h"
 #ifndef DDC_SERVER_OPTIONS_H
 #define DDC_SERVER_OPTIONS_H
 
-#include "../CommonLib/Network.h"
-#include "../CommonLib/ddcLog.h"
+#include "CommonLib/Network.h"
+#include "CommonLib/ddcLog.h"
 
 /* default maximum number of queued client connections */
 #define DDC_DEFAULT_THREAD_QUEUE_SIZE 256
 #include "nlp_base/common/utilit.h"
-#include "../CommonLib/ddcUtil.h"
+#include "CommonLib/ddcUtil.h"
 
 //==============================================================================
 /* class for storing common server options (ddc_server.rc) */

@@ -2,7 +2,7 @@
 #define __MorphXMLtoken_h
 
 #include "nlp_base/common/utilit.h"
-#include "../CommonLib/ddcUtil.h"
+#include "CommonLib/ddcUtil.h"
 
 const std::string XmlPunctType = "pun";
 const std::string XmlWordType = "w";

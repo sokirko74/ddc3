@@ -1,9 +1,9 @@
 #include <iostream>
 #include "nlp_base/common/utilit.h"
 #include "nlp_base/common/argparse.h"
-#include "../CommonLib/ddcUtil.h"
-#include "../ConcordLib/ConcCommon.h"
-#include "../ConcordDmnLib/Corpora.h"
+#include "CommonLib/ddcUtil.h"
+#include "ConcordLib/ConcCommon.h"
+#include "ConcordDmnLib/Corpora.h"
 #include <sys/wait.h>
 #include <errno.h>
 #include <string.h>
@@ -14,8 +14,8 @@
 
 #ifdef HAVE_SYSLOG_H
 #include <syslog.h>
-#include "../CommonLib/ddcExpc.h"
-#include "../CommonLib/ddcFile.h"
+#include "CommonLib/ddcExpc.h"
+#include "CommonLib/ddcFile.h"
 #endif
 
 using namespace std;

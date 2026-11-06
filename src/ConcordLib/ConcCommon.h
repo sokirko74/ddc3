@@ -8,25 +8,25 @@
 
 
 #include "nlp_base/common/utilit.h"
-#include "../CommonLib/ddcUtil.h"
-#include "../CommonLib/ddcLog.h"
+#include "CommonLib/ddcUtil.h"
+#include "CommonLib/ddcLog.h"
 #include "list"
 #include "limits.h"
 
 
 #include "nlp_base/graphan/GraphanLib/GraphmatFile.h"
-#include "../CommonLib/ddcIconv.h"
-#include "../CommonLib/ptrholder.h"
+#include "CommonLib/ddcIconv.h"
+#include "CommonLib/ptrholder.h"
 #include "nlp_base/lemmatizer_base_lib/Lemmatizers.h"
 #include "nlp_base/agramtab/EngGramTab.h"
 #include "nlp_base/agramtab/RusGramTab.h"
 #include "nlp_base/agramtab/GerGramTab.h"
-#include "../CommonLib/DDC_common.h"
+#include "CommonLib/DDC_common.h"
 #include "QueryObject.h"
 #include <pugixml.hpp>
 
-#include "../ConcordLib/UrlFetch.h"
-#include "../CommonLib/ddcLocale.h"
+#include "ConcordLib/UrlFetch.h"
+#include "CommonLib/ddcLocale.h"
 
 // global intialization
 inline void ddcInitGlobal(void) {

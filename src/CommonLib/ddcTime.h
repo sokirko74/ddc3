@@ -1,7 +1,7 @@
 #ifndef DDC_TIME_H
 #define DDC_TIME_H
 
-#include "../CommonLib/ddcConfig.h"
+#include "CommonLib/ddcConfig.h"
 #include <time.h>
 #include <cstdint>
 #include <string>

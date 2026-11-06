@@ -1,7 +1,7 @@
 #ifndef DDC_LEAF_SERVER_H
 #define DDC_LEAF_SERVER_H
 
-#include "../ConcordDmnLib/BranchServer.h"
+#include "ConcordDmnLib/BranchServer.h"
 
 /* DDC leaf server node, formerly CDDCCorpusListenHost */
 class CDDCLeafServer : public CDDCServer

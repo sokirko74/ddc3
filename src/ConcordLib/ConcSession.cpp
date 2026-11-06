@@ -5,7 +5,7 @@
 #include "QueryCompiler.h"
 #include "ConcXml.h"
 #include "math.h"
-#include "../CommonLib/ddcString.h"
+#include "CommonLib/ddcString.h"
 
 
 using namespace std;

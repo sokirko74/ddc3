@@ -1,12 +1,12 @@
 #include "TermExpander.h"
 #include "UrlFetch.h"
 #include "ConcCommon.h"
-#include "../CommonLib/ddcString.h"
+#include "CommonLib/ddcString.h"
 #include <stdlib.h>
 #include <wctype.h>
 #include <algorithm> //-- for std::min
-#include "../CommonLib/ddcExpc.h"
-#include "../CommonLib/ddcLocale.h"
+#include "CommonLib/ddcExpc.h"
+#include "CommonLib/ddcLocale.h"
 
 using namespace std;
 

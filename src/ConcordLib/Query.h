@@ -1,8 +1,8 @@
 #ifndef DDC_QUERY_H
 #define DDC_QUERY_H
 
-#include "../ConcordLib/QueryNode.h"    //-- DDC-v1.x query API, wrapped here
-#include "../ConcordLib/QueryOptions.h"
+#include "ConcordLib/QueryNode.h"    //-- DDC-v1.x query API, wrapped here
+#include "ConcordLib/QueryOptions.h"
 
 extern const BYTE DefaultMatchId;
 

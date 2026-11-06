@@ -1,7 +1,7 @@
 #ifndef HitBorder_h
 #define HitBorder_h
 
-#include "../CommonLib/ddcMMap.h"
+#include "CommonLib/ddcMMap.h"
 
 /* \page break_def Corpus break definition 
   A "break" is a border between two adjacent sentences, paragraphs, files or other text chunks.

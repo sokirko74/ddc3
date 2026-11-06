@@ -1,8 +1,8 @@
 // Corpora.cpp : Implementation of CCorpora
 
-#include "../ConcordDmnLib/Corpora.h"
-#include "../ConcordDmnLib/LeafServer.h"
-#include "../ConcordDmnLib/BranchServer.h"
+#include "ConcordDmnLib/Corpora.h"
+#include "ConcordDmnLib/LeafServer.h"
+#include "ConcordDmnLib/BranchServer.h"
 
 /*
   #define _CRTDBG_MAP_ALLOC

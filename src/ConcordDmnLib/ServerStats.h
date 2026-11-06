@@ -1,7 +1,7 @@
 #ifndef DDC_SERVER_STATS_H
 #define DDC_SERVER_STATS_H
 
-#include "../CommonLib/ddcTime.h"
+#include "CommonLib/ddcTime.h"
 #include <set>
 
 //==============================================================================

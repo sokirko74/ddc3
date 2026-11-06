@@ -1,5 +1,5 @@
 #include "BiblIndex.h"
-#include "../CommonLib/ddcLocale.h"
+#include "CommonLib/ddcLocale.h"
 
 
 

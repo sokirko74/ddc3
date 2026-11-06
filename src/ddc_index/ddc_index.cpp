@@ -6,9 +6,9 @@
 //
 
 #include <iostream>
-#include "../CommonLib/ddcTime.h"
-#include "../ConcordLib/ConcCommon.h"
-#include "../ConcordLib/ConcIndexatorInvoker.h"
+#include "CommonLib/ddcTime.h"
+#include "ConcordLib/ConcCommon.h"
+#include "ConcordLib/ConcIndexatorInvoker.h"
 #include "nlp_base/common/utilit.h"
 #include "nlp_base/common/argparse.h"
 

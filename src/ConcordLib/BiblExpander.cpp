@@ -1,9 +1,9 @@
 #include "BiblExpander.h"
 #include "ConcCommon.h"
-#include "../CommonLib/ddcString.h"
+#include "CommonLib/ddcString.h"
 #include <stdlib.h>
 #include <wctype.h>
-#include "../CommonLib/ddcExpc.h"
+#include "CommonLib/ddcExpc.h"
 
 using namespace std;
 

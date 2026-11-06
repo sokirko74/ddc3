@@ -1,9 +1,9 @@
 #ifndef DDC_NAV_HINT_H
 #define DDC_NAV_HINT_H
 
-#include "../ConcordLib/ConcCommon.h"
-#include "../ConcordLib/LRUCache.h"
-#include "../CommonLib/ddcThread.h"
+#include "ConcordLib/ConcCommon.h"
+#include "ConcordLib/LRUCache.h"
+#include "CommonLib/ddcThread.h"
 #include <numeric> //-- for std::accumulate
 
 //======================================================================

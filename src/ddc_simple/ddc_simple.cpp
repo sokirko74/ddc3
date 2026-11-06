@@ -1,10 +1,10 @@
 #include <iostream>
 #include <time.h>
 
-#include "../ConcordLib/ConcHolder.h"
+#include "ConcordLib/ConcHolder.h"
 #include "nlp_base/common/utilit.h"
 #include "nlp_base/common/rapidjson.h"
-#include "../CommonLib/ddcProcess.h"
+#include "CommonLib/ddcProcess.h"
 #include "nlp_base/common/argparse.h"
 
 

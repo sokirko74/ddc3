@@ -1,8 +1,8 @@
 #include "Bibliography.h"
 #include "ConcCommon.h"
-#include "../CommonLib/ddcLog.h"
+#include "CommonLib/ddcLog.h"
 #include "nlp_base/graphan/GraphanLib/graline.h"
-#include "../CommonLib/ddcTime.h"   // date2int(), int2date()
+#include "CommonLib/ddcTime.h"   // date2int(), int2date()
 
 using namespace std;
 

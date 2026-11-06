@@ -2,7 +2,7 @@
 #define DDC_CONC_SESSION_CONTEXT_H
 
 #include "ConcHolder.h"
-#include "../CommonLib/ddcThread.h"
+#include "CommonLib/ddcThread.h"
 #include <deque>
 
 //==============================================================================

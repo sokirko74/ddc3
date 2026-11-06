@@ -3,7 +3,7 @@
 
 
 #include "DDCLessOperators.h"
-#include "../CommonLib/ddcMMap.h"
+#include "CommonLib/ddcMMap.h"
 
 //===========================================================
 // globals

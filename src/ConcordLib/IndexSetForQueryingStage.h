@@ -2,9 +2,9 @@
 #define IndexSetForQueryingStage_h
 
 
-#include "../CommonLib/bserialize.h"
-#include "../CommonLib/ddcThread.h"
-#include "../CommonLib/ddcMMap.h"
+#include "CommonLib/bserialize.h"
+#include "CommonLib/ddcThread.h"
+#include "CommonLib/ddcMMap.h"
 
 /////////////////////////////////////////////////////////////////////////////
 // PeriodsDivisionMap : type for mappping an index item no to its perdiv_def "period division"

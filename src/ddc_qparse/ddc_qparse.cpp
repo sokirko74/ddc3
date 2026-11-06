@@ -3,8 +3,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "../ConcordLib/ConcCommon.h"
-#include "../ConcordLib/QueryCompiler.h"
+#include "ConcordLib/ConcCommon.h"
+#include "ConcordLib/QueryCompiler.h"
 #include "nlp_base/common/argparse.h"
 
 using namespace std;

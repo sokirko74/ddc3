@@ -1,6 +1,6 @@
 #include "StdConc.h"
-#include "../ConcordLib/ConcIndexator.h"
-#include "../ConcordLib/IndexSetForLoadingStage.h"
+#include "ConcordLib/ConcIndexator.h"
+#include "ConcordLib/IndexSetForLoadingStage.h"
 
 using namespace std;
 

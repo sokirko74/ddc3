@@ -3,10 +3,10 @@
 #include "ConcCommon.h"
 #include "ConcIndexator.h"
 
-#include "../contrib/tar/RmlTar.h"
+#include "contrib/tar/RmlTar.h"
 #include "nlp_base/graphan/GraphanLib/HTMLConv.h"
-#include "../CommonLib/bserialize.h"
-#include "../CommonLib/ddcFile.h"
+#include "CommonLib/bserialize.h"
+#include "CommonLib/ddcFile.h"
 
 #include <zlib.h>
 

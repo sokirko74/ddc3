@@ -37,7 +37,7 @@
  */
 
 #include "QueryCompiler.h"
-#include "../CommonLib/ddcString.h"
+#include "CommonLib/ddcString.h"
 #include <sstream>
 
 using namespace std;

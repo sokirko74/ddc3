@@ -1,7 +1,7 @@
 #include "QueryFilter.h"
 #include "QueryCompiler.h"
 #include "nlp_base/common/utilit.h"
-#include "../CommonLib/ddcUtil.h"
+#include "CommonLib/ddcUtil.h"
 
 using namespace std;
 

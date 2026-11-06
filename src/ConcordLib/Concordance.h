@@ -13,7 +13,7 @@
 #include "StringIndexator.h"
 #include "HitBorder.h"
 #include "TermExpander.h"
-#include "../CommonLib/ddcCorpusList.h"
+#include "CommonLib/ddcCorpusList.h"
 
 
 struct CHighlightTags {

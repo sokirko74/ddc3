@@ -3,10 +3,10 @@
 
 #include "BiblIndex.h"
 
-#include "../CommonLib/util_classes.h"
-#include "../CommonLib/ddcThread.h"
-#include "../CommonLib/ddcMMap.h"
-#include "../CommonLib/ddcStringEnum.h"
+#include "CommonLib/util_classes.h"
+#include "CommonLib/ddcThread.h"
+#include "CommonLib/ddcMMap.h"
+#include "CommonLib/ddcStringEnum.h"
 #include <list>
 
 

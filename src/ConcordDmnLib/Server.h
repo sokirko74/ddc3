@@ -3,8 +3,8 @@
 
 #include "ServerOptions.h"
 #include "ServerStats.h"
-#include "../CommonLib/CHost.h"
-#include "../ConcordLib/ConcHolder.h"
+#include "CommonLib/CHost.h"
+#include "ConcordLib/ConcHolder.h"
 
 
 //#define DEBUG_HIT_SORT

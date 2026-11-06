@@ -1,10 +1,10 @@
 #include "BranchServer.h"
-#include "../CommonLib/ddcString.h"
-#include "../CommonLib/ddcTime.h"
-#include "../ConcordLib/QueryCompiler.h"
+#include "CommonLib/ddcString.h"
+#include "CommonLib/ddcTime.h"
+#include "ConcordLib/QueryCompiler.h"
 #include "nlp_base/common/rapidjson.h"
 #include "nlp_base/contrib/rapidjson/error/en.h"
-#include "../CommonLib/ddcProcess.h"
+#include "CommonLib/ddcProcess.h"
 
 using namespace std;
 

@@ -7,8 +7,8 @@
 #include <sys/stat.h>
 #include <locale.h>
 
-#include "../ConcordLib/ConcCommon.h"
-#include "../ConcordLib/TermExpander.h"
+#include "ConcordLib/ConcCommon.h"
+#include "ConcordLib/TermExpander.h"
 #include "nlp_base/common/argparse.h"
 
 using namespace std;

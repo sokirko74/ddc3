@@ -1,6 +1,6 @@
 #include "StdConc.h"
 #include "HitBorder.h"
-#include "../CommonLib/bserialize.h"
+#include "CommonLib/bserialize.h"
 
 
 using namespace std;

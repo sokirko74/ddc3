@@ -1,5 +1,5 @@
-#include "../CommonLib/ddcLog.h"
-#include "../CommonLib/ddcTime.h"
+#include "CommonLib/ddcLog.h"
+#include "CommonLib/ddcTime.h"
 #include "nlp_base/common/utilit.h"
 #include "ddcUtil.h"
 #include <string.h>

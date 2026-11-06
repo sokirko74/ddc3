@@ -3,9 +3,9 @@
 
 
 #include "ConcCommon.h"
-#include "../CommonLib/ddcMMap.h"
-#include "../CommonLib/ddcStringEnum.h"
-#include "../contrib/pcre/pcre_rml.h"
+#include "CommonLib/ddcMMap.h"
+#include "CommonLib/ddcStringEnum.h"
+#include "contrib/pcre/pcre_rml.h"
 
 /* enum for CFreeBiblIndex subtypes */
 typedef enum {

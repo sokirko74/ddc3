@@ -5,9 +5,9 @@
 #include "nlp_base/common/argparse.h"
 #include <time.h>
 
-#include "../ConcordLib/ConcHolder.h"
-#include "../CommonLib/util_classes.h"
-#include "../ConcordLib/QueryNode.h"
+#include "ConcordLib/ConcHolder.h"
+#include "CommonLib/util_classes.h"
+#include "ConcordLib/QueryNode.h"
 
 
 using namespace std;

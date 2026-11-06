@@ -1,10 +1,10 @@
 #include "ServerOptions.h"
-#include "../CommonLib/string_tokenizer.h"
-#include "../ConcordLib/NavHint.h"
+#include "CommonLib/string_tokenizer.h"
+#include "ConcordLib/NavHint.h"
 #include <errno.h>
 #include <string.h>
-#include "../CommonLib/ddcExpc.h"
-#include "../CommonLib/ddcFile.h"
+#include "CommonLib/ddcExpc.h"
+#include "CommonLib/ddcFile.h"
 
 using namespace std;
 

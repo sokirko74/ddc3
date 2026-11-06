@@ -2,7 +2,7 @@
 #define __ConcordAlgorithm_H_
 
 #include "nlp_base/common/utilit.h"
-#include "../CommonLib/ddcUtil.h"
+#include "CommonLib/ddcUtil.h"
 
 void SortWithLists(std::vector<uint32_t>& V, DwordVector& Borders);
 void ConvertToVariableInteger(const std::vector<uint32_t>& In,std::vector<uint32_t>& Out);

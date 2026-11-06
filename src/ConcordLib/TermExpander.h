@@ -2,7 +2,7 @@
 #define DDC_TERM_EXPANDER_H
 
 #include "nlp_base/common/utilit.h"
-#include "../CommonLib/ddcUtil.h"
+#include "CommonLib/ddcUtil.h"
 
 #include <list>
 #include <map>

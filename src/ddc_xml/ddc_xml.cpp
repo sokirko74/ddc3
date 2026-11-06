@@ -3,17 +3,17 @@
 #include "nlp_base/common/argparse.h"
 #include <signal.h>
 
-#include "../CommonLib/CHost.h"
-#include "../CommonLib/util_classes.h"
-#include "../CommonLib/DDC_common.h"
-#include "../CommonLib/ddcThread.h"
+#include "CommonLib/CHost.h"
+#include "CommonLib/util_classes.h"
+#include "CommonLib/DDC_common.h"
+#include "CommonLib/ddcThread.h"
 
 
 #include <stdlib.h>
 #include <assert.h>
 #include <stdio.h>
 #include <list>
-#include "../CommonLib/ddcFile.h"
+#include "CommonLib/ddcFile.h"
 
 
 

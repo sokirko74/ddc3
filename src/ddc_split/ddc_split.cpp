@@ -4,9 +4,9 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
-#include "../ConcordLib/ConcSession.h"
-#include "../CommonLib/ddcTime.h"
-#include "../CommonLib/ddcProcess.h"
+#include "ConcordLib/ConcSession.h"
+#include "CommonLib/ddcTime.h"
+#include "CommonLib/ddcProcess.h"
 #include "nlp_base/common/argparse.h"
 
 using namespace std;

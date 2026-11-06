@@ -1,7 +1,7 @@
 #ifndef DDC_QCOUNT_H
 #define DDC_QCOUNT_H
 
-#include "../ConcordLib/Query.h"
+#include "ConcordLib/Query.h"
 
 //======================================================================
 //typedef vector<string>        CQCountByList;

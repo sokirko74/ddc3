@@ -1,9 +1,9 @@
 #ifndef  IndexSet_h
 #define  IndexSet_h
 
-#include "../ConcordLib/IndexSetForLoadingStage.h"
-#include "../ConcordLib/IndexSetForQueryingStage.h"
-#include "../contrib/pcre/pcre_rml.h"
+#include "ConcordLib/IndexSetForLoadingStage.h"
+#include "ConcordLib/IndexSetForQueryingStage.h"
+#include "contrib/pcre/pcre_rml.h"
 
 /*  COutputToken  contains information about one token of an output hit and its properties.
  */

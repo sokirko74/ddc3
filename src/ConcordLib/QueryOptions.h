@@ -1,7 +1,7 @@
 #ifndef DDC_QUERY_OPTIONS_H
 #define DDC_QUERY_OPTIONS_H
 
-#include "../ConcordLib/QueryFilter.h"
+#include "ConcordLib/QueryFilter.h"
 
 //======================================================================
 // typedefs

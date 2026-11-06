@@ -5,11 +5,11 @@
 #include "StdConc.h"
 #include "QueryNode.h"
 #include "Query.h"
-#include "../CommonLib/util_classes.h"
+#include "CommonLib/util_classes.h"
 #include "nlp_base/common/utilit.h"
-#include "../CommonLib/ddcUtil.h"
-#include "../contrib/pcre/pcre_rml.h"
-#include "../CommonLib/ddcLocale.h"
+#include "CommonLib/ddcUtil.h"
+#include "contrib/pcre/pcre_rml.h"
+#include "CommonLib/ddcLocale.h"
 
 
 using namespace std;

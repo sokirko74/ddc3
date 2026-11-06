@@ -1,7 +1,7 @@
 #ifndef  StringIndexator_h
 #define  StringIndexator_h
 
-#include "../ConcordLib/IndexSet.h"
+#include "ConcordLib/IndexSet.h"
 
 /* \page index_set_def Index Set Definition
   An index set consists of the list of strings (which are also called "index items") and corresponding 

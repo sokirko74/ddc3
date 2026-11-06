@@ -5,7 +5,7 @@
 #include "nlp_base/common/argparse.h"
 #include <time.h>
 
-#include "../ConcordLib/ConcHolder.h"
+#include "ConcordLib/ConcHolder.h"
 
 
 using namespace std;

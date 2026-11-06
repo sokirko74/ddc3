@@ -3,7 +3,7 @@
 #include "ConcordAlgorithm.h"
 #include "StringIndexator.h"
 #include <fcntl.h>
-#include "../CommonLib/ddcFile.h"
+#include "CommonLib/ddcFile.h"
 
 using namespace std;
 

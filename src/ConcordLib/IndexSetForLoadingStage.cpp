@@ -1,7 +1,7 @@
 #include "StdConc.h"
-#include "../ConcordLib/IndexSetForLoadingStage.h"
-#include "../ConcordLib/ConcIndexator.h"
-#include "../CommonLib/ddcFile.h"
+#include "ConcordLib/IndexSetForLoadingStage.h"
+#include "ConcordLib/ConcIndexator.h"
+#include "CommonLib/ddcFile.h"
 
 
 using namespace std;

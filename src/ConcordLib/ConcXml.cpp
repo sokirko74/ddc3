@@ -1,8 +1,8 @@
 #include "ConcXml.h"
-#include "../CommonLib/bserialize.h"
-#include "../CommonLib/ddcString.h"
+#include "CommonLib/bserialize.h"
+#include "CommonLib/ddcString.h"
 #include <typeinfo>    //-- for typeid()
-#include "../CommonLib/ddcFile.h"
+#include "CommonLib/ddcFile.h"
 
 
 using namespace std;

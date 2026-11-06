@@ -3,7 +3,7 @@
 // base class of the parsed query nodes (CQuery, CQueryOptions, CQFilter) and of CQueryCompiler:
 // conversion to the canonical query string and to json
 
-#include "../CommonLib/ddcString.h"
+#include "CommonLib/ddcString.h"
 #include <string>
 #include <typeinfo>
 

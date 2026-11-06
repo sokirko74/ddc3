@@ -1,7 +1,7 @@
 #include "string.h"
 #include "DwdsThesaurus.h"
-#include "../CommonLib/util_classes.h"
-#include "../CommonLib/bserialize.h"
+#include "CommonLib/util_classes.h"
+#include "CommonLib/bserialize.h"
 
 using namespace std;
 

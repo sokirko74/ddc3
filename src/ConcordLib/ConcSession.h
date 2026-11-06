@@ -4,7 +4,7 @@
 #include "ConcIndexatorInvoker.h"
 #include "QueryResult.h"
 #include "NavHint.h"
-#include "../CommonLib/ddcRandom.h"
+#include "CommonLib/ddcRandom.h"
 
 //==============================================================================
 // Typedefs & Forward Declarations

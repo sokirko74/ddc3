@@ -1,7 +1,7 @@
 #ifndef DDC_LRUCACHE_H
 #define DDC_LRUCACHE_H
 
-#include "../CommonLib/ddcConfig.h"
+#include "CommonLib/ddcConfig.h"
 #include <list>
 #include <map>
 
