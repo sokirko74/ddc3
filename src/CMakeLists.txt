@@ -61,9 +61,9 @@ if(NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/nlp_base/CMakeLists.txt)
     message(FATAL_ERROR "src/nlp_base is empty: run 'git submodule update --init'")
 endif()
 find_package(ZLIB REQUIRED)
-# nlp_base finds Bin/rml.ini and the dictionaries via $DDC3 (not $RML), so that ddc3 and RML
-# can be used side by side; "$RML" inside rml.ini still means "the root directory"
-add_compile_definitions(RML_ENV_VAR="DDC3")
+# nlp_base finds config/rml.ini and the dictionaries via $DDC3 (not $RML/Bin as RML does), so that
+# ddc3 and RML can be used side by side; "$RML" inside rml.ini still means "the root directory"
+add_compile_definitions(RML_ENV_VAR="DDC3" RML_INI_SUBDIR="config")
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/nlp_base/contrib/plog)
 add_subdirectory (nlp_base/contrib/iconv_subset)
@@ -73,7 +73,7 @@ add_subdirectory (nlp_base/morph_wizard)
 add_subdirectory (nlp_base/lemmatizer_base_lib)
 
 #-- morphology dictionaries: built from nlp_base/data into ${CMAKE_BINARY_DIR}/dict/Morph/<Language>
-#   ($DDC3/dict/Morph should point there; see Bin/rml.ini)
+#   ($DDC3/dict/Morph should point there; see config/rml.ini)
 add_executable(morph_gen nlp_base/morph_gen/morph_gen.cpp)
 target_link_libraries(morph_gen lemmatizer_base_lib)
 set(DDC_MORPH_DICTS_DIR ${CMAKE_BINARY_DIR}/dict/Morph)
@@ -103,7 +103,7 @@ add_subdirectory (nlp_base/graphan/GraphanLib)
 
 #-- graphematical dictionaries: ${CMAKE_BINARY_DIR}/dict/GraphAn (plain files) and the binary
 #   dictionaries of fixed expressions ${CMAKE_BINARY_DIR}/dict/{Obor,GerObor,EngObor}
-#   ($DDC3/dict should point there; see Bin/rml.ini)
+#   ($DDC3/dict should point there; see config/rml.ini)
 set(DDC_DICTS_DIR ${CMAKE_BINARY_DIR}/dict)
 set(_ddc_graphan_outputs)
 file(GLOB _graphan_files ${CMAKE_CURRENT_SOURCE_DIR}/nlp_base/data/GraphAn/*)

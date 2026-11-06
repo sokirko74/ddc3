@@ -392,7 +392,7 @@ int main(int argc, char **argv) {
     ArgumentParser args;
     args.SetVersion(DDCVersionStr);
     args.SetDescription("Send queries to a DDC server and print the hits as xml (default) or text");
-    args.AddArgument("-s, --server", "server config (default: RML_FOLDER/etc/ddc_xml_server.cfg)", true);
+    args.AddArgument("-s, --server", "server config (default: $DDC3/config/ddc_xml_server.cfg)", true);
     args.AddArgument("-o, --output", "output file (default: stdout)", true);
     args.AddArgument("-f, --query-file", "a file with queries, one per line", true);
     args.AddArgument("--start", "the number of the first hit (default: 0)", true);
@@ -430,7 +430,7 @@ int main(int argc, char **argv) {
 
     try {
         if (cfgPath.empty()) {
-            cfgPath = GetPathByFile(GetIniFilePath()) + "etc/ddc_xml_server.cfg";
+            cfgPath = GetIniFilePath() + "/ddc_xml_server.cfg";
         }
     }
     catch (CExpc C) {
@@ -444,7 +444,7 @@ int main(int argc, char **argv) {
     };
 
 
-    string TemplateFile = GetPathByFile(GetIniFilePath()) + "etc/ddc_template.xml";
+    string TemplateFile = GetIniFilePath() + "/ddc_template.xml";
     if (OutputFormat == "table") {
         std::cerr << "Reading " << TemplateFile << "\n";
         if (access(TemplateFile.c_str(), 04) != 0) {

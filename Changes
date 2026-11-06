@@ -28,6 +28,12 @@ v3.0 Tue, 03 Nov 2026
 	  (get_first_hits, get_hit_strings); requests to daughters are sent in parallel;
 	  the Cab term expanders use httplib instead of libcurl (CCurl removed)
 	* removed the CGI program ddc_search (with cgic): the servers speak HTTP themselves
+	* the root directory is given by $DDC3 (formerly $RML, which is now ignored, so ddc3 and
+	  the RML programs can be installed side by side); without DDC3 the programs stop with an error
+	* all configs are in $DDC3/config (formerly rml.ini in $RML/Bin, daemon configs in $RML/Bin,
+	  ddc_xml configs in $RML/etc): rml.ini, ddc_local_corpora.cfg, ddc_server.cfg, ddc_server.opt,
+	  ddc_xml_server.cfg, ddc_template.xml; examples in config/examples (formerly etc/)
+	* ddc_index reads gzip-compressed corpus files (x.xml.gz is indexed as x.xml); .tar.gz is rejected
 
 v2.2.12 Wed, 16 Jun 2021 15:21:24 +0200 moocow
 	* fixed sort failure in `count(...) #by[date] #dsc_key` for branch-servers with only a single daughter

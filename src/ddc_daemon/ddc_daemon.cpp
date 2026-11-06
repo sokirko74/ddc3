@@ -330,9 +330,9 @@ int     main(int argc, char     **argv)
     args.SetVersion(DDCVersionStr);
     args.SetDescription("The DDC server daemon");
     args.AddArgument("-v, --verbose", "log level: none|error|warn|info|debug|trace", true);
-    args.AddArgument("-l, --local", "local corpus config (default: RML_INI_FOLDER/ddc_local_corpora.cfg)", true);
-    args.AddArgument("-s, --server", "server config (default: RML_INI_FOLDER/ddc_server.cfg)", true);
-    args.AddArgument("-O, --options", "server options file (default: RML_INI_FOLDER/ddc_server.opt)", true, true);
+    args.AddArgument("-l, --local", "local corpus config (default: $DDC3/config/ddc_local_corpora.cfg)", true);
+    args.AddArgument("-s, --server", "server config (default: $DDC3/config/ddc_server.cfg)", true);
+    args.AddArgument("-O, --options", "server options file (default: $DDC3/config/ddc_server.opt)", true, true);
     args.AddArgument("-t, --threads", "number of worker threads (default: 0, serial mode)", true);
     args.AddOption("--no-fork", "do not detach from the terminal");
     args.AddOption("--stderr", "log to stderr");

@@ -100,10 +100,10 @@ Set the environment variable `DDC3` to the root of the repository or of an
 installation, i.e. a directory with the following layout
 (see [Dependencies](#dependencies)):
 
-    $DDC3/Bin/rml.ini    <- Bin/rml.ini from this repository
+    $DDC3/config/rml.ini <- config/rml.ini from this repository
     $DDC3/dict           <- build/dict (built from nlp_base)
 
-The simplest choice is the repository itself: it already has `Bin/rml.ini`, so
+The simplest choice is the repository itself: it already has `config/rml.ini`, so
 only a symlink to the built dictionaries is needed (`/dict` is git-ignored):
 
     ln -s build/dict dict
@@ -112,10 +112,16 @@ only a symlink to the built dictionaries is needed (`/dict` is git-ignored):
 Without `DDC3` the programs stop with an error. ddc3 formerly used `RML`
 (as the RML programs do); `RML` is now ignored, so both can be installed side by
 side. The placeholder `$RML` keeps its name: in `rml.ini` it is replaced by
-`$DDC3`, in the daemon config paths by `$DDC3/Bin`. Logs are written to
+`$DDC3`, in the daemon config paths by `$DDC3/config`. Logs are written to
 `$DDC3/log`.
 
-Take a look at the configuration files in `etc/` and the example corpora of the
+`$DDC3/config` is also where the programs look for their configs by default:
+`ddc_daemon` for `ddc_local_corpora.cfg`, `ddc_server.cfg` and `ddc_server.opt`,
+`ddc_xml` for `ddc_xml_server.cfg` and `ddc_template.xml` (the latter is in the
+repository). Examples of the configs are in `config/examples/`; copy and edit
+them, or pass the files explicitly (`ddc_daemon -l ... -s ...`, `ddc_xml --server ...`).
+
+Take a look at the configuration files in `config/examples/` and the example corpora of the
 tests in `src/tests/` to get started.
 
 ## Documentation
