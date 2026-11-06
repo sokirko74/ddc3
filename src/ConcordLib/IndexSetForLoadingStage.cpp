@@ -244,7 +244,7 @@ bool    CIndexSetForLoadingStage::SaveMemoryLoadIndex()
         fclose(fp);
         return true;
     }
-    catch (CExpc c)
+    catch (const CExpc& c)
     {
         ddcLogError(Format("Exception %s in CIndexSetForLoadingStage::SaveMemoryLoadIndex; Index name=%s", c.what(), GetName().c_str()));
         return false;
@@ -483,7 +483,7 @@ bool    CIndexSetForLoadingStage::AddMemoryLoadIndexToMainLoadIndex()
         return true;
 
     }
-    catch (CExpc c) 
+    catch (const CExpc& c) 
     {
         ddcLogError(Format("Exception %s in CIndexSetForLoadingStage::AddMemoryLoadIndexToMainLoadIndex; Index name=%s; iteration=%i", c.what(), GetName().c_str(), iteration));
     }

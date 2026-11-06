@@ -220,9 +220,10 @@ void CDDCBranchServer::SetOptions(const CDDCServerOptions &Options)
 };
 
 //----------------------------------------------------------------------
-void CDDCBranchServer::Shutdown()
+void CDDCBranchServer::Shutdown(bool quiet)
 {
-    ddcLogInfo(Format("shutting down branch server %s", m_CorpusName.c_str()));
+    if (!quiet)
+        ddcLogInfo(Format("shutting down branch server %s", m_CorpusName.c_str()));
     for (size_t i=0; i < m_Hosts.size(); i++) {
         m_Hosts[i].CloseListenSocket();
     }

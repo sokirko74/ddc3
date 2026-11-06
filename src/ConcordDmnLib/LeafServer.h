@@ -25,7 +25,7 @@ public:
     {};
 
     /* close any open socket(s) this server administers, called on termination signal */
-    virtual void Shutdown();
+    void Shutdown(bool quiet=false) override;
 
 public:
     //--------------------------------------------------------------

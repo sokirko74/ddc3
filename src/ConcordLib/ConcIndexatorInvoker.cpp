@@ -350,7 +350,7 @@ bool ConcIndexatorInvoker::BuildIndex(string ProjectFile) {
 
         BuildIndexStart(ProjectFile, Indexator);
     }
-    catch (CExpc e) {
+    catch (const CExpc& e) {
         SetCurrMessage(string(e.what()));
         return false;
     }
@@ -377,7 +377,7 @@ bool ConcIndexatorInvoker::BuildIndex(string ProjectFile) {
         Indexator.TerminateIndexing();
         Indexator.DestroyIndex();
     }
-    catch (CExpc e) {
+    catch (const CExpc& e) {
         SetCurrMessage(Format("Cannot normally terminate indexing: %s", e.what()));
     }
     return m_bStoppedByUser;

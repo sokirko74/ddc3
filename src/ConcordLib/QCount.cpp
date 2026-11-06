@@ -265,7 +265,7 @@ string &CQCountKeyExprToken::Evaluate(const CHit &Hit) {
             throw CQCountKeyBadOccurrence("bad occurrence in CQCountKeyExprToken::Evaluate()");
         }
     }
-    catch (CQCountKeyBadOccurrence) {
+    catch (const CQCountKeyBadOccurrence&) {
         //-- break-overflow (EOS etc) or invalid key item: return empty count-key
         m_CurKey.clear();
     }
@@ -629,7 +629,7 @@ void CQCount::CountLocal(CQueryResult &Result, size_t Limit) {
                 try {
                     bkeys.insert(keys->Evaluate(*hj));
                 }
-                catch (CQCountKeyBadOccurrence) {
+                catch (const CQCountKeyBadOccurrence&) {
                     continue;
                 }
             }

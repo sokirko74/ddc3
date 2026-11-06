@@ -261,7 +261,7 @@ CConcIndexator::LoadXmlFile(string FileName, const char *pFileBuffer, CBibliogra
         try {
             GetTextFromXMLRecursive(body, SourceText);
         }
-        catch (CExpc e) {
+        catch (const CExpc& e) {
             throw CDDCExpc (Format("Cannot get text from file %s, error=%s", FileName.c_str(), e.what()));
         };
 
@@ -450,7 +450,7 @@ void CConcIndexator::LoadFileIntoGraphan(string FileName, const char *pFileBuffe
 
 
     }
-    catch (CExpc c) {
+    catch (const CExpc& c) {
         throw CDDCExpc( Format("Exception %s in CConcIndexator::LoadFileIntoGraphan\n", c.what()));
     }
     catch (...) {

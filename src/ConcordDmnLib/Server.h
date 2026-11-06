@@ -103,7 +103,7 @@ public:
      */
     virtual void WorkerCloneInit(const CDDCServer *Parent, size_t WorkerId);
 
-    /* perform local cleanup of a worker clone prior to deletion; default implementation just calls Shutdown() */
+    /* perform local cleanup of a worker clone prior to deletion; the default implementation does nothing */
     virtual void WorkerCloneFree(void);
 
     /* end of a session (no more requests expected): free the session data; override */

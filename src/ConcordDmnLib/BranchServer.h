@@ -268,7 +268,7 @@ public:
     virtual ~CDDCBranchServer();
 
     /* close any open socket(s) this server administers, called on termination signal */
-    virtual void Shutdown();
+    void Shutdown(bool quiet=false) override;
 
     /* set server options (override handles option m_NavCacheSize) */
     virtual void SetOptions(const CDDCServerOptions &Options);

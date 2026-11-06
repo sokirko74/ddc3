@@ -126,7 +126,8 @@ struct DDCTimeHiRes : public DDCTimeUnix
 
     /* copy constructor */
     DDCTimeHiRes(const DDCTimeHiRes& t)
-    { Set(t.m_ts); };
+        : DDCTimeUnix(t), m_ts(t.m_ts)
+    {};
 
     /* copy constructor from DDCTimeUnix */
     DDCTimeHiRes(const DDCTimeUnix& t)

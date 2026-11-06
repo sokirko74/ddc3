@@ -405,9 +405,9 @@ struct CDDCFilterWithBounds
 
 
     CDDCFilterWithBounds()
-        : m_bSet(false),
+        : m_FilterType(NoSort),
+          m_bSet(false),
           m_bNegated(false),
-          m_FilterType(NoSort),
           m_ContextMatchId(0),
           m_ContextOffset(0),
           m_KeyLo(INT_MIN),

@@ -8,8 +8,9 @@ using namespace std;
 // CDDCLeafServer: constructors etc
 
 //----------------------------------------------------------------------
-void CDDCLeafServer::Shutdown() {
-    ddcLogInfo(Format("shutting down leaf server %s", m_CorpusName.c_str()));
+void CDDCLeafServer::Shutdown(bool quiet) {
+    if (!quiet)
+        ddcLogInfo(Format("shutting down leaf server %s", m_CorpusName.c_str()));
     CloseListenSocket();
 };
 

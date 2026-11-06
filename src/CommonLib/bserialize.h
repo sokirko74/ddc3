@@ -237,7 +237,7 @@ void ReadVectorInner (FILE* fp, std::vector<T>& V, size_t Count)
 {
     try
     {
-        T dummy;
+        T dummy{};   // value-initialized: filled by restore_from_bytes() or only used for its size
         size_t size_of_t = get_size_in_bytes(dummy);
 
         BYTE buffer[VectorMaxStructSize];
@@ -271,7 +271,7 @@ void ReadVectorInner (FILE* fp, std::vector<T>& V, size_t Count)
 template <class T>
 size_t GetSizeInBytes()
 {
-    T dummy;
+    T dummy{};   // value-initialized: filled by restore_from_bytes() or only used for its size
     return get_size_in_bytes(dummy);
 }
 
@@ -284,7 +284,7 @@ inline void ReadVector (const std::string& FileName, std::vector<T>& V)
     FILE* fp = fopen (FileName.c_str(),"rb");
     if (!fp) return;
         
-    T dummy;
+    T dummy{};   // value-initialized: filled by restore_from_bytes() or only used for its size
     size_t size_of_t = get_size_in_bytes(dummy);
     size_t Count = (size_t)sz/size_of_t;
     try {
@@ -313,7 +313,7 @@ bool BinaryWriteItem (FILE* fp, const T& V)
 template <class T>
 bool WriteVectorInner (FILE* fp, const std::vector<T>& V)
 {
-    T dummy;
+    T dummy{};   // value-initialized: filled by restore_from_bytes() or only used for its size
     size_t size_of_t = get_size_in_bytes(dummy);
 
     BYTE buffer[VectorMaxStructSize];

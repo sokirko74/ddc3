@@ -619,7 +619,8 @@ struct CQTokenOccurrenceIterator : public CQOccurrenceIterator
 
     /* copy constructor */
     CQTokenOccurrenceIterator(const CQTokenOccurrenceIterator &b)
-    { operator=(b); };
+        : CQOccurrenceIterator(b), stride(b.stride)
+    {};
 
     virtual ~CQTokenOccurrenceIterator() {};
     

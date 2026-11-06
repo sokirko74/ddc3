@@ -43,6 +43,9 @@ public:
     /* clear */
     //virtual void Clear(bool deep=true);
 
+    /* CQuery::Evaluate() stays visible next to Evaluate(const CHit&), a different operation */
+    using CQuery::Evaluate;
+
     /* default destuctor */
     virtual ~CQCountKeyExpr()
     {};
@@ -257,13 +260,16 @@ public:
 public:
     CQCountKeyExprList() : m_Key("") {};
 
+    // the base CQuery is not copied on purpose: it owns (deletes) m_Node and m_Options
     CQCountKeyExprList(const CQCountKeyExprList &src)
-        : m_Exprs(src.m_Exprs), m_Key(src.m_Key)
+        : CQCountKeyExpr(), m_Exprs(src.m_Exprs), m_Key(src.m_Key)
     {};
 
     virtual ~CQCountKeyExprList();
 
-    /* clear and delete all sub-expressions */
+    /* clear and delete all sub-expressions.
+     * Hides CQuery::Clear(bool deep=true) (-Woverloaded-virtual): callers of Clear() rely on getting this one;
+     * a "using CQuery::Clear" would make Clear() ambiguous. */
     virtual void Clear();
 
     /* wrapper for m_Exprs.empty() */
@@ -326,9 +332,9 @@ public:
           m_dtr(dtr_),
           m_sample(sample_),
           m_sort(sort_),
-          m_keys(keys_),
           m_lo(lb),
           m_hi(ub),
+          m_keys(keys_),
           m_CountSample(0)
     {
         if (sample_==0) m_sample = DDCDefaultCountSampleSize;

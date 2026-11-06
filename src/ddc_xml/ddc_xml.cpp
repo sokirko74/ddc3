@@ -229,7 +229,7 @@ string CQueryRunner::RunQuery(string query) {
     try {
         return FormatResponse(query, recievedString);
     }
-    catch (CExpc e) {
+    catch (const CExpc& e) {
         throw;
     }
     catch (...) {
@@ -356,7 +356,7 @@ bool ThreadPool::RunJobIfExists()
     try {
         result = QueryRunner->RunQuery(query);
     }
-    catch (CExpc e) {
+    catch (const CExpc& e) {
         result = string(e.what());
     }
 
@@ -433,7 +433,7 @@ int main(int argc, char **argv) {
             cfgPath = GetIniFilePath() + "/ddc_xml_server.cfg";
         }
     }
-    catch (CExpc C) {
+    catch (const CExpc& C) {
         std::cerr << C.what() << "\n";
         return 1;
     };
@@ -481,7 +481,7 @@ int main(int argc, char **argv) {
             }
         }
     }
-    catch (CExpc e) {
+    catch (const CExpc& e) {
         std::cerr << "Error! " << e.what() << "\n";
         resultCode = 1;
     }
