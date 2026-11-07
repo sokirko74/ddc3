@@ -46,7 +46,7 @@ The DDC-2.x branch was maintained in SVN under:
   Tested version(s): 10.46.
 
 - **cpp-httplib** (bundled in `nlp_base/contrib/httplib`) — HTTP server and
-  client. The servers speak HTTP (see [ddc_proto.md](doc/ddc_proto.md)), the
+  client. The servers speak HTTP (see [ddc_protocol.md](doc/ddc_protocol.md)), the
   external term expanders (DTA::CAB) are queried over HTTP as well.
 
 - **GNU bison** >= 3.8 (the C++ parser skeleton) — tested version: 3.8.2.
@@ -57,19 +57,6 @@ The DDC-2.x branch was maintained in SVN under:
   The query parser and scanner are generated from `src/ConcordLib/yyQParser.y`
   and `yyQLexer.l` into the build directory (`build/src/ConcordLib/yyQ*`);
   they are not kept in git.
-
-## Encoding
-
-DDC 3 talks to the outside world only in UTF-8: corpus texts, queries and all
-output. Single-byte (cp1251/latin1) corpora are no longer supported; convert
-them with `iconv` and reindex. Morphology and graphematics work with
-cp1251/cp1252 internally, DDC converts at the boundary. Texts with characters
-outside these encodings (e.g. historical German with "ſ") should use the
-language `Generic` (raw UTF-8, no morphology).
-
-Input that is not valid UTF-8 is rejected with an error: corpus files
-(`ddc_index`), queries (`ddc_simple`, `ddc_console`, `ddc_qparse`, the server)
-and terms (`ddc_expand`, `expand_terms`).
 
 ## Building
 
@@ -120,12 +107,13 @@ tests in `src/tests/` to get started.
 Reference documentation (formerly POD manpages) is in `doc/`:
 
 - [ddc_query.md](doc/ddc_query.md) — query language
+- [ddc_input_format.md](doc/ddc_input_format.md) — corpus files: kinds of files, UTF-8, XML markup, control characters
 - [ddc_opt.md](doc/ddc_opt.md) — corpus options (`*.opt`, `*.con`)
 - [ddc_cfg.md](doc/ddc_cfg.md) — server configuration (`*.cfg`)
 - [ddc_server.opt.md](doc/ddc_server.opt.md) — server options
-- [ddc_proto.md](doc/ddc_proto.md) — client/server protocol (HTTP)
+- [ddc_protocol.md](doc/ddc_protocol.md) — client/server protocol (HTTP)
 - [ddc_files.md](doc/ddc_files.md) — index file formats
-- [ddc_tabs.md](doc/ddc_tabs.md) — tab-separated (`ddc_dump --tabs`) format
+- [ddc_tabs.md](doc/ddc_tabs.md) — tab-separated format (input of `TabFormat_Index`, output of `ddc_dump --tabs`)
 
 ## Build options
 

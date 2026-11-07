@@ -530,7 +530,7 @@ Float parameter (0 \<=FLOAT \< 1) for NEAR weighting.
 ServerInfo KEY VALUE
 ```
 
-Sets a constant value to be returned in responses to client 'info' requests to an associated CDDCLeafServer (see [ddc\_proto](ddc_proto.md)). KEY is a key string optionally containing C escapes, and VALUE is a literal JSON value to be returned as the value of `user.KEY` in leaf-server 'info' responses.
+Sets a constant value to be returned in responses to client 'info' requests to an associated CDDCLeafServer (see [ddc\_protocol](ddc_protocol.md)). KEY is a key string optionally containing C escapes, and VALUE is a literal JSON value to be returned as the value of `user.KEY` in leaf-server 'info' responses.
 
 Since v2.0.34.
 
@@ -540,7 +540,7 @@ Since v2.0.34.
 ServerInfoFile KEY FILENAME
 ```
 
-Sets an external filename value to be returned in responses to client 'info' requests to an associated CDDCLeafServer (see [ddc\_proto](ddc_proto.md)). KEY is a key string optionally containing C escapes, and FILENAME is a filename containing literal JSON code to be returned as the value of `user.KEY` in leaf-server 'info' responses. FILENAME is interpreted relative to the directory containing the project \*.con file associated with the leaf server. As of v2.1.5, leading and trailing whitespace will be implicitly trimmed from FILENAME.
+Sets an external filename value to be returned in responses to client 'info' requests to an associated CDDCLeafServer (see [ddc\_protocol](ddc_protocol.md)). KEY is a key string optionally containing C escapes, and FILENAME is a filename containing literal JSON code to be returned as the value of `user.KEY` in leaf-server 'info' responses. FILENAME is interpreted relative to the directory containing the project \*.con file associated with the leaf server. As of v2.1.5, leading and trailing whitespace will be implicitly trimmed from FILENAME.
 
 Since v2.0.34.
 

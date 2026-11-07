@@ -165,7 +165,7 @@ Aliases: HitStringsParallel ParallelHitStrings
 
 Default: false
 
-If specified and true, branch servers created by this process will send [get\_hit\_strings](ddc_proto.md#get_hit_stings) requests to their immediate daughters in parallel. If the daughters need to fetch hit data from secondary storage (i.e. if you don't have excessive amounts RAM), enabling this option is likely to actually slow things down unless your secondary storage device supports ultra-low-latency random access reads, in which case it might help. The parameter `BOOL` is any string recoginized as a Boolean value; see [ddc\_opt / Boolean Flags and Switches](ddc_opt.md#boolean-flags-and-switches) for details.
+If specified and true, branch servers created by this process will send [get\_hit\_strings](ddc_protocol.md#get_hit_stings) requests to their immediate daughters in parallel. If the daughters need to fetch hit data from secondary storage (i.e. if you don't have excessive amounts RAM), enabling this option is likely to actually slow things down unless your secondary storage device supports ultra-low-latency random access reads, in which case it might help. The parameter `BOOL` is any string recoginized as a Boolean value; see [ddc\_opt / Boolean Flags and Switches](ddc_opt.md#boolean-flags-and-switches) for details.
 
 Since v2.1.12.
 
@@ -229,7 +229,7 @@ Useful values:
 
 - `VERSION` \<= 2.1.8
 
-  Prevents server from sending navigation hints in generated `get_first_hits` requests, or returning them in `get_hit_strings` responses. See [ddc\_proto(5)](ddc_proto.md) for details.
+  Prevents server from sending navigation hints in generated `get_first_hits` requests, or returning them in `get_hit_strings` responses. See [ddc\_protocol(5)](ddc_protocol.md) for details.
 
 Since v2.1.9.
 
@@ -243,4 +243,4 @@ Bryan Jurish \<jurish@bbaw.de\>
 
 # SEE ALSO
 
-ddc\_opt(5), ddc\_proto(5), ddc\_daemon(1)
+ddc\_opt(5), ddc\_protocol(5), ddc\_daemon(1)

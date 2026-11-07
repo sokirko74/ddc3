@@ -121,7 +121,7 @@ List of corpus source files as passed to ddc\_index(1). Prior to ddc v2.1.15, th
   #+END_SRC
 ```
 
-For DDC \> v2.1.13 this file is a dummy stub containing only a version information header, used for compatibility checks. This file's modification time is also used to initialize the index timestamp returned by the server [info](ddc_proto.md#info) command.
+For DDC \> v2.1.13 this file is a dummy stub containing only a version information header, used for compatibility checks. This file's modification time is also used to initialize the index timestamp returned by the server [info](ddc_protocol.md#info) command.
 
 In DDC versions prior to v2.1.13, the `CORPUS._con` file also included a list of newline-separated corpus filenames as for `CORPUS.con`, which were loaded into memory at runtime. As of v2.1.13, the runtime corpus file-list is stored in mmap()-friendlier format in `CORPUS._con_files` and `CORPUS._con_idx`, which see. For compatibility reasons, DDC v2.1.13 will fall back to loading its corpus-list from this file if `CORPUS._con_files` and/or `CORPUS._con_idx` are unvavailble.
 

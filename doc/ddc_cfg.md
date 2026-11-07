@@ -35,7 +35,7 @@ UNIX socket support since v2.2.0.
 
 ## Port
 
-The third field specifies the TCP port-number *PORT* to be bound by a branch-node and/or to be queried for a leaf-node. It has no protocol-relevant meaning for [UNIX-domain sockets](#addr), but may be used to initialize a subcorpus-specific random seed, and will be reported in [status responses](ddc_proto.md#status) responses.
+The third field specifies the TCP port-number *PORT* to be bound by a branch-node and/or to be queried for a leaf-node. It has no protocol-relevant meaning for [UNIX-domain sockets](#addr), but may be used to initialize a subcorpus-specific random seed, and will be reported in [status responses](ddc_protocol.md#status) responses.
 
 ## Path
 
