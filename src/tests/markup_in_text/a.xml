@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI.2><teiHeader><fileDesc><sourceDesc id="orig"><bibl>Книга про HTML</bibl></sourceDesc></fileDesc></teiHeader>
+<text><body>
+Поле ввода задаётся тегом &lt;textarea&gt;текст&lt;/textarea&gt; внутри формы.
+Абзац закрывается тегом &lt;/p&gt;, а здесь стоит управляющий символ&#x2;посередине.
+</body></text></TEI.2>

@@ -177,7 +177,13 @@ void GetTextFromXMLRecursive(const pugi::xml_node &parent, string &Result) {
         if (Result.empty())
             Result += Format("\n<pb %u>\n", UnknownPageNumber);
 
+        // control characters (forbidden in XML 1.0, but pugixml lets "&#2;" through) would be read
+        // by the graphematics as markup inserted by DDC, e.g. TextAreaEndMarker
+        size_t start = Result.length();
         Result += parent.value();
+        for (size_t i = start; i < Result.length(); i++)
+            if ((BYTE)Result[i] < 0x09)
+                Result[i] = ' ';
     } else if (parent.type() == pugi::node_element) {
         string type = parent.name();
         Trim(type);
@@ -266,7 +272,9 @@ CConcIndexator::LoadXmlFile(string FileName, const char *pFileBuffer, CBibliogra
         };
 
         AllTexts += SourceText;
-        AllTexts += "</textarea>\n\n";
+        AllTexts += '\n';
+        AllTexts += TextAreaEndMarker;  // not "</textarea>": it can occur in a text (e.g. a book about HTML)
+        AllTexts += "\n\n";
     }
 
     if (!IsValidUtf8(AllTexts))
@@ -480,10 +488,21 @@ void CConcIndexator::IndexTextOrHtmlFile(CIndexDocument* document) {
 
     int TextAreaNo = 0;
     int TextAreasCount = m_BiblIndex.GetTextAreasCount();
-    size_t TextAreaStarter = UINT32_MAX;
     int SentenceBreakCollection = GetBreakCollectionIndexByName("s");
     if ((SentenceBreakCollection == -1) && !m_bQueryOnlyFiles) {
         throw CDDCExpc("could not find sentence collection");
+    }
+
+    // check it before anything of the document is added to the index (a rollback after a failed
+    // document trims only the token occurrences, not the breaks and the bibliography)
+    {
+        int TextAreaEnds = 0;
+        for (long GraLineNo = 0; GraLineNo < GraLinesCount; GraLineNo++)
+            if (Graphmat.GetUnits()[GraLineNo].IsTextAreaEnd())
+                TextAreaEnds++;
+        if (TextAreaEnds != TextAreasCount)
+            throw CDDCExpc(Format("Some text areas are not present in this document (%i of %i)",
+                                  TextAreaEnds, TextAreasCount));
     }
 
     for (long GraLineNo = 0; GraLineNo < GraLinesCount; GraLineNo++) {
@@ -536,7 +555,7 @@ void CConcIndexator::IndexTextOrHtmlFile(CIndexDocument* document) {
             };
         } // IsDWDSToken == true
 
-        if (Graphmat.GetUnits()[GraLineNo].IsTextAreaEnd() || TextAreaStarter == document->CorpusEndTokenNo) {
+        if (Graphmat.GetUnits()[GraLineNo].IsTextAreaEnd()) {
             AddBreakByName(PredefinedTextAreaBreakName, document->CorpusEndTokenNo);
             TextAreaNo++;
         }
@@ -591,9 +610,8 @@ void CConcIndexator::IndexTextOrHtmlFile(CIndexDocument* document) {
         m_BiblIndex.AddIndexItem(Bibl);
     };
 
-    if (TextAreaNo != TextAreasCount) {
-        throw CDDCExpc( Format("Some text areas are not present in this document"));
-    }
+    if (TextAreaNo != TextAreasCount)
+        throw CDDCExpc("internal error: the number of text areas changed while indexing");
     Graphmat.FreeTable();
 };
 

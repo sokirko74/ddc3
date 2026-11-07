@@ -625,7 +625,7 @@ void RollbackLoadIndexHash(vector<CItemIndexForLoading> *Hash, CTokenNo startTri
 void CIndexSetForLoadingStage::RollbackLoadIndex(CTokenNo startTrimTokenNo)
 {
     RollbackLoadIndexHash(m_InputLoadIndexHash, startTrimTokenNo);
-    RollbackLoadIndexHash(m_InputLoadIndexHash, startTrimTokenNo);
+    RollbackLoadIndexHash(m_MemoryLoadIndexHash, startTrimTokenNo);
     
     if (m_bUseItemStorage) {
         off_t truncate_offset = ((off_t)startTrimTokenNo) * sizeof(uint32_t);
