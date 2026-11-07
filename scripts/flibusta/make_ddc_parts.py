@@ -3,6 +3,10 @@
 write the configs of a ddc_daemon with one leaf per subcorpus and a root server.
 
     make_ddc_parts.py INPUT_DIR OUTPUT_DIR OPT_FILE [--parts 8] [--name part] [--port 50300]
+                      [--selected SELECTED_TSV]
+
+With --selected (the output of select_books.py: archive, BookId.fb2, number of ratings) only the
+books of the list are taken: INPUT_DIR/<archive without .zip>/<BookId>.xml[.gz].
 
 OUTPUT_DIR/<name>1 .. <name>N/<name>K.con (absolute file names) and <name>K.opt (a copy of
 OPT_FILE); OUTPUT_DIR/ddc_local_corpora.cfg (leaves on 127.0.0.1:PORT+K),
@@ -25,12 +29,22 @@ def main():
     ap.add_argument("--parts", type=int, default=8)
     ap.add_argument("--name", default="part")
     ap.add_argument("--port", type=int, default=50300)
+    ap.add_argument("--selected", help="take only the books of this list (select_books.py)")
     a = ap.parse_args()
+
+    selected = None
+    if a.selected:
+        selected = set()
+        with open(a.selected, encoding="utf-8") as f:
+            for line in f:
+                archive, book = line.rstrip("\n").split("\t")[:2]
+                selected.add((os.path.splitext(archive)[0], os.path.splitext(book)[0]))
 
     files = []
     for d, _, names in os.walk(os.path.abspath(a.input_dir)):
         for n in names:
-            if n.endswith(EXTENSIONS):
+            if n.endswith(EXTENSIONS) and (selected is None or
+                                           (os.path.basename(d), n.split(".")[0]) in selected):
                 p = os.path.join(d, n)
                 files.append((os.path.getsize(p), p))
     files.sort(reverse=True)

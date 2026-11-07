@@ -12,15 +12,20 @@
 ##             restartable (existing files are skipped)
 ##   fetch     rsync the extracted books to $WORK/fb2
 ##   convert   fb2tei.py --gzip: fb2 -> TEI.2 xml (UTF-8, notes at the end) in $WORK/tei
-##   split     make_ddc_parts.py: $PARTS subcorpora of about equal size + daemon configs in $WORK/ddc
-##   index     ddc_index of the parts, $INDEX_JOBS at a time (logs in $WORK/ddc/partK/index.log;
+##   split     make_ddc_parts.py: the books of selected.tsv from $WORK/tei in $PARTS subcorpora
+##             of about equal size + daemon configs in $DDC_DIR
+##   index     ddc_index of the parts, $INDEX_JOBS at a time (logs in $DDC_DIR/partK/index.log;
 ##             a book that cannot be indexed is skipped, see ResumeOnIndexErrors in flibusta.opt)
 ##   serve     (re)start ddc_daemon: leaves on 127.0.0.1:$PORT+K, root on 127.0.0.1:$PORT
 ##
 ## All settings can be overridden from the environment, e.g. MIN_RATES=5 PARTS=4 ./build_flibusta_for_ddc.sh all
+## A smaller corpus from the books already converted (a higher MIN_RATES):
+##   MIN_RATES=14 PARTS=4 DDC_DIR=~/data/flibusta/ddc_r14 ./build_flibusta_for_ddc.sh select split index
 ##
 ## Numbers of 2026-11-06 (MIN_RATES=3, LANG_CODE=ru): 578485 books in the index,
-## 133632 selected (78 GB of fb2); extraction ~650 books/min with 2 jobs on migalka.
+## 133632 selected (78 GB of fb2); extraction ~650 books/min with 2 jobs on migalka;
+## 13.6e9 tokens, 109 GB of index in 8 parts, ~900 MB of memory per part for ddc_daemon.
+## MIN_RATES=14: 30369 books, ~25% of the text.
 
 set -euo pipefail
 
@@ -36,6 +41,7 @@ WORK=${WORK:-$HOME/data/flibusta}
 MIN_RATES=${MIN_RATES:-3}
 LANG_CODE=${LANG_CODE:-ru}
 PARTS=${PARTS:-8}
+DDC_DIR=${DDC_DIR:-$WORK/ddc}                                    # the index and the daemon configs
 PORT=${PORT:-50300}
 JOBS=${JOBS:-$(nproc)}
 INDEX_JOBS=${INDEX_JOBS:-4}                                      # ~1-2 GB of memory per ddc_index
@@ -81,28 +87,28 @@ step_convert() {
 }
 
 step_split() {
-    log "split into $PARTS parts in $WORK/ddc"
-    python3 "$SCRIPTS/make_ddc_parts.py" "$WORK/tei" "$WORK/ddc" "$SCRIPTS/flibusta.opt" \
-        --parts "$PARTS" --port "$PORT"
+    log "split into $PARTS parts in $DDC_DIR"
+    python3 "$SCRIPTS/make_ddc_parts.py" "$WORK/tei" "$DDC_DIR" "$SCRIPTS/flibusta.opt" \
+        --parts "$PARTS" --port "$PORT" --selected "$WORK/selected.tsv"
 }
 
 step_index() {
     log "index $PARTS parts, $INDEX_JOBS at a time"
-    local i failed="$WORK/ddc/failed_parts"
+    local i failed="$DDC_DIR/failed_parts"
     rm -f "$failed"
     for i in $(seq 1 "$PARTS"); do
         while [ "$(jobs -rp | wc -l)" -ge "$INDEX_JOBS" ]; do wait -n || true; done
-        ( cd "$WORK/ddc/part$i" && "$BIN/ddc_index/ddc_index" "part$i.con" > index.log 2>&1 \
-            && log "part$i done" || echo "part$i failed, see $WORK/ddc/part$i/index.log" | tee -a "$failed" >&2 ) &
+        ( cd "$DDC_DIR/part$i" && "$BIN/ddc_index/ddc_index" "part$i.con" > index.log 2>&1 \
+            && log "part$i done" || echo "part$i failed, see $DDC_DIR/part$i/index.log" | tee -a "$failed" >&2 ) &
     done
     wait
     [ ! -s "$failed" ]
 }
 
 step_serve() {
-    cd "$WORK/ddc"
+    cd "$DDC_DIR"
     "$BIN/ddc_daemon/ddc_daemon" restart -l ddc_local_corpora.cfg -s ddc_server.cfg
-    log "query: $BIN/ddc_xml/ddc_xml --server $WORK/ddc/ddc_xml.cfg --text QUERY"
+    log "query: $BIN/ddc_xml/ddc_xml --server $DDC_DIR/ddc_xml.cfg --text QUERY"
 }
 
 [ $# -gt 0 ] || { sed -n 's/^## \{0,1\}//p' "$0"; exit 1; }
