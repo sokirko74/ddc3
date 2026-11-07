@@ -172,10 +172,17 @@ uint32_t CConcIndexator::GetMaxInputLoadIndexSize() const {
         return DefaultMaxInputLoadIndexSize;
 };
 
+// a page break for the graphematics; a page number that is not a number (e.g. "iv") is unknown
+static string PageBreakForGraphan(const char* number) {
+    return '\n' + string(1, PageBreakMarker)
+        + (isdigit((BYTE)number[0]) ? string(number, strspn(number, "0123456789")) : std::to_string(UnknownPageNumber))
+        + '\n';
+}
+
 void GetTextFromXMLRecursive(const pugi::xml_node &parent, string &Result) {
     if (parent.type() == pugi::node_pcdata || parent.type() == pugi::node_cdata) {
         if (Result.empty())
-            Result += Format("\n<pb %u>\n", UnknownPageNumber);
+            Result += PageBreakForGraphan(std::to_string(UnknownPageNumber).c_str());
 
         // control characters (forbidden in XML 1.0, but pugixml lets "&#2;" through) would be read
         // by the graphematics as markup inserted by DDC, e.g. TextAreaEndMarker
@@ -192,7 +199,7 @@ void GetTextFromXMLRecursive(const pugi::xml_node &parent, string &Result) {
             if (!parent.attribute("n")) {
                 throw CDDCExpc("Cannot parse page break element");
             };
-            Result += Format("\n<pb %s>\n", parent.attribute("n").value());
+            Result += PageBreakForGraphan(parent.attribute("n").value());
         } else {
             for (pugi::xml_node child = parent.first_child(); child; child = child.next_sibling()) {
                 GetTextFromXMLRecursive(child, Result);
@@ -262,7 +269,7 @@ CConcIndexator::LoadXmlFile(string FileName, const char *pFileBuffer, CBibliogra
         string SourceText;
 
         if (Bibl.m_StartPageInfo != UnknownPageNumber)
-            SourceText = Format("\n<pb %u>\n", Bibl.m_StartPageInfo);
+            SourceText = PageBreakForGraphan(std::to_string(Bibl.m_StartPageInfo).c_str());
 
         try {
             GetTextFromXMLRecursive(body, SourceText);

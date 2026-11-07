@@ -1,4 +1,4 @@
-# a text with "<textarea>", "</p>" and a control character (a book about HTML) must not be taken for
+# a text with "<textarea>", "</p>", "<pb 5>" and a control character (a book about HTML) must not be taken for
 # the markup that DDC inserts into the text for the graphematics; a broken document (b.xml, no body)
 # is skipped (ResumeOnIndexErrors) and the next one is indexed
 set (dir ${CMAKE_BINARY_DIR}/tests/markup_in_text)
@@ -11,7 +11,7 @@ add_test(
         COMMAND ddc_index m.con
         WORKING_DIRECTORY  ${dir}
 )
-foreach (query textarea посередине Последний)
+foreach (query textarea pb посередине Последний)
     add_test(
             NAME markup_in_text_query_${query}
             COMMAND ddc_simple m.con ${query}
