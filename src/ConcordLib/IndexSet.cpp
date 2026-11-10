@@ -671,14 +671,35 @@ bool CStringIndexSet::ConvertTempStorageToPersistent() {
 };
 
 
+/* Sorts occurrences of many index items of one index set in one search period (e.g. the morphological patterns
+   of [С ед]: ~10000 lists). The positions are distinct (a token has one item in an index) and lie in a range of
+   about a period, therefore a bitmap of the range sorts them in O(size + range/64) instead of O(size log size). */
+static bool SortDistinctOccurrencesByBitmap(vector<CTokenNo> &occurrences) {
+    if (occurrences.empty()) return true;
+    CTokenNo lo = *min_element(occurrences.begin(), occurrences.end());
+    CTokenNo hi = *max_element(occurrences.begin(), occurrences.end());
+    uint64_t range = (uint64_t)hi - lo + 1;
+    if (range / 64 > occurrences.size() * 4) return false;   //-- too sparse: the scan of the bitmap would dominate
+    vector<uint64_t> bits((range + 63) / 64, 0);
+    for (CTokenNo t : occurrences)
+        bits[(t - lo) >> 6] |= 1ULL << ((t - lo) & 63);
+    size_t n = 0;
+    for (size_t w = 0; w < bits.size(); w++)
+        for (uint64_t b = bits[w]; b != 0; b &= b - 1)
+            occurrences[n++] = lo + (CTokenNo)(w * 64 + __builtin_ctzll(b));
+    occurrences.resize(n);   //-- n < size only if a position was there twice (not in a valid index)
+    return true;
+}
+
 static void SortOccurrences(vector<CTokenNo> &occurrences, size_t SortChunkCount) {
     int size = occurrences.size();
     if ((size < 30)
         || (SortChunkCount > 1000)
         || (size / SortChunkCount < 3)
-        ) // if occurrences are very defragmented then use simple sort
-        sort(occurrences.begin(), occurrences.end());
-    else {
+        ) { // if occurrences are very defragmented then use simple sort
+        if (size < 4096 || !SortDistinctOccurrencesByBitmap(occurrences))
+            sort(occurrences.begin(), occurrences.end());
+    } else {
         // else use sort based on list unions
         DwordVector Borders;
         Borders.reserve(size);
