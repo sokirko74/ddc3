@@ -44,6 +44,7 @@ protected:
     std::string        pattern_;
     Options       opts_;          // regex options, table pointer
     pcre2_code*   re_;            // compiled pattern (NULL on error)
+    bool          jit_ = false;   // re_ is JIT-compiled
     std::string        error_;         // Error indicator (empty for no error)
 
 public:
@@ -107,6 +108,10 @@ public:
     { return TryMatch(text, len, 0, UNANCHORED, NULL, 0) > 0; };
     bool PartialMatch(const std::string& text) const { return PartialMatch(text.data(), text.size()); };
     bool PartialMatch(const char *text) const { return PartialMatch(text, strlen(text)); };
+
+    // PartialMatch for the hot loops over whole lexica: no UTF-8 check of text (text must be valid UTF-8 in the
+    // UTF mode, e.g. an index item), JIT matching directly; ~3 times faster than PartialMatch for short texts
+    bool PartialMatchValidUtf8(const char *text, size_t len) const;
 
     // Replace the first match in *str by rewrite (\\0..\\9 or $0..$9 refer to groups)
     bool Replace(const std::string& rewrite, std::string *str) const;

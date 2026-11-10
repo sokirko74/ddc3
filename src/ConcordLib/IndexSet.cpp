@@ -173,7 +173,7 @@ void CStringIndexSet::QueryTokenListUsingRegExp(RML_RE &RegExp, vector<uint32_t>
         //-- honor diacritics (usual case)
         for (size_t i = 0; i < Count; i++) {
             const char *str = GetIndexItemStr(m_Index[i]);
-            bool ismatch = RegExp.PartialMatch(str);
+            bool ismatch = RegExp.PartialMatchValidUtf8(str, strlen(str));   //-- index items are valid UTF-8
             if (negated ? (!ismatch) : ismatch) {
                 if (MatchWords.size() > m_pParent->m_MaxRegExpExpansionSize)
                     throw CDDCExpc("too many expansions for regex /%s/ (MaxRegExpExpansionSize=%zd)",
@@ -188,7 +188,7 @@ void CStringIndexSet::QueryTokenListUsingRegExp(RML_RE &RegExp, vector<uint32_t>
         for (size_t i = 0; i < Count; i++) {
             const char *str = GetIndexItemStr(m_Index[i]);
             iconv.convert(str, strlen(str), tmp);
-            bool ismatch = RegExp.PartialMatch(tmp);
+            bool ismatch = RegExp.PartialMatchValidUtf8(tmp.data(), tmp.size());   //-- ASCII
             if (negated ? (!ismatch) : ismatch) {
                 if (MatchWords.size() > m_pParent->m_MaxRegExpExpansionSize)
                     throw CDDCExpc("too many expansions for regex /%s/d (MaxRegExpExpansionSize=%zd)",

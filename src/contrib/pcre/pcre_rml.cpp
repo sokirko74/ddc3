@@ -151,7 +151,7 @@ void RML_RE::Init(const string& pattern)
     }
 
     // JIT is optional: if unavailable, pcre2_match() silently uses the interpreter
-    pcre2_jit_compile(re_, PCRE2_JIT_COMPLETE);
+    jit_ = pcre2_jit_compile(re_, PCRE2_JIT_COMPLETE) == 0;
 }
 
 void RML_RE::clear() {
@@ -159,10 +159,25 @@ void RML_RE::clear() {
         pcre2_code_free(re_);
     pattern_.clear();
     re_ = NULL;
+    jit_ = false;
     error_.clear();
 }
 
 /**** Matching interfaces *****/
+
+bool RML_RE::PartialMatchValidUtf8(const char *text, size_t len) const
+{
+    if (re_ == NULL)
+        return false;
+    if (opts_.match_limit_ > 0)
+        return PartialMatch(text, len);
+    pcre2_match_data *md = thread_match_data();
+    int rc = jit_ ? pcre2_jit_match(re_, (PCRE2_SPTR)text, len, 0, 0, md, NULL)
+                  : pcre2_match(re_, (PCRE2_SPTR)text, len, 0, PCRE2_NO_UTF_CHECK, md, NULL);
+    if (rc == PCRE2_ERROR_JIT_STACKLIMIT)
+        rc = pcre2_match(re_, (PCRE2_SPTR)text, len, 0, PCRE2_NO_UTF_CHECK | PCRE2_NO_JIT, md, NULL);
+    return rc >= 0;   // rc == 0: a match with more groups than fit into the match data
+}
 
 bool RML_RE::Replace(const string& rewrite, string *str) const {
     size_t vec[2*kMaxPairs];
