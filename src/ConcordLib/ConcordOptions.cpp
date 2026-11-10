@@ -73,6 +73,7 @@ void CConcordance::InitDefaultOptions() {
     m_Timestamp = 0;
     m_MaxCachedHitsCount = 512;
     m_MaxQueryCacheSize = 512;
+    m_EstimateHitsCount = 0;
     m_Txd.clear();
     m_OpDefaultIndexNames.clear();
     m_ServerInfo.clear();
@@ -239,6 +240,12 @@ void CConcordance::LoadOptionsFromString(string Options) {
             if (!q.empty()) {
                 m_MaxCachedHitsCount = atoi(q.c_str());
                 EchoOption("MaxCachedHitsCount = %zi", m_MaxCachedHitsCount);
+            }
+        } else if (q == "EstimateHitsCount") {
+            q = fields.next_token();
+            if (!q.empty()) {
+                m_EstimateHitsCount = atoi(q.c_str());
+                EchoOption("EstimateHitsCount = %zi", m_EstimateHitsCount);
             }
         } else if (q == "MaxQueryCacheSize") {
             q = fields.next_token();
@@ -677,6 +684,8 @@ string CConcordance::SaveOptionsToString() const {
     Result += Format("MaxRegExpExpansionSize %i\n", m_MaxRegExpExpansionSize);
     Result += Format("MaxCachedHitsCount %zi\n", m_MaxCachedHitsCount);
     Result += Format("MaxQueryCacheSize %zi\n", m_MaxQueryCacheSize);
+    if (m_EstimateHitsCount > 0)
+        Result += Format("EstimateHitsCount %zi\n", m_EstimateHitsCount);
 
     if (m_bDwdsCorpusInterface)
         Result += Format("DwdsCorpusInterface\n");

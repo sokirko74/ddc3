@@ -6,3 +6,4 @@ Bibl string 0 date   /TEI.2/teiHeader/fileDesc/sourceDesc[@id="orig"]/date
 TextArea body /TEI.2/text/body
 ResumeOnIndexErrors 1
 OutputBibliographyOfHits 1
+EstimateHitsCount 10000

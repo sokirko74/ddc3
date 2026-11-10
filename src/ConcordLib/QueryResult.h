@@ -37,6 +37,9 @@ struct CQueryResult
     // the number of documents, where at least one hit is found
     size_t                  m_RelevantDocumentCount;
 
+    // m_AllHitsCount and m_RelevantDocumentCount are extrapolated from the first search periods (EstimateHitsCount)
+    bool                    m_bHitsCountEstimated : 1;
+
     // whether to sort by string-value
     bool                    m_bSortByString : 1;
 

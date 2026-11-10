@@ -14,6 +14,7 @@ void    CQueryResult::ClearQueryResults()
     ClearVector(m_DebugInfo);
     m_AllHitsCount = 0;
     m_RelevantDocumentCount = 0;
+    m_bHitsCountEstimated = false;
     m_bSortByString = false;
     m_SortOrder = hsoNone;
 }

@@ -1862,6 +1862,21 @@ DDCErrorEnum CConcSession::GetAllHits(CQuery *QueryRoot, size_t Start, size_t Li
                 last_time = curr_time;
             }
         }
+
+        //-- EstimateHitsCount: enough hits for the result and for an estimation, extrapolate the count
+        size_t EstimateAfter = m_pConcordance->m_EstimateHitsCount;
+        if (EstimateAfter > 0 && !qCount && !m_bPrune && m_SortOrder == hsoNone
+            && m_CurrentSearchPeriodNo + 1 < CountOfPeriods
+            && m_ResultOffset + m_Hits.size() >= qLimit && m_AllHitsCount >= EstimateAfter) {
+            double share = (double)m_pConcordance->GetSearchPeriod(m_CurrentSearchPeriodNo)
+                           / m_pConcordance->GetSearchPeriod(CountOfPeriods - 1);
+            if (share > 0) {
+                m_AllHitsCount = (size_t)(m_AllHitsCount / share + 0.5);
+                m_RelevantDocumentCount = (size_t)(m_RelevantDocumentCount / share + 0.5);
+                m_bHitsCountEstimated = true;
+                break;
+            }
+        }
     } //  cycle for corpus periods
 
     // encode count() query results as hits

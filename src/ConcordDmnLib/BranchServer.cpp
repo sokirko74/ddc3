@@ -74,6 +74,7 @@ void CFirstHitsQueryResult::Clear()
 {
     m_AllHitsCount = 0;
     m_AllRelevantDocsCount = 0;
+    m_bHitsCountEstimated = false;
     m_HitsDistributionStr.clear();
     m_RelevantDocsDistributionStr.clear();
     m_SortOrder = hsoNone;
@@ -341,7 +342,7 @@ string CSelectedHosts::toString() const
 //----------------------------------------------------------------------
 CRunQueryData::CRunQueryData(const string & _Query, const string& _ResultFormat, size_t _Start, size_t _Limit, int _TimeOut, string *_pErrorStr)
     : sQuery(_Query), sResultFormat(_ResultFormat), StartHitNo(_Start), ResultLimit(_Limit), TimeOut(_TimeOut),
-      iInternalError(errNone), iNetworkError(neSuccess), EndHitNo(0), HitsCount(0), RelevantDocsCount(0), HitDistrib(""), DocDistrib(""),
+      iInternalError(errNone), iNetworkError(neSuccess), EndHitNo(0), HitsCount(0), RelevantDocsCount(0), HitsCountEstimated(false), HitDistrib(""), DocDistrib(""),
       HitsKey("hits_"), ResponseBody(""),
       pErrorStr(_pErrorStr),
       ReqPath("")
@@ -401,6 +402,7 @@ void CRunQueryData::Clear()
     EndHitNo = 0;
     HitsCount = 0;
     RelevantDocsCount = 0;
+    HitsCountEstimated = false;
     SelectedHosts.Clear();
     HitDistrib.clear();
     DocDistrib.clear();
@@ -429,6 +431,7 @@ void CRunQueryData::toString(string &Response, size_t WorkerId, const DDCVersion
 
                     + Format(",\"end_\":%i", EndHitNo)
                     + Format(",\"nhits_\":%i", HitsCount)
+                    + (HitsCountEstimated ? ",\"nhits_estimated_\":1" : "")
                     + Format(",\"ndocs_\":%i", RelevantDocsCount)
                     + ",\"dhits_\":" + jsonStr(HitDistrib)
                     + ",\"ddocs_\":" + jsonStr(DocDistrib)
@@ -478,7 +481,7 @@ void CDDCBranchServer::handle__get_first_hits(string &Result, const char *Query,
     CheckFirstHitsResult(rc);
     
     //-- adapted from CDDCLeafServer::handle__get_first_hits(), CConcSession::GetHitIds()
-    Result = Format ("%i %zi %zi %zi %i", FHResult.m_InternalError, runq.EndHitNo, FHResult.m_AllHitsCount, FHResult.m_AllRelevantDocsCount, FHResult.m_SortOrder);
+    Result = Format ("%i %zi %zi %zi %i %i", FHResult.m_InternalError, runq.EndHitNo, FHResult.m_AllHitsCount, FHResult.m_AllRelevantDocsCount, FHResult.m_SortOrder, (int)FHResult.m_bHitsCountEstimated);
     char buf[32];
     size_t beg = FHResult.PhysicalOffset(runq.StartHitNo);
     size_t end = FHResult.PhysicalMax(runq.StartHitNo+runq.ResultLimit);
@@ -943,6 +946,7 @@ NetworkErrorsEnum CDDCBranchServer::RunGetFirstHits()
     GetFirstHitsFromCorpora(runq.SelectedHosts, CleanQuery, runq.StartHitNo, runq.ResultLimit, runq.TimeOut, FHResult);
     runq.HitsCount = FHResult.m_AllHitsCount;
     runq.RelevantDocsCount = FHResult.m_AllRelevantDocsCount;
+    runq.HitsCountEstimated = FHResult.m_bHitsCountEstimated;
     runq.iInternalError = FHResult.m_InternalError;
     if (FHResult.HasErrors()) {
         FHResult.CloseConnections();
@@ -1274,6 +1278,7 @@ void CDDCBranchServer::GetFirstHitsFromCorpora(const CSelectedHosts& SelectedHos
     Result.m_Connections.assign(SelectedHosts.size(), nullptr);
     Result.m_AllHitsCount = 0;
     Result.m_AllRelevantDocsCount = 0;
+    Result.m_bHitsCountEstimated = false;
     Result.m_NetworkError = neSuccess;
     Result.m_InternalError = errNone;
     Result.m_SortOrder = hsoNone;
@@ -1338,9 +1343,11 @@ void CDDCBranchServer::GetFirstHitsFromCorpora(const CSelectedHosts& SelectedHos
         };
 
         size_t  CorpusHitsCount,RelevantDocumentsCount, EndHitNo;
-        int iInternalError, iSort;
+        int iInternalError, iSort, iEstimated = 0;
 
-        if(sscanf(S.c_str(), "%i %zi %zi %zi %i", &iInternalError, &EndHitNo, &CorpusHitsCount, &RelevantDocumentsCount, &iSort) != 5)
+        //-- the 6th field (the counts are estimated) since ddc3; older daughters send 5
+        string Header = S.substr(0, S.find_first_of("\t\n"));   //-- the hit ids follow after a tab
+        if(sscanf(Header.c_str(), "%i %zi %zi %zi %i %i", &iInternalError, &EndHitNo, &CorpusHitsCount, &RelevantDocumentsCount, &iSort, &iEstimated) < 5)
         {
             Result.m_NetworkError = neProtocolError;
             Result.m_ErrorStr     = string("[") + Host.m_CorpusName + "] " + GetNetworkErrorString(Result.m_NetworkError);
@@ -1348,6 +1355,7 @@ void CDDCBranchServer::GetFirstHitsFromCorpora(const CSelectedHosts& SelectedHos
         }
         Result.m_InternalError = (DDCErrorEnum)iInternalError;
         Result.m_AllHitsCount += CorpusHitsCount;
+        if (iEstimated) Result.m_bHitsCountEstimated = true;
         HitsDistribution[HostNo] = CorpusHitsCount;
         Result.m_AllRelevantDocsCount += RelevantDocumentsCount;
         RelevantDocsDistribution[HostNo] = RelevantDocumentsCount;

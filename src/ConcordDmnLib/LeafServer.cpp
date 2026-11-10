@@ -64,8 +64,8 @@ void CDDCLeafServer::handle__get_first_hits(string &Result, const char *Query, i
     if (Error != errNone)
         throw CDDCExpc(Error, m_pHolder->m_ErrorStr.empty() ? GetDDCErrorString((DDCErrorEnum) Error)
                     : m_pHolder->m_ErrorStr); //-- error
-    Result = Format("%i %i %i %i %i", Error, EndHitNo, m_pHolder->m_AllHitsCount, m_pHolder->m_RelevantDocumentCount,
-                    m_pHolder->HitSortOrder());
+    Result = Format("%i %i %i %i %i %i", Error, EndHitNo, m_pHolder->m_AllHitsCount, m_pHolder->m_RelevantDocumentCount,
+                    m_pHolder->HitSortOrder(), (int)m_pHolder->m_bHitsCountEstimated);
     Result += m_pHolder->GetHitIds();
 
     NAVCACHE_DEBUG(ddcLogTrace(Format("get_first_hits[HintOffset=%d]: %s", Hint.m_Offset, Result.c_str())));

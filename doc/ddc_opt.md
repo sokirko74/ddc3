@@ -66,6 +66,7 @@ NumberOfKwicLinesInSnippets N
 MaxRegExpExpansionSize N
 MaxCachedHitsCount N
 MaxQueryCacheSize N
+EstimateHitsCount N
 UserMaxTokenCountInOnePeriod N
 
 LocalPathPrefix VAL
@@ -458,6 +459,18 @@ Set maximum number of queries to be LRU-cached by an associated CConcHolder (sub
 
 Since v2.0.23 (formerly a global constant = 500).
 
+
+### EstimateHitsCount
+
+```
+EstimateHitsCount N
+```
+
+Estimate the number of hits instead of counting all of them. A query without sort operators (and not a `count()` query) is evaluated period by period (see [UserMaxTokenCountInOnePeriod](#usermaxtokencountinoneperiod)); with `N > 0` the evaluation stops as soon as at least `N` hits are found and the requested hits (`start+limit`, at least [MaxCachedHitsCount](#maxcachedhitscount)) are there. The number of hits (and of relevant documents) is then extrapolated: the hits found divided by the share of the tokens of the subcorpus searched so far. The response of [run\_query](ddc_protocol.md#run_query) has `"nhits_estimated_":1` in this case.
+
+The hits returned are the same as without the option, since they are taken from the periods already searched, only `nhits_` is approximate (for a corpus of books in periods of 5 million tokens and `N = 10000` it differs from the exact number by up to about 10%). A query with fewer than `N` hits is counted exactly. Default: 0 (count all hits).
+
+Since ddc3.
 ### UserMaxTokenCountInOnePeriod
 
 ```

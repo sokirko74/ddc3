@@ -383,6 +383,7 @@ Server response depends on FORMAT. In `JSON` mode, the response data for a tradi
   "nstatus_" : 0,		  //-- network status code, 0:success
   "error_" : null,		  //-- error string, null:no error
   "nhits_" : 31,		  //-- total number of hits
+  "nhits_estimated_" : 1,	  //-- only if nhits_ and ndocs_ are estimated (EstimateHitsCount, see ddc_opt(5))
   "dhits_" : "17+4+10=31",	  //-- distribution of hits over subcorpora
   "ndocs_" : 0,		  //-- (?) number of documents containing hits (?)
   "ddocs_" : "0+0+0=0",	  //-- (?) distribution of hit-documents over subcorpora (?)
@@ -481,10 +482,10 @@ where `STATUS` is a non-zero decimal integer error code, and `ERROR` is a text s
 On success, responses have the form:
 
 ```
-STATUS " " HITUB " " NHITS " " NDOCS " " SORT " " HITIDS
+STATUS " " HITUB " " NHITS " " NDOCS " " SORT " " ESTIMATED "\t" HITIDS
 ```
 
-where `STATUS` is a decimal integer status, 0 (zero) for success, `HITUB` should be the index of the last hit returned + 1 (see CConcSession::GetHits(q, \_\_EndHitNo\_\_)), `NHITS` is the total number of hits found (see CConcHolder::m\_AllHitsCount), `NDOCS` is the number of relevant documents found (usually 0 (zero); see CConcHolder::m\_RelevantDocumentCount), `SORT` is a indicates whether and/or how the hits are to be sorted (0: no sort, 1: ascending sort, -1: descending sort), and `HITIDS` is a TAB-separated list of `NHITS` hit-identification triples (see CConcHolder::GetHitIds()), each element of which has the form:
+where `STATUS` is a decimal integer status, 0 (zero) for success, `HITUB` should be the index of the last hit returned + 1 (see CConcSession::GetHits(q, \_\_EndHitNo\_\_)), `NHITS` is the total number of hits found (see CConcHolder::m\_AllHitsCount), `NDOCS` is the number of relevant documents found (usually 0 (zero); see CConcHolder::m\_RelevantDocumentCount), `SORT` is a indicates whether and/or how the hits are to be sorted (0: no sort, 1: ascending sort, -1: descending sort), `ESTIMATED` is 1 if `NHITS` and `NDOCS` are estimated ([EstimateHitsCount](ddc_opt.md#estimatehitscount), since ddc3; older servers do not send it, and it is read only before the first TAB), and `HITIDS` is a TAB-separated list of `NHITS` hit-identification triples (see CConcHolder::GetHitIds()), each element of which has the form:
 
 ```
 INDEX " " ORDERID " " ORDER_STRING

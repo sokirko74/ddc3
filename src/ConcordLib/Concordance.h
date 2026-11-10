@@ -273,6 +273,10 @@ public:
     // moo: maximum number of queries to be cached by an associated CConcHolder (default=512)
     size_t m_MaxQueryCacheSize;
 
+    // if > 0: stop a query without sort operators as soon as this number of hits (and the requested ones) is found,
+    // the number of all hits is extrapolated by the share of the tokens searched (default=0: count all hits)
+    size_t m_EstimateHitsCount;
+
     // term expansion dispatcher; should define at least an entry for "default"
     TxDispatcher m_Txd;
 

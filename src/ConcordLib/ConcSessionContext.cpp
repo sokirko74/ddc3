@@ -70,6 +70,7 @@ bool CConcSessionContext::CacheGet(CConcHolder& Holder, const string &Query, uin
         Holder.m_DebugInfo = CacheItem.m_DebugInfo;
         Holder.m_AllHitsCount = CacheItem.m_AllHitsCount;
         Holder.m_RelevantDocumentCount = CacheItem.m_RelevantDocumentCount;
+        Holder.m_bHitsCountEstimated = CacheItem.m_bHitsCountEstimated;
         Holder.m_SortOrder = CacheItem.m_SortOrder;
         Holder.m_bSortByString = CacheItem.m_bSortByString;
 
@@ -116,6 +117,7 @@ void CConcSessionContext::CacheSet(CConcHolder& Holder, const string& Query, vec
         CQueryResult I;
         I.m_AllHitsCount = Holder.m_AllHitsCount;
         I.m_RelevantDocumentCount = Holder.m_RelevantDocumentCount;
+        I.m_bHitsCountEstimated = Holder.m_bHitsCountEstimated;
         I.m_SortOrder = Holder.m_SortOrder;
         I.m_bSortByString = Holder.m_bSortByString;
         size_t End  = min(Holder.m_pConcordance->m_MaxCachedHitsCount, (size_t)(end-start));

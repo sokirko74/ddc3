@@ -52,6 +52,7 @@ struct LessByHitNo {
 struct CFirstHitsQueryResult  {
     size_t                      m_AllHitsCount;
     size_t                      m_AllRelevantDocsCount; 
+    bool                        m_bHitsCountEstimated;  //< some subcorpus extrapolated its counts (EstimateHitsCount)
     std::string                      m_HitsDistributionStr;
     std::string                      m_RelevantDocsDistributionStr;
     int                         m_InternalError;
@@ -186,6 +187,7 @@ public:
     size_t EndHitNo;                    // final hit number returned
     size_t HitsCount;                   // total number of hits
     size_t RelevantDocsCount;           // ?
+    bool HitsCountEstimated;            // HitsCount and RelevantDocsCount are estimated (EstimateHitsCount of a subcorpus)
     //DwordVector PossibleHosts;          ///< indices of selected immediate subcorpora
     CSelectedHosts SelectedHosts;       // maps immediate subcorpora to selected sub-subcorpora
     std::string HitDistrib;                  // ?
