@@ -1,6 +1,6 @@
 Russian
 IndexMorphPatterns
-ArchiveIndex
+StreamVByteIndex
 Bibl string 1 author /TEI.2/teiHeader/fileDesc/sourceDesc[@id="orig"]/author
 Bibl string 1 bibl   /TEI.2/teiHeader/fileDesc/sourceDesc[@id="orig"]/bibl
 Bibl string 0 date   /TEI.2/teiHeader/fileDesc/sourceDesc[@id="orig"]/date

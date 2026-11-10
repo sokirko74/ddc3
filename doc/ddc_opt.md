@@ -232,7 +232,8 @@ Store the occurrences of the indices compressed: the distances between neighbour
 code (7 bits per byte, VByte), starting anew in each search period. The same as the type `archive` of an index in
 [Indices](#indices). The lists of occurrences take about half the space (Flibusta, 234 million tokens: Token 892 → 431 MB,
 MorphPattern 694 → 268 MB, the index 2.6 → 1.7 GB); the queries are about 5% slower when the index is in the page cache
-and faster when it is read from the disk. Changing the option requires re-indexing.
+and faster when it is read from the disk. Changing the option requires re-indexing. [StreamVByteIndex](#streamvbyteindex)
+is recommended instead: almost the same size and faster than an uncompressed index.
 
 ### StreamVByteIndex
 
