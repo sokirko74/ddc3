@@ -183,6 +183,7 @@ NetworkErrorsEnum CHttpConnection::Request(const string& command, const RequestP
             m_Impl->Client.reset(new httplib::Client(addr.m_Addr, addr.m_Port));
         }
         m_Impl->Client->set_keep_alive(true);
+        m_Impl->Client->set_tcp_nodelay(true);   // no Nagle: the body of a POST waits for the ACK of the headers otherwise
     }
     httplib::Client& cli = *m_Impl->Client;
     cli.set_connection_timeout(timeout, 0);

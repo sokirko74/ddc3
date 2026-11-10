@@ -159,6 +159,7 @@ void CHost::CreateListener()
         return new httplib::ThreadPool(nWorkers == 0 ? 1 : nWorkers, maxQueued);
     };
     //-- a keep-alive connection is a session (get_first_hits, get_hit_strings, ...)
+    server->set_tcp_nodelay(true);   // no Nagle: a response written in parts waits ~40-200 ms for a delayed ACK
     server->set_keep_alive_max_count(100);
     server->set_keep_alive_timeout(30);
     server->set_read_timeout(30, 0);
