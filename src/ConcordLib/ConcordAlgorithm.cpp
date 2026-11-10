@@ -1,5 +1,6 @@
 #include "StdConc.h"
 #include "ConcordAlgorithm.h"
+#include <cstring>
 
 using namespace std;
 
@@ -322,3 +323,107 @@ void DeconvertFromVariableInteger(const uint32_t* in_start, const uint32_t* in_e
     OutCount =  out_start - save_out_start;
 
 };
+
+
+//==============================================================================
+// Stream VByte
+
+void ConvertToStreamVByte(const vector<uint32_t>& In, vector<uint32_t>& Out)
+{
+    size_t n = In.size();
+    vector<BYTE> bytes(4 + (n + 3) / 4, 0);
+    uint32_t n32 = (uint32_t)n;
+    memcpy(&bytes[0], &n32, 4);
+    uint32_t prev = 0;
+    for (size_t i = 0; i < n; i++) {
+        uint32_t d = In[i] - prev;
+        prev = In[i];
+        int len = d < (1u << 8) ? 1 : d < (1u << 16) ? 2 : d < (1u << 24) ? 3 : 4;
+        bytes[4 + i / 4] |= (BYTE)((len - 1) << (2 * (i % 4)));
+        for (int b = 0; b < len; b++)
+            bytes.push_back((BYTE)(d >> (8 * b)));
+    }
+    Out.assign((bytes.size() + 3) / 4, 0);
+    memcpy(&Out[0], &bytes[0], bytes.size());
+}
+
+// the decoding tables: for a control byte, the shuffle of 16 data bytes to 4 numbers and the length of the 4 numbers
+struct CStreamVByteTables {
+    BYTE ShuffleMask[256][16];
+    BYTE GroupLength[256];
+    CStreamVByteTables() {
+        for (int c = 0; c < 256; c++) {
+            int pos = 0;
+            for (int i = 0; i < 4; i++) {
+                int len = ((c >> (2 * i)) & 3) + 1;
+                for (int b = 0; b < 4; b++)
+                    ShuffleMask[c][4 * i + b] = (BYTE)(b < len ? pos + b : 0x80);   // 0x80: a zero byte
+                pos += len;
+            }
+            GroupLength[c] = (BYTE)pos;
+        }
+    }
+};
+static const CStreamVByteTables StreamVByteTables;
+
+// decodes the numbers [i, n) one by one (the tail of a portion, or everything without SSSE3)
+static inline uint32_t StreamVByteScalar(const BYTE* ctrl, const BYTE*& data, size_t i, size_t n, uint32_t last, uint32_t* out)
+{
+    for (; i < n; i++) {
+        int len = ((ctrl[i / 4] >> (2 * (i % 4))) & 3) + 1;
+        uint32_t d = 0;
+        for (int b = 0; b < len; b++)
+            d |= (uint32_t)data[b] << (8 * b);
+        data += len;
+        last += d;
+        out[i] = last;
+    }
+    return last;
+}
+
+#if defined(__x86_64__) || defined(__i386__)
+#include <immintrin.h>
+
+__attribute__((target("ssse3")))
+static void DeconvertFromStreamVByteSsse3(const BYTE* ctrl, const BYTE* data, const BYTE* end, size_t n, uint32_t* out)
+{
+    __m128i prev = _mm_setzero_si128();
+    size_t g = 0;
+    // a group is decoded by a 16-byte load: only while 16 bytes are left in the portion
+    for (; g < n / 4 && data + 16 <= end; g++) {
+        BYTE c = ctrl[g];
+        __m128i v = _mm_shuffle_epi8(_mm_loadu_si128((const __m128i*)data),
+                                     _mm_loadu_si128((const __m128i*)StreamVByteTables.ShuffleMask[c]));
+        data += StreamVByteTables.GroupLength[c];
+        // prefix sums of the 4 distances + the last occurrence of the previous group
+        v = _mm_add_epi32(v, _mm_slli_si128(v, 4));
+        v = _mm_add_epi32(v, _mm_slli_si128(v, 8));
+        v = _mm_add_epi32(v, prev);
+        _mm_storeu_si128((__m128i*)(out + 4 * g), v);
+        prev = _mm_shuffle_epi32(v, 0xff);
+    }
+    StreamVByteScalar(ctrl, data, 4 * g, n, (uint32_t)_mm_cvtsi128_si32(prev), out);
+}
+
+// __builtin_cpu_init() must precede __builtin_cpu_supports() in a static initializer
+static const bool CpuHasSsse3 = [] { __builtin_cpu_init(); return __builtin_cpu_supports("ssse3") != 0; }();
+#endif
+
+void DeconvertFromStreamVByte(const uint32_t* in_start, const uint32_t* in_end, uint32_t* out_start, uint32_t& OutCount)
+{
+    OutCount = 0;
+    if (in_end - in_start < 1) return;
+    uint32_t n = in_start[0];
+    const BYTE* ctrl = (const BYTE*)(in_start + 1);
+    const BYTE* data = ctrl + (n + 3) / 4;
+    const BYTE* end = (const BYTE*)in_end;
+    if (data > end || n > 4 * (size_t)(in_end - in_start))
+        throw CExpc("bad Stream VByte occurrences (n=%u, %zi words)", n, (size_t)(in_end - in_start));
+#if defined(__x86_64__) || defined(__i386__)
+    if (CpuHasSsse3)
+        DeconvertFromStreamVByteSsse3(ctrl, data, end, n, out_start);
+    else
+#endif
+        StreamVByteScalar(ctrl, data, 0, n, 0, out_start);
+    OutCount = n;
+}

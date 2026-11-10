@@ -81,7 +81,7 @@ public:
     void CloseStorageFile();
 
     // initialize all class slots
-    void InitIndexSet(std::string Name, std::string ShortName, bool bCreateItemStorage, bool bCompress);
+    void InitIndexSet(std::string Name, std::string ShortName, bool bCreateItemStorage, bool bCompress, bool bStreamVByte = false);
 
     // read index from the disk
     void ReadFromTheDisk();

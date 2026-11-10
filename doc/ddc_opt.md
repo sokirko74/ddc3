@@ -40,6 +40,7 @@ UseParagraphTagToDivide
 EmptyLineIsNotSentenceDelim
 DontUseIndention
 ArchiveIndex
+StreamVByteIndex
 ResumeOnIndexErrors
 
 GutenbergInterface
@@ -233,6 +234,19 @@ code (7 bits per byte, VByte), starting anew in each search period. The same as 
 MorphPattern 694 → 268 MB, the index 2.6 → 1.7 GB); the queries are about 5% slower when the index is in the page cache
 and faster when it is read from the disk. Changing the option requires re-indexing.
 
+### StreamVByteIndex
+
+    StreamVByteIndex
+
+Store the occurrences of the indices compressed by Stream VByte (Lemire, Kurz, Rupp, 2017): the distances between
+neighbouring occurrences take 1-4 bytes, their lengths are kept apart in control bytes (2 bits per distance), so that
+4 distances are decoded at once by one SSSE3 byte shuffle (a scalar decoder is used on a processor without SSSE3).
+The same as the type `svbyte` of an index in [Indices](#indices); overrides [ArchiveIndex](#archiveindex). The lists
+of occurrences are ~7% larger than with `ArchiveIndex`, but decoding is ~7 times faster, so the queries are not slower
+than with an uncompressed index (Flibusta, 234 million tokens, 18 test queries: Token 892 → 460 MB, MorphPattern
+694 → 288 MB, the index 2.6 → 1.8 GB; in the page cache 2.35 s (normal), 2.86 s (archive), 2.25 s (svbyte); read from
+the disk 4.95 s, 4.33 s, 3.73 s). Changing the option requires re-indexing.
+
 ### ResumeOnIndexErrors
 
     ResumeOnIndexErrors 1
@@ -277,7 +291,8 @@ where:
 
 - ARCHIVE
 
-  is one of the strings `archive` or `normal`. If it is `archive`, the current index is archived, otherwise it is not; and
+  is one of the strings `archive`, `svbyte` or `normal`. If it is `archive` (VByte, see [ArchiveIndex](#archiveindex)) or `svbyte`
+  (Stream VByte, see [StreamVByteIndex](#streamvbyteindex)), the occurrences of the current index are compressed, otherwise they are not; and
 
 - STORAGE
 

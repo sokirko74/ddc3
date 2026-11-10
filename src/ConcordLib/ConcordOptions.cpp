@@ -38,6 +38,7 @@ void CConcordance::InitDefaultOptions() {
     m_bNoContextOperator = false;
     m_IndexType = DWDS_Index;
     m_bArchiveIndex = false;
+    m_bStreamVByteIndex = false;
 
     m_Language = morphUnknown;
     m_bShowNumberOfRelevantDocuments = false;
@@ -375,6 +376,9 @@ void CConcordance::LoadOptionsFromString(string Options) {
         } else if (q == "ArchiveIndex") {
             m_bArchiveIndex = StringToBool(fields.next_token());
             EchoOption("ArchiveIndex %s", BoolToString(m_bArchiveIndex));
+        } else if (q == "StreamVByteIndex") {
+            m_bStreamVByteIndex = StringToBool(fields.next_token());
+            EchoOption("StreamVByteIndex %s", BoolToString(m_bStreamVByteIndex));
         } else if (q == "OutputBibliographyOfHits") {
             m_bOutputBibliographyOfHits = StringToBool(fields.next_token());
             EchoOption("OutputBibliographyOfHits %s", BoolToString(m_bOutputBibliographyOfHits));
@@ -466,7 +470,7 @@ void CConcordance::LoadOptionsFromString(string Options) {
                                  (!m_bCaseSensitive));
 
         
-    const char* ArchiveType = (m_bArchiveIndex) ? "archive" : "normal";
+    const char* ArchiveType = m_bStreamVByteIndex ? "svbyte" : m_bArchiveIndex ? "archive" : "normal";
         
     switch (m_IndexType) {
         case MorphXML_Index:
@@ -637,6 +641,8 @@ string CConcordance::SaveOptionsToString() const {
 
     if (m_bArchiveIndex)
         Result += Format("ArchiveIndex\n");
+    if (m_bStreamVByteIndex)
+        Result += Format("StreamVByteIndex\n");
                                 
     if (m_bIndexMorphPatterns)
         Result += Format("IndexMorphPatterns\n");

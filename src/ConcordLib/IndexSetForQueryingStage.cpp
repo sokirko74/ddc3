@@ -83,10 +83,13 @@ bool CIndexSetForQueryingStage::LoadIndexSet(bool bLoadHeaderOfOccurrences) {
 
 
 void
-DearchiveOccurrences(const uint32_t *in_start, const uint32_t *in_end, uint32_t *out_start, uint32_t &OutCount, bool bEnabled) {
+DearchiveOccurrences(const uint32_t *in_start, const uint32_t *in_end, uint32_t *out_start, uint32_t &OutCount, bool bEnabled,
+                     bool bStreamVByte = false) {
     if (!bEnabled) {
         OutCount = in_end - in_start;
         memcpy(out_start, in_start, OutCount * sizeof(uint32_t));
+    } else if (bStreamVByte) {
+        DeconvertFromStreamVByte(in_start, in_end, out_start, OutCount);
     } else {
         DeconvertFromVariableInteger(in_start, in_end, out_start, OutCount);
         //DearchiveSequence(in_start, in_end,  out_start, OutCount);
@@ -184,7 +187,7 @@ void CIndexSetForQueryingStage::AddOccurs(size_t PeriodDevId, const bool bOneOcc
             uint32_t old_size = Occurs.size();
             Occurs.resize(Occurs.size() + PeriodSize * MaxCompressRatio);
             DearchiveOccurrences(&TempOccurrsBuffer[0], &TempOccurrsBuffer[0] + TempOccurrsBuffer.size(),
-                                 &Occurs[0] + old_size, DearchivedSize, m_bCompressOccurrences);
+                                 &Occurs[0] + old_size, DearchivedSize, m_bCompressOccurrences, m_bStreamVByte);
 
             // adjusting the size  of  Occurs, since we have reserved  too much space   (MaxCountToRead*3)
             Occurs.resize(old_size + DearchivedSize);
@@ -224,7 +227,7 @@ void CIndexSetForQueryingStage::AddOccurs(size_t PeriodDevId, const bool bOneOcc
                 // MaxCountToRead is going to be changed, if the index is archived
                 // it will contain the real number of poistions for this  IndexItemNo
                 DearchiveOccurrences(pBuffer, pBuffer + MaxCountToRead, NewBuffer, MaxCountToRead,
-                                     m_bCompressOccurrences);
+                                     m_bCompressOccurrences, m_bStreamVByte);
                 pBuffer = NewBuffer;
 
                 if (pCacheByIndexSet && pCacheByIndexSet->CouldContainMore()) {
@@ -296,9 +299,11 @@ file_off_t CIndexSetForQueryingStage::GetOccurrsFileSize() const {
 };
 
 
-void CompressOccurrences(const vector<uint32_t> &In, vector<uint32_t> &Out, bool bEnabled) {
+void CompressOccurrences(const vector<uint32_t> &In, vector<uint32_t> &Out, bool bEnabled, bool bStreamVByte = false) {
     if (!bEnabled)
         Out = In;
+    else if (bStreamVByte)
+        ConvertToStreamVByte(In, Out);
     else {
         ConvertToVariableInteger(In, Out);
     }
@@ -306,11 +311,12 @@ void CompressOccurrences(const vector<uint32_t> &In, vector<uint32_t> &Out, bool
 
 
 void
-CompressPortion(vector<uint32_t> &Archive, const vector<uint32_t> &Body, uint32_t Start, uint32_t End, bool bArchiveOccurrences) {
+CompressPortion(vector<uint32_t> &Archive, const vector<uint32_t> &Body, uint32_t Start, uint32_t End, bool bArchiveOccurrences,
+                bool bStreamVByte) {
     vector<CTokenNo> NewPortion;
     NewPortion.insert(NewPortion.begin(), Body.begin() + Start, Body.begin() + End);
     vector<CTokenNo> ArchivedNewPortion;
-    CompressOccurrences(NewPortion, ArchivedNewPortion, bArchiveOccurrences);
+    CompressOccurrences(NewPortion, ArchivedNewPortion, bArchiveOccurrences, bStreamVByte);
     Archive.insert(Archive.end(), ArchivedNewPortion.begin(), ArchivedNewPortion.end());
 };
 
@@ -335,7 +341,7 @@ bool CIndexSetForQueryingStage::BuildPeriodsDivisionAndCompress(const uint32_t P
     // only archiving if it is necessary
     if (OccurBufferSize >= OriginalTokenCount) {
         // the number of occurrences is too small for building  period division
-        CompressPortion(ResultArchive, InputTokens, 0, InputTokens.size(), m_bCompressOccurrences);
+        CompressPortion(ResultArchive, InputTokens, 0, InputTokens.size(), m_bCompressOccurrences, m_bStreamVByte);
 
         // writing back to IndexItem archived version of occurrences
         InputTokens = ResultArchive;
@@ -366,7 +372,7 @@ bool CIndexSetForQueryingStage::BuildPeriodsDivisionAndCompress(const uint32_t P
             };
 
             if (j > PrevStart)
-                CompressPortion(ResultArchive, InputTokens, PrevStart, j, m_bCompressOccurrences);
+                CompressPortion(ResultArchive, InputTokens, PrevStart, j, m_bCompressOccurrences, m_bStreamVByte);
             else {
                 //no occurrences in the search period
             }
@@ -395,7 +401,7 @@ bool CIndexSetForQueryingStage::BuildPeriodsDivisionAndCompress(const uint32_t P
             return false;
         };
 
-        CompressPortion(ResultArchive, InputTokens, PrevStart, j, m_bCompressOccurrences);
+        CompressPortion(ResultArchive, InputTokens, PrevStart, j, m_bCompressOccurrences, m_bStreamVByte);
     } else {
         //no occurrences in the last search period
     }

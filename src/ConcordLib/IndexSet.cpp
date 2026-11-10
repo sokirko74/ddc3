@@ -26,11 +26,12 @@ CStringIndexSet::CStringIndexSet(const CStringIndexator *pParent)
 };
 
 
-void CStringIndexSet::InitIndexSet(string Name, string ShortName, bool bCreateItemStorage, bool bCompress) {
+void CStringIndexSet::InitIndexSet(string Name, string ShortName, bool bCreateItemStorage, bool bCompress, bool bStreamVByte) {
     m_Name = Name;
     m_ShortName = ShortName;
     m_bUseItemStorage = bCreateItemStorage;
-    m_bCompressOccurrences = bCompress;
+    m_bCompressOccurrences = bCompress || bStreamVByte;
+    m_bStreamVByte = bStreamVByte;
 };
 
 

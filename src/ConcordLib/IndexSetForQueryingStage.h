@@ -204,6 +204,9 @@ public:
     // if true, then the occurrences should be compresses (up to 30% for huge corpora)
     bool m_bCompressOccurrences;
 
+    // the compression of m_bCompressOccurrences is Stream VByte (index type "svbyte"), not VByte ("archive")
+    bool m_bStreamVByte = false;
+
 
     CIndexSetForQueryingStage(const CStringIndexator *pParent);
 

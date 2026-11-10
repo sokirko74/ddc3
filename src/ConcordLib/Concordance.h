@@ -210,6 +210,7 @@ public:
     bool m_bQueryOnlyFiles;
     // sets that index should be archived  under DWDS_Index or MorphXML_Index
     bool m_bArchiveIndex;
+    bool m_bStreamVByteIndex;   // the occurrences of the default indices in Stream VByte (StreamVByteIndex)
     // if true, CConcIndexatorInvoker skips source documents with errors
     bool m_bResumeOnIndexErrors;
 

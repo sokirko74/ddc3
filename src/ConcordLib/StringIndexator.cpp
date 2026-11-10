@@ -67,10 +67,12 @@ bool CStringIndexator::RegisterStringIndices(const string &IndicesStr) {
             return false;
         };
 
-        bool bCompressed = true;
+        bool bCompressed = true, bStreamVByte = false;
 
         if (CompressedStr == "archive")
             bCompressed = true;
+        else if (CompressedStr == "svbyte")
+            bStreamVByte = true;
         else if (CompressedStr == "normal")
             bCompressed = false;
         else {
@@ -98,7 +100,7 @@ bool CStringIndexator::RegisterStringIndices(const string &IndicesStr) {
         }
 
         CStringIndexSet *R = new CStringIndexSet(this);
-        R->InitIndexSet(Name, Short, bStorage, bCompressed);
+        R->InitIndexSet(Name, Short, bStorage, bCompressed, bStreamVByte);
         m_Indices.push_back(R);
 
         //-- register alias
@@ -163,7 +165,7 @@ string CStringIndexator::GetIndicesString() const {
             Result += Format("[%s %s %s %s];",
                              m_Indices[i]->m_Name.c_str(),
                              m_Indices[i]->m_ShortName.c_str(),
-                             (m_Indices[i]->m_bCompressOccurrences ? "archive" : "normal"),
+                             (m_Indices[i]->m_bStreamVByte ? "svbyte" : m_Indices[i]->m_bCompressOccurrences ? "archive" : "normal"),
                              (m_Indices[i]->m_bUseItemStorage ? "storage" : "storage_omit"));
     };
     Trim(Result);
