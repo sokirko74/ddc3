@@ -1,6 +1,7 @@
 /build/
 /build-release/
 /build-prof/
+/build-reldbg/
 cmake-build-*/
 /dict
 /log/
